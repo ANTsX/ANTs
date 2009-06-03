@@ -54,21 +54,21 @@ TARGET_LINK_LIBRARIES(PrintHeader ITKCommon  ITKBasicFilters ITKIO   ITKNumerics
 ADD_EXECUTABLE(ResetDirection ResetDirection.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(ResetDirection ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
-ADD_EXECUTABLE(ResetDirection2 ResetDirection2.cxx ${SOURCES})
-TARGET_LINK_LIBRARIES(ResetDirection2 ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+#ADD_EXECUTABLE(ResetDirection2 ResetDirection2.cxx ${SOURCES})
+#TARGET_LINK_LIBRARIES(ResetDirection2 ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
-ADD_EXECUTABLE(BoykovGraphCutFilter BoykovGraphCutFilter.cxx ${SOURCES})
-TARGET_LINK_LIBRARIES(BoykovGraphCutFilter ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+#ADD_EXECUTABLE(BoykovGraphCutFilter BoykovGraphCutFilter.cxx ${SOURCES})
+#TARGET_LINK_LIBRARIES(BoykovGraphCutFilter ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 #ADD_EXECUTABLE(GeneralLinearModel GeneralLinearModel.cxx ${SOURCES})
 #TARGET_LINK_LIBRARIES(GeneralLinearModel ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 
-ADD_EXECUTABLE(GLM GLM.cxx ${SOURCES})
-TARGET_LINK_LIBRARIES(GLM ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+#ADD_EXECUTABLE(GLM GLM.cxx ${SOURCES})
+#TARGET_LINK_LIBRARIES(GLM ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
-ADD_EXECUTABLE(FDR FDR.cxx ${SOURCES})
-TARGET_LINK_LIBRARIES(FDR ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+#ADD_EXECUTABLE(FDR FDR.cxx ${SOURCES})
+#TARGET_LINK_LIBRARIES(FDR ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 ADD_EXECUTABLE(ImageMath ImageMath.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(ImageMath ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
@@ -154,8 +154,8 @@ TARGET_LINK_LIBRARIES(StackSlices ITKCommon  ITKBasicFilters ITKIO   ITKNumerics
 ADD_EXECUTABLE(MemoryTest MemoryTest.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(MemoryTest ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
-ADD_EXECUTABLE(ANTSOrientImage ANTSOrientImage.cxx ${SOURCES})
-TARGET_LINK_LIBRARIES(ANTSOrientImage ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+#ADD_EXECUTABLE(ANTSOrientImage ANTSOrientImage.cxx ${SOURCES})
+#TARGET_LINK_LIBRARIES(ANTSOrientImage ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 ADD_EXECUTABLE(PermuteFlipImageOrientationAxes PermuteFlipImageOrientationAxes.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(PermuteFlipImageOrientationAxes ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
