@@ -101,8 +101,8 @@ TARGET_LINK_LIBRARIES(SetSpacing ITKCommon  ITKBasicFilters ITKIO   ITKNumerics 
 ADD_EXECUTABLE(CreateWarpedGridImage CreateWarpedGridImage.cxx)
 TARGET_LINK_LIBRARIES(CreateWarpedGridImage ITKCommon  ITKBasicFilters ITKIO)
 
-ADD_EXECUTABLE(CreateJacobianDeterminantImage CreateJacobianDeterminantImage.cxx)
-TARGET_LINK_LIBRARIES(CreateJacobianDeterminantImage ITKCommon  ITKBasicFilters ITKIO)
+# ADD_EXECUTABLE(CreateJacobianDeterminantImage CreateJacobianDeterminantImage.cxx)
+# TARGET_LINK_LIBRARIES(CreateJacobianDeterminantImage ITKCommon  ITKBasicFilters ITKIO)
 
 ADD_EXECUTABLE(MeasureImageSimilarity MeasureImageSimilarity.cxx)
 TARGET_LINK_LIBRARIES(MeasureImageSimilarity ITKCommon  ITKBasicFilters ITKIO)

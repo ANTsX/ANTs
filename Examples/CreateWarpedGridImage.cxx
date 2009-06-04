@@ -2,8 +2,8 @@
 #include "itkImageFileWriter.h"
 #include "itkVectorImageFileReader.h"
 #include "itkVector.h"
-
-#include "itkWarpImageFilter.h"
+#include "itkMatrixOffsetTransformBase.h"
+#include "itkWarpImageMultiTransformFilter.h"
 #include "itkGridImageSource.h"
 
 template <class TValue>
@@ -147,13 +147,24 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   gridder->SetSigma( gridSigma );
   gridder->SetWhichDimensions( which );
   gridder->Update();
+  typename RealImageType::Pointer grid = gridder->GetOutput();
+  grid->SetDirection(reader->GetOutput()->GetDirection() );
+  grid->SetOrigin(reader->GetOutput()->GetOrigin() );
+  grid->SetSpacing(reader->GetOutput()->GetSpacing() );
 
-  typedef itk::WarpImageFilter<RealImageType, RealImageType, VectorImageType> WarperType;
-  typename WarperType::Pointer warper = WarperType::New();
-  warper->SetDeformationField( reader->GetOutput() );
-  warper->SetInput( gridder->GetOutput() );
-  warper->SetOutputOrigin( gridder->GetOutput()->GetOrigin() );
-  warper->SetOutputSpacing( gridder->GetOutput()->GetSpacing() );
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
+                                         ImageDimension>
+                                                                                                           TransformType;
+  typedef itk::WarpImageMultiTransformFilter<RealImageType, RealImageType, VectorImageType, TransformType> WarperType;
+  typename WarperType::Pointer  warper = WarperType::New();
+  warper->SetInput(grid);
+  warper->SetEdgePaddingValue( 0);
+  warper->SetSmoothScale(1);
+  warper->PushBackDeformationFieldTransform(reader->GetOutput() );
+  warper->SetOutputOrigin(reader->GetOutput()->GetOrigin() );
+  warper->SetOutputSize(reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
+  warper->SetOutputSpacing(reader->GetOutput()->GetSpacing() );
+  warper->SetOutputDirection(reader->GetOutput()->GetDirection() );
   warper->Update();
 
   std::string file = std::string( argv[3] );

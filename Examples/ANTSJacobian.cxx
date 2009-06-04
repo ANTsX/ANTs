@@ -16,6 +16,8 @@
 #include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
 
 #include "itkVectorImageFileReader.h"
+#include "itkMatrixOffsetTransformBase.h"
+#include "itkWarpImageMultiTransformFilter.h"
 
 template <class TImage>
 typename TImage::Pointer VectorAniDiff(typename TImage::Pointer img, unsigned int iters)
@@ -110,10 +112,30 @@ typename ImageType::Pointer ReadAnImage(char* fn)
 }
 
 template <class TImage, class TDeformationField>
+typename TDeformationField::PixelType
+TransformVector(TDeformationField* field, typename TImage::IndexType index )
+{
+  enum { ImageDimension = TImage::ImageDimension };
+  typename TDeformationField::PixelType vec = field->GetPixel(index);
+  typename TDeformationField::PixelType newvec;
+  newvec.Fill(0);
+  for( unsigned int row = 0; row < ImageDimension; row++ )
+    {
+    for( unsigned int col = 0; col < ImageDimension; col++ )
+      {
+      newvec[row] += vec[col] * field->GetDirection()[row][col];
+      }
+    }
+
+  return newvec;
+}
+
+template <class TImage, class TDeformationField>
 void
 ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog = false, bool norm = false)
 {
-  typedef TImage ImageType;
+  typedef TImage            ImageType;
+  typedef TDeformationField FieldType;
   enum { ImageDimension = TImage::ImageDimension };
   typedef itk::Image<float, ImageDimension> FloatImageType;
   typename FloatImageType::RegionType m_JacobianRegion;
@@ -142,18 +164,19 @@ ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog =
 
   if( grid )
     {
-    typedef itk::WarpImageFilter<TImage, TImage, TDeformationField> WarperType;
+    typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>             TransformType;
+    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, FieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
-    warper->SetInput( grid );
-    warper->SetDeformationField(field);
-    warper->SetOutputSpacing(field->GetSpacing() );
+    warper->SetInput(grid);
+    warper->SetEdgePaddingValue( 0);
+    warper->SetSmoothScale(1);
+    warper->PushBackDeformationFieldTransform(field);
     warper->SetOutputOrigin(field->GetOrigin() );
-    warper->SetEdgePaddingValue( 1 );
+    warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
+    warper->SetOutputSpacing(field->GetSpacing() );
+    warper->SetOutputDirection(field->GetDirection() );
     warper->Update();
     grid = warper->GetOutput();
-    }
-  if( grid )
-    {
     typedef  itk::ImageFileWriter<ImageType> writertype;
     typename writertype::Pointer writer = writertype::New();
     std::string fng = std::string(fnm) + "grid.nii";
@@ -194,8 +217,7 @@ ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog =
     difspace = 1.0;
     }
 
-  typedef itk::Vector<float, ImageDimension>     VectorType;
-  typedef itk::Image<VectorType, ImageDimension> FieldType;
+  typedef itk::Vector<float, ImageDimension> VectorType;
 
   typename FieldType::PixelType dPix;
   typename FieldType::PixelType lpix;
@@ -252,7 +274,7 @@ ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog =
       {
       ct++;
       typename TImage::IndexType temp = rindex;
-      cpix = field->GetPixel(rindex);
+      cpix = TransformVector<ImageType, FieldType>(field, rindex);
       for( unsigned int row = 0; row < ImageDimension; row++ )
         {
         difIndex[row][0] = rindex;
@@ -273,15 +295,15 @@ ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog =
         float h = 0.5;
         space = 1.0; // should use image spacing here?
 
-        rpix = field->GetPixel(difIndex[row][1]);
+        rpix = TransformVector<ImageType, FieldType>(field, difIndex[row][1]);
         rpix = rpix * h + cpix * (1. - h);
-        lpix = field->GetPixel(difIndex[row][0]);
+        lpix = TransformVector<ImageType, FieldType>(field, difIndex[row][0]);
         lpix = lpix * h + cpix * (1. - h);
         //    dPix = ( rpix - lpix)*(1.0)/(2.0);
 
-        rrpix = field->GetPixel(ddrindex);
+        rrpix = TransformVector<ImageType, FieldType>(field, ddrindex);
         rrpix = rrpix * h + rpix * (1. - h);
-        llpix = field->GetPixel(ddlindex);
+        llpix = TransformVector<ImageType, FieldType>(field, ddlindex);
         llpix = llpix * h + lpix * (1. - h);
         dPix = ( lpix * (-8.0) + rpix * 8.0 - rrpix + llpix ) * (-1.0) * space / (12.0); // 4th order centered
                                                                                          // difference
