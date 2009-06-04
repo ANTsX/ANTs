@@ -367,7 +367,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
     meanvalue /= (float)ct;
     }
 
-  WriteImage<ImageType>(laplacian, "laplacian.hdr");
+  // /  WriteImage<ImageType>(laplacian, "laplacian.hdr");
 
   GradientImageFilterPointer filter = GradientImageFilterType::New();
   filter->SetInput(  laplacian );
@@ -951,7 +951,7 @@ int LaplacianThickness(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-  if( argc < 5 )
+  if( argc < 4 )
     {
     std::cout << "Useage ex:   " << argv[0]
               <<
