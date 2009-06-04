@@ -133,8 +133,8 @@ TARGET_LINK_LIBRARIES(ClusterImageStatistics ITKCommon  ITKBasicFilters ITKIO   
 ADD_EXECUTABLE(LabelClustersUniquely LabelClustersUniquely.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(LabelClustersUniquely ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
-ADD_EXECUTABLE(StudentsTestOnImages StudentsTestOnImages.cxx ${SOURCES})
-TARGET_LINK_LIBRARIES(StudentsTestOnImages ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+#ADD_EXECUTABLE(StudentsTestOnImages StudentsTestOnImages.cxx ${SOURCES})
+#TARGET_LINK_LIBRARIES(StudentsTestOnImages ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 ADD_EXECUTABLE(MeasureMinMaxMean MeasureMinMaxMean.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(MeasureMinMaxMean ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
