@@ -668,11 +668,6 @@ public:
       fixedGradientNorm /= mag1;
       }
 
-    //	for (int imd=0; imd<ImageDimension; imd++)
-      {
-      //  fdvec1[imd]=fixedGradientNorm[imd]*spacing[imd]*0.5;
-      // fdvec2[imd]=fixedGradientNorm[imd]*(-1.)*spacing[imd]*0.5;
-      }
     double nccm1 = 0;
     loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
     float sign = (1.) * loce; // nccp1-nccm1;
