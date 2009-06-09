@@ -5499,7 +5499,7 @@ N3BiasCorrectImage(   typename TImage::Pointer image,  typename TImage::Pointer 
                                               CorrecterType::BiasFieldControlPointLatticeType, typename
                                               CorrecterType::ScalarImageType> BSplinerType;
   typename BSplinerType::Pointer bspliner = BSplinerType::New();
-  bspliner->SetInput( correcter->GetBiasFieldControlPointLattice() );
+  bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
   bspliner->SetSplineOrder( correcter->GetSplineOrder() );
   bspliner->SetSize(
     image->GetLargestPossibleRegion().GetSize() );
