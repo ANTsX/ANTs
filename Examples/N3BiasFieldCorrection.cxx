@@ -106,7 +106,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
                                               CorrecterType::BiasFieldControlPointLatticeType, typename
                                               CorrecterType::ScalarImageType> BSplinerType;
   typename BSplinerType::Pointer bspliner = BSplinerType::New();
-  bspliner->SetInput( correcter->GetBiasFieldControlPointLattice() );
+  bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
   bspliner->SetSplineOrder( correcter->GetSplineOrder() );
   bspliner->SetSize(
     reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
