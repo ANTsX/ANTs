@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkN3MRIBiasFieldCorrectionImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2009/04/30 20:40:31 $
-  Version:   $Revision: 1.3 $
+  Date:      $Date: 2009/04/29 19:05:28 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -176,7 +176,7 @@ public:
   itkSetMacro( NumberOfControlPoints, ArrayType );
   itkGetConstMacro( NumberOfControlPoints, ArrayType );
 
-  itkGetConstMacro( BiasFieldControlPointLattice,
+  itkGetConstMacro( LogBiasFieldControlPointLattice,
                     typename BiasFieldControlPointLatticeType::Pointer );
 protected:
   N3MRIBiasFieldCorrectionImageFilter();
@@ -202,7 +202,7 @@ private:
   MaskPixelType m_MaskLabel;
 
   /**
-   * Parameters associated
+   * Parameters for deconvolution with Weiner filter
    */
   unsigned int m_NumberOfHistogramBins;
   RealType     m_WeinerFilterNoise;
@@ -218,7 +218,7 @@ private:
    * B-spline fitting parameters
    */
   typename
-  BiasFieldControlPointLatticeType::Pointer    m_BiasFieldControlPointLattice;
+  BiasFieldControlPointLatticeType::Pointer m_LogBiasFieldControlPointLattice;
   unsigned int m_SplineOrder;
   ArrayType    m_NumberOfControlPoints;
   ArrayType    m_NumberOfFittingLevels;
