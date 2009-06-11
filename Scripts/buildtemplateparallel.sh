@@ -5,29 +5,50 @@ NUMPARAMS=$#
 if [ $NUMPARAMS -lt 4  ]
 then
 echo " USAGE ::  "
-echo "  sh   buildtemplate.sh  ImageDimension WildcardingSide1 WildcardingSide2 Naming  OptionalIterationLimit-Default=4  OptionalDoQSub "
-echo " "
-echo " the files used for template construction will  be  of the type     WildcardingSide1*WildcardingSide2  "
-echo " "
-echo " We assume all files to be added to the template are in the same directory -- you can modify the script if you prefer something different "
-echo " things you should change for your needs are highlighted by   EDIT THIS "
-echo " if the template file does not exist yet, we create an unbiased starting point by averaging the input dataset "
+echo "   sh buildtemplateparallel.sh ImageDimension OutputRoot IterationLimit <images>"
+echo
+echo " ImageDimension  -  Dimension of your image, eg 3 for 3D."
+echo " OutputRoot      -  Root file name of the output. Should be a file root only, no path information. "
+echo " IterationLimit  -  Number of times to build the template. The previous template is used to initialize "
+echo "                    each iteration. "
+echo " <images>        -  List of images in the current directory, eg *_t1.nii.gz. "
+echo
+echo " This script builds a template iteratively from the input images and uses SGE to parallelize the "
+echo " registration of every subject to the template. "
+echo
+echo " We assume all files to be added to the template are in the current directory. You can modify the "
+echo " script if you want to relax this assumption, but be sure that the qsubbed jobs get the correct "
+echo " absolute path to the images."
+echo
+echo " Things within the script that you may need to change for your needs are highlighted by EDIT THIS "
+echo
+echo " The template will be written to [OutputRoot]template.nii. If the template file exists, it is used as the starting point for "
+echo " the new template creation. Otherwise, we create an unbiased starting point by averaging the input dataset. "
 exit
 fi
 
 #initialization, here, is unbiased
 DIM=$1
 
-OUTPUTNAME=""
-if [ $NUMPARAMS -gt 2  ]
-then
-OUTPUTNAME=$4
-fi
+# Root of the output name, will produce ${OUTPUTNAME}template.nii
+# If this already exists, it will be used to initialize the template building
+OUTPUTNAME=$2
 
-ANTSPATH="/mnt/aibs1/avants/bin/ants/" # EDIT THIS
+# ANTSPATH - you will need to edit this if it is not set before the script is called
+# note trailing slash - this is needed
+export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+
+# System specific queue options, eg "-q name" to submit to a specific queue
+# It can be set to an empty string if you do not need any special cluster options
+QSUBOPTS="" # EDIT THIS
+
+
+
+
 # Mapping Parameters
   TRANSFORMATION=SyN[0.25]  # EDIT THIS
   MAXITERATIONS=30x100x20  # EDIT THIS
+
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
@@ -38,45 +59,22 @@ ANTSPATH="/mnt/aibs1/avants/bin/ants/" # EDIT THIS
   METRIC=PR[${TEMPLATE} # EDIT THIS
   METRICPARAMS=1,3]
 
-IMAGESETVARIABLE=${2}*${3}
+  # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
+  GRADIENTSTEP="-0.25"
 
-ITERATIONLIMIT=4
-if [ $NUMPARAMS -gt 4  ]
-then
-ITERATIONLIMIT=$5
-fi
+ITERATIONLIMIT=$3
 
-DOQSUB=0
-if [ $NUMPARAMS -gt 5 ]
-then
-DOQSUB=$6
-fi
+shift 3
 
-LONG=0
-count=0
-for x in `ls -tr  $IMAGESETVARIABLE  `
-do
-echo " Image $count is:   $x  "
-BASE=${x%.*.*}
-NAMING=${OUTPUTNAME}${BASE}
-echo " Base Name is $BASE "
-echo " Full Naming is  $NAMING "
-echo " "
-if [ $count -eq 0 ] && [ $LONG -eq 1 ]
-then
-echo " Using biased initialization from first image! "
- cp  $x  ${TEMPLATE}
-fi
+# Optionally disable qsub for debugging purposes - runs jobs in series
+DOQSUB=1
 
-count=`expr $count + 1`
-done
 
-if [  $LONG -eq 0  ]
-then
+IMAGESETVARIABLE=$*
+
 if [ ! -s $TEMPLATE ] ; then
-echo " Averaging :   $IMAGESETVARIABLE "
+echo " No initial template exists. Creating population average image"
  ${ANTSPATH}AverageImages $DIM $TEMPLATE  $IMAGESETVARIABLE
-fi
 fi
 
 echo  " ANTSPATH  $ANTSPATH "
@@ -89,7 +87,7 @@ echo " Metric :  ${METRIC},File,${METRICPARAMS} "
 echo " OutputName :  $OUTPUTNAME "
 echo " template  $TEMPLATE "
 echo " Template Update Steps $ITERATIONLIMIT "
-echo " Averaging :   $IMAGESETVARIABLE "
+echo " Template population :   $IMAGESETVARIABLE "
 echo " "
 echo " if the files and parameters are all ok then uncomment the exit call below this line  "
 echo " "
@@ -163,15 +161,19 @@ count=100
 
 count=0
 ANTSSCRIPTNAME=${ANTSPATH}ants.sh
-   if [ -f $ANTSSCRIPTNAME  ]
-     then
-       echo " FILE $ANTSSCRIPTNAME OK ! "
+if [ -f $ANTSSCRIPTNAME  ]
+    then
+    echo " FILE $ANTSSCRIPTNAME OK ! "
        else
        echo " FILE $ANTSSCRIPTNAME DOES NOT EXIST !!! "
        echo " copy the file to this directory & repeat "
        echo " Available in ANTS/Scripts directory "
        exit
-     fi
+fi
+
+# Job IDs of jobs submitted to queue in loop below
+jobIDs=""
+
 for IMG in $IMAGESETVARIABLE
 do
 dir=`pwd`
@@ -182,22 +184,34 @@ then
 OUTFN=${OUTPUTNAME}${IMG%.*}
 fi
 echo " $OUTFN "
-exe2="/mnt/pkg/sge-root/bin/lx24-x86/qsub  -q mac ${dir}/${ANTSSCRIPTNAME} 3 ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN   ";
-#exewait="/mnt/pkg/sge-root/bin/lx24-x86/qsub -sync y -q mac ${dir}/${ANTSSCRIPTNAME} 3 ${dir}/$TEMPLATE  ${dir}/$IMG   ";
- $exe2
-count=`expr $count + 1`;
-done
-echo " submitted $count jobs "
 
-# now wait for the stuff to finish
-trythis=`qstat | grep $ANTSSCRIPTNAME`
-scriptdone=${#trythis}
-sleep 30
-while [ $scriptdone -ne 0  ]; do
-trythis=`qstat | grep $ANTSSCRIPTNAME`
-scriptdone=${#trythis}
-sleep 60
+exe="${ANTSSCRIPTNAME} 3 ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN $MAXITERATIONS"
+
+
+if [ $DOQSUB -gt 0 ]; then
+    id=`qsub -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
+    jobIDs="$jobIDs $id"
+    sleep 1
+else
+    sh $exe
+fi
+
+count=`expr $count + 1`;
+
 done
+
+if [ $DOQSUB -gt 0 ]; then
+    echo " submitted $count jobs "
+
+    # now wait for the stuff to finish
+    ${ANTSPATH}waitForSGEQJobs.pl 1 120 $jobIDs
+
+    if [ ! $? -eq 0 ]; then
+	echo "qsub submission failed - jobs went into error state"
+	exit 1;
+    fi
+
+fi
 
 echo " finished $i " >> ${TEMPLATENAME}metriclog.txt
 
@@ -219,11 +233,11 @@ if [ $DIM -gt 2  ]
 then
      ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpzvec.nii 0 ${OUTPUTNAME}*Warpzvec.nii
 fi
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpxvec.nii -0.15 ${TEMPLATENAME}warpxvec.nii
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpyvec.nii -0.15  ${TEMPLATENAME}warpyvec.nii
+     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpxvec.nii $GRADIENTSTEP ${TEMPLATENAME}warpxvec.nii
+     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpyvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpyvec.nii
 if [ $DIM -gt 2  ]
 then
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpzvec.nii -0.15  ${TEMPLATENAME}warpzvec.nii
+     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpzvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpzvec.nii
 fi
     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE} ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
 if [ $DIM -lt 3  ]
