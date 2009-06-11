@@ -41,7 +41,7 @@ int PrintHeader(int argc, char *argv[])
   std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
   std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
   std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
-  std::cout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+  std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
 //  std::cout << " Orientation " << reader->GetOutput()->GetOrientation() << std::endl;
 
   return 1;
