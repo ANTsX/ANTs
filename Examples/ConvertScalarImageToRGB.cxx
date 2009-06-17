@@ -215,8 +215,8 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
 
         RealType ratio = ( ItS.Get() - minimumValue ) / ( maximumValue - minimumValue );
 
-        rgbpixel.Fill( ratio * ( maximumRGBValue - minimumRGBValue )
-                       + minimumRGBValue );
+        rgbpixel.Fill( static_cast<typename RGBPixelType::ComponentType>(
+                         ratio * ( maximumRGBValue - minimumRGBValue ) + minimumRGBValue ) );
 
         ItC.Set( rgbpixel );
         }
