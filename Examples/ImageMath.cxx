@@ -3813,9 +3813,18 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = "";
+  float       stopval = 100.0;
   if(  argc > argct )
     {
     fn2 = std::string(argv[argct]);   argct++;
+    }
+  else
+    {
+    std::cout << " not enough parameters -- need label image " << std::endl;  return 0;
+    }
+  if(  argc > argct )
+    {
+    stopval = atof(argv[argct]);   argct++;
     }
 
   typename ImageType::Pointer speedimage = NULL;
@@ -3877,7 +3886,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
         }
       }
     fastMarching->SetTrialPoints(  seeds  );
-    fastMarching->SetStoppingValue(  100.0 );
+    fastMarching->SetStoppingValue(  stopval );
     fastMarching->Update();
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
@@ -6223,8 +6232,8 @@ int main(int argc, char *argv[])
     << std::endl;
     std::cout
     <<
-    " PropagateLabelsThroughMask   speed/binaryimagemask.nii.gz   initiallabelimage.nii.gz -- final output is the propagated label image "
-    << std::endl;
+    " PropagateLabelsThroughMask   speed/binaryimagemask.nii.gz   initiallabelimage.nii.gz Optional-Stopping-Value  -- final output is the propagated label image  "
+    << std::endl <<  " optional stopping value -- higher values allow more distant propagation "  << std::endl;
     return 1;
     }
 
