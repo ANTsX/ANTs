@@ -3907,6 +3907,10 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
           outlabimage->SetPixel(vfIter2.GetIndex(), lab );
           }
         }
+      else if( !isinside )
+        {
+        outlabimage->SetPixel(vfIter2.GetIndex(), 0 );
+        }
       }
     }
   WriteImage<ImageType>(fastimage, "temp.nii.gz");
