@@ -56,7 +56,7 @@
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
-
+#include "itkFastMarchingImageFilter.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkEuclideanDistance.h"
 #include "itkSampleClassifier.h"
@@ -890,9 +890,13 @@ int Where(int argc, char *argv[])
   std::string fn2 = "";
   if( argc > argct )
     {
-    fn2 = std::string(argv[argct]);
+    fn2 = std::string(argv[argct]);   argct++;
     }
-  argct++;
+  float tol = 0.0;
+  if( argc > argct )
+    {
+    tol = atof(argv[argct]);   argct++;
+    }
 
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
@@ -912,13 +916,13 @@ int Where(int argc, char *argv[])
     {
     if( !image2 )
       {
-      if( iter.Get() == value )
+      if( fabs(iter.Get() - value) < tol )
         {
         std::cout << iter.GetIndex() << std::endl;
         ct++;
         }
       }
-    else if( image2->GetPixel(iter.GetIndex() ) > 0 && iter.Get() == value )
+    else if( image2->GetPixel(iter.GetIndex() ) > 0 &&  fabs(iter.Get() - value) < tol )
       {
       std::cout << iter.GetIndex() << std::endl;
       ct++;
@@ -945,24 +949,28 @@ int SetOrGetPixel(int argc, char *argv[])
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
-  int          argct = 2;
-  std::string  outname = std::string(argv[argct]); argct++;
-  std::string  operation = std::string(argv[argct]);  argct++;
-  std::string  fn1 = std::string(argv[argct]);   argct++;
-  float        value = atof(argv[argct]);
-  std::string  Get = std::string(argv[argct]); argct++;
-  unsigned int indx = atoi(argv[argct]); argct++;
-  unsigned int indy = 0;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  float       value = atof(argv[argct]);
+  std::string Get = std::string(argv[argct]); argct++;
+  float       indx = atof(argv[argct]); argct++;
+  float       indy = 0;
   if( ImageDimension >= 2 )
     {
-    indy = atoi(argv[argct]); argct++;
+    indy = atof(argv[argct]); argct++;
     }
-  unsigned int indz = 0;
+  float indz = 0;
   if( ImageDimension >= 3 )
     {
-    indz = atoi(argv[argct]); argct++;
+    indz = atof(argv[argct]); argct++;
     }
-
+  bool usephyspace = false;
+  if( argc > argct )
+    {
+    usephyspace = atoi(argv[argct]); argct++;
+    }
   bool get = false;
   if( strcmp(Get.c_str(), "Get") == 0 )
     {
@@ -982,13 +990,28 @@ int SetOrGetPixel(int argc, char *argv[])
 
   typename ImageType::IndexType index;
   index.Fill(0);
-
-  index[0] = indx;
-  index[1] = indy;
-  if( ImageDimension == 3 )
+  if( usephyspace == false )
     {
-    index[2] = indz;
+    index[0] = indx;
+    index[1] = indy;
+    if( ImageDimension == 3 )
+      {
+      index[2] = indz;
+      }
     }
+  else
+    {
+    typename ImageType::PointType porig;
+    porig[0] = indx;
+    porig[1] = indy;
+    if( ImageDimension == 3 )
+      {
+      porig[2] = indz;
+      }
+    image1->TransformPhysicalPointToIndex(porig, index);
+    }
+  std::cout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
+  std::cout << " Ind " << index << std::endl;
   bool isinside = true;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
@@ -3769,6 +3792,120 @@ int MorphImage(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int PropagateLabelsThroughMask(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = "";
+  if(  argc > argct )
+    {
+    fn2 = std::string(argv[argct]);   argct++;
+    }
+
+  typename ImageType::Pointer speedimage = NULL;
+  ReadImage<ImageType>(speedimage, fn1.c_str() );
+  typename ImageType::Pointer labimage = NULL;
+  ReadImage<ImageType>(labimage, fn2.c_str() );
+  typename ImageType::Pointer fastimage = NULL;
+  ReadImage<ImageType>(fastimage, fn1.c_str() );
+  typename ImageType::Pointer outlabimage = NULL;
+  ReadImage<ImageType>(outlabimage, fn2.c_str() );
+  fastimage->FillBuffer(1.e9);
+  // compute max label
+  double   maxlabel = 0;
+  Iterator vfIter2( labimage,  labimage->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    bool   isinside = true;
+    double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
+    double labval = labimage->GetPixel(vfIter2.GetIndex() );
+    if( speedval < 1.e-3 )
+      {
+      isinside = false;
+      }
+    if( isinside )
+      {
+      if( labval > maxlabel )
+        {
+        maxlabel = labval;
+        }
+      }
+    }
+  for( unsigned int lab = 1; lab <= (unsigned int)maxlabel; lab++ )
+    {
+    typedef  itk::FastMarchingImageFilter<ImageType, ImageType> FastMarchingFilterType;
+    typename FastMarchingFilterType::Pointer  fastMarching = FastMarchingFilterType::New();
+    fastMarching->SetInput( speedimage );
+    typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
+    typedef typename FastMarchingFilterType::NodeType      NodeType;
+    typename NodeContainer::Pointer seeds = NodeContainer::New();
+    seeds->Initialize();
+    unsigned long ct = 0;
+    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+      {
+      bool   isinside = true;
+      double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
+      double labval = labimage->GetPixel(vfIter2.GetIndex() );
+      if( speedval < 1.e-3 )
+        {
+        isinside = false;
+        }
+      if( isinside && (unsigned int) labval == lab )
+        {
+        NodeType     node;
+        const double seedValue = 0.0;
+        node.SetValue( seedValue );
+        node.SetIndex( vfIter2.GetIndex() );
+        seeds->InsertElement( ct, node );
+        ct++;
+        }
+      }
+    fastMarching->SetTrialPoints(  seeds  );
+    fastMarching->SetStoppingValue(  100.0 );
+    fastMarching->Update();
+    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+      {
+      bool   isinside = true;
+      double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
+      double labval = labimage->GetPixel(vfIter2.GetIndex() );
+      if( speedval < 1.e-3 )
+        {
+        isinside = false;
+        }
+      if( isinside && labval == 0 )
+        {
+        double fmarrivaltime = fastMarching->GetOutput()->GetPixel( vfIter2.GetIndex() );
+        double mmm = fastimage->GetPixel(vfIter2.GetIndex() );
+        if( fmarrivaltime < mmm )
+          {
+          fastimage->SetPixel(vfIter2.GetIndex(),  fmarrivaltime );
+          outlabimage->SetPixel(vfIter2.GetIndex(), lab );
+          }
+        }
+      }
+    }
+  WriteImage<ImageType>(fastimage, "temp.nii.gz");
+  WriteImage<ImageType>(outlabimage, outname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int DistanceMap(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
@@ -6053,13 +6190,14 @@ int main(int argc, char *argv[])
     std::cout << "  EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore " << std::endl;
     std::cout << "  FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}" << std::endl;
     std::cout << "  PadImage ImageIn Pad-Number ( if Pad-Number is negative, de-Padding occurs ) " << std::endl;
-    std::cout << "  Where Image ValueToLookFor maskImage-option --- the where function from IDL " << std::endl;
+    std::cout << "  Where Image ValueToLookFor maskImage-option tolerance --- the where function from IDL "
+              << std::endl;
     std::cout << "  TensorFA DTImage  " << std::endl;
     std::cout << "  MakeImage  SizeX  SizeY {SizeZ}  " << std::endl;
     std::cout
     <<
-    "  SetOrGetPixel  ImageIn Get/Set-Value  IndexX  IndexY {IndexZ}  -- for example \n  ImageMath 2 outimage.nii SetOrGetPixel  Get 24 34 -- gets the value at 24, 34 \n   ImageMath 2 outimage.nii SetOrGetPixel  1.e9  24 34  -- this sets 1.e9 as the value at 23 34  "
-    << std::endl;
+    "  SetOrGetPixel  ImageIn Get/Set-Value  IndexX  IndexY {IndexZ}  -- for example \n  ImageMath 2 outimage.nii SetOrGetPixel Image  Get 24 34 -- gets the value at 24, 34 \n   ImageMath 2 outimage.nii SetOrGetPixel Image 1.e9  24 34  -- this sets 1.e9 as the value at 23 34  "
+    << std::endl << " you can also pass a boolean at the end to force the physical space to be used "  << std::endl;
     std::cout << "  TensorMeanDiffusion DTImage  " << std::endl;
     std::cout
     <<
@@ -6082,6 +6220,10 @@ int main(int argc, char *argv[])
     std::cout
     <<
     "  FillHoles Image parameter : parameter = ratio of edge at object to edge at background = 1 is a definite hole bounded by object only, 0.99 is close -- default of parameter > 1 will fill all holes "
+    << std::endl;
+    std::cout
+    <<
+    " PropagateLabelsThroughMask   speed/binaryimagemask.nii.gz   initiallabelimage.nii.gz -- final output is the propagated label image "
     << std::endl;
     return 1;
     }
@@ -6276,6 +6418,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
         {
         ConvertVectorToImage<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
+        {
+        PropagateLabelsThroughMask<2>(argc, argv);
         }
       else
         {
@@ -6480,6 +6626,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
         {
         ConvertVectorToImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
+        {
+        PropagateLabelsThroughMask<2>(argc, argv);
         }
       else
         {
