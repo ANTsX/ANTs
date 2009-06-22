@@ -3913,7 +3913,12 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
         }
       }
     }
-  WriteImage<ImageType>(fastimage, "temp.nii.gz");
+  std::string::size_type idx;
+  idx = outname.find_first_of('.');
+  std::string tempname = outname.substr(0, idx);
+  std::string extension = outname.substr(idx, outname.length() );
+  std::string kname = tempname + std::string("_speed") + extension;
+  WriteImage<ImageType>(fastimage, kname.c_str() );
   WriteImage<ImageType>(outlabimage, outname.c_str() );
   return 0;
 }
