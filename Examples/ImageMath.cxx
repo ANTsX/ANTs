@@ -3807,7 +3807,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
   typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
-
+  float       thresh = 0.5;
   int         argct = 2;
   std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
@@ -3844,7 +3844,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     bool   isinside = true;
     double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
     double labval = labimage->GetPixel(vfIter2.GetIndex() );
-    if( speedval < 1.e-3 )
+    if( speedval < thresh )
       {
       isinside = false;
       }
@@ -3871,7 +3871,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
       bool   isinside = true;
       double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
       double labval = labimage->GetPixel(vfIter2.GetIndex() );
-      if( speedval < 1.e-3 )
+      if( speedval < thresh )
         {
         isinside = false;
         }
@@ -3893,7 +3893,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
       bool   isinside = true;
       double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
       double labval = labimage->GetPixel(vfIter2.GetIndex() );
-      if( speedval < 1.e-3 )
+      if( speedval < thresh )
         {
         isinside = false;
         }
@@ -6647,7 +6647,7 @@ int main(int argc, char *argv[])
         }
       else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
         {
-        PropagateLabelsThroughMask<2>(argc, argv);
+        PropagateLabelsThroughMask<3>(argc, argv);
         }
       else
         {
