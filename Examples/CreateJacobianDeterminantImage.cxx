@@ -12,6 +12,25 @@
 #include "itkZeroFluxNeumannBoundaryCondition.h"
 #include "itkANTSImageRegistrationOptimizer.h"
 
+template <class TImage, class TDeformationField>
+typename TDeformationField::PixelType
+TransformVector(TDeformationField* field, typename TImage::IndexType index )
+{
+  enum { ImageDimension = TImage::ImageDimension };
+  typename TDeformationField::PixelType vec = field->GetPixel(index);
+  typename TDeformationField::PixelType newvec;
+  newvec.Fill(0);
+  for( unsigned int row = 0; row < ImageDimension; row++ )
+    {
+    for( unsigned int col = 0; col < ImageDimension; col++ )
+      {
+      newvec[row] += vec[col] * field->GetDirection()[row][col];
+      }
+    }
+
+  return newvec;
+}
+
 template <unsigned int ImageDimension>
 int CreateJacobianDeterminantImage( int argc, char *argv[] )
 {

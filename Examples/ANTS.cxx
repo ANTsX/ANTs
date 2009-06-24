@@ -45,7 +45,7 @@ int ANTSex(int argc, char *argv[])
 
 int main(int argc, char *argv[] )
 {
-  unsigned int dim = 2;
+  int dim = 2;
 
 //  while(argc--) printf("%s\n", *argv++);
   if( argc < 2 )
@@ -88,6 +88,12 @@ int main(int argc, char *argv[] )
     dim = atoi( argv[1] );
     }
 
+  if( dim <= 1 || dim > 3 )
+    {
+    std::cout << " you passed image dimension (first argument) as " << dim
+              << " ANTS does not function with images of this dimension " << std::endl;
+    exit(1);
+    }
   /**
    * Try the simple case of the call "ANTS fixedImage movingImage"
    */
