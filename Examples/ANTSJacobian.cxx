@@ -490,6 +490,11 @@ int main(int argc, char *argv[])
   if( argc < 3 )
     {
     std::cout << "Useage ex: " << argv[0] << " ImageDim gWarp outfile uselog maskfn normbytotalbool  " << std::endl;
+    std::cout << " for example " << std::endl
+              << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1  " << std::endl;
+    std::cout
+    << " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size.  "
+    << std::endl;
     return 1;
     }
 
