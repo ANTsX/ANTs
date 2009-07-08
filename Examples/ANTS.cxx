@@ -92,6 +92,8 @@ int main(int argc, char *argv[] )
     {
     std::cout << " you passed image dimension (first argument) as " << dim
               << " ANTS does not function with images of this dimension " << std::endl;
+    argv[1] = "--help";
+    ANTSex<2>( argc, argv );
     exit(1);
     }
   /**
