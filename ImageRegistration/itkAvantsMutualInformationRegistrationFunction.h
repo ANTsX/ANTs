@@ -255,7 +255,7 @@ public:
   typedef typename MarginalPDFType::IndexType MarginalPDFIndexType;
   /** Typedef for the joint PDF and PDF derivatives are stored as ITK Images. */
   typedef Image<PDFValueType, 2>              JointPDFType;
-  typedef Image<PDFValueType, 2>              JointPDFDerivativesType;
+  typedef Image<PDFValueType, 3>              JointPDFDerivativesType;
   typedef JointPDFType::IndexType             JointPDFIndexType;
   typedef JointPDFType::PixelType             JointPDFValueType;
   typedef JointPDFType::RegionType            JointPDFRegionType;
