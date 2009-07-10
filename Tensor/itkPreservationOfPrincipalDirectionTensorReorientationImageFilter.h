@@ -130,6 +130,23 @@ protected:
    *     ImageToImageFilter::GenerateData() */
   void GenerateData( void );
 
+  typename DeformationFieldType::PixelType TransformVector(DeformationFieldType* field,
+                                                           typename FloatImageType::IndexType index )
+  {
+    typename DeformationFieldType::PixelType vec = field->GetPixel(index);
+    typename DeformationFieldType::PixelType newvec;
+    newvec.Fill(0);
+    for( unsigned int row = 0; row < ImageDimension; row++ )
+      {
+      for( unsigned int col = 0; col < ImageDimension; col++ )
+        {
+        newvec[row] += vec[col] * field->GetDirection()[row][col];
+        }
+      }
+
+    return newvec;
+  }
+
 private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &); // purposely not implemented
   void operator=(const Self &);                                                 // purposely not implemented

@@ -406,7 +406,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     if( oktosample )
       {
       typename DeformationFieldType::IndexType temp = rindex;
-      typename DeformationFieldType::PixelType cpix = dispIt.Value();
+      typename DeformationFieldType::PixelType cpix = this->TransformVector( m_DeformationField, rindex);
       typename DeformationFieldType::IndexType difIndex[ImageDimension][2];
       for( unsigned int row = 0; row < ImageDimension; row++ )
         {
@@ -429,11 +429,10 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
         float h = 0.25;
         space = 1.0; // should use image spacing here?
 
-        typename DeformationFieldType::PixelType rpix = m_DeformationField->GetPixel(difIndex[row][1]);
-        typename DeformationFieldType::PixelType lpix = m_DeformationField->GetPixel(difIndex[row][0]);
-
-        typename DeformationFieldType::PixelType rrpix = m_DeformationField->GetPixel(ddrindex);
-        typename DeformationFieldType::PixelType llpix = m_DeformationField->GetPixel(ddlindex);
+        typename DeformationFieldType::PixelType rpix = this->TransformVector( m_DeformationField, difIndex[row][1]);
+        typename DeformationFieldType::PixelType lpix = this->TransformVector( m_DeformationField, difIndex[row][0]);
+        typename DeformationFieldType::PixelType rrpix = this->TransformVector( m_DeformationField, ddrindex );
+        typename DeformationFieldType::PixelType llpix = this->TransformVector( m_DeformationField, ddlindex);
 
         rpix = rpix * h + cpix * (1. - h);
         lpix = lpix * h + cpix * (1. - h);
