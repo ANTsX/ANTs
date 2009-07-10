@@ -23,7 +23,8 @@
 
 #include "itkScalarToRGBColormapImageFilter.h"
 
-#include <fstream.h>
+#include <iostream>
+#include <fstream>
 #include <sstream>
 #include <string>
 
@@ -122,8 +123,8 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
                                                 typename RGBImageType::PixelType> ColormapType;
     typename ColormapType::Pointer colormap = ColormapType::New();
 
-    ifstream    str( argv[6] );
-    std::string line;
+    std::ifstream str( argv[6] );
+    std::string   line;
 
     // Get red values
       {
