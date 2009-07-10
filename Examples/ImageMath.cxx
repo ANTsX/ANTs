@@ -60,7 +60,7 @@
 #include "itkMinimumDecisionRule.h"
 #include "itkEuclideanDistance.h"
 #include "itkSampleClassifier.h"
-
+#include "itkCastImageFilter.h"
 #include "itkScalarImageToListAdaptor.h"
 #include "itkConnectedComponentImageFilter.h"
 
@@ -3977,6 +3977,7 @@ int FillHoles(int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>                              VectorType;
   typedef itk::Image<VectorType, ImageDimension>                          FieldType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::Image<int, ImageDimension>                                 LabelImageType;
   typedef itk::ImageFileReader<ImageType>                                 readertype;
   typedef itk::ImageFileWriter<ImageType>                                 writertype;
   typedef  typename ImageType::IndexType                                  IndexType;
@@ -3986,6 +3987,7 @@ int FillHoles(int argc, char *argv[])
   typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  typedef itk::CastImageFilter<ImageType, LabelImageType>                 CastFilterType;
 
   int         argct = 2;
   std::string outname = std::string(argv[argct]); argct++;
@@ -4016,16 +4018,19 @@ int FillHoles(int argc, char *argv[])
   // 4. label surface
   // 5. if everywhere on surface is next to object then it's a hole
   // 6. make sure it's not the background
+  typedef itk::Image<int, ImageDimension> labelimagetype;
   typename ImageType::Pointer dist = filter->GetOutput();
   typename ImageType::Pointer regions = BinaryThreshold<ImageType>(0.001, 1.e9, 1, dist);
 
-  typedef itk::Image<float, ImageDimension>                                  labelimagetype;
   typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype> ccFilterType;
   typedef itk::RelabelComponentImageFilter<labelimagetype, ImageType>        RelabelType;
   typename RelabelType::Pointer relabel = RelabelType::New();
   typename ccFilterType::Pointer ccfilter = ccFilterType::New();
 
-  ccfilter->SetInput(regions);
+  typename CastFilterType::Pointer castRegions = CastFilterType::New();
+  castRegions->SetInput( regions );
+
+  ccfilter->SetInput(castRegions->GetOutput() );
   ccfilter->SetFullyConnected( 0 );
   ccfilter->Update();
   relabel->SetInput( ccfilter->GetOutput() );

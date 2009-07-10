@@ -33,7 +33,7 @@
 #include "itkRelabelComponentImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
-
+#include "itkCastImageFilter.h"
 #include  "ReadWriteImage.h"
 
 template <unsigned int ImageDimension>
@@ -54,13 +54,15 @@ int  LabelUniquely(int argc, char *argv[])
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   // typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  typedef float                                                            InternalPixelType;
-  typedef float                                                            ULPixelType;
-  typedef itk::Image<ULPixelType, ImageDimension>                          labelimagetype;
-  typedef ImageType                                                        InternalImageType;
-  typedef ImageType                                                        OutputImageType;
-  typedef itk::ConnectedComponentImageFilter<ImageType, labelimagetype>    FilterType;
-  typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype> RelabelType;
+  typedef float                                           InternalPixelType;
+  typedef int                                             ULPixelType;
+  typedef itk::Image<ULPixelType, ImageDimension>         labelimagetype;
+  typedef itk::CastImageFilter<ImageType, labelimagetype> CastFilterType;
+
+  typedef ImageType                                                          InternalImageType;
+  typedef ImageType                                                          OutputImageType;
+  typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype> FilterType;
+  typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype>   RelabelType;
 
   // want the average value in each cluster as defined by the mask and the value thresh and the clust thresh
 
@@ -77,7 +79,10 @@ int  LabelUniquely(int argc, char *argv[])
 // typename
   typename RelabelType::Pointer relabel = RelabelType::New();
 
-  filter->SetInput(image1 );
+  typename CastFilterType::Pointer castInput = CastFilterType::New();
+  castInput->SetInput(image1);
+
+  filter->SetInput( castInput->GetOutput() );
   int fullyConnected = 0; // atoi( argv[5] );
   filter->SetFullyConnected( fullyConnected );
   relabel->SetInput( filter->GetOutput() );
