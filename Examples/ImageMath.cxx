@@ -5923,6 +5923,7 @@ int SegmentImage(      int argc, char *argv[])
         }
       std::cout << " writing-k " << kname << std::endl;
       WriteImage<ImageType>(lkmeans, kname.c_str() );
+      kmeans = lkmeans;
       }
     }
   for( unsigned int iters = 0; iters < 2; iters++ )
@@ -5935,10 +5936,10 @@ int SegmentImage(      int argc, char *argv[])
       p1image = FitSmoothEstimateOfTissueIntensityFromPrior<ImageType>( p1mask, image, 3, 5   );
       p2image = FitSmoothEstimateOfTissueIntensityFromPrior<ImageType>( p2mask, image, 3, 5   );
       p3image = FitSmoothEstimateOfTissueIntensityFromPrior<ImageType>( p3mask, image, 3, 5   );
-      //   WriteImage<ImageType>(p2image,"turd.nii.gz");
+      WriteImage<ImageType>(p2image, "turd.nii.gz");
       }
     // if (  !kmeans){
-    if( iters == 0 )
+    if( iters == 0 && !lkmeans )
       {
       // std::cout << " start k " << std::endl;
       kmeans = SegmentKMeans<ImageType>(bimage, kclasses);
@@ -6013,9 +6014,11 @@ int SegmentImage(      int argc, char *argv[])
       lestimatedvar /= (float)lct;
       lestimatedmean = lestimatedmean * locweight + gestimatedmean * gwt;
       lestimatedvar = lestimatedvar * locweight + gestimatedvar * gwt;
-      // std::cout << " done with mean and var " << std::endl;
       float estimatedmean = gestimatedmean;
       float estimatedvar = gestimatedvar;
+      std::cout << " Class " << k << std::endl;
+      std::cout << " gmean " << gestimatedmean << " gvar " << gestimatedvar << std::endl;
+      std::cout << " locmean " << lestimatedmean << " locvar " << lestimatedvar << std::endl;
       typedef itk::NeighborhoodIterator<ImageType> iteratorType;
       typename iteratorType::RadiusType rad;
       for( unsigned int j = 0; j < ImageDimension; j++ )
