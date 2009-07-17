@@ -17,8 +17,6 @@ GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
   this->m_SplineOrder = 3;
   this->m_NumberOfControlPoints.Fill( this->m_SplineOrder + 1 );
 
-  this->m_UseFFDRegularization = false;
-
 //  this->m_ConfidenceImage = NULL;
 }
 
@@ -81,55 +79,18 @@ GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
   typename BSplineFilterType::ArrayType close;
   close.Fill( false );
 
-  if( this->m_UseFFDRegularization )
-    {
-    typedef BSplineControlPointImageFilter<InputImageType, OutputImageType>
-    BSplineControlPointFilterType;
-    typename BSplineControlPointFilterType::Pointer bspliner
-      = BSplineControlPointFilterType::New();
-
-    typename InputImageType::SizeType ncpsSize;
-    for( unsigned int d = 0; d < ImageDimension; d++ )
-      {
-      ncpsSize[d] = this->m_NumberOfControlPoints[d];
-      }
-
-    typename InputImageType::Pointer zeros = InputImageType::New();
-    zeros->SetRegions( ncpsSize );
-    zeros->Allocate();
-    VectorType V;
-    V.Fill( 0 );
-    zeros->FillBuffer( V );
-
-    bspliner->SetSplineOrder( this->m_SplineOrder );
-    bspliner->SetOrigin( origin );
-    bspliner->SetSize( size );
-    bspliner->SetSpacing( spacing );
-    bspliner->SetInput( zeros );
-
-    typename BSplineControlPointFilterType::ControlPointLatticeType::Pointer
-    controlPointLattice
-      = bspliner->CalculateLatticeGradientFromPoints( fieldPoints );
-
-    bspliner->SetInput( controlPointLattice );
-    bspliner->Update();
-    this->SetNthOutput( 0, bspliner->GetOutput() );
-    }
-  else
-    {
-    typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
-    bspliner->SetOrigin( origin );
-    bspliner->SetSpacing( spacing );
-    bspliner->SetSize( size );
-    bspliner->SetNumberOfLevels( this->m_NumberOfLevels );
-    bspliner->SetSplineOrder( this->m_SplineOrder );
-    bspliner->SetNumberOfControlPoints( this->m_NumberOfControlPoints );
-    bspliner->SetCloseDimension( close );
-    bspliner->SetInput( fieldPoints );
-    bspliner->SetGenerateOutputImage( true );
-    bspliner->Update();
-    this->SetNthOutput( 0, bspliner->GetOutput() );
-    }
+  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+  bspliner->SetOrigin( origin );
+  bspliner->SetSpacing( spacing );
+  bspliner->SetSize( size );
+  bspliner->SetNumberOfLevels( this->m_NumberOfLevels );
+  bspliner->SetSplineOrder( this->m_SplineOrder );
+  bspliner->SetNumberOfControlPoints( this->m_NumberOfControlPoints );
+  bspliner->SetCloseDimension( close );
+  bspliner->SetInput( fieldPoints );
+  bspliner->SetGenerateOutputImage( true );
+  bspliner->Update();
+  this->SetNthOutput( 0, bspliner->GetOutput() );
 }
 
 /**
@@ -149,11 +110,6 @@ GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
      << this->m_NumberOfLevels << std::endl;
   os << indent << "Spline order: "
      << this->m_SplineOrder << std::endl;
-  if( this->m_UseFFDRegularization )
-    {
-    os << indent << "Use FFD regularization."
-       << std::endl;
-    }
 }
 } // end namespace itk
 

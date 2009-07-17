@@ -78,10 +78,6 @@ public:
 
   itkSetMacro( IgnorePixelValue, InputPixelType );
   itkGetConstMacro( IgnorePixelValue, InputPixelType );
-
-  itkSetMacro( UseFFDRegularization, bool );
-  itkGetConstMacro( UseFFDRegularization, bool );
-  itkBooleanMacro( UseFFDRegularization );
 protected:
 
   GeneralToBSplineDeformationFieldFilter();
@@ -98,8 +94,6 @@ private:
   unsigned int   m_NumberOfLevels;
   unsigned int   m_SplineOrder;
   ArrayType      m_NumberOfControlPoints;
-
-  bool m_UseFFDRegularization;
 };
 } // end namespace itk
 
