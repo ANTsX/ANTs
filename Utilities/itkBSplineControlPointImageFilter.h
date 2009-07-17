@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBSplineControlPointImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2009/04/30 15:06:07 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2008/10/18 00:16:51 $
+  Version:   $Revision: 1.1.1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -18,6 +18,7 @@
 #define __itkBSplineControlPointImageFilter_h
 
 #include "itkImageToImageFilter.h"
+
 #include "itkBSplineKernelFunction.h"
 #include "itkCoxDeBoorBSplineKernelFunction.h"
 #include "itkFixedArray.h"
@@ -30,7 +31,13 @@
 
 namespace itk
 {
-/** \class BSplineControlPointImageFilter.h
+/**
+ * \class BSplineControlPointImageFilter.h
+ * \brief Auxilary class for the output of the class
+ * itkBSplineScatteredDataPointSetToImageFilter.
+ * \par  The output of the class itkBSplineScatteredDataPointSetToImageFilter
+ * is a control point grid.  This class is used to hold various routines meant
+ * to operate on that control point grid.
  */
 
 template <class TInputImage, class TOutputImage>
@@ -44,7 +51,7 @@ public:
   typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self);
+  itkNewMacro( Self );
 
   /** Extract dimension from input image. */
   itkStaticConstMacro( ImageDimension, unsigned int,
@@ -68,15 +75,15 @@ public:
   /** Other typedef */
   typedef float RealType;
   typedef Image<RealType,
-                itkGetStaticConstMacro( ImageDimension )>                 RealImageType;
+                itkGetStaticConstMacro( ImageDimension )>        RealImageType;
   typedef FixedArray<unsigned,
-                     itkGetStaticConstMacro( ImageDimension )>                 ArrayType;
+                     itkGetStaticConstMacro( ImageDimension )>        ArrayType;
   typedef VariableSizeMatrix<RealType> GradientType;
   typedef RealImageType                HessianType;
 
   /** PointSet typedef support. */
   typedef PointSet<PixelType,
-                   itkGetStaticConstMacro( ImageDimension )>                 PointSetType;
+                   itkGetStaticConstMacro( ImageDimension )>        PointSetType;
   typedef typename PointSetType::PixelType          PointDataType;
   typedef typename PointSetType::PointDataContainer PointDataContainerType;
 
@@ -157,7 +164,8 @@ public:
     jac += I;
   }
 
-  void EvaluateJacobianAtContinuousIndex( ContinuousIndexType cidx, GradientType & jac )
+  void EvaluateJacobianAtContinuousIndex( ContinuousIndexType cidx,
+                                          GradientType & jac )
   {
     this->EvaluateGradientAtContinuousIndex( cidx, jac );
     GradientType I( jac.Rows(), jac.Cols() );
@@ -174,9 +182,9 @@ public:
     this->EvaluateGradientAtPoint( pt, jac );
     for( unsigned int i = 0; i < jac.Cols(); i++ )
       {
-      RealType factor
-        = static_cast<RealType>( this->GetOutput()->GetLargestPossibleRegion().GetSize()[i] )
-          * this->GetOutput()->GetSpacing()[i];
+      RealType factor = static_cast<RealType>(
+          this->GetOutput()->GetLargestPossibleRegion().GetSize()[i] )
+        * this->GetOutput()->GetSpacing()[i];
       for( unsigned int j = 0; j < jac.Rows(); j++ )
         {
         jac(i, j) *= factor;
@@ -196,7 +204,8 @@ public:
     this->EvaluateSpatialJacobianAtPoint( pt, jac );
   }
 
-  void EvaluateSpatialJacobianAtContinuousIndex( ContinuousIndexType cidx, GradientType & jac )
+  void EvaluateSpatialJacobianAtContinuousIndex(
+    ContinuousIndexType cidx, GradientType & jac )
   {
     PointType pt;
 
@@ -218,34 +227,16 @@ public:
    */
   void EvaluateHessianAtPoint( PointType, HessianType &, unsigned int );
   void EvaluateHessianAtIndex( IndexType, HessianType &, unsigned int );
-  void EvaluateHessianAtContinuousIndex( ContinuousIndexType, GradientType &, unsigned int );
+  void EvaluateHessianAtContinuousIndex(
+    ContinuousIndexType, GradientType &, unsigned int );
 
   void EvaluateHessian( PointType, GradientType &, unsigned int );
-
-  /**
-   * Given a B-spline object value and an initial parametric guess, use
-   * conjugate gradient descent to find the parameters corresponding to the
-   * B-spline object value.
-   */
-  void EvaluateParametersAtPoint( PointDataType, PointType & );
-
-  /**
-   * Generate the sampled B-spline object
-   */
-  typename ControlPointLatticeType::Pointer GenerateOutputImageAt( PointType );
 
   /**
    * Generate a refined control point lattice from the input control point
    * lattice such that the resolution is doubled for each level.
    */
   typename ControlPointLatticeType::Pointer RefineControlLattice( ArrayType );
-
-  /**
-   * Generate a refined control point lattice from the input control point
-   * lattice such that the resolution is doubled for each level.
-   */
-  typename ControlPointLatticeType::Pointer CalculateLatticeGradientFromPoints
-    ( typename PointSetType::Pointer );
 protected:
   BSplineControlPointImageFilter();
   virtual ~BSplineControlPointImageFilter();
@@ -260,16 +251,15 @@ private:
   void GenerateOutputImageFast();
 
   void CollapsePhiLattice( ControlPointLatticeType *,
-                           ControlPointLatticeType *,
-                           RealType, unsigned int );
+                           ControlPointLatticeType *, RealType, unsigned int );
   void SetNumberOfLevels( ArrayType );
 
   /** Parameters for the output image. */
 
-  SizeType      m_Size;                                     // size
-  SpacingType   m_Spacing;                                  // spacing
-  OriginType    m_Origin;                                   // origin
-  DirectionType m_Direction;                                // direction
+  SizeType      m_Size;
+  SpacingType   m_Spacing;
+  OriginType    m_Origin;
+  DirectionType m_Direction;
 
   ArrayType            m_NumberOfLevels;
   bool                 m_DoMultilevel;
@@ -304,20 +294,6 @@ private:
       }
     return index;
   }
-
-  /**
-   * Functionality used by EvaluateParametersAtPoint() meant
-   */
-
-  RealType      EvaluateMetricForCGD( PointType, PointDataType );
-  PointDataType EvaluateGradientForCGD( PointType, PointDataType );
-  RealType      EvaluateEnergyForLineSearch( RealType, PointType, PointDataType, PointDataType );
-  void          LineMinimizationForCGD( RealType *, RealType *,
-                                        PointType, PointDataType, PointDataType );
-  void FindBracketingTriplet( RealType *, RealType *, RealType *,
-                              PointType, PointDataType, PointDataType );
-  void BrentSearch( RealType, RealType, RealType, RealType *, RealType *,
-                    PointType, PointDataType, PointDataType );
 };
 } // end namespace itk
 
