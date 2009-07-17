@@ -12,7 +12,7 @@ for x in $(seq 1 5 ) ; do
       ImageMath 2 turdx${y} Normalize $y
    ImageMath 2 turdx${y} CorrelationUpdate  $TNAME turdx${y} 4
 #   MeasureImageSimilarity 2 1 $y  $TNAME
-   SmoothImage 2 turdx${y} 2  turdx${y}
+   SmoothImage 2 turdx${y} 0.5  turdx${y}
 #  MeasureMinMaxMean 2 turdx$y
  done
 
