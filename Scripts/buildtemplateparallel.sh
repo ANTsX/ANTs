@@ -57,7 +57,7 @@ QSUBOPTS="" # EDIT THIS
   TEMPLATENAME=${OUTPUTNAME}template
   TEMPLATE=${TEMPLATENAME}.nii
   METRIC=PR[${TEMPLATE} # EDIT THIS
-  METRICPARAMS=1,3]
+  METRICPARAMS=1,4]
 
   # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
   GRADIENTSTEP="-0.25"
@@ -67,7 +67,7 @@ ITERATIONLIMIT=$3
 shift 3
 
 # Optionally disable qsub for debugging purposes - runs jobs in series
-DOQSUB=1
+DOQSUB=0
 
 
 IMAGESETVARIABLE=$*
@@ -177,16 +177,17 @@ jobIDs=""
 for IMG in $IMAGESETVARIABLE
 do
 dir=`pwd`
-OUTFN=${OUTPUTNAME}${IMG%.*.*}
-echo " ${#OUTFN}  ${#IMG} "
-if [ ${#OUTFN} -eq ${#IMG} ]
+POO=${OUTPUTNAME}${IMG}
+OUTFN=${POO%.*.*}
+#echo " ${#OUTFN}  ${#POO} "
+if [ ${#OUTFN} -eq ${#POO} ]
 then
 OUTFN=${OUTPUTNAME}${IMG%.*}
 fi
-echo " $OUTFN "
+echo " OUTFN p $OUTFN "
 
-exe="${ANTSSCRIPTNAME} 3 ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN $MAXITERATIONS"
-
+exe="${ANTSSCRIPTNAME} $DIM ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN $MAXITERATIONS"
+echo " $exe "
 
 if [ $DOQSUB -gt 0 ]; then
     id=`qsub -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
@@ -215,7 +216,8 @@ fi
 
 echo " finished $i " >> ${TEMPLATENAME}metriclog.txt
 
-    ${ANTSPATH}AverageImages $DIM ${TEMPLATE} 1 ${OUTPUTNAME}*formed.nii
+${ANTSPATH}AverageImages $DIM ${TEMPLATE} 1 ${OUTPUTNAME}*formed.nii
+#sh sygnccavg.sh 0.1  $TEMPLATE
 
 
 # below, a cheap approach to integrating the negative velocity field
