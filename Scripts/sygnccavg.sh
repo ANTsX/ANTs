@@ -1,7 +1,8 @@
 #!/bin/sh
 
 TNAME=$1
-shift 1
+GRADSTEP=$2
+shift 2
 
 FLIST2=$*
 
