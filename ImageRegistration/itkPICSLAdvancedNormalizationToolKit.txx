@@ -744,7 +744,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::InitializeCommandLineOptions()
 {
   this->m_Parser = ParserType::New();
-  this->m_Parser->SetCommandDescription( " PICSL Advanced Image Normalization Toolkit" );
+//    this->m_Parser->SetCommandDescription( " PICSL Advanced Image Normalization Toolkit" );
 
   if( false )
     {
@@ -995,7 +995,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "regularization" );
     option->SetShortName( 'r' );
     option->SetDescription(
-      "REGULARIZATION[gradient-field-sigma,def-field-sigma,truncation].\n\t      Choose one of the following REGULARIZATIONS:\n\t\tGauss = gaussian\n\t\tBSp = B-Spline[not implemented]" );
+      "REGULARIZATION[gradient-field-sigma,def-field-sigma,truncation].\n\t      Choose one of the following REGULARIZATIONS:\n\t\tGauss = gaussian\n\t\tDMFFD = directly manipulated free form deformation" );
     std::string nitdefault = std::string("Gauss[3,0.5]");
     /** set up a default parameter */
     option->AddValue(nitdefault);
