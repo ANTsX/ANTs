@@ -116,6 +116,8 @@ TARGET_LINK_LIBRARIES(ConvertToJpg ITKCommon  ITKBasicFilters ITKIO   ITKNumeric
 ADD_EXECUTABLE(AverageImages AverageImages.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(AverageImages ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
+ADD_EXECUTABLE(AverageTensorImages AverageTensorImages.cxx ${SOURCES})
+TARGET_LINK_LIBRARIES(AverageTensorImages ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 ADD_EXECUTABLE(ImageSetStatistics ImageSetStatistics.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(ImageSetStatistics ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
