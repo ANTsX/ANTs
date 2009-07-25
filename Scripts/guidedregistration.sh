@@ -1,7 +1,7 @@
 #!/bin/sh
-if [ $# -lt 5  ]
+if [ $# -lt 7  ]
 then
-echo " USAGE \n  sh command.sh  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii outputname  iterations "
+echo " USAGE \n  sh command.sh  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii outputname  iterations DIM "
 echo " the template = fixed.nii   ,   the individual = moving.nii "
 echo " iterations should be of the form  100x100x10 "
 exit
@@ -13,6 +13,7 @@ MOV=$3
 MOVH=$4
 OUT=$5
 ITS=$6
+DIM=$7
 
 #ANTSPATH='/Users/stnava/Code/bin/ants/'
 
@@ -39,9 +40,9 @@ fi
 
 #  == Important Parameters Begin ==
 
-LMWT=0.5  # weight on landmarks
+LMWT=$9  # weight on landmarks
 
-INTWT=1    # weight on intensity --  twice the landmarks
+INTWT=$8   # weight on intensity --  twice the landmarks
 
 # PSE/point-set-expectation/PointSetExpectation[fixedImage,movingImage,fixedPoints,movingPoints,weight,pointSetPercentage,pointSetSigma,boundaryPointsOnly,kNeighborhood, PartialMatchingIterations=100000]
 # the partial matching option assumes the complete labeling is in the first set of label parameters ...
@@ -54,10 +55,11 @@ INTENSITY=PR[$FIX,${MOV},${INTWT},4]
 
 #  == Important Parameters end? ==
 
- ${ANTSPATH}ANTS 3  -o $OUT  -i $ITS -t SyN[0.25]  -r Gauss[3,0] -m $INTENSITY   -m   $LM
+ ${ANTSPATH}ANTS $DIM -o $OUT  -i $ITS -t SyN[0.25]  -r Gauss[3,0] -m $INTENSITY   -m   $LM
 
- ${ANTSPATH}WarpImageMultiTransform 3 $MOV ${OUT}toTemplate.nii ${OUT}Warp.nii ${OUT}Affine.txt  -R $FIX
+ ${ANTSPATH}WarpImageMultiTransform $DIM $MOV ${OUT}toTemplate.nii ${OUT}Warp.nii ${OUT}Affine.txt  -R $FIX
 
- ${ANTSPATH}WarpImageMultiTransform 3  $FIX ${OUT}toMov.nii -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii  -R $MOV
+ ${ANTSPATH}WarpImageMultiTransform $DIM  $FIX ${OUT}toMov.nii -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii  -R $MOV
 
- ${ANTSPATH}WarpImageMultiTransform 3 $FIXH  ${OUT}hipp.nii -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii  -R $MOV --UseNN
+ ${ANTSPATH}WarpImageMultiTransform $DIM $FIXH  ${OUT}hipp.nii -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii  -R $MOV --UseNN
+
