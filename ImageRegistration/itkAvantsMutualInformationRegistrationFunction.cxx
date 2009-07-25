@@ -342,7 +342,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   jointPDFDerivativesIndex.Fill( 0 );
   jointPDFDerivativesSize[0] = m_NumberOfParameters;
   jointPDFDerivativesSize[1] = m_NumberOfHistogramBins;
-  jointPDFDerivativesSize[2] = m_NumberOfHistogramBins;
+  //  jointPDFDerivativesSize[2] = m_NumberOfHistogramBins;
 
   jointPDFDerivativesRegion.SetIndex( jointPDFDerivativesIndex );
   jointPDFDerivativesRegion.SetSize( jointPDFDerivativesSize );
