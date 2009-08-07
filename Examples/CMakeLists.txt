@@ -185,6 +185,12 @@ TARGET_LINK_LIBRARIES(ReorientTensorImage ITKCommon ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(N3BiasFieldCorrection N3BiasFieldCorrection.cxx)
 TARGET_LINK_LIBRARIES(N3BiasFieldCorrection ITKIO ITKStatistics)
 
+SET(SOURCES "../Utilities/itkWASPCommandLineParser" "../Utilities/itkWASPCommandLineOption" )
+ADD_EXECUTABLE(WASP WASP.cxx ${SOURCES})
+TARGET_LINK_LIBRARIES(WASP ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+
+
+
 #Set any libraries that your project depends on.
 #examples: ITKCommon, VTKRendering, etc
 SET(Libraries
