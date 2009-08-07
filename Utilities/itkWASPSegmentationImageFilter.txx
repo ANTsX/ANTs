@@ -70,7 +70,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_MRFSigmoidAlpha = 0.1;
   this->m_MRFSigmoidBeta = 0.25;
   this->m_MRFRadius.Fill( 1 );
-
+  this->m_SumProbabilityImage = NULL;
   this->m_SplineOrder = 3;
   this->m_NumberOfLevels.Fill( 8 );
   this->m_NumberOfControlPoints.Fill( this->m_SplineOrder + 1 );
@@ -630,14 +630,13 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   vnl_vector<double> oldmean( this->m_NumberOfClasses, 0 );
   vnl_vector<double> oldvar( this->m_NumberOfClasses, 0);
 
-  typename RealImageType::Pointer sumProbabilityImage =
-    RealImageType::New();
-  sumProbabilityImage->SetRegions( this->GetOutput()->GetRequestedRegion() );
-  sumProbabilityImage->SetOrigin( this->GetOutput()->GetOrigin() );
-  sumProbabilityImage->SetSpacing( this->GetOutput()->GetSpacing() );
-  sumProbabilityImage->SetDirection( this->GetOutput()->GetDirection() );
-  sumProbabilityImage->Allocate();
-  sumProbabilityImage->FillBuffer( NumericTraits<RealType>::Zero );
+  this->m_SumProbabilityImage =  RealImageType::New();
+  this->m_SumProbabilityImage->SetRegions( this->GetOutput()->GetRequestedRegion() );
+  this->m_SumProbabilityImage->SetOrigin( this->GetOutput()->GetOrigin() );
+  this->m_SumProbabilityImage->SetSpacing( this->GetOutput()->GetSpacing() );
+  this->m_SumProbabilityImage->SetDirection( this->GetOutput()->GetDirection() );
+  this->m_SumProbabilityImage->Allocate();
+  this->m_SumProbabilityImage->FillBuffer( NumericTraits<RealType>::Zero );
 
   typename ClassifiedImageType::Pointer maxLabels =
     ClassifiedImageType::New();
@@ -661,8 +660,8 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                  probabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItM( maxProbabilityImage,
                                             maxProbabilityImage->GetRequestedRegion() );
-    ImageRegionIterator<RealImageType> ItS( sumProbabilityImage,
-                                            sumProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<RealImageType> ItS( this->m_SumProbabilityImage,
+                                            this->m_SumProbabilityImage->GetRequestedRegion() );
 
     ItP.GoToBegin();
     ItM.GoToBegin();
@@ -719,7 +718,8 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 //    typename RealImageType::Pointer probabilityImage
 //      = this->CalculatePosteriorProbabilityImage( n + 1 );
 
-    ImageRegionIterator<RealImageType>  ItS( sumProbabilityImage, sumProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<RealImageType> ItS( this->m_SumProbabilityImage,
+                                            this->m_SumProbabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType>  ItP( maxProbabilityImage, maxProbabilityImage->GetRequestedRegion() );
     ImageRegionConstIterator<ImageType> ItI( this->GetInput(), this->GetInput()->GetRequestedRegion() );
 
@@ -785,6 +785,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 //       this->m_CurrentClassParameters[1][1]=200;
 //       this->m_CurrentClassParameters[2][1]=50;
   this->SetNthOutput( 0, maxLabels );
+//  this->SetNthOutput( 1, this->m_SumProbabilityImage );
 
   return Psum / (ct);
 }
@@ -982,6 +983,26 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     masker->Update();
 
     posteriorProbabilityImage = masker->GetOutput();
+    }
+
+  if( !this->m_SumProbabilityImage )
+    {
+    std::cout << " ASSHOLE " << std::endl;
+    }
+  if( this->m_ElapsedIterations > 0 && this->m_SumProbabilityImage )
+    {
+    ImageRegionIterator<RealImageType> ItPP( posteriorProbabilityImage,
+                                             posteriorProbabilityImage->GetLargestPossibleRegion() );
+    ItPP.GoToBegin();
+    while( !ItPP.IsAtEnd() )
+      {
+      double sum =  this->m_SumProbabilityImage->GetPixel(ItPP.GetIndex() );
+      if( sum > 0 )
+        {
+        ItPP.Set(ItPP.Get() / sum);
+        }
+      ++ItPP;
+      }
     }
 
   return posteriorProbabilityImage;
