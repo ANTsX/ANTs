@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkNASTYSegmentationImageFilter.h,v $
+  Module:    $RCSfile: itkWASPSegmentationImageFilter.h,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkNASTYSegmentationImageFilter_h
-#define __itkNASTYSegmentationImageFilter_h
+#ifndef __itkWASPSegmentationImageFilter_h
+#define __itkWASPSegmentationImageFilter_h
 
 #include "itkImageToImageFilter.h"
 
@@ -29,7 +29,7 @@
 
 namespace itk
 {
-/** \class NASTYSegmentationImageFilter
+/** \class WASPSegmentationImageFilter
  * \brief Segment image using a statistical prior
  *
  * Classes are assigned consecutive indices 1, 2, 3, etc.  Label 0 is
@@ -43,12 +43,12 @@ namespace itk
 template <class TInputImage, class TMaskImage
             = Image<unsigned char, ::itk::GetImageDimension<TInputImage>::ImageDimension>,
           class TClassifiedImage = TMaskImage>
-class ITK_EXPORT NASTYSegmentationImageFilter :
+class ITK_EXPORT WASPSegmentationImageFilter :
   public ImageToImageFilter<TInputImage, TClassifiedImage>
 {
 public:
   /** Standard class typdedefs. */
-  typedef NASTYSegmentationImageFilter                      Self;
+  typedef WASPSegmentationImageFilter                       Self;
   typedef ImageToImageFilter<TInputImage, TClassifiedImage> Superclass;
   typedef SmartPointer<Self>                                Pointer;
   typedef SmartPointer<const Self>                          ConstPointer;
@@ -57,7 +57,7 @@ public:
   itkNewMacro( Self );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( NASTYSegmentationImageFilter, ImageToImageFilter );
+  itkTypeMacro( WASPSegmentationImageFilter, ImageToImageFilter );
 
   /** Dimension of the images. */
   itkStaticConstMacro( ImageDimension, unsigned int,
@@ -173,16 +173,16 @@ public:
   /** End concept checking */
 #endif
 protected:
-  NASTYSegmentationImageFilter();
-  ~NASTYSegmentationImageFilter();
+  WASPSegmentationImageFilter();
+  ~WASPSegmentationImageFilter();
 
   void PrintSelf( std::ostream& os, Indent indent ) const;
 
   void GenerateData();
 
 private:
-  NASTYSegmentationImageFilter(const Self &); // purposely not implemented
-  void operator=(const Self &);               // purposely not implemented
+  WASPSegmentationImageFilter(const Self &); // purposely not implemented
+  void operator=(const Self &);              // purposely not implemented
 
   void NormalizePriorProbabilityImages();
 
@@ -226,7 +226,7 @@ private:
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkNASTYSegmentationImageFilter.txx"
+#include "itkWASPSegmentationImageFilter.txx"
 #endif
 
 #endif
