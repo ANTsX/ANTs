@@ -650,12 +650,12 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                          maxLabels->GetRequestedRegion() );
 
 // this is the E-step  in the EM algorithm
+  this->m_PosteriorImages.clear();
   vnl_vector<double> VolumeFrac( this->m_NumberOfClasses, 0 );
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     typename RealImageType::Pointer probabilityImage
       = this->CalculatePosteriorProbabilityImage( n + 1 );
-
     ImageRegionConstIterator<RealImageType> ItP( probabilityImage,
                                                  probabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItM( maxProbabilityImage,
@@ -688,8 +688,10 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
     oldmean[n] = this->m_CurrentClassParameters[n][0];
     oldvar[n] = this->m_CurrentClassParameters[n][1];
+    this->m_PosteriorImages.push_back( probabilityImage );
     }
 
+/** Normalize probability images by total probability */
   float vtot = 0;
   ItO.GoToBegin();
   while( !ItO.IsAtEnd() )
@@ -698,6 +700,16 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       {
       VolumeFrac[ItO.Get() - 1] += 1;
       vtot += 1;
+      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+        {
+        double sum = this->m_SumProbabilityImage->GetPixel( ItO.GetIndex() );
+        if( sum > 0 )
+          {
+          this->m_PosteriorImages[n]->SetPixel(ItO.GetIndex(), this->m_PosteriorImages[n]->GetPixel(
+                                                 ItO.GetIndex() ) / sum);
+          }
+        newsum += this->m_PosteriorImages[n]->GetPixel(ItO.GetIndex() );
+        }
       }
     ++ItO;
     }
@@ -733,13 +745,13 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(ItS.GetIndex() ) == this->m_MaskLabel )
         {
         RealType intensity = static_cast<RealType>( ItI.Get() );
-        RealType weight = 0.0;
-        if( ItS.Get() > 0.0 )
+        float    sum = ItS.Get();
+        if( sum == 0 )
           {
-          weight = ItP.Get() / ItS.Get();
+          sum = 1;
           }
+        RealType weight = ItP.Get() / sum;
         n = ItO.Get() - 1;
-
 //	if ( ItS.GetIndex()[0]==83 && ItS.GetIndex()[1]==124 && ItS.GetIndex()[2] == 82 )
 //	std::cout <<" class " <<n  << " weight1 " << ItP.Get()  << " w2 " << ItS.Get() << " w3 " << weight << std::endl;
         // running weighted mean and variance formulation
@@ -983,26 +995,6 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     masker->Update();
 
     posteriorProbabilityImage = masker->GetOutput();
-    }
-
-  if( !this->m_SumProbabilityImage )
-    {
-    std::cout << " ASSHOLE " << std::endl;
-    }
-  if( this->m_ElapsedIterations > 0 && this->m_SumProbabilityImage )
-    {
-    ImageRegionIterator<RealImageType> ItPP( posteriorProbabilityImage,
-                                             posteriorProbabilityImage->GetLargestPossibleRegion() );
-    ItPP.GoToBegin();
-    while( !ItPP.IsAtEnd() )
-      {
-      double sum =  this->m_SumProbabilityImage->GetPixel(ItPP.GetIndex() );
-      if( sum > 0 )
-        {
-        ItPP.Set(ItPP.Get() / sum);
-        }
-      ++ItPP;
-      }
     }
 
   return posteriorProbabilityImage;

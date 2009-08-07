@@ -141,6 +141,18 @@ public:
 
   const MaskImageType * GetMaskImage() const;
 
+  typename RealImageType::Pointer GetPosteriorImage( unsigned int n )
+  {
+    if( n > this->m_PosteriorImages.size() )
+      {
+      return NULL;
+      }
+    else
+      {
+      return this->m_PosteriorImages[n];
+      }
+  }
+
   itkSetClampMacro( PriorProbabilityWeighting, RealType, 0, 1 );
   itkGetConstMacro( PriorProbabilityWeighting, RealType );
 
@@ -223,6 +235,7 @@ private:
 
   RealType m_PriorProbabilityWeighting;
   typename RealImageType::Pointer  m_SumProbabilityImage;
+  std::vector<typename RealImageType::Pointer> m_PosteriorImages;
 };
 } // namespace itk
 
