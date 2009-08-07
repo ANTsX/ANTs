@@ -587,6 +587,7 @@ int main( int argc, char *argv[] )
     std::cout << " wieldy [weel-dee] " << std::endl;
     std::cout <<  " –adjective: readily wielded or managed, as in use or action. " << std::endl;
     std::cout << "Usage: " << argv[0] << " imageDimension args" << std::endl;
+    std::cout << "call: " << argv[0] << " -h " << std::endl;
     std::cout << " this program has not been evaluated " << std::endl;
     exit( 1 );
     }
