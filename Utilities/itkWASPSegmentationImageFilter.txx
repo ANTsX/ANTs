@@ -708,7 +708,6 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           this->m_PosteriorImages[n]->SetPixel(ItO.GetIndex(), this->m_PosteriorImages[n]->GetPixel(
                                                  ItO.GetIndex() ) / sum);
           }
-        newsum += this->m_PosteriorImages[n]->GetPixel(ItO.GetIndex() );
         }
       }
     ++ItO;
