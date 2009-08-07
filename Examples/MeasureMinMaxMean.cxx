@@ -94,7 +94,34 @@ int MeasureMinMaxMean(int argc, char *argv[])
     mean /= (float)ct;
     }
 
-  std::cout <<  argv[2] << " Max : " << max << " Min : " << min << " Mean : " << mean << std::endl;
+  float variance = 0;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    bool isinside = true;
+    if( mask )
+      {
+      if( mask->GetPixel(vfIter2.GetIndex() ) < 0.5 )
+        {
+        isinside = false;
+        }
+      }
+    if( isinside )
+      {
+      double val = vfIter2.Get();
+      if( takeabsval )
+        {
+        val = fabs(val);
+        }
+      variance += vnl_math_sqr(val - mean);
+      }
+    }
+  if( ct > 0 )
+    {
+    variance /= (float)ct;
+    }
+
+  std::cout <<  argv[2] << " Max : " << max << " Min : " << min << " Mean : " << mean << " Var : " << variance
+            << " SD : " << sqrt(variance) << std::endl;
 
   if( argc > 3 )
     {

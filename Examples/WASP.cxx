@@ -414,7 +414,7 @@ int WASPSegmentation( itk::WASPCommandLineParser *parser )
         {
         std::cout << "Writing posterior image (class " << i + 1 << ")" << std::endl;
         typename InputImageType::Pointer probabilityImage
-          = segmenter->CalculatePosteriorProbabilityImage( i + 1 );
+          = segmenter->GetPosteriorImage( i ); // CalculatePosteriorProbabilityImage( i + 1 );
 
         if( segmenter->GetMaskImage() )
           {
