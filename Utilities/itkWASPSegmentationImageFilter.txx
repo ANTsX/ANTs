@@ -181,14 +181,14 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     TimeProbe timer;
     timer.Start();
-    probabilityNew = this->UpdateClassParametersAndLabeling();
+    probabilityNew = this->StraightUpdateClassParametersAndLabeling();
     timer.Stop();
 
     std::cout << "Elapsed time: " << timer.GetMeanTime() << std::endl;
 
     this->m_CurrentConvergenceMeasurement = probabilityNew - probabilityOld;
 
-    if( this->m_CurrentConvergenceMeasurement < this->m_ConvergenceThreshold )
+    if( this->m_CurrentConvergenceMeasurement < this->m_ConvergenceThreshold && this->m_ConvergenceThreshold < 1 )
       {
       isConverged = true;
       }
@@ -617,7 +617,7 @@ template <class TInputImage, class TMaskImage, class TClassifiedImage>
 typename WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealType
 WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::UpdateClassParametersAndLabeling()
+::RecursiveUpdateClassParametersAndLabeling()
 {
   typename RealImageType::Pointer maxProbabilityImage =
     RealImageType::New();
@@ -651,7 +651,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
 // this is the E-step  in the EM algorithm
   this->m_PosteriorImages.clear();
-  vnl_vector<double> VolumeFrac( this->m_NumberOfClasses, 0 );
+//  vnl_vector<double> VolumeFrac( this->m_NumberOfClasses , 0 );
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     typename RealImageType::Pointer probabilityImage
@@ -698,7 +698,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(ItO.GetIndex() ) == this->m_MaskLabel )
       {
-      VolumeFrac[ItO.Get() - 1] += 1;
+//	  VolumeFrac[ ItO.Get()-1 ]+=1;
       vtot += 1;
       for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
         {
@@ -713,7 +713,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     ++ItO;
     }
 
-  VolumeFrac = VolumeFrac / vtot;
+//    VolumeFrac=VolumeFrac/vtot;
 
   // now update the class means and variances
 
@@ -790,7 +790,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     std::cout << "  Class " << n + 1 << ": ";
     std::cout << "mean = " << this->m_CurrentClassParameters[n][0] << ", ";
     std::cout << "variance = " << this->m_CurrentClassParameters[n][1] << "."  << std::endl;
-    std::cout << VolumeFrac[n] << std::endl;
+//    std::cout << VolumeFrac[n] << std::endl;
     }
 //     this->m_CurrentClassParameters[0][1]=100;
 //       this->m_CurrentClassParameters[1][1]=200;
@@ -798,6 +798,264 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->SetNthOutput( 0, maxLabels );
 //  this->SetNthOutput( 1, this->m_SumProbabilityImage );
 
+  return Psum / (ct);
+}
+
+template <class TInputImage, class TMaskImage, class TClassifiedImage>
+typename WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::RealType
+WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::StraightUpdateClassParametersAndLabeling()
+{
+//	std::cout << " begin class param and label " << std::endl;
+  vnl_vector<double> N( this->m_NumberOfClasses );
+  vnl_vector<double> WT( this->m_NumberOfClasses );
+  vnl_vector<double> INTENSbyWT( this->m_NumberOfClasses );
+  vnl_vector<double> VARbyWT( this->m_NumberOfClasses );
+  N.fill(0);
+  WT.fill(0);
+  INTENSbyWT.fill(0);
+  VARbyWT.fill(0);
+
+  typename RealImageType::Pointer maxProbabilityImage =
+    RealImageType::New();
+  maxProbabilityImage->SetRegions( this->GetOutput()->GetLargestPossibleRegion() );
+  maxProbabilityImage->SetOrigin( this->GetOutput()->GetOrigin() );
+  maxProbabilityImage->SetSpacing( this->GetOutput()->GetSpacing() );
+  maxProbabilityImage->SetDirection( this->GetOutput()->GetDirection() );
+  maxProbabilityImage->Allocate();
+  maxProbabilityImage->FillBuffer( NumericTraits<RealType>::Zero );
+  vnl_vector<double> oldmean( this->m_NumberOfClasses, 0 );
+  vnl_vector<double> oldvar( this->m_NumberOfClasses, 0);
+
+  this->m_SumProbabilityImage =  RealImageType::New();
+  this->m_SumProbabilityImage->SetRegions( this->GetOutput()->GetLargestPossibleRegion() );
+  this->m_SumProbabilityImage->SetOrigin( this->GetOutput()->GetOrigin() );
+  this->m_SumProbabilityImage->SetSpacing( this->GetOutput()->GetSpacing() );
+  this->m_SumProbabilityImage->SetDirection( this->GetOutput()->GetDirection() );
+  this->m_SumProbabilityImage->Allocate();
+  this->m_SumProbabilityImage->FillBuffer( NumericTraits<RealType>::Zero );
+
+  typename ClassifiedImageType::Pointer maxLabels =
+    ClassifiedImageType::New();
+  maxLabels->SetRegions( this->GetOutput()->GetLargestPossibleRegion() );
+  maxLabels->SetOrigin( this->GetOutput()->GetOrigin() );
+  maxLabels->SetSpacing( this->GetOutput()->GetSpacing() );
+  maxLabels->SetDirection( this->GetOutput()->GetDirection() );
+  maxLabels->Allocate();
+  maxLabels->FillBuffer( NumericTraits<LabelType>::Zero );
+
+  ImageRegionIterator<RealImageType> ItS( this->m_SumProbabilityImage,
+                                          this->m_SumProbabilityImage->GetLargestPossibleRegion() );
+  ImageRegionIterator<RealImageType> ItP( maxProbabilityImage,
+                                          maxProbabilityImage->GetLargestPossibleRegion() );
+  ImageRegionConstIterator<ImageType>               ItI( this->GetInput(), this->GetInput()->GetLargestPossibleRegion() );
+  ImageRegionIteratorWithIndex<ClassifiedImageType> ItO( maxLabels, maxLabels->GetLargestPossibleRegion() );
+
+// first step -- calculate the distance maps, if they are required
+//  std::vector<typename RealImageType::Pointer>  this->m_DistanceImages;
+  if(      this->m_DistanceImages.size() == 0 )
+    {
+    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+      {
+      typename RealImageType::Pointer distanceImage = NULL;
+      if( n <= this->m_PriorLabelSigmas.size() &&
+          this->m_PriorLabelSigmas[n] > 0.0 )
+        {
+        typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
+        ThresholderType;
+        typename ThresholderType::Pointer thresholder = ThresholderType::New();
+        thresholder->SetInput( const_cast<ClassifiedImageType *>(
+                                 this->GetPriorLabelImage() ) );
+        thresholder->SetInsideValue( 1 );
+        thresholder->SetOutsideValue( 0 );
+        thresholder->SetLowerThreshold( static_cast<LabelType>( n + 1 ) );
+        thresholder->SetUpperThreshold( static_cast<LabelType>( n + 1 ) );
+        thresholder->Update();
+
+        typedef SignedMaurerDistanceMapImageFilter
+        <RealImageType, RealImageType> DistancerType;
+        typename DistancerType::Pointer distancer = DistancerType::New();
+        distancer->SetInput( thresholder->GetOutput() );
+        distancer->SetSquaredDistance( true );
+        distancer->SetUseImageSpacing( true );
+        distancer->SetInsideIsPositive( false );
+        distancer->Update();
+        distanceImage = distancer->GetOutput();
+
+        ImageRegionIterator<RealImageType> ItD( distanceImage,
+                                                distanceImage->GetRequestedRegion() );
+// get max dist
+        float maxdist = 0;
+        for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
+          {
+          if( ItD.Get() < 0.0 )
+            {
+            if( fabs(ItD.Get() ) > maxdist )
+              {
+              maxdist = fabs(ItD.Get() );
+              }
+            }
+          }
+        for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
+          {
+          float distancePrior = 1;
+          float dist = ItD.Get();
+          float critval = 0.1;                             // the probability at the boundary will be 1.0-critval
+          float delta = (maxdist - fabs(dist) ) / maxdist; // in range of zero to one
+          // below, the value at the boundary (D=0) is 1-critval and reduces away from the boundary
+          if( dist >= 0 )
+            {
+            distancePrior =
+              vcl_exp( -1.0 * ItD.Get() * ItD.Get() / vnl_math_sqr( this->m_PriorLabelSigmas[n] ) ) * (1.0 - critval);
+            }
+          // below, the value inside the object (D>0) increases from 1-crtival to 1
+          else
+            {
+            distancePrior = 1.0 - critval * delta;
+            }
+          ItD.Set(distancePrior);
+          }
+        } // end if for spatial prior
+      this->m_DistanceImages.push_back( distanceImage );
+      }
+    }
+
+  float sumpriorsigma = 0;
+  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+    {
+    if(   this->m_PriorLabelSigmas.size() == this->m_NumberOfClasses )
+      {
+      sumpriorsigma += this->m_PriorLabelSigmas[n];
+//      std::cout <<" sig " << this->m_PriorLabelSigmas[n] << std::endl;
+      }
+    }
+  // std::cout <<" prior sigma size " << this->m_PriorLabelSigmas.size() << " : " << sumpriorsigma << std::endl;
+
+// this is the E-step  in the EM algorithm
+  this->m_PosteriorImages.clear();
+//  vnl_vector<double> VolumeFrac( this->m_NumberOfClasses , 0 );
+  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+    {
+    typename RealImageType::Pointer probabilityImage
+      = this->CalculatePosteriorProbabilityImage( n + 1 );
+    ImageRegionIteratorWithIndex<RealImageType> ItT( probabilityImage, probabilityImage->GetLargestPossibleRegion() );
+
+    ItP.GoToBegin();
+    ItO.GoToBegin();
+    ItS.GoToBegin();
+    ItT.GoToBegin();
+    while( !ItP.IsAtEnd() )
+      {
+      if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
+            ItO.GetIndex() ) == this->m_MaskLabel )
+        {
+        float spprob = 1;
+        //  adjust the probability by the spatial priors .. if any ...
+        // first deal with the case when we do not have a spatial prior for this class, n.
+        // in this case, the tissue priors are all value 1
+        if( sumpriorsigma > 0  )
+          {
+          if( !this->m_DistanceImages[n]  )
+            {
+//  get local sum over all  classes with spatial prior
+            for( unsigned int sn = 0; sn < this->m_NumberOfClasses; sn++ )
+              {
+              if( this->m_DistanceImages[sn] )
+                {
+                spprob = spprob - this->m_DistanceImages[sn]->GetPixel( ItO.GetIndex() );
+                }
+              }
+            if( spprob < 0 )
+              {
+              spprob = 0;
+              }
+//	   if ( this->m_DistanceImages[3]->GetPixel( ItO.GetIndex() ) > 0.5  && n == 2 ) std::cout << " sprob " <<
+//  this->m_DistanceImages[3]->GetPixel( ItO.GetIndex() )  << " gprob " << ItT.Get()  << " spprob " << spprob <<
+// std::endl;
+            }
+          else
+            {
+            spprob = this->m_DistanceImages[n]->GetPixel( ItO.GetIndex() );
+            }
+          ItT.Set(ItT.Get() * spprob);
+          }
+        if( ItT.Get() >= ItP.Get() )
+          {
+          ItP.Set( ItT.Get() );
+          ItO.Set( static_cast<LabelType>( n + 1 ) );
+          }
+        ItS.Set( ItS.Get() + ItT.Get() );
+        }
+      ++ItP;
+      ++ItO;
+      ++ItS;
+      ++ItT;
+      }
+
+    // oldmean[n]= this->m_CurrentClassParameters[n][0] ;
+    // oldvar[n]= this->m_CurrentClassParameters[n][1] ;
+    this->m_PosteriorImages.push_back( probabilityImage );
+    }
+  std::cout << " done with posteriors " << std::endl;
+
+/** Normalize probability images by total probability */
+  ItO.GoToBegin();
+  while( !ItO.IsAtEnd() )
+    {
+    if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(ItO.GetIndex() ) == this->m_MaskLabel )
+      {
+      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+        {
+        double sum = this->m_SumProbabilityImage->GetPixel( ItO.GetIndex() );
+        if( sum > 0 )
+          {
+          this->m_PosteriorImages[n]->SetPixel(ItO.GetIndex(), this->m_PosteriorImages[n]->GetPixel(
+                                                 ItO.GetIndex() ) / sum);
+          }
+        }
+      float wt = this->m_PosteriorImages[ItO.Get() - 1]->GetPixel(ItO.GetIndex() );
+      WT[ItO.Get() - 1] += wt;
+      INTENSbyWT[ItO.Get() - 1] += wt * this->GetInput()->GetPixel(ItO.GetIndex() );
+      }
+    ++ItO;
+    }
+
+  std::cout << " done normalizing " << std::endl;
+  // now update the class means and variances
+  double        Psum = 0;
+  unsigned long ct = 0;
+  unsigned int  n = 0;
+  ItI.GoToBegin();    ItP.GoToBegin();    ItS.GoToBegin();    ItO.GoToBegin();
+  while( !ItS.IsAtEnd() )
+    {
+    if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(ItS.GetIndex() ) == this->m_MaskLabel )
+      {
+      RealType intensity = static_cast<RealType>( ItI.Get() );
+      n = ItO.Get() - 1;
+      RealType weight = this->m_PosteriorImages[n]->GetPixel(ItO.GetIndex() );
+      Psum += (weight);
+      ct++;
+      VARbyWT[n] += weight * vnl_math_sqr(  intensity - INTENSbyWT[n] / WT[n]  );
+      }
+    ++ItI;
+    ++ItP;
+    ++ItS;
+    ++ItO;
+    }
+
+  std::cout << " done with var " << std::endl;
+  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+    {
+    this->m_CurrentClassParameters[n][0] = INTENSbyWT[n] / WT[n]; // this->m_CurrentClassParameters[n][0]*wt2+oldmean[n]*wt1;
+    this->m_CurrentClassParameters[n][1] = VARbyWT[n] / WT[n];    // this->m_CurrentClassParameters[n][1]*wt2+oldvar[n]*wt1;
+    std::cout << "  Class " << n + 1 << ": ";
+    std::cout << "mean = " << this->m_CurrentClassParameters[n][0] << ", ";
+    std::cout << "variance = " << this->m_CurrentClassParameters[n][1] << "."  << std::endl;
+//    std::cout << VolumeFrac[n] << std::endl;
+    }
+  std::cout << " output " << std::endl;
+  this->SetNthOutput( 0, maxLabels );
   return Psum / (ct);
 }
 
@@ -840,11 +1098,12 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     thresholder->SetUpperThreshold( static_cast<LabelType>( whichClass ) );
     thresholder->Update();
 
+/*  BA FIXME -- moving this to the calculation of the normalized across classes posteriors
     if( whichClass <= this->m_PriorLabelSigmas.size() &&
-        this->m_PriorLabelSigmas[whichClass - 1] > 0.0 )
+      this->m_PriorLabelSigmas[whichClass-1] > 0.0 )
       {
       typedef SignedMaurerDistanceMapImageFilter
-      <RealImageType, RealImageType> DistancerType;
+        <RealImageType, RealImageType> DistancerType;
       typename DistancerType::Pointer distancer = DistancerType::New();
       distancer->SetInput( thresholder->GetOutput() );
       distancer->SetSquaredDistance( true );
@@ -855,17 +1114,21 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       distanceImage = distancer->GetOutput();
 
       ImageRegionIterator<RealImageType> ItD( distanceImage,
-                                              distanceImage->GetRequestedRegion() );
+        distanceImage->GetRequestedRegion() );
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
         if( ItD.Get() < 0.0 )
           {
-          ItD.Set( ItD.Get() * 0.5 );
+          ItD.Set( 0 ); //ItD.Get()*0.5
           }
         }
-      }
+      } // end if for spatial prior
+*/
     }
-
+//  std::cout <<"  FIXME -- do we need distance map probabilities to be normalized ? " << std::endl;
+//  std::cout << " e.g. P_dist(x) = exp( - Dist(x) ) for the class of interest and 1-P_dist elsewhere " << std::endl;
+//  std::cout <<" the issue is that if we are 'inside' the tissue , should we not exclude other tissue probabilities? "
+// << std::endl;
   typename RealImageType::Pointer posteriorProbabilityImage =
     RealImageType::New();
   posteriorProbabilityImage->SetRegions(
@@ -1006,14 +1269,13 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::CalculateSmoothIntensityImageFromPriorProbabilityImage( unsigned int whichClass )
 {
   typename ScalarImageType::Pointer bsplineImage;
-
+  std::cout << " Nulling the BSpline and fitting to current label set " << std::endl;
+  this->m_ControlPointLattices[whichClass - 1] = NULL; // BA test FIXME
   if( this->m_ControlPointLattices[whichClass - 1].GetPointer() != NULL )
     {
     typedef BSplineControlPointImageFilter<ControlPointLatticeType,
                                            ScalarImageType> BSplineReconstructorType;
-    typename BSplineReconstructorType::Pointer bspliner
-      = BSplineReconstructorType::New();
-
+    typename BSplineReconstructorType::Pointer bspliner = BSplineReconstructorType::New();
     bspliner->SetInput( this->m_ControlPointLattices[whichClass - 1] );
     bspliner->SetSize( this->GetInput()->GetRequestedRegion().GetSize() );
     bspliner->SetSpacing( this->GetInput()->GetSpacing() );
@@ -1021,7 +1283,6 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     bspliner->SetDirection( this->GetInput()->GetDirection() );
     bspliner->SetSplineOrder( this->m_SplineOrder );
     bspliner->Update();
-
     bsplineImage = bspliner->GetOutput();
     }
   else
@@ -1046,7 +1307,8 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       ThresholderType;
       typename ThresholderType::Pointer thresholder = ThresholderType::New();
       thresholder->SetInput( const_cast<ClassifiedImageType *>(
-                               this->GetPriorLabelImage() ) );
+                               this->GetOutput() ) ); // BA test FIXME
+//        this->GetPriorLabelImage() ) ); // BA test FIXME
       thresholder->SetInsideValue( 1 );
       thresholder->SetOutsideValue( 0 );
       thresholder->SetLowerThreshold( static_cast<LabelType>( whichClass ) );
@@ -1127,8 +1389,39 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   caster->SetInput( bsplineImage );
   caster->SetIndex( 0 );
   caster->Update();
+  typename RealImageType::Pointer realimg = caster->GetOutput();
 
-  return caster->GetOutput();
+// make average bspline intensity match the class mean
+  ImageRegionIteratorWithIndex<RealImageType> ItB( realimg,
+                                                   realimg->GetBufferedRegion() );
+  float  bmean = 0;
+  double ct = 1.e-9;
+  for(  ItB.GoToBegin(); !ItB.IsAtEnd(); ++ItB )
+    {
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItB.GetIndex() ) == this->m_MaskLabel )
+      {
+      if( this->GetOutput()->GetPixel(ItB.GetIndex() ) == whichClass  )
+        {
+        bmean += ItB.Get();
+        ct++;
+        }
+      }
+    }
+  bmean /= ct;
+  float bscale = this->m_CurrentClassParameters[whichClass - 1][0] / bmean;
+//    std::cout << " bscale " << bscale << " bmean " << bmean << " mean " <<
+//  this->m_CurrentClassParameters[whichClass-1][0] << std::endl;
+  for(  ItB.GoToBegin(); !ItB.IsAtEnd(); ++ItB )
+    {
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItB.GetIndex() ) == this->m_MaskLabel )
+      {
+      ItB.Set( ItB.Get() * bscale );
+      }
+    }
+
+  return realimg;
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>

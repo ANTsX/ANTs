@@ -208,7 +208,11 @@ private:
 
 //  void SpatiallySmoothClassLabelingWithMRF();
 
-  RealType UpdateClassParametersAndLabeling();
+/** this should be used when we cant afford to store the posteriors */
+  RealType RecursiveUpdateClassParametersAndLabeling();
+
+/** this should be used for cases when we can store all images */
+  RealType StraightUpdateClassParametersAndLabeling();
 
   unsigned int m_NumberOfClasses;
   unsigned int m_ElapsedIterations;
@@ -236,6 +240,7 @@ private:
   RealType m_PriorProbabilityWeighting;
   typename RealImageType::Pointer  m_SumProbabilityImage;
   std::vector<typename RealImageType::Pointer> m_PosteriorImages;
+  std::vector<typename RealImageType::Pointer> m_DistanceImages;
 };
 } // namespace itk
 
