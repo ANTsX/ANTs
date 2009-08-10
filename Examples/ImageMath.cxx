@@ -56,13 +56,14 @@
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
-#include "itkFastMarchingImageFilter.h"
+#include "../Temporary/itkFastMarchingImageFilter.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkEuclideanDistance.h"
 #include "itkSampleClassifier.h"
 #include "itkCastImageFilter.h"
 #include "itkScalarImageToListAdaptor.h"
 #include "itkConnectedComponentImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
 
 #include "itkMRIBiasFieldCorrectionFilter.h"
 #include "itkImage.h"
@@ -590,7 +591,7 @@ int TileImages(unsigned int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
-int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
+int TriPlanarView(unsigned int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -606,69 +607,60 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
-  int argct = 2;
+  unsigned int argct = 2;
   if( argc < 5 )
     {
     std::cout << " need more args -- see usage   " << std::endl;  exit(0);
     }
-  std::string  outname = std::string(argv[argct]); argct++;
-  std::string  operation = std::string(argv[argct]);  argct++;
-  unsigned int rowcoloption = atoi(argv[argct]);   argct++;
-  std::string  maskfn = std::string(argv[argct]); argct++;
-  unsigned int numberofimages = 0;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string maskfn = std::string(argv[argct]); argct++;
   typename ImageType::Pointer mask = NULL;
   ReadImage<ImageType>(mask, maskfn.c_str() );
-  unsigned long voxct = 0;
-  Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
-  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+  typename ImageType::SizeType size = mask->GetLargestPossibleRegion().GetSize();
+  unsigned int xslice = size[0] / 2;
+  if( argc > argct )
     {
-    if( mIter.Get() >= 0.5 )
-      {
-      voxct++;
-      }
+    xslice = atoi(argv[argct]);
     }
-
-  typename ImageType::Pointer image2 = NULL;
-  typename ImageType::SizeType size;
-  size.Fill(0);
-  unsigned int bigimage = 0;
-  for( unsigned int j = argct; j < argc; j++ )
+  argct++;
+  unsigned int yslice = size[1] / 2;
+  if( argc > argct )
     {
-    numberofimages++;
-    // Get the image dimension
-    std::string fn = std::string(argv[j]);
-    typename itk::ImageIOBase::Pointer imageIO =
-      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
-    imageIO->SetFileName(fn.c_str() );
-    imageIO->ReadImageInformation();
-    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
-      {
-      if( imageIO->GetDimensions(i) > size[i] )
-        {
-        size[i] = imageIO->GetDimensions(i);
-        bigimage = j;
-        std::cout << " bigimage " << j << " size " << size << std::endl;
-        }
-      }
+    yslice = atoi(argv[argct]);
     }
-
-  std::cout << " largest image " << size << " num images " << numberofimages << " voxct " << voxct << std::endl;
+  argct++;
+  unsigned int zslice = size[2] / 2;
+  if( argc > argct )
+    {
+    zslice = atoi(argv[argct]);
+    }
+  argct++;
 
 /** declare the tiled image */
-  unsigned long xx = 0, yy = 0;
-  if( rowcoloption == 0 )
-    {
-    std::cout << " row option " << std::endl;  xx = voxct;  yy = numberofimages;
-    }
-  if( rowcoloption == 1 )
-    {
-    std::cout << " col option " << std::endl;  yy = voxct;  xx = numberofimages;
-    }
-  unsigned long xsize = xx;
-  unsigned long ysize = yy;
+  unsigned long xsize = size[0];
+  unsigned long ysize = size[1];
+  unsigned long zsize = size[2];
+  typename MatrixImageType::SizeType ztilesize;
+  ztilesize[0] = xsize;
+  ztilesize[1] = ysize;
+  typename MatrixImageType::SizeType ytilesize;
+  ytilesize[0] = xsize;
+  ytilesize[1] = zsize;
+  typename MatrixImageType::SizeType xtilesize;
+  xtilesize[0] = ysize;
+  xtilesize[1] = zsize;
   typename MatrixImageType::SizeType tilesize;
-  tilesize[0] = xsize;
-  tilesize[1] = ysize;
+  tilesize[0] = xtilesize[0] + ytilesize[0] + ztilesize[0];
+  tilesize[1] = xtilesize[1];
+  if( ytilesize[1] > tilesize[1] )
+    {
+    tilesize[1] = ytilesize[1];
+    }
+  if( ztilesize[1] > tilesize[1] )
+    {
+    tilesize[1] = ztilesize[1];
+    }
   std::cout << " allocate matrix " << tilesize << std::endl;
   typename MatrixImageType::RegionType region;
   region.SetSize( tilesize );
@@ -684,46 +676,52 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   matimage->SetOrigin( morg );
   matimage->Allocate();
 
-  unsigned int imagecount = 0;
-  for( unsigned int j = argct; j < argc; j++ )
+  // now loop over each slice and put the pixels in the right place in matimage
+  typename MatrixImageType::IndexType index2d;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  Iterator vfIter2( mask,  mask->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    std::string fn = std::string(argv[j]);
-    ReadImage<ImageType>(image2, fn.c_str() );
-    std::cout << " image " << j << " is "  << fn << std::endl;
-    unsigned long xx = 0, yy = 0, tvoxct = 0;
-    if( rowcoloption == 0 )
+    // first do z-slice
+    if( vfIter2.GetIndex()[2] == (long) zslice )
       {
-      yy = imagecount;
+      double val = vfIter2.Get();
+      typename ImageType::IndexType index = vfIter2.GetIndex();
+      index2d[0] = index[0] + xtilesize[0] + ytilesize[0];
+      index2d[1] = index[1];
+      matimage->SetPixel(index2d, val);
       }
-    if( rowcoloption == 1 )
+    if( vfIter2.GetIndex()[1] == (long)yslice )
       {
-      xx = imagecount;
+      double val = vfIter2.Get();
+      typename ImageType::IndexType index = vfIter2.GetIndex();
+      index2d[0] = index[0] + xtilesize[0];
+      index2d[1] = index[2];
+      matimage->SetPixel(index2d, val);
       }
-    typename MatrixImageType::IndexType mind;
-    for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    if( vfIter2.GetIndex()[0] == (long)xslice )
       {
-      if( mIter.Get() >= 0.5 )
-        {
-        if( rowcoloption == 0 )
-          {
-          xx = tvoxct;
-          }
-        if( rowcoloption == 1 )
-          {
-          yy = tvoxct;
-          }
-        mind[0] = xx;
-        mind[1] = yy;
-        //	      std::cout << " Mind " << mind << std::endl;
-        matimage->SetPixel(mind, image2->GetPixel(mIter.GetIndex() ) );
-        tvoxct++;
-        }
+      double val = vfIter2.Get();
+      typename ImageType::IndexType index = vfIter2.GetIndex();
+      index2d[0] = index[1];
+      index2d[1] = index[2];
+      matimage->SetPixel(index2d, val);
       }
-    imagecount++;
     }
 
-  std::cout << " mat size " << matimage->GetLargestPossibleRegion().GetSize() << std::endl;
-  WriteImage<MatrixImageType>(matimage, outname.c_str() );
+  typedef itk::Image<unsigned char, 2>                                     ByteImageType;
+  typedef itk::RescaleIntensityImageFilter<MatrixImageType, ByteImageType> RescaleFilterType;
+  typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  rescaler->SetOutputMinimum(   0 );
+  rescaler->SetOutputMaximum( 255 );
+  rescaler->SetInput( matimage );
+
+  std::cout << " writing output ";
+  typedef itk::ImageFileWriter<ByteImageType> writertype;
+  typename writertype::Pointer writer = writertype::New();
+  writer->SetFileName(outname.c_str() );
+  writer->SetInput( rescaler->GetOutput() );
+  writer->Update();
 
   return 0;
 }
@@ -3862,6 +3860,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     typedef  itk::FastMarchingImageFilter<ImageType, ImageType> FastMarchingFilterType;
     typename FastMarchingFilterType::Pointer  fastMarching = FastMarchingFilterType::New();
     fastMarching->SetInput( speedimage );
+    fastMarching->SetCheckTopology( false );  // typename FastMarchingFilterType::Strict );
     typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
     typedef typename FastMarchingFilterType::NodeType      NodeType;
     typename NodeContainer::Pointer seeds = NodeContainer::New();
@@ -4983,7 +4982,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   labct = 0;
   float sum = 0, sumdice = 0, sumro = 0;
-  std::sort(myLabelSet2.begin(), myLabelSet2.end() );
+  //  std::sort(myLabelSet2.begin(),myLabelSet2.end());
   unsigned long labelcount = 0;
   for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
     {
@@ -5429,10 +5428,11 @@ int LabelStats(      int argc, char *argv[])
       std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
                 << std::endl;
       }
-    else
+    else if( totalvolume > 500 &&  totalmass / totalct > 1 / 500 )
       {
-      std::cout << " Volume Of Label " << *it << " is " << (unsigned long) totalvolume <<   "  Avg-Location "
-                << myCenterOfMass << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
+      //      std::cout << " Volume Of Label " << *it << " is " << (unsigned long) totalvolume <<   "  Avg-Location " <<
+      // myCenterOfMass <<" mass is " << totalmass << " average-val is " << totalmass/totalct << std::endl;
+      std::cout << *it << "  " <<  totalvolume <<  " & " <<  totalmass / totalct   << " \ " << std::endl;
       }
 
 // square image
@@ -5561,6 +5561,145 @@ int PValueImage(      int argc, char *argv[])
     }
 
   WriteImage<ImageType>(image, outname.c_str() );
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::Image<PixelType, 2>                                        MatrixImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int argct = 2;
+  if( argc < 5 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    }
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  unsigned int rowcoloption = atoi(argv[argct]);   argct++;
+  std::string  maskfn = std::string(argv[argct]); argct++;
+  unsigned int numberofimages = 0;
+  typename ImageType::Pointer mask = NULL;
+  ReadImage<ImageType>(mask, maskfn.c_str() );
+  unsigned long voxct = 0;
+  Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() >= 0.5 )
+      {
+      voxct++;
+      }
+    }
+
+  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::SizeType size;
+  size.Fill(0);
+  unsigned int bigimage = 0;
+  for( unsigned int j = argct; j < argc; j++ )
+    {
+    numberofimages++;
+    // Get the image dimension
+    std::string fn = std::string(argv[j]);
+    typename itk::ImageIOBase::Pointer imageIO =
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
+    imageIO->SetFileName(fn.c_str() );
+    imageIO->ReadImageInformation();
+    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
+      {
+      if( imageIO->GetDimensions(i) > size[i] )
+        {
+        size[i] = imageIO->GetDimensions(i);
+        bigimage = j;
+        std::cout << " bigimage " << j << " size " << size << std::endl;
+        }
+      }
+    }
+
+  std::cout << " largest image " << size << " num images " << numberofimages << " voxct " << voxct << std::endl;
+
+/** declare the tiled image */
+  unsigned long xx = 0, yy = 0;
+  if( rowcoloption == 0 )
+    {
+    std::cout << " row option " << std::endl;  xx = voxct;  yy = numberofimages;
+    }
+  if( rowcoloption == 1 )
+    {
+    std::cout << " col option " << std::endl;  yy = voxct;  xx = numberofimages;
+    }
+  unsigned long xsize = xx;
+  unsigned long ysize = yy;
+  typename MatrixImageType::SizeType tilesize;
+  tilesize[0] = xsize;
+  tilesize[1] = ysize;
+  std::cout << " allocate matrix " << tilesize << std::endl;
+  typename MatrixImageType::RegionType region;
+  region.SetSize( tilesize );
+
+  typename MatrixImageType::Pointer matimage = MatrixImageType::New();
+  matimage->SetLargestPossibleRegion( region );
+  matimage->SetBufferedRegion( region );
+  typename MatrixImageType::DirectionType mdir;  mdir.Fill(0); mdir[0][0] = 1; mdir[1][1] = 1;
+  typename MatrixImageType::SpacingType mspc;  mspc.Fill(1);
+  typename MatrixImageType::PointType morg;  morg.Fill(0);
+  matimage->SetSpacing( mspc );
+  matimage->SetDirection(mdir);
+  matimage->SetOrigin( morg );
+  matimage->Allocate();
+
+  unsigned int imagecount = 0;
+  for( unsigned int j = argct; j < argc; j++ )
+    {
+    std::string fn = std::string(argv[j]);
+    ReadImage<ImageType>(image2, fn.c_str() );
+    std::cout << " image " << j << " is "  << fn << std::endl;
+    unsigned long xx = 0, yy = 0, tvoxct = 0;
+    if( rowcoloption == 0 )
+      {
+      yy = imagecount;
+      }
+    if( rowcoloption == 1 )
+      {
+      xx = imagecount;
+      }
+    typename MatrixImageType::IndexType mind;
+    for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+      {
+      if( mIter.Get() >= 0.5 )
+        {
+        if( rowcoloption == 0 )
+          {
+          xx = tvoxct;
+          }
+        if( rowcoloption == 1 )
+          {
+          yy = tvoxct;
+          }
+        mind[0] = xx;
+        mind[1] = yy;
+        //	      std::cout << " Mind " << mind << std::endl;
+        matimage->SetPixel(mind, image2->GetPixel(mIter.GetIndex() ) );
+        tvoxct++;
+        }
+      }
+    imagecount++;
+    }
+
+  std::cout << " mat size " << matimage->GetLargestPossibleRegion().GetSize() << std::endl;
+  WriteImage<MatrixImageType>(matimage, outname.c_str() );
 
   return 0;
 }
@@ -6162,9 +6301,10 @@ int SegmentImage(      int argc, char *argv[])
           }
         double finalprob = 0;
         priorprob = kct / tkct;
-        priorprob = exp(-1.0 * (1.0 - priorprob) / 0.3);
+        float mrfval = 1;
+        priorprob = exp(-1.0 * (1.0 - priorprob) / mrfval);
         double lpriorprob = lkct / tkct;
-        lpriorprob = exp(-1.0 * (1.0 - lpriorprob) / 0.3);
+        lpriorprob = exp(-1.0 * (1.0 - lpriorprob) / mrfval);
         priorprob = lpriorprob * locweight + priorprob * gwt;
         finalprob = 1. / (1. + exp(-1.0 * ( dataprob * priorprob - 0.25) / 0.1) ); // a decision function
         // std::cout << " ind " << ind <<" prob " << finalprob << " k " << k << std::endl;
@@ -6331,6 +6471,7 @@ int main(int argc, char *argv[])
     << "  ConvertImageToFile  imagevalues.nii {Optional-ImageMask.nii} -- will write voxel values to a file  "
     << std::endl;
     std::cout << "  PValueImage  TValueImage  dof  " << std::endl;
+    std::cout << "  ConvertToGaussian  TValueImage  sigma-float  " << std::endl;
     std::cout
     <<
     "  ConvertImageSetToMatrix  rowcoloption Mask.nii  *images.nii --  each row/column contains image content extracted from mask applied to images in *img.nii "
@@ -6339,6 +6480,7 @@ int main(int argc, char *argv[])
     <<
     "  ConvertVectorToImage   Mask.nii vector.nii  -- the vector contains image content extracted from a mask - here we return the vector to its spatial origins as image content "
     << std::endl;
+    std::cout << "  TriPlanarView  ImageIn.nii.gz  x-slice y-slice z-slice " << std::endl;
     std::cout
     <<
     "  FillHoles Image parameter : parameter = ratio of edge at object to edge at background = 1 is a definite hole bounded by object only, 0.99 is close -- default of parameter > 1 will fill all holes "
@@ -6761,6 +6903,10 @@ int main(int argc, char *argv[])
         {
         PropagateLabelsThroughMask<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
+        {
+        TriPlanarView<3>(argc, argv);
+        }
       else
         {
         std::cout << " cannot find operation : " << operation << std::endl;
@@ -6771,6 +6917,5 @@ int main(int argc, char *argv[])
       std::cerr << " Dimension Not supported " << atoi(argv[1]) << std::endl;
       exit( 1 );
     }
-
   return 0;
 }
