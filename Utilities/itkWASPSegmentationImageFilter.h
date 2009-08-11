@@ -170,7 +170,7 @@ public:
 
   const ClassifiedImageType * GetPriorLabelImage() const;
 
-  typename RealImageType::Pointer CalculatePosteriorProbabilityImage( unsigned int );
+  typename RealImageType::Pointer CalculatePosteriorProbabilityImage( unsigned int, bool calcdist );
 
   typename RealImageType::Pointer CalculateSmoothIntensityImageFromPriorProbabilityImage( unsigned int );
 

@@ -181,7 +181,8 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     TimeProbe timer;
     timer.Start();
-    probabilityNew = this->StraightUpdateClassParametersAndLabeling();
+//    probabilityNew = this->StraightUpdateClassParametersAndLabeling();
+    probabilityNew = this->RecursiveUpdateClassParametersAndLabeling();
     timer.Stop();
 
     std::cout << "Elapsed time: " << timer.GetMeanTime() << std::endl;
@@ -651,11 +652,10 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
 // this is the E-step  in the EM algorithm
   this->m_PosteriorImages.clear();
-//  vnl_vector<double> VolumeFrac( this->m_NumberOfClasses , 0 );
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     typename RealImageType::Pointer probabilityImage
-      = this->CalculatePosteriorProbabilityImage( n + 1 );
+      = this->CalculatePosteriorProbabilityImage( n + 1, true );
     ImageRegionConstIterator<RealImageType> ItP( probabilityImage,
                                                  probabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItM( maxProbabilityImage,
@@ -673,7 +673,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
             ItO.GetIndex() ) == this->m_MaskLabel )
         {
-        if( ItP.Get() > ItM.Get() )
+        if( ItP.Get() >= ItM.Get() )
           {
           ItM.Set( ItP.Get() );
           ItO.Set( static_cast<LabelType>( n + 1 ) );
@@ -691,30 +691,6 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     this->m_PosteriorImages.push_back( probabilityImage );
     }
 
-/** Normalize probability images by total probability */
-  float vtot = 0;
-  ItO.GoToBegin();
-  while( !ItO.IsAtEnd() )
-    {
-    if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(ItO.GetIndex() ) == this->m_MaskLabel )
-      {
-//	  VolumeFrac[ ItO.Get()-1 ]+=1;
-      vtot += 1;
-      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-        {
-        double sum = this->m_SumProbabilityImage->GetPixel( ItO.GetIndex() );
-        if( sum > 0 )
-          {
-          this->m_PosteriorImages[n]->SetPixel(ItO.GetIndex(), this->m_PosteriorImages[n]->GetPixel(
-                                                 ItO.GetIndex() ) / sum);
-          }
-        }
-      }
-    ++ItO;
-    }
-
-//    VolumeFrac=VolumeFrac/vtot;
-
   // now update the class means and variances
 
   vnl_vector<double> N( this->m_NumberOfClasses );
@@ -726,9 +702,6 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 //  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
 //   unsigned int n = this->m_ElapsedIterations % this->m_NumberOfClasses;
     {
-//    typename RealImageType::Pointer probabilityImage
-//      = this->CalculatePosteriorProbabilityImage( n + 1 );
-
     ImageRegionIterator<RealImageType> ItS( this->m_SumProbabilityImage,
                                             this->m_SumProbabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType>  ItP( maxProbabilityImage, maxProbabilityImage->GetRequestedRegion() );
@@ -749,12 +722,16 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           sum = 1;
           }
-        RealType weight = ItP.Get() / sum;
+/** Normalize probability images by total probability */
+        for( unsigned int nn = 0; nn < this->m_NumberOfClasses; nn++ )
+          {
+          this->m_PosteriorImages[nn]->SetPixel(ItS.GetIndex(), this->m_PosteriorImages[nn]->GetPixel(
+                                                  ItS.GetIndex() ) / sum);
+          }
         n = ItO.Get() - 1;
-//	if ( ItS.GetIndex()[0]==83 && ItS.GetIndex()[1]==124 && ItS.GetIndex()[2] == 82 )
-//	std::cout <<" class " <<n  << " weight1 " << ItP.Get()  << " w2 " << ItS.Get() << " w3 " << weight << std::endl;
+        RealType weight = this->m_PosteriorImages[n]->GetPixel(ItS.GetIndex() ); // ItP.Get()/sum;
         // running weighted mean and variance formulation
-        if(  weight >= 0. )
+        if(  weight  > 0. )
           {
           Psum += (weight);
           ct++;
@@ -780,24 +757,15 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       ++ItO;
       }
     }
-
-  float wt1 = 0;
-  float wt2 = 1. - wt1;
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    this->m_CurrentClassParameters[n][0] = this->m_CurrentClassParameters[n][0] * wt2 + oldmean[n] * wt1;
-    this->m_CurrentClassParameters[n][1] = this->m_CurrentClassParameters[n][1] * wt2 + oldvar[n] * wt1;
+    this->m_CurrentClassParameters[n][0] = this->m_CurrentClassParameters[n][0];
+    this->m_CurrentClassParameters[n][1] = this->m_CurrentClassParameters[n][1];
     std::cout << "  Class " << n + 1 << ": ";
     std::cout << "mean = " << this->m_CurrentClassParameters[n][0] << ", ";
     std::cout << "variance = " << this->m_CurrentClassParameters[n][1] << "."  << std::endl;
-//    std::cout << VolumeFrac[n] << std::endl;
     }
-//     this->m_CurrentClassParameters[0][1]=100;
-//       this->m_CurrentClassParameters[1][1]=200;
-//       this->m_CurrentClassParameters[2][1]=50;
   this->SetNthOutput( 0, maxLabels );
-//  this->SetNthOutput( 1, this->m_SumProbabilityImage );
-
   return Psum / (ct);
 }
 
@@ -901,7 +869,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           float distancePrior = 1;
           float dist = ItD.Get();
-          float critval = 0.1;                             // the probability at the boundary will be 1.0-critval
+          float critval = 0.;                              // the probability at the boundary will be 1.0-critval
           float delta = (maxdist - fabs(dist) ) / maxdist; // in range of zero to one
           // below, the value at the boundary (D=0) is 1-critval and reduces away from the boundary
           if( dist >= 0 )
@@ -934,11 +902,10 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
 // this is the E-step  in the EM algorithm
   this->m_PosteriorImages.clear();
-//  vnl_vector<double> VolumeFrac( this->m_NumberOfClasses , 0 );
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     typename RealImageType::Pointer probabilityImage
-      = this->CalculatePosteriorProbabilityImage( n + 1 );
+      = this->CalculatePosteriorProbabilityImage( n + 1, false );
     ImageRegionIteratorWithIndex<RealImageType> ItT( probabilityImage, probabilityImage->GetLargestPossibleRegion() );
 
     ItP.GoToBegin();
@@ -1052,7 +1019,6 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     std::cout << "  Class " << n + 1 << ": ";
     std::cout << "mean = " << this->m_CurrentClassParameters[n][0] << ", ";
     std::cout << "variance = " << this->m_CurrentClassParameters[n][1] << "."  << std::endl;
-//    std::cout << VolumeFrac[n] << std::endl;
     }
   std::cout << " output " << std::endl;
   this->SetNthOutput( 0, maxLabels );
@@ -1063,7 +1029,7 @@ template <class TInputImage, class TMaskImage, class TClassifiedImage>
 typename WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImageType::Pointer
 WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::CalculatePosteriorProbabilityImage( unsigned int whichClass )
+::CalculatePosteriorProbabilityImage( unsigned int whichClass, bool calcdist )
 {
   if( whichClass > this->m_NumberOfClasses )
     {
@@ -1098,12 +1064,12 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     thresholder->SetUpperThreshold( static_cast<LabelType>( whichClass ) );
     thresholder->Update();
 
-/*  BA FIXME -- moving this to the calculation of the normalized across classes posteriors
+//  BA FIXME -- moving this to the calculation of the normalized across classes posteriors
     if( whichClass <= this->m_PriorLabelSigmas.size() &&
-      this->m_PriorLabelSigmas[whichClass-1] > 0.0 )
+        this->m_PriorLabelSigmas[whichClass - 1] > 0.0 && calcdist )
       {
       typedef SignedMaurerDistanceMapImageFilter
-        <RealImageType, RealImageType> DistancerType;
+      <RealImageType, RealImageType> DistancerType;
       typename DistancerType::Pointer distancer = DistancerType::New();
       distancer->SetInput( thresholder->GetOutput() );
       distancer->SetSquaredDistance( true );
@@ -1114,16 +1080,15 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       distanceImage = distancer->GetOutput();
 
       ImageRegionIterator<RealImageType> ItD( distanceImage,
-        distanceImage->GetRequestedRegion() );
+                                              distanceImage->GetRequestedRegion() );
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
         if( ItD.Get() < 0.0 )
           {
-          ItD.Set( 0 ); //ItD.Get()*0.5
+          ItD.Set( 0 ); // ItD.Get()*0.5
           }
         }
       } // end if for spatial prior
-*/
     }
 //  std::cout <<"  FIXME -- do we need distance map probabilities to be normalized ? " << std::endl;
 //  std::cout << " e.g. P_dist(x) = exp( - Dist(x) ) for the class of interest and 1-P_dist elsewhere " << std::endl;
