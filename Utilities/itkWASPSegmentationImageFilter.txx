@@ -650,14 +650,16 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   ImageRegionIteratorWithIndex<ClassifiedImageType> ItO( maxLabels,
                                                          maxLabels->GetRequestedRegion() );
 
+  this->AmassDistancePriors();
+
 // this is the E-step  in the EM algorithm
   this->m_PosteriorImages.clear();
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     typename RealImageType::Pointer probabilityImage
       = this->CalculatePosteriorProbabilityImage( n + 1, true );
-    ImageRegionConstIterator<RealImageType> ItP( probabilityImage,
-                                                 probabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<RealImageType> ItP( probabilityImage,
+                                            probabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItM( maxProbabilityImage,
                                             maxProbabilityImage->GetRequestedRegion() );
     ImageRegionIterator<RealImageType> ItS( this->m_SumProbabilityImage,
@@ -673,6 +675,27 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
             ItO.GetIndex() ) == this->m_MaskLabel )
         {
+        if( this->m_DistanceImages.size() == this->m_NumberOfClasses  )
+          {
+          float spprob = 1.0;
+          if( !this->m_DistanceImages[n]  )
+            {
+//  get local sum over all  classes with spatial prior
+            for( unsigned int sn = 0; sn < this->m_NumberOfClasses; sn++ )
+              {
+              if( this->m_DistanceImages[sn] )
+                {
+                spprob = spprob - this->m_DistanceImages[sn]->GetPixel( ItO.GetIndex() );
+                }
+              }
+            if( spprob < 0 )
+              {
+              spprob = 0;
+              }
+            ItP.Set(ItP.Get() * spprob);
+            }
+          }
+
         if( ItP.Get() >= ItM.Get() )
           {
           ItM.Set( ItP.Get() );
@@ -875,7 +898,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           if( dist >= 0 )
             {
             distancePrior =
-              vcl_exp( -1.0 * ItD.Get() * ItD.Get() / vnl_math_sqr( this->m_PriorLabelSigmas[n] ) ) * (1.0 - critval);
+              vcl_exp( -1.0 * ItD.Get() ) / vnl_math_sqr( this->m_PriorLabelSigmas[n] ) ) * (1.0 - critval);
             }
           // below, the value inside the object (D>0) increases from 1-crtival to 1
           else
@@ -1041,10 +1064,10 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   typename RealImageType::ConstPointer priorProbabilityImage = NULL;
   if( this->m_PriorProbabilityWeighting > 0.0 )
     {
-    smoothImage = this->CalculateSmoothIntensityImageFromPriorProbabilityImage(
-        whichClass );
+    smoothImage = this->CalculateSmoothIntensityImageFromPriorProbabilityImage( whichClass );
     }
-
+// FIXME -- this looks wrong to transition from the prior to the thresholding below
+//  only thresholding uses the distance map ...
   if( this->m_InitializationStrategy == PriorProbabilityImages )
     {
     priorProbabilityImage = const_cast<RealImageType *>(
@@ -1052,44 +1075,14 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   else
     {
-//    std::cout << " bin2 " << std::endl;
-    typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
-    ThresholderType;
-    typename ThresholderType::Pointer thresholder = ThresholderType::New();
-    thresholder->SetInput( const_cast<ClassifiedImageType *>(
-                             this->GetPriorLabelImage() ) );
-    thresholder->SetInsideValue( 1 );
-    thresholder->SetOutsideValue( 0 );
-    thresholder->SetLowerThreshold( static_cast<LabelType>( whichClass ) );
-    thresholder->SetUpperThreshold( static_cast<LabelType>( whichClass ) );
-    thresholder->Update();
-
 //  BA FIXME -- moving this to the calculation of the normalized across classes posteriors
-    if( whichClass <= this->m_PriorLabelSigmas.size() &&
-        this->m_PriorLabelSigmas[whichClass - 1] > 0.0 && calcdist )
+    if(  whichClass <= this->m_PriorLabelSigmas.size() && this->m_PriorLabelSigmas[whichClass - 1] > 0.0
+         && calcdist && this->m_DistanceImages.size() == this->m_PriorLabelSigmas.size() )
       {
-      typedef SignedMaurerDistanceMapImageFilter
-      <RealImageType, RealImageType> DistancerType;
-      typename DistancerType::Pointer distancer = DistancerType::New();
-      distancer->SetInput( thresholder->GetOutput() );
-      distancer->SetSquaredDistance( true );
-      distancer->SetUseImageSpacing( true );
-      distancer->SetInsideIsPositive( false );
-      distancer->Update();
+      distanceImage = this->m_DistanceImages[whichClass - 1];
+      }
+    } // end if for spatial prior
 
-      distanceImage = distancer->GetOutput();
-
-      ImageRegionIterator<RealImageType> ItD( distanceImage,
-                                              distanceImage->GetRequestedRegion() );
-      for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
-        {
-        if( ItD.Get() < 0.0 )
-          {
-          ItD.Set( 0 ); // ItD.Get()*0.5
-          }
-        }
-      } // end if for spatial prior
-    }
 //  std::cout <<"  FIXME -- do we need distance map probabilities to be normalized ? " << std::endl;
 //  std::cout << " e.g. P_dist(x) = exp( - Dist(x) ) for the class of interest and 1-P_dist elsewhere " << std::endl;
 //  std::cout <<" the issue is that if we are 'inside' the tissue , should we not exclude other tissue probabilities? "
@@ -1150,12 +1143,10 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         double distance = 0.0;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          distance += vnl_math_sqr( offset[d]
-                                    * this->GetOutput()->GetSpacing()[d] );
+          distance += vnl_math_sqr( this->GetOutput()->GetSpacing()[d] );
           }
         distance = vcl_sqrt( distance );
-
-        distance = 1.0;
+//        distance = 1.0;
 
         bool      isInBounds = false;
         LabelType label = ItO.GetPixel( n, isInBounds );
@@ -1176,8 +1167,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       RealType distancePrior = 1.0;
       if( distanceImage )
         {
-        distancePrior = vcl_exp( -1.0 * distanceImage->GetPixel( ItO.GetIndex() )
-                                 / vnl_math_sqr( this->m_PriorLabelSigmas[whichClass - 1] ) );
+        distancePrior = distanceImage->GetPixel( ItO.GetIndex() );
         }
 
       if( smoothImage )
@@ -1189,42 +1179,119 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       RealType likelihood =
         vcl_exp( -0.5 * vnl_math_sqr( ItI.Get() - mu ) / variance );
 
-      ItP.Set( likelihood * mrfPrior * distancePrior );
+      double finalprob = likelihood * mrfPrior * distancePrior;
+      if( this->m_MRFSigmoidAlpha > 0.0 )
+        {
+        finalprob = 1. / (1. + exp(-1.0 * ( finalprob - this->m_MRFSigmoidBeta) / this->m_MRFSigmoidAlpha ) ); // a
+                                                                                                               // decision
+                                                                                                               // function
+        }
+      ItP.Set( finalprob );
+      }
+    else
+      {
+      ItP.Set(0);
       }
     ++ItI;
     ++ItP;
     ++ItO;
     }
 
-  if( this->m_MRFSigmoidAlpha > 0.0 )
-    {
-    typedef SigmoidImageFilter<RealImageType, RealImageType> SigmoidType;
-    typename SigmoidType::Pointer sigmoid = SigmoidType::New();
-    sigmoid->SetInput( posteriorProbabilityImage );
-    sigmoid->InPlaceOff();
-    sigmoid->SetAlpha( this->m_MRFSigmoidAlpha );
-    sigmoid->SetBeta( this->m_MRFSigmoidBeta );
-    sigmoid->SetOutputMinimum( 0.0 );
-    sigmoid->SetOutputMaximum( 1.0 );
-    sigmoid->Update();
-
-    posteriorProbabilityImage = sigmoid->GetOutput();
-    }
-
+/*
   if( this->GetMaskImage() )
     {
     typedef MaskImageFilter
-    <RealImageType, MaskImageType, RealImageType> MaskerType;
+      <RealImageType, MaskImageType, RealImageType> MaskerType;
     typename MaskerType::Pointer masker = MaskerType::New();
     masker->SetInput1( posteriorProbabilityImage );
     masker->SetInput2( this->GetMaskImage() );
     masker->SetOutsideValue( 0 );
     masker->Update();
-
     posteriorProbabilityImage = masker->GetOutput();
     }
+*/
 
   return posteriorProbabilityImage;
+}
+
+template <class TInputImage, class TMaskImage, class TClassifiedImage>
+void WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::AmassDistancePriors()
+{
+  typename RealImageType::Pointer smoothImage = NULL;
+  typename RealImageType::Pointer distanceImage = NULL;
+  typename RealImageType::ConstPointer priorProbabilityImage = NULL;
+  std::cout << " D-Img size " <<  this->m_DistanceImages.size()  << std::endl;
+  if( this->m_DistanceImages.size()  == this->m_NumberOfClasses )
+    {
+    return;
+    }
+  for( unsigned int whichClass = 1;  whichClass <= this->m_PriorLabelSigmas.size();  whichClass++ )
+    {
+    if( whichClass <= this->m_PriorLabelSigmas.size() && this->m_PriorLabelSigmas[whichClass - 1] > 0.0
+        && this->m_DistanceImages.size() < this->m_PriorLabelSigmas.size() )
+      {
+      typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
+      ThresholderType;
+      typename ThresholderType::Pointer thresholder = ThresholderType::New();
+      thresholder->SetInput( const_cast<ClassifiedImageType *>(
+                               this->GetPriorLabelImage() ) );
+      thresholder->SetInsideValue( 1 );
+      thresholder->SetOutsideValue( 0 );
+      thresholder->SetLowerThreshold( static_cast<LabelType>( whichClass ) );
+      thresholder->SetUpperThreshold( static_cast<LabelType>( whichClass ) );
+      thresholder->Update();
+
+      typedef SignedMaurerDistanceMapImageFilter
+      <RealImageType, RealImageType> DistancerType;
+      typename DistancerType::Pointer distancer = DistancerType::New();
+      distancer->SetInput( thresholder->GetOutput() );
+      distancer->SetSquaredDistance( true );
+      distancer->SetUseImageSpacing( true );
+      distancer->SetInsideIsPositive( false );
+      distancer->Update();
+      distanceImage = distancer->GetOutput();
+
+      ImageRegionIterator<RealImageType> ItD( distanceImage,
+                                              distanceImage->GetRequestedRegion() );
+// get max dist
+      float maxdist = 0;
+      for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
+        {
+        if( ItD.Get() < 0.0 )
+          {
+          if( fabs(ItD.Get() ) > maxdist )
+            {
+            maxdist = fabs(ItD.Get() );
+            }
+          }
+        }
+      for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
+        {
+        float distancePrior = 1;
+        float dist = ItD.Get();
+        float boundaryprob = 0.75;
+        float critval = 1.0 - boundaryprob;              // the probability at the boundary will be 1.0-critval
+        float delta = (maxdist - fabs(dist) ) / maxdist; // in range of zero to one
+        // below, the value at the boundary (D=0) is 1-critval and reduces away from the boundary
+        if( dist >= 0 )
+          {
+          distancePrior =
+            vcl_exp( -1.0 * ItD.Get() * ItD.Get()
+                     / vnl_math_sqr( this->m_PriorLabelSigmas[whichClass - 1] ) ) * boundaryprob;
+          }
+        // below, the value inside the object (D>0) increases from 1-crtival to 1
+        else
+          {
+          distancePrior = 1.0 - critval * delta;
+          }
+        ItD.Set(distancePrior);
+        }
+      std::cout << "  adding dist image " << whichClass << std::endl;
+      }
+    this->m_DistanceImages.push_back( distanceImage );
+    }
+  // end if for spatial prior
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
@@ -1267,7 +1334,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     else
       {
-      std::cout << " bin3 " << std::endl;
+//      std::cout << " bin3 " << std::endl;
       typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
       ThresholderType;
       typename ThresholderType::Pointer thresholder = ThresholderType::New();
