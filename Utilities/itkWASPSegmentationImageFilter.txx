@@ -18,7 +18,7 @@
 #define __itkWASPSegmentationImageFilter_txx
 
 #include "itkWASPSegmentationImageFilter.h"
-
+#include "itkSurfaceImageCurvature.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
@@ -1299,15 +1299,48 @@ typename WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::CalculateSmoothIntensityImageFromPriorProbabilityImage( unsigned int whichClass )
 {
+  typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
+  ThresholderType;
+  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  thresholder->SetInput( const_cast<ClassifiedImageType *>(
+                           this->GetOutput() ) ); // BA test FIXME//        this->GetPriorLabelImage() ) ); // BA test
+                                                  // FIXME
+  thresholder->SetInsideValue( 1 );
+  thresholder->SetOutsideValue( 0 );
+  thresholder->SetLowerThreshold( static_cast<LabelType>( whichClass ) );
+  thresholder->SetUpperThreshold( static_cast<LabelType>( whichClass ) );
+  thresholder->Update();
+
+  typedef itk::SurfaceImageCurvature<RealImageType> ParamType;
+  typename ParamType::Pointer Parameterizer = ParamType::New();
+  float        opt = 0;
+  float        sig = 1.5;
+  unsigned int numrepeats = this->m_SplineOrder;
+  Parameterizer->SetInput( thresholder->GetOutput() );
+  Parameterizer->SetFunctionImage( const_cast<RealImageType *>(this->GetInput() ) );
+  Parameterizer->SetNeighborhoodRadius( sig );
+  Parameterizer->SetSigma(sig);
+  Parameterizer->SetUseGeodesicNeighborhood(true);
+  Parameterizer->SetUseLabel(true);
+  Parameterizer->SetThreshold(0.5);
+  Parameterizer->IntegrateFunctionOverSurface(true);
+  for( unsigned int i = 0; i < numrepeats; i++ )
+    {
+    Parameterizer->IntegrateFunctionOverSurface(true);
+    }
+//    std::cout <<" end integration  " << std::endl;
+  return Parameterizer->GetFunctionImage();
+
+/*
   typename ScalarImageType::Pointer bsplineImage;
-  std::cout << " Nulling the BSpline and fitting to current label set " << std::endl;
-  this->m_ControlPointLattices[whichClass - 1] = NULL; // BA test FIXME
-  if( this->m_ControlPointLattices[whichClass - 1].GetPointer() != NULL )
+  std::cout <<" Nulling the BSpline and fitting to current label set " << std::endl;
+  this->m_ControlPointLattices[whichClass-1]=NULL;// BA test FIXME
+  if( this->m_ControlPointLattices[whichClass-1].GetPointer() != NULL )
     {
     typedef BSplineControlPointImageFilter<ControlPointLatticeType,
-                                           ScalarImageType> BSplineReconstructorType;
+      ScalarImageType> BSplineReconstructorType;
     typename BSplineReconstructorType::Pointer bspliner = BSplineReconstructorType::New();
-    bspliner->SetInput( this->m_ControlPointLattices[whichClass - 1] );
+    bspliner->SetInput( this->m_ControlPointLattices[whichClass-1] );
     bspliner->SetSize( this->GetInput()->GetRequestedRegion().GetSize() );
     bspliner->SetSpacing( this->GetInput()->GetSpacing() );
     bspliner->SetOrigin( this->GetInput()->GetOrigin() );
@@ -1321,7 +1354,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     typename PointSetType::Pointer points = PointSetType::New();
     points->Initialize();
 
-    typedef typename BSplineFilterType::WeightsContainerType WeightsType;
+    typedef typename BSplineFilterType::WeightsContainerType  WeightsType;
     typename WeightsType::Pointer weights = WeightsType::New();
     weights->Initialize();
 
@@ -1329,16 +1362,16 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     if( this->m_InitializationStrategy == PriorProbabilityImages )
       {
       probabilityImage = const_cast<RealImageType *>(
-          this->GetPriorProbabilityImage( whichClass ) );
+        this->GetPriorProbabilityImage( whichClass ) );
       }
     else
       {
 //      std::cout << " bin3 " << std::endl;
       typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
-      ThresholderType;
+        ThresholderType;
       typename ThresholderType::Pointer thresholder = ThresholderType::New();
       thresholder->SetInput( const_cast<ClassifiedImageType *>(
-                               this->GetOutput() ) ); // BA test FIXME
+      this->GetOutput() ) ); // BA test FIXME
 //        this->GetPriorLabelImage() ) ); // BA test FIXME
       thresholder->SetInsideValue( 1 );
       thresholder->SetOutsideValue( 0 );
@@ -1358,13 +1391,13 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     unsigned long count = 0;
 
     ImageRegionConstIterator<ImageType> ItI( this->GetInput(),
-                                             this->GetInput()->GetRequestedRegion() );
+      this->GetInput()->GetRequestedRegion() );
     ImageRegionConstIteratorWithIndex<RealImageType> ItP( probabilityImage,
-                                                          probabilityImage->GetBufferedRegion() );
+      probabilityImage->GetBufferedRegion() );
     for( ItI.GoToBegin(), ItP.GoToBegin(); !ItP.IsAtEnd(); ++ItI, ++ItP )
       {
       if( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( ItP.GetIndex() ) == this->m_MaskLabel )
+        this->GetMaskImage()->GetPixel( ItP.GetIndex() ) == this->m_MaskLabel )
         {
         if( ItP.Get() >= 0.5 )
           {
@@ -1376,7 +1409,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           bsplinePoint.CastFrom( imagePoint );
 
           ScalarType intensity;
-          intensity[0] = ItI.Get();
+          intensity[0] = ItI.Get() - this->m_CurrentClassParameters[whichClass-1][0];
 
           points->SetPoint( count, bsplinePoint );
           points->SetPointData( count, intensity );
@@ -1411,48 +1444,48 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
     bsplineImage = bspliner->GetOutput();
 
-    this->m_ControlPointLattices[whichClass - 1] = bspliner->GetPhiLattice();
+    this->m_ControlPointLattices[whichClass-1] = bspliner->GetPhiLattice();
     }
 
   typedef VectorIndexSelectionCastImageFilter
-  <ScalarImageType, RealImageType> CasterType;
+    <ScalarImageType, RealImageType> CasterType;
   typename CasterType::Pointer caster = CasterType::New();
   caster->SetInput( bsplineImage );
   caster->SetIndex( 0 );
   caster->Update();
-  typename RealImageType::Pointer realimg = caster->GetOutput();
+  typename RealImageType::Pointer realimg=caster->GetOutput();
 
 // make average bspline intensity match the class mean
-  ImageRegionIteratorWithIndex<RealImageType> ItB( realimg,
-                                                   realimg->GetBufferedRegion() );
-  float  bmean = 0;
-  double ct = 1.e-9;
-  for(  ItB.GoToBegin(); !ItB.IsAtEnd(); ++ItB )
-    {
-    if( !this->GetMaskImage() ||
+    ImageRegionIteratorWithIndex<RealImageType> ItB( realimg,
+      realimg->GetBufferedRegion() );
+    float bmean=0;
+    double ct=1.e-9;
+    for(  ItB.GoToBegin(); !ItB.IsAtEnd(); ++ItB )
+     {
+      if( !this->GetMaskImage() ||
         this->GetMaskImage()->GetPixel( ItB.GetIndex() ) == this->m_MaskLabel )
-      {
-      if( this->GetOutput()->GetPixel(ItB.GetIndex() ) == whichClass  )
         {
-        bmean += ItB.Get();
-        ct++;
+    ItB.Set(ItB.Get()+this->m_CurrentClassParameters[whichClass-1][0]);
+    if ( this->GetOutput()->GetPixel(ItB.GetIndex()) == whichClass  )  {
+            bmean+=ItB.Get();
+            ct++;
+          }
         }
-      }
-    }
-  bmean /= ct;
-  float bscale = this->m_CurrentClassParameters[whichClass - 1][0] / bmean;
-//    std::cout << " bscale " << bscale << " bmean " << bmean << " mean " <<
-//  this->m_CurrentClassParameters[whichClass-1][0] << std::endl;
-  for(  ItB.GoToBegin(); !ItB.IsAtEnd(); ++ItB )
-    {
-    if( !this->GetMaskImage() ||
+     }
+    bmean/=ct;
+    float bscale= this->m_CurrentClassParameters[whichClass-1][0]/bmean;
+//    std::cout << " bscale " << bscale << " bmean " << bmean << " mean " <<  this->m_CurrentClassParameters[whichClass-1][0] << std::endl;
+    for(  ItB.GoToBegin(); !ItB.IsAtEnd(); ++ItB )
+     {
+      if( !this->GetMaskImage() ||
         this->GetMaskImage()->GetPixel( ItB.GetIndex() ) == this->m_MaskLabel )
-      {
-      ItB.Set( ItB.Get() * bscale );
-      }
-    }
+        {
+          ItB.Set( ItB.Get()*bscale );
+        }
+     }
 
-  return realimg;
+     return realimg;
+*/
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
