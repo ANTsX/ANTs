@@ -1302,9 +1302,14 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
   ThresholderType;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
-  thresholder->SetInput( const_cast<ClassifiedImageType *>(
-                           this->GetOutput() ) ); // BA test FIXME//        this->GetPriorLabelImage() ) ); // BA test
-                                                  // FIXME
+  if(     this->m_ElapsedIterations == 0 )
+    {
+    thresholder->SetInput( const_cast<ClassifiedImageType *>( this->GetPriorLabelImage() ) );
+    }
+  else
+    {
+    thresholder->SetInput( this->GetOutput() );         // BA test FIXME//       // BA test FIXME
+    }
   thresholder->SetInsideValue( 1 );
   thresholder->SetOutsideValue( 0 );
   thresholder->SetLowerThreshold( static_cast<LabelType>( whichClass ) );
