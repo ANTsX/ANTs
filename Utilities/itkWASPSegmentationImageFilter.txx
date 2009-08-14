@@ -1320,8 +1320,8 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   Parameterizer->SetFunctionImage( const_cast<RealImageType *>(this->GetInput() ) );
   Parameterizer->SetNeighborhoodRadius( sig );
   Parameterizer->SetSigma(sig);
-  Parameterizer->SetUseGeodesicNeighborhood(true);
-  Parameterizer->SetUseLabel(true);
+  Parameterizer->SetUseGeodesicNeighborhood(false);
+  Parameterizer->SetUseLabel(false);
   Parameterizer->SetThreshold(0.5);
   Parameterizer->IntegrateFunctionOverSurface(true);
   for( unsigned int i = 0; i < numrepeats; i++ )
