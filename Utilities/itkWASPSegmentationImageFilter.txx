@@ -16,7 +16,7 @@
 =========================================================================*/
 #ifndef __itkWASPSegmentationImageFilter_txx
 #define __itkWASPSegmentationImageFilter_txx
-
+#include "ReadWriteImage.h"
 #include "itkWASPSegmentationImageFilter.h"
 #include "itkSurfaceImageCurvature.h"
 #include "itkBinaryThresholdImageFilter.h"
@@ -1299,44 +1299,122 @@ typename WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::CalculateSmoothIntensityImageFromPriorProbabilityImage( unsigned int whichClass )
 {
-  typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
-  ThresholderType;
-  typename ThresholderType::Pointer thresholder = ThresholderType::New();
-  if(     this->m_ElapsedIterations == 0 )
-    {
-    thresholder->SetInput( const_cast<ClassifiedImageType *>( this->GetPriorLabelImage() ) );
-    }
-  else
-    {
-    thresholder->SetInput( this->GetOutput() );         // BA test FIXME//       // BA test FIXME
-    }
-  thresholder->SetInsideValue( 1 );
-  thresholder->SetOutsideValue( 0 );
-  thresholder->SetLowerThreshold( static_cast<LabelType>( whichClass ) );
-  thresholder->SetUpperThreshold( static_cast<LabelType>( whichClass ) );
-  thresholder->Update();
+  typename RealImageType::Pointer smimg = RealImageType::New();
+  smimg->SetRegions( this->GetOutput()->GetRequestedRegion() );
+  smimg->SetOrigin( this->GetOutput()->GetOrigin() );
+  smimg->SetSpacing( this->GetOutput()->GetSpacing() );
+  smimg->SetDirection( this->GetOutput()->GetDirection() );
+  smimg->Allocate();
+  smimg->FillBuffer( NumericTraits<RealType>::Zero );
+  typename RealImageType::Pointer smimg2 = RealImageType::New();
+  smimg2->SetRegions( this->GetOutput()->GetRequestedRegion() );
+  smimg2->SetOrigin( this->GetOutput()->GetOrigin() );
+  smimg2->SetSpacing( this->GetOutput()->GetSpacing() );
+  smimg2->SetDirection( this->GetOutput()->GetDirection() );
+  smimg2->Allocate();
+  smimg2->FillBuffer( NumericTraits<RealType>::Zero );
 
-  typedef itk::SurfaceImageCurvature<RealImageType> ParamType;
-  typename ParamType::Pointer Parameterizer = ParamType::New();
-  float        opt = 0;
-  float        sig = 1.5;
   unsigned int numrepeats = this->m_SplineOrder;
-  Parameterizer->SetInput( thresholder->GetOutput() );
-  Parameterizer->SetFunctionImage( const_cast<RealImageType *>(this->GetInput() ) );
-  Parameterizer->SetNeighborhoodRadius( sig );
-  Parameterizer->SetSigma(sig);
-  Parameterizer->SetUseGeodesicNeighborhood(false);
-  Parameterizer->SetUseLabel(false);
-  Parameterizer->SetThreshold(0.5);
-  Parameterizer->IntegrateFunctionOverSurface(true);
-  for( unsigned int i = 0; i < numrepeats; i++ )
+
+// set smimg equal to the original input image * threshold output
+  float                                   meana = 0;
+  unsigned long                           cta = 0;
+  ImageRegionIteratorWithIndex<ImageType> ItI(smimg, smimg->GetRequestedRegion() );
+  for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
     {
-    Parameterizer->IntegrateFunctionOverSurface(true);
+    ItI.Set(  this->m_CurrentClassParameters[whichClass - 1][0] );
+    if( this->GetOutput()->GetPixel(ItI.GetIndex() ) == whichClass )
+      {
+      ItI.Set(this->GetInput()->GetPixel(ItI.GetIndex() ) );
+      }
     }
-//    std::cout <<" end integration  " << std::endl;
-  return Parameterizer->GetFunctionImage();
+
+  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
+  typename dgf::Pointer filter = dgf::New();
+  filter->SetVariance( this->m_SplineOrder );
+  filter->SetUseImageSpacingOn();
+  filter->SetMaximumError(.01f);
+  filter->SetInput(smimg);
+  filter->Update();
+  return filter->GetOutput();
+
+  std::cout << " starting mean for label " << meana / cta << " label " << whichClass;
+  return smimg;
+  if( this->m_ElapsedIterations == 0 )
+    {
+    return smimg;
+    }
+  typename NeighborhoodIterator<RealImageType>::RadiusType radius;
+  unsigned int neighborhoodSize = 1;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    neighborhoodSize *= ( 2 * this->m_MRFRadius[d] + 1 );
+    radius[d] = this->m_MRFRadius[d];
+    }
+  for( unsigned int nr = 0; nr < numrepeats; nr++ )
+    {
+    float                               smmean = 0;
+    unsigned long                       smct = 0;
+    NeighborhoodIterator<RealImageType> ItN( radius, smimg, smimg->GetLargestPossibleRegion() );
+    ItN.GoToBegin();
+    while( !ItN.IsAtEnd() )
+      {
+      if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(ItN.GetIndex() ) == this->m_MaskLabel )
+        {
+        unsigned long ct = 0;
+        float         mean = 0;
+        for( unsigned int n = 0; n < neighborhoodSize; n++ )
+          {
+          if( n == static_cast<unsigned int>( 0.5 * neighborhoodSize ) )
+            {
+            continue;
+            }
+          bool isInBounds = false;
+          if( this->GetOutput()->GetPixel(  ItN.GetIndex(n) ) == whichClass )
+            {
+            isInBounds = true;
+            }
+          if( isInBounds )
+            {
+            float intensity = smimg->GetPixel( ItN.GetIndex(n) );
+            mean += intensity;
+            ct++;
+            }
+          }
+        if( ct > 0 )
+          {
+          smct++;  smmean += mean / ct; smimg2->SetPixel(ItN.GetIndex(), mean / ct );
+          }
+        }
+      ++ItN;
+      }
+    for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
+      {
+      ItI.Set( smimg2->GetPixel(ItI.GetIndex() ) );
+      }
+
+    std::cout << " smmean " << smmean / smct << " mean " << this->m_CurrentClassParameters[whichClass - 1][0];
+    }
+  std::cout << std::endl;
+  WriteImage<RealImageType>( smimg, "temp.nii.gz");
+  return smimg;
 
 /*
+     typedef itk::SurfaceImageCurvature<RealImageType>  ParamType;
+     typename ParamType::Pointer Parameterizer=ParamType::New();
+     Parameterizer->SetInput( thresholder->GetOutput() );
+     Parameterizer->SetFunctionImage( const_cast<RealImageType *>(this->GetInput()));
+     Parameterizer->SetNeighborhoodRadius( sig );
+     Parameterizer->SetSigma(sig);
+     Parameterizer->SetUseGeodesicNeighborhood(false);
+     Parameterizer->SetUseLabel(true);
+     Parameterizer->SetThreshold(0.5);
+     Parameterizer->IntegrateFunctionOverSurface(true);
+     for (unsigned int i=0; i<numrepeats; i++)
+        Parameterizer->IntegrateFunctionOverSurface(true);
+//    std::cout <<" end integration  " << std::endl;
+    return Parameterizer->GetFunctionImage();
+
   typename ScalarImageType::Pointer bsplineImage;
   std::cout <<" Nulling the BSpline and fitting to current label set " << std::endl;
   this->m_ControlPointLattices[whichClass-1]=NULL;// BA test FIXME
