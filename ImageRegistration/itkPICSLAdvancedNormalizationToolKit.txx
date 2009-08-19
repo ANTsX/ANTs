@@ -121,9 +121,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       }
     }
 
-  typename TransformationModelType::AffineTransformPointer aff_init, aff;
+  typename TransformationModelType::AffineTransformPointer aff_init, aff, fixed_aff_init;
 
-  // TODO:
   // added by songgang
   // try initialize the affine transform
   typename OptionType::ValueType initial_affine_filename = this->m_Parser->GetOption( "initial-affine" )->GetValue();
@@ -138,6 +137,23 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::cout << "Use identity affine transform as initial affine para." << std::endl;
     std::cout << "aff_init.IsNull()==" << aff_init.IsNull() << std::endl;
     }
+  typename OptionType::ValueType fixed_initial_affine_filename = this->m_Parser->GetOption(
+      "fixed-image-initial-affine" )->GetValue();
+  if( fixed_initial_affine_filename != "" )
+    {
+    std::cout << "Loading affine registration from: " << fixed_initial_affine_filename << std::endl;
+    fixed_aff_init = TransformationModelType::AffineTransformType::New();
+    ReadAffineTransformFile(fixed_initial_affine_filename, fixed_aff_init);
+    std::cout
+    <<
+    " FIXME!  currently, if one passes a fixed initial affine mapping, then NO affine mapping will be performed subsequently! "
+    << std::endl;
+    }
+  else
+    {
+    std::cout << "Use identity affine transform as initial fixed affine para." << std::endl;
+    std::cout << "fixed_aff_init.IsNull()==" << fixed_aff_init.IsNull() << std::endl;
+    }
 
   bool useNN = this->m_Parser->template Convert<bool>( this->m_Parser->GetOption( "use-NN" )->GetValue() );
   if( useNN )
@@ -150,6 +166,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     }
 
   typename OptionType::ValueType continue_affine = this->m_Parser->GetOption( "continue-affine" )->GetValue();
+  if( fixed_initial_affine_filename != "" )
+    {
+    continue_affine = std::string("false");
+    }
   if( continue_affine == "true" )
     {
     std::cout << "Continue affine registration from the input" << std::endl;     // << aff_init << std::endl;
@@ -202,20 +222,24 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       aff_init = TransformationModelType::AffineTransformType::New();
       aff_init->SetIdentity();
       }
+    if( fixed_aff_init.IsNull() )
+      {
+      fixed_aff_init = TransformationModelType::AffineTransformType::New();
+      fixed_aff_init->SetIdentity();
+      }
     aff = aff_init;
     }
   // std::cout << aff << std::endl;
 
   this->m_TransformationModel->SetAffineTransform(aff);
+  this->m_TransformationModel->SetFixedImageAffineTransform(fixed_aff_init);
   this->m_RegistrationOptimizer->SetAffineTransform(aff);
+  this->m_RegistrationOptimizer->SetFixedImageAffineTransform(
+    this->m_TransformationModel->GetFixedImageAffineTransform() );
 
   /** Second, optimize Diff */
   this->m_RegistrationOptimizer->DeformableOptimization();
   std::cout << " Registration Done " << std::endl;
-//    this->m_TransformationModel->SetDeformationField(this->m_RegistrationOptimizer->GetFullDeformationField());
-  //
-  //
-  // this->m_TransformationModel->SetInverseDeformationField(this->m_RegistrationOptimizer->GetFullInverseDeformationField());
   this->m_TransformationModel->SetDeformationField(this->m_RegistrationOptimizer->GetDeformationField() );
   this->m_TransformationModel->SetInverseDeformationField(this->m_RegistrationOptimizer->GetInverseDeformationField() );
 }
@@ -1009,7 +1033,14 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "initial-affine" );
     option->SetShortName( 'a' );
     option->SetDescription( "use the input file as the initial affine parameter" );
-
+    this->m_Parser->AddOption( option );
+    }
+  if( true )
+    {
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "fixed-image-initial-affine" );
+    option->SetShortName( 'F' );
+    option->SetDescription( "use the input file as the initial affine parameter for the fixed image " );
     this->m_Parser->AddOption( option );
     }
 

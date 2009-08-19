@@ -118,6 +118,16 @@ public:
     return this->m_InverseDeformationField;
   }
 
+  void SetFixedImageAffineTransform(AffineTransformPointer A)
+  {
+    this->m_FixedImageAffineTransform = A;
+  }
+
+  AffineTransformPointer GetFixedImageAffineTransform()
+  {
+    return this->m_FixedImageAffineTransform;
+  }
+
   /** Initialize the mapping */
   void InitializeTransform()
   {
@@ -169,6 +179,7 @@ private:
   void operator=( const Self & );          // purposely not implemented
 
   AffineTransformPointer                m_AffineTransform;
+  AffineTransformPointer                m_FixedImageAffineTransform;
   DeformationFieldPointer               m_DeformationField;
   DeformationRegionOfInterestType       m_DeformationRegionOfInterest;
   DeformationRegionOfInterestCenterType m_DeformationRegionOfInterestCenter;
