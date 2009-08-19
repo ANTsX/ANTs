@@ -615,8 +615,21 @@ int TriPlanarView(unsigned int argc, char *argv[])
   std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string maskfn = std::string(argv[argct]); argct++;
+  std::cout << " file name " << maskfn << std::endl;
   typename ImageType::Pointer mask = NULL;
-  ReadImage<ImageType>(mask, maskfn.c_str() );
+  typename readertype::Pointer reader2 = readertype::New();
+  reader2->SetFileName(maskfn.c_str() );
+  try
+    {
+    reader2->UpdateLargestPossibleRegion();
+    }
+  catch( ... )
+    {
+    std::cout << " Error reading " << maskfn << std::endl;
+    }
+  mask = reader2->GetOutput();
+  // ReadImage<ImageType>(mask,maskfn.c_str());
+  //  WriteImage<ImageType>(mask,"temp.nii");
   typename ImageType::SizeType size = mask->GetLargestPossibleRegion().GetSize();
   unsigned int xslice = size[0] / 2;
   if( argc > argct )
@@ -636,6 +649,14 @@ int TriPlanarView(unsigned int argc, char *argv[])
     zslice = atoi(argv[argct]);
     }
   argct++;
+
+  typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+  typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  rescaler->SetOutputMinimum(   0 );
+  rescaler->SetOutputMaximum( 255 );
+  rescaler->SetInput( mask );
+  rescaler->Update();
+  mask = rescaler->GetOutput();
 
 /** declare the tiled image */
   unsigned long xsize = size[0];
@@ -682,6 +703,15 @@ int TriPlanarView(unsigned int argc, char *argv[])
   Iterator vfIter2( mask,  mask->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
+    double val1 = vfIter2.Get();
+    if( val1 > 245 )
+      {
+      vfIter2.Set(245);
+      }
+    if( val1 < 10  )
+      {
+      vfIter2.Set(10);
+      }
     // first do z-slice
     if( vfIter2.GetIndex()[2] == (long) zslice )
       {
@@ -713,17 +743,17 @@ int TriPlanarView(unsigned int argc, char *argv[])
     }
 
   typedef itk::Image<unsigned char, 2>                                     ByteImageType;
-  typedef itk::RescaleIntensityImageFilter<MatrixImageType, ByteImageType> RescaleFilterType;
-  typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
-  rescaler->SetOutputMinimum(   0 );
-  rescaler->SetOutputMaximum( 255 );
-  rescaler->SetInput( matimage );
-
+  typedef itk::RescaleIntensityImageFilter<MatrixImageType, ByteImageType> RescaleFilterType2;
+  typename RescaleFilterType2::Pointer rescaler2 = RescaleFilterType2::New();
+  rescaler2->SetOutputMinimum(   0 );
+  rescaler2->SetOutputMaximum( 255 );
+  rescaler2->SetInput( matimage );
+  rescaler2->Update();
   std::cout << " writing output ";
   typedef itk::ImageFileWriter<ByteImageType> writertype;
   typename writertype::Pointer writer = writertype::New();
   writer->SetFileName(outname.c_str() );
-  writer->SetInput( rescaler->GetOutput() );
+  writer->SetInput( rescaler2->GetOutput() );
   writer->Update();
 
   return 0;
