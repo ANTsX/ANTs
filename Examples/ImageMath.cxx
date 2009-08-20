@@ -630,6 +630,27 @@ int TriPlanarView(unsigned int argc, char *argv[])
   mask = reader2->GetOutput();
   // ReadImage<ImageType>(mask,maskfn.c_str());
   //  WriteImage<ImageType>(mask,"temp.nii");
+  float clamppercent1 = 0.1;
+  if( argc > argct )
+    {
+    clamppercent1 = atof(argv[argct]);
+    }
+  argct++;
+  if( clamppercent1 > 1 )
+    {
+    clamppercent1 = 1;
+    }
+  float clamppercent2 = 0.1;
+  if( argc > argct )
+    {
+    clamppercent2 = atof(argv[argct]);
+    }
+  argct++;
+  if( clamppercent2 > 1 )
+    {
+    clamppercent2 = 1;
+    }
+
   typename ImageType::SizeType size = mask->GetLargestPossibleRegion().GetSize();
   unsigned int xslice = size[0] / 2;
   if( argc > argct )
@@ -657,6 +678,10 @@ int TriPlanarView(unsigned int argc, char *argv[])
   rescaler->SetInput( mask );
   rescaler->Update();
   mask = rescaler->GetOutput();
+
+  //  typedef itk::IntensityWindowingImageFilter<ImageType,ImageType> wFilterType;
+  //  typename wFilterType::Pointer wer = wFilterType::New();
+  // wer->SetInput(mask);
 
 /** declare the tiled image */
   unsigned long xsize = size[0];
@@ -696,7 +721,10 @@ int TriPlanarView(unsigned int argc, char *argv[])
   matimage->SetDirection(mdir);
   matimage->SetOrigin( morg );
   matimage->Allocate();
-
+  unsigned int lowgetridof = (unsigned int) (clamppercent1 * 256);
+  unsigned int higetridof = (unsigned int) (256 - clamppercent2 * 256);
+  //  std::cout << " get rid of " << getridof << std::endl;
+  matimage->FillBuffer(lowgetridof);
   // now loop over each slice and put the pixels in the right place in matimage
   typename MatrixImageType::IndexType index2d;
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
@@ -704,13 +732,13 @@ int TriPlanarView(unsigned int argc, char *argv[])
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     double val1 = vfIter2.Get();
-    if( val1 > 245 )
+    if( val1 > higetridof )
       {
-      vfIter2.Set(245);
+      vfIter2.Set(higetridof );
       }
-    if( val1 < 10  )
+    if( val1 < lowgetridof   )
       {
-      vfIter2.Set(10);
+      vfIter2.Set(lowgetridof );
       }
     // first do z-slice
     if( vfIter2.GetIndex()[2] == (long) zslice )
@@ -6521,7 +6549,10 @@ int main(int argc, char *argv[])
     <<
     "  ConvertVectorToImage   Mask.nii vector.nii  -- the vector contains image content extracted from a mask - here we return the vector to its spatial origins as image content "
     << std::endl;
-    std::cout << "  TriPlanarView  ImageIn.nii.gz  x-slice y-slice z-slice " << std::endl;
+    std::cout
+    <<
+    "  TriPlanarView  ImageIn.nii.gz PercentageToClampLowIntensity  PercentageToClampHiIntensity x-slice y-slice z-slice  "
+    << std::endl;
     std::cout
     <<
     "  FillHoles Image parameter : parameter = ratio of edge at object to edge at background = 1 is a definite hole bounded by object only, 0.99 is close -- default of parameter > 1 will fill all holes "
