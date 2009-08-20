@@ -34,6 +34,29 @@
 
 namespace itk
 {
+std::string localANTSGetFilePrefix(const char *str)
+{
+  std::string            filename = str;
+  std::string::size_type pos = filename.rfind( "." );
+  std::string            filepre = std::string( filename, 0, pos );
+
+  if( pos != std::string::npos )
+    {
+    std::string extension = std::string( filename, pos, filename.length() - 1);
+    if( extension == std::string(".gz") )
+      {
+      pos = filepre.rfind( "." );
+      extension = std::string( filepre, pos, filepre.length() - 1 );
+      }
+    //      if (extension==".txt") return AFFINE_FILE;
+//        else return DEFORMATION_FILE;
+    }
+//    else{
+  //      return INVALID_FILE;
+  // }
+  return filepre;
+}
+
 template <unsigned int TDimension, class TReal>
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::ANTSImageRegistrationOptimizer()
@@ -65,6 +88,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_SyNType = 0;
   this->m_UseNN = false;
   this->m_VelocityFieldInterpolator = VelocityFieldInterpolatorType::New();
+  this->m_HitImage = NULL;
+  this->m_ThickImage = NULL;
 }
 
 template <unsigned int TDimension, class TReal>
@@ -2020,6 +2045,37 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef typename  ImageType::SpacingType   SpacingType;
   typedef TimeVaryingVelocityFieldType       tvt;
 
+  bool dothick = false;
+  if(  finishtimein > starttimein  && this->m_ComputeThickness )
+    {
+    dothick = true;
+    }
+  if( dothick )
+    {
+    this->m_ThickImage = ImageType::New();
+    this->m_ThickImage->SetSpacing( this->m_SyNF->GetSpacing() );
+    this->m_ThickImage->SetOrigin( this->m_SyNF->GetOrigin() );
+    this->m_ThickImage->SetDirection( this->m_SyNF->GetDirection() );
+    this->m_ThickImage->SetLargestPossibleRegion(this->m_SyNF->GetLargestPossibleRegion()  );
+    this->m_ThickImage->SetRequestedRegion( this->m_SyNF->GetLargestPossibleRegion()   );
+    this->m_ThickImage->SetBufferedRegion( this->m_SyNF->GetLargestPossibleRegion()  );
+    this->m_ThickImage->Allocate();
+    this->m_ThickImage->FillBuffer(0);
+    this->m_HitImage = ImageType::New();
+    this->m_HitImage->SetSpacing( this->m_SyNF->GetSpacing() );
+    this->m_HitImage->SetOrigin( this->m_SyNF->GetOrigin() );
+    this->m_HitImage->SetDirection( this->m_SyNF->GetDirection() );
+    this->m_HitImage->SetLargestPossibleRegion(this->m_SyNF->GetLargestPossibleRegion()  );
+    this->m_HitImage->SetRequestedRegion( this->m_SyNF->GetLargestPossibleRegion()   );
+    this->m_HitImage->SetBufferedRegion( this->m_SyNF->GetLargestPossibleRegion()  );
+    this->m_HitImage->Allocate();
+    this->m_HitImage->FillBuffer(0);
+    }
+  else
+    {
+    this->m_HitImage = NULL;  this->m_ThickImage = NULL;
+    }
+
   DeformationFieldPointer intfield = DeformationFieldType::New();
   intfield->SetSpacing( this->m_CurrentDomainSpacing );
   intfield->SetOrigin(  this->m_DeformationField->GetOrigin() );
@@ -2099,6 +2155,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       intfield->SetPixel(velind, disp);
       }
     }
+
+  if( this->m_ThickImage )
+    {
+    std::string outname = localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() ) + std::string("thick.nii.gz");
+    //    std::string outname=+std::string("thick.nii.gz");
+    WriteImage<ImageType>(this->m_ThickImage, outname.c_str() );
+    }
+
   return intfield;
 }
 
@@ -2267,20 +2331,16 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   xPointType pointIn2;
   xPointType pointIn3;
   typename VelocityFieldInterpolatorType::ContinuousIndexType  vcontind;
+
   float         itime = starttimein;
+  unsigned long ct = 0;
   float         inverr = 0;
   float         thislength = 0;
-  unsigned long ct = 0; // fct=0;
   bool          timedone = false;
-//  float deltinve=10;
   inverr = 1110;
-//  float lastinv=inverr*2;
-  VectorType disp;
-  disp.Fill(0.0);
-  double deltaTime = dT, vecsign = 1.0;
-
+  VectorType  disp;
+  double      deltaTime = dT, vecsign = 1.0;
   SpacingType spacing = this->m_DeformationField->GetSpacing();
-//  this->m_DeformationField->TransformIndexToPhysicalPoint( velind, dpoint);
   if( starttimein  > finishtimein )
     {
     vecsign = -1.0;
@@ -2295,15 +2355,16 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_TimeVaryingVelocity->TransformIndexToPhysicalPoint( vind, pointIn1);
 // time is in [0,1]
   pointIn1[TDimension] = starttimein * (m_NumberOfTimePoints - 1);
-  bool isinside = true;
-//  if (this->m_Debug)
-// std::cout <<" start " << pointIn1 << " pd " << pointIn1 << " dir "
-// << this->m_DeformationField->GetDirection() << std::endl;
+  bool       isinside = true;
   xPointType Y1x;
   xPointType Y2x;
   xPointType Y3x;
   xPointType Y4x;
-
+  // set up parameters for start of integration
+  disp.Fill(0.0);
+  timedone = false;
+  itime = starttimein;
+  ct = 0;
   while( !timedone )
     {
     double itimetn1 = itime - timesign * deltaTime;
@@ -2331,46 +2392,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     typename VelocityFieldInterpolatorType::OutputType f2;  f2.Fill(0);
     typename VelocityFieldInterpolatorType::OutputType f3;  f3.Fill(0);
     typename VelocityFieldInterpolatorType::OutputType f4;  f4.Fill(0);
-/*
-
-      typename VelocityFieldInterpolatorType::ContinuousIndexType  Y1;
-      typename VelocityFieldInterpolatorType::ContinuousIndexType  Y2;
-      typename VelocityFieldInterpolatorType::ContinuousIndexType  Y3;
-      typename VelocityFieldInterpolatorType::ContinuousIndexType  Y4;
-      for (unsigned int jj=0; jj<TDimension; jj++)
-  {
-    pointIn2[jj]=disp[jj]+pointIn1[jj];
-    vcontind[jj]=pointIn2[jj]/spacing[jj];
-    Y1[jj]=vcontind[jj];
-    Y2[jj]=vcontind[jj];
-    Y3[jj]=vcontind[jj];
-    Y4[jj]=vcontind[jj];
-  }
-      Y1[TDimension]=itimetn1;
-      Y2[TDimension]=itimetn1h;
-      Y3[TDimension]=itimetn1h;
-      Y4[TDimension]=itime;
-
-      bool isinside=true;
-      for (unsigned int jj=0; jj<TDimension; jj++) if (Y1[jj] < 1 || Y1[jj] > this->m_CurrentDomainSize[jj] -2 ) isinside=false;
-      f1 = this->m_VelocityFieldInterpolator->EvaluateAtContinuousIndex( Y1 );
-      if (isinside) for (unsigned int jj=0; jj<TDimension; jj++) Y2[jj]+=f1[jj]*deltaTime*0.5;
-      isinside=true;
-      for (unsigned int jj=0; jj<TDimension; jj++) if (Y2[jj] < 1 || Y2[jj] > this->m_CurrentDomainSize[jj] -2 ) isinside=false;
-      if (isinside) f2 = this->m_VelocityFieldInterpolator->EvaluateAtContinuousIndex( Y2 );
-      for (unsigned int jj=0; jj<TDimension; jj++) Y3[jj]+=f2[jj]*deltaTime*0.5;
-      isinside=true;
-      for (unsigned int jj=0; jj<TDimension; jj++) if (Y3[jj] < 1 || Y3[jj] > this->m_CurrentDomainSize[jj] -2 ) isinside=false;
-      if (isinside) f3 = this->m_VelocityFieldInterpolator->EvaluateAtContinuousIndex( Y3 );
-      for (unsigned int jj=0; jj<TDimension; jj++) Y4[jj]+=f3[jj]*deltaTime;
-      isinside=true;
-      for (unsigned int jj=0; jj<TDimension; jj++) if (Y4[jj] < 1 || Y4[jj] > this->m_CurrentDomainSize[jj] -2 ) isinside=false;
-      if (isinside)      f4 = this->m_VelocityFieldInterpolator->EvaluateAtContinuousIndex( Y4 );
-
-      for (unsigned int jj=0; jj<TDimension; jj++)
-       pointIn3[jj] = pointIn2[jj] + vecsign*deltaTime/6.0 * ( f1[jj] + 2.0*f2[jj] + 2.0*f3[jj] + f4[jj] );
-
-*/
     for( unsigned int jj = 0; jj < TDimension; jj++ )
       {
       pointIn2[jj] = disp[jj] + pointIn1[jj];
@@ -2464,6 +2485,147 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         timedone = true;
         }
+      }
+    }
+
+  // now we have the thickness value stored in thislength
+  if( this->m_ThickImage && this->m_HitImage )
+    {
+    // set up parameters for start of integration
+    disp.Fill(0.0);
+    timedone = false;
+    itime = starttimein;
+    ct = 0;
+    while( !timedone )
+      {
+      double itimetn1 = itime - timesign * deltaTime;
+      double itimetn1h = itime - timesign * deltaTime * 0.5;
+      if( itimetn1h < 0 )
+        {
+        itimetn1h = 0;
+        }
+      if( itimetn1h > 1 )
+        {
+        itimetn1h = 1;
+        }
+      if( itimetn1 < 0 )
+        {
+        itimetn1 = 0;
+        }
+      if( itimetn1 > 1 )
+        {
+        itimetn1 = 1;
+        }
+
+      float totalmag = 0;
+      // first get current position of particle
+      typename VelocityFieldInterpolatorType::OutputType f1;  f1.Fill(0);
+      typename VelocityFieldInterpolatorType::OutputType f2;  f2.Fill(0);
+      typename VelocityFieldInterpolatorType::OutputType f3;  f3.Fill(0);
+      typename VelocityFieldInterpolatorType::OutputType f4;  f4.Fill(0);
+      for( unsigned int jj = 0; jj < TDimension; jj++ )
+        {
+        pointIn2[jj] = disp[jj] + pointIn1[jj];
+        Y1x[jj] = pointIn2[jj];
+        Y2x[jj] = pointIn2[jj];
+        Y3x[jj] = pointIn2[jj];
+        Y4x[jj] = pointIn2[jj];
+        }
+      if( this->m_Debug )
+        {
+        std::cout << " p2 " << pointIn2 << std::endl;
+        }
+
+      Y1x[TDimension] = itimetn1 * (float)(m_NumberOfTimePoints - 1);
+      Y2x[TDimension] = itimetn1h * (float)(m_NumberOfTimePoints - 1);
+      Y3x[TDimension] = itimetn1h * (float)(m_NumberOfTimePoints - 1);
+      Y4x[TDimension] = itime * (float)(m_NumberOfTimePoints - 1);
+
+      if( this->m_Debug )
+        {
+        std::cout << " p2 " << pointIn2 << " y1 " <<  Y1x[TDimension] <<  " y4 " <<   Y4x[TDimension]  << std::endl;
+        }
+
+      if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y1x) )
+        {
+        f1 = this->m_VelocityFieldInterpolator->Evaluate( Y1x );
+        for( unsigned int jj = 0; jj < TDimension; jj++ )
+          {
+          Y2x[jj] += f1[jj] * deltaTime * 0.5;
+          }
+        }
+      else
+        {
+        isinside = false;
+        }
+      if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y2x) )
+        {
+        f2 = this->m_VelocityFieldInterpolator->Evaluate( Y2x );
+        for( unsigned int jj = 0; jj < TDimension; jj++ )
+          {
+          Y3x[jj] += f2[jj] * deltaTime * 0.5;
+          }
+        }
+      if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y3x) )
+        {
+        f3 = this->m_VelocityFieldInterpolator->Evaluate( Y3x );
+        for( unsigned int jj = 0; jj < TDimension; jj++ )
+          {
+          Y4x[jj] += f3[jj] * deltaTime;
+          }
+        }
+      if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y4x) )
+        {
+        f4 = this->m_VelocityFieldInterpolator->Evaluate( Y4x );
+        }
+      for( unsigned int jj = 0; jj < TDimension; jj++ )
+        {
+        pointIn3[jj] = pointIn2[jj] + vecsign * deltaTime / 6.0 * ( f1[jj] + 2.0 * f2[jj] + 2.0 * f3[jj] + f4[jj] );
+        }
+
+      VectorType out;
+      float      mag = 0, dmag = 0;
+      for( unsigned int jj = 0; jj < TDimension; jj++ )
+        {
+        out[jj] = pointIn3[jj] - pointIn1[jj];
+        mag += (pointIn3[jj] - pointIn2[jj]) * (pointIn3[jj] - pointIn2[jj]);
+        dmag += (pointIn3[jj] - pointIn1[jj]) * (pointIn3[jj] - pointIn1[jj]);
+        disp[jj] = out[jj];
+        }
+
+//      std::cout << " p3 " << pointIn3 << std::endl;
+      dmag = sqrt(dmag);
+      totalmag += sqrt(mag);
+      ct++;
+      //      thislength += totalmag;
+      itime = itime + deltaTime * timesign;
+      if( starttimein > finishtimein )
+        {
+        if( itime <= finishtimein  )
+          {
+          timedone = true;
+          }
+        }
+      //      else if (thislength ==  0) timedone=true;
+      else
+        {
+        if( itime >= finishtimein )
+          {
+          timedone = true;
+          }
+        }
+
+      typename ImageType::IndexType thind;
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        thind[i] = (unsigned int) pointIn3[i] / this->m_CurrentDomainSpacing[i] - this->m_CurrentDomainOrigin[i];
+        }
+      unsigned long lastct = this->m_HitImage->GetPixel(thind);
+      unsigned long newct = lastct + 1;
+      float         oldthick = this->m_ThickImage->GetPixel(thind);
+      float         newthick = (float)lastct / (float)newct * oldthick + 1.0 / (float)newct * thislength;
+      this->m_HitImage->SetPixel( thind,  newct );
+      this->m_ThickImage->SetPixel(thind, newthick );
       }
     }
 

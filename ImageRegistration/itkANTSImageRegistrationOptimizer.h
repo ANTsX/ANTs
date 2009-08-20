@@ -776,6 +776,21 @@ public:
         }
       }
 
+    typename ParserType::OptionType::Pointer oOption
+      = this->m_Parser->GetOption( "output-naming" );
+    this->m_OutputNamingConvention = oOption->GetValue();
+
+    typename ParserType::OptionType::Pointer thicknessOption
+      = this->m_Parser->GetOption( "compute-thickness" );
+    if( thicknessOption->GetValue() == "true" )
+      {
+      this->m_ComputeThickness = true;
+      }
+    else
+      {
+      this->m_ComputeThickness = false;
+      }
+    std::cout << " compute thickness? " << this->m_ComputeThickness << std::endl;
     /**
      * Get transformation model and associated parameters
      */
@@ -1854,6 +1869,7 @@ private:
   unsigned int              m_CurrentIteration;
   unsigned int              m_CurrentLevel;
   std::string               m_TransformationModel;
+  std::string               m_OutputNamingConvention;
   PointSetPointer           m_FixedPointSet;
   PointSetPointer           m_MovingPointSet;
   std::vector<unsigned int> m_Iterations;
@@ -1883,6 +1899,11 @@ private:
   unsigned int m_BSplineFieldOrder;
   ArrayType    m_GradSmoothingMeshSize;
   ArrayType    m_TotalSmoothingMeshSize;
+
+/** For thickness calculation */
+  ImagePointer m_HitImage;
+  ImagePointer m_ThickImage;
+  bool         m_ComputeThickness;
 };
 }
 // end namespace itk

@@ -1043,6 +1043,15 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription( "use the input file as the initial affine parameter for the fixed image " );
     this->m_Parser->AddOption( option );
     }
+  if( true )
+    {
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "compute-thickness" );
+    option->SetShortName( 'T' );
+    option->SetDescription(
+      " = true / false ,  compute the Euclidean length of the diffeomorphism and write to an image -- OutputNamethick.nii.gz -- This is a Beta version of thickness computation -- Not Full-Blown DiReCT , Das, 2009, Neuroimage ---  syn with time is the only model that can be used with this option " );
+    this->m_Parser->AddOption( option );
+    }
 
   // added by songgang
   if( true )
