@@ -1192,7 +1192,13 @@ public:
             }
           if( this->m_Iterations[currentLevel] > 0 )
             {
-            if( this->m_SyNType )
+            if( this->m_SyNType && this->m_ComputeThickness )
+              {
+              this->DiReCTUpdate(fixedImage, movingImage,
+                                 this->m_SimilarityMetrics[0]->GetFixedPointSet(),
+                                 this->m_SimilarityMetrics[0]->GetMovingPointSet() );
+              }
+            else if( this->m_SyNType )
               {
               this->SyNTVRegistrationUpdate(fixedImage, movingImage,
                                             this->m_SimilarityMetrics[0]->GetFixedPointSet(),
@@ -1458,6 +1464,9 @@ public:
 
   void SyNTVRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
                                PointSetPointer mpoints = NULL);
+
+  void DiReCTUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
+                    PointSetPointer mpoints = NULL);
 
   /** allows one to copy or add a field to a time index within the velocity
 * field
