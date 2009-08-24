@@ -279,9 +279,6 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
       }
     }
 
-  std::cout << rgbfilter->GetColormap()->GetMinimumInputValue() << ", "
-            << rgbfilter->GetColormap()->GetMaximumInputValue() << std::endl;
-
   typedef itk::ImageFileWriter<RGBImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetInput( rgbfilter->GetOutput() );
