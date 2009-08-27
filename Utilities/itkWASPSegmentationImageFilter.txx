@@ -1096,10 +1096,7 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   posteriorProbabilityImage->Allocate();
   posteriorProbabilityImage->FillBuffer( 0 );
 
-  double mu = this->m_CurrentClassParameters[whichClass - 1][0];
-  double variance = this->m_CurrentClassParameters[whichClass - 1][1];
-
-  if( variance == 0 )
+  if( this->m_CurrentClassParameters[whichClass - 1][1] == 0 )
     {
     return posteriorProbabilityImage;
     }
@@ -1163,12 +1160,17 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
       RealType mrfPrior = vcl_exp( -( 1.0 - ratio ) / this->m_MRFSmoothingFactor );
 
-      RealType distancePrior = 1.0;
-      if( distanceImage )
+      RealType prior = 1.0;
+      if( priorProbabilityImage )
         {
-        distancePrior = distanceImage->GetPixel( ItO.GetIndex() );
+        prior = priorProbabilityImage->GetPixel( ItO.GetIndex() );
+        }
+      else if( distanceImage )
+        {
+        prior = distanceImage->GetPixel( ItO.GetIndex() );
         }
 
+      RealType mu = this->m_CurrentClassParameters[whichClass - 1][0];
       if( smoothImage )
         {
         mu = ( 1.0 - this->m_PriorProbabilityWeighting ) * mu
@@ -1176,9 +1178,10 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           * smoothImage-> GetPixel( ItO.GetIndex() );
         }
       RealType likelihood =
-        vcl_exp( -0.5 * vnl_math_sqr( ItI.Get() - mu ) / variance );
+        vcl_exp( -0.5 * vnl_math_sqr( ItI.Get() - mu )
+                 / this->m_CurrentClassParameters[whichClass - 1][1] );
 
-      double finalprob = likelihood * mrfPrior * distancePrior;
+      double finalprob = likelihood * mrfPrior * prior;
       if( this->m_MRFSigmoidAlpha > 0.0 )
         {
         finalprob = 1. / (1. + exp(-1.0 * ( finalprob - this->m_MRFSigmoidBeta) / this->m_MRFSigmoidAlpha ) ); // a
