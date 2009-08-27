@@ -29,17 +29,26 @@
 
 namespace itk
 {
-/** \class WASPSegmentationImageFilter
- * \brief Segment image using a statistical prior
+/** \class ApocritaSegmentationImageFilter
+ * \brief Apocrita:  A Priori Classification with Registration Initialized
+ *  Template Assistance
  *
- * Classes are assigned consecutive indices 1, 2, 3, etc.  Label 0 is
- * reserved for the background when a mask is specified.
+ * This filter provides an Expectation-Maximization framework for statistical
+ * segmentation where the intensity profile of each class is modeled as a
+ * Gaussian (a gaussian mixture model (GMM)) and spatial smoothness is
+ * enforced by an MRF prior.
  *
- * Prior information
- * is specified through the use of either
+ * Initial labeling can be performed by otsu thresholding, kmeans clustering,
+ * a set of user-specified prior probability images, or a prior label image.
+ * If specified, the latter two initialization options are also used as
+ * priors in the MRF update step.
  *
+ * The assumed labeling is such that classes are assigned consecutive
+ * indices 1, 2, 3, etc.  Label 0 is reserved for the background when a
+ * mask is specified.
  *
  */
+
 template <class TInputImage, class TMaskImage
             = Image<unsigned char, ::itk::GetImageDimension<TInputImage>::ImageDimension>,
           class TClassifiedImage = TMaskImage>
