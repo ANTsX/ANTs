@@ -6,7 +6,11 @@ if [ $NUMPARAMS -lt 4  ]
 then
 echo " USAGE ::  "
 echo "   sh $0  ImageDimension OutputRoot GradientStep <images>"
-echo
+echo " example : "
+echo " sh $0  2 TEST 0.5 YFace*nii "
+echo " above, dimension is 2,  TEST is the OutputRoot ,  1 is the grad-step and the images you originally mapped are in the list YFace<var>.nii "
+echo " we assume you used ants.sh naming conventions to deform your images and the deformations are in the same directory as the template and the call to the script . "
+echo " "
 echo " ImageDimension  -  Dimension of your image, eg 3 for 3D."
 echo " OutputRoot      -  Root file name of the output. Should be a file root only, no path information. "
 echo " GradientStep -   the size of the shape update gradient = 0.25 is typical "
