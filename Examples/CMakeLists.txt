@@ -236,7 +236,7 @@ SET(ANGEL_IMAGE ${DATA_DIR}/Smile.nii)
 ###
 #  ANTS metric testing
 ###
-ADD_TEST(ANTS_CC_1   ANTS 2 -m  PR[${R16_IMAGE},${R64_IMAGE},1,2] -r Gauss[3,0] -t SyN[0.5] -i 50x50x30 -o ${OUTPUT_PREFIX}.nii)
+ADD_TEST(ANTS_CC_1   ANTS 2 -m  PR[ ${R16_IMAGE}, ${R64_IMAGE},  1 ,2 ] -r Gauss[ 3 , 0 ] -t SyN[ 0.5   ] -i 50x50x30 -o ${OUTPUT_PREFIX}.nii)
 ADD_TEST(ANTS_CC_1_WARP WarpImageMultiTransform 2 ${R64_IMAGE} ${WARP_IMAGE} ${WARP} )
 ADD_TEST(ANTS_CC_1_JPG  ConvertToJpg ${WARP_IMAGE} ANTSCC1.jpg)
 ADD_TEST(ANTS_CC_1_WARP_METRIC_0 MeasureImageSimilarity 2 0 ${R16_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii 11.9992 0.05)
