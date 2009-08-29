@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCommandLineParser.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 23:46:06 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/01/22 22:43:11 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -30,9 +30,16 @@
 
 namespace itk
 {
-/**
- * Definition for the command line parsers
- */
+/** \class CommandLineParser
+    \brief Simple command line parser.
+    \par
+    Parses the standard ( argc, argv ) variables which are stored
+    as options in the helper class itkCommandLineOption.  Also contains
+    routines for converting types including std::vectors using 'x' as a
+    delimiter.  For example, I can specify the 3-element std::vector
+    {10, 20, 30} as "10x20x30".
+*/
+
 class ITK_EXPORT CommandLineParser
   : public DataObject
 {
@@ -67,8 +74,11 @@ public:
 
   void PrintMenu( std::ostream& os, Indent indent ) const;
 
-  itkSetMacro( CommandDescription, std::string );
-  itkGetMacro( CommandDescription, std::string );
+  itkSetStringMacro( Command );
+  itkGetStringMacro( Command );
+
+  itkSetStringMacro( CommandDescription );
+  itkGetStringMacro( CommandDescription );
 
   template <class TValue>
   TValue Convert( std::string optionString )
@@ -103,7 +113,8 @@ public:
         crosspos = optionString.find( 'x', crossposfrom + 1 );
         if( crosspos == std::string::npos )
           {
-          element = optionString.substr( crossposfrom + 1, optionString.length() );
+          element = optionString.substr(
+              crossposfrom + 1, optionString.length() );
           }
         else
           {
@@ -129,10 +140,15 @@ private:
   CommandLineParser( const Self & ); // purposely not implemented
   void operator=( const Self & );    // purposely not implemented
 
+  std::vector<std::string> RegroupCommandLineArguments( unsigned int, char * * );
+
   OptionListType m_Options;
   std::string    m_Command;
   std::string    m_CommandDescription;
   OptionListType m_UnknownOptions;
+
+  char m_LeftDelimiter;
+  char m_RightDelimiter;
 };
 } // end namespace itk
 

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCommandLineParser.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 23:46:06 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/01/22 22:43:11 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -25,6 +25,9 @@ CommandLineParser
   this->m_Command.clear();
   this->m_CommandDescription.clear();
   this->m_UnknownOptions.clear();
+
+  this->m_LeftDelimiter = '[';
+  this->m_RightDelimiter = ']';
 }
 
 void
@@ -43,12 +46,14 @@ CommandLineParser
     if( option->GetShortName() != '\0' &&
         this->GetOption( option->GetShortName() ) )
       {
-      itkWarningMacro( "Duplicate short option '-" << option->GetShortName() << "'" );
+      itkWarningMacro( "Duplicate short option '-"
+                       << option->GetShortName() << "'" );
       }
     if( !( option->GetLongName().empty() ) &&
         this->GetOption( option->GetLongName() ) )
       {
-      itkWarningMacro( "Duplicate long option '--" << option->GetLongName() << "'" );
+      itkWarningMacro( "Duplicate long option '--"
+                       << option->GetLongName() << "'" );
       }
     }
 }
@@ -57,13 +62,16 @@ void
 CommandLineParser
 ::Parse( unsigned int argc, char * *argv )
 {
+  std::vector<std::string> arguments =
+    this->RegroupCommandLineArguments( argc, argv );
+
   unsigned int n = 0;
 
-  this->m_Command = std::string( argv[n++] );
+  this->m_Command = arguments[n++];
 
-  while( n < argc )
+  while( n < arguments.size() )
     {
-    std::string argument = std::string( argv[n++] );
+    std::string argument = arguments[n++];
     std::string name;
 
     name.clear();
@@ -90,24 +98,27 @@ CommandLineParser
           {
           unknownOption->SetShortName( name.at( 0 ) );
           }
-        if( n == argc )
+        if( n == arguments.size() )
           {
-          unknownOption->AddValue( "1" );
+          unknownOption->AddValue( "1",
+                                   this->m_LeftDelimiter, this->m_RightDelimiter );
           }
         else
           {
-          for( unsigned int m = n; m < argc; m++ )
+          for( unsigned int m = n; m < arguments.size(); m++ )
             {
-            std::string value = std::string( argv[m] );
+            std::string value = arguments[m];
             if( value.find( "-" ) != 0 )
               {
-              unknownOption->AddValue( value );
+              unknownOption->AddValue( value,
+                                       this->m_LeftDelimiter, this->m_RightDelimiter );
               }
             else
               {
               if( m == n )
                 {
-                unknownOption->AddValue( "1" );
+                unknownOption->AddValue( "1",
+                                         this->m_LeftDelimiter, this->m_RightDelimiter );
                 }
               n = m;
               break;
@@ -116,26 +127,29 @@ CommandLineParser
           }
         this->m_UnknownOptions.push_back( unknownOption );
         }
-      else        // the option exists
+      else  // the option exists
         {
-        if( n == argc )
+        if( n == arguments.size() )
           {
-          option->AddValue( "1" );
+          option->AddValue( "1",
+                            this->m_LeftDelimiter, this->m_RightDelimiter );
           }
         else
           {
-          for( unsigned int m = n; m < argc; m++ )
+          for( unsigned int m = n; m < arguments.size(); m++ )
             {
-            std::string value = std::string( argv[m] );
+            std::string value = arguments[m];
             if( value.find( "-" ) != 0 )
               {
-              option->AddValue( value );
+              option->AddValue( value,
+                                this->m_LeftDelimiter, this->m_RightDelimiter );
               }
             else
               {
               if( m == n )
                 {
-                option->AddValue( "1" );
+                option->AddValue( "1",
+                                  this->m_LeftDelimiter, this->m_RightDelimiter );
                 }
               n = m;
               break;
@@ -145,6 +159,94 @@ CommandLineParser
         }
       }
     }
+}
+
+std::vector<std::string>
+CommandLineParser
+::RegroupCommandLineArguments( unsigned int argc, char * *argv )
+{
+  /**
+   * Inclusion of this function allows the user to use spaces inside
+   * the left and right delimiters.
+   */
+
+  std::vector<std::string> arguments;
+
+  std::string currentArg( "" );
+  bool        isArgOpen = false;
+  for( unsigned int n = 0; n < argc; n++ )
+    {
+    std::string a( argv[n] );
+
+    if( isArgOpen )
+      {
+      unsigned int leftDelimiterPosition = a.find( this->m_LeftDelimiter );
+      if( leftDelimiterPosition != std::string::npos )
+        {
+        itkExceptionMacro( "Incorrect command line specification." );
+        }
+
+      unsigned int rightDelimiterPosition = a.find( this->m_RightDelimiter );
+      if( rightDelimiterPosition != std::string::npos )
+        {
+        if( rightDelimiterPosition < a.length() - 1 )
+          {
+          itkExceptionMacro( "Incorrect command line specification." );
+          }
+        else
+          {
+          currentArg += a;
+          arguments.push_back( currentArg );
+          currentArg.clear();
+          isArgOpen = false;
+          }
+        }
+      else
+        {
+        currentArg += a;
+        }
+      }
+    else
+      {
+      unsigned int leftDelimiterPosition = a.find( this->m_LeftDelimiter );
+      unsigned int rightDelimiterPosition = a.find( this->m_RightDelimiter );
+
+      if( leftDelimiterPosition == std::string::npos )
+        {
+        if( rightDelimiterPosition == std::string::npos )
+          {
+          currentArg += a;
+          arguments.push_back( currentArg );
+          currentArg.clear();
+          }
+        else
+          {
+          itkExceptionMacro( "Incorrect command line specification." );
+          }
+        }
+      else if( leftDelimiterPosition != std::string::npos &&
+               rightDelimiterPosition != std::string::npos &&
+               leftDelimiterPosition < rightDelimiterPosition )
+        {
+        if( rightDelimiterPosition < a.length() - 1 )
+          {
+          itkExceptionMacro( "Incorrect command line specification." );
+          }
+        currentArg += a;
+        arguments.push_back( currentArg );
+        currentArg.clear();
+        isArgOpen = false;
+        }
+      else if( rightDelimiterPosition == std::string::npos &&
+               leftDelimiterPosition != std::string::npos )
+        {
+        currentArg += a;
+        isArgOpen = true;
+        }
+      }
+    }
+
+  return arguments;
 }
 
 CommandLineParser::OptionType::Pointer
@@ -234,7 +336,8 @@ CommandLineParser
           }
         else
           {
-          for( unsigned int i = 0; i < (*it)->GetParameters( 0 ).size() - 1; i++ )
+          for( unsigned int i = 0;
+               i < (*it)->GetParameters( 0 ).size() - 1; i++ )
             {
             os << (*it)->GetParameter( 0, i ) << ",";
             }
@@ -259,11 +362,13 @@ CommandLineParser
             }
           else
             {
-            for( unsigned int i = 0; i < (*it)->GetParameters( n ).size() - 1; i++ )
+            for( unsigned int i = 0;
+                 i < (*it)->GetParameters( n ).size() - 1; i++ )
               {
               os << (*it)->GetParameter( n, i ) << ",";
               }
-            os << (*it)->GetParameter( n, (*it)->GetParameters( n ).size() - 1 ) << "], ";
+            os << (*it)->GetParameter( n,
+                                       (*it)->GetParameters( n ).size() - 1 ) << "], ";
             }
           }
         else
@@ -284,11 +389,13 @@ CommandLineParser
           }
         else
           {
-          for( unsigned int i = 0; i < (*it)->GetParameters( n ).size() - 1; i++ )
+          for( unsigned int i = 0;
+               i < (*it)->GetParameters( n ).size() - 1; i++ )
             {
             os << (*it)->GetParameter( n, i ) << ",";
             }
-          os << (*it)->GetParameter( n, (*it)->GetParameters( n ).size() - 1 ) << "]";
+          os << (*it)->GetParameter( n,
+                                     (*it)->GetParameters( n ).size() - 1 ) << "]";
           }
         }
       }
@@ -318,7 +425,8 @@ CommandLineParser
     {
     os << indent << "Unknown Options: " << std::endl;
     OptionListType::const_iterator its;
-    for( its = this->m_UnknownOptions.begin(); its != this->m_UnknownOptions.end(); its++ )
+    for( its = this->m_UnknownOptions.begin();
+         its != this->m_UnknownOptions.end(); its++ )
       {
       (*its)->Print( os, indent );
       }

@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCommandLineOption.cxx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 23:46:06 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/01/22 22:48:30 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -28,10 +28,10 @@ CommandLineOption
 
 void
 CommandLineOption
-::AddValue( std::string value )
+::AddValue( std::string value, char leftDelimiter, char rightDelimiter )
 {
-  std::string::size_type leftDelimiterPos = value.find( '[' );
-  std::string::size_type rightDelimiterPos = value.find( ']' );
+  std::string::size_type leftDelimiterPos = value.find( leftDelimiter );
+  std::string::size_type rightDelimiterPos = value.find( rightDelimiter );
 
   if( leftDelimiterPos == std::string::npos ||
       rightDelimiterPos == std::string::npos )

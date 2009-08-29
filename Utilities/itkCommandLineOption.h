@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCommandLineOption.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 23:46:06 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/01/22 22:48:30 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -29,6 +29,22 @@
 
 namespace itk
 {
+/** \class CommandLineOption
+    \brief Simple data structure for holding command line options.
+    An option can have multiple values with each value holding 0 or more
+    parameters.  E.g. suppose we were creating an image registration program
+    which has several transformation model options such as 'rigid', 'affine',
+    and 'deformable'.  A instance of the command line option could have a
+    long name of "transformation", short name 't', and description
+    "Transformation model---rigid, affine, or deformable".  The values for
+    this option would be "rigid", "affine", and "deformable".  Each value
+    would then hold parameters that relate to that value.  For example, a
+    possible subsection of the command line would be
+
+    " --transformation rigid[parameter1,parameter2,etc.]
+      -m mutualinformation[parameter1] --optimization gradientdescent"
+*/
+
 class ITK_EXPORT CommandLineOption
   : public DataObject
 {
@@ -80,13 +96,21 @@ public:
       }
   }
 
-  std::string GetParameter( unsigned int i = 0, unsigned int j = 0 )
+  std::string GetParameter( unsigned int i, unsigned int j )
   {
     if( i < this->m_Parameters.size() && j < this->m_Parameters[i].size() )
       {
       return this->m_Parameters[i][j];
       }
-    return std::string( "" );
+    else
+      {
+      return std::string( "" );
+      }
+  }
+
+  std::string GetParameter( unsigned int j )
+  {
+    return this->GetParameter( 0, j );
   }
 
   unsigned int GetNumberOfParameters( unsigned int i = 0 )
@@ -95,7 +119,10 @@ public:
       {
       return this->m_Parameters[i].size();
       }
-    return 0;
+    else
+      {
+      return 0;
+      }
   }
 
   itkSetMacro( ShortName, char );
@@ -107,7 +134,12 @@ public:
   itkSetMacro( Description, std::string );
   itkGetMacro( Description, std::string );
 
-  void AddValue( std::string );
+  void AddValue( std::string, char, char );
+
+  void AddValue( std::string s )
+  {
+    this->AddValue( s, '[', ']' );
+  }
 
   void SetValue( unsigned int, std::string );
 
@@ -117,7 +149,6 @@ protected:
   {
   };
 private:
-
   char               m_ShortName;
   std::string        m_LongName;
   std::string        m_Description;
