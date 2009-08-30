@@ -572,6 +572,7 @@ void InitializeCommandLineOptions( itk::WASPCommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetShortName( 'h' );
+    option->AddValue( std::string( "0" ) );
     option->SetDescription( description );
     parser->AddOption( option );
     }
