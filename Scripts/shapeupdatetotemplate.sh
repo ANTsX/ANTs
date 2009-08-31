@@ -79,8 +79,19 @@ NUM=${#deformedimages[@]}
 if [ $NUM -le 1 ] ; then
 echo " you do not have images of the type :  ${OUTPUTNAME}*formed.nii* "
 echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
+echo " you can try to reset the OUTPUTNAME to an empty string and try again ... this is very dangerous and can produce erroneous results.  "
+echo " try it only if you know what you are doing . "
+read -p " Reset the OUTPUTNAME to an empty string ?  (y/n)?"
+if [ "$REPLY" == "y" ] ; then
+OUTPUTNAME=""
+deformedimages=(` ls ${OUTPUTNAME}*formed.nii*     `)
+else
+echo " Ok - exiting "
 exit
 fi
+fi
+
+
 deformx=(` ls ${OUTPUTNAME}*Warpxvec.nii     `)
 if [ ${#deformx[@]} -le 1 ] ; then
 echo " you do not have images of the type :  ${OUTPUTNAME}*Warpxvec.nii  "
