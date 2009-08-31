@@ -72,14 +72,43 @@ echo " if the files and parameters are all ok then uncomment the exit call below
 echo " "
 #exit
 
-${ANTSPATH}AverageImages $DIM ${TEMPLATE} 1 ${OUTPUTNAME}*formed.nii
+   rm -f  ${OUTPUTNAME}*InverseWarp*vec.nii
+
+deformedimages=(` ls ${OUTPUTNAME}*formed.nii*     `)
+NUM=${#deformedimages[@]}
+if [ $NUM -le 1 ] ; then
+echo " you do not have images of the type :  ${OUTPUTNAME}*formed.nii* "
+echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
+exit
+fi
+deformx=(` ls ${OUTPUTNAME}*Warpxvec.nii     `)
+if [ ${#deformx[@]} -le 1 ] ; then
+echo " you do not have images of the type :  ${OUTPUTNAME}*Warpxvec.nii  "
+echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
+exit
+fi
+deformy=(` ls ${OUTPUTNAME}*Warpyvec.nii     `)
+if [ ${#deformy[@]} -le 1 ] ; then
+echo " you do not have images of the type :  ${OUTPUTNAME}*Warpyvec.nii  "
+echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
+exit
+fi
+if [ $DIM -eq 3 ] ; then
+deformz=(` ls ${OUTPUTNAME}*Warpzvec.nii     `)
+if [ ${#deformz[@]} -le 1 ] ; then
+echo " you do not have images of the type :  ${OUTPUTNAME}*Warpzvec.nii  "
+echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
+exit
+fi
+fi
+
+
+${ANTSPATH}AverageImages $DIM ${TEMPLATE} 1 ${OUTPUTNAME}*formed.nii*
 #sh sygnccavg.sh 0.1  $TEMPLATE   # uncomment this for sygn template.
 
 # below, a cheap approach to integrating the negative velocity field
 # in the absence of other code and saving the velocity fields.
 # additionally, this works for all types of registration algorithms
-
-   rm -f  ${OUTPUTNAME}*InverseWarp*vec.nii
 
      ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpxvec.nii 0 ${OUTPUTNAME}*Warpxvec.nii
      ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpyvec.nii 0 ${OUTPUTNAME}*Warpyvec.nii
