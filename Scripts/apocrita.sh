@@ -16,6 +16,7 @@ MRF=$4
 BSP=1
 BSPLEV=1
 ITS=$5
+MASK=$6
 #MASK=` echo $1 | cut -d '.' -f 1 `
 #MASK=${MASK}mask.nii.gz
 if [ ! -s $MASK ] ; then
@@ -60,15 +61,14 @@ $exe
 echo $exe
 
 exit
-ThresholdImage 2 out.nii.gz temp.nii.gz 3 9999
-MultiplyImages 2 out.nii.gz temp.nii.gz out.nii.gz
-echo $exe
-exit
 
-% To compare the final results, you can compare the slice segmentation from before %
+# To compare the final results, you can compare the slice segmentation from before %
 
-% ~/snap -g $BRAIN -s $PRIOR  &
+# ~/snap -g $BRAIN -s $PRIOR  &
 
-%and after
+# and after
 
-%~/snap -g $BRAIN -s out.nii.gz &
+# ~/snap -g $BRAIN -s out.nii.gz &
+
+
+
