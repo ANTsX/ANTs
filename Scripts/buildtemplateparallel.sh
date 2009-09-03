@@ -186,11 +186,11 @@ then
 OUTFN=${OUTPUTNAME}${IMG%.*}
 fi
 echo " OUTFN p $OUTFN "
-if [ $i -gt 0 ] ; then
+#if [ $i -gt 0 ] ; then
 exe="${ANTSSCRIPTNAME} $DIM ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN $MAXITERATIONS"
-else
-exe="${ANTSAFFSCRIPTNAME} $DIM ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN  "
-fi
+#else
+#exe="${ANTSAFFSCRIPTNAME} $DIM ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN  "
+#fi
 echo " $exe "
 
 if [ $DOQSUB -gt 0 ]; then
