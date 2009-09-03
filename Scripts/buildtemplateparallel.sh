@@ -161,6 +161,7 @@ count=100
 
 count=0
 ANTSSCRIPTNAME=${ANTSPATH}ants.sh
+ANTSAFFSCRIPTNAME=${ANTSPATH}antsaffine.sh
 if [ -f $ANTSSCRIPTNAME  ]
     then
     echo " FILE $ANTSSCRIPTNAME OK ! "
@@ -185,8 +186,11 @@ then
 OUTFN=${OUTPUTNAME}${IMG%.*}
 fi
 echo " OUTFN p $OUTFN "
-
+if [ $i -gt 0 ] ; then
 exe="${ANTSSCRIPTNAME} $DIM ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN $MAXITERATIONS"
+else
+exe="${ANTSAFFSCRIPTNAME} $DIM ${dir}/$TEMPLATE  ${dir}/$IMG  ${dir}/$OUTFN  "
+fi
 echo " $exe "
 
 if [ $DOQSUB -gt 0 ]; then
