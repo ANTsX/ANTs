@@ -5,7 +5,7 @@ NUMPARAMS=$#
 if [ $NUMPARAMS -lt 3  ]
 then
 echo " USAGE ::  "
-echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext  OPTIONAL-OUTPREFIX     "
+echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext  OPTIONAL-OUTPREFIX   PURELY-RIGID  "
 echo " be sure to set ANTSPATH environment variable "
 echo " affine only registration "
 exit
@@ -56,6 +56,12 @@ then
   OUTPUTNAME=${4}
 fi
 
+RIGID=" --rigid-affine false  "
+if [ $NUMPARAMS -gt 4 ]
+then
+  RIGID=" --rigid-affine true "
+fi
+echo " Will this mapping be purely rigid?  $RIGID "
 
 echo  " ANTSPATH  is $ANTSPATH     "
 
@@ -72,7 +78,7 @@ fi
  #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
 
-exe=" ${ANTSPATH}ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 "
+exe=" ${ANTSPATH}ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID "
 
  echo " $exe "
 
