@@ -818,7 +818,7 @@ public:
       }
     else if(  thicknessOption->GetValue() == "2" )
       {
-      this->m_ComputeThickness = 0; this->m_SyNFullTime = 2;
+      this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
       }
     else
       {
