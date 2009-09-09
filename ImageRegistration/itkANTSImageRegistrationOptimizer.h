@@ -814,15 +814,18 @@ public:
       = this->m_Parser->GetOption( "compute-thickness" );
     if( thicknessOption->GetValue() == "true" ||  thicknessOption->GetValue() == "1" )
       {
-      this->m_ComputeThickness = 1; this->m_SyNFullTime = 1;
-      }
+      this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
+      }                                                                                                                                      //
+                                                                                                                                             // asymm
+                                                                                                                                             // forces
     else if(  thicknessOption->GetValue() == "2" )
       {
-      this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
-      }
+      this->m_ComputeThickness = 1; this->m_SyNFullTime = 1;
+      }                                                                                                    // symmetric
+                                                                                                           // forces
     else
       {
-      this->m_ComputeThickness = 0;
+      this->m_ComputeThickness = 0;  // not full time varying stuff
       }
     std::cout << " compute thickness? " << this->m_ComputeThickness << std::endl;
     /**
