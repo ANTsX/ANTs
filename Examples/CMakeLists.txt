@@ -77,6 +77,9 @@ TARGET_LINK_LIBRARIES(ImageMath ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  
 ADD_EXECUTABLE(SurfaceCurvature SurfaceCurvature.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(SurfaceCurvature ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
+#ADD_EXECUTABLE(SurfaceBasedSmoothing SurfaceBasedSmoothing.cxx ${SOURCES})
+#TARGET_LINK_LIBRARIES(SurfaceBasedSmoothing ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+
 
 
 # ADD_EXECUTABLE(test test.cxx)
@@ -184,6 +187,9 @@ TARGET_LINK_LIBRARIES(ReorientTensorImage ITKCommon ITKBasicFilters ITKIO)
 
 ADD_EXECUTABLE(N3BiasFieldCorrection N3BiasFieldCorrection.cxx)
 TARGET_LINK_LIBRARIES(N3BiasFieldCorrection ITKIO ITKStatistics)
+
+ADD_EXECUTABLE(KellySlater KellySlater.cxx)
+TARGET_LINK_LIBRARIES(KellySlater ITKIO ITKStatistics)
 
 SET(SOURCES "../Utilities/itkWASPCommandLineParser" "../Utilities/itkWASPCommandLineOption" )
 ADD_EXECUTABLE(Apocrita Apocrita.cxx ${SOURCES})
