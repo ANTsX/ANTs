@@ -975,7 +975,7 @@ int LaplacianThicknessExpDiff(int argc, char *argv[])
       {
       //  void ComposeDiffs(DeformationFieldPointer fieldtowarpby, DeformationFieldPointer field,
       // DeformationFieldPointer fieldout, float sign);
-      m_MFR->ComposeDiffs(incrinvfield, invfield, invfield, 1);
+      m_MFR->ComposeDiffs(invfield, incrinvfield, invfield, 1);
 
       if( debug )
         {
@@ -1261,6 +1261,12 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     thickprior = atof(argv[argct]);
     }
   argct++;
+  bool useCurvaturePrior = false;
+  if( argc > argct )
+    {
+    useCurvaturePrior = atoi(argv[argct]);
+    }
+  argct++;
   float smoothingsigma = 1;
   if( argc > argct )
     {
@@ -1366,7 +1372,11 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   float distthresh = 1.1;
   typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 1, true);
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh);
-  typename ImageType::Pointer speedprior = NULL; // SpeedPrior<ImageType>(gm,wm,bsurf);
+  typename ImageType::Pointer speedprior = NULL;
+  if(  useCurvaturePrior )
+    {
+    speedprior = SpeedPrior<ImageType>(gm, wm, bsurf);
+    }
   // WriteImage<ImageType>(bsurf,"surf.hdr");
   //	typename DoubleImageType::Pointer distfromboundary =
   //  typename ImageType::Pointer surf=MaurerDistanceMap<ImageType>(0.5,1.e9,bsurf);
@@ -1379,9 +1389,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
   typename ImageType::SizeType s = wm->GetLargestPossibleRegion().GetSize();
   typename DeformationFieldType::IndexType velind;
-
-  //    float timesign=1.0;
-  //    unsigned int m_NumberOfTimePoints=2;
   typedef   DeformationFieldType                                                         TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType>                        FieldIterator;
   typedef typename DeformationFieldType::IndexType                                       DIndexType;
@@ -1425,7 +1432,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     ++VIterator;
     }
 
+  //  m_MFR->SmoothDeformationFieldGauss(lapgrad,1.7);
   std::cout << " Scaling done " << std::endl;
+
+  //  float thislength=0;
   unsigned long ct = 1;
   bool          timedone = false;
 
@@ -1487,14 +1497,15 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
     while( ttiter < numtimepoints )    // N time integration points
       {
-      // replace with warp image multi transform
-      //	  m_MFR->Compose(incrinvfield,invfield,NULL); // FIXED
-      invfield = DiReCTCompose<ImageType, DeformationFieldType>(incrinvfield, invfield);
+      //	  m_MFR->Compose(incrinvfield,invfield,NULL);
+      m_MFR->ComposeDiffs(invfield, incrinvfield, invfield, 1);
+
       if( debug )
         {
         std::cout << " exp " << std::endl;
         }
       // Integrate the negative velocity field to generate diffeomorphism corrfield step 3(a)
+      //	  ExpDiffMap<ImageType,DeformationFieldType>( velofield, corrfield, wm, -1, numtimepoints-ttiter);
       corrfield = ExpDiffMap<ImageType, DeformationFieldType>( velofield,  wm, -1, numtimepoints - ttiter);
       // why integrate velofield, but only compose incrinvfield ???
       // technically, we should warp the gm image by corrfield but this can be avoided
@@ -1502,20 +1513,25 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         std::cout << " gmdef " << std::endl;
         }
-      // replace with warp image multi transform
+      typename ImageType::Pointer gmdef = m_MFR->WarpImageBackward(gm, corrfield);
       totalerr = 0;
-      //  ImagePointer WarpMultiTransform( ImagePointer referenceimage,  ImagePointer movingImage,
-      //  AffineTransformPointer aff , DeformationFieldPointer totalField, bool doinverse , AffineTransformPointer
-      //  fixedaff  )
-      typename ImageType::Pointer gmdef = m_MFR->WarpMultiTransform(gm, gm, NULL, corrfield, false, NULL );
-      typename ImageType::Pointer surfdef = m_MFR->WarpMultiTransform(wm, wm, NULL, invfield, false, NULL ); // m_MFR->WarpImageBackward(wm,invfield);
-      typename ImageType::Pointer thkdef = m_MFR->WarpMultiTransform(thickimage, thickimage, NULL, invfield, false,
-                                                                     NULL );                                        // m_MFR->WarpImageBackward(thickimage,invfield);
-      typename ImageType::Pointer thindef = m_MFR->WarpMultiTransform(bsurf, bsurf, NULL, invfield, false, NULL );; // m_MFR->WarpImageBackward(bsurf,invfield);
+
+      typename ImageType::Pointer surfdef = m_MFR->WarpImageBackward(wm, invfield);
+      if( debug )
+        {
+        std::cout << " thkdef " << std::endl;
+        }
+      typename ImageType::Pointer thkdef = m_MFR->WarpImageBackward(thickimage, invfield);
+      if( debug )
+        {
+        std::cout << " thindef " << std::endl;
+        }
+      typename ImageType::Pointer thindef = m_MFR->WarpImageBackward(bsurf, invfield);
       if( spatprior )
         {
-        wpriorim = m_MFR->WarpMultiTransform(priorim, priorim, NULL, invfield, false, NULL );         // m_MFR->WarpImageBackward(priorim,invfield);
+        wpriorim = m_MFR->WarpImageBackward(priorim, invfield);
         }
+
       typedef DeformationFieldType GradientImageType;
       typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType>
       GradientImageFilterType;
@@ -1532,8 +1548,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       gfilter2->Update();
       typename DeformationFieldType::Pointer   lapgrad3 = gfilter2->GetOutput();
 
-/** the code below sets up the scalar "speed" function that multiplies
-    the gradient driving the registration -- akin to "momentum" */
       typename ImageType::Pointer lapjac = ComputeJacobian<ImageType, DeformationFieldType>(invfield);
       IteratorType xxIterator( lapjac, lapjac->GetLargestPossibleRegion().GetSize() );
       xxIterator.GoToBegin();
@@ -1545,11 +1559,15 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 //	      float thkval=thkdef->GetPixel(speedindex);
           float thkval = finalthickimage->GetPixel(speedindex);
           float prior = 1;
-          // if (spatprior){
-          //		float prval=wpriorim->GetPixel(speedindex);
-          // float partialvol=surfdef->GetPixel(speedindex) ;
-          //		if (prval > 0.5 && partialvol >1.e-3 ) prior = prval/partialvol;//7;//0.5*origthickprior;// prval;
-          // }
+          if( spatprior )
+            {
+            float prval = wpriorim->GetPixel(speedindex);
+            float partialvol = surfdef->GetPixel(speedindex);
+            if( prval > 0.5 && partialvol > 1.e-3 )
+              {
+              prior = prval / partialvol;                           // 7;//0.5*origthickprior;// prval;
+              }
+            }
           // else thickprior = origthickprior;
           // } else
           thickprior = origthickprior;
@@ -1608,7 +1626,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             }
 
           float dd = surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex);
-          //	      float gmd=gmdef->GetPixel(speedindex);
+          float gmd = gmdef->GetPixel(speedindex);
           totalerr += fabs(dd);
           if( wm->GetPixel(speedindex) > 0.5 && bsurf->GetPixel(speedindex) < 0.5 )
             {
@@ -1636,7 +1654,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         ++xxIterator;
         }
 
-/** smooth the momentum image */
       lapjac = SmoothImage<ImageType>(lapjac, 1);
       //	  if (ImageDimension==2) WriteJpg<ImageType>(surfdef,"surfdef.jpg");
       // if (ImageDimension==2) WriteJpg<ImageType>(thindef,"thindef.jpg");
@@ -1652,7 +1669,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       while(  !Iterator.IsAtEnd()  )
         {
         velind = Iterator.GetIndex();
-        //	      float currentthickvalue=finalthickimage->GetPixel(velind);
+        float      currentthickvalue = finalthickimage->GetPixel(velind);
         VectorType wgradval = lapgrad2->GetPixel(velind);
 
         disp = wgradval * lapjac->GetPixel(velind);
@@ -1676,7 +1693,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           {
           float thkval = thkdef->GetPixel(velind);
           float putval = thindef->GetPixel(velind);
-          //		  float getval=hitimage->GetPixel(velind);
+          float getval = hitimage->GetPixel(velind);
           hitimage->SetPixel(velind, hitimage->GetPixel(velind) + putval);
           totalimage->SetPixel(velind, totalimage->GetPixel(velind) + thkval);
           }
@@ -1702,7 +1719,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     while(  !Iterator.IsAtEnd()  )
       {
       velind = Iterator.GetIndex();
-      /* increment velocity field at every voxel v = v + u, step 4 */
+      // increment velocity field at every voxel v = v + u, step 4
       velofield->SetPixel(Iterator.GetIndex(), velofield->GetPixel(Iterator.GetIndex() )
                           + incrfield->GetPixel(Iterator.GetIndex() ) );
       float hitval = hitimage->GetPixel(velind);
@@ -1728,7 +1745,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       {
       std::cout << " now smooth " << std::endl;
       }
-    // replace with warp image multi transform
     m_MFR->SmoothDeformationFieldGauss(velofield, smoothingsigma);
 
     if( thickerrct == 0 )
@@ -1773,12 +1789,12 @@ int main(int argc, char *argv[])
     {
     case 2:
       {
-      LaplacianThicknessExpDiff<2>(argc, argv);
+      LaplacianThicknessExpDiff2<2>(argc, argv);
       }
       break;
     case 3:
       {
-      LaplacianThicknessExpDiff<3>(argc, argv);
+      LaplacianThicknessExpDiff2<3>(argc, argv);
       }
       break;
     default:
