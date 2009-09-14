@@ -432,6 +432,18 @@ ADD_TEST(ANTS_ROT_EXP_INVERSEWARP2_METRIC_0_2 MeasureImageSimilarity 3 0 ${ROT_M
 SET(CHALF_IMAGE ${DATA_DIR}/chalf.nii.gz)
 SET(C_IMAGE ${DATA_DIR}/c.nii.gz)
 
-ADD_TEST(ANTS_SYN_WITH_TIME ANTS 2 -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -t SyN[1,10,0.01] -i 150x100x20x2 -r Gauss[0.5,0.25] -o ${OUTPUT_PRFIX} --compute-thickness 2 --number-of-affine-iterations 0)
+ADD_TEST(ANTS_SYN_WITH_TIME ANTS 2 -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -t SyN[1,10,0.01] -i 150x100x20x2 -r Gauss[0.5,0.25] -o ${OUTPUT_PREFIX} --compute-thickness 2 --number-of-affine-iterations 0)
 ADD_TEST(ANTS_SYN_WITH_TIME_WARP WarpImageMultiTransform 2 ${C_IMAGE} ${OUTPUT_PREFIX}.nii.gz ${OUTPUT_PREFIX}Warp.nii)
 ADD_TEST(ANTS_SYN_WITH_TIME_METRIC MeasureImageSimilarity 2 0 ${CHALF_IMAGE} ${OUTPUT_PREFIX}.nii.gz ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz  0.0943736 0.1)
+
+
+##
+# Apocrita tests
+##
+SET(R16_MASK ${DATA_DIR}/r16mask.nii.gz)
+SET(R16_PRIORS ${DATA_DIR}/r16priors.nii.gz)
+
+ADD_TEST(APOC_OTSU_INIT Apocrita 2 -i otsu[${R16_IMAGE},3] -x ${R16_MASK} -n 10 -m [0.3,1x1,0.2,0.1] -o ${OUTPUT_PREFIX}.nii.gz )
+ADD_TEST(APOC_OTSU_INIT_RADIUS_2x2 Apocrita 2 -i otsu[${R16_IMAGE},3] -x ${R16_MASK} -n 10 -m [0.3,2,0.2,0.1] -o ${OUTPUT_PREFIX}.nii.gz )
+ADD_TEST(APOC_KMEANS_INIT Apocrita 2 -i kmeans[${R16_IMAGE},3] -x ${R16_MASK} -n 10 -m [0.3,1x1,0.2,0.1] -o [${OUTPUT_PREFIX}.nii.gz,${OUTPUT_PREFIX}_posteriors%d.nii.gz])
+ADD_TEST(APOC_PRIORLABELIMAGE_INIT Apocrita 2 -i priorlabelimage[${R16_IMAGE},5,${R16_PRIORS},0.5] -x ${R16_MASK} -n 10 -m [0.3,1x1,0.2,0.1] -o [${OUTPUT_PREFIX}.nii.gz,${OUTPUT_PREFIX}_posteriors%d.nii.gz] -l 1[1,0.75] -l 2[1,1.0] -l 3[0.5,0.5] -l 4[1,1])
