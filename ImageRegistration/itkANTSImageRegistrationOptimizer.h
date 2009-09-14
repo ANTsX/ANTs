@@ -827,7 +827,6 @@ public:
       {
       this->m_ComputeThickness = 0;  // not full time varying stuff
       }
-    std::cout << " compute thickness? " << this->m_ComputeThickness << std::endl;
     /**
      * Get transformation model and associated parameters
      */
@@ -1004,6 +1003,8 @@ public:
     /** Compute scale factors */
     this->m_FullDomainSpacing = fixedImage->GetSpacing();
     this->m_FullDomainSize = fixedImage->GetRequestedRegion().GetSize();
+    this->m_CurrentDomainSpacing = fixedImage->GetSpacing();
+    this->m_CurrentDomainSize = fixedImage->GetRequestedRegion().GetSize();
     this->m_CurrentDomainDirection = fixedImage->GetDirection();
     this->m_FullDomainOrigin.Fill(0);
     this->m_CurrentDomainOrigin.Fill(0);
@@ -1562,6 +1563,21 @@ public:
     this->SmoothDeformationField(this->m_DeformationField, false);
 
     return;
+  }
+
+  ImagePointer WarpImageBackward( ImagePointer image, DeformationFieldPointer field )
+  {
+    typedef WarpImageFilter<ImageType, ImageType, DeformationFieldType> WarperType;
+    typename WarperType::Pointer  warper = WarperType::New();
+    typedef NearestNeighborInterpolateImageFunction<ImageType, double>
+    InterpolatorType;
+    warper->SetInput(image);
+    warper->SetDeformationField( field );
+    warper->SetEdgePaddingValue( 0);
+    warper->SetOutputSpacing(field->GetSpacing() );
+    warper->SetOutputOrigin( field->GetOrigin() );
+    warper->Update();
+    return warper->GetOutput();
   }
 
   void ComposeDiffs(DeformationFieldPointer fieldtowarpby, DeformationFieldPointer field,
