@@ -1371,7 +1371,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //       typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )
   float distthresh = 1.1;
   typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 1, true);
-  typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh);
+  typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
   typename ImageType::Pointer speedprior = NULL;
   if(  useCurvaturePrior )
     {
@@ -1723,10 +1723,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       velofield->SetPixel(Iterator.GetIndex(), velofield->GetPixel(Iterator.GetIndex() )
                           + incrfield->GetPixel(Iterator.GetIndex() ) );
       float hitval = hitimage->GetPixel(velind);
-      if( hitval == 0 )
-        {
-        hitval = 1;
-        }
       float thkval = totalimage->GetPixel(velind) / hitval - thickoffset;
       if( thkval < 0 )
         {
