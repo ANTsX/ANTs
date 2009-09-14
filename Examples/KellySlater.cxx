@@ -1039,10 +1039,7 @@ int LaplacianThicknessExpDiff(int argc, char *argv[])
               {
               prior = prval / partialvol;                           // 7;//0.5*origthickprior;// prval;
               }
-            if( prior > 1 )
-              {
-              prior = 1;
-              }
+            // if (prior > 1 ) prior=1;
             }
           // else thickprior = origthickprior;
           // } else
