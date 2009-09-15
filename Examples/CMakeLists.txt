@@ -77,8 +77,8 @@ TARGET_LINK_LIBRARIES(ImageMath ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  
 ADD_EXECUTABLE(SurfaceCurvature SurfaceCurvature.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(SurfaceCurvature ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
-#ADD_EXECUTABLE(SurfaceBasedSmoothing SurfaceBasedSmoothing.cxx ${SOURCES})
-#TARGET_LINK_LIBRARIES(SurfaceBasedSmoothing ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+ADD_EXECUTABLE(SurfaceBasedSmoothing SurfaceBasedSmoothing.cxx ${SOURCES})
+TARGET_LINK_LIBRARIES(SurfaceBasedSmoothing ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 
 
