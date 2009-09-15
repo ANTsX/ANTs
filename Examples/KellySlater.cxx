@@ -1626,7 +1626,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             }
 
           float dd = surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex);
-          float gmd = gmdef->GetPixel(speedindex);
+          //	      float gmd=gmdef->GetPixel(speedindex);
           totalerr += fabs(dd);
           if( wm->GetPixel(speedindex) > 0.5 && bsurf->GetPixel(speedindex) < 0.5 )
             {
@@ -1669,7 +1669,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       while(  !Iterator.IsAtEnd()  )
         {
         velind = Iterator.GetIndex();
-        float      currentthickvalue = finalthickimage->GetPixel(velind);
+        //	      float currentthickvalue=finalthickimage->GetPixel(velind);
         VectorType wgradval = lapgrad2->GetPixel(velind);
 
         disp = wgradval * lapjac->GetPixel(velind);
@@ -1693,7 +1693,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           {
           float thkval = thkdef->GetPixel(velind);
           float putval = thindef->GetPixel(velind);
-          float getval = hitimage->GetPixel(velind);
+          //	  float getval=hitimage->GetPixel(velind);
           hitimage->SetPixel(velind, hitimage->GetPixel(velind) + putval);
           totalimage->SetPixel(velind, totalimage->GetPixel(velind) + thkval);
           }
