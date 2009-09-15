@@ -9,9 +9,6 @@
 #include "ReadWriteImage.h"
 #include "itkSurfaceImageCurvature.h"
 
-namespace itk
-{
-using namespace itk;
 int main(int argc, char *argv[])
 {
   if( argc < 3 )
@@ -93,5 +90,4 @@ int main(int argc, char *argv[])
   std::cout << " done writing ";
 
   return 1;
-}
 }
