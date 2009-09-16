@@ -21,7 +21,7 @@
 #include "itkImageFileWriter.h"
 #include "itkExtractImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
-
+#include "ReadWriteImage.h"
 /* FlipScalarVolume
  * This program takes a volume and flips it along the
  * indicated axes
@@ -85,6 +85,30 @@ int main( int argc, char *argv[] )
   region.SetSize(dim, nSlices);
   stack->SetRegions(region);
   stack->Allocate();
+
+  SliceType::SizeType size;
+  size.Fill(0);
+  SliceType::IndexType index2d;
+  if( dim == 0 )
+    {
+    size[0] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[1];
+    size[1] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[2];
+    }
+  if( dim == 1 )
+    {
+    size[0] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[0];
+    size[1] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[2];
+    }
+  if( dim == 2 )
+    {
+    size[0] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[0];
+    size[1] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[1];
+    }
+  SliceType::Pointer    stack2 = SliceType::New();
+  SliceType::RegionType region2;
+  region2.SetSize(size);
+  stack2->SetRegions(region2);
+  stack2->Allocate();
   //  std::cout << region << std::endl;
 
   ImageType::RegionType extractRegion = stack->GetLargestPossibleRegion();
@@ -134,8 +158,18 @@ int main( int argc, char *argv[] )
       index[1] = it1.GetIndex()[1];
       index[2] = 0;
       }
+    index2d[0] = it1.GetIndex()[0];
+    index2d[1] = it1.GetIndex()[1];
     stack->SetPixel(index, it1.Value() / mean);
+    stack2->SetPixel(index2d, it1.Value() / mean);
     ++it1;
+    }
+
+  if( nSlices == 1 )
+    {
+    std::cout << " write slice " << std::endl;
+    WriteImage<SliceType>(stack2, stackName);
+    return 0;
     }
   // std::cout << "Stacking." << std::flush;
   for( unsigned int i = 1; i < nSlices; i++ )
