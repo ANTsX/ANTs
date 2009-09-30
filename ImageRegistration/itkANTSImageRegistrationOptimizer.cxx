@@ -2320,11 +2320,33 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 // here, SyNF holds the moving velocity field, SyNM holds the fixed
 // velocity field and we integrate both to generate the inv/fwd fields
   typename JacobianFunctionType::Pointer jfunction = JacobianFunctionType::New();
-  float lot = 0, lot2 = 1.0;
+  float        lot = 0, lot2 = 1.0;
+  unsigned int fct = 100;
   for( float hit = 0; hit <= 1; hit = hit + hitstep )
     {
     this->m_SyNFInv = this->IntegrateVelocity(hit, lot);
     this->m_SyNMInv = this->IntegrateVelocity(hit, lot2);
+
+    if( false && this->m_CurrentIteration == 1 &&  this->m_SyNFInv  )
+      {
+      typedef VectorImageFileWriter<DeformationFieldType, ImageType>
+      DeformationFieldWriterType;
+      typename DeformationFieldWriterType::Pointer writer = DeformationFieldWriterType::New();
+      std::ostringstream osstream;
+      osstream << fct;
+      fct++;
+      std::string fnm = std::string("field1") + osstream.str() + std::string("warp.nii.gz");
+      std::string fnm2 = std::string("field2") + osstream.str() + std::string("warp.nii.gz");
+      writer->SetUseAvantsNamingConvention( true );
+      writer->SetInput( this->m_SyNFInv );
+      writer->SetFileName( fnm.c_str() );
+      std::cout << " write " << fnm << std::endl;
+      writer->Update();
+      // writer->SetInput( this->m_SyNMInv );
+      // writer->SetFileName( fnm2.c_str() );
+      //      writer->Update();
+      }
+
     if( aff )
       {
       affinverse = AffineTransformType::New();

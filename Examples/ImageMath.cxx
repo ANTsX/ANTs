@@ -5497,7 +5497,7 @@ int LabelStats(      int argc, char *argv[])
       std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
                 << std::endl;
       }
-    else if( totalvolume > 500 &&  totalmass / totalct > 1 / 500 )
+    else // if ( totalvolume > 500 &&  totalmass/totalct > 1/500 )  {
       {
       std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
                 << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
@@ -5509,6 +5509,237 @@ int LabelStats(      int argc, char *argv[])
     labelcount++;
     }
 
+  logfile.close();
+
+  WriteImage<TwoDImageType>(squareimage, imagename.c_str() );
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int ROIStatistics(      int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::Image<unsigned char, ImageDimension>                       ByteImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ByteImageType>                             writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  // first create a label image => ROI value map
+  std::map<unsigned int, std::string> cortroimap;
+  cortroimap[3] = std::string("L. Cingulate Gyrus");
+  cortroimap[4] = std::string("R. Cingulate Gyrus");
+  cortroimap[5] = std::string("L. Insula");
+  cortroimap[6] = std::string("R. Insula");
+  cortroimap[7] = std::string("L. Temporal Lobe");
+  cortroimap[8] = std::string("R. Temporal Pole");
+  cortroimap[9] = std::string("L. Sup. Temp. Gyrus");
+  cortroimap[10] = std::string("R. Sup. Temp. Gyrus ");
+  cortroimap[11] = std::string("L. Infero. Temp. Gyrus");
+  cortroimap[12] = std::string("R. Infero. Temp. Gyrus");
+  cortroimap[13] = std::string("L. Parahippocampal Gyrus");
+  cortroimap[14] = std::string("R. Parahippocampal Gyrus");
+  cortroimap[15] = std::string("L. Frontal Pole");
+  cortroimap[16] = std::string("R. Frontal Pole");
+  cortroimap[17] = std::string("L. Sup. Frontal Gyrus");
+  cortroimap[18] = std::string("R. Sup. Frontal Gyrus");
+  cortroimap[19] = std::string("L. Mid. Frontal Gyrus");
+  cortroimap[20] = std::string("R. Mid. Frontal Gyrus");
+  cortroimap[21] = std::string("L. Inf.  Frontal Gyrus");
+  cortroimap[22] = std::string("R. Inf. Frontal Gyrus");
+  cortroimap[23] = std::string("L. Orbital Frontal Gyrus");
+  cortroimap[24] = std::string("R. Orbital Frontal Gyrus");
+  cortroimap[25] = std::string("L. Precentral Gyrus");
+  cortroimap[26] = std::string("R. Precentral Gyrus");
+  cortroimap[27] = std::string("L. Sup. Parietal Lobe");
+  cortroimap[28] = std::string("R. Sup. Parietal Lobe");
+  cortroimap[29] = std::string("L. Inf. Parietal Lobe");
+  cortroimap[30] = std::string("R. Inf. Parietal Lobe");
+  cortroimap[31] = std::string("L. Postcentral Gyrus");
+  cortroimap[32] = std::string("R. Postcentral Gyrus");
+  cortroimap[33] = std::string("L. Precuneus");
+  cortroimap[34] = std::string("R. Precuneus");
+
+  std::map<unsigned int, std::string> wmroimap;
+  wmroimap[1] = std::string("R. corticospinal Tract");
+  wmroimap[2] = std::string("R. inferior fronto-occipital fasciculus");
+  wmroimap[3] = std::string("R. inferior longitudinal fasciculus");
+  wmroimap[4] = std::string("R. superior longitudinal fasciculus");
+  wmroimap[5] = std::string("R. uncinate fasciculus");
+  wmroimap[6] = std::string("L. corticospinal Tract");
+  wmroimap[7] = std::string("L. inferior fronto-occipital fasciculus");
+  wmroimap[8] = std::string("L. inferior longitudinal fasciculus");
+  wmroimap[9] = std::string("L. superior longitudinal fasciculus");
+  wmroimap[10] = std::string("L. uncinate fasciculus");
+  wmroimap[11] = std::string("Anterior corpus callosum");
+  wmroimap[12] = std::string("Posterior corpus callosum");
+  wmroimap[13] = std::string("Mid-body corpus callosum");
+  //  if(grade_list.find("Tim") == grade_list.end()) {  std::cout<<"Tim is not in the map!"<<endl; }
+  // mymap.find('a')->second
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string(".nii.gz");
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = "";
+  if(  argc > argct )
+    {
+    fn2 = std::string(argv[argct]);   argct++;
+    }
+
+  typename ImageType::Pointer image = NULL;
+  typename ImageType::Pointer valimage = NULL;
+  ReadImage<ImageType>(image, fn1.c_str() );
+  if( fn2.length() > 3 )
+    {
+    ReadImage<ImageType>(valimage, fn2.c_str() );
+    }
+
+  typedef float                  PixelType;
+  typedef std::vector<PixelType> LabelSetType;
+  LabelSetType myLabelSet;
+/** count the labels in the image */
+  unsigned long maxlab = 0;
+  Iterator      It( image, image->GetLargestPossibleRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    PixelType label = It.Get();
+    if( fabs(label) > 0 )
+      {
+      if( find( myLabelSet.begin(), myLabelSet.end(), label )
+          == myLabelSet.end() )
+        {
+        myLabelSet.push_back( label );
+        }
+      if( label > maxlab )
+        {
+        maxlab = label;
+        }
+      }
+    }
+
+  // compute the voxel volume
+  typename ImageType::SpacingType spacing = image->GetSpacing();
+  float volumeelement = 1.0;
+  for( unsigned int i = 0;  i < spacing.Size(); i++ )
+    {
+    volumeelement *= spacing[i];
+    }
+
+  vnl_vector<double> pvals(maxlab + 1, 1.0);
+  vnl_vector<double> clusters(maxlab + 1, 0.0);
+
+  std::ofstream logfile;
+  logfile.open(outname.c_str() );
+
+  std::sort(myLabelSet.begin(), myLabelSet.end() );
+  typename LabelSetType::const_iterator it;
+  unsigned long labelcount = 0;
+  for( it = myLabelSet.begin(); it != myLabelSet.end(); ++it )
+    {
+    labelcount++;
+    }
+
+  float        temp = sqrt( (float)labelcount);
+  unsigned int squareimagesize = (unsigned int)(temp + 1);
+
+  typedef itk::Image<float, 2> TwoDImageType;
+  typename TwoDImageType::RegionType newregion;
+  typename TwoDImageType::SizeType size;
+  size[0] = size[1] = squareimagesize;
+  newregion.SetSize(size);
+  typename TwoDImageType::Pointer squareimage = TwoDImageType::New();
+  typename TwoDImageType::SpacingType spacingb;
+  spacingb.Fill(1);
+  typename TwoDImageType::PointType origin;
+  origin.Fill(0);
+  squareimage->SetSpacing(spacingb);
+  squareimage->SetOrigin(origin);
+  squareimage->SetRegions(newregion );
+  squareimage->Allocate();
+  squareimage->FillBuffer( 0 );
+
+  labelcount = 0;
+  for( it = myLabelSet.begin(); it != myLabelSet.end(); ++it )
+    {
+    float currentlabel = *it;
+    float totalvolume = 0;
+    float totalmass = 0;
+    float totalct = 0;
+    float maxoneminuspval = 0.0;
+    typename ImageType::PointType myCenterOfMass;
+    myCenterOfMass.Fill(0);
+    for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+      PixelType label = It.Get();
+      if(  label == currentlabel  )
+        {
+        totalvolume += volumeelement;
+        totalct += 1;
+        float vv = valimage->GetPixel(It.GetIndex() );
+        if( valimage )
+          {
+          totalmass += vv;
+          }
+        if(  vv > maxoneminuspval )
+          {
+          maxoneminuspval = vv;
+          }
+        // compute center of mass
+        typename ImageType::PointType point;
+        image->TransformIndexToPhysicalPoint(It.GetIndex(), point);
+        for( unsigned int i = 0; i < spacing.Size(); i++ )
+          {
+          myCenterOfMass[i] += point[i];
+          }
+        }
+      }
+    for( unsigned int i = 0; i < spacing.Size(); i++ )
+      {
+      myCenterOfMass[i] /= (float)totalct;
+      }
+
+    clusters[*it] = totalvolume;
+    pvals[*it] = 1.0 - maxoneminuspval;
+// square image
+    squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
+    labelcount++;
+    }
+  bool iswm = true;
+  if( maxlab > 13 )
+    {
+    iswm = false;
+    }
+  //    unsigned int roi=(unsigned int) *it;
+  for( unsigned int roi = 1; roi <= maxlab; roi++ )
+    {
+    // unsigned int resol=5000;
+    // unsigned int intpvalue=resol*totalmass/totalct;
+    //	float pvalue=1.0-(float)intpvalue/(float)resol;// average pvalue
+    if( wmroimap.find(roi) != wmroimap.end() && iswm )
+      {
+      std::cout << wmroimap.find(roi)->second << " & " << clusters[roi] << " , "  << pvals[roi]
+                << "  & xy & yz  \\ " << std::endl;
+      }
+    else if( cortroimap.find(roi) != cortroimap.end() && !iswm )
+      {
+      std::cout << cortroimap.find(roi)->second << " & " << clusters[roi] << " , "  << pvals[roi]
+                << "  & xy & yz  \\ " << std::endl;
+      }
+    //	else  std::cout << wmroimap.find(roi)->second << " &  - , -   & xy & yz  \\ " << std::endl;
+    //          std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " <<
+    // myCenterOfMass <<" mass is " << totalmass << " average-val is " << totalmass/totalct << std::endl;
+    //      std::cout << *it << "  " <<  totalvolume <<  " & " <<  totalmass/totalct   << " \ " << std::endl;
+    }
   logfile.close();
 
   WriteImage<TwoDImageType>(squareimage, imagename.c_str() );
@@ -6500,6 +6731,7 @@ int main(int argc, char *argv[])
     <<
     "  LabelStats labelimage.ext valueimage.nii ( compute volumes / masses of objects in a label image -- write to text file ) \n"
     << std::endl;
+    std::cout << "  ROIStatistics labelimage.ext valueimage.nii ( see the code ) \n" << std::endl;
     std::cout
     <<
     " DiceAndMinDistSum  LabelImage1.ext LabelImage2.ext OptionalDistImage  -- outputs DiceAndMinDistSum and Dice Overlap to text log file + optional distance image \n "
@@ -6665,6 +6897,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
+        {
+        ROIStatistics<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "Segment") == 0 )
         {
@@ -6866,6 +7102,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
+        {
+        ROIStatistics<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "Segment") == 0 )
         {

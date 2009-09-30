@@ -435,7 +435,7 @@ ADD_TEST(ANTS_ROT_EXP_INVERSEWARP2_METRIC_0_2 MeasureImageSimilarity 3 0 ${ROT_M
 SET(CHALF_IMAGE ${DATA_DIR}/chalf.nii.gz)
 SET(C_IMAGE ${DATA_DIR}/c.nii.gz)
 
-ADD_TEST(ANTS_SYN_WITH_TIME ANTS 2 -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -t SyN[1,10,0.01] -i 150x100x20x2 -r Gauss[0.5,0.25] -o ${OUTPUT_PREFIX} --compute-thickness 2 --number-of-affine-iterations 0)
+ADD_TEST(ANTS_SYN_WITH_TIME ANTS 2 -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -t SyN[1,10,0.01] -i 150x100x20x2 -r Gauss[0.5,0.25] -o ${OUTPUT_PREFIX} --compute-thickness 1 --number-of-affine-iterations 0)
 ADD_TEST(ANTS_SYN_WITH_TIME_WARP WarpImageMultiTransform 2 ${C_IMAGE} ${OUTPUT_PREFIX}.nii.gz ${OUTPUT_PREFIX}Warp.nii)
 ADD_TEST(ANTS_SYN_WITH_TIME_METRIC MeasureImageSimilarity 2 0 ${CHALF_IMAGE} ${OUTPUT_PREFIX}.nii.gz ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz  0.0943736 0.1)
 
