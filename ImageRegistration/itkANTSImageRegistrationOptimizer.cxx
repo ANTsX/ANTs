@@ -31,6 +31,7 @@
 #include "vnl/vnl_math.h"
 #include "ANTS_affine_registration2.h"
 #include "itkWarpImageMultiTransformFilter.h"
+#include "itkVectorImageFileWriter.h"
 
 namespace itk
 {
@@ -2243,7 +2244,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     this->m_NTimeSteps = 2;
     }
-  gsize[TDimension] = this->m_NTimeSteps;
+  gsize[TDimension] = (unsigned long) this->m_NTimeSteps;
   float hitstep = 1.0 / ( (float)this->m_NTimeSteps - 1);
   gspace[TDimension] = 1;
   gregion.SetSize(gsize);
@@ -2329,7 +2330,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
     if( false && this->m_CurrentIteration == 1 &&  this->m_SyNFInv  )
       {
-      typedef VectorImageFileWriter<DeformationFieldType, ImageType>
+      typedef itk::VectorImageFileWriter<DeformationFieldType, ImageType>
       DeformationFieldWriterType;
       typename DeformationFieldWriterType::Pointer writer = DeformationFieldWriterType::New();
       std::ostringstream osstream;
@@ -3030,7 +3031,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
             }
           if( isin )
             {
-            unsigned long lastct = this->m_HitImage->GetPixel(thind);
+            unsigned long lastct = (unsigned long) this->m_HitImage->GetPixel(thind);
             unsigned long newct = lastct + 1;
             float         oldthick = this->m_ThickImage->GetPixel(thind);
             float         newthick = (float)lastct / (float)newct * oldthick + 1.0 / (float)newct * euclideandist;

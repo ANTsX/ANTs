@@ -5622,7 +5622,7 @@ int ROIStatistics(      int argc, char *argv[])
         }
       if( label > maxlab )
         {
-        maxlab = label;
+        maxlab = (unsigned long)label;
         }
       }
     }
@@ -5708,8 +5708,8 @@ int ROIStatistics(      int argc, char *argv[])
       myCenterOfMass[i] /= (float)totalct;
       }
 
-    clusters[*it] = totalvolume;
-    pvals[*it] = 1.0 - maxoneminuspval;
+    clusters[(unsigned long)*it] = totalvolume;
+    pvals[(unsigned long)*it] = 1.0 - maxoneminuspval;
 // square image
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
     labelcount++;
