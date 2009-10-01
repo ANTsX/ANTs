@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBSplineScatteredDataPointSetToImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2009/04/16 18:22:08 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009-04-20 14:53:42 $
+  Version:   $Revision: 1.8 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -36,22 +36,20 @@ namespace itk
  * a fast approximation to that irregularly spaced data using uniform
  * B-splines.  The traditional method of inverting the observation
  * matrix to find a least-squares fit is made obsolete.  Therefore,
- * memory issues are not a concern and inverting large matrices are
- * unnecessary.  The reference below gives the algorithm for 2-D images
- * and cubic splines.  This class generalizes that work to encompass n-D
- * images and any *feasible* B-spline order.
+ * memory issues are not a concern and inverting large matrices is
+ * not applicable.  In addition, this allows fitting to be multi-threaded.
+ * This class generalizes from Lee's original paper to encompass
+ * n-D data in m-D parametric space and any *feasible* B-spline order as well
+ * as the option of specifying a confidence value for each point.
  *
  * In addition to specifying the input point set, one must specify the number
- * of control points.  If one wishes to use the multilevel component of
+ * of control points.  The specified number of control points must be
+ * > m_SplineOrder.  If one wishes to use the multilevel component of
  * this algorithm, one must also specify the number of levels in the
  * hierarchy.  If this is desired, the number of control points becomes
  * the number of control points for the coarsest level.  The algorithm
  * then increases the number of control points at each level so that
- * the B-spline n-D grid is refined to twice the previous level.  The
- * scattered data is specified by the pixel values.
- *
- * Note that the specified number of control points must be > m_SplineOrder.
- *
+ * the B-spline n-D grid is refined to twice the previous level.
  *
  * \author Nicholas J. Tustison
  *
@@ -64,6 +62,7 @@ namespace itk
  * with Multilevel B-Splines", IEEE Transactions on Visualization and
  * Computer Graphics, 3(3):228-244, 1997.
  *
+ * \par REFERENCE
  * N.J. Tustison and J.C. Gee, "Generalized n-D C^k Scattered Data Approximation
  * with COnfidence Values", Proceedings of the MIAR conference, August 2006.
  */
@@ -106,8 +105,10 @@ public:
   typedef VectorContainer<unsigned, RealType> WeightsContainerType;
   typedef Image<PointDataType,
                 itkGetStaticConstMacro( ImageDimension )>        PointDataImageType;
+  typedef typename PointDataImageType::Pointer PointDataImagePointer;
   typedef Image<RealType,
                 itkGetStaticConstMacro( ImageDimension )>        RealImageType;
+  typedef typename RealImageType::Pointer RealImagePointer;
   typedef FixedArray<unsigned,
                      itkGetStaticConstMacro( ImageDimension )>        ArrayType;
   typedef VariableSizeMatrix<RealType> GradientType;
@@ -149,8 +150,8 @@ public:
   /**
    * Get the control point lattice.
    */
-  itkSetMacro( PhiLattice, typename PointDataImageType::Pointer );
-  itkGetConstMacro( PhiLattice, typename PointDataImageType::Pointer );
+  itkSetMacro( PhiLattice, PointDataImagePointer );
+  itkGetConstMacro( PhiLattice, PointDataImagePointer );
 
   /**
    * Evaluate the resulting B-spline object at a specified
@@ -187,6 +188,13 @@ protected:
   virtual ~BSplineScatteredDataPointSetToImageFilter();
   void PrintSelf( std::ostream& os, Indent indent ) const;
 
+  /** Multithreaded function which generates the control point lattice. */
+  void ThreadedGenerateData( const RegionType &, int );
+
+  void BeforeThreadedGenerateData();
+
+  void AfterThreadedGenerateData();
+
   void GenerateData();
 
 private:
@@ -195,9 +203,7 @@ private:
   BSplineScatteredDataPointSetToImageFilter(const Self &);
   void operator=(const Self &);
 
-  void GenerateControlLattice();
-
-  void RefineControlLattice();
+  void RefineControlPointLattice();
 
   void UpdatePointSet();
 
@@ -205,8 +211,7 @@ private:
 
   void GenerateOutputImageFast();
 
-  void CollapsePhiLattice( PointDataImageType *,
-                           PointDataImageType *,
+  void CollapsePhiLattice( PointDataImageType *, PointDataImageType *,
                            RealType, unsigned int );
 
   bool         m_DoMultilevel;
@@ -230,6 +235,9 @@ private:
   typename KernelOrder1Type::Pointer             m_KernelOrder1;
   typename KernelOrder2Type::Pointer             m_KernelOrder2;
   typename KernelOrder3Type::Pointer             m_KernelOrder3;
+
+  std::vector<RealImagePointer>      m_OmegaLatticePerThread;
+  std::vector<PointDataImagePointer> m_DeltaLatticePerThread;
 
   RealType m_BSplineEpsilon;
 
