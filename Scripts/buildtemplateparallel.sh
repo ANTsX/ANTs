@@ -20,6 +20,8 @@ echo " We assume all files to be added to the template are in the current direct
 echo " script if you want to relax this assumption, but be sure that the qsubbed jobs get the correct "
 echo " absolute path to the images."
 echo
+echo " We use the sun grid engine (SGE) to distribute computing via its qsub command. "
+echo
 echo " Things within the script that you may need to change for your needs are highlighted by EDIT THIS "
 echo
 echo " The template will be written to [OutputRoot]template.nii. If the template file exists, it is used as the starting point for "
