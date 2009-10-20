@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkN3MRIBiasFieldCorrectionImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2009/04/29 19:05:28 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/06/09 16:22:05 $
+  Version:   $Revision: 1.6 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -20,7 +20,6 @@
 #include "itkImageToImageFilter.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
-#include "itkLabelStatisticsImageFilter.h"
 #include "itkPointSet.h"
 #include "itkVector.h"
 
@@ -132,6 +131,17 @@ public:
                                          ( this->ProcessObject::GetInput( 1 ) ) );
   }
 
+  void SetConfidenceImage( const RealImageType *image )
+  {
+    this->SetNthInput( 2, const_cast<RealImageType *>( image ) );
+  }
+
+  const RealImageType * GetConfidenceImage() const
+  {
+    return static_cast<RealImageType *>( const_cast<DataObject *>
+                                         ( this->ProcessObject::GetInput( 2 ) ) );
+  }
+
   void SetInput1( const TInputImage *input )
   {
     this->SetInput( input );
@@ -140,6 +150,11 @@ public:
   void SetInput2( const TMaskImage *mask )
   {
     this->SetMaskImage( mask );
+  }
+
+  void SetInput3( const RealImageType *image )
+  {
+    this->SetConfidenceImage( image );
   }
 
   itkSetMacro( MaskLabel, MaskPixelType );
@@ -178,6 +193,9 @@ public:
 
   itkGetConstMacro( LogBiasFieldControlPointLattice,
                     typename BiasFieldControlPointLatticeType::Pointer );
+
+  itkGetConstMacro( ElapsedIterations, unsigned int );
+  itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
 protected:
   N3MRIBiasFieldCorrectionImageFilter();
   ~N3MRIBiasFieldCorrectionImageFilter()
@@ -212,7 +230,9 @@ private:
    * Convergence parameters
    */
   unsigned int m_MaximumNumberOfIterations;
+  unsigned int m_ElapsedIterations;
   RealType     m_ConvergenceThreshold;
+  RealType     m_CurrentConvergenceMeasurement;
 
   /**
    * B-spline fitting parameters

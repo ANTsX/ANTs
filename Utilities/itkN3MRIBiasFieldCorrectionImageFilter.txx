@@ -21,12 +21,9 @@
 
 #include "itkDivideImageFilter.h"
 #include "itkExpImageFilter.h"
-#include "itkImageRegionConstIterator.h"
-#include "itkImageRegionConstIteratorWithIndex.h"
-#include "itkImageRegionIterator.h"
-#include "itkLabelStatisticsImageFilter.h"
+#include "itkImageRegionIteratorWithIndex.h"
+#include "itkIterationReporter.h"
 #include "itkLogImageFilter.h"
-#include "itkOtsuThresholdImageFilter.h"
 #include "itkSubtractImageFilter.h"
 
 #include "vnl/algo/vnl_fft_1d.h"
@@ -39,7 +36,7 @@ template <class TInputImage, class TMaskImage, class TOutputImage>
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::N3MRIBiasFieldCorrectionImageFilter()
 {
-  this->SetNumberOfRequiredInputs( 2 );
+  this->SetNumberOfRequiredInputs( 1 );
 
   this->m_MaskLabel = NumericTraits<MaskPixelType>::One;
 
@@ -65,32 +62,29 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
    */
   typename RealImageType::Pointer logInputImage = RealImageType::New();
 
+  typedef ExpImageFilter<RealImageType, RealImageType>  ExpImageFilterType;
   typedef LogImageFilter<InputImageType, RealImageType> LogFilterType;
-  typename LogFilterType::Pointer logFilter = LogFilterType::New();
-  logFilter->SetInput( this->GetInput() );
-  logFilter->Update();
-  logInputImage = logFilter->GetOutput();
+
+  typename LogFilterType::Pointer logFilter1 = LogFilterType::New();
+  logFilter1->SetInput( this->GetInput() );
+  logFilter1->Update();
+  logInputImage = logFilter1->GetOutput();
 
   /**
    * Remove possible nans/infs from the log input image.
    */
-  ImageRegionIterator<RealImageType> It( logInputImage,
-                                         logInputImage->GetLargestPossibleRegion() );
-  ImageRegionConstIterator<MaskImageType> ItM( this->GetMaskImage(),
-                                               this->GetMaskImage()->GetLargestPossibleRegion() );
-  for( It.GoToBegin(), ItM.GoToBegin(); !It.IsAtEnd(); ++It, ++ItM )
+  ImageRegionIteratorWithIndex<RealImageType> It( logInputImage,
+                                                  logInputImage->GetLargestPossibleRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
-    if( ItM.Get() == this->m_MaskLabel )
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
       {
       if( vnl_math_isnan( It.Get() ) || vnl_math_isinf( It.Get() )
           || It.Get() < 0.0 )
         {
         It.Set( 0.0 );
         }
-      }
-    else
-      {
-      It.Set( 0.0 );
       }
     }
 
@@ -108,9 +102,12 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   /**
    * Iterate until convergence or iterative exhaustion.
    */
-  bool         isConverged = false;
-  unsigned int iteration = 0;
-  while( !isConverged && iteration++ < this->m_MaximumNumberOfIterations )
+  IterationReporter reporter( this, 0, 1 );
+
+  bool isConverged = false;
+  this->m_ElapsedIterations = 0;
+  while( !isConverged &&
+         this->m_ElapsedIterations++ < this->m_MaximumNumberOfIterations )
     {
     typedef SubtractImageFilter<RealImageType, RealImageType, RealImageType>
     SubtracterType;
@@ -120,25 +117,28 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
     subtracter1->SetInput2( logBiasField );
     subtracter1->Update();
 
-    typename RealImageType::Pointer sharpenedImage
+    typename RealImageType::Pointer logSharpenedImage
       = this->SharpenImage( subtracter1->GetOutput() );
 
     typename SubtracterType::Pointer subtracter2 = SubtracterType::New();
     subtracter2->SetInput1( logInputImage );
-    subtracter2->SetInput2( sharpenedImage );
+    subtracter2->SetInput2( logSharpenedImage );
     subtracter2->Update();
 
     typename RealImageType::Pointer newLogBiasField
       = this->SmoothField( subtracter2->GetOutput() );
 
-    RealType cv = this->CalculateConvergenceMeasurement(
-        logBiasField, newLogBiasField );
-    isConverged = ( cv < this->m_ConvergenceThreshold );
+    this->m_CurrentConvergenceMeasurement
+      = this->CalculateConvergenceMeasurement( logBiasField, newLogBiasField );
+    isConverged = ( this->m_CurrentConvergenceMeasurement <
+                    this->m_ConvergenceThreshold );
 
     itkDebugMacro( "Iteration " << iteration << ": "
                                 << " convergence criterion = " << cv );
 
     logBiasField = newLogBiasField;
+
+    reporter.CompletedStep();
     }
 
   typedef ExpImageFilter<RealImageType, RealImageType> ExpImageFilterType;
@@ -176,11 +176,10 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 
   ImageRegionIterator<RealImageType> ItU( unsharpenedImage,
                                           unsharpenedImage->GetLargestPossibleRegion() );
-  ImageRegionConstIterator<MaskImageType> ItM( this->GetMaskImage(),
-                                               this->GetMaskImage()->GetLargestPossibleRegion() );
-  for( ItU.GoToBegin(), ItM.GoToBegin(); !ItU.IsAtEnd(); ++ItU, ++ItM )
+  for( ItU.GoToBegin(); !ItU.IsAtEnd(); ++ItU )
     {
-    if( ItM.Get() == this->m_MaskLabel )
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItU.GetIndex() ) == this->m_MaskLabel )
       {
       RealType pixel = ItU.Get();
       if( pixel > binMaximum )
@@ -193,17 +192,37 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
         }
       }
     }
+  RealType histogramSlope = ( binMaximum - binMinimum )
+    / static_cast<RealType>( this->m_NumberOfHistogramBins - 1 );
 
-  typedef LabelStatisticsImageFilter<RealImageType, MaskImageType>
-  StatisticsFilterType;
-  typename StatisticsFilterType::Pointer stats = StatisticsFilterType::New();
-  stats->SetInput( unsharpenedImage );
-  stats->SetLabelInput( const_cast<MaskImageType *>(
-                          static_cast<const MaskImageType *>( this->ProcessObject::GetInput( 1 ) ) ) );
-  stats->SetUseHistograms( true );
-  stats->SetHistogramParameters( this->m_NumberOfHistogramBins, binMinimum,
-                                 binMaximum );
-  stats->Update();
+  /**
+   * Create the intensity profile (within the masked region, if applicable)
+   * using a triangular parzen windowing scheme.
+   */
+  vnl_vector<RealType> H( this->m_NumberOfHistogramBins, 0.0 );
+  for( ItU.GoToBegin(); !ItU.IsAtEnd(); ++ItU )
+    {
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItU.GetIndex() ) == this->m_MaskLabel )
+      {
+      RealType pixel = ItU.Get();
+
+      RealType cidx = ( static_cast<RealType>( pixel ) - binMinimum )
+        / histogramSlope;
+      unsigned int idx = vnl_math_floor( cidx );
+      RealType     offset = cidx - static_cast<RealType>( idx );
+
+      if( offset == 0.0 )
+        {
+        H[idx] += 1.0;
+        }
+      else if( idx < this->m_NumberOfHistogramBins - 1 )
+        {
+        H[idx] += 1.0 - offset;
+        H[idx + 1] += offset;
+        }
+      }
+    }
 
   /**
    * Determine information about the intensity histogram and zero-pad
@@ -216,15 +235,12 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
       vcl_pow( static_cast<RealType>( 2.0 ), exponent ) + 0.5 );
   unsigned int histogramOffset = static_cast<unsigned int>( 0.5
                                                             * ( paddedHistogramSize - this->m_NumberOfHistogramBins ) );
-  RealType histogramSlope = ( binMaximum - binMinimum )
-    / static_cast<RealType>( this->m_NumberOfHistogramBins );
 
   vnl_vector<vcl_complex<RealType> > V( paddedHistogramSize,
                                         vcl_complex<RealType>( 0.0, 0.0 ) );
   for( unsigned int n = 0; n < this->m_NumberOfHistogramBins; n++ )
     {
-    V[n + histogramOffset] = vcl_complex<RealType>(
-        stats->GetHistogram( this->m_MaskLabel )->GetFrequency( n, 0 ), 0.0 );
+    V[n + histogramOffset] = H[n];
     }
 
   /**
@@ -343,16 +359,13 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 
   ImageRegionIterator<RealImageType> ItC( sharpenedImage,
                                           sharpenedImage->GetLargestPossibleRegion() );
-
-  ItU.GoToBegin();
-  ItC.GoToBegin();
-  ItM.GoToBegin();
-  while( !ItM.IsAtEnd() )
+  for( ItU.GoToBegin(), ItC.GoToBegin(); !ItU.IsAtEnd(); ++ItU, ++ItC )
     {
-    if( ItM.Get() == this->m_MaskLabel )
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItU.GetIndex() ) == this->m_MaskLabel )
       {
       RealType     cidx = ( ItU.Get() - binMinimum ) / histogramSlope;
-      unsigned int idx = static_cast<unsigned int>( cidx );
+      unsigned int idx = vnl_math_floor( cidx );
 
       RealType correctedPixel = 0;
       if( idx < E.size() - 1 )
@@ -366,9 +379,6 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
         }
       ItC.Set( correctedPixel );
       }
-    ++ItU;
-    ++ItC;
-    ++ItM;
     }
 
   return sharpenedImage;
@@ -393,15 +403,19 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   typename PointSetType::Pointer fieldPoints = PointSetType::New();
   fieldPoints->Initialize();
 
-  ImageRegionConstIteratorWithIndex<RealImageType>
-  It( fieldEstimate, fieldEstimate->GetRequestedRegion() );
-  ImageRegionConstIteratorWithIndex<MaskImageType>
-  ItM( this->GetMaskImage(), this->GetMaskImage()->GetRequestedRegion() );
+  typename BSplineFilterType::WeightsContainerType::Pointer weights =
+    BSplineFilterType::WeightsContainerType::New();
+  weights->Initialize();
 
+  ImageRegionConstIteratorWithIndex<RealImageType>
+               It( fieldEstimate, fieldEstimate->GetRequestedRegion() );
   unsigned int N = 0;
-  for( It.GoToBegin(), ItM.GoToBegin(); !It.IsAtEnd(); ++It, ++ItM )
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
-    if( ItM.Get() == this->m_MaskLabel )
+    if( ( !this->GetMaskImage() ||
+          this->GetMaskImage()->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
+        && ( !this->GetConfidenceImage() ||
+             this->GetConfidenceImage()->GetPixel( It.GetIndex() ) > 0.0 ) )
       {
       typename PointSetType::PointType point;
       fieldEstimate->TransformIndexToPhysicalPoint( It.GetIndex(), point );
@@ -411,6 +425,15 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 
       fieldPoints->SetPointData( N, scalar );
       fieldPoints->SetPoint( N, point );
+      if( this->GetConfidenceImage() )
+        {
+        weights->InsertElement( N,
+                                this->GetConfidenceImage()->GetPixel( It.GetIndex() ) );
+        }
+      else
+        {
+        weights->InsertElement( N, 1.0 );
+        }
       N++;
       }
     }
@@ -426,6 +449,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   bspliner->SetSplineOrder( this->m_SplineOrder );
   bspliner->SetNumberOfControlPoints( this->m_NumberOfControlPoints );
   bspliner->SetInput( fieldPoints );
+  bspliner->SetPointWeights( weights );
   bspliner->Update();
 
   /**
@@ -471,21 +495,35 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   /**
    * Calculate statistics over the mask region
    */
-  typedef LabelStatisticsImageFilter<RealImageType, MaskImageType>
-  StatisticsFilterType;
-  typename StatisticsFilterType::Pointer stats = StatisticsFilterType::New();
-  stats->SetInput( subtracter->GetOutput() );
-  stats->SetLabelInput( const_cast<MaskImageType *>(
-                          static_cast<const MaskImageType *>( this->ProcessObject::GetInput( 1 ) ) ) );
-  stats->SetUseHistograms( false );
-  stats->Update();
+  RealType mu = 0.0;
+  RealType sigma = 0.0;
+  RealType N = 0.0;
+
+  ImageRegionConstIteratorWithIndex<RealImageType> It( subtracter->GetOutput(),
+                                                       subtracter->GetOutput()->GetLargestPossibleRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
+      {
+      RealType pixel = It.Get();
+      N += 1.0;
+
+      if( N > 1.0 )
+        {
+        sigma = sigma + vnl_math_sqr( pixel - mu ) * ( N - 1.0 ) / N;
+        }
+      mu = mu * ( 1.0 - 1.0 / N ) + pixel / N;
+      }
+    }
+  sigma = vcl_sqrt( sigma / ( N - 1.0 ) );
 
   /**
    * Although Sled's paper proposes convergence determination via
    * the coefficient of variation, the actual mnc implementation
    * utilizes the standard deviation as the convergence measurement.
    */
-  return stats->GetSigma( this->m_MaskLabel );
+  return sigma;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
