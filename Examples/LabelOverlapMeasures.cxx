@@ -2,6 +2,8 @@
 #include "itkImageFileReader.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
 
+#include <iomanip>
+
 template <unsigned int ImageDimension>
 int LabelOverlapMeasures( int argc, char * argv[] )
 {
@@ -20,84 +22,107 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   filter->SetTargetImage( reader2->GetOutput() );
   filter->Update();
 
-  std::cout << "All Labels" << std::endl;
-  std::cout << "Volumetric overlap measures." << std::endl;
-  std::cout << "  Total overlap:            "
-            << filter->GetVolumeTotalOverlap() << std::endl;
-  std::cout << "  Union overlap (jaccard):  "
-            << filter->GetVolumeUnionOverlap() << std::endl;
-  std::cout << "  Mean overlap (dice):      "
-            << filter->GetVolumeMeanOverlap() << std::endl;
-  std::cout << "  False negative error:     "
-            << filter->GetVolumeFalseNegativeError() << std::endl;
-  std::cout << "  False positive error:     "
-            << filter->GetVolumeFalsePositiveError() << std::endl;
-  std::cout << "Surface overlap measures." << std::endl;
-  std::cout << "  Total overlap:            "
-            << filter->GetSurfaceTotalOverlap() << std::endl;
-  std::cout << "  Union overlap (jaccard):  "
-            << filter->GetSurfaceUnionOverlap() << std::endl;
-  std::cout << "  Mean overlap (dice):      "
-            << filter->GetSurfaceMeanOverlap() << std::endl;
-  std::cout << "  False negative error:     "
-            << filter->GetSurfaceFalseNegativeError() << std::endl;
-  std::cout << "  False positive error:     "
-            << filter->GetSurfaceFalsePositiveError() << std::endl;
+  std::cout << "                                  "
+            << "************  All Labels *************" << std::endl;
+  std::cout << std::setw( 17 ) << "   " << std::setw( 17 ) << "Total"
+            << std::setw( 17 ) << "Union (jaccard)"
+            << std::setw( 17 ) << "Mean (dice)" << std::setw( 17 ) << "False negative"
+            << std::setw( 17 ) << "False positive" << std::endl;
+  std::cout << std::setw( 17 ) << "Volumetric";
+  std::cout << std::setw( 17 ) << filter->GetVolumeTotalOverlap();
+  std::cout << std::setw( 17 ) << filter->GetVolumeUnionOverlap();
+  std::cout << std::setw( 17 ) << filter->GetVolumeMeanOverlap();
+  std::cout << std::setw( 17 ) << filter->GetVolumeFalseNegativeError();
+  std::cout << std::setw( 17 ) << filter->GetVolumeFalsePositiveError();
+  std::cout << std::endl;
+  std::cout << std::setw( 17 ) << "Surface";
+  std::cout << std::setw( 17 ) << filter->GetSurfaceTotalOverlap();
+  std::cout << std::setw( 17 ) << filter->GetSurfaceUnionOverlap();
+  std::cout << std::setw( 17 ) << filter->GetSurfaceMeanOverlap();
+  std::cout << std::setw( 17 ) << filter->GetSurfaceFalseNegativeError();
+  std::cout << std::setw( 17 ) << filter->GetSurfaceFalsePositiveError();
+  std::cout << std::endl;
   std::cout << "Other related measures." << std::endl;
-  std::cout << "  Volume similarity:        "
+  std::cout << "  Volume similarity: "
             << filter->GetVolumeSimilarity() << std::endl;
   std::cout << std::endl;
 
-  std::cout << "Overlap measures over individual labels." << std::endl;
+  std::cout << "                               "
+            << "************ Individual Labels *************" << std::endl;
+  std::cout << "Volumetric overlap measures." << std::endl;
+  std::cout << std::setw( 17 ) << "Label"
+            << std::setw( 17 ) << "Total"
+            << std::setw( 17 ) << "Union (jaccard)"
+            << std::setw( 17 ) << "Mean (dice)"
+            << std::setw( 17 ) << "False negative"
+            << std::setw( 17 ) << "False positive" << std::endl;
+
   typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
-  typename FilterType::MapType::const_iterator it = labelMap.begin();
-  while( it != labelMap.end() )
+  typename FilterType::MapType::const_iterator it;
+  for( it = labelMap.begin(); it != labelMap.end(); ++it )
     {
     if( (*it).first == 0 )
       {
-      ++it;
       continue;
       }
-    std::cout << "Label " << (*it).first << std::endl;
-    std::cout << "  Volumetric overlap measures." << std::endl;
-    std::cout << "    Total overlap:            "
-              << filter->GetVolumeTotalOverlap( (*it).first ) << std::endl;
-    std::cout << "    Union overlap (jaccard):  "
-              << filter->GetVolumeUnionOverlap( (*it).first ) << std::endl;
-    std::cout << "    Mean overlap (dice):      "
-              << filter->GetVolumeMeanOverlap( (*it).first ) << std::endl;
-    std::cout << "    False negative error:     "
-              << filter->GetVolumeFalseNegativeError( (*it).first ) << std::endl;
-    std::cout << "    False positive error:     "
-              << filter->GetVolumeFalsePositiveError( (*it).first ) << std::endl;
-    std::cout << "  Surface overlap measures." << std::endl;
-    std::cout << "    Total overlap:            "
-              << filter->GetSurfaceTotalOverlap( (*it).first ) << std::endl;
-    std::cout << "    Union overlap (jaccard):  "
-              << filter->GetSurfaceUnionOverlap( (*it).first ) << std::endl;
-    std::cout << "    Mean overlap (dice):      "
-              << filter->GetSurfaceMeanOverlap( (*it).first ) << std::endl;
-    std::cout << "    False negative error:     "
-              << filter->GetSurfaceFalseNegativeError( (*it).first ) << std::endl;
-    std::cout << "    False positive error:     "
-              << filter->GetSurfaceFalsePositiveError( (*it).first ) << std::endl;
-    std::cout << "  Other related measures." << std::endl;
-    std::cout << "    Volume similarity:        "
-              << filter->GetVolumeSimilarity( (*it).first ) << std::endl;
-    std::cout << "    Hausdorff distance:       "
-              << filter->GetHausdorffDistance( (*it).first )
-              << " (in pixels) " << std::endl;
-    std::cout << "    Directed Hausdorff:       "
-              << filter->GetDirectedHausdorffDistance( (*it).first )
-              << " (in pixels) " << std::endl;
-    std::cout << "    Contour mean distance:    "
-              << filter->GetContourMeanDistance( (*it).first )
-              << " (in pixel spacing)" << std::endl;
-    std::cout << "    Directed contour mean:    "
-              << filter->GetDirectedContourMeanDistance( (*it).first )
-              << " (in pixel spacing)" << std::endl;
 
-    ++it;
+    int label = (*it).first;
+
+    std::cout << std::setw( 17 ) << label;
+    std::cout << std::setw( 17 ) << filter->GetVolumeTotalOverlap( label );
+    std::cout << std::setw( 17 ) << filter->GetVolumeUnionOverlap( label );
+    std::cout << std::setw( 17 ) << filter->GetVolumeMeanOverlap( label );
+    std::cout << std::setw( 17 ) << filter->GetVolumeFalseNegativeError( label );
+    std::cout << std::setw( 17 ) << filter->GetVolumeFalsePositiveError( label );
+    std::cout << std::endl;
+    }
+
+  std::cout << "Surface overlap measures." << std::endl;
+  std::cout << std::setw( 17 ) << "Label"
+            << std::setw( 17 ) << "Total"
+            << std::setw( 17 ) << "Union (jaccard)"
+            << std::setw( 17 ) << "Mean (dice)"
+            << std::setw( 17 ) << "False negative"
+            << std::setw( 17 ) << "False positive" << std::endl;
+  for( it = labelMap.begin(); it != labelMap.end(); ++it )
+    {
+    if( (*it).first == 0 )
+      {
+      continue;
+      }
+    int label = (*it).first;
+
+    std::cout << std::setw( 17 ) << label;
+    std::cout << std::setw( 17 ) << filter->GetSurfaceTotalOverlap( label );
+    std::cout << std::setw( 17 ) << filter->GetSurfaceUnionOverlap( label );
+    std::cout << std::setw( 17 ) << filter->GetSurfaceMeanOverlap( label );
+    std::cout << std::setw( 17 ) << filter->GetSurfaceFalseNegativeError( label );
+    std::cout << std::setw( 17 ) << filter->GetSurfaceFalsePositiveError( label );
+    std::cout << std::endl;
+    }
+
+  std::cout << "Other related measures." << std::endl;
+  std::cout << std::setw( 17 ) << "Label"
+            << std::setw( 17 ) << "Volume sim."
+            << std::setw( 17 ) << "Hausdorff"
+            << std::setw( 17 ) << "Dir. Hausdorff"
+            << std::setw( 17 ) << "Contour"
+            << std::setw( 17 ) << "Dir. Contour" << std::endl;
+  for( it = labelMap.begin(); it != labelMap.end(); ++it )
+    {
+    if( (*it).first == 0 )
+      {
+      continue;
+      }
+    int label = (*it).first;
+
+    std::cout << std::setw( 17 ) << label;
+    std::cout << std::setw( 17 ) << filter->GetVolumeSimilarity( label );
+    std::cout << std::setw( 17 ) << filter->GetHausdorffDistance( label );
+    std::cout << std::setw( 17 ) << filter->GetDirectedHausdorffDistance( label );
+    std::cout << std::setw( 17 ) << filter->GetContourMeanDistance( label );
+    std::cout << std::setw( 17 ) << filter->GetDirectedContourMeanDistance( label );
+    std::cout << std::endl;
     }
 
   return EXIT_SUCCESS;
