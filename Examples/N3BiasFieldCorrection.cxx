@@ -7,6 +7,44 @@
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
 
+template <class TFilter>
+class CommandIterationUpdate : public itk::Command
+{
+public:
+  typedef CommandIterationUpdate  Self;
+  typedef itk::Command            Superclass;
+  typedef itk::SmartPointer<Self> Pointer;
+  itkNewMacro( Self );
+protected:
+  CommandIterationUpdate()
+  {
+  };
+public:
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+  {
+    Execute( (const itk::Object *) caller, event);
+  }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event)
+  {
+    const TFilter * filter =
+      dynamic_cast<const TFilter *>( object );
+
+    if( typeid( event ) != typeid( itk::IterationEvent ) )
+      {
+      return;
+      }
+
+    std::cout << "Iteration " << filter->GetElapsedIterations()
+              << " (of " << filter->GetMaximumNumberOfIterations() << ").  ";
+    std::cout << " Current convergence value = "
+              << filter->GetCurrentConvergenceMeasurement()
+              << " (threshold = " << filter->GetConvergenceThreshold()
+              << ")" << std::endl;
+  }
+};
+
 template <unsigned int ImageDimension>
 int N3BiasFieldCorrection( int argc, char *argv[] )
 {
@@ -84,6 +122,10 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
     {
     correcter->SetNumberOfFittingLevels( atoi( argv[7] ) );
     }
+
+  typedef CommandIterationUpdate<CorrecterType> CommandType;
+  typename CommandType::Pointer observer = CommandType::New();
+  correcter->AddObserver( itk::IterationEvent(), observer );
 
   try
     {
