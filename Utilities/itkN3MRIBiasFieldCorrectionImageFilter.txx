@@ -133,9 +133,6 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
     isConverged = ( this->m_CurrentConvergenceMeasurement <
                     this->m_ConvergenceThreshold );
 
-    itkDebugMacro( "Iteration " << iteration << ": "
-                                << " convergence criterion = " << cv );
-
     logBiasField = newLogBiasField;
 
     reporter.CompletedStep();
