@@ -219,7 +219,8 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
 
     // now begin output
     //  std::cout << " Writing Text File " << outname << std::endl;
-    std::ofstream outf( (outname).c_str(), std::ofstream::app);
+    std::string   outname2 = outname + std::string(".csv");
+    std::ofstream outf( (outname2).c_str(), std::ofstream::app);
     if( outf.good() )
       {
       //    outf << std::string(argv[filecount]) << std::endl;
@@ -229,24 +230,28 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
           {
           //	      outf << " Cluster " << i << " size  " << histogram[i] <<  " average " <<
           // sumofvalues[i]/(float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
-          if( i >= 0 && i < maximum )
-            {
-            outf << sumofvalues[i] / (float)histogram[i] << ",";
-            }
-          else
-            {
-            outf << sumofvalues[i] / (float)histogram[i] << std::endl;
-            }
           std::cout << " Cluster " << i << " size  " << histogram[i] <<  " average " << sumofvalues[i]
           / (float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
           }
         }
       for( unsigned int i = 0; i <= range; i++ )
         {
-        if( countinlabel[i] > 0 )
+        //	  if ( countinlabel[i] > 0)
           {
+          if( countinlabel[i] == 0 )
+            {
+            countinlabel[i] = 1;
+            }
           //	      outf << " Label " << i+min <<   " average " << suminlabel[i]/(float)countinlabel[i] <<  std::endl;
           std::cout << " Label " << i + min <<   " average " << suminlabel[i] / (float)countinlabel[i] <<  std::endl;
+          if( i >= 0 && i < range )
+            {
+            outf <<  suminlabel[i] / (float)countinlabel[i] << ",";
+            }
+          else
+            {
+            outf <<  suminlabel[i] / (float)countinlabel[i] << std::endl;
+            }
           }
         }
       }
