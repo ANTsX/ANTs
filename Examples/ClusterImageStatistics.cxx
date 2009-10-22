@@ -70,7 +70,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
   float       clusterthresh = atof(argv[5]);
   float       minSize = clusterthresh;
   float       valuethresh = atof(argv[6]);
-  std::cout << " Cth " << clusterthresh << " Vth " << valuethresh << std::endl;
+  //  std::cout << " Cth " << clusterthresh << " Vth " << valuethresh << std::endl;
   typename ImageType::Pointer valimage = NULL;
   typename ImageType::Pointer roiimage = NULL;
   typename ImageType::Pointer labelimage = NULL;
@@ -87,7 +87,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
   double range = max - min;
   for( unsigned int filecount = 7;  filecount < argc; filecount++ )
     {
-    std::cout << " doing " << std::string(argv[filecount]) << std::endl;
+    //    std::cout <<" doing " << std::string(argv[filecount]) << std::endl;
 
     ReadImage<ImageType>(valimage, argv[filecount]);
 
@@ -139,7 +139,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
 
     float maximum = relabel->GetNumberOfObjects();
-    std::cout << " #object " << maximum << std::endl;
+    //    std::cout << " #object " << maximum << std::endl;
 //    float maxtstat=0;
     std::vector<unsigned long> histogram( (int)maximum + 1);
     std::vector<long>          maxlabel( (int)maximum + 1);
@@ -202,8 +202,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
         maximgval = Clusters->GetPixel( vfIter.GetIndex() );
         }
       }
-
-    std::cout << " max size " << maximgval << std::endl;
+    //  std::cout << " max size " << maximgval << std::endl;
     for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
       {
       if( Clusters->GetPixel( vfIter.GetIndex() ) < minSize )
@@ -219,17 +218,25 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     WriteImage<ImageType>(Clusters, (outname + "sizes.nii.gz").c_str() );
 
     // now begin output
-    std::cout << " Writing Text File " << outname << std::endl;
+    //  std::cout << " Writing Text File " << outname << std::endl;
     std::ofstream outf( (outname).c_str(), std::ofstream::app);
     if( outf.good() )
       {
-      outf << std::string(argv[filecount]) << std::endl;
+      //    outf << std::string(argv[filecount]) << std::endl;
       for( int i = 0; i < maximum + 1; i++ )
         {
         if( histogram[i] >= minSize )
           {
-          outf << " Cluster " << i << " size  " << histogram[i] <<  " average " << sumofvalues[i]
-          / (float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
+          //	      outf << " Cluster " << i << " size  " << histogram[i] <<  " average " <<
+          // sumofvalues[i]/(float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
+          if( i >= 0 && i < maximum )
+            {
+            outf << sumofvalues[i] / (float)histogram[i] << ",";
+            }
+          else
+            {
+            outf << sumofvalues[i] / (float)histogram[i] << std::endl;
+            }
           std::cout << " Cluster " << i << " size  " << histogram[i] <<  " average " << sumofvalues[i]
           / (float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
           }
@@ -238,7 +245,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
         {
         if( countinlabel[i] > 0 )
           {
-          outf << " Label " << i + min <<   " average " << suminlabel[i] / (float)countinlabel[i] <<  std::endl;
+          //	      outf << " Label " << i+min <<   " average " << suminlabel[i]/(float)countinlabel[i] <<  std::endl;
           std::cout << " Label " << i + min <<   " average " << suminlabel[i] / (float)countinlabel[i] <<  std::endl;
           }
         }
