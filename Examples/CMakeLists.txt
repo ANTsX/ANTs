@@ -97,6 +97,10 @@ TARGET_LINK_LIBRARIES(SetOrigin ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  
 ADD_EXECUTABLE(SetSpacing SetSpacing.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(SetSpacing ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
+ADD_EXECUTABLE(SetDirectionByMatrix SetDirectionByMatrix.cxx ${SOURCES})
+TARGET_LINK_LIBRARIES(SetDirectionByMatrix ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+
+
 #ADD_EXECUTABLE(WarpFunctionalImage WarpFunctionalImage.cxx ${SOURCES})
 #TARGET_LINK_LIBRARIES(WarpFunctionalImage ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
