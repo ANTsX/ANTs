@@ -1656,6 +1656,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             }
 //	      dd*=stopval*jwt*thindef->GetPixel(speedindex)*sigmoidf*gradstep*dp*gmd*jwt;
           dd *= stopval * sigmoidf * gradstep * jwt * prior; // speed function here IMPORTANT!!
+          if( vnl_math_isnan(dd) || vnl_math_isinf(dd) )
+            {
+            dd = 0;
+            }
           lapjac->SetPixel(speedindex, dd);
           //	      std::cout <<" dd " << dd << " prior " << prior << " wmag " << wmag << std::endl;
           if( wmag * dd > maxlapgrad2mag )
