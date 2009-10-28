@@ -1551,6 +1551,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       typename ImageType::Pointer lapjac = ComputeJacobian<ImageType, DeformationFieldType>(invfield);
       IteratorType xxIterator( lapjac, lapjac->GetLargestPossibleRegion().GetSize() );
       xxIterator.GoToBegin();
+      float maxlapgrad2mag = 0;
       while(  !xxIterator.IsAtEnd()  )
         {
         typename ImageType::IndexType speedindex = xxIterator.GetIndex();
@@ -1581,16 +1582,20 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             gmag += ggradval[kq] * ggradval[kq];
             wmag += wgradval[kq] * wgradval[kq];
             }
-          if( fabs(wmag) < 1.e-9 )
+          if( fabs(wmag) < 1.e-6 )
             {
             wmag = 0;
             }
-          if( fabs(gmag) < 1.e-9 )
+          if( fabs(gmag) < 1.e-6 )
             {
             gmag = 0;
             }
           gmag = sqrt(gmag);
           wmag = sqrt(wmag);
+          if( wmag > maxlapgrad2mag )
+            {
+            maxlapgrad2mag = wmag;
+            }
           if( gmag > 0 && wmag > 0 )
             {
             for( unsigned kq = 0; kq < ImageDimension; kq++ )
@@ -1654,6 +1659,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         ++xxIterator;
         }
 
+      if( maxlapgrad2mag < 1.e-4 )
+        {
+        maxlapgrad2mag = 1.e9;
+        }
       lapjac = SmoothImage<ImageType>(lapjac, 1);
       //	  if (ImageDimension==2) WriteJpg<ImageType>(surfdef,"surfdef.jpg");
       // if (ImageDimension==2) WriteJpg<ImageType>(thindef,"thindef.jpg");
@@ -1670,7 +1679,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         velind = Iterator.GetIndex();
         //	      float currentthickvalue=finalthickimage->GetPixel(velind);
-        VectorType wgradval = lapgrad2->GetPixel(velind);
+        VectorType wgradval = lapgrad2->GetPixel(velind) / (maxlapgrad2mag * (float)numtimepoints);
 
         disp = wgradval * lapjac->GetPixel(velind);
 
