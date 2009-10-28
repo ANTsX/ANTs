@@ -1015,8 +1015,8 @@ int LaplacianThicknessExpDiff(int argc, char *argv[])
       GradientImageFilterPointer gfilter2 = GradientImageFilterType::New();
       gfilter2->SetInput(  gm );
       gfilter2->SetSigma( smoothingsigma );
-      gfilter2->Update();
-      typename DeformationFieldType::Pointer   lapgrad3 = gfilter2->GetOutput();
+      //	  gfilter2->Update();
+      //	  typename DeformationFieldType::Pointer   lapgrad3=gfilter2->GetOutput();
 
 /** the code below sets up the scalar "speed" function that multiplies
     the gradient driving the registration -- akin to "momentum" */
@@ -1046,12 +1046,12 @@ int LaplacianThicknessExpDiff(int argc, char *argv[])
           thickprior = origthickprior;
 
           VectorType wgradval = lapgrad2->GetPixel(speedindex); // velofield->GetPixel(speedindex);//
-          VectorType ggradval = lapgrad3->GetPixel(speedindex);
-          double     dp = 0;
-          double     gmag = 0, wmag = 0;
+          //	      VectorType ggradval=lapgrad3->GetPixel(speedindex);
+          double dp = 0;
+          double gmag = 0, wmag = 0;
           for( unsigned kq = 0; kq < ImageDimension; kq++ )
             {
-            gmag += ggradval[kq] * ggradval[kq];
+            //	      gmag+= ggradval[kq]*ggradval[kq];
             wmag += wgradval[kq] * wgradval[kq];
             }
           if( fabs(wmag) < 1.e-9 )
@@ -1064,15 +1064,12 @@ int LaplacianThicknessExpDiff(int argc, char *argv[])
             }
           gmag = sqrt(gmag);
           wmag = sqrt(wmag);
-          if( gmag > 0 && wmag > 0 )
-            {
-            for( unsigned kq = 0; kq < ImageDimension; kq++ )
-              {
-              dp += ggradval[kq] / gmag * wgradval[kq] / wmag;
-              }
-            }
+          //	      if (gmag > 0 && wmag > 0)
+          //	{
+          //	for (unsigned kq=0;kq<ImageDimension; kq++) dp+= ggradval[kq]/gmag*wgradval[kq]/wmag;
+          //	}
 //	      if (fabs(dp) < 0.6) dp=0;
-          dp = fabs(dp);
+//	      dp=fabs(dp);
           dp = 1.0; // -dp;
           // tempim->SetPixel(speedindex,dp);
 
@@ -1267,7 +1264,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     useCurvaturePrior = atoi(argv[argct]);
     }
   argct++;
-  float smoothingsigma = 1;
+  float smoothingsigma = 1.5;
   if( argc > argct )
     {
     smoothingsigma = atof(argv[argct]);
@@ -1388,7 +1385,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //  gmsurf= SmoothImage<ImageType>(gmsurf,3);
 
   typename ImageType::SizeType s = wm->GetLargestPossibleRegion().GetSize();
-  typename DeformationFieldType::IndexType velind;
+  typename DeformationFieldType::IndexType velind;  velind.Fill(0);
   typedef   DeformationFieldType                                                         TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType>                        FieldIterator;
   typedef typename DeformationFieldType::IndexType                                       DIndexType;
@@ -1578,12 +1575,12 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           thickprior = origthickprior;
 
           VectorType wgradval = lapgrad2->GetPixel(speedindex); // velofield->GetPixel(speedindex);//
-          VectorType ggradval = lapgrad3->GetPixel(speedindex);
-          double     dp = 0;
-          double     gmag = 0, wmag = 0;
+          //	      VectorType ggradval=lapgrad3->GetPixel(speedindex);
+          double dp = 0;
+          double gmag = 0, wmag = 0;
           for( unsigned kq = 0; kq < ImageDimension; kq++ )
             {
-            gmag += ggradval[kq] * ggradval[kq];
+            //	      gmag+= ggradval[kq]*ggradval[kq];
             wmag += wgradval[kq] * wgradval[kq];
             }
           if( fabs(wmag) < 1.e-6 )
@@ -1602,15 +1599,12 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             lapgrad2->SetPixel(speedindex, wgradval);
             wmag = 0;
             }
-          if( gmag > 0 && wmag > 0 )
-            {
-            for( unsigned kq = 0; kq < ImageDimension; kq++ )
-              {
-              dp += ggradval[kq] / gmag * wgradval[kq] / wmag;
-              }
-            }
+          //      if (gmag > 0 && wmag > 0)
+          //	{
+          //		for (unsigned kq=0;kq<ImageDimension; kq++) dp+= ggradval[kq]/gmag*wgradval[kq]/wmag;
+          //	}
 //	      if (fabs(dp) < 0.6) dp=0;
-          dp = fabs(dp);
+//	      dp=fabs(dp);
           dp = 1.0; // -dp;
           // tempim->SetPixel(speedindex,dp);
 
@@ -1661,7 +1655,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             dd = 0;
             }
           lapjac->SetPixel(speedindex, dd);
-          //	      std::cout <<" dd " << dd << " prior " << prior << " wmag " << wmag << std::endl;
+          //	              std::cout <<" dd " << dd << " prior " << prior << " wmag " << wmag << std::endl;
           if( wmag * dd > maxlapgrad2mag )
             {
             maxlapgrad2mag = wmag * dd;
@@ -1697,7 +1691,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         VectorType wgradval = lapgrad2->GetPixel(velind) / (maxlapgrad2mag * (float)numtimepoints);
 
         disp = wgradval * lapjac->GetPixel(velind);
-
         incrfield->SetPixel(velind, incrfield->GetPixel(velind) + disp);
 
         if( ttiter == 0 ) // make euclidean distance image
@@ -1708,10 +1701,19 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             {
             dmag += disp[jj] * disp[jj];
             }
-          dmag = sqrt(dmag) * bsurf->GetPixel(velind);
+          float bval = bsurf->GetPixel(velind);
+          if( vnl_math_isnan(dmag) || vnl_math_isinf(dmag) )
+            {
+            dmag = 0;
+            }
+          if( vnl_math_isnan(bval) || vnl_math_isinf(bval) )
+            {
+            bval = 0;
+            }
+          dmag = sqrt(dmag) * bval;
           thickimage->SetPixel(velind, dmag);
           totalimage->SetPixel(velind, dmag);
-          hitimage->SetPixel(velind, bsurf->GetPixel(velind) );
+          hitimage->SetPixel(velind, bval);
           }
         else if( gm->GetPixel(velind) >= 0.5 )
           {
@@ -1721,6 +1723,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           hitimage->SetPixel(velind, hitimage->GetPixel(velind) + putval);
           totalimage->SetPixel(velind, totalimage->GetPixel(velind) + thkval);
           }
+
+        //	      std::cout << "disp " << incrfield->GetPixel(velind) << " hit " << hitimage->GetPixel(velind) << " thk
+        // " << totalimage->GetPixel(velind) << std::endl;
         ++Iterator;
         }
 
@@ -1747,13 +1752,16 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       velofield->SetPixel(Iterator.GetIndex(), velofield->GetPixel(Iterator.GetIndex() )
                           + incrfield->GetPixel(Iterator.GetIndex() ) );
       float hitval = hitimage->GetPixel(velind);
-      float thkval = totalimage->GetPixel(velind) / hitval - thickoffset;
+      float thkval = 0;
+      if( hitval > 1 )
+        {
+        thkval = totalimage->GetPixel(velind) / hitval - thickoffset;
+        }
       if( thkval < 0 )
         {
         thkval = 0;
         }
       finalthickimage->SetPixel(velind, thkval);
-
       if( thkval > maxth )
         {
         maxth = thkval;
@@ -1766,7 +1774,15 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       std::cout << " now smooth " << std::endl;
       }
     m_MFR->SmoothDeformationFieldGauss(velofield, smoothingsigma);
+    //    std::string velofieldname = outname + "velofield";
+    // WriteDisplacementField<DeformationFieldType>(velofield,velofieldname.c_str());
+    // std::string incrfieldname = outname + "incrfield";
+    // WriteDisplacementField<DeformationFieldType>(incrfield,incrfieldname.c_str());
 
+    // std::string tname = outname + "dork1.nii.gz";
+    // WriteImage<ImageType>(hitimage,tname.c_str());
+    // tname = outname + "dork2.nii.gz";
+    // WriteImage<ImageType>(totalimage,tname.c_str());
     if( thickerrct == 0 )
       {
       thickerrct = 1;
@@ -1778,7 +1794,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     WriteImage<ImageType>(finalthickimage, outname.c_str() );
     finalthickimage->SetDirection(fmat);
     //    if (ImageDimension==2) WriteJpg<ImageType>(finalthickimage,"thick.jpg");
-    std::string velofieldname = outname + "velofield";
+    //    std::string velofieldname = outname + "velofield";
     // WriteDisplacementField<DeformationFieldType>(velofield,velofieldname.c_str());
     if( debug )
       {
