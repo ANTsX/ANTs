@@ -1567,7 +1567,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
               }
             if( prior > 2 )
               {
-              prior = 2;
+              prior = 2;      /** Potential cause of problem 1 -- this line added */
               }
             }
           // else thickprior = origthickprior;
@@ -1753,7 +1753,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
                           + incrfield->GetPixel(Iterator.GetIndex() ) );
       float hitval = hitimage->GetPixel(velind);
       float thkval = 0;
-      if( hitval > 1 )
+      if( hitval > 1 )  /** potential source of problem 2 -- this value could be smaller ... */
         {
         thkval = totalimage->GetPixel(velind) / hitval - thickoffset;
         }
