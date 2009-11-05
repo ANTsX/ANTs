@@ -1243,9 +1243,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   float        gradstep = (float)(-1.0) * 0.5; // (ImageDimension-1);
   if( argc > argct )
     {
-    gradstep = atof(argv[argct]) * (-1.0) * 1.0 / (float)numtimepoints;
+    gradstep = atof(argv[argct]) * (-1.0);
     }
-  argct++;
+  gradstep *= 1.0 / (float)numtimepoints * 100;  argct++;
   unsigned int alltheits = 50;
   if( argc > argct )
     {
@@ -1560,16 +1560,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           float prior = 1;
           if( spatprior )
             {
-            float prval = wpriorim->GetPixel(speedindex);
-            float partialvol = surfdef->GetPixel(speedindex);
-            if( prval > 0.5 && partialvol > 1.e-3 )
-              {
-              prior = prval / partialvol;                           // 7;//0.5*origthickprior;// prval;
-              }
-            if( prior > 100 )
-              {
-              prior = 100;        /** Potential cause of problem 1 -- this line added */
-              }
+            prior = wpriorim->GetPixel(speedindex);
+            //		float partialvol=surfdef->GetPixel(speedindex) ;
+            // if (prval > 0.5 && partialvol >1.e-3 ) prior = prval/partialvol;//7;//0.5*origthickprior;// prval;
+            // if (prior > 100 ) prior=100;  /** Potential cause of problem 1 -- this line added */
             }
           // else thickprior = origthickprior;
           // } else
@@ -1661,9 +1655,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
               dd = 0;
               }
             }
-          if( wmag * dd > 10 )
+          if( wmag * dd > 1 )
             {
-            dd = 0;
+            dd = stopval * (surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) ) * gradstep;
             }
           lapjac->SetPixel(speedindex, dd);
           //	              std::cout <<" dd " << dd << " prior " << prior << " wmag " << wmag << std::endl;
@@ -1744,9 +1738,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         ++Iterator;
         }
 
-      //	  if (ttiter ==0)
-      // WriteImage<ImageType>(totalimage,"totalimage.hdr");
-      // WriteImage<ImageType>(hitimage,"hitimage.hdr");
+      //	  if (ttiter ==0) {
+      // WriteImage<ImageType>(totalimage,"Ztotalimage.nii.gz");
+      // WriteImage<ImageType>(hitimage,"Zhitimage.nii.gz");
+      // WriteImage<ImageType>(lapjac,"Zlapjac.nii.gz"); }
 
       Iterator.GoToBegin();
       while(  !Iterator.IsAtEnd()  )
