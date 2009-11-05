@@ -1661,6 +1661,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
               dd = 0;
               }
             }
+          if( wmag * dd > 10 )
+            {
+            dd = 0;
+            }
           lapjac->SetPixel(speedindex, dd);
           //	              std::cout <<" dd " << dd << " prior " << prior << " wmag " << wmag << std::endl;
           if( wmag * dd > maxlapgrad2mag )
@@ -1690,13 +1694,13 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       // exit(0);
 
       /* Now that we have the gradient image, we need to visit each voxel and compute objective function */
-      //	  std::cout << " maxlapgrad2mag " << maxlapgrad2mag << std::endl;
+      std::cout << " maxlapgrad2mag " << maxlapgrad2mag << std::endl;
       Iterator.GoToBegin();
       while(  !Iterator.IsAtEnd()  )
         {
         velind = Iterator.GetIndex();
         //	      float currentthickvalue=finalthickimage->GetPixel(velind);
-        VectorType wgradval = lapgrad2->GetPixel(velind); // /(maxlapgrad2mag*(float)numtimepoints);
+        VectorType wgradval = lapgrad2->GetPixel(velind); // *5.0/(maxlapgrad2mag*(float)numtimepoints);
 
         disp = wgradval * lapjac->GetPixel(velind);
         incrfield->SetPixel(velind, incrfield->GetPixel(velind) + disp);
