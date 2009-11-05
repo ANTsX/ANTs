@@ -1245,7 +1245,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     {
     gradstep = atof(argv[argct]) * (-1.0);
     }
-  gradstep *= 1.0 / (float)numtimepoints * 100;  argct++;
+  gradstep *= 1.0 / (float)numtimepoints * 10;  argct++;
   unsigned int alltheits = 50;
   if( argc > argct )
     {
