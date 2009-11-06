@@ -21,6 +21,7 @@
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkPointSet.h"
+#include "itkSingleValuedCostFunction.h"
 #include "itkVector.h"
 
 #include "vnl/vnl_vector.h"
@@ -46,13 +47,18 @@ namespace itk
  * fitting component.
  *
  * Notes for the user:
+ *  0. Based on our experience with the filter, sometimes the scale of the bias
+ *     field is too small particularly for large mesh element sizes.  Therefore,
+ *     we added an option (which is true by default) for finding the optimal
+ *     scaling of the bias field which is based on minimizing the coefficient
+ *     of variation of the corrected image.  This cost function is given below
+ *     in N3BiasFieldScaleCostFunction.
  *  1. Since much of the image manipulation is done in the log space of the
  *     intensities, input images with negative and small values (< 1) are
  *     discouraged.
  *  2. The original authors recommend performing the bias field correction
  *      on a downsampled version of the original image.
- *  3. A mask must be supplied.  The authors suggest that using a simple Otsu
- *     thresholding scheme, for example, is usually sufficient.
+ *  3. A mask and/or confidence image can be supplied.
  *  4. The filter returns the corrected image.  If the bias field is wanted, one
  *     can reconstruct it using the class itkBSplineControlPointImageFilter.
  *     See the IJ article and the test file for an example.
@@ -76,6 +82,63 @@ namespace itk
  *
  */
 
+/**
+ * Class definition for N3BiasFieldScaleCostFunction
+ */
+
+template <class TInputImage, class TBiasFieldImage, class TMaskImage,
+          class TConfidenceImage>
+class ITK_EXPORT N3BiasFieldScaleCostFunction
+  : public SingleValuedCostFunction
+{
+public:
+  typedef N3BiasFieldScaleCostFunction Self;
+  typedef SingleValuedCostFunction     Superclass;
+  typedef SmartPointer<Self>           Pointer;
+  typedef SmartPointer<const Self>     ConstPointer;
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro( N3BiasFieldScaleCostFunction, SingleValuedCostFunction );
+
+  /** Method for creation through the object factory. */
+  itkNewMacro( Self );
+
+  typedef Superclass::MeasureType    MeasureType;
+  typedef Superclass::DerivativeType DerivativeType;
+  typedef Superclass::ParametersType ParametersType;
+
+  itkSetObjectMacro( InputImage, TInputImage );
+  itkSetObjectMacro( BiasFieldImage, TBiasFieldImage );
+  itkSetObjectMacro( MaskImage, TMaskImage );
+  itkSetObjectMacro( ConfidenceImage, TConfidenceImage );
+
+  itkSetMacro( MaskLabel, typename TMaskImage::PixelType );
+  itkGetConstMacro( MaskLabel, typename TMaskImage::PixelType );
+
+  virtual MeasureType GetValue( const ParametersType & parameters ) const;
+
+  virtual void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const;
+
+  virtual unsigned int GetNumberOfParameters() const;
+
+protected:
+  N3BiasFieldScaleCostFunction();
+  virtual ~N3BiasFieldScaleCostFunction();
+private:
+  N3BiasFieldScaleCostFunction(const Self &); // purposely not implemented
+  void operator=(const Self &);               // purposely not implemented
+
+  typename TInputImage::Pointer                  m_InputImage;
+  typename TBiasFieldImage::Pointer              m_BiasFieldImage;
+  typename TMaskImage::Pointer                   m_MaskImage;
+  typename TConfidenceImage::Pointer             m_ConfidenceImage;
+
+  typename TMaskImage::PixelType                 m_MaskLabel;
+};
+
+/**
+ * Class definition for N3MRIBiasFieldCorrectionImageFilter
+ */
 template <class TInputImage, class TMaskImage = Image<unsigned char,
                                                       ::itk::GetImageDimension<TInputImage>::ImageDimension>,
           class TOutputImage = TInputImage>
@@ -194,6 +257,12 @@ public:
   itkGetConstMacro( LogBiasFieldControlPointLattice,
                     typename BiasFieldControlPointLatticeType::Pointer );
 
+  itkSetMacro( UseOptimalBiasFieldScaling, bool );
+  itkGetConstMacro( UseOptimalBiasFieldScaling, bool );
+  itkBooleanMacro( UseOptimalBiasFieldScaling );
+
+  itkGetConstMacro( BiasFieldScaling, RealType );
+
   itkGetConstMacro( ElapsedIterations, unsigned int );
   itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
 protected:
@@ -215,6 +284,8 @@ private:
     typename RealImageType::Pointer );
   RealType CalculateConvergenceMeasurement(
     typename RealImageType::Pointer,
+    typename RealImageType::Pointer );
+  RealType CalculateOptimalBiasFieldScaling(
     typename RealImageType::Pointer );
 
   MaskPixelType m_MaskLabel;
@@ -242,6 +313,12 @@ private:
   unsigned int m_SplineOrder;
   ArrayType    m_NumberOfControlPoints;
   ArrayType    m_NumberOfFittingLevels;
+
+  /**
+   * other parameters
+   */
+  RealType m_BiasFieldScaling;
+  bool     m_UseOptimalBiasFieldScaling;
 }; // end of class
 } // end namespace itk
 
