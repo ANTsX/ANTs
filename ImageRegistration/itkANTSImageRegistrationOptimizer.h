@@ -1315,8 +1315,7 @@ public:
           typename CurveType::SpacingType spacing;
           spacing.Fill( 1 );
 
-          typename EnergyProfileType::Pointer energyProfileWindow
-            = EnergyProfileType::New();
+          typename EnergyProfileType::Pointer energyProfileWindow = EnergyProfileType::New();
           energyProfileWindow->Initialize();
 
           unsigned int windowBegin = static_cast<unsigned int>( origin[0] );
@@ -1357,7 +1356,8 @@ public:
           bspliner->Update();
 
           ProfilePointType endPoint;
-          endPoint[0] = static_cast<float>( this->m_CurrentIteration - 1 );
+          //  endPoint[0] = static_cast<float>( this->m_CurrentIteration-1 );
+          endPoint[0] = 0.9 * static_cast<float>( this->m_CurrentIteration - 1 );
           typename BSplinerType::GradientType gradient;
           bspliner->EvaluateGradientAtPoint( endPoint, gradient );
           if(  gradient[0][0]  < 0.0001 && this->m_CurrentIteration > 9 )
