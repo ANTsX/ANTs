@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBSplineControlPointImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2008/10/18 00:16:51 $
-  Version:   $Revision: 1.1.1.1 $
+  Date:      $Date: 2009/05/04 14:10:34 $
+  Version:   $Revision: 1.5 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -18,11 +18,11 @@
 #define __itkBSplineControlPointImageFilter_h
 
 #include "itkImageToImageFilter.h"
-
 #include "itkBSplineKernelFunction.h"
 #include "itkCoxDeBoorBSplineKernelFunction.h"
 #include "itkFixedArray.h"
 #include "itkPointSet.h"
+#include "itkSingleValuedCostFunction.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVector.h"
 #include "itkVectorContainer.h"
@@ -32,15 +32,103 @@
 namespace itk
 {
 /**
- * \class BSplineControlPointImageFilter.h
+ * \class BSplineControlPointImageFilter
+ *
  * \brief Auxilary class for the output of the class
  * itkBSplineScatteredDataPointSetToImageFilter.
+ *
  * \par  The output of the class itkBSplineScatteredDataPointSetToImageFilter
- * is a control point grid.  This class is used to hold various routines meant
- * to operate on that control point grid.
+ * is a control point grid defining a B-spline object.  This class is used to
+ * hold various routines meant to operate on that control point grid.  In
+ * addition to specifying the control point grid as the input, the user
+ * must also supply the spline order and the parametric domain (i.e. size,
+ * domain, origin, direction, spacing).  The output of the filter is the sampled
+ * B-spline object.
+ *
+ * Other operations include
+ *   1. Evaluation of the B-spline object at any point in the domain.
+ *   2. Evaluation of the gradient.
+ *   3. Evaluation of the Jacobian.
+ *   4. Evaluation of the Hessian.
+ *   5. Refinement of the input control point lattice such that the
+ *      corresponding B-spline mesh resolution is twice as great as
+ *      the original while maintaining the same valued B-spline object.
+ *   6. Inverse estimation.  Given a user-specified data point, one can
+ *      find the parameters which minimize the "distance" between the evaluated
+ *      data point and the B-spline object evaluated at those parameters.
+ *      This is useful, for example, in determining the parametric values of
+ *      a point on the curve closest to a user-specified point.
  */
 
-template <class TInputImage, class TOutputImage>
+/**
+ * Class definition for ParameterCostFunction
+ */
+template <class TControlPointLattice>
+class ITK_EXPORT ParameterCostFunction
+  : public SingleValuedCostFunction
+{
+public:
+  typedef ParameterCostFunction    Self;
+  typedef SingleValuedCostFunction Superclass;
+  typedef SmartPointer<Self>       Pointer;
+  typedef SmartPointer<const Self> ConstPointer;
+
+  /** Extract dimension from input image. */
+  itkStaticConstMacro( ParametricDimension, unsigned int,
+                       TControlPointLattice::ImageDimension );
+
+  /** Run-time type information (and related methods). */
+  itkTypeMacro( ParameterCostFunction, SingleValuedCostFunction );
+
+  /** Method for creation through the object factory. */
+  itkNewMacro( Self );
+
+  typedef Superclass::MeasureType    MeasureType;
+  typedef Superclass::DerivativeType DerivativeType;
+  typedef Superclass::ParametersType ParametersType;
+
+  typedef FixedArray<unsigned,
+                     itkGetStaticConstMacro( ParametricDimension )>    ArrayType;
+
+  itkSetObjectMacro( ControlPointLattice, TControlPointLattice );
+  itkSetMacro( Origin, typename TControlPointLattice::PointType );
+  itkSetMacro( Spacing, typename TControlPointLattice::SpacingType );
+  itkSetMacro( Size, typename TControlPointLattice::SizeType );
+  itkSetMacro( Direction, typename TControlPointLattice::DirectionType );
+  itkSetMacro( SplineOrder, ArrayType );
+  itkSetMacro( CloseDimension, ArrayType );
+
+  itkSetMacro( DataPoint, typename TControlPointLattice::PixelType );
+
+  virtual MeasureType GetValue( const ParametersType & parameters ) const;
+
+  virtual void GetDerivative( const ParametersType & parameters, DerivativeType & derivative ) const;
+
+  virtual unsigned int GetNumberOfParameters() const;
+
+protected:
+  ParameterCostFunction();
+  virtual ~ParameterCostFunction();
+private:
+  ParameterCostFunction(const Self &); // purposely not implemented
+  void operator=(const Self &);        // purposely not implemented
+
+  typename TControlPointLattice::Pointer         m_ControlPointLattice;
+  typename TControlPointLattice::PointType       m_Origin;
+  typename TControlPointLattice::SpacingType     m_Spacing;
+  typename TControlPointLattice::SizeType        m_Size;
+  typename TControlPointLattice::DirectionType   m_Direction;
+  ArrayType m_SplineOrder;
+  ArrayType m_CloseDimension;
+
+  typename TControlPointLattice::PixelType       m_DataPoint;
+};
+
+/**
+ * Class definition for BSplineControlPointImageFilter
+ */
+
+template <class TInputImage, class TOutputImage = TInputImage>
 class BSplineControlPointImageFilter
   : public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -51,7 +139,7 @@ public:
   typedef SmartPointer<const Self>                      ConstPointer;
 
   /** Method for creation through the object factory. */
-  itkNewMacro( Self );
+  itkNewMacro(Self);
 
   /** Extract dimension from input image. */
   itkStaticConstMacro( ImageDimension, unsigned int,
@@ -75,15 +163,15 @@ public:
   /** Other typedef */
   typedef float RealType;
   typedef Image<RealType,
-                itkGetStaticConstMacro( ImageDimension )>        RealImageType;
+                itkGetStaticConstMacro( ImageDimension )>                 RealImageType;
   typedef FixedArray<unsigned,
-                     itkGetStaticConstMacro( ImageDimension )>        ArrayType;
+                     itkGetStaticConstMacro( ImageDimension )>                 ArrayType;
   typedef VariableSizeMatrix<RealType> GradientType;
   typedef RealImageType                HessianType;
 
   /** PointSet typedef support. */
   typedef PointSet<PixelType,
-                   itkGetStaticConstMacro( ImageDimension )>        PointSetType;
+                   itkGetStaticConstMacro( ImageDimension )>                 PointSetType;
   typedef typename PointSetType::PixelType          PointDataType;
   typedef typename PointSetType::PointDataContainer PointDataContainerType;
 
@@ -164,8 +252,7 @@ public:
     jac += I;
   }
 
-  void EvaluateJacobianAtContinuousIndex( ContinuousIndexType cidx,
-                                          GradientType & jac )
+  void EvaluateJacobianAtContinuousIndex( ContinuousIndexType cidx, GradientType & jac )
   {
     this->EvaluateGradientAtContinuousIndex( cidx, jac );
     GradientType I( jac.Rows(), jac.Cols() );
@@ -204,8 +291,8 @@ public:
     this->EvaluateSpatialJacobianAtPoint( pt, jac );
   }
 
-  void EvaluateSpatialJacobianAtContinuousIndex(
-    ContinuousIndexType cidx, GradientType & jac )
+  void EvaluateSpatialJacobianAtContinuousIndex( ContinuousIndexType cidx,
+                                                 GradientType & jac )
   {
     PointType pt;
 
@@ -214,23 +301,23 @@ public:
   }
 
   /**
-   * Evaluate the Jacobian determinant image with respect to the image of
-   * the resulting B-spline object at a specified point or index within
-   * the image domain.
-   */
-  typename ImageType::Pointer EvaluateSpatialJacobianDeterminantImage();
-
-  /**
    * Evaluate the Hessian of the resulting B-spline object at a specified
    * point or index within the image domain.  Since the Hessian for a vector
    * function is a 3-tensor, one must specify the component.
    */
   void EvaluateHessianAtPoint( PointType, HessianType &, unsigned int );
   void EvaluateHessianAtIndex( IndexType, HessianType &, unsigned int );
-  void EvaluateHessianAtContinuousIndex(
-    ContinuousIndexType, GradientType &, unsigned int );
+  void EvaluateHessianAtContinuousIndex( ContinuousIndexType,
+                                         GradientType &, unsigned int );
 
   void EvaluateHessian( PointType, GradientType &, unsigned int );
+
+  /**
+   * Given a B-spline object value and an initial parametric guess, use
+   * bounded optimization (LBFGSB) to find the parameters corresponding to the
+   * B-spline object value.
+   */
+  void CalculateParametersClosestToDataPoint( PointDataType, PointType & );
 
   /**
    * Generate a refined control point lattice from the input control point
@@ -250,8 +337,8 @@ private:
 
   void GenerateOutputImageFast();
 
-  void CollapsePhiLattice( ControlPointLatticeType *,
-                           ControlPointLatticeType *, RealType, unsigned int );
+  void CollapsePhiLattice( ControlPointLatticeType *, ControlPointLatticeType *,
+                           RealType, unsigned int );
   void SetNumberOfLevels( ArrayType );
 
   /** Parameters for the output image. */

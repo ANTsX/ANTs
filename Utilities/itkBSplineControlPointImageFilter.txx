@@ -7,9 +7,134 @@
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkLBFGSBOptimizer.h"
 
 namespace itk
 {
+/**
+ * ParameterCostFunction class definitions
+ */
+template <class TControlPointLattice>
+ParameterCostFunction<TControlPointLattice>
+::ParameterCostFunction()
+{
+  this->m_ControlPointLattice = NULL;
+}
+
+template <class TControlPointLattice>
+ParameterCostFunction<TControlPointLattice>
+::~ParameterCostFunction()
+{
+}
+
+template <class TControlPointLattice>
+typename ParameterCostFunction<TControlPointLattice>::MeasureType
+ParameterCostFunction<TControlPointLattice>
+::GetValue( const ParametersType & parameters ) const
+{
+  typename TControlPointLattice::PointType point;
+  for( unsigned int d = 0; d < ParametricDimension; d++ )
+    {
+    point[d] = parameters[d];
+    if( this->m_CloseDimension[d] )
+      {
+      MeasureType sign = -1.0;
+      if( point[d] < 0.0 )
+        {
+        sign = 1.0;
+        }
+      while( point[d] < 0 || point[d] >= 1.0 )
+        {
+        point[d] += sign;
+        }
+      }
+    }
+
+  typedef BSplineControlPointImageFilter<TControlPointLattice> BSplineFilterType;
+  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+  bspliner->SetOrigin( this->m_Origin );
+  bspliner->SetSpacing( this->m_Spacing );
+  bspliner->SetSize( this->m_Size );
+  bspliner->SetDirection( this->m_Direction );
+  bspliner->SetSplineOrder( this->m_SplineOrder );
+  bspliner->SetCloseDimension( this->m_CloseDimension );
+  bspliner->SetInput( this->m_ControlPointLattice );
+
+  typename TControlPointLattice::PixelType value;
+  bspliner->Evaluate( point, value );
+
+  MeasureType metric = 0.0;
+  for( unsigned int d = 0; d < value.Size(); d++ )
+    {
+    metric += vnl_math_sqr( value[d] - this->m_DataPoint[d] );
+    }
+
+  return metric;
+}
+
+template <class TControlPointLattice>
+void
+ParameterCostFunction<TControlPointLattice>
+::GetDerivative( const ParametersType & parameters,
+                 DerivativeType & derivative ) const
+{
+  typename TControlPointLattice::PointType point;
+  for( unsigned int d = 0; d < ParametricDimension; d++ )
+    {
+    point[d] = parameters[d];
+    if( this->m_CloseDimension[d] )
+      {
+      MeasureType sign = -1.0;
+      if( point[d] < 0.0 )
+        {
+        sign = 1.0;
+        }
+      while( point[d] < 0 || point[d] >= 1.0 )
+        {
+        point[d] += sign;
+        }
+      }
+    }
+
+  typedef BSplineControlPointImageFilter<TControlPointLattice> BSplineFilterType;
+  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+  bspliner->SetOrigin( this->m_Origin );
+  bspliner->SetSpacing( this->m_Spacing );
+  bspliner->SetSize( this->m_Size );
+  bspliner->SetDirection( this->m_Direction );
+  bspliner->SetSplineOrder( this->m_SplineOrder );
+  bspliner->SetCloseDimension( this->m_CloseDimension );
+  bspliner->SetInput( this->m_ControlPointLattice );
+
+  typename TControlPointLattice::PixelType value;
+  bspliner->Evaluate( point, value );
+  typename BSplineFilterType::GradientType gradient;
+  bspliner->EvaluateGradient( point, gradient );
+
+  derivative.SetSize( this->GetNumberOfParameters() );
+  derivative.Fill( 0.0 );
+  for( unsigned int i = 0; i < gradient.Rows(); i++ )
+    {
+    for( unsigned int j = 0; j < gradient.Cols(); j++ )
+      {
+      derivative[j] += ( 2.0 * ( value[i] - this->m_DataPoint[i] )
+                         * gradient(i, j) );
+      }
+    }
+}
+
+template <class TControlPointLattice>
+unsigned int
+ParameterCostFunction<TControlPointLattice>
+::GetNumberOfParameters() const
+{
+  return ParametricDimension;
+}
+
+/**
+ * BSplineControlPointImageFilter class definitions
+ */
+
 template <class InputImage, class TOutputImage>
 BSplineControlPointImageFilter<InputImage, TOutputImage>
 ::BSplineControlPointImageFilter()
@@ -49,7 +174,8 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
     {
     if( this->m_NumberOfLevels[i] == 0 )
       {
-      itkExceptionMacro( "The number of levels in each dimension must be greater than 0" );
+      itkExceptionMacro(
+        "The number of levels in each dimension must be greater than 0" );
       }
     if( this->m_NumberOfLevels[i] > this->m_MaximumNumberOfLevels )
       {
@@ -95,7 +221,8 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
     {
     if( this->m_SplineOrder[i] == 0 )
       {
-      itkExceptionMacro( "The spline order in each dimension must be greater than 0" );
+      itkExceptionMacro(
+        "The spline order in each dimension must be greater than 0" );
       }
 
     this->m_Kernel[i] = KernelType::New();
@@ -131,8 +258,8 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
       S = S.transpose();
       S.flipud();
 
-      this->m_RefinedLatticeCoefficients[i]
-        = ( vnl_svd<RealType>( R ).solve( S ) ).extract( 2, S.cols() );
+      this->m_RefinedLatticeCoefficients[i] =
+        ( vnl_svd<RealType>( R ).solve( S ) ).extract( 2, S.cols() );
       }
     }
   this->Modified();
@@ -180,7 +307,8 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
   this->m_BSplineEpsilon = 0.0001;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    this->m_NumberOfControlPoints[i] = this->GetInput()->GetLargestPossibleRegion().GetSize()[i];
+    this->m_NumberOfControlPoints[i] =
+      this->GetInput()->GetLargestPossibleRegion().GetSize()[i];
     }
 
   this->GenerateOutputImageFast();
@@ -199,21 +327,23 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
   Duplicator->SetInputImage( this->GetInput() );
   Duplicator->Update();
 
-  typename ControlPointLatticeType::Pointer psiLattice
-    = ControlPointLatticeType::New();
+  typename ControlPointLatticeType::Pointer psiLattice =
+    ControlPointLatticeType::New();
   psiLattice = Duplicator->GetOutput();
   for( unsigned int m = 1; m < this->m_MaximumNumberOfLevels; m++ )
     {
     ArrayType numberOfNewControlPoints;
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
-      numberOfNewControlPoints[i] = psiLattice->GetLargestPossibleRegion().GetSize()[i];
+      numberOfNewControlPoints[i] =
+        psiLattice->GetLargestPossibleRegion().GetSize()[i];
       }
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
       if( m < this->m_NumberOfLevels[i] )
         {
-        numberOfNewControlPoints[i] = 2 * numberOfNewControlPoints[i] - this->m_SplineOrder[i];
+        numberOfNewControlPoints[i] =
+          2 * numberOfNewControlPoints[i] - this->m_SplineOrder[i];
         }
       }
     typename RealImageType::RegionType::SizeType size;
@@ -229,7 +359,8 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
         }
       }
 
-    typename ControlPointLatticeType::Pointer refinedLattice = ControlPointLatticeType::New();
+    typename ControlPointLatticeType::Pointer refinedLattice =
+      ControlPointLatticeType::New();
     refinedLattice->SetRegions( size );
     refinedLattice->Allocate();
     PixelType data;
@@ -280,8 +411,8 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
         for( unsigned int j = 0; j < ImageDimension; j++ )
           {
           tmp[j] = idx[j] + off[j];
-          if( tmp[j] >= static_cast<int>( numberOfNewControlPoints[j] )
-              && !this->m_CloseDimension[j] )
+          if( tmp[j] >= static_cast<int>( numberOfNewControlPoints[j] ) &&
+              !this->m_CloseDimension[j] )
             {
             outOfBoundary = true;
             break;
@@ -304,8 +435,8 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
             {
             tmp_Psi[k] = idx_Psi[k] + off_Psi[k];
             if( tmp_Psi[k] >= static_cast<int>(
-                  this->GetInput()->GetLargestPossibleRegion().GetSize()[k] )
-                && !this->m_CloseDimension[k] )
+                  this->GetInput()->GetLargestPossibleRegion().GetSize()[k] ) &&
+                !this->m_CloseDimension[k] )
               {
               outOfBoundary = true;
               break;
@@ -322,7 +453,8 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
           RealType coeff = 1.0;
           for( unsigned int k = 0; k < ImageDimension; k++ )
             {
-            coeff *= this->m_RefinedLatticeCoefficients[k] ( off[k], off_Psi[k] );
+            coeff *=
+              this->m_RefinedLatticeCoefficients[k] ( off[k], off_Psi[k] );
             }
           val = psiLattice->GetPixel( tmp_Psi );
           val *= coeff;
@@ -389,23 +521,23 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
     {
     if( this->m_CloseDimension[i] )
       {
-      totalNumberOfSpans[i]
-        = this->GetInput()->GetLargestPossibleRegion().GetSize()[i];
+      totalNumberOfSpans[i] =
+        this->GetInput()->GetLargestPossibleRegion().GetSize()[i];
       }
     else
       {
-      totalNumberOfSpans[i]
-        = this->GetInput()->GetLargestPossibleRegion().GetSize()[i]
-          - this->m_SplineOrder[i];
+      totalNumberOfSpans[i] =
+        this->GetInput()->GetLargestPossibleRegion().GetSize()[i]
+        - this->m_SplineOrder[i];
       }
     }
   FixedArray<RealType, ImageDimension> U;
   FixedArray<RealType, ImageDimension> currentU;
   currentU.Fill( -1 );
-  typename ImageType::IndexType startIndex
-    = this->GetOutput()->GetRequestedRegion().GetIndex();
-  typename ControlPointLatticeType::IndexType startPhiIndex
-    = this->GetInput()->GetLargestPossibleRegion().GetIndex();
+  typename ImageType::IndexType startIndex =
+    this->GetOutput()->GetRequestedRegion().GetIndex();
+  typename ControlPointLatticeType::IndexType startPhiIndex =
+    this->GetInput()->GetLargestPossibleRegion().GetIndex();
 
   ImageRegionIteratorWithIndex<ImageType>
   It( this->GetOutput(), this->GetOutput()->GetRequestedRegion() );
@@ -417,8 +549,8 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
       U[i] = static_cast<RealType>( totalNumberOfSpans[i] )
         * static_cast<RealType>( idx[i] - startIndex[i] )
         / static_cast<RealType>( this->m_Size[i] - 1 );
-      if( vnl_math_abs( U[i] - static_cast<RealType>( totalNumberOfSpans[i] ) )
-          <= this->m_BSplineEpsilon )
+      if( vnl_math_abs( U[i] - static_cast<RealType>(
+                          totalNumberOfSpans[i] ) ) <= this->m_BSplineEpsilon )
         {
         U[i] = static_cast<RealType>( totalNumberOfSpans[i] )
           - this->m_BSplineEpsilon;
@@ -451,8 +583,7 @@ template <class InputImage, class TOutputImage>
 void
 BSplineControlPointImageFilter<InputImage, TOutputImage>
 ::CollapsePhiLattice( ControlPointLatticeType *lattice,
-                      ControlPointLatticeType *collapsedLattice,
-                      RealType u, unsigned int dimension )
+                      ControlPointLatticeType *collapsedLattice, RealType u, unsigned int dimension )
 {
   ImageRegionIteratorWithIndex<ControlPointLatticeType> It
     ( collapsedLattice, collapsedLattice->GetLargestPossibleRegion() );
@@ -558,10 +689,9 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
     if( params[i] < 0.0 || params[i] >= 1.0 )
       {
       itkExceptionMacro( "The specified point " << params
-                                                << " is outside the reparameterized domain [0, 1]." );
+                                                << " is outside the reparameterized domain [0, 1)." );
       }
-    p[i] = static_cast<RealType>( params[i] )
-      * static_cast<RealType>(
+    p[i] = static_cast<RealType>( params[i] ) * static_cast<RealType>(
         this->GetInput()->GetLargestPossibleRegion().GetSize()[i]
         - this->m_SplineOrder[i] );
     }
@@ -688,7 +818,7 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
       }
     if( params[i] == 1.0 )
       {
-      params[i] -= vnl_math::float_eps;
+      params[i] -= this->m_BSplineEpsilon;
       }
     p[i] = static_cast<RealType>( params[i] ) * static_cast<RealType>(
         this->GetInput()->GetLargestPossibleRegion().GetSize()[i]
@@ -767,7 +897,7 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
       }
     if( params[i] == 1.0 )
       {
-      params[i] = 1.0 - vnl_math::float_eps;
+      params[i] = 1.0 - this->m_BSplineEpsilon;
       }
     p[i] = static_cast<RealType>( params[i] ) * static_cast<RealType>(
         this->GetInput()->GetLargestPossibleRegion().GetSize()[i]
@@ -836,6 +966,84 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
     }
 }
 
+template <class InputImage, class TOutputImage>
+void
+BSplineControlPointImageFilter<InputImage, TOutputImage>
+::CalculateParametersClosestToDataPoint( PointDataType point, PointType & params )
+{
+  typedef ParameterCostFunction<ControlPointLatticeType> CostFunctionType;
+  typename CostFunctionType::Pointer costFunction = CostFunctionType::New();
+
+  costFunction->SetControlPointLattice(
+    const_cast<ControlPointLatticeType *>( this->GetInput() ) );
+  costFunction->SetOrigin( this->m_Origin );
+  costFunction->SetSpacing( this->m_Spacing );
+  costFunction->SetSize( this->m_Size );
+  costFunction->SetDirection( this->m_Direction );
+  costFunction->SetSplineOrder( this->m_SplineOrder );
+  costFunction->SetCloseDimension( this->m_CloseDimension );
+  costFunction->SetDataPoint( point );
+
+  /**
+   * Rescale parameters between [0, 1)
+   */
+  typename LBFGSBOptimizer::ParametersType initialParameters;
+  initialParameters.SetSize( ImageDimension );
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    initialParameters[d] = ( params[d] - this->m_Origin[d] )
+      / ( static_cast<RealType>( this->m_Size[d] - 1 ) * this->m_Spacing[d] );
+    }
+  typename LBFGSBOptimizer::BoundSelectionType boundSelection;
+  boundSelection.SetSize( ImageDimension );
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    if( this->m_CloseDimension[d] )
+      {
+      boundSelection[d] = 0;
+      }
+    else
+      {
+      boundSelection[d] = 2;
+      }
+    }
+  typename LBFGSBOptimizer::BoundValueType lowerBounds;
+  typename LBFGSBOptimizer::BoundValueType upperBounds;
+  lowerBounds.SetSize( ImageDimension );
+  upperBounds.SetSize( ImageDimension );
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    lowerBounds[d] = 0.0;
+    upperBounds[d] = 1.0;
+    }
+
+  typename LBFGSBOptimizer::Pointer optimizer = LBFGSBOptimizer::New();
+  optimizer->SetMinimize( true );
+  optimizer->SetCostFunction( costFunction );
+  optimizer->SetInitialPosition( initialParameters );
+  optimizer->SetCostFunctionConvergenceFactor( 1e1 );
+  optimizer->SetLowerBound( lowerBounds );
+  optimizer->SetUpperBound( upperBounds );
+  optimizer->SetBoundSelection( boundSelection );
+  optimizer->SetProjectedGradientTolerance( 1e-5 );
+
+  optimizer->StartOptimization();
+
+  typename LBFGSBOptimizer::ParametersType finalParameters =
+    optimizer->GetCurrentPosition();
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    point[i] -= this->m_Origin[i];
+    point[i] /= ( static_cast<RealType>( this->m_Size[i] - 1 )
+                  * this->m_Spacing[i] );
+    }
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    params[d] = finalParameters[d] * this->m_Spacing[d]
+      * static_cast<RealType>( this->m_Size[d] - 1 ) + this->m_Origin[d];
+    }
+}
+
 /**
  * Standard "PrintSelf" method
  */
@@ -851,10 +1059,13 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
     {
     this->m_Kernel[i]->Print( os, indent );
     }
-  os << indent << "B-spline order: "
-     << this->m_SplineOrder << std::endl;
-  os << indent << "Close dimension: "
-     << this->m_CloseDimension << std::endl;
+  os << indent << "Spline order: " << this->m_SplineOrder << std::endl;
+  os << indent << "Close dimension: " << this->m_CloseDimension << std::endl;
+  os << indent << "Parametric domain" << std::endl;
+  os << indent << "  Origin:    " << this->m_Origin << std::endl;
+  os << indent << "  Spacing:   " << this->m_Spacing << std::endl;
+  os << indent << "  Size:      " << this->m_Size << std::endl;
+  os << indent << "  Direction: " << this->m_Direction << std::endl;
 }
 }  // end namespace itk
 
