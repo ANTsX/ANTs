@@ -488,7 +488,7 @@ ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     v = (R(0, 2) - R(2, 0) ) * s;
     w = (R(1, 0) - R(0, 1) ) * s;
     }
-  else if( R(0, 0) > R(1, 1) & R(0, 0) > R(2, 2) )
+  else if( R(0, 0) > R(1, 1) && R(0, 0) > R(2, 2) )
     {
     s = 2 * sqrt(1 + R(0, 0) - R(1, 1) - R(2, 2) );
     u = 0.25 * s;
