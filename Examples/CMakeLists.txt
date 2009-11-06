@@ -193,7 +193,7 @@ ADD_EXECUTABLE(ReorientTensorImage ReorientTensorImage.cxx)
 TARGET_LINK_LIBRARIES(ReorientTensorImage ITKCommon ITKBasicFilters ITKIO)
 
 ADD_EXECUTABLE(N3BiasFieldCorrection N3BiasFieldCorrection.cxx)
-TARGET_LINK_LIBRARIES(N3BiasFieldCorrection ITKIO ITKStatistics)
+TARGET_LINK_LIBRARIES(N3BiasFieldCorrection ITKIO ITKStatistics ITKNumerics)
 
 ADD_EXECUTABLE(KellySlater KellySlater.cxx)
 TARGET_LINK_LIBRARIES(KellySlater ITKIO ITKStatistics)
