@@ -1446,289 +1446,288 @@ LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
 template <unsigned int ImageDimension>
 int FitSphere(int argc, char *argv[])
 {
-//
-//  typedef float  PixelType;
-//  typedef itk::Vector<float,ImageDimension>         VectorType;
-//  typedef itk::Image<VectorType,ImageDimension>     FieldType;
-//  typedef itk::Image<PixelType,ImageDimension> ImageType;
-//  typedef itk::ImageFileReader<ImageType> readertype;
-//  typedef itk::ImageFileWriter<ImageType> writertype;
-//  typedef typename ImageType::IndexType IndexType;
-//  typedef typename ImageType::SizeType SizeType;
-//  typedef typename ImageType::SpacingType SpacingType;
-//  typedef itk::AffineTransform<double,ImageDimension>   AffineTransformType;
-//  typedef itk::LinearInterpolateImageFunction<ImageType,double>  InterpolatorType1;
-//  typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double>  InterpolatorType2;
-//  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-//
-//  int argct=2;
-//  std::string outname=std::string(argv[argct]); argct++;
-//  std::string operation = std::string(argv[argct]);  argct++;
-//  std::string fn1 = std::string(argv[argct]);   argct++;
-//  std::string fn2 = "";
-//  if (argc > argct) fn2=std::string(argv[argct]);   argct++;
-//  float MaxRad=5;
-//  if (argc > argct) MaxRad = atof(argv[argct]);   argct++;
-//
-//  typename ImageType::Pointer image1 = NULL;
-//  typename ImageType::Pointer radimage = NULL;
-//  typename ImageType::Pointer radimage2 = NULL;
-//  typename ImageType::Pointer priorimage = NULL;
-//  typename ImageType::Pointer wmimage = NULL;
-//  if (fn2.length() > 3)   ReadImage<ImageType>(wmimage, fn2.c_str());
-//  std::cout <<"  read " << fn1 << " MXR " << MaxRad << std::endl;
-//  ReadImage<ImageType>(image1, fn1.c_str());
-//  ReadImage<ImageType>(radimage, fn1.c_str());
-//  ReadImage<ImageType>(radimage2, fn1.c_str());
-//  ReadImage<ImageType>(priorimage, fn1.c_str());
-//  radimage->FillBuffer(0);
-//  radimage2->FillBuffer(0);
-//  priorimage->FillBuffer(0);
-//  typename ImageType::SpacingType spacing=image1->GetSpacing();
-//
-//  typename ImageType::Pointer surf = LabelSurface<ImageType>(image1,wmimage);
-//
-//  typedef itk::LinearInterpolateImageFunction<ImageType,float> ScalarInterpolatorType;
-//  typename ScalarInterpolatorType::Pointer ginterp =  ScalarInterpolatorType::New();
-//  ginterp->SetInputImage(image1);
-//  typename ScalarInterpolatorType::ContinuousIndexType  Y1;
-//  typename ScalarInterpolatorType::ContinuousIndexType  Y2;
-//  typename ScalarInterpolatorType::ContinuousIndexType  GMx;
-//  typename ScalarInterpolatorType::ContinuousIndexType  WMx;
-//  typename ScalarInterpolatorType::Pointer winterp=NULL;
-//  if (wmimage)
-//    {
-//      winterp=ScalarInterpolatorType::New();
-//      winterp->SetInputImage(wmimage);
-//    }
-//  //  float x=0,y=0,z=0;
-//  //  float xc=0,yc=0,zc=0;
-//  float globalbestrad=0;
-//  typename ImageType::IndexType bestind;
-//  bestind.Fill(0);
-//  typename ImageType::IndexType ind2;
-//  ind2.Fill(0);
-//  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-//  Iterator iter( image1,  image1->GetLargestPossibleRegion() );
-//  std::cout <<"  Begin " << std::endl;
-//  unsigned long npx=0;
-// //  float pi=3.141;
-// unsigned long numpx=image1->GetBufferedRegion().GetNumberOfPixels();
-//  //unsigned int prog=0;
-//
-// //  float gmtotal,wmtotal,gvol,wvol,warea,garea;
-//  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-//    {
-//      npx++;
-//      typename ImageType::IndexType ind=iter.GetIndex();
-// //      float val=surf->GetPixel(ind);//iter.Get();
-// //      float minrad=1.e9;
-//      /*
-//      if (val > 0.5 && fabs((float)ind[2]-80.) < 6 )
-//	{
-//	  //float  bestrad=0;
-//	  //parameterize sphere at this index
-//	  float epspi=pi*0.1;
-//	  float epsrad=0.2;
-//	  gvol=0;wvol=0;warea=0;garea=0;
-//	  float svol=0;//4./3.*pi*MaxRad*MaxRad*MaxRad;
-//	  //	  float sarea=0;//4.*pi*MaxRad*MaxRad;
-//	  //float bestvol=0;
-//	  //	  float wdiff=0;
-//	  //	  for (float theta=0; theta<=pi; theta+=epspi)
-//	  float theta=0;
-//	  gmtotal=0;
-//	  wmtotal=0;
-//	  float glength=0,wlength=0;
-//	  while ( theta < pi )
-//	    {
-//	  garea=0;warea=0;
-//	  float psi=0;
-//	  while ( psi < pi )
-//	    {
-//	      glength=0;wlength=0;
-//	      float rr=0;
-//	      bool raddone=false;
-//	      GMx.Fill(0);  WMx.Fill(0);
-//	      while ( rr <= MaxRad && !raddone)
-//		{
-//		  // integrate the wm/gm probability along this radius, at these angles
-//		  Y1[0]=(float)ind[0]/spacing[0]+rr*cos(psi)*sin(theta);
-//		  Y1[1]=(float)ind[1]/spacing[1]+rr*sin(psi)*sin(theta);
-//		  Y1[2]=(float)ind[2]/spacing[2]+rr*cos(theta);
-//		  Y2[0]=(float)ind[0]/spacing[0]+rr*cos(psi+pi)*sin(theta);
-//		  Y2[1]=(float)ind[1]/spacing[1]+rr*sin(psi+pi)*sin(theta);
-//		  Y2[2]=(float)ind[2]/spacing[2]+rr*cos(theta);
-//		  float gval1 = ginterp->EvaluateAtContinuousIndex( Y1 );
-//		  float gval2 = ginterp->EvaluateAtContinuousIndex( Y2 );
-//		  float wval1=0,wval2=0;
-//		  if (wmimage) wval1 = winterp->EvaluateAtContinuousIndex( Y1 );
-//		  if (wmimage) wval2 = winterp->EvaluateAtContinuousIndex( Y2 );
-//		  glength+=(gval1+gval2)*epsrad*2;
-//		  wlength+=(wval2+wval2)*epsrad*2;
-//		  gmtotal+=(gval1+gval2);
-//		  wmtotal+=(wval1+wval2);
-//		  for (unsigned int dd=0; dd<ImageDimension; dd++)
-//		    {
-//		      GMx[dd]+=(Y1[dd]*gval1+Y2[dd]*gval2);
-//		      WMx[dd]+=(Y1[dd]*wval1+Y2[dd]*wval2);
-//		    }
-//		  rr+=epsrad;
-//		}//update rr
-//
-//	      garea+=glength*epspi/pi;
-//	      warea+=wlength*epspi/pi;
-//	      psi+=epspi;
-//	    }//update psi
-//	  gvol+=garea;//epspi/pi;
-//	  wvol+=warea;//epspi/pi;
-//	  svol+=(gvol+wvol);
-//	  theta+=epspi;
-//	    }//update theta
-//
-//		  for (unsigned int dd=0; dd<ImageDimension; dd++)
-//		    {
-//		      GMx[dd]/=gmtotal;
-//		      WMx[dd]/=wmtotal;
-//		    }
-//		  float cmdist=0;
-//		  for (unsigned int dd=0; dd<ImageDimension; dd++)
-//		    {
-//		      cmdist+=(GMx[dd]-WMx[dd])*(GMx[dd]-WMx[dd]);
-//		    }
-//		  cmdist=sqrt(cmdist);
-//		  //		  std::cout << " GMT " << gmtotal << " WMT " << wmtotal << " dist " << cmdist << std::endl;
-//	  float gmrad=pow( 3.*gvol/(4.*pi) , 1./3.);
-//	  float gwrat=0,gvrat=0;
-//	  if (warea > 0) gwrat=garea/warea;
-//	  if (wvol > 0) gvrat=gvol/wvol;
-//	  priorimage->SetPixel(ind,gmtotal/(wmtotal+gmtotal));
-//	  radimage->SetPixel(ind,cmdist);
-//
-//	}
-//  */
-//	  //	  radimage2->SetPixel(ind,gvrat);
-//      if (image1->GetPixel(ind) >= 0.5)
-//	{
-//      bool okfit=true;
-//      float dorad=1;
-//      float bestrad=1;
-//      while (okfit && dorad <= MaxRad )
-//	    {
-//	      typedef itk::NeighborhoodIterator<ImageType>  iteratorType;
-//	      typename iteratorType::RadiusType rad,rad2;
-//	      rad2.Fill(0);
-//	      for (unsigned int j=0; j<ImageDimension; j++) rad[j]=(long unsigned int) dorad;
-//	      float tardist=(dorad*sqrt(2));
-//	      iteratorType GHood(rad, image1,image1->GetLargestPossibleRegion());
-//	      GHood.SetLocation(ind);
-//	      typename ImageType::PixelType p = GHood.GetCenterPixel();
-//	      unsigned int goodct=0;
-//	      unsigned int possct=0;
-//	      if ( p > 0 && radimage->GetPixel(ind) <= 0  )
-//		{
-//		  for (unsigned int i = 0; i < GHood.Size(); i++)
-//		    {
-//		      ind2=GHood.GetIndex(i);
-//		      float dist=sqrt(((float)ind2[0]-(float)ind[0])*((float)ind2[0]-(float)ind[0])+
-//				      ((float)ind2[1]-(float)ind[1])*((float)ind2[1]-(float)ind[1])+
-//				      ((float)ind2[2]-(float)ind[2])*((float)ind2[2]-(float)ind[2]));
-//		      if ( GHood.GetPixel(i) == p && dist <= tardist)
-//			{
-//			  goodct++;
-//			  possct++;
-//			}
-//		      else if ( dist <= tardist ) possct++;
-//		      //		  std::cout << " Ind " <<  ind << " : " <<  bestrad << " tardist " << tardist << " gct " << goodct <<"
-// pos " << possct << " dist " << dist << " ind2 " << ind2 << std::endl;
-//		    }
-//		  if (goodct==possct)
-//		    {
-//		      bestrad=dorad; radimage->SetPixel(ind,bestrad*(-1.0));
-//		    }
-//		  else { okfit=false; radimage->SetPixel(ind,radimage->GetPixel(ind)*(-1.0)); }
-//		}
-//	      dorad=dorad+1;
-//	    }
-//	  if (bestrad >= globalbestrad)
-//	    {
-//	      globalbestrad=bestrad;
-//	      bestind=ind;
-//	    }
-//
-//	  if (npx % 10000 == 0)
-//	    {
-//	      std::cout <<" prog " << (float)npx/(float)numpx << std::endl;
-//	      //	      WriteImage<ImageType>(radimage,outname.c_str());
-//	      //	      WriteImage<ImageType>(radimage2,(std::string("Sphere")+outname).c_str());
-//	      //WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
-//	    }
-//	}
-//
-//    }
-//
-//
-//  /**/
-//
-//  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-//    {
-//      float val=iter.Get();
-//      typename ImageType::IndexType ind=iter.GetIndex();
-//      if (val > 0)
-//	{
-//	  unsigned int dorad=(unsigned int)fabs(radimage->GetPixel(ind));
-//	  typedef itk::NeighborhoodIterator<ImageType>  iteratorType;
-//	  typename iteratorType::RadiusType rad;
-//	  for (unsigned int j=0; j<ImageDimension; j++) rad[j]= dorad;
-//	  float tardist=(dorad*sqrt(2));
-//	  float diameter=2.0*(float)dorad*sqrt(2);
-//	  iteratorType GHood(rad, image1,image1->GetLargestPossibleRegion());
-//	  GHood.SetLocation(ind);
-//	  typename ImageType::PixelType p = GHood.GetCenterPixel();
-//	  for (unsigned int i = 0; i < GHood.Size(); i++)
-//	    {
-//	      ind2=GHood.GetIndex(i);
-//	      float dist=sqrt(((float)ind2[0]-(float)ind[0])*((float)ind2[0]-(float)ind[0])+
-//			      ((float)ind2[1]-(float)ind[1])*((float)ind2[1]-(float)ind[1])+
-//			      ((float)ind2[2]-(float)ind[2])*((float)ind2[2]-(float)ind[2]));
-//	      if ( GHood.GetPixel(i) == p && dist <= tardist && diameter > priorimage->GetPixel(ind2))
-//		{
-//		  priorimage->SetPixel(ind2,diameter);
-//		}
-//	    }
-//	}
-//    }
-//
-//
-//
-//
-//  // now, make rad image
-//  std::cout << " Best " << bestind << " gbr " << globalbestrad << std::endl;
-//  typedef itk::NeighborhoodIterator<ImageType>  iteratorType;
-//  typename iteratorType::RadiusType rad;
-//  for (unsigned int j=0; j<ImageDimension; j++) rad[j]= (long unsigned int)globalbestrad;
-//  iteratorType GHood(rad, image1,image1->GetLargestPossibleRegion());
-//  GHood.SetLocation(bestind);
-//  typename ImageType::PixelType p = GHood.GetCenterPixel();
-//  for (unsigned int i = 0; i < GHood.Size(); i++)
-//    {
-//      ind2=GHood.GetIndex(i);
-//      float dist=0;
-//      dist+=sqrt((float)(ind2[0]-(float)bestind[0])*(float)(ind2[0]-(float)bestind[0])+
-//		 (float)(ind2[1]-(float)bestind[1])*(float)(ind2[1]-(float)bestind[1])+
-//		 (float)(ind2[2]-(float)bestind[2])*(float)(ind2[2]-(float)bestind[2]));
-//      if ( dist <= (globalbestrad*sqrt(2)))
-//	{
-//	  radimage2->SetPixel(ind2,p);
-//	}
-//    }
-//
-// /********/
-//
-//  //  WriteImage<ImageType>(radimage,outname.c_str());
-//  WriteImage<ImageType>(radimage2,outname.c_str());
-//  //WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
+  /*
+  typedef float  PixelType;
+  typedef itk::Vector<float,ImageDimension>         VectorType;
+  typedef itk::Image<VectorType,ImageDimension>     FieldType;
+  typedef itk::Image<PixelType,ImageDimension> ImageType;
+  typedef itk::ImageFileReader<ImageType> readertype;
+  typedef itk::ImageFileWriter<ImageType> writertype;
+  typedef typename ImageType::IndexType IndexType;
+  typedef typename ImageType::SizeType SizeType;
+  typedef typename ImageType::SpacingType SpacingType;
+  typedef itk::AffineTransform<double,ImageDimension>   AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType,double>  InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double>  InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+  int argct=2;
+  std::string outname=std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = "";
+  if (argc > argct) fn2=std::string(argv[argct]);   argct++;
+  float MaxRad=5;
+  if (argc > argct) MaxRad = atof(argv[argct]);   argct++;
+
+  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer radimage = NULL;
+  typename ImageType::Pointer radimage2 = NULL;
+  typename ImageType::Pointer priorimage = NULL;
+  typename ImageType::Pointer wmimage = NULL;
+  if (fn2.length() > 3)   ReadImage<ImageType>(wmimage, fn2.c_str());
+  std::cout <<"  read " << fn1 << " MXR " << MaxRad << std::endl;
+  ReadImage<ImageType>(image1, fn1.c_str());
+  ReadImage<ImageType>(radimage, fn1.c_str());
+  ReadImage<ImageType>(radimage2, fn1.c_str());
+  ReadImage<ImageType>(priorimage, fn1.c_str());
+  radimage->FillBuffer(0);
+  radimage2->FillBuffer(0);
+  priorimage->FillBuffer(0);
+  typename ImageType::SpacingType spacing=image1->GetSpacing();
+
+  typename ImageType::Pointer surf = LabelSurface<ImageType>(image1,wmimage);
+
+  typedef itk::LinearInterpolateImageFunction<ImageType,float> ScalarInterpolatorType;
+  typename ScalarInterpolatorType::Pointer ginterp =  ScalarInterpolatorType::New();
+  ginterp->SetInputImage(image1);
+  typename ScalarInterpolatorType::ContinuousIndexType  Y1;
+  typename ScalarInterpolatorType::ContinuousIndexType  Y2;
+  typename ScalarInterpolatorType::ContinuousIndexType  GMx;
+  typename ScalarInterpolatorType::ContinuousIndexType  WMx;
+  typename ScalarInterpolatorType::Pointer winterp=NULL;
+  if (wmimage)
+    {
+      winterp=ScalarInterpolatorType::New();
+      winterp->SetInputImage(wmimage);
+    }
+  //  float x=0,y=0,z=0;
+  //  float xc=0,yc=0,zc=0;
+  float globalbestrad=0;
+  typename ImageType::IndexType bestind;
+  bestind.Fill(0);
+  typename ImageType::IndexType ind2;
+  ind2.Fill(0);
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  Iterator iter( image1,  image1->GetLargestPossibleRegion() );
+  std::cout <<"  Begin " << std::endl;
+  unsigned long npx=0;
+//  float pi=3.141;
+ unsigned long numpx=image1->GetBufferedRegion().GetNumberOfPixels();
+  //unsigned int prog=0;
+
+//  float gmtotal,wmtotal,gvol,wvol,warea,garea;
+  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+    {
+      npx++;
+      typename ImageType::IndexType ind=iter.GetIndex();
+//      float val=surf->GetPixel(ind);//iter.Get();
+//      float minrad=1.e9;
+*/
+  /*
+  if (val > 0.5 && fabs((float)ind[2]-80.) < 6 )
+{
+//float  bestrad=0;
+//parameterize sphere at this index
+float epspi=pi*0.1;
+float epsrad=0.2;
+gvol=0;wvol=0;warea=0;garea=0;
+float svol=0;//4./3.*pi*MaxRad*MaxRad*MaxRad;
+//	  float sarea=0;//4.*pi*MaxRad*MaxRad;
+//float bestvol=0;
+//	  float wdiff=0;
+//	  for (float theta=0; theta<=pi; theta+=epspi)
+float theta=0;
+gmtotal=0;
+wmtotal=0;
+float glength=0,wlength=0;
+while ( theta < pi )
+  {
+garea=0;warea=0;
+float psi=0;
+while ( psi < pi )
+  {
+    glength=0;wlength=0;
+    float rr=0;
+    bool raddone=false;
+    GMx.Fill(0);  WMx.Fill(0);
+    while ( rr <= MaxRad && !raddone)
+{
+  // integrate the wm/gm probability along this radius, at these angles
+  Y1[0]=(float)ind[0]/spacing[0]+rr*cos(psi)*sin(theta);
+  Y1[1]=(float)ind[1]/spacing[1]+rr*sin(psi)*sin(theta);
+  Y1[2]=(float)ind[2]/spacing[2]+rr*cos(theta);
+  Y2[0]=(float)ind[0]/spacing[0]+rr*cos(psi+pi)*sin(theta);
+  Y2[1]=(float)ind[1]/spacing[1]+rr*sin(psi+pi)*sin(theta);
+  Y2[2]=(float)ind[2]/spacing[2]+rr*cos(theta);
+  float gval1 = ginterp->EvaluateAtContinuousIndex( Y1 );
+  float gval2 = ginterp->EvaluateAtContinuousIndex( Y2 );
+  float wval1=0,wval2=0;
+  if (wmimage) wval1 = winterp->EvaluateAtContinuousIndex( Y1 );
+  if (wmimage) wval2 = winterp->EvaluateAtContinuousIndex( Y2 );
+  glength+=(gval1+gval2)*epsrad*2;
+  wlength+=(wval2+wval2)*epsrad*2;
+  gmtotal+=(gval1+gval2);
+  wmtotal+=(wval1+wval2);
+  for (unsigned int dd=0; dd<ImageDimension; dd++)
+    {
+      GMx[dd]+=(Y1[dd]*gval1+Y2[dd]*gval2);
+      WMx[dd]+=(Y1[dd]*wval1+Y2[dd]*wval2);
+    }
+  rr+=epsrad;
+}//update rr
+
+    garea+=glength*epspi/pi;
+    warea+=wlength*epspi/pi;
+    psi+=epspi;
+  }//update psi
+gvol+=garea;//epspi/pi;
+wvol+=warea;//epspi/pi;
+svol+=(gvol+wvol);
+theta+=epspi;
+  }//update theta
+
+  for (unsigned int dd=0; dd<ImageDimension; dd++)
+    {
+      GMx[dd]/=gmtotal;
+      WMx[dd]/=wmtotal;
+    }
+  float cmdist=0;
+  for (unsigned int dd=0; dd<ImageDimension; dd++)
+    {
+      cmdist+=(GMx[dd]-WMx[dd])*(GMx[dd]-WMx[dd]);
+    }
+  cmdist=sqrt(cmdist);
+  //		  std::cout << " GMT " << gmtotal << " WMT " << wmtotal << " dist " << cmdist << std::endl;
+float gmrad=pow( 3.*gvol/(4.*pi) , 1./3.);
+float gwrat=0,gvrat=0;
+if (warea > 0) gwrat=garea/warea;
+if (wvol > 0) gvrat=gvol/wvol;
+priorimage->SetPixel(ind,gmtotal/(wmtotal+gmtotal));
+radimage->SetPixel(ind,cmdist);
+
+}
+*/
+  /*
+    //	  radimage2->SetPixel(ind,gvrat);
+      if (image1->GetPixel(ind) >= 0.5)
+  {
+      bool okfit=true;
+      float dorad=1;
+      float bestrad=1;
+      while (okfit && dorad <= MaxRad )
+      {
+        typedef itk::NeighborhoodIterator<ImageType>  iteratorType;
+        typename iteratorType::RadiusType rad,rad2;
+        rad2.Fill(0);
+        for (unsigned int j=0; j<ImageDimension; j++) rad[j]=(long unsigned int) dorad;
+        float tardist=(dorad*sqrt(2));
+        iteratorType GHood(rad, image1,image1->GetLargestPossibleRegion());
+        GHood.SetLocation(ind);
+        typename ImageType::PixelType p = GHood.GetCenterPixel();
+        unsigned int goodct=0;
+        unsigned int possct=0;
+        if ( p > 0 && radimage->GetPixel(ind) <= 0  )
+    {
+      for (unsigned int i = 0; i < GHood.Size(); i++)
+        {
+          ind2=GHood.GetIndex(i);
+          float dist=sqrt(((float)ind2[0]-(float)ind[0])*((float)ind2[0]-(float)ind[0])+
+              ((float)ind2[1]-(float)ind[1])*((float)ind2[1]-(float)ind[1])+
+              ((float)ind2[2]-(float)ind[2])*((float)ind2[2]-(float)ind[2]));
+          if ( GHood.GetPixel(i) == p && dist <= tardist)
+      {
+        goodct++;
+        possct++;
+      }
+          else if ( dist <= tardist ) possct++;
+          //		  std::cout << " Ind " <<  ind << " : " <<  bestrad << " tardist " << tardist << " gct " << goodct <<" pos " << possct << " dist " << dist << " ind2 " << ind2 << std::endl;
+        }
+      if (goodct==possct)
+        {
+          bestrad=dorad; radimage->SetPixel(ind,bestrad*(-1.0));
+        }
+      else { okfit=false; radimage->SetPixel(ind,radimage->GetPixel(ind)*(-1.0)); }
+    }
+        dorad=dorad+1;
+      }
+    if (bestrad >= globalbestrad)
+      {
+        globalbestrad=bestrad;
+        bestind=ind;
+      }
+
+    if (npx % 10000 == 0)
+      {
+        std::cout <<" prog " << (float)npx/(float)numpx << std::endl;
+        //	      WriteImage<ImageType>(radimage,outname.c_str());
+        //	      WriteImage<ImageType>(radimage2,(std::string("Sphere")+outname).c_str());
+        //WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
+      }
+  }
+
+    }
+
+
+  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+    {
+      float val=iter.Get();
+      typename ImageType::IndexType ind=iter.GetIndex();
+      if (val > 0)
+  {
+    unsigned int dorad=(unsigned int)fabs(radimage->GetPixel(ind));
+    typedef itk::NeighborhoodIterator<ImageType>  iteratorType;
+    typename iteratorType::RadiusType rad;
+    for (unsigned int j=0; j<ImageDimension; j++) rad[j]= dorad;
+    float tardist=(dorad*sqrt(2));
+    float diameter=2.0*(float)dorad*sqrt(2);
+    iteratorType GHood(rad, image1,image1->GetLargestPossibleRegion());
+    GHood.SetLocation(ind);
+    typename ImageType::PixelType p = GHood.GetCenterPixel();
+    for (unsigned int i = 0; i < GHood.Size(); i++)
+      {
+        ind2=GHood.GetIndex(i);
+        float dist=sqrt(((float)ind2[0]-(float)ind[0])*((float)ind2[0]-(float)ind[0])+
+            ((float)ind2[1]-(float)ind[1])*((float)ind2[1]-(float)ind[1])+
+            ((float)ind2[2]-(float)ind[2])*((float)ind2[2]-(float)ind[2]));
+        if ( GHood.GetPixel(i) == p && dist <= tardist && diameter > priorimage->GetPixel(ind2))
+    {
+      priorimage->SetPixel(ind2,diameter);
+    }
+      }
+  }
+    }
+
+
+
+
+  // now, make rad image
+  std::cout << " Best " << bestind << " gbr " << globalbestrad << std::endl;
+  typedef itk::NeighborhoodIterator<ImageType>  iteratorType;
+  typename iteratorType::RadiusType rad;
+  for (unsigned int j=0; j<ImageDimension; j++) rad[j]= (long unsigned int)globalbestrad;
+  iteratorType GHood(rad, image1,image1->GetLargestPossibleRegion());
+  GHood.SetLocation(bestind);
+  typename ImageType::PixelType p = GHood.GetCenterPixel();
+  for (unsigned int i = 0; i < GHood.Size(); i++)
+    {
+      ind2=GHood.GetIndex(i);
+      float dist=0;
+      dist+=sqrt((float)(ind2[0]-(float)bestind[0])*(float)(ind2[0]-(float)bestind[0])+
+     (float)(ind2[1]-(float)bestind[1])*(float)(ind2[1]-(float)bestind[1])+
+     (float)(ind2[2]-(float)bestind[2])*(float)(ind2[2]-(float)bestind[2]));
+      if ( dist <= (globalbestrad*sqrt(2)))
+  {
+    radimage2->SetPixel(ind2,p);
+  }
+    }
+
+
+  //  WriteImage<ImageType>(radimage,outname.c_str());
+  WriteImage<ImageType>(radimage2,outname.c_str());
+  //WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
   return 0;
+  */
 }
 
 template <unsigned int ImageDimension>
@@ -5548,8 +5547,19 @@ int ROIStatistics(      int argc, char *argv[])
   cortroimap[30] = std::string("R. Inf. Parietal Lobe");
   cortroimap[31] = std::string("L. Postcentral Gyrus");
   cortroimap[32] = std::string("R. Postcentral Gyrus");
-  cortroimap[33] = std::string("L. Precuneus");
-  cortroimap[34] = std::string("R. Precuneus");
+  cortroimap[33] = std::string("L. Hipp. Head");
+  cortroimap[34] = std::string("R. Hipp Head");
+  cortroimap[35] = std::string("L. Hipp Midbody");
+  cortroimap[36] = std::string("R. Hipp Midbody");
+  cortroimap[37] = std::string("L. Hipp Tail");
+  cortroimap[38] = std::string("R. Hipp Tail");
+  cortroimap[39] = std::string("L. Caudate");
+  cortroimap[40] = std::string("R. Caudate");
+  cortroimap[41] = std::string("L. Putamen");
+  cortroimap[42] = std::string("R. Putamen");
+  cortroimap[43] = std::string("L. Thalamus");
+  cortroimap[44] = std::string("R. Thalamus");
+  cortroimap[45] = std::string("White Matter");
 
   std::map<unsigned int, std::string> wmroimap;
   wmroimap[1] = std::string("R. corticospinal Tract");
@@ -5577,13 +5587,43 @@ int ROIStatistics(      int argc, char *argv[])
     {
     fn2 = std::string(argv[argct]);   argct++;
     }
+  std::string fn3 = "";
+  if(  argc > argct )
+    {
+    fn3 = std::string(argv[argct]);   argct++;
+    }
+  std::string fn4 = "";
+  if(  argc > argct )
+    {
+    fn4 = std::string(argv[argct]);   argct++;
+    }
+  std::string fn5 = "";
+  if(  argc > argct )
+    {
+    fn5 = std::string(argv[argct]);   argct++;
+    }
 
   typename ImageType::Pointer image = NULL;
   typename ImageType::Pointer valimage = NULL;
+  typename ImageType::Pointer valimage3 = NULL;
+  typename ImageType::Pointer valimage4 = NULL;
+  typename ImageType::Pointer valimage5 = NULL;
   ReadImage<ImageType>(image, fn1.c_str() );
   if( fn2.length() > 3 )
     {
     ReadImage<ImageType>(valimage, fn2.c_str() );
+    }
+  if( fn3.length() > 3 )
+    {
+    ReadImage<ImageType>(valimage3, fn3.c_str() );
+    }
+  if( fn4.length() > 3 )
+    {
+    ReadImage<ImageType>(valimage4, fn4.c_str() );
+    }
+  if( fn5.length() > 3 )
+    {
+    ReadImage<ImageType>(valimage5, fn5.c_str() );
     }
 
   typedef float                  PixelType;
@@ -5618,6 +5658,9 @@ int ROIStatistics(      int argc, char *argv[])
     }
 
   vnl_vector<double> pvals(maxlab + 1, 1.0);
+  vnl_vector<double> pvals3(maxlab + 1, 1.0);
+  vnl_vector<double> pvals4(maxlab + 1, 1.0);
+  vnl_vector<double> pvals5(maxlab + 1, 1.0);
   vnl_vector<double> clusters(maxlab + 1, 0.0);
 
   std::ofstream logfile;
@@ -5658,6 +5701,9 @@ int ROIStatistics(      int argc, char *argv[])
     float totalmass = 0;
     float totalct = 0;
     float maxoneminuspval = 0.0;
+    float maxoneminuspval3 = 0.0;
+    float maxoneminuspval4 = 0.0;
+    float maxoneminuspval5 = 0.0;
     typename ImageType::PointType myCenterOfMass;
     myCenterOfMass.Fill(0);
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
@@ -5676,6 +5722,31 @@ int ROIStatistics(      int argc, char *argv[])
           {
           maxoneminuspval = vv;
           }
+        if( valimage3 )
+          {
+          vv = valimage3->GetPixel(It.GetIndex() );
+          if(  fabs(vv) > fabs(maxoneminuspval3) )
+            {
+            maxoneminuspval3 = vv;
+            }
+          }
+        if( valimage4 )
+          {
+          vv = valimage4->GetPixel(It.GetIndex() );
+          if(  vv > maxoneminuspval4 )
+            {
+            maxoneminuspval4 = vv;
+            }
+          }
+        if( valimage5 )
+          {
+          vv = valimage5->GetPixel(It.GetIndex() );
+          if(  vv > maxoneminuspval5 )
+            {
+            maxoneminuspval5 = vv;
+            }
+          }
+
         // compute center of mass
         typename ImageType::PointType point;
         image->TransformIndexToPhysicalPoint(It.GetIndex(), point);
@@ -5692,6 +5763,9 @@ int ROIStatistics(      int argc, char *argv[])
 
     clusters[(unsigned long)*it] = totalvolume;
     pvals[(unsigned long)*it] = 1.0 - maxoneminuspval;
+    pvals3[(unsigned long)*it] = maxoneminuspval3;
+    pvals4[(unsigned long)*it] = 1.0 - maxoneminuspval4;
+    pvals5[(unsigned long)*it] = 1.0 - maxoneminuspval5;
 // square image
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
     labelcount++;
@@ -5714,8 +5788,8 @@ int ROIStatistics(      int argc, char *argv[])
       }
     else if( cortroimap.find(roi) != cortroimap.end() && !iswm )
       {
-      std::cout << cortroimap.find(roi)->second << " & " << clusters[roi] << " , "  << pvals[roi]
-                << "  & xy & yz  \\ " << std::endl;
+      std::cout << cortroimap.find(roi)->second << " & " << clusters[roi] << " , "  << pvals[roi] << "  & "
+                <<  pvals3[roi]  << " &  " << pvals4[roi]   << "   \\ " << std::endl;
       }
     //	else  std::cout << wmroimap.find(roi)->second << " &  - , -   & xy & yz  \\ " << std::endl;
     //          std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " <<
