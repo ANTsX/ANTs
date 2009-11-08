@@ -1294,7 +1294,8 @@ public:
          * the desired window will start at the user-specified origin and
          * end at the current iteration).
          */
-        if( this->m_CurrentIteration >= 3 )
+        unsigned int domtar = 10;
+        if( this->m_CurrentIteration > domtar )
           {
           typedef BSplineScatteredDataPointSetToImageFilter
           <EnergyProfileType, CurveType> BSplinerType;
@@ -1304,7 +1305,6 @@ public:
           typename CurveType::PointType origin;
           unsigned int domainorigin = 0;
           unsigned int domainsize = this->m_CurrentIteration - domainorigin;
-          unsigned int domtar = 10;
           if( this->m_CurrentIteration > domtar )
             {
             domainsize = domtar;  domainorigin = this->m_CurrentIteration - domainsize;
