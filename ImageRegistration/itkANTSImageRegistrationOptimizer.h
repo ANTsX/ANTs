@@ -1178,7 +1178,7 @@ public:
       ImagePointer fixedImage;
       ImagePointer movingImage;
       this->m_GradstepAltered = this->m_Gradstep;
-      this->m_ScaleFactor = pow( 2.0, static_cast<RealType>( this->m_NumberOfLevels - currentLevel - 1 ) );
+      this->m_ScaleFactor = pow( 2.0, (int)static_cast<RealType>( this->m_NumberOfLevels - currentLevel - 1 ) );
       std::cout << " this->m_ScaleFactor " << this->m_ScaleFactor
                 << " nlev " << this->m_NumberOfLevels << " curl " << currentLevel << std::endl;
       /** FIXME -- here we assume the metrics all have the same image */

@@ -92,7 +92,7 @@ int main(int argc, char *argv[] )
     {
     std::cout << " you passed image dimension (first argument) as " << dim
               << " ANTS does not function with images of this dimension " << std::endl;
-    argv[1] = "--help";
+    argv[1] = (char *)("--help");
     ANTSex<2>( argc, argv );
     exit(1);
     }
@@ -162,7 +162,7 @@ int main(int argc, char *argv[] )
       }
 
     unsigned int numberOfLevels = static_cast<unsigned int>(
-        vcl_log( maxSize / 32 ) / vcl_log( 2 ) ) + 1;
+        vcl_log( (double)maxSize / 32 ) / vcl_log( (double) 2 ) ) + 1;
     std::string iterations( " -i " );
     for( int n = numberOfLevels; n > 0; n-- )
       {
@@ -211,7 +211,7 @@ int main(int argc, char *argv[] )
       }
 
     unsigned int arg_count = 0;
-    char *       my_argv[my_argc];
+    char * *     my_argv = new char *[my_argc];
     delimPos = 0;
     tokenPos = 0;
     pos = 0;
