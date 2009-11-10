@@ -1,4 +1,4 @@
-#!/bin/sh
+# !/bin/sh
 
 NUMPARAMS=$#
 
@@ -15,7 +15,7 @@ echo " K = middle resolution iterations ( here, reduce by power of 2 ) "
 echo " L = fine resolution iterations ( here, full resolution ) -- this level takes much more time per iteration "
 echo " an extra  Ix before JxKxL would add another level "
 echo " Default ierations is  $MAXITERATIONS  -- you can often get away with fewer for many apps "
-echo " Other parameters are defaults used in the A. Klein evaluation paper in Neuroimage, 2009 "
+echo " Other parameters are updates of the defaults used in the A. Klein evaluation paper in Neuroimage, 2009 "
 exit
 fi
 
@@ -86,9 +86,9 @@ fi
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
-  REGULARIZATION=Gauss[2,0]
+  REGULARIZATION=Gauss[3,0]
   METRIC=PR[
-    METRICPARAMS=1,3]
+    METRICPARAMS=1,4]
 #echo " $METRICPARAMS  &  $METRIC "
 #exit
 
@@ -135,6 +135,7 @@ then
       ${ANTSPATH}WarpImageMultiTransform $DIM  $LABELIMAGE   ${OUTPUTNAME}labeled.nii -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii  -R ${MOVING}   --use-NN
 fi
 
+exit
 
 if [ $DoANTSQC -eq 1 ] ;  then
 #  measure image similarity
@@ -148,10 +149,10 @@ ${ANTSPATH}ThresholdImage $DIM $MOVING ${OUTPUTNAME}movthresh.nii.gz Otsu 4
 ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPUTNAME}fixthresh.nii.gz   ${OUTPUTNAME}movthresh.nii.gz   ${OUTPUTNAME}mindistsum.nii.gz
 #  labelstats for jacobian wrt segmenation
  # below, to compose
- ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii  -R $FIXED ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt
-${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii ${OUTPUTNAME}jacobian.nii  0
-${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}movlabstat.txt LabelStats ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}movthresh.nii.gz
-${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii
+# ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii  -R $FIXED ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt
+#${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii ${OUTPUTNAME}jacobian.nii  0
+#${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}movlabstat.txt LabelStats ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}movthresh.nii.gz
+#${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii
 # we compare the output of these last two lines:
 #  the Volume of the movlabstat computation vs. the mass of the jaclabstat
 fi
