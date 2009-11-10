@@ -1,4 +1,4 @@
-#!/bin/sh
+# !/bin/sh
 
 ANTSPATH="/Users/stnava/Code/bin/ants/"
 

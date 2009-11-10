@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 #$ -S /bin/bash
 
 dir=$1

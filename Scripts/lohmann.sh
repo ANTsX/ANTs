@@ -1,4 +1,4 @@
-#!/bin/sh
+# !/bin/sh
 
 NUMPARAMS=$#
 MAXITERATIONS=30x90x20

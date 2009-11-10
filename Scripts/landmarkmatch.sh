@@ -1,11 +1,11 @@
-#!/bin/sh
+# !/bin/sh
 if [ $# -lt 6  ]
 then
 echo " USAGE \n  sh $0  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii  ITERATIONS LandmarkWeight "
 exit
 fi
 
-ANTSPATH="/mnt/aibs1/avants/bin/ants/"
+#ANTSPATH="/mnt/aibs1/avants/bin/ants/"
 ITS=$5
 LMWT=$6
 INTWT=1

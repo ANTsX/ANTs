@@ -1,4 +1,4 @@
-#!/bin/sh
+# !/bin/sh
 
 NUMPARAMS=$#
 
@@ -92,7 +92,7 @@ fi
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
-  REGULARIZATION=Gauss[2,0]
+  REGULARIZATION=Gauss[3,0.]
   METRIC=PR[
     METRICPARAMS=1,2]
 #echo " $METRICPARAMS  &  $METRIC "
@@ -133,7 +133,7 @@ exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${
 
  echo " $exe "
 
-  $exe
+#  $exe
 
   #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
@@ -148,11 +148,11 @@ then
 fi
 
 
-      ${ANTSPATH}WarpImageMultiTransform $DIM  PCEtemplate_session2_brain_prob_0.nii.gz   prior0.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz  -R ${MOVING}
-      ${ANTSPATH}WarpImageMultiTransform $DIM  PCEtemplate_session2_brain_prob_1.nii.gz   prior1.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz  -R ${MOVING}
-      ${ANTSPATH}WarpImageMultiTransform $DIM  PCEtemplate_session2_brain_prob_2.nii.gz   prior2.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz  -R ${MOVING}
+#      ${ANTSPATH}WarpImageMultiTransform $DIM  PCEtemplate_session2_brain_prob_0.nii.gz   prior0.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz  -R ${MOVING}
+ #     ${ANTSPATH}WarpImageMultiTransform $DIM  PCEtemplate_session2_brain_prob_1.nii.gz   prior1.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz  -R ${MOVING}
+ #     ${ANTSPATH}WarpImageMultiTransform $DIM  PCEtemplate_session2_brain_prob_2.nii.gz   prior2.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz  -R ${MOVING}
 
-${ANTSPATH}ImageMath $DIM $BRN Segment $BRN 4 0 prior0.nii.gz prior1.nii.gz prior2.nii.gz
+#${ANTSPATH}ImageMath $DIM $BRN Segment $BRN 4 0.0 # prior0.nii.gz prior1.nii.gz prior2.nii.gz
 
 
 fi # dothis
@@ -174,7 +174,7 @@ ThresholdImage 3 $PGM $BGM 0.5 999
 ThresholdImage 3 $PCS $BCS 0.5 999
 
 #first, get the largest wm component
-ImageMath 3 ${OUTPUTNAME}temp.nii.gz ME $BWM 2
+ImageMath 3 ${OUTPUTNAME}temp.nii.gz ME $BWM 1
 ImageMath 3 ${OUTPUTNAME}temp.nii.gz GetLargestComponent ${OUTPUTNAME}temp.nii.gz
 # now extract the csf components and dilate them
 ThresholdImage 3 $PCS ${OUTPUTNAME}tempc.nii.gz 0.25 999
@@ -189,15 +189,15 @@ MultiplyImages 3 ${OUTPUTNAME}tempc.nii.gz $BMK ${OUTPUTNAME}tempc.nii.gz
 MultiplyImages 3 ${OUTPUTNAME}tempc.nii.gz ${OUTPUTNAME}tempc2.nii.gz ${OUTPUTNAME}tempc.nii.gz
 
 # allow the wm component to propagate through the non-csf mask
-ImageMath 3 ${OUTPUTNAME}temp2.nii.gz PropagateLabelsThroughMask ${OUTPUTNAME}tempc.nii.gz ${OUTPUTNAME}temp.nii.gz 500
-ImageMath 3 ${OUTPUTNAME}temp3.nii.gz ME ${OUTPUTNAME}temp2.nii.gz 1
+ImageMath 3 ${OUTPUTNAME}temp2.nii.gz PropagateLabelsThroughMask ${OUTPUTNAME}tempc.nii.gz ${OUTPUTNAME}temp.nii.gz 30
 # now get rid of big bits that are separate from the WM
+ImageMath 3 ${OUTPUTNAME}temp3.nii.gz ME ${OUTPUTNAME}temp2.nii.gz 1
  ImageMath 3 ${OUTPUTNAME}temp3.nii.gz GetLargestComponent ${OUTPUTNAME}temp3.nii.gz
 ImageMath 3 ${OUTPUTNAME}temp3.nii.gz MD ${OUTPUTNAME}temp3.nii.gz 1
 ImageMath 3 ${OUTPUTNAME}temp4.nii.gz - ${OUTPUTNAME}temp2.nii.gz ${OUTPUTNAME}temp3.nii.gz
-LabelClustersUniquely 3 ${OUTPUTNAME}temp4.nii.gz ${OUTPUTNAME}temp4.nii.gz 500
+LabelClustersUniquely 3 ${OUTPUTNAME}temp4.nii.gz ${OUTPUTNAME}temp4.nii.gz 250
 MeasureMinMaxMean 3 ${OUTPUTNAME}temp4.nii.gz
-ThresholdImage 3 ${OUTPUTNAME}temp4.nii.gz ${OUTPUTNAME}temp4.nii.gz 1 999
+ThresholdImage 3 ${OUTPUTNAME}temp4.nii.gz ${OUTPUTNAME}temp4.nii.gz 1 1000
 # above, the 2 largest components are taken away -- repropagate within remainder
 ImageMath 3  ${OUTPUTNAME}tempc.nii.gz - ${OUTPUTNAME}tempc.nii.gz ${OUTPUTNAME}temp4.nii.gz
 ImageMath 3 ${OUTPUTNAME}tempc.nii.gz abs ${OUTPUTNAME}tempc.nii.gz 1

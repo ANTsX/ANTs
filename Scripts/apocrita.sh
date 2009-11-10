@@ -1,4 +1,4 @@
-#!/bin/sh
+# !/bin/sh
 
 echo "sh $0 BrainIn=Image.nii PriorImage=Prior.nii PriorLocalWT=0 MRF=0.3  LOOPS=2 MASK=image.nii "
 if [ $# -lt 5 ]
