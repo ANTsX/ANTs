@@ -315,13 +315,14 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   JointPDFDerivativesRegionType jointPDFDerivativesRegion;
   JointPDFDerivativesIndexType  jointPDFDerivativesIndex;
   JointPDFDerivativesSizeType   jointPDFDerivativesSize;
-
   // For the joint PDF define a region starting from {0,0}
   // with size {m_NumberOfHistogramBins, m_NumberOfHistogramBins}.
   // The dimension represents fixed image parzen window index
   // and moving image parzen window index, respectively.
   jointPDFIndex.Fill( 0 );
+  jointPDFDerivativesIndex.Fill( 0 );
   jointPDFSize.Fill( m_NumberOfHistogramBins );
+  jointPDFDerivativesSize.Fill(m_NumberOfHistogramBins );
 
   jointPDFRegion.SetIndex( jointPDFIndex );
   jointPDFRegion.SetSize( jointPDFSize );

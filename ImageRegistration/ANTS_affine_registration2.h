@@ -519,7 +519,7 @@ void InjectInitialPara(PointType & center, VectorType & translation_vec, Transfo
   typedef typename TransformPointerType::ObjectType::ParametersType ParaType;
   ParaType para0(TransformPointerType::ObjectType::ParametersDimension);
 
-  switch( PointType::PointDimension )
+  switch( (unsigned int) PointType::PointDimension )
     {
     case 2:
       para0[0] = 0;                  // para1[0]; // theta
