@@ -150,9 +150,9 @@ ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPUT
 #  labelstats for jacobian wrt segmenation
  # below, to compose
 # ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii  -R $FIXED ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt
-#${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii ${OUTPUTNAME}jacobian.nii  0
-#${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}movlabstat.txt LabelStats ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}movthresh.nii.gz
-#${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii
+# ${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii ${OUTPUTNAME}jacobian.nii  0
+# ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}movlabstat.txt LabelStats ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}movthresh.nii.gz
+# ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii
 # we compare the output of these last two lines:
 #  the Volume of the movlabstat computation vs. the mass of the jaclabstat
 fi
