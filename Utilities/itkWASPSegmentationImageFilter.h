@@ -24,6 +24,9 @@
 #include "itkFixedArray.h"
 #include "itkPointSet.h"
 #include "itkVector.h"
+#include "itkBinaryThresholdImageFilter.h"
+#include "itkConnectedComponentImageFilter.h"
+#include "itkRelabelComponentImageFilter.h"
 
 #include <vector>
 
@@ -104,7 +107,7 @@ public:
   BSplineFilterType::PointDataImageType             ControlPointLatticeType;
 
   enum InitializationStrategyType
-        { KMeans, Otsu, PriorProbabilityImages, PriorLabelImage };
+            { KMeans, Otsu, PriorProbabilityImages, PriorLabelImage };
 
   /** ivars Set/Get functionality */
 
@@ -216,6 +219,136 @@ private:
   void GenerateInitialClassLabelingWithKMeansClustering();
 
   void GenerateInitialClassLabelingWithPriorProbabilityImages();
+
+  typename RealImageType::Pointer GetLargestComponent(  typename RealImageType::Pointer image1 )
+  {
+    typedef float                                        PixelType;
+    typedef itk::Vector<float, ImageDimension>           VectorType;
+    typedef itk::Image<VectorType, ImageDimension>       FieldType;
+    typedef itk::Image<PixelType, ImageDimension>        ImageType;
+    typedef typename ImageType::IndexType                IndexType;
+    typedef typename ImageType::SizeType                 SizeType;
+    typedef typename ImageType::SpacingType              SpacingType;
+    typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+    unsigned long smallest = 50;
+    typename ImageType::SpacingType spacing = image1->GetSpacing();
+    float volumeelement = 1.0;
+    for( unsigned int i = 0;  i < spacing.Size(); i++ )
+      {
+      volumeelement *= spacing[i];
+      }
+
+    typedef float InternalPixelType;
+    //  typedef unsigned long PixelType;
+    //  typedef Image<PixelType,ImageDimension>  labelimagetype;
+    typedef itk::Image<unsigned long, ImageDimension>                          labelimagetype;
+    typedef RealImageType                                                      InternalImageType;
+    typedef RealImageType                                                      OutputImageType;
+    typedef itk::BinaryThresholdImageFilter<InternalImageType, labelimagetype> ThresholdFilterType;
+    typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype> FilterType;
+    typedef itk::RelabelComponentImageFilter<labelimagetype, ImageType>        RelabelType;
+
+    typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
+    typename FilterType::Pointer filter = FilterType::New();
+    typename RelabelType::Pointer relabel = RelabelType::New();
+
+    //  InternalPixelType threshold_low, threshold_hi;
+
+    threshold->SetInput(image1);
+    threshold->SetInsideValue(1);
+    threshold->SetOutsideValue(0);
+    threshold->SetLowerThreshold(0.25);
+    threshold->SetUpperThreshold(1.e9);
+    threshold->Update();
+
+    filter->SetInput(threshold->GetOutput() );
+    filter->SetFullyConnected( 0 );
+    filter->Update();
+    relabel->SetInput( filter->GetOutput() );
+    relabel->SetMinimumObjectSize( smallest );
+    //    relabel->SetUseHistograms(true);
+
+    try
+      {
+      relabel->Update();
+      }
+    catch( itk::ExceptionObject & excep )
+      {
+      std::cerr << "Relabel: exception caught !" << std::endl;
+      std::cerr << excep << std::endl;
+      }
+
+    //  WriteImage<ImageType>(relabel->GetOutput(),outname.c_str());
+    //  return 0;
+    typename ImageType::Pointer Clusters = relabel->GetOutput();
+    // typename ImageType::Pointer Clusters=relabel->GetOutput();
+    typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+    Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
+
+    float maximum = relabel->GetNumberOfObjects();
+    std::cout << " #ob " << maximum << std::endl;
+    float                     maxtstat = 0;
+    std::vector<unsigned int> histogram( (int)maximum + 1);
+    std::vector<float>        clustersum( (int)maximum + 1);
+    for( int i = 0; i <= maximum; i++ )
+      {
+      histogram[i] = 0;
+      clustersum[i] = 0;
+      }
+    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      {
+      if( vfIter.Get() > 0 )
+        {
+        float vox = image1->GetPixel(vfIter.GetIndex() );
+        histogram[(unsigned int)vfIter.Get()] = histogram[(unsigned int)vfIter.Get()] + 1;
+        clustersum[(unsigned int)vfIter.Get()] += vox;
+        if( vox > maxtstat )
+          {
+          maxtstat = vox;
+          }
+        }
+      }
+    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      {
+      if( vfIter.Get() > 0 )
+        {
+        Clusters->SetPixel( vfIter.GetIndex(), histogram[(unsigned int)vfIter.Get()]  );
+        //  if ( Clusters->GetPixel( vfIter.GetIndex() ) > maximgval )
+        //    maximgval=Clusters->GetPixel( vfIter.GetIndex());
+        }
+      else
+        {
+        Clusters->SetPixel(vfIter.GetIndex(), 0);
+        }
+      }
+
+    float maximgval = 0;
+    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      {
+      if( Clusters->GetPixel( vfIter.GetIndex() ) > maximgval )
+        {
+        maximgval = Clusters->GetPixel( vfIter.GetIndex() );
+        }
+      }
+
+    std::cout << " max float size "
+              <<  (maximgval
+         * volumeelement) << " long-size: " << (unsigned long) (maximgval * volumeelement)  << std::endl;
+    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      {
+      if( Clusters->GetPixel( vfIter.GetIndex() ) >= maximgval )
+        {
+        image1->SetPixel( vfIter.GetIndex(), 1);
+        }
+      else
+        {
+        image1->SetPixel( vfIter.GetIndex(), 0);
+        }
+      }
+
+    return image1;
+  }
 
 //  void SpatiallySmoothClassLabelingWithMRF();
 
