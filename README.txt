@@ -1,9 +1,29 @@
-Release 1.0
+Release 1.5
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
+Introduction -- ANTS is mostly a tool for computing smooth warps or mappings between
+images.  It reads any image type that can be read by ITK, that is, jpg, tiff, hdr,
+nii,  nii.gz and probably more image types as well.   For the most part, ANTS will
+output float images which you can convert to JPG or Byte with the ANTS ConvertToJpg
+or ImageMath tools.  ImageMath has a bunch of basic utilities such as multiplication,
+inversion and many more advanced tools such as computation of the Lipschitz norm
+of a deformation field.   ANTS programs may be called from the command line on
+almost any platform .... you can compile the code yourself or use the precompiled
+binaries for Windows (Vista), OSX (Darwin) or linux (32 bit or 64 bit).  Download
+the binaries that are correct for you.   If you are a naive user (not from a medical
+imaging background) then you might still find the tools here useful.   Many of the
+operations available, for instance, in PhotoShop are available in ANTS and many
+more are available as well.   For instance, ANTS tools may be useful in face
+mapping / morphing and also in generating animations from two different images,
+for instance, interpolating between frames in a movie.  But, mainly, ANTS is useful
+for brain mapping, segmentation, measuring cortical thickness and in generating
+automated or semi-automated labeling of three-dimensional imagery (e.g. labeling
+hippocampus or cortical regions or lobes of the lung).  Many prior-based
+segmentation possibilities are available in the Apocrita tool.
 
 # directory guide:
+Documentation -- pdf / tex describing ANTS
 Examples    -- the executable programs and test data in Examples/Data
 Scripts -- user-friendly scripts for template building and running studies
 Utilities --- basic utilities
@@ -57,6 +77,12 @@ ANTS 3 -m PR[tp22_s1.nii,template.nii.gz,1,4] -i 50x20x10 -o tp22map   -t SyN[0.
 # warp the tp22 to template image
 
 WarpImageMultiTransform 3 tp22_s1.nii tp22totemplate.nii  -R template.nii.gz -i  tp22mapAffine.txt tp22mapInverseWarp.nii
+
+# warp the template image to tp22 -- note reversal of order from above
+
+WarpImageMultiTransform 3 template.nii.gz templatetotp22.nii  -R tp22_s1.nii   tp22mapWarp.nii tp22mapAffine.txt
+
+# or call ants.sh for a standard approach.
 
 #
 #  use CreateJacobianDeterminantImage to get log-Jacobian (volumetric change) images
