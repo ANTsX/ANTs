@@ -3,6 +3,7 @@ NUMPARAM=$#
 if [ $NUMPARAM -lt 2 ] ; then
 echo " Usage "
 echo " $0  OUTNameAffine.txt   *Affine.txt "
+echo " assumes close to idetity affine transforms "
 exit
 fi
 OUTNM=$1
