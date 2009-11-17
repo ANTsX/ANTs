@@ -133,7 +133,24 @@ if [ $DIM -gt 2  ]
 then
      ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpzvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpzvec.nii
 fi
-    ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE} ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
+
+   AAFFSCRIPT=${ANTSPATH}ANTSAverage2DAffine.sh
+   if [[ $DIM -gt 2 ]] ; then  AAFFSCRIPT=${ANTSPATH}ANTSAverage3DAffine.sh ; fi
+   if [[ -s $AAFFSCRIPT  ]] ; then
+     rm -f ${TEMPLATENAME}Affine.txt
+     sh $AAFFSCRIPT ${TEMPLATENAME}Affine.txt ${OUTPUTNAME}*Affine.txt
+     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpxvec.nii   ${TEMPLATENAME}warpxvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
+     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpyvec.nii   ${TEMPLATENAME}warpyvec.nii    -i  ${TEMPLATENAME}Affine.txt     -R ${TEMPLATE}
+     if [ $DIM -gt 2  ] ; then
+       ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpzvec.nii  ${TEMPLATENAME}warpzvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
+     fi
+     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE} -i   ${TEMPLATENAME}Affine.txt ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
+   else
+     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE}  ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
+   fi
+
+
+
     ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii  ${TEMPLATENAME}warpxlog.txt  1
     ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii  ${TEMPLATENAME}warpylog.txt  1
 if [ $DIM -gt 2  ]

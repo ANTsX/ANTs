@@ -45,21 +45,10 @@ export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 QSUBOPTS="" # EDIT THIS
 
 
-
-
 # Mapping Parameters
-  TRANSFORMATION=SyN[0.25]  # EDIT THIS
   MAXITERATIONS=30x100x20  # EDIT THIS
-
-  ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
-  NUMLEVELS=${#ITERATLEVEL[@]}
-  echo $NUMLEVELS
-  REGULARIZATION=Gauss[3,0] # EDIT THIS
-#SEE ALSO!!! -- METRIC variable Below!!!
   TEMPLATENAME=${OUTPUTNAME}template
   TEMPLATE=${TEMPLATENAME}.nii
-  METRIC=PR[${TEMPLATE} # EDIT THIS
-  METRICPARAMS=1,4]
 
   # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
   GRADIENTSTEP="-0.25"
@@ -81,28 +70,22 @@ fi
 
 echo  " ANTSPATH  $ANTSPATH "
 echo " Mapping Parameters  :: "
-echo  " Transformation is:  $TRANSFORMATION "
 echo " MaxIterations :   $MAXITERATIONS "
-echo " Number Of MultiResolution Levels   $NUMLEVELS "
-echo " Regularization :  $REGULARIZATION "
-echo " Metric :  ${METRIC},File,${METRICPARAMS} "
 echo " OutputName :  $OUTPUTNAME "
 echo " template  $TEMPLATE "
 echo " Template Update Steps $ITERATIONLIMIT "
 echo " Template population :   $IMAGESETVARIABLE "
 echo " "
 echo " if the files and parameters are all ok then uncomment the exit call below this line  "
+echo " ants.sh sets up the per-subject registration parameters -- edit it to change defaults . "
 echo " "
 #exit
-
-
-
-#${ANTSPATH}AverageImages $DIM ${TEMPLATE} 0 $IMAGESETVARIABLE
-#ConvertToJpg template.nii template0.jpg
 
 \rm metriclog.txt ${TEMPLATENAME}warpxlog.txt  ${TEMPLATENAME}warpylog.txt   ${TEMPLATENAME}warpzlog.txt
 
 # begin loop
+  ITERATLEVEL=(` echo $MAXITERATIONS | tr 'x' ' ' `)
+  NUMLEVELS=${#ITERATLEVEL[@]}
 i=0
 
 while [  $i -lt ${ITERATIONLIMIT} ]
@@ -132,8 +115,7 @@ count=100
 
   if [  $i -eq 1 ]
   then
-    for (( n = 0 ; n < ${NUMLEVELS}; n++ ))
-   do
+  for (( n = 0; n<${NUMLEVELS}; n++ )); do
     val=0;
     if [ $n  -eq  0  ]
     then
@@ -151,15 +133,12 @@ count=100
     fi
    done
   fi
-
   if [  $i -gt 1 ]
   then
     ITERATIONS=$MAXITERATIONS
   fi
     echo ITERATIONS $ITERATIONS
-
-  LOCALMETRIC=${METRIC},$x,${METRICPARAMS}
-
+echo $NUMLEVELS
 
 count=0
 ANTSSCRIPTNAME=${ANTSPATH}ants.sh
@@ -229,12 +208,10 @@ ${ANTSPATH}AverageImages $DIM ${TEMPLATE} 1 ${OUTPUTNAME}*formed.nii
 # below, a cheap approach to integrating the negative velocity field
 # in the absence of other code and saving the velocity fields.
 # additionally, this works for all types of registration algorithms
-
 LESSLIMIT=$((${ITERATIONLIMIT} - 1))
 if [  $i  -lt  ${LESSLIMIT} ]
  then
    rm -f  ${OUTPUTNAME}*InverseWarp*vec.nii
-
      ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpxvec.nii 0 ${OUTPUTNAME}*Warpxvec.nii
      ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpyvec.nii 0 ${OUTPUTNAME}*Warpyvec.nii
 if [ $DIM -gt 2  ]
@@ -243,11 +220,25 @@ then
 fi
      ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpxvec.nii $GRADIENTSTEP ${TEMPLATENAME}warpxvec.nii
      ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpyvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpyvec.nii
-if [ $DIM -gt 2  ]
-then
+if [ $DIM -gt 2  ] ; then
      ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpzvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpzvec.nii
 fi
-    ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE} ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
+
+   AAFFSCRIPT=${ANTSPATH}ANTSAverage2DAffine.sh
+   if [[ $DIM -gt 2 ]] ; then  AAFFSCRIPT=${ANTSPATH}ANTSAverage3DAffine.sh ; fi
+   if [[ -s $AAFFSCRIPT  ]] ; then
+     rm -f ${TEMPLATENAME}Affine.txt
+     sh $AAFFSCRIPT ${TEMPLATENAME}Affine.txt ${OUTPUTNAME}*Affine.txt
+     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpxvec.nii   ${TEMPLATENAME}warpxvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
+     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpyvec.nii   ${TEMPLATENAME}warpyvec.nii    -i  ${TEMPLATENAME}Affine.txt     -R ${TEMPLATE}
+     if [ $DIM -gt 2  ] ; then
+       ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpzvec.nii  ${TEMPLATENAME}warpzvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
+     fi
+     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE} -i   ${TEMPLATENAME}Affine.txt ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
+   else
+     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE}  ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
+   fi
+
 if [ $DIM -lt 3  ]
 then
     ${ANTSPATH}ConvertToJpg ${TEMPLATE} ${TEMPLATENAME}$i.jpg
