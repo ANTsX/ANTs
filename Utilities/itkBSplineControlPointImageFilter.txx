@@ -318,9 +318,9 @@ template <class TInputPointImage, class TOutputImage>
 typename BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
 ::ControlPointLatticeType::Pointer
 BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
-::RefineControlLattice( ArrayType NumberOfLevels )
+::RefineControlPointLattice( ArrayType numberOfLevels )
 {
-  this->SetNumberOfLevels( NumberOfLevels );
+  this->SetNumberOfLevels( numberOfLevels );
 
   typedef ImageDuplicator<ControlPointLatticeType> ImageDuplicatorType;
   typename ImageDuplicatorType::Pointer Duplicator = ImageDuplicatorType::New();

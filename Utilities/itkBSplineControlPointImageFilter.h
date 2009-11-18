@@ -323,7 +323,8 @@ public:
    * Generate a refined control point lattice from the input control point
    * lattice such that the resolution is doubled for each level.
    */
-  typename ControlPointLatticeType::Pointer RefineControlLattice( ArrayType );
+  typename ControlPointLatticeType::Pointer
+  RefineControlPointLattice( ArrayType );
 protected:
   BSplineControlPointImageFilter();
   virtual ~BSplineControlPointImageFilter();
