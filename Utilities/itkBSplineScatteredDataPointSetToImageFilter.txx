@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkBSplineScatteredDataPointSetToImageFilter.txx,v $
   Language:  C++
-  Date:      $Date: 2009-04-20 17:34:43 $
-  Version:   $Revision: 1.17 $
+  Date:      $Date: 2009-10-02 12:36:37 $
+  Version:   $Revision: 1.20 $
 
   Copyright (c) Insight Software Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -291,11 +291,11 @@ BSplineScatteredDataPointSetToImageFilter<TInputPointSet, TOutputImage>
    * Set up multithread processing to handle generating the
    * control point lattice.
    */
-  typename ImageSource<TOutputImage>::ThreadStruct str;
-  str.Filter = this;
+  typename ImageSource<TOutputImage>::ThreadStruct str1;
+  str1.Filter = this;
 
   this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
-  this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str );
+  this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str1 );
 
   /**
    * Multithread the generation of the control point lattice.
@@ -374,11 +374,11 @@ BSplineScatteredDataPointSetToImageFilter<TInputPointSet, TOutputImage>
      * Set up multithread processing to handle generating the
      * control point lattice.
      */
-    typename ImageSource<TOutputImage>::ThreadStruct str;
-    str.Filter = this;
+    typename ImageSource<TOutputImage>::ThreadStruct str2;
+    str2.Filter = this;
 
     this->GetMultiThreader()->SetNumberOfThreads( this->GetNumberOfThreads() );
-    this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str );
+    this->GetMultiThreader()->SetSingleMethod( this->ThreaderCallback, &str2 );
 
     /**
      * Multithread the generation of the control point lattice.
@@ -430,7 +430,7 @@ BSplineScatteredDataPointSetToImageFilter<TInputPointSet, TOutputImage>
 template <class TInputPointSet, class TOutputImage>
 void
 BSplineScatteredDataPointSetToImageFilter<TInputPointSet, TOutputImage>
-::ThreadedGenerateData( const RegionType & region, int threadId )
+::ThreadedGenerateData( const RegionType & itkNotUsed(region), int threadId )
 {
   /**
    * Ignore the output region as we're only interested in dividing the
