@@ -54,8 +54,8 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   this->m_SplineOrder = 3;
   this->m_NumberOfFittingLevels.Fill( 4 );
   this->m_NumberOfControlPoints.Fill( 4 );
-  this->m_SigmoidNormalizedAlpha = NumericTraits<RealType>::max();
-  this->m_SigmoidNormalizedBeta = 0.0;
+  this->m_SigmoidNormalizedAlpha = 0.0;
+  this->m_SigmoidNormalizedBeta = 0.5;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
