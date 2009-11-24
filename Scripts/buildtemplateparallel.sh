@@ -65,7 +65,7 @@ IMAGESETVARIABLE=$*
 
 if [ ! -s $TEMPLATE ] ; then
 echo " No initial template exists. Creating population average image"
- ${ANTSPATH}AverageImages $DIM $TEMPLATE  $IMAGESETVARIABLE
+ ${ANTSPATH}AverageImages $DIM $TEMPLATE 1  $IMAGESETVARIABLE
 fi
 
 echo  " ANTSPATH  $ANTSPATH "
