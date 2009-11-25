@@ -46,9 +46,9 @@ QSUBOPTS="" # EDIT THIS
 
 
 # Mapping Parameters
-  MAXITERATIONS=30x100x20  # EDIT THIS
+  MAXITERATIONS=30x90x20  # EDIT THIS
   TEMPLATENAME=${OUTPUTNAME}template
-  TEMPLATE=${TEMPLATENAME}.nii
+  TEMPLATE=${TEMPLATENAME}.nii.gz
 
   # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
   GRADIENTSTEP="0.25"
@@ -143,15 +143,15 @@ echo $NUMLEVELS
 count=0
 ANTSSCRIPTNAME=${ANTSPATH}ants.sh
 ANTSAFFSCRIPTNAME=${ANTSPATH}antsaffine.sh
-if [ -f $ANTSSCRIPTNAME  ]
-    then
-    echo " FILE $ANTSSCRIPTNAME OK ! "
-       else
-       echo " FILE $ANTSSCRIPTNAME DOES NOT EXIST !!! "
+SHAPESCRIPT=${ANTSPATH}shapeupdatetotemplate.sh
+for FLE in $ANTSSCRIPTNAME  $SHAPESCRIPT ; do
+if [ ! -f $FLE  ] ; then
+       echo " FILE $FLE DOES NOT EXIST !!! "
        echo " copy the file to this directory & repeat "
        echo " Available in ANTS/Scripts directory "
        exit
 fi
+done
 
 # Job IDs of jobs submitted to queue in loop below
 jobIDs=""
@@ -201,21 +201,16 @@ fi
 
 echo " finished $i " >> ${TEMPLATENAME}metriclog.txt
 
-sh ${ANTSPATH}shapeupdatetotemplate.sh $DIM $OUTPUTNAME $GRADIENTSTEP $IMAGESETVARIABLE
+sh $SHAPESCRIPT $DIM $OUTPUTNAME $GRADIENTSTEP $IMAGESETVARIABLE
 # NIREP2  0.5 na*x.nii
 
-
-if [ $DIM -lt 3  ]
-then
-    ${ANTSPATH}ConvertToJpg ${TEMPLATE} ${TEMPLATENAME}$i.jpg
-fi
-    ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii  ${TEMPLATENAME}warpxlog.txt  1
-    ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii  ${TEMPLATENAME}warpylog.txt  1
+${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii  ${TEMPLATENAME}warpxlog.txt  1
+${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii  ${TEMPLATENAME}warpylog.txt  1
 if [ $DIM -gt 2  ]
 then
-    ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpzvec.nii  ${TEMPLATENAME}warpylog.txt  1
+    ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpzvec.nii  ${TEMPLATENAME}warpzlog.txt  1
 fi
-fi
+
 i=$((i + 1))
 
 done
