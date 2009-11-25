@@ -45,7 +45,7 @@ export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 QSUBOPTS="" # EDIT THIS
 
   TEMPLATENAME=${OUTPUTNAME}template
-  TEMPLATE=${TEMPLATENAME}.nii
+  TEMPLATE=${TEMPLATENAME}.nii.gz
   # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
   GRADIENTSTEP=-${3}
 
