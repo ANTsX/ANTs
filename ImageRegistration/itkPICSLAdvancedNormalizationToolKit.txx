@@ -195,7 +195,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       affine_opt.MI_bins = mi_option[0];
       affine_opt.MI_samples = mi_option[1];
       temp = this->m_Parser->GetOption( "rigid-affine" )->GetValue();
-      affine_opt.is_rigid = (temp == "true");
+      std::string temp2 = this->m_Parser->GetOption( "do-rigid" )->GetValue();
+      affine_opt.is_rigid = ( (temp == "true")  || (temp2 == "true")  );
       temp = this->m_Parser->GetOption( "affine-gradient-descent-option" )->GetValue();
       std::vector<double> gradient_option = this->m_Parser->template ConvertVector<double>(temp);
       affine_opt.maximum_step_length = gradient_option[0];
@@ -1132,7 +1133,16 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     {
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "rigid-affine" );
-    option->SetDescription( "use rigid affine: true / false(default)" );
+    option->SetDescription( "use rigid transformation : true / false(default)" );
+    std::string nitdefault = std::string("false");
+    option->AddValue(nitdefault);
+    this->m_Parser->AddOption( option );
+    }
+  if( true )
+    {
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "do-rigid" );
+    option->SetDescription( "use rigid transformation : true / false(default)" );
     std::string nitdefault = std::string("false");
     option->AddValue(nitdefault);
     this->m_Parser->AddOption( option );
