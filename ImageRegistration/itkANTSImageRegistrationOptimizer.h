@@ -1294,7 +1294,7 @@ public:
          * the desired window will start at the user-specified origin and
          * end at the current iteration).
          */
-        unsigned int domtar = 6;
+        unsigned int domtar = 12;
         if( this->m_CurrentIteration > domtar )
           {
           typedef BSplineScatteredDataPointSetToImageFilter
