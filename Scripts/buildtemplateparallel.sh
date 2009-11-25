@@ -51,14 +51,14 @@ QSUBOPTS="" # EDIT THIS
   TEMPLATE=${TEMPLATENAME}.nii
 
   # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
-  GRADIENTSTEP="-0.25"
+  GRADIENTSTEP="0.25"
 
 ITERATIONLIMIT=$3
 
 shift 3
 
 # Optionally disable qsub for debugging purposes - runs jobs in series
-DOQSUB=0
+DOQSUB=1
 
 
 IMAGESETVARIABLE=$*
@@ -201,43 +201,9 @@ fi
 
 echo " finished $i " >> ${TEMPLATENAME}metriclog.txt
 
-${ANTSPATH}AverageImages $DIM ${TEMPLATE} 1 ${OUTPUTNAME}*formed.nii
-#sh sygnccavg.sh 0.1  $TEMPLATE
+sh ${ANTSPATH}shapeupdatetotemplate.sh $DIM $OUTPUTNAME $GRADIENTSTEP $IMAGESETVARIABLE
+# NIREP2  0.5 na*x.nii
 
-
-# below, a cheap approach to integrating the negative velocity field
-# in the absence of other code and saving the velocity fields.
-# additionally, this works for all types of registration algorithms
-LESSLIMIT=$((${ITERATIONLIMIT} - 1))
-if [  $i  -lt  ${LESSLIMIT} ]
- then
-   rm -f  ${OUTPUTNAME}*InverseWarp*vec.nii
-     ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpxvec.nii 0 ${OUTPUTNAME}*Warpxvec.nii
-     ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpyvec.nii 0 ${OUTPUTNAME}*Warpyvec.nii
-if [ $DIM -gt 2  ]
-then
-     ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpzvec.nii 0 ${OUTPUTNAME}*Warpzvec.nii
-fi
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpxvec.nii $GRADIENTSTEP ${TEMPLATENAME}warpxvec.nii
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpyvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpyvec.nii
-if [ $DIM -gt 2  ] ; then
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpzvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpzvec.nii
-fi
-
-   AAFFSCRIPT=${ANTSPATH}ANTSAverage2DAffine.sh
-   if [[ $DIM -gt 2 ]] ; then  AAFFSCRIPT=${ANTSPATH}ANTSAverage3DAffine.sh ; fi
-   if [[ -s $AAFFSCRIPT  ]] ; then
-     rm -f ${TEMPLATENAME}Affine.txt
-     sh $AAFFSCRIPT ${TEMPLATENAME}Affine.txt ${OUTPUTNAME}*Affine.txt
-     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpxvec.nii   ${TEMPLATENAME}warpxvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
-     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpyvec.nii   ${TEMPLATENAME}warpyvec.nii    -i  ${TEMPLATENAME}Affine.txt     -R ${TEMPLATE}
-     if [ $DIM -gt 2  ] ; then
-       ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpzvec.nii  ${TEMPLATENAME}warpzvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
-     fi
-     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE} -i   ${TEMPLATENAME}Affine.txt ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
-   else
-     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE}  ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
-   fi
 
 if [ $DIM -lt 3  ]
 then
