@@ -811,7 +811,7 @@ public:
     this->m_OutputNamingConvention = oOption->GetValue();
 
     typename ParserType::OptionType::Pointer thicknessOption
-      = this->m_Parser->GetOption( "compute-thickness" );
+      = this->m_Parser->GetOption( "large-deformation" );
     if( thicknessOption->GetValue() == "true" ||  thicknessOption->GetValue() == "1" )
       {
       this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
