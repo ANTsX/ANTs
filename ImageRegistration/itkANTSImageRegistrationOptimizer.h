@@ -1294,7 +1294,7 @@ public:
          * the desired window will start at the user-specified origin and
          * end at the current iteration).
          */
-        unsigned int domtar = 10;
+        unsigned int domtar = 6;
         if( this->m_CurrentIteration > domtar )
           {
           typedef BSplineScatteredDataPointSetToImageFilter
@@ -1356,11 +1356,11 @@ public:
           bspliner->Update();
 
           ProfilePointType endPoint;
-          //  endPoint[0] = static_cast<float>( this->m_CurrentIteration-1 );
-          endPoint[0] = 0.9 * static_cast<float>( this->m_CurrentIteration - 1 );
+          endPoint[0] = static_cast<float>( this->m_CurrentIteration - domainsize * 0.5 );
           typename BSplinerType::GradientType gradient;
+          gradient.Fill(0);
           bspliner->EvaluateGradientAtPoint( endPoint, gradient );
-          if(  gradient[0][0]  < 0.0001 && this->m_CurrentIteration > 9 )
+          if(  gradient[0][0]  < 0.0001 && this->m_CurrentIteration > domtar )
             {
             converged = true;
             }
