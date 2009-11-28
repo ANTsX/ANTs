@@ -764,11 +764,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       WriteImage<ImageType>(wfimage, outname.c_str() );
       }
 
-    std::string outname = localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() ) + std::string("temp.nii.gz");
-    WriteImage<ImageType>(wmimage, outname.c_str() );
-    std::string outname2 = localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() ) + std::string("temp2.nii.gz");
-    WriteImage<ImageType>(wfimage, outname2.c_str() );
-
 /** MV Loop END -- Would have to collect update fields then add them
 * together somehow -- Would also have to eliminate the similarity
 * metric loop within ComputeUpdateField */
@@ -1637,7 +1632,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
     DeformationFieldPointer updateField = this->ComputeUpdateField( diffmap, NULL, fpoints, wmpoints);
-    updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
+    //	updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
     float maxl = this->MeasureDeformation(updateField);
     if( maxl <= 0 )
       {
@@ -1651,7 +1646,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
     this->ComposeDiffs(updateField, totalField, totalField, 1);
     }
-  /*
+  /* below is the old approach ....
         if (!totalUpdateField)
         {
             if (this->m_Debug) std::cout <<" ALLO Tot Upd F " << std::endl;
