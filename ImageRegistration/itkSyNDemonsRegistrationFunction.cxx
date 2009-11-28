@@ -194,7 +194,10 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
   mgradient = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
   for( j = 0; j < ImageDimension; j++ )
     {
-    gradient[j] = gradient[j] + mgradient[j];
+    if( this->m_UseMovingImageGradient )
+      {
+      gradient[j] = gradient[j] + mgradient[j];
+      }
     gradientSquaredMagnitude += vnl_math_sqr( gradient[j] );
     }
 

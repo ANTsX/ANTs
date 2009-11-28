@@ -657,6 +657,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           typedef SyNDemonsRegistrationFunction
           <ImageType, ImageType, DeformationFieldType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
+          if( radius[0] > 0 )
+            {
+            metric->SetUseMovingImageGradient( true );
+            }
           metric->SetIntensityDifferenceThreshold( extraparam );
           metric->SetRobustnessParameter( extraparam );
           //        metric->SetRobust( true );
@@ -814,7 +818,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::string ccDescription( "CC/cross-correlation/CrossCorrelation" );
     std::string miDescription( "MI/mutual-information/MutualInformation" );
     std::string prDescription( "PR/probabilistic/Probabilistic" );
-    std::string msqDescription( "MSQ/mean-squares/MeanSquares" );
+    std::string msqDescription(
+      "MSQ/mean-squares/MeanSquares -- radius > 0 uses moving image gradient in metric deriv." );
     intensityBasedDescription += (
         newLineTabs + ccDescription + intensityBasedOptions
         + newLineTabs + miDescription + intensityBasedOptions
