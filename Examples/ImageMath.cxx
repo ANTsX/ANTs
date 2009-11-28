@@ -7237,6 +7237,10 @@ int main(int argc, char *argv[])
         {
         TensorFunctions<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "TensorColor") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "FillHoles") == 0 )
         {
         FillHoles<3>(argc, argv);
