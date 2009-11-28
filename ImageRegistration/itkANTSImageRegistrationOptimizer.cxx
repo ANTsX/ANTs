@@ -1616,23 +1616,23 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     diffmap->FillBuffer(zero);
     invdiffmap->FillBuffer(zero);
-    DeformationFieldPointer diffmap = this->IntegrateConstantVelocity(totalField, nts, 1);
+    DeformationFieldPointer diffmap = this->IntegrateConstantVelocity(totalField, nts, timestep);
     DeformationFieldPointer invdiffmap =
       this->IntegrateConstantVelocity(totalField, (unsigned int)( this->m_NTimeSteps) - nts,
-                                      (-1.) );
+                                      (-1.) * timestep);
 
     ImagePointer           wfimage, wmimage;
     PointSetPointer        wfpoints = NULL, wmpoints = NULL;
     AffineTransformPointer aff = this->m_AffineTransform;
     if( mpoints )
       {       // need full inverse map
-      DeformationFieldPointer tinvdiffmap = this->IntegrateConstantVelocity(totalField, nts, (-1.) );
+      DeformationFieldPointer tinvdiffmap = this->IntegrateConstantVelocity(totalField, nts, (-1.) * timestep);
       wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  mpoints,  aff, tinvdiffmap, true,
                                           this->m_FixedImageAffineTransform );
       }
 
     DeformationFieldPointer updateField = this->ComputeUpdateField( diffmap, NULL, fpoints, wmpoints);
-    //	updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
+    updateField = this->IntegrateConstantVelocity( updateField, 2, 0.5); // choose these params for speed.
     float maxl = this->MeasureDeformation(updateField);
     if( maxl <= 0 )
       {

@@ -1472,12 +1472,10 @@ public:
       {
       DeformationFieldPointer diffmap =
         this->IntegrateConstantVelocity( this->m_DeformationField, (unsigned int)this->m_NTimeSteps,
-                                         1.0);                                                                                          //
-                                                                                                                                        // /(float)this->m_NTimeSteps
+                                         1.0 / (float)this->m_NTimeSteps);
       DeformationFieldPointer invdiffmap =
         this->IntegrateConstantVelocity(this->m_DeformationField, (unsigned int) this->m_NTimeSteps,
-                                        -1.0);                                                                                               //
-                                                                                                                                             // /(float)this->m_NTimeSteps*(-1.0)
+                                        -1.0 / (float)this->m_NTimeSteps);
       this->m_InverseDeformationField = invdiffmap;
       this->m_DeformationField = diffmap;
       AffineTransformPointer invaff = NULL;
