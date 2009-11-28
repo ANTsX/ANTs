@@ -760,6 +760,13 @@ public:
       {
       std::cout << "SyN diffeomorphic model for transformation. " << std::endl;
       }
+    else if( this->m_TransformationModel  == std::string("GreedyExp") )
+      {
+      std::cout
+      << "Greedy Exp Diff model for transformation.   Similar to Diffeomorphic Demons.  Params same as Exp model. "
+      << std::endl;
+      this->m_TransformationModel = std::string("GreedyExp");
+      }
     else
       {
       std::cout << "Exp Diff model for transformation. " << std::endl;
@@ -1268,6 +1275,15 @@ public:
                                                      this->m_SimilarityMetrics[0]->GetMovingPointSet() );
             }
           }
+        else if( this->GetTransformationModel() == std::string("GreedyExp") )
+          {
+          if( this->m_Iterations[currentLevel] > 0 )
+            {
+            this->GreedyExpRegistrationUpdate(fixedImage, movingImage,
+                                              this->m_SimilarityMetrics[0]->GetFixedPointSet(),
+                                              this->m_SimilarityMetrics[0]->GetMovingPointSet() );
+            }
+          }
 
         this->m_CurrentIteration++;
         /**
@@ -1456,13 +1472,33 @@ public:
       {
       DeformationFieldPointer diffmap =
         this->IntegrateConstantVelocity( this->m_DeformationField, (unsigned int)this->m_NTimeSteps,
-                                         1.0);                                                                                             //
-                                                                                                                                           // /(float)this->m_NTimeSteps
+                                         1.0);                                                                                          //
+                                                                                                                                        // /(float)this->m_NTimeSteps
       DeformationFieldPointer invdiffmap =
         this->IntegrateConstantVelocity(this->m_DeformationField, (unsigned int) this->m_NTimeSteps,
                                         -1.0);                                                                                               //
                                                                                                                                              // /(float)this->m_NTimeSteps*(-1.0)
       this->m_InverseDeformationField = invdiffmap;
+      this->m_DeformationField = diffmap;
+      AffineTransformPointer invaff = NULL;
+      if( this->m_AffineTransform )
+        {
+        invaff = AffineTransformType::New();
+        this->m_AffineTransform->GetInverse(invaff);
+        if( this->m_Debug )
+          {
+          std::cout << " ??????invaff " << this->m_AffineTransform << std::endl << std::endl;
+          }
+        if( this->m_Debug )
+          {
+          std::cout << " invaff?????? " << invaff << std::endl << std::endl;
+          }
+        }
+      }
+    else if( this->GetTransformationModel() == std::string("GreedyExp") )
+      {
+      DeformationFieldPointer diffmap = this->m_DeformationField;
+      this->m_InverseDeformationField = NULL;
       this->m_DeformationField = diffmap;
       AffineTransformPointer invaff = NULL;
       if( this->m_AffineTransform )
@@ -1506,6 +1542,9 @@ public:
   void DiffeomorphicExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints =
                                             NULL,
                                           PointSetPointer mpoints = NULL);
+
+  void GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
+                                   PointSetPointer mpoints = NULL);
 
   void SyNRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
                              PointSetPointer mpoints = NULL);

@@ -977,7 +977,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "transformation-model" );
     option->SetShortName( 't' );
     option->SetDescription(
-      "TRANSFORMATION[gradient-step-length,number-of-time-steps,DeltaTime,symmetry-type].\n\t      Choose one of the following TRANSFORMATIONS:\n\t\tDiff = diffeomorphic\n\t\tElast = Elastic\n\t\tExp = exponential diff\n\t\tSyN -- symmetric normalization \n \n DeltaTime is the integration time-discretization step - sub-voxel - n-time steps currently fixed at 2 " );
+      "TRANSFORMATION[gradient-step-length,number-of-time-steps,DeltaTime,symmetry-type].\n\t      Choose one of the following TRANSFORMATIONS:\n\t\tDiff = diffeomorphic\n\t\tElast = Elastic\n\t\tExp = exponential diff\n\t\t Greedy Exp = greedy exponential diff, like diffeomorphic demons. same parameters. \n\t\tSyN -- symmetric normalization \n \n DeltaTime is the integration time-discretization step - sub-voxel - n-time steps currently fixed at 2 " );
     std::string nitdefault = std::string("SyN[0.5]");
     /** set up a default parameter */
     option->AddValue(nitdefault);

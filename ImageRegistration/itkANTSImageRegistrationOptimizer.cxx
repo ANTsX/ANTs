@@ -764,6 +764,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       WriteImage<ImageType>(wfimage, outname.c_str() );
       }
 
+    std::string outname = localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() ) + std::string("temp.nii.gz");
+    WriteImage<ImageType>(wmimage, outname.c_str() );
+    std::string outname2 = localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() ) + std::string("temp2.nii.gz");
+    WriteImage<ImageType>(wfimage, outname2.c_str() );
+
 /** MV Loop END -- Would have to collect update fields then add them
 * together somehow -- Would also have to eliminate the similarity
 * metric loop within ComputeUpdateField */
@@ -1578,6 +1583,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::DiffeomorphicExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
                                      PointSetPointer mpoints)
 {
+  //  this function computes a velocity field that --- when composed with itself --- optimizes the registration
+  // solution.
+  // it's very different than the Exp approach used by DiffeomorphicDemons which just composes small deformation over
+  // time.
+  //  DiffDem cannot reconstruct the path between images without recomputing the registration.
+  // DiffDem also cannot create an inverse mapping.
   /** FIXME really should pass an image list and then warp each one in
   turn  then expand the update field to fit size of total
   deformation */
@@ -1692,6 +1703,49 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       max2 = mag2;
       }
     }
+  this->SmoothDeformationField(totalField, false);
+
+  return;
+}
+
+template <unsigned int TDimension, class TReal>
+void
+ANTSImageRegistrationOptimizer<TDimension, TReal>
+::GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
+                              PointSetPointer mpoints)
+{
+  //  similar approach to christensen 96 and diffeomorphic demons
+  typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
+  VectorType zero;
+  zero.Fill(0);
+  DeformationFieldPointer totalUpdateField = NULL;
+
+  // we compose the update with this field.
+  DeformationFieldPointer totalField = this->m_DeformationField;
+
+  float        timestep = 1.0 / (float)this->m_NTimeSteps;
+  unsigned int nts = (unsigned int)this->m_NTimeSteps;
+
+  ImagePointer            wfimage, wmimage;
+  PointSetPointer         wfpoints = NULL, wmpoints = NULL;
+  AffineTransformPointer  aff = this->m_AffineTransform;
+  DeformationFieldPointer updateField = this->ComputeUpdateField( totalField, NULL, fpoints, wmpoints);
+  updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
+  float maxl = this->MeasureDeformation(updateField);
+  if( maxl <= 0 )
+    {
+    maxl = 1;
+    }
+  typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
+  Iterator dIter(updateField, updateField->GetLargestPossibleRegion() );
+  for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
+    {
+    dIter.Set( dIter.Get() * this->m_GradstepAltered / maxl );
+    }
+  this->ComposeDiffs(updateField, totalField, totalField, 1);
+  //    maxl= this->MeasureDeformation(totalField);
+  //    std::cout << " maxl " << maxl << " gsa " << this->m_GradstepAltered   << std::endl;
+  //	totalField=this->CopyDeformationField(totalUpdateField);
   this->SmoothDeformationField(totalField, false);
 
   return;
