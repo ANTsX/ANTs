@@ -1637,72 +1637,65 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
     DeformationFieldPointer updateField = this->ComputeUpdateField( diffmap, NULL, fpoints, wmpoints);
-    if( !totalUpdateField )
+    updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
+    float maxl = this->MeasureDeformation(updateField);
+    if( maxl <= 0 )
       {
-      if( this->m_Debug )
-        {
-        std::cout << " ALLO Tot Upd F " << std::endl;
-        }
-      totalUpdateField = DeformationFieldType::New();
-      totalUpdateField->SetSpacing( totalField->GetSpacing() );
-      totalUpdateField->SetOrigin( totalField->GetOrigin() );
-      totalUpdateField->SetDirection( totalField->GetDirection() );
-      totalUpdateField->SetLargestPossibleRegion(totalField->GetLargestPossibleRegion()  );
-      totalUpdateField->SetRequestedRegion( totalField->GetLargestPossibleRegion()   );
-      totalUpdateField->SetBufferedRegion( totalField->GetLargestPossibleRegion()  );
-      totalUpdateField->Allocate();
-      totalUpdateField->FillBuffer(zero);
-      }
-    if( this->m_Debug )
-      {
-      std::cout << " updf " << updateField->GetLargestPossibleRegion().GetSize() << std::endl;
-      }
-    if( this->m_Debug )
-      {
-      std::cout << " t updf " << totalUpdateField->GetLargestPossibleRegion().GetSize() << std::endl;
-      }
-    if( this->m_Debug )
-      {
-      std::cout << " total field " << totalField->GetLargestPossibleRegion().GetSize() << std::endl;
+      maxl = 1;
       }
     typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
-    Iterator dIter(totalUpdateField, totalUpdateField->GetLargestPossibleRegion() );
+    Iterator dIter(updateField, updateField->GetLargestPossibleRegion() );
     for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
       {
-      typename ImageType::IndexType index = dIter.GetIndex();
-      VectorType vec = updateField->GetPixel(index);
-      dIter.Set(dIter.Get() + vec * timestep);
+      dIter.Set( dIter.Get() * this->m_GradstepAltered / maxl );
       }
+    this->ComposeDiffs(updateField, totalField, totalField, 1);
     }
-  typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
-  Iterator dIter(totalField, totalField->GetLargestPossibleRegion() );
-  float    max = 0, max2 = 0;
-  for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
+  /*
+        if (!totalUpdateField)
+        {
+            if (this->m_Debug) std::cout <<" ALLO Tot Upd F " << std::endl;
+            totalUpdateField=DeformationFieldType::New();
+            totalUpdateField->SetSpacing( totalField->GetSpacing() );
+            totalUpdateField->SetOrigin( totalField->GetOrigin() );
+            totalUpdateField->SetDirection( totalField->GetDirection() );
+            totalUpdateField->SetLargestPossibleRegion(totalField->GetLargestPossibleRegion()  );
+            totalUpdateField->SetRequestedRegion( totalField->GetLargestPossibleRegion()   );
+            totalUpdateField->SetBufferedRegion( totalField->GetLargestPossibleRegion()  );
+            totalUpdateField->Allocate();
+            totalUpdateField->FillBuffer(zero);
+        }
+        if (this->m_Debug) std::cout << " updf " << updateField->GetLargestPossibleRegion().GetSize() << std::endl;
+        if (this->m_Debug)     std::cout << " t updf " << totalUpdateField->GetLargestPossibleRegion().GetSize() << std::endl;
+        if (this->m_Debug)     std::cout << " total field " << totalField->GetLargestPossibleRegion().GetSize() << std::endl;
+        typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
+        Iterator dIter(totalUpdateField,totalUpdateField->GetLargestPossibleRegion() );
+        for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
+        {
+            typename ImageType::IndexType index=dIter.GetIndex();
+            VectorType vec=updateField->GetPixel(index);
+            dIter.Set(dIter.Get()+vec*timestep);
+        }
+
+    }
+    typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
+    Iterator dIter(totalField,totalField->GetLargestPossibleRegion() );
+    float max=0,max2=0;
+    for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
     {
-    typename ImageType::IndexType index = dIter.GetIndex();
-    VectorType vec = totalUpdateField->GetPixel(index);
-    float      mag = 0;
-    for( unsigned int jj = 0; jj < ImageDimension; jj++ )
-      {
-      mag += vec[jj] / totalField->GetSpacing()[jj] * vec[jj] / totalField->GetSpacing()[jj];
-      }
-    mag = sqrt(mag);
-    if( mag >  max )
-      {
-      max = mag;
-      }
-    dIter.Set(dIter.Get() + vec * this->m_GradstepAltered);
-    float mag2 = 0;
-    for( unsigned int jj = 0; jj < ImageDimension; jj++ )
-      {
-      mag2 += dIter.Get()[jj] / totalField->GetSpacing()[jj] * dIter.Get()[jj] / totalField->GetSpacing()[jj];
-      }
-    mag2 = sqrt(mag2);
-    if( mag2 >  max2 )
-      {
-      max2 = mag2;
-      }
+        typename ImageType::IndexType index=dIter.GetIndex();
+        VectorType vec=totalUpdateField->GetPixel(index);
+            float mag=0;
+            for (unsigned int jj=0; jj<ImageDimension; jj++) mag+=vec[jj]/totalField->GetSpacing()[jj]*vec[jj]/totalField->GetSpacing()[jj];
+            mag=sqrt(mag);
+            if (mag >  max) max=mag;
+            dIter.Set(dIter.Get()+vec*this->m_GradstepAltered);
+            float mag2=0;
+            for (unsigned int jj=0; jj<ImageDimension; jj++) mag2+=dIter.Get()[jj]/totalField->GetSpacing()[jj]*dIter.Get()[jj]/totalField->GetSpacing()[jj];
+            mag2=sqrt(mag2);
+            if (mag2 >  max2) max2=mag2;
     }
+  */
   this->SmoothDeformationField(totalField, false);
 
   return;
