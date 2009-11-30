@@ -26,7 +26,7 @@
 // the function below should be modified/eliminated.
 
 template <class TImageType>
-void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file)
+void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, bool makeLower)
 {
   typedef typename TImageType::PixelType PixType;
 
@@ -39,31 +39,46 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file)
     return;
     }
 
-  // typedef itk::ImageFileReader< TImageType >      FileSourceType;
-  // typename FileSourceType::Pointer reader = FileSourceType::New();
-  // reader->SetFileName( file );
-  // reader->Update();
-  // if (reader->GetImageIO()->GetNumberOfComponents() != 6)
-  //  return;
   if( PixType::Length != 6 )
     {
     return;
     }
 
-  std::cout << "Performing lower/upper triangular format swap for Nifti DTI" << std::endl;
+  std::cout << "Performing lower/upper triangular format check for Nifti DTI" << std::endl;
 
   // swap elements 2 and 3 for lower<->upper conversion
   itk::ImageRegionIteratorWithIndex<TImageType>
   iter(target, target->GetLargestPossibleRegion() );
+
+  double yy = 0.0;
+  double yz = 0.0;
+  double count = 0.0;
   while( !iter.IsAtEnd() )
     {
-    PixType pix = iter.Get();
-    typename PixType::ValueType temp;
-    temp = pix[2];
-    pix[2] = pix[3];
-    pix[3] = temp;
-    iter.Set(pix);
+    yz += iter.Get()[2];
+    yy += iter.Get()[3];
+    count += 1;
     ++iter;
+    }
+
+  yy /= count;
+  yz /= count;
+
+  if( ( (yy < yz) && makeLower) || ( (yy > yz) && !makeLower) )
+    {
+    std::cout << "Performing lower/upper triangular format swap for Nifti DTI" << std::endl;
+
+    iter.GoToBegin();
+    while( !iter.IsAtEnd() )
+      {
+      PixType pix = iter.Get();
+      typename PixType::ValueType temp;
+      temp = pix[2];
+      pix[2] = pix[3];
+      pix[3] = temp;
+      iter.Set(pix);
+      ++iter;
+      }
     }
 }
 
@@ -92,10 +107,8 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
     }
 
   target = reffilter->GetOutput();
-  std::cout << " Dir " << target->GetDirection() << std::endl;
-  // convert from lower tri to upper tri
-  //  NiftiDTICheck<ImageType>(target, file); // BA May 30 2009 -- remove b/c ITK fixed NIFTI reader
-  std::cout << " Dir " << target->GetDirection() << std::endl;
+
+  NiftiDTICheck<ImageType>(target, file, true);
 
   if( takelog )
     {
@@ -105,8 +118,6 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
     target = logFilter->GetOutput();
     std::cout << "Returning Log(D) for log-euclidean math ops" << std::endl;
     }
-
-  std::cout << " Dir " << target->GetDirection() << std::endl;
 }
 
 template <class TImageType>
@@ -146,8 +157,8 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     return;
     }
 
-  typename ImageType::DirectionType dir;
-  dir.SetIdentity();
+  // typename ImageType::DirectionType dir;
+  // dir.SetIdentity();
   //  reffilter->GetOutput()->SetDirection(dir);
 
   // std::cout << " setting pointer " << std::endl;
@@ -211,14 +222,9 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
     return NULL;
     }
 
-  typename ImageType::DirectionType dir;
-  dir.SetIdentity();
-  //  reffilter->GetOutput()->SetDirection(dir);
-
   typename ImageType::Pointer target = reffilter->GetOutput();
-  // convert from lower tri to upper tri
-  // BA May 30 2009 -- remove b/c ITK fixed NIFTI reader
-  // NiftiDTICheck<ImageType>(target, fn);
+
+  NiftiDTICheck<ImageType>(target, fn, true);
 
   if( takelog )
     {
@@ -280,7 +286,7 @@ void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, boo
     }
 
   // convert from upper tri to lower tri
-  //  NiftiDTICheck<TImageType>(writeImage, file);// BA May 30 2009 -- remove b/c ITK fixed NIFTI reader
+  NiftiDTICheck<TImageType>(writeImage, file, false); // BA May 30 2009 -- remove b/c ITK fixed NIFTI reader
 
   writer->SetInput(writeImage);
   writer->Update();
