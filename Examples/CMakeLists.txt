@@ -335,7 +335,7 @@ ADD_TEST(ANTS_GSYN_INVERSEWARP_METRIC_0 MeasureImageSimilarity 2 0 ${R64_IMAGE} 
 ADD_TEST(ANTS_GSYN_INVERSEWARP_METRIC_1 MeasureImageSimilarity 2 1 ${R64_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii -0.6 0.05)
 ADD_TEST(ANTS_GSYN_INVERSEWARP_METRIC_2 MeasureImageSimilarity 2 2 ${R64_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii -0.000475175 0.05)
 
-ADD_TEST(ANTS_EXP     ANTS 2 -m PR[${R16_IMAGE},${R64_IMAGE},1,2] -t Exp[0.5,8]       -i 50x50x50 -r Gauss[0,0.25] -o ${OUTPUT_PREFIX}.nii)
+ADD_TEST(ANTS_EXP     ANTS 2 -m PR[${R16_IMAGE},${R64_IMAGE},1,4] -t Exp[0.5,2,0.5]       -i 50x50x50 -r Gauss[0.5,0.25] -o ${OUTPUT_PREFIX}.nii)
 ADD_TEST(ANTS_EXP_WARP WarpImageMultiTransform 2 ${R64_IMAGE} ${WARP_IMAGE} ${WARP} )
 ADD_TEST(ANTS_EXP_JPG  ConvertToJpg ${WARP_IMAGE} ANTSEXP.jpg)
 ADD_TEST(ANTS_EXP_WARP_METRIC_0 MeasureImageSimilarity 2 0 ${R16_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii 12 0.05)
@@ -366,7 +366,7 @@ ADD_TEST(ANTS_SYN_INVERSEWARP_METRIC_2 MeasureImageSimilarity 2 2 ${R64_IMAGE} $
 ADD_TEST(ANTS_PSE_MSQ_IMG ANTS 2 -i 191x170x90x90x10  -r Gauss[6,0.25] -t SyN[1,2,0.1]
                              -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE},${ANGEL_IMAGE},0.25,0.1,100,0,10]
                              -m MSQ[${DEVIL_IMAGE},${ANGEL_IMAGE},1,0.1]
-                              --continue-affine 0 --number-of-affine-iterations 0 --large-deformation 2
+                              --continue-affine 0 --number-of-affine-iterations 0 --geodesic 2
                              -o ${OUTPUT_PREFIX}.nii)
 ADD_TEST(ANTS_PSE_MSQ_IMG_WARP WarpImageMultiTransform 2 ${ANGEL_IMAGE} ${WARP_IMAGE} ${WARP} )
 ADD_TEST(ANTS_PSE_JPG  ConvertToJpg ${WARP_IMAGE} ANTSPSE.jpg)
@@ -445,7 +445,7 @@ ADD_TEST(ANTS_ROT_EXP_INVERSEWARP2_METRIC_0_2 MeasureImageSimilarity 3 0 ${ROT_M
 SET(CHALF_IMAGE ${DATA_DIR}/chalf.nii.gz)
 SET(C_IMAGE ${DATA_DIR}/c.nii.gz)
 
-ADD_TEST(ANTS_SYN_WITH_TIME ANTS 2 -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -t SyN[1,10,0.05] -i 150x100x20x2 -r Gauss[0.5,0.25] -o ${OUTPUT_PREFIX} --large-deformation 1 --number-of-affine-iterations 0)
+ADD_TEST(ANTS_SYN_WITH_TIME ANTS 2 -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -t SyN[1,10,0.05] -i 150x100x20x2 -r Gauss[0.5,0.25] -o ${OUTPUT_PREFIX} --geodesic 1 --number-of-affine-iterations 0)
 ADD_TEST(ANTS_SYN_WITH_TIME_WARP WarpImageMultiTransform 2 ${C_IMAGE} ${OUTPUT_PREFIX}.nii.gz ${OUTPUT_PREFIX}Warp.nii)
 ADD_TEST(ANTS_SYN_WITH_TIME_METRIC MeasureImageSimilarity 2 0 ${CHALF_IMAGE} ${OUTPUT_PREFIX}.nii.gz ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz  0.0943736 0.1)
 

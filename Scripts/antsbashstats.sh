@@ -55,6 +55,7 @@ arith_mean ()
 
   while read value   # Read one data point at a time.
   do
+      echo $value
     rt=$(echo "scale=$SC; $rt + $value" | bc)
     (( ct++ ))
   done

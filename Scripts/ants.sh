@@ -89,8 +89,8 @@ fi
   REGULARIZATION=Gauss[3,0]
   METRIC=PR[
     METRICPARAMS=1,4]
-#echo " $METRICPARAMS  &  $METRIC "
-#exit
+# echo " $METRICPARAMS  &  $METRIC "
+# exit
 
 
 echo  " ANTSPATH  is $ANTSPATH     "

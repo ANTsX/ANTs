@@ -22,6 +22,8 @@ automated or semi-automated labeling of three-dimensional imagery (e.g. labeling
 hippocampus or cortical regions or lobes of the lung).  Many prior-based
 segmentation possibilities are available in the Apocrita tool.
 
+The ants.pdf file has more details and examples.
+
 # directory guide:
 Documentation -- pdf / tex describing ANTS
 Examples    -- the executable programs and test data in Examples/Data
