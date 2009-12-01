@@ -39,7 +39,7 @@
 #include "itkSignedMaurerDistanceMapImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
-
+#include "../Temporary/itkFastMarchingImageFilter.h"
 #include "itkTimeProbe.h"
 #include "itkImageFileWriter.h"
 
@@ -1216,6 +1216,7 @@ template <class TInputImage, class TMaskImage, class TClassifiedImage>
 void WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::AmassDistancePriors()
 {
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   typename RealImageType::Pointer smoothImage = NULL;
   typename RealImageType::Pointer distanceImage = NULL;
   typename RealImageType::ConstPointer priorProbabilityImage = NULL;
@@ -1249,7 +1250,41 @@ void WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       distancer->SetInsideIsPositive( false );
       distancer->Update();
       distanceImage = distancer->GetOutput();
+/*
 
+     typedef  itk::FastMarchingImageFilter< RealImageType, MaskImageType >    FastMarchingFilterType;
+     typename FastMarchingFilterType::Pointer  fastMarching = FastMarchingFilterType::New();
+     fastMarching->SetInput( const_cast<MaskImageType *>( this->GetMaskImage()) );
+     fastMarching->SetCheckTopology( false );// typename FastMarchingFilterType::Strict );
+      typedef typename FastMarchingFilterType::NodeContainer           NodeContainer;
+      typedef typename FastMarchingFilterType::NodeType                NodeType;
+      typename NodeContainer::Pointer seeds = NodeContainer::New();
+      seeds->Initialize();
+      unsigned long ct=0;
+      typename RealImageType::Pointer thr=this->GetLargestComponent(thresholder->GetOutput());
+      Iterator vfIter2( thr ,   thr->GetLargestPossibleRegion() );
+      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+  {
+    bool isinside=true;
+    double speedval=this->GetMaskImage()->GetPixel(vfIter2.GetIndex());
+    double labval=vfIter2.Get();
+    if ( speedval < 0.5 ) isinside=false;
+    if (isinside && (unsigned int) labval == 1 )
+      {
+        NodeType node;
+        const double seedValue = 0.0;
+        node.SetValue( seedValue );
+        node.SetIndex( vfIter2.GetIndex() );
+        seeds->InsertElement( ct, node );
+        ct++;
+      }
+  }
+      fastMarching->SetTrialPoints(  seeds  );
+      fastMarching->SetStoppingValue( 500 );
+  std::cout <<" run FM filter " << std::endl;
+      fastMarching->Update();
+      distanceImage=fastMarching->GetOutput();
+*/
       ImageRegionIterator<RealImageType> ItD( distanceImage,
                                               distanceImage->GetRequestedRegion() );
 // get max dist
