@@ -30,6 +30,7 @@
 #include "itkSubtractImageFilter.h"
 
 #include "vnl/algo/vnl_fft_1d.h"
+#include "vnl/vnl_math.h"
 #include "vnl/vnl_complex_traits.h"
 #include "vxl/vcl/vcl_complex.h"
 
