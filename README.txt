@@ -1,4 +1,4 @@
-Release 1.5
+Release 1.6
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
@@ -23,6 +23,24 @@ hippocampus or cortical regions or lobes of the lung).  Many prior-based
 segmentation possibilities are available in the Apocrita tool.
 
 The ants.pdf file has more details and examples.
+
+New Stuff:
+
+Check DT tensor ordering in DTI Read/Write
+
+HistogramMatching in ImageMath
+
+ConvertImagePixelType utility
+
+Affine averaging in buildtemplateparallel
+
+Updated time-dependent diffeomorphic mapping (option --geodesic  1 / 2 ).
+
+Updated with a greedy exponential mapping diffeomorphic approach akin to DiffeomorphicDemons.
+
+Bug fix in checking ANTS convergence.
+
+Other miscellaneous including minor Apocrita changes and allowing spaces in command line interface.
 
 # directory guide:
 Documentation -- pdf / tex describing ANTS
