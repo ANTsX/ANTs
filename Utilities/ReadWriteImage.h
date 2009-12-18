@@ -30,6 +30,12 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
 {
   typedef typename TImageType::PixelType PixType;
 
+  // typedef itk::ImageFileWriter<TImageType> Writer;
+  // typename Writer::Pointer writer = Writer::New();
+  // writer->SetInput( target );
+  // writer->SetFileName( "testdt.nii" );
+  // writer->Update();
+
   // Check for nifti file
   std::string            filename = file;
   std::string::size_type pos1 = filename.find( ".nii" );
@@ -50,21 +56,59 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
   itk::ImageRegionIteratorWithIndex<TImageType>
   iter(target, target->GetLargestPossibleRegion() );
 
-  double yy = 0.0;
-  double yz = 0.0;
-  double count = 0.0;
+  unsigned int looksLikeLower = 0;
+  unsigned int looksLikeUpper = 0;
+  unsigned int nBadVoxels = 0;
+  unsigned int count = 0;
+
+  unsigned int el2Neg = 0;
+  unsigned int el3Neg = 0;
+
   while( !iter.IsAtEnd() )
     {
-    yz += iter.Get()[2];
-    yy += iter.Get()[3];
-    count += 1;
+    bool isValid = true;
+    for( unsigned int i = 0; i < 6; i++ )
+      {
+      if( iter.Get()[i] != iter.Get()[i] )
+        {
+        ++nBadVoxels;
+        isValid = false;
+        }
+      }
+
+    double el2 = iter.Get()[2];
+    double el3 = iter.Get()[3];
+
+    if( el2 < 0 )
+      {
+      ++el2Neg;
+      }
+    if( el3 < 0 )
+      {
+      ++el3Neg;
+      }
+
+    if( isValid )
+      {
+      if( el2 > el3 )
+        {
+        ++looksLikeLower;
+        }
+      else
+        {
+        ++looksLikeUpper;
+        }
+      }
+
+    ++count;
     ++iter;
     }
 
-  yy /= count;
-  yz /= count;
+  // std::cout << "Invalid: " << nBadVoxels << "/" << count << std::endl;
+  // std::cout << "Lower: " << looksLikeLower << ", Upper: " << looksLikeUpper << std::endl;
+  // std::cout << "el2Neg: " << el2Neg << ", el3Neg: " << el3Neg << std::endl;
 
-  if( ( (yy < yz) && makeLower) || ( (yy > yz) && !makeLower) )
+  if( ( (looksLikeUpper > looksLikeLower) && makeLower) || ( (looksLikeLower > looksLikeUpper) && !makeLower) )
     {
     std::cout << "Performing lower/upper triangular format swap for Nifti DTI" << std::endl;
 
@@ -108,7 +152,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
 
   target = reffilter->GetOutput();
 
-  NiftiDTICheck<ImageType>(target, file, true);
+  NiftiDTICheck<ImageType>(target, file, false);
 
   if( takelog )
     {
@@ -224,7 +268,7 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
 
   typename ImageType::Pointer target = reffilter->GetOutput();
 
-  NiftiDTICheck<ImageType>(target, fn, true);
+  NiftiDTICheck<ImageType>(target, fn, false);
 
   if( takelog )
     {
@@ -286,7 +330,7 @@ void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, boo
     }
 
   // convert from upper tri to lower tri
-  NiftiDTICheck<TImageType>(writeImage, file, false); // BA May 30 2009 -- remove b/c ITK fixed NIFTI reader
+  NiftiDTICheck<TImageType>(writeImage, file, true); // BA May 30 2009 -- remove b/c ITK fixed NIFTI reader
 
   writer->SetInput(writeImage);
   writer->Update();
