@@ -185,6 +185,29 @@ public:
   /** Basic operations */
   DeformationFieldPointer CopyDeformationField( DeformationFieldPointer input );
 
+  std::string localANTSGetFilePrefix(const char *str)
+  {
+    std::string            filename = str;
+    std::string::size_type pos = filename.rfind( "." );
+    std::string            filepre = std::string( filename, 0, pos );
+
+    if( pos != std::string::npos )
+      {
+      std::string extension = std::string( filename, pos, filename.length() - 1);
+      if( extension == std::string(".gz") )
+        {
+        pos = filepre.rfind( "." );
+        extension = std::string( filepre, pos, filepre.length() - 1 );
+        }
+      //      if (extension==".txt") return AFFINE_FILE;
+      //        else return DEFORMATION_FILE;
+      }
+    //    else{
+    //      return INVALID_FILE;
+    // }
+    return filepre;
+  }
+
   void SmoothDeformationField(DeformationFieldPointer field,  bool TrueEqualsGradElseTotal )
   {
     typename ParserType::OptionType::Pointer regularizationOption
