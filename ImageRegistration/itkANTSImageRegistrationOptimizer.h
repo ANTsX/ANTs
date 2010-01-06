@@ -1658,7 +1658,7 @@ public:
 
   float InvertField(DeformationFieldPointer field,
                     DeformationFieldPointer inverseField, float weight = 1.0,
-                    float toler = 0.5, int maxiter = 20, bool print = false)
+                    float toler = 0.1, int maxiter = 20, bool print = false)
   {
     VectorType zero; zero.Fill(0);
     //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
