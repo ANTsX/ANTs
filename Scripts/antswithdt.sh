@@ -3,11 +3,11 @@
 NUMPARAMS=$#
 
 MAXITERATIONS=30x90x20
-
+export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 if [ $NUMPARAMS -lt 3  ]
 then
 echo " USAGE ::  "
-echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext  OPTIONAL-OUTPREFIX   OPTIONAL-max-iterations  OPTIONAL-Subject/Moving-DT-To-Deform-To-Fixed-Image  OPTIONAL-Subject/Moving-BZero-To-DistortionCorrect-To-Moving-T1-Image "
+echo "  sh   ants.sh  ImageDimension  fixed.ext  moving.ext Subject/Moving-DT-To-Deform-To-Fixed-Image  OPTIONAL-Subject/Moving-BZero-To-DistortionCorrect-To-Moving-T1-Image "
 echo " be sure to set ANTSPATH environment variable "
 echo " Max-Iterations in form :    JxKxL where "
 echo "  J = max iterations at coarsest resolution (here, reduce by power of 2^2) "
@@ -56,20 +56,10 @@ then
 OUTPUTNAME=${MOVING%.*}
 fi
 
+MOVINGDT=0
 if [ $NUMPARAMS -gt 3  ]
 then
-  OUTPUTNAME=${4}
-fi
-
-if [ $NUMPARAMS -gt 4  ]
-then
- MAXITERATIONS=$5
-fi
-
-MOVINGDT=0
-if [ $NUMPARAMS -gt 5  ]
-then
- MOVINGDT=$6
+ MOVINGDT=$4
 if [ ! -f $MOVINGDT ]
 then
 echo " THIS DTI DOES NOT EXIST : $MOVINGDT "
@@ -78,9 +68,9 @@ fi
 fi
 
 MOVINGBZ=0
-if [ $NUMPARAMS -gt 6  ]
+if [ $NUMPARAMS -gt 4  ]
 then
- MOVINGBZ=$7
+ MOVINGBZ=$5
 if [ ! -f $MOVINGBZ ]
 then
 echo " THIS BZero DOES NOT EXIST : $MOVINGBZ "
@@ -99,11 +89,11 @@ fi
 
 
 # Mapping Parameters
-  TRANSFORMATION=SyN[0.5]
+  TRANSFORMATION=SyN[0.25]
   ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
-  REGULARIZATION=Gauss[2,0]
+  REGULARIZATION=Gauss[3,0]
   METRIC=PR[
     METRICPARAMS=1,2]
 #echo " $METRICPARAMS  &  $METRIC "
@@ -130,29 +120,26 @@ echo " "
 
 # first, do distortion correction of MOVINGDT to MOVING
 # use the B0 image
-${ANTSPATH}ANTS 3 -m PR[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0
+${ANTSPATH}ANTS 3 -m PR[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0  --do-rigid 1
 
 ${ANTSPATH}WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii ${OUTPUTNAME}distcorrWarp.nii ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
 #exit
 
-exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching "
+if [[ ! -s ${OUTPUTNAME}Affine.txt ]] ; then
+sh ${ANTSPATH}/ants.sh $DIM $FIXED $MOVING ${OUTPUTNAME}
+fi
 
- echo " $exe "
 
-  $exe
-   ${ANTSPATH}WarpImageMultiTransform $DIM  $MOVING    ${OUTPUTNAME}deformed.nii ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -R ${FIXED}
-
-if  [ ${#MOVINGDT} -gt 3 ]
-then
+if  [[ -s ${MOVINGDT}  ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
     DTDEF=${OUTPUTNAME}DTdeformed.nii
-FIXEDSUB=${OUTPUTNAME}fixedsub.nii
-ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
-echo " Warp DT "
+    FIXEDSUB=${OUTPUTNAME}fixedsub.nii
+    ${ANTSPATH}ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
+    echo " Warp DT "
     ${ANTSPATH}WarpTensorImageMultiTransform $DIM  $MOVINGDT    $DTDEF ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii   -R $FIXEDSUB
 
-COMPWARP=${OUTPUTNAME}DTwarp.nii
- ${ANTSPATH}ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii
-${ANTSPATH}ReorientTensorImage 3 $DTDEF  $DTDEF  $COMPWARP
+    COMPWARP=${OUTPUTNAME}DTwarp.nii
+    ${ANTSPATH}ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii
+    ${ANTSPATH}ReorientTensorImage 3 $DTDEF  $DTDEF  $COMPWARP
 
 fi
 
