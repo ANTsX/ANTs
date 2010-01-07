@@ -362,7 +362,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       {
       neighIndex[j] = index[j] - 1;
       }
-    if( this->m_LabelImage->GetPixel( neighIndex ) != AlivePoint )
+    if( this->m_LabelImage->GetPixel( neighIndex ) == FarPoint )
       {
       this->UpdateValue( neighIndex, speedImage, output );
       }
@@ -372,7 +372,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       {
       neighIndex[j] = index[j] + 1;
       }
-    if( this->m_LabelImage->GetPixel( neighIndex ) != AlivePoint )
+    if( this->m_LabelImage->GetPixel( neighIndex ) == FarPoint )
       {
       this->UpdateValue( neighIndex, speedImage, output );
       }
