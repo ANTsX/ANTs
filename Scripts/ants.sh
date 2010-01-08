@@ -108,18 +108,18 @@ echo " "
 
 
 # finally check the image headers
-compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii  CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4  `
+compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz   CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4  `
 if [ $compareheaders -ne 0 ]
 then
 echo " You may have a problem with your header definition "
-echo " The repaired image is in : ${OUTPUTNAME}repaired.nii "
+echo " The repaired image is in : ${OUTPUTNAME}repaired.nii.gz  "
 echo " Call ImageMath's   CompareHeadersAndImages  on your Fixed and Moving image "
 exit
 fi
 
-${ANTSPATH}N3BiasFieldCorrection $DIM ${OUTPUTNAME}repaired.nii  ${OUTPUTNAME}repaired.nii 4
+${ANTSPATH}N3BiasFieldCorrection $DIM ${OUTPUTNAME}repaired.nii.gz   ${OUTPUTNAME}repaired.nii.gz  4
 
-exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching "
+exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching "
 
  echo " $exe "
 
@@ -128,11 +128,11 @@ exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii,${MET
   #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
 
-    ${ANTSPATH}WarpImageMultiTransform $DIM  ${OUTPUTNAME}repaired.nii   ${OUTPUTNAME}deformed.nii ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -R ${FIXED}
+    ${ANTSPATH}WarpImageMultiTransform $DIM  ${OUTPUTNAME}repaired.nii.gz    ${OUTPUTNAME}deformed.nii.gz  ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt  -R ${FIXED}
 
 if  [ ${#LABELIMAGE} -gt 3 ]
 then
-      ${ANTSPATH}WarpImageMultiTransform $DIM  $LABELIMAGE   ${OUTPUTNAME}labeled.nii -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii  -R ${MOVING}   --use-NN
+      ${ANTSPATH}WarpImageMultiTransform $DIM  $LABELIMAGE   ${OUTPUTNAME}labeled.nii.gz  -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz   -R ${MOVING}   --use-NN
 fi
 
 exit
@@ -145,14 +145,14 @@ done
 #  measure dice overlap and mds
 ${ANTSPATH}ThresholdImage $DIM $FIXED ${OUTPUTNAME}fixthresh.nii.gz Otsu 4
 ${ANTSPATH}ThresholdImage $DIM $MOVING ${OUTPUTNAME}movthresh.nii.gz Otsu 4
- ${ANTSPATH}WarpImageMultiTransform $DIM   ${OUTPUTNAME}movthresh.nii.gz  ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -R ${FIXED}   --use-NN
+ ${ANTSPATH}WarpImageMultiTransform $DIM   ${OUTPUTNAME}movthresh.nii.gz  ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt  -R ${FIXED}   --use-NN
 ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPUTNAME}fixthresh.nii.gz   ${OUTPUTNAME}movthresh.nii.gz   ${OUTPUTNAME}mindistsum.nii.gz
 #  labelstats for jacobian wrt segmenation
  # below, to compose
-# ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii  -R $FIXED ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt
-# ${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii ${OUTPUTNAME}jacobian.nii  0
+# ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii.gz   -R $FIXED ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt
+# ${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii.gz  ${OUTPUTNAME}jacobian.nii.gz   0
 # ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}movlabstat.txt LabelStats ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}movthresh.nii.gz
-# ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii
+# ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii.gz
 # we compare the output of these last two lines:
 #  the Volume of the movlabstat computation vs. the mass of the jaclabstat
 fi

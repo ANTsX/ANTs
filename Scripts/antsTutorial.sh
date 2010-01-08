@@ -163,7 +163,7 @@ Data integrity check failed
 There seems to be a problem with the header definitions of the input files. This
 script has tried to repair this issue automatically by invoking:
 
-${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii CompareHeadersAndImages $FIXED $MOVING
+${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz  CompareHeadersAndImages $FIXED $MOVING
 
 The repaired image is:
 
@@ -273,7 +273,7 @@ fi
 
 # check the image headers
 echo "input files: checking"
-compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4 `
+compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz  CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4 `
 
 if [ $compareheaders -ne 0 ]
 then
@@ -386,7 +386,7 @@ echo
 echo "--------------------------------------------------------------------------------------"
 echo "Applying forward transformation to ${MOVING}"
 echo "--------------------------------------------------------------------------------------"
-${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt -R ${FIXED}
+${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz  ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt -R ${FIXED}
 
 # Apply inverse transformation to FIXED
 if [ "${TRANSFORMATIONTYPE}" == "EL" ]
@@ -401,13 +401,13 @@ echo "--------------------------------------------------------------------------
 echo "Applying inverse transformation to ${FIXED}"
 echo "--------------------------------------------------------------------------------------"
 FIXEDBASE=` echo $MOVING | cut -d '.' -f 1 `
-${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii
+${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii
 fi
 
 elif [ ${N3CORRECT} -eq 1 ]
 then
 # Apply N3BiasFieldCorrection
-exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii 4"
+exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz  4"
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "N3BiasFieldCorrection command:"
@@ -416,7 +416,7 @@ echo "--------------------------------------------------------------------------
 $exe
 
 # Apply ANTS mapping command on N3 corrected image
-exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}.nii,${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching "
+exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}.nii.gz,${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"
@@ -429,7 +429,7 @@ echo
 echo "--------------------------------------------------------------------------------------"
 echo "Applying forward transformation to ${MOVING}"
 echo "--------------------------------------------------------------------------------------"
-${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}.nii ${OUTPUTNAME}deformed.nii ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt -R ${FIXED}
+${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}.nii.gz  ${OUTPUTNAME}deformed.nii.gz  ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt -R ${FIXED}
 
 # Apply inverse transformation to FIXED
 if [ "${TRANSFORMATIONTYPE}" == "EL" ]
@@ -444,7 +444,7 @@ echo "--------------------------------------------------------------------------
 echo "Applying inverse transformation to ${FIXED}"
 echo "--------------------------------------------------------------------------------------"
 FIXEDBASE=` echo $MOVING | cut -d '.' -f 1 `
-${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii -R ${OUTPUTNAME}.nii -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii
+${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${OUTPUTNAME}.nii.gz  -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii
 fi
 
 fi
@@ -452,7 +452,7 @@ fi
 # Apply transformation on labeled image?
 if  [ ${#LABELIMAGE} -gt 3 ]
 then
-${ANTSPATH}WarpImageMultiTransform $DIM  $LABELIMAGE ${OUTPUTNAME}labeled.nii -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii  -R ${MOVING}   --use-NN
+${ANTSPATH}WarpImageMultiTransform $DIM  $LABELIMAGE ${OUTPUTNAME}labeled.nii.gz  -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz   -R ${MOVING}   --use-NN
 fi
 
 if [ $DoANTSQC -eq 1 ]
@@ -466,16 +466,16 @@ done
 ${ANTSPATH}ThresholdImage $DIM $FIXED ${OUTPUTNAME}fixthresh.nii.gz Otsu 4
 ${ANTSPATH}ThresholdImage $DIM $MOVING ${OUTPUTNAME}movthresh.nii.gz Otsu 4
 
-${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt -R ${FIXED} --use-NN
+${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt -R ${FIXED} --use-NN
 
 ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPUTNAME}fixthresh.nii.gz   ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}mindistsum.nii.gz
 
 # below not used unless you want to compare segmentation volumes to those estimated by the jacobian
 # labelstats for jacobian wrt segmenation below, to compose
-# ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii  -R $FIXED ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt
-# ${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii ${OUTPUTNAME}jacobian.nii  0
+# ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii.gz   -R $FIXED ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt
+# ${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii.gz  ${OUTPUTNAME}jacobian.nii.gz   0
 # ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}movlabstat.txt LabelStats ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}movthresh.nii.gz
-# ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii
+# ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii.gz
 # we compare the output of these last two lines:
 #  the Volume of the movlabstat computation vs. the mass of the jaclabstat
 fi
