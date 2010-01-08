@@ -1,6 +1,8 @@
 # !/bin/sh
 
-VERSION="0.0.2"
+VERSION="0.0.3"
+
+export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 
 function Usage {
     cat <<USAGE
@@ -10,6 +12,9 @@ into the fixed image space.
 
 this script encodes some reasonable defaults for the parameters and is useful for testing and comparing methods
 
+ANTS will test for convergence after 10 iterations to prevent the program from running forever.
+Convergence is determined by occurrence of a flat or inflection point in the similarity term time series.
+
 Usage:
 
 sh ants.sh -d ImageDimension -r fixed.ext -i moving.ext
@@ -18,15 +23,15 @@ Compulsory arguments:
 
 -d:  ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)
 
--r:  reference image
+-i:  Input image
 
--i:  input image
+-r:  Reference image
 
 Optional arguments
 
--o:  OUTPREFIX; A prefix that is prepended to all output files.
+-l:  Labels-In-Fixed-Image-Space-To-Deform-To-Moving-Image (default is off)
 
--m:  max-iterations
+-m:  Max-iterations
 
 	Max-Iterations in form: JxKxL where
 	J = max iterations at coarsest resolution (here, reduce by power of 2^2)
@@ -37,11 +42,13 @@ Optional arguments
 	Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another
 	iteration level.
 
--n3  N3BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
+-n:  N3BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
 
--l:  Labels-In-Fixed-Image-Space-To-Deform-To-Moving-Image (default is off)
+-o:  OUTPREFIX; A prefix that is prepended to all output files.
 
--tm: type of similarity metric used for registration.
+-q:  Perform a Quality Check (QC) of the result ( 0 = off (default); 1 = on ).
+
+-s:  Type of similarity metric used for registration.
 
 	For intramodal image registration, use:
 	CC = cross-correlation
@@ -55,7 +62,7 @@ Optional arguments
 
 	You can change the values for each of these methods in this script.
 
--tt: type of transformation model used for registration.
+-t:  Type of transformation model used for registration.
 
 	For elastic image registration, use:
 	EL = elastic transformation model (less deformation possible)
@@ -69,7 +76,6 @@ Optional arguments
 
 	You can change the values for each of these methods in this script.
 
--q:  Perform a Quality Check (QC) of the result ( 0 = off (default); 1 = on ).
 --------------------------------------------------------------------------------------
 
 Default number of iterations is $MAXITERATIONS. Most often this is sufficient.
@@ -237,7 +243,6 @@ do
     esac
 done
 
-export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 #ANTSPATH=YOURANTSPATH
 if [  ${#ANTSPATH} -le 0 ]
 then
@@ -285,8 +290,11 @@ if [ "${TRANSFORMATIONTYPE}" == "EL" ]
 then
 # Mapping Parameters
 TRANSFORMATION=Elast[1]
-REGULARIZATION=Gauss[0,3]
-
+REGULARIZATION=Gauss[3,0.5]
+# Gauss[3,x] is usually the best option.    x is usually 0 for SyN --- if you want to reduce flexibility/increase mapping smoothness, the set x > 0.
+#We did a large scale evaluation of SyN gradient parameters in normal brains and found 0.25 => 0.5 to perform best when
+# combined with default Gauss[3,0] regularization.    You would increase the gradient step in some cases, though, to make
+# the registration converge faster --- though oscillations occur if the step is too high and other instability might happen too.
 elif [ "${TRANSFORMATIONTYPE}" == "S2"  ]
 then
 # Mapping Parameters for the LDDMM style SyN --- the params are SyN[GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
@@ -303,7 +311,7 @@ then
 # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
 # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
 TRANSFORMATION=" SyN[1,2,0.05] --geodesic 2 "
-REGULARIZATION=Gauss[3,0.25]
+REGULARIZATION=Gauss[3,0.]
 
 elif [ "${TRANSFORMATIONTYPE}" == "GR" ]
 then
@@ -323,6 +331,7 @@ then
 #  NTimePointsInIntegration controls the number of compositions in the transformation update , see the DD paper
 TRANSFORMATION=GreedyExp[0.5,10]
 REGULARIZATION=Gauss[3,0.5]
+
 else
 echo "Invalid transformation metric. Use EL, SY, S2, GR , DD or EX or type sh ants.sh -h."
 exit 1
