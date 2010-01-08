@@ -4,6 +4,7 @@ NUMPARAMS=$#
 
 MAXITERATIONS=30x90x20
 
+export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 if [ $NUMPARAMS -lt 3  ]
 then
 echo " USAGE ::  "
