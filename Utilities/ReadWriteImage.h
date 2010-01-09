@@ -30,7 +30,7 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
 {
   typedef typename TImageType::PixelType PixType;
 
-  //  return;
+  return;
 
   // typedef itk::ImageFileWriter<TImageType> Writer;
   // typename Writer::Pointer writer = Writer::New();
