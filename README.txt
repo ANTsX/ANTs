@@ -24,7 +24,13 @@ segmentation possibilities are available in the Apocrita tool.
 
 The ants.pdf file has more details and examples.
 
-New Stuff:
+New Stuff 1.7 :
+
+Now using SymmetricSecondOrderPixelType -- fixes bugs with Nifti I/O etc.
+
+Update in parameters for convergence and inversion -- aids performance.
+
+New Stuff 1.6 :
 
 Check DT tensor ordering in DTI Read/Write
 

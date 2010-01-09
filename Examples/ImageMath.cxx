@@ -1984,8 +1984,9 @@ int ImageMath(int argc, char *argv[])
 template <unsigned int ImageDimension>
 int TensorFunctions(int argc, char *argv[])
 {
-  typedef float                                              PixelType;
-  typedef itk::Vector<float, 6>                              TensorType;
+  typedef float PixelType;
+  //  typedef itk::Vector<float, 6> TensorType;
+  typedef itk::SymmetricSecondRankTensor<double, 3>          TensorType;
   typedef typename itk::RGBPixel<float>                      RGBType;
   typedef itk::Image<TensorType, ImageDimension>             TensorImageType;
   typedef typename TensorImageType::IndexType                IndexType;

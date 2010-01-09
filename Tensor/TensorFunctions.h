@@ -4,6 +4,7 @@
 // #include "itkSmallStrainDiffusionTensorReorientationImageFilter.h"
 // #include "itkVectorIndexSelectionCastImageFilter.h"
 
+#include "itkSymmetricSecondRankTensor.h"
 #include "itkVector.h"
 #include "itkVersor.h"
 #include "itkVariableSizeMatrix.h"

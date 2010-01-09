@@ -23,6 +23,7 @@
 #include "itkMatrix.h"
 #include "itkNumericTraits.h"
 #include "itkVector.h"
+#include "itkSymmetricSecondRankTensor.h"
 
 namespace itk
 {
@@ -62,11 +63,12 @@ public:
 
   typedef itk::Image<float, ImageDimension> FloatImageType;
 
-  typedef Vector<float, 6>                  TensorType;
-  typedef Image<TensorType, ImageDimension> TensorImageType;
-  typedef typename TensorImageType::Pointer TensorImagePointer;
-  typedef vnl_matrix<float>                 VnlMatrixType;
-  typedef vnl_vector<float>                 vvec;
+  //  typedef Vector<float, 6> TensorType;
+  typedef itk::SymmetricSecondRankTensor<double, 3> TensorType;
+  typedef Image<TensorType, ImageDimension>         TensorImageType;
+  typedef typename TensorImageType::Pointer         TensorImagePointer;
+  typedef vnl_matrix<float>                         VnlMatrixType;
+  typedef vnl_vector<float>                         vvec;
 
   /** Standard class typedefs. */
   typedef PreservationOfPrincipalDirectionTensorReorientationImageFilter Self;
@@ -102,7 +104,8 @@ public:
 
   vnl_matrix<float>  FindRotation( vnl_vector<float>,  vnl_vector<float> );
 
-  TensorType ReorientTensors(TensorType fixedTens,  TensorType movingTens,  typename TTensorImage::IndexType index);
+  TensorType ReorientTensors( TensorType fixedTens,  TensorType movingTens,  typename TTensorImage::IndexType index);
+
   // ::ReorientTensors( Vector<float, 6>  fixedTens, Vector<float, 6> movingTens,  typename TTensorImage::IndexType
   // index)
 

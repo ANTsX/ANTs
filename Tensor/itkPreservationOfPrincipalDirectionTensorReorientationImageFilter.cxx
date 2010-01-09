@@ -32,6 +32,7 @@
 
 #include "itkVariableSizeMatrix.h"
 #include "itkDecomposeTensorFunction.h"
+#include "itkSymmetricSecondRankTensor.h"
 
 #include <vnl/vnl_cross.h>
 #include <vnl/vnl_inverse.h>
@@ -162,9 +163,11 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 }
 
 template <typename TTensorImage, typename TVectorImage>
-Vector<float, 6>
+itk::SymmetricSecondRankTensor<double, 3>
 PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
-::ReorientTensors( Vector<float, 6>  fixedTens, Vector<float, 6> movingTens,  typename TTensorImage::IndexType index)
+::ReorientTensors( itk::SymmetricSecondRankTensor<double, 3> fixedTens, itk::SymmetricSecondRankTensor<double,
+                                                                                                       3> movingTens,
+                   typename TTensorImage::IndexType index)
 {
 // get from and to vectors
 
@@ -535,9 +538,9 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 
         if( docompute )
           {
-          itk::Vector<float, 6> dtv2;
-          bool                  verbose = false;
-          VnlMatrixType         DT(3, 3);
+          TensorType    dtv2;
+          bool          verbose = false;
+          VnlMatrixType DT(3, 3);
           DT.fill(0);
           DT(0, 0) = dtv[0];
           DT(1, 1) = dtv[3];

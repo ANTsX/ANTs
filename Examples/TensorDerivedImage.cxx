@@ -35,12 +35,13 @@ int main( int argc, char *argv[] )
   typedef itk::Image<PixelType, 3>              ScalarImageType;
   typedef itk::ImageFileWriter<ScalarImageType> WriterType;
 
-  typedef itk::Vector<PixelType, 6>             TensorType;
-  typedef itk::Image<TensorType, 3>             TensorImageType;
-  typedef itk::ImageFileReader<TensorImageType> ReaderType;
-  typedef itk::RGBPixel<float>                  ColorPixelType;
-  typedef itk::Image<ColorPixelType, 3>         ColorImageType;
-  typedef itk::ImageFileWriter<ColorImageType>  ColorWriterType;
+  // typedef itk::Vector<PixelType, 6>             TensorType;
+  typedef itk::SymmetricSecondRankTensor<double, 3> TensorType;
+  typedef itk::Image<TensorType, 3>                 TensorImageType;
+  typedef itk::ImageFileReader<TensorImageType>     ReaderType;
+  typedef itk::RGBPixel<float>                      ColorPixelType;
+  typedef itk::Image<ColorPixelType, 3>             ColorImageType;
+  typedef itk::ImageFileWriter<ColorImageType>      ColorWriterType;
 
   // Check for valid input paramters
   if( argc < 3 )
