@@ -28,6 +28,8 @@ New Stuff 1.7 :
 
 Now using SymmetricSecondOrderPixelType -- fixes bugs with Nifti I/O etc.
 
+This means our nii tensors have SYMMATRIX as intent (as with standard)
+
 Update in parameters for convergence and inversion -- aids performance.
 
 New Stuff 1.6 :
