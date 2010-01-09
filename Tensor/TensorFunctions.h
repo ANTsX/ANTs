@@ -415,11 +415,11 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
 }
 
 template <class TTensorType>
-itk::RGBPixel<float>   GetTensorRGB( TTensorType dtv )
+itk::RGBPixel<unsigned char>   GetTensorRGB( TTensorType dtv )
 {
   typedef TTensorType TensorType;
 
-  itk::RGBPixel<float> zero;
+  itk::RGBPixel<unsigned char> zero;
   zero.Fill(0);
   float eps = 1.e-9, mag = 0;
   for( unsigned int jj = 0; jj < 6; jj++ )
@@ -433,7 +433,7 @@ itk::RGBPixel<float>   GetTensorRGB( TTensorType dtv )
     }
   mag = sqrt(mag);
 
-  itk::RGBPixel<float> rgb;
+  itk::RGBPixel<unsigned char> rgb;
 
   if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
     {
@@ -451,9 +451,9 @@ itk::RGBPixel<float>   GetTensorRGB( TTensorType dtv )
   EigenAnalysis<TensorType, EigenMatrixType>(dtv, evals, evecs);
   float fa = GetTensorFA<TensorType>(dtv);
 
-  rgb[0] = vcl_fabs(evecs(0, 2) ) * fa * 255;
-  rgb[1] = vcl_fabs(evecs(1, 2) ) * fa * 255;
-  rgb[2] = vcl_fabs(evecs(2, 2) ) * fa * 255;
+  rgb[0] = (unsigned char)(vcl_fabs(evecs(0, 2) ) * fa * 255);
+  rgb[1] = (unsigned char)(vcl_fabs(evecs(1, 2) ) * fa * 255);
+  rgb[2] = (unsigned char)(vcl_fabs(evecs(2, 2) ) * fa * 255);
 
   return rgb;
 }
