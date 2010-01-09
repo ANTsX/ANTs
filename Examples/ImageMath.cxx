@@ -19,6 +19,7 @@
 #include <sstream>
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
+#include "itkMedianImageFilter.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorImageFileReader.h"
 #include "itkVector.h"
@@ -2010,6 +2011,12 @@ int TensorFunctions(int argc, char *argv[])
   typename ColorImageType::Pointer  cimage = NULL; // output color image
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
+  if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
+    {
+    std::cout << " test function for tensor I/O " << std::endl;
+    WriteTensorImage<TensorImageType>(timage, outname.c_str(), false);
+    return 0;
+    }
   std::cout << " imagedir " << timage->GetDirection() << std::endl;
 
   if( strcmp(operation.c_str(), "TensorColor") == 0 )
@@ -6872,6 +6879,7 @@ int main(int argc, char *argv[])
     std::cout << "  Where Image ValueToLookFor maskImage-option tolerance --- the where function from IDL "
               << std::endl;
     std::cout << "  TensorFA DTImage  " << std::endl;
+    std::cout << "  TensorIOTest DTImage --- wile write the DT image back out ... " << std::endl;
     std::cout << "  MakeImage  SizeX  SizeY {SizeZ}  " << std::endl;
     std::cout
       <<
@@ -7280,6 +7288,10 @@ int main(int argc, char *argv[])
         Where<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorFA") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
