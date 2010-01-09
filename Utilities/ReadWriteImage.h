@@ -462,7 +462,7 @@ WriteDisplacementField(TField* field, std::string filename)
     fieldCaster->Update();
 
     // Set up the output filename
-    std::string outfile = filename + static_cast<char>('x' + dim) + std::string("vec.nii");
+    std::string outfile = filename + static_cast<char>('x' + dim) + std::string("vec.nii.gz");
     std::cout << "Writing displacements to " << outfile << " spacing "
               << field->GetSpacing()[0] << std::endl;
     typename RealImageType::Pointer fieldcomponent = fieldCaster->GetOutput();
