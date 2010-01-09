@@ -468,9 +468,10 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 
       if( finitestrain )
         {
+        std::cout << " use finite strain " << std::endl;
         // Copy tensor to matrix form
         // InputPixelType inTensor = inputIt.Value();
-        InputPixelType inTensor = inputInterp->Evaluate(outputPt);
+        InputPixelType inTensor = input->GetPixel(rindex); // inputInterp->Evaluate(outputPt);
         MatrixType2    tensor;
         tensor.SetSize(3, 3);
         tensor[0][0] = inTensor[0];
@@ -518,11 +519,11 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
         outTensor[4] = rTensor[1][2];
         outTensor[5] = rTensor[2][2];
         }
-
       else if( ppd )
         {
+        std::cout << " use ppd reorientation " << std::endl;
         // InputPixelType inTensor = inputIt.Value();
-        InputPixelType inTensor = inputInterp->Evaluate(outputPt);
+        InputPixelType inTensor = input->GetPixel(rindex); // inputInterp->Evaluate(outputPt);
         InputPixelType dtv = inTensor;
 
         // valid values?

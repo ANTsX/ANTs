@@ -1987,7 +1987,7 @@ int TensorFunctions(int argc, char *argv[])
   typedef float PixelType;
   //  typedef itk::Vector<float, 6> TensorType;
   typedef itk::SymmetricSecondRankTensor<double, 3>          TensorType;
-  typedef typename itk::RGBPixel<float>                      RGBType;
+  typedef typename itk::RGBPixel<unsigned char>              RGBType;
   typedef itk::Image<TensorType, ImageDimension>             TensorImageType;
   typedef typename TensorImageType::IndexType                IndexType;
   typedef itk::Image<PixelType, ImageDimension>              ImageType;
@@ -6880,6 +6880,7 @@ int main(int argc, char *argv[])
     std::cout << "  Where Image ValueToLookFor maskImage-option tolerance --- the where function from IDL "
               << std::endl;
     std::cout << "  TensorFA DTImage  " << std::endl;
+    std::cout << "  TensorColor DTImage --- produces RGB values identifying principal directions " << std::endl;
     std::cout << "  TensorIOTest DTImage --- wile write the DT image back out ... " << std::endl;
     std::cout << "  MakeImage  SizeX  SizeY {SizeZ}  " << std::endl;
     std::cout
