@@ -31,7 +31,7 @@ Optional arguments:
 
      -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
 
-     -i:  Iteration limit (default = 4)
+     -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
      -j:  Number of cpu cores to use (default 2)
 
