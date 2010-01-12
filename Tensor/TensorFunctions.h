@@ -566,6 +566,96 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
 }
 
 template <class TTensorType>
+itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned int whichvec)
+{
+  itk::Vector<float, 3> zero;
+
+  zero.Fill(0);
+  float eps = 1.e-9, mag = 0;
+  for( unsigned int jj = 0; jj < 6; jj++ )
+    {
+    float ff = dtv[jj];
+    mag += ff * ff;
+    if( vnl_math_isnan( ff ) || vnl_math_isinf(ff)   )
+      {
+      return zero;
+      }
+    }
+  mag = sqrt(mag);
+
+  if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
+    {
+    return zero;
+    }
+  if( mag < eps )
+    {
+    return zero;
+    }
+
+  //  typedef itk::Vector<float, 6> TensorTypeIn;
+  typedef itk::Vector<float, 6> TensorType;
+  typedef itk::Vector<float, 6> TensorTypeOut;
+  typedef itk::Vector<float, 6> TensorTypeIn;
+  const unsigned int ImageDimension = 3;
+  typedef itk::Image<TensorTypeIn, ImageDimension>  InTensorImageType;
+  typedef itk::Image<TensorTypeOut, ImageDimension> OutTensorImageType;
+  typedef itk::Image<TensorTypeOut, ImageDimension> TensorImageType;
+  typedef     InTensorImageType::Pointer            TensorImagePointer;
+  typedef float                                     PixelType;
+  typedef itk::Vector<float, ImageDimension>        VectorType1;
+  typedef itk::Image<VectorType1, ImageDimension>   FieldType;
+  typedef itk::Image<PixelType, ImageDimension>     ImageType;
+  typedef itk::ImageFileReader<InTensorImageType>   readertype;
+  typedef itk::ImageFileWriter<OutTensorImageType>  writertype;
+  typedef ImageType::IndexType                      IndexType;
+  typedef ImageType::SizeType                       SizeType;
+  typedef ImageType::SpacingType                    SpacingType;
+//   typedef itk::AffineTransform<double,ImageDimension>   AffineTransformType;
+//   typedef itk::LinearInterpolateImageFunction<ImageType,double>  InterpolatorType1;
+//   typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double>  InterpolatorType2;
+
+  itk::Vector<float, 6> dtv2;
+  typedef vnl_matrix<double> MatrixType;
+  MatrixType DT(3, 3);
+  DT.fill(0);
+  DT(0, 0) = dtv[0];
+  DT(1, 1) = dtv[3];
+  DT(2, 2) = dtv[5];
+  DT(1, 0) = DT(0, 1) = dtv[1];
+  DT(2, 0) = DT(0, 2) = dtv[2];
+  DT(2, 1) = DT(1, 2) = dtv[4];
+  //  if (takelog ) std::cout << " TAKING LOG " << std::endl;  else std::cout << "TAKING EXP " << std::endl;
+  //  std::cout << " dtv " << dtv << std::endl;
+  vnl_symmetric_eigensystem<double> eig(DT);
+
+  itk::Vector<float, 3> rgb;
+
+  float xx = dtv[0];
+  float xy = dtv[1];
+  float xz = dtv[2];
+  float yy = dtv[3];
+  float yz = dtv[4];
+  float zz = dtv[5];
+  float isp = ( xx * xx + yy * yy + zz * zz + 2.0 * (xy * xy + xz * xz + yz * yz) );
+
+  float fa = 0.0;
+  if( isp > 0.0 )
+    {
+    float trace = dtv[0];
+    trace += dtv[3];
+    trace += dtv[5];
+    float anisotropy = 3.0 * isp - trace * trace;
+    fa = ( vcl_sqrt(anisotropy / ( 2.0 * isp ) ) );
+    }
+
+  rgb[0] = eig.V(0, whichvec); // +eig.V(1,0)*e2;
+  rgb[1] = eig.V(1, whichvec); // +eig.V(1,1)*e2;
+  rgb[2] = eig.V(2, whichvec); // +eig.V(1,2)*e2;
+
+  return rgb;
+}
+
+template <class TTensorType>
 static float GetMetricTensorCost(  itk::Vector<float, 3> dpath,  TTensorType dtv )
 {
   typedef vnl_matrix<double> MatrixType;

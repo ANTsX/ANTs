@@ -579,7 +579,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
                                                                   typename WarperType::CoordRepType> NNInterpolateType;
     typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
-    std::cout << "Haha" << std::endl;
+    std::cout << "User nearest neighbor interpolation (was Haha) " << std::endl;
     warper->SetInterpolator(interpolator_NN);
     }
 

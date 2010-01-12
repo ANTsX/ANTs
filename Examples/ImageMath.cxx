@@ -1997,19 +1997,25 @@ int TensorFunctions(int argc, char *argv[])
   typedef itk::ImageFileWriter<ColorImageType>               ColorWriterType;
   typedef itk::ImageRegionIteratorWithIndex<TensorImageType> Iterator;
 
-  int         argct = 2;
-  std::string outname = std::string(argv[argct]); argct++;
-  std::string operation = std::string(argv[argct]);  argct++;
-  std::string fn1 = std::string(argv[argct]);   argct++;
-  std::string fn2 = "";
+  typedef itk::Vector<float, ImageDimension>                 VectorType;
+  typedef itk::Image<VectorType, ImageDimension>             VectorImageType;
+  typedef itk::ImageRegionIteratorWithIndex<VectorImageType> vecIterator;
+
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  unsigned int whichvec = ImageDimension - 1;
   if( argc > argct )
     {
-    fn2 = std::string(argv[argct]);
+    whichvec = atoi(argv[argct]);
     }
-
-  typename TensorImageType::Pointer timage = NULL; // input tensor image
-  typename ImageType::Pointer       vimage = NULL; // output scalar image
-  typename ColorImageType::Pointer  cimage = NULL; // output color image
+  argct++;
+  std::cout << " whichvec " << whichvec << std::endl;
+  typename TensorImageType::Pointer timage = NULL;    // input tensor image
+  typename ImageType::Pointer       vimage = NULL;    // output scalar image
+  typename ColorImageType::Pointer  cimage = NULL;    // output color image
+  typename VectorImageType::Pointer  vecimage = NULL; // output vector image
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
   if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
@@ -2030,6 +2036,19 @@ int TensorFunctions(int argc, char *argv[])
     cimage->SetSpacing(timage->GetSpacing() );
     cimage->SetOrigin(timage->GetOrigin() );
     cimage->SetDirection(timage->GetDirection() );
+    }
+  else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
+    {
+    vecimage = VectorImageType::New();
+    vecimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
+    vecimage->SetBufferedRegion( timage->GetLargestPossibleRegion() );
+    vecimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
+    vecimage->Allocate();
+    vecimage->SetSpacing(timage->GetSpacing() );
+    vecimage->SetOrigin(timage->GetOrigin() );
+    vecimage->SetDirection(timage->GetDirection() );
+    VectorType zero;  zero.Fill(0);
+    vecimage->FillBuffer(zero);
     }
   else
     {
@@ -2072,6 +2091,11 @@ int TensorFunctions(int argc, char *argv[])
       RGBType rgb = GetTensorRGB<TensorType>(tIter.Value() );
       cimage->SetPixel(ind, rgb);
       }
+    else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
+      {
+      VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), whichvec);
+      vecimage->SetPixel(ind, vv);
+      }
     }
 
   if( strcmp(operation.c_str(), "TensorColor") == 0 )
@@ -2080,6 +2104,10 @@ int TensorFunctions(int argc, char *argv[])
     cwrite->SetInput(cimage);
     cwrite->SetFileName(outname.c_str() );
     cwrite->Update();
+    }
+  else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
+    {
+    WriteImage<VectorImageType>(vecimage, outname.c_str() );
     }
   else
     {
@@ -6447,380 +6475,6 @@ typename TImage::Pointer FitSmoothEstimateOfTissueIntensityFromPrior(
   return output;
 }
 
-template <unsigned int ImageDimension>
-int SegmentImage(      int argc, char *argv[])
-{
-  typedef float                                                           PixelType;
-  typedef itk::Vector<float, ImageDimension>                              VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::Image<unsigned char, ImageDimension>                       ByteImageType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef itk::ImageFileWriter<ImageType>                                 writertype;
-  typedef  typename ImageType::IndexType                                  IndexType;
-  typedef  typename ImageType::SizeType                                   SizeType;
-  typedef  typename ImageType::SpacingType                                SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
-
-  int          argct = 2;
-  std::string  outname = std::string(argv[argct]); argct++;
-  std::string  operation = std::string(argv[argct]);  argct++;
-  std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int kclasses = 1;
-  if( argc > argct )
-    {
-    kclasses = atoi(argv[argct]);
-    }
-  argct++;
-  float locweight = 0.5;
-  if( argc > argct )
-    {
-    locweight = atof(argv[argct]);
-    }
-  argct++;
-  if( locweight < 0 )
-    {
-    locweight = 0;
-    }
-  if( locweight > 1 )
-    {
-    locweight = 1;
-    }
-  float       gwt = 1.0 - locweight;
-  std::string priorfn1 = "";
-  if( argc > argct )
-    {
-    priorfn1 = std::string(argv[argct]);
-    }
-  argct++;
-  std::string priorfn2 = "";
-  if( argc > argct )
-    {
-    priorfn2 = std::string(argv[argct]);
-    }
-  argct++;
-  std::string priorfn3 = "";
-  if( argc > argct )
-    {
-    priorfn3 = std::string(argv[argct]);
-    }
-  argct++;
-  if( kclasses < 1 )
-    {
-    kclasses = 1;
-    }
-  std::string::size_type idx;
-  idx = outname.find_first_of('.');
-  std::string tempname = outname.substr(0, idx);
-  std::string extension = outname.substr(idx, outname.length() );
-  std::string kname = tempname + std::string("_seg") + extension;
-
-  typename ImageType::Pointer image = NULL, p1image = NULL, p2image = NULL, p3image = NULL;
-  typename ImageType::Pointer kmeans = NULL, lkmeans = NULL;
-  ReadImage<ImageType>(image, fn1.c_str() );
-  typename ImageType::Pointer bimage = image; // N3BiasCorrectImage<ImageType>(image,image);
-
-  if( priorfn1.length() > 3 &&  priorfn2.length() > 3 &&  priorfn3.length() > 3 )
-    {
-    ReadImage<ImageType>(p1image, priorfn1.c_str() );
-    ReadImage<ImageType>(p2image, priorfn2.c_str() );
-    ReadImage<ImageType>(p3image, priorfn3.c_str() );
-    ReadImage<ImageType>(lkmeans, priorfn3.c_str() );
-    lkmeans->FillBuffer(0);
-    if( kclasses == 4  )
-      {
-      Iterator vfIter2( image,  image->GetLargestPossibleRegion() );
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-        if( image->GetPixel(vfIter2.GetIndex() ) > 0 )
-          {
-          double px1 = p1image->GetPixel(vfIter2.GetIndex() );
-          double px2 = p2image->GetPixel(vfIter2.GetIndex() );
-          double px3 = p3image->GetPixel(vfIter2.GetIndex() );
-          double total = px1 + px2 + px3;
-          if( total > 0 )
-            {
-            px1 /= total; px2 /= total; px3 /= total;
-            if( px1 > px2 && px1 > px3 )
-              {
-              lkmeans->SetPixel(vfIter2.GetIndex(), 1);
-              float diff = px1 - 0.5;
-              if( diff < 0 )
-                {
-                px1 -= diff;  px2 += diff * 0.5;  px3 += diff * 0.5;
-                }
-              }
-            else if( px2 > px1 && px2 >= px3 )
-              {
-              lkmeans->SetPixel(vfIter2.GetIndex(), 2);
-              float diff = px2 - 0.5;
-              if( diff < 0 )
-                {
-                px2 -= diff;  px1 += diff * 0.5;  px3 += diff * 0.5;
-                }
-              }
-            else if( px3 > px1 && px3 > px2 )
-              {
-              lkmeans->SetPixel(vfIter2.GetIndex(), 3);
-              float diff = px3 - 0.5;
-              if( diff < 0 )
-                {
-                px3 -= diff;  px2 += diff * 0.5;  px1 += diff * 0.5;
-                }
-              }
-            p1image->SetPixel(vfIter2.GetIndex(), px1);
-            p2image->SetPixel(vfIter2.GetIndex(), px2);
-            p3image->SetPixel(vfIter2.GetIndex(), px3);
-            }
-          }
-        }
-      std::cout << " writing-k " << kname << std::endl;
-      WriteImage<ImageType>(lkmeans, kname.c_str() );
-      kmeans = lkmeans;
-      }
-    }
-  for( unsigned int iters = 0; iters < 2; iters++ )
-    {
-    if( p1image && p2image && p3image )
-      {
-      typename ImageType::Pointer p1mask = BinaryThreshold<ImageType>(0.5, 1, 1, p1image);
-      typename ImageType::Pointer p2mask = BinaryThreshold<ImageType>(0.5, 1, 1, p2image);
-      typename ImageType::Pointer p3mask = BinaryThreshold<ImageType>(0.5, 1, 1, p3image);
-      p1image = FitSmoothEstimateOfTissueIntensityFromPrior<ImageType>( p1mask, image, 3, 5   );
-      p2image = FitSmoothEstimateOfTissueIntensityFromPrior<ImageType>( p2mask, image, 3, 5   );
-      p3image = FitSmoothEstimateOfTissueIntensityFromPrior<ImageType>( p3mask, image, 3, 5   );
-      WriteImage<ImageType>(p2image, "turd.nii.gz");
-      }
-    // if (  !kmeans){
-    if( iters == 0 && !lkmeans )
-      {
-      // std::cout << " start k " << std::endl;
-      kmeans = SegmentKMeans<ImageType>(bimage, kclasses);
-      // std::cout << " start mrf " << std::endl;
-      kmeans = SegmentMRFKM<ImageType>(bimage, kmeans, kclasses, 1, 1);
-      // std::cout << " done mrf " << std::endl;
-      kmeans->SetDirection(image->GetDirection() );
-      kmeans->SetSpacing(image->GetSpacing() );
-      kmeans->SetOrigin(image->GetOrigin() );
-      // std::cout << " done set " << std::endl;
-      }
-    // build data term  images
-    for( unsigned int k = 1; k < kclasses; k++ )
-      {
-      typename ImageType::Pointer pimage = NULL;
-      ReadImage<ImageType>(pimage, fn1.c_str() );
-      pimage->FillBuffer(0);
-      typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-      Iterator      vfIter2( pimage,  pimage->GetLargestPossibleRegion() );
-      float         gestimatedmean = 0, gestimatedvar = 0;
-      float         lestimatedmean = 0, lestimatedvar = 0;
-      unsigned long ct = 0, lct = 0;
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-        double px = 0;
-        if( kmeans->GetPixel(vfIter2.GetIndex() ) == k )
-          {
-          px = bimage->GetPixel(vfIter2.GetIndex() );
-          gestimatedmean += px;
-          ct++;
-          }
-        if( lkmeans )
-          {
-          if( lkmeans->GetPixel(vfIter2.GetIndex() ) == k )
-            {
-            px = bimage->GetPixel(vfIter2.GetIndex() );
-            lestimatedmean += px;
-            lct++;
-            }
-          }
-        }
-      if( ct == 0 )
-        {
-        std::cout << " bad initialization " << std::endl; ct = 1;
-        }
-      if( lct == 0 )
-        {
-        std::cout << " bad template initialization " << std::endl; lct = 1;
-        }
-      gestimatedmean /= (float)ct;
-      lestimatedmean /= (float)lct;
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-        double px = 0;
-        if( kmeans->GetPixel(vfIter2.GetIndex() ) == k )
-          {
-          px = bimage->GetPixel(vfIter2.GetIndex() );
-          float dist = (px - gestimatedmean);
-          gestimatedvar += dist * dist;
-          }
-        if( lkmeans )
-          {
-          if( lkmeans->GetPixel(vfIter2.GetIndex() ) == k )
-            {
-            px = bimage->GetPixel(vfIter2.GetIndex() );
-            float dist = (px - lestimatedmean);
-            lestimatedvar += dist * dist;
-            }
-          }
-        }
-      gestimatedvar /= (float)ct;
-      lestimatedvar /= (float)lct;
-      lestimatedmean = lestimatedmean * locweight + gestimatedmean * gwt;
-      lestimatedvar = lestimatedvar * locweight + gestimatedvar * gwt;
-      float estimatedmean = gestimatedmean;
-      float estimatedvar = gestimatedvar;
-      std::cout << " Class " << k << std::endl;
-      std::cout << " gmean " << gestimatedmean << " gvar " << gestimatedvar << std::endl;
-      std::cout << " locmean " << lestimatedmean << " locvar " << lestimatedvar << std::endl;
-      typedef itk::NeighborhoodIterator<ImageType> iteratorType;
-      typename iteratorType::RadiusType rad;
-      for( unsigned int j = 0; j < ImageDimension; j++ )
-        {
-        rad[j] = 1;
-        }
-      iteratorType GHood(rad, image, image->GetLargestPossibleRegion() );
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-        double px = bimage->GetPixel(vfIter2.GetIndex() );
-        if( k == 1 && p1image )
-          {
-          estimatedmean = p1image->GetPixel(vfIter2.GetIndex() ) * locweight + gestimatedmean * gwt;
-          }
-        if( k == 2 && p2image )
-          {
-          estimatedmean = p2image->GetPixel(vfIter2.GetIndex() ) * locweight + gestimatedmean * gwt;
-          }
-        if( k == 3 && p3image )
-          {
-          estimatedmean = p3image->GetPixel(vfIter2.GetIndex() ) * locweight + gestimatedmean * gwt;
-          }
-        double dataprob = exp(-1.0 * (estimatedmean - px) * (estimatedmean - px) / (2.0 * estimatedvar) );
-        // now regional probability MRF
-        double priorprob = 0;
-        typename ImageType::IndexType ind = vfIter2.GetIndex();
-        GHood.SetLocation(ind);
-        double kct = 0.0, lkct = 0.0;
-        double tkct = (float)GHood.Size();
-        for( unsigned int q = 0; q < GHood.Size(); q++ )
-          {
-          typename ImageType::IndexType ind2 = GHood.GetIndex(q);
-          if( kmeans->GetPixel(ind ) > 0 )
-            {
-            if( kmeans->GetPixel(ind2 ) == k )
-              {
-              kct++;
-              }
-            }
-          if( lkmeans )
-            {
-            if( lkmeans->GetPixel(ind ) > 0 )
-              {
-              if( lkmeans->GetPixel(ind2 ) == k )
-                {
-                lkct++;
-                }
-              }
-            }
-          }
-        double finalprob = 0;
-        priorprob = kct / tkct;
-        float mrfval = 1;
-        priorprob = exp(-1.0 * (1.0 - priorprob) / mrfval);
-        double lpriorprob = lkct / tkct;
-        lpriorprob = exp(-1.0 * (1.0 - lpriorprob) / mrfval);
-        priorprob = lpriorprob * locweight + priorprob * gwt;
-        finalprob = 1. / (1. + exp(-1.0 * ( dataprob * priorprob - 0.25) / 0.1) ); // a decision function
-        // std::cout << " ind " << ind <<" prob " << finalprob << " k " << k << std::endl;
-        pimage->SetPixel( vfIter2.GetIndex(), finalprob);
-        }
-
-      std::ostringstream stm;
-      stm << (k - 1);
-      std::string ltempname = tempname + std::string("_prob_") + stm.str() + extension;
-      WriteImage<ImageType>(pimage, ltempname.c_str() );
-      }
-
-    if( kclasses == 4 )
-      {
-      Iterator    vfIter2( image,  image->GetLargestPossibleRegion() );
-      std::string p1name = tempname + std::string("_prob_0") + extension;
-      ReadImage<ImageType>(p1image, p1name.c_str() );
-      std::string p2name = tempname + std::string("_prob_1") + extension;
-      ReadImage<ImageType>(p2image, p2name.c_str() );
-      std::string p3name = tempname + std::string("_prob_2") + extension;
-      ReadImage<ImageType>(p3image, p3name.c_str() );
-      // loop over data
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-        if( image->GetPixel(vfIter2.GetIndex() ) > 0 )
-          {
-          double px1 = p1image->GetPixel(vfIter2.GetIndex() );
-          double px2 = p2image->GetPixel(vfIter2.GetIndex() );
-          double px3 = p3image->GetPixel(vfIter2.GetIndex() );
-          double total = px1 + px2 + px3;
-          if( total > 0 )
-            {
-            px1 /= total; px2 /= total; px3 /= total;
-            if( px1 > px2 && px1 > px3 )
-              {
-              kmeans->SetPixel(vfIter2.GetIndex(), 1);
-              float diff = px1 - 0.5;
-              if( diff < 0 )
-                {
-                px1 -= diff;  px2 += diff * 0.5;  px3 += diff * 0.5;
-                }
-              }
-            if( px2 > px1 && px2 >= px3 )
-              {
-              kmeans->SetPixel(vfIter2.GetIndex(), 2);
-              float diff = px2 - 0.5;
-              if( diff < 0 )
-                {
-                px2 -= diff;  px1 += diff * 0.5;  px3 += diff * 0.5;
-                }
-              }
-            if( px3 > px1 && px3 > px2 )
-              {
-              kmeans->SetPixel(vfIter2.GetIndex(), 3);
-              float diff = px3 - 0.5;
-              if( diff < 0 )
-                {
-                px3 -= diff;  px2 += diff * 0.5;  px1 += diff * 0.5;
-                }
-              }
-            p1image->SetPixel(vfIter2.GetIndex(), px1);
-            p2image->SetPixel(vfIter2.GetIndex(), px2);
-            p3image->SetPixel(vfIter2.GetIndex(), px3);
-            }
-          }
-        }
-      std::cout << " writing-norm2 " << tempname << std::endl;
-      WriteImage<ImageType>(kmeans, kname.c_str() );
-      WriteImage<ImageType>(p1image, p1name.c_str() );
-      WriteImage<ImageType>(p2image, p2name.c_str() );
-      WriteImage<ImageType>(p3image, p3name.c_str() );
-      }
-    }
-  //  WriteImage<ImageType>(kmeans,outname.c_str());
-  return 0;
-
-  //    std::cout << " Starting " << std::endl;
-//    kmeans=BayesianSegmentation<ImageType>(image,kclasses,priorfn,nsmooth);
-//    std::cout << "done - start MRF " << std::endl;
-
-  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholdFilterType;
-  typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
-  threshold->SetInput(kmeans);
-  threshold->SetInsideValue(1);
-  threshold->SetOutsideValue(0);
-  threshold->SetLowerThreshold(kclasses - 1);
-  threshold->SetUpperThreshold(kclasses - 1);
-  threshold->Update();
-}
-
 int main(int argc, char *argv[])
 {
   if( argc < 5 )
@@ -6881,7 +6535,13 @@ int main(int argc, char *argv[])
               << std::endl;
     std::cout << "  TensorFA DTImage  " << std::endl;
     std::cout << "  TensorColor DTImage --- produces RGB values identifying principal directions " << std::endl;
-    std::cout << "  TensorIOTest DTImage --- wile write the DT image back out ... " << std::endl;
+    std::cout
+      <<
+    "  TensorToVector DTImage WhichVec --- produces vector field identifying one of the principal directions, 2 = largest eigenvalue "
+      << std::endl;
+    std::cout
+      << "  TensorIOTest DTImage --- will write the DT image back out ... tests I/O processes for consistency. "
+      << std::endl;
     std::cout << "  MakeImage  SizeX  SizeY {SizeZ}  " << std::endl;
     std::cout
       <<
@@ -7031,10 +6691,6 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
         {
         ROIStatistics<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Segment") == 0 )
-        {
-        SegmentImage<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
@@ -7241,10 +6897,6 @@ int main(int argc, char *argv[])
         {
         ROIStatistics<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "Segment") == 0 )
-        {
-        SegmentImage<3>(argc, argv);
-        }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
         DiceAndMinDistSum<3>(argc, argv);
@@ -7302,6 +6954,10 @@ int main(int argc, char *argv[])
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorColor") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }

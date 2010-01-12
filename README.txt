@@ -1,4 +1,4 @@
-Release 1.6
+Release 1.7
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
@@ -31,6 +31,8 @@ Now using SymmetricSecondOrderPixelType -- fixes bugs with Nifti I/O etc.
 This means our nii tensors have SYMMATRIX as intent (as with standard)
 
 Update in parameters for convergence and inversion -- aids performance.
+
+TensorToVector coloring --- also preliminary integration of vector field
 
 New Stuff 1.6 :
 

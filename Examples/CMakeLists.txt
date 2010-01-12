@@ -204,6 +204,9 @@ TARGET_LINK_LIBRARIES(N4BiasFieldCorrection ITKIO ITKStatistics)
 ADD_EXECUTABLE(KellySlater KellySlater.cxx)
 TARGET_LINK_LIBRARIES(KellySlater ITKIO ITKStatistics)
 
+ADD_EXECUTABLE(ANTSIntegrateVectorField ANTSIntegrateVectorField.cxx)
+TARGET_LINK_LIBRARIES(ANTSIntegrateVectorField ITKIO ITKStatistics)
+
 SET(SOURCES "../Utilities/itkWASPCommandLineParser" "../Utilities/itkWASPCommandLineOption" )
 ADD_EXECUTABLE(Apocrita Apocrita.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(Apocrita ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
