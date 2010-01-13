@@ -659,20 +659,25 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 int main(int argc, char *argv[])
 {
   std::cout << " Does not take into account reorientation needed when orientations change only in the header!! "
-    std::cout << " consider the same DT image in 2 different orientations under an applied identity transform. "
-    std::cout
-            <<
+            << std::endl;
+  std::cout << " consider the same DT image in 2 different orientations under an applied identity transform. "
+            << std::endl;
+  std::cout
+    <<
   " the components will not be rotated correctly, but should be, b/c the header rotation is not accounted for in the reorientation filter."
-    std::cout << " this is a bug we need to fix."
-    if( argc < 4 )
-      {
-      std::cout << "Useage ex: " << argv[0] << " dimension infile.nii outfile.nii warp.nii " << std::endl;
-      return 1;
+    << std::endl;
+  std::cout << " this is a bug we need to fix."  << std::endl;
+  std::cout << " ... "   << std::endl;
+
+  if( argc < 4 )
+    {
+    std::cout << "Useage ex: " << argv[0] << " dimension infile.nii outfile.nii warp.nii " << std::endl;
+    return 1;
     }
 
-    TRAN_OPT_QUEUE opt_queue;
-  char *           moving_image_filename = NULL;
-  char *           output_image_filename = NULL;
+  TRAN_OPT_QUEUE opt_queue;
+  char *         moving_image_filename = NULL;
+  char *         output_image_filename = NULL;
 
   MISC_OPT misc_opt;
 
