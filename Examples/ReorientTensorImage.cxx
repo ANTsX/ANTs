@@ -208,8 +208,8 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
       if( misc_opt.reference_image_filename == NULL )
         {
         std::cout
-          << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
-          << std::endl;
+        << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
+        << std::endl;
         return false;
         }
 
@@ -493,29 +493,29 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
       switch( i )
         {
         case 0:
-      { ind[0] = 0; ind[1] = 0; ind[2] = 0; }
-                                            break;
+    { ind[0] = 0; ind[1] = 0; ind[2] = 0; }
+                                          break;
         case 1:
-      { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; }
-                                                       break;
+    { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; }
+                                                     break;
         case 2:
-      { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                       break;
+    { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; }
+                                                     break;
         case 3:
-      { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                                  break;
+    { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; }
+                                                                break;
         case 4:
-      { ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                       break;
+    { ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; }
+                                                     break;
         case 5:
-      { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                                  break;
+    { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; }
+                                                                break;
         case 6:
-      { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                                  break;
+    { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
+                                                                break;
         case 7:
-      { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                                             break;
+    { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
+                                                                           break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
@@ -537,17 +537,17 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
       switch( i )
         {
         case 0:
-      { ind[0] = 0; ind[1] = 0; }
-                                break;
+    { ind[0] = 0; ind[1] = 0; }
+                              break;
         case 1:
-      { ind[0] = imgsz[0] - 1; ind[1] = 0; }
-                                           break;
+    { ind[0] = imgsz[0] - 1; ind[1] = 0; }
+                                         break;
         case 2:
-      { ind[0] = 0; ind[1] = imgsz[1] - 1; }
-                                           break;
+    { ind[0] = 0; ind[1] = imgsz[1] - 1; }
+                                         break;
         case 3:
-      { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; }
-                                                      break;
+    { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; }
+                                                    break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
@@ -591,31 +591,16 @@ template <int ImageDimension>
 void ReorientTensorImage(char *moving_image_filename, char *output_image_filename,
                          TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
-  typedef itk::SymmetricSecondRankTensor<float,
-                                         3>                             TensorType;
-  typedef itk::SymmetricSecondRankTensor<float,
-                                         3>                             PixelType;
-  typedef itk::Image<PixelType,
-                     ImageDimension>                                    TensorImageType;
-  typedef itk::Image<float,
-                     ImageDimension>                                    ImageType;
-  typedef itk::Vector<float,
-                      ImageDimension>                                   VectorType;
-  typedef itk::Image<VectorType,
-                     ImageDimension>                                    DeformationFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>                AffineTransformType;
-  typedef itk::WarpTensorImageMultiTransformFilter<TensorImageType, TensorImageType, DeformationFieldType,
-                                                   AffineTransformType> WarperType;
-
+  typedef itk::SymmetricSecondRankTensor<float, 3>                               TensorType;
+  typedef itk::SymmetricSecondRankTensor<float, 3>                               PixelType;
+  typedef itk::Image<PixelType, ImageDimension>                                  TensorImageType;
+  typedef itk::Image<float, ImageDimension>                                      ImageType;
+  typedef itk::Vector<float, ImageDimension>                                     VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                                 DeformationFieldType;
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
   typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
-  // typename ImageFileReaderType::Pointer reader_img = ImageFileReaderType::New();
-  // reader_img->SetFileName(moving_image_filename);
-  // reader_img->Update();
-  // typename ImageType::Pointer img_mov = ImageType::New();
-  // img_mov = reader_img->GetOutput();
   typename TensorImageType::Pointer img_mov;
   ReadTensorImage<TensorImageType>(img_mov, moving_image_filename, true);
 
@@ -631,22 +616,6 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
   // else
   //    img_ref = NULL;
 
-  typename WarperType::Pointer  warper = WarperType::New();
-  warper->SetInput(img_mov);
-  PixelType nullPix;
-  nullPix.Fill(0);
-  warper->SetEdgePaddingValue(nullPix);
-
-  if( misc_opt.use_NN_interpolator )
-    {
-    typedef typename itk::VectorNearestNeighborInterpolateImageFunction<TensorImageType,
-                                                                        typename WarperType::CoordRepType>
-      NNInterpolateType;
-    typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
-    std::cout << "Haha" << std::endl;
-    warper->SetInterpolator(interpolator_NN);
-    }
-
   typedef itk::TransformFileReader                                    TranReaderType;
   typedef itk::VectorImageFileReader<ImageType, DeformationFieldType> FieldReaderType;
   typename DeformationFieldType::Pointer field;
@@ -659,95 +628,12 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 
     switch( opt.file_type )
       {
-      case AFFINE_FILE:
-        {
-        std::cout << "Sorry -- Transform Files not yet supported!!!" << std::endl;
-        return;
-
-        typename TranReaderType::Pointer tran_reader = TranReaderType::New();
-        tran_reader->SetFileName(opt.filename);
-        tran_reader->Update();
-        typename AffineTransformType::Pointer aff = dynamic_cast<AffineTransformType *>
-          ( (tran_reader->GetTransformList() )->front().GetPointer() );
-        if( opt.do_affine_inv )
-          {
-          typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
-          aff->GetInverse(aff_inv);
-          aff = aff_inv;
-          }
-        // std::cout <<" aff " << transcount <<  std::endl;
-        warper->PushBackAffineTransform(aff);
-        if( transcount == 0 )
-          {
-          warper->SetOutputSize(img_mov->GetLargestPossibleRegion().GetSize() );
-          warper->SetOutputSpacing(img_mov->GetSpacing() );
-          warper->SetOutputOrigin(img_mov->GetOrigin() );
-          warper->SetOutputDirection(img_mov->GetDirection() );
-          }
-        transcount++;
-        break;
-        }
-
-      case IDENTITY_TRANSFORM:
-        {
-        std::cout << "Sorry -- Transform files not yet supported" << std::endl;
-        return;
-
-        typename AffineTransformType::Pointer aff;
-        GetIdentityTransform(aff);
-        // std::cout << " aff id" << transcount << std::endl;
-        warper->PushBackAffineTransform(aff);
-        transcount++;
-        break;
-        }
-
-      case IMAGE_AFFINE_HEADER:
-        {
-        std::cout << "Sorry -- Header transforms not yet supported" << std::endl;
-        return;
-
-        typename AffineTransformType::Pointer aff = AffineTransformType::New();
-        typename ImageType::Pointer img_affine = ImageType::New();
-        typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
-        reader_image_affine->SetFileName(opt.filename);
-        reader_image_affine->Update();
-        img_affine = reader_image_affine->GetOutput();
-
-        GetAffineTransformFromImage(img_affine, aff);
-
-        if( opt.do_affine_inv )
-          {
-          typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
-          aff->GetInverse(aff_inv);
-          aff = aff_inv;
-          }
-
-        // std::cout <<" aff from image header " << transcount <<  std::endl;
-        warper->PushBackAffineTransform(aff);
-
-        //            if (transcount==0){
-        //                warper->SetOutputSize(img_mov->GetLargestPossibleRegion().GetSize());
-        //                warper->SetOutputSpacing(img_mov->GetSpacing());
-        //                warper->SetOutputOrigin(img_mov->GetOrigin());
-        //                warper->SetOutputDirection(img_mov->GetDirection());
-        //            }
-
-        transcount++;
-        break;
-        }
-
       case DEFORMATION_FILE:
         {
         typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
         field_reader->SetFileName( opt.filename );
         field_reader->Update();
         field = field_reader->GetOutput();
-
-        warper->PushBackDeformationFieldTransform(field);
-        warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
-        warper->SetOutputOrigin(field->GetOrigin() );
-        warper->SetOutputSpacing(field->GetSpacing() );
-        warper->SetOutputDirection(field->GetDirection() );
 
         transcount++;
         break;
@@ -759,62 +645,6 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 
   // warper->PrintTransformList();
 
-  if( img_ref.IsNotNull() )
-    {
-    warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
-    warper->SetOutputSpacing(img_ref->GetSpacing() );
-    warper->SetOutputOrigin(img_ref->GetOrigin() );
-    warper->SetOutputDirection(img_ref->GetDirection() );
-    }
-  else
-    {
-    if( misc_opt.use_TightestBoundingBox == true )
-      {
-      // compute the desired spacing after inputting all the transform files
-
-      typename ImageType::SizeType largest_size;
-      typename ImageType::PointType origin_warped;
-      GetLaregstSizeAfterWarp(warper, img_mov, largest_size, origin_warped);
-      warper->SetOutputSize(largest_size);
-      warper->SetOutputSpacing(img_mov->GetSpacing() );
-      warper->SetOutputOrigin(origin_warped);
-
-      typename ImageType::DirectionType d;
-      d.SetIdentity();
-      warper->SetOutputDirection(d);
-      }
-    }
-
-  std::cout << "output origin: " << warper->GetOutputOrigin() << std::endl;
-  std::cout << "output size: " << warper->GetOutputSize() << std::endl;
-  std::cout << "output spacing: " << warper->GetOutputSpacing() << std::endl;
-  std::cout << "output direction: " << warper->GetOutputDirection() << std::endl;
-
-  // warper->PrintTransformList();
-  warper->DetermineFirstDeformNoInterp();
-  warper->Update();
-
-  //    {
-  //        typename ImageType::IndexType ind_orig, ind_warped;
-  //        ind_orig[0] = 128;
-  //        ind_orig[1] = 128;
-  //        ind_orig[2] = 16;
-  //        typename ImageType::PointType pt_orig, pt_warped;
-  //        warper->GetOutput()->TransformIndexToPhysicalPoint(ind_orig, pt_orig);
-  //        warper->MultiTransformSinglePoint(pt_orig, pt_warped);
-  //        img_mov->TransformPhysicalPointToIndex(pt_warped, ind_warped);
-  //        std::cout << "Transform output index " << ind_orig << "("<<pt_orig<<")"
-  //        << " from moving image index " << ind_warped << "("<<pt_warped<<")" << std::endl;
-  //    }
-
-  //    typename ImageType::PointType pt_in, pt_out;
-  //    for(unsigned int i=0; i<ImageDimension; i++){
-  //        pt_in[i] = warper->GetOutputSize()[i] * 0.5;
-  //    }
-  //    warper->MultiTransformSinglePoint(pt_in, pt_out);
-  //    std::cout << "pt_in=" << pt_in << " pt_out=" <<pt_out << std::endl;
-
-  // std::cout << "Reorient tensor values..." << std::flush;
   typedef itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType, DeformationFieldType>
     ReorientType;
   typename ReorientType::Pointer reo = ReorientType::New();
@@ -824,80 +654,6 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 
   typename TensorImageType::Pointer img_output = reo->GetOutput();
   WriteTensorImage<TensorImageType>(img_output, output_image_filename, true);
-}
-
-int ReorientTensorImageOld(int argc, char *argv[])
-{
-  if( argc < 4 )
-    {
-    std::cout << "Useage ex: " << argv[0] << " dimension infile.nii outfile.nii warp.nii " << std::endl;
-    return 1;
-    }
-
-  //  typedef itk::Vector<float, 6> TensorTypeIn;
-  // typedef itk::Vector<float, 6> TensorType;
-  typedef itk::SymmetricSecondRankTensor<float, 3> TensorType;
-
-  const unsigned int ImageDimension = 3;
-  typedef itk::Image<TensorType, ImageDimension>  TensorImageType;
-  typedef TensorImageType::Pointer                TensorImagePointer;
-  typedef float                                   PixelType;
-  typedef itk::Vector<float, ImageDimension>      VectorType1;
-  typedef itk::Image<VectorType1, ImageDimension> DeformationFieldType;
-  typedef itk::Image<PixelType, ImageDimension>   ImageType;
-
-  typedef ImageType::IndexType                                        IndexType;
-  typedef ImageType::SizeType                                         SizeType;
-  typedef ImageType::SpacingType                                      SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                AffineTransformType;
-  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType> FieldReaderType;
-
-  typedef itk::VectorResampleImageFilter<DeformationFieldType, DeformationFieldType> FieldResampleType;
-
-  unsigned int dim = atoi(argv[1]);
-  char *       infile = argv[2];
-  char *       outfile = argv[3];
-  char *       warpfile = argv[4];
-
-  std::cout << "Input file: " << infile << std::endl;
-  std::cout << "Output file: " << outfile << std::endl;
-  std::cout << "Warp file: " << warpfile << std::endl;
-
-  if( dim != 3 )
-    {
-    std::cout << "Only 3D tensors supported" << std::endl;
-    return 1;
-    }
-
-  TensorImageType::Pointer img_mov;
-  ReadTensorImage<TensorImageType>(img_mov, infile, false);
-
-  FieldReaderType::Pointer field_reader = FieldReaderType::New();
-  field_reader->SetFileName(warpfile);
-  field_reader->Update();
-  DeformationFieldType::Pointer field = field_reader->GetOutput();
-
-  std::cout << "Resize warp field..." << std::flush;
-  FieldResampleType::Pointer fieldResample = FieldResampleType::New();
-  fieldResample->SetInput( field );
-  fieldResample->SetOutputSpacing( img_mov->GetSpacing() );
-  fieldResample->SetOutputOrigin( img_mov->GetOrigin() );
-  fieldResample->SetSize( img_mov->GetLargestPossibleRegion().GetSize() );
-  fieldResample->Update();
-  std::cout << "Done." << std::endl;
-
-  std::cout << "Reorient tensor values..." << std::flush;
-  typedef itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType,
-                                                                              DeformationFieldType> ReorientType;
-  ReorientType::Pointer reo = ReorientType::New();
-  reo->SetDeformationField(fieldResample->GetOutput() );
-  reo->SetInput(img_mov);
-  reo->Update();
-  std::cout << "Done." << std::endl;
-
-  WriteTensorImage<TensorImageType>(reo->GetOutput(), outfile, false);
-
-  return 0;
 }
 
 int main(int argc, char *argv[])

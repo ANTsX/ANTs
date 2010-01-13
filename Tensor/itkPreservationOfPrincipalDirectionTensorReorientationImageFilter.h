@@ -64,11 +64,11 @@ public:
   typedef itk::Image<float, ImageDimension> FloatImageType;
 
   //  typedef Vector<float, 6> TensorType;
-  typedef itk::SymmetricSecondRankTensor<double, 3> TensorType;
-  typedef Image<TensorType, ImageDimension>         TensorImageType;
-  typedef typename TensorImageType::Pointer         TensorImagePointer;
-  typedef vnl_matrix<float>                         VnlMatrixType;
-  typedef vnl_vector<float>                         vvec;
+  typedef itk::SymmetricSecondRankTensor<float, 3> TensorType;
+  typedef Image<TensorType, ImageDimension>        TensorImageType;
+  typedef typename TensorImageType::Pointer        TensorImagePointer;
+  typedef vnl_matrix<float>                        VnlMatrixType;
+  typedef vnl_vector<float>                        vvec;
 
   /** Standard class typedefs. */
   typedef PreservationOfPrincipalDirectionTensorReorientationImageFilter Self;
