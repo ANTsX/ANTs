@@ -208,8 +208,8 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
       if( misc_opt.reference_image_filename == NULL )
         {
         std::cout
-        << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
-        << std::endl;
+          << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
+          << std::endl;
         return false;
         }
 
@@ -493,29 +493,29 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
       switch( i )
         {
         case 0:
-    { ind[0] = 0; ind[1] = 0; ind[2] = 0; }
-                                          break;
+      { ind[0] = 0; ind[1] = 0; ind[2] = 0; }
+                                            break;
         case 1:
-    { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; }
-                                                     break;
+      { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; }
+                                                       break;
         case 2:
-    { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                     break;
+      { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; }
+                                                       break;
         case 3:
-    { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                                break;
+      { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; }
+                                                                  break;
         case 4:
-    { ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                     break;
+      { ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; }
+                                                       break;
         case 5:
-    { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                                break;
+      { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; }
+                                                                  break;
         case 6:
-    { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                                break;
+      { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
+                                                                  break;
         case 7:
-    { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                                           break;
+      { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
+                                                                             break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
@@ -537,17 +537,17 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
       switch( i )
         {
         case 0:
-    { ind[0] = 0; ind[1] = 0; }
-                              break;
+      { ind[0] = 0; ind[1] = 0; }
+                                break;
         case 1:
-    { ind[0] = imgsz[0] - 1; ind[1] = 0; }
-                                         break;
+      { ind[0] = imgsz[0] - 1; ind[1] = 0; }
+                                           break;
         case 2:
-    { ind[0] = 0; ind[1] = imgsz[1] - 1; }
-                                         break;
+      { ind[0] = 0; ind[1] = imgsz[1] - 1; }
+                                           break;
         case 3:
-    { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; }
-                                                    break;
+      { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; }
+                                                      break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
@@ -658,15 +658,21 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 
 int main(int argc, char *argv[])
 {
-  if( argc < 4 )
-    {
-    std::cout << "Useage ex: " << argv[0] << " dimension infile.nii outfile.nii warp.nii " << std::endl;
-    return 1;
+  std::cout << " Does not take into account reorientation needed when orientations change only in the header!! "
+    std::cout << " consider the same DT image in 2 different orientations under an applied identity transform. "
+    std::cout
+            <<
+  " the components will not be rotated correctly, but should be, b/c the header rotation is not accounted for in the reorientation filter."
+    std::cout << " this is a bug we need to fix."
+    if( argc < 4 )
+      {
+      std::cout << "Useage ex: " << argv[0] << " dimension infile.nii outfile.nii warp.nii " << std::endl;
+      return 1;
     }
 
-  TRAN_OPT_QUEUE opt_queue;
-  char *         moving_image_filename = NULL;
-  char *         output_image_filename = NULL;
+    TRAN_OPT_QUEUE opt_queue;
+  char *           moving_image_filename = NULL;
+  char *           output_image_filename = NULL;
 
   MISC_OPT misc_opt;
 
