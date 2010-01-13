@@ -189,6 +189,10 @@ TARGET_LINK_LIBRARIES(ResampleImageBySpacing ITKIO)
 ADD_EXECUTABLE(CopyImageHeaderInformation CopyImageHeaderInformation.cxx)
 TARGET_LINK_LIBRARIES(CopyImageHeaderInformation ITKIO)
 
+ADD_EXECUTABLE(WarpVectorImageMultiTransform WarpVectorImageMultiTransform.cxx)
+TARGET_LINK_LIBRARIES(WarpVectorImageMultiTransform ITKCommon ITKBasicFilters ITKIO ITKNumerics  ITKStatistics)
+
+
 ADD_EXECUTABLE(WarpTensorImageMultiTransform WarpTensorImageMultiTransform.cxx)
 TARGET_LINK_LIBRARIES(WarpTensorImageMultiTransform ITKCommon ITKBasicFilters ITKIO ITKNumerics  ITKStatistics)
 

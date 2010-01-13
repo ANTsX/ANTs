@@ -1986,7 +1986,7 @@ int TensorFunctions(int argc, char *argv[])
 {
   typedef float PixelType;
   //  typedef itk::Vector<float, 6> TensorType;
-  typedef itk::SymmetricSecondRankTensor<double, 3>          TensorType;
+  typedef itk::SymmetricSecondRankTensor<float, 3>           TensorType;
   typedef typename itk::RGBPixel<unsigned char>              RGBType;
   typedef itk::Image<TensorType, ImageDimension>             TensorImageType;
   typedef typename TensorImageType::IndexType                IndexType;
