@@ -370,7 +370,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
       {
       RealType pixel = ItU.Get();
 
-      RealType cidx = ( static_cast<RealType>( pixel ) - binMinimum )
+      float cidx = ( static_cast<RealType>( pixel ) - binMinimum )
         / histogramSlope;
       unsigned int idx = vnl_math_floor( cidx );
       RealType     offset = cidx - static_cast<RealType>( idx );
@@ -529,7 +529,7 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
         && ( !this->GetConfidenceImage() ||
              this->GetConfidenceImage()->GetPixel( ItU.GetIndex() ) > 0.0 ) )
       {
-      RealType     cidx = ( ItU.Get() - binMinimum ) / histogramSlope;
+      float        cidx = ( ItU.Get() - binMinimum ) / histogramSlope;
       unsigned int idx = vnl_math_floor( cidx );
 
       RealType correctedPixel = 0;
