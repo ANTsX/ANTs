@@ -51,7 +51,6 @@
 #include "ReadWriteImage.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkExpImageFilter.h"
-#include "itkN3MRIBiasFieldCorrectionImageFilter.h"
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkKdTree.h"
@@ -6310,79 +6309,6 @@ int CorrelationUpdate(      int argc, char *argv[])
   WriteImage<ImageType>(imageout, outname.c_str() );
 
   return 0;
-}
-
-template <class TImage>
-typename TImage::Pointer
-N3BiasCorrectImage(   typename TImage::Pointer image,  typename TImage::Pointer maskImage )
-{
-  typedef TImage                                               MaskImageType;
-  typedef TImage                                               ImageType;
-  typedef itk::ShrinkImageFilter<MaskImageType, MaskImageType> MaskShrinkerType;
-  typename MaskShrinkerType::Pointer maskshrinker = MaskShrinkerType::New();
-  typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
-  typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
-  shrinker->SetInput( image );
-  maskshrinker->SetInput( maskImage );
-  shrinker->SetShrinkFactors( 4 );
-  maskshrinker->SetShrinkFactors( 4 );
-  shrinker->Update();
-  maskshrinker->Update();
-
-  typedef itk::N3MRIBiasFieldCorrectionImageFilter<ImageType, MaskImageType, ImageType> CorrecterType;
-  typename CorrecterType::Pointer correcter = CorrecterType::New();
-  correcter->SetInput( shrinker->GetOutput() );
-  correcter->SetMaskImage( maskshrinker->GetOutput() );
-  correcter->Update();
-
-  /**
-   * Reconstruct the bias field at full image resolution.  Divide
-   * the original input image by the bias field to get the final
-   * corrected image.
-   */
-  typedef itk::BSplineControlPointImageFilter<typename
-                                              CorrecterType::BiasFieldControlPointLatticeType, typename
-                                              CorrecterType::ScalarImageType> BSplinerType;
-  typename BSplinerType::Pointer bspliner = BSplinerType::New();
-  bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
-  bspliner->SetSplineOrder( correcter->GetSplineOrder() );
-  bspliner->SetSize(
-    image->GetLargestPossibleRegion().GetSize() );
-  bspliner->SetOrigin( image->GetOrigin() );
-  bspliner->SetDirection( image->GetDirection() );
-  bspliner->SetSpacing( image->GetSpacing() );
-  bspliner->Update();
-
-  typename ImageType::Pointer logField = ImageType::New();
-  logField->SetOrigin( bspliner->GetOutput()->GetOrigin() );
-  logField->SetSpacing( bspliner->GetOutput()->GetSpacing() );
-  logField->SetRegions(
-    bspliner->GetOutput()->GetLargestPossibleRegion().GetSize() );
-  logField->SetDirection( bspliner->GetOutput()->GetDirection() );
-  logField->Allocate();
-
-  itk::ImageRegionIterator<typename CorrecterType::ScalarImageType> ItB(
-    bspliner->GetOutput(),
-    bspliner->GetOutput()->GetLargestPossibleRegion() );
-  itk::ImageRegionIterator<ImageType> ItF( logField,
-                                           logField->GetLargestPossibleRegion() );
-  for( ItB.GoToBegin(), ItF.GoToBegin(); !ItB.IsAtEnd(); ++ItB, ++ItF )
-    {
-    ItF.Set( ItB.Get()[0] );
-    }
-
-  typedef itk::ExpImageFilter<ImageType, ImageType> ExpFilterType;
-  typename ExpFilterType::Pointer expFilter = ExpFilterType::New();
-  expFilter->SetInput( logField );
-  expFilter->Update();
-
-  typedef itk::DivideImageFilter<ImageType, ImageType, ImageType> DividerType;
-  typename DividerType::Pointer divider = DividerType::New();
-  divider->SetInput1( image );
-  divider->SetInput2( expFilter->GetOutput() );
-  divider->Update();
-
-  return divider->GetOutput();
 }
 
 template <class TImage>
