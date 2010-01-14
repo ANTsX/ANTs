@@ -506,7 +506,7 @@ shiftsize=`expr $OPTIND - 1`
 shift $shiftsize
 # The invocation of $* will now read all remaining arguments into the variable IMAGESETVARIABLE
 IMAGESETVARIABLE=$*
-
+export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 #ANTSPATH=YOURANTSPATH
 if [  ${#ANTSPATH} -le 0 ]
 then
@@ -588,6 +588,8 @@ NUMLEVELS=${#ITERATLEVEL[@]}
 
 reportMappingParameters
 
+
+
 i=0
 while [  $i -lt ${ITERATIONLIMIT} ]
 	do
@@ -658,6 +660,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 		#2 determine new filename
 		POO=${OUTPUTNAME}${IMG}
 
+
 		#3 Make variable OUTFILENAME and remove anything behind . ; for example .nii.gz
 		OUTFN=${POO%.*.*}
 
@@ -668,30 +671,28 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 		fi
 
 		#5 prepare registration command
-		exe="${ANTSSCRIPTNAME} -d ${DIM} -r ${dir}/${TEMPLATE} -i ${dir}/${IMG} -o ${dir}/${OUTFN} -m ${MAXITERATIONS} -n ${N3CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} >> job_${count}_${i}_metriclog.txt"
+		exe="${ANTSSCRIPTNAME} -d ${DIM} -r ${dir}/${TEMPLATE} -i ${dir}/${IMG} -o ${dir}/${OUTFN} -m ${MAXITERATIONS} -n ${N3CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
+                pexe=" $exe >> job_${count}_${i}_metriclog.txt "
 
 		#6 submit to SGE or else run locally
 		if [ $DOQSUB -gt 0 ]; then
 			id=`qsub -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
 			jobIDs="$jobIDs $id"
-			sleep 1
+			sleep 0.3
 		else
 			# here comes the pexec call
 			# sh $exe
-			echo $exe >> job${count}_${i}.sh
+			echo $pexe >> job${count}_${i}.sh
 		fi
 
 		# counter updated, but not directly used in this loop
 		count=`expr $count + 1`;
-#		echo $count # for debugging only
-
+		echo " submitting job number $count " # for debugging only
 	done
-
 	# SGE wait for script to finish
 	if [ $DOQSUB -gt 0 ];
 	then
 		echo " submitted $count jobs "
-
 		# now wait for the stuff to finish; this script is absent
 		${ANTSPATH}waitForSGEQJobs.pl 1 120 $jobIDs
 
