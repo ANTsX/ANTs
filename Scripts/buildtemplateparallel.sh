@@ -181,14 +181,14 @@ echo " shapeupdatetotemplate 2"
 echo "--------------------------------------------------------------------------------------"
 if [ $dim -eq 2  ]
 then
-	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii 0 ${outputname}*Warpxvec.nii
-	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii 0 ${outputname}*Warpyvec.nii
+	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii 0 ${outputname}*Warpxvec.nii*
+	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii 0 ${outputname}*Warpyvec.nii*
 
 elif [ $dim -eq 3  ]
 then
-	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii 0 ${outputname}*Warpxvec.nii
-	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii 0 ${outputname}*Warpyvec.nii
-	${ANTSPATH}AverageImages $dim ${templatename}warpzvec.nii 0 ${outputname}*Warpzvec.nii
+	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii 0 ${outputname}*Warpxvec.nii*
+	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii 0 ${outputname}*Warpyvec.nii*
+	${ANTSPATH}AverageImages $dim ${templatename}warpzvec.nii 0 ${outputname}*Warpzvec.nii*
 fi
 
 echo
