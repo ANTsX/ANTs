@@ -167,7 +167,7 @@ ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz  CompareHeadersAndImages 
 
 The repaired image is:
 
-${OUTPUTNAME}repaired.nii
+${OUTPUTNAME}repaired.nii.gz
 
 and should be located in:
 
@@ -401,7 +401,7 @@ echo "--------------------------------------------------------------------------
 echo "Applying inverse transformation to ${FIXED}"
 echo "--------------------------------------------------------------------------------------"
 FIXEDBASE=` echo $MOVING | cut -d '.' -f 1 `
-${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii
+${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz
 fi
 
 elif [ ${N3CORRECT} -eq 1 ]
@@ -444,7 +444,7 @@ echo "--------------------------------------------------------------------------
 echo "Applying inverse transformation to ${FIXED}"
 echo "--------------------------------------------------------------------------------------"
 FIXEDBASE=` echo $MOVING | cut -d '.' -f 1 `
-${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${OUTPUTNAME}.nii.gz  -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii
+${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${OUTPUTNAME}.nii.gz  -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz
 fi
 
 fi
@@ -459,7 +459,7 @@ if [ $DoANTSQC -eq 1 ]
 then
 #  measure image similarity - 0 = intensity difference, 1 = correlation , 2 = mutual information
 for SIM in 0 1 2 ; do
-${ANTSPATH}MeasureImageSimilarity $DIM $SIM $FIXED ${OUTPUTNAME}deformed.nii
+${ANTSPATH}MeasureImageSimilarity $DIM $SIM $FIXED ${OUTPUTNAME}deformed.nii.gz
 done
 
 # the lines below  measure dice overlap and min-dist-sum from the approximately segmented brain (3 tissues and background)
