@@ -87,4 +87,3 @@ exe=" ${ANTSPATH}ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i
     ${ANTSPATH}WarpImageMultiTransform $DIM  ${OUTPUTNAME}repaired.nii.gz   ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt  -R ${FIXED}
 
 
-exit

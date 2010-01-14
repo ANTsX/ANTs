@@ -141,7 +141,7 @@ exit
 if [ $DoANTSQC -eq 1 ] ;  then
 #  measure image similarity
 for SIM in 0 1 2 ; do
-${ANTSPATH}MeasureImageSimilarity $DIM $SIM $FIXED ${OUTPUTNAME}deformed.nii
+${ANTSPATH}MeasureImageSimilarity $DIM $SIM $FIXED ${OUTPUTNAME}deformed.nii.gz
 done
 #  measure dice overlap and mds
 ${ANTSPATH}ThresholdImage $DIM $FIXED ${OUTPUTNAME}fixthresh.nii.gz Otsu 4
@@ -158,4 +158,3 @@ ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPUT
 #  the Volume of the movlabstat computation vs. the mass of the jaclabstat
 fi
 
-exit
