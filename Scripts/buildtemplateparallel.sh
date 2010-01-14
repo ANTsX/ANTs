@@ -175,6 +175,7 @@ echo " shapeupdatetotemplate 1"
 echo "--------------------------------------------------------------------------------------"
 ${ANTSPATH}AverageImages $dim ${template} 1 ${outputname}*formed.nii*
 
+rm -f ${outputname}*InverseWarp*vec.nii*
 echo
 echo "--------------------------------------------------------------------------------------"
 echo " shapeupdatetotemplate 2"
