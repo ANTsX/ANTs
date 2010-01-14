@@ -120,7 +120,7 @@ fi
 
 ${ANTSPATH}N3BiasFieldCorrection $DIM ${OUTPUTNAME}repaired.nii.gz   ${OUTPUTNAME}repaired.nii.gz  4
 
-exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching "
+exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x1000 "
 
  echo " $exe "
 

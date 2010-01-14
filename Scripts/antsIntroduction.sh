@@ -373,7 +373,7 @@ reportMappingParameters
 if  [ ${N3CORRECT} -eq 0 ]
 then
 # Apply ANTS mapping command without N3BiasFieldCorrection
-exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching "
+exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"
