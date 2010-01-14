@@ -455,6 +455,10 @@ do
         ;;
     c) #use SGE cluster
         DOQSUB=$OPTARG
+	if [[ ${#DOQSUB} -gt 1 ]] ; then
+	    echo " DOQSUB must be an integer value (preferably 0 or 1 ) you passed  -c $DOQSUB "
+	    exit 1
+	fi
         ;;
     d) #dimensions
         DIM=$OPTARG
