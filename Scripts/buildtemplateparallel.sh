@@ -29,7 +29,7 @@ Optional arguments:
 
      -c:  Use SGE cluster (cannot be used in combination with -j; requires SGE)
 
-     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
+     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.1)
 
      -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
@@ -159,7 +159,7 @@ dim=${DIM}
 template=${TEMPLATE}
 templatename=${TEMPLATENAME}
 outputname=${OUTPUTNAME}
-gradientstep=${GRADIENTSTEP}
+gradientstep=-${GRADIENTSTEP}
 
 #debug only
 #echo $dim
@@ -437,7 +437,7 @@ METRICTYPE="PR" # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
 N3CORRECT=1 # initialize optional parameter
 DOQSUB=0 # run locally by default
-GRADIENTSTEP="0.25" # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
+GRADIENTSTEP="0.1" # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
 ITERATIONLIMIT=4
 CORES=2
 
