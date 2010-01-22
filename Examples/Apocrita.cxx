@@ -105,6 +105,7 @@ int ApocritaSegmentation( itk::WASPCommandLineParser *parser )
 
     std::string initializationStrategy = initializationOption->GetValue();
     ConvertToLowerCase( initializationStrategy );
+
     if( !initializationStrategy.compare( std::string( "otsu" ) ) )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::Otsu );
@@ -113,7 +114,7 @@ int ApocritaSegmentation( itk::WASPCommandLineParser *parser )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::KMeans );
       }
-    else if( !initializationStrategy.compare( std::string( "priorprobabilityimages" ) ) )
+    else if( !initializationStrategy.compare( std::string( "priorprobabilities" ) ) )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::PriorProbabilityImages );
 
