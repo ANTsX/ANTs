@@ -30,7 +30,6 @@
 #include "itkSubtractImageFilter.h"
 
 #include "vnl/algo/vnl_fft_1d.h"
-#include "vnl/vnl_math.h"
 #include "vnl/vnl_complex_traits.h"
 #include "vxl/vcl/vcl_complex.h"
 
@@ -49,14 +48,15 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   this->m_WeinerFilterNoise = 0.01;
   this->m_BiasFieldFullWidthAtHalfMaximum = 0.15;
 
-  this->m_MaximumNumberOfIterations = 50;
-  this->m_ConvergenceThreshold = 0.001;
-
   this->m_SplineOrder = 3;
-  this->m_NumberOfFittingLevels.Fill( 4 );
+  this->m_NumberOfFittingLevels.Fill( 1 );
   this->m_NumberOfControlPoints.Fill( 4 );
   this->m_SigmoidNormalizedAlpha = 0.0;
   this->m_SigmoidNormalizedBeta = 0.5;
+
+  this->m_MaximumNumberOfIterations.SetSize( 1 );
+  this->m_MaximumNumberOfIterations.Fill( 50 );
+  this->m_ConvergenceThreshold = 0.001;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
