@@ -211,6 +211,16 @@ LabeledPointSetFileWriter<TInputMesh>
   //
   std::ofstream outputFile( this->m_FileName.c_str(), std::ios::app );
 
+  // No point data conditions
+  if( !this->m_Input->GetPointData() )
+    {
+    return;
+    }
+  if( this->m_Input->GetPointData()->Size() == 0 )
+    {
+    return;
+    }
+
   unsigned int numberOfPoints = this->m_Input->GetNumberOfPoints();
 
   outputFile << std::endl;
