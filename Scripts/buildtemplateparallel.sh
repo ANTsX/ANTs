@@ -287,11 +287,11 @@ PARAM4=` awk -v a=$PARAM4 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 6  `
 for x in $LL ; do PARAM5=` awk -v a=$PARAM5 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM5=` awk -v a=$PARAM5 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM5=0 # ` awk -v a=$PARAM5 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 7  `
 for x in $LL ; do PARAM6=` awk -v a=$PARAM6 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM6=` awk -v a=$PARAM6 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM6=0 # ` awk -v a=$PARAM6 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` cat $FLIST | grep FixedParamet | cut -d ' ' -f 2  `
 for x in $LL ; do PARAM7=` awk -v a=$PARAM7 -v b=$x 'BEGIN{print (a + b)}' `  ; done
@@ -368,15 +368,15 @@ PARAM9=` awk -v a=$PARAM9 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 11  `
 for x in $LL ; do PARAM10=` awk -v a=$PARAM10 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM10=` awk -v a=$PARAM10 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM10=0 # ` awk -v a=$PARAM10 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 12  `
 for x in $LL ; do PARAM11=` awk -v a=$PARAM11 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM11=` awk -v a=$PARAM11 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM11=0 # ` awk -v a=$PARAM11 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 13  `
 for x in $LL ; do PARAM12=` awk -v a=$PARAM12 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM12=` awk -v a=$PARAM12 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM12=0 # ` awk -v a=$PARAM12 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 # translation params below
 
