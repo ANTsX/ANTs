@@ -50,37 +50,56 @@ int main(int argc, char *argv[] )
 //  while(argc--) printf("%s\n", *argv++);
   if( argc < 2 )
     {
-    std::cout <<  "  Call  to get detailed usage :  \n    ANTS -h  \n or  \n ANTS --help \n \n  " << std::endl;
-    std::cout
-      <<
-    " typical use, for a 3D image matching with mutual information : \n  ANTS  3  -m MI[fixedimage.nii,movingimage.nii,1,32] -o MutualInformationMapping.nii -i 30x20x0 -r Gauss[3,1] -t Elast[3] "
-      << std::endl;
-    std::cout << " the value 32 in the metric call ( -m MI[ ...] ) is the joint histogram #of bins " << std::endl;
-    std::cout << " the transformation model is elastic with gradient descent step-length of 3 " << std::endl;
-    std::cout
-      <<
-    "  3 levels of optimization with 30 iterations at the coarsest (fastest) level, 20 at the next and 0 at full resolution "
-      << std::endl;
-    std::cout
-      <<
-    " \n typical use, for a 3D image matching with correlation : \n  ANTS  3  -m PR[fixedimage.nii,movingimage.nii,1,2] -o CC.nii -i 30x20x0 -r Gauss[3,0] -t SyN[1] "
-      << std::endl;
-    std::cout << " the value 2 in the metric call ( -m PR[ ...] ) is the radius of the correlation window "
+    std::cout <<  " \n " << std::endl;
+    std::cout <<  "Example usage: \n " << std::endl;
+    std::cout << argv[0]
+              <<
+    " ImageDimension -m MI[fixedimage.nii.gz,movingimage.nii.gz,1,32] -o Outputfname.nii.gz -i 30x20x0 -r Gauss[3,1] -t Elast[3] \n \n "
               << std::endl;
+    std::cout << " Compulsory arguments:\n " << std::endl;
+    std::cout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
+    std::cout << " -m:	Type of similarity model used for registration. \n "<< std::endl;
+    std::cout << "	For intramodal image registration, use: "<< std::endl;
+    std::cout << "		CC = cross-correlation "<< std::endl;
+    std::cout << "		MI = mutual information "<< std::endl;
+    std::cout << "		PR = probability mapping "<< std::endl;
+    std::cout << "		MSQ = mean square difference "<< std::endl;
+    std::cout << " \n " << std::endl;
+    std::cout << "	For intermodal image registration, use: "<< std::endl;
+    std::cout << "		MI = mutual information "<< std::endl;
+    std::cout << "		PR = probability mapping "<< std::endl;
+    std::cout << " \n " << std::endl;
+    std::cout << " -o   Outputfname.nii.gz: the name of the resulting image.\n "<< std::endl;
+    std::cout << " -i   Max-iterations in format: JxKxL, where: "<< std::endl;
+    std::cout << "		J = max iterations at coarsest resolution (here, reduce by power of 2^2) "<< std::endl;
+    std::cout << "		K = middle resolution iterations (here,reduce by power of 2) "<< std::endl;
     std::cout
-      << " the transformation is the greedy symmetric diffeomorphic mapping  with xgradient descent step-length of  1"
+      << "		L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
+      << std::endl;
+    std::cout
+      << "      Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another iteration level.\n "
+      << std::endl;
+    std::cout << " -r   Regularization \n"<< std::endl;
+    std::cout << " -t   Type of transformation model used for registration \n"<< std::endl;
+    std::cout << "	For elastic image registration, use: "<< std::endl;
+    std::cout << "		Elast = elastic transformation model (less deformation possible)\n "<< std::endl;
+    std::cout << "	For diffeomorphic image registration, use: "<< std::endl;
+    std::cout
+      <<
+    "		Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
       << std::endl;
     std::cout
       <<
-    " \n typical use, for a 3D image matching with correlation implementation 2 : \n  ANTS  3  -m CC[fixedimage.nii,movingimage.nii,1,2] -o CC2.nii -i 30x20x0 -r Gauss[3,0.5] -t SyN[1,2,0.1] "
+    "		SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
       << std::endl;
-    std::cout << " the value 2 in the metric call ( -m CC[ ...] ) is the radius of the correlation window "
+    std::cout << "		SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  "<< std::endl;
+    std::cout << "		Exp[GradStep,TimePoints] = Exponential "<< std::endl;
+    std::cout << "		GreedyExp = Diffeomorphic Demons style exponential mapping "<< std::endl;
+    std::cout << " \n " << std::endl;
+    std::cout << " Please use the "ANTS
+      - h
+    " call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
               << std::endl;
-    std::cout
-      <<
-    " the transformation is the symmetric diffeomorphic mapping with time-varying velocity fied - 10 integration points in time and gradient step length of 1 "
-      << std::endl;
-    std::cout <<  " \n Call  to get detailed usage :  \n    ANTS -h  \n or  \n ANTS --help \n \n  " << std::endl;
     return 1;
     }
   else
@@ -90,8 +109,8 @@ int main(int argc, char *argv[] )
 
   if( dim <= 1 || dim > 3 )
     {
-    std::cout << " you passed image dimension (first argument) as " << dim
-              << " ANTS does not function with images of this dimension " << std::endl;
+    std::cout << " You passed ImageDimension: " << dim
+              << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
     argv[1] = (char *)("--help");
     ANTSex<2>( argc, argv );
     exit(1);
