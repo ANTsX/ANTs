@@ -96,10 +96,10 @@ int main(int argc, char *argv[] )
     std::cout << "		Exp[GradStep,TimePoints] = Exponential "<< std::endl;
     std::cout << "		GreedyExp = Diffeomorphic Demons style exponential mapping "<< std::endl;
     std::cout << " \n " << std::endl;
-    std::cout << " Please use the "ANTS
-      - h
-    " call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
-              << std::endl;
+    std::cout
+      <<
+    " Please use the `ANTS -h ` call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
+      << std::endl;
     return 1;
     }
   else

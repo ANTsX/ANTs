@@ -758,56 +758,108 @@ int main(int argc, char * *argv)
 {
   if( argc <= 3 )
     {
-    std::cout
+    std::cout <<  " \n " << std::endl;
+    std::cout <<  "Usage: \n " << std::endl;
+
+    //	std::cout << argv[0] <<  " ImageDimension moving_image output_image [-R reference_image |
+    // --tightest-bounding-box] (--reslice-by-header) [--use-NN]"
+    // << "[--ANTS-prefix prefix-name | --ANTS-prefix-invert prefix-name] {[deformation_field | [-i]
+    // InverseAffineTransform.txt | --Id | [-i] --moving-image-header / -mh  | [-i] --reference-image-header / -rh]} \n"
+    // << std::endl;
+    std::cout << argv[0]
               <<
-    "WarpImageMultiTransform ImageDimension moving_image output_image [-R reference_image | --tightest-bounding-box] (--reslice-by-header) [--use-NN (use Nearest Neighbor Interpolator)]"
-              <<
-      "[--ANTS-prefix prefix-name | --ANTS-prefix-invert prefix-name] {[deformation_field | [-i] affine_transform_txt | --Id | [-i] --moving-image-header / -mh  | [-i] --reference-image-header / -rh]}"
-              << std::endl
-              << "Example:" << std::endl
-              <<
-      "Reslice the image: WarpImageMultiTransform 3 Imov.nii Iout.nii --tightest-bounding-box --reslice-by-header"
-              << std::endl
-              <<
-      "Reslice the image to a reference image: WarpImageMultiTransform 3 Imov.nii Iout.nii -R Iref.nii --tightest-bounding-box --reslice-by-header"
-              << std::endl
-              << "Note:" << std::endl
-              << "-i will use the inversion of the following affine transform." << std::endl
-              <<
-      "--tightest-bounding-box will be overrided by -R reference_image if given. It computes the tightest bounding box using all the affine transformations."
-              << std::endl
-              << "--Id uses the identity transform." << std::endl
-              <<
-      "--moving-image-header or -mh in short will use the orientation header of the moving image file. This is typically not used with --reslice-by-header."
-              << std::endl
-              <<
-      "--reference-image-header or -rh in short will use the orientation header of the fixed image file. This is typically not used with --reslice-by-header."
-              << std::endl
-              <<
-      "--reslice-by-header uses the orientation matrix and origin encoded in the image file header. It can be used together with -R. "
-              << "This is typically not used together with any other transforms. "
-              << "--reslice-by-header is equvalient to -i -mh, or -fh -i -mh if used together with -R. " << std::endl;
-    std::cout << std::endl
-              << "For ANTS users:" << std::endl
-              << "To use with the deformation field and the affine transform files generated from ANTS:" << std::endl
-              << "--ANTS-prefix prefix-name" << std::endl
-              << "--ANTS-prefix-invert prefix-name" << std::endl
-              << "Example:" << std::endl
-              << "3 moving_image output_image -R reference_image --ANTS-prefix abcd.nii.gz" << std::endl
-              <<
-      "Applies abcdWarpxvec.nii.gz/abcdWarpyvec.nii.gz/abcdWarpzvec.nii.gz and then abcdAffine.txt. Use this with ANTS to get the moving_image warped into the reference_image domain. "
-              << std::endl
-              << "3 reference_image output_image -R moving_image --ANTS-prefix-invert abcd.nii.gz --ANTS-invert"
-              << std::endl
-              <<
-      "Applies the inversion of abcdAffine.txt and then abcdInverseWarpxvec.nii.gz/abcdInverseWarpyvec.nii.gz/abcdInverseWarpzvec.nii.gz. Use this with ANTS to get the reference_image warped into the moving_image domain. "
-              << std::endl
-              << "Note: " << std::endl
-              << "prefix name \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
-    std::cout <<  " \n  the -R option defines the reference image space that you wish to warp INTO \n "
-              <<
-      " e.g. one could pass a smaller image in to force resampling of the output to the smaller image resolution "
+    " ImageDimension moving_image output_image  -R reference_image --use-NN   SeriesOfTransformations--(See Below) "
               << std::endl;
+    std::cout << " SeriesOfTransformations --- " << argv[0]
+              <<  " can apply, via concatenation, an unlimited number of transformations to your data ." << std::endl;
+    std::cout
+      <<
+    " Thus, SeriesOfTransformations may be  an Affine transform followed by a warp  another affine and then another warp. "
+      << std::endl;
+    std::cout << "  Inverse affine transformations are invoked by calling   -i MyAffine.txt " << std::endl;
+    std::cout
+      << " InverseWarps are invoked by passing the InverseWarp.nii.gz  filename (see below for a note about this).  "
+      << std::endl;
+    std::cout << std::endl;
+    std::cout
+      <<
+    " Example 1: Moving a warped image into the reference_image domain by applying abcdWarpxvec.nii.gz/abcdWarpyvec.nii.gz/abcdWarpzvec.nii.gz and then abcdAffine.txt\n"
+      << std::endl;
+
+    std::cout << argv[0] <<  " 3 moving_image output_image -R reference_image abcdWarp.nii.gz abcdAffine.txt\n"
+              << std::endl;
+
+    std::cout
+      <<
+    " Example 2: To get the reference_image warped into the moving_image domain by applying the inversion of abcdAffine.txt and then abcdInverseWarpxvec.nii.gz/abcdInverseWarpyvec.nii.gz/abcdInverseWarpzvec.nii.gz .\n"
+      << std::endl;
+
+    std::cout << argv[0]
+              << " 3 reference_image output_image -R moving_image -i  abcdAffine.txt abcdInverseWarp.nii.gz \n \n"
+              << std::endl;
+    std::cout
+      <<
+    "  Note that the inverse maps (Ex. 2) are passed to this program in the reverse order of the forward maps (Ex. 1). "
+      << std::endl;
+    std::cout << std::endl;
+    std::cout << " Compulsory arguments:\n " << std::endl;
+
+    std::cout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
+
+    std::cout << " moving_image: the image to apply the transformation to\n " << std::endl;
+
+    std::cout << " output_image: the resulting image\n \n " << std::endl;
+
+    std::cout << " Optional arguments:\n " << std::endl;
+
+    std::cout << " -R: reference_image space that you wish to warp INTO." << std::endl;
+    std::cout
+      <<
+    "	   --tightest-bounding-box: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R reference_image if given."
+      << std::endl;
+    std::cout
+      <<
+    "	   --reslice-by-header: equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
+      << std::endl;
+    std::cout
+      << "	   It can be used together with -R. This is typically not used together with any other transforms.\n "
+      << std::endl;
+
+    std::cout << " --use-NN: Use Nearest Neighbor Interpolation. \n " << std::endl;
+
+    //	std::cout << " --ANTS-prefix prefix-name: followed by a deformation field filename. \n " << std::endl;
+
+    //	std::cout << " --ANTS-prefix-invert: . \n" << std::endl;
+
+    std::cout << " -i: will use the inversion of the following affine transform. \n " << std::endl;
+
+    //	std::cout << " --Id: use an identity transform. \n " << std::endl;
+
+    // std::cout << " --moving-image-header or -mh: will use the orientation header of the moving image file. This is
+    // typically not used with --reslice-by-header.\n " << std::endl;
+
+    //	std::cout << " --reference-image-header or -rh: use the orientation matrix and origin encoded in the image file
+    // header. It can be used together with -R.\n " << std::endl;
+    std::cout <<  " \n " << std::endl;
+
+    //        std::cout << " For ANTS users:" << std::endl;
+
+    std::cout << " Other Example Usages:" << std::endl;
+    std::cout
+      <<
+    " Reslice the image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz --tightest-bounding-box --reslice-by-header"
+      << std::endl;
+    std::cout
+      <<
+    " Reslice the image to a reference image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz -R Iref.nii.gz --tightest-bounding-box --reslice-by-header\n"
+      << std::endl;
+
+    std::cout << " Important Notes: " << std::endl;
+    std::cout << " Prefixname \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
+    std::cout
+      <<
+    " The abcdWarp and abcdInverseWarp do not exist. They are formed on the basis of abcd(Inverse)Warpxvec/yvec/zvec.nii.gz when calling "
+      << argv[0] << ", yet you have to use them as if they exist." << std::endl;
     exit(0);
     }
 
