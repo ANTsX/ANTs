@@ -18,10 +18,18 @@
 #define __itkFastMarchingImageFilter_txx
 
 #include "itkFastMarchingImageFilter.h"
+
+#include "itkConnectedComponentImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkNumericTraits.h"
+#include "itkRelabelComponentImageFilter.h"
+
+#include "itkImageFileWriter.h"
+
 #include "vnl/vnl_math.h"
 #include <algorithm>
+
+#include "topological_numbers.h"
 
 namespace itk
 {
@@ -58,7 +66,9 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
   this->m_CollectPoints = false;
 
   this->m_NormalizationFactor = 1.0;
-  this->m_CheckTopology = false;
+  this->m_TopologyCheck = None;
+  this->m_UseWellComposedness = true;
+  this->m_SimplePointConnectivity = 1;
 }
 
 template <class TLevelSet, class TSpeedImage>
@@ -79,9 +89,23 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
     this->m_LargeValue ) << std::endl;
   os << indent << "Normalization Factor: " << this->m_NormalizationFactor
      << std::endl;
-  os << indent << "Check topology: "
-     << static_cast<typename NumericTraits<bool>::PrintType>(
-    this->m_CheckTopology ) << std::endl;
+  os << indent << "Topology check: ";
+
+  switch( this->m_TopologyCheck )
+    {
+    case None:
+      {
+      os << "None" << std::endl;
+      }
+    case NoHandles:
+      {
+      os << "No handles" << std::endl;
+      }
+    case Strict:
+      {
+      os << "Strict" << std::endl;
+      }
+    }
   os << indent << "Collect points: " << this->m_CollectPoints << std::endl;
   os << indent << "OverrideOutputInformation: ";
   os << this->m_OverrideOutputInformation << std::endl;
@@ -152,11 +176,24 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
   offset.Fill( 1 );
   this->m_LastIndex -= offset;
 
-  // allocate memory for the PointTypeImage
+  // allocate memory for the LabelImage
   this->m_LabelImage->CopyInformation( output );
   this->m_LabelImage->SetBufferedRegion(
     output->GetBufferedRegion() );
   this->m_LabelImage->Allocate();
+
+  // Checking for handles only requires an image to keep track of
+  // connected components.
+  if( this->m_TopologyCheck == NoHandles )
+    {
+    this->m_ConnectedComponentImage = ConnectedComponentImageType::New();
+    this->m_ConnectedComponentImage->SetOrigin( output->GetOrigin() );
+    this->m_ConnectedComponentImage->SetSpacing( output->GetSpacing() );
+    this->m_ConnectedComponentImage->SetRegions( output->GetBufferedRegion() );
+    this->m_ConnectedComponentImage->SetDirection( output->GetDirection() );
+    this->m_ConnectedComponentImage->Allocate();
+    this->m_ConnectedComponentImage->FillBuffer( 0 );
+    }
 
   // set all output value to infinity
   typedef ImageRegionIterator<LevelSetImageType>
@@ -202,9 +239,35 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       // make this an alive point
       this->m_LabelImage->SetPixel( node.GetIndex(), AlivePoint );
 
+      //
+      if( this->m_TopologyCheck == NoHandles )
+        {
+        this->m_ConnectedComponentImage->SetPixel( node.GetIndex(),
+                                                   NumericTraits<typename ConnectedComponentImageType::PixelType>::One );
+        }
+
       outputPixel = node.GetValue();
       output->SetPixel( node.GetIndex(), outputPixel );
       }
+    }
+
+  if( this->m_TopologyCheck == NoHandles )
+    {
+    // Now create the connected component image and relabel such that labels
+    // are 1, 2, 3, ...
+    typedef ConnectedComponentImageFilter<ConnectedComponentImageType,
+                                          ConnectedComponentImageType> ConnectedComponentFilterType;
+    typename ConnectedComponentFilterType::Pointer connecter
+      = ConnectedComponentFilterType::New();
+    connecter->SetInput( this->m_ConnectedComponentImage );
+
+    typedef RelabelComponentImageFilter<ConnectedComponentImageType,
+                                        ConnectedComponentImageType> RelabelerType;
+    typename RelabelerType::Pointer relabeler = RelabelerType::New();
+    relabeler->SetInput( connecter->GetOutput() );
+    relabeler->Update();
+
+    this->m_ConnectedComponentImage = relabeler->GetOutput();
     }
 
   // make sure the heap is empty
@@ -239,8 +302,8 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       }
     }
 
-  // initialize indices if this->m_CheckTopology is true
-  if( this->m_CheckTopology )
+  // initialize indices if this->m_TopologyCheck is activated
+  if( this->m_TopologyCheck != None )
     {
     if( SetDimension == 2 )
       {
@@ -301,12 +364,181 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       }
 
     // does the node break topology
-    if( this->m_CheckTopology &&
-        !this->DoesVoxelChangeMaintainTopology( node.GetIndex() ) )
+    if( this->m_TopologyCheck != None && !this->m_UseWellComposedness )
       {
-      output->SetPixel( node.GetIndex(), NumericTraits<PixelType>::max() );
-      this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
-      continue;
+      NBH neighborhood;
+      typename NeighborhoodIteratorType::RadiusType radius;
+      radius.Fill( 1 );
+      NeighborhoodIteratorType ItL( radius, this->m_LabelImage,
+                                    this->m_LabelImage->GetBufferedRegion() );
+      ItL.SetLocation( node.GetIndex() );
+      if( SetDimension == 2 )
+        {
+        for( unsigned int i = 0; i < 3; i++ )
+          {
+          for( unsigned int j = 0; j < 3; j++ )
+            {
+            neighborhood[i][0][j] = neighborhood[i][2][j] = 0;
+            neighborhood[i][1][j] = static_cast<unsigned char>(
+                ItL.GetPixel( 3 * i + j ) == AlivePoint );
+            }
+          }
+        }
+      else if( SetDimension == 3 )
+        {
+        for( unsigned int i = 0; i < 3; i++ )
+          {
+          for( unsigned int j = 0; j < 3; j++ )
+            {
+            for( unsigned int k = 0; k < 3; k++ )
+              {
+              neighborhood[i][j][k] = static_cast<unsigned char>(
+                  ItL.GetPixel( 9 * i + 3 * j + k ) == AlivePoint );
+              }
+            }
+          }
+        }
+      bool isSimplePoint = checkSimple( &neighborhood,
+                                        this->m_SimplePointConnectivity );
+      if( !isSimplePoint )
+        {
+        if( this->m_TopologyCheck == Strict )
+          {
+          output->SetPixel( node.GetIndex(), -0.0001 );
+          this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
+          continue;
+          }
+        else if( this->m_TopologyCheck == NoHandles )
+          {
+          NBH dnbh;
+          NBH neighborhoodInv;
+          reverseNBH( &neighborhood, &neighborhoodInv );
+          unsigned int Tn = checkTn(
+              &neighborhood, &dnbh, this->m_SimplePointConnectivity );
+          unsigned int TnInv = checkTn( &neighborhoodInv, &dnbh,
+                                        associatedConnectivity( this->m_SimplePointConnectivity ) );
+
+          // Get number of connected components
+          NeighborhoodIterator<ConnectedComponentImageType> ItC(
+            radius, this->m_ConnectedComponentImage,
+            this->m_ConnectedComponentImage->GetBufferedRegion() );
+          ItC.SetLocation( node.GetIndex() );
+
+          std::vector<typename ConnectedComponentImageType::PixelType> Cn;
+          Cn.clear();
+
+          typename ConnectedComponentImageType::PixelType minLabel
+            = NumericTraits<typename ConnectedComponentImageType::PixelType>::max();
+          typename ConnectedComponentImageType::PixelType otherLabel
+            = NumericTraits<typename ConnectedComponentImageType::PixelType>::NonpositiveMin();
+          for( unsigned int n = 0; n < ItC.Size(); n++ )
+            {
+            if( n == static_cast<unsigned int>( 0.5 * ItC.Size() ) )
+              {
+              continue;
+              }
+            typename ConnectedComponentImageType::PixelType c = ItC.GetPixel( n );
+            if( c != 0 && std::find( Cn.begin(), Cn.end(), c ) == Cn.end() )
+              {
+              Cn.push_back( c );
+              minLabel = vnl_math_min( minLabel, c );
+              otherLabel = vnl_math_max( otherLabel, c );
+              }
+            }
+          bool isMultiSimplePoint = ( ( Cn.size() == Tn ) && TnInv == 1 );
+          if( !isMultiSimplePoint )
+            {
+            output->SetPixel( node.GetIndex(), -0.0001 );
+            this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
+            continue;
+            }
+          else
+            {
+            for( ItC.GoToBegin(); !ItC.IsAtEnd(); ++ItC )
+              {
+              if( ItC.GetCenterPixel() == otherLabel )
+                {
+                ItC.SetCenterPixel( minLabel );
+                }
+              }
+            }
+          }
+        }
+      }
+    else if( this->m_TopologyCheck != None && this->m_UseWellComposedness )
+      {
+      bool wellComposednessViolation
+        = this->DoesVoxelChangeViolateWellComposedness( node.GetIndex() );
+      bool strictTopologyViolation
+        = this->DoesVoxelChangeViolateStrictTopology( node.GetIndex() );
+      if( this->m_TopologyCheck == Strict && ( wellComposednessViolation
+                                               || strictTopologyViolation ) )
+        {
+        output->SetPixel( node.GetIndex(), -0.0001 );
+        this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
+        continue;
+        }
+      if( this->m_TopologyCheck == NoHandles )
+        {
+        if( wellComposednessViolation )
+          {
+          output->SetPixel( node.GetIndex(), -0.0001 );
+          this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
+          continue;
+          }
+        if( strictTopologyViolation )
+          {
+          // check for handles
+          typename NeighborhoodIteratorType::RadiusType radius;
+          radius.Fill( 1 );
+          NeighborhoodIteratorType ItL( radius, this->m_LabelImage,
+                                        this->m_LabelImage->GetBufferedRegion() );
+          ItL.SetLocation( node.GetIndex() );
+          NeighborhoodIterator<ConnectedComponentImageType> ItC(
+            radius, this->m_ConnectedComponentImage,
+            this->m_ConnectedComponentImage->GetBufferedRegion() );
+          ItC.SetLocation( node.GetIndex() );
+
+          typename ConnectedComponentImageType::PixelType minLabel
+            = NumericTraits<typename ConnectedComponentImageType::PixelType>::Zero;
+          typename ConnectedComponentImageType::PixelType otherLabel
+            = NumericTraits<typename ConnectedComponentImageType::PixelType>::Zero;
+
+          bool doesChangeCreateHandle = false;
+          for( unsigned int d = 0; d < SetDimension; d++ )
+            {
+            if( ItL.GetNext( d ) == AlivePoint && ItL.GetPrevious( d ) == AlivePoint )
+              {
+              if( ItC.GetNext( d ) == ItC.GetPrevious( d ) )
+                {
+                doesChangeCreateHandle = true;
+                }
+              else
+                {
+                minLabel = vnl_math_min( ItC.GetNext( d ), ItC.GetPrevious( d ) );
+                otherLabel = vnl_math_max( ItC.GetNext( d ), ItC.GetPrevious( d ) );
+                }
+              break;
+              }
+            }
+          if( doesChangeCreateHandle )
+            {
+            output->SetPixel( node.GetIndex(), -0.0001 );
+            this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
+            continue;
+            }
+          else
+            {
+            for( ItC.GoToBegin(); !ItC.IsAtEnd(); ++ItC )
+              {
+              if( ItC.GetCenterPixel() == otherLabel )
+                {
+                ItC.SetCenterPixel( minLabel );
+                }
+              }
+            }
+          }
+        }
       }
 
     if( currentValue > this->m_StoppingValue )
@@ -322,6 +554,38 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
     // set this node as alive
     this->m_LabelImage->SetPixel( node.GetIndex(), AlivePoint );
+
+    // for topology handle checks, we need to update the connected
+    // component image at the current node with the appropriate label.
+    if( this->m_TopologyCheck == NoHandles )
+      {
+      typename ConnectedComponentImageType::PixelType neighborhoodLabel
+        = NumericTraits<typename ConnectedComponentImageType::PixelType>::Zero;
+
+      typename NeighborhoodIteratorType::RadiusType radius;
+      radius.Fill( 1 );
+      NeighborhoodIterator<ConnectedComponentImageType> ItC(
+        radius, this->m_ConnectedComponentImage,
+        this->m_ConnectedComponentImage->GetBufferedRegion() );
+      ItC.SetLocation( node.GetIndex() );
+      for( unsigned int n = 0; n < ItC.Size(); n++ )
+        {
+        if( n == static_cast<unsigned int>( 0.5 * ItC.Size() ) )
+          {
+          continue;
+          }
+        typename ConnectedComponentImageType::PixelType c = ItC.GetPixel( n );
+        if( c > 0 )
+          {
+          neighborhoodLabel = c;
+          break;
+          }
+        }
+      if( neighborhoodLabel > 0 )
+        {
+        ItC.SetCenterPixel( neighborhoodLabel );
+        }
+      }
 
     // update its neighbors
     this->UpdateNeighbors( node.GetIndex(), speedImage, output );
@@ -362,7 +626,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       {
       neighIndex[j] = index[j] - 1;
       }
-    if( this->m_LabelImage->GetPixel( neighIndex ) == FarPoint )
+    if( this->m_LabelImage->GetPixel( neighIndex ) != AlivePoint )
       {
       this->UpdateValue( neighIndex, speedImage, output );
       }
@@ -372,7 +636,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       {
       neighIndex[j] = index[j] + 1;
       }
-    if( this->m_LabelImage->GetPixel( neighIndex ) == FarPoint )
+    if( m_LabelImage->GetPixel( neighIndex ) != AlivePoint )
       {
       this->UpdateValue( neighIndex, speedImage, output );
       }
@@ -506,31 +770,26 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 template <class TLevelSet, class TSpeedImage>
 bool
 FastMarchingImageFilter<TLevelSet, TSpeedImage>
-::DoesVoxelChangeMaintainTopology( IndexType idx )
+::DoesVoxelChangeViolateWellComposedness( IndexType idx )
 {
-  bool wellComposed = false;
+  bool isChangeWellComposed = false;
 
   if( SetDimension == 2 )
     {
-    wellComposed = this->IsChangeWellComposed2D( idx );
+    isChangeWellComposed = this->IsChangeWellComposed2D( idx );
     }
   else  // SetDimension == 3
     {
-    wellComposed = this->IsChangeWellComposed3D( idx );
+    isChangeWellComposed = this->IsChangeWellComposed3D( idx );
     }
 
-  if( wellComposed && !this->IsCriticalTopologicalConfiguration( idx ) )
-    {
-    return true;
-    }
-
-  return false;
+  return !isChangeWellComposed;
 }
 
 template <class TLevelSet, class TSpeedImage>
 bool
 FastMarchingImageFilter<TLevelSet, TSpeedImage>
-::IsCriticalTopologicalConfiguration( IndexType idx )
+::DoesVoxelChangeViolateStrictTopology( IndexType idx )
 {
   typename NeighborhoodIteratorType::RadiusType radius;
   radius.Fill( 1 );
