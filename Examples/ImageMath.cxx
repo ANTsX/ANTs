@@ -4000,7 +4000,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     typename FastMarchingFilterType::Pointer  fastMarching = FastMarchingFilterType::New();
     fastMarching->SetInput( speedimage );
 
-    fastMarching->SetCheckTopology( false );  // typename FastMarchingFilterType::Strict );
+    fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
 
     typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
     typedef typename FastMarchingFilterType::NodeType      NodeType;
