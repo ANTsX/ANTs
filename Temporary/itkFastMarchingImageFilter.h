@@ -180,11 +180,20 @@ private:
   enum LabelType { FarPoint, AlivePoint, TrialPoint, TopologyPoint };
 
   /** LabelImage typedef support. */
-  typedef Image<unsigned char, itkGetStaticConstMacro(SetDimension)> LabelImageType;
-  typedef NeighborhoodIterator<LabelImageType>                       NeighborhoodIteratorType;
+  typedef Image<unsigned char, itkGetStaticConstMacro( SetDimension )>
+    LabelImageType;
+  typedef NeighborhoodIterator<LabelImageType> NeighborhoodIteratorType;
 
   /** LabelImagePointer typedef support. */
   typedef typename LabelImageType::Pointer LabelImagePointer;
+
+  /** ConnectedComponentImage typedef support. */
+  typedef Image<unsigned int, itkGetStaticConstMacro( SetDimension )>
+    ConnectedComponentImageType;
+
+  /** ConnectedComponentImagePointer typedef support. */
+  typedef typename ConnectedComponentImageType::Pointer
+    ConnectedComponentImagePointer;
 
   /** Set the container of Alive Points representing the initial front.
    * Alive points are represented as a VectorContainer of LevelSetNodes. */
@@ -218,6 +227,12 @@ private:
   LabelImagePointer GetLabelImage() const
   {
     return m_LabelImage;
+  }
+
+  /** Get the point type label image. */
+  ConnectedComponentImagePointer GetConnectedComponentImage() const
+  {
+    return m_ConnectedComponentImage;
   }
 
   /** Set the Speed Constant. If the Speed Image is NULL,
@@ -258,10 +273,25 @@ private:
   itkGetConstReferenceMacro( CollectPoints, bool );
   itkBooleanMacro( CollectPoints );
 
+  enum TopologyCheckType { None, NoHandles, Strict };
+
   /** Set/Get boolean macro indicating whether the user wants to check topology. */
-  itkSetMacro( CheckTopology, bool );
-  itkGetConstReferenceMacro( CheckTopology, bool );
-  itkBooleanMacro( CheckTopology );
+  itkSetMacro( TopologyCheck, TopologyCheckType );
+  itkGetConstReferenceMacro( TopologyCheck, TopologyCheckType );
+
+  itkSetMacro( UseWellComposedness, bool );
+  itkGetConstMacro( UseWellComposedness, bool );
+  itkBooleanMacro( UseWellComposedness );
+
+  /**
+   * 1. (6, 18)
+   * 2. (18, 6)
+   * 3. (6, 26)
+   * 4. (26, 6)
+   */
+
+  itkSetClampMacro( SimplePointConnectivity, unsigned int, 1, 4 );
+  itkGetConstMacro( SimplePointConnectivity, bool );
 
   /** Get the container of Processed Points. If the CollectPoints flag
    * is set, the algorithm collects a container of all processed nodes.
@@ -357,7 +387,8 @@ private:
   NodeContainerPointer m_AlivePoints;
   NodeContainerPointer m_TrialPoints;
 
-  LabelImagePointer m_LabelImage;
+  LabelImagePointer              m_LabelImage;
+  ConnectedComponentImagePointer m_ConnectedComponentImage;
 
   double m_SpeedConstant;
   double m_InverseSpeed;
@@ -390,7 +421,9 @@ private:
   /**
    * Functions and variables to check for topology changes (2D/3D only).
    */
-  bool m_CheckTopology;
+  TopologyCheckType m_TopologyCheck;
+  bool              m_UseWellComposedness;
+  unsigned int      m_SimplePointConnectivity;
 
   // Functions/data for the 2-D case
   void InitializeIndices2D();
@@ -423,8 +456,8 @@ private:
   Array<unsigned int> m_C2Indices[8];
 
   // Functions for both 2D/3D cases
-  bool DoesVoxelChangeMaintainTopology( IndexType );
-  bool IsCriticalTopologicalConfiguration( IndexType );
+  bool DoesVoxelChangeViolateWellComposedness( IndexType );
+  bool DoesVoxelChangeViolateStrictTopology( IndexType );
 };
 } // namespace itk
 
