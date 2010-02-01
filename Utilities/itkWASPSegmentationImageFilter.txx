@@ -1173,10 +1173,9 @@ WASPSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           + this->m_PriorProbabilityWeighting
           * smoothImage->GetPixel( ItO.GetIndex() );
         }
-      RealType likelihood = // 1.0/sqrt( 6.28318531 * this->m_CurrentClassParameters[whichClass-1][1] )*
-        vcl_exp( -1.0 * vnl_math_sqr( ItI.Get() - mu )
-                 / (this->m_CurrentClassParameters[whichClass - 1][1] * 2 ) );
-
+      double   denom = this->m_CurrentClassParameters[whichClass - 1][1] * 2;
+      RealType likelihood =
+        1. / (sqrt(denom * 3.1416 ) ) *  vcl_exp( -0.5 * vnl_math_sqr( ItI.Get() - mu ) / denom );
       double finalprob = likelihood * mrfPrior * prior;
       if( this->m_MRFSigmoidAlpha > 0.0 )
         {
