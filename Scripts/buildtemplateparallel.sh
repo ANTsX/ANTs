@@ -1,22 +1,23 @@
 # !/bin/sh
 
-VERSION="0.0.3"
+VERSION="0.0.9"
+
+# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
+# ANTSPATH=
+
+#assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 
 function Usage {
     cat <<USAGE
 
-./buildtemplateparallel.sh  will make a template out of the input files using an elastic
-or diffeomorphic transformation. This script builds a template iteratively from the input
-images and uses Sun Grid Engine (SGE) or multiple cpu cores on the localhost (min 2) to
-parallelize the registration of each subject to the template.
-
 Usage:
 
-sh buildtemplateparallel.sh -d ImageDimension -o OUTPREFIX <other options> <images>
+$0 -d ImageDimension -o OUTPREFIX <other options> <images>
 
 Compulsory arguments:
 
-     -d:  ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)
+     -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
+	  ImageDimension: 4 (for 3 dimensional registration of time-series; requires FSL)
 
      -o:  OUTPREFIX; A prefix that is prepended to all output files.
 
@@ -29,7 +30,69 @@ Optional arguments:
 
      -c:  Use SGE cluster (cannot be used in combination with -j; requires SGE)
 
-     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.1)
+     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
+
+     -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
+
+     -j:  Number of cpu cores to use (default 2)
+
+     -m:  Max-iterations
+
+     -n:  N3BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
+
+     -r:  Do rigid-body registration of inputs before creating template ( 0 = off (default); 1 = on )
+
+     -s:  Type of similarity metric used for registration.
+
+     -t:  Type of transformation model used for registration.
+
+     -z:  Use this this volume as the target of all inputs. When not used, the script
+          will create an unbiased starting point by averaging all inputs.
+
+--------------------------------------------------------------------------------------
+ANTS was created by:
+--------------------------------------------------------------------------------------
+Brian B. Avants, Nick Tustison and Gang Song
+Penn Image Computing And Science Laboratory
+University of Pennsylvania
+
+--------------------------------------------------------------------------------------
+script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
+--------------------------------------------------------------------------------------
+
+USAGE
+    exit 1
+}
+
+function Help {
+    cat <<Help
+
+./buildtemplateparallel.sh  will make a template out of the input files using an elastic
+or diffeomorphic transformation. This script builds a template iteratively from the input
+images and uses Sun Grid Engine (SGE) or multiple cpu cores on the localhost (min 2) to
+parallelize the registration of each subject to the template.
+
+Usage:
+
+sh buildtemplateparallel.sh -d ImageDimension -o OUTPREFIX <other options> <images>
+
+Compulsory arguments:
+
+     -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
+	  ImageDimension: 4 (for 3 dimensional registration of time-series; requires FSL)
+
+     -o:  OUTPREFIX; A prefix that is prepended to all output files.
+
+<images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
+          of the command.
+
+NB: All files to be added to the template should be in the same directory.
+
+Optional arguments:
+
+     -c:  Use SGE cluster (cannot be used in combination with -j; requires SGE)
+
+     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
 
      -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
@@ -47,6 +110,11 @@ Optional arguments:
 	  iteration level.
 
      -n:  N3BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
+
+     -r:  Do rigid-body registration of inputs before creating template ( 0 = off (default); 1 = on )
+
+          In case a template is specified (-z option), all inputs are registered to that template. If
+          no template is specified, the inputs will be registered to the averaged input.
 
      -s:  Type of similarity metric used for registration.
 
@@ -83,6 +151,8 @@ will terminate prematurely if these files are not present.
 - pexec.sh
 - waitForSGEQJobs.pl (only for use with Sun Grid Engine)
 
+For 4D template building FSL is also needed
+
 --------------------------------------------------------------------------------------
 Get the latest ANTS version at:
 --------------------------------------------------------------------------------------
@@ -101,11 +171,10 @@ Penn Image Computing And Science Laboratory
 University of Pennsylvania
 
 --------------------------------------------------------------------------------------
-script adapted by N.M. van Strien, www.mri-tutorial.com
-Tested on CentOS 5.4; SGE code not tested
+script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
 --------------------------------------------------------------------------------------
 
-USAGE
+Help
     exit 1
 }
 
@@ -133,21 +202,21 @@ function reportMappingParameters {
     cat <<reportMappingParameters
 
 --------------------------------------------------------------------------------------
-Mapping parameters
+ Mapping parameters
 --------------------------------------------------------------------------------------
-ANTSPATH is $ANTSPATH
+ ANTSPATH is $ANTSPATH
 
-Dimensionality:				$DIM
-N3BiasFieldCorrection:			$N3CORRECT
-Similarity Metric:			$METRICTYPE
-Transformation:				$TRANSFORMATIONTYPE
-Regularization:				$REGULARIZATION
-MaxIterations:				$MAXITERATIONS
-Number Of MultiResolution Levels:	$NUMLEVELS
-OutputName prefix:			$OUTPUTNAME
-Template:  				$TEMPLATE
-Template Update Steps:			$ITERATIONLIMIT
-Template population:	   		$IMAGESETVARIABLE
+ Dimensionality:			$DIM
+ N3BiasFieldCorrection:			$N3CORRECT
+ Similarity Metric:			$METRICTYPE
+ Transformation:			$TRANSFORMATIONTYPE
+ Regularization:			$REGULARIZATION
+ MaxIterations:				$MAXITERATIONS
+ Number Of MultiResolution Levels:	$NUMLEVELS
+ OutputName prefix:			$OUTPUTNAME
+ Template:  				$TEMPLATE
+ Template Update Steps:			$ITERATIONLIMIT
+ Template population:	   		$IMAGESETVARIABLE
 --------------------------------------------------------------------------------------
 reportMappingParameters
 }
@@ -162,34 +231,33 @@ outputname=${OUTPUTNAME}
 gradientstep=-${GRADIENTSTEP}
 
 #debug only
-#echo $dim
-#echo ${template}
-#echo ${templatename}
-#echo ${outputname}
-#echo ${outputname}*formed.nii*
-#echo ${gradientstep}
+# echo $dim
+# echo ${template}
+# echo ${templatename}
+# echo ${outputname}
+# echo ${outputname}*formed.nii*
+# echo ${gradientstep}
 
 echo
 echo "--------------------------------------------------------------------------------------"
 echo " shapeupdatetotemplate 1"
 echo "--------------------------------------------------------------------------------------"
-${ANTSPATH}AverageImages $dim ${template} 1 ${outputname}*formed.nii*
+${ANTSPATH}AverageImages $dim ${template} 1 ${outputname}*formed.nii.gz
 
-rm -f ${outputname}*InverseWarp*vec.nii*
 echo
 echo "--------------------------------------------------------------------------------------"
 echo " shapeupdatetotemplate 2"
 echo "--------------------------------------------------------------------------------------"
 if [ $dim -eq 2  ]
 then
-	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii 0 ${outputname}*Warpxvec.nii*
-	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii 0 ${outputname}*Warpyvec.nii*
+	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii.gz 0 ${outputname}*Warpxvec.nii.gz
+	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii.gz 0 ${outputname}*Warpyvec.nii.gz
 
 elif [ $dim -eq 3  ]
 then
-	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii 0 ${outputname}*Warpxvec.nii*
-	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii 0 ${outputname}*Warpyvec.nii*
-	${ANTSPATH}AverageImages $dim ${templatename}warpzvec.nii 0 ${outputname}*Warpzvec.nii*
+	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii.gz 0 ${outputname}*Warpxvec.nii.gz
+	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii.gz 0 ${outputname}*Warpyvec.nii.gz
+	${ANTSPATH}AverageImages $dim ${templatename}warpzvec.nii.gz 0 ${outputname}*Warpzvec.nii.gz
 fi
 
 echo
@@ -198,14 +266,14 @@ echo " shapeupdatetotemplate 3"
 echo "--------------------------------------------------------------------------------------"
 if [ $dim -eq 2  ]
 then
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii ${gradientstep} ${templatename}warpxvec.nii
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii ${gradientstep} ${templatename}warpyvec.nii
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii.gz ${gradientstep} ${templatename}warpxvec.nii.gz
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii.gz ${gradientstep} ${templatename}warpyvec.nii.gz
 
 elif [ $dim -eq 3  ]
 then
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii ${gradientstep} ${templatename}warpxvec.nii
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii ${gradientstep} ${templatename}warpyvec.nii
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpzvec.nii ${gradientstep} ${templatename}warpzvec.nii
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii.gz ${gradientstep} ${templatename}warpxvec.nii.gz
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii.gz ${gradientstep} ${templatename}warpyvec.nii.gz
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpzvec.nii.gz ${gradientstep} ${templatename}warpzvec.nii.gz
 fi
 
 echo
@@ -223,20 +291,20 @@ if [ ${dim} -eq 2   ]
 then
 	ANTSAverage2DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
 
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii ${templatename}warpxvec.nii -i  ${templatename}Affine.txt -R ${template}
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii ${templatename}warpyvec.nii -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpyvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
 
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii ${templatename}warp.nii ${templatename}warp.nii ${templatename}warp.nii -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
 
 elif [ ${dim} -eq 3  ]
 then
 	ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
 
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii ${templatename}warpxvec.nii -i  ${templatename}Affine.txt -R ${template}
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii ${templatename}warpyvec.nii -i  ${templatename}Affine.txt -R ${template}
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpzvec.nii ${templatename}warpzvec.nii -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpyvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpzvec.nii.gz ${templatename}warpzvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
 
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii ${templatename}warp.nii ${templatename}warp.nii ${templatename}warp.nii -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
 fi
 
 echo
@@ -245,13 +313,13 @@ echo " shapeupdatetotemplate 6"
 echo "--------------------------------------------------------------------------------------"
 if [ ${dim} -eq 2  ]
 then
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii ${templatename}warpxlog.txt 1
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii ${templatename}warpylog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxlog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpylog.txt 1
 elif [ ${dim} -eq 3  ]
 then
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii ${templatename}warpxlog.txt 1
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii ${templatename}warpylog.txt 1
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpzvec.nii ${templatename}warpzlog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxlog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpylog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpzvec.nii.gz ${templatename}warpzlog.txt 1
 fi
 
 }
@@ -287,11 +355,11 @@ PARAM4=` awk -v a=$PARAM4 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 6  `
 for x in $LL ; do PARAM5=` awk -v a=$PARAM5 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM5=0 # ` awk -v a=$PARAM5 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM5=` awk -v a=$PARAM5 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 7  `
 for x in $LL ; do PARAM6=` awk -v a=$PARAM6 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM6=0 # ` awk -v a=$PARAM6 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM6=` awk -v a=$PARAM6 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` cat $FLIST | grep FixedParamet | cut -d ' ' -f 2  `
 for x in $LL ; do PARAM7=` awk -v a=$PARAM7 -v b=$x 'BEGIN{print (a + b)}' `  ; done
@@ -368,15 +436,15 @@ PARAM9=` awk -v a=$PARAM9 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 11  `
 for x in $LL ; do PARAM10=` awk -v a=$PARAM10 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM10=0 # ` awk -v a=$PARAM10 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM10=` awk -v a=$PARAM10 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 12  `
 for x in $LL ; do PARAM11=` awk -v a=$PARAM11 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM11=0 # ` awk -v a=$PARAM11 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM11=` awk -v a=$PARAM11 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 13  `
 for x in $LL ; do PARAM12=` awk -v a=$PARAM12 -v b=$x 'BEGIN{print (a + b)}' `  ; done
-PARAM12=0 # ` awk -v a=$PARAM12 -v b=$NFILES 'BEGIN{print (a / b)}' `
+PARAM12=` awk -v a=$PARAM12 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
 # translation params below
 
@@ -427,6 +495,7 @@ done
 
 }
 
+#initializing variables with global scope
 time_start=`date +%s`
 currentdir=`pwd`
 nargs=$#
@@ -437,17 +506,26 @@ METRICTYPE="PR" # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
 N3CORRECT=1 # initialize optional parameter
 DOQSUB=0 # run locally by default
-GRADIENTSTEP="0.1" # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
+GRADIENTSTEP="0.25" # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
 ITERATIONLIMIT=4
 CORES=2
+TDIM=0
+RIGID=0
+RIGIDTYPE=" --do-rigid" # you can edit this to your liking; alternatively use --rigid-affine for registration with more (12?) DOF
+range=0
+REGTEMPLATE=target
 
-if [ $nargs -lt 6 ]
+# Provide different output for Usage and Help
+if [ "$1" == "-h" ]
+then
+Help >&2
+elif [ $nargs -lt 6 ]
 then
 Usage >&2
 fi
 
 # reading command line arguments
-while getopts "c:d:i:j:h:m:n:o:r:s:t:z:" OPT
+while getopts "c:d:i:j:h:m:n:o:s:r:t:z:" OPT
 do
     case $OPT in
     h) #help
@@ -457,12 +535,16 @@ do
     c) #use SGE cluster
         DOQSUB=$OPTARG
 	if [[ ${#DOQSUB} -gt 1 ]] ; then
-	    echo " DOQSUB must be an integer value (preferably 0 or 1 ) you passed  -c $DOQSUB "
+	    echo " DOQSUB must be an integer value (0 or 1 ) you passed  -c $DOQSUB "
 	    exit 1
 	fi
         ;;
     d) #dimensions
         DIM=$OPTARG
+	if [[ ${DIM} -eq 4 ]] ; then
+	    DIM=3
+	    TDIM=4
+	fi
         ;;
     g) #gradient stepsize (default = 0.25)
         GRADIENTSTEP=$OPTARG
@@ -472,6 +554,22 @@ do
         ;;
     j) #number of cpu cores to use (default = 2)
         CORES=$OPTARG
+# will develop when I have time
+#	testproc=`cat /proc/cpuinfo | grep processor | cut -d ':' -f 2 `
+# 	if [[ ${#testproc} -gt ${CORES} ]] ;
+# 	then
+# 		echo " You have spefied more threads than that there are cpu cores in your system. "
+# 		echo " This may slow down template generation"
+# 		echo " Maximum number of threads is: ${#testproc}"
+# 		echo " Press CTRL + C to exit and respecify "
+# 		sleep 5
+#
+# 	elif [[ ${#testproc} -lt ${CORES} ]] ;
+# 	then
+# 		echo " You have spefied less threads than that there are cpu cores in your system. "
+# 		echo " This may slow down template generation"
+# 		echo " Maximum number of threads is: ${#testproc}"
+# 	fi
         ;;
     m) #max iterations other than default
         MAXITERATIONS=$OPTARG
@@ -484,17 +582,17 @@ do
 	TEMPLATENAME=${OUTPUTNAME}template
 	TEMPLATE=${TEMPLATENAME}.nii.gz
         ;;
-    r) #ref image
-        FIXED=$OPTARG
-        ;;
     s) #similarity model
         METRICTYPE=$OPTARG
+        ;;
+    r) #start with rigid-body registration
+        RIGID=$OPTARG
         ;;
     t) #transformation model
         TRANSFORMATIONTYPE=$OPTARG
         ;;
     z) #initialization template
-        TEMPLATE=$OPTARG
+        REGTEMPLATE=$OPTARG
         ;;
     \?) # getopts issues an error message
         echo "$USAGE" >&2
@@ -502,6 +600,15 @@ do
         ;;
     esac
 done
+
+#ANTSPATH=YOURANTSPATH
+if [  ${#ANTSPATH} -le 0 ]
+then
+setPath >&2
+fi
+
+#Initialize Common Functions
+source ${ANTSPATH}antsCommonFunctions.lib
 
 # Creating the file list of images to make a template from.
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
@@ -511,15 +618,72 @@ shiftsize=`expr $OPTIND - 1`
 shift $shiftsize
 # The invocation of $* will now read all remaining arguments into the variable IMAGESETVARIABLE
 IMAGESETVARIABLE=$*
-export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
-#ANTSPATH=YOURANTSPATH
-if [  ${#ANTSPATH} -le 0 ]
+NINFILES=`expr $nargs - $shiftsize`
+
+#test if FSL is available in case of 4D, exit if not
+if [  ${TDIM} -eq 0 ] && [  ${#FSLDIR} -le 0 ]
 then
-setPath >&2
+setFSLPath >&2
 fi
 
-# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-# ANTSPATH=
+if [ ${NINFILES} -eq 0 ]
+then
+echo "Please provide at least 2 filenames for the template."
+echo "Use $0 -h for help"
+exit 1
+elif [ ${NINFILES} -eq 1 ]
+then
+range=`fslnvols ${IMAGESETVARIABLE}`
+	if [ ${range} -eq 1 ] && [ ${TDIM} -ne 4 ]
+	then
+		echo "Please provide at least 2 filenames for the template."
+		echo "Use $0 -h for help"
+		exit 1
+	elif [ ${range} -gt 1 ] && [ ${TDIM} -ne 4 ]
+	then
+		echo "This is a multivolume file. Use -d 4"
+		echo "Use $0 -h for help"
+		exit 1
+	elif [ ${range} -gt 1 ] && [ ${TDIM} -eq 4 ]
+	then
+		echo "--------------------------------------------------------------------------------------"
+		echo " Creating template of 4D input. "
+		echo "--------------------------------------------------------------------------------------"
+		#splitting volume
+		#setting up working dirs
+		mkdir tmp
+		mkdir tmp/selection
+
+		#split the 4D file into 3D elements
+		cp ${IMAGESETVARIABLE} tmp/
+		cd tmp/
+		fslsplit ${IMAGESETVARIABLE}
+		rm ${IMAGESETVARIABLE}
+
+		# selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection. folder
+		for ((i = 0; i < 16 ; i++))
+		do
+			number=$RANDOM
+			let "number %= $range"
+
+			if [ ${number} -lt 10 ]
+			then
+			cp vol000${number}.nii.gz selection/
+			elif [ ${number} -ge 10 ] && [ ${number} -lt 100 ]
+			then
+			cp vol00${number}.nii.gz selection/
+			elif [ ${number} -ge 100 ] && [ ${number} -lt 1000 ]
+			then
+			cp vol0${number}.nii.gz selection/
+			fi
+		done
+
+		# set filelist variable
+		cd selection/
+		IMAGESETVARIABLE=`ls *.nii.gz`
+
+	fi
+fi
 
 # System specific queue options, eg "-q name" to submit to a specific queue
 # It can be set to an empty string if you do not need any special cluster options
@@ -528,7 +692,7 @@ QSUBOPTS="" # EDIT THIS
 # Test availability of helper scripts.
 # No need to test this more than once. Can reside outside of the main loop.
 ANTSSCRIPTNAME=${ANTSPATH}antsIntroduction.sh
-PEXEC=${ANTSPATH}ANTSpexec.sh  # /usr/local/mri_scriptbox/pexec.sh
+PEXEC=${ANTSPATH}ANTSpexec.sh
 
 for FLE in $ANTSSCRIPTNAME $PEXEC
 do
@@ -562,23 +726,117 @@ then
 	done
 fi
 
-# check for an initial template image
-if [ ! -s $TEMPLATE ] ;
+# check for an initial template image and perform rigid body registration if requested
+if [ ! -s $REGTEMPLATE ] && [ $RIGID == 0 ];
 then
-echo
-echo "--------------------------------------------------------------------------------------"
-echo " No initial template exists. Creating a population average image from the inputs."
-echo "--------------------------------------------------------------------------------------"
-${ANTSPATH}AverageImages $DIM $TEMPLATE 1  $IMAGESETVARIABLE
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " No initial template exists. Creating a population average image from the inputs."
+	echo "--------------------------------------------------------------------------------------"
+	${ANTSPATH}AverageImages $DIM populationmean.nii.gz 1 $IMAGESETVARIABLE
+	cp populationmean.nii.gz $TEMPLATE
 
-elif [ -s $TEMPLATE ] ;
+elif [ ! -s $REGTEMPLATE ] && [ "$RIGID" == 1 ];
 then
-echo
-echo "--------------------------------------------------------------------------------------"
-echo " Initial template found.  This will be used for guiding the registration."
-echo "--------------------------------------------------------------------------------------"
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " No initial template exists. Creating a population average image from the inputs."
+	echo "--------------------------------------------------------------------------------------"
+	${ANTSPATH}AverageImages $DIM populationmean.nii.gz 1 $IMAGESETVARIABLE
+	cp populationmean.nii.gz $TEMPLATE
+
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Rigid body registration to the population average image from the inputs."
+	echo "--------------------------------------------------------------------------------------"
+
+elif [ -s $REGTEMPLATE ] && [ "$RIGID" == 0 ] ;
+then
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Initial template found.  This will be used for guiding the registration."
+	echo "--------------------------------------------------------------------------------------"
+	# now move the initial registration template to OUTPUTNAME, otherwise this input gets overwritten.
+	cp ${REGTEMPLATE} ${TEMPLATE}
+
+elif [ -s $REGTEMPLATE ] && [ "$RIGID" == 1 ] ;
+then
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Initial template found.  This will be used for guiding the registration."
+	echo "--------------------------------------------------------------------------------------"
+	# now move the initial registration template to OUTPUTNAME, otherwise this input gets overwritten.
+	cp ${REGTEMPLATE} ${TEMPLATE}
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Rigid body registration to ${REGTEMPLATE} of all inputs."
+	echo "--------------------------------------------------------------------------------------"
+	# now move the initial registration template to OUTPUTNAME, otherwise this input gets overwritten.
+
 fi
 
+if [ "$RIGID" == 1 ] ;
+then
+	count=0
+	for IMG in $IMAGESETVARIABLE
+	do
+
+		BASENAME=` echo ${IMG} | cut -d '.' -f 1 `
+
+		exe=" ${ANTSPATH}ANTS $DIM -m  MI[${TEMPLATE},${IMG},1,32] -o rigid_${IMG} -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
+		exe2="${ANTSPATH}WarpImageMultiTransform $DIM ${IMG} rigid_${IMG} rigid_${BASENAME}Affine.txt -R ${TEMPLATE}"
+		pexe=" $exe >> job_${count}_metriclog.txt "
+
+# this SGE call will go wrong, since the exe2 is not executed. Is there a way to sequentially execute exe and exe 2 without repeating the SGE loop? I assume that exe and exe2 need to be run on the same SGE node.
+		if [ $DOQSUB -gt 0 ]; then
+			id=`qsub -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
+			jobIDs="$jobIDs $id"
+			sleep 0.3
+		else
+			# here comes the pexec call
+			# sh $exe
+			echo $pexe >> job${count}_r.sh
+			echo $exe2 >> job${count}_r.sh
+		fi
+
+		((count++))
+	done
+
+	# Run jobs on SGE and wait to finish
+	if [ $DOQSUB -gt 0 ];
+	then
+		echo " submitted $count jobs "
+		# now wait for the stuff to finish; this script is absent
+		${ANTSPATH}waitForSGEQJobs.pl 1 120 $jobIDs
+
+		if [ ! $? -eq 0 ]; then
+		echo "qsub submission failed - jobs went into error state"
+		exit 1;
+		fi
+
+	fi
+
+	# Run jobs on localhost and wait to finish
+	if [ $DOQSUB -eq 0 ];
+	then
+
+		echo
+		echo "--------------------------------------------------------------------------------------"
+		echo " Starting ANTS rigid registration on max ${CORES} cpucores. "
+		echo " Progress can be viewed in job*_metriclog.txt"
+		echo "--------------------------------------------------------------------------------------"
+		jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
+		chmod +x job*.sh
+		$PEXEC -j ${CORES} sh job*.sh
+	fi
+
+	# cleanup and save output in seperate folder
+	rm job*.sh
+	IMAGESETVARIABLE=`ls rigid_*.nii.gz`
+	mkdir rigid
+	cp rigid_*.nii.gz rigid_*.cfg *Affine.txt rigid/
+
+fi
 
 
 
@@ -591,14 +849,15 @@ NUMLEVELS=${#ITERATLEVEL[@]}
 #echo $NUMLEVELS
 #echo ${ITERATIONLIMIT}
 
+echo "--------------------------------------------------------------------------------------"
+echo " Start to build template: ${TEMPLATE}"
+echo "--------------------------------------------------------------------------------------"
 reportMappingParameters
-
-
 
 i=0
 while [  $i -lt ${ITERATIONLIMIT} ]
 	do
-	rm -f  ${OUTPUTNAME}*warp*nii
+	rm -f  ${OUTPUTNAME}*warp*nii*
 
 	# iteration 1
 	if [  $i -eq 0 ]
@@ -666,7 +925,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 		POO=${OUTPUTNAME}${IMG}
 
 
-		#3 Make variable OUTFILENAME and remove anything behind . ; for example .nii.gz
+		#3 Make variable OUTFILENAME and remove anything behind . ; for example .nii.gz.gz
 		OUTFN=${POO%.*.*}
 
 		#4 Test if outputfilename has only a single extention and remove that
@@ -692,7 +951,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 
 		# counter updated, but not directly used in this loop
 		count=`expr $count + 1`;
-		echo " submitting job number $count " # for debugging only
+#		echo " submitting job number $count " # for debugging only
 	done
 	# SGE wait for script to finish
 	if [ $DOQSUB -gt 0 ];
@@ -729,24 +988,39 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 
 	if [ $DIM -eq 2  ]
 	then
-		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii ${TEMPLATENAME}warpxlog.txt 1
-		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii ${TEMPLATENAME}warpylog.txt 1
+		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii.gz ${TEMPLATENAME}warpxlog.txt 1
+		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii.gz ${TEMPLATENAME}warpylog.txt 1
 
 	elif [ $DIM -eq 3  ]
 	then
-		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii ${TEMPLATENAME}warpxlog.txt 1
-		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii ${TEMPLATENAME}warpylog.txt 1
-		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpzvec.nii ${TEMPLATENAME}warpzlog.txt 1
+		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii.gz ${TEMPLATENAME}warpxlog.txt 1
+		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii.gz ${TEMPLATENAME}warpylog.txt 1
+		${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpzvec.nii.gz ${TEMPLATENAME}warpzlog.txt 1
 	fi
 
-	i=$((i + 1))
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Backing up results from iteration $itdisplay"
+	echo "--------------------------------------------------------------------------------------"
+
+	mkdir ${TRANSFORMATIONTYPE}_iteration_${i}
+	cp j* *.cfg *${OUTPUTNAME}*.nii.gz ${TRANSFORMATIONTYPE}_iteration_${i}
+
+	((i++))
 
 	done
-
 
 # end main loop
 
 rm job*.sh
+
+#cleanup of 4D files
+if [ "${range}" -gt 1 ] && [ "${TDIM}" -eq 4 ]
+then
+mv ${currentdir}/tmp/selection/${TEMPLATE} ${currentdir}/
+cd ${currentdir}
+rm -rf ${currentdir}/tmp/
+fi
 
 time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
@@ -758,7 +1032,4 @@ echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
 echo "--------------------------------------------------------------------------------------"
 
-
-
-
-exit 1
+exit 0
