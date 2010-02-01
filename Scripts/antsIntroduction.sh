@@ -1,23 +1,16 @@
 # !/bin/sh
 
-VERSION="0.0.3"
+VERSION="0.0.7"
 
-export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
+#export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 
 function Usage {
     cat <<USAGE
 
-ants.sh will perform an elastic or diffeomorphic transformation of the moving image
-into the fixed image space.
-
-this script encodes some reasonable defaults for the parameters and is useful for testing and comparing methods
-
-ANTS will test for convergence after 10 iterations to prevent the program from running forever.
-Convergence is determined by occurrence of a flat or inflection point in the similarity term time series.
-
 Usage:
 
-sh ants.sh -d ImageDimension -r fixed.ext -i moving.ext
+$0 -d ImageDimension -r fixed.ext -i moving.ext
 
 Compulsory arguments:
 
@@ -33,7 +26,66 @@ Optional arguments
 
 -m:  Max-iterations
 
-	Max-Iterations in form: JxKxL where
+-n:  N3BiasFieldCorrection of moving image ( 0 = off (default); 1 = on )
+
+-o:  OUTPREFIX; A prefix that is prepended to all output files.
+
+-q:  Perform a Quality Check (QC) of the result ( 0 = off (default); 1 = on ).
+
+-s:  Type of similarity metric used for registration.
+
+-t:  Type of transformation model used for registration.
+
+ You can change the values for each of these methods in this script.
+
+ Use $0 -h for extended help.
+--------------------------------------------------------------------------------------
+ ANTS was created by:
+ Brian B. Avants, Nick Tustison and Gang Song
+ Penn Image Computing And Science Laboratory
+ University of Pennsylvania
+--------------------------------------------------------------------------------------
+ script written by N.M. van Strien, www.mri-tutorial.com | NTNU MR-Center
+--------------------------------------------------------------------------------------
+
+USAGE
+    exit 1
+}
+
+function Help {
+    cat <<Help
+
+ $0 will perform an elastic or diffeomorphic transformation of the moving image
+ into the fixed image space.
+
+ this script encodes some reasonable defaults for the parameters and is useful for testing and comparing methods
+
+ ANTS will test for convergence after 10 iterations to prevent the program from running forever.
+ Convergence is determined by occurrence of a flat or inflection point in the similarity term time series.
+
+ Usage:
+
+ $0 -d ImageDimension -r fixed.ext -i moving.ext
+
+ Compulsory arguments:
+
+ -d:  ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)
+
+ -i:  Input image
+
+ -r:  Reference image
+
+ Optional arguments
+
+ -l:  Labels-In-Fixed-Image-Space-To-Deform-To-Moving-Image (default is off)
+
+      This maps a template labeled image to the target space --- for instance
+      for template-based segmentation. Applies the inverse warp to the labels
+      to estimate the label positions in target space.
+
+ -m:  Max-iterations
+
+      Max-Iterations in form: JxKxL where
 	J = max iterations at coarsest resolution (here, reduce by power of 2^2)
 	K = middle resolution iterations (here,reduce by power of 2)
 	L = fine resolution iterations (here, full resolution) !!this level takes much
@@ -42,13 +94,32 @@ Optional arguments
 	Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another
 	iteration level.
 
--n:  N3BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
+ -n:  N3BiasFieldCorrection of moving image ( 0 = off (default); 1 = on )
 
--o:  OUTPREFIX; A prefix that is prepended to all output files.
+ -o:  OUTPREFIX; A prefix that is prepended to all output files.
 
--q:  Perform a Quality Check (QC) of the result ( 0 = off (default); 1 = on ).
+ -q:  Perform a Quality Check (QC) of the result ( 0 = off (default); 1 = on ).
 
--s:  Type of similarity metric used for registration.
+      calculates:
+      - image similarity - 0 = intensity difference, 1 = correlation, 2 = mutual information
+
+      - dice overlap
+
+	Dice Overlap is a standard measure for segmentation accuracy that shows a
+	percentage of agreement between two segmentations.  It is defined:
+
+	D =  2  #(A U B) /  (  #A + #B )
+
+	where the U indicates union and  # indicates the number of voxels in
+	the labeled object.
+
+     - min-dist-sum from the approximately segmentedbrain (3 tissues and background)
+
+	Min-dist-sum is the minimum distance sum which is the total shortest distance
+	between A and B evaluated over the object surfaces. This tells the overall
+	euclidean disagreement between the boundaries of the labeled regions.
+
+ -s:  Type of similarity metric used for registration.
 
 	For intramodal image registration, use:
 	CC = cross-correlation
@@ -62,10 +133,14 @@ Optional arguments
 
 	You can change the values for each of these methods in this script.
 
--t:  Type of transformation model used for registration.
+ -t:  Type of transformation model used for registration.
+
+	For rigid image registration, use:
+	RI = Purely rigid
+	RA = Affine rigid
 
 	For elastic image registration, use:
-	EL = elastic transformation model (less deformation possible)
+	EL = Elastic transformation model (less deformation possible)
 
 	For diffeomorphic image registration, use:
 	SY = SyN with time (default) with arbitrary number of time points in time discretization
@@ -74,42 +149,42 @@ Optional arguments
 	EX = Exponential
         DD = Diffeomorphic Demons style exponential mapping
 
-	You can change the values for each of these methods in this script.
+ You can change the values for each of these methods in this script.
 
 --------------------------------------------------------------------------------------
 
-Default number of iterations is $MAXITERATIONS. Most often this is sufficient.
+ Default number of iterations is $MAXITERATIONS. Most often this is sufficient.
 
-The other parameters in this script are updates to the defaults that were used in the
-Neuroimage 2009 paper; for more information read:
+ The other parameters in this script are updates to the defaults that were used in the
+ Neuroimage 2009 paper; for more information read:
 
-- Klein A, et al. 2009. Evaluation of 14 nonlinear deformation algorithms applied to
-human brain MRI registration. NeuroImage, 46(3):786-802
+ - Klein A, et al. 2009. Evaluation of 14 nonlinear deformation algorithms applied to
+ human brain MRI registration. NeuroImage, 46(3):786-802
 
-http://www.ncbi.nlm.nih.gov/pubmed/19195496
-
---------------------------------------------------------------------------------------
-I/O Data Formats In ANTS
---------------------------------------------------------------------------------------
-see: http://picsl.upenn.edu/ANTS/ioants.php
+ http://www.ncbi.nlm.nih.gov/pubmed/19195496
 
 --------------------------------------------------------------------------------------
-Get the latest ANTS version at:
-http://sourceforge.net/projects/advants/
-
-Read the ANTS documentation at:
-http://picsl.upenn.edu/ANTS/
+ I/O Data Formats In ANTS
 --------------------------------------------------------------------------------------
-ANTS was created by:
-Brian B. Avants, Nick Tustison and Gang Song
-Penn Image Computing And Science Laboratory
-University of Pennsylvania
+ see: http://picsl.upenn.edu/ANTS/ioants.php
 
-script adapted by N.M. van Strien, www.mri-tutorial.com
+--------------------------------------------------------------------------------------
+ Get the latest ANTS version at:
+ http://sourceforge.net/projects/advants/
+
+ Read the ANTS documentation at:
+ http://picsl.upenn.edu/ANTS/
+--------------------------------------------------------------------------------------
+ ANTS was created by:
+ Brian B. Avants, Nick Tustison and Gang Song
+ Penn Image Computing And Science Laboratory
+ University of Pennsylvania
+
+ script adapted by N.M. van Strien, www.mri-tutorial.com | NTNU MR-Center
 --------------------------------------------------------------------------------------
 
-USAGE
-    exit 1
+Help
+    exit 0
 }
 
 function setPath {
@@ -141,7 +216,6 @@ ANTSPATH is $ANTSPATH
 Dimensionality:				$DIM
 Fixed image:				$FIXED
 Moving image:				$MOVING
-Outputname prefix:			$OUTPUTNAME
 Use label image:			$LABELIMAGE
 N3BiasFieldCorrection:			$N3CORRECT
 DoANTS Quality Check: 			$DoANTSQC
@@ -150,7 +224,7 @@ Transformation:				$TRANSFORMATIONTYPE
 Regularization:				$REGULARIZATION
 MaxIterations:				$MAXITERATIONS
 Number Of MultiResolution Levels:	$NUMLEVELS
-OutputName:				$OUTPUTNAME
+OutputName prefix:			$OUTPUTNAME
 --------------------------------------------------------------------------------------
 reportMappingParameters
 }
@@ -163,7 +237,7 @@ Data integrity check failed
 There seems to be a problem with the header definitions of the input files. This
 script has tried to repair this issue automatically by invoking:
 
-${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz  CompareHeadersAndImages $FIXED $MOVING
+${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz CompareHeadersAndImages $FIXED $MOVING
 
 The repaired image is:
 
@@ -182,6 +256,7 @@ dataCheck
     exit 1
 }
 
+time_start=`date +%s`
 currentdir=`pwd`
 nargs=$#
 
@@ -190,9 +265,14 @@ LABELIMAGE=0 # initialize optional parameter
 DoANTSQC=0 # initialize optional parameter
 METRICTYPE="PR" # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
-N3CORRECT=1 # initialize optional parameter
+N3CORRECT=0 # initialize optional parameter
+RIGID=0
 
-if [ $nargs -lt 3 ]
+
+if [ "$1" == "-h" ]
+then
+Help >&2
+elif [ $nargs -lt 6 ]
 then
 Usage >&2
 fi
@@ -202,7 +282,7 @@ while getopts "d:r:i:h:o:m:n:l:q:s:t:" OPT
 do
     case $OPT in
     h) #help
-        echo "$USAGE"
+        echo "$Help"
         exit 0
         ;;
     d) #dimensions
@@ -249,9 +329,6 @@ then
 setPath >&2
 fi
 
-# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-# ANTSPATH=
-
 # test input parameter before starting
 if  [ ${#DIM} -gt 1 ]
 then
@@ -273,7 +350,7 @@ fi
 
 # check the image headers
 echo "input files: checking"
-compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz  CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4 `
+compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4 `
 
 if [ $compareheaders -ne 0 ]
 then
@@ -286,15 +363,26 @@ ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)
 NUMLEVELS=${#ITERATLEVEL[@]}
 
 # Transformation model
-if [ "${TRANSFORMATIONTYPE}" == "EL" ]
+if [ "${TRANSFORMATIONTYPE}" == "RI" ]
+then
+RIGID=1
+RIGIDTRANSF=" --do-rigid: true "
+
+elif [ "${TRANSFORMATIONTYPE}" == "RA" ]
+then
+RIGID=1
+RIGIDTRANSF=" --rigid-affine true "
+
+elif [ "${TRANSFORMATIONTYPE}" == "EL" ]
 then
 # Mapping Parameters
 TRANSFORMATION=Elast[1]
 REGULARIZATION=Gauss[3,0.5]
 # Gauss[3,x] is usually the best option.    x is usually 0 for SyN --- if you want to reduce flexibility/increase mapping smoothness, the set x > 0.
-#We did a large scale evaluation of SyN gradient parameters in normal brains and found 0.25 => 0.5 to perform best when
+# We did a large scale evaluation of SyN gradient parameters in normal brains and found 0.25 => 0.5 to perform best when
 # combined with default Gauss[3,0] regularization.    You would increase the gradient step in some cases, though, to make
 # the registration converge faster --- though oscillations occur if the step is too high and other instability might happen too.
+
 elif [ "${TRANSFORMATIONTYPE}" == "S2"  ]
 then
 # Mapping Parameters for the LDDMM style SyN --- the params are SyN[GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
@@ -311,6 +399,16 @@ then
 # increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
 # the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
 TRANSFORMATION=" SyN[1,2,0.05] --geodesic 2 "
+REGULARIZATION=Gauss[3,0.]
+
+elif [ "${TRANSFORMATIONTYPE}" == "LDDMM"  ]
+then
+# Mapping Parameters for the LDDMM style SyN --- the params are SyN[GradientStepLength,NTimeDiscretizationPoints,IntegrationTimeStep]
+# increasing IntegrationTimeStep increases accuracy in the diffeomorphism integration and takes more computation time.
+# NTimeDiscretizationPoints is the number of spatial indices in the time dimension (the 4th dim when doing 3D registration)
+# increasing NTimeDiscretizationPoints increases flexibility and takes more computation time.
+# the --geodesic option enables either 1 asymmetric gradient estimation or 2 symmetric gradient estimation (the default here )
+TRANSFORMATION=" SyN[1,2,0.05] --geodesic 1 "
 REGULARIZATION=Gauss[3,0.]
 
 elif [ "${TRANSFORMATIONTYPE}" == "GR" ]
@@ -333,7 +431,7 @@ TRANSFORMATION=GreedyExp[0.5,10]
 REGULARIZATION=Gauss[3,0.5]
 
 else
-echo "Invalid transformation metric. Use EL, SY, S2, GR , DD or EX or type sh ants.sh -h."
+echo "Invalid transformation metric. Use RI, RA, EL, SY, S2, GR , DD or EX or type sh $0 -h."
 exit 1
 fi
 
@@ -363,30 +461,55 @@ METRIC=MSQ[
 METRICPARAMS=1,0]
 
 else
-echo "Invalid similarity metric. Use CC, MI, MSQ or PR or type sh ants.sh -h."
+echo "Invalid similarity metric. Use CC, MI, MSQ or PR or type sh $0 -h."
 exit 1
 fi
 
 # main script
 reportMappingParameters
+# write config file
 
-if  [ ${N3CORRECT} -eq 0 ]
+MOVINGBASE=` echo ${MOVING} | cut -d '.' -f 1 `
+
+if [ -f ${MOVINGBASE}.cfg  ] ;
+then
+rm -f ${MOVINGBASE}.cfg
+fi
+
+echo "REGDIR=${currentdir}" >> ${MOVINGBASE}.cfg
+echo "DIM=$DIM" >> ${MOVINGBASE}.cfg
+echo "FIXED=$FIXED" >> ${MOVINGBASE}.cfg
+echo "MOVING=$MOVING" >> ${MOVINGBASE}.cfg
+echo "LABELIMAGE=$LABELIMAGE" >> ${MOVINGBASE}.cfg
+echo "N3CORRECT=$N3CORRECT" >> ${MOVINGBASE}.cfg
+echo "DoANTSQC=$DoANTSQC" >> ${MOVINGBASE}.cfg
+echo "METRICTYPE=$METRICTYPE" >> ${MOVINGBASE}.cfg
+echo "TRANSFORMATIONTYPE=$TRANSFORMATIONTYPE" >> ${MOVINGBASE}.cfg
+echo "REGULARIZATION=$REGULARIZATION" >> ${MOVINGBASE}.cfg
+echo "MAXITERATIONS=$MAXITERATIONS" >> ${MOVINGBASE}.cfg
+echo "NUMLEVELS=$NUMLEVELS" >> ${MOVINGBASE}.cfg
+echo "OUTPUTNAME=$OUTPUTNAME" >> ${MOVINGBASE}.cfg
+
+if  [ ${N3CORRECT} -eq 0 ] && [ ${RIGID} -eq 0 ]
 then
 # Apply ANTS mapping command without N3BiasFieldCorrection
-exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 "
+exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"
 echo "$exe "
 echo "--------------------------------------------------------------------------------------"
 $exe
+echo "execants=$exe" >> ${MOVINGBASE}.cfg
 
 # Apply forward transformation to MOVING
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "Applying forward transformation to ${MOVING}"
 echo "--------------------------------------------------------------------------------------"
-${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz  ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt -R ${FIXED}
+${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED}
+echo "warpfw=${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED}" >> ${MOVINGBASE}.cfg
+
 
 # Apply inverse transformation to FIXED
 if [ "${TRANSFORMATIONTYPE}" == "EL" ]
@@ -400,20 +523,22 @@ echo
 echo "--------------------------------------------------------------------------------------"
 echo "Applying inverse transformation to ${FIXED}"
 echo "--------------------------------------------------------------------------------------"
-FIXEDBASE=` echo $MOVING | cut -d '.' -f 1 `
-${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz
+FIXEDBASE=` echo ${FIXED} | cut -d '.' -f 1 `
+${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz
+echo "warpinv=${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz" >> ${MOVINGBASE}.cfg
 fi
 
-elif [ ${N3CORRECT} -eq 1 ]
+elif [ ${N3CORRECT} -eq 1 ] && [ ${RIGID} -eq 0 ]
 then
 # Apply N3BiasFieldCorrection
-exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz  4"
+exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "N3BiasFieldCorrection command:"
 echo "$exe "
 echo "--------------------------------------------------------------------------------------"
 $exe
+echo "execN3=$exe" >> ${MOVINGBASE}.cfg
 
 # Apply ANTS mapping command on N3 corrected image
 exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}.nii.gz,${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching "
@@ -423,13 +548,15 @@ echo "ANTS command:"
 echo "$exe "
 echo "--------------------------------------------------------------------------------------"
 $exe
+echo "execants=$exe" >> ${MOVINGBASE}.cfg
 
 # Apply forward transformation to MOVING
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "Applying forward transformation to ${MOVING}"
 echo "--------------------------------------------------------------------------------------"
-${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}.nii.gz  ${OUTPUTNAME}deformed.nii.gz  ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt -R ${FIXED}
+${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}.nii.gz ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED}
+echo "warpfw=${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}.nii.gz ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED}" >> ${MOVINGBASE}.cfg
 
 # Apply inverse transformation to FIXED
 if [ "${TRANSFORMATIONTYPE}" == "EL" ]
@@ -443,16 +570,64 @@ echo
 echo "--------------------------------------------------------------------------------------"
 echo "Applying inverse transformation to ${FIXED}"
 echo "--------------------------------------------------------------------------------------"
-FIXEDBASE=` echo $MOVING | cut -d '.' -f 1 `
-${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz  -R ${OUTPUTNAME}.nii.gz  -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz
+FIXEDBASE=` echo ${FIXED} | cut -d '.' -f 1 `
+${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz -R ${OUTPUTNAME}.nii.gz
+echo "warpinv=${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz -R ${OUTPUTNAME}.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz" >> ${MOVINGBASE}.cfg
 fi
+
+elif  [ ${N3CORRECT} -eq 0 ] && [ ${RIGID} -eq 1 ]
+then
+exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 ${RIGIDTRANSF} "
+echo
+echo "--------------------------------------------------------------------------------------"
+echo "ANTS command:"
+echo "$exe "
+echo "--------------------------------------------------------------------------------------"
+$exe
+echo "execants=$exe" >> ${MOVINGBASE}.cfg
+
+# Apply forward transformation to MOVING
+echo
+echo "--------------------------------------------------------------------------------------"
+echo "Applying rigid transformation to ${MOVING}"
+echo "--------------------------------------------------------------------------------------"
+${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED}
+
+elif  [ ${N3CORRECT} -eq 1 ] && [ ${RIGID} -eq 1 ]
+then
+# Apply N3BiasFieldCorrection
+exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
+echo
+echo "--------------------------------------------------------------------------------------"
+echo "N3BiasFieldCorrection command:"
+echo "$exe "
+echo "--------------------------------------------------------------------------------------"
+$exe
+echo "execN3=$exe" >> ${MOVINGBASE}.cfg
+
+exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 ${RIGIDTRANSF} "
+echo
+echo "--------------------------------------------------------------------------------------"
+echo "ANTS command:"
+echo "$exe "
+echo "--------------------------------------------------------------------------------------"
+$exe
+echo "execants=$exe" >> ${MOVINGBASE}.cfg
+
+# Apply forward transformation to MOVING
+echo
+echo "--------------------------------------------------------------------------------------"
+echo "Applying rigid transformation to ${MOVING}"
+echo "--------------------------------------------------------------------------------------"
+${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED}
+
 
 fi
 
 # Apply transformation on labeled image?
 if  [ ${#LABELIMAGE} -gt 3 ]
 then
-${ANTSPATH}WarpImageMultiTransform $DIM  $LABELIMAGE ${OUTPUTNAME}labeled.nii.gz  -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz   -R ${MOVING}   --use-NN
+${ANTSPATH}WarpImageMultiTransform $DIM  $LABELIMAGE ${OUTPUTNAME}labeled.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz  -R ${MOVING}   --use-NN
 fi
 
 if [ $DoANTSQC -eq 1 ]
@@ -466,18 +641,25 @@ done
 ${ANTSPATH}ThresholdImage $DIM $FIXED ${OUTPUTNAME}fixthresh.nii.gz Otsu 4
 ${ANTSPATH}ThresholdImage $DIM $MOVING ${OUTPUTNAME}movthresh.nii.gz Otsu 4
 
-${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt -R ${FIXED} --use-NN
+${ANTSPATH}WarpImageMultiTransform $DIM ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED} --use-NN
 
 ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPUTNAME}fixthresh.nii.gz   ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}mindistsum.nii.gz
 
 # below not used unless you want to compare segmentation volumes to those estimated by the jacobian
 # labelstats for jacobian wrt segmenation below, to compose
-# ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii.gz   -R $FIXED ${OUTPUTNAME}Warp.nii.gz  ${OUTPUTNAME}Affine.txt
-# ${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii.gz  ${OUTPUTNAME}jacobian.nii.gz   0
+# ${ANTSPATH}ComposeMultiTransform $DIM   ${OUTPUTNAME}CompWarp.nii.gz  -R $FIXED ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt
+# ${ANTSPATH}CreateJacobianDeterminantImage $DIM ${OUTPUTNAME}CompWarp.nii.gz ${OUTPUTNAME}jacobian.nii.gz  0
 # ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}movlabstat.txt LabelStats ${OUTPUTNAME}movthresh.nii.gz ${OUTPUTNAME}movthresh.nii.gz
 # ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}jaclabstat.txt LabelStats ${OUTPUTNAME}defthresh.nii.gz ${OUTPUTNAME}jacobian.nii.gz
 # we compare the output of these last two lines:
 #  the Volume of the movlabstat computation vs. the mass of the jaclabstat
 fi
+
+time_end=`date +%s`
+time_elapsed=$((time_end - time_start))
+
+echo " ">> ${MOVINGBASE}.cfg
+echo " Script executed in $time_elapsed seconds" >> ${MOVINGBASE}.cfg
+echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s" >> ${MOVINGBASE}.cfg
 
 exit
