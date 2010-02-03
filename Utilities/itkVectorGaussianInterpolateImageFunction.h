@@ -88,9 +88,14 @@ public:
       nt[d] = (int)(bb_end[d] - bb_start[d] + 0.5);
       dx[d].set_size(nt[d]);
       gx[d].set_size(nt[d]);
-      sf[d] = 1.0 / (sqrt(2.0) * sigma[d] / img->GetSpacing()[d]);
-      cut[d] = sigma[d] * alpha / img->GetSpacing()[d];
+      this->sigma[d] = 1;
+      sf[d] = 1.0 / (sqrt(2.0) * this->sigma[d] / img->GetSpacing()[d]);
+      //      std::cout << " sigma " << this->sigma[d] << " spc " << img->GetSpacing()[d] << " sf " << sf[d] <<
+      // std::endl;
+      cut[d] = this->sigma[d] * alpha / img->GetSpacing()[d];
       }
+
+    this->m_ImageSize = this->GetInputImage()->GetLargestPossibleRegion().GetSize();
   }
 
   /** Set input */
@@ -107,7 +112,7 @@ public:
     // Set the parameters
     for( size_t d = 0; d < VDim; d++ )
       {
-      this->sigma[d] = sigma[d];
+      this->sigma[d] = 1.0; // sigma[d];
       }
     this->alpha = alpha;
 
@@ -133,15 +138,21 @@ public:
     const ContinuousIndexType & index,
     OutputType *grad) const
   {
-    PixelType Vout;
+    OutputType Vout;
 
     Vout.Fill(0);
 
     // The bound variables for x, y, z
     int i0[VDim], i1[VDim];
     // Compute the ERF difference arrays
+    //      std::cout << " index " << index << " VD " << VDim << std::endl;
     for( size_t d = 0; d < VDim; d++ )
       {
+      if( index[d] <= 0 || index[d] >= this->m_ImageSize[d] - 1  || vnl_math_isnan(index[d]) ||
+          vnl_math_isinf(index[d]) )
+        {
+        return Vout;
+        }
       double *pdx = const_cast<double *>(dx[d].data_block() );
       double *pgx = grad ?  const_cast<double *>(gx[d].data_block() ) : NULL;
       compute_erf_array(pdx, i0[d], i1[d], bb_start[d], nt[d], cut[d], index[d], sf[d], pgx);
@@ -206,11 +217,16 @@ public:
         for( size_t q = 0; q < VDim; q++ )
           {
           grad[q] = (dsum_me[q] - rc * dsum_m[q]) / sum_m;
-          grad[q] /= -1.4142135623730951 * sigma[q];
+          grad[q] /= -1.4142135623730951 * this->sigma[q];
           }
+        }
+      if( vnl_math_isnan(rc) )
+        {
+        rc = 0;
         }
       Vout[qq] = rc;
       }
+    //      std::cout << " gaussian " << std::endl;
 
     // return sum_me / sum_m;
     return Vout;
@@ -235,7 +251,7 @@ private:
 
   /** Number of neighbors used in the interpolation */
   static const unsigned long m_Neighbors;
-
+  typename InputImageType::SizeType m_ImageSize;
   vnl_vector<double> dx[VDim], gx[VDim];
   double             bb_start[VDim], bb_end[VDim], sf[VDim], cut[VDim];
   int                nt[VDim], stride[VDim];
@@ -266,11 +282,13 @@ private:
 
     // Start at the first voxel
     double t = (b - p + k0) * sfac;
+    //      std::cout << " t " << t  << " b " << b  << " p " << p  << " k0 " << k0  << " sfat " << sfac << std::endl;
     double e_last = vnl_erf(t);
     double g_last = gx_erf ? 1.128379167095513 * exp(-t * t) : 0.0;
     for( int i = k0; i < k1; i++ )
       {
       t += sfac;
+      //	std::cout << " t2 " << t << std::endl;
       double e_now = vnl_erf(t);
       dx_erf[i] = e_now - e_last;
       if( gx_erf )
