@@ -215,6 +215,10 @@ SET(SOURCES "../Utilities/itkWASPCommandLineParser" "../Utilities/itkWASPCommand
 ADD_EXECUTABLE(Apocrita Apocrita.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(Apocrita ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
+SET(SOURCES "../Utilities/itkCommandLineParser" "../Utilities/itkCommandLineOption" )
+ADD_EXECUTABLE(Atropos Atropos.cxx ${SOURCES})
+TARGET_LINK_LIBRARIES(Atropos ITKCommon  ITKBasicFilters ITKIO ITKStatistics   )
+
 
 
 #Set any libraries that your project depends on.

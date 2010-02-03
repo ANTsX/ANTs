@@ -1,10 +1,10 @@
 #include "itkAddImageFilter.h"
-#include "itkWASPCommandLineOption.h"
-#include "itkWASPCommandLineParser.h"
+#include "itkCommandLineOption.h"
+#include "itkCommandLineParser.h"
 #include "itkDivideImageFilter.h"
 #include "itkImage.h"
 #include "itkMaskImageFilter.h"
-#include "itkWASPSegmentationImageFilter.h"
+#include "itkApocritaSegmentationImageFilter.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -62,15 +62,16 @@ void ConvertToLowerCase( std::string& str )
 }
 
 template <unsigned int ImageDimension>
-int AtroposSegmentation( itk::WASPCommandLineParser *parser )
+int ApocritaSegmentation( itk::CommandLineParser *parser )
 {
   typedef float                                 PixelType;
+  typedef float                                 RealType;
   typedef itk::Image<PixelType, ImageDimension> InputImageType;
 
   typedef unsigned char                         LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
 
-  typedef  itk::WASPSegmentationImageFilter
+  typedef  itk::ApocritaSegmentationImageFilter
     <InputImageType, LabelImageType> SegmentationFilterType;
   typename SegmentationFilterType::Pointer segmenter
     = SegmentationFilterType::New();
@@ -78,11 +79,12 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
   typedef CommandIterationUpdate<SegmentationFilterType> CommandType;
   typename CommandType::Pointer observer = CommandType::New();
   segmenter->AddObserver( itk::IterationEvent(), observer );
+  // segmenter->DebugOn();
 
   /**
    * Initialization
    */
-  typename itk::WASPCommandLineParser::OptionType::Pointer initializationOption =
+  typename itk::CommandLineParser::OptionType::Pointer initializationOption =
     parser->GetOption( "initialization" );
   if( initializationOption
       && initializationOption->GetNumberOfParameters() < 2 )
@@ -105,8 +107,11 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
 
     std::string initializationStrategy = initializationOption->GetValue();
     ConvertToLowerCase( initializationStrategy );
-
-    if( !initializationStrategy.compare( std::string( "otsu" ) ) )
+    if( !initializationStrategy.compare( std::string( "random" ) ) )
+      {
+      segmenter->SetInitializationStrategy( SegmentationFilterType::Random );
+      }
+    else if( !initializationStrategy.compare( std::string( "otsu" ) ) )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::Otsu );
       }
@@ -114,7 +119,7 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::KMeans );
       }
-    else if( !initializationStrategy.compare( std::string( "priorprobabilities" ) ) )
+    else if( !initializationStrategy.compare( std::string( "priorprobabilityimages" ) ) )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::PriorProbabilityImages );
 
@@ -205,7 +210,7 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
   /**
    * number of iterations
    */
-  typename itk::WASPCommandLineParser::OptionType::Pointer iterationsOption =
+  typename itk::CommandLineParser::OptionType::Pointer iterationsOption =
     parser->GetOption( "number-of-iterations" );
   if( iterationsOption )
     {
@@ -216,19 +221,18 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
   /**
    * convergence threshold
    */
-  typename itk::WASPCommandLineParser::OptionType::Pointer convergenceOption =
+  typename itk::CommandLineParser::OptionType::Pointer convergenceOption =
     parser->GetOption( "convergence-threshold" );
   if( convergenceOption )
     {
     segmenter->SetConvergenceThreshold( parser->Convert<float>(
                                           convergenceOption->GetValue() ) );
     }
-  std::cout << segmenter->GetConvergenceThreshold() << std::endl;
 
   /**
    * Mask image
    */
-  typename itk::WASPCommandLineParser::OptionType::Pointer maskOption =
+  typename itk::CommandLineParser::OptionType::Pointer maskOption =
     parser->GetOption( "mask-image" );
   if( maskOption && maskOption->GetNumberOfValues() )
     {
@@ -250,7 +254,7 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
    * BSpline options
    */
 
-  typename itk::WASPCommandLineParser::OptionType::Pointer bsplineOption =
+  typename itk::CommandLineParser::OptionType::Pointer bsplineOption =
     parser->GetOption( "bspline" );
   if( bsplineOption && bsplineOption->GetNumberOfValues() )
     {
@@ -309,34 +313,48 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
     }
 
   /**
-   * label-sigma
+   * labels
    */
-  typename itk::WASPCommandLineParser::OptionType::Pointer labelSigmasOption =
-    parser->GetOption( "label-sigma" );
-  if( labelSigmasOption && labelSigmasOption->GetNumberOfValues() )
+  typename itk::CommandLineParser::OptionType::Pointer labelOption =
+    parser->GetOption( "labels" );
+  if( labelOption && labelOption->GetNumberOfValues() > 0 )
     {
-    std::vector<float> labelSigmas;
-    for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+    typename SegmentationFilterType::LabelParameterMapType labelMap;
+    for( unsigned int n = 0; n < labelOption->GetNumberOfValues(); n++ )
       {
-      labelSigmas.push_back( 0.0 );
-      }
-    for( unsigned int n = 0; n < labelSigmasOption->GetNumberOfValues(); n++ )
-      {
-      unsigned int whichClass = parser->Convert<unsigned int>(
-          labelSigmasOption->GetValue( n ) );
-      if( whichClass <= labelSigmas.size() )
+      typename SegmentationFilterType::LabelParametersType labelPair;
+
+      float labelSigma = parser->Convert<float>(
+          labelOption->GetParameter( n, 0 ) );
+      float labelBoundaryProbability = 0.75;
+      if( labelOption->GetNumberOfParameters( n ) > 1 )
         {
-        labelSigmas[whichClass - 1] = parser->Convert<float>(
-            labelSigmasOption->GetParameter( n, 0 ) );
+        labelBoundaryProbability = parser->Convert<float>(
+            labelOption->GetParameter( n, 1 ) );
+        if( labelBoundaryProbability < 0.0 )
+          {
+          labelBoundaryProbability = 0.0;
+          }
+        if( labelBoundaryProbability > 1.0 )
+          {
+          labelBoundaryProbability = 1.0;
+          }
         }
+      labelPair.first = labelSigma;
+      labelPair.second = labelBoundaryProbability;
+
+      unsigned int whichClass = parser->Convert<unsigned int>(
+          labelOption->GetValue( n ) );
+
+      labelMap[whichClass] = labelPair;
       }
-    segmenter->SetPriorLabelSigmas( labelSigmas );
+    segmenter->SetPriorLabelParameterMap( labelMap );
     }
 
   /**
    * MRF options
    */
-  typename itk::WASPCommandLineParser::OptionType::Pointer mrfOption =
+  typename itk::CommandLineParser::OptionType::Pointer mrfOption =
     parser->GetOption( "mrf" );
   if( mrfOption && mrfOption->GetNumberOfValues() )
     {
@@ -375,12 +393,23 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
       }
     }
 
+  /**
+   * memory-usage
+   */
+  typename itk::CommandLineParser::OptionType::Pointer memoryOption =
+    parser->GetOption( "minimize-memory-usage" );
+  if( memoryOption )
+    {
+    segmenter->SetMinimizeMemoryUsage( parser->Convert<bool>(
+                                         memoryOption->GetValue() ) );
+    }
+
   segmenter->Update();
 
   /**
    * output
    */
-  typename itk::WASPCommandLineParser::OptionType::Pointer outputOption =
+  typename itk::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
   if( outputOption )
     {
@@ -415,7 +444,7 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
         {
         std::cout << "Writing posterior image (class " << i + 1 << ")" << std::endl;
         typename InputImageType::Pointer probabilityImage
-          = segmenter->GetPosteriorImage( i ); // CalculatePosteriorProbabilityImage( i + 1 );
+          = segmenter->GetPosteriorProbabilityImage( i + 1 );
 
         if( segmenter->GetMaskImage() )
           {
@@ -464,6 +493,34 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
           }
         }
       }
+    if( outputOption->GetNumberOfParameters() > 3 )
+      {
+      std::string filename = outputOption->GetParameter( 3 );
+
+      itk::NumericSeriesFileNames::Pointer fileNamesCreator =
+        itk::NumericSeriesFileNames::New();
+      fileNamesCreator->SetStartIndex( 1 );
+      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+      fileNamesCreator->SetSeriesFormat( filename.c_str() );
+      const std::vector<std::string> & imageNames
+        = fileNamesCreator->GetFileNames();
+      for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
+        {
+        if( segmenter->GetPriorProbabilityImage( i + 1 ) || segmenter->GetPriorLabelImage() )
+          {
+          std::cout << "Writing distance image (class " << i + 1 << ")" << std::endl;
+
+          typename InputImageType::Pointer distanceImage =
+            segmenter->GetDistancePriorProbabilityImageFromPriorLabelImage( i + 1 );
+
+          typedef  itk::ImageFileWriter<InputImageType> WriterType;
+          typename WriterType::Pointer writer = WriterType::New();
+          writer->SetInput( distanceImage );
+          writer->SetFileName( imageNames[i].c_str() );
+          writer->Update();
+          }
+        }
+      }
     }
 
   segmenter->Print( std::cout, 5 );
@@ -471,17 +528,19 @@ int AtroposSegmentation( itk::WASPCommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::WASPCommandLineParser *parser )
+void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 {
-  typedef itk::WASPCommandLineParser::OptionType OptionType;
+  typedef itk::CommandLineParser::OptionType OptionType;
 
     {
     std::string description =
-      std::string( "\n\tOption 1:  Kmeans[inputImage,numberOfClasses]\n" )
-      + std::string( "\tOption 2:  Otsu[inputImage,numberOfClasses]\n" )
-      + std::string( "\tOption 3:  PriorProbabilities[inputImage,numberOfClasses," )
-      + std::string( "fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting]\n" )
-      + std::string( "\tOption 4:  PriorLabelImage[inputImage,numberOfClasses,labelImage,priorWeighting]" );
+      std::string( "\n\tOption 1:  Constant[inputImage,numberOfClasses,constant]\n" )
+      + std::string( "\tOption 2:  Random[inputImage,numberOfClasses]\n" )
+      + std::string( "\tOption 3:  Kmeans[inputImage,numberOfClasses]\n" )
+      + std::string( "\tOption 4:  Otsu[inputImage,numberOfClasses]\n" )
+      + std::string( "\tOption 5:  PriorProbabilityImages[inputImage,numberOfClasses," )
+      + std::string( "fileSeriesFormat(index=1 to numberOfClasses-1) or vectorImage,priorWeighting]\n" )
+      + std::string( "\tOption 6:  PriorLabelImage[inputImage,numberOfClasses,labelImage,priorWeighting]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initialization" );
@@ -533,7 +592,30 @@ void InitializeCommandLineOptions( itk::WASPCommandLineParser *parser )
 
     {
     std::string description
-      = std::string( "[<numberOfLevels>,<initialMeshResolution>,<splineOrder>]" );
+      = std::string( "[classifiedImage," )
+        + std::string( "<posteriorProbabilityImageFileNameFormat>]" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "output" );
+    option->SetShortName( 'o' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "minimize-memory-usage=true/false" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "minimize-memory-usage" );
+    option->SetShortName( 'u' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description
+      = std::string( "[<numberOfLevels>,<initialMeshResolution>,<splineOrder>]" )
+        + std::string( " -- only applies to initialization with a prior image(s)" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "bspline" );
@@ -544,24 +626,12 @@ void InitializeCommandLineOptions( itk::WASPCommandLineParser *parser )
 
     {
     std::string description
-      = std::string( "whichLabel[sigma]" );
+      = std::string( "whichLabel[sigma,<boundaryProbability>]" )
+        + std::string( " -- only applies to initialization with a prior label image." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "label-sigma" );
+    option->SetLongName( "labels" );
     option->SetShortName( 'l' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description
-      = std::string( "[classifiedImage," )
-        + std::string( "<posteriorProbabilityImageFileNameFormat>," )
-        + std::string( "<bSplineImageFileNameFormat>]" );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "output" );
-    option->SetShortName( 'o' );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -573,8 +643,8 @@ void InitializeCommandLineOptions( itk::WASPCommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetShortName( 'h' );
-    option->AddValue( std::string( "0" ) );
     option->SetDescription( description );
+    option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -583,23 +653,16 @@ int main( int argc, char *argv[] )
 {
   if( argc < 2 )
     {
-    //   std::cout << " WASP : Wieldy Atlas-based Segmentation Protocol -- stinging the segmentation problem in the
-    // behind. " << std::endl;
-//	std::cout << " wieldy [weel-dee] " << std::endl;
-//     std::cout <<  " –adjective: readily wielded or managed, as in use or action. " << std::endl;
-    std::cout
-    << " Atropos Segmentation :  A priori classification with registration initialized template assistance "
-    << std::endl;
-    std::cout << "Usage: " << argv[0] << " imageDimension args" << std::endl;
-    std::cout << "call: " << argv[0] << " -h " << std::endl;
-    std::cout << " this program has not been evaluated " << std::endl;
+    std::cout << "Usage: " << argv[0]
+              << " imageDimension args" << std::endl;
     exit( 1 );
     }
 
-  itk::WASPCommandLineParser::Pointer parser = itk::WASPCommandLineParser::New();
+  itk::CommandLineParser::Pointer parser = itk::CommandLineParser::New();
   parser->SetCommand( argv[0] );
 
-  parser->SetCommandDescription( "Atropos segmentation." );
+  parser->SetCommandDescription(
+    "Apocrita Segmentation :  A priori classification with registration initialized template assistance." );
   InitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
@@ -614,10 +677,10 @@ int main( int argc, char *argv[] )
   switch( atoi( argv[1] ) )
     {
     case 2:
-      AtroposSegmentation<2>( parser );
+      ApocritaSegmentation<2>( parser );
       break;
     case 3:
-      AtroposSegmentation<3>( parser );
+      ApocritaSegmentation<3>( parser );
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
