@@ -662,7 +662,7 @@ int main( int argc, char *argv[] )
   parser->SetCommand( argv[0] );
 
   parser->SetCommandDescription(
-    "Apocrita Segmentation :  A priori classification with registration initialized template assistance." );
+    "Atropos Segmentation :  A priori classification with registration initialized template assistance." );
   InitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
