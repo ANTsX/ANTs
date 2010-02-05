@@ -3,8 +3,8 @@
   Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCrossCorrelationRegistrationFunction.h,v $
   Language:  C++
-  Date:      $Date: 2009/01/05 20:09:47 $
-  Version:   $Revision: 1.19 $
+  Date:      $Date: 2008/11/15 23:46:06 $
+  Version:   $Revision: 1.18 $
 
   Copyright (c) 2002 Insight Consortium. All rights reserved.
   See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
@@ -168,129 +168,6 @@ public:
   /** Set the object's state before each iteration. */
   virtual void InitializeIteration();
 
-  virtual VectorType  OpticalFlowUpdate(const NeighborhoodType & neighborhood, bool returninv = false)
-  {
-    // Get fixed image related information
-    IndexType index = neighborhood.GetIndex();
-
-    typename TDeformationField::PixelType vec;
-    vec.Fill(0);
-    VectorType update;
-    update.Fill(0.0);
-    double              fixedValue;
-    CovariantVectorType fixedGradient, movingGradient;
-    double              fixedGradientSquaredMagnitude = 0;
-    double              movingGradientSquaredMagnitude = 0;
-    fixedValue = (double) this->finitediffimages[0]->GetPixel( index );
-    double movingValue = (double) this->finitediffimages[1]->GetPixel( index );
-
-    if( !returninv )
-      {
-      fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
-      for( unsigned int j = 0; j < ImageDimension; j++ )
-        {
-        fixedGradientSquaredMagnitude += vnl_math_sqr( fixedGradient[j] );
-        }
-
-      double speedValue = fixedValue - movingValue;
-      if( fabs(speedValue) < this->m_RobustnessParameter )
-        {
-        speedValue = 0;
-        }
-      double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
-        + fixedGradientSquaredMagnitude;
-      double m_DenominatorThreshold = 1e-9;
-      double m_IntensityDifferenceThreshold = 0.001;
-      if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
-          denominator < m_DenominatorThreshold )
-        {
-        for( unsigned int j = 0; j < ImageDimension; j++ )
-          {
-          update[j] = 0.0;
-          }
-        return update;
-        }
-      for( unsigned int j = 0; j < ImageDimension; j++ )
-        {
-        update[j] = speedValue * fixedGradient[j] / denominator;
-        }
-      this->m_Energy += speedValue * speedValue;
-
-      return update;
-      }
-    else
-      {
-      // Get fixed image related information
-      movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
-      for( unsigned int j = 0; j < ImageDimension; j++ )
-        {
-        movingGradientSquaredMagnitude += vnl_math_sqr( movingGradient[j] );
-        }
-
-      double speedValue = movingValue - fixedValue;
-      double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
-        + movingGradientSquaredMagnitude;
-      double m_DenominatorThreshold = 1e-9;
-      double m_IntensityDifferenceThreshold = 0.001;
-      if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
-          denominator < m_DenominatorThreshold )
-        {
-        for( unsigned int j = 0; j < ImageDimension; j++ )
-          {
-          update[j] = 0.0;
-          }
-        return update;
-        }
-      for( unsigned int j = 0; j < ImageDimension; j++ )
-        {
-        update[j] = speedValue * movingGradient[j] / denominator;
-        }
-      return update;
-      }
-  }
-
-  void SetFixedImageMask( MetricImageType* img)
-  {
-    m_FixedImageMask = img;
-  }
-
-  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
-                                   void *globalData,
-                                   const FloatOffsetType & offset = FloatOffsetType(0.0) )
-  {
-    VectorType update;
-
-    update.Fill(0.0);
-    //  std::cout << " updating " << std::endl;
-    IndexType oindex = neighborhood.GetIndex();
-//    std::cout <<" Index " << oindex << std::endl;
-//    if (!this->GetFixedImage() ) { std::cout << " no image " << std::endl; return update;}
-    update = this->OpticalFlowUpdate(neighborhood, false);
-    // update=this->ComputeMetricAtPairB(oindex,update);
-
-    return update;
-  }
-
-  virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
-                                      void *globalData,
-                                      const FloatOffsetType & offset = FloatOffsetType(0.0) )
-  {
-    VectorType update;
-
-    update.Fill(0.0);
-    IndexType       oindex = neighborhood.GetIndex();
-    FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
-    if( !img )
-      {
-      return update;
-      }
-
-    update = this->OpticalFlowUpdate(neighborhood, true);
-    // update=this->ComputeMetricAtPairC(oindex,update);
-
-    return update;
-  }
-
   double ComputeCrossCorrelation()
   {
     if( finitediffimages[0] )
@@ -313,12 +190,116 @@ public:
         totalcc += cc;
         }
       this->m_Energy = totalcc / (float)ct * (-1.0);
-      return this->m_Energy * (-1.0);
+      return this->m_Energy;
       }
     else
       {
       return 0;
       }
+  }
+
+  virtual VectorType  OpticalFlowUpdate(const NeighborhoodType & neighborhood)
+  {
+    // Get fixed image related information
+    IndexType index = neighborhood.GetIndex();
+
+    typename TDeformationField::PixelType vec = Superclass::m_DeformationField->GetPixel(index);
+    VectorType update;
+    update.Fill(0.0);
+    double              fixedValue;
+    CovariantVectorType fixedGradient;
+    double              fixedGradientSquaredMagnitude = 0;
+    fixedValue = (double) Superclass::Superclass::m_FixedImage->GetPixel( index );
+    fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
+    for( unsigned int j = 0; j < ImageDimension; j++ )
+      {
+      fixedGradientSquaredMagnitude += vnl_math_sqr( fixedGradient[j] );
+      }
+    double    movingValue;
+    int       j;
+    PointType mappedPoint;
+    for( j = 0; j < ImageDimension; j++ )
+      {
+      mappedPoint[j] = double( index[j] ) * m_FixedImageSpacing[j]
+        + m_FixedImageOrigin[j];
+      mappedPoint[j] += vec[j];
+      }
+    if( m_MovingImageInterpolator->IsInsideBuffer( mappedPoint ) )
+      {
+      movingValue = m_MovingImageInterpolator->Evaluate( mappedPoint );
+      }
+    else
+      {
+      for( j = 0; j < ImageDimension; j++ )
+        {
+        update[j] = 0.0;
+        }
+      return update;
+      }
+    double speedValue = fixedValue - movingValue;
+    if( fabs(speedValue) < this->m_RobustnessParameter )
+      {
+      speedValue = 0;
+      }
+    double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
+      + fixedGradientSquaredMagnitude;
+    double m_DenominatorThreshold = 1e-9;
+    double m_IntensityDifferenceThreshold = 0.001;
+    if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
+        denominator < m_DenominatorThreshold )
+      {
+      for( j = 0; j < ImageDimension; j++ )
+        {
+        update[j] = 0.0;
+        }
+      return update;
+      }
+    for( j = 0; j < ImageDimension; j++ )
+      {
+      update[j] = speedValue * fixedGradient[j] / denominator;
+      }
+    return update;
+  }
+
+  void SetFixedImageMask( MetricImageType* img)
+  {
+    m_FixedImageMask = img;
+  }
+
+  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
+                                   void *globalData,
+                                   const FloatOffsetType & offset = FloatOffsetType(0.0) )
+  {
+    VectorType update;
+
+    update.Fill(0.0);
+    IndexType       oindex = neighborhood.GetIndex();
+    FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
+    if( !img )
+      {
+      return update;
+      }
+    update = this->ComputeMetricAtPairB(oindex, update);
+
+    return update;
+  }
+
+  virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
+                                      void *globalData,
+                                      const FloatOffsetType & offset = FloatOffsetType(0.0) )
+  {
+    VectorType update;
+
+    update.Fill(0.0);
+    IndexType       oindex = neighborhood.GetIndex();
+    FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
+    if( !img )
+      {
+      return update;
+      }
+    update = this->ComputeMetricAtPairC(oindex, update);
+
+    return update;
   }
 
   void SetFullyRobust(bool b)
@@ -355,21 +336,15 @@ protected:
     FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
     typename FixedImageType::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
 
-      {
-      Superclass::m_MetricImage = MetricImageType::New();
-      Superclass::m_MetricImage->SetLargestPossibleRegion(img->GetLargestPossibleRegion()  );
-      Superclass::m_MetricImage->SetBufferedRegion(img->GetLargestPossibleRegion() );
-      Superclass::m_MetricImage->SetSpacing(img->GetSpacing() );
-      Superclass::m_MetricImage->SetOrigin(img->GetOrigin() );
-      Superclass::m_MetricImage->Allocate();
-      //    ittype it(m_MetricImage,Superclass::m_MetricImage->GetLargestPossibleRegion().GetSize());
-      //    for( it.GoToBegin(); !it.IsAtEnd(); ++it ) it.Set(0);
-      }
-    bool makebinimg = false;
-    //    if (!binaryimage) makebinimg=true;
-    // else if ( binaryimage->GetLargestPossibleRegion().GetSize()[0] !=
-    //                img->GetLargestPossibleRegion().GetSize()[0] )makebinimg=true;
+    this->m_MetricImage = MetricImageType::New();
+    this->m_MetricImage->SetLargestPossibleRegion(img->GetLargestPossibleRegion()  );
+    this->m_MetricImage->SetBufferedRegion(img->GetLargestPossibleRegion() );
+    this->m_MetricImage->SetSpacing(img->GetSpacing() );
+    this->m_MetricImage->SetOrigin(img->GetOrigin() );
+    this->m_MetricImage->Allocate();
+    this->m_MetricImage->FillBuffer(0);
 
+    bool makebinimg = false;
     if( makebinimg )
       {
       m_Iteration = 0;
@@ -385,7 +360,7 @@ protected:
         it.Set(1);
         }
       }
-    return Superclass::m_MetricImage;
+    return this->m_MetricImage;
   }
 
 private:

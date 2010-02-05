@@ -164,8 +164,6 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
       }
     }
 
-//  std::cout << "makeimg " << makeimg << " fix " << this->GetFixedImage()->GetLargestPossibleRegion().GetSize() <<
-// std::endl;
   if( makeimg )
     {
     finitediffimages[0] = this->MakeImage();
@@ -193,34 +191,34 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
   Iterator outIter(this->finitediffimages[0], this->finitediffimages[0]->GetLargestPossibleRegion() );
   for( outIter.GoToBegin(); !outIter.IsAtEnd(); ++outIter )
     {
-    NeighborhoodIterator<MetricImageType>
-    hoodIt( this->GetRadius(), this->finitediffimages[0],
-            this->finitediffimages[0]->GetLargestPossibleRegion() );
-    IndexType oindex = outIter.GetIndex();
-    hoodIt.SetLocation(oindex);
-
-    double fixedMean = 0;
-    double movingMean = 0;
-
-    PointType    mappedPoint;
-    unsigned int indct;
-    unsigned int hoodlen = hoodIt.Size();
-
-//      unsigned int inct=0;
-
     bool takesample = true;
     if( this->m_FixedImageMask )
       {
-      if( this->m_FixedImageMask->GetPixel( oindex  ) < 1.e-6 )
+      if( this->m_FixedImageMask->GetPixel( outIter.GetIndex() ) < 0.25 )
         {
         takesample = false;
         }
       }
-//      double sumj=0,sumi=0;
+
     if( takesample )
       {
-      double       sumj = 0, sumi = 0;
+      NeighborhoodIterator<MetricImageType>
+      hoodIt(
+        this->GetRadius(), this->finitediffimages[0], this->finitediffimages[0]->GetLargestPossibleRegion() );
+      IndexType oindex = outIter.GetIndex();
+      hoodIt.SetLocation(oindex);
+
+      double fixedMean = 0;
+      double movingMean = 0;
+
+      PointType    mappedPoint;
+      unsigned int indct;
+      unsigned int hoodlen = hoodIt.Size();
+
+      //      unsigned int inct=0;
+      double       sff = 0, smm = 0, sfm = 0;
       unsigned int cter = 0;
+      double       asq = 0, bsq = 0, sumai = 0, sumbi = 0, sumaibi = 0;
       for( indct = 0; indct < hoodlen; indct++ )
         {
         IndexType index = hoodIt.GetIndex(indct);
@@ -232,89 +230,46 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
             inimage = false;
             }
           }
-
+        if( inimage && this->m_FixedImageMask )
+          {
+          if( this->m_FixedImageMask->GetPixel( index ) < 0.25 )
+            {
+            inimage = false;
+            }
+          }
         if( inimage )
           {
-          sumj += this->GetMovingImage()->GetPixel(index);
-          sumi += this->GetFixedImage()->GetPixel(index);
+          asq += this->GetFixedImage()->GetPixel(index) * this->GetFixedImage()->GetPixel(index);
+          bsq += this->GetMovingImage()->GetPixel(index) * this->GetMovingImage()->GetPixel(index);
+          sumaibi += this->GetFixedImage()->GetPixel(index) * this->GetMovingImage()->GetPixel(index);
+          sumbi += this->GetMovingImage()->GetPixel(index);
+          sumai += this->GetFixedImage()->GetPixel(index);
           cter++;
           }
         }
 
-      if( cter > 0 )
+      if( cter > 0  )
         {
-        movingMean = sumj / (float)cter;
+        fixedMean = sumai / (float)cter;
+        movingMean = sumbi / (float)cter;
+
+        sff = asq - fixedMean * sumai - fixedMean * sumai + cter * fixedMean * fixedMean;
+        smm = bsq - movingMean * sumbi - movingMean * sumbi + cter * movingMean * movingMean;
+        sfm = sumaibi - movingMean * sumai - fixedMean * sumbi + cter * movingMean * fixedMean;
+
+        float val = this->GetFixedImage()->GetPixel(oindex) - fixedMean;
+        this->finitediffimages[0]->SetPixel( oindex, val );
+        val = this->GetMovingImage()->GetPixel(oindex) - movingMean;
+        this->finitediffimages[1]->SetPixel( oindex, val );
+        this->finitediffimages[2]->SetPixel( oindex, sfm ); // A
+        this->finitediffimages[3]->SetPixel( oindex, sff ); // B
+        this->finitediffimages[4]->SetPixel( oindex, smm ); // C
         }
-      if( cter > 0 )
-        {
-        fixedMean = sumi / (float)cter;
-        }
+
+      //	  std::cout << oindex << " NM1 " << this->GetFixedImage()->GetPixel(oindex) - fixedMean << " NM2 " <<
+      // this->GetMovingImage()->GetPixel(oindex) - movingMean << std::endl;
+      //	  std::cout << " sff " << sff << " sfm " << sfm << " smm " << smm << std::endl;
       }
-
-    float val = this->GetFixedImage()->GetPixel(oindex) - fixedMean;
-    this->finitediffimages[0]->SetPixel( oindex, val );
-    val = this->GetMovingImage()->GetPixel(oindex) - movingMean;
-    this->finitediffimages[1]->SetPixel( oindex, val );
-    }
-  //  m_FixedImageGradientCalculator->SetInputImage( this->finitediffimages[0] );
-  // m_MovingImageGradientCalculator->SetInputImage( this->finitediffimages[1]  );
-  for( outIter.GoToBegin(); !outIter.IsAtEnd(); ++outIter )
-    {
-    NeighborhoodIterator<MetricImageType>
-    hoodIt( this->GetRadius(), this->finitediffimages[0],
-            this->finitediffimages[0]->GetLargestPossibleRegion() );
-    IndexType oindex = outIter.GetIndex();
-    hoodIt.SetLocation(oindex);
-    double sff = 0.0;
-    double smm = 0.0;
-    double sfm = 0.0;
-
-    PointType    mappedPoint;
-    unsigned int indct;
-    unsigned int hoodlen = hoodIt.Size();
-
-//      unsigned int inct=0;
-
-    bool takesample = true;
-
-    if( this->m_FixedImageMask )
-      {
-      if( this->m_FixedImageMask->GetPixel( oindex  ) < 1.e-6 )
-        {
-        takesample = false;
-        }
-      }
-
-    //     double sumj=0,sumi=0;
-    if( takesample )
-      {
-      for( indct = 0; indct < hoodlen; indct++ )
-        {
-        IndexType index = hoodIt.GetIndex(indct);
-        bool      inimage = true;
-        for( unsigned int dd = 0; dd < ImageDimension; dd++ )
-          {
-          if( index[dd] < 0 || index[dd] > static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1) )
-            {
-            inimage = false;
-            }
-          }
-
-        if( inimage )
-          {
-          double fixedValue = (double)this->finitediffimages[0]->GetPixel( index );
-          double movingValue = (double)this->finitediffimages[1]->GetPixel( index );
-          sff += fixedValue * fixedValue;
-          smm += movingValue * movingValue;
-          sfm += fixedValue * movingValue;
-          }
-        }
-      }
-    this->finitediffimages[2]->SetPixel( oindex, sfm ); // A
-    this->finitediffimages[3]->SetPixel( oindex, sff ); // B
-    this->finitediffimages[4]->SetPixel( oindex, smm ); // C
-    //         this->finitediffimages[5]->SetPixel( oindex , sumi);//B*C
-    //    this->finitediffimages[6]->SetPixel( oindex , sumj);//B*C
     }
 
   // m_FixedImageGradientCalculator->SetInputImage(finitediffimages[0]);
@@ -338,24 +293,27 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
   double sff = 0.0;
   double smm = 0.0;
   double sfm = 0.0;
-  double fixedValue;
-  double movingValue;
+//  double fixedValue;
+//  double movingValue;
   sff = 0.0;
   smm = 0.0;
   sfm = 0.0;
   PointType           mappedPoint;
   CovariantVectorType gradI, gradJ;
-
-//  // std::cout << " point 1 " << m_Iteration <<  std::endl;
+  if( this->m_FixedImageMask )
+    {
+    if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
+      {
+      return deriv;
+      }
+    }
 
   sfm = finitediffimages[2]->GetPixel(oindex);
   sff = finitediffimages[3]->GetPixel(oindex);
   smm = finitediffimages[4]->GetPixel(oindex);
 
-  // std::cout << " point 2 " << std::endl;
-
   IndexType index = oindex;  // hoodIt.GetIndex(indct);
-  bool      inimage = true;
+//      bool inimage=true;
   if( sff == 0.0 )
     {
     sff = 1.0;
@@ -364,23 +322,18 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
     {
     smm = 1.0;
     }
-
-  // std::cout << " point 3 " << std::endl;
-
   gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
   //	gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
-  // std::cout << " point 4 " << std::endl;
 
   float Ji = finitediffimages[1]->GetPixel(index);
   float Ii = finitediffimages[0]->GetPixel(index);
-  // std::cout << " point 5 " << std::endl;
 
   m_TEMP = 2.0 * sfm / (sff * smm) * ( Ji - sfm / sff * Ii );
   for( int qq = 0; qq < ImageDimension; qq++ )
     {
     deriv[qq]   -= 2.0 * sfm / (sff * smm) * ( Ji - sfm / sff * Ii ) * gradI[qq];
+    //	    derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
     }
-  // std::cout << " point 6 " << std::endl;
 
   if( sff * smm != 0.0 )
     {
@@ -398,7 +351,9 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
     {
     deriv.Fill(0);
     }
-  // std::cout << " point 7 " << std::endl;
+
+//  if ( localCrossCorrelation*(-1.0) < this->m_RobustnessParameter) {
+//  std::cout << " localC " << localCrossCorrelation << std::endl; }
 
   this->m_Energy -= localCrossCorrelation;
   return deriv; // localCrossCorrelation;
@@ -417,13 +372,20 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
   double sff = 0.0;
   double smm = 0.0;
   double sfm = 0.0;
-  double fixedValue;
-  double movingValue;
+//  double fixedValue;
+//  double movingValue;
   sff = 0.0;
   smm = 0.0;
   sfm = 0.0;
   PointType           mappedPoint;
   CovariantVectorType gradI, gradJ;
+  if( this->m_FixedImageMask )
+    {
+    if( this->m_FixedImageMask->GetPixel( oindex ) < 0.25 )
+      {
+      return deriv;
+      }
+    }
 
   sfm = finitediffimages[2]->GetPixel(oindex);
   sff = finitediffimages[3]->GetPixel(oindex);
@@ -446,6 +408,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
   float Ii = finitediffimages[0]->GetPixel(index);
   for( int qq = 0; qq < ImageDimension; qq++ )
     {
+    // deriv[qq]   -=2.0*sfm/(sff*smm)*( Ji - sfm/sff*Ii )*gradI[qq];
     deriv[qq] -= 2.0 * sfm / (sff * smm) * ( Ii - sfm / smm * Ji ) * gradJ[qq];
     }
 
@@ -464,8 +427,8 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
   if( localCrossCorrelation * (-1.0) < this->m_RobustnessParameter )
     {
     deriv.Fill(0);
-    std::cout << " localC " << localCrossCorrelation << std::endl;
     }
+
   return deriv; // localCrossCorrelation;
 }
 } // end namespace itk
