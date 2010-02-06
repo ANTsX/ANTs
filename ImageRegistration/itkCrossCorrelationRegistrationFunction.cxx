@@ -239,11 +239,13 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
           }
         if( inimage )
           {
-          asq += this->GetFixedImage()->GetPixel(index) * this->GetFixedImage()->GetPixel(index);
-          bsq += this->GetMovingImage()->GetPixel(index) * this->GetMovingImage()->GetPixel(index);
-          sumaibi += this->GetFixedImage()->GetPixel(index) * this->GetMovingImage()->GetPixel(index);
-          sumbi += this->GetMovingImage()->GetPixel(index);
-          sumai += this->GetFixedImage()->GetPixel(index);
+          float ff = this->GetFixedImage()->GetPixel(index);
+          float gg = this->GetMovingImage()->GetPixel(index);
+          asq += ff * ff;
+          bsq += gg * gg;
+          sumaibi += ff * gg;
+          sumbi += gg;
+          sumai += ff;
           cter++;
           }
         }
