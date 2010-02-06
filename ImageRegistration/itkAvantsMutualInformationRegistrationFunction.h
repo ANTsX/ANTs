@@ -617,9 +617,9 @@ public:
       }
   }
 
-  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
-                                   void *globalData,
-                                   const FloatOffsetType & offset = FloatOffsetType(0.0) )
+  virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
+                                      void *globalData,
+                                      const FloatOffsetType & offset = FloatOffsetType(0.0) )
   {
     VectorType update;
 
@@ -633,7 +633,6 @@ public:
       }
     typename FixedImageType::SpacingType spacing = img->GetSpacing();
     typename FixedImageType::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
-    // bool inimage=true;
     for( unsigned int dd = 0; dd < ImageDimension; dd++ )
       {
       if( oindex[dd] < 1 ||
@@ -644,94 +643,32 @@ public:
       }
 
     CovariantVectorType fixedGradient;
-    //    ImageDerivativesType fixedGradient;
-    CovariantVectorType fixedGradientNorm;
-    // std::cout << " grad " << std::endl;
-
-    double loce = 0.0;
-//    double nccp1=0,nccm1=0;
-    ParametersType fdvec1(ImageDimension);
-    ParametersType fdvec2(ImageDimension);
+    double              loce = 0.0;
+    ParametersType      fdvec1(ImageDimension);
+    ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
     fdvec2.Fill(0);
-
     fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( oindex );
-    float mag1 = 0;
-    for( int imd = 0; imd < ImageDimension; imd++ )
-      {
-      mag1 += fixedGradient[imd] * fixedGradient[imd];
-      fixedGradientNorm[imd] = fixedGradient[imd];
-      }
-    mag1 = sqrt(mag1);
-    if( mag1 > 1.e-5 )
-      {
-      fixedGradientNorm /= mag1;
-      }
-
     double nccm1 = 0;
     loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
-    float sign = (1.) * loce; // nccp1-nccm1;
-
-    double denominator = mag1;
-    if( denominator < 1.e-12 )
-      {
-      denominator = 1.0;
-      }
-    denominator = 1.;
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
-      update[imd] = sign * fixedGradient[imd] / denominator * spacing[imd];
+      update[imd] = loce * fixedGradient[imd] * spacing[imd] * (-1);
       }
-
-//      if (this->m_MetricImage) this->m_MetricImage->SetPixel(oindex,(loce));//+this->m_MetricImage->GetPixel(oindex));
     if( this->m_MetricImage )
       {
       this->m_MetricImage->SetPixel(oindex, loce);
       }
-//	else std::cout << " no " << std::endl;
-//  if ( loce < this->m_RobustnessParameter) update.Fill(0);
-
-    if( ImageDimension == 2 )
-      {
-      if( this->m_MetricImage &&
-          (unsigned int)oindex[0] ==
-          (unsigned int)this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[0] - 2 &&
-          (unsigned int)oindex[1] ==
-          (unsigned int)this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[1] - 2 )
-        {
-        this->WriteImages();
-        }
-      }
-    /*
-    else if (ImageDimension == 3)
-      {
-
-  if (//this->m_MetricImage &&
-      oindex[0] == this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[0]-2 &&
-      oindex[1] == this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[1]-2 &&
-      oindex[2] == this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[2]-2 )
-    {
-      this->ComputeMutualInformation();
-      this->WriteImages();
-    }
-      }
-    */
-    mag1 = 0;
-    // for (int imd=0; imd<ImageDimension; imd++) mag1+=update[imd]*update[imd];
-    //     mag1=sqrt(mag1);
-//      if (mag1 > 1.e-5) std::cout << " mag1 " << mag1 << std::endl;//update=update*(1.0/mag1);
-
     return update;
   }
 
-  virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
-                                      void *globalData,
-                                      const FloatOffsetType & offset = FloatOffsetType(0.0) )
+  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
+                                   void *globalData,
+                                   const FloatOffsetType & offset = FloatOffsetType(0.0) )
   {
     VectorType update;
 
     update.Fill(0.0);
-    ///   return update;
     IndexType oindex = neighborhood.GetIndex();
 
     FixedImageType* img = const_cast<FixedImageType *>(this->Superclass::m_MovingImage.GetPointer() );
@@ -741,7 +678,6 @@ public:
       }
     typename FixedImageType::SpacingType spacing = img->GetSpacing();
     typename FixedImageType::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
-//    bool inimage=true;
     for( unsigned int dd = 0; dd < ImageDimension; dd++ )
       {
       if( oindex[dd] < 1 ||
@@ -752,87 +688,19 @@ public:
       }
 
     CovariantVectorType movingGradient;
-    //    ImageDerivativesType movingGradient;
-    CovariantVectorType movingGradientNorm;
-    // std::cout << " grad " << std::endl;
-
-    double loce = 0.0;
-//    double nccp1=0,nccm1=0;
-    ParametersType fdvec1(ImageDimension);
-    ParametersType fdvec2(ImageDimension);
+    double              loce = 0.0;
+    ParametersType      fdvec1(ImageDimension);
+    ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
     fdvec2.Fill(0);
-
     movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex( oindex );
-    float mag1 = 0;
-    for( int imd = 0; imd < ImageDimension; imd++ )
-      {
-      mag1 += movingGradient[imd] * movingGradient[imd];
-      movingGradientNorm[imd] = movingGradient[imd];
-      }
-    mag1 = sqrt(mag1);
-    if( mag1 > 1.e-5 )
-      {
-      movingGradientNorm /= mag1;
-      }
 
-    //	for (int imd=0; imd<ImageDimension; imd++)
-      {
-      //  fdvec1[imd]=movingGradientNorm[imd]*spacing[imd]*0.5;
-      // fdvec2[imd]=movingGradientNorm[imd]*(-1.)*spacing[imd]*0.5;
-      }
     double nccm1 = 0;
     loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
-    float  sign = (1.0) * loce; // nccp1-nccm1;
-    double denominator = mag1;
-    if( denominator < 1.e-12 )
-      {
-      denominator = 1.0;
-      }
-    denominator = 1.;
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
-      update[imd] = sign * movingGradient[imd] / denominator * spacing[imd];
+      update[imd] = loce * movingGradient[imd] * spacing[imd] * (-1);
       }
-
-//	if (this->m_MetricImage) this->m_MetricImage->SetPixel(oindex,loce); //this->m_MetricImage->GetPixel(oindex));
-//    if ( loce < this->m_RobustnessParameter) update.Fill(0);
-
-/*
-    if (ImageDimension == 2)
-      {
-
-  if (//this->m_MetricImage &&
-      oindex[0] == static_cast<int>(
-        this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[0]-2 ) &&
-      oindex[1] == static_cast<int>(
-        this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[1]-2 ) )
-    {
-      //	    this->GetProbabilities();
-      this->ComputeMutualInformation();
-      this->WriteImages();
-    }
-      }
-    else if (ImageDimension == 3)
-      {
-
-  if (//this->m_MetricImage &&
-      oindex[0] == static_cast<int>(
-        this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[0]-2 ) &&
-      oindex[1] == static_cast<int>(
-        this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[1]-2 ) &&
-      oindex[2] == static_cast<int>(
-        this->Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[2]-2 ) )
-    {
-      this->ComputeMutualInformation();
-      this->WriteImages();
-    }
-      }
-*/
-    //    for (int imd=0; imd<ImageDimension; imd++) mag1+=update[imd]*update[imd];
-    //  mag1=sqrt(mag1);
-    // if (mag1 > 1.e-5) update=update*(1.0/mag1);
-
     return update;
   }
 
