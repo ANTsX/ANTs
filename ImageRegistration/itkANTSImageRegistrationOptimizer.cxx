@@ -1792,6 +1792,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     this->SmoothDeformationField( this->m_SyNF, false);
     this->SmoothDeformationField( this->m_SyNM, false);
     }
+
   this->InvertField(this->m_SyNF, this->m_SyNFInv);
   this->InvertField(this->m_SyNM, this->m_SyNMInv);
   this->InvertField(this->m_SyNFInv, this->m_SyNF);

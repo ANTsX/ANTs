@@ -1660,11 +1660,20 @@ public:
                     DeformationFieldPointer inverseField, float weight = 1.0,
                     float toler = 0.1, int maxiter = 20, bool print = false)
   {
+    float        mytoler = toler;
+    unsigned int mymaxiter = maxiter;
+
+    typename ParserType::OptionType::Pointer thicknessOption
+      = this->m_Parser->GetOption( "go-faster" );
+    if( thicknessOption->GetValue() == "true" ||  thicknessOption->GetValue() == "1" )
+      {
+      mytoler = 0.5; maxiter = 12;
+      }
+
     VectorType zero; zero.Fill(0);
     //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
 
     ImagePointer floatImage = ImageType::New();
-
     floatImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
     floatImage->SetBufferedRegion( field->GetLargestPossibleRegion().GetSize() );
     floatImage->SetSpacing(field->GetSpacing() );
@@ -1756,7 +1765,7 @@ public:
       epsilon = 1;
       }
 
-    while( difmag > toler && ct<maxiter && meandif> 0.001 )
+    while( difmag > mytoler && ct<mymaxiter && meandif> 0.001 )
       {
       denergy = laste - difmag; // meandif;
       denergy2 = laste - meandif;

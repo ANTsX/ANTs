@@ -1061,6 +1061,18 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     this->m_Parser->AddOption( option );
     }
 
+  if( true )
+    {
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "go-faster" );
+    option->SetShortName( 'G' );
+    option->SetDescription(
+      " true / false -- if true, SyN is faster but loses some accuracy wrt inverse-identity constraint, see Avants MIA 2008.");
+    std::string nitdefault = std::string("false");
+    option->AddValue(nitdefault);
+    this->m_Parser->AddOption( option );
+    }
+
   // added by songgang
   if( true )
     {
