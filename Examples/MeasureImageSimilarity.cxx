@@ -165,7 +165,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
     metricname = "CC ";
     std::cout << metricname << std::endl;
     ccmet->InitializeIteration();
-    metricvalue = ccmet->ComputeCrossCorrelation() * (-1.0);
+    metricvalue = ccmet->ComputeCrossCorrelation() * (1.0);
     }
   else
     {
