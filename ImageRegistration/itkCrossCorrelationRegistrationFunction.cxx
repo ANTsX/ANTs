@@ -258,6 +258,9 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
         sff = asq - fixedMean * sumai - fixedMean * sumai + cter * fixedMean * fixedMean;
         smm = bsq - movingMean * sumbi - movingMean * sumbi + cter * movingMean * movingMean;
         sfm = sumaibi - movingMean * sumai - fixedMean * sumbi + cter * movingMean * fixedMean;
+        // sff/=(float)sff;
+        // sfm/=(float)sfm;
+        // smm/=(float)smm;
 
         float val = this->GetFixedImage()->GetPixel(oindex) - fixedMean;
         this->finitediffimages[0]->SetPixel( oindex, val );
