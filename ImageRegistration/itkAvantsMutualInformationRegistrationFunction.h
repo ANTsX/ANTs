@@ -265,9 +265,6 @@ public:
   typedef JointPDFDerivativesType::RegionType JointPDFDerivativesRegionType;
   typedef JointPDFDerivativesType::SizeType   JointPDFDerivativesSizeType;
 
-  /** Get the derivatives of the match measure. */
-  void GetDerivative(const ParametersType& parameters, DerivativeType & Derivative ) const;
-
   /**  Get the value and derivatives for single valued optimizers. */
   double GetValueAndDerivative( IndexType index, MeasureType& Value, DerivativeType& Derivative1,
                                 DerivativeType& Derivative2 );
@@ -275,9 +272,6 @@ public:
   /**  Get the value and derivatives for single valued optimizers. */
   double GetValueAndDerivativeInv( IndexType index, MeasureType& Value, DerivativeType& Derivative1,
                                    DerivativeType& Derivative2 );
-
-  /**  Get the value and derivatives for single valued optimizers. */
-  double GetValueAndDerivative2( IndexType index, MeasureType& Value, DerivativeType& Derivative );
 
   /** Number of spatial samples to used to compute metric */
   //  itkSetClampMacro( NumberOfSpatialSamples, unsigned long,
@@ -297,21 +291,6 @@ public:
   {
     return m_NumberOfHistogramBins;
   }
-
-  void SetNumberOfSpatialSamples(unsigned long nhb)
-  {
-    m_NumberOfSpatialSamples = nhb;
-  }
-
-  unsigned long GetNumberOfSpatialSamples()
-  {
-    return m_NumberOfSpatialSamples;
-  }
-
-  /** Provide API to reinitialize the seed of the random number generator */
-  static void ReinitializeSeed();
-
-  static void ReinitializeSeed(int);
 
   void SetTransform(TransformPointer t)
   {
@@ -334,78 +313,6 @@ public:
   }
 
   void GetProbabilities();
-
-  void GetProbabilitiesLocal(typename TFixedImage::IndexType centerindex, float radius);
-
-  virtual CovariantVectorType  OpticalFlowUpdate(const NeighborhoodType & neighborhood, bool mov = false)
-  {
-    // Get fixed image related information
-    IndexType index = neighborhood.GetIndex();
-
-    typename TDeformationField::PixelType vec = Superclass::m_DeformationField->GetPixel(index);
-    CovariantVectorType update;
-    double              fixedValue;
-    CovariantVectorType fixedGradient;
-    double              fixedGradientSquaredMagnitude = 0;
-    fixedValue = (double) Superclass::m_FixedImage->GetPixel( index );
-    if( mov )
-      {
-      fixedGradient = m_MovingImageGradientCalculator->EvaluateAtIndex( index ) * (-1.0);
-      }
-    fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
-    for( unsigned int j = 0; j < ImageDimension; j++ )
-      {
-      fixedGradientSquaredMagnitude += vnl_math_sqr( fixedGradient[j] );
-      }
-    double    movingValue;
-    int       j;
-    PointType mappedPoint;
-    for( j = 0; j < ImageDimension; j++ )
-      {
-      mappedPoint[j] = double( index[j] ) * m_FixedImageSpacing[j]
-        + m_FixedImageOrigin[j];
-      mappedPoint[j] += vec[j];
-      }
-    if( m_MovingImageInterpolator->IsInsideBuffer( mappedPoint ) )
-      {
-      movingValue = m_MovingImageInterpolator->Evaluate( mappedPoint );
-      }
-    else
-      {
-      for( j = 0; j < ImageDimension; j++ )
-        {
-        update[j] = 0.0;
-        }
-      return update;
-      }
-    double speedValue;
-    if( mov )
-      {
-      speedValue = movingValue - fixedValue;
-      }
-    else
-      {
-      speedValue = fixedValue - movingValue;
-      }
-    double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
-      + fixedGradientSquaredMagnitude;
-    double m_DenominatorThreshold = 1e-9;
-    double m_IntensityDifferenceThreshold = 0.001;
-    if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
-        denominator < m_DenominatorThreshold )
-      {
-      for( j = 0; j < ImageDimension; j++ )
-        {
-        update[j] = 0.0;
-        }
-      return update;
-      }
-    for( j = 0; j < ImageDimension; j++ )
-      {
-      update[j] = speedValue * fixedGradient[j] / denominator;
-      }
-    return update;
-  }
 
   double ComputeMutualInformation()
   {
@@ -460,163 +367,6 @@ public:
     return this->m_Energy;
   }
 
-  double ComputeLocalMutualInformation(IndexType imageindex, double fixedImageValue, double movingImageValue,
-                                       bool deriv = false)
-  {
-    // first find corresponding parzen indices
-    double windowTerm =
-      static_cast<double>( fixedImageValue ) / m_FixedImageBinSize
-      - m_FixedImageNormalizedMin;
-    unsigned int pindex = static_cast<unsigned int>( floor( windowTerm ) );
-
-    // Make sure the extreme values are in valid bins
-    if( pindex < this->m_Padding )
-      {
-      pindex = this->m_Padding;
-      }
-    else if( pindex > (m_NumberOfHistogramBins -  this->m_Padding - 1) )
-      {
-      pindex = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-    // Determine parzen window arguments (see eqn 6 of Avants paper [2]).
-    double movingImageParzenWindowTerm =
-      movingImageValue / m_MovingImageBinSize - m_MovingImageNormalizedMin;
-    unsigned int movingImageParzenWindowIndex =
-      static_cast<unsigned int>( floor( movingImageParzenWindowTerm ) );
-
-    // Make sure the extreme values are in valid bins
-    if( movingImageParzenWindowIndex < this->m_Padding )
-      {
-      movingImageParzenWindowIndex = this->m_Padding;
-      }
-    else if( movingImageParzenWindowIndex > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      movingImageParzenWindowIndex = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-    unsigned int  ii = pindex;
-    unsigned int  jj = movingImageParzenWindowIndex;
-    float         px, py, pxy;
-    double        mi;
-    unsigned long ct = 0;
-    typename JointPDFType::IndexType index;
-    typename MarginalPDFType::IndexType mind; mind[0] = ii;
-    px = m_FixedImageMarginalPDF->GetPixel(mind); mind[0] = jj;
-    py = m_MovingImageMarginalPDF->GetPixel(mind);
-    float denom = px * py;
-    index[0] = ii;
-    index[1] = jj;
-    pxy = m_JointPDF->GetPixel(index);
-
-    mi = 0;
-    if( fabs(denom) > 0 )
-      {
-      if( pxy / denom > 0 )
-        {
-        mi = pxy * log(pxy / denom);
-        if( deriv )
-          {
-          mi = 1.0 + log(pxy / denom);
-          }
-        ct++;
-        }
-      }
-
-    return mi;
-  }
-
-  double ComputeProbabilities(IndexType oindex, unsigned int option = 0)
-  {
-    double         fixedImageValue = (double)this->Superclass::m_FixedImage->GetPixel(oindex);
-    DerivativeType zero(ImageDimension);
-
-    zero.Fill(0);
-    double       movingImageValue = this->GetMovingImageValue(oindex, zero);
-    unsigned int fixedIndex = this->GetFixedValueIndex(fixedImageValue);
-    unsigned int movingIndex = this->GetMovingValueIndex(movingImageValue);
-
-    double dJPDF = 0, dFmPDF = 0, dMmPDF = 0, jointPDFValue = 0, fixedImagePDFValue = 0, movingImagePDFValue = 0;
-
-    // Determine parzen window arguments (see eqn 6 of Mattes paper [2]).
-    double movingImageParzenWindowTerm =
-      movingImageValue / m_MovingImageBinSize - m_MovingImageNormalizedMin;
-    unsigned int movingImageParzenWindowIndex =
-      static_cast<unsigned int>( floor( movingImageParzenWindowTerm ) );
-
-    // Determine parzen window arguments (see eqn 6 of Mattes paper [2]).
-    double fixedImageParzenWindowTerm =
-      fixedImageValue / m_FixedImageBinSize - m_FixedImageNormalizedMin;
-    unsigned int fixedImageParzenWindowIndex =
-      static_cast<unsigned int>( floor( fixedImageParzenWindowTerm ) );
-
-    if( movingImageParzenWindowTerm < this->m_Padding )
-      {
-      movingImageParzenWindowTerm = this->m_Padding;
-      }
-    else if( movingImageParzenWindowTerm > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      movingImageParzenWindowTerm = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-    // Make sure the extreme values are in valid bins
-    if( fixedImageParzenWindowTerm < this->m_Padding )
-      {
-      fixedImageParzenWindowTerm = this->m_Padding;
-      }
-    else if( fixedImageParzenWindowTerm > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      fixedImageParzenWindowTerm = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-      {
-      typename JointPDFType::IndexType pdfind2;
-      pdfind2[1] = fixedIndex;
-      pdfind2[0] = movingIndex;
-
-      typename JointPDFType::PointType pdfind;
-      pdfind[1] = fixedImageParzenWindowTerm;
-      pdfind[0] = movingImageParzenWindowTerm;
-      jointPDFValue = pdfinterpolator->Evaluate(pdfind);
-      //	dJPDF = (1.0)*(pdfinterpolator->EvaluateDerivative( pdfind ))[1];
-
-      //    dJPDF += (-0.25)*(pdfinterpolator->EvaluateDerivative( pdfind ))[1];
-      // dJPDF = dpdfinterpolator->Evaluate(dpdfind);
-      }
-      {
-      typename MarginalPDFType::PointType mind;
-      mind[0] = fixedImageParzenWindowTerm;
-      // dFmPDF =(1.0)*(pdfinterpolator2->EvaluateDerivative( mind ))[0];
-      fixedImagePDFValue = pdfinterpolator2->Evaluate(mind);
-      typename MarginalPDFType::IndexType mind2;
-      mind2[0] = fixedIndex;
-      //    fixedImagePDFValue = m_FixedImageMarginalPDF->GetPixel(mind2);
-      }
-
-      {
-      typename MarginalPDFType::PointType mind;
-      mind[0] = movingImageParzenWindowTerm;
-      movingImagePDFValue = pdfinterpolator3->Evaluate(mind);
-      // dMmPDF = (pdfinterpolator3->EvaluateDerivative(mind))[0];
-
-      //    mind[0]=movingImageParzenWindowTerm2;
-      // xsdMmPDF = pdfinterpolator3->Evaluate(mind);
-      //  mind[0]=movingImageParzenWindowTerm1;
-      }
-
-    if( option == 0 )
-      {
-      return jointPDFValue;
-      }
-    else if( option == 1 )
-      {
-      return fixedImagePDFValue;
-      }
-    else if( option == 2 )
-      {
-      return movingImagePDFValue;
-      }
-  }
-
   virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
                                       void *globalData,
                                       const FloatOffsetType & offset = FloatOffsetType(0.0) )
@@ -650,16 +400,64 @@ public:
     fdvec2.Fill(0);
     fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( oindex );
     double nccm1 = 0;
-    loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
+    loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
+    float eps = 10;
+    if( loce > eps )
+      {
+      loce = eps;
+      }
+    if( loce < eps * (-1.0) )
+      {
+      loce = eps * (-1.0);
+      }
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
-      update[imd] = loce * fixedGradient[imd] * spacing[imd] * (-1);
+      update[imd] = loce * fixedGradient[imd] * spacing[imd] * (1);
       }
     if( this->m_MetricImage )
       {
       this->m_MetricImage->SetPixel(oindex, loce);
       }
     return update;
+  }
+
+  double GetMovingParzenTerm( double intensity )
+  {
+    double windowTerm = static_cast<double>( intensity ) -  this->m_MovingImageTrueMin;
+
+    windowTerm = windowTerm / ( this->m_MovingImageTrueMax - this->m_MovingImageTrueMin   );
+    return windowTerm;
+  }
+
+  double GetFixedParzenTerm( double intensity )
+  {
+    double windowTerm = static_cast<double>( intensity ) -  this->m_FixedImageTrueMin;
+
+    windowTerm = windowTerm / ( this->m_FixedImageTrueMax - this->m_FixedImageTrueMin   );
+    return windowTerm;
+  }
+
+  unsigned int FitIndexInBins( double windowTerm )
+  {
+    unsigned int movingImageParzenWindowIndex
+      = static_cast<unsigned int>( this->m_Padding
+                                   + floor( windowTerm * (float)(this->m_NumberOfHistogramBins - this->m_Padding) ) );
+
+    // Make sure the extreme values are in valid bins
+    if( movingImageParzenWindowIndex < this->m_Padding - 1 )
+      {
+      movingImageParzenWindowIndex = this->m_Padding - 1;
+      }
+    else if( movingImageParzenWindowIndex > (m_NumberOfHistogramBins - this->m_Padding  + 1 ) )
+      {
+      movingImageParzenWindowIndex = m_NumberOfHistogramBins - this->m_Padding  + 1;
+      }
+    return movingImageParzenWindowIndex;
+  }
+
+  double FitContIndexInBins( double windowTerm )
+  {
+    return (double) this->m_Padding + windowTerm * (float)(this->m_NumberOfHistogramBins - this->m_Padding);
   }
 
   virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
@@ -696,10 +494,20 @@ public:
     movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex( oindex );
 
     double nccm1 = 0;
-    loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
+    loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
+
+    float eps = 10;
+    if( loce > eps )
+      {
+      loce = eps;
+      }
+    if( loce < eps * (-1.0) )
+      {
+      loce = eps * (-1.0);
+      }
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
-      update[imd] = loce * movingGradient[imd] * spacing[imd] * (-1);
+      update[imd] = loce * movingGradient[imd] * spacing[imd] * (1);
       }
     return update;
   }
@@ -711,7 +519,7 @@ public:
       typedef ImageFileWriter<FixedImageType> writertype;
       typename writertype::Pointer w = writertype::New();
       w->SetInput(  this->m_MetricImage);
-      w->SetFileName("ZZmetric.nii");
+      w->SetFileName("ZZmetric.nii.gz");
       w->Write();
       }
   }
@@ -736,98 +544,6 @@ public:
     m_FixedImageMask = img;
   }
 
-  void NormalizeJointHist();
-
-  void ChangeJointHist( float oldfixval, float oldmovval, float newfixval, float newmovval)
-  {
-    // first find corresponding parzen indices
-    double windowTerm1 =
-      static_cast<double>( oldfixval ) / m_FixedImageBinSize - m_FixedImageNormalizedMin;
-    unsigned int pindex1 = static_cast<unsigned int>( floor( windowTerm1 ) );
-
-    // first find corresponding parzen indices
-    double windowTerm2 =
-      static_cast<double>( newfixval ) / m_FixedImageBinSize - m_FixedImageNormalizedMin;
-    unsigned int pindex2 = static_cast<unsigned int>( floor( windowTerm2 ) );
-
-    // Make sure the extreme values are in valid bins
-    if( pindex1 < this->m_Padding )
-      {
-      pindex1 = this->m_Padding;
-      }
-    else if( pindex1 > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      pindex1 = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-    // Make sure the extreme values are in valid bins
-    if( pindex2 < this->m_Padding )
-      {
-      pindex2 = this->m_Padding;
-      }
-    else if( pindex2 > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      pindex2 = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-    // Determine parzen window arguments (see eqn 6 of Avants paper [2]).
-    double movingImageParzenWindowTerm1 =
-      oldmovval / m_MovingImageBinSize - m_MovingImageNormalizedMin;
-    unsigned int movingImageParzenWindowIndex1 =
-      static_cast<unsigned int>( floor( movingImageParzenWindowTerm1 ) );
-    // Make sure the extreme values are in valid bins
-    if( movingImageParzenWindowIndex1 < this->m_Padding )
-      {
-      movingImageParzenWindowIndex1 = this->m_Padding;
-      }
-    else if( movingImageParzenWindowIndex1 > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      movingImageParzenWindowIndex1 = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-    // Determine parzen window arguments (see eqn 6 of Avants paper [2]).
-    double movingImageParzenWindowTerm2 =
-      newmovval / m_MovingImageBinSize - m_MovingImageNormalizedMin;
-    unsigned int movingImageParzenWindowIndex2 =
-      static_cast<unsigned int>( floor( movingImageParzenWindowTerm2 ) );
-    // Make sure the extreme values are in valid bins
-    if( movingImageParzenWindowIndex2 < this->m_Padding )
-      {
-      movingImageParzenWindowIndex2 = this->m_Padding;
-      }
-    else if( movingImageParzenWindowIndex2 > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      movingImageParzenWindowIndex2 = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-    unsigned int ii1 = pindex1;
-    unsigned int jj1 = movingImageParzenWindowIndex1;
-    unsigned int ii2 = pindex2;
-    unsigned int jj2 = movingImageParzenWindowIndex2;
-
-    typename JointPDFType::IndexType index1;
-    index1[0] = ii1;
-    index1[1] = jj1;
-    float temp1 = m_JointHist->GetPixel(index1);
-    m_JointHist->SetPixel(index1, temp1 - 1);
-
-    typename JointPDFType::IndexType index2;
-    index2[0] = ii2;
-    index2[1] = jj2;
-    float temp2 = m_JointHist->GetPixel(index2);
-    m_JointHist->SetPixel(index2, temp2 + 1);
-
-    this->NormalizeJointHist();
-    this->ComputeMutualInformation();
-
-    // then change back
-    temp1 = m_JointHist->GetPixel(index1);
-    m_JointHist->SetPixel(index1, temp1 + 1);
-
-    temp2 = m_JointHist->GetPixel(index2);
-    m_JointHist->SetPixel(index2, temp2 - 1);
-  }
-
   /** FixedImage image neighborhood iterator type. */
   typedef ConstNeighborhoodIterator<FixedImageType> FixedImageNeighborhoodIteratorType;
 
@@ -837,128 +553,6 @@ public:
     {
     FixedImageNeighborhoodIteratorType m_FixedImageIterator;
     };
-
-  /**
-   * A fixed image spatial sample consists of the fixed domain point
-   * and the fixed image value at that point. */
-  class FixedImageSpatialSample
-  {
-public:
-    FixedImageSpatialSample() : FixedImageValue(0.0)
-    {
-      FixedImagePointValue.Fill(0.0);
-    }
-
-    ~FixedImageSpatialSample()
-    {
-    };
-
-    IndexType           FixedImageIndex;
-    FixedImagePointType FixedImagePointValue;
-    double              FixedImageValue;
-    unsigned int        FixedImageParzenWindowIndex;
-  };
-
-  /** FixedImageSpatialSample typedef support. */
-  typedef std::vector<FixedImageSpatialSample>
-    FixedImageSpatialSampleContainer;
-
-  /** Container to store a set of points and fixed image values. */
-  FixedImageSpatialSampleContainer m_FixedImageSamples;
-
-  /** Uniformly select a sample set from the fixed image domain. */
-  virtual void SampleFixedImageDomain(FixedImageSpatialSampleContainer& samples);
-
-  void SampleFixedImageDomainLocal(
-    FixedImageSpatialSampleContainer & samples, typename TFixedImage::IndexType index);
-
-  /** Transform a point from FixedImage domain to MovingImage domain.
-   * This function also checks if mapped point is within support region. */
-  virtual void TransformPoint( unsigned int sampleNumber, MovingImagePointType& mappedPoint,
-                               bool& sampleWithinSupportRegion, double& movingImageValue ) const;
-
-  unsigned int GetFixedValueIndex(double fixedImageValue)
-  {
-    // Determine parzen window arguments (see eqn 6 of Avants paper [2]).
-    double fixedImageParzenWindowTerm =
-      fixedImageValue / m_FixedImageBinSize - m_FixedImageNormalizedMin;
-    unsigned int fixedImageParzenWindowIndex =
-      static_cast<unsigned int>( floor( fixedImageParzenWindowTerm ) );
-
-    // Make sure the extreme values are in valid bins
-    if( fixedImageParzenWindowIndex < this->m_Padding )
-      {
-      fixedImageParzenWindowIndex = this->m_Padding;
-      }
-    else if( fixedImageParzenWindowIndex > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      fixedImageParzenWindowIndex = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-
-    return fixedImageParzenWindowIndex;
-  }
-
-  double GetFixedImageValue(IndexType oindex, DerivativeType derivative)
-  {
-    double    fixedImageValue = 0;
-    PointType mappedPoint;
-
-    for( int j = 0; j < ImageDimension; j++ )
-      {
-      mappedPoint[j] = double( oindex[j] ) * this->Superclass::m_FixedImage->GetSpacing()[j]
-        + this->Superclass::m_FixedImage->GetOrigin()[j];
-      mappedPoint[j] += derivative[j];
-      }
-    if( m_FixedImageInterpolator->IsInsideBuffer( mappedPoint ) )
-      {
-      fixedImageValue = m_FixedImageInterpolator->Evaluate( mappedPoint );
-      }
-
-    return fixedImageValue;
-  }
-
-  double GetMovingImageValue(IndexType oindex, DerivativeType derivative)
-  {
-    double    movingImageValue = 0;
-    PointType mappedPoint;
-
-    for( int j = 0; j < ImageDimension; j++ )
-      {
-      mappedPoint[j] = double( oindex[j] ) * this->Superclass::m_FixedImage->GetSpacing()[j]
-        + this->Superclass::m_FixedImage->GetOrigin()[j];
-      mappedPoint[j] += derivative[j];
-      }
-    if( m_MovingImageInterpolator->IsInsideBuffer( mappedPoint ) )
-      {
-      movingImageValue = m_MovingImageInterpolator->Evaluate( mappedPoint );
-      }
-
-    return movingImageValue;
-  }
-
-  unsigned int GetMovingValueIndex(double movingImageValue)
-  {
-    double movingImageParzenWindowTerm =
-      movingImageValue / m_MovingImageBinSize - m_MovingImageNormalizedMin;
-    unsigned int movingImageParzenWindowIndex =
-      static_cast<unsigned int>( floor( movingImageParzenWindowTerm ) );
-
-    // Make sure the extreme values are in valid bins
-    if( movingImageParzenWindowIndex < this->m_Padding )
-      {
-      movingImageParzenWindowIndex = this->m_Padding;
-      }
-    else if( movingImageParzenWindowIndex > (m_NumberOfHistogramBins - this->m_Padding - 1) )
-      {
-      movingImageParzenWindowIndex = m_NumberOfHistogramBins - this->m_Padding - 1;
-      }
-    return movingImageParzenWindowIndex;
-  }
-
-  void ComputePDFDerivatives( int pdfFixedIndex, int pdfMovingIndex, CovariantVectorType& fixedImageGradientValue,
-                              double cubicBSplineDerivativeValue ) const;
-
-  void GetValueAndDerivative3(IndexType oindex, MeasureType& value, DerivativeType& derivative);
 
   /** The fixed image marginal PDF. */
   mutable MarginalPDFType::Pointer m_FixedImageMarginalPDF;
@@ -978,6 +572,8 @@ public:
   double        m_FixedImageNormalizedMin;
   double        m_MovingImageTrueMin;
   double        m_MovingImageTrueMax;
+  double        m_FixedImageTrueMin;
+  double        m_FixedImageTrueMax;
   double        m_FixedImageBinSize;
   double        m_MovingImageBinSize;
 protected:
@@ -1006,9 +602,6 @@ private:
   typename CubicBSplineDerivativeFunctionType::Pointer
   m_CubicBSplineDerivativeKernel;
 
-  /** Precompute fixed image parzen window indices. */
-  virtual void ComputeFixedImageParzenWindowIndices( FixedImageSpatialSampleContainer& samples );
-
   /**
    * Types and variables related to image derivative calculations.
    * If a BSplineInterpolationFunction is used, this class obtain
@@ -1017,9 +610,6 @@ private:
    */
   typedef CovariantVector<double,
                           itkGetStaticConstMacro(ImageDimension)> ImageDerivativesType;
-
-  /** Compute image derivatives at a point. */
-  virtual void ComputeImageDerivatives( const MovingImagePointType& mappedPoint, ImageDerivativesType& gradient ) const;
 
   /** Boolean to indicate if the interpolator BSpline. */
   bool m_InterpolatorIsBSpline;
