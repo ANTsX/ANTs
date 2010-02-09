@@ -340,23 +340,12 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
     //	    derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
     }
 
-  if( sff * smm != 0.0 )
+  float localCrossCorrelation = 0;
+  if( sff * smm > 1.e-5 )
     {
     localCrossCorrelation = sfm * sfm / ( sff * smm );
     }
-  else if( sff == 0.0 && smm == 0 )
-    {
-    localCrossCorrelation = 1.0;
-    }
-  else
-    {
-    localCrossCorrelation = 1.0;
-    }
-  if( localCrossCorrelation * (-1.0) < this->m_RobustnessParameter )
-    {
-    deriv.Fill(0);
-    }
-
+  //  if ( localCrossCorrelation*(-1.0) < this->m_RobustnessParameter) deriv.Fill(0);
 //  if ( localCrossCorrelation*(-1.0) < this->m_RobustnessParameter) {
 //  std::cout << " localC " << localCrossCorrelation << std::endl; }
 
