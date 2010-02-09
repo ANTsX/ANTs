@@ -671,9 +671,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
     value = 0;
     }
 
-  double pmr = jointPDFValue;
-  double pmt = jointPDFValue;
-  double Fx = log( ( pmr / pr )  /  ( pmt / pt  ) );
+  // double pmr=jointPDFValue;
+  // double pmt=jointPDFValue;
+  // double Fx=log( ( pmr / pr )  /  ( pmt / pt  ) );
 
   return value;
 }
