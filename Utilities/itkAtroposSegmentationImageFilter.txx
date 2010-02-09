@@ -1512,7 +1512,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           = FastMarchingFilterType::New();
         fastMarching->SetInput( contour->GetOutput() );
         fastMarching->SetStoppingValue( NumericTraits<RealType>::max() );
-        fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
+        // fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
         fastMarching->Update();
 
         ImageRegionIterator<RealImageType> ItT( thresholder->GetOutput(),
