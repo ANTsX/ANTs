@@ -4,7 +4,7 @@
 #include "itkDivideImageFilter.h"
 #include "itkImage.h"
 #include "itkMaskImageFilter.h"
-#include "itkApocritaSegmentationImageFilter.h"
+#include "itkAtroposSegmentationImageFilter.h"
 #include "itkNumericSeriesFileNames.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -62,7 +62,7 @@ void ConvertToLowerCase( std::string& str )
 }
 
 template <unsigned int ImageDimension>
-int ApocritaSegmentation( itk::CommandLineParser *parser )
+int AtroposSegmentation( itk::CommandLineParser *parser )
 {
   typedef float                                 PixelType;
   typedef float                                 RealType;
@@ -71,7 +71,7 @@ int ApocritaSegmentation( itk::CommandLineParser *parser )
   typedef unsigned char                         LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
 
-  typedef  itk::ApocritaSegmentationImageFilter
+  typedef  itk::AtroposSegmentationImageFilter
     <InputImageType, LabelImageType> SegmentationFilterType;
   typename SegmentationFilterType::Pointer segmenter
     = SegmentationFilterType::New();
@@ -394,6 +394,17 @@ int ApocritaSegmentation( itk::CommandLineParser *parser )
     }
 
   /**
+   * euclidean distance
+   */
+  typename itk::CommandLineParser::OptionType::Pointer distanceOption =
+    parser->GetOption( "use-euclidean-distance" );
+  if( distanceOption )
+    {
+    segmenter->SetUseEuclideanDistanceForPriorLabels(
+      parser->Convert<bool>( distanceOption->GetValue() ) );
+    }
+
+  /**
    * memory-usage
    */
   typename itk::CommandLineParser::OptionType::Pointer memoryOption =
@@ -404,7 +415,15 @@ int ApocritaSegmentation( itk::CommandLineParser *parser )
                                          memoryOption->GetValue() ) );
     }
 
-  segmenter->Update();
+  try
+    {
+    segmenter->Update();
+    }
+  catch( ... )
+    {
+    std::cerr << "Exception thrown." << std::endl;
+    return EXIT_FAILURE;
+    }
 
   /**
    * output
@@ -534,13 +553,12 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "\n\tOption 1:  Constant[inputImage,numberOfClasses,constant]\n" )
-      + std::string( "\tOption 2:  Random[inputImage,numberOfClasses]\n" )
-      + std::string( "\tOption 3:  Kmeans[inputImage,numberOfClasses]\n" )
-      + std::string( "\tOption 4:  Otsu[inputImage,numberOfClasses]\n" )
-      + std::string( "\tOption 5:  PriorProbabilityImages[inputImage,numberOfClasses," )
+      std::string( "\tOption 1:  Random[inputImage,numberOfClasses]\n" )
+      + std::string( "\tOption 2:  Kmeans[inputImage,numberOfClasses]\n" )
+      + std::string( "\tOption 3:  Otsu[inputImage,numberOfClasses]\n" )
+      + std::string( "\tOption 4:  PriorProbabilityImages[inputImage,numberOfClasses," )
       + std::string( "fileSeriesFormat(index=1 to numberOfClasses-1) or vectorImage,priorWeighting]\n" )
-      + std::string( "\tOption 6:  PriorLabelImage[inputImage,numberOfClasses,labelImage,priorWeighting]" );
+      + std::string( "\tOption 5:  PriorLabelImage[inputImage,numberOfClasses,labelImage,priorWeighting]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initialization" );
@@ -580,8 +598,8 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
-    std::string description
-      = std::string( "[<smoothingFactor>,<radius>,<sigmoidAlpha>,<sigmoidBeta>]" );
+    std::string description =
+      std::string( "[<smoothingFactor>,<radius>,<sigmoidAlpha>,<sigmoidBeta>]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
@@ -613,9 +631,9 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
-    std::string description
-      = std::string( "[<numberOfLevels>,<initialMeshResolution>,<splineOrder>]" )
-        + std::string( " -- only applies to initialization with a prior image(s)" );
+    std::string description =
+      std::string( "[<numberOfLevels>,<initialMeshResolution>,<splineOrder>]" )
+      + std::string( " -- only applies to initialization with a prior image(s)" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "bspline" );
@@ -625,9 +643,21 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
-    std::string description
-      = std::string( "whichLabel[sigma,<boundaryProbability>]" )
-        + std::string( " -- only applies to initialization with a prior label image." );
+    std::string description =
+      std::string( "use-euclidean-distance-for-prior-label-image=true/false" )
+      + std::string( " -- only applies to initialization with a prior label image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "use-euclidean-distance" );
+    option->SetShortName( 'e' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "whichLabel[sigma,<boundaryProbability>]" )
+      + std::string( " -- only applies to initialization with a prior label image." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "labels" );
@@ -637,8 +667,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
-    std::string description
-      = std::string( "Print menu." );
+    std::string description = std::string( "Print menu." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
@@ -677,10 +706,10 @@ int main( int argc, char *argv[] )
   switch( atoi( argv[1] ) )
     {
     case 2:
-      ApocritaSegmentation<2>( parser );
+      AtroposSegmentation<2>( parser );
       break;
     case 3:
-      ApocritaSegmentation<3>( parser );
+      AtroposSegmentation<3>( parser );
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
