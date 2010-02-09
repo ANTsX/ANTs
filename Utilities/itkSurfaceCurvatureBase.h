@@ -21,6 +21,7 @@
 #include <vnl/algo/vnl_svd.h>
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
 #include <vnl/vnl_cross.h>
+#include <vnl/algo/vnl_rpoly_roots.h>
 #include "itkObject.h"
 #include "itkProcessObject.h"
 
