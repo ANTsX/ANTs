@@ -72,67 +72,31 @@ public:
     // default constructor
     LabelSetMeasures()
     {
-      m_VolumeSource = 0;
-      m_VolumeTarget = 0;
-      m_VolumeUnion = 0;
-      m_VolumeIntersection = 0;
-      m_VolumeSourceComplement = 0;
-      m_VolumeTargetComplement = 0;
-
-      m_SurfaceSource = 0;
-      m_SurfaceTarget = 0;
-      m_SurfaceUnion = 0;
-      m_SurfaceIntersection = 0;
-      m_SurfaceSourceComplement = 0;
-      m_SurfaceTargetComplement = 0;
-
-      m_ContourMeanDistance = 0.0;
-      m_DirectedContourMeanDistance = 0.0;
-      m_HausdorffDistance = 0.0;
-      m_DirectedHausdorffDistance = 0.0;
+      m_Source = 0;
+      m_Target = 0;
+      m_Union = 0;
+      m_Intersection = 0;
+      m_SourceComplement = 0;
+      m_TargetComplement = 0;
     }
 
     // added for completeness
     LabelSetMeasures & operator=( const LabelSetMeasures& l )
     {
-      m_VolumeSource = l.m_VolumeSource;
-      m_VolumeTarget = l.m_VolumeTarget;
-      m_VolumeUnion = l.m_VolumeUnion;
-      m_VolumeIntersection = l.m_VolumeIntersection;
-      m_VolumeSourceComplement = l.m_VolumeSourceComplement;
-      m_VolumeTargetComplement = l.m_VolumeTargetComplement;
-
-      m_SurfaceSource = l.m_SurfaceSource;
-      m_SurfaceTarget = l.m_SurfaceTarget;
-      m_SurfaceUnion = l.m_SurfaceUnion;
-      m_SurfaceIntersection = l.m_SurfaceIntersection;
-      m_SurfaceSourceComplement = l.m_SurfaceSourceComplement;
-      m_SurfaceTargetComplement = l.m_SurfaceTargetComplement;
-
-      m_ContourMeanDistance = l.m_ContourMeanDistance;
-      m_DirectedContourMeanDistance = l.m_DirectedContourMeanDistance;
-      m_HausdorffDistance = l.m_HausdorffDistance;
-      m_DirectedHausdorffDistance = l.m_DirectedHausdorffDistance;
+      m_Source = l.m_Source;
+      m_Target = l.m_Target;
+      m_Union = l.m_Union;
+      m_Intersection = l.m_Intersection;
+      m_SourceComplement = l.m_SourceComplement;
+      m_TargetComplement = l.m_TargetComplement;
     }
 
-    unsigned long m_VolumeSource;
-    unsigned long m_VolumeTarget;
-    unsigned long m_VolumeUnion;
-    unsigned long m_VolumeIntersection;
-    unsigned long m_VolumeSourceComplement;
-    unsigned long m_VolumeTargetComplement;
-
-    unsigned long m_SurfaceSource;
-    unsigned long m_SurfaceTarget;
-    unsigned long m_SurfaceUnion;
-    unsigned long m_SurfaceIntersection;
-    unsigned long m_SurfaceSourceComplement;
-    unsigned long m_SurfaceTargetComplement;
-
-    RealType m_ContourMeanDistance;
-    RealType m_DirectedContourMeanDistance;
-    RealType m_HausdorffDistance;
-    RealType m_DirectedHausdorffDistance;
+    unsigned long m_Source;
+    unsigned long m_Target;
+    unsigned long m_Union;
+    unsigned long m_Intersection;
+    unsigned long m_SourceComplement;
+    unsigned long m_TargetComplement;
   };
 
   /** Type of the map used to store data per label */
@@ -175,97 +139,48 @@ public:
   }
 
   /**
-   * Volumetric overlap measures
+   * tric overlap measures
    */
   /** measures over all labels */
-  RealType GetVolumeTotalOverlap();
+  RealType GetTotalOverlap();
 
-  RealType GetVolumeUnionOverlap();
+  RealType GetUnionOverlap();
 
-  RealType GetVolumeMeanOverlap();
+  RealType GetMeanOverlap();
 
-  RealType GetVolumeFalseNegativeError();
-
-  RealType GetVolumeFalsePositiveError();
-
-  /** measures over individual labels */
-  RealType GetVolumeTotalOverlap( LabelType );
-  RealType GetVolumeUnionOverlap( LabelType );
-  RealType GetVolumeMeanOverlap( LabelType );
-  RealType GetVolumeFalseNegativeError( LabelType );
-  RealType GetVolumeFalsePositiveError( LabelType );
-  /** alternative names */
-  RealType GetVolumeJaccardCoefficient()
-  {
-    return this->GetVolumeUnionOverlap();
-  }
-
-  RealType GetVolumeJaccardCoefficient( LabelType label )
-  {
-    return this->GetVolumeUnionOverlap( label );
-  }
-
-  RealType GetVolumeDiceCoefficient()
-  {
-    return this->GetVolumeMeanOverlap();
-  }
-
-  RealType GetVolumeDiceCoefficient( LabelType label )
-  {
-    return this->GetVolumeMeanOverlap( label );
-  }
-
-  /**
-   * Surface overlap measures
-   */
-  /** measures over all labels */
-  RealType GetSurfaceTotalOverlap();
-
-  RealType GetSurfaceUnionOverlap();
-
-  RealType GetSurfaceMeanOverlap();
-
-  RealType GetSurfaceFalseNegativeError();
-
-  RealType GetSurfaceFalsePositiveError();
-
-  /** measures over individual labels */
-  RealType GetSurfaceTotalOverlap( LabelType );
-  RealType GetSurfaceUnionOverlap( LabelType );
-  RealType GetSurfaceMeanOverlap( LabelType );
-  RealType GetSurfaceFalseNegativeError( LabelType );
-  RealType GetSurfaceFalsePositiveError( LabelType );
-  /** alternative names */
-  RealType GetSurfaceJaccardCoefficient()
-  {
-    return this->GetSurfaceUnionOverlap();
-  }
-
-  RealType GetSurfaceJaccardCoefficient( LabelType label )
-  {
-    return this->GetSurfaceUnionOverlap( label );
-  }
-
-  RealType GetSurfaceDiceCoefficient()
-  {
-    return this->GetSurfaceMeanOverlap();
-  }
-
-  RealType GetSurfaceDiceCoefficient( LabelType label )
-  {
-    return this->GetSurfaceMeanOverlap( label );
-  }
-
-  /**
-   * Other measures
-   */
   RealType GetVolumeSimilarity();
 
+  RealType GetFalseNegativeError();
+
+  RealType GetFalsePositiveError();
+
+  /** measures over individual labels */
+  RealType GetTargetOverlap( LabelType );
+  RealType GetUnionOverlap( LabelType );
+  RealType GetMeanOverlap( LabelType );
   RealType GetVolumeSimilarity( LabelType );
-  RealType GetHausdorffDistance( LabelType );
-  RealType GetDirectedHausdorffDistance( LabelType );
-  RealType GetContourMeanDistance( LabelType );
-  RealType GetDirectedContourMeanDistance( LabelType );
+  RealType GetFalseNegativeError( LabelType );
+  RealType GetFalsePositiveError( LabelType );
+  /** alternative names */
+  RealType GetJaccardCoefficient()
+  {
+    return this->GetUnionOverlap();
+  }
+
+  RealType GetJaccardCoefficient( LabelType label )
+  {
+    return this->GetUnionOverlap( label );
+  }
+
+  RealType GetDiceCoefficient()
+  {
+    return this->GetMeanOverlap();
+  }
+
+  RealType GetDiceCoefficient( LabelType label )
+  {
+    return this->GetMeanOverlap( label );
+  }
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -303,9 +218,6 @@ protected:
 private:
   LabelOverlapMeasuresImageFilter( const Self & ); // purposely not implemented
   void operator=( const Self & );                  // purposely not implemented
-
-  LabelImagePointer m_SourceSurfaceImage;
-  LabelImagePointer m_TargetSurfaceImage;
 
   std::vector<MapType> m_LabelSetMeasuresPerThread;
   MapType              m_LabelSetMeasures;
