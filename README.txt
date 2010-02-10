@@ -2,37 +2,53 @@ Release 1.7
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
-Introduction -- ANTS is mostly a tool for computing smooth warps or mappings between
-images.  It reads any image type that can be read by ITK, that is, jpg, tiff, hdr,
-nii,  nii.gz and probably more image types as well.   For the most part, ANTS will
-output float images which you can convert to JPG or Byte with the ANTS ConvertToJpg
-or ImageMath tools.  ImageMath has a bunch of basic utilities such as multiplication,
-inversion and many more advanced tools such as computation of the Lipschitz norm
-of a deformation field.   ANTS programs may be called from the command line on
-almost any platform .... you can compile the code yourself or use the precompiled
-binaries for Windows (Vista), OSX (Darwin) or linux (32 bit or 64 bit).  Download
-the binaries that are correct for you.   If you are a naive user (not from a medical
-imaging background) then you might still find the tools here useful.   Many of the
-operations available, for instance, in PhotoShop are available in ANTS and many
-more are available as well.   For instance, ANTS tools may be useful in face
-mapping / morphing and also in generating animations from two different images,
-for instance, interpolating between frames in a movie.  But, mainly, ANTS is useful
-for brain mapping, segmentation, measuring cortical thickness and in generating
-automated or semi-automated labeling of three-dimensional imagery (e.g. labeling
-hippocampus or cortical regions or lobes of the lung).  Many prior-based
-segmentation possibilities are available in the Apocrita tool.
+Introduction -- ANTS is a tool for computational neuroanatomy based on
+medical images.  ANTS reads any image type that can be read by ITK
+(www.itk.org), that is, jpg, tiff, hdr, nii, nii.gz, mha/d and more
+image types as well.  For the most part, ANTS will output float images
+which you can convert to other types with the ANTS
+ConvertImagePixelType tool.  ImageMath has a bunch of basic utilities
+such as multiplication, inversion and many more advanced tools such as
+computation of the Lipschitz norm of a deformation field.  ANTS
+programs may be called from the command line on almost any platform
+.... you can compile the code yourself or use the precompiled binaries
+for Windows (Vista), OSX (Darwin) or linux (32 bit or 64 bit).
+Download the binaries that are correct for you.  If you are a naive
+user (not from a medical imaging background) then you might still find
+the tools here useful.  Many of the operations available, for
+instance, in PhotoShop are available in ANTS and many more are
+available as well.  For instance, ANTS tools may be useful in face
+mapping / morphing and also in generating animations from two
+different images, for instance, interpolating between frames in a
+movie.  But, mainly, ANTS is useful for brain mapping, segmentation,
+measuring cortical thickness and in generating automated or
+semi-automated labeling of three-dimensional imagery (e.g. labeling
+hippocampus or cortical regions or lobes of the lung).  Many
+prior-based segmentation possibilities are available in the Atropos
+tool, including three tissue segmentation, structure-specific
+segmentation and brain extracton.
 
 The ants.pdf file has more details and examples.
 
 New Stuff 1.7 :
 
-Now using SymmetricSecondOrderPixelType -- fixes bugs with Nifti I/O etc.
+Now using SymmetricSecondOrderPixelType -- fixes some DT bugs with Nifti I/O etc.
 
 This means our nii tensors have SYMMATRIX as intent (as with standard)
 
 Update in parameters for convergence and inversion -- aids performance.
 
 TensorToVector coloring --- also preliminary integration of vector field
+
+Speed up number one for the CC metric (number two coming later).
+
+Atropos !  new tool for segmentation.
+
+Nick's N4 bias correction tool (publication on the way).
+
+Updates to buildtemplateparallel that allow parallel use on multicore machines.
+
+Various utilities and a few improvements in usage.
 
 New Stuff 1.6 :
 
@@ -67,7 +83,7 @@ To build ANTS, do the following:
 
 1.  get ANTS
 
-cvs -d:pserver:anonymous@advants.cvs.sourceforge.net:/cvsroot/advants co ANTS
+svn checkout https://advants.svn.sourceforge.net/svnroot/advants ANTS
 
 
 2.  get itk :
@@ -82,7 +98,7 @@ cvs -d:pserver:anonymous@advants.cvs.sourceforge.net:/cvsroot/advants co ANTS
 
 5.  in general, to perform a mapping :
 
-# include the mask, if desired.  mask in inclusive.
+# include the mask, if desired.  mask is inclusive.
 
 ANTS 3 -m PR[tp22_s1.nii,template.nii.gz,1,4] -i 50x20x10 -o tp22map   -t SyN[0.25]  -x mask.nii.gz  -r Gauss[3,0]
 
