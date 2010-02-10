@@ -70,6 +70,21 @@ TRAN_FILE_TYPE CheckFileType(const char *str)
   return AFFINE_FILE;
 }
 
+bool IsInverseDeformation(const char *str)
+{
+  std::string            filename = str;
+  std::string::size_type pos = filename.rfind( "Inverse" );
+
+  if( pos == std::string::npos )
+    {
+    return false;
+    }
+  else
+    {
+    return true;
+    }
+}
+
 void FilePartsWithgz(const std::string & filename, std::string & path, std::string & name, std::string & ext)
 {
   std::string            extension;
@@ -585,7 +600,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   typedef itk::TransformFileReader                                    TranReaderType;
   typedef itk::VectorImageFileReader<ImageType, DeformationFieldType> FieldReaderType;
-
+  bool         takeaffinv = false;
   unsigned int transcount = 0;
   const int    kOptQueueSize = opt_queue.size();
   for( int i = 0; i < kOptQueueSize; i++ )
@@ -606,6 +621,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
           aff->GetInverse(aff_inv);
           aff = aff_inv;
+          takeaffinv = true;
           }
         // std::cout <<" aff " << transcount <<  std::endl;
         warper->PushBackAffineTransform(aff);
@@ -646,6 +662,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
           aff->GetInverse(aff_inv);
           aff = aff_inv;
+          takeaffinv = true;
           }
 
         // std::cout <<" aff from image header " << transcount <<  std::endl;
@@ -683,7 +700,59 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       }
     }
 
-  // warper->PrintTransformList();
+  // std::cout << " transcount " << transcount << std::endl; warper->PrintTransformList();
+  if( transcount == 2 )
+    {
+    std::cout << "  We check the syntax of your call .... " << std::endl;
+    const TRAN_OPT & opt1 = opt_queue[0];
+    const TRAN_OPT & opt2 = opt_queue[1];
+
+    if( opt1.file_type == AFFINE_FILE  && opt2.file_type == DEFORMATION_FILE   )
+      {
+      bool defisinv = IsInverseDeformation(opt2.filename.c_str() );
+      if( !takeaffinv )
+        {
+        std::cout
+          <<
+        " Your 1st parameter should be an inverse affine map and the 2nd an InverseWarp  --- exiting without applying warp.  "
+          << std::endl;
+        return;
+        }
+      if( !defisinv )
+        {
+        std::cout
+          <<
+        " Your 2nd  parameter should be an InverseWarp when your 1st parameter is an inverse affine map  --- exiting without applying warp.  "
+          << std::endl;
+        return;
+        }
+      }
+    if( opt2.file_type == AFFINE_FILE  && opt1.file_type == DEFORMATION_FILE   )
+      {
+      bool defisinv = IsInverseDeformation(opt1.filename.c_str() );
+      if(  defisinv )
+        {
+        std::cout
+          <<
+        " Your 1st parameter should be a Warp (not Inverse) when your 2nd parameter is an affine map --- exiting without applying warp.  "
+          << std::endl;
+        return;
+        }
+      if(  takeaffinv )
+        {
+        std::cout
+          <<
+        " Your 2nd parameter should be a regular affine map (not inverted) if the 1st is a Warp --- exiting without applying warp. "
+          << std::endl;
+        return;
+        }
+      }
+    std::cout << " syntax probably ok. " << std::endl;
+    }
+  else
+    {
+    std::cout << " You are doing something more complex -- we wont check syntax in this case " << std::endl;
+    }
 
   if( img_ref.IsNotNull() )
     {
