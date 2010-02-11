@@ -64,6 +64,33 @@ void EigenAnalysis(TensorType dtv,  MatrixType & evals, MatrixType & evecs)
   decomposer.EvaluateSymmetricEigenDecomposition( dtm, evals, evecs );
 }
 
+template <class TensorType, class VectorType>
+float DiffusionCoefficient( TensorType dtv, VectorType direction, bool normalized = false)
+{
+  vnl_matrix<double> tensor(3, 3);
+  tensor[0][0] = dtv[0];
+  tensor[1][0] = tensor[0][1] = dtv[1];
+  tensor[2][0] = tensor[0][2] = dtv[2];
+  tensor[1][1] = dtv[3];
+  tensor[1][2] = tensor[2][1] = dtv[4];
+  tensor[2][2] = dtv[5];
+
+  vnl_matrix<double> tangentmat(3, 1);
+  tangentmat(0, 0) = direction[0];
+  tangentmat(1, 0) = direction[1];
+  tangentmat(2, 0) = direction[2];
+
+  vnl_matrix<double> fddmat = tangentmat.transpose() * tensor * tangentmat;
+  float              fdd = (float) fddmat(0, 0);
+
+  if( normalized > 0 )
+    {
+    fdd = fdd / (tensor[0][0] + tensor[1][1] + tensor[2][2]);
+    }
+
+  return fdd;
+}
+
 template <class TensorType>
 TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool success = true)
 {
