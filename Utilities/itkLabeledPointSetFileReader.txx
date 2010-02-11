@@ -25,6 +25,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelContourImageFilter.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
+#include "itkByteSwapper.h"
 
 #include <fstream>
 #include <stdio.h>
@@ -229,9 +230,16 @@ LabeledPointSetFileReader<TOutputMesh>
 
   std::string line;
 
+  bool isBinary = false;
+
   while( !inputFile.eof() )
     {
     std::getline( inputFile, line );
+
+    if( line.find( "BINARY" ) != std::string::npos )
+      {
+      isBinary = true;
+      }
 
     if( line.find( "POINTS" ) != std::string::npos )
       {
@@ -268,18 +276,41 @@ LabeledPointSetFileReader<TOutputMesh>
   // Load the point coordinates into the itk::Mesh
   //
   PointType point;
-  for( long i = 0; i < numberOfPoints; i++ )
+
+  if( isBinary )
     {
-    if( Dimension == 2 )
+    itkDebugMacro( "Data is binary" );
+
+    float   p;
+    float * ptData = new float[numberOfPoints * 3];
+    inputFile.read( reinterpret_cast<char *>( ptData ), 3 * numberOfPoints * sizeof(p) );
+    ByteSwapper<float>::SwapRangeFromSystemToBigEndian(ptData, numberOfPoints * 3);
+    for( long i = 0; i < numberOfPoints; i++ )
       {
-      float trash;
-      inputFile >> point >> trash;
+      for( long j = 0; j < Dimension; j++ )
+        {
+        point[j] = ptData[i * 3 + j];
+        }
+      outputMesh->SetPoint( i, point );
       }
-    else  // Dimension = 3
+
+    delete [] ptData;
+    }
+  else
+    {
+    for( long i = 0; i < numberOfPoints; i++ )
       {
-      inputFile >> point;
+      if( Dimension == 2 )
+        {
+        float trash;
+        inputFile >> point >> trash;
+        }
+      else  // Dimension = 3
+        {
+        inputFile >> point;
+        }
+      outputMesh->SetPoint( i, point );
       }
-    outputMesh->SetPoint( i, point );
     }
 
   inputFile.close();
@@ -296,12 +327,19 @@ LabeledPointSetFileReader<TOutputMesh>
 
   std::string line;
 
+  bool isBinary = false;
+
   //
   // Find the labels associated with each pixel
   //
   while( !inputFile.eof() )
     {
     std::getline( inputFile, line );
+
+    if( line.find( "BINARY" ) != std::string::npos )
+      {
+      isBinary = true;
+      }
 
     if( line.find( "SCALARS" ) != std::string::npos )
       {
@@ -323,29 +361,67 @@ LabeledPointSetFileReader<TOutputMesh>
 
   std::getline( inputFile, line );
 
-  if( numberOfComponents == 1 )
+  if( isBinary )
     {
-    PixelType label;
-    for( unsigned long i = 0; i < outputMesh->GetNumberOfPoints(); i++ )
+    int   numberOfValues = outputMesh->GetNumberOfPoints() * numberOfComponents;
+    float p;
+    int * scalarData = new int[numberOfValues];
+    inputFile.read( reinterpret_cast<char *>( scalarData ), numberOfComponents * sizeof(p) );
+    ByteSwapper<int>::SwapRangeFromSystemToBigEndian(scalarData, numberOfValues);
+
+    if( numberOfComponents == 1 )
       {
-      inputFile >> label;
-      outputMesh->SetPointData( i, label );
+      // PixelType label;
+      for( unsigned long i = 0; i < outputMesh->GetNumberOfPoints(); i++ )
+        {
+        outputMesh->SetPointData( i, scalarData[i] );
+        }
+      //    itkExceptionMacro( "Only single label components are readable" );
       }
-//    itkExceptionMacro( "Only single label components are readable" );
+    else
+      {
+      this->m_MultiComponentScalars = MultiComponentScalarSetType::New();
+      this->m_MultiComponentScalars->Initialize();
+      for( unsigned long i = 0; i < outputMesh->GetNumberOfPoints(); i++ )
+        {
+        MultiComponentScalarType scalar;
+        scalar.SetSize( numberOfComponents );
+        for( unsigned int d = 0; d < numberOfComponents; d++ )
+          {
+          scalar[d] = scalarData[i * numberOfComponents + d];
+          }
+        this->m_MultiComponentScalars->InsertElement( i, scalar );
+        }
+      }
+
+    delete [] scalarData;
     }
   else
     {
-    this->m_MultiComponentScalars = MultiComponentScalarSetType::New();
-    this->m_MultiComponentScalars->Initialize();
-    for( unsigned long i = 0; i < outputMesh->GetNumberOfPoints(); i++ )
+    if( numberOfComponents == 1 )
       {
-      MultiComponentScalarType scalar;
-      scalar.SetSize( numberOfComponents );
-      for( unsigned int d = 0; d < numberOfComponents; d++ )
+      PixelType label;
+      for( unsigned long i = 0; i < outputMesh->GetNumberOfPoints(); i++ )
         {
-        inputFile >> scalar[d];
+        inputFile >> label;
+        outputMesh->SetPointData( i, label );
         }
-      this->m_MultiComponentScalars->InsertElement( i, scalar );
+      //    itkExceptionMacro( "Only single label components are readable" );
+      }
+    else
+      {
+      this->m_MultiComponentScalars = MultiComponentScalarSetType::New();
+      this->m_MultiComponentScalars->Initialize();
+      for( unsigned long i = 0; i < outputMesh->GetNumberOfPoints(); i++ )
+        {
+        MultiComponentScalarType scalar;
+        scalar.SetSize( numberOfComponents );
+        for( unsigned int d = 0; d < numberOfComponents; d++ )
+          {
+          inputFile >> scalar[d];
+          }
+        this->m_MultiComponentScalars->InsertElement( i, scalar );
+        }
       }
     }
 
@@ -363,12 +439,19 @@ LabeledPointSetFileReader<TOutputMesh>
 
   std::string line;
 
+  bool isBinary = false;
+
   //
   // Find the labels associated with each pixel
   //
   while( !inputFile.eof() )
     {
     std::getline( inputFile, line );
+
+    if( line.find( "BINARY" ) != std::string::npos )
+      {
+      isBinary = true;
+      }
 
     if( line.find( "LINES" ) != std::string::npos )
       {
@@ -387,19 +470,53 @@ LabeledPointSetFileReader<TOutputMesh>
   std::string  temp = std::string( line, 6, pos - 1 );
   unsigned int numberOfLines = std::atoi( temp.c_str() );
 
+  temp = std::string(line, pos, line.length() - 1 );
+  unsigned int numberOfValues = std::atoi( temp.c_str() );
+
   this->m_Lines = LineSetType::New();
   this->m_Lines->Initialize();
-  for( unsigned int i = 0; i < numberOfLines; i++ )
+
+  if( isBinary )
     {
-    LineType     line;
-    unsigned int numberOfPoints;
-    inputFile >> numberOfPoints;
-    line.SetSize( numberOfPoints );
-    for( unsigned int d = 0; d < numberOfPoints; d++ )
+    int   p;
+    int * lineData = new int[numberOfValues];
+    inputFile.read( reinterpret_cast<char *>( lineData ), numberOfValues * sizeof(p) );
+    ByteSwapper<int>::SwapRangeFromSystemToBigEndian(lineData, numberOfValues);
+
+    long valueId = 0;
+    long lineId = 0;
+    while( valueId < numberOfValues )
       {
-      inputFile >> line[d];
+      int lineLength = lineData[valueId];
+      ++valueId;
+
+      LineType polyLine;
+      polyLine.SetSize( lineLength );
+      for( long i = 0; i < lineLength; i++ )
+        {
+        polyLine[i] = lineData[valueId];
+        ++valueId;
+        }
+      this->m_Lines->InsertElement( lineId, polyLine );
+      ++lineId;
       }
-    this->m_Lines->InsertElement( i, line );
+
+    delete [] lineData;
+    }
+  else
+    {
+    for( unsigned int i = 0; i < numberOfLines; i++ )
+      {
+      LineType     line;
+      unsigned int numberOfPoints;
+      inputFile >> numberOfPoints;
+      line.SetSize( numberOfPoints );
+      for( unsigned int d = 0; d < numberOfPoints; d++ )
+        {
+        inputFile >> line[d];
+        }
+      this->m_Lines->InsertElement( i, line );
+      }
     }
 
   inputFile.close();
