@@ -1,4 +1,4 @@
-Release 1.7
+Release 1.8
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
@@ -29,6 +29,14 @@ tool, including three tissue segmentation, structure-specific
 segmentation and brain extracton.
 
 The ants.pdf file has more details and examples.
+
+New Stuff 1.8 :
+
+Sped up CC metric -- comparable to PR but faster.
+
+Fixed the MI metric -- fast and functional.
+
+WarpTimeSeries --- for deforming 4D or vector images.
 
 New Stuff 1.7 :
 
