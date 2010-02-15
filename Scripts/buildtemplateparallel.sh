@@ -213,32 +213,6 @@ setFSLPath
     exit 1
 }
 
-jobfnamepadding() {
-
-files=`ls job*.sh`
-BASENAME1=`echo $files[1] | cut -d 'b' -f 1`
-
-for file in ${files}
-do
-
-	if [ "${#file}" -eq "9" ]
-	then
-		BASENAME2=`echo $file | cut -d 'b' -f 2 `
-		mv "$file" "${BASENAME1}b_000${BASENAME2}"
-
-	elif [ "${#file}" -eq "10" ]
-	then
-		BASENAME2=`echo $file | cut -d 'b' -f 2 `
-		mv "$file" "${BASENAME1}b_00${BASENAME2}"
-
-	elif [ "${#file}" -eq "11" ]
-	then
-		BASENAME2=`echo $file | cut -d 'b' -f 2 `
-		mv "$file" "${BASENAME1}b_0${BASENAME2}"
-	fi
-done
-
-}
 
 function reportMappingParameters {
     cat <<reportMappingParameters
@@ -870,7 +844,7 @@ then
 		echo "--------------------------------------------------------------------------------------"
 		jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
 		chmod +x job*.sh
-		$PEXEC -j ${CORES}
+		$PEXEC -j ${CORES} "sh" job*.sh
 	fi
 
 
@@ -1027,7 +1001,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 		echo "--------------------------------------------------------------------------------------"
 		jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
 		chmod +x job*.sh
-		$PEXEC -j ${CORES}
+		$PEXEC -j ${CORES} "sh" job*.sh
 	fi
 
 	shapeupdatetotemplate ${DIM} ${TEMPLATE} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP}
