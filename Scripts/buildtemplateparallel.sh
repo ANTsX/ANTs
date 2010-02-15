@@ -790,6 +790,9 @@ then
 
 fi
 
+# remove old job bash scripts
+rm -f job*sh
+
 if [ "$RIGID" == 1 ] ;
 then
 	count=0
@@ -854,7 +857,7 @@ then
 	mkdir rigid
 	cp rigid_*.nii.gz rigid_*.cfg *Affine.txt rigid/
 
-fi
+fi # endof RIGID
 
 
 
@@ -876,7 +879,7 @@ i=0
 while [  $i -lt ${ITERATIONLIMIT} ]
 	do
 	rm -f  ${OUTPUTNAME}*warp*nii*
-
+	rm -f job*sh
 	# iteration 1
 	if [  $i -eq 0 ]
 	then
@@ -963,7 +966,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 			sleep 0.3
 		elif [ $DOQSUB = 2 ] ; then
 			# here comes the pexec call
-			# sh $exe
+			echo $pexe
 			echo $pexe >> job${count}_${i}.sh
 		elif  [ $DOQSUB = 0 ] ; then
 		    sh $exe
@@ -1001,7 +1004,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 		echo "--------------------------------------------------------------------------------------"
 		jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
 		chmod +x job*.sh
-		$PEXEC -j ${CORES} "sh" job*.sh
+	        $PEXEC -j ${CORES} sh job*.sh
 	fi
 
 	shapeupdatetotemplate ${DIM} ${TEMPLATE} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP}
