@@ -23,7 +23,6 @@
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkFixedArray.h"
 #include "itkGaussianMembershipFunction.h"
-#include "itkGaussianMixtureModelComponent.h"
 #include "itkListSample.h"
 #include "itkPointSet.h"
 #include "itkVector.h"
