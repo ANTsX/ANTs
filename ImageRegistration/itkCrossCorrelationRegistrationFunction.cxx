@@ -491,6 +491,11 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
   sff = finitediffimages[3]->GetPixel(oindex);
   smm = finitediffimages[4]->GetPixel(oindex);
 
+  if( sff == 0.0 || smm == 0.0 )
+    {
+    return deriv;
+    }
+
   IndexType index = oindex; // hoodIt.GetIndex(indct);
   if( sff == 0.0 )
     {
