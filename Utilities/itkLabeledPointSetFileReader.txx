@@ -483,8 +483,8 @@ LabeledPointSetFileReader<TOutputMesh>
     inputFile.read( reinterpret_cast<char *>( lineData ), numberOfValues * sizeof(p) );
     ByteSwapper<int>::SwapRangeFromSystemToBigEndian(lineData, numberOfValues);
 
-    long valueId = 0;
-    long lineId = 0;
+    unsigned long valueId = 0;
+    unsigned long lineId = 0;
     while( valueId < numberOfValues )
       {
       int lineLength = lineData[valueId];
