@@ -34,7 +34,6 @@
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelStatisticsImageFilter.h"
-#include "itkMaskImageFilter.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkOtsuMultipleThresholdsCalculator.h"
@@ -457,35 +456,35 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       priorProbabilities[n] =
         this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItI.GetIndex() );
       }
-    if( priorProbabilities.sum() > 0.0 )
+    /**
+     * We are assuming that each voxel in the mask is to be labeled even
+     * if the sum of prior probabilities is zero at that point.  To change this
+     * assumption, comment out the following conditional.
+     */
+    if( priorProbabilities.sum() == 0.0 )
       {
-      priorProbabilities /= priorProbabilities.sum();
-      RealType maxValue = priorProbabilities.max_value();
-      if( maxValue <= 0.5 )
+      priorProbabilities.fill( 1.0 );
+      }
+
+    RealType                  maxValue = priorProbabilities.max_value();
+    std::vector<unsigned int> argMax;
+    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+      {
+      if( maxValue == priorProbabilities[n] )
         {
-        unsigned int argMax = this->m_NumberOfClasses;
-        for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-          {
-          if( maxValue == priorProbabilities[n] )
-            {
-            argMax = n;
-            break;
-            }
-          }
-        RealType sumPriorProbabilitiesExceptMax =
-          1.0 - priorProbabilities[argMax];
-        priorProbabilities[argMax] = 0.5 + 1e-6;
-        for( unsigned int i = 0; i < priorProbabilities.size(); i++ )
-          {
-          if( i == argMax )
-            {
-            continue;
-            }
-          priorProbabilities[i] /= ( sumPriorProbabilitiesExceptMax
-                                     / ( 1.0 - priorProbabilities[argMax] ) );
-          }
+        argMax.push_back( n );
         }
       }
+    unsigned int whichArgIsMax = 0;
+    if( argMax.size() > 1 )
+      {
+      typedef Statistics::MersenneTwisterRandomVariateGenerator GeneratorType;
+      typename GeneratorType::Pointer generator = GeneratorType::New();
+      whichArgIsMax = generator->GetIntegerVariate(
+          argMax.size() - 1 ) + 1;
+      }
+    priorProbabilities[argMax[whichArgIsMax]] += 1e-6;
+    priorProbabilities /= priorProbabilities.sum();
     for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
       {
       typename RealImageType::Pointer priorProbabilityImage
