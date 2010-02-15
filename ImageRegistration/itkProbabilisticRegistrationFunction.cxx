@@ -25,6 +25,7 @@
 #include "itkMeanImageFilter.h"
 #include "itkMedianImageFilter.h"
 #include "itkImageFileWriter.h"
+#include <deque>
 namespace itk
 {
 /*
