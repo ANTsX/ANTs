@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 NUM=0
 QUEUE=""
 MAX_NPROC=2 # default
