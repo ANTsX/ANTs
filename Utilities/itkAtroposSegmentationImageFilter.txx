@@ -397,12 +397,16 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     typename MeanCalculatorType::Pointer meanCalculator =
       MeanCalculatorType::New();
+    meanCalculator->SetMeasurementVectorSize(
+      this->m_NumberOfAuxiliaryImages + 1 );
     meanCalculator->SetWeights( &weights[n] );
     meanCalculator->SetInputSample( samples[n] );
     meanCalculator->Update();
 
     typename CovarianceCalculatorType::Pointer covarianceCalculator =
       CovarianceCalculatorType::New();
+    covarianceCalculator->SetMeasurementVectorSize(
+      this->m_NumberOfAuxiliaryImages + 1 );
     covarianceCalculator->SetWeights( &weights[n] );
     covarianceCalculator->SetMean( meanCalculator->GetOutput() );
     covarianceCalculator->SetInputSample( samples[n] );
@@ -993,12 +997,16 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     typename MeanCalculatorType::Pointer meanCalculator =
       MeanCalculatorType::New();
+    meanCalculator->SetMeasurementVectorSize(
+      this->m_NumberOfAuxiliaryImages + 1 );
     meanCalculator->SetWeights( &weights[n] );
     meanCalculator->SetInputSample( samples[n] );
     meanCalculator->Update();
 
     typename CovarianceCalculatorType::Pointer covarianceCalculator =
       CovarianceCalculatorType::New();
+    covarianceCalculator->SetMeasurementVectorSize(
+      this->m_NumberOfAuxiliaryImages + 1 );
     covarianceCalculator->SetWeights( &weights[n] );
     covarianceCalculator->SetMean( meanCalculator->GetOutput() );
     covarianceCalculator->SetInputSample( samples[n] );
