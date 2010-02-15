@@ -395,28 +395,38 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    typename MeanCalculatorType::Pointer meanCalculator =
-      MeanCalculatorType::New();
-    meanCalculator->SetMeasurementVectorSize(
-      this->m_NumberOfAuxiliaryImages + 1 );
-    meanCalculator->SetWeights( &weights[n] );
-    meanCalculator->SetInputSample( samples[n] );
-    meanCalculator->Update();
-
-    typename CovarianceCalculatorType::Pointer covarianceCalculator =
-      CovarianceCalculatorType::New();
-    covarianceCalculator->SetMeasurementVectorSize(
-      this->m_NumberOfAuxiliaryImages + 1 );
-    covarianceCalculator->SetWeights( &weights[n] );
-    covarianceCalculator->SetMean( meanCalculator->GetOutput() );
-    covarianceCalculator->SetInputSample( samples[n] );
-    covarianceCalculator->Update();
-
     typename GaussianType::Pointer gaussian = GaussianType::New();
-    gaussian->SetMean( *meanCalculator->GetOutput() );
-    gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
-    this->m_GaussianMixtureModel.push_back( gaussian );
+    if( samples[n]->Size() > 0 )
+      {
+      typename MeanCalculatorType::Pointer meanCalculator =
+        MeanCalculatorType::New();
+      meanCalculator->SetWeights( &weights[n] );
+      meanCalculator->SetInputSample( samples[n] );
+      meanCalculator->Update();
 
+      typename CovarianceCalculatorType::Pointer covarianceCalculator =
+        CovarianceCalculatorType::New();
+      covarianceCalculator->SetWeights( &weights[n] );
+      covarianceCalculator->SetMean( meanCalculator->GetOutput() );
+      covarianceCalculator->SetInputSample( samples[n] );
+      covarianceCalculator->Update();
+
+      gaussian->SetMean( *meanCalculator->GetOutput() );
+      gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
+      }
+    else
+      {
+      typename GaussianType::MeanType mean;
+      mean.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+      mean.Fill( 0.0 );
+      typename GaussianType::CovarianceType covariance(
+        this->m_NumberOfAuxiliaryImages + 1, this->m_NumberOfAuxiliaryImages + 1 );
+      covariance.Fill( 0.0 );
+
+      gaussian->SetMean( mean );
+      gaussian->SetCovariance( covariance );
+      }
+    this->m_GaussianMixtureModel.push_back( gaussian );
     this->m_GaussianMixtureModelProportions[n] =
       static_cast<RealType>( samples[n]->Size() )
       / static_cast<RealType>( totalSampleSize );
@@ -995,28 +1005,38 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    typename MeanCalculatorType::Pointer meanCalculator =
-      MeanCalculatorType::New();
-    meanCalculator->SetMeasurementVectorSize(
-      this->m_NumberOfAuxiliaryImages + 1 );
-    meanCalculator->SetWeights( &weights[n] );
-    meanCalculator->SetInputSample( samples[n] );
-    meanCalculator->Update();
-
-    typename CovarianceCalculatorType::Pointer covarianceCalculator =
-      CovarianceCalculatorType::New();
-    covarianceCalculator->SetMeasurementVectorSize(
-      this->m_NumberOfAuxiliaryImages + 1 );
-    covarianceCalculator->SetWeights( &weights[n] );
-    covarianceCalculator->SetMean( meanCalculator->GetOutput() );
-    covarianceCalculator->SetInputSample( samples[n] );
-    covarianceCalculator->Update();
-
     typename GaussianType::Pointer gaussian = GaussianType::New();
-    gaussian->SetMean( *meanCalculator->GetOutput() );
-    gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
-    this->m_GaussianMixtureModel.push_back( gaussian );
+    if( samples[n]->Size() > 0 )
+      {
+      typename MeanCalculatorType::Pointer meanCalculator =
+        MeanCalculatorType::New();
+      meanCalculator->SetWeights( &weights[n] );
+      meanCalculator->SetInputSample( samples[n] );
+      meanCalculator->Update();
 
+      typename CovarianceCalculatorType::Pointer covarianceCalculator =
+        CovarianceCalculatorType::New();
+      covarianceCalculator->SetWeights( &weights[n] );
+      covarianceCalculator->SetMean( meanCalculator->GetOutput() );
+      covarianceCalculator->SetInputSample( samples[n] );
+      covarianceCalculator->Update();
+
+      gaussian->SetMean( *meanCalculator->GetOutput() );
+      gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
+      }
+    else
+      {
+      typename GaussianType::MeanType mean;
+      mean.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+      mean.Fill( 0.0 );
+      typename GaussianType::CovarianceType covariance(
+        this->m_NumberOfAuxiliaryImages + 1, this->m_NumberOfAuxiliaryImages + 1 );
+      covariance.Fill( 0.0 );
+
+      gaussian->SetMean( mean );
+      gaussian->SetCovariance( covariance );
+      }
+    this->m_GaussianMixtureModel.push_back( gaussian );
     this->m_GaussianMixtureModelProportions[n] =
       static_cast<RealType>( samples[n]->Size() )
       / static_cast<RealType>( totalSampleSize );
