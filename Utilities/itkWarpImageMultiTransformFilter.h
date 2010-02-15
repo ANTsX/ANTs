@@ -21,6 +21,7 @@
 #include "itkInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
+#include "itkVectorGaussianInterpolateImageFunction.h"
 #include "itkPoint.h"
 #include "itkFixedArray.h"
 #include "itkRecursiveGaussianImageFilter.h"
@@ -139,12 +140,13 @@ public:
   typedef typename TransformType::Pointer TransformTypePointer;
 
   /** Interpolator typedef support. */
-  typedef double                                                                   CoordRepType;
-  typedef InterpolateImageFunction<InputImageType, CoordRepType>                   InterpolatorType;
-  typedef typename InterpolatorType::Pointer                                       InterpolatorPointer;
-  typedef LinearInterpolateImageFunction<InputImageType, CoordRepType>             DefaultInterpolatorType;
-  typedef VectorLinearInterpolateImageFunction<DeformationFieldType, CoordRepType> DefaultVectorInterpolatorType;
-  typedef typename DefaultVectorInterpolatorType::Pointer                          VectorInterpolatorPointer;
+  typedef double                                                                     CoordRepType;
+  typedef InterpolateImageFunction<InputImageType, CoordRepType>                     InterpolatorType;
+  typedef typename InterpolatorType::Pointer                                         InterpolatorPointer;
+  typedef LinearInterpolateImageFunction<InputImageType, CoordRepType>               DefaultInterpolatorType;
+  typedef VectorLinearInterpolateImageFunction<DeformationFieldType, CoordRepType>   DefaultVectorInterpolatorType;
+  typedef VectorGaussianInterpolateImageFunction<DeformationFieldType, CoordRepType> DefaultVectorInterpolatorType2;
+  typedef typename DefaultVectorInterpolatorType::Pointer                            VectorInterpolatorPointer;
 
   /** Point type */
   typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
