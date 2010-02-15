@@ -658,9 +658,8 @@ shift $shiftsize
 # The invocation of $* will now read all remaining arguments into the variable IMAGESETVARIABLE
 IMAGESETVARIABLE=$*
 NINFILES=`expr $nargs - $shiftsize`
-
 #test if FSL is available in case of 4D, exit if not
-if [  ${TDIM} -eq 0 ] && [  ${#FSLDIR} -le 0 ]
+if [  ${TDIM} -eq 4 ] && [  ${#FSLDIR} -le 0 ]
 then
 setFSLPath >&2
 fi
@@ -735,12 +734,13 @@ PEXEC=${ANTSPATH}ANTSpexec.sh
 
 for FLE in $ANTSSCRIPTNAME $PEXEC
 do
-	if [ ! -f $FLE  ] ;
+	if [ ! -x $FLE  ] ;
 	then
 		echo
 		echo "--------------------------------------------------------------------------------------"
-		echo " FILE $FLE DOES NOT EXIST !!! $0 will terminate."
+		echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
 		echo "--------------------------------------------------------------------------------------"
+		echo " if the file is not executable, please change its permissions. "
 		exit 1
 	fi
 done
