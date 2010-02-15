@@ -94,10 +94,14 @@ public:
   typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
   typedef typename DeformationFieldType::Pointer DeformationFieldPointer;
 
-  typedef itk::Image<VectorType, ImageDimension + 1>                                     TimeVaryingVelocityFieldType;
-  typedef typename TimeVaryingVelocityFieldType::Pointer                                 TimeVaryingVelocityFieldPointer;
-  typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> VelocityFieldInterpolatorType;
-  typedef typename DeformationFieldType::IndexType                                       IndexType;
+  typedef itk::Image<VectorType, ImageDimension + 1> TimeVaryingVelocityFieldType;
+  typedef typename TimeVaryingVelocityFieldType::Pointer
+    TimeVaryingVelocityFieldPointer;
+  typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType,
+                                                    float>   VelocityFieldInterpolatorType;
+  typedef itk::VectorGaussianInterpolateImageFunction<TimeVaryingVelocityFieldType,
+                                                      float> VelocityFieldInterpolatorType2;
+  typedef typename DeformationFieldType::IndexType IndexType;
 
   typedef CommandLineParser               ParserType;
   typedef typename ParserType::OptionType OptionType;
@@ -1747,12 +1751,12 @@ public:
 
 //  int num=10;
 //  for (int its=0; its<num; its++)
-    float difmag = 10.0;
-    int   ct = 0;
-    float denergy = 10;
-    float denergy2 = 10;
-    float laste = 1.e9;
-    float meandif = 1.e8;
+    float        difmag = 10.0;
+    unsigned int ct = 0;
+    float        denergy = 10;
+    float        denergy2 = 10;
+    float        laste = 1.e9;
+    float        meandif = 1.e8;
 //    int badct=0;
 //  while (difmag > subpix && meandif > subpix*0.1 && badct < 2 )//&& ct < 20 && denergy > 0)
 //    float length=0.0;
