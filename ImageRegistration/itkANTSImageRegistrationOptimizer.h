@@ -19,7 +19,7 @@
 
 #include "itkObject.h"
 #include "itkObjectFactory.h"
-
+#include "itkVectorGaussianInterpolateImageFunction.h"
 #include "itkCommandLineParser.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkMinimumMaximumImageFilter.h"
