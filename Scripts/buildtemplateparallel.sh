@@ -28,13 +28,13 @@ NB: All files to be added to the template should be in the same directory.
 
 Optional arguments:
 
-     -c:  Use SGE cluster (cannot be used in combination with -j; requires SGE)
+     -c:  Control for parallel computation   --- if set to zero, run serially, if set to 2 , use PEXEC , if set to 1 , use SGE qsub.
 
      -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
 
      -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default 2)
+     -j:  Number of cpu cores to use (default 2) --- set -c option to 2 to use this .
 
      -m:  Max-iterations
 
@@ -90,13 +90,13 @@ NB: All files to be added to the template should be in the same directory.
 
 Optional arguments:
 
-     -c:  Use SGE cluster (cannot be used in combination with -j; requires SGE)
+     -c:  Control for parallel computation   --- if set to zero, run serially, if set to 2 , use PEXEC , if set to 1 , use SGE qsub.
 
      -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
 
      -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default 2)
+     -j:  Number of cpu cores to use (default 2)  --- set -c option to 2 to use this .
 
      -m:  Max-iterations
 
@@ -290,6 +290,8 @@ echo
 echo "--------------------------------------------------------------------------------------"
 echo " shapeupdatetotemplate 2"
 echo "--------------------------------------------------------------------------------------"
+# you must remove the inverse warps or else the call below will average them too!
+rm -f  ${outputname}*InverseWarp*vec.nii.gz
 if [ $dim -eq 2  ]
 then
 	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii.gz 0 ${outputname}*Warpxvec.nii.gz
@@ -576,8 +578,8 @@ do
         ;;
     c) #use SGE cluster
         DOQSUB=$OPTARG
-	if [[ ${#DOQSUB} -gt 1 ]] ; then
-	    echo " DOQSUB must be an integer value (0 or 1 ) you passed  -c $DOQSUB "
+	if [[ ${#DOQSUB} -gt 2 ]] ; then
+	    echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec ) you passed  -c $DOQSUB "
 	    exit 1
 	fi
         ;;
@@ -750,7 +752,7 @@ done
 
 SGE=${ANTSPATH}waitForSGEQJobs.pl
 
-if [ $DOQSUB -gt 0 ];
+if [ $DOQSUB = 1 ];
 then
 	for FLE in $SGE
 	do
@@ -827,22 +829,24 @@ then
 		pexe=" $exe >> job_${count}_metriclog.txt "
 
 # this SGE call will go wrong, since the exe2 is not executed. Is there a way to sequentially execute exe and exe 2 without repeating the SGE loop? I assume that exe and exe2 need to be run on the same SGE node.
-		if [ $DOQSUB -gt 0 ]; then
+		if [ $DOQSUB = 1 ] ; then
 			id=`qsub -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
 			jobIDs="$jobIDs $id"
 			sleep 0.3
-		else
+		elif  [ $DOQSUB = 2 ] ; then
 			# here comes the pexec call
 			# sh $exe
 			echo $pexe >> job${count}_r.sh
 			echo $exe2 >> job${count}_r.sh
+		elif  [ $DOQSUB = 0 ] ; then
+			 sh $exe
 		fi
 
 		((count++))
 	done
 
 	# Run jobs on SGE and wait to finish
-	if [ $DOQSUB -gt 0 ];
+	if [ $DOQSUB = 1 ];
 	then
 		echo " submitted $count jobs "
 		# now wait for the stuff to finish; this script is absent
@@ -856,7 +860,7 @@ then
 	fi
 
 	# Run jobs on localhost and wait to finish
-	if [ $DOQSUB -eq 0 ];
+	if [ $DOQSUB = 2 ];
 	then
 
 		echo
@@ -866,8 +870,9 @@ then
 		echo "--------------------------------------------------------------------------------------"
 		jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
 		chmod +x job*.sh
-		$PEXEC -j ${CORES} sh job*.sh
+		$PEXEC -j ${CORES}
 	fi
+
 
 	# cleanup and save output in seperate folder
 	rm job*.sh
@@ -978,14 +983,16 @@ while [  $i -lt ${ITERATIONLIMIT} ]
                 pexe=" $exe >> job_${count}_${i}_metriclog.txt "
 
 		#6 submit to SGE or else run locally
-		if [ $DOQSUB -gt 0 ]; then
+		if [ $DOQSUB = 1 ]; then
 			id=`qsub -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
 			jobIDs="$jobIDs $id"
 			sleep 0.3
-		else
+		elif [ $DOQSUB = 2 ] ; then
 			# here comes the pexec call
 			# sh $exe
 			echo $pexe >> job${count}_${i}.sh
+		elif  [ $DOQSUB = 0 ] ; then
+		    sh $exe
 		fi
 
 		# counter updated, but not directly used in this loop
@@ -993,7 +1000,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 #		echo " submitting job number $count " # for debugging only
 	done
 	# SGE wait for script to finish
-	if [ $DOQSUB -gt 0 ];
+	if [ $DOQSUB = 1 ];
 	then
 		echo " submitted $count jobs "
 		# now wait for the stuff to finish; this script is absent
@@ -1010,7 +1017,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 
 
 	# Run jobs on localhost and wait to finish
-	if [ $DOQSUB -eq 0 ];
+	if [ $DOQSUB = 2 ];
 	then
 		itdisplay=`expr $i + 1`;
 		echo
@@ -1020,7 +1027,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 		echo "--------------------------------------------------------------------------------------"
 		jobfnamepadding #adds leading zeros to the jobnames, so they are carried out chronologically
 		chmod +x job*.sh
-		$PEXEC -j ${CORES} sh job*_${i}.sh
+		$PEXEC -j ${CORES}
 	fi
 
 	shapeupdatetotemplate ${DIM} ${TEMPLATE} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP}
