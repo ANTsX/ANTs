@@ -188,6 +188,411 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 
   // compute local means
   //  typedef itk::ImageRegionIteratorWithIndex<MetricImageType> Iterator;
+
+  //
+  // The following change was made to speed up the correlation calculation.
+  //
+
+  typedef std::deque<float> SumQueueType;
+
+  SumQueueType Qsuma2;
+  SumQueueType Qsumb2;
+  SumQueueType Qsuma;
+  SumQueueType Qsumb;
+  SumQueueType Qsumab;
+  SumQueueType Qcount;
+
+  ImageLinearConstIteratorWithIndex<MetricImageType> outIter( this->finitediffimages[0],
+                                                              this->finitediffimages[0]->GetLargestPossibleRegion() );
+  outIter.SetDirection( 0 );
+  outIter.GoToBegin();
+  while( !outIter.IsAtEnd() )
+    {
+    // Push the zeros onto the stack that are outsized the image boundary at
+    // the beginning of the line.
+    Qsuma = SumQueueType( r[0], 0.0 );
+    Qsumb = SumQueueType( r[0], 0.0 );
+    Qcount = SumQueueType( r[0], 0.0 );
+
+    NeighborhoodIterator<MetricImageType> hoodIt(
+      this->GetRadius(),
+      this->finitediffimages[0],
+      this->finitediffimages[0]->GetLargestPossibleRegion() );
+    IndexType oindex = outIter.GetIndex();
+    hoodIt.SetLocation( oindex );
+    unsigned int hoodlen = hoodIt.Size();
+    // Now add the rest of the values from each hyperplane
+    for( unsigned int i = r[0]; i < ( 2 * r[0] + 1 ); i++ )
+      {
+      float suma = 0.0;
+      float sumb = 0.0;
+      float count = 0.0;
+      for( unsigned int indct = i; indct < hoodlen; indct += ( 2 * r[0] + 1 ) )
+        {
+        bool isInBounds = true;
+        hoodIt.GetPixel( indct, isInBounds );
+        IndexType index = hoodIt.GetIndex( indct );
+
+        if( !isInBounds || ( this->m_FixedImageMask &&
+                             this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+          {
+          continue;
+          }
+
+        float a = this->GetFixedImage()->GetPixel( index );
+        float b = this->GetMovingImage()->GetPixel( index );
+
+        suma += a;
+        sumb += b;
+        count += 1.0;
+        }
+
+      Qsuma.push_back( suma );
+      Qsumb.push_back( sumb );
+      Qcount.push_back( count );
+      }
+
+    while( !outIter.IsAtEndOfLine() )
+      {
+      // Test to see if there are any voxels we need to handle in the current
+      // window.
+
+      float suma = 0.0;
+      float sumb = 0.0;
+      float count = 0.0;
+
+      typename SumQueueType::iterator itcount = Qcount.begin();
+      while( itcount != Qcount.end() )
+        {
+        count += *itcount;
+        ++itcount;
+        }
+
+      // If there are values, we need to calculate the different quantities
+      if( count > 0 )
+        {
+        typename SumQueueType::iterator ita = Qsuma.begin();
+        typename SumQueueType::iterator itb = Qsumb.begin();
+
+        while( ita != Qsuma.end() )
+          {
+          suma += *ita;
+          sumb += *itb;
+
+          ++ita;
+          ++itb;
+          }
+
+        float fixedMean = suma / count;
+        float movingMean = sumb / count;
+
+        IndexType oindex = outIter.GetIndex();
+
+        float val = this->GetFixedImage()->GetPixel( oindex ) - fixedMean;
+        this->finitediffimages[0]->SetPixel( oindex, val );
+        val = this->GetMovingImage()->GetPixel( oindex ) - movingMean;
+        this->finitediffimages[1]->SetPixel( oindex, val );
+        }
+
+      // Increment the iterator and check to see if we're at the end of the
+      // line.  If so, go to the next line.  Otherwise, add the
+      // the values for the next hyperplane.
+      ++outIter;
+
+      if( !outIter.IsAtEndOfLine() )
+        {
+        hoodIt.SetLocation( outIter.GetIndex() );
+
+        suma = 0.0;
+        sumb = 0.0;
+        count = 0.0;
+        for( unsigned int indct = 2 * r[0]; indct < hoodlen; indct += ( 2 * r[0] + 1 ) )
+          {
+          bool isInBounds = true;
+          hoodIt.GetPixel( indct, isInBounds );
+          IndexType index = hoodIt.GetIndex( indct );
+
+          if( !isInBounds || ( this->m_FixedImageMask &&
+                               this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+            {
+            continue;
+            }
+
+          float a = this->GetFixedImage()->GetPixel( index );
+          float b = this->GetMovingImage()->GetPixel( index );
+
+          suma += a;
+          sumb += b;
+          count += 1.0;
+          }
+
+        Qsuma.push_back( suma );
+        Qsumb.push_back( sumb );
+        Qcount.push_back( count );
+        }
+
+      Qsuma.pop_front();
+      Qsumb.pop_front();
+      Qcount.pop_front();
+      }
+
+    outIter.NextLine();
+    }
+
+  // we just computed the means, now do the rest ....
+  outIter.SetDirection( 0 );
+  outIter.GoToBegin();
+  while( !outIter.IsAtEnd() )
+    {
+    // Push the zeros onto the stack that are outsized the image boundary at
+    // the beginning of the line.
+    Qsuma2 = SumQueueType( r[0], 0.0 );
+    Qsumb2 = SumQueueType( r[0], 0.0 );
+    Qsumab = SumQueueType( r[0], 0.0 );
+    Qcount = SumQueueType( r[0], 0.0 );
+
+    NeighborhoodIterator<MetricImageType> hoodIt(
+      this->GetRadius(),
+      this->finitediffimages[0],
+      this->finitediffimages[0]->GetLargestPossibleRegion() );
+    IndexType oindex = outIter.GetIndex();
+    hoodIt.SetLocation( oindex );
+    unsigned int hoodlen = hoodIt.Size();
+    // Now add the rest of the values from each hyperplane
+    for( unsigned int i = r[0]; i < ( 2 * r[0] + 1 ); i++ )
+      {
+      float suma2 = 0.0;
+      float sumb2 = 0.0;
+      float sumab = 0.0;
+      float count = 0.0;
+      for( unsigned int indct = i; indct < hoodlen; indct += ( 2 * r[0] + 1 ) )
+        {
+        bool isInBounds = true;
+        hoodIt.GetPixel( indct, isInBounds );
+        IndexType index = hoodIt.GetIndex( indct );
+
+        if( !isInBounds || ( this->m_FixedImageMask &&
+                             this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+          {
+          continue;
+          }
+
+        float a =  this->finitediffimages[0]->GetPixel( index );
+        float b =  this->finitediffimages[1]->GetPixel( index );
+
+        suma2 += a * a;
+        sumb2 += b * b;
+        sumab += a * b;
+        count += 1.0;
+        }
+
+      Qsuma2.push_back( suma2 );
+      Qsumb2.push_back( sumb2 );
+      Qsumab.push_back( sumab );
+      Qcount.push_back( count );
+      }
+
+    while( !outIter.IsAtEndOfLine() )
+      {
+      // Test to see if there are any voxels we need to handle in the current
+      // window.
+
+      float suma2 = 0.0;
+      float sumb2 = 0.0;
+      float sumab = 0.0;
+      float count = 0.0;
+
+      typename SumQueueType::iterator itcount = Qcount.begin();
+      while( itcount != Qcount.end() )
+        {
+        count += *itcount;
+        ++itcount;
+        }
+
+      // If there are values, we need to calculate the different quantities
+      if( count > 0 )
+        {
+        typename SumQueueType::iterator ita2 = Qsuma2.begin();
+        typename SumQueueType::iterator itb2 = Qsumb2.begin();
+        typename SumQueueType::iterator itab = Qsumab.begin();
+
+        while( ita2 != Qsuma2.end() )
+          {
+          suma2 += *ita2;
+          sumb2 += *itb2;
+          sumab += *itab;
+
+          ++ita2;
+          ++itb2;
+          ++itab;
+          }
+
+        float fixedMean = this->finitediffimages[0]->GetPixel( oindex );
+        float movingMean = this->finitediffimages[1]->GetPixel( oindex );
+        float suma = fixedMean * (float) count;
+        float sumb = movingMean * (float) count;
+        float sff = suma2 - fixedMean * suma - fixedMean * suma + count * fixedMean * fixedMean;
+        float smm = sumb2 - movingMean * sumb - movingMean * sumb + count * movingMean * movingMean;
+        float sfm = sumab - movingMean * suma - fixedMean * sumb + count * movingMean * fixedMean;
+
+        IndexType oindex = outIter.GetIndex();
+
+        this->finitediffimages[2]->SetPixel( oindex, sfm ); // A
+        this->finitediffimages[3]->SetPixel( oindex, sff ); // B
+        this->finitediffimages[4]->SetPixel( oindex, smm ); // C
+        }
+
+      // Increment the iterator and check to see if we're at the end of the
+      // line.  If so, go to the next line.  Otherwise, add the
+      // the values for the next hyperplane.
+      ++outIter;
+
+      if( !outIter.IsAtEndOfLine() )
+        {
+        hoodIt.SetLocation( outIter.GetIndex() );
+
+        suma2 = 0.0;
+        sumb2 = 0.0;
+        sumab = 0.0;
+        count = 0.0;
+        for( unsigned int indct = 2 * r[0]; indct < hoodlen; indct += ( 2 * r[0] + 1 ) )
+          {
+          bool isInBounds = true;
+          hoodIt.GetPixel( indct, isInBounds );
+          IndexType index = hoodIt.GetIndex( indct );
+
+          if( !isInBounds || ( this->m_FixedImageMask &&
+                               this->m_FixedImageMask->GetPixel( index ) < 0.25 ) )
+            {
+            continue;
+            }
+
+          float a =  this->finitediffimages[0]->GetPixel( index );
+          float b =  this->finitediffimages[1]->GetPixel( index );
+
+          suma2 += a * a;
+          sumb2 += b * b;
+          sumab += a * b;
+          count += 1.0;
+          }
+
+        Qsuma2.push_back( suma2 );
+        Qsumb2.push_back( sumb2 );
+        Qsumab.push_back( sumab );
+        Qcount.push_back( count );
+        }
+
+      Qsuma2.pop_front();
+      Qsumb2.pop_front();
+      Qsumab.pop_front();
+      Qcount.pop_front();
+      }
+
+    outIter.NextLine();
+    }
+
+  // m_FixedImageGradientCalculator->SetInputImage(finitediffimages[0]);
+
+  m_MaxMag = 0.0;
+  m_MinMag = 9.e9;
+  m_AvgMag = 0.0;
+  m_Iteration++;
+}
+
+/*
+ * Set the function state values before each iteration
+ */
+template <class TFixedImage, class TMovingImage, class TDeformationField>
+void
+ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+::InitializeIterationOld()
+{
+  typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
+  if( !Superclass::m_MovingImage || !Superclass::m_FixedImage || !m_MovingImageInterpolator )
+    {
+    itkExceptionMacro( << "MovingImage, FixedImage and/or Interpolator not set" );
+    throw ExceptionObject(__FILE__, __LINE__);
+    }
+
+  // cache fixed image information
+  m_FixedImageSpacing    = Superclass::m_FixedImage->GetSpacing();
+  m_FixedImageOrigin     = Superclass::m_FixedImage->GetOrigin();
+
+  // setup gradient calculator
+  m_FixedImageGradientCalculator->SetInputImage( Superclass::m_FixedImage );
+  m_MovingImageGradientCalculator->SetInputImage( Superclass::m_MovingImage  );
+
+  // setup moving image interpolator
+  m_MovingImageInterpolator->SetInputImage( Superclass::m_MovingImage );
+
+  unsigned long numpix = 1;
+  for( int i = 0; i < ImageDimension; i++ )
+    {
+    numpix *= Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[i];
+    }
+  m_MetricTotal = 0.0;
+  this->m_Energy = 0.0;
+
+  typedef itk::DiscreteGaussianImageFilter<BinaryImageType, BinaryImageType> dgf1;
+//  typedef itk::DiscreteGaussianImageFilter<BinaryImageType, BinaryImageType> dgf;
+  typedef itk::MeanImageFilter<BinaryImageType, BinaryImageType>   dgf;
+  typedef itk::MedianImageFilter<BinaryImageType, BinaryImageType> dgf2;
+
+  // compute the normalizer
+  m_Normalizer      = 0.0;
+  for( unsigned int k = 0; k < ImageDimension; k++ )
+    {
+    m_Normalizer += m_FixedImageSpacing[k] * m_FixedImageSpacing[k];
+    }
+  m_Normalizer /= static_cast<double>( ImageDimension );
+
+  typename FixedImageType::SpacingType spacing = this->GetFixedImage()->GetSpacing();
+
+  bool makeimg = false;
+  if( m_Iteration == 0 )
+    {
+    makeimg = true;
+    }
+  else if( !finitediffimages[0] )
+    {
+    makeimg = true;
+    }
+  else
+    {
+    for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+      {
+      if( finitediffimages[0]->GetLargestPossibleRegion().GetSize()[dd] !=
+          this->GetFixedImage()->GetLargestPossibleRegion().GetSize()[dd] )
+        {
+        makeimg = true;
+        }
+      }
+    }
+
+  if( makeimg )
+    {
+    finitediffimages[0] = this->MakeImage();
+    finitediffimages[1] = this->MakeImage();
+    finitediffimages[2] = this->MakeImage();
+    finitediffimages[3] = this->MakeImage();
+    finitediffimages[4] = this->MakeImage();
+    }
+
+  // float sig=15.;
+
+  RadiusType r;
+  for( int j = 0; j < ImageDimension; j++ )
+    {
+    r[j] = this->GetRadius()[j];
+    }
+
+  typedef itk::ImageRegionIteratorWithIndex<MetricImageType> Iterator;
+  Iterator tIter(this->GetFixedImage(), this->GetFixedImage()->GetLargestPossibleRegion() );
+
+  typename FixedImageType::SizeType imagesize = this->GetFixedImage()->GetLargestPossibleRegion().GetSize();
+
+  // compute local means
+  //  typedef itk::ImageRegionIteratorWithIndex<MetricImageType> Iterator;
   Iterator outIter(this->finitediffimages[0], this->finitediffimages[0]->GetLargestPossibleRegion() );
   for( outIter.GoToBegin(); !outIter.IsAtEnd(); ++outIter )
     {
