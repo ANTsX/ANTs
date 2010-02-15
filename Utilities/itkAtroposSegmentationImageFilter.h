@@ -22,13 +22,17 @@
 #include "itkArray.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkFixedArray.h"
+#include "itkGaussianMembershipFunction.h"
+#include "itkGaussianMixtureModelComponent.h"
+#include "itkListSample.h"
 #include "itkPointSet.h"
 #include "itkVector.h"
+#include "itkWeightedCovarianceCalculator.h"
+#include "itkWeightedMeanCalculator.h"
 
 #include <vector>
 #include <map>
 #include <utility>
-// #include <pair.h>
 
 namespace itk
 {
@@ -91,9 +95,20 @@ public:
   typedef float RealType;
   typedef Image<RealType,
                 itkGetStaticConstMacro( ImageDimension )>         RealImageType;
-  typedef Array<double> ParametersType;
   typedef FixedArray<unsigned,
                      itkGetStaticConstMacro( ImageDimension )>         ArrayType;
+
+  /** Gaussian mixture model component typedefs */
+  typedef Array<RealType> MeasurementVectorType;
+  typedef typename
+    Statistics::GaussianMembershipFunction
+    <MeasurementVectorType>                           GaussianType;
+  typedef typename Statistics::ListSample
+    <MeasurementVectorType>                           SampleType;
+  typedef typename Statistics::
+    WeightedMeanCalculator<SampleType>                MeanCalculatorType;
+  typedef typename Statistics::
+    WeightedCovarianceCalculator<SampleType>          CovarianceCalculatorType;
 
   /** B-spline fitting typedefs */
   typedef Vector<RealType, 1> ScalarType;
@@ -105,7 +120,10 @@ public:
     <PointSetType, ScalarImageType>                   BSplineFilterType;
   typedef typename
     BSplineFilterType::PointDataImageType             ControlPointLatticeType;
+  typedef std::vector<typename
+                      ControlPointLatticeType::Pointer>                 ControlPointLatticeContainerType;
 
+  /** Initialization typedefs */
   enum InitializationStrategyType
         { Random, KMeans, Otsu, PriorProbabilityImages, PriorLabelImage };
 
@@ -160,8 +178,39 @@ public:
 
   const MaskImageType * GetMaskImage() const;
 
-  itkSetClampMacro( PriorProbabilityWeighting, RealType, 0, 1 );
-  itkGetConstMacro( PriorProbabilityWeighting, RealType );
+  void SetAdaptiveSmoothingWeight( unsigned int idx, RealType weight )
+  {
+    RealType clampedWeight = vnl_math_min( NumericTraits<RealType>::One,
+                                           vnl_math_max( NumericTraits<RealType>::Zero, weight ) );
+
+    /**
+     * Clamp values between 0 and 1.  Also, index [0] corresponds to the
+     * input image and [1]...[n], correspond to the auxiliary images.
+     */
+    if( idx >= this->m_AdaptiveSmoothingWeights.size() )
+      {
+      this->m_AdaptiveSmoothingWeights.resize( idx + 1 );
+      this->m_AdaptiveSmoothingWeights[idx] = clampedWeight;
+      this->Modified();
+      }
+    if( this->m_AdaptiveSmoothingWeights[idx] != weight )
+      {
+      this->m_AdaptiveSmoothingWeights[idx] = clampedWeight;
+      this->Modified();
+      }
+  }
+
+  RealType GetAdaptiveSmoothingWeight( unsigned int idx )
+  {
+    /**
+     * [0] corresponds to the input image and [1]...[n], correspond to
+     * the auxiliary images.
+     */
+    if( idx < this->m_AdaptiveSmoothingWeights.size() )
+      {
+      return this->m_AdaptiveSmoothingWeights[idx];
+      }
+  }
 
   void SetPriorLabelParameterMap( LabelParameterMapType m )
   {
@@ -174,13 +223,23 @@ public:
     return this->m_PriorLabelParameterMap;
   }
 
+  /**
+   * Prior probability images (numbered between 1,...,numberOfClasses)
+   */
   void SetPriorProbabilityImage(unsigned int whichClass, const RealImageType * prior );
 
-  const RealImageType * GetPriorProbabilityImage( unsigned int i ) const;
+  const RealImageType * GetPriorProbabilityImage( unsigned int whichClass ) const;
 
   void SetPriorLabelImage( const ClassifiedImageType * prior );
 
   const ClassifiedImageType * GetPriorLabelImage() const;
+
+  /**
+   * Auxiliary images (numbered between 1,...,n)
+   */
+  void SetAuxiliaryImage( unsigned int which, const ImageType * image );
+
+  const ImageType * GetAuxiliaryImage( unsigned int which ) const;
 
   /**
    * Euclidean distance uses Maurer to calculate the distance transform image.
@@ -194,7 +253,7 @@ public:
 
   typename RealImageType::Pointer GetPosteriorProbabilityImage( unsigned int );
 
-  typename RealImageType::Pointer CalculateSmoothIntensityImageFromPriorProbabilityImage( unsigned int );
+  typename RealImageType::Pointer CalculateSmoothIntensityImageFromPriorProbabilityImage(unsigned int, unsigned int );
 
   typename RealImageType::Pointer GetDistancePriorProbabilityImageFromPriorLabelImage( unsigned int );
 
@@ -233,6 +292,7 @@ private:
   RealType UpdateClassParametersAndLabeling();
 
   unsigned int m_NumberOfClasses;
+  unsigned int m_NumberOfAuxiliaryImages;
   unsigned int m_ElapsedIterations;
   unsigned int m_MaximumNumberOfIterations;
   RealType     m_CurrentConvergenceMeasurement;
@@ -240,25 +300,25 @@ private:
 
   MaskLabelType m_MaskLabel;
 
-  std::vector<ParametersType> m_CurrentClassParameters;
-  InitializationStrategyType  m_InitializationStrategy;
+  std::vector<typename GaussianType::Pointer> m_GaussianMixtureModel;
+  Array<RealType>                             m_GaussianMixtureModelProportions;
+  InitializationStrategyType                  m_InitializationStrategy;
 
   ArrayType m_MRFRadius;
   RealType  m_MRFSmoothingFactor;
   RealType  m_MRFSigmoidAlpha;
   RealType  m_MRFSigmoidBeta;
 
-  RealType              m_PriorProbabilityWeighting;
+  std::vector<RealType> m_AdaptiveSmoothingWeights;
   LabelParameterMapType m_PriorLabelParameterMap;
 
-  unsigned int m_SplineOrder;
-  ArrayType    m_NumberOfLevels;
-  ArrayType    m_NumberOfControlPoints;
-  std::vector<typename
-              ControlPointLatticeType::Pointer> m_ControlPointLattices;
+  unsigned int                                  m_SplineOrder;
+  ArrayType                                     m_NumberOfLevels;
+  ArrayType                                     m_NumberOfControlPoints;
+  std::vector<ControlPointLatticeContainerType> m_ControlPointLattices;
 
-  typename RealImageType::Pointer               m_SumDistancePriorProbabilityImage;
-  typename RealImageType::Pointer               m_SumPosteriorProbabilityImage;
+  typename RealImageType::Pointer                m_SumDistancePriorProbabilityImage;
+  typename RealImageType::Pointer                m_SumPosteriorProbabilityImage;
   bool m_MinimizeMemoryUsage;
 
   std::vector<typename RealImageType::Pointer> m_PosteriorProbabilityImages;
