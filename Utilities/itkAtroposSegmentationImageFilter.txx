@@ -1287,9 +1287,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               }
             RealType likelihood =
               this->m_GaussianMixtureModel[c]->Evaluate( measurement );
-            RealType posteriorProbability =
-              this->m_PriorProbabilityWeight * likelihood * mrfPrior * prior
-              + ( 1.0 - this->m_PriorProbabilityWeight ) * likelihood * mrfPrior;
+            RealType posteriorProbability = this->m_PriorProbabilityWeight
+              * this->m_GaussianMixtureModelProportions[c] * likelihood
+              * mrfPrior * prior + ( 1.0 - this->m_PriorProbabilityWeight )
+              * this->m_GaussianMixtureModelProportions[c] * likelihood * mrfPrior;
 
             this->m_GaussianMixtureModel[c]->SetMean( oldMean );
 
@@ -1497,9 +1498,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             }
           RealType likelihood =
             this->m_GaussianMixtureModel[whichClass - 1]->Evaluate( measurement );
-          RealType posteriorProbability =
-            this->m_PriorProbabilityWeight * likelihood * mrfPrior * prior
-            + ( 1.0 - this->m_PriorProbabilityWeight ) * likelihood * mrfPrior;
+          RealType posteriorProbability = this->m_PriorProbabilityWeight
+            * this->m_GaussianMixtureModelProportions[whichClass - 1] * likelihood
+            * mrfPrior * prior + ( 1.0 - this->m_PriorProbabilityWeight )
+            * this->m_GaussianMixtureModelProportions[whichClass - 1] * likelihood
+            * mrfPrior;
 
           this->m_GaussianMixtureModel[whichClass - 1]->SetMean( oldMean );
 
