@@ -8,6 +8,7 @@ Usage: `basename $0` [-h] [-r] [-j nb_jobs] command arg_list
     -h      Shows this help
     -r      Replace asterix * in the command string with argument
     -j nb_jobs  Set number of simultanious jobs [2]
+  Has only been tested on OSX and linux.
  Examples:
     `basename $0` somecommand arg1 arg2 arg3
     `basename $0` -j 3 \"somecommand -r -p\" arg1 arg2 arg3
@@ -18,7 +19,7 @@ function queue {
     NUM=$(($NUM+1))
 }
 
-function regeneratequeue {
+function regeneratequeuemac {
     OLDREQUEUE=$QUEUE
     QUEUE=""
     NUM=0
@@ -26,23 +27,48 @@ function regeneratequeue {
     do
 	whm=` whoami `
 	num=` ps U $whm | grep -i $PID  | wc -l `
-        if [ $num = 1  ] ; then
+        if [ $num = 1 ]    ;  then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
-        fi
+	fi
+
     done
 }
 
-function checkqueue {
+function checkqueuemac {
     OLDCHQUEUE=$QUEUE
     for PID in $OLDCHQUEUE
     do
 	whm=` whoami `
 	num=` ps U $whm | grep -i $PID  | wc -l `
-        if [ $num = 1   ] ; then
-            regeneratequeue # at least one PID has finished
+        if [ $num = 1 ]  ; then
+            regeneratequeuemac # at least one PID has finished
             break
-        fi
+	fi
+    done
+}
+
+function regeneratequeuelinux {
+    OLDREQUEUE=$QUEUE
+    QUEUE=""
+    NUM=0
+    for PID in $OLDREQUEUE
+    do
+	if [ ! -d /proc/$PID ]  ; then
+            QUEUE="$QUEUE $PID"
+            NUM=$(($NUM+1))
+	fi
+    done
+}
+
+function checkqueuelinux {
+    OLDCHQUEUE=$QUEUE
+    for PID in $OLDCHQUEUE
+    do
+	if [ ! -d /proc/$PID ]   ; then
+            regeneratequeuelinux # at least one PID has finished
+            break
+	fi
     done
 }
 
@@ -91,9 +117,19 @@ do
     PID=$!
     queue $PID
 
-    while [ $NUM -ge $MAX_NPROC ]; do
-        checkqueue
-        sleep 0.4
-    done
+    osarch=` uname -a | grep Darwin  `
+    if [  ${#osarch} > 0 ] ; then
+	while [ $NUM -ge $MAX_NPROC ]; do
+            checkqueuemac
+            sleep 0.4
+	done
+    else
+	while [ $NUM -ge $MAX_NPROC ]; do
+            checkqueuelinux
+            sleep 0.4
+	done
+    fi
+
+
 done
 wait # wait for all processes to finish before exit
