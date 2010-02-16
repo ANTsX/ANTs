@@ -29,6 +29,7 @@
 #include "itkWeightedCovarianceCalculator.h"
 #include "itkWeightedMeanCalculator.h"
 
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <utility>
@@ -129,6 +130,15 @@ public:
   typedef std::pair<RealType, RealType>            LabelParametersType;
   typedef std::map<LabelType, LabelParametersType> LabelParameterMapType;
 
+  typedef std::pair<RealType, MeasurementVectorType> OrderingPair;
+  struct SortOrderedPair
+    {
+    bool operator()( const OrderingPair & left, const OrderingPair & right )
+    {
+      return left.first < right.first;
+    }
+    };
+
   /** ivars Set/Get functionality */
 
   itkSetClampMacro( NumberOfClasses, unsigned int, 2,
@@ -176,6 +186,9 @@ public:
   void SetMaskImage( const MaskImageType * mask );
 
   const MaskImageType * GetMaskImage() const;
+
+  itkSetClampMacro( PriorProbabilityWeight, RealType, 0.0, 1.0 );
+  itkGetConstMacro( PriorProbabilityWeight, RealType );
 
   void SetAdaptiveSmoothingWeight( unsigned int idx, RealType weight )
   {
@@ -309,6 +322,7 @@ private:
   RealType  m_MRFSigmoidBeta;
 
   std::vector<RealType> m_AdaptiveSmoothingWeights;
+  RealType              m_PriorProbabilityWeight;
   LabelParameterMapType m_PriorLabelParameterMap;
 
   unsigned int                                  m_SplineOrder;
