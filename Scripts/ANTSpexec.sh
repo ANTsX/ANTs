@@ -24,7 +24,9 @@ function regeneratequeue {
     NUM=0
     for PID in $OLDREQUEUE
     do
-        if [ -d /proc/$PID  ] ; then
+	whm=` whoami `
+	num=` ps U $whm | grep -i $PID  | wc -l `
+        if [ $num = 1  ] ; then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
         fi
@@ -35,7 +37,9 @@ function checkqueue {
     OLDCHQUEUE=$QUEUE
     for PID in $OLDCHQUEUE
     do
-        if [ ! -d /proc/$PID ] ; then
+	whm=` whoami `
+	num=` ps U $whm | grep -i $PID  | wc -l `
+        if [ $num = 1   ] ; then
             regeneratequeue # at least one PID has finished
             break
         fi
