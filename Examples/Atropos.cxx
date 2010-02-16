@@ -122,60 +122,62 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
     else if( !initializationStrategy.compare( std::string( "priorprobabilityimages" ) ) )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::PriorProbabilityImages );
-
-      if( initializationOption->GetNumberOfParameters() > 3 )
+      if( initializationOption->GetNumberOfParameters() < 4 )
         {
-        segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
-                                                 initializationOption->GetParameter( 3 ) ) );
+        std::cerr << "Incorrect initialization option specification." << std::endl;
+        std::cerr << "   " << initializationOption->GetDescription() << std::endl;
+        return EXIT_FAILURE;
         }
-      if( initializationOption->GetNumberOfParameters() > 2 )
+      segmenter->SetPriorProbabilityWeight( parser->Convert<float>(
+                                              initializationOption->GetParameter( 3 ) ) );
+      segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
+                                               initializationOption->GetParameter( 4 ) ) );
+
+      std::string filename = initializationOption->GetParameter( 2 );
+
+      if( filename.find( std::string( "%" ) ) != std::string::npos )
         {
-        std::string filename = initializationOption->GetParameter( 2 );
-
-        if( filename.find( std::string( "%" ) ) != std::string::npos )
+        itk::NumericSeriesFileNames::Pointer fileNamesCreator =
+          itk::NumericSeriesFileNames::New();
+        fileNamesCreator->SetStartIndex( 1 );
+        fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+        fileNamesCreator->SetSeriesFormat( filename.c_str() );
+        const std::vector<std::string> & imageNames
+          = fileNamesCreator->GetFileNames();
+        for( unsigned int k = 0; k < imageNames.size(); k++ )
           {
-          itk::NumericSeriesFileNames::Pointer fileNamesCreator =
-            itk::NumericSeriesFileNames::New();
-          fileNamesCreator->SetStartIndex( 1 );
-          fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
-          fileNamesCreator->SetSeriesFormat( filename.c_str() );
-          const std::vector<std::string> & imageNames
-            = fileNamesCreator->GetFileNames();
-          for( unsigned int k = 0; k < imageNames.size(); k++ )
-            {
-            typedef itk::ImageFileReader<InputImageType> ReaderType;
-            typename ReaderType::Pointer reader = ReaderType::New();
-            reader->SetFileName( imageNames[k].c_str() );
-            reader->Update();
-
-            segmenter->SetPriorProbabilityImage( k + 1, reader->GetOutput() );
-            }
-          }
-        else
-          {
-          typedef itk::VectorImage<PixelType, ImageDimension> VectorImageType;
-          typedef itk::ImageFileReader<VectorImageType>       ReaderType;
+          typedef itk::ImageFileReader<InputImageType> ReaderType;
           typename ReaderType::Pointer reader = ReaderType::New();
-          reader->SetFileName( filename.c_str() );
+          reader->SetFileName( imageNames[k].c_str() );
           reader->Update();
 
-          if(  reader->GetOutput()->GetNumberOfComponentsPerPixel()
-               != segmenter->GetNumberOfClasses() )
-            {
-            std::cerr << "The number of components does not match the number of classes." << std::endl;
-            return EXIT_FAILURE;
-            }
+          segmenter->SetPriorProbabilityImage( k + 1, reader->GetOutput() );
+          }
+        }
+      else
+        {
+        typedef itk::VectorImage<PixelType, ImageDimension> VectorImageType;
+        typedef itk::ImageFileReader<VectorImageType>       ReaderType;
+        typename ReaderType::Pointer reader = ReaderType::New();
+        reader->SetFileName( filename.c_str() );
+        reader->Update();
 
-          typedef itk::VectorIndexSelectionCastImageFilter
-            <VectorImageType, InputImageType> CasterType;
-          typename CasterType::Pointer caster = CasterType::New();
-          caster->SetInput( reader->GetOutput() );
-          for( unsigned int k = 0; k < segmenter->GetNumberOfClasses(); k++ )
-            {
-            caster->SetIndex( k );
-            caster->Update();
-            segmenter->SetPriorProbabilityImage( k + 1, caster->GetOutput() );
-            }
+        if(  reader->GetOutput()->GetNumberOfComponentsPerPixel()
+             != segmenter->GetNumberOfClasses() )
+          {
+          std::cerr << "The number of components does not match the number of classes." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        typedef itk::VectorIndexSelectionCastImageFilter
+          <VectorImageType, InputImageType> CasterType;
+        typename CasterType::Pointer caster = CasterType::New();
+        caster->SetInput( reader->GetOutput() );
+        for( unsigned int k = 0; k < segmenter->GetNumberOfClasses(); k++ )
+          {
+          caster->SetIndex( k );
+          caster->Update();
+          segmenter->SetPriorProbabilityImage( k + 1, caster->GetOutput() );
           }
         }
       }
@@ -183,22 +185,24 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::PriorLabelImage );
 
-      if( initializationOption->GetNumberOfParameters() > 3 )
+      if( initializationOption->GetNumberOfParameters() < 4 )
         {
-        segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
-                                                 initializationOption->GetParameter( 3 ) ) );
+        std::cerr << "Incorrect initialization option specification." << std::endl;
+        std::cerr << "   " << initializationOption->GetDescription() << std::endl;
+        return EXIT_FAILURE;
         }
-      if( initializationOption->GetNumberOfParameters() > 2 )
-        {
-        std::string filename = initializationOption->GetParameter( 2 );
+      segmenter->SetPriorProbabilityWeight( parser->Convert<float>(
+                                              initializationOption->GetParameter( 3 ) ) );
+      segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
+                                               initializationOption->GetParameter( 4 ) ) );
 
-        typedef itk::ImageFileReader<LabelImageType> ReaderType;
-        typename ReaderType::Pointer reader = ReaderType::New();
-        reader->SetFileName( filename.c_str() );
-        reader->Update();
+      std::string filename = initializationOption->GetParameter( 2 );
+      typedef itk::ImageFileReader<LabelImageType> ReaderType;
+      typename ReaderType::Pointer reader = ReaderType::New();
+      reader->SetFileName( filename.c_str() );
+      reader->Update();
 
-        segmenter->SetPriorLabelImage( reader->GetOutput() );
-        }
+      segmenter->SetPriorLabelImage( reader->GetOutput() );
       }
     else
       {
@@ -586,8 +590,10 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
       + std::string( "\t  Option 2:  Kmeans[inputImage,numberOfClasses]\n" )
       + std::string( "\t  Option 3:  Otsu[inputImage,numberOfClasses]\n" )
       + std::string( "\t  Option 4:  PriorProbabilityImages[inputImage,numberOfClasses," )
-      + std::string( "fileSeriesFormat(index=1 to numberOfClasses-1) or vectorImage,priorWeighting]\n" )
-      + std::string( "\t  Option 5:  PriorLabelImage[inputImage,numberOfClasses,labelImage,priorWeighting]" );
+      + std::string(
+        "fileSeriesFormat(index=1 to numberOfClasses-1) or vectorImage,priorWeighting,<adaptiveSmoothingWeight>]\n" )
+      + std::string(
+        "\t  Option 5:  PriorLabelImage[inputImage,numberOfClasses,labelImage,priorWeighting,<adaptiveSmoothingWeight>]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initialization" );
@@ -607,7 +613,8 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "[image,priorWeighting]" );
+    std::string description = std::string( "[image,<adaptiveSmoothingWeight>]" )
+      + std::string( " -- adaptive smoothing only applies to initialization with prior image(s)" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "auxiliary-image" );
@@ -672,7 +679,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     {
     std::string description =
       std::string( "[<numberOfLevels>,<initialMeshResolution>,<splineOrder>]" )
-      + std::string( " -- only applies to initialization with a prior image(s)" );
+      + std::string( " -- only applies to initialization with prior image(s)" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "bspline" );
