@@ -25,7 +25,6 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
-#include "itkEuclideanDistance.h"
 #include "itkFastMarchingImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
@@ -34,6 +33,7 @@
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelStatisticsImageFilter.h"
+#include "itkEuclideanDistance.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkOtsuMultipleThresholdsCalculator.h"
@@ -45,8 +45,6 @@
 #include "itkTimeProbe.h"
 
 #include "vnl/vnl_vector.h"
-
-#include <algorithm>
 
 namespace itk
 {
@@ -589,7 +587,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   for( ItI.GoToBegin(), ItO.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItO )
     {
     LabelType label = NumericTraits<LabelType>::Zero;
-
     if( !this->GetMaskImage() ||
         this->GetMaskImage()->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
       {
@@ -624,30 +621,82 @@ void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateInitialClassLabelingWithKMeansClustering()
 {
-  typedef typename Statistics::ImageToListGenerator<ImageType, MaskImageType>
-    ListSampleGeneratorType;
-  typename ListSampleGeneratorType::Pointer sampler
-    = ListSampleGeneratorType::New();
-  sampler->SetInput( this->GetInput() );
-  if( this->GetMaskImage() )
-    {
-    sampler->SetMaskImage( this->GetMaskImage() );
-    sampler->SetMaskValue( this->m_MaskLabel );
-    }
-  sampler->Update();
+  /**
+   * Acquire the samples but rescale so that they share the same dynamic range.
+   * This (is kind of a hack that?) allows us to use the EuclideanDistance
+   * membership function.
+   */
+  Array<RealType> minValues;
+  minValues.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+  minValues.Fill( NumericTraits<RealType>::max() );
+  Array<RealType> maxValues;
+  maxValues.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+  maxValues.Fill( NumericTraits<RealType>::NonpositiveMin() );
 
-  typedef typename ListSampleGeneratorType::ListSampleType ListSampleType;
-  typedef typename ListSampleGeneratorType::MeasurementVectorType
-    MeasurementVectorType;
-  typedef Statistics::WeightedCentroidKdTreeGenerator
-    <ListSampleType> TreeGeneratorType;
+  ImageRegionIteratorWithIndex<ClassifiedImageType> ItO( this->GetOutput(),
+                                                         this->GetOutput()->GetRequestedRegion() );
+  for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
+    {
+    if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel( ItO.GetIndex() )
+        == this->m_MaskLabel )
+      {
+      for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
+        {
+        RealType value = 0.0;
+        if( i == 0 )
+          {
+          value = this->GetInput()->GetPixel( ItO.GetIndex() );
+          }
+        else
+          {
+          value = this->GetAuxiliaryImage( i )->GetPixel( ItO.GetIndex() );
+          }
+        if( value < minValues[i] )
+          {
+          minValues[i] = value;
+          }
+        else if( value > maxValues[i] )
+          {
+          maxValues[i] = value;
+          }
+        }
+      }
+    }
+
+  typename SampleType::Pointer sample = SampleType::New();
+  for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
+    {
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
+      {
+      typename SampleType::MeasurementVectorType measurement;
+      measurement.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+      for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
+        {
+        if( i == 0 )
+          {
+          measurement[i] = this->GetInput()->GetPixel( ItO.GetIndex() );
+          }
+        else
+          {
+          measurement[i] =
+            this->GetAuxiliaryImage( i )->GetPixel( ItO.GetIndex() );
+          }
+        measurement[i] = minValues[0] + ( measurement[i] - minValues[i] )
+          * ( maxValues[0] - minValues[0] ) / ( maxValues[i] - minValues[i] );
+        }
+      sample->PushBack( measurement );
+      }
+    }
+
+  typedef Statistics::WeightedCentroidKdTreeGenerator<SampleType>
+    TreeGeneratorType;
   typedef typename TreeGeneratorType::KdTreeType           TreeType;
   typedef Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
   typedef typename EstimatorType::ParametersType           ParametersType;
 
   typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
-  treeGenerator->SetSample( const_cast<ListSampleType *>(
-                              sampler->GetListSample() ) );
+  treeGenerator->SetSample( sample );
   treeGenerator->SetBucketSize( 16 );
   treeGenerator->Update();
 
@@ -655,38 +704,19 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
    * Guess initial class means by dividing the dynamic range
    *  into equal intervals.
    */
-
-  RealType maxValue = itk::NumericTraits<RealType>::min();
-  RealType minValue = itk::NumericTraits<RealType>::max();
-
-  ImageRegionConstIteratorWithIndex<ImageType> ItI( this->GetInput(),
-                                                    this->GetInput()->GetRequestedRegion() );
-  for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
-    {
-    if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel( ItI.GetIndex() )
-        == this->m_MaskLabel )
-      {
-      if( ItI.Get() < minValue )
-        {
-        minValue = ItI.Get();
-        }
-      else if( ItI.Get() > maxValue )
-        {
-        maxValue = ItI.Get();
-        }
-      }
-    }
-
   typename EstimatorType::Pointer estimator = EstimatorType::New();
-  ParametersType initialMeans( this->m_NumberOfClasses );
+  ParametersType initialMeans( this->m_NumberOfClasses
+                               * ( this->m_NumberOfAuxiliaryImages + 1 ) );
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    initialMeans[n] = minValue + ( maxValue - minValue )
-      * static_cast<RealType>( n + 1 )
-      / static_cast<RealType>( this->m_NumberOfClasses + 1 );
+    for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
+      {
+      initialMeans[( this->m_NumberOfAuxiliaryImages + 1 ) * n + i] = minValues[0]
+        + ( maxValues[0] - minValues[0] ) * static_cast<RealType>( n + 1 )
+        / static_cast<RealType>( this->m_NumberOfClasses + 1 );
+      }
     }
   estimator->SetParameters( initialMeans );
-
   estimator->SetKdTree( treeGenerator->GetOutput() );
   estimator->SetMaximumIteration( 200 );
   estimator->SetCentroidPositionChangesThreshold( 0.0 );
@@ -695,41 +725,55 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   /**
    * Classify the samples
    */
-  typedef Statistics::SampleClassifier<ListSampleType> ClassifierType;
-  typedef MinimumDecisionRule                          DecisionRuleType;
+  typedef Statistics::SampleClassifier<SampleType> ClassifierType;
+  typedef MinimumDecisionRule                      DecisionRuleType;
   typename DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
   typename ClassifierType::Pointer classifier = ClassifierType::New();
 
   classifier->SetDecisionRule( decisionRule.GetPointer() );
-  classifier->SetSample( const_cast<ListSampleType *>(
-                           sampler->GetListSample() ) );
-  classifier->SetNumberOfClasses( this->m_NumberOfClasses  );
-
-  typedef itk::Statistics::EuclideanDistance<MeasurementVectorType>
-    MembershipFunctionType;
+  classifier->SetSample( sample );
+  classifier->SetNumberOfClasses( this->m_NumberOfClasses );
 
   typedef std::vector<unsigned int> ClassLabelVectorType;
   ClassLabelVectorType classLabels;
   classLabels.resize( this->m_NumberOfClasses );
 
   /**
-   * Order the cluster means so that the lowest mean corresponds to label '1',
-   * the second lowest to label '2', etc.
+   * Order the cluster means so that the lowest mean of the input image
+   * corresponds to label '1', the second lowest to label '2', etc.
    */
-  std::vector<RealType> estimatorParameters;
+
+  std::vector<OrderingPair> estimatorParameters;
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    estimatorParameters.push_back( estimator->GetParameters()[n] );
+    RealType measurementInputImage = estimator->GetParameters()[
+        ( this->m_NumberOfAuxiliaryImages + 1 ) * n];
+    MeasurementVectorType measurement;
+    measurement.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+    for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
+      {
+      measurement[i] = estimator->GetParameters()[
+          ( this->m_NumberOfAuxiliaryImages + 1 ) * n + i];
+      }
+    OrderingPair measurementPair( measurementInputImage, measurement );
+    estimatorParameters.push_back( measurementPair );
     }
-  std::sort( estimatorParameters.begin(), estimatorParameters.end() );
+  std::sort( estimatorParameters.begin(), estimatorParameters.end(),
+             SortOrderedPair() );
+
+  typedef itk::Statistics::EuclideanDistance<MeasurementVectorType>
+    MembershipFunctionType;
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     classLabels[n] = n + 1;
     typename MembershipFunctionType::Pointer
     membershipFunction = MembershipFunctionType::New();
     typename MembershipFunctionType::OriginType origin(
-      sampler->GetMeasurementVectorSize() );
-    origin[0] = estimatorParameters[n];
+      sample->GetMeasurementVectorSize() );
+    for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
+      {
+      origin[i] = estimatorParameters[n].second[i];
+      }
     membershipFunction->SetOrigin( origin );
     classifier->AddMembershipFunction( membershipFunction.GetPointer() );
     }
@@ -739,11 +783,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   /**
    * Classify the voxels
    */
-  ImageRegionIteratorWithIndex<ClassifiedImageType> ItO( this->GetOutput(),
-                                                         this->GetOutput()->GetRequestedRegion() );
   typedef typename ClassifierType::OutputType          ClassifierOutputType;
   typedef typename ClassifierOutputType::ConstIterator LabelIterator;
 
+  ItO.GoToBegin();
   LabelIterator it = classifier->GetOutput()->Begin();
   while( it != classifier->GetOutput()->End() )
     {
@@ -1244,8 +1287,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
             RealType likelihood =
               this->m_GaussianMixtureModel[c]->Evaluate( measurement );
-            RealType posteriorProbability =  this->m_AdaptiveSmoothingWeights[0] * likelihood * mrfPrior * prior
-              + ( 1 - this->m_AdaptiveSmoothingWeights[0]) * likelihood * mrfPrior;
+            RealType posteriorProbability = likelihood * mrfPrior * prior;
 
             this->m_GaussianMixtureModel[c]->SetMean( oldMean );
 
@@ -1451,12 +1493,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 this->GetAuxiliaryImage( i )->GetPixel( ItO.GetIndex() );
               }
             }
-
           RealType likelihood =
             this->m_GaussianMixtureModel[whichClass - 1]->Evaluate( measurement );
-
-          RealType posteriorProbability =  this->m_AdaptiveSmoothingWeights[0] * likelihood * mrfPrior * prior
-            + ( 1 - this->m_AdaptiveSmoothingWeights[0]) * likelihood * mrfPrior;
+          RealType posteriorProbability = likelihood * mrfPrior * prior;
 
           this->m_GaussianMixtureModel[whichClass - 1]->SetMean( oldMean );
 
