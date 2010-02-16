@@ -805,13 +805,15 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         }
       if( oktosample )
         {
-        nU.Value() += df->ComputeUpdate(nD, globalData) * maskprob;
+        VectorType temp = df->ComputeUpdate(nD, globalData) * maskprob;
+        nU.Value() += temp;
         if( totalUpdateInvField )
           {
           typename ImageType::IndexType index = nD.GetIndex();
-          VectorType temp = df->ComputeUpdateInv(nD, globalData) * maskprob;
+          temp = df->ComputeUpdateInv(nD, globalData) * maskprob + updateFieldInv->GetPixel(index);
           updateFieldInv->SetPixel(index, temp);
           }       // else nU.Value() -= df->ComputeUpdateInv(nD, globalData)*maskprob;
+
         ++nD;
         ++nU;
         }
@@ -821,6 +823,38 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         ++nU;
         }
       }
+
+    // begin restriction of deformation field
+    bool restrict = false;
+    for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
+      {
+      if( this->m_RestrictDeformation[jj] > 0 )
+        {
+        restrict = true;
+        }
+      }
+    if( restrict )
+      {
+      nU.GoToBegin();
+      while( !nU.IsAtEnd() )
+        {
+        for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
+          {
+          if( this->m_RestrictDeformation[jj] == 1  )
+            {
+            typename ImageType::IndexType index = nD.GetIndex();
+            VectorType temp = updateField->GetPixel(index);
+            temp[jj] = 0;
+            if( updateFieldInv )
+              {
+              temp = updateField->GetPixel(index);
+              temp[jj] = 0;
+              }
+            }
+          }
+        ++nU;
+        }
+      } // end restrict deformation field
 
     if( updateenergy )
       {

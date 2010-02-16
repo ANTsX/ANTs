@@ -895,6 +895,26 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     this->m_Parser->AddOption( option );
     }
 
+  if( true )
+    {
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "Restrict-Deformation" );
+    option->SetDescription(
+      "restrict deformation to zero along specified dimensions -- a 'vector' of length ImageDimension e.g. in 3D : 0x1x0 --- will restrict along y only " );
+    std::string nitdefault;
+    if( TDimension == 2 )
+      {
+      nitdefault = std::string("0x0");
+      }
+    if( TDimension == 3 )
+      {
+      nitdefault = std::string("0x0x0");
+      }
+    /** set up a default parameter */
+    option->AddValue(nitdefault);
+    this->m_Parser->AddOption( option );
+    }
+
   if( false )
     {
     OptionType::Pointer option = OptionType::New();

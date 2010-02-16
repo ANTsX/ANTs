@@ -802,29 +802,24 @@ public:
   void SetUpParameters()
   {
     /** Univariate Deformable Mapping */
-//    this->SetTransformationModel(this->m_Parser->GetOption( "transformation-model" )->GetValue());
-//    std::string temp=this->m_Parser->GetOption( "number-of-iterations" )->GetValue();
-//    this->m_Iterations = this->m_Parser->template ConvertVector<unsigned int>(temp);
-//    this->SetNumberOfLevels(this->m_Iterations.size());
-//    this->m_UseROI=false;
-//    if ( typename OptionType::Pointer option = this->m_Parser->GetOption( "r" ) )
-//      {
-//      temp=this->m_Parser->GetOption( "r" )->GetValue();
-//      this->m_RoiNumbers = this->m_Parser->template ConvertVector<float>(temp);
-//      if (temp.length() > 3) this->m_UseROI=true;
-//      }
-//
-//    temp=this->m_Parser->GetOption( "gradient-step-length" )->GetValue();
-//    this->m_Gradstep = this->m_Parser->template Convert<float>( temp );
-//    temp=this->m_Parser->GetOption( "def-field-sigma")->GetValue();
-//    this->m_TotalSmoothingparam=this->m_Parser->template Convert<float>( temp );
-//    temp=this->m_Parser->GetOption( "gradient-field-sigma")->GetValue();
-//    this->m_GradSmoothingparam=this->m_Parser->template Convert<float>( temp );
-//    std::cout <<"  Grad Step " << this->m_Gradstep << " total-smoothing " << this->m_TotalSmoothingparam << "
-// gradient-smoothing " << this->m_GradSmoothingparam << std::endl;
 
-    std::string temp = this->m_Parser->GetOption( "number-of-iterations" )->GetValue();
+// set up parameters for deformation restriction
+    std::string temp = this->m_Parser->GetOption( "Restrict-Deformation" )->GetValue();
 
+    this->m_RestrictDeformation = this->m_Parser->template ConvertVector<unsigned int>(temp);
+    if( this->m_RestrictDeformation.size() != ImageDimension )
+      {
+      std::cout << " You input a vector of size :  "  << this->m_RestrictDeformation.size()
+                << " for --Restrict-Deformation.  The vector length does not match the image dimension.  Ignoring.  "
+                << std::endl;
+      for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
+        {
+        this->m_RestrictDeformation[jj] = 0;
+        }
+      }
+
+    // set up max iterations per level
+    temp = this->m_Parser->GetOption( "number-of-iterations" )->GetValue();
     this->m_Iterations = this->m_Parser->template ConvertVector<unsigned int>(temp);
     this->SetNumberOfLevels(this->m_Iterations.size() );
     this->m_UseROI = false;
@@ -2025,6 +2020,7 @@ private:
   PointSetPointer           m_FixedPointSet;
   PointSetPointer           m_MovingPointSet;
   std::vector<unsigned int> m_Iterations;
+  std::vector<unsigned int> m_RestrictDeformation;
   std::vector<float>        m_RoiNumbers;
   float                     m_GradSmoothingparam;
   float                     m_TotalSmoothingparam;
