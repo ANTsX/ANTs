@@ -89,7 +89,7 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
   if( initializationOption
       && initializationOption->GetNumberOfParameters() < 2 )
     {
-    std::cerr << "Incorrect point set option specification." << std::endl;
+    std::cerr << "Incorrect initialization option specification." << std::endl;
     std::cerr << "   " << initializationOption->GetDescription() << std::endl;
     return EXIT_FAILURE;
     }
