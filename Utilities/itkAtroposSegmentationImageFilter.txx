@@ -25,6 +25,7 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
+#include "itkEuclideanDistance.h"
 #include "itkFastMarchingImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
