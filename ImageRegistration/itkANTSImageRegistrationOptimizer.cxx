@@ -26,6 +26,7 @@
 #include "itkIdentityTransform.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkRecursiveGaussianImageFilter.h"
+#include "itkVectorGaussianInterpolateImageFunction.h"
 #include "itkResampleImageFilter.h"
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
 #include "vnl/vnl_math.h"
@@ -511,9 +512,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef typename DeformationFieldType::IndexType IndexType;
   typedef typename DeformationFieldType::PointType PointType;
 
-  typedef itk::VectorLinearInterpolateImageFunction<DeformationFieldType, float> DefaultInterpolatorType;
+  typedef itk::VectorLinearInterpolateImageFunction<DeformationFieldType, float>   DefaultInterpolatorType;
+  typedef itk::VectorGaussianInterpolateImageFunction<DeformationFieldType, float> DefaultInterpolatorType2;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   vinterp->SetInputImage(field);
+  //    vinterp->SetParameters(NULL,1);
 
   VPointType pointIn1;
   VPointType pointIn2;
@@ -829,12 +832,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
       {
       unsigned int temp = this->m_RestrictDeformation[jj];
-      if( temp > 0 )
+      if( temp == 1  )
         {
         restrict = true;
         }
       }
-    if( restrict )
+    if( restrict && this->m_RestrictDeformation.size() == ImageDimension )
       {
       nU.GoToBegin();
       while( !nU.IsAtEnd() )
@@ -843,7 +846,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
           {
           if( this->m_RestrictDeformation[jj] == 1  )
             {
-            typename ImageType::IndexType index = nD.GetIndex();
+            typename ImageType::IndexType index = nU.GetIndex();
             VectorType temp = updateField->GetPixel(index);
             temp[jj] = 0;
             updateField->SetPixel(index, temp);
