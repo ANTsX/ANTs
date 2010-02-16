@@ -54,10 +54,10 @@ function regeneratequeuelinux {
     NUM=0
     for PID in $OLDREQUEUE
     do
-	if [ ! -d /proc/$PID ]  ; then
+        if [ -d /proc/$PID  ] ; then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
-	fi
+        fi
     done
 }
 
@@ -65,11 +65,12 @@ function checkqueuelinux {
     OLDCHQUEUE=$QUEUE
     for PID in $OLDCHQUEUE
     do
-	if [ ! -d /proc/$PID ]   ; then
+        if [ ! -d /proc/$PID ] ; then
             regeneratequeuelinux # at least one PID has finished
             break
-	fi
+        fi
     done
+
 }
 
 # parse command line
