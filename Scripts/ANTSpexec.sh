@@ -66,6 +66,11 @@ done
 
 # Main program
 echo Using $MAX_NPROC parallel threads
+if [ $MAX_NPROC -eq 1 ] ; then
+echo " Dont use pexec to run 1 process at a time. "
+echo " In this case, just run in series. "
+exit
+fi
 shift `expr $OPTIND - 1` # shift input args, ignore processed args
 COMMAND=$1
 shift
