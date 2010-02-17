@@ -44,8 +44,6 @@
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 
-#include "itkImageFileWriter.h"
-
 #include "itkTimeProbe.h"
 
 #include "vnl/vnl_vector.h"
@@ -869,16 +867,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     typename RealImageType::Pointer posteriorProbabilityImage
       = this->GetPosteriorProbabilityImage( n + 1 );
-
-    typedef ImageFileWriter<RealImageType> WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetInput( posteriorProbabilityImage );
-    writer->SetFileName( "posterior.nii.gz" );
-    writer->Update();
-
-    std::cout << "Class " << n + 1 << std::endl;
-    int q;
-    std::cin >> q;
 
     ImageRegionIteratorWithIndex<ClassifiedImageType> ItO( maxLabels,
                                                            maxLabels->GetRequestedRegion() );
