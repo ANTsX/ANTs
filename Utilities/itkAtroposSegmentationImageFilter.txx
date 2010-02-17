@@ -24,6 +24,7 @@
 #include "itkBinaryContourImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
+#include "itkCastImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkEuclideanDistance.h"
 #include "itkFastMarchingImageFilter.h"
@@ -638,8 +639,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                          this->GetOutput()->GetRequestedRegion() );
   for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
     {
-    if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel( ItO.GetIndex() )
-        == this->m_MaskLabel )
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
       {
       for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
         {
@@ -861,8 +862,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     ItO.GoToBegin();
     while( !ItP.IsAtEnd() )
       {
-      if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
-            ItO.GetIndex() ) == this->m_MaskLabel )
+      if( !this->GetMaskImage() ||
+          this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
         {
         RealType posteriorProbability = ItP.Get();
         if( posteriorProbability > 0.0 && posteriorProbability >= ItM.Get() )
@@ -900,8 +901,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       weightedPriorProbabilityImage->GetRequestedRegion() );
     for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
       {
-      if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
-            ItW.GetIndex() ) == this->m_MaskLabel )
+      if( !this->GetMaskImage() ||
+          this->GetMaskImage()->GetPixel( ItW.GetIndex() ) == this->m_MaskLabel )
         {
         RealType priorProbability = 1.0;
         if( priorProbabilityImage )
@@ -945,8 +946,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       weightedPriorProbabilityImage->GetRequestedRegion() );
     for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
       {
-      if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
-            ItW.GetIndex() ) == this->m_MaskLabel )
+      if( !this->GetMaskImage() ||
+          this->GetMaskImage()->GetPixel( ItW.GetIndex() ) == this->m_MaskLabel )
         {
         RealType priorProbability = 1.0;
         if( priorProbabilityImage )
@@ -1201,8 +1202,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           this->m_SumPosteriorProbabilityImage->GetRequestedRegion() );
         for( ItO.GoToBegin(), ItS.GoToBegin(); !ItO.IsAtEnd(); ++ItO, ++ItS )
           {
-          if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
-                ItO.GetIndex() ) == this->m_MaskLabel )
+          if( !this->GetMaskImage() ||
+              this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
             {
             RealType mrfPrior = 1.0;
             if( this->m_MRFSmoothingFactor > 0.0 && neighborhoodSize > 1 )
@@ -1412,8 +1413,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                           this->GetOutput(), this->GetOutput()->GetRequestedRegion() );
       for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
         {
-        if( !this->GetMaskImage() || this->GetMaskImage()->GetPixel(
-              ItO.GetIndex() ) == this->m_MaskLabel )
+        if( !this->GetMaskImage() ||
+            this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
           {
           RealType mrfPrior = 1.0;
           if( this->m_MRFSmoothingFactor > 0.0 && neighborhoodSize > 1 )
@@ -1637,7 +1638,33 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             FastMarchingFilterType;
           typename FastMarchingFilterType::Pointer fastMarching
             = FastMarchingFilterType::New();
-          fastMarching->SetInput( contour->GetOutput() );
+
+          typedef CastImageFilter<MaskImageType, RealImageType> CasterType;
+          typename CasterType::Pointer caster = CasterType::New();
+          caster->SetInput( const_cast<MaskImageType *>( this->GetMaskImage() ) );
+          caster->Update();
+
+          typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
+          typedef typename FastMarchingFilterType::NodeType      NodeType;
+          typename NodeContainer::Pointer trialPoints = NodeContainer::New();
+          trialPoints->Initialize();
+
+          unsigned long trialCount = 0;
+
+          ImageRegionIteratorWithIndex<RealImageType> ItC(
+            contour->GetOutput(), contour->GetOutput()->GetRequestedRegion() );
+          for( ItC.GoToBegin(); !ItC.IsAtEnd(); ++ItC )
+            {
+            if( ItC.Get() == contour->GetForegroundValue() )
+              {
+              NodeType node;
+              node.SetValue( 0.0 );
+              node.SetIndex( ItC.GetIndex() );
+              trialPoints->InsertElement( trialCount++, node );
+              }
+            }
+          fastMarching->SetTrialPoints( trialPoints );
+          fastMarching->SetInput( caster->GetOutput() );
           fastMarching->SetStoppingValue( NumericTraits<RealType>::max() );
 //           fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
           fastMarching->Update();
@@ -1656,7 +1683,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
           distanceImage = fastMarching->GetOutput();
           }
-
         RealType maximumInteriorDistance = 0.0;
 
         ImageRegionIterator<RealImageType> ItD( distanceImage,
@@ -1824,7 +1850,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             ItF.Set( -ItF.Get() );
             }
           }
-
         distanceImage = fastMarching->GetOutput();
         }
 
@@ -2090,6 +2115,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     ( this->m_MaskLabel ) << std::endl;
   os << indent << "Number of classes: "
      << this->m_NumberOfClasses << std::endl;
+  os << indent << "Minimize memory usage:";
+  if( this->m_MinimizeMemoryUsage )
+    {
+    os << " true" << std::endl;
+    }
+  else
+    {
+    os << " false" << std::endl;
+    }
 
   os << indent << "Initialization strategy: ";
 
@@ -2118,7 +2152,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     case PriorLabelImage:
       {
       os << "Prior label image" << std::endl;
-      os << indent << "  Use Euclidean distance for Prior Labels:" << std::endl;
+      os << indent << "  Use Euclidean distance for prior labels:";
       if( this->m_UseEuclideanDistanceForPriorLabels )
         {
         os << " true" << std::endl;
