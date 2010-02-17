@@ -451,45 +451,51 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                     this->GetInput()->GetRequestedRegion() );
   for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
     {
-    vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
-    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
       {
-      priorProbabilities[n] =
-        this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItI.GetIndex() );
-      }
-    /**
-     * We are assuming that each voxel in the mask is to be labeled even
-     * if the sum of prior probabilities is zero at that point.  To change this
-     * assumption, comment out the following conditional.
-     */
-    if( priorProbabilities.sum() == 0.0 )
-      {
-      priorProbabilities.fill( 1.0 );
-      }
-
-    RealType                  maxValue = priorProbabilities.max_value();
-    std::vector<unsigned int> argMax;
-    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-      {
-      if( maxValue == priorProbabilities[n] )
+      vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
+      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
         {
-        argMax.push_back( n );
+        priorProbabilities[n] =
+          this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItI.GetIndex() );
+        }
+      RealType maxValue = priorProbabilities.max_value();
+      if( maxValue > 1e-5 )
+        {
+        std::vector<unsigned int> argMax;
+        for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+          {
+          if( maxValue == priorProbabilities[n] )
+            {
+            argMax.push_back( n );
+            }
+          }
+        unsigned int whichArgIsMax = 0;
+        if( argMax.size() > 1 )
+          {
+          typedef Statistics::MersenneTwisterRandomVariateGenerator GeneratorType;
+          typename GeneratorType::Pointer generator = GeneratorType::New();
+          whichArgIsMax = generator->GetIntegerVariate( argMax.size() - 1 );
+          }
+        priorProbabilities[argMax[whichArgIsMax]] += 1e-6;
+        priorProbabilities /= priorProbabilities.sum();
+        for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+          {
+          typename RealImageType::Pointer priorProbabilityImage
+            = const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
+          priorProbabilityImage->SetPixel( ItI.GetIndex(), priorProbabilities[n] );
+          }
         }
       }
-    unsigned int whichArgIsMax = 0;
-    if( argMax.size() > 1 )
+    else
       {
-      typedef Statistics::MersenneTwisterRandomVariateGenerator GeneratorType;
-      typename GeneratorType::Pointer generator = GeneratorType::New();
-      whichArgIsMax = generator->GetIntegerVariate( argMax.size() - 1 );
-      }
-    priorProbabilities[argMax[whichArgIsMax]] += 1e-6;
-    priorProbabilities /= priorProbabilities.sum();
-    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-      {
-      typename RealImageType::Pointer priorProbabilityImage
-        = const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
-      priorProbabilityImage->SetPixel( ItI.GetIndex(), priorProbabilities[n] );
+      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+        {
+        typename RealImageType::Pointer priorProbabilityImage
+          = const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
+        priorProbabilityImage->SetPixel( ItI.GetIndex(), 0.0 );
+        }
       }
     }
 }
@@ -515,18 +521,25 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         priorProbabilities[n] =
           this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItO.GetIndex() );
         }
-      RealType     maxValue = priorProbabilities.max_value();
-      unsigned int argMax = this->m_NumberOfClasses;
-      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+      RealType maxValue = priorProbabilities.max_value();
+      if( maxValue <= 1e-5 )
         {
-        if( maxValue == priorProbabilities[n] )
-          {
-          argMax = n;
-          break;
-          }
+        ItO.Set( NumericTraits<LabelType>::Zero );
         }
-      LabelType maxLabel = static_cast<LabelType>( argMax + 1 );
-      ItO.Set( maxLabel );
+      else
+        {
+        unsigned int argMax = this->m_NumberOfClasses;
+        for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+          {
+          if( maxValue == priorProbabilities[n] )
+            {
+            argMax = n;
+            break;
+            }
+          }
+        LabelType maxLabel = static_cast<LabelType>( argMax + 1 );
+        ItO.Set( maxLabel );
+        }
       }
     }
 }
@@ -890,7 +903,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       priorProbabilityImage = const_cast<RealImageType *>(
           this->GetPriorProbabilityImage( n + 1 ) );
       }
-    else if( this->m_InitializationStrategy == PriorLabelImage )
+    if( this->m_PriorLabelParameterMap.size() > 0 )
       {
       distancePriorProbabilityImage
         = this->GetDistancePriorProbabilityImageFromPriorLabelImage( n + 1 );
@@ -935,7 +948,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       priorProbabilityImage = const_cast<RealImageType *>(
           this->GetPriorProbabilityImage( n + 1 ) );
       }
-    else if( this->m_InitializationStrategy == PriorLabelImage )
+    if( this->m_PriorLabelParameterMap.size() > 0 )
       {
       distancePriorProbabilityImage
         = this->GetDistancePriorProbabilityImageFromPriorLabelImage( n + 1 );
@@ -1600,8 +1613,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
           ThresholderType;
         typename ThresholderType::Pointer thresholder = ThresholderType::New();
-        thresholder->SetInput( const_cast<ClassifiedImageType *>(
-                                 this->GetPriorLabelImage() ) );
+        if( this->m_InitializationStrategy == PriorLabelImage )
+          {
+          thresholder->SetInput( const_cast<ClassifiedImageType *>(
+                                   this->GetPriorLabelImage() ) );
+          }
+        else
+          {
+          thresholder->SetInput( this->GetOutput() );
+          }
         thresholder->SetInsideValue( 1 );
         thresholder->SetOutsideValue( 0 );
         thresholder->SetLowerThreshold( static_cast<LabelType>( c + 1 ) );
@@ -1796,8 +1816,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       typedef BinaryThresholdImageFilter<ClassifiedImageType, RealImageType>
         ThresholderType;
       typename ThresholderType::Pointer thresholder = ThresholderType::New();
-      thresholder->SetInput( const_cast<ClassifiedImageType *>(
-                               this->GetPriorLabelImage() ) );
+      if( this->m_InitializationStrategy == PriorLabelImage )
+        {
+        thresholder->SetInput( const_cast<ClassifiedImageType *>(
+                                 this->GetPriorLabelImage() ) );
+        }
+      else
+        {
+        thresholder->SetInput( this->GetOutput() );
+        }
       thresholder->SetInsideValue( 1 );
       thresholder->SetOutsideValue( 0 );
       thresholder->SetLowerThreshold( static_cast<LabelType>( whichClass ) );
