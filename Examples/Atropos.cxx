@@ -119,13 +119,17 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::KMeans );
       }
-    else if( !initializationStrategy.compare( std::string( "priorprobabilityimages" ) ) )
+    else if( !initializationStrategy.compare(
+               std::string( "priorprobabilityimages" ) ) )
       {
-      segmenter->SetInitializationStrategy( SegmentationFilterType::PriorProbabilityImages );
+      segmenter->SetInitializationStrategy(
+        SegmentationFilterType::PriorProbabilityImages );
       if( initializationOption->GetNumberOfParameters() < 4 )
         {
-        std::cerr << "Incorrect initialization option specification." << std::endl;
-        std::cerr << "   " << initializationOption->GetDescription() << std::endl;
+        std::cerr << "Incorrect initialization option specification."
+                  << std::endl;
+        std::cerr << "   " << initializationOption->GetDescription()
+                  << std::endl;
         return EXIT_FAILURE;
         }
       segmenter->SetPriorProbabilityWeight( parser->Convert<float>(
@@ -165,7 +169,8 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
         if(  reader->GetOutput()->GetNumberOfComponentsPerPixel()
              != segmenter->GetNumberOfClasses() )
           {
-          std::cerr << "The number of components does not match the number of classes." << std::endl;
+          std::cerr << "The number of components does not match the number of "
+                    << "classes." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -183,7 +188,8 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
       }
     else if( !initializationStrategy.compare( std::string( "priorlabelimage" ) ) )
       {
-      segmenter->SetInitializationStrategy( SegmentationFilterType::PriorLabelImage );
+      segmenter->SetInitializationStrategy(
+        SegmentationFilterType::PriorLabelImage );
 
       if( initializationOption->GetNumberOfParameters() < 4 )
         {
@@ -494,13 +500,15 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
         = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < imageNames.size(); i++ )
         {
-        std::cout << "Writing posterior image (class " << i + 1 << ")" << std::endl;
+        std::cout << "Writing posterior image (class " << i + 1 << ")"
+                  << std::endl;
         typename InputImageType::Pointer probabilityImage
           = segmenter->GetPosteriorProbabilityImage( i + 1 );
 
         if( segmenter->GetMaskImage() )
           {
-          typedef itk::MaskImageFilter<InputImageType, LabelImageType, InputImageType> MaskerType;
+          typedef itk::MaskImageFilter<InputImageType,
+                                       LabelImageType, InputImageType> MaskerType;
           typename MaskerType::Pointer masker = MaskerType::New();
           masker->SetInput1( probabilityImage );
           masker->SetInput2( segmenter->GetMaskImage() );
@@ -530,12 +538,14 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
         = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
         {
-        if( segmenter->GetPriorProbabilityImage( i + 1 ) || segmenter->GetPriorLabelImage() )
+        if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
+            segmenter->GetPriorLabelImage() )
           {
-          std::cout << "Writing B-spline image (class " << i + 1 << ")" << std::endl;
+          std::cout << "Writing B-spline image (class " << i + 1 << ")"
+                    << std::endl;
 
-          typename InputImageType::Pointer bsplineImage =
-            segmenter->CalculateSmoothIntensityImageFromPriorProbabilityImage( 0, i + 1 );
+          typename InputImageType::Pointer bsplineImage = segmenter->
+            CalculateSmoothIntensityImageFromPriorProbabilityImage( 0, i + 1 );
 
           typedef  itk::ImageFileWriter<InputImageType> WriterType;
           typename WriterType::Pointer writer = WriterType::New();
@@ -558,12 +568,14 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
         = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
         {
-        if( segmenter->GetPriorProbabilityImage( i + 1 ) || segmenter->GetPriorLabelImage() )
+        if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
+            segmenter->GetPriorLabelImage() )
           {
-          std::cout << "Writing distance image (class " << i + 1 << ")" << std::endl;
+          std::cout << "Writing distance image (class " << i + 1 << ")"
+                    << std::endl;
 
-          typename InputImageType::Pointer distanceImage =
-            segmenter->GetDistancePriorProbabilityImageFromPriorLabelImage( i + 1 );
+          typename InputImageType::Pointer distanceImage = segmenter->
+            GetDistancePriorProbabilityImageFromPriorLabelImage( i + 1 );
 
           typedef  itk::ImageFileWriter<InputImageType> WriterType;
           typename WriterType::Pointer writer = WriterType::New();
@@ -673,6 +685,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     option->SetLongName( "minimize-memory-usage" );
     option->SetShortName( 'u' );
     option->SetDescription( description );
+    option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -697,6 +710,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     option->SetLongName( "use-euclidean-distance" );
     option->SetShortName( 'e' );
     option->SetDescription( description );
+    option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
     }
 
