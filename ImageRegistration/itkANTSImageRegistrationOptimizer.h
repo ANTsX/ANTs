@@ -806,7 +806,7 @@ public:
 // set up parameters for deformation restriction
     std::string temp = this->m_Parser->GetOption( "Restrict-Deformation" )->GetValue();
 
-    this->m_RestrictDeformation = this->m_Parser->template ConvertVector<unsigned int>(temp);
+    this->m_RestrictDeformation = this->m_Parser->template ConvertVector<float>(temp);
     if( this->m_RestrictDeformation.size() != ImageDimension )
       {
       std::cout << " You input a vector of size :  "  << this->m_RestrictDeformation.size()
@@ -2020,7 +2020,7 @@ private:
   PointSetPointer           m_FixedPointSet;
   PointSetPointer           m_MovingPointSet;
   std::vector<unsigned int> m_Iterations;
-  std::vector<unsigned int> m_RestrictDeformation;
+  std::vector<float>        m_RestrictDeformation;
   std::vector<float>        m_RoiNumbers;
   float                     m_GradSmoothingparam;
   float                     m_TotalSmoothingparam;

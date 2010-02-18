@@ -900,7 +900,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "Restrict-Deformation" );
     option->SetDescription(
-      "restrict deformation to zero along specified dimensions -- a 'vector' of length ImageDimension e.g. in 3D : 0x1x0 --- will restrict along y only " );
+      "restrict deformation by scalar factors along specified dimensions -- a float 'vector' of length ImageDimension to multiply against the gradient values ---  e.g. in 3D : 0.1x1x0 --- will set the z deformation to zero and scale x by 0.1 and y by 1 (no change). " );
     std::string nitdefault;
     if( TDimension == 2 )
       {
