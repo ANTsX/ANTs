@@ -904,11 +904,11 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::string nitdefault;
     if( TDimension == 2 )
       {
-      nitdefault = std::string("0x0");
+      nitdefault = std::string("1x1");
       }
     if( TDimension == 3 )
       {
-      nitdefault = std::string("0x0x0");
+      nitdefault = std::string("1x1x1");
       }
     /** set up a default parameter */
     option->AddValue(nitdefault);

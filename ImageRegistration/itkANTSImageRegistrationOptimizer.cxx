@@ -832,7 +832,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
       {
       float temp = this->m_RestrictDeformation[jj];
-      if( fabs( temp - 0 ) > 1.e-5 || fabs( temp - 1 ) > 1.e-5   )
+      if(  fabs( temp - 1 ) > 1.e-5   )
         {
         restrict = true;
         }
