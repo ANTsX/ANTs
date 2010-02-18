@@ -110,8 +110,8 @@ function regeneratequeuemac {
     for PID in $OLDREQUEUE
     do
 	whm=` whoami `
-	num=` ps U $whm | grep -i $PID  | wc -l `
-        if [ $num = 1 ]    ;  then
+	num=` ps U $whm | grep -i "${PID} "  | wc -l `
+        if [ $num = 2 ]    ;  then
             QUEUE="$QUEUE $PID"
             NUM=$(($NUM+1))
 	fi
@@ -124,7 +124,7 @@ function checkqueuemac {
     for PID in $OLDCHQUEUE
     do
 	whm=` whoami `
-	num=` ps U $whm | grep -i $PID  | wc -l `
+	num=` ps U $whm | grep -i "${PID} "  | wc -l `
         if [ $num = 1 ]  ; then
             regeneratequeuemac # at least one PID has finished
             break
