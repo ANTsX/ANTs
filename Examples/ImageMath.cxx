@@ -459,10 +459,10 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   typedef int   PixelType;
   typedef float RealType;
 
-  unsigned int numberOfBins = 200;
-  if( argc > 10 )
+  unsigned int numberOfBins = 64;
+  if( argc > 9 )
     {
-    numberOfBins = atoi( argv[10] );
+    numberOfBins = atoi( argv[9] );
     }
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
@@ -566,17 +566,15 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
 
   std::cout << "Lower quantile: " << lowerQuantile << std::endl;
   std::cout << "Upper quantile: " << upperQuantile << std::endl;
-
-  PixelType replacementValue = 0;
-  if( argc > 9 )
-    {
-    replacementValue = static_cast<PixelType>( atof( argv[9] ) );
-    }
   for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
     {
-    if( ItI.Get() < lowerValue || ItI.Get() > upperQuantile )
+    if( ItI.Get() <  lowerQuantile )
       {
-      ItI.Set( replacementValue );
+      ItI.Set(  lowerQuantile );
+      }
+    if( ItI.Get() > upperQuantile )
+      {
+      ItI.Set(  upperQuantile  );
       }
     }
 
@@ -6550,7 +6548,7 @@ int main(int argc, char *argv[])
       << std::endl;
     std::cout
       <<
-    "  TruncateImageIntensity inputImage {maskImage} {maskLabel=1} {lowerQuantile=0.05} {upperQuantile=0.95} {replacePixelValue=0} {numberOfBins=200}"
+    "  TruncateImageIntensity inputImage {maskImage} {maskLabel=1} {lowerQuantile=0.05} {upperQuantile=0.95}  {numberOfBins=200}"
       << std::endl;
     std::cout
       <<
