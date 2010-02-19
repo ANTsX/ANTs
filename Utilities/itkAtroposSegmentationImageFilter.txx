@@ -1664,23 +1664,44 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           typename FastMarchingFilterType::Pointer fastMarching
             = FastMarchingFilterType::New();
 
-          typedef CastImageFilter<MaskImageType, RealImageType> CasterType;
-          typename CasterType::Pointer caster = CasterType::New();
-          if( this->GetMaskImage() )
+          /**
+           * Calculate the likelihood image which will be the speed image.
+           */
+          typename RealImageType::Pointer likelihoodImage = RealImageType::New();
+          likelihoodImage->SetRegions( this->GetOutput()->GetRequestedRegion() );
+          likelihoodImage->SetSpacing( this->GetOutput()->GetSpacing() );
+          likelihoodImage->SetDirection( this->GetOutput()->GetDirection() );
+          likelihoodImage->SetOrigin( this->GetOutput()->GetOrigin() );
+          likelihoodImage->Allocate();
+          likelihoodImage->FillBuffer( NumericTraits<RealType>::Zero );
+
+          ImageRegionIteratorWithIndex<RealImageType> ItL(
+            likelihoodImage, likelihoodImage->GetRequestedRegion() );
+          for( ItL.GoToBegin(); !ItL.IsAtEnd(); ++ItL )
             {
-            caster->SetInput( const_cast<MaskImageType *>( this->GetMaskImage() ) );
-            caster->Update();
-            fastMarching->SetInput( caster->GetOutput() );
+            if( !this->GetMaskImage() ||
+                this->GetMaskImage()->GetPixel( ItL.GetIndex() ) == this->m_MaskLabel )
+              {
+              MeasurementVectorType measurement;
+              measurement.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+              for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
+                {
+                if( i == 0 )
+                  {
+                  measurement[i] = this->GetInput()->GetPixel( ItL.GetIndex() );
+                  }
+                else
+                  {
+                  measurement[i] =
+                    this->GetAuxiliaryImage( i )->GetPixel( ItL.GetIndex() );
+                  }
+                }
+              RealType likelihood =
+                this->m_GaussianMixtureModel[c]->Evaluate( measurement );
+              ItL.Set( likelihood );
+              }
             }
-          else
-            {
-            fastMarching->SetSpeedConstant( 1.0 );
-            fastMarching->SetOverrideOutputInformation( true );
-            fastMarching->SetOutputOrigin( this->GetOutput()->GetOrigin() );
-            fastMarching->SetOutputSpacing( this->GetOutput()->GetSpacing() );
-            fastMarching->SetOutputRegion( this->GetOutput()->GetRequestedRegion() );
-            fastMarching->SetOutputDirection( this->GetOutput()->GetDirection() );
-            }
+          fastMarching->SetInput( likelihoodImage );
 
           typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
           typedef typename FastMarchingFilterType::NodeType      NodeType;
@@ -1882,23 +1903,44 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         typename FastMarchingFilterType::Pointer fastMarching
           = FastMarchingFilterType::New();
 
-        typedef CastImageFilter<MaskImageType, RealImageType> CasterType;
-        typename CasterType::Pointer caster = CasterType::New();
-        if( this->GetMaskImage() )
+        /**
+         * Calculate the likelihood image which will be the speed image.
+         */
+        typename RealImageType::Pointer likelihoodImage = RealImageType::New();
+        likelihoodImage->SetRegions( this->GetOutput()->GetRequestedRegion() );
+        likelihoodImage->SetSpacing( this->GetOutput()->GetSpacing() );
+        likelihoodImage->SetDirection( this->GetOutput()->GetDirection() );
+        likelihoodImage->SetOrigin( this->GetOutput()->GetOrigin() );
+        likelihoodImage->Allocate();
+        likelihoodImage->FillBuffer( NumericTraits<RealType>::Zero );
+
+        ImageRegionIteratorWithIndex<RealImageType> ItL(
+          likelihoodImage, likelihoodImage->GetRequestedRegion() );
+        for( ItL.GoToBegin(); !ItL.IsAtEnd(); ++ItL )
           {
-          caster->SetInput( const_cast<MaskImageType *>( this->GetMaskImage() ) );
-          caster->Update();
-          fastMarching->SetInput( caster->GetOutput() );
+          if( !this->GetMaskImage() ||
+              this->GetMaskImage()->GetPixel( ItL.GetIndex() ) == this->m_MaskLabel )
+            {
+            MeasurementVectorType measurement;
+            measurement.SetSize( this->m_NumberOfAuxiliaryImages + 1 );
+            for( unsigned int i = 0; i < this->m_NumberOfAuxiliaryImages + 1; i++ )
+              {
+              if( i == 0 )
+                {
+                measurement[i] = this->GetInput()->GetPixel( ItL.GetIndex() );
+                }
+              else
+                {
+                measurement[i] =
+                  this->GetAuxiliaryImage( i )->GetPixel( ItL.GetIndex() );
+                }
+              }
+            RealType likelihood =
+              this->m_GaussianMixtureModel[whichClass - 1]->Evaluate( measurement );
+            ItL.Set( likelihood );
+            }
           }
-        else
-          {
-          fastMarching->SetSpeedConstant( 1.0 );
-          fastMarching->SetOverrideOutputInformation( true );
-          fastMarching->SetOutputOrigin( this->GetOutput()->GetOrigin() );
-          fastMarching->SetOutputSpacing( this->GetOutput()->GetSpacing() );
-          fastMarching->SetOutputRegion( this->GetOutput()->GetRequestedRegion() );
-          fastMarching->SetOutputDirection( this->GetOutput()->GetDirection() );
-          }
+        fastMarching->SetInput( likelihoodImage );
 
         typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
         typedef typename FastMarchingFilterType::NodeType      NodeType;
