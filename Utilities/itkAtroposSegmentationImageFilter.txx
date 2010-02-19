@@ -18,7 +18,7 @@
 #define __itkAtroposSegmentationImageFilter_txx
 
 #include "itkAtroposSegmentationImageFilter.h"
-
+#include "ReadWriteImage.h"
 #include "itkAddImageFilter.h"
 #include "itkAddConstantToImageFilter.h"
 #include "itkBinaryContourImageFilter.h"
@@ -1734,7 +1734,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           for( ItT.GoToBegin(), ItF.GoToBegin(); !ItT.IsAtEnd(); ++ItT, ++ItF )
             {
             RealType distance = ItF.Get();
-            ItF.Set( distance * distance );
+            ItF.Set( distance  );
             if( ItT.Get() == 1 )
               {
               ItF.Set( -ItF.Get() );
@@ -1743,7 +1743,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
           distanceImage = fastMarching->GetOutput();
           }
-
+        if( whichClass == 1 )
+          {
+          WriteImage<RealImageType>(distanceImage, "temp1.nii.gz");
+          }
+        if( whichClass == 2 )
+          {
+          WriteImage<RealImageType>(distanceImage, "temp2.nii.gz");
+          }
         RealType maximumInteriorDistance = 0.0;
 
         ImageRegionIterator<RealImageType> ItD( distanceImage,
@@ -1980,6 +1987,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             }
           }
         distanceImage = fastMarching->GetOutput();
+        }
+      if( whichClass == 1 )
+        {
+        WriteImage<RealImageType>(distanceImage, "temp1.nii.gz");
+        }
+      if( whichClass == 2 )
+        {
+        WriteImage<RealImageType>(distanceImage, "temp2.nii.gz");
         }
 
       distancePriorProbabilityImage = distanceImage;
