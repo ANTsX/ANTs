@@ -24,12 +24,12 @@ if ($delay < 10) {
     print STDERR "Sleep period is too short, will poll queue once every 10 seconds\n";
     $delay = 10;
 }
-elsif ($delay > 600) {
-    print STDERR "Sleep period is too long, will poll queue once every 10 minutes\n";
-    $delay = 600;
+elsif ($delay > 3600) {
+    print STDERR "Sleep period is too long, will poll queue once every 60 minutes\n";
+    $delay = 3600;
 }
 
-print "Waiting for " . scalar(@jobIDs) . " jobs: @jobIDs\n";
+print "  Waiting for " . scalar(@jobIDs) . " jobs: @jobIDs\n";
 
 my $user=`whoami`;
 
@@ -108,7 +108,7 @@ while ($jobsIncomplete) {
 	if ($verbose) {
 	    my $timestamp = `date`;
 	    chomp $timestamp;
-	    print "($timestamp) Still waiting for $jobsIncomplete jobs\n";
+	    print "  ($timestamp) Still waiting for $jobsIncomplete jobs\n\n";
 	}
 
 	# Use of backticks rather than system permits a ctrl+c to work
@@ -120,11 +120,11 @@ while ($jobsIncomplete) {
 }
 
 if ($haveErrors) {
-    print "No more jobs to run - some jobs had errors\n";
+    print "  No more jobs to run - some jobs had errors\n\n";
     exit 1;
 }
 else {
-    print "No more jobs in queue\n";
+    print "  No more jobs in queue\n\n";
     exit 0;
 }
 
