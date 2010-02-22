@@ -2253,6 +2253,18 @@ int TensorFunctions(int argc, char *argv[])
       VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), whichvec);
       vecimage->SetPixel(ind, vv);
       }
+    else if( strcmp(operation.c_str(), "TensorToVectorComponent") == 0 )
+      {
+      if( whichvec <= 2 )
+        {
+        VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), whichvec);
+        vimage->SetPixel(ind, vv[whichvec]);
+        }
+      else if( whichvec > 2 && whichvec < 9 )
+        {
+        vimage->SetPixel(ind, tIter.Value()[whichvec]);
+        }
+      }
     }
 
   if( strcmp(operation.c_str(), "TensorColor") == 0 )
@@ -6534,6 +6546,10 @@ int main(int argc, char *argv[])
     "  TensorToVector DTImage WhichVec --- produces vector field identifying one of the principal directions, 2 = largest eigenvalue "
       << std::endl;
     std::cout
+      <<
+    "  TensorToVectorComponent DTImage WhichVec --- 0 => 2 produces component of the principal vector field , i.e. largest eigenvalue.   3 = 8 => gets values from the tensor "
+      << std::endl;
+    std::cout
       << "  TensorIOTest DTImage --- will write the DT image back out ... tests I/O processes for consistency. "
       << std::endl;
     std::cout << "  MakeImage  SizeX  SizeY {SizeZ}  " << std::endl;
@@ -6960,6 +6976,10 @@ int main(int argc, char *argv[])
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorToVectorComponent") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
