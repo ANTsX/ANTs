@@ -64,17 +64,6 @@ fi
 echo " Will this mapping be purely rigid?  $RIGID "
 
 echo  " ANTSPATH  is $ANTSPATH     "
-
-# finally check the image headers
-compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4  `
-if [ $compareheaders -ne 0 ]
-then
-echo " You may have a problem with your header definition "
-echo " The repaired image is in : ${OUTPUTNAME}repaired.nii.gz "
-echo " Call ImageMath's   CompareHeadersAndImages  on your Fixed and Moving image "
-exit
-fi
-
  #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
 
@@ -84,6 +73,6 @@ exe=" ${ANTSPATH}ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i
 
   $exe
 
-    ${ANTSPATH}WarpImageMultiTransform $DIM  ${OUTPUTNAME}repaired.nii.gz   ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt  -R ${FIXED}
+    ${ANTSPATH}WarpImageMultiTransform $DIM  $MOVING  ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt  -R ${FIXED}
 
 
