@@ -864,7 +864,19 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         {
         inner_product_last_current_gradient += current_gradient[j] * last_gradient[j];
         }
-      if( inner_product_last_current_gradient < 0 )
+      unsigned int count_oscillations = 0;
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        if(  current_gradient[j] > 0 && last_gradient[j] < 0 ||  current_gradient[j] < 0 && last_gradient[j] > 0 )
+          {
+          count_oscillations++;
+          }
+        }
+      if( inner_product_last_current_gradient < 0 && !is_rigid )
+        {
+        current_step_length *= relaxation_factor;
+        }
+      else if( count_oscillations > 0 )
         {
         current_step_length *= relaxation_factor;
         }
@@ -873,8 +885,9 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         is_converged = true;
         break;
         }
-//            for(int j = 0; j < kParaDim; j++)  std::cerr<< current_gradient[i] << ", ";
-//            std::cerr<< std::endl;
+      //            for(int j = 0; j < kParaDim; j++)  std::cerr<< current_gradient[j] << ", ";
+      //  std::cerr<< std::endl;
+      // std::cout << " ip " <<  inner_product_last_current_gradient  << " step " << current_step_length  <<  std::endl;
       for( int j = 0; j < kParaDim; j++ )
         {
         current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
