@@ -876,7 +876,7 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         {
         current_step_length *= relaxation_factor;
         }
-      else if( count_oscillations > kParamDim / 2 )
+      else if( count_oscillations > kParaDim / 2 )
         {
         current_step_length *= relaxation_factor;
         }
