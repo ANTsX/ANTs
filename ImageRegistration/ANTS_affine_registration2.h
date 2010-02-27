@@ -872,14 +872,11 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
           count_oscillations++;
           }
         }
-      if( inner_product_last_current_gradient < 0 && !is_rigid )
+      if( inner_product_last_current_gradient < 0 /* && !is_rigid */ )
         {
         current_step_length *= relaxation_factor;
         }
-      else if( count_oscillations > kParaDim / 2 )
-        {
-        current_step_length *= relaxation_factor;
-        }
+      //            else if ( count_oscillations > kParamDim/2 ) current_step_length *= relaxation_factor;
       if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
         {
         is_converged = true;
