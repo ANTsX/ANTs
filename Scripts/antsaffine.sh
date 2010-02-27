@@ -59,7 +59,7 @@ fi
 RIGID=" --rigid-affine false  "
 if [ $NUMPARAMS -gt 4 ]
 then
-  RIGID=" --rigid-affine true "
+  RIGID=" --rigid-affine true  --affine-gradient-descent-option  0.5x0.95x1.e-4x1.e-4  "
 fi
 echo " Will this mapping be purely rigid?  $RIGID "
 
@@ -67,7 +67,7 @@ echo  " ANTSPATH  is $ANTSPATH     "
  #below, some affine options
   #--MI-option 16x8000 #-a InitAffine.txt --continue-affine 0
 
-exe=" ${ANTSPATH}ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID "
+exe=" ${ANTSPATH}ANTS $DIM -m  MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}   -i 0   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000  $RIGID  --MI-option 32x16000 "
 
  echo " $exe "
 
