@@ -493,7 +493,7 @@ echo "OUTPUTNAME=$OUTPUTNAME" >> ${MOVINGBASE}.cfg
 if  [ ${N3CORRECT} -eq 0 ] && [ ${RIGID} -eq 0 ]
 then
 # Apply ANTS mapping command without N3BiasFieldCorrection
-exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching "
+exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"
@@ -541,7 +541,7 @@ $exe
 echo "execN3=$exe" >> ${MOVINGBASE}.cfg
 
 # Apply ANTS mapping command on N3 corrected image
-exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}.nii.gz,${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching "
+exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}.nii.gz,${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000  "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"
@@ -577,7 +577,7 @@ fi
 
 elif  [ ${N3CORRECT} -eq 0 ] && [ ${RIGID} -eq 1 ]
 then
-exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 ${RIGIDTRANSF} "
+exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 ${RIGIDTRANSF} "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"
@@ -605,7 +605,7 @@ echo "--------------------------------------------------------------------------
 $exe
 echo "execN3=$exe" >> ${MOVINGBASE}.cfg
 
-exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 ${RIGIDTRANSF} "
+exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 ${RIGIDTRANSF} "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"

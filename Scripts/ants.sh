@@ -108,19 +108,10 @@ echo " "
 #exit
 
 
-# finally check the image headers
-compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz   CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4  `
-if [ $compareheaders -ne 0 ]
-then
-echo " You may have a problem with your header definition "
-echo " The repaired image is in : ${OUTPUTNAME}repaired.nii.gz  "
-echo " Call ImageMath's   CompareHeadersAndImages  on your Fixed and Moving image "
-exit
-fi
-
+if [[ ! -s ${OUTPUTNAME}repaired.nii.gz ]] ; then
 ${ANTSPATH}N3BiasFieldCorrection $DIM ${OUTPUTNAME}repaired.nii.gz   ${OUTPUTNAME}repaired.nii.gz  4
-
-exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x1000 "
+fi
+exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000  "
 
  echo " $exe "
 
