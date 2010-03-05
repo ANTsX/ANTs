@@ -3,7 +3,7 @@
 VERSION="0.0.7"
 
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-#export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
+export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 
 function Usage {
     cat <<USAGE
@@ -200,7 +200,7 @@ ANTSPATH=/home/yourname/bin/ants/
 
 Or the correct location of the ANTS binaries.
 
-Alternatively, edit this script (ants.sh) to set up this parameter correctly.
+Alternatively, edit this script ( $0 ) to set up this parameter correctly.
 
 setPath
     exit 1

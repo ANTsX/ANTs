@@ -3,7 +3,7 @@
 VERSION="0.0.10"
 
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-# ANTSPATH=
+export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 
 #assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 
@@ -194,7 +194,7 @@ ANTSPATH=/home/yourname/bin/ants/
 
 Or the correct location of the ANTS binaries.
 
-Alternatively, edit this script (ants.sh) to set up this parameter correctly.
+Alternatively, edit this script ( $0 ) to set up this parameter correctly.
 
 SETPATH
     exit 1
