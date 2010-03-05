@@ -1242,8 +1242,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             RealType mrfPrior = 1.0;
             if( this->m_MRFSmoothingFactor > 0.0 && neighborhoodSize > 1 )
               {
-              RealType weightedNumberOfClassNeighbors = 0.0;
-              RealType weightedTotalNumberOfNeighbors = 0.0;
+              Array<RealType> weightedNumberOfClassNeighbors;
+              weightedNumberOfClassNeighbors.SetSize( this->m_NumberOfClasses );
+              weightedNumberOfClassNeighbors.Fill( 0.0 );
               for( unsigned int n = 0; n < neighborhoodSize; n++ )
                 {
                 if( n == static_cast<unsigned int>( 0.5 * neighborhoodSize ) )
@@ -1263,22 +1264,23 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
                 bool      isInBounds = false;
                 LabelType label = ItO.GetPixel( n, isInBounds );
-                if( isInBounds )
+                if( isInBounds && label > 0 )
                   {
-                  if( static_cast<unsigned int>( label ) == c + 1 )
-                    {
-                    weightedNumberOfClassNeighbors += ( 1.0 / distance );
-                    }
-                  weightedTotalNumberOfNeighbors += ( 1.0 / distance );
+                  weightedNumberOfClassNeighbors[label - 1] += ( 1.0 / distance );
                   }
                 }
-
-              if( weightedTotalNumberOfNeighbors > 0.0 )
+              RealType numerator = vcl_exp( this->m_MRFSmoothingFactor
+                                            * weightedNumberOfClassNeighbors[c] );
+              RealType denominator = 0.0;
+              for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
                 {
-                RealType ratio = weightedNumberOfClassNeighbors
-                  / weightedTotalNumberOfNeighbors;
-                mrfPrior = vcl_exp( -( 1.0 - ratio )
-                                    / this->m_MRFSmoothingFactor );
+                denominator += vcl_exp( this->m_MRFSmoothingFactor
+                                        * weightedNumberOfClassNeighbors[n] );
+                }
+              mrfPrior = numerator / denominator;
+              if( vnl_math_isinf( mrfPrior ) || vnl_math_isnan( mrfPrior ) )
+                {
+                mrfPrior = 1.0;
                 }
               }
 
@@ -1466,8 +1468,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           RealType mrfPrior = 1.0;
           if( this->m_MRFSmoothingFactor > 0.0 && neighborhoodSize > 1 )
             {
-            RealType weightedNumberOfClassNeighbors = 0.0;
-            RealType weightedTotalNumberOfNeighbors = 0.0;
+            Array<RealType> weightedNumberOfClassNeighbors;
+            weightedNumberOfClassNeighbors.SetSize( this->m_NumberOfClasses );
+            weightedNumberOfClassNeighbors.Fill( 0.0 );
             for( unsigned int n = 0; n < neighborhoodSize; n++ )
               {
               if( n == static_cast<unsigned int>( 0.5 * neighborhoodSize ) )
@@ -1489,20 +1492,21 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               LabelType label = ItO.GetPixel( n, isInBounds );
               if( isInBounds )
                 {
-                if( static_cast<unsigned int>( label ) == whichClass )
-                  {
-                  weightedNumberOfClassNeighbors += ( 1.0 / distance );
-                  }
-                weightedTotalNumberOfNeighbors += ( 1.0 / distance );
+                weightedNumberOfClassNeighbors[label - 1] += ( 1.0 / distance );
                 }
               }
-
-            if( weightedTotalNumberOfNeighbors > 0.0 )
+            RealType numerator = vcl_exp( this->m_MRFSmoothingFactor
+                                          * weightedNumberOfClassNeighbors[whichClass - 1] );
+            RealType denominator = 0.0;
+            for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
               {
-              RealType ratio = weightedNumberOfClassNeighbors
-                / weightedTotalNumberOfNeighbors;
-              mrfPrior = vcl_exp( -( 1.0 - ratio )
-                                  / this->m_MRFSmoothingFactor );
+              denominator += vcl_exp( this->m_MRFSmoothingFactor
+                                      * weightedNumberOfClassNeighbors[n] );
+              }
+            mrfPrior = numerator / denominator;
+            if( vnl_math_isinf( mrfPrior ) || vnl_math_isnan( mrfPrior ) )
+              {
+              mrfPrior = 1.0;
               }
             }
 
