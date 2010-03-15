@@ -121,7 +121,7 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
       {
       segmenter->SetInitializationStrategy(
         SegmentationFilterType::PriorProbabilityImages );
-      if( initializationOption->GetNumberOfParameters() < 4 )
+      if( initializationOption->GetNumberOfParameters() < 3 )
         {
         std::cerr << "Incorrect initialization option specification."
                   << std::endl;
