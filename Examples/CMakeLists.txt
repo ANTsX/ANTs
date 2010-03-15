@@ -30,6 +30,7 @@ ENDIF(USE_ITK_FILE)
 SET(PICSL_INCLUDE_DIRS
 ../Utilities
 ../ImageRegistration
+../ImageSegmentation
 ../GraphTheory
 ../Tensor
 ../Temporary
