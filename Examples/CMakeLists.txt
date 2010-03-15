@@ -212,10 +212,6 @@ TARGET_LINK_LIBRARIES(KellySlater ITKIO ITKStatistics)
 ADD_EXECUTABLE(ANTSIntegrateVectorField ANTSIntegrateVectorField.cxx)
 TARGET_LINK_LIBRARIES(ANTSIntegrateVectorField ITKIO ITKStatistics)
 
-SET(SOURCES "../Utilities/itkWASPCommandLineParser" "../Utilities/itkWASPCommandLineOption" )
-ADD_EXECUTABLE(Apocrita Apocrita.cxx ${SOURCES})
-TARGET_LINK_LIBRARIES(Apocrita ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
-
 SET(SOURCES "../Utilities/itkCommandLineParser" "../Utilities/itkCommandLineOption" )
 ADD_EXECUTABLE(Atropos Atropos.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(Atropos ITKCommon  ITKBasicFilters ITKIO ITKStatistics   )
