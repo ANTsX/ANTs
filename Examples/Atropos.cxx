@@ -1,14 +1,18 @@
-#include "itkAddImageFilter.h"
+#include "itkAtroposSegmentationImageFilter.h"
+#include "itkBoxPlotQuantileListSampleFilter.h"
 #include "itkCommandLineOption.h"
 #include "itkCommandLineParser.h"
-#include "itkDivideImageFilter.h"
+#include "itkGaussianListSampleFunction.h"
+#include "itkGrubbsRosnerListSampleFilter.h"
 #include "itkImage.h"
-#include "itkMaskImageFilter.h"
-#include "itkAtroposSegmentationImageFilter.h"
-#include "itkNumericSeriesFileNames.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImageRegionIterator.h"
+#include "itkListSampleToListSampleFilter.h"
+#include "itkManifoldParzenWindowsListSampleFunction.h"
+#include "itkMaskImageFilter.h"
+#include "itkNumericSeriesFileNames.h"
+#include "itkPassThroughListSampleFilter.h"
 #include "itkVectorImage.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
@@ -87,7 +91,7 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
   typename itk::CommandLineParser::OptionType::Pointer initializationOption =
     parser->GetOption( "initialization" );
   if( initializationOption
-      && initializationOption->GetNumberOfParameters() < 2 )
+      && initializationOption->GetNumberOfParameters() < 1 )
     {
     std::cerr << "Incorrect initialization option specification." << std::endl;
     std::cerr << "   " << initializationOption->GetDescription() << std::endl;
@@ -95,15 +99,8 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
     }
   else
     {
-    typedef itk::ImageFileReader<InputImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName(
-      ( initializationOption->GetParameter( 0 ) ).c_str() );
-    reader->Update();
-
-    segmenter->SetInput( reader->GetOutput() );
     segmenter->SetNumberOfClasses( parser->Convert<unsigned int>(
-                                     initializationOption->GetParameter( 1 ) ) );
+                                     initializationOption->GetParameter( 0 ) ) );
 
     std::string initializationStrategy = initializationOption->GetValue();
     ConvertToLowerCase( initializationStrategy );
@@ -133,11 +130,9 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
       segmenter->SetPriorProbabilityWeight( parser->Convert<float>(
-                                              initializationOption->GetParameter( 3 ) ) );
-      segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
-                                               initializationOption->GetParameter( 4 ) ) );
+                                              initializationOption->GetParameter( 2 ) ) );
 
-      std::string filename = initializationOption->GetParameter( 2 );
+      std::string filename = initializationOption->GetParameter( 1 );
 
       if( filename.find( std::string( "%" ) ) != std::string::npos )
         {
@@ -191,18 +186,16 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
       segmenter->SetInitializationStrategy(
         SegmentationFilterType::PriorLabelImage );
 
-      if( initializationOption->GetNumberOfParameters() < 4 )
+      if( initializationOption->GetNumberOfParameters() < 3 )
         {
         std::cerr << "Incorrect initialization option specification." << std::endl;
         std::cerr << "   " << initializationOption->GetDescription() << std::endl;
         return EXIT_FAILURE;
         }
       segmenter->SetPriorProbabilityWeight( parser->Convert<float>(
-                                              initializationOption->GetParameter( 3 ) ) );
-      segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
-                                               initializationOption->GetParameter( 4 ) ) );
+                                              initializationOption->GetParameter( 2 ) ) );
 
-      std::string filename = initializationOption->GetParameter( 2 );
+      std::string filename = initializationOption->GetParameter( 1 );
       typedef itk::ImageFileReader<LabelImageType> ReaderType;
       typename ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName( filename.c_str() );
@@ -218,25 +211,22 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
     }
 
   /**
-   * number of iterations
-   */
-  typename itk::CommandLineParser::OptionType::Pointer iterationsOption =
-    parser->GetOption( "number-of-iterations" );
-  if( iterationsOption && iterationsOption->GetNumberOfValues() > 0 )
-    {
-    segmenter->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
-                                               iterationsOption->GetValue() ) );
-    }
-
-  /**
-   * convergence threshold
+   * convergence options
    */
   typename itk::CommandLineParser::OptionType::Pointer convergenceOption =
-    parser->GetOption( "convergence-threshold" );
-  if( convergenceOption && convergenceOption->GetNumberOfValues() > 0 )
+    parser->GetOption( "convergence" );
+  if( convergenceOption )
     {
-    segmenter->SetConvergenceThreshold( parser->Convert<float>(
-                                          convergenceOption->GetValue() ) );
+    if( convergenceOption->GetNumberOfParameters() > 0 )
+      {
+      segmenter->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
+                                                 convergenceOption->GetParameter( 0 ) ) );
+      }
+    if( convergenceOption->GetNumberOfParameters() > 1 )
+      {
+      segmenter->SetConvergenceThreshold( parser->Convert<float>(
+                                            convergenceOption->GetParameter( 1 ) ) );
+      }
     }
 
   /**
@@ -362,26 +352,50 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
     }
 
   /**
-   * auxiliary images
+   * intensity images
    */
-  typename itk::CommandLineParser::OptionType::Pointer auxOption =
-    parser->GetOption( "auxiliary-image" );
-  if( auxOption && auxOption->GetNumberOfValues() > 0 )
+  typename itk::CommandLineParser::OptionType::Pointer imageOption =
+    parser->GetOption( "intensity-image" );
+  if( imageOption && imageOption->GetNumberOfValues() > 0 )
     {
-    for( unsigned int n = 0; n < auxOption->GetNumberOfValues(); n++ )
+    for( unsigned int n = 0; n < imageOption->GetNumberOfValues(); n++ )
       {
       typedef itk::ImageFileReader<InputImageType> ReaderType;
       typename ReaderType::Pointer reader = ReaderType::New();
-      reader->SetFileName( auxOption->GetParameter( n, 0 ) );
+      if( imageOption->GetNumberOfParameters( n ) > 0 )
+        {
+        reader->SetFileName( imageOption->GetParameter( n, 0 ) );
+        }
+      else
+        {
+        reader->SetFileName( imageOption->GetValue( n ) );
+        }
       reader->Update();
 
-      segmenter->SetAuxiliaryImage( n + 1, reader->GetOutput() );
-      if( initializationOption->GetNumberOfParameters( n ) > 1 )
+      if( n == imageOption->GetNumberOfValues() - 1 )
         {
-        segmenter->SetAdaptiveSmoothingWeight( n + 1, parser->Convert<float>(
-                                                 initializationOption->GetParameter( n, 1 ) ) );
+        segmenter->SetInput( reader->GetOutput() );
+        if( initializationOption->GetNumberOfParameters( 0 ) > 1 )
+          {
+          segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
+                                                   initializationOption->GetParameter( 0, 1 ) ) );
+          }
+        }
+      else
+        {
+        segmenter->SetIntensityImage( n + 1, reader->GetOutput() );
+        if( initializationOption->GetNumberOfParameters( n + 1 ) > 1 )
+          {
+          segmenter->SetAdaptiveSmoothingWeight( n + 1, parser->Convert<float>(
+                                                   initializationOption->GetParameter( n + 1, 1 ) ) );
+          }
         }
       }
+    }
+  else
+    {
+    std::cerr << "No input images were specified.  Specify an input image"
+              << " with the -a option" << std::endl;
     }
 
   /**
@@ -420,16 +434,6 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
         }
       segmenter->SetMRFRadius( radius );
       }
-    if( mrfOption->GetNumberOfParameters() > 2 )
-      {
-      segmenter->SetMRFSigmoidAlpha( parser->Convert<float>(
-                                       mrfOption->GetParameter( 2 ) ) );
-      }
-    if( mrfOption->GetNumberOfParameters() > 3 )
-      {
-      segmenter->SetMRFSigmoidBeta( parser->Convert<float>(
-                                      mrfOption->GetParameter( 3 ) ) );
-      }
     }
 
   /**
@@ -452,6 +456,136 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
     {
     segmenter->SetMinimizeMemoryUsage( parser->Convert<bool>(
                                          memoryOption->GetValue() ) );
+    }
+
+  /**
+   * likelihood
+   */
+  typename itk::CommandLineParser::OptionType::Pointer likelihoodOption =
+    parser->GetOption( "likelihood-model" );
+  if( likelihoodOption && likelihoodOption->GetNumberOfValues() > 0 )
+    {
+    std::string likelihoodModel = likelihoodOption->GetValue();
+    ConvertToLowerCase( likelihoodModel );
+    if( !likelihoodModel.compare( std::string( "gaussian" ) ) )
+      {
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::Statistics::GaussianListSampleFunction
+        <SampleType, float, float> LikelihoodType;
+      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+        {
+        typename LikelihoodType::Pointer gaussianLikelihood =
+          LikelihoodType::New();
+        segmenter->SetLikelihoodFunction( n, gaussianLikelihood );
+        }
+      }
+    else if( !likelihoodModel.compare( std::string( "manifoldparzenwindows" ) ) )
+      {
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::Statistics::ManifoldParzenWindowsListSampleFunction
+        <SampleType, float, float> LikelihoodType;
+
+      float regularizationSigma = 1.0;
+      if( likelihoodOption->GetNumberOfParameters() > 0 )
+        {
+        regularizationSigma = parser->Convert<float>(
+            likelihoodOption->GetParameter( 0 ) );
+        }
+      unsigned int evalNeighborhood = 50;
+      if( likelihoodOption->GetNumberOfParameters() > 1 )
+        {
+        evalNeighborhood = parser->Convert<unsigned int>(
+            likelihoodOption->GetParameter( 1 ) );
+        }
+      unsigned int covNeighborhood = 0;
+      if( likelihoodOption->GetNumberOfParameters() > 2 )
+        {
+        covNeighborhood = parser->Convert<unsigned int>(
+            likelihoodOption->GetParameter( 2 ) );
+        }
+      float covSigma = 1.0;
+      if( likelihoodOption->GetNumberOfParameters() > 3 )
+        {
+        covSigma = parser->Convert<float>(
+            likelihoodOption->GetParameter( 3 ) );
+        }
+      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+        {
+        typename LikelihoodType::Pointer mpwLikelihood =
+          LikelihoodType::New();
+        mpwLikelihood->SetRegularizationSigma( regularizationSigma );
+        mpwLikelihood->SetEvaluationKNeighborhood( evalNeighborhood );
+        mpwLikelihood->SetCovarianceKNeighborhood( covNeighborhood );
+        mpwLikelihood->SetKernelSigma( covSigma );
+        segmenter->SetLikelihoodFunction( n, mpwLikelihood );
+        }
+      }
+    else
+      {
+      std::cerr << "Unrecognized likelihood model request." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  /**
+   * outliers?
+   */
+  typename itk::CommandLineParser::OptionType::Pointer outlierOption =
+    parser->GetOption( "winsorize-outliers" );
+  if( outlierOption && outlierOption->GetNumberOfValues() > 0 )
+    {
+    std::string outlierStrategy = outlierOption->GetValue();
+    ConvertToLowerCase( outlierStrategy );
+    if( !outlierStrategy.compare( std::string( "boxplot" ) ) )
+      {
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::Statistics::BoxPlotQuantileListSampleFilter<SampleType>
+        SampleFilterType;
+      typename SampleFilterType::Pointer boxplotFilter =
+        SampleFilterType::New();
+
+      if( outlierOption->GetNumberOfParameters( 0 ) > 0 )
+        {
+        boxplotFilter->SetLowerPercentile( parser->Convert<float>(
+                                             outlierOption->GetParameter( 0 ) ) );
+        }
+      if( outlierOption->GetNumberOfParameters( 0 ) > 1 )
+        {
+        boxplotFilter->SetUpperPercentile( parser->Convert<float>(
+                                             outlierOption->GetParameter( 1 ) ) );
+        }
+      if( outlierOption->GetNumberOfParameters( 0 ) > 2 )
+        {
+        boxplotFilter->SetWhiskerScalingFactor( parser->Convert<float>(
+                                                  outlierOption->GetParameter( 2 ) ) );
+        }
+      segmenter->SetOutlierHandlingFilter( boxplotFilter );
+      }
+    else if( !outlierStrategy.compare( std::string( "grubbsrosner" ) ) )
+      {
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::Statistics::GrubbsRosnerListSampleFilter<SampleType>
+        SampleFilterType;
+      typename SampleFilterType::Pointer grubbsFilter =
+        SampleFilterType::New();
+
+      if( outlierOption->GetNumberOfParameters( 0 ) > 0 )
+        {
+        grubbsFilter->SetSignificanceLevel( parser->Convert<float>(
+                                              outlierOption->GetParameter( 0 ) ) );
+        }
+      if( outlierOption->GetNumberOfParameters( 0 ) > 1 )
+        {
+        grubbsFilter->SetWinsorizingLevel( parser->Convert<float>(
+                                             outlierOption->GetParameter( 1 ) ) );
+        }
+      segmenter->SetOutlierHandlingFilter( grubbsFilter );
+      }
+    else
+      {
+      std::cerr << "Unrecognized outlier handling strategy request." << std::endl;
+      return EXIT_FAILURE;
+      }
     }
 
   try
@@ -598,18 +732,27 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Option 1:  Random[inputImage,numberOfClasses]\n" )
-      + std::string( "\t  Option 2:  Kmeans[inputImage,numberOfClasses]\n" )
-      + std::string( "\t  Option 3:  Otsu[inputImage,numberOfClasses]\n" )
-      + std::string( "\t  Option 4:  PriorProbabilityImages[inputImage,numberOfClasses," )
-      + std::string(
-        "fileSeriesFormat(index=1 to numberOfClasses-1) or vectorImage,priorWeighting,<adaptiveSmoothingWeight>]\n" )
-      + std::string(
-        "\t  Option 5:  PriorLabelImage[inputImage,numberOfClasses,labelImage,priorWeighting,<adaptiveSmoothingWeight>]" );
+      std::string( "Option 1:  Random[numberOfClasses]\n" )
+      + std::string( "\t  Option 2:  Kmeans[numberOfClasses]\n" )
+      + std::string( "\t  Option 3:  Otsu[numberOfClasses]\n" )
+      + std::string( "\t  Option 4:  PriorProbabilityImages[numberOfClasses," )
+      + std::string( "fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting]\n" )
+      + std::string( "\t  Option 5:  PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initialization" );
     option->SetShortName( 'i' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "[intensityImage,<adaptiveSmoothingWeight>]" )
+      + std::string( " -- adaptive smoothing only applies to initialization with prior image(s)" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "intensity-image" );
+    option->SetShortName( 'a' );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -625,31 +768,11 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "[image,<adaptiveSmoothingWeight>]" )
-      + std::string( " -- adaptive smoothing only applies to initialization with prior image(s)" );
+    std::string description =
+      std::string( "[<numberOfIterations>,<convergenceThreshold>]" );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "auxiliary-image" );
-    option->SetShortName( 'a' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description = std::string( "Number of iterations" );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "number-of-iterations" );
-    option->SetShortName( 'n' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description = std::string( "Convergence threshold" );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "convergence-threshold" );
+    option->SetLongName( "convergence" );
     option->SetShortName( 'c' );
     option->SetDescription( description );
     parser->AddOption( option );
@@ -657,7 +780,18 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "[<smoothingFactor>,<radius>,<sigmoidAlpha>,<sigmoidBeta>]" );
+      std::string( "Option 1: Gaussian\n" )
+      + std::string(
+        "\t  Option 2: ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "likelihood-model" );
+    option->SetShortName( 'k' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "[<smoothingFactor>,<radius>]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
@@ -665,6 +799,17 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     option->SetDescription( description );
     parser->AddOption( option );
     }
+
+//   {
+//   std::string description = std::string( "[image,<adaptiveSmoothingWeight>]" ) +
+//     std::string( " -- adaptive smoothing only applies to initialization with prior image(s)" );
+//
+//   OptionType::Pointer option = OptionType::New();
+//   option->SetLongName( "vector-image" );
+//   option->SetShortName( 'v' );
+//   option->SetDescription( description );
+//   parser->AddOption( option );
+//   }
 
     {
     std::string description
@@ -679,7 +824,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "minimize-memory-usage=true/false" );
+    std::string description = std::string( "minimize-memory-usage=1/(0)" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "minimize-memory-usage" );
@@ -692,7 +837,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     {
     std::string description =
       std::string( "[<numberOfLevels>,<initialMeshResolution>,<splineOrder>]" )
-      + std::string( " -- only applies to initialization with prior image(s)" );
+      + std::string( " -- only applies to initialization with prior image(s) and non-zero adaptive smoothing parameter." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "bspline" );
@@ -703,7 +848,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "use-euclidean-distance-for-prior-label-image=true/false" )
+      std::string( "use euclidean or geodesic distance for prior label distance maps = 1/(0)" )
       + std::string( " -- only applies to initialization with a prior label image." );
 
     OptionType::Pointer option = OptionType::New();
@@ -711,6 +856,18 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     option->SetShortName( 'e' );
     option->SetDescription( description );
     option->AddValue( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Option 1: BoxPlot[<lowerPercentile=0.25>,<upperPercentile=0.75>,<whiskerLength=1.5>]\n" )
+      + std::string( "\t  Option 2: GrubbsRosner[<significanceLevel=0.05>,<winsorizingLevel=0.10>]" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "winsorize-outliers" );
+    option->SetShortName( 'w' );
+    option->SetDescription( description );
     parser->AddOption( option );
     }
 
