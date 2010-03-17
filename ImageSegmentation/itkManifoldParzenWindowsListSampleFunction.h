@@ -106,6 +106,7 @@ private:
   unsigned int m_EvaluationKNeighborhood;
   RealType     m_RegularizationSigma;
   RealType     m_KernelSigma;
+  RealType     m_NormalizationFactor;
 
   typename TreeGeneratorType::Pointer           m_KdTreeGenerator;
 

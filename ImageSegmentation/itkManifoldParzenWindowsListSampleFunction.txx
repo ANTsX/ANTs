@@ -153,6 +153,22 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     ++It;
     ++count;
     }
+
+  /**
+   * Calculate normalization factor
+   */
+  this->m_NormalizationFactor = 0.0;
+  for( unsigned int i = 0; i < this->m_Gaussians.size(); i++ )
+    {
+    if( this->m_Weights.Size() == this->m_Gaussians.size() )
+      {
+      this->m_NormalizationFactor += this->m_Weights[i];
+      }
+    else
+      {
+      this->m_NormalizationFactor += 1.0;
+      }
+    }
 }
 
 template <class TListSample, class TOutput, class TCoordRep>
@@ -165,7 +181,6 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       static_cast<unsigned int>( this->m_Gaussians.size() ) );
 
   OutputType sum = 0.0;
-  OutputType sumWeights = 0.0;
 
   if( numberOfNeighbors == this->m_Gaussians.size() )
     {
@@ -173,14 +188,6 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       {
       sum += static_cast<OutputType>(
           this->m_Gaussians[j]->Evaluate( measurement ) );
-      if( this->m_Weights.Size() == this->m_Gaussians.size() )
-        {
-        sumWeights += this->m_Weights[j];
-        }
-      else
-        {
-        sumWeights += 1.0;
-        }
       }
     }
   else
@@ -193,17 +200,9 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       {
       sum += static_cast<OutputType>(
           this->m_Gaussians[neighbors[j]]->Evaluate( measurement ) );
-      if( this->m_Weights.Size() == this->m_Gaussians.size() )
-        {
-        sumWeights += this->m_Weights[neighbors[j]];
-        }
-      else
-        {
-        sumWeights += 1.0;
-        }
       }
     }
-  return static_cast<OutputType>( sum / sumWeights );
+  return static_cast<OutputType>( sum / this->m_NormalizationFactor );
 }
 
 /**
