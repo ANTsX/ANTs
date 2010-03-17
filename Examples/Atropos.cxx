@@ -4,6 +4,7 @@
 #include "itkCommandLineParser.h"
 #include "itkGaussianListSampleFunction.h"
 #include "itkGrubbsRosnerListSampleFilter.h"
+#include "itkHistogramParzenWindowsListSampleFunction.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -520,6 +521,33 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
         segmenter->SetLikelihoodFunction( n, mpwLikelihood );
         }
       }
+    else if( !likelihoodModel.compare( std::string( "histogramparzenwindows" ) ) )
+      {
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::Statistics::HistogramParzenWindowsListSampleFunction
+        <SampleType, float, float> LikelihoodType;
+
+      float sigma = 1.0;
+      if( likelihoodOption->GetNumberOfParameters() > 0 )
+        {
+        sigma = parser->Convert<float>(
+            likelihoodOption->GetParameter( 0 ) );
+        }
+      unsigned int numberOfBins = 32;
+      if( likelihoodOption->GetNumberOfParameters() > 1 )
+        {
+        numberOfBins = parser->Convert<unsigned int>(
+            likelihoodOption->GetParameter( 1 ) );
+        }
+      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+        {
+        typename LikelihoodType::Pointer hpwLikelihood =
+          LikelihoodType::New();
+        hpwLikelihood->SetSigma( sigma );
+        hpwLikelihood->SetNumberOfHistogramBins( numberOfBins );
+        segmenter->SetLikelihoodFunction( n, hpwLikelihood );
+        }
+      }
     else
       {
       std::cerr << "Unrecognized likelihood model request." << std::endl;
@@ -782,7 +810,8 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     std::string description =
       std::string( "Option 1: Gaussian\n" )
       + std::string(
-        "\t  Option 2: ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
+        "\t  Option 2: ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>] \n" )
+      + std::string( "\t  Option 3: HistogramParzenWindows[<Sigma=1.0>,<numberOfBins=32>]" );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "likelihood-model" );
     option->SetShortName( 'k' );
