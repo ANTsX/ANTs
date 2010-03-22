@@ -1,4 +1,4 @@
-Release 1.8
+Release 1.9 --- svn release 437
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
@@ -29,6 +29,10 @@ tool, including three tissue segmentation, structure-specific
 segmentation and brain extracton.
 
 The ants.pdf file has more details and examples.
+
+New Stuff 1.9 :
+
+Atropos revisions + various utilities.
 
 New Stuff 1.8 :
 
