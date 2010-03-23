@@ -51,8 +51,20 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 {
   this->m_ListSample = ptr;
 
+  if( !this->m_ListSample )
+    {
+    itkExceptionMacro( "Attempting to set the input list sample to NULL." );
+    }
+
+  if( this->m_ListSample->Size() <= 1 )
+    {
+    itkWarningMacro( "The input list sample has <= 1 element."
+                     << "Function evaluations will be equal to 0." );
+    return;
+    }
+
   const unsigned int Dimension =
-    this->GetInputListSample()->GetMeasurementVectorSize();
+    this->m_ListSample->GetMeasurementVectorSize();
 
   /**
    * Find the min/max values to define the histogram domain
@@ -64,8 +76,8 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   maxValues.Fill( NumericTraits<RealType>::NonpositiveMin() );
 
   typename InputListSampleType::ConstIterator It
-    = this->GetInputListSample()->Begin();
-  while( It != this->GetInputListSample()->End() )
+    = this->m_ListSample->Begin();
+  while( It != this->m_ListSample->End() )
     {
     InputMeasurementVectorType inputMeasurement = It.GetMeasurementVector();
     for( unsigned int d = 0; d < Dimension; d++ )
@@ -106,13 +118,13 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 
   unsigned long count = 0;
-  It = this->GetInputListSample()->Begin();
-  while( It != this->GetInputListSample()->End() )
+  It = this->m_ListSample->Begin();
+  while( It != this->m_ListSample->End() )
     {
     InputMeasurementVectorType inputMeasurement = It.GetMeasurementVector();
 
     RealType newWeight = 1.0;
-    if( this->m_Weights.Size() == this->GetInputListSample()->Size() )
+    if( this->m_Weights.Size() == this->m_ListSample->Size() )
       {
       newWeight = this->m_Weights[count];
       }
@@ -168,7 +180,6 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     divider->SetInput( gaussian->GetOutput() );
     divider->SetConstant( stats->GetSum() );
     divider->Update();
-
     this->m_HistogramImages[d] = divider->GetOutput();
     }
 }
@@ -178,7 +189,7 @@ TOutput
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
 {
-  if( measurement.Size() != this->m_HistogramImages.size() )
+  if( this->m_ListSample->Size() <= 1 )
     {
     return 0;
     }
