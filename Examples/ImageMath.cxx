@@ -566,7 +566,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
       {
       ItM.Set( itk::NumericTraits<PixelType>::Zero );
       }
-    if( std::isnan( ItI.Get() ) || std::isinf( ItI.Get() ) )
+    if( vnl_math_isnan( ItI.Get() ) || vnl_math_isinf( ItI.Get() ) )
       {
       ItM.Set( itk::NumericTraits<PixelType>::Zero );
       }
