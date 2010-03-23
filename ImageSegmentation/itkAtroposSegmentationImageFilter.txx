@@ -351,7 +351,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
    * Calculate the initial parameters of the mixture model from the
    * initial labeling, i.e. the proportion, mean, and covariance for each label.
    */
-  this->m_MixtureModelProportions.SetSize( this->m_NumberOfClasses );
+  this->m_MixtureModelsProportions.SetSize( this->m_NumberOfClasses );
 
   unsigned int totalSampleSize = 0;
 
@@ -413,9 +413,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    this->m_MixtureModel[n]->SetWeights( &weights[n] );
-    this->m_MixtureModel[n]->SetInputListSample( samples[n] );
-    this->m_MixtureModelProportions[n] =
+    this->m_MixtureModels[n]->SetWeights( &weights[n] );
+    this->m_MixtureModels[n]->SetInputListSample( samples[n] );
+    this->m_MixtureModelsProportions[n] =
       static_cast<RealType>( samples[n]->Size() )
       / static_cast<RealType>( totalSampleSize );
     }
@@ -1048,7 +1048,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           priorProbability =
             distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
           }
-        ItW.Set( ItW.Get() + this->m_MixtureModelProportions[n]
+        ItW.Set( ItW.Get() + this->m_MixtureModelsProportions[n]
                  * priorProbability );
         }
       }
@@ -1101,11 +1101,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     if( denominator > 0.0 )
       {
-      this->m_MixtureModelProportions[n] = sumPosteriors[n] / denominator;
+      this->m_MixtureModelsProportions[n] = sumPosteriors[n] / denominator;
       }
     else
       {
-      this->m_MixtureModelProportions[n] = 0.0;
+      this->m_MixtureModelsProportions[n] = 0.0;
       }
     }
 
@@ -1117,7 +1117,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
    * Calculate the initial parameters of the mixture model from the
    * initial labeling, i.e. the proportion, mean, and covariance for each label.
    */
-  this->m_MixtureModelProportions.SetSize( this->m_NumberOfClasses );
+  this->m_MixtureModelsProportions.SetSize( this->m_NumberOfClasses );
 
   /**
    * Accumulate the sample array for all labels.
@@ -1155,9 +1155,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    this->m_MixtureModel[n]->SetWeights( &weights[n] );
-    this->m_MixtureModel[n]->SetInputListSample( samples[n] );
-    this->m_MixtureModelProportions[n] =
+    this->m_MixtureModels[n]->SetWeights( &weights[n] );
+    this->m_MixtureModels[n]->SetInputListSample( samples[n] );
+    this->m_MixtureModelsProportions[n] =
       static_cast<RealType>( samples[n]->Size() )
       / static_cast<RealType>( totalSampleSize );
 
@@ -1436,11 +1436,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               measurement[i] =
                 this->GetIntensityImage( i )->GetPixel( ItO.GetIndex() );
               }
-            RealType likelihood = this->m_MixtureModel[c]->Evaluate( measurement );
+            RealType likelihood = this->m_MixtureModels[c]->Evaluate( measurement );
             RealType posteriorProbability = this->m_PriorProbabilityWeight
-              * this->m_MixtureModelProportions[c] * likelihood
+              * this->m_MixtureModelsProportions[c] * likelihood
               * mrfPrior * prior + ( 1.0 - this->m_PriorProbabilityWeight )
-              * this->m_MixtureModelProportions[c] * likelihood * mrfPrior;
+              * this->m_MixtureModelsProportions[c] * likelihood * mrfPrior;
 
             if( vnl_math_isnan( posteriorProbability ) ||
                 vnl_math_isinf( posteriorProbability ) )
@@ -1619,11 +1619,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               this->GetIntensityImage( i )->GetPixel( ItO.GetIndex() );
             }
           RealType likelihood =
-            this->m_MixtureModel[whichClass - 1]->Evaluate( measurement );
+            this->m_MixtureModels[whichClass - 1]->Evaluate( measurement );
           RealType posteriorProbability = this->m_PriorProbabilityWeight
-            * this->m_MixtureModelProportions[whichClass - 1] * likelihood
+            * this->m_MixtureModelsProportions[whichClass - 1] * likelihood
             * mrfPrior * prior + ( 1.0 - this->m_PriorProbabilityWeight )
-            * this->m_MixtureModelProportions[whichClass - 1] * likelihood
+            * this->m_MixtureModelsProportions[whichClass - 1] * likelihood
             * mrfPrior;
 
           if( vnl_math_isnan( posteriorProbability ) ||
@@ -2378,8 +2378,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     os << indent << "Class " << n + 1 << ": proportion = "
-       << this->m_MixtureModelProportions[n] << std::endl;
-    this->m_MixtureModel[n]->Print( os, indent.GetNextIndent() );
+       << this->m_MixtureModelsProportions[n] << std::endl;
+    this->m_MixtureModels[n]->Print( os, indent.GetNextIndent() );
     }
 }
 } // namespace itk
