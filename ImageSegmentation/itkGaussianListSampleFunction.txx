@@ -47,54 +47,67 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 {
   this->m_ListSample = ptr;
 
-  if( this->m_Weights.Size() == this->m_ListSample->Size() )
+  if( !this->m_ListSample )
     {
-    typedef typename Statistics::
-      WeightedMeanCalculator<InputListSampleType> MeanCalculatorType;
-    typename MeanCalculatorType::Pointer meanCalculator =
-      MeanCalculatorType::New();
-    meanCalculator->SetMeasurementVectorSize(
-      this->GetInputListSample()->GetMeasurementVectorSize() );
-    meanCalculator->SetWeights( &this->m_Weights );
-    meanCalculator->SetInputSample( this->GetInputListSample() );
-    meanCalculator->Update();
+    itkExceptionMacro( "Attempting to set the input list sample to NULL." );
+    }
 
-    typedef typename Statistics::
-      WeightedCovarianceCalculator<InputListSampleType> CovarianceCalculatorType;
-    typename CovarianceCalculatorType::Pointer covarianceCalculator =
-      CovarianceCalculatorType::New();
-    covarianceCalculator->SetMeasurementVectorSize(
-      this->GetInputListSample()->GetMeasurementVectorSize() );
-    covarianceCalculator->SetWeights( &this->m_Weights );
-    covarianceCalculator->SetMean( meanCalculator->GetOutput() );
-    covarianceCalculator->SetInputSample( this->GetInputListSample() );
-    covarianceCalculator->Update();
+  if( this->m_ListSample->Size() > 1 )
+    {
+    if( this->m_Weights.Size() == this->m_ListSample->Size() )
+      {
+      typedef typename Statistics::
+        WeightedMeanCalculator<InputListSampleType> MeanCalculatorType;
+      typename MeanCalculatorType::Pointer meanCalculator =
+        MeanCalculatorType::New();
+      meanCalculator->SetMeasurementVectorSize(
+        this->m_ListSample->GetMeasurementVectorSize() );
+      meanCalculator->SetWeights( &this->m_Weights );
+      meanCalculator->SetInputSample( this->m_ListSample );
+      meanCalculator->Update();
 
-    this->m_Gaussian->SetMean( *meanCalculator->GetOutput() );
-    this->m_Gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
+      typedef typename Statistics::
+        WeightedCovarianceCalculator<InputListSampleType> CovarianceCalculatorType;
+      typename CovarianceCalculatorType::Pointer covarianceCalculator =
+        CovarianceCalculatorType::New();
+      covarianceCalculator->SetMeasurementVectorSize(
+        this->m_ListSample->GetMeasurementVectorSize() );
+      covarianceCalculator->SetWeights( &this->m_Weights );
+      covarianceCalculator->SetMean( meanCalculator->GetOutput() );
+      covarianceCalculator->SetInputSample( this->m_ListSample );
+      covarianceCalculator->Update();
+
+      this->m_Gaussian->SetMean( *meanCalculator->GetOutput() );
+      this->m_Gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
+      }
+    else
+      {
+      typedef Statistics::MeanCalculator<InputListSampleType> MeanCalculatorType;
+      typename MeanCalculatorType::Pointer meanCalculator =
+        MeanCalculatorType::New();
+      meanCalculator->SetMeasurementVectorSize(
+        this->m_ListSample->GetMeasurementVectorSize() );
+      meanCalculator->SetInputSample( this->m_ListSample );
+      meanCalculator->Update();
+
+      typedef Statistics::CovarianceCalculator<InputListSampleType>
+        CovarianceCalculatorType;
+      typename CovarianceCalculatorType::Pointer covarianceCalculator =
+        CovarianceCalculatorType::New();
+      covarianceCalculator->SetMeasurementVectorSize(
+        this->m_ListSample->GetMeasurementVectorSize() );
+      covarianceCalculator->SetMean( meanCalculator->GetOutput() );
+      covarianceCalculator->SetInputSample( this->m_ListSample );
+      covarianceCalculator->Update();
+
+      this->m_Gaussian->SetMean( *meanCalculator->GetOutput() );
+      this->m_Gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
+      }
     }
   else
     {
-    typedef Statistics::MeanCalculator<InputListSampleType> MeanCalculatorType;
-    typename MeanCalculatorType::Pointer meanCalculator =
-      MeanCalculatorType::New();
-    meanCalculator->SetMeasurementVectorSize(
-      this->GetInputListSample()->GetMeasurementVectorSize() );
-    meanCalculator->SetInputSample( this->GetInputListSample() );
-    meanCalculator->Update();
-
-    typedef Statistics::CovarianceCalculator<InputListSampleType>
-      CovarianceCalculatorType;
-    typename CovarianceCalculatorType::Pointer covarianceCalculator =
-      CovarianceCalculatorType::New();
-    covarianceCalculator->SetMeasurementVectorSize(
-      this->GetInputListSample()->GetMeasurementVectorSize() );
-    covarianceCalculator->SetMean( meanCalculator->GetOutput() );
-    covarianceCalculator->SetInputSample( this->GetInputListSample() );
-    covarianceCalculator->Update();
-
-    this->m_Gaussian->SetMean( *meanCalculator->GetOutput() );
-    this->m_Gaussian->SetCovariance( *covarianceCalculator->GetOutput() );
+    itkWarningMacro( "The input list sample has <= 1 element."
+                     << "Function evaluations will be equal to 0." );
     }
 }
 
@@ -103,7 +116,14 @@ TOutput
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
 {
-  return this->m_Gaussian->Evaluate( measurement );
+  if( this->m_ListSample->Size() > 1 )
+    {
+    return this->m_Gaussian->Evaluate( measurement );
+    }
+  else
+    {
+    return 0.0;
+    }
 }
 
 /**
