@@ -49,6 +49,18 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 {
   this->m_ListSample = ptr;
 
+  if( !this->m_ListSample )
+    {
+    itkExceptionMacro( "Attempting to set the input list sample to NULL." );
+    }
+
+  if( this->m_ListSample->Size() <= 1 )
+    {
+    itkWarningMacro( "The input list sample has <= 1 element."
+                     << "Function evaluations will be equal to 0." );
+    return;
+    }
+
   /**
    * Generate KdTree and create set of gaussians from input point set
    */
@@ -61,14 +73,14 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   /**
    * Calculate covariance matrices
    */
-  this->m_Gaussians.resize( this->GetInputListSample()->Size() );
+  this->m_Gaussians.resize( this->m_ListSample->Size() );
   const unsigned int Dimension =
-    this->GetInputListSample()->GetMeasurementVectorSize();
+    this->m_ListSample->GetMeasurementVectorSize();
 
   unsigned long count = 0;
   typename InputListSampleType::ConstIterator It
-    = this->GetInputListSample()->Begin();
-  while( It != this->GetInputListSample()->End() )
+    = this->m_ListSample->Begin();
+  while( It != this->m_ListSample->End() )
     {
     InputMeasurementVectorType inputMeasurement = It.GetMeasurementVector();
 
@@ -95,7 +107,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       ::InstanceIdentifierVectorType neighbors;
       unsigned int numberOfNeighbors = vnl_math_min(
           this->m_CovarianceKNeighborhood, static_cast<unsigned int>(
-            this->GetInputListSample()->Size() ) );
+            this->m_ListSample->Size() ) );
       this->m_KdTreeGenerator->GetOutput()->Search(
         inputMeasurement, numberOfNeighbors, neighbors );
 
@@ -103,7 +115,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       for( unsigned int j = 0; j < numberOfNeighbors; j++ )
         {
         if( neighbors[j] != count
-            && neighbors[j] < this->GetInputListSample()->Size() )
+            && neighbors[j] < this->m_ListSample->Size() )
           {
           InputMeasurementVectorType neighbor
             = this->m_KdTreeGenerator->GetOutput()->GetMeasurementVector(
@@ -176,6 +188,11 @@ TOutput
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
 {
+  if( this->m_ListSample->Size() <= 1 )
+    {
+    return 0;
+    }
+
   unsigned int numberOfNeighbors = vnl_math_min(
       this->m_EvaluationKNeighborhood,
       static_cast<unsigned int>( this->m_Gaussians.size() ) );
