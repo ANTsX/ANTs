@@ -23,7 +23,7 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkContinuousIndex.h"
 #include "itkDiscreteGaussianImageFilter.h"
-// #include "itkDivideByConstantImageFilter.h"
+#include "itkDivideByConstantImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 
 namespace itk
@@ -162,20 +162,14 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     stats->SetInput( gaussian->GetOutput() );
     stats->Update();
 
-    /*    typedef DivideByConstantImageFilter<HistogramImageType, RealType,
-      HistogramImageType> DividerType;
+    typedef DivideByConstantImageFilter<HistogramImageType, RealType,
+                                        HistogramImageType> DividerType;
     typename DividerType::Pointer divider = DividerType::New();
     divider->SetInput( gaussian->GetOutput() );
     divider->SetConstant( stats->GetSum() );
     divider->Update();
-    this->m_HistogramImages[d] = divider->GetOutput(); */
 
-    typedef itk::ImageRegionIteratorWithIndex<HistogramImageType> Iterator;
-    Iterator vfIter( this->m_HistogramImages[d],  this->m_HistogramImages[d]->GetLargestPossibleRegion() );
-    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
-      {
-      vfIter.Set( vfIter.Get() / stats->GetSum()  );
-      }
+    this->m_HistogramImages[d] = divider->GetOutput();
     }
 }
 
