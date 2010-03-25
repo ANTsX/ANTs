@@ -381,6 +381,10 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
           segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
                                                    initializationOption->GetParameter( 0, 1 ) ) );
           }
+        else
+          {
+          segmenter->SetAdaptiveSmoothingWeight( 0, 0.0 );
+          }
         }
       else
         {
@@ -389,6 +393,10 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
           {
           segmenter->SetAdaptiveSmoothingWeight( n + 1, parser->Convert<float>(
                                                    initializationOption->GetParameter( n + 1, 1 ) ) );
+          }
+        else
+          {
+          segmenter->SetAdaptiveSmoothingWeight( n + 1, 0.0 );
           }
         }
       }
