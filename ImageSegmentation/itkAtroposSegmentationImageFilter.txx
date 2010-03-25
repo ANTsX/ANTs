@@ -1024,7 +1024,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       priorProbabilityImage = const_cast<RealImageType *>(
           this->GetPriorProbabilityImage( n + 1 ) );
       }
-    if( this->m_PriorLabelParameterMap.size() > 0 )
+    if( this->m_PriorLabelParameterMap.size() > 0 ||
+        this->m_InitializationStrategy == PriorLabelImage )
       {
       distancePriorProbabilityImage
         = this->GetDistancePriorProbabilityImageFromPriorLabelImage( n + 1 );
@@ -1069,7 +1070,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       priorProbabilityImage = const_cast<RealImageType *>(
           this->GetPriorProbabilityImage( n + 1 ) );
       }
-    if( this->m_PriorLabelParameterMap.size() > 0 )
+    if( this->m_PriorLabelParameterMap.size() > 0 ||
+        this->m_InitializationStrategy == PriorLabelImage )
       {
       distancePriorProbabilityImage
         = this->GetDistancePriorProbabilityImageFromPriorLabelImage( n + 1 );
@@ -1349,7 +1351,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           priorProbabilityImage = const_cast<RealImageType *>(
               this->GetPriorProbabilityImage( c + 1 ) );
           }
-        if( this->m_PriorLabelParameterMap.size() > 0 )
+        if( this->m_PriorLabelParameterMap.size() > 0 ||
+            this->m_InitializationStrategy == PriorLabelImage )
           {
           distancePriorProbabilityImage
             = this->GetDistancePriorProbabilityImageFromPriorLabelImage( c + 1 );
@@ -1535,7 +1538,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         priorProbabilityImage = const_cast<RealImageType *>(
             this->GetPriorProbabilityImage( whichClass ) );
         }
-      if( this->m_PriorLabelParameterMap.size() > 0 )
+      if( this->m_PriorLabelParameterMap.size() > 0 ||
+          this->m_InitializationStrategy == PriorLabelImage )
         {
         distancePriorProbabilityImage =
           this->GetDistancePriorProbabilityImageFromPriorLabelImage( whichClass );
