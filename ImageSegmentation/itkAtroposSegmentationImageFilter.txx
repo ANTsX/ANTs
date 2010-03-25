@@ -18,7 +18,7 @@
 #define __itkAtroposSegmentationImageFilter_txx
 
 #include "itkAtroposSegmentationImageFilter.h"
-
+#include "ReadWriteImage.h"
 #include "itkAddImageFilter.h"
 #include "itkAddConstantToImageFilter.h"
 #include "itkBinaryContourImageFilter.h"
@@ -1834,7 +1834,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             }
           }
 
-        RealType labelSigma = 0.1;
+        RealType labelSigma = 2.5;
         RealType labelBoundaryProbability = 0.75;
 
         typename LabelParameterMapType::iterator it =
@@ -1850,6 +1850,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           labelSigma = ( it->second ).first;
           labelBoundaryProbability = ( it->second ).second;
+          std::cout << " labelSigma for " << c + 1 << " is " << labelSigma << "  boundary probability = "
+                    <<  labelBoundaryProbability << std::endl;
           }
         for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
           {
@@ -1878,6 +1880,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         adder->Update();
 
         this->m_SumDistancePriorProbabilityImage = adder->GetOutput();
+
+        //	WriteImage<RealImageType>(this->m_SumDistancePriorProbabilityImage,"temp.nii.gz");
 
         if( ( c == 0 ) && this->m_MinimizeMemoryUsage )
           {
