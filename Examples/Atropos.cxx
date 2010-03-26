@@ -376,10 +376,10 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
       if( n == imageOption->GetNumberOfValues() - 1 )
         {
         segmenter->SetInput( reader->GetOutput() );
-        if( initializationOption->GetNumberOfParameters( 0 ) > 1 )
+        if( imageOption->GetNumberOfParameters( 0 ) > 1 )
           {
           segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
-                                                   initializationOption->GetParameter( 0, 1 ) ) );
+                                                   imageOption->GetParameter( 0, 1 ) ) );
           }
         else
           {
@@ -389,10 +389,10 @@ int AtroposSegmentation( itk::CommandLineParser *parser )
       else
         {
         segmenter->SetIntensityImage( n + 1, reader->GetOutput() );
-        if( initializationOption->GetNumberOfParameters( n + 1 ) > 1 )
+        if( imageOption->GetNumberOfParameters( n + 1 ) > 1 )
           {
           segmenter->SetAdaptiveSmoothingWeight( n + 1, parser->Convert<float>(
-                                                   initializationOption->GetParameter( n + 1, 1 ) ) );
+                                                   imageOption->GetParameter( n + 1, 1 ) ) );
           }
         else
           {
