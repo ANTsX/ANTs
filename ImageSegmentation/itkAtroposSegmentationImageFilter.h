@@ -254,24 +254,24 @@ public:
 
   void SetLikelihoodFunction( unsigned int n, LikelihoodFunctionType *prob )
   {
-    if( n < this->m_MixtureModels.size() && this->m_MixtureModels[n] != prob )
+    if( n < this->m_MixtureModelComponents.size() && this->m_MixtureModelComponents[n] != prob )
       {
-      this->m_MixtureModels[n] = prob;
+      this->m_MixtureModelComponents[n] = prob;
       this->Modified();
       }
-    else if( n >= this->m_MixtureModels.size() )
+    else if( n >= this->m_MixtureModelComponents.size() )
       {
-      this->m_MixtureModels.resize( n + 1 );
-      this->m_MixtureModels[n] = prob;
+      this->m_MixtureModelComponents.resize( n + 1 );
+      this->m_MixtureModelComponents[n] = prob;
       this->Modified();
       }
   }
 
   LikelihoodFunctionType * GetLikelihoodFunction( unsigned int n )
   {
-    if( n < this->m_MixtureModels.size() )
+    if( n < this->m_MixtureModelComponents.size() )
       {
-      return this->m_MixtureModels[n].GetPointer();
+      return this->m_MixtureModelComponents[n].GetPointer();
       }
     else
       {
@@ -330,8 +330,8 @@ private:
 
   MaskLabelType m_MaskLabel;
 
-  std::vector<LikelihoodFunctionPointer> m_MixtureModels;
-  Array<RealType>                        m_MixtureModelsProportions;
+  std::vector<LikelihoodFunctionPointer> m_MixtureModelComponents;
+  Array<RealType>                        m_MixtureModelProportions;
   InitializationStrategyType             m_InitializationStrategy;
 
   typename OutlierHandlingFilterType::Pointer    m_OutlierHandlingFilter;
