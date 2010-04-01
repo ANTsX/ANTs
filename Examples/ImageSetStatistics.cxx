@@ -568,6 +568,27 @@ float trimmean(std::vector<float> vec)
   return total / (float)ct;
 }
 
+float myantsmax(std::vector<float> vec)
+{
+  typedef  std::vector<float>::size_type vec_sz;
+  vec_sz size = vec.size();
+  if( size == 0 )
+    {
+    return 0;
+    }
+
+  float max = -1.e9;
+  for( unsigned int i = 0; i < size; i++ )
+    {
+    float val = vec[i];
+    if( val > max )
+      {
+      max = val;
+      }
+    }
+  return max;
+}
+
 template <unsigned int ImageDimension>
 int ImageSetStatistics(int argc, char *argv[])
 {
@@ -786,6 +807,16 @@ int ImageSetStatistics(int argc, char *argv[])
           }
           break;
 
+        case 4:
+          {
+          stat = myantsmax(voxels);
+          if( ct == 1 )
+            {
+            std::cout << "the trimmed mean appearance \n";
+            }
+          }
+          break;
+
         default:
           {
           stat = median(voxels);
@@ -822,7 +853,11 @@ int main( int argc, char * argv[] )
               <<
     " ImageDimension controlslist.txt outimage.nii whichstat {roi.nii}  {parzen var} {matchiters} {localmeanrad}"
               << std::endl;
-    std::cout << " whichstat = 0:  median,  1:  npdf1  , 2: npdf2 ,  3: trim,  else median " << std::endl;
+    std::cout
+      <<
+    " whichstat = 0:  median,  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed mean , 4 : max value , else median "
+      << std::endl;
+    std::cout << " example:   ImageSetStatistics  3   imagelist.txt  maxvalueimage.nii.gz 4 " << std::endl;
     return 1;
     }
 
