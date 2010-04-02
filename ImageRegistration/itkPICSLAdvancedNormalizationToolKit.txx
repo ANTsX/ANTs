@@ -1161,18 +1161,18 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     {
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "MI-option" );
-    option->SetDescription( "option of mutual information: MI_bins x MI_samples (default: 32x8000)" );
+    option->SetDescription( "option of mutual information: MI_bins x MI_samples (default: 32x32000)" );
 
     switch( TDimension )
       {
       case 2:
         {
-        option->AddValue(std::string("32x1000") );
+        option->AddValue(std::string("32x5000") );
         }
         break;
       case 3:
         {
-        option->AddValue(std::string("32x8000") );
+        option->AddValue(std::string("32x32000") );
         }
         break;
       }
