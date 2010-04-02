@@ -13,6 +13,7 @@
 #include "itkGradientDescentOptimizer.h"
 #include "itkCenteredTransformInitializer.h"
 #include "itkMattesMutualInformationImageToImageMetric.h"
+#include "itkCorrelationCoefficientHistogramImageToImageMetric.h"
 #include "itkMultiResolutionImageRegistrationMethod.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkANTSAffine3DTransform.h"
@@ -30,8 +31,11 @@
 #include <vector>
 #include "ReadWriteImage.h"
 #include "itkMeanSquaresImageToImageMetric.h"
+#include "itkGradientDifferenceImageToImageMetric.h"
+#include "itkNormalizedCorrelationImageToImageMetric.h"
 
-typedef enum { AffineWithMutualInformation = 1, AffineWithMeanSquareDifference } AffineMetricType;
+typedef enum { AffineWithMutualInformation = 1, AffineWithMeanSquareDifference, AffineWithHistogramCorrelation,
+               AffineWithNormalizedCorrelation, AffineWithGradientDifference } AffineMetricType;
 
 template <class TAffineTransformPointer, class TMaskImagePointer>
 class OptAffine
@@ -110,6 +114,12 @@ std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransformPoin
       os << "AffineWithMutualInformation" << std::endl; break;
     case AffineWithMeanSquareDifference:
       os << "AffineWithMeanSquareDifference" << std::endl; break;
+    case AffineWithHistogramCorrelation:
+      os << "AffineWithHistogramCorrelation" << std::endl; break;
+    case AffineWithNormalizedCorrelation:
+      os << "AffineWithNormalizedCorrelation" << std::endl; break;
+    case AffineWithGradientDifference:
+      os << "AffineWithGradientDifference" << std::endl; break;
     }
   os << "MI_bins=" << p.MI_bins << " " << "MI_samples=" << p.MI_samples << std::endl;
   os << "number_of_seeds=" << p.number_of_seeds << " " << "time_seed=" << p.time_seed << std::endl;
@@ -980,6 +990,53 @@ void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointer
                                                             MetricPointerType;
       typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
                                  InterpolatorPointerType>   RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+      break;
+    case AffineWithHistogramCorrelation:
+      {
+      typedef itk::CorrelationCoefficientHistogramImageToImageMetric<ImageType,
+                                                                     ImageType> MetricType;
+      typedef typename MetricType::Pointer
+                                                                                MetricPointerType;
+      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
+                                 InterpolatorPointerType>                       RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+      unsigned int nBins = 32;
+      typename MetricType::HistogramType::SizeType histSize;
+      histSize[0] = nBins;
+      histSize[1] = nBins;
+      running_cache.metric->SetHistogramSize(histSize);
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+      break;
+    case AffineWithNormalizedCorrelation:
+      {
+      typedef itk::NormalizedCorrelationImageToImageMetric<ImageType,
+                                                           ImageType> MetricType;
+      typedef typename MetricType::Pointer
+                                                                      MetricPointerType;
+      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
+                                 InterpolatorPointerType>             RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+    case AffineWithGradientDifference:
+      {
+      typedef itk::GradientDifferenceImageToImageMetric<ImageType,
+                                                        ImageType> MetricType;
+      typedef typename MetricType::Pointer
+                                                                   MetricPointerType;
+      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
+                                 InterpolatorPointerType>          RunningAffineCacheType;
 
       RunningAffineCacheType running_cache;
       InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
