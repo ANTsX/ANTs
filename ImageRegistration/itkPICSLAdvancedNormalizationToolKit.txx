@@ -186,7 +186,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         {
         affine_opt.metric_type = AffineWithMutualInformation;
         }
-      if( temp == "MSE" )
+      if( temp == "MSQ" )
         {
         affine_opt.metric_type = AffineWithMeanSquareDifference;
         }
@@ -1151,7 +1151,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "affine-metric-type" );
     option->SetDescription(
-      "MI: mutual information (default), MSE: mean square error, CC: Normalized correlation, CCH: Histogram-based correlation coefficient (not recommended), GD: gradient difference (not recommended) " );
+      "MI: mutual information (default), MSQ: mean square error, CC: Normalized correlation, CCH: Histogram-based correlation coefficient (not recommended), GD: gradient difference (not recommended) " );
     std::string nitdefault = std::string("MI");
     option->AddValue(nitdefault);
     this->m_Parser->AddOption( option );
