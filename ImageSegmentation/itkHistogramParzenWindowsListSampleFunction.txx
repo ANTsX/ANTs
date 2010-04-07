@@ -107,8 +107,9 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     origin[0] = minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] );
 
     typename HistogramImageType::SizeType size;
-    size[0] = vcl_ceil( ( maxValues[d] + 3.0 * ( this->m_Sigma * spacing[0] )
-                          - ( minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] ) ) ) / spacing[0] );
+    size[0] = static_cast<RealType>(
+        vcl_ceil( ( maxValues[d] + 3.0 * ( this->m_Sigma * spacing[0] )
+                    - ( minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] ) ) ) / spacing[0] ) );
 
     this->m_HistogramImages[d]->SetOrigin( origin );
     this->m_HistogramImages[d]->SetSpacing( spacing );
@@ -139,7 +140,8 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 
       typename HistogramImageType::IndexType idx;
 
-      idx[0] = vcl_floor( cidx[0] );
+      idx[0] = static_cast<typename
+                           HistogramImageType::IndexType::IndexValueType>( vcl_floor( cidx[0] ) );
       if( this->m_HistogramImages[d]->GetLargestPossibleRegion().IsInside( idx ) )
         {
         RealType oldWeight = this->m_HistogramImages[d]->GetPixel( idx );
