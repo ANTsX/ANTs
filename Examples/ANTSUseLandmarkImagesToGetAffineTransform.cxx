@@ -10,6 +10,8 @@
 #include "itkTransformFileWriter.h"
 // #include "ANTS_affine_registration2.h"
 #include <vnl/vnl_matrix.h>
+// #include <vnl/vnl_qr.h>
+#include "vnl/algo/vnl_qr.h"
 
 template <class TransformAPointer, class StringType>
 void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & ANTS_prefix);
@@ -264,13 +266,12 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
     x11.set_column(i, x1_tmp);
     }
 
-  vnl_matrix<double>         A11(Dim, Dim + 1);
-  vnl_matrix<double>         x11t = x11.transpose();
-  vnl_matrix_inverse<double> tmp(x11 * x11t);
+  vnl_matrix<double> A11(Dim, Dim + 1);
+  vnl_matrix<double> x11t = x11.transpose();
+  // vnl_matrix_inverse<double> tmp(x11 * x11t); // BA -- removed this -- not used?
 
-  // A11 = (y1 * x11t) * tmp.inverse();
-
-  A11 = vnl_matrix_inverse<double>(x11t) * (y1.transpose() );
+  vnl_svd<double> qr( x11t );   // can use vnl_qr
+  A11 = qr.inverse() * (y1.transpose() );
   A11 = A11.transpose();
 
   vnl_matrix<double> A(Dim, Dim);
