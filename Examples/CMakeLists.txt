@@ -65,8 +65,8 @@ TARGET_LINK_LIBRARIES(ResetDirection ITKCommon  ITKBasicFilters ITKIO   ITKNumer
 #TARGET_LINK_LIBRARIES(GeneralLinearModel ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 
-#ADD_EXECUTABLE(GLM GLM.cxx ${SOURCES})
-#TARGET_LINK_LIBRARIES(GLM ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+ADD_EXECUTABLE(ANTSUseLandmarkImagesToGetAffineTransform ANTSUseLandmarkImagesToGetAffineTransform.cxx ${SOURCES})
+TARGET_LINK_LIBRARIES(ANTSUseLandmarkImagesToGetAffineTransform ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 #ADD_EXECUTABLE(FDR FDR.cxx ${SOURCES})
 #TARGET_LINK_LIBRARIES(FDR ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
