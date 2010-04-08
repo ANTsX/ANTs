@@ -7,6 +7,17 @@
 #include <math.h>
 #include <iostream>
 #include "ReadWriteImage.h"
+#include "itkTransformFileWriter.h"
+// #include "ANTS_affine_registration2.h"
+#include <vnl/vnl_matrix.h>
+
+template <class TransformAPointer, class StringType>
+void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & ANTS_prefix);
+
+template <class PointContainerType, class TransformPointerType>
+void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
+                                          TransformPointerType & transform);
+
 //
 // The test specifies a bunch of fixed and moving landmarks and test if the
 // fixed landmarks after transform by the computed transform coincides
@@ -24,6 +35,8 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
   ImageType::Pointer movingimage;
   ReadImage<ImageType>(fixedimage, argv[1]);
   ReadImage<ImageType>(movingimage, argv[2]);
+
+  bool bRigid = (strcmp(argv[3], "rigid") == 0);
 
   /** get all of the relevant labels in the fixed image and moving image */
   typedef std::vector<PixelType> LabelSetType;
@@ -176,7 +189,196 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
   // to transform a point
   //         transform->TransformPoint( *fitr ) << std::endl;
 
+  // transform the transform to ANTS format
+  std::string ANTS_prefix(argv[4]);
+
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransformType;
+  AffineTransformType::Pointer aff = AffineTransformType::New();
+  GetAffineTransformFromTwoPointSets3D(fixedLandmarks, movingLandmarks, aff);
+  std::cout << "affine:" << aff;
+
+  if( bRigid )
+    {
+    DumpTransformForANTS3D(transform, ANTS_prefix);
+    }
+  else
+    {
+    DumpTransformForANTS3D(aff, ANTS_prefix);
+    }
+
   return EXIT_SUCCESS;
+}
+
+//////////
+// x: fixedLandmarks
+// y: movingLandmarks
+// (A,t,c) : affine transform, A:3*3, t: 3*1 c: 3*1 (c is the center of all points in x)
+// y-c = A*(x-c) + t;
+// steps:
+// 1. c = average of points of x
+// 2. let y1 = y-c; x1 = x - c; x11 = [x1; 1 ... 1] // extend x11
+// 3. minimize (y1-A1*x11)^2, A1 is a 3*4 matrix
+// 4. A = A1(1:3, 1:3), t = A1(1:3, 4);
+// step 3:
+//   A11 = (y1*x11')*(x11*x11')^(-1)
+// type info:
+//   assume PointContainerType is std::vector
+//   assume TrnasformPointerType is MatrixOffsetTransformBase
+
+template <class PointContainerType, class TransformPointerType>
+void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
+                                          TransformPointerType & transform)
+{
+  const int Dim = 3;
+  int       n = fixedLandmarks.size();
+
+  vnl_matrix<double> y(Dim, n), x(Dim, n);
+  for( int i = 0; i < n; i++ )
+    {
+    for( int j = 0; j < Dim; j++ )
+      {
+      x(j, i) = fixedLandmarks[i][j];
+      y(j, i) = movingLandmarks[i][j];
+      }
+    }
+
+  vnl_vector<double> c(Dim);
+  for( int j = 0; j < Dim; j++ )
+    {
+    c[j] = x.get_row(j).mean();
+    }
+
+  vnl_matrix<double> y1(Dim, n), x11(Dim + 1, n);
+  for( int i = 0; i < n; i++ )
+    {
+    y1.set_column(i, y.get_column(i) - c);
+
+    vnl_vector<double> x_tmp(Dim), x1_tmp(Dim + 1);
+    x_tmp = x.get_column(i) - c;
+    for( int j = 0; j < Dim; j++ )
+      {
+      x1_tmp[j] = x_tmp[j];
+      }
+    x1_tmp[Dim] = 1;
+
+    x11.set_column(i, x1_tmp);
+    }
+
+  vnl_matrix<double>         A11(Dim, Dim + 1);
+  vnl_matrix<double>         x11t = x11.transpose();
+  vnl_matrix_inverse<double> tmp(x11 * x11t);
+
+  // A11 = (y1 * x11t) * tmp.inverse();
+
+  A11 = vnl_matrix_inverse<double>(x11t) * (y1.transpose() );
+  A11 = A11.transpose();
+
+  vnl_matrix<double> A(Dim, Dim);
+  A = A11.extract(Dim, Dim, 0, 0);
+
+  std::cout << "y=" << y << std::endl;
+  std::cout << "x=" << x << std::endl;
+
+  std::cout << "y1=" << y1 << std::endl;
+  std::cout << "x11=" << x11 << std::endl;
+  std::cout << "A11=" << A11 << std::endl;
+
+  vnl_vector<double> t = A11.get_column(Dim);
+
+  typedef typename TransformPointerType::ObjectType TransformType;
+
+  typedef typename TransformType::InputPointType   PointType;
+  typedef typename TransformType::OutputVectorType VectorType;
+  typedef typename TransformType::MatrixType       MatrixType;
+
+  PointType center;
+  for( int i = 0; i < Dim; i++ )
+    {
+    center[i] = c[i];
+    }
+
+  VectorType translation;
+  for( int i = 0; i < Dim; i++ )
+    {
+    translation[i] = t[i];
+    }
+
+  MatrixType matrix(A);
+
+  transform->SetCenter(center);
+  transform->SetTranslation(translation);
+  transform->SetMatrix(matrix);
+
+  return;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Stripped from ANTS_affine_registration2.h
+template <class TransformPointerType, class StringType>
+void WriteAffineTransformFile(TransformPointerType & transform, StringType filename)
+{
+  itk::TransformFileWriter::Pointer transform_writer;
+
+  transform_writer = itk::TransformFileWriter::New();
+  transform_writer->SetFileName(filename);
+  transform_writer->SetInput(transform);
+
+  try
+    {
+    transform_writer->Update();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+              << "Exception in writing tranform file: " << std::endl
+              << filename << std::endl;
+    return;
+    }
+
+  return;
+}
+
+////////////////////////////////////////////////////////////////////////
+// Stripped from ANTS_affine_registration2.h
+template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
+inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
+                                   AffineTransformPointerType & transform)
+{
+  typedef typename RunningAffineTransformPointerType::ObjectType RunningAffineTransformType;
+  typedef typename AffineTransformPointerType::ObjectType        AffineTransformType;
+
+  transform->SetCenter(*(reinterpret_cast<typename AffineTransformType::InputPointType *>
+                         (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
+                                                                                              GetCenter() ) ) ) ) );
+  transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>
+                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running->
+                                                                                                     GetTranslation() ) ) ) ) );
+  transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
+                         (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
+
+  // std::cout << "transform_running" << transform_running << std::endl;
+  // std::cout << "transform" << transform << std::endl;
+}
+
+template <class TransformAPointer, class StringType>
+void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & ANTS_prefix)
+{
+  const int ImageDimension = 3;
+
+  // ANTS transform file type
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
+  AffineTransformType::Pointer transform_ANTS = AffineTransformType::New();
+
+  //    typedef TransformAPointer::ObjectType TransformA;
+
+  // std::cout << " writing " << ANTS_prefix << " affine " << std::endl;
+  // std::string ANTS_affine_filename = ANTS_prefix + std::string( "Affine.txt" );
+
+  std::string ANTS_affine_filename = ANTS_prefix;
+
+  std::cout << " writing ANTS affine file:" << ANTS_affine_filename << std::endl;
+  PostConversionInAffine(transform, transform_ANTS);
+  WriteAffineTransformFile(transform_ANTS, ANTS_affine_filename);
 }
 
 int LandmarkBasedTransformInitializer2D(int, char * [])
@@ -186,19 +388,19 @@ int LandmarkBasedTransformInitializer2D(int, char * [])
   return 1;
 
   /*
-  typedef  float PixelType;
-  const unsigned int Dimension = 2;
-  typedef itk::Image< PixelType, Dimension >  FixedImageType;
-  typedef itk::Image< PixelType, Dimension >  MovingImageType;
-  typedef itk::Image< PixelType, Dimension >  ImageType;
-  typename FixedImageType::Pointer fixedimage;
-  typename MovingImageType::Pointer movingimage;
-  ReadImage<ImageType>(fixedimage,argv[1]);
-  ReadImage<ImageType>(movingimage,argv[2]);
+typedef  float PixelType;
+const unsigned int Dimension = 2;
+typedef itk::Image< PixelType, Dimension >  FixedImageType;
+typedef itk::Image< PixelType, Dimension >  MovingImageType;
+typedef itk::Image< PixelType, Dimension >  ImageType;
+typename FixedImageType::Pointer fixedimage;
+typename MovingImageType::Pointer movingimage;
+ReadImage<ImageType>(fixedimage,argv[1]);
+ReadImage<ImageType>(movingimage,argv[2]);
 
-  // Set the transform type..
-  typedef itk::Rigid2DTransform< double > TransformType;
-  */
+// Set the transform type..
+typedef itk::Rigid2DTransform< double > TransformType;
+   */
 
   return EXIT_SUCCESS;
 }
@@ -208,7 +410,8 @@ int main(int argc, char *argv[])
   if( argc < 3 )
     {
     std::cout << "Useage ex:   " << argv[0]
-              << " FixedImageWithLabeledLandmarks.nii.gz  MovingImageWithLabeledLandmarks.nii.gz  OutAffine.txt "
+              <<
+    " FixedImageWithLabeledLandmarks.nii.gz  MovingImageWithLabeledLandmarks.nii.gz [rigid | affine] OutAffine.txt "
               << std::endl;
     std::cout
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "
