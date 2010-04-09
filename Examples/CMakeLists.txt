@@ -68,6 +68,11 @@ TARGET_LINK_LIBRARIES(ResetDirection ITKCommon  ITKBasicFilters ITKIO   ITKNumer
 ADD_EXECUTABLE(ANTSUseLandmarkImagesToGetAffineTransform ANTSUseLandmarkImagesToGetAffineTransform.cxx ${SOURCES})
 TARGET_LINK_LIBRARIES(ANTSUseLandmarkImagesToGetAffineTransform ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
+
+ADD_EXECUTABLE(ANTSUseDeformationFieldToGetAffineTransform ANTSUseDeformationFieldToGetAffineTransform ${SOURCES})
+TARGET_LINK_LIBRARIES(ANTSUseDeformationFieldToGetAffineTransform ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
+
+
 #ADD_EXECUTABLE(FDR FDR.cxx ${SOURCES})
 #TARGET_LINK_LIBRARIES(FDR ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
