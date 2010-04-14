@@ -10,6 +10,7 @@
 #include "itkTransformFileReader.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
+#include "itkLinearInterpolateImageFunction.h"
 
 typedef enum { INVALID_FILE = 1, AFFINE_FILE, DEFORMATION_FILE, IMAGE_AFFINE_HEADER,
                IDENTITY_TRANSFORM } TRAN_FILE_TYPE;
@@ -611,6 +612,14 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     interpolator_BS->SetSplineOrder(3);
     std::cout << "User B-spline interpolation " << std::endl;
     warper->SetInterpolator(interpolator_BS);
+    }
+  else
+    {
+    typedef typename itk::LinearInterpolateImageFunction<ImageType,
+                                                         typename WarperType::CoordRepType> LinInterpolateType;
+    typename LinInterpolateType::Pointer interpolator_LN = LinInterpolateType::New();
+    std::cout << "User Linear interpolation " << std::endl;
+    warper->SetInterpolator(interpolator_LN);
     }
 
   typedef itk::TransformFileReader                                    TranReaderType;
