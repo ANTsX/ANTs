@@ -6557,7 +6557,7 @@ int main(int argc, char *argv[])
     std::cout << "  TensorMeanDiffusion DTImage  " << std::endl;
     std::cout
       <<
-    "  CompareHeadersAndImages Image1 Image2 --- tries to find and fix header error! output is the repaired image with new header "
+    "  CompareHeadersAndImages Image1 Image2 --- tries to find and fix header error! output is the repaired image with new header.  never use this if you trust your header information. "
       << std::endl;
     std::cout << "  CountVoxelDifference Image1 Image2 Mask --- the where function from IDL " << std::endl;
     std::cout << "  stack image1 image2  --- stack image2 onto image1  " << std::endl;
