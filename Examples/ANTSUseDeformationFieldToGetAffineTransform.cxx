@@ -210,11 +210,11 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   vnl_matrix<double> A(Dim, Dim);
   A = A11.extract(Dim, Dim, 0, 0);
 
-//    std::cout << "y=" << y << std::endl;
-//    std::cout << "x=" << x << std::endl;
-//
-//    std::cout << "y1=" << y1 << std::endl;
-//    std::cout << "x11=" << x11 << std::endl;
+  //    std::cout << "y=" << y << std::endl;
+  //    std::cout << "x=" << x << std::endl;
+  //
+  //    std::cout << "y1=" << y1 << std::endl;
+  //    std::cout << "x11=" << x11 << std::endl;
   std::cout << "A11=" << A11 << std::endl;
 
   vnl_vector<double> t = A11.get_column(Dim);
@@ -384,12 +384,8 @@ void FetchLandmarkMappingFromDeformationField(const StringType & deformation_fie
 
   it.GoToBegin();
   unsigned int cnt = 0;
-  for( ; (!it.IsAtEnd() ) & (cnt < nb_try_to_load); ++it, ++cnt )
+  for( ; (!it.IsAtEnd() ) & (cnt < nb_try_to_load); ++it )
     {
-    if( rand() % 32767 > load_ratio * 32767 )
-      {
-      continue;
-      }
     bool getpoint = true;
     if( maskimg )
       {
@@ -401,6 +397,11 @@ void FetchLandmarkMappingFromDeformationField(const StringType & deformation_fie
 
     if( getpoint )
       {
+      if( rand() % 32767 > load_ratio * 32767 )
+        {
+        continue;
+        }
+
       PointType point1, point2;
       // get the output image index
       typename DeformationFieldType::IndexType index = it.GetIndex();
@@ -413,6 +414,8 @@ void FetchLandmarkMappingFromDeformationField(const StringType & deformation_fie
 
       fixedLandmarks.push_back(point1);
       movingLandmarks.push_back(point2);
+
+      ++cnt;
       }
     }
 
