@@ -107,7 +107,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     origin[0] = minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] );
 
     typename HistogramImageType::SizeType size;
-    size[0] = static_cast<RealType>(
+    size[0] = static_cast<unsigned int>(
         vcl_ceil( ( maxValues[d] + 3.0 * ( this->m_Sigma * spacing[0] )
                     - ( minValues[d] - 3.0 * ( this->m_Sigma * spacing[0] ) ) ) / spacing[0] ) );
 
