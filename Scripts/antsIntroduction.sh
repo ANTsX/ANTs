@@ -22,6 +22,8 @@ Compulsory arguments:
 
 Optional arguments
 
+-f:  Force script to proceed even if headers may be incompatible (0 = no, 1 = yes (default))
+
 -l:  Labels-In-Fixed-Image-Space-To-Deform-To-Moving-Image (default is off)
 
 -m:  Max-iterations
@@ -76,6 +78,9 @@ function Help {
  -r:  Reference image
 
  Optional arguments
+
+ -f:  Force script to proceed even if headers may be incompatible (0 = no, 1 = yes (default)). ANTS will perform
+      a basic header sanity check. If you want to trust it, use -f 0.
 
  -l:  Labels-In-Fixed-Image-Space-To-Deform-To-Moving-Image (default is off)
 
@@ -247,13 +252,13 @@ and should be located in:
 
 $currentdir
 
-Check if the corrected file is OK and use this as input to the ants.sh script. Otherwise
-call ImageMath's CompareHeadersAndImages on your Fixed and Moving image, to troubleshoot
-further.
+Try passing the original input image to antsaffine.sh. If the affine normalization succeeds,
+you can safely ignore this warning. Otherwise, you may need to reorient your date to correct
+the orientation incompatibility.
 --------------------------------------------------------------------------------------
 
 dataCheck
-    exit 1
+
 }
 
 time_start=`date +%s`
@@ -267,7 +272,7 @@ METRICTYPE="PR" # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
 N3CORRECT=0 # initialize optional parameter
 RIGID=0
-
+IGNORE_HDR_WARNING=1
 
 if [ "$1" == "-h" ]
 then
@@ -278,7 +283,7 @@ Usage >&2
 fi
 
 # reading command line arguments
-while getopts "d:r:i:h:o:m:n:l:q:s:t:" OPT
+while getopts "d:f:r:i:h:o:m:n:l:q:s:t:" OPT
 do
     case $OPT in
     h) #help
@@ -287,6 +292,9 @@ do
         ;;
     d) #dimensions
         DIM=$OPTARG
+        ;;
+    f) #ignore header warnings
+        IGNORE_HDR_WARNING=$OPTARG
         ;;
     i) #input or moving image
         MOVING=$OPTARG
@@ -354,9 +362,13 @@ compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz CompareHe
 
 if [ $compareheaders -ne 0 ]
 then
-dataCheck
+  dataCheck
+  if [ $IGNORE_HDR_WARNING -eq 0 ]
+  then
+      exit 1
+  fi
 else
-echo "input files: check passed"
+  echo "input files: check passed"
 fi
 
 ITERATLEVEL=(`echo $MAXITERATIONS | tr 'x' ' '`)

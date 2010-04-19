@@ -548,7 +548,7 @@ elif [ $nargs -lt 6 ]
 fi
 
 # reading command line arguments
-while getopts "c:d:i:j:h:m:n:o:s:r:t:z:" OPT
+while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
   do
   case $OPT in
       h) #help
