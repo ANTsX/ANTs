@@ -652,7 +652,7 @@ if [ ${NINFILES} -eq 0 ]
     echo "Please provide at least 2 filenames for the template."
     echo "Use $0 -h for help"
     exit 1
-elif [[ ${NINFILES} -eq 1 ]] & [[ -s fslnvols ]]
+elif [[ ${NINFILES} -eq 1 ]] && [[ -s fslnvols ]]
     then
     range=`fslnvols ${IMAGESETVARIABLE}`
     if [ ${range} -eq 1 ] && [ ${TDIM} -ne 4 ]
