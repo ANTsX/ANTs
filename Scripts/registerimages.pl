@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
 use File::Basename;
 
     if ($#ARGV >= 0) { $who = join(' ', $ARGV[0]); }

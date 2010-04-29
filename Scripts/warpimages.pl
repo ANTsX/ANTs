@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -w
+#!/usr/bin/perl -w
     if ($#ARGV >= 0) { $who = join(' ', $ARGV[0]); }
     if ($#ARGV >= 1) { $template = join(' ', $ARGV[1]); }
     if ($#ARGV >= 2) { $dim = join(' ', $ARGV[2]); } else { $dim=0; }
