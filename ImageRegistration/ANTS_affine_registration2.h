@@ -277,6 +277,7 @@ public:
   TImagePyramid            fixed_image_pyramid;
   TImagePyramid            moving_image_pyramid;
   TMetricPointerType       metric;
+  TMetricPointerType       invmetric;
   TInterpolatorPointerType interpolator;
 };
 
@@ -620,6 +621,7 @@ void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerTy
 
   running_cache.interpolator = InterpolatorType::New();
   running_cache.metric = MetricType::New();
+  running_cache.invmetric = MetricType::New();
 }
 
 template <class ImageTypePointer, class AffineTransformPointer>
@@ -764,8 +766,8 @@ ParaType NormalizeGradientForRigidTransform(ParaType & original_gradient, int kI
 ///////////////////////////////////////////////////////////////////////////////
 // template<class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
 template <class RunningAffineCacheType, class OptAffine, class ParaType>
-bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
-                                                         ParaType & para_final)
+bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
+                                                             ParaType & para_final)
 {
   typedef typename RunningAffineCacheType::ImagePyramidType      ImagePyramidType;
   typedef typename RunningAffineCacheType::ImagePointerType      ImagePointerType;
@@ -791,9 +793,14 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
   // try to use my own transform class together with image pyramid when transform are required (not much for MI though)
 
   typename TransformType::Pointer transform = TransformType::New();
+  typename TransformType::Pointer invtransform = TransformType::New();
 
   typename InterpolatorType::Pointer& interpolator = running_cache.interpolator;
+
+  typename InterpolatorType::Pointer invinterpolator = InterpolatorType::New();
+
   typename MetricType::Pointer& metric = running_cache.metric;
+  typename MetricType::Pointer& invmetric = running_cache.invmetric;
 
   const int kParaDim = TransformType::ParametersDimension;
 
@@ -826,9 +833,226 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
     metric->Initialize();
 
     ParaType last_gradient(kParaDim);
+    ParaType invlast_gradient(kParaDim);
     for( int j = 0; j < kParaDim; j++ )
       {
       last_gradient[j] = 0;
+      invlast_gradient[j] = 0;
+      }
+    current_step_length = maximum_step_length;
+
+    bool is_converged = false;
+    int  used_iterations = 0;
+    for( used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++ )
+      {
+      transform->GetInverse(invtransform);
+      invinterpolator->SetInputImage( fixed_image );
+      invmetric->SetMovingImage( fixed_image );
+      invmetric->SetFixedImage( moving_image );
+      invmetric->SetTransform( invtransform );
+      invmetric->SetInterpolator( invinterpolator );
+      invmetric->SetFixedImageRegion(moving_image->GetLargestPossibleRegion() );
+      invmetric->Initialize();
+
+      ParaType original_gradient(kParaDim);
+      ParaType current_gradient(kParaDim);
+      ParaType invoriginal_gradient(kParaDim);
+      ParaType invcurrent_gradient(kParaDim);
+
+      double value, invvalue;
+      try
+        {
+        metric->GetValueAndDerivative(current_para, value, original_gradient);
+        invmetric->GetValueAndDerivative( invtransform->GetParameters(), invvalue, invoriginal_gradient);
+        }
+      catch( itk::ExceptionObject & err )
+        {
+        std::cerr << "ExceptionObject caught !" << std::endl;
+        std::cerr << err << std::endl;
+        return false;
+        break;
+        }
+
+      // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep
+      // to use oscillation as the minimization convergence
+      // notice this is always a minimization procedure
+      if( is_rigid )
+        {
+        original_gradient = NormalizeGradientForRigidTransform(original_gradient, kImageDim);
+        invoriginal_gradient = NormalizeGradientForRigidTransform(invoriginal_gradient, kImageDim);
+        }
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        current_gradient[j] = original_gradient[j] / gradient_scales[j];
+        }
+      double gradient_magnitude = 0.0;
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        gradient_magnitude += current_gradient[j] * current_gradient[j];
+        }
+      gradient_magnitude = sqrt(gradient_magnitude);
+      double inner_product_last_current_gradient = 0.0;
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        inner_product_last_current_gradient += current_gradient[j] * last_gradient[j];
+        }
+      if( inner_product_last_current_gradient < 0 )
+        {
+        current_step_length *= relaxation_factor;
+        }
+
+      if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+        {
+        is_converged = true;
+        break;
+        }
+      // for inverse
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        invcurrent_gradient[j] = invoriginal_gradient[j] / gradient_scales[j];
+        }
+      double invgradient_magnitude = 0.0;
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        invgradient_magnitude += invcurrent_gradient[j] * invcurrent_gradient[j];
+        }
+      invgradient_magnitude = sqrt(invgradient_magnitude);
+      inner_product_last_current_gradient = 0.0;
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        inner_product_last_current_gradient += invcurrent_gradient[j] * invlast_gradient[j];
+        }
+      if( inner_product_last_current_gradient < 0 )
+        {
+        current_step_length *= relaxation_factor;
+        }
+
+      if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+        {
+        is_converged = true;
+        break;
+        }
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
+        current_para[j] += (1.0) * invcurrent_gradient[j] * current_step_length / invgradient_magnitude;
+        }
+      if( kImageDim == 3 )     // normalize quaternion
+        {
+        double quat_mag = 0.0;
+        for( int j = 0; j < 4; j++ )
+          {
+          quat_mag += current_para[j] * current_para[j];
+          }
+        quat_mag = sqrt(quat_mag);
+        for( int j = 0; j < 4; j++ )
+          {
+          current_para[j] /= quat_mag;
+          }
+        if( !is_rigid )
+          {
+          for( int j = 4; j < 7; j++ )
+            {
+            current_para[j] *= quat_mag;
+            }
+          }
+        }
+
+      last_gradient = current_gradient;
+      invlast_gradient = invcurrent_gradient;
+      }
+
+    std::cout << "level " << i << ", iter " << used_iterations
+              << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
+              << "-mov" << moving_image->GetRequestedRegion().GetSize();
+
+    std::cout << ", affine para: " << current_para << std::endl;
+
+    if( is_converged )
+      {
+      std::cout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
+                << std::endl;
+      }
+    else
+      {
+      std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
+                << minimum_step_length << std::endl;
+      }
+    }
+  para_final = current_para;
+  return true;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// template<class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
+template <class RunningAffineCacheType, class OptAffine, class ParaType>
+bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
+                                                         ParaType & para_final)
+{
+  typedef typename RunningAffineCacheType::ImagePyramidType      ImagePyramidType;
+  typedef typename RunningAffineCacheType::ImagePointerType      ImagePointerType;
+  typedef typename ImagePointerType::ObjectType                  ImageType;
+  typedef typename RunningAffineCacheType::MetricType            MetricType;
+  typedef typename RunningAffineCacheType::InterpolatorType      InterpolatorType;
+  typedef typename OptAffine::AffineTransformType                TransformType;
+  typedef typename RunningAffineCacheType::MaskObjectPointerType MaskObjectPointerType;
+
+  const unsigned int kImageDim = ImageType::ImageDimension;
+
+  ImagePyramidType&      fixed_image_pyramid = running_cache.fixed_image_pyramid;
+  ImagePyramidType&      moving_image_pyramid = running_cache.moving_image_pyramid;
+  MaskObjectPointerType& mask_fixed_object = running_cache.mask_fixed_object;
+
+  int                  number_of_levels = opt.number_of_levels;
+  std::vector<int>&    number_of_iteration_list = opt.number_of_iteration_list;
+  std::vector<double>& gradient_scales = opt.gradient_scales;
+  bool                 is_rigid = opt.is_rigid;
+
+  // use my own's registration routine of image pyramid and gradient descent , only use ITK's implementation of mutual
+  // information
+  // try to use my own transform class together with image pyramid when transform are required (not much for MI though)
+
+  typename TransformType::Pointer transform = TransformType::New();
+
+  typename InterpolatorType::Pointer& interpolator = running_cache.interpolator;
+  typename MetricType::Pointer& metric = running_cache.metric;
+  const int kParaDim = TransformType::ParametersDimension;
+
+  ParaType current_para(kParaDim);
+  current_para = opt.transform_initial->GetParameters();
+
+  double maximum_step_length = opt.maximum_step_length;
+  double relaxation_factor = opt.relaxation_factor;
+  double minimum_step_length = opt.minimum_step_length;
+  double current_step_length;
+  double value = 0;
+  for( int i = 0; i < number_of_levels; i++ )
+    {
+    transform->SetParameters(current_para);
+    transform->SetCenter(opt.transform_initial->GetCenter() );
+
+    ImagePointerType fixed_image = fixed_image_pyramid[i];
+    ImagePointerType moving_image = moving_image_pyramid[i];
+    int              number_of_iteration_current_level = number_of_iteration_list[i];
+    interpolator->SetInputImage( moving_image );
+    metric->SetMovingImage( moving_image );
+    metric->SetFixedImage( fixed_image );
+    metric->SetTransform( transform );
+    metric->SetInterpolator( interpolator );
+    metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion() );
+
+    if( mask_fixed_object.IsNotNull() )
+      {
+      metric->SetFixedImageMask(mask_fixed_object);
+      }
+    metric->Initialize();
+
+    ParaType last_gradient(kParaDim);
+    ParaType invlast_gradient(kParaDim);
+    for( int j = 0; j < kParaDim; j++ )
+      {
+      last_gradient[j] = 0;
+      invlast_gradient[j] = 0;
       }
     current_step_length = maximum_step_length;
 
@@ -839,7 +1063,7 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
       ParaType original_gradient(kParaDim);
       ParaType current_gradient(kParaDim);
 
-      double value;
+      value = 0;
       try
         {
         metric->GetValueAndDerivative(current_para, value, original_gradient);
@@ -874,32 +1098,26 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         {
         inner_product_last_current_gradient += current_gradient[j] * last_gradient[j];
         }
-      unsigned int count_oscillations = 0;
-      for( int j = 0; j < kParaDim; j++ )
-        {
-        if(  current_gradient[j] > 0 && last_gradient[j] < 0 ||  current_gradient[j] < 0 && last_gradient[j] > 0 )
-          {
-          count_oscillations++;
-          }
-        }
-      if( inner_product_last_current_gradient < 0 /* && !is_rigid */ )
+      if( inner_product_last_current_gradient < 0 )
         {
         current_step_length *= relaxation_factor;
         }
-      //            else if ( count_oscillations > kParamDim/2 ) current_step_length *= relaxation_factor;
+
       if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
         {
         is_converged = true;
         break;
         }
-      //            for(int j = 0; j < kParaDim; j++)  std::cerr<< current_gradient[j] << ", ";
-      //  std::cerr<< std::endl;
-      // std::cout << " ip " <<  inner_product_last_current_gradient  << " step " << current_step_length  <<  std::endl;
+
+      if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+        {
+        is_converged = true;
+        break;
+        }
       for( int j = 0; j < kParaDim; j++ )
         {
         current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
         }
-
       if( kImageDim == 3 )     // normalize quaternion
         {
         double quat_mag = 0.0;
@@ -921,13 +1139,6 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
           }
         }
 
-//            if (used_iterations%100 == 1){
-//                std::cout << "["<<used_iterations<<"]:" << value <<  ", current_para=" << current_para << std::endl;
-//                std::cout << "["<<used_iterations<<"]:" << "step_length=" << current_step_length <<  ", factor="
-//                    << current_step_length / gradient_magnitude <<  " original_gradient=" << original_gradient <<
-// std::endl;
-//            }
-
       last_gradient = current_gradient;
       }
 
@@ -948,7 +1159,163 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
                 << minimum_step_length << std::endl;
       }
     }
+
+  double value1 = value;
+
+  if(  !mask_fixed_object.IsNotNull() )
+    {
+    typename TransformType::Pointer transform2 = TransformType::New();
+    ParaType current_para2(kParaDim);
+    current_para2 = opt.transform_initial->GetParameters();
+
+    maximum_step_length = opt.maximum_step_length;
+    relaxation_factor = opt.relaxation_factor;
+    minimum_step_length = opt.minimum_step_length;
+    value = 0;
+    for( int i = 0; i < number_of_levels; i++ )
+      {
+      transform2->SetParameters(current_para2);
+      transform2->SetCenter(opt.transform_initial->GetCenter() );
+
+      /** see below -- we switch fixed and moving!!  */
+      ImagePointerType fixed_image = moving_image_pyramid[i];
+      ImagePointerType moving_image = fixed_image_pyramid[i];
+      int              number_of_iteration_current_level = number_of_iteration_list[i];
+      interpolator->SetInputImage( moving_image );
+      metric->SetMovingImage( moving_image );
+      metric->SetFixedImage( fixed_image );
+      metric->SetTransform( transform2 );
+      metric->SetInterpolator( interpolator );
+      metric->SetFixedImageRegion(fixed_image->GetLargestPossibleRegion() );
+
+      /** FIXME --- need a moving mask ... */
+      //        if (mask_fixed_object.IsNotNull()) metric->SetFixedImageMask(mask_fixed_object);
+      metric->Initialize();
+
+      ParaType last_gradient(kParaDim);
+      for( int j = 0; j < kParaDim; j++ )
+        {
+        last_gradient[j] = 0;
+        }
+      current_step_length = maximum_step_length;
+
+      bool is_converged = false;
+      int  used_iterations = 0;
+      for( used_iterations = 0; used_iterations < number_of_iteration_current_level; used_iterations++ )
+        {
+        ParaType original_gradient(kParaDim);
+        ParaType current_gradient(kParaDim);
+
+        value = 0;
+        try
+          {
+          metric->GetValueAndDerivative(current_para2, value, original_gradient);
+          }
+        catch( itk::ExceptionObject & err )
+          {
+          std::cerr << "ExceptionObject caught !" << std::endl;
+          std::cerr << err << std::endl;
+          return false;
+          break;
+          }
+
+        // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep
+        // to use oscillation as the minimization convergence
+        // notice this is always a minimization procedure
+        if( is_rigid )
+          {
+          original_gradient = NormalizeGradientForRigidTransform(original_gradient, kImageDim);
+          }
+        for( int j = 0; j < kParaDim; j++ )
+          {
+          current_gradient[j] = original_gradient[j] / gradient_scales[j];
+          }
+        double gradient_magnitude = 0.0;
+        for( int j = 0; j < kParaDim; j++ )
+          {
+          gradient_magnitude += current_gradient[j] * current_gradient[j];
+          }
+        gradient_magnitude = sqrt(gradient_magnitude);
+        double inner_product_last_current_gradient = 0.0;
+        for( int j = 0; j < kParaDim; j++ )
+          {
+          inner_product_last_current_gradient += current_gradient[j] * last_gradient[j];
+          }
+        if( inner_product_last_current_gradient < 0 )
+          {
+          current_step_length *= relaxation_factor;
+          }
+
+        if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+          {
+          is_converged = true;
+          break;
+          }
+
+        if( current_step_length < minimum_step_length || gradient_magnitude == 0.0 )
+          {
+          is_converged = true;
+          break;
+          }
+        for( int j = 0; j < kParaDim; j++ )
+          {
+          current_para2[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
+          }
+        if( kImageDim == 3 )   // normalize quaternion
+          {
+          double quat_mag = 0.0;
+          for( int j = 0; j < 4; j++ )
+            {
+            quat_mag += current_para2[j] * current_para2[j];
+            }
+          quat_mag = sqrt(quat_mag);
+          for( int j = 0; j < 4; j++ )
+            {
+            current_para2[j] /= quat_mag;
+            }
+          if( !is_rigid )
+            {
+            for( int j = 4; j < 7; j++ )
+              {
+              current_para2[j] *= quat_mag;
+              }
+            }
+          }
+
+        last_gradient = current_gradient;
+        }
+
+      std::cout << "level " << i << ", iter " << used_iterations
+                << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
+                << "-mov" << moving_image->GetRequestedRegion().GetSize();
+
+      std::cout << ", affine para: " << current_para2 << std::endl;
+
+      if( is_converged )
+        {
+        std::cout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
+                  << std::endl;
+        }
+      else
+        {
+        std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
+                  << minimum_step_length << std::endl;
+        }
+      }
+    std::cout << " v1 " << value1 << " v2 " << value << std::endl;
+    if( value < value1 )
+      {
+      std::cout << " last params " << transform->GetParameters() << std::endl;
+      std::cout << " my params " << transform2->GetParameters() << std::endl;
+      transform2->GetInverse(transform);
+      std::cout << " new params " << transform->GetParameters() << std::endl;
+      para_final = transform->GetParameters();
+      return true;
+      }
+    }
+
   para_final = current_para;
+  std::cout << "final " << para_final << std::endl;
   return true;
 }
 
