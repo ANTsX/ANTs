@@ -1,4 +1,4 @@
-# !/bin/bash
+#!/bin/bash
 
 VERSION="0.0.1"
 
@@ -166,7 +166,7 @@ COMMAND=$1
 shift
 
 # keep list of started processes
-echo "# !/bin/bash" >> ${here}/killme.sh
+echo "#!/bin/bash" >> ${here}/killme.sh
 chmod +x ${here}/killme.sh
 
 for INS in $* # for the rest of the arguments

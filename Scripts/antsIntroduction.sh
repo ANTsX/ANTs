@@ -1,4 +1,4 @@
-# !/bin/sh
+#!/bin/sh
 
 VERSION="0.0.7"
 

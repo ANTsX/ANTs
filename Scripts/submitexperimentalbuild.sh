@@ -1,5 +1,5 @@
+#!/bin/sh
 # request Bourne shell as shell for job
-#$ -S /bin/sh
 
 ctest -D ExperimentalStart
 ctest -D ExperimentalUpdate

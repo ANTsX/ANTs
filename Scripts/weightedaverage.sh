@@ -1,6 +1,6 @@
-#initialization, here, is unbiased
+#!/bin/sh
 
-echo " USAGE :: \n sh  weightedaverage.sh  \"Faces*tiff\" \n "
+echo "Usage: \n sh  weightedaverage.sh  \"Faces*tiff\" \n "
 
 count=9
 for x in `ls -tr  $1 `

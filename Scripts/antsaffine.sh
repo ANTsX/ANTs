@@ -1,4 +1,4 @@
-# !/bin/sh
+#!/bin/sh
 export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 
 NUMPARAMS=$#
