@@ -48,7 +48,7 @@ int main(int argc, char *argv[] )
   int dim = 2;
 
 //  while(argc--) printf("%s\n", *argv++);
-  if( argc < 2 )
+  if( argc < 2 || ( (argc == 2) && strcmp(argv[1], "--help") == 0) )
     {
     std::cout <<  " \n " << std::endl;
     std::cout <<  "Example usage: \n " << std::endl;
