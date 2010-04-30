@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 4 )
     {
-    std::cout << "Useage ex:  " << std::endl;
+    std::cout << "Usage:  " << std::endl;
     std::cout << argv[0]
               <<
     " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1}"

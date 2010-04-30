@@ -945,7 +945,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 4 )
     {
-    std::cout << "Useage ex:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
               <<
     " WM.nii GM.nii   Out.nii  {smoothparam=3} {priorthickval=5}  {dT=0.01}  use-sulcus-prior optional-laplacian-tolerance=0.001"
               << std::endl;

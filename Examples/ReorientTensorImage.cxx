@@ -671,7 +671,7 @@ int main(int argc, char *argv[])
 
   if( argc < 4 )
     {
-    std::cout << "Useage ex: " << argv[0] << " dimension infile.nii outfile.nii warp.nii " << std::endl;
+    std::cout << "Usage: " << argv[0] << " dimension infile.nii outfile.nii warp.nii " << std::endl;
     return 1;
     }
 

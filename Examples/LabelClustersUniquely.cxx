@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    std::cout << "Useage ex:  " << std::endl;
+    std::cout << "Usage:  " << std::endl;
     std::cout << argv[0] << " ImageDimension clustersin.hdr labeledclustersout.hdr   sizethresh " << std::endl;
     return 1;
     }

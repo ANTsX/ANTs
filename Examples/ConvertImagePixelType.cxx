@@ -79,7 +79,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    std::cout << "Useage ex:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
+    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
     std::cout << " ext is the extension you want, e.g. tif.  " << std::endl;
     std::cout << " TYPE-OPTION  :  TYPE " << std::endl;
     std::cout << "  0  :  char   " << std::endl;

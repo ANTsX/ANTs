@@ -37,7 +37,7 @@ int ResetDirection(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    std::cout << "Useage ex:   " << argv[0] << "  infile.nii outfile.nii direction matrix in a row " << std::endl;
+    std::cout << "Usage:   " << argv[0] << "  infile.nii outfile.nii direction matrix in a row " << std::endl;
     return 1;
     }
 
@@ -98,7 +98,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    std::cout << "Useage ex:   " << argv[0] << "  infile.nii outfile.nii  d01 d02 d03 d10 .... " << std::endl;
+    std::cout << "Usage:   " << argv[0] << "  infile.nii outfile.nii  d01 d02 d03 d10 .... " << std::endl;
     return 1;
     }
 

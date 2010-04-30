@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 2  || ( (argc == 2) && strcmp(argv[1], "--help") == 0) )
     {
-    std::cout << "Useage ex:  " << argv[0] << " image.ext " << std::endl;
+    std::cout << "Usage:  " << argv[0] << " image.ext " << std::endl;
     return 1;
     }
 

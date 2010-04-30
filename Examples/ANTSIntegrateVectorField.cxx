@@ -462,7 +462,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 4 )
     {
-    std::cout << "Useage ex:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
               << "  VecImageIN.nii.gz ROIMaskIN.nii.gz FibersOUT.vtk  LengthImageOUT.nii.gz   " << std::endl;
     std::cout
       <<

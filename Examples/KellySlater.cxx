@@ -1334,7 +1334,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 6 )
     {
-    std::cout << "Useage ex:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
               <<
     " ImageDimension Segmentation.nii.gz WMProb.nii.gz GMProb.nii.gz   Out.nii {GradStep-1-2D,2-3D}   {#Its-~50}  {ThickPriorValue-6} {Bool-use-curvature-prior} {smoothing} {BoolUseEuclidean?}"
               << std::endl;

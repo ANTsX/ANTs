@@ -273,7 +273,7 @@ int main(int argc, char *argv[])
       <<
     " Given an ROI and Label Image, find the max and average value   \n in a value image  where the value > some user-defined threshold \n and the cluster size  is larger than some min size. \n "
       << std::endl;
-    std::cout << "Useage ex: \n  " << std::endl;
+    std::cout << "Usage: \n  " << std::endl;
     std::cout << argv[0]
               <<
     "  ImageDimension ROIMask.ext LabelImage.ext  OutPrefix   MinimumClusterSize  ValueImageThreshold  Image1WithValuesOfInterest.ext ...  ImageNWithValuesOfInterest.ext  \n \n "

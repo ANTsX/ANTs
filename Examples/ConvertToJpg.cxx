@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    std::cout << "Useage ex:   ConvertToJpg infile.nii out.jpg " << std::endl;
+    std::cout << "Usage:   ConvertToJpg infile.nii out.jpg " << std::endl;
     return 1;
     }
 

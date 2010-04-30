@@ -848,7 +848,7 @@ int main( int argc, char * argv[] )
 {
   if( argc < 4 )
     {
-    std::cout << "Useage ex:  " << std::endl;
+    std::cout << "Usage:  " << std::endl;
     std::cout << argv[0]
               <<
     " ImageDimension controlslist.txt outimage.nii whichstat {roi.nii}  {parzen var} {matchiters} {localmeanrad}"

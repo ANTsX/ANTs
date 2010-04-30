@@ -580,7 +580,7 @@ int main(int argc, char *argv[])
 
   if( argc < 6 )
     {
-    std::cout << "Useage ex: " << argv[0] <<  " ImageDimension  OutName NGroup1 NGroup2 ControlV1*   SubjectV1*   "
+    std::cout << "Usage: " << argv[0] <<  " ImageDimension  OutName NGroup1 NGroup2 ControlV1*   SubjectV1*   "
               << std::endl;
     std::cout << " Assume all images the same size " << std::endl;
     std::cout << " Writes out an F-Statistic image " << std::endl;

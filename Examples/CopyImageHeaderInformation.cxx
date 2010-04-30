@@ -126,7 +126,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 4  )
     {
-    std::cout << "Useage ex:  " << argv[0]
+    std::cout << "Usage:  " << argv[0]
               <<
     " refimage.ext imagetocopyrefimageinfoto.ext imageout.ext   boolcopydirection  boolcopyorigin boolcopyspacing  {bool-Image2-IsTensor}"
               << std::endl;

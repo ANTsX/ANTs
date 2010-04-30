@@ -410,7 +410,7 @@ int main(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    std::cout << "Useage ex:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
               <<
     " FixedImageWithLabeledLandmarks.nii.gz  MovingImageWithLabeledLandmarks.nii.gz [rigid | affine] OutAffine.txt "
               << std::endl;
