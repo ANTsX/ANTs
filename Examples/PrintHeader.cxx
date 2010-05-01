@@ -15,6 +15,8 @@
 
 =========================================================================*/
 #include <iostream>
+#include <sys/stat.h>
+
 #include <fstream>
 #include <stdio.h>
 #include "itkImage.h"
@@ -285,6 +287,34 @@ int PrintHeader(int argc, char *argv[])
   return 1;
 }
 
+bool FileExists(string strFilename)
+{
+  struct stat stFileInfo;
+  bool        blnReturn;
+  int         intStat;
+
+  // Attempt to get the file attributes
+  intStat = stat(strFilename.c_str(), &stFileInfo);
+  if( intStat == 0 )
+    {
+    // We were able to get the file attributes
+    // so the file obviously exists.
+    blnReturn = true;
+    }
+  else
+    {
+    // We were not able to get the file attributes.
+    // This may mean that we don't have permission to
+    // access the folder which contains this file. If you
+    // need to do that level of checking, lookup the
+    // return values of stat which will give you
+    // more details on why stat failed.
+    blnReturn = false;
+    }
+
+  return blnReturn;
+}
+
 int main(int argc, char *argv[])
 {
   if( argc < 2  || ( (argc == 2) && strcmp(argv[1], "--help") == 0) )
@@ -292,9 +322,12 @@ int main(int argc, char *argv[])
     std::cout << "Usage:  " << argv[0] << " image.ext " << std::endl;
     return 1;
     }
-
   // Get the image dimension
-  std::string               fn = std::string(argv[1]);
+  std::string fn = std::string(argv[1]);
+  if( !FileExists(fn) )
+    {
+    std::cout << " file " << fn << " does not exist . " << std::endl;  return 1;
+    }
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(
       fn.c_str(), itk::ImageIOFactory::ReadMode);
