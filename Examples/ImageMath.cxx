@@ -66,7 +66,7 @@
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
-
+#include "itkExtractImageFilter.h"
 #include "itkMRIBiasFieldCorrectionFilter.h"
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -292,6 +292,89 @@ int GetLargestComponent(int argc, char *argv[])
   if( outname.length() > 3 )
     {
     WriteImage<ImageType>(image1, outname.c_str() );
+    }
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int ExtractSlice(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>                       OutImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  unsigned int slice = atoi(argv[argct]);   argct++;
+  std::cout << " Extract slice " << slice << " from dimension" << ImageDimension << std::endl;
+  typename ImageType::Pointer image1 = NULL;
+  typename OutImageType::Pointer outimage = NULL;
+
+  typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  if( slice >= timedims )
+    {
+    std::cout << " max slice number is " << timedims << std::endl;
+    return 1;
+    }
+  typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  extractRegion.SetIndex(ImageDimension - 1, slice );
+
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( image1 );
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  outimage = extractFilter->GetOutput();
+
+  /*  typename ImageType::SpacingType qspc=warpthisimage->GetSpacing();
+  typename ImageType::PointType qorg=warpthisimage->GetOrigin();
+  typename ImageType::DirectionType qdir=warpthisimage->GetDirection();
+  qdir.Fill(0);
+  for (unsigned int qq=0; qq<ImageDimension-1; qq++) {
+    for (unsigned int pp=0; pp<ImageDimension-1;pp++) {
+      qdir[qq][pp]=img_mov->GetDirection()[qq][pp];
+    }
+      qspc[qq]=img_mov->GetSpacing()[qq];
+      qorg[qq]=img_mov->GetOrigin()[qq];
+    }
+    warpthisimage->SetSpacing(qspc);
+    warpthisimage->SetOrigin(qorg);
+    warpthisimage->SetDirection(qdir);
+  */
+  if( outname.length() > 3 )
+    {
+    WriteImage<OutImageType>(outimage, outname.c_str() );
+    }
+  else
+    {
+    return 1;
     }
 
   return 0;
@@ -6594,6 +6677,10 @@ int main(int argc, char *argv[])
       <<
     " PropagateLabelsThroughMask   speed/binaryimagemask.nii.gz   initiallabelimage.nii.gz Optional-Stopping-Value  -- final output is the propagated label image  "
       << std::endl <<  " optional stopping value -- higher values allow more distant propagation "  << std::endl;
+    std::cout
+      <<
+    " ExtractSlice  volume.nii.gz slicetoextract --- will extract slice number from last dimension of volume (2,3,4) dimensions "
+      << std::endl;
     return 1;
     }
 
@@ -6803,6 +6890,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
         {
         TruncateImageIntensity<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
+        {
+        ExtractSlice<2>(argc, argv);
         }
       else
         {
@@ -7043,6 +7134,236 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
         {
         TruncateImageIntensity<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
+        {
+        ExtractSlice<3>(argc, argv);
+        }
+      else
+        {
+        std::cout << " cannot find operation : " << operation << std::endl;
+        }
+      }
+      break;
+    case 4:
+      {
+      if( strcmp(operation.c_str(), "m") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "mresample") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "+") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "-") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "/") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "^") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "exp") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "abs") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "addtozero") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "overadd") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Decision") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Neg") == 0 )
+        {
+        NegativeImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "G") == 0 )
+        {
+        SmoothImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "D") == 0 )
+        {
+        DistanceMap<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Normalize") == 0 )
+        {
+        NormalizeImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Grad") == 0 )
+        {
+        GradientImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
+        {
+        LaplacianImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PH") == 0 )
+        {
+        PrintHeader<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Byte") == 0 )
+        {
+        ByteImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
+        {
+        LabelStats<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
+        {
+        ROIStatistics<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
+        {
+        DiceAndMinDistSum<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
+        {
+        Lipschitz<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "InvId") == 0 )
+        {
+        InvId<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
+        {
+        GetLargestComponent<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
+        {
+        ThresholdAtMean<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
+        {
+        FlattenImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
+        {
+        CorruptImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
+        {
+        RemoveLabelInterfaces<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
+        {
+        EnumerateLabelInterfaces<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FitSphere") == 0 )
+        {
+        FitSphere<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Where") == 0 )
+        {
+        Where<4>(argc, argv);
+        }
+      //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<4>(argc,argv);
+      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
+        {
+        FillHoles<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
+        {
+        HistogramMatching<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PadImage") == 0 )
+        {
+        PadImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
+        {
+        SetOrGetPixel<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
+        {
+        MakeImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "stack") == 0 )
+        {
+        StackImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
+        {
+        CompareHeadersAndImages<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
+        {
+        CountVoxelDifference<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
+        {
+        ConvertImageToFile<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
+        {
+        PValueImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
+        {
+        CorrelationUpdate<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
+        {
+        ConvertImageSetToMatrix<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
+        {
+        ConvertVectorToImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
+        {
+        PropagateLabelsThroughMask<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
+        {
+        TriPlanarView<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
+        {
+        TruncateImageIntensity<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
+        {
+        ExtractSlice<4>(argc, argv);
         }
       else
         {
