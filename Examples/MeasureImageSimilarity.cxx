@@ -123,7 +123,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
 
   typename CCMetricType::RadiusType hradius;
   typename CCMetricType::RadiusType ccradius;
-  ccradius.Fill(2);
+  ccradius.Fill(4);
   typename MIMetricType::RadiusType miradius;
   miradius.Fill(0);
 
@@ -165,6 +165,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
     metricname = "CC ";
     std::cout << metricname << std::endl;
     ccmet->InitializeIteration();
+    metricimg = ccmet->MakeImage();
     metricvalue = ccmet->ComputeCrossCorrelation() * (1.0);
     }
   else
@@ -192,7 +193,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
 
   if( imgfilename.length() > 3 )
     {
-    std::cout << "Only Implemented for MSQ " << std::endl;
+    std::cout << "Only Implemented for MSQ and CC " << std::endl;
     typedef itk::ImageFileWriter<ImageType> writertype;
     typename writertype::Pointer w = writertype::New();
     w->SetInput(metricimg);
@@ -248,7 +249,7 @@ int main(int argc, char *argv[])
               <<
     " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}"
               << std::endl;
-    std::cout << "  outimage (Not Implemented)  and logfile are optional  " << std::endl;
+    std::cout << "  outimage (Not Implemented for MI yet)  and logfile are optional  " << std::endl;
     std::cout
       <<
     " target-value and epsilon-tolerance set goals for the metric value -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds "
