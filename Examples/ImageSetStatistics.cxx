@@ -600,14 +600,30 @@ float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> s
 
   unsigned int max = 0;
   float        maxsim = -1.e9;
+  float        totalsim = 0;
+  float        estapp = 0;
   for( unsigned int i = 0; i < size; i++ )
     {
-    float val = similarityvec[i];
-    if( val > maxsim )
-      {
-      max = i;
-      }
+    totalsim += similarityvec[i];
     }
+  if( fabs(totalsim) < 1.e-9 )
+    {
+    return 0;
+    }
+  for( unsigned int i = 0; i < size; i++ )
+    {
+    float simval = similarityvec[i];
+    float appval = labelvec[i];
+    estapp += appval * simval / totalsim;
+    if( simval > maxsim )
+      {
+      maxsim = simval; max = i;
+      }
+    //		    std::cout << " simval " << simval << " i " << i << " appval " << appval << " maxsim " << maxsim << " max "
+    // << max << std::endl;
+    }
+  //		std::cout <<"  estapp " << estapp << " max " << max << std::endl;
+  // return estapp;
   return labelvec[max];
 }
 
