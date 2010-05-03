@@ -134,11 +134,12 @@ SmoothImage(typename TImage::Pointer image, float sig)
 template <class TInputImage>
 // typename TInputImage::Pointer
 void
-HistogramMatch(
-  typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage)       //  typename
-                                                                                                            // TInputImage::Pointer
-                                                                                                            // m_OutputMovingImage
-                                                                                                            // )
+HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage) //
+                                                                                                                   //
+                                                                                                                   // typename
+                                                                                                                   // TInputImage::Pointer
+                                                                                                                   // m_OutputMovingImage
+                                                                                                                   // )
 {
   std::cout << " MATCHING INTENSITIES " << std::endl;
 
@@ -589,7 +590,7 @@ float myantsmax(std::vector<float> vec)
   return max;
 }
 
-float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> similarityvec)
+float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> similarityvec, bool opt)
 {
   typedef  std::vector<float>::size_type vec_sz;
   vec_sz size = labelvec.size();
@@ -606,7 +607,7 @@ float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> s
     {
     totalsim += similarityvec[i];
     }
-  if( fabs(totalsim) < 1.e-9 )
+  if( fabs(totalsim) <= 0 )
     {
     return 0;
     }
@@ -624,7 +625,14 @@ float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> s
     }
   //		std::cout <<"  estapp " << estapp << " max " << max << std::endl;
   // return estapp;
-  return labelvec[max];
+  if( opt == true )
+    {
+    return labelvec[max];
+    }
+  else
+    {
+    return max;
+    }
 }
 
 template <unsigned int ImageDimension>
@@ -721,7 +729,7 @@ int ImageSetStatistics(int argc, char *argv[])
   std::cout << " NFiles1 " << filecount1 << std::endl;
 
   unsigned int filecount2 = 0;
-  if( simimagelist.length() > 2 && whichstat == 5 )
+  if( simimagelist.length() > 2 && ( whichstat == 5 || whichstat == 6 ) )
     {
     std::ifstream inputStreamA( simimagelist.c_str(), std::ios::in );
     if( !inputStreamA.is_open() )
@@ -804,7 +812,7 @@ int ImageSetStatistics(int argc, char *argv[])
   simimagestack.resize(filecount2);
   std::vector<std::string> simfilenames(filecount2);
   ct = 0;
-  if( simimagelist.length() > 2 && whichstat == 5 )
+  if( simimagelist.length() > 2 && ( whichstat == 5 || whichstat == 6 ) )
     {
     std::ifstream inputStreamA( simimagelist.c_str(), std::ios::in );
     if( !inputStreamA.is_open() )
@@ -849,94 +857,127 @@ int ImageSetStatistics(int argc, char *argv[])
       std::cout << " % " << (float) ct / (float) nvox << std::endl;
       }
     ct++;
-    IndexType ind = vfIter.GetIndex();
-
-    if( mch == 0 )
+    IndexType    ind = vfIter.GetIndex();
+    unsigned int maxval = 0;
+    bool         takesample = true;
+    if( ROIimg )
       {
-      meanimage->SetPixel(ind, meanimage->GetPixel(ind) / filecount1 );
+      if( ROIimg->GetPixel(ind) < 0.5 )
+        {
+        takesample = false;
+        }
+      else
+        {
+        maxval = (unsigned int)(ROIimg->GetPixel(ind) - 1);
+        }
       }
-    for( unsigned int j = 0; j < filecount1; j++ )
+    if( takesample )
       {
-      voxels[j] = imagestack[j]->GetPixel(ind);
+      if( mch == 0 )
+        {
+        meanimage->SetPixel(ind, meanimage->GetPixel(ind) / filecount1 );
+        }
+      for( unsigned int j = 0; j < filecount1; j++ )
+        {
+        voxels[j] = imagestack[j]->GetPixel(ind);
+        }
+      for( unsigned int j = 0; j < filecount2; j++ )
+        {
+        similarities[j] = simimagestack[j]->GetPixel(ind);
+        }
+      float stat = 0;
+
+      switch( whichstat )
+        {
+        case 1:
+          {
+          stat = npdf(voxels, true, www);
+          if( ct == 1 )
+            {
+            std::cout << "the max prob appearance \n";
+            }
+          }
+          break;
+        case 2:
+          {
+          stat = npdf(voxels, false, www);
+          if( ct == 1 )
+            {
+            std::cout << "the probabilistically weighted appearance " << www << " \n";
+            }
+          }
+          break;
+
+        case 3:
+          {
+          stat = trimmean(voxels);
+          if( ct == 1 )
+            {
+            std::cout << "the trimmed mean appearance \n";
+            }
+          }
+          break;
+
+        case 4:
+          {
+          stat = myantsmax(voxels);
+          if( ct == 1 )
+            {
+            std::cout << "the maximum appearance \n";
+            }
+          }
+          break;
+        case 5:
+          {
+          stat = myantssimilaritymaxlabel(voxels, similarities, true);
+          if( ct == 1 )
+            {
+            std::cout << "the maximum similarity-based label \n";
+            }
+          }
+          break;
+        case 6:
+          {
+          stat = myantssimilaritymaxlabel(voxels, similarities, false);
+          if( ct == 1 )
+            {
+            std::cout << "which image provides the maximum similarity-based label \n";
+            }
+          }
+          break;
+        case 7:
+          {
+          stat = voxels[maxval];
+          if( ct == 1 )
+            {
+            std::cout << "which image provides the maximum similarity-based label \n";
+            }
+          }
+          break;
+
+        default:
+          {
+          stat = median(voxels);
+          if( ct == 1 )
+            {
+            std::cout << "the median appearance \n";
+            }
+          }
+          break;
+        }
+      float sval = stat;
+      if( localmeanrad > 0 )
+        {
+        sval += meanimage->GetPixel(ind);
+        }
+      StatImage->SetPixel(ind, sval);
       }
-    for( unsigned int j = 0; j < filecount2; j++ )
+    else
       {
-      similarities[j] = simimagestack[j]->GetPixel(ind);
+      StatImage->SetPixel(ind, 0);
       }
-    float stat = 0;
-
-    switch( whichstat )
-      {
-      case 1:
-        {
-        stat = npdf(voxels, true, www);
-        if( ct == 1 )
-          {
-          std::cout << "the max prob appearance \n";
-          }
-        }
-        break;
-      case 2:
-        {
-        stat = npdf(voxels, false, www);
-        if( ct == 1 )
-          {
-          std::cout << "the probabilistically weighted appearance " << www << " \n";
-          }
-        }
-        break;
-
-      case 3:
-        {
-        stat = trimmean(voxels);
-        if( ct == 1 )
-          {
-          std::cout << "the trimmed mean appearance \n";
-          }
-        }
-        break;
-
-      case 4:
-        {
-        stat = myantsmax(voxels);
-        if( ct == 1 )
-          {
-          std::cout << "the maximum appearance \n";
-          }
-        }
-        break;
-      case 5:
-        {
-        stat = myantssimilaritymaxlabel(voxels, similarities);
-        if( ct == 1 )
-          {
-          std::cout << "the maximum similarity-based label \n";
-          }
-        }
-        break;
-
-      default:
-        {
-        stat = median(voxels);
-        if( ct == 1 )
-          {
-          std::cout << "the median appearance \n";
-          }
-        }
-        break;
-      }
-    float sval = stat;
-    if( localmeanrad > 0 )
-      {
-      sval += meanimage->GetPixel(ind);
-      }
-    StatImage->SetPixel(ind, sval);
     }
   WriteImage<ImageType>(StatImage, outfn.c_str() );
-  if( localmeanrad > 0 )
-    {
-    WriteImage<ImageType>(meanimage, "localmean.nii" );
-    }
 
   std::cout << " Done " << std::endl;
   return 0;
@@ -953,7 +994,7 @@ int main( int argc, char * argv[] )
               << std::endl;
     std::cout
       <<
-    " whichstat = 0:  median,  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed mean , 4 : max value , 5 : similarity-weighted (must pass imagelist2 as well) else median "
+    " whichstat = 0:  median,  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed mean , 4 : max value , option 5 : similarity-weighted (must pass imagelist2 as well) else median , option 6 : same as similarity-weighted option 5 but the label corresponds to the image that provides the best local match ... useful if you want to MRF smooth these indices  , option 7 : similar to 5 but expects the max-value to be stored in the ROI image and uses it to get the intensity ... "
       << std::endl;
     std::cout << " example:   ImageSetStatistics  3   imagelist.txt  maxvalueimage.nii.gz 4 " << std::endl;
     std::cout
