@@ -316,6 +316,13 @@ public:
 
   double ComputeMutualInformation()
   {
+    /** Ray Razlighi changes : May 3, 2010: improves convergence.
+1- The padding is lowered to 2.
+2- The MI energy is changed to actual MI, please note the value of this MI is in the range of [0  min(H(x),H(y))]. in case you need it to be normalized.
+3- The Natural logarithm is changed to log2.
+4- In the ComputeMutualInformation() the iterator range has been changed to cover the entire PDF.
+5- In the FitIndexInBins() the truncation by floor has been modified to round.
+6- The normalization is done based on NomberOfHistogramBins-1 instead of NomberOfHistogramBins. */
     float         px, py, pxy;
     double        mival = 0;
     double        mi;
