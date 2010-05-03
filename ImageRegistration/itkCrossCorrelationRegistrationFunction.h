@@ -187,6 +187,10 @@ public:
           {
           cc += sfm * sfm / (sff * smm); ct++;
           }
+        if( this->m_MetricImage )
+          {
+          this->m_MetricImage->SetPixel(oindex, cc);
+          }
         totalcc += cc;
         }
       this->m_Energy = totalcc / (float)ct * (-1.0);
@@ -311,24 +315,6 @@ public:
 
   double localCrossCorrelation;
   float  m_TEMP;
-protected:
-  CrossCorrelationRegistrationFunction();
-  ~CrossCorrelationRegistrationFunction()
-  {
-  }
-
-  void PrintSelf(std::ostream& os, Indent indent) const;
-
-  /** FixedImage image neighborhood iterator type. */
-  typedef ConstNeighborhoodIterator<FixedImageType> FixedImageNeighborhoodIteratorType;
-
-  /** A global data type for this class of equation. Used to store
-   * iterators for the fixed image. */
-  struct GlobalDataStruct
-    {
-    FixedImageNeighborhoodIteratorType m_FixedImageIterator;
-    };
-
   MetricImagePointer MakeImage()
   {
     typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
@@ -363,6 +349,23 @@ protected:
     return this->m_MetricImage;
   }
 
+protected:
+  CrossCorrelationRegistrationFunction();
+  ~CrossCorrelationRegistrationFunction()
+  {
+  }
+
+  void PrintSelf(std::ostream& os, Indent indent) const;
+
+  /** FixedImage image neighborhood iterator type. */
+  typedef ConstNeighborhoodIterator<FixedImageType> FixedImageNeighborhoodIteratorType;
+
+  /** A global data type for this class of equation. Used to store
+   * iterators for the fixed image. */
+  struct GlobalDataStruct
+    {
+    FixedImageNeighborhoodIteratorType m_FixedImageIterator;
+    };
 private:
   CrossCorrelationRegistrationFunction(const Self &); // purposely not implemented
   void operator=(const Self &);                       // purposely not implemented
