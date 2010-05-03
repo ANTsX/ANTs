@@ -39,7 +39,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 ::AvantsMutualInformationRegistrationFunction()
 {
   this->Superclass::m_NormalizeGradient = true;
-  this->m_NumberOfSpatialSamples = 500;
+  this->m_NumberOfSpatialSamples = 5000;
   this->m_NumberOfHistogramBins = 50;
 
   //  this->SetComputeGradient(false); // don't use the default gradient for now
@@ -78,7 +78,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 
   m_FixedImageGradientCalculator = GradientCalculatorType::New();
   m_MovingImageGradientCalculator = GradientCalculatorType::New();
-  this->m_Padding = 4;
+  this->m_Padding = 2;
 
   typename DefaultInterpolatorType::Pointer interp =  DefaultInterpolatorType::New();
   typename DefaultInterpolatorType::Pointer interp2 = DefaultInterpolatorType::New();
@@ -429,17 +429,16 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
       // Get sampled index
       FixedImageIndexType index = iter.GetIndex();
       typename FixedImageType::SizeType imagesize = this->m_FixedImage->GetLargestPossibleRegion().GetSize();
-      bool inimage = true;
-      for( unsigned int dd = 0; dd < ImageDimension; dd++ )
-        {
-        if( index[dd] < 1 ||    index[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1) )
-          {
-          inimage = false;
-          }
-        }
+/*	bool inimage=true;
+  for (unsigned int dd=0; dd<ImageDimension; dd++)
+    {
+      if ( index[dd] < 1 ||    index[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd]-1) )
+        inimage=false;
+    }
+*/
+      double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( index )  );
+      double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( index )  );
 
-      double       movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( index )  );
-      double       fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( index )  );
       unsigned int movingImageParzenWindowIndex = this->FitIndexInBins(  movingImageValue );
       unsigned int fixedImageParzenWindowIndex = this->FitIndexInBins( fixedImageValue  );
 
@@ -501,6 +500,8 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
     jointPDFSum += temp;
     ++jointPDFIterator;
     }
+
+  // std::cout << " Joint PDF Summation? " << jointPDFSum << std::endl;
 
 // of derivatives
   if( jointPDFSum == 0.0 )
