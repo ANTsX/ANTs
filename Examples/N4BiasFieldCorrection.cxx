@@ -7,6 +7,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImageRegionIterator.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkN4MRIBiasFieldCorrectionImageFilter.h"
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
@@ -426,6 +427,20 @@ int InhomogeneityCorrectImage( itk::CommandLineParser *parser )
     divider->SetInput1( inputImage );
     divider->SetInput2( expFilter->GetOutput() );
     divider->Update();
+
+    if( weightImage &&
+        ( maskImageOption && maskImageOption->GetNumberOfValues() > 0 ) )
+      {
+      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
+                                                        divider->GetOutput()->GetLargestPossibleRegion() );
+      for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
+        {
+        if( maskImage->GetPixel( ItD.GetIndex() ) != correcter->GetMaskLabel() )
+          {
+          ItD.Set( inputImage->GetPixel( ItD.GetIndex() ) );
+          }
+        }
+      }
 
     typename ImageType::RegionType inputRegion;
     inputRegion.SetIndex( inputImageIndex );
