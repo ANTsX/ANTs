@@ -3,6 +3,10 @@ if [ $# -lt 6  ]
 then
 echo " USAGE \n  sh $0  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii  ITERATIONS LandmarkWeight "
 echo " you should set LandmarkWeight yourself --- the intensity weight is 1.  so the landmark weight should be in that range (e.g. 0.5 => 1 ) "
+echo "  the usage indicates .nii but you can use whatever image type you like (as long as itk can read it).
+also, the fixedhipp.nii can contain either the full hippocampus or the landmarks for the hippocampus --- this would be your template.
+the moving.nii can contain either one as well.  if the moving contains the landmarks and the fixed contains the full
+hippocampus, then  this is known as "partial matching" as in Pluta, et al Hippocampus 2009.  "
 exit
 fi
 
