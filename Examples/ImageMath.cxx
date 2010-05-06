@@ -2126,6 +2126,12 @@ int ImageMath(int argc, char *argv[])
     return 0;
     }
 
+  float volumeelement = 1.0;
+  for( unsigned int i = 0;  i < ImageDimension; i++ )
+    {
+    volumeelement *= varimage->GetSpacing()[i];
+    }
+
   float    result = 0;
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -2193,7 +2199,7 @@ int ImageMath(int argc, char *argv[])
       {
       result = 1. / (1. + exp(-1.0 * ( pix1 - 0.25) / pix2) );
       }
-    else if( strcmp(operation.c_str(), "total") == 0 )
+    else if( strcmp(operation.c_str(), "total") == 0 && pix2 >= 0.5 )
       {
       result += pix1;
       }
@@ -2202,7 +2208,7 @@ int ImageMath(int argc, char *argv[])
     }
   if( strcmp(operation.c_str(), "total") == 0 )
     {
-    std::cout << "total: " << result << std::endl;
+    std::cout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
     }
   else
     {
@@ -6585,7 +6591,7 @@ int main(int argc, char *argv[])
     std::cout << " The last two arguments can be an image or float value " << std::endl;
     std::cout
       <<
-    " Valid Operators :   \n m (multiply)  , \n   +  (add)  , \n   - (subtract)  , \n   / (divide)  , \n   ^ (power)  , \n exp -- take exponent exp(imagevalue*value) \n addtozero \n overadd \n abs  \n total \n Decision -- computes  result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))  "
+    " Valid Operators :   \n m (multiply)  , \n   +  (add)  , \n   - (subtract)  , \n   / (divide)  , \n   ^ (power)  , \n exp -- take exponent exp(imagevalue*value) \n addtozero \n overadd \n abs  \n total -- sums up values in an image (img2 is the mask) \n Decision -- computes  result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))  "
       << std::endl;
     std::cout <<  "   Neg (Produce Image Negative ) , \n   G Image1.ext s  (Smooth with Gaussian of sigma = s )  "
               << std::endl;
