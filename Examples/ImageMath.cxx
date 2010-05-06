@@ -2126,6 +2126,7 @@ int ImageMath(int argc, char *argv[])
     return 0;
     }
 
+  float    result = 0;
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
@@ -2140,7 +2141,6 @@ int ImageMath(int argc, char *argv[])
       pix2 = image2->GetPixel(ind);
       }
     float pix1 = image1->GetPixel(ind);
-    float result = 0;
 
     if( strcmp(operation.c_str(), "m") == 0 )
       {
@@ -2193,12 +2193,25 @@ int ImageMath(int argc, char *argv[])
       {
       result = 1. / (1. + exp(-1.0 * ( pix1 - 0.25) / pix2) );
       }
+    else if( strcmp(operation.c_str(), "total") == 0 )
+      {
+      result += pix1;
+      }
 
     vfIter2.Set(result);
     }
-
-  std::cout << "operation " << operation << std::endl;
-  WriteImage<ImageType>(varimage, outname.c_str() );
+  if( strcmp(operation.c_str(), "total") == 0 )
+    {
+    std::cout << "total: " << result << std::endl;
+    }
+  else
+    {
+    std::cout << "operation " << operation << std::endl;
+    }
+  if( outname.length() > 3 )
+    {
+    WriteImage<ImageType>(varimage, outname.c_str() );
+    }
 
   return 0;
 }
@@ -6572,7 +6585,7 @@ int main(int argc, char *argv[])
     std::cout << " The last two arguments can be an image or float value " << std::endl;
     std::cout
       <<
-    " Valid Operators :   \n m (multiply)  , \n   +  (add)  , \n   - (subtract)  , \n   / (divide)  , \n   ^ (power)  , \n exp -- take exponent exp(imagevalue*value) \n addtozero \n overadd \n abs  \n Decision -- computes  result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))  "
+    " Valid Operators :   \n m (multiply)  , \n   +  (add)  , \n   - (subtract)  , \n   / (divide)  , \n   ^ (power)  , \n exp -- take exponent exp(imagevalue*value) \n addtozero \n overadd \n abs  \n total \n Decision -- computes  result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))  "
       << std::endl;
     std::cout <<  "   Neg (Produce Image Negative ) , \n   G Image1.ext s  (Smooth with Gaussian of sigma = s )  "
               << std::endl;
@@ -6727,6 +6740,10 @@ int main(int argc, char *argv[])
         ImageMath<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "overadd") == 0 )
+        {
+        ImageMath<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "total") == 0 )
         {
         ImageMath<2>(argc, argv);
         }
@@ -6940,6 +6957,10 @@ int main(int argc, char *argv[])
         ImageMath<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "overadd") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "total") == 0 )
         {
         ImageMath<3>(argc, argv);
         }
@@ -7184,6 +7205,10 @@ int main(int argc, char *argv[])
         ImageMath<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "overadd") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "total") == 0 )
         {
         ImageMath<4>(argc, argv);
         }
