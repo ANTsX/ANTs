@@ -677,7 +677,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
     jointPDFXuYrIterator.Value() /= static_cast<PDFValueType>( jointPDFSum );
     }
 
-  bool smoothjh = true;
+  bool smoothjh = false;
   if( smoothjh )
     {
     typedef DiscreteGaussianImageFilter<JointPDFType, JointPDFType> dgtype;
