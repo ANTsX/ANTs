@@ -448,7 +448,7 @@ public:
     SMI = (0.5) * (JointEntropyXuY + JointEntropyXYu + JointEntropyXlY + JointEntropyXYl)
       - (0.25) * (4 * JointEntropy + JointEntropyXuYr + JointEntropyXrYu + JointEntropyXlYu + JointEntropyXuYl);
 
-    this->m_Energy = (-1.0) * SMI / log(2);
+    this->m_Energy = (-1.0) * fabs(SMI / log(2) );
     return this->m_Energy;
   }
 

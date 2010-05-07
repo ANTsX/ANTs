@@ -24,7 +24,7 @@
 
 #include "itkPICSLAdvancedNormalizationToolKit.h"
 #include "itkHistogramMatchingImageFilter.h"
-
+#include "itkSpatialMutualInformationRegistrationFunction.h"
 #include "itkIdentityTransform.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -707,6 +707,28 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           similarityMetric->SetMaximizeMetric( true );
           this->m_SimilarityMetrics.push_back( similarityMetric );
           }
+        else if( whichMetric == "spatial-mutual-information" ||
+                 whichMetric == "SpatialMutualInformation" ||
+                 whichMetric == "SMI" )
+          {
+          typedef itk::SpatialMutualInformationRegistrationFunction
+            <ImageType, ImageType, DeformationFieldType> MetricType;
+          typename MetricType::Pointer metric = MetricType::New();
+          metric->SetNumberOfHistogramBins( numberOfHistogramBins );
+          metric->SetNormalizeGradient( false );
+          metric->SetRobustnessParameter( extraparam );
+          unsigned int histbins = radius[0];
+          if( histbins < 8 )
+            {
+            histbins = 8;
+            }
+          metric->SetNumberOfHistogramBins(histbins);
+          radius.Fill(0);
+          metric->SetRadius( radius );
+          similarityMetric->SetMetric(  metric );
+          similarityMetric->SetMaximizeMetric( true );
+          this->m_SimilarityMetrics.push_back( similarityMetric );
+          }
         else if( whichMetric == "cross-correlation" ||
                  whichMetric == "CrossCorrelation" ||
                  whichMetric == "CC" )
@@ -830,11 +852,13 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::string intensityBasedOptions( "[fixedImage,movingImage,weight,radius/OrForMI-#histogramBins]" );
     std::string ccDescription( "CC/cross-correlation/CrossCorrelation" );
     std::string miDescription( "MI/mutual-information/MutualInformation" );
+    std::string smiDescription( "SMI/spatial-mutual-information/SpatialMutualInformation" );
     std::string prDescription( "PR/probabilistic/Probabilistic" );
     std::string msqDescription( "MSQ/mean-squares/MeanSquares -- radius > 0 uses moving image gradient in metric deriv." );
     intensityBasedDescription += (
         newLineTabs + ccDescription + intensityBasedOptions
         + newLineTabs + miDescription + intensityBasedOptions
+        + newLineTabs + smiDescription + intensityBasedOptions
         + newLineTabs + prDescription + intensityBasedOptions
         + newLineTabs + msqDescription + intensityBasedOptions );
 
