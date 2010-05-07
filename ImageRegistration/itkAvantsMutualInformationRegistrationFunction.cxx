@@ -42,14 +42,10 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   this->m_NumberOfSpatialSamples = 5000;
   this->m_NumberOfHistogramBins = 50;
 
-  //  this->SetComputeGradient(false); // don't use the default gradient for now
-
-  this->m_InterpolatorIsBSpline = false;
-  this->m_TransformIsBSpline    = false;
+  //  this->SetComputeGradient(false); // don't use the default gradient for no
 
   // Initialize PDFs to NULL
   m_JointPDF = NULL;
-  m_JointPDFDerivatives = NULL;
 
   m_OpticalFlow = false;
   typename TransformType::Pointer transformer = TransformType::New();
@@ -297,24 +293,18 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
    * The joint PDF and joint PDF derivatives are store as itk::Image.
    */
   m_JointPDF = JointPDFType::New();
-  m_JointPDFDerivatives = JointPDFDerivativesType::New();
 
   // Instantiate a region, index, size
   JointPDFRegionType jointPDFRegion;
   JointPDFIndexType  jointPDFIndex;
   JointPDFSizeType   jointPDFSize;
 
-  JointPDFDerivativesRegionType jointPDFDerivativesRegion;
-  JointPDFDerivativesIndexType  jointPDFDerivativesIndex;
-  JointPDFDerivativesSizeType   jointPDFDerivativesSize;
   // For the joint PDF define a region starting from {0,0}
   // with size {m_NumberOfHistogramBins, m_NumberOfHistogramBins}.
   // The dimension represents fixed image parzen window index
   // and moving image parzen window index, respectively.
   jointPDFIndex.Fill( 0 );
-  jointPDFDerivativesIndex.Fill( 0 );
   jointPDFSize.Fill( m_NumberOfHistogramBins );
-  jointPDFDerivativesSize.Fill(m_NumberOfHistogramBins );
 
   jointPDFRegion.SetIndex( jointPDFIndex );
   jointPDFRegion.SetSize( jointPDFSize );
@@ -332,43 +322,10 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   // m_NumberOfHistogramBins}. The dimension represents transform parameters,
   // fixed image parzen window index and moving image parzen window index,
   // respectively.
-  jointPDFDerivativesIndex.Fill( 0 );
-  jointPDFDerivativesSize[0] = m_NumberOfParameters;
-  jointPDFDerivativesSize[1] = m_NumberOfHistogramBins;
-  //  jointPDFDerivativesSize[2] = m_NumberOfHistogramBins;
 
-  jointPDFDerivativesRegion.SetIndex( jointPDFDerivativesIndex );
-  jointPDFDerivativesRegion.SetSize( jointPDFDerivativesSize );
-  // Set the regions and allocate
-  m_JointPDFDerivatives->SetRegions( jointPDFDerivativesRegion );
-  //  m_JointPDFDerivatives->Allocate();
   typename JointPDFType::SpacingType jspacing; jspacing.Fill(1);
   this->m_JointHist->SetSpacing(jspacing);
   this->m_JointPDF->SetSpacing(jspacing);
-
-  m_InterpolatorIsBSpline = true;
-
-  BSplineInterpolatorType * testPtr = dynamic_cast<BSplineInterpolatorType *>(
-      this->m_Interpolator.GetPointer() );
-  if( !testPtr )
-    {
-    m_InterpolatorIsBSpline = false;
-
-    m_DerivativeCalculator = DerivativeFunctionType::New();
-    m_DerivativeCalculator->SetInputImage( this->m_MovingImage );
-
-    m_BSplineInterpolator = NULL;
-    //    itkDebugMacro( "Interpolator is not BSpline" );
-    }
-  else
-    {
-    m_BSplineInterpolator = testPtr;
-    m_DerivativeCalculator = NULL;
-    // itkDebugMacro( "Interpolator is BSpline" );
-    }
-
-  m_TransformIsBSpline = false;
-  m_BSplineTransform = NULL;
 
   m_NormalizeMetric = 1.0;
   for( int i = 0; i < ImageDimension; i++ )
@@ -380,7 +337,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   this->ComputeMutualInformation();
 
   pdfinterpolator->SetInputImage(m_JointPDF);
-  //  dpdfinterpolator->SetInputImage(m_JointPDFDerivatives);
   pdfinterpolator2->SetInputImage(m_FixedImageMarginalPDF);
   pdfinterpolator3->SetInputImage(m_MovingImageMarginalPDF);
   pdfinterpolator->SetSplineOrder(3);
@@ -409,7 +365,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   // Reset the joint pdfs to zero
   m_JointPDF->FillBuffer( 0.0 );
   m_JointHist->FillBuffer( 0.0 );
-  //  m_JointPDFDerivatives->FillBuffer( 0.0 );
 
   unsigned long  nSamples = 0;
   RandomIterator iter( this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion() );
