@@ -1,13 +1,14 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
+  Program:   Advanced Normalization Tools
   Module:    $RCSfile: itkListSampleToListSampleFilter.h,v $
   Language:  C++
   Date:      $$
   Version:   $Revision: $
 
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+  Copyright (c) ConsortiumOfANTS. All rights reserved.
+  See accompanying COPYING.txt or
+ http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
 
   Portions of this code are covered under the VTK copyright.
   See VTKCopyright.txt or http://www.kitware.com/VTKCopyright.htm for details.

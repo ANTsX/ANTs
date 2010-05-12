@@ -1,13 +1,14 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
+  Program:   Advanced Normalization Tools
   Module:    $RCSfile: itkVectorGaussianInterpolateImageFunction.h,v $
   Language:  C++
   Date:      $Date: 2009/07/01 12:59:34 $
   Version:   $Revision: 1.5 $
 
-  Copyright (c) Insight Software Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+  Copyright (c) ConsortiumOfANTS. All rights reserved.
+  See accompanying COPYING.txt or
+ http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR

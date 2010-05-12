@@ -1,13 +1,14 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
+  Program:   Advanced Normalization Tools
   Module:    $RCSfile: itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.cxx,v $
   Language:  C++
   Date:      $Date: 2009/03/17 19:01:36 $
   Version:   $Revision: 1.2 $
 
-  Copyright (c) 2002 Insight Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+  Copyright (c) ConsortiumOfANTS. All rights reserved.
+  See accompanying COPYING.txt or
+ http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR

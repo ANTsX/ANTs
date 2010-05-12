@@ -1,13 +1,14 @@
 /*=========================================================================
 
-  Program:   Insight Segmentation & Registration Toolkit
+  Program:   Advanced Normalization Tools
   Module:    $RCSfile: ComputeSimilarityMetric.cxx,v $
   Language:  C++
   Date:      $Date: 2008/09/10 19:53:13 $
   Version:   $Revision: 1.1 $
 
-  Copyright (c) 2002 Insight Consortium. All rights reserved.
-  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
+  Copyright (c) ConsortiumOfANTS. All rights reserved.
+  See accompanying COPYING.txt or
+ http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
