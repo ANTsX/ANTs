@@ -67,6 +67,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_DeltaTime = 0.1;
   this->m_SyNType = 0;
   this->m_UseNN = false;
+  this->m_UseBSplineInterpolation = false;
   this->m_VelocityFieldInterpolator = VelocityFieldInterpolatorType::New();
   this->m_HitImage = NULL;
   this->m_ThickImage = NULL;
