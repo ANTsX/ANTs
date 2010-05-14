@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkSpatialMutualInformationRegistrationFunction.h,v $
   Language:  C++
   Date:      $Date: 2009/01/08 15:14:48 $
   Version:   $Revision: 1.20 $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -448,6 +447,9 @@ public:
       }
     SMI = (0.5) * (JointEntropyXuY + JointEntropyXYu + JointEntropyXlY + JointEntropyXYl)
       - (0.25) * (4 * JointEntropy + JointEntropyXuYr + JointEntropyXrYu + JointEntropyXlYu + JointEntropyXuYl);
+
+    //	std::cout << " JE " << JointEntropy << " JEXuY " << JointEntropyXuY << " JEXYu " << JointEntropyXYu << " JEXuYr
+    // " << JointEntropyXuYr << std::endl;
 
     this->m_Energy = (-1.0) * fabs(SMI / log(2) );
     return this->m_Energy;

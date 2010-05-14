@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkSpatialMutualInformationRegistrationFunction.cxx,v $
   Language:  C++
   Date:      $Date: 2009/01/08 15:14:48 $
   Version:   $Revision: 1.21 $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -50,7 +49,6 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 
   // Initialize PDFs to NULL
   m_JointPDF = NULL;
-  m_JointPDFDerivatives = NULL;
 
   m_OpticalFlow = false;
   typename TransformType::Pointer transformer = TransformType::New();
@@ -69,9 +67,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   m_MovingImageTrueMax = 0.0;
   m_FixedImageBinSize = 0.0;
   m_MovingImageBinSize = 0.0;
-  m_CubicBSplineDerivativeKernel = NULL;
   m_BSplineInterpolator = NULL;
-  m_DerivativeCalculator = NULL;
   m_NumParametersPerDim = 0;
   m_NumBSplineWeights = 0;
   m_BSplineTransform = NULL;
@@ -79,7 +75,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 
   m_FixedImageGradientCalculator = GradientCalculatorType::New();
   m_MovingImageGradientCalculator = GradientCalculatorType::New();
-  this->m_Padding = 2;
+  this->m_Padding = 0;
 
   typename DefaultInterpolatorType::Pointer interp =  DefaultInterpolatorType::New();
   typename DefaultInterpolatorType::Pointer interp2 = DefaultInterpolatorType::New();
@@ -139,7 +135,6 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 ::InitializeIteration()
 {
   m_CubicBSplineKernel = CubicBSplineFunctionType::New();
-  m_CubicBSplineDerivativeKernel = CubicBSplineDerivativeFunctionType::New();
   this->m_Energy = 0;
   this->pdfinterpolator = pdfintType::New();
   this->pdfinterpolatorXuY = pdfintType::New();
@@ -153,15 +148,14 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 
   pdfinterpolator2 = pdfintType2::New();
   pdfinterpolator3 = pdfintType2::New();
-  m_DerivativeCalculator = DerivativeFunctionType::New();
 
 //  this->ComputeMetricImage();
-  std::cout << " A " << std::endl;
+//  std::cout << " A " << std::endl;
 //    bool makenewimage=false;
   typedef ImageRegionIteratorWithIndex<TFixedImage> ittype;
   TFixedImage* img = const_cast<TFixedImage *>(this->m_FixedImage.GetPointer() );
   typename TFixedImage::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
-  std::cout << " B " << std::endl;
+//  std::cout << " B " << std::endl;
 
   /*
   if (!this->m_MetricImage )makenewimage=true;
@@ -301,7 +295,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   m_MovingImageMarginalPDF->SetRegions( mPDFRegion );
   m_MovingImageMarginalPDF->Allocate();
   m_MovingImageMarginalPDF->SetSpacing(mPDFspacing);
-  std::cout << " C " << std::endl;
+  // std::cout << " C " << std::endl;
 
   /**
    * Allocate memory for the joint PDF and joint PDF derivatives.
@@ -317,7 +311,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   this->m_JointPDFXrYu = JointPDFType::New();
   this->m_JointPDFXuYr = JointPDFType::New();
 
-  std::cout << " D " << std::endl;
+  // std::cout << " D " << std::endl;
 
   // Instantiate a region, index, size
   JointPDFRegionType jointPDFRegion;
@@ -377,7 +371,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   this->m_JointPDFXuYr->Allocate();
   this->m_JointPDFXuYr->SetSpacing(jspacing);
 
-  std::cout << " E " << std::endl;
+//    std::cout << " E " << std::endl;
 
   m_NormalizeMetric = 1.0;
   for( int i = 0; i < ImageDimension; i++ )
@@ -385,7 +379,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
     m_NormalizeMetric *= this->m_FixedImage->GetLargestPossibleRegion().GetSize()[i];
     }
 
-  std::cout << " F " << std::endl;
+//  std::cout << " F " << std::endl;
   pdfinterpolator->SetInputImage(m_JointPDF);
   pdfinterpolator->SetSplineOrder(3);
   this->pdfinterpolatorXuY->SetInputImage(this->m_JointPDFXuY);
@@ -409,12 +403,12 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   pdfinterpolator2->SetSplineOrder(3);
   pdfinterpolator3->SetSplineOrder(3);
 
-  std::cout << " Ga " << std::endl;
+//  std::cout << " Ga " << std::endl;
 
   this->GetProbabilities();
-  std::cout << " G " << std::endl;
-  this->ComputeMutualInformation();
-  std::cout << " H " << std::endl;
+//  std::cout << " G " << std::endl;
+  this->ComputeSpatialMutualInformation();
+  // std::cout << " H " << std::endl;
 }
 
 /**
@@ -446,7 +440,6 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   m_JointPDFXrYu->FillBuffer( 0.0 );
   m_JointPDFXuYr->FillBuffer( 0.0 );
   m_JointHist->FillBuffer( 0.0 );
-  //  m_JointPDFDerivatives->FillBuffer( 0.0 );
 
   unsigned long  nSamples = 0;
   RandomIterator iter( this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion() );
@@ -474,11 +467,13 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
       bool inimage = true;
       for( unsigned int dd = 0; dd < ImageDimension; dd++ )
         {
-        if( index[dd] - 1 < 1 || index[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 1) )
+        if( index[dd] < 1 || index[dd] > static_cast<typename IndexType::IndexValueType>(imagesize[dd] - 2) )
           {
           inimage = false;
           }
         }
+
+//          std::cout << " Image size? " << imagesize << std::endl;
 
       if( inimage )
         {
@@ -581,6 +576,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
         }
       }
     }
+//	std::cout << " Image Rotation Number " << nSamples << std::endl;
 
   /**
    * Normalize the PDFs, compute moving image marginal PDF
@@ -599,46 +595,18 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 
   // Compute joint PDF normalization factor (to ensure joint PDF sum adds to 1.0)
   double jointPDFSum = 0.0;
-  float  max = 0;
-  float  max2 = 0;
-  float  max3 = 0;
-  float  max4 = 0;
   jointPDFIterator.GoToBegin();
   while( !jointPDFIterator.IsAtEnd() )
     {
     float temp = jointPDFIterator.Get();
-    m_JointHist->SetPixel(jointPDFIterator.GetIndex(), temp);
-    if( temp > max )
-      {
-      max = temp;
-      }
-    if( temp > max2 && temp < max )
-      {
-      max2 = temp;
-      }
-    if( temp > max3 && temp < max2 )
-      {
-      max3 = temp;
-      }
-    if( temp > max4 && temp < max3 )
-      {
-      max4 = temp;
-      }
-    ++jointPDFIterator;
-    }
-
-  jointPDFIterator.GoToBegin();
-  while( !jointPDFIterator.IsAtEnd() )
-    {
-    float temp = jointPDFIterator.Get();
-    jointPDFIterator.Set(temp);
+    //    jointPDFIterator.Set(temp);
     jointPDFSum += temp;
     ++jointPDFIterator;
     }
 
-  // std::cout << " Joint PDF Summation? " << jointPDFSum << std::endl;
+//	std::cout << " Joint PDF Summation? " << jointPDFSum << std::endl;
 
-// of derivatives
+  // of derivatives
   if( jointPDFSum == 0.0 )
     {
     itkExceptionMacro( "Joint PDF summed to zero" );
@@ -741,8 +709,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 template <class TFixedImage, class TMovingImage, class TDeformationField>
 double
 SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
-::GetValueAndDerivative(IndexType oindex,
-                        MeasureType& valuei,
+::GetValueAndDerivative(IndexType oindex, MeasureType& valuei,
                         DerivativeType& derivative1, DerivativeType& derivative2)
 {
   double         value = 0;
@@ -755,7 +722,12 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   double movingImageParzenWindowContIndex = this->FitContIndexInBins(  movingImageValue );
   double fixedImageParzenWindowContIndex = this->FitContIndexInBins( fixedImageValue  );
 
-  double dJPDF = 0, dFmPDF = 0, jointPDFValue = 0, fixedImagePDFValue = 0;
+  double dJPDF = 0, jointPDFValue = 0;
+
+  double jointPDFValueXuY = 0, dJPDFXuY = 0, jointPDFValueXYu = 0, dJPDFXYu = 0, jointPDFValueXlY = 0, dJPDFXlY = 0,
+    jointPDFValueXYl = 0;
+  double dJPDFXYl = 0, jointPDFValueXuYl = 0, dJPDFXuYl = 0, jointPDFValueXlYu = 0, dJPDFXlYu = 0, jointPDFValueXuYr =
+    0, dJPDFXuYr = 0, jointPDFValueXrYu = 0, dJPDFXrYu = 0;
 
     {
     /** take derivative of joint pdf with respect to the b-spline */
@@ -764,28 +736,48 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
     pdfind[0] = movingImageParzenWindowContIndex;
     jointPDFValue = pdfinterpolator->EvaluateAtContinuousIndex(pdfind);
     dJPDF = (1.0) * (pdfinterpolator->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXuY = pdfinterpolatorXuY->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXuY = (1.0) * (pdfinterpolatorXuY->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXYu = pdfinterpolatorXYu->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXYu = (1.0) * (pdfinterpolatorXYu->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXlY = pdfinterpolatorXlY->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXlY = (1.0) * (pdfinterpolatorXlY->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXYl = pdfinterpolatorXYl->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXYl = (1.0) * (pdfinterpolatorXYl->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXuYl = pdfinterpolatorXuYl->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXuYl = (1.0) * (pdfinterpolatorXuYl->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXlYu = pdfinterpolatorXlYu->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXlYu = (1.0) * (pdfinterpolatorXlYu->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXuYr = pdfinterpolatorXuYr->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXuYr = (1.0) * (pdfinterpolatorXuYr->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
+
+    jointPDFValueXrYu = pdfinterpolatorXrYu->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXrYu = (1.0) * (pdfinterpolatorXrYu->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
     }
 
+  double eps = 1.e-12;
+  if( jointPDFValue > eps &&  jointPDFValueXuY > eps && jointPDFValueXYu > eps && jointPDFValueXlY > eps &&
+      jointPDFValueXYl > eps && jointPDFValueXuYl > eps && jointPDFValueXlYu > eps && jointPDFValueXrYu > eps &&
+      jointPDFValueXuYr > eps )
     {
-    typename   pdfintType2::ContinuousIndexType  mind;
-    mind[0] = fixedImageParzenWindowContIndex;
-    fixedImagePDFValue = pdfinterpolator2->EvaluateAtContinuousIndex(mind);
-    dFmPDF = (pdfinterpolator2->EvaluateDerivativeAtContinuousIndex(mind) )[0];
-    }
-
-  double term1 = 0, term2 = 0, eps = 1.e-12;
-  if( jointPDFValue > eps &&  (fixedImagePDFValue) > 0 )
-    {
-    term1 = dJPDF / jointPDFValue;
-    term2 = dFmPDF / fixedImagePDFValue;
-    value =  (term1 * (-1.0) + term2);
+    value = 4 * dJPDF / jointPDFValue + dJPDFXuYl / jointPDFValueXuYl +  dJPDFXlYu / jointPDFValueXlYu + dJPDFXuYr
+      / jointPDFValueXuYr + dJPDFXrYu / jointPDFValueXrYu
+      - 2 * dJPDFXYu / jointPDFValueXYu - 2 * dJPDFXuY / jointPDFValueXuY - 2 * dJPDFXYl / jointPDFValueXYl - 2
+      * dJPDFXlY / jointPDFValueXlY;
     }    // end if-block to check non-zero bin contribution
   else
     {
     value = 0;
     }
 
-  return value;
+  return (value / 4) * (-1);
 }
 
 template <class TFixedImage, class TMovingImage, class TDeformationField>
@@ -805,40 +797,62 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   double movingImageParzenWindowContIndex = this->FitContIndexInBins(  movingImageValue );
   double fixedImageParzenWindowContIndex = this->FitContIndexInBins( fixedImageValue  );
 
-  double dJPDF = 0, dMmPDF = 0, jointPDFValue = 0, movingImagePDFValue = 0;
+  double dJPDF = 0, jointPDFValue = 0;
+
+  double jointPDFValueXuY = 0, dJPDFXuY = 0, jointPDFValueXYu = 0, dJPDFXYu = 0, jointPDFValueXlY = 0, dJPDFXlY = 0,
+    jointPDFValueXYl = 0;
+  double dJPDFXYl = 0, jointPDFValueXuYl = 0, dJPDFXuYl = 0, jointPDFValueXlYu = 0, dJPDFXlYu = 0, jointPDFValueXuYr =
+    0, dJPDFXuYr = 0, jointPDFValueXrYu = 0, dJPDFXrYu = 0;
 
     {
-    typename   pdfintType::ContinuousIndexType   pdfind;
+    /** take derivative of joint pdf with respect to the b-spline */
+    typename  pdfintType::ContinuousIndexType pdfind;
     pdfind[1] = fixedImageParzenWindowContIndex;
     pdfind[0] = movingImageParzenWindowContIndex;
     jointPDFValue = pdfinterpolator->EvaluateAtContinuousIndex(pdfind);
     dJPDF = (1.0) * (pdfinterpolator->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXuY = pdfinterpolatorXuY->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXuY = (1.0) * (pdfinterpolatorXuY->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXYu = pdfinterpolatorXYu->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXYu = (1.0) * (pdfinterpolatorXYu->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXlY = pdfinterpolatorXlY->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXlY = (1.0) * (pdfinterpolatorXlY->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXYl = pdfinterpolatorXYl->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXYl = (1.0) * (pdfinterpolatorXYl->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXuYl = pdfinterpolatorXuYl->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXuYl = (1.0) * (pdfinterpolatorXuYl->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXlYu = pdfinterpolatorXlYu->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXlYu = (1.0) * (pdfinterpolatorXlYu->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXuYr = pdfinterpolatorXuYr->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXuYr = (1.0) * (pdfinterpolatorXuYr->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
+
+    jointPDFValueXrYu = pdfinterpolatorXrYu->EvaluateAtContinuousIndex(pdfind);
+    dJPDFXrYu = (1.0) * (pdfinterpolatorXrYu->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
     }
 
+  double eps = 1.e-12;
+  if( jointPDFValue > eps &&  jointPDFValueXuY > eps && jointPDFValueXYu > eps && jointPDFValueXlY > eps &&
+      jointPDFValueXYl > eps && jointPDFValueXuYl > eps && jointPDFValueXlYu > eps && jointPDFValueXrYu > eps &&
+      jointPDFValueXuYr > eps )
     {
-    typename   pdfintType2::ContinuousIndexType  mind;
-    mind[0] = movingImageParzenWindowContIndex;
-    movingImagePDFValue = pdfinterpolator3->EvaluateAtContinuousIndex(mind);
-    dMmPDF = (pdfinterpolator3->EvaluateDerivativeAtContinuousIndex(mind) )[0];
-    }
-
-  double term1 = 0, term2 = 0, eps = 1.e-12;
-  if( jointPDFValue > eps &&  (movingImagePDFValue) > 0 )
-    {
-    term1 = dJPDF / jointPDFValue;
-    term2 = dMmPDF / movingImagePDFValue;
-    value =  (term1 * (-1.0) + term2);
+    value = 4 * dJPDF / jointPDFValue + dJPDFXuYl / jointPDFValueXuYl +  dJPDFXlYu / jointPDFValueXlYu + dJPDFXuYr
+      / jointPDFValueXuYr + dJPDFXrYu / jointPDFValueXrYu
+      - 2 * dJPDFXYu / jointPDFValueXYu - 2 * dJPDFXuY / jointPDFValueXuY - 2 * dJPDFXYl / jointPDFValueXYl - 2
+      * dJPDFXlY / jointPDFValueXlY;
     } // end if-block to check non-zero bin contribution
   else
     {
     value = 0;
     }
-
-  // double pmr=jointPDFValue;
-  // double pmt=jointPDFValue;
-  // double Fx=log( ( pmr / pr )  /  ( pmt / pt  ) );
-
-  return value;
+  // return 0;
+  return (value / 4) * (0);
 }
 } // end namespace itk
 

@@ -4,6 +4,11 @@ PROJECT(ANTS)
 
 
 OPTION(USE_ITK "Use ITK Libraries" ON)
+OPTION(USE_VTK "Use VTK Libraries" OFF)
+
+set (CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
+
+FIND_PATH(VTK_DIR UseVTK.cmake $ENV{VTK_DIR} )
 
 # Set up ITK
 IF(USE_ITK)
@@ -15,6 +20,16 @@ IF(USE_ITK)
       "Cannot build without ITK.  Please set ITK_DIR.")
   ENDIF(ITK_FOUND)
 ENDIF(USE_ITK)
+
+# Set up VTK
+IF(USE_VTK)
+  FIND_PACKAGE(VTK)
+  IF(VTK_FOUND)
+    INCLUDE(${VTK_USE_FILE})
+  ELSE(VTK_FOUND)
+     MESSAGE("Cannot build some programs without VTK.  Please set VTK_DIR if you need these programs.")
+  ENDIF(VTK_FOUND)
+ENDIF(USE_VTK)
 
 #The following lines are required to use Dart
 INCLUDE(CTest)
@@ -214,6 +229,18 @@ TARGET_LINK_LIBRARIES(N4BiasFieldCorrection ITKIO ITKStatistics)
 ADD_EXECUTABLE(KellySlater KellySlater.cxx)
 TARGET_LINK_LIBRARIES(KellySlater ITKIO ITKStatistics)
 
+
+IF (USE_VTK)
+INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
+IF (USE_VTK_FILE)
+  INCLUDE(${USE_VTK_FILE})
+ ADD_EXECUTABLE(ConvertVectorFieldToVTK ConvertVectorFieldToVTK.cxx )
+ TARGET_LINK_LIBRARIES(ConvertVectorFieldToVTK ITKNumerics ITKIO ITKCommon vtkIO)
+ENDIF (USE_VTK_FILE)
+ ENDIF(USE_VTK)
+
+
+
 ADD_EXECUTABLE(ANTSIntegrateVectorField ANTSIntegrateVectorField.cxx)
 TARGET_LINK_LIBRARIES(ANTSIntegrateVectorField ITKIO ITKStatistics)
 
@@ -332,7 +359,7 @@ ADD_TEST(ANTS_MI_1_INVERSEWARP_METRIC_0 MeasureImageSimilarity 2 0 ${R64_IMAGE} 
 ADD_TEST(ANTS_MI_1_INVERSEWARP_METRIC_1 MeasureImageSimilarity 2 1 ${R64_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.45 0.05)
 ADD_TEST(ANTS_MI_1_INVERSEWARP_METRIC_2 MeasureImageSimilarity 2 2 ${R64_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.000366879 0.05)
 
-ADD_TEST(ANTS_MI_2   ANTS 2 -m  MI[${R16_IMAGE},${R64_IMAGE},1,40] -r Gauss[3,0] -t SyN[0.25] -i 50x50x30 -o ${OUTPUT_PREFIX}.nii.gz)
+ADD_TEST(ANTS_MI_2   ANTS 2 -m  SMI[${R16_IMAGE},${R64_IMAGE},1,32] -r Gauss[3,0] -t SyN[0.25] -i 50x0x0 -o ${OUTPUT_PREFIX}.nii.gz)
 ADD_TEST(ANTS_MI_2_WARP WarpImageMultiTransform 2 ${R64_IMAGE} ${WARP_IMAGE} ${WARP}  -R ${R16_IMAGE} )
 ADD_TEST(ANTS_MI_2_JPG  ConvertToJpg ${WARP_IMAGE} ANTSMI2.jpg)
 ADD_TEST(ANTS_MI_2_WARP_METRIC_0 MeasureImageSimilarity 2 0 ${R16_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz 12.4 0.05)
