@@ -240,9 +240,9 @@ IF (USE_VTK_FILE)
   TARGET_LINK_LIBRARIES(GetMeshAndTopology ITKCommon ITKNumerics ITKFEM  ITKIO ITKMetaIO  vtkRendering vtksys vtkIO)
 
   SET(FLAT_SRC
-    ../Utilities/itkFEMElement3DC0LinearTriangular.cxx
-    ../Utilities/itkFEMElement3DC0LinearTriangularLaplaceBeltrami.cxx
-    ../Utilities/itkFEMElement3DC0LinearTriangularMembrane.cxx
+    ../Temporary/itkFEMElement3DC0LinearTriangular.cxx
+    ../Temporary/itkFEMElement3DC0LinearTriangularLaplaceBeltrami.cxx
+    ../Temporary/itkFEMElement3DC0LinearTriangularMembrane.cxx
   )
   # Build the library
   ADD_LIBRARY(FLATFEM ${FLAT_SRC})
