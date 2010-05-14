@@ -229,15 +229,37 @@ TARGET_LINK_LIBRARIES(N4BiasFieldCorrection ITKIO ITKStatistics)
 ADD_EXECUTABLE(KellySlater KellySlater.cxx)
 TARGET_LINK_LIBRARIES(KellySlater ITKIO ITKStatistics)
 
-
 IF (USE_VTK)
 INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
 IF (USE_VTK_FILE)
   INCLUDE(${USE_VTK_FILE})
- ADD_EXECUTABLE(ConvertVectorFieldToVTK ConvertVectorFieldToVTK.cxx )
- TARGET_LINK_LIBRARIES(ConvertVectorFieldToVTK ITKNumerics ITKIO ITKCommon vtkIO)
+  ADD_EXECUTABLE(ConvertVectorFieldToVTK ConvertVectorFieldToVTK.cxx )
+  TARGET_LINK_LIBRARIES(ConvertVectorFieldToVTK ITKNumerics ITKIO ITKCommon vtkIO)
+
+  ADD_EXECUTABLE(GetMeshAndTopology GetMeshAndTopology.cxx)
+  TARGET_LINK_LIBRARIES(GetMeshAndTopology ITKCommon ITKNumerics ITKFEM  ITKIO ITKMetaIO  vtkRendering vtksys vtkIO)
+
+  SET(FLAT_SRC
+    ../Utilities/itkFEMElement3DC0LinearTriangular.cxx
+    ../Utilities/itkFEMElement3DC0LinearTriangularLaplaceBeltrami.cxx
+    ../Utilities/itkFEMElement3DC0LinearTriangularMembrane.cxx
+  )
+  # Build the library
+  ADD_LIBRARY(FLATFEM ${FLAT_SRC})
+  TARGET_LINK_LIBRARIES(FLATFEM ITKBasicFilters ITKIO)
+
+
+  ADD_EXECUTABLE(ConformalMapping ConformalMapping.cxx)
+  TARGET_LINK_LIBRARIES(ConformalMapping ITKCommon ITKNumerics ITKFEM FLATFEM ITKIO ITKMetaIO  vtkRendering vtkIO)
+  #vtkPatented vtkIO)
+
+  # SRD replace vtkPatented by vtksys
+#   ADD_EXECUTABLE(ConformalMappingSphere  ConformalMappingSphere.cxx )
+#  TARGET_LINK_LIBRARIES(ConformalMappingSphere ITKCommon ITKNumerics ITKFEM FLATFEM ITKIO ITKMetaIO  vtkRendering vtksys vtkIO)
+
+
 ENDIF (USE_VTK_FILE)
- ENDIF(USE_VTK)
+ENDIF(USE_VTK)
 
 
 
