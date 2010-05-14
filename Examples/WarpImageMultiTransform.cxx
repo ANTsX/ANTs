@@ -738,7 +738,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         {
         std::cout
           <<
-        " Your 1st parameter should be an inverse affine map and the 2nd an InverseWarp  --- exiting without applying warp.  "
+        " Your 1st parameter should be an inverse affine map and the 2nd an InverseWarp  --- exiting without applying warp.  Check that , if using an inverse affine map, you pass the -i option before the Affine.txt."
           << std::endl;
         return;
         }
