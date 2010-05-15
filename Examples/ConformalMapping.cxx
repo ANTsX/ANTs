@@ -1047,11 +1047,12 @@ int main(int argc, char *argv[])
     vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
       vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
     smoother->SetInput(fltReader->GetOutput() );
-    smoother->SetNumberOfIterations(50);
-    smoother->BoundarySmoothingOff();
-    smoother->FeatureEdgeSmoothingOff();
-    smoother->SetFeatureAngle(120.0);
-    smoother->SetPassBand(.000001);
+    smoother->SetNumberOfIterations(250);
+    smoother->BoundarySmoothingOn();
+    smoother->FeatureEdgeSmoothingOn();
+    smoother->SetFeatureAngle(180.0);
+    smoother->SetEdgeAngle(180.0);
+    smoother->SetPassBand(1.e-6); // smaller values increase smoothing
     smoother->NonManifoldSmoothingOn();
     smoother->NormalizeCoordinatesOn();
     smoother->Update();
