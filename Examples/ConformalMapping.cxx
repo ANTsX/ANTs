@@ -49,6 +49,8 @@
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkPointSet.h"
+#include <vtkSmartPointer.h>
+#include <vtkWindowedSincPolyDataFilter.h>
 
 /*
 
@@ -940,6 +942,7 @@ int main(int argc, char *argv[])
     <<
   "to interpolate data in flattened image domain to original mesh: ConformalMapping   image.nii 1 2 3 7 outname originalflatmesh.vtk"
     << std::endl;
+  std::cout << " to smooth a mesh --- ConformalMapping mesh.vtk 1 2 3 8 outname " << std::endl;
   if( argc >= 2 )
     {
     filename = argv[1];
@@ -1033,6 +1036,32 @@ int main(int argc, char *argv[])
     readfilter->Update();
     Image2DType::Pointer image = readfilter->GetOutput();
     // ImageToMesh<Image2DType>(fltReader->GetOutput(), image, outfn);
+    }
+  else if( fixdir == 8 )
+  /*************** flat map to mesh *****************/
+    {
+    std::cout << " read " << std::string(filename) << " write " << outfn << std::endl;
+    vtkPolyDataReader *fltReader = vtkPolyDataReader::New();
+    fltReader->SetFileName(filename);
+    fltReader->Update();
+    vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
+      vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+    smoother->SetInput(fltReader->GetOutput() );
+    smoother->SetNumberOfIterations(50);
+    smoother->BoundarySmoothingOff();
+    smoother->FeatureEdgeSmoothingOff();
+    smoother->SetFeatureAngle(120.0);
+    smoother->SetPassBand(.000001);
+    smoother->NonManifoldSmoothingOn();
+    smoother->NormalizeCoordinatesOn();
+    smoother->Update();
+
+    vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+    writer->SetInput( smoother->GetOutput() );
+    writer->SetFileName(outfn.c_str() );
+    writer->SetFileTypeToBinary();
+    writer->Update();
+    std::cout << " done writing ";
     }
   /*************** flat map to mesh ****************/
   else

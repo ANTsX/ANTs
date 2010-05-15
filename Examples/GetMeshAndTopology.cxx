@@ -1,6 +1,7 @@
 
 
 
+
 #include <string>
 
 #include <math.h>
@@ -31,6 +32,8 @@
 
 #include "vtkDelaunay2D.h"
 #include "vtkFloatArray.h"
+#include <vtkSmartPointer.h>
+#include <vtkWindowedSincPolyDataFilter.h>
 
 #include "vtkVolume16Reader.h"
 #include "vtkImageReader2.h"
@@ -196,7 +199,6 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
 
   vtkFloatArray* param;
 
-  bool done = false;
   // while (!done)
     {
     param = vtkFloatArray::New();
@@ -240,6 +242,21 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   std::cout << " done with mesh map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(vtkmesh);
+  /*
+vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
+  vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+smoother->SetInput(vtkmesh);
+smoother->SetNumberOfIterations(50);
+smoother->BoundarySmoothingOff();
+smoother->FeatureEdgeSmoothingOff();
+smoother->SetFeatureAngle(120.0);
+smoother->SetPassBand(.01);
+smoother->NonManifoldSmoothingOn();
+smoother->NormalizeCoordinatesOn();
+smoother->Update();
+std::cout <<" done smooth " << std::endl;
+writer->SetInput(smoother->GetOutput());
+  */
   std::cout << " writing " << outfn << std::endl;
   // outnm="C:\\temp\\mesh.vtk";
   writer->SetFileName(outfn.c_str() );
@@ -302,7 +319,6 @@ int main(int argc, char *argv[])
 
   char*       filename;
   char*       filename2;
-  char*       refmeshname;
   std::string outfn;
 
   filename = argv[1];
