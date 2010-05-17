@@ -1,8 +1,13 @@
+#include "itkBinaryThresholdImageFilter.h"
+#include "itkHausdorffDistanceImageFilter.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
+#include "itkSignedMaurerDistanceMapImageFilter.h"
 
 #include <iomanip>
+#include <vector>
 
 template <unsigned int ImageDimension>
 int LabelOverlapMeasures( int argc, char * argv[] )
@@ -48,7 +53,11 @@ int LabelOverlapMeasures( int argc, char * argv[] )
             << std::setw( 17 ) << "Mean (dice)"
             << std::setw( 17 ) << "Volume sim."
             << std::setw( 17 ) << "False negative"
-            << std::setw( 17 ) << "False positive" << std::endl;
+            << std::setw( 17 ) << "False positive"
+            << std::setw( 17 ) << "Hausdorff"
+            << std::setw( 17 ) << "Avg. Hausdorff"
+            << std::setw( 17 ) << "Min. dist. sum"
+            << std::endl;
 
   typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
   typename FilterType::MapType::const_iterator it;
@@ -68,6 +77,95 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     std::cout << std::setw( 17 ) << filter->GetVolumeSimilarity( label );
     std::cout << std::setw( 17 ) << filter->GetFalseNegativeError( label );
     std::cout << std::setw( 17 ) << filter->GetFalsePositiveError( label );
+
+    /**
+     * Calculate distance-related measures which, perhaps, aren't considered
+     * "label overlap measures" in a precise sense but are still used to determine
+     * segmentation/registration accuracy. These measurements include
+     *     1. Hausdorff distance
+     *     2. Min distance sum
+     */
+
+    typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+    typename ThresholderType::Pointer source = ThresholderType::New();
+    source->SetInput( filter->GetSourceImage() );
+    source->SetLowerThreshold( label );
+    source->SetUpperThreshold( label );
+    source->SetInsideValue( static_cast<PixelType>( 1 ) );
+    source->SetOutsideValue( static_cast<PixelType>( 0 ) );
+    source->Update();
+
+    typename ThresholderType::Pointer target = ThresholderType::New();
+    target->SetInput( filter->GetTargetImage() );
+    target->SetLowerThreshold( label );
+    target->SetUpperThreshold( label );
+    target->SetInsideValue( static_cast<PixelType>( 1 ) );
+    target->SetOutsideValue( static_cast<PixelType>( 0 ) );
+    target->Update();
+
+    // Calculate Hausdorff distances
+    typedef itk::HausdorffDistanceImageFilter<ImageType, ImageType> HausdorffType;
+    typename HausdorffType::Pointer hausdorff = HausdorffType::New();
+    hausdorff->SetInput1( source->GetOutput() );
+    hausdorff->SetInput2( target->GetOutput() );
+    hausdorff->Update();
+
+    std::cout << std::setw( 17 ) << hausdorff->GetHausdorffDistance();
+    std::cout << std::setw( 17 ) << hausdorff->GetAverageHausdorffDistance();
+
+    // Calculate min sum distance
+
+    typedef itk::SignedMaurerDistanceMapImageFilter<ImageType, ImageType> DistancerType;
+    typename DistancerType::Pointer sourceDistance = DistancerType::New();
+    sourceDistance->SetInput( source->GetOutput() );
+    sourceDistance->SetSquaredDistance( false );
+    sourceDistance->SetUseImageSpacing( true );
+    sourceDistance->SetInsideIsPositive( false );
+    sourceDistance->Update();
+
+    typename DistancerType::Pointer targetDistance = DistancerType::New();
+    targetDistance->SetInput( target->GetOutput() );
+    targetDistance->SetSquaredDistance( false );
+    targetDistance->SetUseImageSpacing( true );
+    targetDistance->SetInsideIsPositive( false );
+    targetDistance->Update();
+
+    float distanceToSource = 0.0;
+    float NS = 0.0;
+    float distanceToTarget = 0.0;
+    float NT = 0.0;
+
+    itk::ImageRegionIteratorWithIndex<ImageType> ItS( sourceDistance->GetOutput(),
+                                                      sourceDistance->GetOutput()->GetLargestPossibleRegion() );
+    itk::ImageRegionIteratorWithIndex<ImageType> ItT( targetDistance->GetOutput(),
+                                                      targetDistance->GetOutput()->GetLargestPossibleRegion() );
+    for( ItS.GoToBegin(), ItT.GoToBegin(); !ItS.IsAtEnd(); ++ItS, ++ItT )
+      {
+      // on the boundary or inside the source object?
+      if( ItS.Get() <= 0.0 )
+        {
+        // outside the target object?
+        if( ItT.Get() > 0.0 )
+          {
+          distanceToTarget += ItT.Get();
+          NS += 1.0;
+          }
+        }
+
+      // on the boundary or inside the target object?
+      if( ItT.Get() <= 0.0 )
+        {
+        // outside the source object?
+        if( ItS.Get() > 0.0 )
+          {
+          distanceToSource += ItS.Get();
+          NT += 1.0;
+          }
+        }
+      }
+    float minDistanceSum = ( distanceToSource + distanceToTarget ) / ( NS + NT );
+    std::cout << std::setw( 17 ) << minDistanceSum;
+
     std::cout << std::endl;
     }
 
