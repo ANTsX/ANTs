@@ -481,7 +481,7 @@ int Jacobian(int argc, char *argv[])
     {
     norm = (bool)atoi(argv[5]);
     }
-  bool use2ndorder = false;
+  bool use2ndorder = true;
   if( argc > 6 )
     {
     use2ndorder = (bool)atoi(argv[6]);
