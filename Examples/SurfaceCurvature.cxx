@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
   if( opt == 1 )
     {
     Parameterizer->SetUseLabel(true);
-    Parameterizer->SetUseGeodesicNeighborhood(true);
+    Parameterizer->SetUseGeodesicNeighborhood(false);
     }
   else
     {

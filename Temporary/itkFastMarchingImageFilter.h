@@ -1,10 +1,10 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+Program:   Advanced Normalization Tools
   Module:    $RCSfile: itkFastMarchingImageFilter.h,v $
   Language:  C++
-  Date:      $Date: 2009-04-23 03:53:35 $
-  Version:   $Revision: 1.40 $
+  Date:      $Date: 2009/03/10 17:30:41 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
@@ -178,7 +178,8 @@ private:
    * been processed.  Topology points were trial points but their inclusion
    * would have violated topology checks.
    */
-  enum LabelType { FarPoint, AlivePoint, TrialPoint, TopologyPoint };
+  enum LabelType { FarPoint, AlivePoint, TrialPoint, InitialTrialPoint,
+                   TopologyPoint };
 
   /** LabelImage typedef support. */
   typedef Image<unsigned char, itkGetStaticConstMacro( SetDimension )>
@@ -279,20 +280,6 @@ private:
   /** Set/Get boolean macro indicating whether the user wants to check topology. */
   itkSetMacro( TopologyCheck, TopologyCheckType );
   itkGetConstReferenceMacro( TopologyCheck, TopologyCheckType );
-
-  itkSetMacro( UseWellComposedness, bool );
-  itkGetConstMacro( UseWellComposedness, bool );
-  itkBooleanMacro( UseWellComposedness );
-
-  /**
-   * 1. (6, 18)
-   * 2. (18, 6)
-   * 3. (6, 26)
-   * 4. (26, 6)
-   */
-
-  itkSetClampMacro( SimplePointConnectivity, unsigned int, 1, 4 );
-  itkGetConstMacro( SimplePointConnectivity, bool );
 
   /** Get the container of Processed Points. If the CollectPoints flag
    * is set, the algorithm collects a container of all processed nodes.
@@ -423,8 +410,6 @@ private:
    * Functions and variables to check for topology changes (2D/3D only).
    */
   TopologyCheckType m_TopologyCheck;
-  bool              m_UseWellComposedness;
-  unsigned int      m_SimplePointConnectivity;
 
   // Functions/data for the 2-D case
   void InitializeIndices2D();
@@ -438,8 +423,8 @@ private:
 
   bool IsCriticalC4Configuration2D( Array<short> );
 
-  bool IsSpecialCaseOfC4Configuration2D( PixelType, IndexType,
-                                         IndexType, IndexType );
+  bool IsSpecialCaseOfC4Configuration2D(
+    PixelType, IndexType, IndexType, IndexType );
 
   Array<unsigned int> m_RotationIndices[4];
   Array<unsigned int> m_ReflectionIndices[2];

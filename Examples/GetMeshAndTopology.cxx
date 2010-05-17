@@ -157,15 +157,36 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   typedef ImageType   itype;
   typedef vtkPolyData MeshType;
 
+  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
+  typename dgf::Pointer filter = dgf::New();
+  filter->SetVariance(0.8);
+  filter->SetMaximumError(.01f);
+  filter->SetUseImageSpacingOn();
+  filter->SetInput(image);
+  filter->Update();
+
   typedef BinaryImageToMeshFilter<ImageType> FilterType;
   typename  FilterType::Pointer fltMesh = FilterType::New();
-  fltMesh->SetInput(image);
+  fltMesh->SetInput( image );
   fltMesh->SetAntiAliasMaxRMSError( aaParm ); // to do nothing, set negative
   fltMesh->SetSmoothingIterations( 0 );
   fltMesh->Update();
   vtkPolyData* vtkmesh = fltMesh->GetMesh();
 // assign scalars to the original surface mesh
 //  Display((vtkUnstructuredGrid*)vtkmesh);
+
+  vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
+    vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+  smoother->SetInput(vtkmesh);
+  smoother->SetNumberOfIterations(5);
+  smoother->BoundarySmoothingOff();
+  smoother->FeatureEdgeSmoothingOff();
+  smoother->SetFeatureAngle(120.0);
+  smoother->SetPassBand(.01);
+  smoother->NonManifoldSmoothingOn();
+  smoother->NormalizeCoordinatesOn();
+  smoother->Update();
+  vtkmesh = smoother->GetOutput();
 
   std::cout << " Genus " << vtkComputeTopology(vtkmesh) << std::endl;
 
@@ -219,24 +240,27 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
         }
       image2->TransformPhysicalPointToIndex(point, index);
       float temp = image2->GetPixel(index);
+      //    param->InsertNextValue(temp);
       //	float temp=surfk->CurvatureAtIndex(index);
       if( i % 1000 == 0 )
         {
         std::cout << " kappa " << temp << std::endl;
         }
       // =fabs(manifoldIntegrator->GetGraphNode(i)->GetTotalCost());
+
       temp = fabs(temp);
       float vvv = (temp - mn2) * 255. / dif;
-      if( vvv > 128 )
+      /*
+      if (vvv > 128)
         {
-        float dif = 255 - vvv;
-        vvv = 128 - dif;
+    float dif=255-vvv;
+    vvv = 128 - dif;
         }
       else
         {
-        float dif = 128 - vvv;
-        vvv = 128 + dif;
-        }
+    float dif=128-vvv;
+    vvv = 128 + dif;
+    }*/
       param->InsertNextValue(vvv);
       }
     vtkmesh->GetPointData()->SetScalars(param);
@@ -246,21 +270,6 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   std::cout << " done with mesh map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(vtkmesh);
-  /*
-vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
-  vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-smoother->SetInput(vtkmesh);
-smoother->SetNumberOfIterations(50);
-smoother->BoundarySmoothingOff();
-smoother->FeatureEdgeSmoothingOff();
-smoother->SetFeatureAngle(120.0);
-smoother->SetPassBand(.01);
-smoother->NonManifoldSmoothingOn();
-smoother->NormalizeCoordinatesOn();
-smoother->Update();
-std::cout <<" done smooth " << std::endl;
-writer->SetInput(smoother->GetOutput());
-  */
   std::cout << " writing " << outfn << std::endl;
   // outnm="C:\\temp\\mesh.vtk";
   writer->SetFileName(outfn.c_str() );
@@ -334,7 +343,7 @@ int main(int argc, char *argv[])
   image2->SetDirection(fmat);
 
   // Save the mesh
-  float       aaParm = 0.001;
+  float       aaParm = 0.03;
   const char* paramname = std::string("f(x)").c_str();
   if( argc > 4 )
     {

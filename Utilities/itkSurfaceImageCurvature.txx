@@ -474,6 +474,7 @@ void  SurfaceImageCurvature<TSurface>
     ++Iterator;
     }
 
+  wmgmcurv = false;
   std::cout << " Using Binary Segmentation curv? " << wmgmcurv << std::endl;
 
   if( wmgmcurv )
@@ -1226,7 +1227,12 @@ void  SurfaceImageCurvature<TSurface>
       this->m_PointList.clear();
       }
     thresh += kpix;
-    this->m_FunctionImage->SetPixel(index, kpix);
+    float offset = 0;
+    if( fabs( image->GetPixel(index) - 0 ) > 1.e-6  )
+      {
+      offset = 128.0;
+      }
+    this->m_FunctionImage->SetPixel(index, offset + kpix);
     ct2++;
     ++ti;
     }

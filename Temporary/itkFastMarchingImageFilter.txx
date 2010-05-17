@@ -3,12 +3,12 @@
   Program:   Advanced Normalization Tools
   Module:    $RCSfile: itkFastMarchingImageFilter.txx,v $
   Language:  C++
-  Date:      $Date: 2008-12-21 19:13:11 $
-  Version:   $Revision: 1.52 $
+  Date:      $Date: 2009/03/10 17:30:41 $
+  Version:   $Revision: 1.1 $
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -25,12 +25,9 @@
 #include "itkNumericTraits.h"
 #include "itkRelabelComponentImageFilter.h"
 
-#include "itkImageFileWriter.h"
-
 #include "vnl/vnl_math.h"
-#include <algorithm>
 
-#include "topological_numbers.h"
+#include <algorithm>
 
 namespace itk
 {
@@ -68,8 +65,6 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
   this->m_NormalizationFactor = 1.0;
   this->m_TopologyCheck = None;
-  this->m_UseWellComposedness = true;
-  this->m_SimplePointConnectivity = 1;
 }
 
 template <class TLevelSet, class TSpeedImage>
@@ -293,8 +288,13 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
         continue;
         }
 
+#ifdef ITK_USE_DEPRECATED_FAST_MARCHING
       // make this a trial point
-      this->m_LabelImage->SetPixel( node.GetIndex(), TrialPoint );
+      m_LabelImage->SetPixel( node.GetIndex(), TrialPoint );
+#else
+      // make this an initial trial point
+      m_LabelImage->SetPixel( node.GetIndex(), InitialTrialPoint );
+#endif
 
       outputPixel = node.GetValue();
       output->SetPixel( node.GetIndex(), outputPixel );
@@ -359,114 +359,16 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       }
 
     // is this node already alive ?
-    if( this->m_LabelImage->GetPixel( node.GetIndex() ) != TrialPoint )
+#ifdef ITK_USE_DEPRECATED_FAST_MARCHING
+    if( m_LabelImage->GetPixel( node.GetIndex() ) != TrialPoint )
+#else
+    if( m_LabelImage->GetPixel( node.GetIndex() ) == AlivePoint )
+#endif
       {
       continue;
       }
 
-    // does the node break topology
-    if( this->m_TopologyCheck != None && !this->m_UseWellComposedness )
-      {
-      NBH neighborhood;
-      typename NeighborhoodIteratorType::RadiusType radius;
-      radius.Fill( 1 );
-      NeighborhoodIteratorType ItL( radius, this->m_LabelImage,
-                                    this->m_LabelImage->GetBufferedRegion() );
-      ItL.SetLocation( node.GetIndex() );
-      if( SetDimension == 2 )
-        {
-        for( unsigned int i = 0; i < 3; i++ )
-          {
-          for( unsigned int j = 0; j < 3; j++ )
-            {
-            neighborhood[i][0][j] = neighborhood[i][2][j] = 0;
-            neighborhood[i][1][j] = static_cast<unsigned char>(
-                ItL.GetPixel( 3 * i + j ) == AlivePoint );
-            }
-          }
-        }
-      else if( SetDimension == 3 )
-        {
-        for( unsigned int i = 0; i < 3; i++ )
-          {
-          for( unsigned int j = 0; j < 3; j++ )
-            {
-            for( unsigned int k = 0; k < 3; k++ )
-              {
-              neighborhood[i][j][k] = static_cast<unsigned char>(
-                  ItL.GetPixel( 9 * i + 3 * j + k ) == AlivePoint );
-              }
-            }
-          }
-        }
-      bool isSimplePoint = checkSimple( &neighborhood,
-                                        this->m_SimplePointConnectivity );
-      if( !isSimplePoint )
-        {
-        if( this->m_TopologyCheck == Strict )
-          {
-          output->SetPixel( node.GetIndex(), -0.0001 );
-          this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
-          continue;
-          }
-        else if( this->m_TopologyCheck == NoHandles )
-          {
-          NBH dnbh;
-          NBH neighborhoodInv;
-          reverseNBH( &neighborhood, &neighborhoodInv );
-          unsigned int Tn = checkTn(
-              &neighborhood, &dnbh, this->m_SimplePointConnectivity );
-          unsigned int TnInv = checkTn( &neighborhoodInv, &dnbh,
-                                        associatedConnectivity( this->m_SimplePointConnectivity ) );
-
-          // Get number of connected components
-          NeighborhoodIterator<ConnectedComponentImageType> ItC(
-            radius, this->m_ConnectedComponentImage,
-            this->m_ConnectedComponentImage->GetBufferedRegion() );
-          ItC.SetLocation( node.GetIndex() );
-
-          std::vector<typename ConnectedComponentImageType::PixelType> Cn;
-          Cn.clear();
-
-          typename ConnectedComponentImageType::PixelType minLabel
-            = NumericTraits<typename ConnectedComponentImageType::PixelType>::max();
-          typename ConnectedComponentImageType::PixelType otherLabel
-            = NumericTraits<typename ConnectedComponentImageType::PixelType>::NonpositiveMin();
-          for( unsigned int n = 0; n < ItC.Size(); n++ )
-            {
-            if( n == static_cast<unsigned int>( 0.5 * ItC.Size() ) )
-              {
-              continue;
-              }
-            typename ConnectedComponentImageType::PixelType c = ItC.GetPixel( n );
-            if( c != 0 && std::find( Cn.begin(), Cn.end(), c ) == Cn.end() )
-              {
-              Cn.push_back( c );
-              minLabel = vnl_math_min( minLabel, c );
-              otherLabel = vnl_math_max( otherLabel, c );
-              }
-            }
-          bool isMultiSimplePoint = ( ( Cn.size() == Tn ) && TnInv == 1 );
-          if( !isMultiSimplePoint )
-            {
-            output->SetPixel( node.GetIndex(), -0.0001 );
-            this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
-            continue;
-            }
-          else
-            {
-            for( ItC.GoToBegin(); !ItC.IsAtEnd(); ++ItC )
-              {
-              if( ItC.GetCenterPixel() == otherLabel )
-                {
-                ItC.SetCenterPixel( minLabel );
-                }
-              }
-            }
-          }
-        }
-      }
-    else if( this->m_TopologyCheck != None && this->m_UseWellComposedness )
+    if( this->m_TopologyCheck != None )
       {
       bool wellComposednessViolation
         = this->DoesVoxelChangeViolateWellComposedness( node.GetIndex() );
@@ -475,7 +377,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       if( this->m_TopologyCheck == Strict && ( wellComposednessViolation
                                                || strictTopologyViolation ) )
         {
-        output->SetPixel( node.GetIndex(), -0.0001 );
+        output->SetPixel( node.GetIndex(), -0.00000001 );
         this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
         continue;
         }
@@ -483,7 +385,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
         {
         if( wellComposednessViolation )
           {
-          output->SetPixel( node.GetIndex(), -0.0001 );
+          output->SetPixel( node.GetIndex(), -0.00000001 );
           this->m_LabelImage->SetPixel( node.GetIndex(), TopologyPoint );
           continue;
           }
@@ -627,7 +529,12 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       {
       neighIndex[j] = index[j] - 1;
       }
-    if( this->m_LabelImage->GetPixel( neighIndex ) != AlivePoint )
+#ifdef ITK_USE_DEPRECATED_FAST_MARCHING
+    if( m_LabelImage->GetPixel( neighIndex ) != AlivePoint )
+#else
+    unsigned char label = m_LabelImage->GetPixel( neighIndex );
+    if( label != AlivePoint && label != InitialTrialPoint )
+#endif
       {
       this->UpdateValue( neighIndex, speedImage, output );
       }
@@ -637,7 +544,12 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       {
       neighIndex[j] = index[j] + 1;
       }
+#ifdef ITK_USE_DEPRECATED_FAST_MARCHING
     if( m_LabelImage->GetPixel( neighIndex ) != AlivePoint )
+#else
+    label = m_LabelImage->GetPixel( neighIndex );
+    if( label != AlivePoint && label != InitialTrialPoint )
+#endif
       {
       this->UpdateValue( neighIndex, speedImage, output );
       }

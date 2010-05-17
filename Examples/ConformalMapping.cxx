@@ -370,7 +370,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
 //  kappa=;
 
   typedef  itk::Image<float, 3> FloatImageType;
-  surfk->SetInput(SmoothImage<ImageType>(image, 1.0) );
+  surfk->SetInput(image); // SmoothImage<ImageType>(image,1.0));
   surfk->SetNeighborhoodRadius( 1.5 );
   surfk->SetSigma(1.);
   surfk->SetUseLabel(false);
@@ -384,7 +384,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
       FloatImageType,
       itype>   CastFilterType;
   typename CastFilterType::Pointer caster = CastFilterType::New();
-  caster->SetInput( kappa );
+  caster->SetInput( image );
   caster->SetOutputMinimum(   0 );
   caster->SetOutputMaximum( 255 );
   std::string fn = std::string(filename);
@@ -1053,7 +1053,7 @@ int main(int argc, char *argv[])
     smoother->SetFeatureAngle(180.0);
     smoother->SetEdgeAngle(180.0);
     smoother->SetPassBand(1.e-6); // smaller values increase smoothing
-    smoother->NonManifoldSmoothingOff();
+    smoother->NonManifoldSmoothingOn();
     smoother->NormalizeCoordinatesOn();
     smoother->Update();
 
@@ -1070,10 +1070,18 @@ int main(int argc, char *argv[])
     vtkPolyDataReader *fltReader = vtkPolyDataReader::New();
     fltReader->SetFileName(filename);
     fltReader->Update();
+    vtkPolyData* polydata = fltReader->GetOutput();
+
+    vtkSmartPointer<vtkPolyDataNormals> normalGenerator =
+      vtkSmartPointer<vtkPolyDataNormals>::New();
+    normalGenerator->SetInput(polydata);
+    normalGenerator->Update();
+    polydata = normalGenerator->GetOutput();
     if( fixdir == 1 )
       {
-      Display( (vtkUnstructuredGrid *)fltReader->GetOutput() );
+      Display( (vtkUnstructuredGrid *)polydata);
       }
+    //    if ( fixdir == 1 )  Display((vtkUnstructuredGrid*)fltReader->GetOutput());
     std::cout << " m_Smooth " << param << std::endl;
     MapToDisc<ImageType>(fltReader->GetOutput(), param, outfn);
     }
