@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/dash
 
 VERSION="0.0.10"
 

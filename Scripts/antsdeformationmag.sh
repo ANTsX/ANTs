@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 NUMPARAMS=$#
 if [ $NUMPARAMS -lt 4  ]
 then
