@@ -20,6 +20,35 @@
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkLogTensorImageFilter.h"
 #include "itkExpTensorImageFilter.h"
+#include <sys/stat.h>
+
+bool ANTSFileExists(std::string strFilename)
+{
+  struct stat stFileInfo;
+  bool        blnReturn;
+  int         intStat;
+
+  // Attempt to get the file attributes
+  intStat = stat(strFilename.c_str(), &stFileInfo);
+  if( intStat == 0 )
+    {
+    // We were able to get the file attributes
+    // so the file obviously exists.
+    blnReturn = true;
+    }
+  else
+    {
+    // We were not able to get the file attributes.
+    // This may mean that we don't have permission to
+    // access the folder which contains this file. If you
+    // need to do that level of checking, lookup the
+    // return values of stat which will give you
+    // more details on why stat failed.
+    blnReturn = false;
+    }
+
+  return blnReturn;
+}
 
 // Nifti stores DTI values in lower tri format but itk uses upper tri
 // currently, nifti io does nothing to deal with this. if this changes
@@ -131,6 +160,11 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
 template <class TImageType>
 void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, bool takelog = true)
 {
+  if( !ANTSFileExists(std::string(file) ) )
+    {
+    std::cout << " file " << std::string(file) << " does not exist . " << std::endl;  return;
+    }
+
   // Read the image files begin
   typedef TImageType                      ImageType;
   typedef itk::ImageFileReader<ImageType> FileSourceType;
@@ -174,6 +208,11 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     {
     std::cout << " bad file name " << std::string(file) << std::endl;    target = NULL;  return;
     }
+  if( !ANTSFileExists(std::string(file) ) )
+    {
+    std::cout << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL; return;
+    }
+
   /*//  std::cout << " reading b " << std::string(file) << std::endl;
   typedef itk::ImageFileReader<TImageType> readertype;
   typename readertype::Pointer reader = readertype::New();
