@@ -239,6 +239,10 @@ IF (USE_VTK_FILE)
   ADD_EXECUTABLE(GetMeshAndTopology GetMeshAndTopology.cxx)
   TARGET_LINK_LIBRARIES(GetMeshAndTopology ITKCommon ITKNumerics ITKFEM  ITKIO ITKMetaIO  vtkRendering vtksys vtkIO)
 
+  ADD_EXECUTABLE(CheckTopology CheckTopology.cxx)
+  TARGET_LINK_LIBRARIES(CheckTopology ITKCommon ITKNumerics ITKFEM  ITKIO ITKMetaIO  vtkRendering vtksys vtkIO)
+
+
   SET(FLAT_SRC
     ../Temporary/itkFEMElement3DC0LinearTriangular.cxx
     ../Temporary/itkFEMElement3DC0LinearTriangularLaplaceBeltrami.cxx
