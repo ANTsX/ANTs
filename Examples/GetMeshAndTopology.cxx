@@ -17,6 +17,10 @@
 #include "itkSphereMeshSource.h"
 #include "itkBinaryMask3DMeshSource.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
+#include "vtkPolyData.h"
+#include "vtkPolyDataConnectivityFilter.h"
+#include "vtkExtractEdges.h"
+#include "vtkPolyDataReader.h"
 
 // #include "itkFEMConformalMap.h"
 // #include "itkFEMDiscConformalMap.h"
@@ -132,20 +136,52 @@ float vtkComputeTopology(vtkPolyData* pd)
 //    marchingCubes->SetComputeScalars(false);
 //    marchingCubes->SetComputeGradients(false);
 //    marchingCubes->SetComputeNormals(false);
-
   vtkPolyDataConnectivityFilter* con = vtkPolyDataConnectivityFilter::New();
 
   con->SetExtractionModeToLargestRegion();
 //    con->SetInput(marchingCubes->GetOutput());
   con->SetInput(pd);
-
+  con->Update();
+  float g = ComputeGenus(con->GetOutput() );
+  return g;
 //    vtkUnstructuredGridToPolyDataFilter* gp = vtkUnstructuredGridToPolyDataFilter::New();
 //    gp->SetInput(con->GetOutput());
 
-  float g = ComputeGenus(con->GetOutput() );
 //    marchingCubes->Delete();
 
-  return g;
+  int inputNumberOfPoints = con->GetOutput()->GetNumberOfPoints();
+  int inputNumberOfPolys = con->GetOutput()->GetNumberOfPolys();
+
+  vtkPolyDataConnectivityFilter *polyDataConnectivityFilter =
+    vtkPolyDataConnectivityFilter::New();
+  polyDataConnectivityFilter->SetInput( con->GetOutput() );
+  polyDataConnectivityFilter->SetExtractionModeToAllRegions();
+  polyDataConnectivityFilter->SetExtractionModeToLargestRegion();
+  polyDataConnectivityFilter->Update();
+
+  int connectivityNumberOfExtractedRegions = polyDataConnectivityFilter->
+    GetNumberOfExtractedRegions();
+
+  polyDataConnectivityFilter->Delete();
+
+  vtkExtractEdges *extractEdges = vtkExtractEdges::New();
+  extractEdges->SetInput( con->GetOutput() );
+  extractEdges->Update();
+
+  int extractNumberOfLines = extractEdges->GetOutput()->GetNumberOfLines();
+
+  extractEdges->Delete();
+
+  int EulerCharacteristic = inputNumberOfPoints - extractNumberOfLines
+    + inputNumberOfPolys;
+
+  double genus = 0.5 * ( 2 * connectivityNumberOfExtractedRegions
+                         - EulerCharacteristic );
+
+  std::cout << "EulerCharacteristic " << EulerCharacteristic << std::endl;
+  std::cout << "genus " << genus << std::endl;
+
+  return genus;
 }
 
 template <class TImage>
@@ -178,7 +214,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   smoother->SetInput(vtkmesh);
-  smoother->SetNumberOfIterations(5);
+  smoother->SetNumberOfIterations(25);
   smoother->BoundarySmoothingOff();
   smoother->FeatureEdgeSmoothingOff();
   smoother->SetFeatureAngle(120.0);
@@ -358,6 +394,7 @@ int main(int argc, char *argv[])
     {
     aaParm = atof(argv[6]);
     }
+  std::cout << "aaParm " << aaParm << std::endl;
   GetValueMesh<ImageType>(image, image2, outfn, paramname, scaledata, aaParm);
   //  GetImageTopology<ImageType>(image);
 

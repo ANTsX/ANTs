@@ -1049,12 +1049,12 @@ int main(int argc, char *argv[])
     smoother->SetInput(fltReader->GetOutput() );
     smoother->SetNumberOfIterations( (int) param );
     smoother->BoundarySmoothingOn();
-    smoother->FeatureEdgeSmoothingOn();
+    smoother->FeatureEdgeSmoothingOff();
     smoother->SetFeatureAngle(180.0);
     smoother->SetEdgeAngle(180.0);
-    smoother->SetPassBand(1.e-6); // smaller values increase smoothing
+    smoother->SetPassBand(1.e-3); // smaller values increase smoothing
     smoother->NonManifoldSmoothingOn();
-    smoother->NormalizeCoordinatesOn();
+    smoother->NormalizeCoordinatesOff();
     smoother->Update();
 
     vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
