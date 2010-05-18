@@ -256,7 +256,7 @@ if ( this->GetNode(0)->GetDegreeOfFreedom(0)==909 ||
 std::cout << " cot " << std::endl;
 std::cout <<  cot <<std::endl;
 }
-/*
+
 Ke.set_size(9,9);
 Ke.fill(0.0);
 
