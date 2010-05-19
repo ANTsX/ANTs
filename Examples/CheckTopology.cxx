@@ -184,12 +184,14 @@ template <class TImage>
 typename TImage::Pointer
 GetLargestComponent(typename TImage::Pointer image)
 {
-  typedef float                                                                  InternalPixelType;
-  typedef TImage                                                                 InternalImageType;
-  typedef TImage                                                                 OutputImageType;
-  typedef itk::BinaryThresholdImageFilter<InternalImageType, InternalImageType>  ThresholdFilterType;
-  typedef itk::ConnectedComponentImageFilter<InternalImageType, OutputImageType> FilterType;
-  typedef itk::RelabelComponentImageFilter<OutputImageType, OutputImageType>     RelabelType;
+  enum { ImageDimension = TImage::ImageDimension };
+
+  typedef int                                                                      InternalPixelType;
+  typedef itk::Image<InternalPixelType, ImageDimension>                            InternalImageType;
+  typedef TImage                                                                   OutputImageType;
+  typedef itk::BinaryThresholdImageFilter<TImage, InternalImageType>               ThresholdFilterType;
+  typedef itk::ConnectedComponentImageFilter<InternalImageType, InternalImageType> FilterType;
+  typedef itk::RelabelComponentImageFilter<InternalImageType, InternalImageType>   RelabelType;
 
   typename ThresholdFilterType::Pointer threshold = ThresholdFilterType::New();
   typename FilterType::Pointer filter = FilterType::New();
@@ -224,9 +226,16 @@ GetLargestComponent(typename TImage::Pointer image)
     std::cerr << excep << std::endl;
     }
 
-  typename TImage::Pointer Clusters = MakeNewImage<TImage>(relabel->GetOutput(), 0);
-  // typename TImage::Pointer Clusters=relabel->GetOutput();
-  typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
+  typename TImage::Pointer Clusters = TImage::New();  // typename TImage::Pointer Clusters=relabel->GetOutput();
+  Clusters->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
+  Clusters->SetBufferedRegion( image->GetLargestPossibleRegion().GetSize() );
+  Clusters->SetSpacing(image->GetSpacing() );
+  Clusters->SetDirection( image->GetDirection() );
+  Clusters->SetOrigin(image->GetOrigin() );
+  Clusters->Allocate();
+  Clusters->FillBuffer(0);
+
+  typedef itk::ImageRegionIteratorWithIndex<InternalImageType> Iterator;
   Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
 
   float                     maximum = relabel->GetNumberOfObjects();
