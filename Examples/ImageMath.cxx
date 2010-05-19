@@ -4230,9 +4230,10 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
     = FastMarchingFilterType::New();
   fastMarching->SetInput( speedimage );
 
-  typedef typename FastMarchingFilterType::NodeContainer  NodeContainer;
-  typedef typename FastMarchingFilterType::NodeType       NodeType;
-  typedef typename FastMarchingFilterType::LabelImageType LabelImageType;
+  typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
+  typedef typename FastMarchingFilterType::NodeType      NodeType;
+  //  typedef typename FastMarchingFilterType::LabelImageType LabelImageType;
+  typedef ImageType LabelImageType;
 
   typedef itk::LabelContourImageFilter<ImageType, LabelImageType> ContourFilterType;
   typename ContourFilterType::Pointer contour = ContourFilterType::New();
