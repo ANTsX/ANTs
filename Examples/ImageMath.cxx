@@ -2202,9 +2202,9 @@ int ImageMath(int argc, char *argv[])
       {
       result = 1. / (1. + exp(-1.0 * ( pix1 - 0.25) / pix2) );
       }
-    else if( strcmp(operation.c_str(), "total") == 0 && pix2 >= 0.5 )
+    else if( strcmp(operation.c_str(), "total") == 0 )
       {
-      result += pix1;
+      result += pix1 * pix2;
       }
 
     vfIter2.Set(result);
@@ -6731,7 +6731,7 @@ int main(int argc, char *argv[])
     std::cout << " The last two arguments can be an image or float value " << std::endl;
     std::cout
       <<
-    " Valid Operators :   \n m (multiply)  , \n   +  (add)  , \n   - (subtract)  , \n   / (divide)  , \n   ^ (power)  , \n exp -- take exponent exp(imagevalue*value) \n addtozero \n overadd \n abs  \n total -- sums up values in an image (img2 is the mask) \n Decision -- computes  result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))  "
+    " Valid Operators :   \n m (multiply)  , \n   +  (add)  , \n   - (subtract)  , \n   / (divide)  , \n   ^ (power)  , \n exp -- take exponent exp(imagevalue*value) \n addtozero \n overadd \n abs  \n total -- sums up values in an image or in image1*image2 (img2 is the probability mask) \n Decision -- computes  result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))  "
       << std::endl;
     std::cout <<  "   Neg (Produce Image Negative ) , \n   G Image1.ext s  (Smooth with Gaussian of sigma = s )  "
               << std::endl;
