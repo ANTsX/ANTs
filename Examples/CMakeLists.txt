@@ -137,7 +137,7 @@ TARGET_LINK_LIBRARIES(CreateWarpedGridImage ITKCommon  ITKBasicFilters ITKIO)
 ADD_EXECUTABLE(MeasureImageSimilarity MeasureImageSimilarity.cxx)
 TARGET_LINK_LIBRARIES(MeasureImageSimilarity ITKCommon  ITKBasicFilters ITKIO)
 
-ADD_EXECUTABLE(ConvertToJpg ConvertToJpg.cxx ${SOURCES})
+ADD_EXECUTABLE(ConvertToJpg ConvertToJpg.cxx)
 TARGET_LINK_LIBRARIES(ConvertToJpg ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
 ADD_EXECUTABLE(ConvertImagePixelType ConvertImagePixelType.cxx ${SOURCES})

@@ -1,7 +1,10 @@
+
+
+#include "itkImage.h"
+#include "itkPointSet.h"
 #include "itkLabeledPointSetFileReader.h"
 #include "itkLabeledPointSetFileWriter.h"
 
-#include "global.h"
 #include "string.h"
 #include <fstream.h>
 
@@ -14,9 +17,8 @@ int main( unsigned int argc, char *argv[] )
     }
 
   typedef double RealType;
-
-  typedef itk::PointSet<long, ImageDimension> PointSetType;
-
+  const unsigned int ImageDimension = 3;
+  typedef itk::PointSet<long, ImageDimension>          PointSetType;
   typedef itk::LabeledPointSetFileReader<PointSetType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );

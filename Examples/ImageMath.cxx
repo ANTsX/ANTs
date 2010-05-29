@@ -32,6 +32,9 @@
 #include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
+#include "itkLabeledPointSetFileReader.h"
+#include "itkLabeledPointSetFileWriter.h"
+
 // #include "itkBinaryMorphologicalClosingImageFilter.h"
 // #include "itkBinaryMorphologicalOpeningImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
@@ -83,7 +86,7 @@
 #include "itkDecisionRuleBase.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkImageClassifierBase.h"
-
+#include "itkWellComposedImageFilter.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
@@ -828,6 +831,48 @@ int TileImages(unsigned int argc, char *argv[])
   typename writertype::Pointer writer = writertype::New();
   writer->SetFileName(outname.c_str() );
   writer->SetInput( rescaler->GetOutput() );
+  writer->Update();
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int ConvertLandmarkFile(unsigned int argc, char *argv[])
+{
+  unsigned int argct = 2;
+
+  if( argc < 5 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    }
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string infn = std::string(argv[argct]); argct++;
+  float       pointp = 1;
+
+  typedef itk::PointSet<long, ImageDimension>          PointSetType;
+  typedef itk::LabeledPointSetFileReader<PointSetType> ReaderType;
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( infn.c_str() );
+  reader->SetRandomPercentage( 1 );
+  if( pointp > 0 && pointp < 1  )
+    {
+    reader->SetRandomPercentage( pointp );
+    }
+  reader->Update();
+
+  std::cout << "Number of labels: " << reader->GetNumberOfLabels() << std::endl;
+  std::cout << "Labels: ";
+  for( unsigned int i = 0; i < reader->GetNumberOfLabels(); i++ )
+    {
+    std::cout << reader->GetLabelSet()->operator[](i) << " ";
+    }
+  std::cout << std::endl;
+
+  typedef itk::LabeledPointSetFileWriter<PointSetType> WriterType;
+  typename WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName( outname.c_str() );
+  writer->SetInput( reader->GetOutput() );
   writer->Update();
 
   return 0;
@@ -4224,6 +4269,15 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   typename ImageType::Pointer outlabimage = NULL;
   ReadImage<ImageType>(outlabimage, fn2.c_str() );
 
+  /*
+  typedef itk::WellComposedImageFilter<ImageType> WCFilterType;
+  typename WCFilterType::Pointer filter3D = WCFilterType::New();
+  filter3D->SetInput( labimage );
+  filter3D->SetTotalNumberOfLabels( 1 );
+  filter3D->Update();
+  labimage=filter3D->GetOutput();
+  */
+
   typedef  itk::FastMarchingImageFilter
     <InternalImageType, InternalImageType> FastMarchingFilterType;
   typename FastMarchingFilterType::Pointer fastMarching
@@ -4237,8 +4291,8 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
 
   typedef itk::LabelContourImageFilter<ImageType, LabelImageType> ContourFilterType;
   typename ContourFilterType::Pointer contour = ContourFilterType::New();
-  contour->SetInput( labimage );
-  contour->FullyConnectedOff();
+  contour->SetInput(   labimage  );
+  contour->FullyConnectedOn();
   contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
   contour->Update();
 
@@ -4249,8 +4303,8 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   trialPoints->Initialize();
   unsigned long trialCount = 0;
 
-  itk::ImageRegionIteratorWithIndex<ImageType> ItL( labimage,
-                                                    labimage->GetLargestPossibleRegion() );
+  itk::ImageRegionIteratorWithIndex<ImageType> ItL(   labimage,
+                                                      labimage->GetLargestPossibleRegion() );
   itk::ImageRegionIteratorWithIndex<LabelImageType> ItC( contour->GetOutput(),
                                                          contour->GetOutput()->GetLargestPossibleRegion() );
   for( ItL.GoToBegin(), ItC.GoToBegin(); !ItL.IsAtEnd(); ++ItL, ++ItC )
@@ -6845,6 +6899,10 @@ int main(int argc, char *argv[])
       <<
     " ExtractSlice  volume.nii.gz slicetoextract --- will extract slice number from last dimension of volume (2,3,4) dimensions "
       << std::endl;
+    std::cout
+      <<
+    " ConvertLandmarkFile  InFile.txt ---- will convert landmark file between formats.  see ants.pdf for description of formats.  e.g. ImageMath 3  outfile.vtk  ConvertLandmarkFile  infile.txt "
+      << std::endl;
     return 1;
     }
 
@@ -7071,6 +7129,7 @@ int main(int argc, char *argv[])
         {
         ExtractSlice<2>(argc, argv);
         }
+      //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
         {
         std::cout << " cannot find operation : " << operation << std::endl;
@@ -7323,6 +7382,10 @@ int main(int argc, char *argv[])
         {
         ExtractSlice<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
+        {
+        ConvertLandmarkFile<3>(argc, argv);
+        }
       else
         {
         std::cout << " cannot find operation : " << operation << std::endl;
@@ -7497,10 +7560,7 @@ int main(int argc, char *argv[])
         {
         PadImage<4>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
-        {
-        SetOrGetPixel<4>(argc, argv);
-        }
+      //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
       else if( strcmp(operation.c_str(), "MakeImage") == 0 )
         {
         MakeImage<4>(argc, argv);
@@ -7556,6 +7616,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
         {
         ExtractSlice<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
+        {
+        ConvertLandmarkFile<4>(argc, argv);
         }
       else
         {
