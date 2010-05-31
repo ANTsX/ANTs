@@ -4276,6 +4276,7 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   filter3D->SetTotalNumberOfLabels( 1 );
   filter3D->Update();
   labimage=filter3D->GetOutput();
+  WriteImage<ImageType>(labimage,"temp.nii.gz");
   */
 
   typedef  itk::FastMarchingImageFilter
@@ -4292,9 +4293,10 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   typedef itk::LabelContourImageFilter<ImageType, LabelImageType> ContourFilterType;
   typename ContourFilterType::Pointer contour = ContourFilterType::New();
   contour->SetInput(   labimage  );
-  contour->FullyConnectedOn();
+  contour->FullyConnectedOff();
   contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
   contour->Update();
+  //  WriteImage<ImageType>(contour->GetOutput(),"temp2.nii.gz");
 
   typename NodeContainer::Pointer alivePoints = NodeContainer::New();
   alivePoints->Initialize();
@@ -7136,6 +7138,7 @@ int main(int argc, char *argv[])
         }
       }
       break;
+
     case 3:
       {
       if( strcmp(operation.c_str(), "m") == 0 )
@@ -7392,6 +7395,7 @@ int main(int argc, char *argv[])
         }
       }
       break;
+
     case 4:
       {
       if( strcmp(operation.c_str(), "m") == 0 )
@@ -7627,6 +7631,7 @@ int main(int argc, char *argv[])
         }
       }
       break;
+
     default:
       std::cerr << " Dimension Not supported " << atoi(argv[1]) << std::endl;
       exit( 1 );
