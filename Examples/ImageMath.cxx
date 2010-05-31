@@ -86,7 +86,7 @@
 #include "itkDecisionRuleBase.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkImageClassifierBase.h"
-#include "itkWellComposedImageFilter.h"
+// #include "itkWellComposedImageFilter.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
