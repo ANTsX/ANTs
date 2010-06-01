@@ -4637,7 +4637,7 @@ int FillHoles(int argc, char *argv[])
     std::cerr << excep << std::endl;
     }
 
-  WriteImage<ImageType>(relabel->GetOutput(), "test.nii");
+  // WriteImage<ImageType>(relabel->GetOutput(),"test.nii");
 
   if( holeparam == 2 )
     {
