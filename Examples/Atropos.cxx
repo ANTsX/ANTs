@@ -768,71 +768,148 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Option 1:  Random[numberOfClasses]\n" )
-      + std::string( "\t  Option 2:  Kmeans[numberOfClasses]\n" )
-      + std::string( "\t  Option 3:  Otsu[numberOfClasses]\n" )
-      + std::string( "\t  Option 4:  PriorProbabilityImages[numberOfClasses," )
-      + std::string( "fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting]\n" )
-      + std::string( "\t  Option 5:  PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initialization" );
-    option->SetShortName( 'i' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description = std::string( "[intensityImage,<adaptiveSmoothingWeight>]" )
-      + std::string( " -- adaptive smoothing only applies to initialization with prior image(s)" );
+      std::string( "One or more scalar images is specified for segmentation " )
+      + std::string( "using the -a/--intensity-image option.  For segmentation " )
+      + std::string( "scenarios with no prior information, the first scalar " )
+      + std::string( "image encountered on the command line is used to order " )
+      + std::string( "labelings such that the class with the smallest intensity " )
+      + std::string( "signature is class \'1\' through class \'N\' which represents " )
+      + std::string( "the voxels with the largest intensity values.  The " )
+      + std::string( "optional adaptive smoothing weight parameter is applicable " )
+      + std::string( "only when using prior label or probability images.  This " )
+      + std::string( "scalar parameter is to be specified between [0,1] which " )
+      + std::string( "smooths each labeled region separately and modulates the " )
+      + std::string( "intensity measurement at each voxel in each intensity image " )
+      + std::string( "between the original intensity and its smoothed " )
+      + std::string( "counterpart.  The smoothness parameters are governed by the " )
+      + std::string( "-b/--bspline option." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "intensity-image" );
     option->SetShortName( 'a' );
+    option->SetUsageOption( 0, "[intensityImage,<adaptiveSmoothingWeight>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "maskImage" );
+    std::string description =
+      std::string( "If the adaptive smoothing weights are > 0, the intensity " )
+      + std::string( "images are smoothed in calculating the likelihood values. " )
+      + std::string( "This is to account for subtle intensity differences " )
+      + std::string( "across the same tissue regions." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "bspline" );
+    option->SetShortName( 'b' );
+    option->SetUsageOption( 0,
+                            "[<numberOfLevels=6>,<initialMeshResolution=1x1x...>,<splineOrder=3>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "To initialize the FMM parameters, one of the following " )
+      + std::string( "options must be specified.  If one does not have " )
+      + std::string( "prior label or probability images we recommend " )
+      + std::string( "using kmeans as it is typically faster than otsu and can " )
+      + std::string( "be used with multivariate initialization. " )
+      + std::string( "Random initialization is meant purely for intellectual " )
+      + std::string( "curiosity. The prior weighting (specified in the range " )
+      + std::string( "[0,1]) is used to modulate the calculation of the " )
+      + std::string( "posterior probabilities between the likelihood*mrfprior " )
+      + std::string( "and the likelihood*mrfprior*prior." );
+
+//     std::string( "\t  Usage: \n" ) +
+//     std::string( "\t    Option 1:  Random[numberOfClasses]\n" ) +
+//     std::string( "\t    Option 2:  Kmeans[numberOfClasses]\n" ) +
+//     std::string( "\t    Option 3:  Otsu[numberOfClasses]\n" ) +
+//     std::string( "\t    Option 4:  PriorProbabilityImages[numberOfClasses," ) +
+//     std::string( "fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting]\n" ) +
+//     std::string( "\t    Option 5:  PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initialization" );
+    option->SetShortName( 'i' );
+    option->SetUsageOption( 0, "Random[numberOfClasses]" );
+    option->SetUsageOption( 1, "KMeans[numberOfClasses]" );
+    option->SetUsageOption( 2, "Otsu[numberOfClasses]" );
+    option->SetUsageOption( 3,
+                            "PriorProbabilityImages[numberOfClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting]" );
+    option->SetUsageOption( 4, "PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "The image mask defines the region which is to be labeled by " )
+      + std::string( "the Atropos algorithm." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mask-image" );
     option->SetShortName( 'x' );
+    option->SetUsageOption( 0, "maskImageFilename" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
     std::string description =
-      std::string( "[<numberOfIterations>,<convergenceThreshold>]" );
+      std::string( "Convergence is determined by calculating the mean maximum " )
+      + std::string( "posterior probability over the region of interest at " )
+      + std::string( "each iteration. When this value decreases or increases " )
+      + std::string( "less than the specified threshold from the previous " )
+      + std::string( "iteration the program terminates.");
+
+//      std::string( "\t  Usage: \n" ) +
+//     std::string( "\t    [<numberOfIterations=5>,<convergenceThreshold=0.001>]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "convergence" );
     option->SetShortName( 'c' );
+    option->SetUsageOption( 0, "[<numberOfIterations=5>,<convergenceThreshold=0.001>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
     std::string description =
-      std::string( "Option 1: Gaussian\n" )
-      + std::string(
-        "\t  Option 2: ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>] \n" )
-      + std::string( "\t  Option 3: HistogramParzenWindows[<Sigma=1.0>,<numberOfBins=32>]" );
+      std::string( "Both parametric and non-parametric options exist in Atropos. " )
+      + std::string( "The Gaussian parametric option is commonly used " )
+      + std::string( "(e.g. SPM & FAST) where the mean and standard deviation " )
+      + std::string( "for the Gaussian of each class is calculated at each " )
+      + std::string( "iteration.  Other groups use non-parametric approaches " )
+      + std::string( "exemplified by option 2.  We recommend using options 1 " )
+      + std::string( "or 2 as they are fairly standard and the " )
+      + std::string( "default parameters work adequately." );
+
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "likelihood-model" );
     option->SetShortName( 'k' );
+    option->SetUsageOption( 0, "Gaussian" );
+    option->SetUsageOption( 1, "HistogramParzenWindows[<Sigma=1.0>,<numberOfBins=32>]" );
+    option->SetUsageOption( 2,
+                            "ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "[<smoothingFactor>,<radius>]" );
+    std::string description =
+      std::string( "Markov random field (MRF) theory provides a general " )
+      + std::string( "framework for enforcing spatially contextual constraints " )
+      + std::string( "on the segmentation solution.  The default smoothing " )
+      + std::string( "factor of 0.3 provides a moderate amount of smoothing. " )
+      + std::string( "Increasing this number causes more smoothing whereas " )
+      + std::string( "decreasing the number lessens the smoothing. The radius " )
+      + std::string( "parameter specifies the mrf neighborhood." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
     option->SetShortName( 'm' );
+    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -849,23 +926,33 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 //   }
 
     {
-    std::string description
-      = std::string( "[classifiedImage," )
-        + std::string( "<posteriorProbabilityImageFileNameFormat>]" );
+    std::string description =
+      std::string( "The output consists of a labeled image where each voxel " )
+      + std::string( "in the masked region is assigned a label from 1, 2, " )
+      + std::string( "..., N.  Optionally, one can also output the posterior " )
+      + std::string( "probability images specified in the same format as the " )
+      + std::string( "prior probability images, e.g. posterior%02d.nii.gz " )
+      + std::string( "(C-style file name formatting)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
+    option->SetUsageOption( 0, "[classifiedImage,<posteriorProbabilityImageFileNameFormat>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "minimize-memory-usage=1/(0)" );
+    std::string description =
+      std::string( "By default, memory usage is not minimized, however, if " )
+      + std::string( "this is needed, the various probability and distance " )
+      + std::string( "\t  images are calculated on the fly instead of being " )
+      + std::string( "stored in memory at each iteration. " );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "minimize-memory-usage" );
     option->SetShortName( 'u' );
+    option->SetUsageOption( 0, "(0)/1" );
     option->SetDescription( description );
     option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
@@ -873,55 +960,62 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "[<numberOfLevels>,<initialMeshResolution>,<splineOrder>]" )
-      + std::string( " -- only applies to initialization with prior image(s) and non-zero adaptive smoothing parameter." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "bspline" );
-    option->SetShortName( 'b' );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description =
-      std::string( "use euclidean or geodesic distance for prior label distance maps = 1/(0)" )
-      + std::string( " -- only applies to initialization with a prior label image." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "use-euclidean-distance" );
-    option->SetShortName( 'e' );
-    option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description =
-      std::string( "Option 1: BoxPlot[<lowerPercentile=0.25>,<upperPercentile=0.75>,<whiskerLength=1.5>]\n" )
-      + std::string( "\t  Option 2: GrubbsRosner[<significanceLevel=0.05>,<winsorizingLevel=0.10>]" );
+      std::string( "To remove the effects of outliers in calculating the " )
+      + std::string( "weighted mean and weighted covariance, the user can " )
+      + std::string( "opt to remove the outliers through the options " )
+      + std::string( "specified below." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "winsorize-outliers" );
     option->SetShortName( 'w' );
+    option->SetUsageOption( 0, "BoxPlot[<lowerPercentile=0.25>,<upperPercentile=0.75>,<whiskerLength=1.5>]" );
+    option->SetUsageOption( 1, "GrubbsRosner[<significanceLevel=0.05>,<winsorizingLevel=0.10>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
     std::string description =
-      std::string( "whichLabel[sigma,<boundaryProbability>]" )
-      + std::string( " -- only applies to initialization with a prior label image." );
+      std::string( "Given prior label or probability images, the labels are " )
+      + std::string( "propagated throughout the masked region so that every " )
+      + std::string( "voxel in the mask is labeled.  Propagation is done " )
+      + std::string( "by using a signed distance transform of the label. " )
+      + std::string( "Alternatively, propagation of the labels with the " )
+      + std::string( "fast marching filter respects the distance along the " )
+      + std::string( "shape of the mask (e.g. the sinuous sulci and gyri " )
+      + std::string( "of the cortex." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "labels" );
+    option->SetLongName( "use-euclidean-distance" );
+    option->SetShortName( 'e' );
+    option->SetUsageOption( 0, "(0)/1" );
+    option->SetDescription( description );
+    option->AddValue( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "The propagation of each prior label can be controlled " )
+      + std::string( "by the sigma and boundary probability parameters.  The " )
+      + std::string( "latter parameter is the probability (in the range " )
+      + std::string( "[0,1]) of the label on the boundary which increases linearly " )
+      + std::string( "to a maximum value of 1.0 in the interior of the labeled " )
+      + std::string( "region.  The former parameter dictates the exponential " )
+      + std::string( "decay of probability propagation outside the labeled " )
+      + std::string( "region from the boundary probability, i.e. " )
+      + std::string( "boundaryProbability*exp( -distance / sigma^2 )." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "label-propagation" );
     option->SetShortName( 'l' );
+    option->SetUsageOption( 0, "whichLabel[sigma=0.0,<boundaryProbability=1.0>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "Print menu." );
+    std::string description = std::string( "Print the help menu." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
@@ -944,7 +1038,16 @@ int main( int argc, char *argv[] )
   itk::CommandLineParser::Pointer parser = itk::CommandLineParser::New();
   parser->SetCommand( argv[0] );
 
-  parser->SetCommandDescription( "Atropos:  A priori classification with registration initialized template assistance." );
+  std::string commandDescription =
+    std::string( "A finite mixture modeling (FMM) segmentation approach " )
+    + std::string( "with possibilities for specifying prior constraints. " )
+    + std::string( "These prior constraints include the specification " )
+    + std::string( "of a prior label image, prior probability images " )
+    + std::string( "(one for each class), and/or an MRF prior to " )
+    + std::string( "enforce spatial smoothing of the labels.  Similar algorithms " )
+    + std::string( "include FAST and SPM.  " );
+
+  parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
