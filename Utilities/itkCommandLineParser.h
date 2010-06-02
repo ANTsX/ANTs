@@ -26,6 +26,7 @@
 #include "itkNumericTraits.h"
 
 #include <list>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -142,6 +143,10 @@ private:
   void operator=( const Self & );    // purposely not implemented
 
   std::vector<std::string> RegroupCommandLineArguments( unsigned int, char * * );
+
+  std::string BreakUpStringIntoNewLines( std::string, const std::string, unsigned int ) const;
+
+  void TokenizeString( std::string, std::vector<std::string> &, std::string ) const;
 
   OptionListType m_Options;
   std::string    m_Command;

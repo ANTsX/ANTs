@@ -296,7 +296,16 @@ CommandLineParser
   os << indent << this->m_Command << std::endl;
   if( !this->m_CommandDescription.empty() )
     {
-    os << indent << indent << this->m_CommandDescription << std::endl;
+    std::stringstream ss1;
+    ss1 << indent << indent;
+
+    std::stringstream ss2;
+    ss2 << this->m_CommandDescription;
+
+    std::string description = this->BreakUpStringIntoNewLines(
+        ss2.str(), ss1.str(), 80 );
+
+    os << indent << indent << description << std::endl;
     }
   os << std::endl;
   os << "OPTIONS: " << std::endl;
@@ -305,26 +314,54 @@ CommandLineParser
   for( it = this->m_Options.begin(); it != this->m_Options.end(); it++ )
     {
     os << indent;
+    std::stringstream ss;
+    ss << indent;
+
     if( (*it)->GetShortName() != '\0' )
       {
       os << "-" << (*it)->GetShortName();
+      ss << Indent( 2 );
       if( !( (*it)->GetLongName() ).empty() )
         {
-        os << ", " << "--" << (*it)->GetLongName() << ": " << std::endl;
+        os << ", " << "--" << (*it)->GetLongName() << " " << std::flush;
+        ss << Indent( 5 + ( (*it)->GetLongName() ).length() );
         }
       else
         {
-        os << ": " << std::endl;
+        os << " " << std::flush;
+        ss << Indent( 1 );
         }
       }
     else
       {
-      os << "--" << (*it)->GetLongName() << ": " << std::endl;
+      os << "--" << (*it)->GetLongName() << " " << std::flush;
+      ss << Indent( 3 + ( (*it)->GetLongName() ).length() );
+      }
+    if( (*it)->GetNumberOfUsageOptions() > 0 )
+      {
+      os << (*it)->GetUsageOption( 0 ) << std::endl;
+      for( unsigned int i = 1; i < (*it)->GetNumberOfUsageOptions(); i++ )
+        {
+        os << ss.str() << (*it)->GetUsageOption( i ) << std::endl;
+        }
+      }
+    else
+      {
+      os << std::endl;
       }
 
     if( !( (*it)->GetDescription().empty() ) )
       {
-      os << indent << indent << (*it)->GetDescription() << std::endl;
+      std::stringstream ss1;
+      ss1 << indent << indent;
+
+      std::stringstream ss2;
+      ss2 << (*it)->GetDescription();
+
+      std::string description = this->BreakUpStringIntoNewLines(
+          ss2.str(), ss1.str(), 80 );
+
+      os << indent << indent << description << std::endl;
       }
     if( (*it)->GetValues().size() == 1 )
       {
@@ -402,6 +439,65 @@ CommandLineParser
         }
       }
     os << std::endl;
+    }
+}
+
+std::string
+CommandLineParser
+::BreakUpStringIntoNewLines( std::string longString,
+                             std::string indentString, unsigned int numberOfCharactersPerLine ) const
+{
+  std::vector<std::string> tokens;
+
+  this->TokenizeString( longString, tokens, " " );
+
+  std::string  newString( "" );
+  unsigned int currentTokenId = 0;
+  unsigned int currentLineLength = 0;
+  while( currentTokenId < tokens.size() )
+    {
+    if( tokens[currentTokenId].length() >= numberOfCharactersPerLine )
+      {
+      newString += ( std::string( "\n" ) + tokens[currentTokenId]
+                     + std::string( "\n" ) );
+      currentTokenId++;
+      currentLineLength = 0;
+      }
+    else if( currentTokenId < tokens.size() && currentLineLength
+             + tokens[currentTokenId].length() > numberOfCharactersPerLine )
+      {
+      newString += ( std::string( "\n" ) + indentString );
+      currentLineLength = 0;
+      }
+    else
+      {
+      newString += ( tokens[currentTokenId] + std::string( " " ) );
+      currentLineLength += ( tokens[currentTokenId].length() + 1 );
+      currentTokenId++;
+      }
+    }
+
+  return newString;
+}
+
+void
+CommandLineParser
+::TokenizeString( std::string str, std::vector<std::string> & tokens,
+                  std::string delimiters ) const
+{
+  // Skip delimiters at beginning.
+  std::string::size_type lastPos = str.find_first_not_of( delimiters, 0 );
+  // Find first "non-delimiter".
+  std::string::size_type pos = str.find_first_of( delimiters, lastPos );
+
+  while( std::string::npos != pos || std::string::npos != lastPos )
+    {
+    // Found a token, add it to the vector.
+    tokens.push_back( str.substr( lastPos, pos - lastPos ) );
+    // Skip delimiters.  Note the "not_of"
+    lastPos = str.find_first_not_of( delimiters, pos );
+    // Find next "non-delimiter"
+    pos = str.find_first_of( delimiters, lastPos );
     }
 }
 
