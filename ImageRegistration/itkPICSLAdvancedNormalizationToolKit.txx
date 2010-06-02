@@ -823,11 +823,21 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
   if( true )
     {
+    std::string description =
+      std::string( "this mask -- defined in the 'fixed' image space defines " )
+      + std::string( "the region of interest over which the registration is " )
+      + std::string( "computed ==> above 0.1 means inside mask ==> continuous " )
+      + std::string( "values in range [0.1,1.0] effect optimization like a " )
+      + std::string( "probability.  ==> values > 1 are treated as = 1.0 " );
+
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mask-image" );
     option->SetShortName( 'x' );
-    option->SetDescription(
-      "this mask -- defined in the 'fixed' image space defines the region of interest over which the registration is computed \n\t\t==> above 0.1 means inside mask \n\t\t==> continuous values in range [0.1 , 1.0] effect optimization like a probability.  \n\t\t==> values > 1 are treated as = 1.0 " );
+//         option->SetDescription( "this mask -- defined in the 'fixed' image space defines the region of interest over
+// which the registration is computed ==> above 0.1 means inside mask \n\t\t==> continuous values in range [0.1 , 1.0]
+// effect optimization like a probability.  \n\t\t==> values > 1 are treated as = 1.0 " );
+    option->SetDescription( description );
+    option->SetUsageOption( 0, "maskFileName" );
     this->m_Parser->AddOption( option );
     }
 
