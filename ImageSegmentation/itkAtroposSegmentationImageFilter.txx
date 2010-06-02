@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkAtroposSegmentationImageFilter.txx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -37,6 +36,7 @@
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelStatisticsImageFilter.h"
+#include "itkLabelGeometryImageFilter.h"
 #include "itkEuclideanDistance.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkMinimumDecisionRule.h"
@@ -989,6 +989,27 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   weightedPriorProbabilityImage->Allocate();
   weightedPriorProbabilityImage->FillBuffer( NumericTraits<RealType>::Zero );
 
+  /**
+   * Accumulate the sample array for all labels.
+   */
+  std::vector<typename SampleType::Pointer> samples;
+  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+    {
+    typename SampleType::Pointer sample = SampleType::New();
+    samples.push_back( this->GetScalarSamples( n + 1 ) );
+    }
+  unsigned int totalSampleSize = samples[0]->Size();
+
+  Array<unsigned int> count( this->m_NumberOfClasses );
+  count.Fill( 0 );
+  std::vector<WeightArrayType> weights;
+  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+    {
+    WeightArrayType weightArray( samples[n]->Size() );
+    weightArray.Fill( 1.0 );
+    weights.push_back( weightArray );
+    }
+
   Array<RealType> sumPosteriors( this->m_NumberOfClasses );
   sumPosteriors.Fill( 0.0 );
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
@@ -1012,6 +1033,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
         {
         RealType posteriorProbability = ItP.Get();
+        weights[n].SetElement( count[n]++, posteriorProbability );
+
         if( posteriorProbability > 0.0 && posteriorProbability >= ItM.Get() )
           {
           ItM.Set( posteriorProbability );
@@ -1148,58 +1171,33 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       this->m_MixtureModelProportions[n] = 0.0;
       }
     }
-
   /**
-   * Calculate the parameters of the mixture model from the initial labeling.
+   * Calculate the parameters of the mixture model.
    */
-  this->m_MixtureModelProportions.SetSize( this->m_NumberOfClasses );
-
-  /**
-   * Accumulate the sample array for all labels.
-   */
-  unsigned int                              totalSampleSize = 0;
-  std::vector<typename SampleType::Pointer> samples;
-  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-    {
-    typename SampleType::Pointer sample = SampleType::New();
-    samples.push_back( this->GetScalarSamples( n + 1 ) );
-    totalSampleSize += samples[n]->Size();
-    }
-
-  Array<unsigned int> count( this->m_NumberOfClasses );
-  count.Fill( 0 );
-  std::vector<WeightArrayType> weights;
-  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-    {
-    WeightArrayType weightArray( samples[n]->Size() );
-    weightArray.Fill( 1.0 );
-    weights.push_back( weightArray );
-    }
-
-  ImageRegionIteratorWithIndex<ClassifiedImageType> ItO( this->GetOutput(),
-                                                         this->GetOutput()->GetRequestedRegion() );
-  for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
-    {
-    LabelType label = ItO.Get();
-    if( label == 0 )
-      {
-      continue;
-      }
-    weights[label - 1].SetElement( count[label - 1]++,
-                                   maxPosteriorProbabilityImage->GetPixel( ItO.GetIndex() ) );
-    }
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     this->m_MixtureModelComponents[n]->SetWeights( &weights[n] );
     this->m_MixtureModelComponents[n]->SetInputListSample( samples[n] );
-    this->m_MixtureModelProportions[n] =
-      static_cast<RealType>( samples[n]->Size() )
-      / static_cast<RealType>( totalSampleSize );
-
-    sumPosteriors[n] = weights[n].sum();
     }
 
-  return sumPosteriors.sum() / static_cast<RealType>( totalSampleSize );
+  /**
+   * Calculate the maximum posterior probability sum over the region of
+   * interest.  This quantity should increase at each iteration.
+   */
+  RealType maxPosteriorSum = 0.0;
+
+  ImageRegionIteratorWithIndex<RealImageType> ItM( maxPosteriorProbabilityImage,
+                                                   maxPosteriorProbabilityImage->GetRequestedRegion() );
+  for( ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM )
+    {
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItM.GetIndex() ) == this->m_MaskLabel )
+      {
+      maxPosteriorSum += ItM.Get();
+      }
+    }
+
+  return maxPosteriorSum / static_cast<RealType>( totalSampleSize );
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
@@ -1234,8 +1232,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                                          this->GetOutput()->GetRequestedRegion() );
   for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
     {
-    if( ItO.Get() == whichClass && ( !this->GetMaskImage() ||
-                                     this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel ) )
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
       {
       for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
         {
@@ -1485,6 +1483,13 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               measurement[i] =
                 this->GetIntensityImage( i )->GetPixel( ItO.GetIndex() );
+
+              if( smoothImages[i] )
+                {
+                measurement[i] = ( 1.0 - this->m_AdaptiveSmoothingWeights[i] )
+                  * measurement[i] + this->m_AdaptiveSmoothingWeights[i]
+                  * smoothImages[i]->GetPixel( ItO.GetIndex() );
+                }
               }
             RealType likelihood =
               this->m_MixtureModelComponents[c]->Evaluate( measurement );
@@ -1688,6 +1693,13 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             {
             measurement[i] =
               this->GetIntensityImage( i )->GetPixel( ItO.GetIndex() );
+
+            if( smoothImages[i] )
+              {
+              measurement[i] = ( 1.0 - this->m_AdaptiveSmoothingWeights[i] )
+                * measurement[i] + this->m_AdaptiveSmoothingWeights[i]
+                * smoothImages[i]->GetPixel( ItO.GetIndex() );
+              }
             }
           RealType likelihood =
             this->m_MixtureModelComponents[whichClass - 1]->Evaluate( measurement );
