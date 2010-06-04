@@ -36,7 +36,6 @@
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelStatisticsImageFilter.h"
-// #include "itkLabelGeometryImageFilter.h"
 #include "itkEuclideanDistance.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkMinimumDecisionRule.h"
