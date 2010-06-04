@@ -2446,8 +2446,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     os << indent << "No outlier handling." << std::endl;
     }
 
-  if( this->m_InitializationStrategy == PriorProbabilityImages ||
-      this->m_InitializationStrategy == PriorLabelImage &&
+  if( ( this->m_InitializationStrategy == PriorProbabilityImages ||
+        this->m_InitializationStrategy == PriorLabelImage ) &&
       this->m_AdaptiveSmoothingWeights.size() > 0 )
     {
     os << indent << "Adaptive smoothing weights: [";
