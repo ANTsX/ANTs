@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCommandLineParser.cxx,v $
   Language:  C++
   Date:      $Date: 2009/01/22 22:43:11 $
   Version:   $Revision: 1.1 $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -289,12 +288,12 @@ CommandLineParser
 
 void
 CommandLineParser
-::PrintMenu( std::ostream& os, Indent indent ) const
+::PrintMenu( std::ostream& os, Indent indent, bool printShortVersion ) const
 {
   os << std::endl;
   os << "COMMAND: " << std::endl;
   os << indent << this->m_Command << std::endl;
-  if( !this->m_CommandDescription.empty() )
+  if( !this->m_CommandDescription.empty() && !printShortVersion )
     {
     std::stringstream ss1;
     ss1 << indent << indent;
@@ -350,7 +349,7 @@ CommandLineParser
       os << std::endl;
       }
 
-    if( !( (*it)->GetDescription().empty() ) )
+    if( !( (*it)->GetDescription().empty() ) && !printShortVersion )
       {
       std::stringstream ss1;
       ss1 << indent << indent;
@@ -363,41 +362,70 @@ CommandLineParser
 
       os << indent << indent << description << std::endl;
       }
-    if( (*it)->GetValues().size() == 1 )
+    if( !printShortVersion )
       {
-      os << indent << indent << "<VALUES>: " << (*it)->GetValue( 0 );
-      if( (*it)->GetParameters( 0 ).size() > 0 )
+      if( (*it)->GetValues().size() == 1 )
         {
-        os << "[";
-        if( (*it)->GetParameters( 0 ).size() == 1 )
+        os << indent << indent << "<VALUES>: " << (*it)->GetValue( 0 );
+        if( (*it)->GetParameters( 0 ).size() > 0 )
           {
-          os << (*it)->GetParameter( 0, 0 );
-          }
-        else
-          {
-          for( unsigned int i = 0;
-               i < (*it)->GetParameters( 0 ).size() - 1; i++ )
+          os << "[";
+          if( (*it)->GetParameters( 0 ).size() == 1 )
             {
-            os << (*it)->GetParameter( 0, i ) << ",";
+            os << (*it)->GetParameter( 0, 0 );
             }
-          os << (*it)->GetParameter( 0, (*it)->GetParameters( 0 ).size() - 1 );
+          else
+            {
+            for( unsigned int i = 0;
+                 i < (*it)->GetParameters( 0 ).size() - 1; i++ )
+              {
+              os << (*it)->GetParameter( 0, i ) << ",";
+              }
+            os << (*it)->GetParameter( 0, (*it)->GetParameters( 0 ).size() - 1 );
+            }
+          os << "]";
           }
-        os << "]";
+        os << std::endl;
         }
-      os << std::endl;
-      }
-    else if( (*it)->GetValues().size() > 1 )
-      {
-      os << indent << indent << "<VALUES>: ";
-      for( unsigned int n = 0; n < (*it)->GetValues().size() - 1; n++ )
+      else if( (*it)->GetValues().size() > 1 )
         {
+        os << indent << indent << "<VALUES>: ";
+        for( unsigned int n = 0; n < (*it)->GetValues().size() - 1; n++ )
+          {
+          os << (*it)->GetValue( n );
+          if( (*it)->GetParameters( n ).size() > 0 )
+            {
+            os << "[";
+            if( (*it)->GetParameters( n ).size() == 1 )
+              {
+              os << (*it)->GetParameter( n, 0 ) << "], ";
+              }
+            else
+              {
+              for( unsigned int i = 0;
+                   i < (*it)->GetParameters( n ).size() - 1; i++ )
+                {
+                os << (*it)->GetParameter( n, i ) << ",";
+                }
+              os << (*it)->GetParameter( n,
+                                         (*it)->GetParameters( n ).size() - 1 ) << "], ";
+              }
+            }
+          else
+            {
+            os << ", ";
+            }
+          }
+
+        unsigned int n = (*it)->GetValues().size() - 1;
+
         os << (*it)->GetValue( n );
         if( (*it)->GetParameters( n ).size() > 0 )
           {
           os << "[";
           if( (*it)->GetParameters( n ).size() == 1 )
             {
-            os << (*it)->GetParameter( n, 0 ) << "], ";
+            os << (*it)->GetParameter( n, 0 ) << "]";
             }
           else
             {
@@ -407,38 +435,12 @@ CommandLineParser
               os << (*it)->GetParameter( n, i ) << ",";
               }
             os << (*it)->GetParameter( n,
-                                       (*it)->GetParameters( n ).size() - 1 ) << "], ";
+                                       (*it)->GetParameters( n ).size() - 1 ) << "]";
             }
           }
-        else
-          {
-          os << ", ";
-          }
         }
-
-      unsigned int n = (*it)->GetValues().size() - 1;
-
-      os << (*it)->GetValue( n );
-      if( (*it)->GetParameters( n ).size() > 0 )
-        {
-        os << "[";
-        if( (*it)->GetParameters( n ).size() == 1 )
-          {
-          os << (*it)->GetParameter( n, 0 ) << "]";
-          }
-        else
-          {
-          for( unsigned int i = 0;
-               i < (*it)->GetParameters( n ).size() - 1; i++ )
-            {
-            os << (*it)->GetParameter( n, i ) << ",";
-            }
-          os << (*it)->GetParameter( n,
-                                     (*it)->GetParameters( n ).size() - 1 ) << "]";
-          }
-        }
+      os << std::endl;
       }
-    os << std::endl;
     }
 }
 

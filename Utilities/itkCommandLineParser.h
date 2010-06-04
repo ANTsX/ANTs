@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkCommandLineParser.h,v $
   Language:  C++
   Date:      $Date: 2009/01/22 22:43:11 $
   Version:   $Revision: 1.1 $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -74,7 +73,7 @@ public:
 
   void AddOption( OptionType::Pointer );
 
-  void PrintMenu( std::ostream& os, Indent indent ) const;
+  void PrintMenu( std::ostream& os, Indent indent, bool printShortVersion = false ) const;
 
   itkSetStringMacro( Command );
   itkGetStringMacro( Command );
