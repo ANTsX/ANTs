@@ -157,7 +157,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
 // assign scalars to the original surface mesh
 
-  typedef itk::SurfaceMeshCurvature<GraphSearchNode, GraphSearchNode> surfktype;
+  typedef itk::SurfaceMeshCurvature<GraphSearchNodeType, GraphSearchNodeType> surfktype;
   typename surfktype::Pointer surfk = surfktype::New();
 
   vtkPoints*     vtkpoints = m_SurfaceMesh->GetPoints();
@@ -530,7 +530,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::MakeFlatImage()
 template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float tval)
 {
-  typedef GraphSearchNode::NodeLocationType loctype;
+  typedef GraphSearchNodeType::NodeLocationType loctype;
   // Get the number of points in the mesh
   int numPoints = m_Solver.node.size();
 
@@ -1060,7 +1060,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   float minv = 9.e9;
   float maxu = 0;
   float maxv = 0;
-  typedef itk::SurfaceMeshCurvature<GraphSearchNode, GraphSearchNode> surfktype;
+  typedef itk::SurfaceMeshCurvature<GraphSearchNodeType, GraphSearchNodeType> surfktype;
   typename surfktype::Pointer surfk = surfktype::New();
 
   float         totallengthdistortion = 0.;
@@ -1150,7 +1150,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
     // then perform integration to the given point.  this set its V value.
     int pathsz=manifoldIntegrator->GetPathSize();
     float intval=0.0;
-    typedef GraphSearchNode::NodeLocationType loctype;
+    typedef GraphSearchNodeType::NodeLocationType loctype;
     for (int j=pathsz-2; j>=0; j--)
     {
       loctype delt=manifoldIntegrator->GetPathAtIndex(j+1)->GetLocation()-
@@ -1178,7 +1178,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   float maxu = 0;
   float maxv = 0;
 
-  typedef itk::SurfaceMeshCurvature<GraphSearchNode, GraphSearchNode> surfktype;
+  typedef itk::SurfaceMeshCurvature<GraphSearchNodeType, GraphSearchNodeType> surfktype;
   typename surfktype::Pointer surfk = surfktype::New();
 
   //    for (int DER=0; DER<4; DER++)
