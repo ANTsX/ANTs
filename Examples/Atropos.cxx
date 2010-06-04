@@ -1015,11 +1015,20 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string( "Print the help menu (short version)." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName( 'h' );
+    option->SetDescription( description );
+    option->AddValue( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Print the help menu." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
-    option->SetShortName( 'h' );
     option->SetDescription( description );
     option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
@@ -1055,7 +1064,14 @@ int main( int argc, char *argv[] )
   if( argc < 3 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetValue() ) )
     {
-    parser->PrintMenu( std::cout, 5 );
+    parser->PrintMenu( std::cout, 5, false );
+    exit( EXIT_FAILURE );
+    }
+
+  if( argc < 3 || parser->Convert<bool>(
+        parser->GetOption( 'h' )->GetValue() ) )
+    {
+    parser->PrintMenu( std::cout, 5, true );
     exit( EXIT_FAILURE );
     }
 
