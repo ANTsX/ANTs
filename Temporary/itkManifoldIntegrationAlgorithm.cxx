@@ -111,7 +111,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
 
   vtkIdType  npts;
   vtkIdType* pts;
-  long       i = 0;
+//   long i = 0;
   for( vtkcells->InitTraversal(); vtkcells->GetNextCell(npts, pts); )
     {
     m_Graph[pts[0]]->m_NumberOfNeighbors += 2;
@@ -372,7 +372,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
 //    for (int d=0;d<GraphDimension;d++) m_GraphIndex[d]=loc[d];
 //	    m_Graph->SetPixel(m_GraphIndex,G);
     }
-  for( int i = 0; i < m_QS->m_SinkNodes.size(); i++ )
+  for( unsigned int i = 0; i < m_QS->m_SinkNodes.size(); i++ )
     {
     typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = m_QS->m_SinkNodes[i];
     G->SetPredecessor(NULL);
@@ -434,7 +434,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>::TerminationCondition()
 template <class TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
 {
-  int i = 0, j = 0;
+  int i = 0; // ,j=0;
 
   for( i = 0; i < m_CurrentNode->m_NumberOfNeighbors; i++ )
     {
