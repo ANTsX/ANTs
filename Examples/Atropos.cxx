@@ -1061,15 +1061,14 @@ int main( int argc, char *argv[] )
 
   parser->Parse( argc, argv );
 
-  if( argc < 3 || parser->Convert<bool>(
+  if( argc < 2 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetValue() ) )
     {
     parser->PrintMenu( std::cout, 5, false );
     exit( EXIT_FAILURE );
     }
-
-  if( argc < 3 || parser->Convert<bool>(
-        parser->GetOption( 'h' )->GetValue() ) )
+  else if( parser->Convert<bool>(
+             parser->GetOption( 'h' )->GetValue() ) )
     {
     parser->PrintMenu( std::cout, 5, true );
     exit( EXIT_FAILURE );
