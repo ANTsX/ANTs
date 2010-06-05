@@ -137,7 +137,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   std::cout << " begin initializing graph " << std::endl;
   manifoldIntegrator->InitializeGraph3();
   m_SurfaceMesh = manifoldIntegrator->GetSurfaceMesh();
-  float     frac = 0;
+//   float frac=0;
   IndexType index;
   std::cout << " enter src node coords ";  std::cin >> index[0] >> index[1] >> index[2];
   std::cout << " entered index " << index;
@@ -241,9 +241,9 @@ bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
   vtkIdType     npts;
   vtkIdType*    pts;
   unsigned long i = 0;
-  unsigned long toti = vtkcells->GetNumberOfCells();
-  unsigned long rate = toti / 50;
-  //  std::cout << " progress ";
+//   unsigned long toti = vtkcells->GetNumberOfCells();
+//   unsigned long rate = toti/50;
+//  std::cout << " progress ";
   for( vtkcells->InitTraversal(); vtkcells->GetNextCell(npts, pts); )
     {
     //  if ( i % rate == 0 && i > rate ) std::cout << "  " <<  (float) i / (float) toti << " ";
@@ -319,7 +319,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   int eltct = 0;
   while( elt != m_Solver.el.end() )
     {
-    for( int i = 0; i < dofs; i++ )
+    for( unsigned int i = 0; i < dofs; i++ )
       {
       int nodeid = (*elt)->GetNode(i)->GN;
       //      if( manifoldIntegrator->GetGraphNode(nodeid)->GetTotalCost() > 222 )
@@ -597,7 +597,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float
     {
     tris1->InsertNextCell(3);
     tris2->InsertNextCell(3);
-    for( int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
+    for( unsigned int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
       {
       tris1->InsertCellPoint( (*n)->GetNode(i)->GN);
       tris2->InsertCellPoint( (*n)->GetNode(i)->GN);
@@ -697,7 +697,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
     for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
       {
       std::cout << "Elt#: " << (*n)->GN << ": has " << (*n)->GetNumberOfNodes() << " nodes ";
-      for( int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
+      for( unsigned int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
         {
         std::cout << " coord " << (*n)->GetNode(i)->GetCoordinates() << std::endl;
         }
@@ -736,7 +736,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
       // FIXME m_MaxCost = actual radius value - 1  .....
 
       m_Radius[dof] = manifoldIntegrator->GetGraphNode( (*n)->GN )->GetTotalCost() / m_MaxCost;
-      double diff = m_Radius[dof] - m_MaxCost;
+//    double diff = m_Radius[dof] - m_MaxCost;
       //	  std::cout << " diff " << diff << "  " << m_Smooth << std::endl;
       // if (diff > 0) diff = 0 ;
       if( ct % 100 == 0 )
@@ -898,7 +898,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   float d1 = manifoldIntegrator->GetPathAtIndex(0)->GetTotalCost();
   for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
     {
-    for( int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
+    for( unsigned int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
       {
       if( manifoldIntegrator->GetGraphNode( (*n)->GetNode(i)->GN)->GetValue(2) == -99.0 )
         {
@@ -961,7 +961,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
             << " pathsz2 " << pathsz2 << " len2 " << d2 << std::endl;
   for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
     {
-    for( int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
+    for( unsigned int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
       {
       if( manifoldIntegrator->GetGraphNode( (*n)->GetNode(i)->GN)->GetValue(2) == -999.0
           && !manifoldIntegrator->GetGraphNode( (*n)->GetNode(i)->GN)->GetUnVisitable() )
@@ -984,8 +984,7 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::ConformalMap2()
 {
-  unsigned int maxits = m_Solver.GetNumberOfDegreesOfFreedom(); // should be > twice ndofs
-
+//   unsigned int maxits=m_Solver.GetNumberOfDegreesOfFreedom(); // should be > twice ndofs
   m_Solver.load.clear();
   //    m_Solver.node.clear();
   //     m_Solver.el.clear();
@@ -1130,49 +1129,49 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::ConjugateHarmonic()
 {
   // now backtrack from all pts to the source - this sets up the ancestors
-  float minintval = 9.e9;
-  float maxintval = -9.e9;
-  /*
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n!=m_Solver.node.end(); n++)
-    {
-      int dof=(*n)->GetDegreeOfFreedom(0);
-      float U = m_RealSolution[dof];
-      manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(U,0);
-    }
-  this->MeasureLengthDistortion();
-  //
-    for (int i=0; i<manifoldIntegrator->GetGraphSize(); i++)
-    {
-    if (this->InDisc(manifoldIntegrator->GetGraphNode(i) ))
-    {
-    // backtracking gives us a curve along which to integrate
-      manifoldIntegrator->BackTrack( manifoldIntegrator->GetGraphNode(i) );
-    // then perform integration to the given point.  this set its V value.
-    int pathsz=manifoldIntegrator->GetPathSize();
-    float intval=0.0;
-    typedef GraphSearchNodeType::NodeLocationType loctype;
-    for (int j=pathsz-2; j>=0; j--)
-    {
-      loctype delt=manifoldIntegrator->GetPathAtIndex(j+1)->GetLocation()-
-        manifoldIntegrator->GetPathAtIndex(j)->GetLocation();
-      float dstarU=manifoldIntegrator->dstarUestimate(
-        manifoldIntegrator->GetPathAtIndex(j))*delt.magnitude();
-      if (j==0) dstarU*=0.5;
-//		  dstarU=fabs(dstarU)*(-1.0);
-        intval+=dstarU;
-      manifoldIntegrator->GetPathAtIndex(j)->SetValue(intval,2);
-    }
-    if (intval < minintval) minintval=intval;
-    if (intval > maxintval) maxintval=intval;
-    }
+//   float minintval=9.e9;
+//   float maxintval=-9.e9;
+/*
+for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n!=m_Solver.node.end(); n++)
+  {
+    int dof=(*n)->GetDegreeOfFreedom(0);
+    float U = m_RealSolution[dof];
+    manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(U,0);
   }
-  std::cout << " MAX int VAL " << maxintval << std::endl;
-  std::cout << " MIN int VAL " << minintval << std::endl;
+this->MeasureLengthDistortion();
+//
+  for (int i=0; i<manifoldIntegrator->GetGraphSize(); i++)
+  {
+  if (this->InDisc(manifoldIntegrator->GetGraphNode(i) ))
+  {
+  // backtracking gives us a curve along which to integrate
+    manifoldIntegrator->BackTrack( manifoldIntegrator->GetGraphNode(i) );
+  // then perform integration to the given point.  this set its V value.
+  int pathsz=manifoldIntegrator->GetPathSize();
+  float intval=0.0;
+  typedef GraphSearchNodeType::NodeLocationType loctype;
+  for (int j=pathsz-2; j>=0; j--)
+  {
+    loctype delt=manifoldIntegrator->GetPathAtIndex(j+1)->GetLocation()-
+      manifoldIntegrator->GetPathAtIndex(j)->GetLocation();
+    float dstarU=manifoldIntegrator->dstarUestimate(
+      manifoldIntegrator->GetPathAtIndex(j))*delt.magnitude();
+    if (j==0) dstarU*=0.5;
+//		  dstarU=fabs(dstarU)*(-1.0);
+      intval+=dstarU;
+    manifoldIntegrator->GetPathAtIndex(j)->SetValue(intval,2);
+  }
+  if (intval < minintval) minintval=intval;
+  if (intval > maxintval) maxintval=intval;
+  }
+}
+std::cout << " MAX int VAL " << maxintval << std::endl;
+std::cout << " MIN int VAL " << minintval << std::endl;
 */
 
 // now print out the conf coords U+iV
   std::cout << " Conformal coordinates " << std::endl;
-  int   tct = 0;
+//   int tct = 0;
   float minu = 9.e9;
   float minv = 9.e9;
   float maxu = 0;
@@ -1236,7 +1235,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
       float x = r * cos(theta); // expu/denom;
       float y = r * sin(theta); // expv/denom;
-      float denom = sqrt(x * x + y * y);
+//       float denom=sqrt(x*x+y*y);
 
       bool makesquare = false;
       //      if (theta <= m_Pi) makesquare = true;
