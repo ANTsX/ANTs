@@ -76,7 +76,7 @@ public:
     this->m_Origin = pt;
     this->m_PointList.insert(this->m_PointList.begin(), pt);
     this->m_FunctionValueList.insert(this->m_FunctionValueList.begin(), m_SurfacePatch->GetValue() );
-    for( int i = 0; i < m_SurfacePatch->m_Neighbors.size(); i++ )
+    for( unsigned int i = 0; i < m_SurfacePatch->m_Neighbors.size(); i++ )
       {
       VertexType neigh = m_SurfacePatch->m_Neighbors[i]->GetLocation();
       PointType  pt;
