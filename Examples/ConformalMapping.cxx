@@ -121,7 +121,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter
   vtkRenderWindowInteractor* inter = vtkRenderWindowInteractor::New();
   inter->SetRenderWindow(renWin);
 
-  vtkCellPicker* cpicker = vtkCellPicker::New();
+//   vtkCellPicker* cpicker = vtkCellPicker::New();
 
   vtkCallbackCommand *cbc = vtkCallbackCommand::New();
 /*-------------------------------------------------------------------------
@@ -427,8 +427,8 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
 
   vtkFloatArray* param;
 
-  bool done = false;
-  // while (!done)
+//   bool done=false;
+// while (!done)
     {
     param = vtkFloatArray::New();
     param->SetName("angle");
@@ -521,10 +521,10 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
   // Display((vtkUnstructuredGrid*)Parameterizer->m_ExtractedSurfaceMesh);
 
 //  std::cout << " display flattened patch ";
-  int   segct = 0;
-  float step  = 0.1;
-  float maxt = 0.0;
-  //  for (float tt = 0.0; tt<=maxt; tt=tt+step)
+  int segct = 0;
+//   float step  = 0.1;
+//   float maxt=0.0;
+//  for (float tt = 0.0; tt<=maxt; tt=tt+step)
     {
     //      std::cout <<" Building at : " << tt << std::endl;
     ///  Parameterizer->BuildOutputMeshes(tt);
@@ -954,7 +954,7 @@ int main(int argc, char *argv[])
     }
   else
     {
-    filename = "image.nii";
+    filename = (char *)"image.nii";
     return 0;
     }
 
@@ -977,8 +977,8 @@ int main(int argc, char *argv[])
 
     ImageType::Pointer image = readfilter->GetOutput();
 
-    PixelType backgroundValue = 0;
-    PixelType internalValue   = 255;
+//   PixelType backgroundValue = 0;
+//   PixelType internalValue   = 255;
 
     ImageType::Pointer thresh = BinaryThreshold<ImageType>(loth, hith, hith, image );
 
@@ -1005,8 +1005,8 @@ int main(int argc, char *argv[])
 
     ImageType::Pointer image = readfilter->GetOutput();
 
-    PixelType backgroundValue = 0;
-    PixelType internalValue   = 255;
+//   PixelType backgroundValue = 0;
+//   PixelType internalValue   = 255;
 
     ImageType::Pointer thresh = BinaryThreshold<ImageType>(loth, hith, hith, image );
 
