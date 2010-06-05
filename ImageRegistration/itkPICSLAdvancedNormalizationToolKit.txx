@@ -65,16 +65,16 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::ParseCommandLine( int argc, char * *argv )
 {
   this->m_Parser->Parse( argc, argv );
-  std::string printhelp_long = this->m_Parser->GetOption( "help" )->GetValue();
-  std::string printhelp_short = this->m_Parser->GetOption( 'h' )->GetValue();
+  std::string  printhelp_long = this->m_Parser->GetOption( "help" )->GetValue();
+  unsigned int help_long =
+    this->m_Parser->template Convert<unsigned int>( printhelp_long );
   if( help_long )
     {
     this->m_Parser->PrintMenu( std::cout, 7, false );
     exit( 0 );
     }
 
-  unsigned int help_long =
-    this->m_Parser->template Convert<unsigned int>( printhelp_long );
+  std::string  printhelp_short = this->m_Parser->GetOption( 'h' )->GetValue();
   unsigned int help_short =
     this->m_Parser->template Convert<unsigned int>( printhelp_short );
   if( help_short )
