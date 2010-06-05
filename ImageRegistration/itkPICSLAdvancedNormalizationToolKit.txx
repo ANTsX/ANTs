@@ -65,13 +65,21 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::ParseCommandLine( int argc, char * *argv )
 {
   this->m_Parser->Parse( argc, argv );
-  std::string printhelp = this->m_Parser->GetOption( "help" )->GetValue();
-  std::cout << "printhelp " << printhelp << std::endl;
-  unsigned int b = this->m_Parser->template Convert<unsigned int>( printhelp );
-  std::cout << " printhelp " << printhelp << " true? " << b << " end " << std::endl;
-  if( b == 1 )
+  std::string printhelp_long = this->m_Parser->GetOption( "help" )->GetValue();
+  std::string printhelp_short = this->m_Parser->GetOption( 'h' )->GetValue();
+  if( help_long )
     {
-    this->m_Parser->PrintMenu( std::cout, 7 );
+    this->m_Parser->PrintMenu( std::cout, 7, false );
+    exit( 0 );
+    }
+
+  unsigned int help_long =
+    this->m_Parser->template Convert<unsigned int>( printhelp_long );
+  unsigned int help_short =
+    this->m_Parser->template Convert<unsigned int>( printhelp_short );
+  if( help_short )
+    {
+    this->m_Parser->PrintMenu( std::cout, 7, true );
     exit( 0 );
     }
 }
@@ -1034,12 +1042,25 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
   if( true )
     {
+    std::string description = std::string( "Print the help menu (short version)." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName( 'h' );
+    option->SetDescription( description );
+    std::string zero = std::string( "0" );
+    option->AddValue( zero );
+    this->m_Parser->AddOption( option );
+    }
+
+  if( true )
+    {
+    std::string description = std::string( "Print the help menu." );
+
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
-    option->SetShortName( 'h' );
-    option->SetDescription( "blah-blah" );
-    std::string zero = std::string("0");
-    option->AddValue(zero);
+    option->SetDescription( description );
+    std::string zero = std::string( "0" );
+    option->AddValue( zero );
     this->m_Parser->AddOption( option );
     }
 
