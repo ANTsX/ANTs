@@ -1,9 +1,9 @@
 #!/bin/bash
 
-VERSION="0.0.10"
+VERSION="0.0.12"
 
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
+ export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
 
 #assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 
@@ -12,9 +12,9 @@ function Usage {
 
 Usage:
 
-$0 -d ImageDimension -o OUTPREFIX <other options> <images>
+`basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
 
-Compulsory arguments:
+Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
 	  ImageDimension: 4 (for 3 dimensional registration of time-series; requires FSL)
@@ -28,13 +28,13 @@ NB: All files to be added to the template should be in the same directory.
 
 Optional arguments:
 
-     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,  2 == use PEXEC
+     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,  2 == use PEXEC (localhost)
 
      -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default 2) -- requires "-c 2"
+     -j:  Number of cpu cores to use (default: 2; available on localhost: ${cpu_count}) -- requires "-c 2"
 
      -m:  Max-iterations in each registration
 
@@ -48,7 +48,7 @@ Optional arguments:
      -t:  Type of transformation model used for registration.
 
      -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs.
+          will create an unbiased starting point by averaging all inputs. Use the full path!
 
 --------------------------------------------------------------------------------------
 ANTS was created by:
@@ -75,9 +75,9 @@ parallelize the registration of each subject to the template.
 
 Usage:
 
-sh buildtemplateparallel.sh -d ImageDimension -o OUTPREFIX <other options> <images>
+`basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
 
-Compulsory arguments:
+Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options)::
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
 	  ImageDimension: 4 (for 3 dimensional registration of time-series; requires FSL)
@@ -91,13 +91,19 @@ NB: All files to be added to the template should be in the same directory.
 
 Optional arguments:
 
-     -c:  Control for parallel computation   --- if set to zero, run serially, if set to 2 , use PEXEC , if set to 1 , use SGE qsub.
+     -c:  Control for parallel computation   --- if set to zero, run serially, if set to 2 , use PEXEC (localhost), if set to 1 , use SGE qsub.
 
      -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
 
      -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default 2)  --- set -c option to 2 to use this .
+     -j:  Number of cpu cores to use (default: 2; available on localhost: ${cpu_count})  --- set -c option to 2 to use this .
+
+	  The optimal number of cpu cores to use for template generation depends on the availability of cores, the amount of
+	  free working memory (RAM) and the resolution of the data. High resolution datasets typically require more RAM during
+	  processing. Running out of RAM during a calculation will slow down all processing on your computer. There is ${RAM} kb
+	  RAM installed in this system of which ${RAMfree} kb is free. This means there is ${cpu_free_ram} kb per core available
+	  when all cores are used for template generation.
 
      -m:  Max-iterations
 
@@ -143,7 +149,7 @@ Optional arguments:
              DD = Diffeomorphic Demons style exponential mapping
 
      -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs.
+          will create an unbiased starting point by averaging all inputs. Use the full path!
 
 Requirements:
 
@@ -537,14 +543,16 @@ RIGID=0
 RIGIDTYPE=" --do-rigid" # set to an empty string to use affine initialization
 range=0
 REGTEMPLATE=target
+# cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
+# RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
+# RAMfree=`cat /proc/meminfo | sed -n -e '/MemFree/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
+# cpu_free_ram=$((${RAMfree}/${cpu_count}))
 
-# Provide different output for Usage and Help
+# Provide output for Help
 if [ "$1" == "-h" ]
     then
     Help >&2
-elif [ $nargs -lt 6 ]
-    then
-    Usage >&2
+
 fi
 
 # reading command line arguments
@@ -578,23 +586,25 @@ while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
       j) #number of cpu cores to use (default = 2)
 	  CORES=$OPTARG
 
-# will develop when I have time
-# This won't work on Mac
-#	testproc=`cat /proc/cpuinfo | grep processor | cut -d ':' -f 2 `
-# 	if [[ ${#testproc} -gt ${CORES} ]] ;
-# 	then
-# 		echo " You have spefied more threads than that there are cpu cores in your system. "
-# 		echo " This may slow down template generation"
-# 		echo " Maximum number of threads is: ${#testproc}"
-# 		echo " Press CTRL + C to exit and respecify "
-# 		sleep 5
-#
-# 	elif [[ ${#testproc} -lt ${CORES} ]] ;
-# 	then
-# 		echo " You have spefied less threads than that there are cpu cores in your system. "
-# 		echo " This may slow down template generation"
-# 		echo " Maximum number of threads is: ${#testproc}"
-# 	fi
+	if [[ ${CORES} -gt ${cpu_count} ]] ;
+	then
+		echo
+		echo "--------------------------------------------------------------------------------------"
+		echo " You specified more threads than available cpu cores (available: ${cpu_count} cores). "
+		echo " This may slow down template generation and make your system unresponsive."
+		echo " Press CTRL + C to exit and respecify, otherwise script continues in 15s. "
+		echo "--------------------------------------------------------------------------------------"
+		sleep 15
+
+
+	elif [[ ${#testproc} -lt ${CORES} ]] ;
+	then
+		echo
+		echo "--------------------------------------------------------------------------------------"
+		echo " You specified less threads than available cpu cores (available: ${cpu_count} cores). "
+		echo " This may slow down template generation, but will keep your system more responsive."
+		echo "--------------------------------------------------------------------------------------"
+	fi
 	  ;;
       m) #max iterations other than default
 	  MAXITERATIONS=$OPTARG
@@ -626,6 +636,19 @@ while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
   esac
 done
 
+# Provide different output for Usage and Help
+if [ ${TDIM} -eq 4 ] && [ $nargs -lt 5 ]
+    then
+    Usage >&2
+elif [ ${TDIM} -eq 4 ] && [ $nargs -eq 5 ]
+    then
+    echo ""
+    # This option is required to run 4D template creation on SGE with a minimal command line
+elif [ $nargs -lt 6 ]
+    then
+    Usage >&2
+fi
+
 #ANTSPATH=YOURANTSPATH
 if [  ${#ANTSPATH} -le 0 ]
     then
@@ -650,20 +673,20 @@ fi
 if [ ${NINFILES} -eq 0 ]
     then
     echo "Please provide at least 2 filenames for the template."
-    echo "Use $0 -h for help"
+    echo "Use `basename $0` -h for help"
     exit 1
-elif [[ ${NINFILES} -eq 1 ]] && [[ -s fslnvols ]]
+elif [[ ${NINFILES} -eq 1 ]] && [[ -s ${FSLDIR}/bin/fslnvols ]]
     then
     range=`fslnvols ${IMAGESETVARIABLE}`
     if [ ${range} -eq 1 ] && [ ${TDIM} -ne 4 ]
 	then
 	echo "Please provide at least 2 filenames for the template."
-	echo "Use $0 -h for help"
+	echo "Use `basename $0` -h for help"
 	exit 1
     elif [ ${range} -gt 1 ] && [ ${TDIM} -ne 4 ]
 	then
 	echo "This is a multivolume file. Use -d 4"
-	echo "Use $0 -h for help"
+	echo "Use `basename $0` -h for help"
 	exit 1
     elif [ ${range} -gt 1 ] && [ ${TDIM} -eq 4 ]
 	then
@@ -832,7 +855,7 @@ if [ "$RIGID" -eq 1 ] ;
     # cleanup and save output in seperate folder
 
     mkdir rigid
-    mv rigid_*.nii.gz *Affine.txt rigid/
+    mv *.cfg rigid_*.nii.gz *Affine.txt rigid/
 
     # backup logs
     if [ $DOQSUB -eq 1 ];
@@ -994,7 +1017,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
   echo "--------------------------------------------------------------------------------------"
 
   mkdir ${TRANSFORMATIONTYPE}_iteration_${i}
-  cp *${OUTPUTNAME}*.nii.gz ${TRANSFORMATIONTYPE}_iteration_${i}
+  cp ${TEMPLATENAME}warp*log.txt *.cfg *${OUTPUTNAME}*.nii.gz ${TRANSFORMATIONTYPE}_iteration_${i}/
 
   # backup logs
   if [ $DOQSUB -eq 1 ];
