@@ -36,7 +36,6 @@
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelStatisticsImageFilter.h"
-// #include "itkLabelGeometryImageFilter.h"
 #include "itkEuclideanDistance.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkMinimumDecisionRule.h"
@@ -1411,6 +1410,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                   {
                   continue;
                   }
+                bool      isInBounds = false;
+                LabelType label = ItO.GetPixel( n, isInBounds );
+                if( !isInBounds || label == 0 )
+                  {
+                  continue;
+                  }
                 typename ClassifiedImageType::OffsetType offset
                   = ItO.GetOffset( n );
 
@@ -1421,13 +1426,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                             * this->GetOutput()->GetSpacing()[d] );
                   }
                 distance = vcl_sqrt( distance );
-
-                bool      isInBounds = false;
-                LabelType label = ItO.GetPixel( n, isInBounds );
-                if( isInBounds && label > 0 )
-                  {
-                  weightedNumberOfClassNeighbors[label - 1] += ( 1.0 / distance );
-                  }
+                weightedNumberOfClassNeighbors[label - 1] += ( 1.0 / distance );
                 }
               RealType numerator = vcl_exp( this->m_MRFSmoothingFactor
                                             * weightedNumberOfClassNeighbors[c] );
@@ -1619,6 +1618,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 {
                 continue;
                 }
+              bool      isInBounds = false;
+              LabelType label = ItO.GetPixel( n, isInBounds );
+              if( !isInBounds || label == 0 )
+                {
+                continue;
+                }
               typename ClassifiedImageType::OffsetType offset
                 = ItO.GetOffset( n );
 
@@ -1629,13 +1634,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                           * this->GetOutput()->GetSpacing()[d] );
                 }
               distance = vcl_sqrt( distance );
-
-              bool      isInBounds = false;
-              LabelType label = ItO.GetPixel( n, isInBounds );
-              if( isInBounds )
-                {
-                weightedNumberOfClassNeighbors[label - 1] += ( 1.0 / distance );
-                }
+              weightedNumberOfClassNeighbors[label - 1] += ( 1.0 / distance );
               }
             RealType numerator = vcl_exp( this->m_MRFSmoothingFactor
                                           * weightedNumberOfClassNeighbors[whichClass - 1] );
