@@ -1,6 +1,9 @@
 #!/bin/bash
 
-VERSION="0.0.12"
+VERSION="0.0.13"
+
+# trap keyboard interrupt (control-c)
+trap control_c SIGINT
 
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
@@ -34,7 +37,7 @@ Optional arguments:
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default: 2; available on localhost: ${cpu_count}) -- requires "-c 2"
+     -j:  Number of cpu cores to use (default: 2; -- requires "-c 2"
 
      -m:  Max-iterations in each registration
 
@@ -97,13 +100,11 @@ Optional arguments:
 
      -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default: 2; available on localhost: ${cpu_count})  --- set -c option to 2 to use this .
+     -j:  Number of cpu cores to use (default: 2; --- set -c option to 2 to use this .
 
 	  The optimal number of cpu cores to use for template generation depends on the availability of cores, the amount of
 	  free working memory (RAM) and the resolution of the data. High resolution datasets typically require more RAM during
-	  processing. Running out of RAM during a calculation will slow down all processing on your computer. There is ${RAM} kb
-	  RAM installed in this system of which ${RAMfree} kb is free. This means there is ${cpu_free_ram} kb per core available
-	  when all cores are used for template generation.
+	  processing. Running out of RAM during a calculation will slow down all processing on your computer.
 
      -m:  Max-iterations
 
@@ -524,6 +525,40 @@ function jobfnamepadding {
 
 }
 
+cleanup()
+# example cleanup function
+{
+
+  cd ${currentdir}/
+
+  echo -en "\n*** Performing cleanup, please wait ***\n"
+
+# 1st attempt to kill all remaining processes
+# put all related processes in array
+  runningANTSpids=( `ps -C ANTS -C N3BiasFieldCorrection -C fslsplit | awk '{ printf "%s\n", $1 ; }'` )
+
+# debug only
+  #echo list 1: ${runningANTSpids[@]}
+
+# kill these processes, skip the first since it is text and not a PID
+  for ((i = 1; i < ${#runningANTSpids[@]} ; i++))
+  do
+  echo "killing:  ${runningANTSpids[${i}]}"
+  kill ${runningANTSpids[${i}]}
+  done
+
+  return $?
+}
+
+control_c()
+# run if user hits control-c
+{
+  echo -en "\n*** User pressed CTRL + C ***\n"
+  cleanup
+  exit $?
+  echo -en "\n*** Script cancelled by user ***\n"
+}
+
 #initializing variables with global scope
 time_start=`date +%s`
 currentdir=`pwd`
@@ -543,7 +578,9 @@ RIGID=0
 RIGIDTYPE=" --do-rigid" # set to an empty string to use affine initialization
 range=0
 REGTEMPLATE=target
-# cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
+cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
+
+##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
 # RAMfree=`cat /proc/meminfo | sed -n -e '/MemFree/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
 # cpu_free_ram=$((${RAMfree}/${cpu_count}))
@@ -585,26 +622,6 @@ while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
 	  ;;
       j) #number of cpu cores to use (default = 2)
 	  CORES=$OPTARG
-
-	if [[ ${CORES} -gt ${cpu_count} ]] ;
-	then
-		echo
-		echo "--------------------------------------------------------------------------------------"
-		echo " You specified more threads than available cpu cores (available: ${cpu_count} cores). "
-		echo " This may slow down template generation and make your system unresponsive."
-		echo " Press CTRL + C to exit and respecify, otherwise script continues in 15s. "
-		echo "--------------------------------------------------------------------------------------"
-		sleep 15
-
-
-	elif [[ ${#testproc} -lt ${CORES} ]] ;
-	then
-		echo
-		echo "--------------------------------------------------------------------------------------"
-		echo " You specified less threads than available cpu cores (available: ${cpu_count} cores). "
-		echo " This may slow down template generation, but will keep your system more responsive."
-		echo "--------------------------------------------------------------------------------------"
-	fi
 	  ;;
       m) #max iterations other than default
 	  MAXITERATIONS=$OPTARG
