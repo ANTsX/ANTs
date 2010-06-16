@@ -159,6 +159,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
   opt_queue.reserve(argc - 2);
 
   misc_opt.reference_image_filename = NULL;
+  misc_opt.use_BSpline_interpolator = false;
   misc_opt.use_TightestBoundingBox = false;
   misc_opt.use_RotationHeader = false;
 
