@@ -74,6 +74,8 @@ public:
 
 // FUNCTIONS
 // estimate the metric tensor of the surface and also the (conjugate harmonic) function dstarU
+  void GetSearchBoundary();
+
   float dstarUestimate(SearchNodePointer G);
 
   void InitializeGraph3();
@@ -226,13 +228,15 @@ public:
     return P->GetValue(2);
   }
 
+  bool ParameterizeBoundary( SearchNodePointer);
+
   bool TerminationCondition();  /** decides when the algorithm stops */
 
   virtual void SearchEdgeSet();  /** loops over the neighbors in the graph */
 
   void CheckNodeStatus();  /** checks if the node has been explored already, its cost, etc. */
 
-  virtual PixelType LocalCost();      /* computes the local cost */
+  virtual PixelType MyLocalCost();      /* computes the local cost */
 
   /* alternatively, we could pass the function as a template parameter
      or set a function pointer.  the latter method is used in dijkstrasegment. */
@@ -293,19 +297,22 @@ public:
 
   SearchNodePointer GetGraphNode(int i)
   {
-    return m_Graph[i];
+    return m_GraphX[i];
   }
 
   int GetGraphSize()
   {
-    return m_Graph.size();
+    return m_GraphX.size();
   }
 
   // sanity check to see if mesh to graph conversion is ok
   // see if genus is the same
   void ConvertGraphBackToMesh();
 
-  bool m_PureDist;
+  bool         m_PureDist;
+  unsigned int m_LabelCost;
+
+  std::vector<SearchNodePointer> m_BoundaryList;
 protected:
   QType                m_QS;
   vector<unsigned int> m_EdgeTemplate;     /** defines neighborhood connectivity */
@@ -319,7 +326,7 @@ protected:
   PixelType m_CurrentCost;
   PixelType m_MaxCost;                  // This creates an insurmountable barrier unless all costs are max
 
-  GraphType m_Graph;
+  GraphType m_GraphX;
 
   unsigned long m_NumberSearched;
 

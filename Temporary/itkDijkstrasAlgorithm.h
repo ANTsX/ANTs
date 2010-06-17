@@ -173,6 +173,34 @@ public:
     m_State = DeliveredState;
   }
 
+  inline bool IsInQueue()
+  {
+    if( m_State == VisitedState )
+      {
+      return true;
+      }
+    else
+      {
+      return false;
+      }
+  }
+
+  inline bool WasVisited()
+  {
+    if( m_State == VisitedState )
+      {
+      return true;
+      }
+    else if( m_State == DeliveredState )
+      {
+      return true;
+      }
+    else
+      {
+      return false;
+      }
+  }
+
   inline TPixelType GetTotalCost()
   {
     return m_TotalCost;

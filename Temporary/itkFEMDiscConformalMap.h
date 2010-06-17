@@ -157,24 +157,28 @@ public:
     m_ReadFromFile = b;
   }
 
-  void FixPointsBeyondDisc();
+  float AssessNodeDistanceCost( unsigned int );
 
-  void FixPointsAlongRadialLine();
+  float GetBoundaryParameterForSquare(unsigned int, unsigned int);
 
-  void FixThetaAlongBorder();
+  unsigned int FindLoopAroundNode( unsigned int j );
+
+  unsigned int AddVertexToLoop();
+
+  void LocateAndParameterizeDiscBoundary(unsigned int, bool);
+
+  void FixBoundaryPoints( unsigned int option );
 
   void ConformalMap();
 
   void ConformalMap2();
-
-  void ConformalMap3();
 
   void ConjugateHarmonic();
 
   bool InBorder(GraphSearchNodePointer);
   bool InDisc(GraphSearchNodePointer);
 
-  void   ExtractSurfaceDisc();
+  void   ExtractSurfaceDisc( unsigned int label = 0 );
 
   void   BuildOutputMeshes(float tval = 0.0);
 
@@ -189,6 +193,8 @@ public:
   void MeasureLengthDistortion();
 
   void FindSource(IndexType);
+  void FindMeanSourceInLabel(unsigned int);
+
   void MakeFlatImage();
 
   FlatImageTypePointer m_FlatImage;
@@ -209,12 +215,15 @@ protected:
   };
 private:
 
-  std::vector<int> m_DiscBoundaryList;              // contains ids of nodes at boundary
-  RealType         m_Sigma;
-  RealType         m_Pi;
-  std::string      m_ParameterFileName;
-  int              m_NorthPole;
-  int              m_SourceNodeNumber;
+  std::vector<GraphSearchNodePointer> m_DiscBoundaryList;      // contains ids of nodes at boundary
+  std::vector<long>                   m_HelpFindLoop;          // 0 = not found, 2 = already done , 1 = in loop
+  std::vector<int>                    m_DiscBoundarySorter;    // contains ids of nodes at boundary
+  std::vector<float>                  m_DiscBoundaryParameter; // contains ids of nodes at boundary
+  RealType                            m_Sigma;
+  RealType                            m_Pi;
+  std::string                         m_ParameterFileName;
+  int                                 m_NorthPole;
+  int                                 m_SourceNodeNumber;
 
   itk::fem::Solver m_Solver;
 
@@ -234,7 +243,10 @@ private:
   unsigned long                 m_PoleElementsGN[7];
   ManifoldIntegratorTypePointer manifoldIntegrator;
 
-  float m_Smooth;
+  float        m_Smooth;
+  unsigned int m_Label_to_Flatten;
+
+  GraphSearchNodePointer m_RootNode;
 };
 } // namespace itk
 
