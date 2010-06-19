@@ -28,6 +28,7 @@ ManifoldIntegrationAlgorithm<TGraphSearchNode>::ManifoldIntegrationAlgorithm()
   m_MaxCost = vnl_huge_val(m_MaxCost);
   m_PureDist = true;
   m_LabelCost = 0;
+  m_ParamWhileSearching = false;
 }
 
 template <class TGraphSearchNode>
@@ -616,8 +617,10 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
     {
     m_CurrentNode = m_QS->m_Q.top();
     m_CurrentCost = m_CurrentNode->GetTotalCost();
-    //    if ( m_CurrentCost / m_MaxCost > 0.5 )
-    //       this->ParameterizeBoundary( this->m_CurrentNode );
+    if( this->m_ParamWhileSearching  )
+      {
+      this->ParameterizeBoundary( this->m_CurrentNode );
+      }
     m_QS->m_Q.pop();
     if( !m_CurrentNode->GetDelivered() )
       {
@@ -635,7 +638,10 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
   // " num searched " << m_NumberSearched << " \n";
 
   //  std::cout << " Max Distance " << m_CurrentCost << std::endl;
-  this->GetSearchBoundary();
+  if( !this->m_ParamWhileSearching )
+    {
+    this->GetSearchBoundary();
+    }
 
   return;
 }

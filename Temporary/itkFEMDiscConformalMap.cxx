@@ -54,7 +54,9 @@ FEMDiscConformalMap<TSurface, TImage, TDimension>
     {
     m_PoleElementsGN[i] = 0;
     }
-
+  this->m_MapToCircle = true;
+  this->m_MapToSquare = false;
+  this->m_ParamWhileSearching = true;
   m_Smooth = 2.0;
 
   this->m_FlatImage  = NULL;
@@ -295,7 +297,7 @@ float FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::GetBoundaryParameterForCircle( unsigned int nodeid, unsigned int whichParam )
 {
   // compute loop length and check validity
-  float tangentlength = 0, totallength = 0, nodeparam = 0, x = 0, y = 0;
+  float tangentlength = 0, totallength = 0, nodeparam = 0;
 
   typename GraphSearchNodeType::NodeLocationType diff;
   for( unsigned int i = 0; i < this->m_DiscBoundaryList.size(); i++ )
@@ -314,7 +316,7 @@ float FEMDiscConformalMap<TSurface, TImage, TDimension>
     totallength += tangentlength;
     }
 
-  float arclength = nodeparam / totallength;
+  float arclength = nodeparam / totallength * M_PI * 2;
 
   if( whichParam == 0 )
     {
@@ -535,6 +537,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   manifoldIntegrator->m_PureDist = true;
   manifoldIntegrator->SetSource(this->m_RootNode);
   manifoldIntegrator->InitializeQueue();
+  manifoldIntegrator->SetParamWhileSearching( this->m_ParamWhileSearching );
   manifoldIntegrator->FindPath();
   /** at this point, we should have extracted the disc
       now we want to find a boundary point and an instant
@@ -559,7 +562,10 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
       }
     m_HelpFindLoop[this->m_DiscBoundaryList[j]->GetIdentity()] = j + 1;
     }
-  //	 return 2;
+  if( paramwhilesearcing )
+    {
+    return 2;
+    }
   // butt
   ManifoldIntegratorTypePointer discParameterizer = ManifoldIntegratorType::New();
   discParameterizer->SetSurfaceMesh(m_SurfaceMesh);
@@ -1040,7 +1046,14 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
         l1->m_dof = i;
         l1->m_value = vnl_vector<double>(1, 0.0); // for exp
         float fixvalue = 0.0;
-        fixvalue = this->GetBoundaryParameterForSquare(nodeid, option);
+        if( this->m_MapToCircle )
+          {
+          fixvalue = this->GetBoundaryParameterForCircle(nodeid, option);
+          }
+        else
+          {
+          fixvalue = this->GetBoundaryParameterForSquare(nodeid, option);
+          }
         l1->m_value = vnl_vector<double>(1, fixvalue);   // for direct rad
         m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*l1) );
         /*
