@@ -559,7 +559,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
       }
     m_HelpFindLoop[this->m_DiscBoundaryList[j]->GetIdentity()] = j + 1;
     }
-  return 2;
+  //	 return 2;
   // butt
   ManifoldIntegratorTypePointer discParameterizer = ManifoldIntegratorType::New();
   discParameterizer->SetSurfaceMesh(m_SurfaceMesh);
@@ -586,6 +586,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   discParameterizer->FindPath();
   float                  temp = 0;
   GraphSearchNodePointer farnode2 = NULL;
+  unsigned int           vct = 0;
   for( int i = 0; i < discParameterizer->GetGraphSize(); i++ )
     {
     if( discParameterizer->GetGraphNode(i)->WasVisited() )
@@ -594,18 +595,14 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
       if( t > temp )
         {
         temp = t;
+        farnode2 = discParameterizer->GetGraphNode(i);
         }
-      farnode2 = discParameterizer->GetGraphNode(i);
-      std::cout << " dist " << t << std::endl;
+      vct++;
+      // std::cout << " dist " << t << " vct " << vct << std::endl;
       }
     }
   discParameterizer->BackTrack(farnode2);
-  std::cout << " path 1 sz " << discParameterizer->GetPathSize() << std::endl;
   // butt2
-  std::cout
-    <<
-    " another idea --- get two points far apart  then solve a minimization problem across the graph that gives the average value in 0 => 1 ... "
-    << std::endl;
   ManifoldIntegratorTypePointer lastlooper = ManifoldIntegratorType::New();
   lastlooper->SetSurfaceMesh(m_SurfaceMesh);
   lastlooper->InitializeGraph3();
@@ -633,8 +630,9 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     }
   lastlooper->InitializeQueue();
   lastlooper->FindPath();
-  temp = 0;
   GraphSearchNodePointer farnode3 = NULL;
+  vct = 0;
+  temp = 0;
   for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
     {
     if( lastlooper->GetGraphNode(i)->WasVisited() )
@@ -643,11 +641,13 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
       if( t > temp )
         {
         temp = t;
+        farnode3 = lastlooper->GetGraphNode(i);
         }
-      farnode3 = lastlooper->GetGraphNode(i);
-      std::cout << " dist " << t << std::endl;
+      vct++;
+      //	       std::cout << " dist " << t << " vct " << vct << std::endl;
       }
     }
+  //	 exit(1);
   // finally reuse lastlooper with farnode3 as root ...
   for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
     {
@@ -671,11 +671,6 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   //
   this->m_DiscBoundaryList.clear();
   // add both the above to the list
-
-  std::cout << farnode1->GetLocation() << std::endl;
-  std::cout << farnode2->GetLocation() << std::endl;
-  std::cout << farnode3->GetLocation() << std::endl;
-  exit(1);
   std::cout << " part 1 " << std::endl;
   for( unsigned int i = 0; i < discParameterizer->GetPathSize(); i++ )
     {
@@ -692,15 +687,26 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
 
+  std::cout << farnode1->GetLocation() << std::endl;
+  std::cout << farnode2->GetLocation() << std::endl;
+  std::cout << farnode3->GetLocation() << std::endl;
+  std::cout
+    <<
+    " another idea --- get two points far apart  then solve a minimization problem across the graph that gives the average value in 0 => 1 ... "
+    << std::endl;
+  std::cout << " path 1 sz " << discParameterizer->GetPathSize() << std::endl;
+
   // finally do but add in reverse order
-  std::cout << " part 3 " << std::endl;
+  std::cout << " part 3 " << farnode2->GetIdentity() << " and " << farnode1->GetIdentity() << std::endl;
+  lastlooper->EmptyPath();
   lastlooper->BackTrack(  lastlooper->GetGraphNode( farnode2->GetIdentity() ) );
-  for( unsigned int i = lastlooper->GetPathSize() - 1; i >= 0; i-- )
+  for( unsigned int i = lastlooper->GetPathSize() - 1; i > 0; i-- )
     {
     unsigned int id = lastlooper->GetPathAtIndex(i)->GetIdentity();
     std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
+  std::cout << " Almost ... " << std::endl;
 
   this->m_HelpFindLoop.clear();
   this->m_HelpFindLoop.resize(gsz, 0);
@@ -708,6 +714,8 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     {
     m_HelpFindLoop[this->m_DiscBoundaryList[j]->GetIdentity()] = j + 1;
     }
+
+  std::cout << " Achievement!! " << std::endl;
 
   return 2;
 }

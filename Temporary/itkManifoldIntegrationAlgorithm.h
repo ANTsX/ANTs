@@ -248,6 +248,11 @@ public:
     return m_QS->m_Path.size();
   }
 
+  inline void EmptyPath()
+  {
+    m_QS->m_Path.clear();
+  }
+
   inline typename TGraphSearchNode::Pointer GetPathAtIndex(unsigned int i)
   {
     return m_QS->m_Path[i];
