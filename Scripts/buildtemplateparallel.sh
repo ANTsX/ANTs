@@ -819,6 +819,11 @@ if [ "$RIGID" -eq 1 ] ;
       echo "$exe2" >> $qscript
 
       if [ $DOQSUB -eq 1 ] ; then
+          qq=`which  qsub`
+          if [  ${#qq} -lt 1 ] ; then
+	   echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
+           exit
+          fi
 	  id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
 	  jobIDs="$jobIDs $id"
 	  sleep 0.5
