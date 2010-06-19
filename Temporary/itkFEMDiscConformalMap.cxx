@@ -428,7 +428,8 @@ unsigned int FEMDiscConformalMap<TSurface, TImage, TDimension>
       }
     }
   //  std::cout << " len1 " << this->m_DiscBoundaryList.size()  <<  " len2 " <<  neighborlist.size() << std::endl;
-  this->m_DiscBoundaryList.assign(neighborlist.begin(), neighborlist.end() );
+  this->SetDiscBoundaryList( neighborlist );
+  //  this->m_DiscBoundaryList.assign(neighborlist.begin(),neighborlist.end());
   /*
   for (unsigned int i=0; i<this->m_DiscBoundaryList.size(); i++) {
     unsigned int nxt=( ( i+1 ) % this->m_DiscBoundaryList.size() );
@@ -468,7 +469,8 @@ unsigned int FEMDiscConformalMap<TSurface, TImage, TDimension>
       i = (unsigned int) (bestparam - 2);
       }
     }
-  this->m_DiscBoundaryList.assign(neighborlist.begin(), neighborlist.end() );
+  this->SetDiscBoundaryList( neighborlist );
+  //  this->m_DiscBoundaryList.assign(neighborlist.begin(),neighborlist.end());
   float newtotallength = 0;
   for( unsigned int i = 0; i < this->m_DiscBoundaryList.size(); i++ )
     {
@@ -542,9 +544,9 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   /** at this point, we should have extracted the disc
       now we want to find a boundary point and an instant
       parameterization via FEM */
-
-  this->m_DiscBoundaryList.assign(manifoldIntegrator->m_BoundaryList.begin(),
-                                  manifoldIntegrator->m_BoundaryList.end() );
+  this->SetDiscBoundaryList( manifoldIntegrator->m_BoundaryList );
+  //  this->m_DiscBoundaryList.assign(manifoldIntegrator->m_BoundaryList.begin(),
+  //				  manifoldIntegrator->m_BoundaryList.end());
 
   this->m_HelpFindLoop.clear();
   this->m_HelpFindLoop.resize(gsz, 0);
@@ -562,7 +564,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
       }
     m_HelpFindLoop[this->m_DiscBoundaryList[j]->GetIdentity()] = j + 1;
     }
-  if( paramwhilesearcing )
+  if(  this->m_ParamWhileSearching )
     {
     return 2;
     }
@@ -1433,7 +1435,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
   this->ConformalMap2();
   // this->ConformalMap3();
-  // this->MapToSquare();
   this->ConjugateHarmonic();
 }
 
@@ -1545,92 +1546,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
   }
 */
-}
-
-template <typename TSurface, typename TImage, unsigned int TDimension>
-void  FEMDiscConformalMap<TSurface, TImage, TDimension>
-::MapToSquare()
-{
-  // now backtrack from all pts to the source - this sets up the ancestors
-  float minintval = 9.e9;
-  float maxintval = -9.e9;
-
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
-    {
-    unsigned int dof = (*n)->GetDegreeOfFreedom(0);
-    float        U = m_RealSolution[dof];
-    manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(U, 0);
-    }
-  //  this->MeasureLengthDistortion();
-
-  int   tct = 0;
-  float minu = 9.e9;
-  float minv = 9.e9;
-  float maxu = 0;
-  float maxv = 0;
-  typedef itk::SurfaceMeshCurvature<GraphSearchNodeType, GraphSearchNodeType> surfktype;
-  typename surfktype::Pointer surfk = surfktype::New();
-
-  float         totallengthdistortion = 0.;
-  unsigned long ct  = 0;
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
-    {
-    unsigned int dof = (*n)->GetDegreeOfFreedom(0);
-    float        U = m_RealSolution[dof];
-    float        V = m_ImagSolution[dof]; // manifoldIntegrator->GetGraphNode( (*n)->GN )->GetValue(2);
-    if( U < minu )
-      {
-      minu = U;
-      }
-    if( V < minv )
-      {
-      minv = V;
-      }
-    if( U > maxu )
-      {
-      maxu = U;
-      }
-    if( V > maxv )
-      {
-      maxv = V;
-      }
-    }
-  std::cout << " MINU " << minu << " MINV " << minv << std::endl;
-  std::cout << " MaxU " << maxu << " MaxV " << maxv << std::endl;
-  float urange = maxu - minu;
-  float vrange = maxv - minv;
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
-    {
-    ct++;
-    unsigned int dof = (*n)->GetDegreeOfFreedom(0);
-    float        U = m_RealSolution[dof];
-    float        V = m_ImagSolution[dof]; // manifoldIntegrator->GetGraphNode( (*n)->GN )->GetValue(2);
-
-    float x;
-    if( x > 0 )
-      {
-      x = (maxu - U) / urange;
-      }
-    else
-      {
-      x = (minu - U) / urange;
-      }
-    float y;
-    if( y > 0 )
-      {
-      y = (maxv - V) / vrange;
-      }
-    else
-      {
-      y = (minv - V) / vrange;
-      }
-    manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(x, 0);
-    manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(y, 1);
-    }
-  //  this->MakeFlatImage();
-  //  this->BuildOutputMeshes(0.5);
-
-  return;
 }
 
 template <typename TSurface, typename TImage, unsigned int TDimension>
