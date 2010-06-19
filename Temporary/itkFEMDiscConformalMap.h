@@ -161,6 +161,8 @@ public:
 
   float GetBoundaryParameterForSquare(unsigned int, unsigned int);
 
+  float GetBoundaryParameterForCircle(unsigned int, unsigned int);
+
   unsigned int FindLoopAroundNode( unsigned int j );
 
   unsigned int AddVertexToLoop();

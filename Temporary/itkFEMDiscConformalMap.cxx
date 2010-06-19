@@ -31,6 +31,9 @@
 #include "itkFEMLoadNode.h"
 #include "itkSurfaceMeshCurvature.h"
 #include "vtkClipPolyData.h"
+#include "vtkContourFilter.h"
+#include "vtkSmartPointer.h"
+
 namespace itk
 {
 template <typename TSurface, typename TImage, unsigned int TDimension>
@@ -271,7 +274,7 @@ float FEMDiscConformalMap<TSurface, TImage, TDimension>
     x = (1 - arclength) / 0.25; /* 1 => 0 */
     y = 0;
     }
-  std::cout << " x " << x << " y " << y << " al " << arclength << std::endl;
+//  std::cout <<" x " << x << " y " << y << " al " << arclength << std::endl;
 
   if( whichParam == 0 )
     {
@@ -280,6 +283,46 @@ float FEMDiscConformalMap<TSurface, TImage, TDimension>
   else if( whichParam == 1  )
     {
     return y;
+    }
+  else
+    {
+    return arclength;
+    }
+}
+
+template <typename TSurface, typename TImage, unsigned int TDimension>
+float FEMDiscConformalMap<TSurface, TImage, TDimension>
+::GetBoundaryParameterForCircle( unsigned int nodeid, unsigned int whichParam )
+{
+  // compute loop length and check validity
+  float tangentlength = 0, totallength = 0, nodeparam = 0, x = 0, y = 0;
+
+  typename GraphSearchNodeType::NodeLocationType diff;
+  for( unsigned int i = 0; i < this->m_DiscBoundaryList.size(); i++ )
+    {
+    unsigned int nxt = ( ( i + 1 ) % this->m_DiscBoundaryList.size() );
+    diff = this->m_DiscBoundaryList[i]->GetLocation() - this->m_DiscBoundaryList[nxt]->GetLocation();
+    if( this->m_DiscBoundaryList[i]->GetIdentity() == nodeid )
+      {
+      nodeparam = totallength;
+      }
+    tangentlength = 0;
+    for( unsigned int d = 0; d < diff.Size(); d++ )
+      {
+      tangentlength += diff[d] * diff[d];
+      }
+    totallength += tangentlength;
+    }
+
+  float arclength = nodeparam / totallength;
+
+  if( whichParam == 0 )
+    {
+    return cos(arclength);
+    }
+  else if( whichParam == 1  )
+    {
+    return sin(arclength);
     }
   else
     {
@@ -493,105 +536,180 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   manifoldIntegrator->SetSource(this->m_RootNode);
   manifoldIntegrator->InitializeQueue();
   manifoldIntegrator->FindPath();
+  /** at this point, we should have extracted the disc
+      now we want to find a boundary point and an instant
+      parameterization via FEM */
+
   this->m_DiscBoundaryList.assign(manifoldIntegrator->m_BoundaryList.begin(),
                                   manifoldIntegrator->m_BoundaryList.end() );
+
   this->m_HelpFindLoop.clear();
   this->m_HelpFindLoop.resize(gsz, 0);
   this->m_HelpFindLoop[j_in] = -1;
+  unsigned int           furthestnode = 0;
+  float                  maxdist = 0;
+  GraphSearchNodePointer farnode1 = NULL;
+  for( unsigned int j = 0; j < this->m_DiscBoundaryList.size(); j++ )
+    {
+    if( this->m_DiscBoundaryList[j]->GetTotalCost() > maxdist )
+      {
+      maxdist = this->m_DiscBoundaryList[j]->GetTotalCost();
+      furthestnode = this->m_DiscBoundaryList[j]->GetIdentity();
+      farnode1 = this->m_DiscBoundaryList[j];
+      }
+    m_HelpFindLoop[this->m_DiscBoundaryList[j]->GetIdentity()] = j + 1;
+    }
+  return 2;
+  // butt
+  ManifoldIntegratorTypePointer discParameterizer = ManifoldIntegratorType::New();
+  discParameterizer->SetSurfaceMesh(m_SurfaceMesh);
+  discParameterizer->InitializeGraph3();
+  discParameterizer->SetMaxCost(1.e9);
+  std::cout << " dcz " << discParameterizer->GetGraphSize() << std::endl;
+  for( int i = 0; i < discParameterizer->GetGraphSize(); i++ )
+    {
+    discParameterizer->GetGraphNode(i)->SetTotalCost(vnl_huge_val(discParameterizer->GetMaxCost() ) );
+    discParameterizer->GetGraphNode(i)->SetUnVisitable();
+    if( this->m_HelpFindLoop[i] > 0 )
+      {
+      discParameterizer->GetGraphNode(i)->SetUnVisited();
+      }
+    discParameterizer->GetGraphNode(i)->SetValue(0.0, 1);
+    discParameterizer->GetGraphNode(i)->SetValue(0.0, 2);
+    discParameterizer->GetGraphNode(i)->SetPredecessor(NULL);
+    }
+  discParameterizer->EmptyQ();
+  discParameterizer->SetSearchFinished( false );
+  discParameterizer->m_PureDist = true;
+  discParameterizer->SetSource(discParameterizer->GetGraphNode(furthestnode) );
+  discParameterizer->InitializeQueue();
+  discParameterizer->FindPath();
+  float                  temp = 0;
+  GraphSearchNodePointer farnode2 = NULL;
+  for( int i = 0; i < discParameterizer->GetGraphSize(); i++ )
+    {
+    if( discParameterizer->GetGraphNode(i)->WasVisited() )
+      {
+      float t = discParameterizer->GetGraphNode(i)->GetTotalCost();
+      if( t > temp )
+        {
+        temp = t;
+        }
+      farnode2 = discParameterizer->GetGraphNode(i);
+      std::cout << " dist " << t << std::endl;
+      }
+    }
+  discParameterizer->BackTrack(farnode2);
+  std::cout << " path 1 sz " << discParameterizer->GetPathSize() << std::endl;
+  // butt2
+  std::cout
+    <<
+    " another idea --- get two points far apart  then solve a minimization problem across the graph that gives the average value in 0 => 1 ... "
+    << std::endl;
+  ManifoldIntegratorTypePointer lastlooper = ManifoldIntegratorType::New();
+  lastlooper->SetSurfaceMesh(m_SurfaceMesh);
+  lastlooper->InitializeGraph3();
+  lastlooper->SetMaxCost(1.e9);
+  std::cout << " dcz " << lastlooper->GetGraphSize() << std::endl;
+  for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
+    {
+    lastlooper->GetGraphNode(i)->SetTotalCost(vnl_huge_val(lastlooper->GetMaxCost() ) );
+    lastlooper->GetGraphNode(i)->SetUnVisitable();
+    if( this->m_HelpFindLoop[i] > 0 )
+      {
+      lastlooper->GetGraphNode(i)->SetUnVisited();
+      }
+    lastlooper->GetGraphNode(i)->SetValue(0.0, 1);
+    lastlooper->GetGraphNode(i)->SetValue(0.0, 2);
+    lastlooper->GetGraphNode(i)->SetPredecessor(NULL);
+    }
+  lastlooper->EmptyQ();
+  lastlooper->SetSearchFinished( false );
+  lastlooper->m_PureDist = true;
+  for( unsigned int pp = 0; pp < discParameterizer->GetPathSize(); pp++ )
+    {
+    unsigned int id = discParameterizer->GetPathAtIndex(pp)->GetIdentity();
+    lastlooper->SetSource( lastlooper->GetGraphNode(id) );
+    }
+  lastlooper->InitializeQueue();
+  lastlooper->FindPath();
+  temp = 0;
+  GraphSearchNodePointer farnode3 = NULL;
+  for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
+    {
+    if( lastlooper->GetGraphNode(i)->WasVisited() )
+      {
+      float t = lastlooper->GetGraphNode(i)->GetTotalCost();
+      if( t > temp )
+        {
+        temp = t;
+        }
+      farnode3 = lastlooper->GetGraphNode(i);
+      std::cout << " dist " << t << std::endl;
+      }
+    }
+  // finally reuse lastlooper with farnode3 as root ...
+  for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
+    {
+    lastlooper->GetGraphNode(i)->SetTotalCost(vnl_huge_val(lastlooper->GetMaxCost() ) );
+    lastlooper->GetGraphNode(i)->SetUnVisitable();
+    if( this->m_HelpFindLoop[i] > 0 )
+      {
+      lastlooper->GetGraphNode(i)->SetUnVisited();
+      }
+    lastlooper->GetGraphNode(i)->SetValue(0.0, 1);
+    lastlooper->GetGraphNode(i)->SetValue(0.0, 2);
+    lastlooper->GetGraphNode(i)->SetPredecessor(NULL);
+    }
+  lastlooper->EmptyQ();
+  lastlooper->SetSearchFinished( false );
+  lastlooper->m_PureDist = true;
+  lastlooper->SetSource( lastlooper->GetGraphNode(farnode3->GetIdentity() ) );
+  lastlooper->InitializeQueue();
+  lastlooper->FindPath();
+  // now assemble the parameterization...
+  //
+  this->m_DiscBoundaryList.clear();
+  // add both the above to the list
+
+  std::cout << farnode1->GetLocation() << std::endl;
+  std::cout << farnode2->GetLocation() << std::endl;
+  std::cout << farnode3->GetLocation() << std::endl;
+  exit(1);
+  std::cout << " part 1 " << std::endl;
+  for( unsigned int i = 0; i < discParameterizer->GetPathSize(); i++ )
+    {
+    unsigned int id = discParameterizer->GetPathAtIndex(i)->GetIdentity();
+    std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
+    }
+  std::cout << " part 2 " << std::endl;
+  lastlooper->BackTrack( lastlooper->GetGraphNode( farnode1->GetIdentity() ) );
+  for( unsigned int i = 0; i < lastlooper->GetPathSize(); i++ )
+    {
+    unsigned int id = lastlooper->GetPathAtIndex(i)->GetIdentity();
+    std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
+    }
+
+  // finally do but add in reverse order
+  std::cout << " part 3 " << std::endl;
+  lastlooper->BackTrack(  lastlooper->GetGraphNode( farnode2->GetIdentity() ) );
+  for( unsigned int i = lastlooper->GetPathSize() - 1; i >= 0; i-- )
+    {
+    unsigned int id = lastlooper->GetPathAtIndex(i)->GetIdentity();
+    std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
+    }
+
+  this->m_HelpFindLoop.clear();
+  this->m_HelpFindLoop.resize(gsz, 0);
   for( unsigned int j = 0; j < this->m_DiscBoundaryList.size(); j++ )
     {
     m_HelpFindLoop[this->m_DiscBoundaryList[j]->GetIdentity()] = j + 1;
     }
 
   return 2;
-
-  this->m_DiscBoundarySorter.clear();
-  this->m_DiscBoundarySorter.resize(gsz, 0);
-
-  std::vector<GraphSearchNodePointer> neighborlist;
-  std::vector<unsigned int>           neighborloop;
-  std::vector<GraphSearchNodePointer> new_neighborlist;
-  std::vector<unsigned int>           new_neighborloop; unsigned int nct = 0;
-  if( this->m_RootNode )
-    {
-    if( this->m_RootNode->m_NumberOfNeighbors > 1 )
-      {
-      for( unsigned int i = 0; i < this->m_RootNode->m_NumberOfNeighbors; i++ )
-        {
-        if( this->m_HelpFindLoop[this->m_RootNode->m_Neighbors[i]->GetIdentity()] == 0 )
-          {
-          neighborlist.push_back( this->m_RootNode->m_Neighbors[i] );
-          this->m_HelpFindLoop[this->m_RootNode->m_Neighbors[i]->GetIdentity()] = -1;
-          nct++;
-          }
-        } // neighborhood
-          // reset help find
-      for( unsigned int m = 0; m < nct; m++ )
-        {
-        this->m_HelpFindLoop[neighborlist[m]->GetIdentity()] = -1;
-        }
-
-      // std::cout << " N-neighs " << nct << std::endl;
-      /** below is the parameterization step ... */
-      std::vector<bool> nfound(nct, false);
-      unsigned int      curnode = 0;
-      unsigned int      lastnode = 0;
-      bool              canloop = true;
-      unsigned int      its = 0;
-      while( canloop )
-        {
-        canloop = false;
-        for( unsigned int i = 0; i < neighborlist[curnode]->m_NumberOfNeighbors; i++ )
-          {
-          for( unsigned int m = 0; m < nct; m++ )
-            {
-            if( nfound[m] == false )
-              {
-              canloop = true;
-              }
-            if( m != curnode && neighborlist[m] == neighborlist[curnode]->m_Neighbors[i] && nfound[m] == false && m !=
-                lastnode )
-              {
-              neighborloop.push_back(m);
-              nfound[m] = true;
-              //	std::cout <<" cur " << curnode << " next " << m << std::endl;
-              lastnode = curnode;
-              curnode = m;
-              m = nct;
-              i = neighborlist[curnode]->m_NumberOfNeighbors;
-              }
-            }
-          } // neighborhood
-        its++;
-        if( its > 200 )
-          {
-          return false;
-          }
-        }
-      }
-    }
-
-  //  std::cout << " the loop " <<std::endl;
-  std::cout << neighborlist[0]->GetLocation() << std::endl;
-  for( unsigned int i = 0; i < neighborloop.size(); i++ )
-    {
-    m_DiscBoundaryList.push_back(neighborlist[neighborloop[i]] );
-    //    std::cout << neighborlist[neighborloop[i]]->GetLocation() << std::endl;
-    this->m_HelpFindLoop[neighborlist[neighborloop[i]]->GetIdentity()] = i + 1;
-    }
-
-  unsigned int isvalid = 1;
-  while( isvalid == 1 )
-    {
-    isvalid = this->AddVertexToLoop();
-    if( isvalid == 2 )
-      {
-      return 2;
-      }
-    }
-
-  return true;
-  //  exit(0);
 }
 
 template <typename TSurface, typename TImage, unsigned int TDimension>
@@ -1081,6 +1199,8 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::MakeFlatImage()
 template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float tval)
 {
+  std::cout << " build output mesh " << std::endl;
+
   typedef GraphSearchNodeType::NodeLocationType loctype;
   // Get the number of points in the mesh
   int numPoints = m_Solver.node.size();
@@ -1257,11 +1377,11 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   unsigned int maxits = m_Solver.GetNumberOfDegreesOfFreedom(); // should be > twice ndofs
   // if (m_Debug)
   std::cout << " ndof " << maxits << std::endl;
-  itpackWrapper.SetMaximumNumberIterations(maxits * 3);
-  itpackWrapper.SetTolerance(1.e-1);
+  itpackWrapper.SetMaximumNumberIterations(maxits * 5);
+  itpackWrapper.SetTolerance(1.e-4);
   itpackWrapper.SuccessiveOverrelaxation();
   // itpackWrapper.JacobianConjugateGradient();
-  itpackWrapper.SetMaximumNonZeroValuesInMatrix(maxits * 10);
+  itpackWrapper.SetMaximumNonZeroValuesInMatrix(maxits * 50);
   m_Solver.SetLinearSystemWrapper(&itpackWrapper);
 
   this->FixBoundaryPoints(0);
@@ -1416,8 +1536,8 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
   for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
     {
-    int   dof = (*n)->GetDegreeOfFreedom(0);
-    float U = m_RealSolution[dof];
+    unsigned int dof = (*n)->GetDegreeOfFreedom(0);
+    float        U = m_RealSolution[dof];
     manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(U, 0);
     }
   //  this->MeasureLengthDistortion();
@@ -1434,9 +1554,9 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   unsigned long ct  = 0;
   for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
     {
-    int   dof = (*n)->GetDegreeOfFreedom(0);
-    float U = m_RealSolution[dof];
-    float V = m_ImagSolution[dof];  // manifoldIntegrator->GetGraphNode( (*n)->GN )->GetValue(2);
+    unsigned int dof = (*n)->GetDegreeOfFreedom(0);
+    float        U = m_RealSolution[dof];
+    float        V = m_ImagSolution[dof]; // manifoldIntegrator->GetGraphNode( (*n)->GN )->GetValue(2);
     if( U < minu )
       {
       minu = U;
@@ -1461,9 +1581,9 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
     {
     ct++;
-    int   dof = (*n)->GetDegreeOfFreedom(0);
-    float U = m_RealSolution[dof];
-    float V = m_ImagSolution[dof];  // manifoldIntegrator->GetGraphNode( (*n)->GN )->GetValue(2);
+    unsigned int dof = (*n)->GetDegreeOfFreedom(0);
+    float        U = m_RealSolution[dof];
+    float        V = m_ImagSolution[dof]; // manifoldIntegrator->GetGraphNode( (*n)->GN )->GetValue(2);
 
     float x;
     if( x > 0 )
@@ -1503,14 +1623,17 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
     {
     ct++;
-    int   dof = (*n)->GetDegreeOfFreedom(0);
-    float U = m_RealSolution[dof];
-    float V = m_ImagSolution[dof];
-    manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(U, 0);
-    manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(V, 1);
-    if( ct % 100 == 0 )
+    unsigned long dof = (*n)->GetDegreeOfFreedom(0);
+    if( dof < m_RealSolution.size() )
       {
-      std::cout << " U "   << U << " V " << V <<  std::endl;
+//		std::cout << " dof " << dof << std::endl;
+      float U = m_RealSolution[dof];
+//		std::cout << " U " << U << std::endl;
+      float V = m_ImagSolution[dof];
+//		std::cout << " V " << V << " ngn " << (*n)->GN << std::endl;
+      manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(U, 0);
+      manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(V, 1);
+      //     if (ct % 100 == 0) std::cout << " U "   << U<< " V " << V <<  std::endl;
       }
     }
 

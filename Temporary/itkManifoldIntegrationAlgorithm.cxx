@@ -57,9 +57,9 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
   cout << "   converting mesh to triangles " << endl;
   fltTriangle->Update();
 
-  // Clean the data
+  /* Clean the data
   vtkCleanPolyData* fltCleaner = vtkCleanPolyData::New();
-  fltCleaner->SetInput(fltTriangle->GetOutput() );
+  fltCleaner->SetInput(fltTriangle->GetOutput());
   fltCleaner->SetTolerance(0);
   fltCleaner->ConvertPolysToLinesOn();
 
@@ -67,17 +67,16 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
   fltCleaner->Update();
 
   // Go through and delete the cells that are of the wrong type
-  // m_SurfaceMesh
-  vtkPolyData* clean = fltCleaner->GetOutput();
-  for( vtkIdType i = clean->GetNumberOfCells(); i > 0; i-- )
+  //m_SurfaceMesh
+  vtkPolyData* clean= fltCleaner->GetOutput();
+  for(vtkIdType i = clean->GetNumberOfCells();i > 0;i--)
     {
-    if( clean->GetCellType(i - 1) != VTK_TRIANGLE )
-      {
-      clean->DeleteCell(i - 1);
-      }
+    if(clean->GetCellType(i-1) != VTK_TRIANGLE)
+      clean->DeleteCell(i-1);
     }
   clean->BuildCells();
-  m_SurfaceMesh = clean;
+  m_SurfaceMesh=clean;*/
+  m_SurfaceMesh = fltTriangle->GetOutput();
 
   vtkPoints*    vtkpoints = m_SurfaceMesh->GetPoints();
   vtkPointData *pd = m_SurfaceMesh->GetPointData();
@@ -533,40 +532,20 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
 template <class TGraphSearchNode>
 void ManifoldIntegrationAlgorithm<TGraphSearchNode>::GetSearchBoundary()
 {
-  if( m_LabelCost > 0 )
+  unsigned int gsz = this->GetGraphSize();
+
+  for( unsigned int j = 0; j < gsz; j++ )
     {
-    unsigned int gsz = this->GetGraphSize();
-    for( unsigned int j = 0; j < gsz; j++ )
+    float cost = 0;
+    this->m_CurrentNode = this->m_GraphX[j];
+    if( this->m_CurrentNode )
       {
-      float inb = 0;
-      float cost = 0, ncost = 0;
-      this->m_CurrentNode = this->m_GraphX[j];
-      if( this->m_CurrentNode )
+      cost = m_CurrentNode->GetTotalCost();
+      if(  cost <= this->m_MaxCost &&  (cost >= this->m_MaxCost - 4) )
         {
-        cost = m_CurrentNode->GetTotalCost();
-        if(  fabs( m_CurrentNode->GetValue(3) - m_LabelCost ) < 0.5 && this->m_CurrentNode->GetTotalCost() <
-             this->m_MaxCost )
-          {
-          for( unsigned int i = 0; i < m_CurrentNode->m_NumberOfNeighbors; i++ )
-            {
-            this->m_NeighborNode = m_CurrentNode->m_Neighbors[i];
-            //	    if (  this->m_NeighborNode->GetTotalCost() > 1000  ) {
-            if(  fabs( m_NeighborNode->GetValue(3) - m_LabelCost ) > 0.5 )
-              {
-              // CurrentNode is in the boundary
-              inb = m_NeighborNode->GetValue(3);
-              ncost = m_NeighborNode->GetTotalCost();
-              }
-            } // neighborhood
-          if( inb > 0 )
-            {
-            std::cout <<  " Node is in boundary " << m_CurrentNode->GetValue(3)  << " neigh-label " <<  inb
-                      << " loc " << m_CurrentNode->GetLocation()  << " cost " <<  cost  <<  " ncost " << ncost
-                      << std::endl;
-            }
-          } // less than max cost
-        }   // if node exists
-      }     // gsz
+        this->m_BoundaryList.push_back(this->m_CurrentNode);
+        }
+      }
     }
 }
 
@@ -637,10 +616,8 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
     {
     m_CurrentNode = m_QS->m_Q.top();
     m_CurrentCost = m_CurrentNode->GetTotalCost();
-    if( m_CurrentCost / m_MaxCost > 0.5 )
-      {
-      this->ParameterizeBoundary( this->m_CurrentNode );
-      }
+    //    if ( m_CurrentCost / m_MaxCost > 0.5 )
+    this->ParameterizeBoundary( this->m_CurrentNode );
     m_QS->m_Q.pop();
     if( !m_CurrentNode->GetDelivered() )
       {
@@ -651,14 +628,14 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
       // std::cout << " searched  " << m_CurrentNode->GetTimer()   << " \n";
       }
     m_CurrentNode->SetDelivered();
-    } // end of while
+    }  // end of while
 
   m_NumberSearched = (unsigned long) m_QS->GetTimer();
   //  std::cout << "Done with find path " << " Q size " << m_QS->m_Q.size() <<
   // " num searched " << m_NumberSearched << " \n";
 
   //  std::cout << " Max Distance " << m_CurrentCost << std::endl;
-  //  this->GetSearchBoundary();
+  // this->GetSearchBoundary();
 
   return;
 }
