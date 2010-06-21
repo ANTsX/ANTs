@@ -270,17 +270,39 @@ public:
 
   PixelType GetMaxCost()
   {
-    return m_MaxCost;
+    return this->m_MaxCost;
   }
 
   void SetMaxCost(PixelType m)
   {
-    m_MaxCost = m;
+    this->m_MaxCost = m;
   }
 
   void ResetMaxCost()
   {
-    m_MaxCost = vnl_huge_val(m_MaxCost);
+    this->m_MaxCost = vnl_huge_val(this->m_MaxCost);
+  }
+
+  inline void SetDistanceCostWeight(float d)
+  {
+    this->m_DistanceCostWeight = d;
+  }
+
+  inline void SetLabelCostWeight(float d)
+  {
+    this->m_LabelCostWeight = d;
+  }
+
+  inline void SetWeights(float a, float b, float c)
+  {
+    this->m_MaxCost = a;
+    this->m_DistanceCostWeight = b;
+    this->m_LabelCostWeight = c;
+  }
+
+  inline void PrintWeights()
+  {
+    std::cout << this->m_MaxCost << " " << this->m_DistanceCostWeight << " " << this->m_LabelCostWeight << std::endl;
   }
 
   void SetSearchFinished(bool m)
@@ -319,9 +341,6 @@ public:
     this->m_ParamWhileSearching = b;
   }
 
-  bool         m_PureDist;
-  unsigned int m_LabelCost;
-
   std::vector<SearchNodePointer> m_BoundaryList;
 protected:
   QType                m_QS;
@@ -331,11 +350,13 @@ protected:
   typename TGraphSearchNode::Pointer       m_CurrentNode;     /** holds the current node */
   typename TGraphSearchNode::Pointer       m_NeighborNode;    /** holds the current neighbor node */
 
+  bool      m_PureDist;
   bool      m_SearchFinished;
   PixelType m_NewCost;
   PixelType m_CurrentCost;
-  PixelType m_MaxCost;                  // This creates an insurmountable barrier unless all costs are max
-
+  float     m_MaxCost;                  // This creates an insurmountable barrier unless all costs are max
+  float     m_DistanceCostWeight;
+  float     m_LabelCostWeight;
   GraphType m_GraphX;
 
   unsigned long m_NumberSearched;

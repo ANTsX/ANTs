@@ -26,9 +26,11 @@ ManifoldIntegrationAlgorithm<TGraphSearchNode>::ManifoldIntegrationAlgorithm()
   m_SurfaceMesh = NULL;
   m_QS = DijkstrasAlgorithmQueue<TGraphSearchNode>::New();
   m_MaxCost = vnl_huge_val(m_MaxCost);
-  m_PureDist = true;
-  m_LabelCost = 0;
+  m_PureDist = false;
+  //  m_LabelCost=0;
   m_ParamWhileSearching = false;
+  this->m_DistanceCostWeight = 1;
+  this->m_LabelCostWeight = 0;
 }
 
 template <class TGraphSearchNode>
@@ -79,6 +81,10 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
   m_SurfaceMesh=clean;*/
   m_SurfaceMesh = fltTriangle->GetOutput();
 
+  typedef float                  labelType;
+  typedef std::vector<labelType> LabelSetType;
+  LabelSetType myLabelSet;
+
   vtkPoints*    vtkpoints = m_SurfaceMesh->GetPoints();
   vtkPointData *pd = m_SurfaceMesh->GetPointData();
   int           numPoints = vtkpoints->GetNumberOfPoints();
@@ -93,7 +99,14 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
     G->SetUnVisited();
     G->SetTotalCost(m_MaxCost);
     G->SetValue(scs->GetTuple1(i), 3); /** here we put the label value */
-    std::cout << " label " <<    scs->GetTuple1(i) << std::endl;
+
+    labelType label = scs->GetTuple1(i);
+    if( find( myLabelSet.begin(), myLabelSet.end(), label )
+        == myLabelSet.end() )
+      {
+      myLabelSet.push_back( label );
+      }
+    //    std::cout << " label " <<    scs->GetTuple1(i) << std::endl;
     // std::cout << " set3 " <<    scs->GetTuple3(i) << std::endl;
     // std::cout << " set4 " <<    scs->GetTuple4(i) << std::endl;
     for( int j = 0; j < GraphDimension; j++ )
@@ -106,7 +119,11 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
     G->SetIdentity(i);
     m_GraphX[i] = G;
     }
-
+  std::cout << " you have " << myLabelSet.size() << " labels " << std::endl;
+  for( unsigned int i = 0; i < myLabelSet.size(); i++ )
+    {
+    std::cout << " label " << myLabelSet[i] << std::endl;
+    }
   std::cout << " allocation of graph done ";
 
 // now loop through the cells to get triangles and also edges
@@ -403,8 +420,9 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
 }
 
 /**
-*  Compute the local cost using Manhattan distance.
+*  parameterize the boundary --- an estimate
 */
+
 template <class TGraphSearchNode>
 bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
 ::ParameterizeBoundary( ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchNodePointer rootNode )
@@ -413,14 +431,15 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
   bool                           I_Am_A_Neighbor = false;
   SearchNodePointer              neighbor = NULL;
   SearchNodePointer              curNode = rootNode;
-  //  unsigned int rootnn=rootNode->m_NumberOfNeighbors;
+  //  unsigned int rootnn=rootNode>m_NumberOfNeighbors;
   unsigned int ct = 0;
   bool         canparam = false;
   unsigned int qsz = this->m_QS->m_Q.size();
 
   while( !I_Am_A_Neighbor && ct <= qsz * 3  )
     {
-    for( unsigned int i = 0; i < curNode->m_NumberOfNeighbors; i++ )
+    unsigned int limit = curNode->m_NumberOfNeighbors;
+    for( unsigned int i = 0; i < limit; i++ )
       {
       neighbor = curNode->m_Neighbors[i];
       bool inb = false;
@@ -440,6 +459,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
         {
         neighborlist.push_back(neighbor);
         curNode = neighbor;
+        i = limit;
         } // add to border
       }   // neighborhood
     ct++;
@@ -467,27 +487,32 @@ template <class TGraphSearchNode>
 typename ManifoldIntegrationAlgorithm<TGraphSearchNode>::
 PixelType ManifoldIntegrationAlgorithm<TGraphSearchNode>::MyLocalCost()
 {
-  //    std::cout <<" PD " << m_PureDist << " LC " << m_LabelCost << " : " <<   m_CurrentNode->GetValue(3) << std::endl;
+  NodeLocationType dif = m_CurrentNode->GetLocation() - m_NeighborNode->GetLocation();
+  float            mag = 0.0;
+
+  for( int jj = 0; jj < GraphDimension; jj++ )
+    {
+    mag += dif[jj] * dif[jj];
+    }
+  mag = sqrt(mag);
   if( m_PureDist )
     {
-    NodeLocationType dif = m_CurrentNode->GetLocation() - m_NeighborNode->GetLocation();
-    float            mag = 0.0;
-    for( int jj = 0; jj < GraphDimension; jj++ )
-      {
-      mag += dif[jj] * dif[jj];
-      }
-    return sqrt(mag);
+    return mag;
     }
   else
     {
-    NodeLocationType dif = m_CurrentNode->GetLocation() - m_NeighborNode->GetLocation();
-    float            dU =                                            // dif.magnitude();
-      fabs(m_CurrentNode->GetValue() - m_NeighborNode->GetValue() ); // *dif.magnitude();
-    // std::cout << " dU " << dU << " value " << m_CurrentNode->GetValue() <<  std::endl;
-    return dU;
+    float dL = fabs(m_CurrentNode->GetValue(3) - m_NeighborNode->GetValue(3) );
+    if( dL > 0.5 )
+      {
+      dL = this->m_MaxCost * this->m_LabelCostWeight;
+      }
+    else
+      {
+      dL = 0;
+      }
+    return mag * this->m_DistanceCostWeight + dL;
     }
-//  return 1.0; // manhattan distance
-};
+}
 
 template <class TGraphSearchNode>
 bool ManifoldIntegrationAlgorithm<TGraphSearchNode>::TerminationCondition()

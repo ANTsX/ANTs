@@ -146,6 +146,8 @@ public:
 
   itkGetMacro(SurfaceMesh, SurfaceTypePointer);
   itkSetMacro(SurfaceMesh, SurfaceTypePointer);
+  itkGetMacro(SurfaceFeatureMesh, SurfaceTypePointer);
+  itkSetMacro(SurfaceFeatureMesh, SurfaceTypePointer);
 
   void SetDebug(bool b)
   {
@@ -211,6 +213,21 @@ public:
     this->m_Label_to_Flatten = b;
   }
 
+  inline void SetMaxCost( float f )
+  {
+    this->m_MaxCost = f;
+  }
+
+  inline void SetDistanceCostWeight(float d)
+  {
+    this->m_DistanceCostWeight = d;
+  }
+
+  inline void SetLabelCostWeight(float d)
+  {
+    this->m_LabelCostWeight = d;
+  }
+
   inline void SetMapToSquare()
   {
     this->m_MapToSquare = true;  this->m_MapToCircle = false;
@@ -248,6 +265,8 @@ private:
   std::string                         m_ParameterFileName;
   int                                 m_NorthPole;
   int                                 m_SourceNodeNumber;
+  float                               m_DistanceCostWeight;
+  float                               m_LabelCostWeight;
 
   itk::fem::Solver m_Solver;
 
@@ -262,6 +281,7 @@ private:
   VectorType m_Radius;
 
   SurfaceTypePointer m_SurfaceMesh;
+  SurfaceTypePointer m_SurfaceFeatureMesh;
 
   float                               m_MaxCost;
   itk::fem::LinearSystemWrapperItpack itpackWrapper;

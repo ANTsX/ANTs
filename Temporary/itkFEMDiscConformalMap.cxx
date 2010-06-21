@@ -45,11 +45,14 @@ FEMDiscConformalMap<TSurface, TImage, TDimension>
   m_NorthPole = 0;
   m_SourceNodeNumber = 1;
 
+  this->m_DistanceCostWeight = 1;
+  this->m_LabelCostWeight = 0;
+
   m_Pi = 3.14159265358979323846;
-  m_ReadFromFile = true;
+  m_ReadFromFile = false;
   m_Debug = false;
   m_FindingRealSolution = true;
-  m_SurfaceMesh = NULL;
+  this->m_SurfaceMesh = NULL;
   for( int i = 0; i < 7; i++ )
     {
     m_PoleElementsGN[i] = 0;
@@ -58,7 +61,7 @@ FEMDiscConformalMap<TSurface, TImage, TDimension>
   this->m_MapToSquare = false;
   this->m_ParamWhileSearching = true;
   m_Smooth = 2.0;
-
+  this->m_Label_to_Flatten = 0;
   this->m_FlatImage  = NULL;
 
   manifoldIntegrator = ManifoldIntegratorType::New();
@@ -118,7 +121,7 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::FindSource(IndexType index)
 {
-  vtkPoints* vtkpoints = m_SurfaceMesh->GetPoints();
+  vtkPoints* vtkpoints = this->m_SurfaceMesh->GetPoints();
   int        numPoints = vtkpoints->GetNumberOfPoints();
   float      mindist = 1.e9;
 
@@ -143,18 +146,31 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::FindMeanSourceInLabel(unsigned int label )
 {
-  vtkPoints*    vtkpoints = m_SurfaceMesh->GetPoints();
+  vtkPoints*    vtkpoints = this->m_SurfaceMesh->GetPoints();
   int           numPoints = vtkpoints->GetNumberOfPoints();
   float         mindist = 1.e9;
   float         meanx = 0., meany = 0, meanz = 0;
   unsigned long ct = 0;
 
-  vtkDataArray* labels = m_SurfaceMesh->GetPointData()->GetArray("Label");
+  vtkDataArray* labels = this->m_SurfaceMesh->GetPointData()->GetArray("Label");
+  vtkDataArray* features = NULL;
+
+  if( this->m_SurfaceFeatureMesh )
+    {
+    if( this->m_SurfaceFeatureMesh->GetPointData()->GetArray("Feature") )
+      {
+      features = this->m_SurfaceFeatureMesh->GetPointData()->GetArray("Feature");
+      }
+    else
+      {
+      features = labels;
+      }
+    }
 
   if( !labels )
     {
-    std::cout << " cant get Labels " << std::endl;
-    exit(0);
+    std::cout << " cant get Labels --- need an array named Label in the mesh ... " << std::endl;
+    exit(1);
     }
   else
     {
@@ -163,6 +179,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   for( int i = 0; i < numPoints; i++ )
     {
     double* pt = vtkpoints->GetPoint(i);
+    manifoldIntegrator->GetGraphNode(i)->SetValue(labels->GetTuple1(i), 3);
     //    std::cout << " label " << labels->GetTuple1(i) <<  " & " <<  label <<std::endl;
     if( fabs( labels->GetTuple1(i) - label ) < 0.5 )
       {
@@ -208,7 +225,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   else
     {
     std::cout << " no label " << label << " exiting " << std::endl;
-    exit(0);
+    exit(1);
     }
 }
 
@@ -521,6 +538,21 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::FindLoopAroundNode( unsigned int j_in )
 {
+  vtkDataArray* labels = this->m_SurfaceMesh->GetPointData()->GetArray("Label");
+  vtkDataArray* features = NULL;
+
+  if( this->m_SurfaceFeatureMesh )
+    {
+    if( this->m_SurfaceFeatureMesh->GetPointData()->GetArray("Feature") )
+      {
+      features = this->m_SurfaceFeatureMesh->GetPointData()->GetArray("Feature");
+      }
+    else
+      {
+      features = labels;
+      }
+    }
+
   this->m_DiscBoundaryList.clear();
   unsigned int gsz = manifoldIntegrator->GetGraphSize();
   // get distance from this node to all others
@@ -532,15 +564,19 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     manifoldIntegrator->GetGraphNode(i)->SetUnVisited();
     manifoldIntegrator->GetGraphNode(i)->SetValue(0.0, 1);
     manifoldIntegrator->GetGraphNode(i)->SetValue(0.0, 2);
+    float labval = labels->GetTuple1(i);
+    manifoldIntegrator->GetGraphNode(i)->SetValue(labval, 3);
     manifoldIntegrator->GetGraphNode(i)->SetPredecessor(NULL);
     }
   manifoldIntegrator->EmptyQ();
   manifoldIntegrator->SetSearchFinished( false );
-  manifoldIntegrator->m_PureDist = true;
   manifoldIntegrator->SetSource(this->m_RootNode);
   manifoldIntegrator->InitializeQueue();
   manifoldIntegrator->SetParamWhileSearching( this->m_ParamWhileSearching );
+  manifoldIntegrator->SetWeights(this->m_MaxCost, this->m_DistanceCostWeight, this->m_LabelCostWeight);
+  manifoldIntegrator->PrintWeights();
   manifoldIntegrator->FindPath();
+
   /** at this point, we should have extracted the disc
       now we want to find a boundary point and an instant
       parameterization via FEM */
@@ -570,7 +606,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     }
   // butt
   ManifoldIntegratorTypePointer discParameterizer = ManifoldIntegratorType::New();
-  discParameterizer->SetSurfaceMesh(m_SurfaceMesh);
+  discParameterizer->SetSurfaceMesh(this->m_SurfaceMesh);
   discParameterizer->InitializeGraph3();
   discParameterizer->SetMaxCost(1.e9);
   std::cout << " dcz " << discParameterizer->GetGraphSize() << std::endl;
@@ -588,9 +624,9 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     }
   discParameterizer->EmptyQ();
   discParameterizer->SetSearchFinished( false );
-  discParameterizer->m_PureDist = true;
   discParameterizer->SetSource(discParameterizer->GetGraphNode(furthestnode) );
   discParameterizer->InitializeQueue();
+  discParameterizer->SetWeights(1.e9, 1, 0);
   discParameterizer->FindPath();
   float                  temp = 0;
   GraphSearchNodePointer farnode2 = NULL;
@@ -612,10 +648,10 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   discParameterizer->BackTrack(farnode2);
   // butt2
   ManifoldIntegratorTypePointer lastlooper = ManifoldIntegratorType::New();
-  lastlooper->SetSurfaceMesh(m_SurfaceMesh);
+  lastlooper->SetSurfaceMesh(this->m_SurfaceMesh);
   lastlooper->InitializeGraph3();
   lastlooper->SetMaxCost(1.e9);
-  std::cout << " dcz " << lastlooper->GetGraphSize() << std::endl;
+  //	 std::cout << " dcz "<< lastlooper->GetGraphSize() << std::endl;
   for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
     {
     lastlooper->GetGraphNode(i)->SetTotalCost(vnl_huge_val(lastlooper->GetMaxCost() ) );
@@ -630,13 +666,13 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     }
   lastlooper->EmptyQ();
   lastlooper->SetSearchFinished( false );
-  lastlooper->m_PureDist = true;
   for( unsigned int pp = 0; pp < discParameterizer->GetPathSize(); pp++ )
     {
     unsigned int id = discParameterizer->GetPathAtIndex(pp)->GetIdentity();
     lastlooper->SetSource( lastlooper->GetGraphNode(id) );
     }
   lastlooper->InitializeQueue();
+  lastlooper->SetWeights(1.e9, 1, 0);
   lastlooper->FindPath();
   GraphSearchNodePointer farnode3 = NULL;
   vct = 0;
@@ -671,47 +707,45 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
     }
   lastlooper->EmptyQ();
   lastlooper->SetSearchFinished( false );
-  lastlooper->m_PureDist = true;
   lastlooper->SetSource( lastlooper->GetGraphNode(farnode3->GetIdentity() ) );
   lastlooper->InitializeQueue();
+  lastlooper->SetWeights(1.e9, 1, 0);
   lastlooper->FindPath();
   // now assemble the parameterization...
   //
   this->m_DiscBoundaryList.clear();
   // add both the above to the list
-  std::cout << " part 1 " << std::endl;
+  //	 std::cout << " part 1 " << std::endl;
   for( unsigned int i = 0; i < discParameterizer->GetPathSize(); i++ )
     {
     unsigned int id = discParameterizer->GetPathAtIndex(i)->GetIdentity();
-    std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    //  std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
-  std::cout << " part 2 " << std::endl;
+  //	 std::cout << " part 2 " << std::endl;
   lastlooper->BackTrack( lastlooper->GetGraphNode( farnode1->GetIdentity() ) );
   for( unsigned int i = 0; i < lastlooper->GetPathSize(); i++ )
     {
     unsigned int id = lastlooper->GetPathAtIndex(i)->GetIdentity();
-    std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    //	     std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
 
-  std::cout << farnode1->GetLocation() << std::endl;
-  std::cout << farnode2->GetLocation() << std::endl;
-  std::cout << farnode3->GetLocation() << std::endl;
-  std::cout
-    <<
-    " another idea --- get two points far apart  then solve a minimization problem across the graph that gives the average value in 0 => 1 ... "
-    << std::endl;
-  std::cout << " path 1 sz " << discParameterizer->GetPathSize() << std::endl;
+  //	 std::cout << farnode1->GetLocation() << std::endl;
+  // std::cout << farnode2->GetLocation() << std::endl;
+  //	 std::cout << farnode3->GetLocation() << std::endl;
+  //	 std::cout << " another idea --- get two points far apart  then solve a minimization problem across the graph that
+  // gives the average value in 0 => 1 ... " << std::endl;
+  // std::cout << " path 1 sz " << discParameterizer->GetPathSize() << std::endl;
 
   // finally do but add in reverse order
-  std::cout << " part 3 " << farnode2->GetIdentity() << " and " << farnode1->GetIdentity() << std::endl;
+  // std::cout << " part 3 " <<farnode2->GetIdentity() << " and " << farnode1->GetIdentity() << std::endl;
   lastlooper->EmptyPath();
   lastlooper->BackTrack(  lastlooper->GetGraphNode( farnode2->GetIdentity() ) );
   for( unsigned int i = lastlooper->GetPathSize() - 1; i > 0; i-- )
     {
     unsigned int id = lastlooper->GetPathAtIndex(i)->GetIdentity();
-    std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    //	     std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
   std::cout << " Almost ... " << std::endl;
@@ -861,19 +895,21 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 {
   std::cout << " set surface mesh " << std::endl;
 
-  manifoldIntegrator->SetSurfaceMesh(m_SurfaceMesh);
+  manifoldIntegrator->SetSurfaceMesh(this->m_SurfaceMesh);
   std::cout << " begin initializing graph " << std::endl;
   manifoldIntegrator->InitializeGraph3();
-  m_SurfaceMesh = manifoldIntegrator->GetSurfaceMesh();
+  this->m_SurfaceMesh = manifoldIntegrator->GetSurfaceMesh();
 //   float frac=0;
 //  IndexType index;
-  std::cout << " enter LabelToExtract ";  std::cin >> m_Label_to_Flatten;
-  float mc = 0;
-  std::cout << " Enter max cost ";  std::cin >> mc;
-  m_MaxCost = mc;
-  manifoldIntegrator->SetMaxCost(mc);
-  manifoldIntegrator->m_LabelCost = m_Label_to_Flatten;
-  this->FindMeanSourceInLabel( m_Label_to_Flatten );
+  if( this->m_Label_to_Flatten == 0 )
+    {
+    std::cout << " enter LabelToExtract ";  std::cin >> m_Label_to_Flatten;
+    float mc = 0;
+    std::cout << " Enter max cost ";  std::cin >> mc;
+    m_MaxCost = mc;
+    }
+  manifoldIntegrator->SetMaxCost(this->m_MaxCost);
+  this->FindMeanSourceInLabel( this->m_Label_to_Flatten );
   //  this->LocateAndParameterizeDiscBoundary(  m_Label_to_Flatten , false );
   //   this->LocateAndParameterizeDiscBoundary(  m_Label_to_Flatten , true );
   // std::cout << " findpath in extractsurfacedisk done ";
@@ -882,7 +918,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 //  typedef itk::SurfaceMeshCurvature<GraphSearchNodeType,GraphSearchNodeType> surfktype;
 //  typename surfktype::Pointer surfk=surfktype::New();
 
-  vtkPoints*     vtkpoints = m_SurfaceMesh->GetPoints();
+  vtkPoints*     vtkpoints = this->m_SurfaceMesh->GetPoints();
   int            numPoints = vtkpoints->GetNumberOfPoints();
   vtkFloatArray* param = vtkFloatArray::New();
   param->SetName("angle");
@@ -904,7 +940,7 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::GenerateSystemFromSurfaceMesh()
 {
-  if( !m_SurfaceMesh )
+  if( !this->m_SurfaceMesh )
     {
     std::cout << " NO MESH"; return false;
     }
@@ -926,7 +962,7 @@ bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
   ElementType::Pointer e1 = ElementType::New();
   e1->m_mat = dynamic_cast<MaterialType *>( m );
 
-  vtkPoints* vtkpoints = m_SurfaceMesh->GetPoints();
+  vtkPoints* vtkpoints = this->m_SurfaceMesh->GetPoints();
   int        numPoints = vtkpoints->GetNumberOfPoints();
   int        foundnum = 0;
   int        boundsz = 0;
@@ -958,7 +994,7 @@ bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
   std::cout << " Found " << foundnum << " nodes " << std::endl;
   std::cout <<  " bound " << boundsz << std::endl;
-  vtkCellArray* vtkcells = m_SurfaceMesh->GetPolys();
+  vtkCellArray* vtkcells = this->m_SurfaceMesh->GetPolys();
 
   vtkIdType     npts;
   vtkIdType*    pts;
@@ -1228,6 +1264,24 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float
   // Get the number of points in the mesh
   int numPoints = m_Solver.node.size();
 
+  vtkDataArray* labels = this->m_SurfaceMesh->GetPointData()->GetArray("Label");
+  vtkDataArray* features = NULL;
+  if( this->m_SurfaceFeatureMesh )
+    {
+    if( this->m_SurfaceFeatureMesh->GetPointData()->GetArray("Feature") )
+      {
+      features = this->m_SurfaceFeatureMesh->GetPointData()->GetArray("Feature");
+      }
+    else
+      {
+      features = labels;
+      }
+    }
+  else
+    {
+    features = labels;
+    }
+
   // Create vtk polydata
   vtkPolyData* polydata1 = vtkPolyData::New();
   vtkPolyData* polydata2 = vtkPolyData::New();
@@ -1242,7 +1296,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float
   int idx = 0;
 
   vtkFloatArray* param = vtkFloatArray::New();
-  param->SetName("curvature");
+  param->SetName("feature");
 
   vtkFloatArray* paramAngle = vtkFloatArray::New();
   paramAngle->SetName("angle");
@@ -1269,6 +1323,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float
     //    temp=m_RealSolution[(*n)->GN]*255.0;
     //    temp=( (unsigned int) this->InBorder(manifoldIntegrator->GetGraphNode((*n)->GN)) )*255;
     float temp = manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(3); // for curvature
+    temp = features->GetTuple1( (*n)->GN);
     //    float temp=manifoldIntegrator->GetGraphNode((*n)->GN)->GetValue(1)*255; // for curvature
     float temp2 = manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(0) * 255; // for length
     param->InsertNextValue(temp);
@@ -1425,10 +1480,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
          d++ )
       {
       m_RealSolution[dof] = m_Solver.GetSolution(dof);
-      if( ct % 10 == 0 )
-        {
-        std::cout << " mrdof " <<  m_RealSolution[dof]  << " dof " << dof << std::endl;
-        }
+      //	  if ( ct % 10 == 0) std::cout << " mrdof " <<  m_RealSolution[dof]  << " dof " << dof << std::endl;
       }
     ct++;
     }
@@ -1455,10 +1507,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
          d++ )
       {
       m_ImagSolution[dof] = m_Solver.GetSolution(dof);
-      if( ct % 10 == 0 )
-        {
-        std::cout << " midof " <<  m_ImagSolution[dof]  <<  " dof " << dof << std::endl;
-        }
+      //	  if (ct % 10 == 0) std::cout << " midof " <<  m_ImagSolution[dof]  <<  " dof " << dof << std::endl;
       }
     ct++;
     }
@@ -1471,7 +1520,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   // now measure the length distortion of the given solution
   manifoldIntegrator->EmptyQ();
   manifoldIntegrator->SetSearchFinished( false );
-  manifoldIntegrator->m_PureDist = false;
   for( int i = 0; i < manifoldIntegrator->GetGraphSize(); i++ )
     {
     manifoldIntegrator->GetGraphNode(i)->SetTotalCost(vnl_huge_val(manifoldIntegrator->GetMaxCost() ) );
@@ -1484,8 +1532,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   manifoldIntegrator->InitializeQueue();
   float mchere = 1.2;
   manifoldIntegrator->SetMaxCost(mchere);
-  // here we want to find another path between the source and sink, next to the path
-  // found above
+  manifoldIntegrator->SetWeights(this->m_MaxCost, this->m_DistanceCostWeight, this->m_LabelCostWeight);
   manifoldIntegrator->FindPath();
 
   // backtrack everywhere to set up forweard tracking
@@ -1534,7 +1581,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   /*    m_ExtractedSurfaceMesh=polydata1;//
   //   m_DiskSurfaceMesh=delny2->GetOutput();
   float total=0.0;
-  for (int i=0; i<m_SurfaceMesh->GetPoints()->GetNumberOfPoints(); i++)
+  for (int i=0; i<this->m_SurfaceMesh->GetPoints()->GetNumberOfPoints(); i++)
   {
   float length1=0;
   float length2=0;
@@ -1582,7 +1629,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
 /*
 vtkSelectPolyData *loop = vtkSelectPolyData::New();
-loop->SetInput(m_SurfaceMesh);
+loop->SetInput(this->m_SurfaceMesh);
 // put points inside ...
 vtkPoints* points = vtkPoints::New();
 points->SetNumberOfPoints( this->m_DiscBoundaryList.size());
