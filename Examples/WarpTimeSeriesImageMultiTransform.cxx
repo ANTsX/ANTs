@@ -621,11 +621,11 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
   unsigned int timedims = img_mov->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   for( unsigned int timedim = 0;  timedim < timedims;  timedim++ )
     {
-    if( timedim % (timedims / 10 ) == 0 )
+    if( timedim % vnl_math_max(timedims / 10, static_cast<unsigned int>(1) ) == 0 )
       {
-      std::cout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;                                  //
-                                                                                                                             // <<
-                                                                                                                             // std::endl;
+      std::cout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;                                                                             //
+                                                                                                                                                                        // <<
+                                                                                                                                                                        // std::endl;
       }
     typename VectorImageType::RegionType extractRegion = img_mov->GetLargestPossibleRegion();
     extractRegion.SetSize(ImageDimension - 1, 0);
