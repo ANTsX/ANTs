@@ -618,19 +618,159 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
   std::cout << " 4D-Out-Size " <<  transformedvecimage->GetLargestPossibleRegion().GetSize() << std::endl;
   std::cout << " 4D-Out-Dir " << transformedvecimage->GetDirection() << std::endl;
 
+  typename WarperType::Pointer  warper = WarperType::New();
+  warper->SetEdgePaddingValue(0);
+
+  if( misc_opt.use_NN_interpolator )
+    {
+    typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
+                                                                  typename WarperType::CoordRepType> NNInterpolateType;
+    typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
+    std::cout <<  " Use Nearest Neighbor interpolation " << std::endl;
+    warper->SetInterpolator(interpolator_NN);
+    }
+
+  typedef itk::TransformFileReader                                    TranReaderType;
+  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType> FieldReaderType;
+
+  unsigned int transcount = 0;
+  const int    kOptQueueSize = opt_queue.size();
+  for( int i = 0; i < kOptQueueSize; i++ )
+    {
+    const TRAN_OPT & opt = opt_queue[i];
+
+    switch( opt.file_type )
+      {
+      case AFFINE_FILE:
+        {
+        typename TranReaderType::Pointer tran_reader = TranReaderType::New();
+        tran_reader->SetFileName(opt.filename);
+        tran_reader->Update();
+        typename AffineTransformType::Pointer aff = dynamic_cast<AffineTransformType *>
+          ( (tran_reader->GetTransformList() )->front().GetPointer() );
+        if( opt.do_affine_inv )
+          {
+          typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
+          aff->GetInverse(aff_inv);
+          aff = aff_inv;
+          }
+        // std::cout <<" aff " << transcount <<  std::endl;
+        warper->PushBackAffineTransform(aff);
+        if( transcount == 0 )
+          {
+          warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
+          warper->SetOutputSpacing(img_ref->GetSpacing() );
+          warper->SetOutputOrigin(img_ref->GetOrigin() );
+          warper->SetOutputDirection(img_ref->GetDirection() );
+          }
+        transcount++;
+        break;
+        }
+
+      case IDENTITY_TRANSFORM:
+        {
+        typename AffineTransformType::Pointer aff;
+        GetIdentityTransform(aff);
+        // std::cout << " aff id" << transcount << std::endl;
+        warper->PushBackAffineTransform(aff);
+        transcount++;
+        break;
+        }
+
+      case IMAGE_AFFINE_HEADER:
+        {
+        typename AffineTransformType::Pointer aff = AffineTransformType::New();
+        typename ImageType::Pointer img_affine = ImageType::New();
+        typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
+        reader_image_affine->SetFileName(opt.filename);
+        reader_image_affine->Update();
+        img_affine = reader_image_affine->GetOutput();
+
+        GetAffineTransformFromImage(img_affine, aff);
+
+        if( opt.do_affine_inv )
+          {
+          typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
+          aff->GetInverse(aff_inv);
+          aff = aff_inv;
+          }
+
+        // std::cout <<" aff from image header " << transcount <<  std::endl;
+        warper->PushBackAffineTransform(aff);
+
+        //            if (transcount==0){
+        //                warper->SetOutputSize(img_mov->GetLargestPossibleRegion().GetSize());
+        //                warper->SetOutputSpacing(img_mov->GetSpacing());
+        //                warper->SetOutputOrigin(img_mov->GetOrigin());
+        //                warper->SetOutputDirection(img_mov->GetDirection());
+        //            }
+
+        transcount++;
+        break;
+        }
+
+      case DEFORMATION_FILE:
+        {
+        typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
+        field_reader->SetFileName( opt.filename );
+        field_reader->Update();
+        typename DeformationFieldType::Pointer field = field_reader->GetOutput();
+
+        warper->PushBackDeformationFieldTransform(field);
+        warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
+        warper->SetOutputOrigin(field->GetOrigin() );
+        warper->SetOutputSpacing(field->GetSpacing() );
+        warper->SetOutputDirection(field->GetDirection() );
+
+        transcount++;
+        break;
+        }
+      default:
+        std::cout << "Unknown file type!" << std::endl;
+      }
+    }
+
+  // warper->PrintTransformList();
+
+  if( img_ref.IsNotNull() )
+    {
+    warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
+    warper->SetOutputSpacing(img_ref->GetSpacing() );
+    warper->SetOutputOrigin(img_ref->GetOrigin() );
+    warper->SetOutputDirection(img_ref->GetDirection() );
+    }
+  else
+    {
+    if( misc_opt.use_TightestBoundingBox == true )
+      {
+      // compute the desired spacking after inputting all the transform files using the
+      std::cout << " not implemented " << std::endl;
+      /*
+              typename ImageType::SizeType largest_size;
+              typename ImageType::PointType origin_warped;
+              GetLaregstSizeAfterWarp(warper, warpthisimage , largest_size, origin_warped);
+              warper->SetOutputSize(largest_size);
+              warper->SetOutputSpacing(warpthisimage->GetSpacing());
+              warper->SetOutputOrigin(origin_warped);
+
+              typename ImageType::DirectionType d;
+              d.SetIdentity();
+              warper->SetOutputDirection(d);*/
+      }
+    }
+
   unsigned int timedims = img_mov->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   for( unsigned int timedim = 0;  timedim < timedims;  timedim++ )
     {
     if( timedim % vnl_math_max(timedims / 10, static_cast<unsigned int>(1) ) == 0 )
       {
-      std::cout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;                                                                             //
-                                                                                                                                                                        // <<
-                                                                                                                                                                        // std::endl;
+      std::cout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;                                                                           //
+                                                                                                                                                                      // <<
+                                                                                                                                                                      // std::endl;
       }
     typename VectorImageType::RegionType extractRegion = img_mov->GetLargestPossibleRegion();
     extractRegion.SetSize(ImageDimension - 1, 0);
     extractRegion.SetIndex(ImageDimension - 1, timedim );
-
     typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
     extractFilter->SetInput( img_mov );
     extractFilter->SetExtractionRegion( extractRegion );
@@ -653,147 +793,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
     warpthisimage->SetOrigin(qorg);
     warpthisimage->SetDirection(qdir);
 
-    typename WarperType::Pointer  warper = WarperType::New();
     warper->SetInput( warpthisimage );
-    warper->SetEdgePaddingValue(0);
-
-    if( misc_opt.use_NN_interpolator )
-      {
-      typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
-                                                                    typename WarperType::CoordRepType> NNInterpolateType;
-      typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
-      std::cout <<  " Use Nearest Neighbor interpolation " << std::endl;
-      warper->SetInterpolator(interpolator_NN);
-      }
-
-    typedef itk::TransformFileReader                                    TranReaderType;
-    typedef itk::VectorImageFileReader<ImageType, DeformationFieldType> FieldReaderType;
-
-    unsigned int transcount = 0;
-    const int    kOptQueueSize = opt_queue.size();
-    for( int i = 0; i < kOptQueueSize; i++ )
-      {
-      const TRAN_OPT & opt = opt_queue[i];
-
-      switch( opt.file_type )
-        {
-        case AFFINE_FILE:
-          {
-          typename TranReaderType::Pointer tran_reader = TranReaderType::New();
-          tran_reader->SetFileName(opt.filename);
-          tran_reader->Update();
-          typename AffineTransformType::Pointer aff = dynamic_cast<AffineTransformType *>
-            ( (tran_reader->GetTransformList() )->front().GetPointer() );
-          if( opt.do_affine_inv )
-            {
-            typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
-            aff->GetInverse(aff_inv);
-            aff = aff_inv;
-            }
-          // std::cout <<" aff " << transcount <<  std::endl;
-          warper->PushBackAffineTransform(aff);
-          if( transcount == 0 )
-            {
-            warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
-            warper->SetOutputSpacing(img_ref->GetSpacing() );
-            warper->SetOutputOrigin(img_ref->GetOrigin() );
-            warper->SetOutputDirection(img_ref->GetDirection() );
-            }
-          transcount++;
-          break;
-          }
-
-        case IDENTITY_TRANSFORM:
-          {
-          typename AffineTransformType::Pointer aff;
-          GetIdentityTransform(aff);
-          // std::cout << " aff id" << transcount << std::endl;
-          warper->PushBackAffineTransform(aff);
-          transcount++;
-          break;
-          }
-
-        case IMAGE_AFFINE_HEADER:
-          {
-          typename AffineTransformType::Pointer aff = AffineTransformType::New();
-          typename ImageType::Pointer img_affine = ImageType::New();
-          typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
-          reader_image_affine->SetFileName(opt.filename);
-          reader_image_affine->Update();
-          img_affine = reader_image_affine->GetOutput();
-
-          GetAffineTransformFromImage(img_affine, aff);
-
-          if( opt.do_affine_inv )
-            {
-            typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
-            aff->GetInverse(aff_inv);
-            aff = aff_inv;
-            }
-
-          // std::cout <<" aff from image header " << transcount <<  std::endl;
-          warper->PushBackAffineTransform(aff);
-
-          //            if (transcount==0){
-          //                warper->SetOutputSize(img_mov->GetLargestPossibleRegion().GetSize());
-          //                warper->SetOutputSpacing(img_mov->GetSpacing());
-          //                warper->SetOutputOrigin(img_mov->GetOrigin());
-          //                warper->SetOutputDirection(img_mov->GetDirection());
-          //            }
-
-          transcount++;
-          break;
-          }
-
-        case DEFORMATION_FILE:
-          {
-          typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
-          field_reader->SetFileName( opt.filename );
-          field_reader->Update();
-          typename DeformationFieldType::Pointer field = field_reader->GetOutput();
-
-          warper->PushBackDeformationFieldTransform(field);
-          warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
-          warper->SetOutputOrigin(field->GetOrigin() );
-          warper->SetOutputSpacing(field->GetSpacing() );
-          warper->SetOutputDirection(field->GetDirection() );
-
-          transcount++;
-          break;
-          }
-        default:
-          std::cout << "Unknown file type!" << std::endl;
-        }
-      }
-
-    // warper->PrintTransformList();
-
-    if( img_ref.IsNotNull() )
-      {
-      warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
-      warper->SetOutputSpacing(img_ref->GetSpacing() );
-      warper->SetOutputOrigin(img_ref->GetOrigin() );
-      warper->SetOutputDirection(img_ref->GetDirection() );
-      }
-    else
-      {
-      if( misc_opt.use_TightestBoundingBox == true )
-        {
-        // compute the desired spacking after inputting all the transform files using the
-
-        typename ImageType::SizeType largest_size;
-        typename ImageType::PointType origin_warped;
-        GetLaregstSizeAfterWarp(warper, warpthisimage, largest_size, origin_warped);
-        warper->SetOutputSize(largest_size);
-        warper->SetOutputSpacing(warpthisimage->GetSpacing() );
-        warper->SetOutputOrigin(origin_warped);
-
-        typename ImageType::DirectionType d;
-        d.SetIdentity();
-        warper->SetOutputDirection(d);
-        }
-      }
-
     warper->DetermineFirstDeformNoInterp();
     warper->Update();
 
