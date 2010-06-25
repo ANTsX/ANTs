@@ -746,16 +746,16 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
       // compute the desired spacking after inputting all the transform files using the
       std::cout << " not implemented " << std::endl;
       /*
-              typename ImageType::SizeType largest_size;
-              typename ImageType::PointType origin_warped;
-              GetLaregstSizeAfterWarp(warper, warpthisimage , largest_size, origin_warped);
-              warper->SetOutputSize(largest_size);
-              warper->SetOutputSpacing(warpthisimage->GetSpacing());
-              warper->SetOutputOrigin(origin_warped);
+        typename ImageType::SizeType largest_size;
+        typename ImageType::PointType origin_warped;
+        GetLaregstSizeAfterWarp(warper, warpthisimage , largest_size, origin_warped);
+        warper->SetOutputSize(largest_size);
+        warper->SetOutputSpacing(warpthisimage->GetSpacing());
+        warper->SetOutputOrigin(origin_warped);
 
-              typename ImageType::DirectionType d;
-              d.SetIdentity();
-              warper->SetOutputDirection(d);*/
+        typename ImageType::DirectionType d;
+        d.SetIdentity();
+        warper->SetOutputDirection(d);*/
       }
     }
 
