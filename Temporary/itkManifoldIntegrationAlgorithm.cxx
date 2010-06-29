@@ -472,11 +472,8 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
     this->m_BoundaryList.assign(neighborlist.begin(), neighborlist.end() );
     }
 
-  if( ct > 0 && canparam )
-    {
-    std::cout << " qfrac " << this->m_BoundaryList.size()  << " canp  " << canparam << " qsz " << qsz << " cost "
-              << m_CurrentCost << std::endl;
-    }
+  // if ( ct > 0 && canparam)  std::cout <<" qfrac " << this->m_BoundaryList.size()  << " canp  "<< canparam << " qsz "
+  // << qsz << " cost " << m_CurrentCost << std::endl;
   return canparam;
 }
 

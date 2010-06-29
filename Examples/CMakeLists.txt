@@ -183,8 +183,6 @@ TARGET_LINK_LIBRARIES(WarpImageMultiTransform ITKCommon  ITKBasicFilters ITKIO  
 ADD_EXECUTABLE(ComposeMultiTransform ComposeMultiTransform ${UI_SOURCES})
 TARGET_LINK_LIBRARIES(ComposeMultiTransform ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
 
-ADD_EXECUTABLE(WarpVTKPolyDataMultiTransform WarpVTKPolyDataMultiTransform)
-TARGET_LINK_LIBRARIES(WarpVTKPolyDataMultiTransform ITKIO )
 
 ADD_EXECUTABLE(StackSlices StackSlices.cxx ${UI_SOURCES})
 TARGET_LINK_LIBRARIES(StackSlices ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )
@@ -241,6 +239,9 @@ IF (USE_VTK_FILE)
 
   ADD_EXECUTABLE(CheckTopology CheckTopology.cxx)
   TARGET_LINK_LIBRARIES(CheckTopology ITKCommon ITKNumerics ITKFEM  ITKIO ITKMetaIO  vtkRendering vtksys vtkIO)
+
+ADD_EXECUTABLE(WarpVTKPolyDataMultiTransform WarpVTKPolyDataMultiTransform)
+TARGET_LINK_LIBRARIES(WarpVTKPolyDataMultiTransform ITKIO vtksys vtkIO )
 
 
   SET(FLAT_SRC

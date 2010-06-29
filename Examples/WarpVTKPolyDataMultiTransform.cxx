@@ -1,5 +1,7 @@
 #include <vector>
 #include <string>
+#include <vnl/vnl_inverse.h>
+
 #include "itkImageFileReader.h"
 #include "itkVector.h"
 #include "itkVectorImageFileReader.h"
@@ -7,6 +9,7 @@
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
+#include "vtkPolyDataReader.h"
 // #include "itkWarpImageMultiTransformFilter.h"
 #include "itkDeformationFieldFromMultiTransformFilter.h"
 #include "itkTransformFileReader.h"
@@ -15,6 +18,13 @@
 #include "itkLabeledPointSetFileReader.h"
 #include "itkLabeledPointSetFileWriter.h"
 #include "itkMesh.h"
+#include <vtkPolyData.h>
+#include <vtkUnstructuredGrid.h>
+#include <vtkUnstructuredGridReader.h>
+#include <vtkUnstructuredGridWriter.h>
+#include <vtkPolyDataReader.h>
+#include <vtkPolyDataWriter.h>
+#include <vtkPoints.h>
 
 typedef enum
   {
@@ -28,6 +38,71 @@ typedef struct
   } TRAN_OPT;
 
 typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
+
+template <class TImage, class TDeformationField>
+typename TImage::PointType
+TransformPoint(TDeformationField* field, typename TImage::PointType point )
+{
+  enum { ImageDimension = TImage::ImageDimension };
+  typename TImage::PointType newpoint;
+  newpoint.Fill(0);
+  for( unsigned int row = 0; row < ImageDimension; row++ )
+    {
+    for( unsigned int col = 0; col < ImageDimension; col++ )
+      {
+      newpoint[row] += point[col] * field->GetDirection()[row][col];
+      }
+    }
+
+  return newpoint;
+}
+
+vnl_matrix_fixed<double, 4, 4> ConstructNiftiSform(
+  vnl_matrix<double> m_dir,
+  vnl_vector<double> v_origin,
+  vnl_vector<double> v_spacing)
+{
+  // Set the NIFTI/RAS transform
+  vnl_matrix<double>      m_ras_matrix;
+  vnl_diag_matrix<double> m_scale, m_lps_to_ras;
+  vnl_vector<double>      v_ras_offset;
+
+  // Compute the matrix
+  m_scale.set(v_spacing);
+  m_lps_to_ras.set(vnl_vector<double>(3, 1.0) );
+  m_lps_to_ras[0] = -1;
+  m_lps_to_ras[1] = -1;
+  m_ras_matrix = m_lps_to_ras * m_dir * m_scale;
+
+  // Compute the vector
+  v_ras_offset = m_lps_to_ras * v_origin;
+
+  // Create the larger matrix
+  vnl_vector<double> vcol(4, 1.0);
+  vcol.update(v_ras_offset);
+
+  vnl_matrix_fixed<double, 4, 4> m_sform;
+  m_sform.set_identity();
+  m_sform.update(m_ras_matrix);
+  m_sform.set_column(3, vcol);
+  return m_sform;
+}
+
+vnl_matrix_fixed<double, 4, 4> ConstructVTKtoNiftiTransform(
+  vnl_matrix<double> m_dir,
+  vnl_vector<double> v_origin,
+  vnl_vector<double> v_spacing)
+{
+  vnl_matrix_fixed<double, 4, 4> vox2nii = ConstructNiftiSform(m_dir, v_origin, v_spacing);
+  vnl_matrix_fixed<double, 4, 4> vtk2vox;
+  vtk2vox.set_identity();
+  for( size_t i = 0; i < 3; i++ )
+    {
+    vtk2vox(i, i) = 1.0 / v_spacing[i];
+    vtk2vox(i, 3) = -v_origin[i] / v_spacing[i];
+    }
+  return vox2nii * vtk2vox;
+}
 
 TRAN_FILE_TYPE CheckFileType(char *str)
 {
@@ -165,6 +240,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
   // WarperType;
   typedef itk::DeformationFieldFromMultiTransformFilter<DeformationFieldType,
                                                         DeformationFieldType, AffineTransformType> WarperType;
+  typedef itk::LinearInterpolateImageFunction<ImageType> FuncType;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
@@ -260,32 +336,102 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
   /**
    * Code to read the mesh
    */
+  typename ImageType::PointType point;
+  typename ImageType::PointType warpedPoint;
 
-  typedef itk::Mesh<float, ImageDimension>         MeshType;
-  typedef itk::LabeledPointSetFileReader<MeshType> VTKReaderType;
+  typedef itk::Mesh<float, ImageDimension> MeshType;
+  //  typedef itk::LabeledPointSetFileReader<MeshType> VTKReaderType;
+  vtkPolyDataReader *vtkreader = vtkPolyDataReader::New();
+  vtkreader->SetFileName( input_vtk_filename );
+  vtkreader->Update();
+  vtkPolyData *mesh = vtkreader->GetOutput();
+
+  /*
   typename VTKReaderType::Pointer vtkreader = VTKReaderType::New();
   vtkreader->SetFileName( input_vtk_filename );
   vtkreader->Update();
-
   typename MeshType::PointsContainerIterator It
     = vtkreader->GetOutput()->GetPoints()->Begin();
-
-  typename ImageType::PointType point;
-  typename ImageType::PointType warpedPoint;
 
   while( It != vtkreader->GetOutput()->GetPoints()->End() )
     {
     point.CastFrom( It.Value() );
+  */
+  vnl_matrix_fixed<double, 4, 4> ijk2ras, vtk2ras, lps2ras;
+  vtk2ras = ConstructVTKtoNiftiTransform(
+      field_output->GetDirection().GetVnlMatrix(),
+      field_output->GetOrigin().GetVnlVector(),
+      field_output->GetSpacing().GetVnlVector() );
+  ijk2ras.set_identity();
+  vtk2ras.set_identity();
+  lps2ras.set_identity();
+  lps2ras(0, 0) = -1; lps2ras(1, 1) = -1;
+
+  // Set up the transforms
+  ijk2ras = ConstructNiftiSform(
+      field_output->GetDirection().GetVnlMatrix(),
+      field_output->GetOrigin().GetVnlVector(),
+      field_output->GetSpacing().GetVnlVector() );
+
+  vtk2ras = ConstructVTKtoNiftiTransform(
+      field_output->GetDirection().GetVnlMatrix(),
+      field_output->GetOrigin().GetVnlVector(),
+      field_output->GetSpacing().GetVnlVector() );
+
+  vnl_matrix_fixed<double, 4, 4> ras2ijk = vnl_inverse(ijk2ras);
+  vnl_matrix_fixed<double, 4, 4> ras2vtk = vnl_inverse(vtk2ras);
+  vnl_matrix_fixed<double, 4, 4> ras2lps = vnl_inverse(lps2ras);
+  // Update the coordinates
+  for( int k = 0; k < mesh->GetNumberOfPoints(); k++ )
+    {
+    // Get the point (in whatever format that it's stored)
+    vnl_vector_fixed<double, 4> x_mesh, x_ras, x_ijk, v_warp, v_ras;
+    vnl_vector_fixed<double, 4> y_ras, y_mesh;
+    x_mesh[0] = mesh->GetPoint(k)[0]; x_mesh[1] = mesh->GetPoint(k)[1]; x_mesh[2] = mesh->GetPoint(k)[2];
+    x_mesh[3] = 1.0;
+
+    // Map the point into RAS coordinates
+    //    if(parm.mesh_coord == RAS)  x_ras = x_mesh;
+    //    else if(parm.mesh_coord == LPS) x_ras = lps2ras * x_mesh;
+    //    else if(parm.mesh_coord == IJKOS)
+    x_ras = vtk2ras * x_mesh;
+    //    else   x_ras = ijk2ras * x_mesh;
+
+    // Map the point to IJK coordinates (continuous index)
+    x_ijk = ras2ijk * x_ras;
+
+    typename FuncType::ContinuousIndexType ind;
+    ind[0] = x_ijk[0];
+    ind[1] = x_ijk[1];
+    ind[2] = x_ijk[2];
+    field_output->TransformContinuousIndexToPhysicalPoint(ind, point);
+    //      std::cout << " point " << point << std::endl;
+    // std::cout << " point-t " << point << std::endl;
     bool isInside = warper->MultiTransformSinglePoint( point, warpedPoint );
+    // if ( isInside ) std::cout << " point-w " << warpedPoint << std::endl;
     if( isInside )
       {
       typename MeshType::PointType newPoint;
       newPoint.CastFrom( warpedPoint );
-      vtkreader->GetOutput()->SetPoint( It.Index(), newPoint );
+      //      vtkreader->GetOutput()->SetPoint( It.Index(), newPoint );
+      if( ImageDimension == 3 )
+        {
+        mesh->GetPoints()->SetPoint(k, warpedPoint[0], warpedPoint[1], warpedPoint[2]);
+        }
       }
-    ++It;
+    //    ++It;
     }
 
+  std::string fn = std::string(output_vtk_filename);
+  if( fn.rfind(".vtk") == fn.length() - 4 )
+    {
+    vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+    writer->SetFileName(output_vtk_filename);
+    writer->SetInput(mesh);
+    writer->Update();
+    }
+
+  /*
   typedef itk::LabeledPointSetFileWriter<MeshType> VTKWriterType;
   typename VTKWriterType::Pointer vtkwriter = VTKWriterType::New();
   vtkwriter->SetFileName( output_vtk_filename );
@@ -293,7 +439,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
   vtkwriter->SetMultiComponentScalars( vtkreader->GetMultiComponentScalars() );
   vtkwriter->SetLines( vtkreader->GetLines() );
   vtkwriter->Update();
-
+  */
 //    std::string filePrefix = output_vtk_filename;
 //    std::string::size_type pos = filePrefix.rfind(".");
 //    std::string extension = std::string(filePrefix, pos, filePrefix.length()
