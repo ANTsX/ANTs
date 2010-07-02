@@ -65,6 +65,27 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 ::ParseCommandLine( int argc, char * *argv )
 {
   this->m_Parser->Parse( argc, argv );
+
+  typename ParserType::OptionListType unknownOptions =
+    this->m_Parser->GetUnknownOptions();
+  if( unknownOptions.size() )
+    {
+    std::cout << std::endl << "WARNING:  Unknown options" << std::endl;
+    typename ParserType::OptionListType::const_iterator its;
+    for( its = unknownOptions.begin(); its != unknownOptions.end(); its++ )
+      {
+      if( (*its)->GetShortName() != '\0' )
+        {
+        std::cout << "   " << '-' << (*its)->GetShortName() << std::endl;
+        }
+      else
+        {
+        std::cout << "   " << "--" << (*its)->GetLongName() << std::endl;
+        }
+      }
+    std::cout << std::endl;
+    }
+
   std::string  printhelp_long = this->m_Parser->GetOption( "help" )->GetValue();
   unsigned int help_long =
     this->m_Parser->template Convert<unsigned int>( printhelp_long );
