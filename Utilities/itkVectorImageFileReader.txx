@@ -105,10 +105,20 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
   //
   std::string tmpFileName = this->m_FileName;
 
-  this->TestFileExistanceAndReadability();
+  // Test if the file exists and if it can be opened.
+  // An exception will be thrown otherwise.
+  // We catch the exception because some ImageIO's may not actually
+  // open a file. Still reports file error if no ImageIO is loaded.
 
-  unsigned int dimension = itk::GetVectorDimension
-    <VectorImagePixelType>::VectorDimension;
+  try
+    {
+    m_ExceptionMessage = "";
+    this->TestFileExistanceAndReadability();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    m_ExceptionMessage = err.GetDescription();
+    }
 
   std::string::size_type pos = this->m_FileName.rfind( "." );
   std::string            extension( this->m_FileName, pos, this->m_FileName.length() - 1 );
@@ -122,7 +132,11 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
     extension = std::string( filename, pos2, filename.length() - 1 );
     filename = std::string( this->m_FileName, 0, pos2 );
     }
-  for( unsigned int i = 0; i < dimension; i++ )
+//   unsigned int dimension = itk::GetVectorDimension
+//      <VectorImagePixelType>::VectorDimension;
+// Assume that the first image read contains all the information to generate
+//  the output image.
+  for( unsigned int i = 0; i <= 1; i++ )
     {
     this->m_FileName = filename;
 
@@ -178,17 +192,24 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
         OStringStream msg;
         msg << " Could not create IO object for file "
             << m_FileName.c_str() << std::endl;
-        msg << "  Tried to create one of the following:" << std::endl;
-        std::list<LightObject::Pointer> allobjects =
-          ObjectFactoryBase::CreateAllInstance("itkImageIOBase");
-        for( std::list<LightObject::Pointer>::iterator i = allobjects.begin();
-             i != allobjects.end(); ++i )
+        if( m_ExceptionMessage.size() )
           {
-          ImageIOBase* io = dynamic_cast<ImageIOBase *>(i->GetPointer() );
-          msg << "    " << io->GetNameOfClass() << std::endl;
+          msg << m_ExceptionMessage;
           }
-        msg << "  You probably failed to set a file suffix, or" << std::endl;
-        msg << "    set the suffix to an unsupported type." << std::endl;
+        else
+          {
+          msg << "  Tried to create one of the following:" << std::endl;
+          std::list<LightObject::Pointer> allobjects =
+            ObjectFactoryBase::CreateAllInstance("itkImageIOBase");
+          for( std::list<LightObject::Pointer>::iterator i = allobjects.begin();
+               i != allobjects.end(); ++i )
+            {
+            ImageIOBase* io = dynamic_cast<ImageIOBase *>(i->GetPointer() );
+            msg << "    " << io->GetNameOfClass() << std::endl;
+            }
+          msg << "  You probably failed to set a file suffix, or" << std::endl;
+          msg << "    set the suffix to an unsupported type." << std::endl;
+          }
         VectorImageFileReaderException e(__FILE__, __LINE__, msg.str().c_str(), ITK_LOCATION);
         throw e;
         return;
@@ -295,9 +316,6 @@ void
 VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 ::TestFileExistanceAndReadability()
 {
-  unsigned int dimension = itk::GetVectorDimension
-    <VectorImagePixelType>::VectorDimension;
-
   std::string tmpFileName = this->m_FileName;
 
   std::string::size_type pos = this->m_FileName.rfind( "." );
@@ -313,6 +331,9 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
     extension = std::string( filename, pos2, filename.length() - 1 );
     filename = std::string( this->m_FileName, 0, pos2 );
     }
+
+  unsigned int dimension = itk::GetVectorDimension
+    <VectorImagePixelType>::VectorDimension;
   for( unsigned int i = 0; i < dimension; i++ )
     {
     this->m_FileName = filename;
@@ -427,10 +448,15 @@ void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 
   // Test if the file exist and if it can be open.
   // and exception will be thrown otherwise.
-  this->TestFileExistanceAndReadability();
-
-  unsigned int dimension = itk::GetVectorDimension
-    <VectorImagePixelType>::VectorDimension;
+  try
+    {
+    m_ExceptionMessage = "";
+    this->TestFileExistanceAndReadability();
+    }
+  catch( itk::ExceptionObject & err )
+    {
+    m_ExceptionMessage = err.GetDescription();
+    }
 
   std::string tmpFileName = this->m_FileName;
 
@@ -446,6 +472,9 @@ void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
     extension = std::string( filename, pos2, filename.length() - 1 );
     filename = std::string( this->m_FileName, 0, pos2 );
     }
+
+  unsigned int dimension = itk::GetVectorDimension
+    <VectorImagePixelType>::VectorDimension;
   for( unsigned int i = 0; i < dimension; i++ )
     {
     this->m_FileName = filename;
@@ -491,9 +520,6 @@ void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
     itkDebugMacro( << "Reading image buffer from the file " << this->m_FileName );
 
     // Tell the ImageIO to read the file
-    //
-    ImagePixelType *buffer =
-      this->m_Image->GetPixelContainer()->GetBufferPointer();
     m_ImageIO->SetFileName(m_FileName.c_str() );
 
     this->m_FileName = tmpFileName;
@@ -537,34 +563,61 @@ void VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
 
     m_ImageIO->SetIORegion(ioRegion);
 
-    if( m_ImageIO->GetComponentTypeInfo()
-        == typeid(ITK_TYPENAME ConvertPixelTraits::ComponentType)
-        && (m_ImageIO->GetNumberOfComponents()
-            == ConvertPixelTraits::GetNumberOfComponents() ) )
+    char *loadBuffer = 0;
+    // the size of the buffer is computed based on the actual number of
+    // pixels to be read and the actual size of the pixels to be read
+    // (as opposed to the sizes of the output)
+    try
       {
-      itkDebugMacro(<< "No buffer conversion required.");
-      // allocate a buffer and have the ImageIO read directly into it
-      m_ImageIO->Read(buffer);
-//      return;
+      if( m_ImageIO->GetComponentTypeInfo()
+          != typeid(ITK_TYPENAME ConvertPixelTraits::ComponentType)
+          || (m_ImageIO->GetNumberOfComponents()
+              != ConvertPixelTraits::GetNumberOfComponents() ) )
+        {
+        // the pixel types don't match so a type conversion needs to be
+        // performed
+        itkDebugMacro(<< "Buffer conversion required from: "
+                      << m_ImageIO->GetComponentTypeInfo().name()
+                      << " to: "
+                      << typeid(ITK_TYPENAME ConvertPixelTraits::ComponentType).name() );
+
+        loadBuffer = new char[m_ImageIO->GetImageSizeInBytes()];
+        m_ImageIO->Read( static_cast<void *>(loadBuffer) );
+
+        // See note below as to why the buffered region is needed and
+        // not actualIOregion
+        this->DoConvertBuffer(static_cast<void *>(loadBuffer),
+                              output->GetBufferedRegion().GetNumberOfPixels() );
+        }
+      else // a type conversion is not necessary
+        {
+        itkDebugMacro(<< "No buffer conversion required.");
+
+        ImagePixelType *buffer =
+          this->m_Image->GetPixelContainer()->GetBufferPointer();
+        m_ImageIO->Read( buffer );
+        }
       }
-    else // a type conversion is necessary
+    catch( ... )
       {
-      itkDebugMacro(<< "Buffer conversion required.");
-      // note: char is used here because the buffer is read in bytes
-      // regardles of the actual type of the pixels.
-      ImageRegionType region = this->m_Image->GetBufferedRegion();
-      char *          loadBuffer =
-        new char[m_ImageIO->GetImageSizeInBytes()];
+      // if an exception is thrown catch it
 
-      m_ImageIO->Read(loadBuffer);
+      if( loadBuffer )
+        {
+        // clean up
+        delete [] loadBuffer;
+        loadBuffer = 0;
+        }
 
-      itkDebugMacro(<< "Buffer conversion required from: "
-                    << m_ImageIO->GetComponentTypeInfo().name()
-                    << " to: "
-                    << typeid(ITK_TYPENAME ConvertPixelTraits::ComponentType).name() );
+      // then rethrow
+      throw;
+      }
 
-      this->DoConvertBuffer(loadBuffer, region.GetNumberOfPixels() );
+    // clean up
+    if( loadBuffer )
+      {
       delete [] loadBuffer;
+      loadBuffer = 0;
       }
 
     ImageRegionIterator<TVectorImage> Id( this->GetOutput(),
