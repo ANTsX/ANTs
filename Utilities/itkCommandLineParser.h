@@ -81,6 +81,9 @@ public:
   itkSetStringMacro( CommandDescription );
   itkGetStringMacro( CommandDescription );
 
+  itkGetConstMacro( Options, OptionListType );
+  itkGetConstMacro( UnknownOptions, OptionListType );
+
   template <class TValue>
   TValue Convert( std::string optionString )
   {
