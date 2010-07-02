@@ -7,8 +7,8 @@
 
 #include "itkImageFileWriter.h"
 
-#include "itkScalarImageToHistogramGenerator.h"
-#include "itkImageToHistogramGenerator.h"
+// #include "itkScalarImageToHistogramGenerator.h"
+// #include "itkImageToHistogramGenerator.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "vnl/algo/vnl_determinant.h"
 #include "itkDiscreteGaussianImageFilter.h"
