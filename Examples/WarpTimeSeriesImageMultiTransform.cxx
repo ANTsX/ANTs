@@ -809,10 +809,8 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
         }
       ind[ImageDimension - 1] = timedim;
       transformedvecimage->SetPixel(ind, fval);
-      if( ind[0] == 53 && ind[1] == 19 && ind[2] == 30 )
-        {
-        std::cout << " fval " << fval << " td " << timedim << std::endl;
-        }
+      //	if ( ind[0] == 53 && ind[1] == 19 && ind[2] == 30 ) std::cout << " fval " << fval << " td " << timedim <<
+      // std::endl;
       }
 
     if( timedim == 0 )
