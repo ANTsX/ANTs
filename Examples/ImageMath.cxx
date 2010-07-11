@@ -61,11 +61,11 @@
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 #include "../Temporary/itkFastMarchingImageFilter.h"
-#include "itkMinimumDecisionRule.h"
-#include "itkEuclideanDistance.h"
-#include "itkSampleClassifier.h"
+// #include "itkMinimumDecisionRule.h"
+// #include "itkEuclideanDistance.h"
+// #include "itkSampleClassifier.h"
 #include "itkCastImageFilter.h"
-#include "itkScalarImageToListAdaptor.h"
+// #include "itkScalarImageToListAdaptor.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkHistogramMatchingImageFilter.h"
@@ -83,9 +83,9 @@
 #include "itkSphereSpatialFunction.h"
 #include "itkLabelContourImageFilter.h"
 #include "itkMaskImageFilter.h"
-#include "itkDecisionRuleBase.h"
-#include "itkMinimumDecisionRule.h"
-#include "itkImageClassifierBase.h"
+// #include "itkDecisionRuleBase.h"
+// #include "itkMinimumDecisionRule.h"
+// #include "itkImageClassifierBase.h"
 // #include "itkWellComposedImageFilter.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
@@ -98,8 +98,8 @@
 #include "itkMRFImageFilter.h"
 #include "itkImageClassifierBase.h"
 #include "itkImageGaussianModelEstimator.h"
-#include "itkMahalanobisDistanceMembershipFunction.h"
-#include "itkMinimumDecisionRule.h"
+// #include "itkMahalanobisDistanceMembershipFunction.h"
+// #include "itkMinimumDecisionRule.h"
 #include "itkSize.h"
 #include "itkImage.h"
 #include "itkVector.h"
@@ -2736,103 +2736,99 @@ typename TImage::Pointer BinaryThreshold(typename TImage::PixelType low, typenam
   return inputThresholder->GetOutput();
 }
 
-template <class TImage>
-typename TImage::Pointer
-SegmentKMeans(typename TImage::Pointer image, unsigned int nclasses)
-{
-  typedef TImage                     ImageType;
-  typedef typename TImage::PixelType PixelType;
-  enum { ImageDimension = ImageType::ImageDimension };
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-
-  typedef itk::Statistics::ScalarImageToListAdaptor<ImageType> AdaptorType;
-
-  typename AdaptorType::Pointer adaptor = AdaptorType::New();
-
-  adaptor->SetImage( image );
-
-  // Define the Measurement vector type from the AdaptorType
-  typedef typename AdaptorType::MeasurementVectorType MeasurementVectorType;
-
-  // Create the K-d tree structure
-  typedef itk::Statistics::WeightedCentroidKdTreeGenerator<
-      AdaptorType>
-    TreeGeneratorType;
-
-  typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
-
-  treeGenerator->SetSample( adaptor );
-  treeGenerator->SetBucketSize( 16 );
-  treeGenerator->Update();
-
-  typedef typename TreeGeneratorType::KdTreeType                TreeType;
-  typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
-
-  typename EstimatorType::Pointer estimator = EstimatorType::New();
-
-  typename EstimatorType::ParametersType initialMeans( nclasses );
-
-  Iterator vfIter2( image,  image->GetLargestPossibleRegion() );
-  double   mx = -1.e12, mn = 1.e12;
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-    double px = vfIter2.Get();
-    if( px > mx )
-      {
-      mx = px;
-      }
-    else if( px < mn )
-      {
-      mn = px;
-      }
-    }
-  float range = (mx - mn);
-
-  float bins = 1.0 / ( (float)nclasses + 1.);
-  for( unsigned int i = 0;  i < nclasses; i++ )
-    {
-    initialMeans[i] = mn + (0 + i * bins) * range;
-    std::cout << " Initial Means " << initialMeans[i] << " ";
-    }
-  std::cout << std::endl;
-  estimator->SetParameters( initialMeans );
-
-  estimator->SetKdTree( treeGenerator->GetOutput() );
-  estimator->SetMaximumIteration( 200 );
-  estimator->SetCentroidPositionChangesThreshold(0.0);
-  estimator->StartOptimization();
-
-  typename EstimatorType::ParametersType estimatedMeans = estimator->GetParameters();
-
-  typename ImageType::Pointer varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(image->GetSpacing() );
-  varimage->SetOrigin(image->GetOrigin() );
-  varimage->SetDirection(image->GetDirection() );
-//  float var=sqrt(range);
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-    double       px = vfIter2.Get();
-    unsigned int best = 0;
-    float        mindist = 1.e9;
-    for( unsigned int i = 0; i < nclasses; ++i )
-      {
-      float dist = fabs(px - estimatedMeans[i]);
-      if( dist < mindist )
-        {
-        mindist = dist;  best = i;
-        }
-      // vec[i]=exp(-1.0*dist*dist/var);
-      }
-    varimage->SetPixel(vfIter2.GetIndex(), best + 1);
-//      vecimage->SetPixel(vfIter2.GetIndex(),vec);
-    }
-
-  return varimage;
-}
+// template<class TImage>
+// typename TImage::Pointer
+// SegmentKMeans(typename TImage::Pointer image , unsigned int nclasses)
+// {
+//
+//   typedef TImage ImageType;
+//   typedef typename TImage::PixelType PixelType;
+//   enum { ImageDimension = ImageType::ImageDimension };
+//   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+//
+//   typedef itk::Statistics::ScalarImageToListAdaptor< ImageType >   AdaptorType;
+//
+//   typename AdaptorType::Pointer adaptor = AdaptorType::New();
+//
+//   adaptor->SetImage( image );
+//
+//   // Define the Measurement vector type from the AdaptorType
+//   typedef typename AdaptorType::MeasurementVectorType  MeasurementVectorType;
+//
+//   // Create the K-d tree structure
+//   typedef itk::Statistics::WeightedCentroidKdTreeGenerator<
+//                                                       AdaptorType >
+//                                                               TreeGeneratorType;
+//
+//   typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+//
+//   treeGenerator->SetSample( adaptor );
+//   treeGenerator->SetBucketSize( 16 );
+//   treeGenerator->Update();
+//
+//   typedef typename TreeGeneratorType::KdTreeType TreeType;
+//   typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
+//
+//   typename EstimatorType::Pointer estimator = EstimatorType::New();
+//
+//   typename EstimatorType::ParametersType initialMeans( nclasses );
+//
+//   Iterator vfIter2( image,  image->GetLargestPossibleRegion() );
+//   double mx =-1.e12, mn=1.e12;
+//   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+//     {
+//       double px = vfIter2.Get();
+//       if (px > mx) mx=px;
+//       else if (px < mn) mn=px;
+//     }
+//   float range=(mx-mn);
+//
+//   float bins=1.0/((float)nclasses+1.);
+//   for (unsigned int i=0;  i<nclasses; i++)
+//     {
+//     initialMeans[i]=mn+(0+i*bins)*range;
+//     std::cout << " Initial Means " << initialMeans[i] << " ";
+//     }
+//   std::cout << std::endl;
+//   estimator->SetParameters( initialMeans );
+//
+//   estimator->SetKdTree( treeGenerator->GetOutput() );
+//   estimator->SetMaximumIteration( 200 );
+//   estimator->SetCentroidPositionChangesThreshold(0.0);
+//   estimator->StartOptimization();
+//
+//   typename EstimatorType::ParametersType estimatedMeans = estimator->GetParameters();
+//
+//
+//   typename ImageType::Pointer varimage=ImageType::New();
+//   varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
+//   varimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
+//   varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
+//   varimage->Allocate();
+//   varimage->SetSpacing(image->GetSpacing());
+//   varimage->SetOrigin(image->GetOrigin());
+//   varimage->SetDirection(image->GetDirection());
+//
+// //  float var=sqrt(range);
+//   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+//     {
+//     double px = vfIter2.Get();
+//       unsigned int best=0;
+//       float mindist=1.e9;
+//       for ( unsigned int i = 0 ; i < nclasses ; ++i )
+//  {
+//  float dist=fabs(px-estimatedMeans[i]);
+//  if (dist < mindist) { mindist=dist;  best=i; }
+//  //vec[i]=exp(-1.0*dist*dist/var);
+//  }
+//       varimage->SetPixel(vfIter2.GetIndex(),best+1);
+// //      vecimage->SetPixel(vfIter2.GetIndex(),vec);
+//     }
+//
+//   return varimage;
+//
+//
+// }
 
 template <class TImage>
 typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, unsigned int option,
@@ -3029,402 +3025,333 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   return temp;
 }
 
-template <class TImage>
-typename TImage::Pointer
-BayesianSegmentation(typename TImage::Pointer image, unsigned int nclasses,  std::string priorfn,
-                     unsigned int nsmooth = 2 )
-{
-  typedef TImage                     ImageType;
-  typedef typename TImage::PixelType PixelType;
-  enum { ImageDimension = ImageType::ImageDimension };
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-
-  //  const unsigned int ImageDimension = AvantsImageDimension;
-  typedef itk::Vector<float, ImageDimension>                              VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef itk::ImageFileWriter<ImageType>                                 writertype;
-  typedef  typename ImageType::IndexType                                  IndexType;
-  typedef  typename ImageType::SizeType                                   SizeType;
-  typedef  typename ImageType::SpacingType                                SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
-
-  typedef itk::Statistics::ScalarImageToListAdaptor<ImageType> AdaptorType;
-  typename AdaptorType::Pointer adaptor = AdaptorType::New();
-  adaptor->SetImage( image );
-  // Define the Measurement vector type from the AdaptorType
-  typedef typename AdaptorType::MeasurementVectorType MeasurementVectorType;
-  // Create the K-d tree structure
-  typedef itk::Statistics::WeightedCentroidKdTreeGenerator<
-      AdaptorType>
-    TreeGeneratorType;
-  typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
-  treeGenerator->SetSample( adaptor );
-  treeGenerator->SetBucketSize( 16 );
-  treeGenerator->Update();
-  typedef typename TreeGeneratorType::KdTreeType                TreeType;
-  typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
-  typename EstimatorType::Pointer estimator = EstimatorType::New();
-  typename EstimatorType::ParametersType initialMeans( nclasses );
-  Iterator                               vfIter2( image,  image->GetLargestPossibleRegion() );
-  double                                 mx = -1.e12, mn = 1.e12;
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-    double px = vfIter2.Get();
-    if( px > mx )
-      {
-      mx = px;
-      }
-    else if( px < mn )
-      {
-      mn = px;
-      }
-    }
-  float range = (mx - mn);
-  float bins = 1.0 / ( (float)nclasses + 1.);
-  for( unsigned int i = 0;  i < nclasses; i++ )
-    {
-    initialMeans[i] = mn + (0 + i * bins) * range;
-    }
-  estimator->SetParameters( initialMeans );
-  estimator->SetKdTree( treeGenerator->GetOutput() );
-  estimator->SetMaximumIteration( 200 );
-  estimator->SetCentroidPositionChangesThreshold(0.0);
-  estimator->StartOptimization();
-  typename EstimatorType::ParametersType estimatedMeans = estimator->GetParameters();
-
-  typename ImageType::Pointer varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-  varimage->SetSpacing(image->GetSpacing() );
-  varimage->SetOrigin(image->GetOrigin() );
-  varimage->SetDirection(image->GetDirection() );
-  varimage->Allocate();
-
-  std::vector<double> estimatedVar(nclasses, 0);
-  std::vector<double> estimatedCounts(nclasses, 0);
-//  float var=sqrt(range);
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-    double       px = vfIter2.Get();
-    unsigned int best = 0;
-    float        mindist = 1.e9;
-    for( unsigned int i = 0; i < nclasses; ++i )
-      {
-      float dist = fabs(px - estimatedMeans[i]);
-      if( dist < mindist )
-        {
-        mindist = dist;  best = i;
-        }
-      // vec[i]=exp(-1.0*dist*dist/var);
-      }
-    varimage->SetPixel(vfIter2.GetIndex(), best);
-    }
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-    double       px = vfIter2.Get();
-    unsigned int i = (unsigned int) varimage->GetPixel(vfIter2.GetIndex() );
-    estimatedCounts[i] = estimatedCounts[i] + 1;
-    float dist = (px - estimatedMeans[i]);
-    estimatedVar[i] += dist * dist;
-    }
-  for( unsigned int i = 0; i < nclasses; i++ )
-    {
-    float ct = estimatedCounts[i];
-    if( ct > 0 )
-      {
-      estimatedVar[i] = (estimatedVar[i]) / ct;
-      }
-    else
-      {
-      estimatedVar[i] = 0;
-      }
-    std::cout << " Sample SD Ests " << sqrt(estimatedVar[i]) << " Mean " << estimatedMeans[i] <<  std::endl;
-    }
-
-  typedef float                                            InputPixelType;
-  typedef itk::VectorImage<InputPixelType, ImageDimension> InputImageType;
-  typedef  float                                           LabelType;
-  typedef float                                            PriorType;
-  typedef float                                            PosteriorType;
-  typedef itk::BayesianClassifierImageFilter<
-      InputImageType, LabelType,
-      PosteriorType, PriorType>   ClassifierFilterType;
-
-  typename InputImageType::Pointer vecImage = InputImageType::New();
-  typedef typename InputImageType::PixelType VecPixelType;
-  vecImage->SetSpacing(image->GetSpacing() );
-  vecImage->SetOrigin(image->GetOrigin() );
-  vecImage->SetRegions( image->GetLargestPossibleRegion() );
-  vecImage->SetVectorLength(nclasses);
-  vecImage->Allocate();
-  VecPixelType vvv(nclasses);
-  vvv.Fill(0);
-  vecImage->FillBuffer(vvv);
-  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-    {
-    double       px = vfIter2.Get();
-    VecPixelType probs(nclasses);
-    float        total = 0;
-    for( unsigned int i = 0; i < nclasses; i++ )
-      {
-      probs[i] = exp(-1.0 * (estimatedMeans[i] - px) * (estimatedMeans[i] - px) / (2.0 * estimatedVar[i]) );
-      total += probs[i];
-      }
-    for( unsigned int i = 0; i < nclasses; i++ )
-      {
-      if( total > 0 )
-        {
-        probs[i] /= total;
-        }
-      }
-    vecImage->SetPixel( vfIter2.GetIndex(), probs);
-    }
-
-  typename ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
-
-  typedef itk::ImageFileReader<InputImageType> ReaderType;
-  typename ReaderType::Pointer reader =  ReaderType::New();
-  typename InputImageType::Pointer priors = NULL;
-
-  if( priorfn.length()  > 3 )
-    {
-    std::cout << " Setting Priors " << priorfn << std::endl;
-    bool geometric = false;
-    if( strcmp(priorfn.c_str(), "Geometric") == 0 )
-      {
-      geometric = true;
-      }
-    if( geometric )
-      {
-      std::cout << " Using a geometric thickness prior to aid cortical segmentation " << std::endl;
-      typename ImageType::Pointer outbrainmask = BinaryThreshold<TImage>(0, nclasses - 3, 1, varimage);
-      typename ImageType::Pointer inwmask = BinaryThreshold<TImage>(nclasses - 1, nclasses, 1, varimage);
-      typename ImageType::Pointer outwmask = BinaryThreshold<TImage>(0, nclasses - 2, 1, varimage);
-      typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
-      typename  FilterType::Pointer distmap = FilterType::New();
-      distmap->InputIsBinaryOn();
-      distmap->SetUseImageSpacing(true);
-      distmap->SetInput(outbrainmask);
-      distmap->Update();
-      typename ImageType::Pointer distcortex = distmap->GetOutput();
-
-      typename  FilterType::Pointer distmap2 = FilterType::New();
-      distmap2->InputIsBinaryOn();
-      distmap2->SetUseImageSpacing(true);
-      distmap2->SetInput(inwmask);
-      distmap2->Update();
-      typename ImageType::Pointer distwm = distmap2->GetOutput();
-
-      typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, ImageType> dgf;
-      typename dgf::Pointer lfilter = dgf::New();
-      lfilter->SetSigma(1.3);
-      lfilter->SetInput(distwm);
-      lfilter->Update();
-      typename ImageType::Pointer image2 = lfilter->GetOutput();
-      typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
-      typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
-      rescaler->SetOutputMinimum(   0 );
-      rescaler->SetOutputMaximum( 1 );
-      rescaler->SetInput( image2 );
-      rescaler->Update();
-      typename ImageType::Pointer sulci =  rescaler->GetOutput();
-
-      priors = InputImageType::New();
-      typedef typename InputImageType::PixelType VecPixelType;
-      priors->SetSpacing(image->GetSpacing() );
-      priors->SetOrigin(image->GetOrigin() );
-      priors->SetDirection(image->GetDirection() );
-      priors->SetRegions( image->GetLargestPossibleRegion() );
-      priors->SetVectorLength(nclasses);
-      priors->Allocate();
-      std::cout << " Allocated " << std::endl;
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-//	std::cout <<" ind " <<vfIter2.GetIndex() << std::endl;
-//	float outbrain = outbrainmask->GetPixel( vfIter2.GetIndex());
-//	float inw = inwmask->GetPixel( vfIter2.GetIndex());
-        float        distance = distcortex->GetPixel( vfIter2.GetIndex() );
-        float        wdistance = distwm->GetPixel( vfIter2.GetIndex() );
-        VecPixelType probs(nclasses);
-        probs.Fill(1.0 / (float)nclasses);
-        VecPixelType posteriors = vecImage->GetPixel(vfIter2.GetIndex() );
-        if( nclasses > 2 )
-          {
-          float dvar = 2;
-          float basedist = 4;
-          float distmag = basedist - distance;
-//	if (distmag > 0) distmag=0;
-          distmag *= distmag;
-          float gdistprob = 1.0 - exp(-1.0 * distmag / dvar);
-
-          float wdistprob = 1.0 / (1.0 + exp(-1.0 * distance / 5) );
-
-          float wdistmag = basedist - wdistance;
-          if( wdistmag > 0 )
-            {
-            wdistmag = 0;
-            }
-          wdistmag *= wdistmag;
-          float gdistprob2 = exp(-1.0 * wdistmag / dvar);
-
-          float sulcprob = sulci->GetPixel( vfIter2.GetIndex() );
-          float sdiff = (0.25 - sulcprob);
-          if( sdiff > 0 )
-            {
-            sdiff = 0;
-            }
-          sdiff *= sdiff;
-          sulcprob = exp(-1.0 * sdiff / 0.5);
-//	std::cout << " Sulc " << sulcprob << std::endl;
-//	bool test = (outbrain < 1 && inw > 1);
-          if(  true  )
-            {
-            for( unsigned int i = 0; i < nclasses; i++ )
-              {
-              if( i == (nclasses - 2) )
-                {
-                probs[i] = gdistprob * (gdistprob2);
-                }
-              else if( i == (nclasses - 1) )
-                {
-                probs[i] = wdistprob * wdistprob;
-                }
-              // else
-              if( i == (nclasses - 3) )
-                {
-                probs[i] = sulcprob;
-                }
-//	    else if (i > 0)  probs[i]=sulcprob;
-              }
-            }
-          else
-            {
-            for( unsigned int i = 0; i < nclasses; i++ )
-              {
-              probs[i] = posteriors[i];                            // 1.0/(float)nclasses;
-              }
-            }
-          for( unsigned int i = 0; i < nclasses; i++ )
-            {
-            posteriors[i] *= probs[i];
-            }
-          }
-        float prtotal = 0;
-        float pototal = 0;
-        for( unsigned int i = 0; i < nclasses; i++ )
-          {
-          prtotal += probs[i];  pototal += posteriors[i];
-          }
-        for( unsigned int i = 0; i < nclasses; i++ )
-          {
-          if( prtotal > 0 )
-            {
-            probs[i] /= prtotal;
-            }
-          else
-            {
-            probs[i] = 1.0 / (float)nclasses;
-            }
-          if( pototal > 0 )
-            {
-            posteriors[i] /= pototal;
-            }
-          else
-            {
-            posteriors[i] = 1.0 / (float)nclasses;
-            }
-          }
-        priors->SetPixel( vfIter2.GetIndex(), probs);
-        vecImage->SetPixel( vfIter2.GetIndex(), posteriors);
-        }
-      std::cout << " ok " << std::endl;
-      }
-    else
-      {
-      reader->SetFileName( priorfn.c_str() );
-      reader->Update();
-      priors = reader->GetOutput();
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-        VecPixelType posteriors = vecImage->GetPixel(vfIter2.GetIndex() );
-        VecPixelType probs = priors->GetPixel(vfIter2.GetIndex() );
-        for( unsigned int i = 0; i < nclasses; i++ )
-          {
-          posteriors[i] *= probs[i];
-          }
-
-        float prtotal = 0;
-        float pototal = 0;
-        for( unsigned int i = 0; i < nclasses; i++ )
-          {
-          prtotal += probs[i];  pototal += posteriors[i];
-          }
-        for( unsigned int i = 0; i < nclasses; i++ )
-          {
-          if( prtotal > 0 )
-            {
-            probs[i] /= prtotal;
-            }
-          else
-            {
-            probs[i] = 1.0 / (float)nclasses;
-            }
-          if( pototal > 0 )
-            {
-            posteriors[i] /= pototal;
-            }
-          else
-            {
-            posteriors[i] = 1.0 / (float)nclasses;
-            }
-          }
-        vecImage->SetPixel( vfIter2.GetIndex(), posteriors);
-        }
-      }
-//    if (priors) filter->SetInput( 1,  priors ); // Bug --
-//    classification filter does not actually use priors
-    }
-  else
-    {
-    std::cout << " No Priors " << std::endl;
-    }
-
-  filter->SetInput(  vecImage );
-
-  if( nsmooth >= 1  )
-    {
-    std::cout << " Smoothing Iterations:  " << nsmooth << std::endl;
-    filter->SetNumberOfSmoothingIterations( nsmooth );
-    typedef typename ClassifierFilterType::ExtractedComponentImageType ExtractedComponentImageType;
-    typedef itk::DiscreteGaussianImageFilter<
-        ExtractedComponentImageType, ExtractedComponentImageType>  SmoothingFilterType;
-    typedef itk::BilateralImageFilter<
-        ExtractedComponentImageType, ExtractedComponentImageType>  SmoothingFilterType2;
-    typename SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
-    smoother->SetVariance(1.0);
-    smoother->SetUseImageSpacingOff();
-    // smoother->SetDomainSigma(1);
-    // smoother->SetRangeSigma(1);
-    filter->SetSmoothingFilter( smoother );
-    }
-
-  // SET FILTER'S PRIOR PARAMETERS
-  // do nothing here to default to uniform priors
-  // otherwise set the priors to some user provided values
-
-  //
-  // Setup writer.. Rescale the label map to the dynamic range of the
-  // datatype and write it
-  //
-  filter->Update();
-
-  return filter->GetOutput();
-}
+// template<class TImage>
+// typename TImage::Pointer
+// BayesianSegmentation(typename TImage::Pointer image , unsigned int nclasses,  std::string priorfn ,  unsigned int
+// nsmooth = 2 )
+// {
+//
+//   typedef TImage ImageType;
+//   typedef typename TImage::PixelType PixelType;
+//   enum { ImageDimension = ImageType::ImageDimension };
+//   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+//
+//   //  const unsigned int ImageDimension = AvantsImageDimension;
+//   typedef itk::Vector<float,ImageDimension>         VectorType;
+//   typedef itk::Image<VectorType,ImageDimension>     FieldType;
+//   typedef itk::ImageFileReader<ImageType> readertype;
+//   typedef itk::ImageFileWriter<ImageType> writertype;
+//   typedef  typename ImageType::IndexType IndexType;
+//   typedef  typename ImageType::SizeType SizeType;
+//   typedef  typename ImageType::SpacingType SpacingType;
+//   typedef itk::AffineTransform<double,ImageDimension>   AffineTransformType;
+//   typedef itk::LinearInterpolateImageFunction<ImageType,double>  InterpolatorType1;
+//   typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double>  InterpolatorType2;
+//   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+//
+//
+//
+//   typedef itk::Statistics::ScalarImageToListAdaptor< ImageType >   AdaptorType;
+//   typename AdaptorType::Pointer adaptor = AdaptorType::New();
+//   adaptor->SetImage( image );
+//   // Define the Measurement vector type from the AdaptorType
+//   typedef typename AdaptorType::MeasurementVectorType  MeasurementVectorType;
+//   // Create the K-d tree structure
+//   typedef itk::Statistics::WeightedCentroidKdTreeGenerator<
+//                                                       AdaptorType >
+//                                                               TreeGeneratorType;
+//   typename TreeGeneratorType::Pointer treeGenerator = TreeGeneratorType::New();
+//   treeGenerator->SetSample( adaptor );
+//   treeGenerator->SetBucketSize( 16 );
+//   treeGenerator->Update();
+//   typedef typename TreeGeneratorType::KdTreeType TreeType;
+//   typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
+//   typename EstimatorType::Pointer estimator = EstimatorType::New();
+//   typename EstimatorType::ParametersType initialMeans( nclasses );
+//   Iterator vfIter2( image,  image->GetLargestPossibleRegion() );
+//   double mx =-1.e12, mn=1.e12;
+//   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+//     {
+//       double px = vfIter2.Get();
+//       if (px > mx) mx=px;
+//       else if (px < mn) mn=px;
+//     }
+//   float range=(mx-mn);
+//   float bins=1.0/((float)nclasses+1.);
+//   for (unsigned int i=0;  i<nclasses; i++)
+//     {
+//     initialMeans[i]=mn+(0+i*bins)*range;
+//     }
+//   estimator->SetParameters( initialMeans );
+//   estimator->SetKdTree( treeGenerator->GetOutput() );
+//   estimator->SetMaximumIteration( 200 );
+//   estimator->SetCentroidPositionChangesThreshold(0.0);
+//   estimator->StartOptimization();
+//   typename EstimatorType::ParametersType estimatedMeans = estimator->GetParameters();
+//
+//   typename ImageType::Pointer varimage=ImageType::New();
+//   varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
+//   varimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
+//   varimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
+//   varimage->SetSpacing(image->GetSpacing());
+//   varimage->SetOrigin(image->GetOrigin());
+//   varimage->SetDirection(image->GetDirection());
+//   varimage->Allocate();
+//
+//   std::vector<double>  estimatedVar(nclasses,0);
+//   std::vector<double>  estimatedCounts(nclasses,0);
+//
+// //  float var=sqrt(range);
+//   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+//     {
+//     double px = vfIter2.Get();
+//       unsigned int best=0;
+//       float mindist=1.e9;
+//       for ( unsigned int i = 0 ; i < nclasses ; ++i )
+//  {
+//  float dist=fabs(px-estimatedMeans[i]);
+//  if (dist < mindist) { mindist=dist;  best=i; }
+//  //vec[i]=exp(-1.0*dist*dist/var);
+//  }
+//       varimage->SetPixel(vfIter2.GetIndex(),best);
+//     }
+//   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+//     {
+//     double px = vfIter2.Get();
+//     unsigned int i = (unsigned int) varimage->GetPixel(vfIter2.GetIndex());
+//     estimatedCounts[i]=estimatedCounts[i]+1;
+//     float dist=(px -estimatedMeans[i]);
+//     estimatedVar[i]+=dist*dist;
+//     }
+//
+//   for (unsigned int i=0; i<nclasses; i++)
+//     {
+//     float   ct= estimatedCounts[i];
+//     if (ct > 0) estimatedVar[i]=(estimatedVar[i])/ct;
+//     else estimatedVar[i]=0;
+//     std::cout << " Sample SD Ests " << sqrt(estimatedVar[i]) << " Mean " << estimatedMeans[i] <<  std::endl;
+//     }
+//
+//   typedef float InputPixelType;
+//   typedef itk::VectorImage< InputPixelType, ImageDimension > InputImageType;
+//   typedef  float  LabelType;
+//   typedef float          PriorType;
+//   typedef float          PosteriorType;
+//   typedef itk::BayesianClassifierImageFilter<
+//                               InputImageType,LabelType,
+//                               PosteriorType,PriorType >   ClassifierFilterType;
+//
+//   typename InputImageType::Pointer vecImage = InputImageType::New();
+//   typedef typename InputImageType::PixelType VecPixelType;
+//   vecImage->SetSpacing(image->GetSpacing());
+//   vecImage->SetOrigin(image->GetOrigin());
+//   vecImage->SetRegions( image->GetLargestPossibleRegion() );
+//   vecImage->SetVectorLength(nclasses);
+//   vecImage->Allocate();
+//   VecPixelType vvv(nclasses);
+//   vvv.Fill(0);
+//   vecImage->FillBuffer(vvv);
+//
+//   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )  {
+//      double px = vfIter2.Get();
+//      VecPixelType  probs(nclasses);
+//      float total=0;
+//      for (unsigned int i=0; i<nclasses; i++)
+//        {
+//        probs[i]=exp(-1.0*(estimatedMeans[i]-px)*(estimatedMeans[i]-px)/(2.0*estimatedVar[i]));
+//        total+=probs[i];
+//        }
+//      for (unsigned int i=0; i<nclasses; i++)
+//        {
+//        if (total>0) probs[i]/=total;
+//        }
+//      vecImage->SetPixel( vfIter2.GetIndex(), probs);
+//   }
+//
+//   typename ClassifierFilterType::Pointer filter = ClassifierFilterType::New();
+//
+//
+//   typedef itk::ImageFileReader< InputImageType >  ReaderType;
+//   typename ReaderType::Pointer reader =  ReaderType::New();
+//   typename InputImageType::Pointer priors=NULL;
+//
+//   if (priorfn.length()  > 3 )
+//     {
+//     std::cout << " Setting Priors " << priorfn << std::endl;
+//     bool geometric=false;
+//     if ( strcmp(priorfn.c_str(),"Geometric") == 0) geometric=true;
+//     if (geometric)
+//       {
+//       std::cout <<" Using a geometric thickness prior to aid cortical segmentation " << std::endl;
+//       typename ImageType::Pointer outbrainmask = BinaryThreshold<TImage>(0,nclasses-3,1,varimage);
+//       typename ImageType::Pointer inwmask = BinaryThreshold<TImage>(nclasses-1,nclasses,1,varimage);
+//       typename ImageType::Pointer outwmask = BinaryThreshold<TImage>(0,nclasses-2,1,varimage);
+//       typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType >  FilterType;
+//       typename  FilterType::Pointer distmap = FilterType::New();
+//       distmap->InputIsBinaryOn();
+//       distmap->SetUseImageSpacing(true);
+//       distmap->SetInput(outbrainmask);
+//       distmap->Update();
+//       typename ImageType::Pointer distcortex=distmap->GetOutput();
+//
+//       typename  FilterType::Pointer distmap2 = FilterType::New();
+//       distmap2->InputIsBinaryOn();
+//       distmap2->SetUseImageSpacing(true);
+//       distmap2->SetInput(inwmask);
+//       distmap2->Update();
+//       typename ImageType::Pointer distwm=distmap2->GetOutput();
+//
+//       typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType,ImageType >  dgf;
+//       typename dgf::Pointer lfilter = dgf::New();
+//       lfilter->SetSigma(1.3);
+//       lfilter->SetInput(distwm);
+//       lfilter->Update();
+//       typename ImageType::Pointer image2=lfilter->GetOutput();
+//       typedef itk::RescaleIntensityImageFilter<ImageType,ImageType > RescaleFilterType;
+//       typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+//       rescaler->SetOutputMinimum(   0 );
+//       rescaler->SetOutputMaximum( 1 );
+//       rescaler->SetInput( image2 );
+//       rescaler->Update();
+//       typename ImageType::Pointer sulci=  rescaler->GetOutput();
+//
+//       priors= InputImageType::New();
+//       typedef typename InputImageType::PixelType VecPixelType;
+//       priors->SetSpacing(image->GetSpacing());
+//       priors->SetOrigin(image->GetOrigin());
+//       priors->SetDirection(image->GetDirection());
+//       priors->SetRegions( image->GetLargestPossibleRegion() );
+//       priors->SetVectorLength(nclasses);
+//       priors->Allocate();
+//       std::cout <<" Allocated " << std::endl;
+//
+//       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+//  {
+// //	std::cout <<" ind " <<vfIter2.GetIndex() << std::endl;
+// //	float outbrain = outbrainmask->GetPixel( vfIter2.GetIndex());
+// //	float inw = inwmask->GetPixel( vfIter2.GetIndex());
+//  float distance = distcortex->GetPixel( vfIter2.GetIndex());
+//  float wdistance = distwm->GetPixel( vfIter2.GetIndex());
+//  VecPixelType  probs(nclasses);
+//  probs.Fill(1.0/(float)nclasses);
+//  VecPixelType  posteriors=vecImage->GetPixel(vfIter2.GetIndex());
+//  if (nclasses > 2)
+//  {
+//  float dvar=2;
+//  float basedist=4;
+//  float distmag=basedist-distance;
+// //	if (distmag > 0) distmag=0;
+//  distmag*=distmag;
+//  float gdistprob=1.0-exp(-1.0*distmag/dvar);
+//
+//  float wdistprob=1.0/(1.0+exp(-1.0*distance/5));
+//
+//  float wdistmag=basedist-wdistance;
+//  if (wdistmag > 0) wdistmag=0;
+//  wdistmag*=wdistmag;
+//  float gdistprob2=exp(-1.0*wdistmag/dvar);
+//
+//  float sulcprob=sulci->GetPixel( vfIter2.GetIndex());
+//  float sdiff=(0.25-sulcprob);
+//  if (sdiff > 0) sdiff=0;
+//  sdiff*=sdiff;
+//  sulcprob=exp(-1.0*sdiff/0.5);
+// //	std::cout << " Sulc " << sulcprob << std::endl;
+// //	bool test = (outbrain < 1 && inw > 1);
+//  if (  true  )
+//    {
+//    for (unsigned int i=0; i<nclasses; i++)
+//      {
+//      if ( i == (nclasses-2)) probs[i]=gdistprob*(gdistprob2);
+//      else if ( i == (nclasses-1)) probs[i]=wdistprob*wdistprob;
+//      //else
+//        if ( i == (nclasses-3)) probs[i]=sulcprob;
+// //	    else if (i > 0)  probs[i]=sulcprob;
+//      }
+//    }
+//  else
+//    {
+//    for (unsigned int i=0; i<nclasses; i++) probs[i]=posteriors[i];//1.0/(float)nclasses;
+//    }
+//  for (unsigned int i=0; i<nclasses; i++) posteriors[i]*=probs[i];
+//  }
+//       float prtotal=0;
+//       float pototal=0;
+//       for (unsigned int i=0; i<nclasses; i++) {  prtotal+=probs[i];  pototal+=posteriors[i]; }
+//
+//       for (unsigned int i=0; i<nclasses; i++)
+//  {
+//  if (prtotal>0) probs[i]/=prtotal; else probs[i]=1.0/(float)nclasses;
+//  if (pototal>0) posteriors[i]/=pototal; else posteriors[i]=1.0/(float)nclasses;
+//  }
+//       priors->SetPixel( vfIter2.GetIndex(), probs);
+//       vecImage->SetPixel( vfIter2.GetIndex(), posteriors);
+//       }
+//       std::cout << " ok " << std::endl;
+//
+//
+//       }
+//     else
+//       {
+//       reader->SetFileName( priorfn.c_str() );
+//       reader->Update();
+//       priors=reader->GetOutput();
+//
+//       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+//  {
+//  VecPixelType  posteriors=vecImage->GetPixel(vfIter2.GetIndex());
+//  VecPixelType  probs=priors->GetPixel(vfIter2.GetIndex());
+//  for (unsigned int i=0; i<nclasses; i++) posteriors[i]*=probs[i];
+//
+//  float prtotal=0;
+//  float pototal=0;
+//  for (unsigned int i=0; i<nclasses; i++) {  prtotal+=probs[i];  pototal+=posteriors[i]; }
+//
+//  for (unsigned int i=0; i<nclasses; i++)
+//    {
+//    if (prtotal>0) probs[i]/=prtotal; else probs[i]=1.0/(float)nclasses;
+//    if (pototal>0) posteriors[i]/=pototal; else posteriors[i]=1.0/(float)nclasses;
+//    }
+//  vecImage->SetPixel( vfIter2.GetIndex(), posteriors);
+//  }
+//       }
+// //    if (priors) filter->SetInput( 1,  priors ); // Bug --
+// //    classification filter does not actually use priors
+//     } else std::cout << " No Priors " << std::endl;
+//
+//   filter->SetInput(  vecImage );
+//
+//
+//   if( nsmooth >= 1  )
+//     {
+//     std::cout << " Smoothing Iterations:  " << nsmooth << std::endl;
+//     filter->SetNumberOfSmoothingIterations( nsmooth );
+//     typedef typename ClassifierFilterType::ExtractedComponentImageType ExtractedComponentImageType;
+//     typedef itk::DiscreteGaussianImageFilter<
+//       ExtractedComponentImageType, ExtractedComponentImageType >  SmoothingFilterType;
+//     typedef itk::BilateralImageFilter<
+//       ExtractedComponentImageType, ExtractedComponentImageType >  SmoothingFilterType2;
+//     typename SmoothingFilterType::Pointer smoother = SmoothingFilterType::New();
+//     smoother->SetVariance(1.0);
+//     smoother->SetUseImageSpacingOff();
+//     //smoother->SetDomainSigma(1);
+//     //smoother->SetRangeSigma(1);
+//     filter->SetSmoothingFilter( smoother );
+//     }
+//
+//   // SET FILTER'S PRIOR PARAMETERS
+//   // do nothing here to default to uniform priors
+//   // otherwise set the priors to some user provided values
+//
+//   //
+//   // Setup writer.. Rescale the label map to the dynamic range of the
+//   // datatype and write it
+//   //
+//   filter->Update();
+//
+// return  filter->GetOutput();
+//
+// }
 
 template <unsigned int ImageDimension>
 int NegativeImage(int argc, char *argv[])
@@ -3502,183 +3429,189 @@ int NegativeImage(int argc, char *argv[])
   return 0;
 }
 
-template <class TImage>
-typename TImage::Pointer
-// void
-SegmentMRF(typename TImage::Pointer image,
-           typename TImage::Pointer labelimage, unsigned int nclasses, float smf, unsigned int maxits)
-{
-  typedef TImage                     ImageType;
-  typedef typename TImage::PixelType PixelType;
-  enum { ImageDimension = ImageType::ImageDimension };
-  enum { Dimension = ImageType::ImageDimension };
-
-  //  const unsigned int NUMBANDS=1;
-  typedef itk::Image<itk::Vector<double, 1>, ImageDimension> VecImageType;
-  typedef typename VecImageType::PixelType                   VecPixelType;
-
-  /** copy the input image into this vector image.  stupid.  */
-
-  typename VecImageType::Pointer vecImage = VecImageType::New();
-  vecImage->SetSpacing(image->GetSpacing() );
-  vecImage->SetOrigin(image->GetOrigin() );
-  vecImage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-  vecImage->SetBufferedRegion(  image->GetLargestPossibleRegion() );
-  vecImage->Allocate();
-  VecPixelType vvv;
-  vvv.Fill(0);
-  vecImage->FillBuffer(vvv);
-
-  // setup the iterators
-  //  typedef VecImageType::PixelType::VectorType VecPixelType;
-
-  enum { VecImageDimension = VecImageType::ImageDimension };
-  typedef itk::ImageRegionIterator<VecImageType> VecIterator;
-
-  VecIterator outIt( vecImage, vecImage->GetBufferedRegion() );
-  for( outIt.GoToBegin(); !outIt.IsAtEnd(); ++outIt )
-    {
-    vvv[0] = image->GetPixel(outIt.GetIndex() );
-    outIt.Set(vvv);
-    }
-
-  namespace stat = itk::Statistics;
-  typedef itk::Image<PixelType, ImageDimension> ClassImageType;
-  typedef stat::MahalanobisDistanceMembershipFunction<VecPixelType>
-    MembershipFunctionType;
-  typedef typename MembershipFunctionType::Pointer MembershipFunctionPointer;
-  typedef std::vector<MembershipFunctionPointer>   MembershipFunctionPointerVector;
-
-  typedef itk::ImageGaussianModelEstimator<VecImageType,
-                                           MembershipFunctionType, ClassImageType>
-    ImageGaussianModelEstimatorType;
-
-  typename ImageGaussianModelEstimatorType::Pointer  applyEstimateModel =
-    ImageGaussianModelEstimatorType::New();
-  /*
-  typedef itk::Statistics::WeightedCentroidKdTreeGenerator<
-                                                      AdaptorType >
-                                                              TreeGeneratorType;
-  typedef typename TreeGeneratorType::KdTreeType TreeType;
-  typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
-
-  */
-  applyEstimateModel->SetNumberOfModels(nclasses);
-  applyEstimateModel->SetInputImage(vecImage);
-  applyEstimateModel->SetTrainingImage(labelimage);
-
-  // Run the gaussian classifier algorithm
-  applyEstimateModel->Update();
-  applyEstimateModel->Print(std::cout);
-
-  MembershipFunctionPointerVector membershipFunctions =
-    applyEstimateModel->GetMembershipFunctions();
-
-  // ----------------------------------------------------------------------
-  // Set the decision rule
-  // ----------------------------------------------------------------------
-  typedef typename itk::DecisionRuleBase::Pointer DecisionRuleBasePointer;
-
-  typedef itk::MinimumDecisionRule DecisionRuleType;
-  typename DecisionRuleType::Pointer
-  myDecisionRule = DecisionRuleType::New();
-
-  // ----------------------------------------------------------------------
-  // Set the classifier to be used and assigne the parameters for the
-  // supervised classifier algorithm except the input image which is
-  // grabbed from the MRF application pipeline.
-  // ----------------------------------------------------------------------
-  // ---------------------------------------------------------------------
-  typedef PixelType MeasurementVectorType;
-
-  typedef itk::ImageClassifierBase<VecImageType,
-                                   ClassImageType> ClassifierType;
-
-  typedef typename itk::ClassifierBase<VecImageType>::Pointer
-    ClassifierBasePointer;
-
-  typedef typename ClassifierType::Pointer ClassifierPointer;
-  ClassifierPointer myClassifier = ClassifierType::New();
-  // Set the Classifier parameters
-  myClassifier->SetNumberOfClasses(nclasses);
-
-  // Set the decison rule
-  myClassifier->
-  SetDecisionRule( (DecisionRuleBasePointer) myDecisionRule );
-
-  // Add the membership functions
-  double meanDistance = 0;
-  for( unsigned int i = 0; i < nclasses; i++ )
-    {
-    myClassifier->AddMembershipFunction( membershipFunctions[i] );
-    meanDistance += membershipFunctions[i]->GetMean()[0];
-    }
-  meanDistance /= (float)nclasses;
-  std::cout << " mean dist " << meanDistance << std::endl;
-
-  // ----------------------------------------------------------------------
-  // Set the MRF labeller and populate the parameters
-  // ----------------------------------------------------------------------
-
-  // Set the MRF labeller
-  typedef itk::MRFImageFilter<VecImageType, ClassImageType> MRFImageFilterType;
-  typename MRFImageFilterType::Pointer applyMRFImageFilter = MRFImageFilterType::New();
-
-  // Set the MRF labeller parameters
-  applyMRFImageFilter->SetNumberOfClasses( nclasses );
-  applyMRFImageFilter->SetMaximumNumberOfIterations( maxits );
-  applyMRFImageFilter->SetErrorTolerance( 1.e-4 );
-  applyMRFImageFilter->SetSmoothingFactor( smf );
-  applyMRFImageFilter->SetInput(vecImage);
-  applyMRFImageFilter->SetClassifier( myClassifier );
-
-  // For setting up a square/cubic or hypercubic neighborhood
-  applyMRFImageFilter->SetNeighborhoodRadius( 1 );
-  std::vector<double> weights =
-    applyMRFImageFilter->GetMRFNeighborhoodWeight();
-  std::vector<double> testNewNeighborhoodWeight( weights.size(), 1);
-  double              totalWeight = 0;
-  for( std::vector<double>::const_iterator wcIt = weights.begin();
-       wcIt != weights.end(); ++wcIt )
-    {
-    totalWeight += *wcIt;
-    }
-  unsigned int jj = 0;
-  for( std::vector<double>::iterator wIt = weights.begin();
-       wIt != weights.end(); wIt++ )
-    {
-    testNewNeighborhoodWeight[jj] = static_cast<double>( (*wIt) * meanDistance / (2 * totalWeight) );
-    //   std::cout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
-    jj++;
-    }
-
-//  applyMRFImageFilter->SetMRFNeighborhoodWeight( testNewNeighborhoodWeight );
-//  applyMRFImageFilter->SetMRFNeighborhoodWeight( weights );
-
-  // Kick off the MRF labeller function
-  applyMRFImageFilter->Update();
-
-  applyMRFImageFilter->Print(std::cout);
-  std::cout << "Number of Iterations : " << applyMRFImageFilter->GetNumberOfIterations()
-            << std::endl;
-  std::cout << "Stop condition: (1) Maximum number of iterations (2) Error tolerance:  "
-            << applyMRFImageFilter->GetStopCondition() << std::endl;
-
-  typename ClassImageType::Pointer  outClassImage = applyMRFImageFilter->GetOutput();
-
-  // Testing of different parameter access functions in the filter
-  std::cout << "The number of classes labelled was: "
-            << applyMRFImageFilter->GetNumberOfClasses() << std::endl;
-  std::cout << "The maximum number of iterations were: "
-            << applyMRFImageFilter->GetMaximumNumberOfIterations() << std::endl;
-  std::cout << "The error tolerace threshold was: "
-            << applyMRFImageFilter->GetErrorTolerance() << std::endl;
-  std::cout << "The smoothing MRF parameter used was: "
-            << applyMRFImageFilter->GetSmoothingFactor() << std::endl;
-  std::cout << "The MRF neighborhood weights are: " << std::endl;
-
-  return outClassImage;
-}
+// template<class TImage>
+// typename TImage::Pointer
+// //void
+// SegmentMRF(typename TImage::Pointer image ,
+//     typename TImage::Pointer labelimage, unsigned int nclasses, float smf, unsigned int maxits)
+// {
+//
+//   typedef TImage ImageType;
+//   typedef typename TImage::PixelType PixelType;
+//   enum { ImageDimension = ImageType::ImageDimension };
+//   enum { Dimension = ImageType::ImageDimension };
+//
+//
+//   //  const unsigned int NUMBANDS=1;
+//   typedef itk::Image<itk::Vector<double,1>,ImageDimension> VecImageType;
+//   typedef typename VecImageType::PixelType  VecPixelType;
+//
+//   /** copy the input image into this vector image.  stupid.  */
+//
+//   typename VecImageType::Pointer vecImage = VecImageType::New();
+//   vecImage->SetSpacing(image->GetSpacing());
+//   vecImage->SetOrigin(image->GetOrigin());
+//   vecImage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
+//   vecImage->SetBufferedRegion(  image->GetLargestPossibleRegion() );
+//   vecImage->Allocate();
+//   VecPixelType vvv;
+//   vvv.Fill(0);
+//   vecImage->FillBuffer(vvv);
+//
+//   // setup the iterators
+//   //  typedef VecImageType::PixelType::VectorType VecPixelType;
+//
+//   enum { VecImageDimension = VecImageType::ImageDimension };
+//   typedef itk::ImageRegionIterator< VecImageType > VecIterator;
+//
+//   VecIterator outIt( vecImage, vecImage->GetBufferedRegion() );
+//   for (outIt.GoToBegin(); !outIt.IsAtEnd(); ++outIt)
+//     {
+//       vvv[0]=image->GetPixel(outIt.GetIndex());
+//       outIt.Set(vvv);
+//     }
+//
+//
+//   namespace stat = itk::Statistics;
+//   typedef itk::Image<PixelType,ImageDimension> ClassImageType;
+//   typedef stat::MahalanobisDistanceMembershipFunction< VecPixelType >
+//     MembershipFunctionType ;
+//   typedef typename MembershipFunctionType::Pointer MembershipFunctionPointer ;
+//   typedef std::vector< MembershipFunctionPointer >   MembershipFunctionPointerVector;
+//
+//   typedef itk::ImageGaussianModelEstimator<VecImageType,
+//     MembershipFunctionType, ClassImageType>
+//     ImageGaussianModelEstimatorType;
+//
+//   typename ImageGaussianModelEstimatorType::Pointer  applyEstimateModel =
+//     ImageGaussianModelEstimatorType::New();
+//   /*
+//   typedef itk::Statistics::WeightedCentroidKdTreeGenerator<
+//                                                       AdaptorType >
+//                                                               TreeGeneratorType;
+//   typedef typename TreeGeneratorType::KdTreeType TreeType;
+//   typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
+//
+//   */
+//   applyEstimateModel->SetNumberOfModels(nclasses);
+//   applyEstimateModel->SetInputImage(vecImage);
+//   applyEstimateModel->SetTrainingImage(labelimage);
+//
+//   //Run the gaussian classifier algorithm
+//   applyEstimateModel->Update();
+//   applyEstimateModel->Print(std::cout);
+//
+//   MembershipFunctionPointerVector membershipFunctions =
+//     applyEstimateModel->GetMembershipFunctions();
+//
+//   //----------------------------------------------------------------------
+//   //Set the decision rule
+//   //----------------------------------------------------------------------
+//   typedef typename itk::DecisionRuleBase::Pointer DecisionRuleBasePointer;
+//
+//   typedef itk::MinimumDecisionRule DecisionRuleType;
+//   typename DecisionRuleType::Pointer
+//     myDecisionRule = DecisionRuleType::New();
+//
+//   //----------------------------------------------------------------------
+//   // Set the classifier to be used and assigne the parameters for the
+//   // supervised classifier algorithm except the input image which is
+//   // grabbed from the MRF application pipeline.
+//   //----------------------------------------------------------------------
+//   //---------------------------------------------------------------------
+//   typedef PixelType MeasurementVectorType;
+//
+//   typedef itk::ImageClassifierBase< VecImageType,
+//     ClassImageType > ClassifierType;
+//
+//   typedef typename itk::ClassifierBase<VecImageType>::Pointer
+//     ClassifierBasePointer;
+//
+//   typedef typename ClassifierType::Pointer ClassifierPointer;
+//   ClassifierPointer myClassifier = ClassifierType::New();
+//   // Set the Classifier parameters
+//   myClassifier->SetNumberOfClasses(nclasses);
+//
+//   // Set the decison rule
+//   myClassifier->
+//     SetDecisionRule((DecisionRuleBasePointer) myDecisionRule );
+//
+//   //Add the membership functions
+//   double meanDistance=0;
+//   for( unsigned int i=0; i<nclasses; i++ )
+//     {
+//     myClassifier->AddMembershipFunction( membershipFunctions[i] );
+//     meanDistance+=membershipFunctions[i]->GetMean()[0];
+//     }
+//   meanDistance/=(float)nclasses;
+//   std::cout << " mean dist " << meanDistance << std::endl;
+//
+//
+//   //----------------------------------------------------------------------
+//   // Set the MRF labeller and populate the parameters
+//   //----------------------------------------------------------------------
+//
+//   //Set the MRF labeller
+//   typedef itk::MRFImageFilter<VecImageType,ClassImageType> MRFImageFilterType;
+//   typename MRFImageFilterType::Pointer applyMRFImageFilter = MRFImageFilterType::New();
+//
+//   // Set the MRF labeller parameters
+//   applyMRFImageFilter->SetNumberOfClasses( nclasses );
+//   applyMRFImageFilter->SetMaximumNumberOfIterations( maxits );
+//   applyMRFImageFilter->SetErrorTolerance( 1.e-4 );
+//   applyMRFImageFilter->SetSmoothingFactor( smf );
+//   applyMRFImageFilter->SetInput(vecImage);
+//   applyMRFImageFilter->SetClassifier( myClassifier );
+//
+//   //For setting up a square/cubic or hypercubic neighborhood
+//   applyMRFImageFilter->SetNeighborhoodRadius( 1 );
+//   std::vector<double> weights =
+//     applyMRFImageFilter->GetMRFNeighborhoodWeight();
+//   std::vector<double> testNewNeighborhoodWeight( weights.size(), 1);
+//   double totalWeight = 0;
+//   for(std::vector< double >::const_iterator wcIt = weights.begin();
+//       wcIt != weights.end(); ++wcIt )
+//     {
+//     totalWeight += *wcIt;
+//     }
+//   unsigned int jj = 0;
+//   for(std::vector< double >::iterator wIt = weights.begin();
+//       wIt != weights.end(); wIt++ )
+//     {
+//      testNewNeighborhoodWeight[jj] = static_cast< double > ( (*wIt) * meanDistance / (2 * totalWeight));
+//      //   std::cout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
+//     jj++;
+//     }
+//
+// //  applyMRFImageFilter->SetMRFNeighborhoodWeight( testNewNeighborhoodWeight );
+//   //  applyMRFImageFilter->SetMRFNeighborhoodWeight( weights );
+//
+//   //Kick off the MRF labeller function
+//   applyMRFImageFilter->Update();
+//
+//   applyMRFImageFilter->Print(std::cout);
+//   std::cout << "Number of Iterations : " << applyMRFImageFilter->GetNumberOfIterations()
+//     << std::endl;
+//   std::cout << "Stop condition: (1) Maximum number of iterations (2) Error tolerance:  "
+//     << applyMRFImageFilter->GetStopCondition() << std::endl;
+//
+//   typename ClassImageType::Pointer  outClassImage = applyMRFImageFilter->GetOutput();
+//
+//   //Testing of different parameter access functions in the filter
+//   std::cout << "The number of classes labelled was: " <<
+//     applyMRFImageFilter->GetNumberOfClasses() << std::endl;
+//   std::cout << "The maximum number of iterations were: " <<
+//     applyMRFImageFilter->GetMaximumNumberOfIterations() << std::endl;
+//   std::cout << "The error tolerace threshold was: " <<
+//     applyMRFImageFilter->GetErrorTolerance() << std::endl;
+//   std::cout << "The smoothing MRF parameter used was: " <<
+//     applyMRFImageFilter->GetSmoothingFactor() << std::endl;
+//   std::cout << "The MRF neighborhood weights are: " << std::endl;
+//
+//
+//   return  outClassImage;
+//
+// }
 
 template <class TImage>
 typename TImage::Pointer
@@ -3834,273 +3767,282 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
   return filter->GetOutput();
 }
 
-template <class TImage>
-typename TImage::Pointer
-// void
-SegmentMRFKM(typename TImage::Pointer image,
-             typename TImage::Pointer labelimage, unsigned int nclasses, float smf, unsigned int maxit)
-{
-  typedef TImage                     ImageType;
-  typedef typename TImage::PixelType PixelType;
-  enum { ImageDimension = ImageType::ImageDimension };
-  enum { Dimension = ImageType::ImageDimension };
-
-  //  const unsigned int NUMBANDS=1;
-  typedef itk::Image<itk::Vector<double, 1>, ImageDimension> VecImageType;
-  typedef typename VecImageType::PixelType                   VecPixelType;
-
-  /** copy the input image into this vector image.  stupid.  */
-
-  typename VecImageType::Pointer vecImage = VecImageType::New();
-  vecImage->SetSpacing(image->GetSpacing() );
-  vecImage->SetOrigin(image->GetOrigin() );
-  vecImage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-  vecImage->SetBufferedRegion(  image->GetLargestPossibleRegion() );
-  vecImage->Allocate();
-  VecPixelType vvv;
-  vvv.Fill(0);
-  vecImage->FillBuffer(vvv);
-
-  // setup the iterators
-  //  typedef VecImageType::PixelType::VectorType VecPixelType;
-
-  enum { VecImageDimension = VecImageType::ImageDimension };
-  typedef itk::ImageRegionIterator<VecImageType> VecIterator;
-
-  VecIterator outIt( vecImage, vecImage->GetBufferedRegion() );
-  for( outIt.GoToBegin(); !outIt.IsAtEnd(); ++outIt )
-    {
-    vvv[0] = image->GetPixel(outIt.GetIndex() );
-    outIt.Set(vvv);
-    }
-
-  namespace stat = itk::Statistics;
-
-  typedef itk::Image<PixelType, ImageDimension> ClassImageType;
-
-  // ----------------------------------------------------------------------
-  // Set membership function (Using the statistics objects)
-  // ----------------------------------------------------------------------
-
-  typedef itk::Statistics::DistanceToCentroidMembershipFunction<VecPixelType>
-    MembershipFunctionType;
-
-  typedef typename MembershipFunctionType::Pointer MembershipFunctionPointer;
-
-  typedef std::vector<MembershipFunctionPointer>
-    MembershipFunctionPointerVector;
-
-  // ----------------------------------------------------------------------
-  // Set the image model estimator
-  // ----------------------------------------------------------------------
-  typedef itk::ImageKmeansModelEstimator<VecImageType,
-                                         MembershipFunctionType> ImageKmeansModelEstimatorType;
-
-  typename ImageKmeansModelEstimatorType::Pointer
-  applyKmeansModelEstimator = ImageKmeansModelEstimatorType::New();
-
-  // ----------------------------------------------------------------------
-  // Set the parameters of the clusterer
-  // ----------------------------------------------------------------------
-
-  std::cout << "Starting to build the K-means model ....." << std::endl;
-
-  applyKmeansModelEstimator->SetInputImage( vecImage );
-  applyKmeansModelEstimator->SetNumberOfModels(nclasses);
-  applyKmeansModelEstimator->SetThreshold(0.0001);
-  applyKmeansModelEstimator->Update();
-
-  MembershipFunctionPointerVector membershipFunctions =
-    applyKmeansModelEstimator->GetMembershipFunctions();
-
-  typedef std::vector<double>      TempVectorType;
-  typedef TempVectorType::iterator TempVectorIterator;
-  TempVectorIterator start, end;
-
-  std::vector<double> kmeansResultForClass(membershipFunctions.size() );
-
-  std::cout << "Result of K-Means clustering" << std::endl;
-
-  double meanDistance = 0;
-  for( unsigned int classIndex = 0; classIndex < membershipFunctions.size();
-       classIndex++ )
-    {
-    kmeansResultForClass[classIndex] =
-      (double) (membershipFunctions[classIndex]->GetCentroid() )[0];
-    meanDistance += kmeansResultForClass[classIndex]; // membershipFunctions[i]->GetMean()[0];
-    }
-  meanDistance /= (float)nclasses;
-  std::cout << " mean dist " << meanDistance << std::endl;
-
-  start = kmeansResultForClass.begin();
-  end   = kmeansResultForClass.end();
-
-  std::sort( start, end );
-
-  vnl_vector<double> temp =  membershipFunctions[0]->GetCentroid();
-  for( unsigned int classIndex = 0; classIndex < membershipFunctions.size();
-       classIndex++ )
-    {
-    temp[0] = (double) kmeansResultForClass[classIndex];
-    membershipFunctions[classIndex]->SetCentroid(temp);
-    }
-  for( unsigned int classIndex = 0; classIndex < membershipFunctions.size();
-       classIndex++ )
-    {
-    std::cout <<  (membershipFunctions[classIndex]->GetCentroid() )[0] << std::endl;
-    }
-
-  // ----------------------------------------------------------------------
-  // Set the decision rule
-  // ----------------------------------------------------------------------
-  typedef itk::DecisionRuleBase::Pointer DecisionRuleBasePointer;
-
-  typedef itk::MinimumDecisionRule DecisionRuleType;
-  DecisionRuleType::Pointer
-    classifierDecisionRule = DecisionRuleType::New();
-
-  // ------------------------------------------------------
-  // Instantiate the classifier model (as the input image is in right format)
-  // ------------------------------------------------------
-
-  // Assign a class label image type
-
-  typedef itk::Image<PixelType, ImageDimension> ClassImageType;
-
-  typedef itk::ImageClassifierBase<VecImageType, ClassImageType>
-    SupervisedClassifierType;
-
-  typename SupervisedClassifierType::Pointer
-  classifierPointer = SupervisedClassifierType::New();
-
-  // ------------------------------------------------------
-  // Set the Classifier parameters
-  // ------------------------------------------------------
-  classifierPointer->SetNumberOfClasses( nclasses );
-  classifierPointer->SetInputImage( vecImage );
-
-  // Set the decison rule
-  classifierPointer->
-  SetDecisionRule( (DecisionRuleBasePointer) classifierDecisionRule );
-
-  MembershipFunctionPointer membershipFunction;
-  // ------------------------------------------------------
-  // Set the classifier membership functions
-  // ------------------------------------------------------
-  for( unsigned int i = 0; i < nclasses; i++ )
-    {
-    classifierPointer->AddMembershipFunction( membershipFunctions[i] );
-    }
-
-  // Do the classification
-  // Run the kmeans classifier algorithm
-  classifierPointer->Update();
-
-  // Get the classified image
-  typedef typename ClassImageType::Pointer ClassifiedImagePointer;
-  ClassifiedImagePointer outClassImage =
-    classifierPointer->GetClassifiedImage();
-
-  // ------------------------------------------------------
-  // Mask the output of the classifier
-  // ------------------------------------------------------
-
-  // Declare the type for the MaskInput filter
-
-  typedef itk::MaskImageFilter<ClassImageType,
-                               ClassImageType,
-                               ClassImageType>   MaskFilterType;
-
-  typedef typename ClassImageType::Pointer MaskedOutputImagePointer;
-  typedef typename MaskFilterType::Pointer MaskFilterTypePointer;
-
-  // Create an ADD Filter
-  MaskFilterTypePointer maskfilter = MaskFilterType::New();
-
-  // Connect the input images
-  maskfilter->SetInput1( outClassImage );
-  maskfilter->SetInput2( labelimage );
-
-  // Execute the filter
-  maskfilter->Update();
-
-  // Get the Smart Pointer to the Filter Output
-  MaskedOutputImagePointer maskedOutputImage = maskfilter->GetOutput();
-
-  //  this->SetClassifiedImage( maskedOutputImage );
-
-  // ------------------------------------------------------
-  // Set the MRF labeller and populate the parameters
-  // ------------------------------------------------------
-  // Set the MRF labeller
-  typedef itk::MRFImageFilter<VecImageType, ClassImageType>
-    MRFFilterType;
-
-  typename MRFFilterType::Pointer applyMRFFilter = MRFFilterType::New();
-
-  // Set the MRF labeller parameters
-  applyMRFFilter->SetNumberOfClasses(nclasses);
-  unsigned int m_MaximumNumberOfIterations = maxit;
-  applyMRFFilter->SetMaximumNumberOfIterations(m_MaximumNumberOfIterations);
-  float m_ErrorTolerance = 1.e-5;
-  applyMRFFilter->SetErrorTolerance(m_ErrorTolerance);
-  float m_SmoothingFactor = smf;
-  applyMRFFilter->SetSmoothingFactor( m_SmoothingFactor );
-
-  // For setting up a square/cubic or hypercubic neighborhood
-  applyMRFFilter->SetNeighborhoodRadius( 1 );
-  std::vector<double> weights =
-    applyMRFFilter->GetMRFNeighborhoodWeight();
-  std::vector<double> testNewNeighborhoodWeight( weights.size(), 1);
-  double              totalWeight = 0;
-  for( std::vector<double>::const_iterator wcIt = weights.begin();
-       wcIt != weights.end(); ++wcIt )
-    {
-    totalWeight += *wcIt;
-    }
-  unsigned int jj = 0;
-  for( std::vector<double>::iterator wIt = weights.begin();
-       wIt != weights.end(); wIt++ )
-    {
-    testNewNeighborhoodWeight[jj] = static_cast<double>( (*wIt) * meanDistance / (2 * totalWeight) );
-    // std::cout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
-    jj++;
-    }
-
-  applyMRFFilter->SetMRFNeighborhoodWeight( testNewNeighborhoodWeight );
-
-  applyMRFFilter->SetInput(vecImage);
-  applyMRFFilter->SetClassifier( classifierPointer );
-
-  // Kick off the MRF labeller function
-  applyMRFFilter->Update();
-
-  applyMRFFilter->Print(std::cout);
-  outClassImage = applyMRFFilter->GetOutput();
-
-  // ------------------------------------------------------
-  // Mask the output of the classifier
-  // ------------------------------------------------------
-
-  // Declare the type for the MaskInput filter
-
-  // Create an ADD Filter
-  MaskFilterTypePointer maskfilter2 = MaskFilterType::New();
-
-  // Connect the input images
-  maskfilter2->SetInput1( outClassImage );
-  maskfilter2->SetInput2( labelimage );
-
-  // Execute the filter
-  maskfilter2->Update();
-
-  // Get the Smart Pointer to the Filter Output
-  maskedOutputImage = maskfilter2->GetOutput();
-
-  //  this->SetClassifiedImage( maskedOutputImage );
-
-  return outClassImage; // maskedOutputImage;
-}
+// template<class TImage>
+// typename TImage::Pointer
+// //void
+// SegmentMRFKM(typename TImage::Pointer image ,
+//       typename TImage::Pointer labelimage, unsigned int nclasses, float smf, unsigned int maxit)
+// {
+//
+//   typedef TImage ImageType;
+//   typedef typename TImage::PixelType PixelType;
+//   enum { ImageDimension = ImageType::ImageDimension };
+//   enum { Dimension = ImageType::ImageDimension };
+//
+//
+//   //  const unsigned int NUMBANDS=1;
+//   typedef itk::Image<itk::Vector<double,1>,ImageDimension> VecImageType;
+//   typedef typename VecImageType::PixelType  VecPixelType;
+//
+//   /** copy the input image into this vector image.  stupid.  */
+//
+//   typename VecImageType::Pointer vecImage = VecImageType::New();
+//   vecImage->SetSpacing(image->GetSpacing());
+//   vecImage->SetOrigin(image->GetOrigin());
+//   vecImage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
+//   vecImage->SetBufferedRegion(  image->GetLargestPossibleRegion() );
+//   vecImage->Allocate();
+//   VecPixelType vvv;
+//   vvv.Fill(0);
+//   vecImage->FillBuffer(vvv);
+//
+//   // setup the iterators
+//   //  typedef VecImageType::PixelType::VectorType VecPixelType;
+//
+//   enum { VecImageDimension = VecImageType::ImageDimension };
+//   typedef itk::ImageRegionIterator< VecImageType > VecIterator;
+//
+//   VecIterator outIt( vecImage, vecImage->GetBufferedRegion() );
+//   for (outIt.GoToBegin(); !outIt.IsAtEnd(); ++outIt)
+//     {
+//       vvv[0]=image->GetPixel(outIt.GetIndex());
+//       outIt.Set(vvv);
+//     }
+//
+//
+//   namespace stat = itk::Statistics;
+//
+//   typedef itk::Image<PixelType,ImageDimension> ClassImageType;
+//
+//
+//   //----------------------------------------------------------------------
+//   //Set membership function (Using the statistics objects)
+//   //----------------------------------------------------------------------
+//
+//   typedef itk::Statistics::DistanceToCentroidMembershipFunction< VecPixelType >
+//     MembershipFunctionType ;
+//
+//   typedef typename MembershipFunctionType::Pointer MembershipFunctionPointer ;
+//
+//   typedef std::vector< MembershipFunctionPointer >
+//     MembershipFunctionPointerVector;
+//
+//   //----------------------------------------------------------------------
+//   //Set the image model estimator
+//   //----------------------------------------------------------------------
+//   typedef itk::ImageKmeansModelEstimator< VecImageType,
+//     MembershipFunctionType> ImageKmeansModelEstimatorType;
+//
+//   typename ImageKmeansModelEstimatorType::Pointer
+//     applyKmeansModelEstimator = ImageKmeansModelEstimatorType::New();
+//
+//   //----------------------------------------------------------------------
+//   //Set the parameters of the clusterer
+//   //----------------------------------------------------------------------
+//
+//   std::cout << "Starting to build the K-means model ....." << std::endl;
+//
+//   applyKmeansModelEstimator->SetInputImage( vecImage );
+//   applyKmeansModelEstimator->SetNumberOfModels(nclasses);
+//   applyKmeansModelEstimator->SetThreshold(0.0001);
+//   applyKmeansModelEstimator->Update();
+//
+//   MembershipFunctionPointerVector membershipFunctions =
+//     applyKmeansModelEstimator->GetMembershipFunctions();
+//
+//   typedef std::vector<double> TempVectorType;
+//   typedef TempVectorType::iterator TempVectorIterator;
+//   TempVectorIterator  start, end;
+//
+//   std::vector<double> kmeansResultForClass(membershipFunctions.size());
+//
+//
+//   std::cout << "Result of K-Means clustering" << std::endl;
+//
+//   double meanDistance=0;
+//   for(unsigned int classIndex=0; classIndex < membershipFunctions.size();
+//     classIndex++ )
+//     {
+//     kmeansResultForClass[classIndex] =
+//       (double) (membershipFunctions[classIndex]->GetCentroid())[0];
+//     meanDistance+=kmeansResultForClass[classIndex];//membershipFunctions[i]->GetMean()[0];
+//     }
+//   meanDistance/=(float)nclasses;
+//   std::cout << " mean dist " << meanDistance << std::endl;
+//
+//
+//   start = kmeansResultForClass.begin();
+//   end   = kmeansResultForClass.end();
+//
+//   std::sort( start, end );
+//
+//   vnl_vector<double> temp =  membershipFunctions[0]->GetCentroid();
+//   for(unsigned int classIndex=0; classIndex < membershipFunctions.size();
+//     classIndex++ )
+//     {
+//     temp[0] = (double) kmeansResultForClass[classIndex];
+//     membershipFunctions[classIndex]->SetCentroid(temp);
+//     }
+//
+//   for(unsigned int classIndex=0; classIndex < membershipFunctions.size();
+//     classIndex++ )
+//     {
+//     std::cout <<  (membershipFunctions[classIndex]->GetCentroid())[0] << std::endl;
+//     }
+//
+//   //----------------------------------------------------------------------
+//   //Set the decision rule
+//   //----------------------------------------------------------------------
+//   typedef itk::DecisionRuleBase::Pointer DecisionRuleBasePointer;
+//
+//   typedef itk::MinimumDecisionRule DecisionRuleType;
+//   DecisionRuleType::Pointer
+//     classifierDecisionRule = DecisionRuleType::New();
+//
+//   //------------------------------------------------------
+//   //Instantiate the classifier model (as the input image is in right format)
+//   //------------------------------------------------------
+//
+//   //Assign a class label image type
+//
+//   typedef itk::Image<PixelType,ImageDimension> ClassImageType;
+//
+//   typedef itk::ImageClassifierBase< VecImageType,ClassImageType >
+//     SupervisedClassifierType;
+//
+//   typename SupervisedClassifierType::Pointer
+//     classifierPointer = SupervisedClassifierType::New();
+//
+//
+//   //------------------------------------------------------
+//   // Set the Classifier parameters
+//   //------------------------------------------------------
+//   classifierPointer->SetNumberOfClasses( nclasses );
+//   classifierPointer->SetInputImage( vecImage );
+//
+//   // Set the decison rule
+//   classifierPointer->
+//     SetDecisionRule( (DecisionRuleBasePointer) classifierDecisionRule );
+//
+//   MembershipFunctionPointer membershipFunction;
+//   //------------------------------------------------------
+//   //Set the classifier membership functions
+//   //------------------------------------------------------
+//   for( unsigned int i=0; i<nclasses; i++ )
+//     {
+//     classifierPointer->AddMembershipFunction( membershipFunctions[i] );
+//     }
+//
+//   //Do the classification
+//   //Run the kmeans classifier algorithm
+//   classifierPointer->Update();
+//
+//   //Get the classified image
+//   typedef typename ClassImageType::Pointer ClassifiedImagePointer;
+//   ClassifiedImagePointer outClassImage =
+//     classifierPointer->GetClassifiedImage();
+//
+//   //------------------------------------------------------
+//   //Mask the output of the classifier
+//   //------------------------------------------------------
+//
+//   // Declare the type for the MaskInput filter
+//
+//   typedef itk::MaskImageFilter< ClassImageType,
+//                            ClassImageType,
+//                            ClassImageType  >   MaskFilterType;
+//
+//   typedef typename ClassImageType::Pointer   MaskedOutputImagePointer;
+//   typedef typename MaskFilterType::Pointer        MaskFilterTypePointer;
+//
+//   // Create an ADD Filter
+//   MaskFilterTypePointer maskfilter = MaskFilterType::New();
+//
+//   // Connect the input images
+//   maskfilter->SetInput1( outClassImage );
+//   maskfilter->SetInput2( labelimage );
+//
+//   // Execute the filter
+//   maskfilter->Update();
+//
+//   // Get the Smart Pointer to the Filter Output
+//   MaskedOutputImagePointer maskedOutputImage = maskfilter->GetOutput();
+//
+//   //  this->SetClassifiedImage( maskedOutputImage );
+//
+//   //------------------------------------------------------
+//   //Set the MRF labeller and populate the parameters
+//   //------------------------------------------------------
+//   //Set the MRF labeller
+//   typedef itk::MRFImageFilter<VecImageType,ClassImageType>
+//     MRFFilterType;
+//
+//   typename MRFFilterType::Pointer applyMRFFilter = MRFFilterType::New();
+//
+//   // Set the MRF labeller parameters
+//   applyMRFFilter->SetNumberOfClasses(nclasses);
+//   unsigned int m_MaximumNumberOfIterations=maxit;
+//   applyMRFFilter->SetMaximumNumberOfIterations(m_MaximumNumberOfIterations);
+//   float m_ErrorTolerance=1.e-5;
+//   applyMRFFilter->SetErrorTolerance(m_ErrorTolerance);
+//   float m_SmoothingFactor=smf;
+//   applyMRFFilter->SetSmoothingFactor( m_SmoothingFactor );
+//
+//   //For setting up a square/cubic or hypercubic neighborhood
+//   applyMRFFilter->SetNeighborhoodRadius( 1 );
+//   std::vector<double> weights =
+//     applyMRFFilter->GetMRFNeighborhoodWeight();
+//   std::vector<double> testNewNeighborhoodWeight( weights.size(), 1);
+//   double totalWeight = 0;
+//   for(std::vector< double >::const_iterator wcIt = weights.begin();
+//       wcIt != weights.end(); ++wcIt )
+//     {
+//     totalWeight += *wcIt;
+//     }
+//   unsigned int jj = 0;
+//   for(std::vector< double >::iterator wIt = weights.begin();
+//       wIt != weights.end(); wIt++ )
+//     {
+//      testNewNeighborhoodWeight[jj] = static_cast< double > ( (*wIt) * meanDistance / (2 * totalWeight));
+//      //std::cout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
+//     jj++;
+//     }
+//
+//   applyMRFFilter->SetMRFNeighborhoodWeight( testNewNeighborhoodWeight );
+//
+//   applyMRFFilter->SetInput(vecImage);
+//   applyMRFFilter->SetClassifier( classifierPointer );
+//
+//   //Kick off the MRF labeller function
+//   applyMRFFilter->Update();
+//
+//   applyMRFFilter->Print(std::cout);
+//   outClassImage = applyMRFFilter->GetOutput();
+//
+//   //------------------------------------------------------
+//   //Mask the output of the classifier
+//   //------------------------------------------------------
+//
+//   // Declare the type for the MaskInput filter
+//
+//   // Create an ADD Filter
+//   MaskFilterTypePointer maskfilter2 = MaskFilterType::New();
+//
+//   // Connect the input images
+//   maskfilter2->SetInput1( outClassImage );
+//   maskfilter2->SetInput2( labelimage );
+//
+//   // Execute the filter
+//   maskfilter2->Update();
+//
+//   // Get the Smart Pointer to the Filter Output
+//   maskedOutputImage = maskfilter2->GetOutput();
+//
+//   //  this->SetClassifiedImage( maskedOutputImage );
+//
+//   return outClassImage;//maskedOutputImage;
+//
+// }
 
 template <unsigned int ImageDimension>
 int SmoothImage(int argc, char *argv[])
