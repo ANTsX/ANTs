@@ -9,8 +9,6 @@
 
 #include "itkImageFileWriter.h"
 
-#include "itkScalarImageToHistogramGenerator.h"
-#include "itkImageToHistogramGenerator.h"
 #include "itkANTSImageRegistrationOptimizer.h"
 #include "vnl/algo/vnl_determinant.h"
 #include "itkDiscreteGaussianImageFilter.h"
