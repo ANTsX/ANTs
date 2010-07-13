@@ -1,4 +1,4 @@
-Release 1.9.1 --- svn release 599
+Release 1.9.1 --- svn release 600
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
@@ -37,6 +37,7 @@ Atropos refactored , vtk dependencies allowed , additional tools for surface-bas
 Must compile ITK with USE_REVIEW_STATISTICS ON
 Should compile ITK with USE_REVIEW ON
 Should compile ITK with USE_OPTIMIZED_REGISTRATION ON
+Should have ITK v 3.20 or greater.
 
 New Stuff 1.9 :
 
