@@ -21,7 +21,7 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "itkVectorGaussianInterpolateImageFunction.h"
-#include "itkCommandLineParser.h"
+#include "antsCommandLineParser.h"
 #include "itkShiftScaleImageFilter.h"
 #include "itkMinimumMaximumImageFilter.h"
 #include "itkImage.h"
@@ -105,7 +105,7 @@ public:
                                                       float> VelocityFieldInterpolatorType2;
   typedef typename DeformationFieldType::IndexType IndexType;
 
-  typedef CommandLineParser               ParserType;
+  typedef ants::CommandLineParser         ParserType;
   typedef typename ParserType::OptionType OptionType;
 
   typedef GeneralToBSplineDeformationFieldFilter<DeformationFieldType> BSplineFilterType;

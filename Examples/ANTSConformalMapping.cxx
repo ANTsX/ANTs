@@ -1,5 +1,4 @@
-#include "itkCommandLineOption.h"
-#include "itkCommandLineParser.h"
+#include "antsCommandLineParser.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -56,9 +55,9 @@ public:
   }
 };
 
-void InitializeCommandLineOptions( itk::CommandLineParser *parser )
+void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::CommandLineParser::OptionType OptionType;
+  typedef itk::ants::CommandLineParser::OptionType OptionType;
 
     {
     std::string description =
@@ -191,7 +190,7 @@ void InitializeCommandLineOptions( itk::CommandLineParser *parser )
 }
 
 template <unsigned int ImageDimension>
-int ANTSConformalMapping( itk::CommandLineParser *parser )
+int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
 {
   typedef float                                 PixelType;
   typedef float                                 RealType;
@@ -212,7 +211,7 @@ int ANTSConformalMapping( itk::CommandLineParser *parser )
   // first find out if the user wants to inflate the mesh ...
   unsigned int inflate_iterations = 0;
   float        inflate_param = 0;
-  typename itk::CommandLineParser::OptionType::Pointer infOption =
+  typename itk::ants::CommandLineParser::OptionType::Pointer infOption =
     parser->GetOption( "inflate" );
   if( infOption && infOption->GetNumberOfValues() > 0 )
     {
@@ -232,7 +231,7 @@ int ANTSConformalMapping( itk::CommandLineParser *parser )
     }
 
   float maxCost = 40, distCostW = 1, labelCostW = 0;
-  typename itk::CommandLineParser::OptionType::Pointer costOption =
+  typename itk::ants::CommandLineParser::OptionType::Pointer costOption =
     parser->GetOption( "segmentation-cost" );
   if( costOption && costOption->GetNumberOfValues() > 0 )
     {
@@ -250,7 +249,7 @@ int ANTSConformalMapping( itk::CommandLineParser *parser )
       }
     }
 
-  typename itk::CommandLineParser::OptionType::Pointer displayOption = parser->GetOption( "display-mesh" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer displayOption = parser->GetOption( "display-mesh" );
   if( displayOption && displayOption->GetNumberOfValues() > 0 )
     {
     if( displayOption->GetNumberOfParameters() > 0 )
@@ -299,7 +298,7 @@ int ANTSConformalMapping( itk::CommandLineParser *parser )
   /**
    * Initialization
    */
-  typename itk::CommandLineParser::OptionType::Pointer inOption =
+  typename itk::ants::CommandLineParser::OptionType::Pointer inOption =
     parser->GetOption( "input-mesh" );
   if( inOption && inOption->GetNumberOfParameters() == 2 )
     {
@@ -394,7 +393,7 @@ int ANTSConformalMapping( itk::CommandLineParser *parser )
   /**
    * output
    */
-  typename itk::CommandLineParser::OptionType::Pointer outputOption =
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfValues() > 0 )
     {
@@ -455,7 +454,7 @@ int main( int argc, char *argv[] )
     exit( 1 );
     }
 
-  itk::CommandLineParser::Pointer parser = itk::CommandLineParser::New();
+  itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
   parser->SetCommand( argv[0] );
 
   std::string commandDescription =

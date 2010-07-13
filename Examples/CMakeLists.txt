@@ -56,7 +56,7 @@ INCLUDE_DIRECTORIES(${PICSL_INCLUDE_DIRS})
 LINK_DIRECTORIES( ${ITK_LIBRARY_PATH} )
 
 # non-templated class -- this should be stored in a library and linked in...
-SET(UI_SOURCES "../Utilities/itkCommandLineParser" "../Utilities/itkCommandLineOption" )
+SET(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLineOption" )
 
 ADD_EXECUTABLE(ANTS ANTS.cxx ${UI_SOURCES})
 TARGET_LINK_LIBRARIES(ANTS ITKCommon  ITKBasicFilters ITKIO   ITKNumerics  ITKStatistics  ITKFEM )

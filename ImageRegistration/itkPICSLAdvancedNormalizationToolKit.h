@@ -24,7 +24,7 @@
 #include "itkANTSImageTransformation.h"
 #include "itkANTSImageRegistrationOptimizer.h"
 #include "itkANTSSimilarityMetric.h"
-#include "itkCommandLineParser.h"
+#include "antsCommandLineParser.h"
 #include "itkImage.h"
 #include "itkMacro.h"
 #include "itkANTSLabeledPointSet.h"
@@ -74,7 +74,7 @@ public:
   typedef std::vector<SimilarityMetricPointer>                             SimilarityMetricListType;
   typedef typename SimilarityMetricType::MetricType                        MetricBaseType;
 
-  typedef CommandLineParser               ParserType;
+  typedef ants::CommandLineParser         ParserType;
   typedef typename ParserType::OptionType OptionType;
 
   void ParseCommandLine( int argc, char * *argv );

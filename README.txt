@@ -1,4 +1,4 @@
-Release 1.9 --- svn release 437
+Release 1.9.1 --- svn release 595
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
@@ -29,6 +29,11 @@ tool, including three tissue segmentation, structure-specific
 segmentation and brain extracton.
 
 The ants.pdf file has more details and examples.
+
+New Stuff 1.9.1 :
+
+Atropos refactored , vtk dependencies allowed , additional tools for surface-based mapping (not much tested)
+
 
 New Stuff 1.9 :
 

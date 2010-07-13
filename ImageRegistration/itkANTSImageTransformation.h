@@ -21,7 +21,7 @@
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 
-#include "itkCommandLineParser.h"
+#include "antsCommandLineParser.h"
 #include "itkImage.h"
 #include "itkMacro.h"
 
@@ -33,7 +33,6 @@
 #include "itkCenteredTransformInitializer.h"
 #include  "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
-
 namespace itk
 {
 template <unsigned int TDimension = 3, class TReal = float>
@@ -70,8 +69,8 @@ public:
   typedef typename DeformationFieldType::SizeType   DeformationRegionOfInterestSizeType;
   typedef typename DeformationFieldType::PointType  DeformationRegionOfInterestCenterType;
 
-  typedef CommandLineParser               ParserType;
-  typedef typename ParserType::OptionType OptionType;
+  typedef typename ants::CommandLineParser ParserType;
+  typedef typename ParserType::OptionType  OptionType;
 
   /** Set functions */
   void SetDeformationRegionOfInterest( DeformationRegionOfInterestCenterType DRC,
