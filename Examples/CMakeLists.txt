@@ -268,9 +268,10 @@ ENDIF(USE_VTK)
 ADD_EXECUTABLE(ANTSIntegrateVectorField ANTSIntegrateVectorField.cxx)
 TARGET_LINK_LIBRARIES(ANTSIntegrateVectorField ITKIO ITKStatistics)
 
-ADD_EXECUTABLE(Atropos Atropos.cxx ${UI_SOURCES})
-TARGET_LINK_LIBRARIES(Atropos ITKCommon  ITKBasicFilters ITKIO ITKStatistics   )
-
+IF( ITK_USE_REVIEW_STATISTICS )
+  ADD_EXECUTABLE(Atropos Atropos.cxx ${UI_SOURCES})
+  TARGET_LINK_LIBRARIES(Atropos ITKCommon  ITKBasicFilters ITKIO ITKStatistics   )
+ENDIF( ITK_USE_REVIEW_STATISTICS )
 
 
 #Set any libraries that your project depends on.
