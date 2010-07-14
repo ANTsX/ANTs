@@ -34,7 +34,7 @@ New Stuff 1.9.1 :
 
 Atropos refactored , vtk dependencies allowed , additional tools for surface-based mapping (not much tested), augmented warping for vtk files
 
-Must compile ITK with USE_REVIEW_STATISTICS ON
+Must compile ITK with USE_REVIEW_STATISTICS ON if you want Atropos functionality
 Should compile ITK with USE_REVIEW ON
 Should compile ITK with USE_OPTIMIZED_REGISTRATION ON
 Should have ITK v 3.20 or greater.
