@@ -1,4 +1,4 @@
-Release 1.9.1 --- svn release 600
+Release 1.9.1 --- svn release 601
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
@@ -32,7 +32,7 @@ The ants.pdf file has more details and examples.
 
 New Stuff 1.9.1 :
 
-Atropos refactored , vtk dependencies allowed , additional tools for surface-based mapping (not much tested)
+Atropos refactored , vtk dependencies allowed , additional tools for surface-based mapping (not much tested), augmented warping for vtk files
 
 Must compile ITK with USE_REVIEW_STATISTICS ON
 Should compile ITK with USE_REVIEW ON

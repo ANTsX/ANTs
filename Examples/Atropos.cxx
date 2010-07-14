@@ -232,7 +232,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
 
   /**
-   * Mask image
+   * mask image
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer maskOption =
     parser->GetOption( "mask-image" );
@@ -251,11 +251,16 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       {
       }
     }
+  else
+    {
+    std::cerr << "No mask images was specified.  Specify a mask image"
+              << " with the -x option." << std::endl;
+    return EXIT_FAILURE;
+    }
 
   /**
    * BSpline options
    */
-
   typename itk::ants::CommandLineParser::OptionType::Pointer bsplineOption =
     parser->GetOption( "bspline" );
   if( bsplineOption && bsplineOption->GetNumberOfValues() )
@@ -405,7 +410,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   else
     {
     std::cerr << "No input images were specified.  Specify an input image"
-              << " with the -a option" << std::endl;
+              << " with the -a option." << std::endl;
+    return EXIT_FAILURE;
     }
 
   /**
@@ -1016,6 +1022,20 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description =
+      std::string( "This option forces the image to be treated as a specified-" )
+      + std::string( "dimensional image.  If not specified, Atropos tries to " )
+      + std::string( "infer the dimensionality from the input image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "image-dimensionality" );
+    option->SetShortName( 'd' );
+    option->SetUsageOption( 0, "2/3/4" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -1038,15 +1058,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 2 )
-    {
-    std::cout << "Usage: " << argv[0]
-              << " -h or --help " << std::endl;
-    exit( 1 );
-    }
-
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
+
   parser->SetCommand( argv[0] );
 
   std::string commandDescription =
@@ -1076,7 +1090,45 @@ int main( int argc, char *argv[] )
     exit( EXIT_FAILURE );
     }
 
-  switch( atoi( argv[1] ) )
+  // Get dimensionality
+  unsigned int dimension = 3;
+
+  itk::ants::CommandLineParser::OptionType::Pointer dimOption =
+    parser->GetOption( "image-dimensionality" );
+  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+    {
+    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    }
+  else
+    {
+    // Read in the first intensity image to get the image dimension.
+    std::string filename;
+
+    itk::ants::CommandLineParser::OptionType::Pointer imageOption =
+      parser->GetOption( "intensity-image" );
+    if( imageOption && imageOption->GetNumberOfValues() > 0 )
+      {
+      if( imageOption->GetNumberOfParameters( 0 ) > 0 )
+        {
+        filename = imageOption->GetParameter( 0, 0 );
+        }
+      else
+        {
+        filename = imageOption->GetValue( 0 );
+        }
+      }
+    else
+      {
+      std::cerr << "No input images were specified.  Specify an input image"
+                << " with the -a option" << std::endl;
+      return EXIT_FAILURE;
+      }
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
+        filename.c_str(), itk::ImageIOFactory::ReadMode );
+    dimension = imageIO->GetNumberOfDimensions();
+    }
+
+  switch( dimension )
     {
     case 2:
       AtroposSegmentation<2>( parser );
