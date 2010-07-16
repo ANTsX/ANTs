@@ -88,6 +88,17 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   // segmenter->DebugOn();
 
   /**
+   * memory-usage -- need to set before setting the prior probability images.
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer memoryOption =
+    parser->GetOption( "minimize-memory-usage" );
+  if( memoryOption && memoryOption->GetNumberOfValues() > 0 )
+    {
+    segmenter->SetMinimizeMemoryUsage( parser->Convert<bool>(
+                                         memoryOption->GetValue() ) );
+    }
+
+  /**
    * Initialization
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer initializationOption =
@@ -181,6 +192,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           caster->Update();
           segmenter->SetPriorProbabilityImage( k + 1, caster->GetOutput() );
           }
+        }
+      if( initializationOption->GetNumberOfParameters() > 3 )
+        {
+        segmenter->SetPriorProbabilityThreshold( parser->Convert<float>(
+                                                   initializationOption->GetParameter( 3 ) ) );
         }
       }
     else if( !initializationStrategy.compare( std::string( "priorlabelimage" ) ) )
@@ -461,17 +477,6 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     {
     segmenter->SetUseEuclideanDistanceForPriorLabels(
       parser->Convert<bool>( distanceOption->GetValue() ) );
-    }
-
-  /**
-   * memory-usage
-   */
-  typename itk::ants::CommandLineParser::OptionType::Pointer memoryOption =
-    parser->GetOption( "minimize-memory-usage" );
-  if( memoryOption && memoryOption->GetNumberOfValues() > 0 )
-    {
-    segmenter->SetMinimizeMemoryUsage( parser->Convert<bool>(
-                                         memoryOption->GetValue() ) );
     }
 
   /**
@@ -826,7 +831,11 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "curiosity. The prior weighting (specified in the range " )
       + std::string( "[0,1]) is used to modulate the calculation of the " )
       + std::string( "posterior probabilities between the likelihood*mrfprior " )
-      + std::string( "and the likelihood*mrfprior*prior." );
+      + std::string( "and the likelihood*mrfprior*prior.  For specifying many " )
+      + std::string( "prior probability images for a multi-label segmentation, " )
+      + std::string( "we offer a minimize usage option (see -m).  With that option " )
+      + std::string( "one can specify a prior probability threshold in which only " )
+      + std::string( "those pixels exceeding that threshold are stored in memory. ");
 
 //     std::string( "\t  Usage: \n" ) +
 //     std::string( "\t    Option 1:  Random[numberOfClasses]\n" ) +
@@ -843,7 +852,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 1, "KMeans[numberOfClasses]" );
     option->SetUsageOption( 2, "Otsu[numberOfClasses]" );
     option->SetUsageOption( 3,
-                            "PriorProbabilityImages[numberOfClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting]" );
+                            "PriorProbabilityImages[numberOfClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting,<priorProbabilityThreshold>]" );
     option->SetUsageOption( 4, "PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
     option->SetDescription( description );
     parser->AddOption( option );
@@ -953,8 +962,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description =
       std::string( "By default, memory usage is not minimized, however, if " )
       + std::string( "this is needed, the various probability and distance " )
-      + std::string( "\t  images are calculated on the fly instead of being " )
-      + std::string( "stored in memory at each iteration. " );
+      + std::string( "images are calculated on the fly instead of being " )
+      + std::string( "stored in memory at each iteration. Also, if prior " )
+      + std::string( "probability images are used, only the non-negligible " )
+      + std::string( "pixel values are stored in memory. " );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "minimize-memory-usage" );
