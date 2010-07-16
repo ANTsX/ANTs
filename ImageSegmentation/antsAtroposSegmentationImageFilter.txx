@@ -72,6 +72,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_PriorProbabilityWeight = 1.0;
   this->m_AdaptiveSmoothingWeights.clear();
   this->m_PriorLabelParameterMap.clear();
+  this->m_PriorProbabilityThreshold = 0.0;
 
   this->m_MRFSmoothingFactor = 0.3;
   this->m_MRFRadius.Fill( 1 );
@@ -141,16 +142,57 @@ template <class TInputImage, class TMaskImage, class TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetPriorProbabilityImage(
-  unsigned int whichClass, const RealImageType * prior )
+  unsigned int whichClass, const RealImageType * priorImage )
 {
   if( whichClass < 1 || whichClass > this->m_NumberOfClasses )
     {
     itkExceptionMacro(
-      "The prior probability images are inputs 3...3+m_NumberOfClasses-1.  "
+      "The priorImage probability images are inputs 3...3+m_NumberOfClasses-1.  "
       << "The requested image should be in the range [1, m_NumberOfClasses]" )
     }
+  if( this->m_MinimizeMemoryUsage )
+    {
+    // To make matters simpler, we force the index to be zero
+    //   for each priorImage image.
 
-  this->SetNthInput( 2 + whichClass, const_cast<RealImageType *>( prior ) );
+    typename RealImageType::IndexType startIndex =
+      priorImage->GetRequestedRegion().GetIndex();
+
+    typename SparseImageType::Pointer sparsePriorImage =
+      SparseImageType::New();
+    sparsePriorImage->Initialize();
+
+    unsigned long count = 0;
+
+    ImageRegionConstIteratorWithIndex<RealImageType> It( priorImage,
+                                                         priorImage->GetRequestedRegion() );
+    for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+      if( It.Get() > this->m_PriorProbabilityThreshold )
+        {
+        typename RealImageType::IndexType index = It.GetIndex();
+        for( unsigned int d = 0; d < ImageDimension; d++ )
+          {
+          index[d] -= startIndex[d];
+          }
+
+        unsigned long number = this->IndexToNumber(
+            index, priorImage->GetRequestedRegion().GetSize() );
+
+        typename SparseImageType::PointType imageNumberIndex;
+        imageNumberIndex[0] = number;
+
+        sparsePriorImage->SetPoint( count, imageNumberIndex );
+        sparsePriorImage->SetPointData( count, It.Get() );
+        count++;
+        }
+      }
+    this->SetNthInput( 2 + whichClass, sparsePriorImage.GetPointer() );
+    }
+  else
+    {
+    this->SetNthInput( 2 + whichClass, const_cast<RealImageType *>( priorImage ) );
+    }
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
@@ -165,12 +207,61 @@ const typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifi
       "The prior probability images are inputs 3...3+m_NumberOfClasses-1.  "
       << "The requested image should be in the range [1, m_NumberOfClasses]" )
     }
+  if( this->m_InitializationStrategy != PriorProbabilityImages )
+    {
+    return NULL;
+    }
+  if( this->m_MinimizeMemoryUsage )
+    {
+    // To make matters simpler, we forced the prior probability images
+    //   to all have indices of zeros.
+    typename RealImageType::RegionType region;
+    region.SetSize( this->GetIntensityImage( 0 )->GetRequestedRegion().GetSize() );
+    typename RealImageType::RegionType::IndexType index;
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      index[d] = 0;
+      }
+    region.SetIndex( index );
 
-  const RealImageType *priorImage =
-    dynamic_cast<const RealImageType *>(
-      this->ProcessObject::GetInput( 2 + whichClass ) );
+    typename RealImageType::Pointer priorImage = RealImageType::New();
+    priorImage->SetRegions( region );
+    priorImage->SetOrigin( this->GetIntensityImage( 0 )->GetOrigin() );
+    priorImage->SetDirection( this->GetIntensityImage( 0 )->GetDirection() );
+    priorImage->SetSpacing( this->GetIntensityImage( 0 )->GetSpacing() );
+    priorImage->Allocate();
+    priorImage->FillBuffer( 0 );
 
-  return priorImage;
+    const SparseImageType *sparsePriorImage =
+      dynamic_cast<const SparseImageType *>(
+        this->ProcessObject::GetInput( 2 + whichClass ) );
+
+    typename SparseImageType::PointsContainer::ConstIterator It =
+      sparsePriorImage->GetPoints()->Begin();
+    typename SparseImageType::PointDataContainer::ConstIterator ItD =
+      sparsePriorImage->GetPointData()->Begin();
+    while( It != sparsePriorImage->GetPoints()->End() )
+      {
+      unsigned long number = static_cast<unsigned long>( It.Value()[0] );
+      typename RealImageType::IndexType index =
+        this->NumberToIndex( number, priorImage->GetRequestedRegion().GetSize() );
+      priorImage->SetPixel( index, ItD.Value() );
+
+      ++It;
+      ++ItD;
+      }
+
+    priorImage->Register();
+    return priorImage.GetPointer();
+    }
+  else
+    {
+    const RealImageType *priorImage =
+      dynamic_cast<const RealImageType *>(
+        this->ProcessObject::GetInput( 2 + whichClass ) );
+
+    return priorImage;
+    }
   }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
@@ -256,7 +347,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
     TimeProbe timer;
     timer.Start();
-    probabilityNew = this->UpdateClassParametersAndLabeling();
+    probabilityNew = this->UpdateClassLabeling();
     timer.Stop();
 
     this->m_CurrentConvergenceMeasurement = probabilityNew - probabilityOld;
@@ -326,7 +417,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         }
       if( isOkay )
         {
-        this->NormalizePriorProbabilityImages();
         this->GenerateInitialClassLabelingWithPriorProbabilityImages();
         }
       else
@@ -410,8 +500,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         {
         continue;
         }
+      typename RealImageType::ConstPointer priorProbabilityImage =
+        this->GetPriorProbabilityImage( label );
       weights[label - 1].SetElement( count[label - 1]++,
-                                     this->GetPriorProbabilityImage( label )->GetPixel( ItO.GetIndex() ) );
+                                     priorProbabilityImage->GetPixel( ItO.GetIndex() ) );
+//       if( this->m_MinimizeMemoryUsage )
+//         {
+//         priorProbabilityImage->UnRegister();
+//         }
       }
     }
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
@@ -436,107 +532,131 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::NormalizePriorProbabilityImages()
-{
-  ImageRegionConstIteratorWithIndex<ImageType> ItI( this->GetInput(),
-                                                    this->GetInput()->GetRequestedRegion() );
-  for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
-    {
-    if( !this->GetMaskImage() ||
-        this->GetMaskImage()->GetPixel( ItI.GetIndex() ) == this->m_MaskLabel )
-      {
-      vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
-      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-        {
-        priorProbabilities[n] =
-          this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItI.GetIndex() );
-        }
-
-      RealType maxValue = priorProbabilities.max_value();
-      if( maxValue > 1e-5 )
-        {
-        std::vector<unsigned int> argMax;
-        for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-          {
-          if( maxValue == priorProbabilities[n] )
-            {
-            argMax.push_back( n );
-            }
-          }
-        unsigned int whichArgIsMax = 0;
-        if( argMax.size() > 1 )
-          {
-          typedef itk::Statistics::MersenneTwisterRandomVariateGenerator GeneratorType;
-          typename GeneratorType::Pointer generator = GeneratorType::New();
-          whichArgIsMax = generator->GetIntegerVariate( argMax.size() - 1 );
-          }
-        priorProbabilities[argMax[whichArgIsMax]] += 1e-5;
-        }
-      else
-        {
-        priorProbabilities.fill( 1.0 );
-        }
-      priorProbabilities /= priorProbabilities.sum();
-      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-        {
-        typename RealImageType::Pointer priorProbabilityImage
-          = const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
-        priorProbabilityImage->SetPixel( ItI.GetIndex(), priorProbabilities[n] );
-        }
-      }
-    else
-      {
-      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-        {
-        typename RealImageType::Pointer priorProbabilityImage
-          = const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
-        priorProbabilityImage->SetPixel( ItI.GetIndex(), 0.0 );
-        }
-      }
-    }
-}
-
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
-void
-AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GenerateInitialClassLabelingWithPriorProbabilityImages()
 {
-  this->GetOutput()->FillBuffer( NumericTraits<LabelType>::Zero );
+  // We first normalize prior probability images by keeping track of
+  //   1. the sum of the prior probabilities at each pixel
+  //   2. the max prior probability value
+  //   3. which prior probability image corresponds to the max prior value
 
-  ImageRegionIteratorWithIndex<ClassifiedImageType> ItO( this->GetOutput(),
-                                                         this->GetOutput()->GetRequestedRegion() );
-  for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
+  typename RealImageType::Pointer sumPriorProbabilityImage = RealImageType::New();
+  sumPriorProbabilityImage->SetOrigin( this->GetInput()->GetOrigin() );
+  sumPriorProbabilityImage->SetSpacing( this->GetInput()->GetSpacing() );
+  sumPriorProbabilityImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  sumPriorProbabilityImage->SetDirection( this->GetInput()->GetDirection() );
+  sumPriorProbabilityImage->Allocate();
+  sumPriorProbabilityImage->FillBuffer( 0 );
+
+  typename RealImageType::Pointer maxPriorProbabilityImage = RealImageType::New();
+  maxPriorProbabilityImage->SetOrigin( this->GetInput()->GetOrigin() );
+  maxPriorProbabilityImage->SetSpacing( this->GetInput()->GetSpacing() );
+  maxPriorProbabilityImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  maxPriorProbabilityImage->SetDirection( this->GetInput()->GetDirection() );
+  maxPriorProbabilityImage->Allocate();
+  maxPriorProbabilityImage->FillBuffer( 0 );
+  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    if( !this->GetMaskImage() ||
-        this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
+    typename RealImageType::Pointer priorProbabilityImage =
+      const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
+//     if( this->m_MinimizeMemoryUsage )
+//       {
+//       priorProbabilityImage->UnRegister();
+//       }
+
+    ImageRegionIteratorWithIndex<ImageType> ItP( priorProbabilityImage,
+                                                 priorProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<RealImageType> ItS( sumPriorProbabilityImage,
+                                            sumPriorProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<RealImageType> ItM( maxPriorProbabilityImage,
+                                            maxPriorProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<ClassifiedImageType> ItO( this->GetOutput(),
+                                                  this->GetOutput()->GetRequestedRegion() );
+
+    ItP.GoToBegin();
+    ItS.GoToBegin();
+    ItM.GoToBegin();
+    ItO.GoToBegin();
+
+    while( !ItP.IsAtEnd() )
       {
-      vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
-      for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+      if( !this->GetMaskImage() ||
+          this->GetMaskImage()->GetPixel( ItP.GetIndex() ) == this->m_MaskLabel )
         {
-        priorProbabilities[n] =
-          this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItO.GetIndex() );
-        }
-      RealType maxValue = priorProbabilities.max_value();
-      if( vnl_math_abs( maxValue - 1.0
-                        / static_cast<RealType>( this->m_NumberOfClasses ) <= 1e-5 ) )
-        {
-        ItO.Set( NumericTraits<LabelType>::Zero );
-        }
-      else
-        {
-        unsigned int argMax = this->m_NumberOfClasses;
-        for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+        if( ItP.Get() > ItM.Get() )
           {
-          if( maxValue == priorProbabilities[n] )
+          ItM.Set( ItP.Get() );
+          ItO.Set( n + 1 );
+          }
+        else if( ItP.Get() == ItM.Get() )
+          {
+          if( n == 0 )
             {
-            argMax = n;
-            break;
+            ItO.Set( 1 );
+            }
+          else  // if maximum probabilities are the same, randomly select one
+            {
+            typedef itk::Statistics::MersenneTwisterRandomVariateGenerator
+              GeneratorType;
+            typename GeneratorType::Pointer generator = GeneratorType::New();
+            if( generator->GetIntegerVariate( 1 ) )
+              {
+              ItO.Set( n + 1 );
+              }
             }
           }
-        LabelType maxLabel = static_cast<LabelType>( argMax + 1 );
-        ItO.Set( maxLabel );
         }
+      ++ItP;
+      ++ItS;
+      ++ItM;
+      ++ItO;
       }
+    }
+  // Now we can normalize each prior probability image by dividing by the sum
+  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+    {
+    typename RealImageType::Pointer priorProbabilityImage
+      = const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
+//     if( this->m_MinimizeMemoryUsage )
+//       {
+//       priorProbabilityImage->UnRegister();
+//       }
+
+    ImageRegionIteratorWithIndex<ImageType> ItP( priorProbabilityImage,
+                                                 priorProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<RealImageType> ItS( sumPriorProbabilityImage,
+                                            sumPriorProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<RealImageType> ItM( maxPriorProbabilityImage,
+                                            maxPriorProbabilityImage->GetRequestedRegion() );
+    ImageRegionIterator<ClassifiedImageType> ItO( this->GetOutput(),
+                                                  this->GetOutput()->GetRequestedRegion() );
+
+    ItP.GoToBegin();
+    ItS.GoToBegin();
+    ItM.GoToBegin();
+    ItO.GoToBegin();
+
+    while( !ItP.IsAtEnd() )
+      {
+      if( !this->GetMaskImage() ||
+          this->GetMaskImage()->GetPixel( ItP.GetIndex() ) == this->m_MaskLabel )
+        {
+        if( ItM.Get() <= this->m_PriorProbabilityThreshold )
+          {
+          ItO.Set( NumericTraits<LabelType>::Zero );
+          ItP.Set( NumericTraits<RealType>::Zero );
+          }
+        else
+          {
+          ItP.Set( ItP.Get() / ItS.Get() );
+          }
+        }
+      ++ItP;
+      ++ItS;
+      ++ItM;
+      ++ItO;
+      }
+
+    this->SetPriorProbabilityImage( n + 1, priorProbabilityImage );
     }
 
   /**
@@ -989,7 +1109,7 @@ template <class TInputImage, class TMaskImage, class TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealType
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::UpdateClassParametersAndLabeling()
+::UpdateClassLabeling()
 {
   typename RealImageType::Pointer maxPosteriorProbabilityImage =
     RealImageType::New();
@@ -1088,6 +1208,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       this->GetDistancePriorProbabilityImageFromPriorLabelImage( n + 1 );
     typename RealImageType::ConstPointer priorProbabilityImage =
       const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
+//     if( this->m_MinimizeMemoryUsage )
+//       {
+//       priorProbabilityImage->UnRegister();
+//       }
 
     ImageRegionIteratorWithIndex<RealImageType> ItW(
       weightedPriorProbabilityImage,
@@ -1103,24 +1227,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           if( priorProbabilityImage )
             {
-            vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
-            for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-              {
-              priorProbabilities[n] =
-                this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItW.GetIndex() );
-              }
-            RealType maxValue = priorProbabilities.max_value();
-            if( vnl_math_abs( maxValue - 1.0
-                              / static_cast<RealType>( this->m_NumberOfClasses ) <= 1e-5 ) )
-              {
-              priorProbability = 0.0;
-              }
-            else
-              {
-              priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
-              }
+            priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
             }
-          if( priorProbability == 0.0 && distancePriorProbabilityImage )
+          if( priorProbability <= this->m_PriorProbabilityThreshold &&
+              distancePriorProbabilityImage )
             {
             priorProbability =
               distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
@@ -1147,6 +1257,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       this->GetDistancePriorProbabilityImageFromPriorLabelImage( n + 1 );
     typename RealImageType::ConstPointer priorProbabilityImage =
       const_cast<RealImageType *>( this->GetPriorProbabilityImage( n + 1 ) );
+//     if( this->m_MinimizeMemoryUsage )
+//       {
+//       priorProbabilityImage->UnRegister();
+//       }
 
     ImageRegionIteratorWithIndex<RealImageType> ItW(
       weightedPriorProbabilityImage,
@@ -1162,22 +1276,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           if( priorProbabilityImage )
             {
-            vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
-            for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-              {
-              priorProbabilities[n] =
-                this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItW.GetIndex() );
-              }
-            RealType maxValue = priorProbabilities.max_value();
-            if( vnl_math_abs( maxValue - 1.0
-                              / static_cast<RealType>( this->m_NumberOfClasses ) <= 1e-5 ) )
-              {
-              priorProbability = 0.0;
-              }
-            else
-              {
-              priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
-              }
+            priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
             }
           if( priorProbability == 0.0 && distancePriorProbabilityImage )
             {
@@ -1417,6 +1516,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           this->GetDistancePriorProbabilityImageFromPriorLabelImage( c + 1 );
         typename RealImageType::ConstPointer priorProbabilityImage =
           const_cast<RealImageType *>( this->GetPriorProbabilityImage( c + 1 ) );
+//         if( this->m_MinimizeMemoryUsage )
+//           {
+//           priorProbabilityImage->UnRegister();
+//           }
 
         typename NeighborhoodIterator<ClassifiedImageType>::RadiusType radius;
         unsigned int neighborhoodSize = 1;
@@ -1488,24 +1591,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               if( priorProbabilityImage )
                 {
-                vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
-                for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-                  {
-                  priorProbabilities[n] =
-                    this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItO.GetIndex() );
-                  }
-                RealType maxValue = priorProbabilities.max_value();
-                if( vnl_math_abs( maxValue - 1.0
-                                  / static_cast<RealType>( this->m_NumberOfClasses ) <= 1e-5 ) )
-                  {
-                  priorProbability = 0.0;
-                  }
-                else
-                  {
-                  priorProbability = priorProbabilityImage->GetPixel( ItO.GetIndex() );
-                  }
+                priorProbability = priorProbabilityImage->GetPixel( ItO.GetIndex() );
                 }
-              if( priorProbability == 0.0 && distancePriorProbabilityImage )
+              if( priorProbability <= this->m_PriorProbabilityThreshold &&
+                  distancePriorProbabilityImage )
                 {
                 priorProbability = distancePriorProbabilityImage->GetPixel( ItO.GetIndex() );
                 }
@@ -1629,6 +1718,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         this->GetDistancePriorProbabilityImageFromPriorLabelImage( whichClass );
       typename RealImageType::ConstPointer priorProbabilityImage =
         const_cast<RealImageType *>( this->GetPriorProbabilityImage( whichClass ) );
+//       if( this->m_MinimizeMemoryUsage )
+//         {
+//         priorProbabilityImage->UnRegister();
+//         }
 
       typename NeighborhoodIterator<ClassifiedImageType>::RadiusType radius;
       unsigned int neighborhoodSize = 1;
@@ -1696,28 +1789,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             {
             if( priorProbabilityImage )
               {
-              vnl_vector<RealType> priorProbabilities( this->m_NumberOfClasses );
-              for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-                {
-                priorProbabilities[n] =
-                  this->GetPriorProbabilityImage( n + 1 )->GetPixel( ItO.GetIndex() );
-                }
-              RealType maxValue = priorProbabilities.max_value();
-              if( vnl_math_abs( maxValue - 1.0
-                                / static_cast<RealType>( this->m_NumberOfClasses ) <= 1e-5 ) )
-                {
-                priorProbability = 0.0;
-                }
-              else
-                {
-                priorProbability = priorProbabilityImage->GetPixel( ItO.GetIndex() );
-                }
+              priorProbability = priorProbabilityImage->GetPixel( ItO.GetIndex() );
               }
-            if( priorProbability == 0.0 && distancePriorProbabilityImage )
+            if( priorProbability <= this->m_PriorProbabilityThreshold &&
+                distancePriorProbabilityImage )
               {
               priorProbability = distancePriorProbabilityImage->GetPixel( ItO.GetIndex() );
               }
-            if( priorProbability == 0.0 )
+            if( priorProbability <= this->m_PriorProbabilityThreshold )
               {
               priorProbability = 1.0;
               }
@@ -2277,6 +2356,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       {
       probabilityImage = const_cast<RealImageType *>(
           this->GetPriorProbabilityImage( whichClass ) );
+//       if( this->m_MinimizeMemoryUsage )
+//         {
+//         probabilityImage->UnRegister();
+//         }
       }
     else
       {
@@ -2389,7 +2472,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   os << indent << "Minimize memory usage:";
   if( this->m_MinimizeMemoryUsage )
     {
-    os << " true" << std::endl;
+    os << " true";
+    if( this->m_MinimizeMemoryUsage &&
+        this->m_InitializationStrategy == PriorProbabilityImages )
+      {
+      os << " (prior probability threshold = "
+         << this->m_PriorProbabilityThreshold << ")" << std::endl;
+      }
+    os << std::endl;
     }
   else
     {
