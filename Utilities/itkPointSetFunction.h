@@ -128,11 +128,7 @@ private:
   namespace Templates { typedef PointSetFunction<ITK_TEMPLATE_3 x> PointSetFunction##y; } \
   }
 
-#if ITK_TEMPLATE_EXPLICIT
-#include "Templates/itkPointSetFunction+-.h"
-#endif
-
-#if ITK_TEMPLATE_TXX
+#ifndef ITK_MANUAL_INSTANTIATION
 #include "itkPointSetFunction.txx"
 #endif
 
