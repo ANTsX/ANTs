@@ -238,7 +238,9 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       affine_opt.MI_samples = mi_option[1];
       temp = this->m_Parser->GetOption( "rigid-affine" )->GetValue();
       std::string temp2 = this->m_Parser->GetOption( "do-rigid" )->GetValue();
-      affine_opt.is_rigid = ( (temp == "true")  || (temp2 == "true")  );
+      affine_opt.is_rigid = (
+          ( temp == "true" )  || ( temp2 == "true" ) ||
+          ( temp == "1" ) || ( temp2 == "1" ) );
       temp = this->m_Parser->GetOption( "affine-gradient-descent-option" )->GetValue();
       std::vector<double> gradient_option = this->m_Parser->template ConvertVector<double>(temp);
       affine_opt.maximum_step_length = gradient_option[0];
