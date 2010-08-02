@@ -449,26 +449,6 @@ ADD_TEST(ANTS_SYN_INVERSEWARP_METRIC_1 MeasureImageSimilarity 2 1 ${R64_IMAGE} $
 ADD_TEST(ANTS_SYN_INVERSEWARP_METRIC_2 MeasureImageSimilarity 2 2 ${R64_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.000444279 0.05)
 
 ###
-#  ANTS labeled data testing
-###
-
-ADD_TEST(ANTS_PSE_MSQ_IMG ANTS 2 -i 191x170x90x90x10  -r Gauss[6,0.25] -t SyN[1,2,0.1]
-                             -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE},${ANGEL_IMAGE},0.25,0.1,100,0,10]
-                             -m MSQ[${DEVIL_IMAGE},${ANGEL_IMAGE},1,0.1]
-                              --continue-affine 0 --number-of-affine-iterations 0 --geodesic 2
-                             -o ${OUTPUT_PREFIX}.nii.gz)
-ADD_TEST(ANTS_PSE_MSQ_IMG_WARP WarpImageMultiTransform 2 ${ANGEL_IMAGE} ${WARP_IMAGE} ${WARP} -R  ${DEVIL_IMAGE} )
-ADD_TEST(ANTS_PSE_JPG  ConvertToJpg ${WARP_IMAGE} ANTSPSE.jpg)
-ADD_TEST(ANTS_PSE_MSQ_IMG_WARP_METRIC_0 MeasureImageSimilarity 2 0 ${DEVIL_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz 0.0116083 0.05)
-ADD_TEST(ANTS_PSE_MSQ_IMG_WARP_METRIC_1 MeasureImageSimilarity 2 1 ${DEVIL_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.884041 0.05)
-ADD_TEST(ANTS_PSE_MSQ_IMG_WARP_METRIC_2 MeasureImageSimilarity 2 2 ${DEVIL_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.000710551 0.05)
-ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP WarpImageMultiTransform 2 ${DEVIL_IMAGE} ${INVERSEWARP_IMAGE} ${INVERSEWARP} -R  ${ANGEL_IMAGE}  )
-ADD_TEST(ANTS_PSE_JPGINV  ConvertToJpg ${INVERSEWARP_IMAGE} ANTSPSEINV.jpg)
-ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP_METRIC_0 MeasureImageSimilarity 2 0 ${ANGEL_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz 0.0109054 0.05)
-ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP_METRIC_1 MeasureImageSimilarity 2 1 ${ANGEL_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.901632 0.05)
-ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP_METRIC_2 MeasureImageSimilarity 2 2 ${ANGEL_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.000704717 0.05)
-
-###
 # PSE sub-tests:  Check to see if .txt files and .vtk files also run correctly
 ###
 
@@ -487,6 +467,29 @@ ADD_TEST(ANTS_PSE_MSQ_VTK ANTS 2 -i 91x70x55x40x30  -r Gauss[3,0.,32] -t SyN[0.2
                                  -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE_VTK},${ANGEL_IMAGE_VTK},1,0.33,11,1,25]
                                  --continue-affine 0 --number-of-affine-iterations 0
                                  -o ${OUTPUT_PREFIX}.nii.gz)
+
+###
+#  ANTS labeled data testing
+###
+OPTION(RUN_LONG_TESTS "Run the time consuming tests." OFF )
+IF(RUN_LONG_TESTS)
+
+ADD_TEST(ANTS_PSE_MSQ_IMG ANTS 2 -i 191x170x90x90x10  -r Gauss[6,0.25] -t SyN[1,2,0.1]
+                             -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE},${ANGEL_IMAGE},0.25,0.1,100,0,10]
+                             -m MSQ[${DEVIL_IMAGE},${ANGEL_IMAGE},1,0.1]
+                              --continue-affine 0 --number-of-affine-iterations 0 --geodesic 2
+                             -o ${OUTPUT_PREFIX}.nii.gz)
+ADD_TEST(ANTS_PSE_MSQ_IMG_WARP WarpImageMultiTransform 2 ${ANGEL_IMAGE} ${WARP_IMAGE} ${WARP} -R  ${DEVIL_IMAGE} )
+ADD_TEST(ANTS_PSE_JPG  ConvertToJpg ${WARP_IMAGE} ANTSPSE.jpg)
+ADD_TEST(ANTS_PSE_MSQ_IMG_WARP_METRIC_0 MeasureImageSimilarity 2 0 ${DEVIL_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz 0.0116083 0.05)
+ADD_TEST(ANTS_PSE_MSQ_IMG_WARP_METRIC_1 MeasureImageSimilarity 2 1 ${DEVIL_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.884041 0.05)
+ADD_TEST(ANTS_PSE_MSQ_IMG_WARP_METRIC_2 MeasureImageSimilarity 2 2 ${DEVIL_IMAGE} ${WARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.000710551 0.05)
+ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP WarpImageMultiTransform 2 ${DEVIL_IMAGE} ${INVERSEWARP_IMAGE} ${INVERSEWARP} -R  ${ANGEL_IMAGE}  )
+ADD_TEST(ANTS_PSE_JPGINV  ConvertToJpg ${INVERSEWARP_IMAGE} ANTSPSEINV.jpg)
+ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP_METRIC_0 MeasureImageSimilarity 2 0 ${ANGEL_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz 0.0109054 0.05)
+ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP_METRIC_1 MeasureImageSimilarity 2 1 ${ANGEL_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.901632 0.05)
+ADD_TEST(ANTS_PSE_MSQ_IMG_INVERSEWARP_METRIC_2 MeasureImageSimilarity 2 2 ${ANGEL_IMAGE} ${INVERSEWARP_IMAGE} ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz -0.000704717 0.05)
+
 
 ###
 #  ANTS images with non-trival rotation header test
@@ -549,3 +552,5 @@ SET(R16_PRIORS ${DATA_DIR}/r16priors.nii.gz)
 #ADD_TEST(APOC_OTSU_INIT_RADIUS_2x2 Apocrita 2 -i otsu[${R16_IMAGE},3] -x ${R16_MASK} -n 10 -m [0.3,2,0.2,0.1] -o ${OUTPUT_PREFIX}.nii.gz )
 #ADD_TEST(APOC_KMEANS_INIT Apocrita 2 -i kmeans[${R16_IMAGE},3] -x ${R16_MASK} -n 10 -m [0.3,1x1,0.2,0.1] -o [${OUTPUT_PREFIX}.nii.gz,${OUTPUT_PREFIX}_posteriors%d.nii.gz])
 #ADD_TEST(APOC_PRIORLABELIMAGE_INIT Apocrita 2 -i priorlabelimage[${R16_IMAGE},5,${R16_PRIORS},0.5] -x ${R16_MASK} -n 10 -m [0.3,1x1,0.2,0.1] -o [${OUTPUT_PREFIX}.nii.gz,${OUTPUT_PREFIX}_posteriors%d.nii.gz] -l 1[1,0.75] -l 2[1,1.0] -l 3[0.5,0.5] -l 4[1,1])
+
+ENDIF(RUN_LONG_TESTS)
