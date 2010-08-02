@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 2.4)
+
+if(COMMAND cmake_policy)
+       cmake_policy(SET CMP0003 NEW)
+endif(COMMAND cmake_policy)
+
 #Change PROJECT_NAME to the name of your project
 PROJECT(ANTS)
 
@@ -41,6 +46,7 @@ IF (USE_ITK_FILE)
   INCLUDE(${USE_ITK_FILE})
 ENDIF(USE_ITK_FILE)
 
+SET(DART_TESTING_TIMEOUT 1500)
 
 SET(PICSL_INCLUDE_DIRS
 ../Utilities
