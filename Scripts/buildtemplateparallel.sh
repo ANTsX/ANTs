@@ -566,11 +566,11 @@ nargs=$#
 
 MAXITERATIONS=30x90x20
 LABELIMAGE=0 # initialize optional parameter
-METRICTYPE="PR" # initialize optional parameter
+METRICTYPE=CC # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
 N3CORRECT=1 # initialize optional parameter
 DOQSUB=1 # By default, buildtemplateparallel tries to do things in parallel
-GRADIENTSTEP="0.25" # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
+GRADIENTSTEP=0.25 # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
 ITERATIONLIMIT=4
 CORES=2
 TDIM=0
@@ -652,6 +652,14 @@ while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
       ;;
   esac
 done
+
+if [ $DOQSUB -eq 1 ] ; then
+  qq=`which  qsub`
+  if [  ${#qq} -lt 1 ] ; then
+    echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
+    exit
+  fi
+fi
 
 # Provide different output for Usage and Help
 if [ ${TDIM} -eq 4 ] && [ $nargs -lt 5 ]
@@ -769,7 +777,7 @@ for FLE in $ANTSSCRIPTNAME $PEXEC $SGE
   fi
 done
 
-
+# exit
 # check for an initial template image and perform rigid body registration if requested
 if [ ! -s $REGTEMPLATE ]
     then
@@ -777,9 +785,7 @@ if [ ! -s $REGTEMPLATE ]
     echo "--------------------------------------------------------------------------------------"
     echo " No initial template exists. Creating a population average image from the inputs."
     echo "--------------------------------------------------------------------------------------"
-    ${ANTSPATH}AverageImages $DIM populationmean.nii.gz 1 $IMAGESETVARIABLE
-    cp populationmean.nii.gz $TEMPLATE
-
+    ${ANTSPATH}AverageImages $DIM $TEMPLATE 1 $IMAGESETVARIABLE
 else
     echo
     echo "--------------------------------------------------------------------------------------"
@@ -791,6 +797,10 @@ else
 fi
 
 
+if [ ! -s $TEMPLATE ] ; then
+  echo Your template : $TEMPLATE was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting.
+  exit
+fi
 # remove old job bash scripts
 rm -f job*.sh
 
@@ -819,11 +829,6 @@ if [ "$RIGID" -eq 1 ] ;
       echo "$exe2" >> $qscript
 
       if [ $DOQSUB -eq 1 ] ; then
-          qq=`which  qsub`
-          if [  ${#qq} -lt 1 ] ; then
-	   echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
-           exit
-          fi
 	  id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
 	  jobIDs="$jobIDs $id"
 	  sleep 0.5
