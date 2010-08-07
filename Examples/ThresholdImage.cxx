@@ -289,6 +289,11 @@ int main( int argc, char * argv[] )
       ThresholdImage<3>(argc, argv);
       }
       break;
+    case 4:
+      {
+      ThresholdImage<4>(argc, argv);
+      }
+      break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
       exit( EXIT_FAILURE );

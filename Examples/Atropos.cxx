@@ -1139,6 +1139,8 @@ int main( int argc, char *argv[] )
     dimension = imageIO->GetNumberOfDimensions();
     }
 
+  std::cout << " dimension " << dimension << std::endl;
+
   switch( dimension )
     {
     case 2:
@@ -1146,6 +1148,9 @@ int main( int argc, char *argv[] )
       break;
     case 3:
       AtroposSegmentation<3>( parser );
+      break;
+    case 4:
+      AtroposSegmentation<4>( parser );
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
