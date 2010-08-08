@@ -789,6 +789,20 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
+      std::string( "This option forces the image to be treated as a specified-" )
+      + std::string( "dimensional image.  If not specified, Atropos tries to " )
+      + std::string( "infer the dimensionality from the first input image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "image-dimensionality" );
+    option->SetShortName( 'd' );
+    option->SetUsageOption( 0, "2/3/4" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
       std::string( "One or more scalar images is specified for segmentation " )
       + std::string( "using the -a/--intensity-image option.  For segmentation " )
       + std::string( "scenarios with no prior information, the first scalar " )
@@ -1037,20 +1051,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "label-propagation" );
     option->SetShortName( 'l' );
     option->SetUsageOption( 0, "whichLabel[sigma=0.0,<boundaryProbability=1.0>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description =
-      std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, Atropos tries to " )
-      + std::string( "infer the dimensionality from the input image." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "image-dimensionality" );
-    option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "2/3/4" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
