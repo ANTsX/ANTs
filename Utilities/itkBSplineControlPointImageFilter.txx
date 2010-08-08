@@ -217,7 +217,7 @@ BSplineControlPointImageFilter<TInputPointImage, TOutputImage>
   itkDebugMacro( "Setting m_SplineOrder to " << order );
 
   this->m_SplineOrder = order;
-  for( int i = 0; i < ImageDimension; i++ )
+  for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     if( this->m_SplineOrder[i] == 0 )
       {
@@ -496,14 +496,14 @@ BSplineControlPointImageFilter<InputImage, TOutputImage>
 {
   typename ControlPointLatticeType::Pointer
   collapsedPhiLattices[ImageDimension + 1];
-  for( int i = 0; i < ImageDimension; i++ )
+  for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     collapsedPhiLattices[i] = ControlPointLatticeType::New();
     collapsedPhiLattices[i]->SetOrigin( this->GetInput()->GetOrigin() );
     collapsedPhiLattices[i]->SetSpacing( this->GetInput()->GetSpacing() );
     typename ControlPointLatticeType::SizeType size;
     size.Fill( 1 );
-    for( int j = 0; j < i; j++ )
+    for( unsigned int j = 0; j < i; j++ )
       {
       size[j] = this->GetInput()->GetLargestPossibleRegion().GetSize()[j];
       }
