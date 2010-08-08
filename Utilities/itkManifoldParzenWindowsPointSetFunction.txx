@@ -44,7 +44,7 @@ ManifoldParzenWindowsPointSetFunction<TPointSet, TOutput, TCoordRep>
   this->m_UseAnisotropicCovariances = true;
 
   this->m_Randomizer = RandomizerType::New();
-  this->m_Randomizer->SetSeed( static_cast<ITK_UINT32>(0) );
+  this->m_Randomizer->SetSeed();
 }
 
 template <class TPointSet, class TOutput, class TCoordRep>
