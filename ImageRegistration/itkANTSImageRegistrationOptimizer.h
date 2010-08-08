@@ -363,7 +363,7 @@ public:
     typename ExpanderType::Pointer m_FieldExpander = ExpanderType::New();
     m_FieldExpander->SetInput(this->m_TimeVaryingVelocity);
     m_FieldExpander->SetExpandFactors( expandFactors );
-    m_FieldExpander->SetEdgePaddingValue( pad );
+//        m_FieldExpander->SetEdgePaddingValue( pad );
     m_FieldExpander->UpdateLargestPossibleRegion();
     return m_FieldExpander->GetOutput();
   }
@@ -392,7 +392,7 @@ public:
     m_FieldExpander->SetInput(field);
     m_FieldExpander->SetExpandFactors( expandFactors );
     // use default
-    m_FieldExpander->SetEdgePaddingValue( pad );
+//        m_FieldExpander->SetEdgePaddingValue( pad );
     m_FieldExpander->UpdateLargestPossibleRegion();
 
     typename DeformationFieldType::Pointer fieldout = m_FieldExpander->GetOutput();
