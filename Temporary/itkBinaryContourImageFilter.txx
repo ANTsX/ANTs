@@ -117,10 +117,10 @@ BinaryContourImageFilter<TInputImage, TOutputImage>
   ProgressReporter progress(this, threadId, linecountForThread * 2);
 
   // find the split axis
-  IndexType outputRegionIdx = output->GetRequestedRegion().GetIndex();
-  IndexType outputRegionForThreadIdx = outputRegionForThread.GetIndex();
-  int       splitAxis = 0;
-  for( int i = 0; i < ImageDimension; i++ )
+  IndexType    outputRegionIdx = output->GetRequestedRegion().GetIndex();
+  IndexType    outputRegionForThreadIdx = outputRegionForThread.GetIndex();
+  unsigned int splitAxis = 0;
+  for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     if( outputRegionIdx[i] != outputRegionForThreadIdx[i] )
       {
