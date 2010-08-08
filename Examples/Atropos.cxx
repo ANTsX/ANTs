@@ -51,7 +51,7 @@ public:
       return;
       }
 
-    std::cout << "Iteration " << filter->GetElapsedIterations()
+    std::cout << "  Iteration " << filter->GetElapsedIterations()
               << " (of " << filter->GetMaximumNumberOfIterations() << "): ";
     std::cout << filter->GetCurrentConvergenceMeasurement()
               << " (threshold = " << filter->GetConvergenceThreshold()
@@ -144,6 +144,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         }
       segmenter->SetPriorProbabilityWeight( parser->Convert<float>(
                                               initializationOption->GetParameter( 2 ) ) );
+      if( initializationOption->GetNumberOfParameters() > 3 )
+        {
+        segmenter->SetPriorProbabilityThreshold( parser->Convert<float>(
+                                                   initializationOption->GetParameter( 3 ) ) );
+        }
 
       std::string filename = initializationOption->GetParameter( 1 );
 
@@ -638,6 +643,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 
   try
     {
+    std::cout << std::endl << "Progress: " << std::endl;
+
     segmenter->Update();
     }
   catch( itk::ExceptionObject exp )
@@ -649,6 +656,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
+  std::cout << std::endl << "Writing output:" << std::endl;
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfValues() > 0 )
@@ -682,7 +690,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < imageNames.size(); i++ )
         {
-        std::cout << "Writing posterior image (class " << i + 1 << ")"
+        std::cout << "  Writing posterior image (class " << i + 1 << ")"
                   << std::endl;
         typename InputImageType::Pointer probabilityImage
           = segmenter->GetPosteriorProbabilityImage( i + 1 );
@@ -723,7 +731,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
             segmenter->GetPriorLabelImage() )
           {
-          std::cout << "Writing B-spline image (class " << i + 1 << ")"
+          std::cout << "  Writing B-spline image (class " << i + 1 << ")"
                     << std::endl;
 
           typename InputImageType::Pointer bsplineImage = segmenter->
@@ -753,7 +761,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
             segmenter->GetPriorLabelImage() )
           {
-          std::cout << "Writing distance image (class " << i + 1 << ")"
+          std::cout << "  Writing distance image (class " << i + 1 << ")"
                     << std::endl;
 
           typename InputImageType::Pointer distanceImage = segmenter->
@@ -769,7 +777,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       }
     }
 
-  segmenter->Print( std::cout, 5 );
+  std::cout << std::endl;
+  segmenter->Print( std::cout, 2 );
 
   return EXIT_SUCCESS;
 }
@@ -1139,7 +1148,8 @@ int main( int argc, char *argv[] )
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  std::cout << " dimension " << dimension << std::endl;
+  std::cout << std::endl << "Running Atropos for "
+            << dimension << "-dimensional images." << std::endl;
 
   switch( dimension )
     {
