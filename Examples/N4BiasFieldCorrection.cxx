@@ -62,7 +62,7 @@ public:
 };
 
 template <unsigned int ImageDimension>
-int InhomogeneityCorrectImage( itk::ants::CommandLineParser *parser )
+int N4( itk::ants::CommandLineParser *parser )
 {
   typedef float RealType;
 
@@ -490,96 +490,175 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
     {
-    std::string description = std::string( "inputImage" );
+    std::string description =
+      std::string( "This option forces the image to be treated as a specified-" )
+      + std::string( "dimensional image.  If not specified, N4 tries to " )
+      + std::string( "infer the dimensionality from the input image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "image-dimensionality" );
+    option->SetShortName( 'd' );
+    option->SetUsageOption( 0, "2/3/4" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "A scalar image is expected as input for bias correction.  " )
+      + std::string( "Since N4 log transforms the intensities, negative values " )
+      + std::string( "or values close to zero should be processed prior to " )
+      + std::string( "correction." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "input-image" );
     option->SetShortName( 'i' );
+    option->SetUsageOption( 0, "inputImageFilename" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "maskImage" );
+    std::string description =
+      std::string( "If a mask image is specified, the final bias correction is " )
+      + std::string( "only performed in the mask region.  If a weight image is not " )
+      + std::string( "specified, only intensity values inside the masked region are " )
+      + std::string( "used during the execution of the algorithm.  If a weight " )
+      + std::string( "image is specified, only the non-zero weights are used in the " )
+      + std::string( "execution of the algorithm although the mask region defines " )
+      + std::string( "where bias correction is performed in the final output. " )
+      + std::string( "Otherwise bias correction occurs over the entire image domain. " )
+      + std::string( "See also the option description for the weight image." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mask-image" );
     option->SetShortName( 'x' );
+    option->SetUsageOption( 0, "maskImageFilename" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "weightImage" );
+    std::string description =
+      std::string( "The weight image allows the user to perform a relative " )
+      + std::string( "weighting of specific voxels during the B-spline fitting. " )
+      + std::string( "For example, some studies have shown that N3 performed on " )
+      + std::string( "white matter segmentations improves performance.  If one " )
+      + std::string( "has a spatial probability map of the white matter, one can " )
+      + std::string( "use this map to weight the b-spline fitting towards those " )
+      + std::string( "voxels which are more probabilistically classified as white " )
+      + std::string( "matter.  See also the option description for the mask image." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "weight-image" );
+    option->SetUsageOption( 0, "weightImageFilename" );
     option->SetShortName( 'w' );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "shrinkFactor" );
+    std::string description =
+      std::string( "Running N4 on large images can be time consuming. " )
+      + std::string( "To lessen computation time, the input image can be resampled. " )
+      + std::string( "The shrink factor, specified as a single integer, describes " )
+      + std::string( "this resampling.  Shrink factors <= 4 are commonly used." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "shrink-factor" );
     option->SetShortName( 's' );
+    option->SetUsageOption( 0, "1/2/3/4/..." );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
     std::string description =
-      std::string( "[<numberOfIterations>,<convergenceThreshold>]" );
+      std::string( "Convergence is determined by calculating the coefficient of " )
+      + std::string( "variation between subsequent iterations. When this value " )
+      + std::string( "is less than the specified threshold " )
+      + std::string( "from the previous iteration or the maximum number of " )
+      + std::string( "iterations is exceeded the program terminates.  Multiple " )
+      + std::string( "resolutions can be specified by using 'x' between the number " )
+      + std::string( "of iterations at each resolution, e.g. 100x50x50." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "convergence" );
     option->SetShortName( 'c' );
+    option->SetUsageOption( 0, "[<numberOfIterations=50>,<convergenceThreshold=0.001>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
     std::string description =
-      std::string( "[<initialMeshResolution> or " )
-      + std::string( "<splineDistance>,<splineOrder>," )
-      + std::string( "<sigmoidAlpha>,<sigmoidBeta>]" );
+      std::string( "These options describe the b-spline fitting parameters. " )
+      + std::string( "The initial b-spline mesh at the coarsest resolution is " )
+      + std::string( "specified either as the number of elements in each dimension, " )
+      + std::string( "e.g. 2x2x3 for 3-D images, or it can be specified as a " )
+      + std::string( "single scalar parameter which describes the isotropic sizing " )
+      + std::string( "of the mesh elements. The latter option is typically preferred. " )
+      + std::string( "For each subsequent level, the spline distance decreases in " )
+      + std::string( "half, or equivalently, the number of mesh elements doubles " )
+      + std::string( "Cubic splines (order = 3) are typically used.  The final " )
+      + std::string( "two parameters are experimental and really do not need to " )
+      + std::string( "be used for good performance." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "bspline-fitting" );
     option->SetShortName( 'b' );
+    option->SetUsageOption( 0,
+                            "[splineDistance,<splineOrder=3>,<sigmoidAlpha=0.0>,<sigmoidBeta=0.5>]" );
+    option->SetUsageOption( 1,
+                            "[initialMeshResolution,<splineOrder=3>,<sigmoidAlpha=0.0>,<sigmoidBeta=0.5>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
     std::string description =
-      std::string( "[<FWHM>,<wienerNoise>,<numberOfHistogramBins>]" );
+      std::string( "These options describe the histogram sharpening parameters, " )
+      + std::string( "i.e. the deconvolution step parameters described in the " )
+      + std::string( "original N3 algorithm.  The default values have been shown " )
+      + std::string( "to work fairly well." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "histogram-sharpening" );
     option->SetShortName( 't' );
+    option->SetUsageOption( 0, "[<FWHM=0.15>,<wienerNoise=0.01>,<numberOfHistogramBins=200>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "[correctedImage,<biasField>]" );
+    std::string description =
+      std::string( "The output consists of the bias corrected version of the " )
+      + std::string( "input image.  Optionally, one can also output the estimated " )
+      + std::string( "bias field." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
+    option->SetUsageOption( 0, "[correctedImage,<biasField>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-    std::string description = std::string( "Print menu." );
+    std::string description = std::string( "Print the help menu (short version)." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName( 'h' );
+    option->SetDescription( description );
+    option->AddValue( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Print the help menu." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
-    option->SetShortName( 'h' );
     option->SetDescription( description );
     option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
@@ -588,35 +667,94 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 int main( int argc, char *argv[] )
 {
-  if( argc < 2 )
-    {
-    std::cout << "Usage: " << argv[0]
-              << " imageDimension args" << std::endl;
-    exit( 1 );
-    }
+  itk::ants::CommandLineParser::Pointer parser =
+    itk::ants::CommandLineParser::New();
 
-  itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
   parser->SetCommand( argv[0] );
 
-  parser->SetCommandDescription( "N4 bias correction." );
+  std::string commandDescription =
+    std::string( "N4 is a variant of the popular N3 (nonparameteric nonuniform " )
+    + std::string( "normalization) retrospective bias correction algorithm. Based " )
+    + std::string( "on the assumption that the corruption of the low frequency bias " )
+    + std::string( "field can be modeled as a convolution of the intensity histogram " )
+    + std::string( "by a Gaussian, the basic algorithmic protocol is to iterate " )
+    + std::string( "between deconvolving the intensity histogram by a Gaussian, " )
+    + std::string( "remapping the intensities, and then spatially smoothing this " )
+    + std::string( "result by a B-spline modeling of the bias field itself. "  )
+    + std::string( "The modifications from and improvements obtained over " )
+    + std::string( "the original N3 algorithm in the following paper:  " )
+    + std::string( "N. Tustison et al., N4ITK:  Improved N3 Bias Correction, " )
+    + std::string( "IEEE Transactions on Medical Imaging, 29(6):1310-1320, June 2010." );
+
+  parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
 
-  if( argc < 3 || parser->Convert<bool>(
+  if( argc < 2 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetValue() ) )
     {
-    parser->PrintMenu( std::cout, 5 );
+    parser->PrintMenu( std::cout, 5, false );
+    exit( EXIT_FAILURE );
+    }
+  else if( parser->Convert<bool>(
+             parser->GetOption( 'h' )->GetValue() ) )
+    {
+    parser->PrintMenu( std::cout, 5, true );
     exit( EXIT_FAILURE );
     }
 
-  switch( atoi( argv[1] ) )
+  // Get dimensionality
+  unsigned int dimension = 3;
+
+  itk::ants::CommandLineParser::OptionType::Pointer dimOption =
+    parser->GetOption( "image-dimensionality" );
+  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+    {
+    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    }
+  else
+    {
+    // Read in the first intensity image to get the image dimension.
+    std::string filename;
+
+    itk::ants::CommandLineParser::OptionType::Pointer imageOption =
+      parser->GetOption( "input-image" );
+    if( imageOption && imageOption->GetNumberOfValues() > 0 )
+      {
+      if( imageOption->GetNumberOfParameters( 0 ) > 0 )
+        {
+        filename = imageOption->GetParameter( 0, 0 );
+        }
+      else
+        {
+        filename = imageOption->GetValue( 0 );
+        }
+      }
+    else
+      {
+      std::cerr << "No input images were specified.  Specify an input image"
+                << " with the -i option" << std::endl;
+      return EXIT_FAILURE;
+      }
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
+        filename.c_str(), itk::ImageIOFactory::ReadMode );
+    dimension = imageIO->GetNumberOfDimensions();
+    }
+
+  std::cout << std::endl << "Running N4 for "
+            << dimension << "-dimensional images." << std::endl << std::endl;
+
+  switch( dimension )
     {
     case 2:
-      InhomogeneityCorrectImage<2>( parser );
+      N4<2>( parser );
       break;
     case 3:
-      InhomogeneityCorrectImage<3>( parser );
+      N4<3>( parser );
+      break;
+    case 4:
+      N4<4>( parser );
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
