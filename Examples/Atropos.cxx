@@ -900,7 +900,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "posterior probability over the region of interest at " )
       + std::string( "each iteration. When this value decreases or increases " )
       + std::string( "less than the specified threshold from the previous " )
-      + std::string( "iteration the program terminates.");
+      + std::string( "iteration or the maximum number of iterations is exceeded " )
+      + std::string( "the program terminates.");
 
 //     std::string( "\t  Usage: \n" ) +
 //     std::string( "\t    [<numberOfIterations=5>,<convergenceThreshold=0.001>]" );
