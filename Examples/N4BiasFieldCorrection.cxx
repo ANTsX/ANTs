@@ -682,7 +682,7 @@ int main( int argc, char *argv[] )
     + std::string( "remapping the intensities, and then spatially smoothing this " )
     + std::string( "result by a B-spline modeling of the bias field itself. "  )
     + std::string( "The modifications from and improvements obtained over " )
-    + std::string( "the original N3 algorithm in the following paper:  " )
+    + std::string( "the original N3 algorithm are described in the following paper:  " )
     + std::string( "N. Tustison et al., N4ITK:  Improved N3 Bias Correction, " )
     + std::string( "IEEE Transactions on Medical Imaging, 29(6):1310-1320, June 2010." );
 
