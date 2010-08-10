@@ -274,7 +274,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cerr << "No mask images was specified.  Specify a mask image"
+    std::cerr << "An image mask is required.  Specify a mask image"
               << " with the -x option." << std::endl;
     return EXIT_FAILURE;
     }
@@ -883,8 +883,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "The image mask defines the region which is to be labeled by " )
-      + std::string( "the Atropos algorithm." );
+      std::string( "The image mask (which is required) defines the region which " )
+      + std::string( "is to be labeled by the Atropos algorithm." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mask-image" );
