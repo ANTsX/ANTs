@@ -57,7 +57,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 
   if( !this->m_ListSample )
     {
-    itkExceptionMacro( "Attempting to set the input list sample to NULL." );
+    return;
     }
 
   if( this->m_ListSample->Size() <= 1 )
@@ -195,32 +195,34 @@ TOutput
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
 {
-  if( this->m_ListSample->Size() <= 1 )
+  try
+    {
+    typedef BSplineInterpolateImageFunction<HistogramImageType> InterpolatorType;
+
+    RealType probability = 1.0;
+    for( unsigned int d = 0; d < this->m_HistogramImages.size(); d++ )
+      {
+      typename HistogramImageType::PointType point;
+      point[0] = measurement[d];
+
+      typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+      interpolator->SetSplineOrder( 3 );
+      interpolator->SetInputImage( this->m_HistogramImages[d] );
+      if( interpolator->IsInsideBuffer( point ) )
+        {
+        probability *= interpolator->Evaluate( point );
+        }
+      else
+        {
+        return 0;
+        }
+      }
+    return probability;
+    }
+  catch( ... )
     {
     return 0;
     }
-
-  typedef BSplineInterpolateImageFunction<HistogramImageType> InterpolatorType;
-
-  RealType probability = 1.0;
-  for( unsigned int d = 0; d < this->m_HistogramImages.size(); d++ )
-    {
-    typename HistogramImageType::PointType point;
-    point[0] = measurement[d];
-
-    typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-    interpolator->SetSplineOrder( 3 );
-    interpolator->SetInputImage( this->m_HistogramImages[d] );
-    if( interpolator->IsInsideBuffer( point ) )
-      {
-      probability *= interpolator->Evaluate( point );
-      }
-    else
-      {
-      return 0;
-      }
-    }
-  return probability;
 }
 
 /**

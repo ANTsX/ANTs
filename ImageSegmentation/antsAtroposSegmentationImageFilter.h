@@ -374,7 +374,7 @@ private:
     k[0] = 1;
     for( unsigned int i = 1; i < ImageDimension; i++ )
       {
-      k[i] = size[ImageDimension - i - 1] * k[i - 1];
+      k[i] = size[i - 1] * k[i - 1];
       }
     typename RealImageType::IndexType index;
     for( unsigned int i = 0; i < ImageDimension; i++ )
@@ -389,13 +389,17 @@ private:
   inline unsigned long IndexToNumber( typename RealImageType::IndexType k,
                                       const typename RealImageType::SizeType size ) const
   {
-    unsigned long number = 1;
+    unsigned long number = k[0];
 
     for( unsigned int i = 1; i < ImageDimension; i++ )
       {
-      number *= size[ImageDimension - i - 1] * k[ImageDimension - i];
+      unsigned long s = 1;
+      for( unsigned int j = 0; j < i; j++ )
+        {
+        s *= size[j];
+        }
+      number += s * k[i];
       }
-    number += k[0];
     return number;
   }
 };

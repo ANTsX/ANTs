@@ -55,7 +55,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 
   if( !this->m_ListSample )
     {
-    itkExceptionMacro( "Attempting to set the input list sample to NULL." );
+    return;
     }
 
   if( this->m_ListSample->Size() <= 1 )
@@ -192,38 +192,40 @@ TOutput
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
 {
-  if( this->m_ListSample->Size() <= 1 )
+  try
+    {
+    unsigned int numberOfNeighbors = vnl_math_min(
+        this->m_EvaluationKNeighborhood,
+        static_cast<unsigned int>( this->m_Gaussians.size() ) );
+
+    OutputType sum = 0.0;
+
+    if( numberOfNeighbors == this->m_Gaussians.size() )
+      {
+      for( unsigned int j = 0; j < this->m_Gaussians.size(); j++ )
+        {
+        sum += static_cast<OutputType>(
+            this->m_Gaussians[j]->Evaluate( measurement ) );
+        }
+      }
+    else
+      {
+      typename TreeGeneratorType::KdTreeType
+      ::InstanceIdentifierVectorType neighbors;
+      this->m_KdTreeGenerator->GetOutput()->Search( measurement,
+                                                    numberOfNeighbors, neighbors );
+      for( unsigned int j = 0; j < numberOfNeighbors; j++ )
+        {
+        sum += static_cast<OutputType>(
+            this->m_Gaussians[neighbors[j]]->Evaluate( measurement ) );
+        }
+      }
+    return static_cast<OutputType>( sum / this->m_NormalizationFactor );
+    }
+  catch( ... )
     {
     return 0;
     }
-
-  unsigned int numberOfNeighbors = vnl_math_min(
-      this->m_EvaluationKNeighborhood,
-      static_cast<unsigned int>( this->m_Gaussians.size() ) );
-
-  OutputType sum = 0.0;
-
-  if( numberOfNeighbors == this->m_Gaussians.size() )
-    {
-    for( unsigned int j = 0; j < this->m_Gaussians.size(); j++ )
-      {
-      sum += static_cast<OutputType>(
-          this->m_Gaussians[j]->Evaluate( measurement ) );
-      }
-    }
-  else
-    {
-    typename TreeGeneratorType::KdTreeType
-    ::InstanceIdentifierVectorType neighbors;
-    this->m_KdTreeGenerator->GetOutput()->Search( measurement,
-                                                  numberOfNeighbors, neighbors );
-    for( unsigned int j = 0; j < numberOfNeighbors; j++ )
-      {
-      sum += static_cast<OutputType>(
-          this->m_Gaussians[neighbors[j]]->Evaluate( measurement ) );
-      }
-    }
-  return static_cast<OutputType>( sum / this->m_NormalizationFactor );
 }
 
 /**

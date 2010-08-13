@@ -54,7 +54,7 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 
   if( !this->m_ListSample )
     {
-    itkExceptionMacro( "Attempting to set the input list sample to NULL." );
+    return;
     }
 
   if( this->m_ListSample->Size() > 1 )
@@ -112,11 +112,11 @@ TOutput
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::Evaluate( const InputMeasurementVectorType & measurement ) const
 {
-  if( this->m_ListSample->Size() > 1 )
+  try
     {
     return this->m_Gaussian->Evaluate( measurement );
     }
-  else
+  catch( ... )
     {
     return 0.0;
     }
