@@ -1127,7 +1127,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   Array<RealType> sumPosteriors( this->m_NumberOfClasses );
   sumPosteriors.Fill( 0.0 );
 
-  unsigned long totalSampleSize = 0;
+  typename SampleType::Pointer sample = SampleType::New();
+  sample = this->GetScalarSamples();
+  unsigned long totalSampleSize = sample->Size();
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     typename RealImageType::Pointer posteriorProbabilityImage
@@ -1140,13 +1142,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     ImageRegionIterator<RealImageType> ItM( maxPosteriorProbabilityImage,
                                             maxPosteriorProbabilityImage->GetRequestedRegion() );
 
-    typename SampleType::Pointer sample = SampleType::New();
-    sample = this->GetScalarSamples( n + 1 );
-    if( n == 0 )
-      {
-      totalSampleSize = sample->Size();
-      }
-    WeightArrayType weights( sample->Size() );
+    WeightArrayType weights( totalSampleSize );
 
     unsigned long count = 0;
 
@@ -1297,7 +1293,7 @@ template <class TInputImage, class TMaskImage, class TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SamplePointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::GetScalarSamples( unsigned int whichClass )
+::GetScalarSamples()
 {
   /**
    * This function returns a set of samples for each class such that each
