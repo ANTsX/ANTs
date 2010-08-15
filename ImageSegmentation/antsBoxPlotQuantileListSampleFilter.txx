@@ -65,7 +65,7 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
     }
 
   const unsigned int scalarMeasurementVectorSize =
-    this->GetOutput()->GetMeasurementVectorSize();
+    this->GetInput()->GetMeasurementVectorSize();
   this->GetOutput()->SetMeasurementVectorSize( scalarMeasurementVectorSize );
 
   /**
@@ -77,8 +77,12 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
   typedef itk::Statistics::
     SampleToHistogramFilter<ScalarListSampleType, HistogramType>
     SampleFilterType;
+  typename SampleFilterType::HistogramSizeType histogramSize( 1 );
+  histogramSize.Fill( 200 );
+
   typename SampleFilterType::Pointer sampleFilter = SampleFilterType::New();
   sampleFilter->SetInput( this->GetInput() );
+  sampleFilter->SetHistogramSize( histogramSize );
   sampleFilter->Update();
 
   RealType lowerQuantile = sampleFilter->GetOutput()->
@@ -121,6 +125,7 @@ BoxPlotQuantileListSampleFilter<TScalarListSample>
     /** Retabulate the histogram with the outliers removed */
     typename SampleFilterType::Pointer sampleFilter2 = SampleFilterType::New();
     sampleFilter2->SetInput( this->GetOutput() );
+    sampleFilter2->SetHistogramSize( histogramSize );
     sampleFilter2->Update();
 
     RealType lowerQuantile2 = sampleFilter2->GetOutput()->
