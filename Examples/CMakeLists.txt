@@ -217,6 +217,15 @@ TARGET_LINK_LIBRARIES(CopyImageHeaderInformation ITKIO)
 ADD_EXECUTABLE(WarpTimeSeriesImageMultiTransform WarpTimeSeriesImageMultiTransform.cxx)
 TARGET_LINK_LIBRARIES(WarpTimeSeriesImageMultiTransform ITKCommon ITKBasicFilters ITKIO ITKNumerics  ITKStatistics)
 
+ADD_EXECUTABLE(ResampleImage ResampleImage.cxx )
+TARGET_LINK_LIBRARIES(ResampleImage ITKNumerics ITKIO ITKCommon)
+
+ADD_EXECUTABLE(ExtractSliceFromImage ExtractSliceFromImage.cxx )
+TARGET_LINK_LIBRARIES(ExtractSliceFromImage ITKNumerics ITKIO ITKCommon)
+
+ADD_EXECUTABLE(TileImages TileImages.cxx )
+TARGET_LINK_LIBRARIES(TileImages ITKNumerics ITKIO ITKCommon)
+
 
 ADD_EXECUTABLE(WarpTensorImageMultiTransform WarpTensorImageMultiTransform.cxx)
 TARGET_LINK_LIBRARIES(WarpTensorImageMultiTransform ITKCommon ITKBasicFilters ITKIO ITKNumerics  ITKStatistics)
@@ -274,10 +283,10 @@ ENDIF(USE_VTK)
 ADD_EXECUTABLE(ANTSIntegrateVectorField ANTSIntegrateVectorField.cxx)
 TARGET_LINK_LIBRARIES(ANTSIntegrateVectorField ITKIO ITKStatistics)
 
-IF( ITK_USE_REVIEW_STATISTICS )
+#IF( ITK_USE_REVIEW_STATISTICS )
   ADD_EXECUTABLE(Atropos Atropos.cxx ${UI_SOURCES})
   TARGET_LINK_LIBRARIES(Atropos ITKCommon  ITKBasicFilters ITKIO ITKStatistics   )
-ENDIF( ITK_USE_REVIEW_STATISTICS )
+#ENDIF( ITK_USE_REVIEW_STATISTICS )
 
 
 #Set any libraries that your project depends on.
