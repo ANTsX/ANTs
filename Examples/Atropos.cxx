@@ -728,6 +728,30 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         = fileNamesCreator->GetFileNames();
       for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
         {
+        std::cout << "  Writing likelihood image (class " << i + 1 << ")"
+                  << std::endl;
+        typename InputImageType::Pointer likelihoodImage = segmenter->
+          GetLikelihoodImage( i + 1 );
+        typedef  itk::ImageFileWriter<InputImageType> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetInput( likelihoodImage );
+        writer->SetFileName( imageNames[i].c_str() );
+        writer->Update();
+        }
+      }
+    if( outputOption->GetNumberOfParameters() > 3 )
+      {
+      std::string filename = outputOption->GetParameter( 3 );
+
+      itk::NumericSeriesFileNames::Pointer fileNamesCreator =
+        itk::NumericSeriesFileNames::New();
+      fileNamesCreator->SetStartIndex( 1 );
+      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+      fileNamesCreator->SetSeriesFormat( filename.c_str() );
+      const std::vector<std::string> & imageNames
+        = fileNamesCreator->GetFileNames();
+      for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
+        {
         if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
             segmenter->GetPriorLabelImage() )
           {
@@ -745,9 +769,9 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           }
         }
       }
-    if( outputOption->GetNumberOfParameters() > 3 )
+    if( outputOption->GetNumberOfParameters() > 4 )
       {
-      std::string filename = outputOption->GetParameter( 3 );
+      std::string filename = outputOption->GetParameter( 4 );
 
       itk::NumericSeriesFileNames::Pointer fileNamesCreator =
         itk::NumericSeriesFileNames::New();
