@@ -2398,6 +2398,72 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
+typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::RealImageType::Pointer
+AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::GetLikelihoodImage( unsigned int whichClass )
+{
+  typename RealImageType::Pointer likelihoodImage = RealImageType::New();
+  likelihoodImage->SetSpacing( this->GetInput()->GetSpacing() );
+  likelihoodImage->SetOrigin( this->GetInput()->GetOrigin() );
+  likelihoodImage->SetDirection( this->GetInput()->GetDirection() );
+  likelihoodImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  likelihoodImage->Allocate();
+  likelihoodImage->FillBuffer( 0 );
+
+  std::vector<typename RealImageType::Pointer> smoothImages;
+  if( this->m_InitializationStrategy == PriorProbabilityImages ||
+      this->m_InitializationStrategy == PriorLabelImage )
+    {
+    for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
+      {
+      if( this->m_AdaptiveSmoothingWeights.size() > i &&
+          this->m_AdaptiveSmoothingWeights[i] > 0.0 )
+        {
+        smoothImages.push_back(
+          this->CalculateSmoothIntensityImageFromPriorProbabilityImage( i,
+                                                                        whichClass ) );
+        }
+      else
+        {
+        smoothImages.push_back( NULL );
+        }
+      }
+    }
+
+  ImageRegionIteratorWithIndex<RealImageType> It( likelihoodImage,
+                                                  likelihoodImage->GetRequestedRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    if( !this->GetMaskImage() ||
+        this->GetMaskImage()->GetPixel( It.GetIndex() ) == this->m_MaskLabel )
+      {
+      MeasurementVectorType measurement;
+      measurement.SetSize( this->m_NumberOfIntensityImages );
+      for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
+        {
+        measurement[i] =
+          this->GetIntensityImage( i )->GetPixel( It.GetIndex() );
+
+        if( ( this->m_InitializationStrategy == PriorProbabilityImages ||
+              this->m_InitializationStrategy == PriorLabelImage ) &&
+            smoothImages[i] )
+          {
+          measurement[i] = ( 1.0 - this->m_AdaptiveSmoothingWeights[i] )
+            * measurement[i] + this->m_AdaptiveSmoothingWeights[i]
+            * smoothImages[i]->GetPixel( It.GetIndex() );
+          }
+        }
+      RealType likelihood =
+        this->m_MixtureModelComponents[whichClass - 1]->Evaluate( measurement );
+      It.Set( likelihood );
+      }
+    }
+
+  return likelihoodImage;
+}
+
+template <class TInputImage, class TMaskImage, class TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::PrintSelf( std::ostream& os, Indent indent ) const
