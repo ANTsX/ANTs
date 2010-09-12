@@ -1070,7 +1070,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "region.  The former parameter dictates the exponential " )
       + std::string( "decay of probability propagation outside the labeled " )
       + std::string( "region from the boundary probability, i.e. " )
-      + std::string( "boundaryProbability*exp( -distance / sigma^2 )." );
+      + std::string( "boundaryProbability*exp( -distance / sigma )." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "label-propagation" );
