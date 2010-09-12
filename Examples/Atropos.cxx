@@ -953,7 +953,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "likelihood-model" );
     option->SetShortName( 'k' );
     option->SetUsageOption( 0, "Gaussian" );
-    option->SetUsageOption( 1, "HistogramParzenWindows[<Sigma=1.0>,<numberOfBins=32>]" );
+    option->SetUsageOption( 1, "HistogramParzenWindows[<sigma=1.0>,<numberOfBins=32>]" );
     option->SetUsageOption( 2,
                             "ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
     option->SetDescription( description );
@@ -1128,8 +1128,8 @@ int main( int argc, char *argv[] )
     parser->PrintMenu( std::cout, 5, false );
     exit( EXIT_FAILURE );
     }
-  else if( parser->Convert<bool>(
-             parser->GetOption( 'h' )->GetValue() ) )
+  else if( parser->GetOption( 'h' ) &&
+           parser->Convert<bool>( parser->GetOption( 'h' )->GetValue() ) )
     {
     parser->PrintMenu( std::cout, 5, true );
     exit( EXIT_FAILURE );
