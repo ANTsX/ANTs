@@ -2104,19 +2104,19 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             }
           }
 
-        RealType labelSigma = 0.0;
+        RealType labelLambda = 0.0;
         RealType labelBoundaryProbability = 1.0;
 
         typename LabelParameterMapType::iterator it =
           this->m_PriorLabelParameterMap.find( c + 1 );
         if( it != this->m_PriorLabelParameterMap.end() )
           {
-          labelSigma = ( it->second ).first;
+          labelLambda = ( it->second ).first;
           labelBoundaryProbability = ( it->second ).second;
           }
         for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
           {
-          if( labelSigma == 0 )
+          if( labelLambda == 0 )
             {
             if( ItD.Get() <= 0 )
               {
@@ -2130,7 +2130,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           else if( ItD.Get() >= 0 )
             {
             ItD.Set( labelBoundaryProbability
-                     * vcl_exp( -ItD.Get() / labelSigma ) );
+                     * vcl_exp( -labelLambda * ItD.Get() ) );
             }
           else if( ItD.Get() < 0 )
             {
@@ -2321,19 +2321,19 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           }
         }
 
-      RealType labelSigma = 0.0;
+      RealType labelLambda = 0.0;
       RealType labelBoundaryProbability = 1.0;
 
       typename LabelParameterMapType::iterator it =
         this->m_PriorLabelParameterMap.find( whichClass );
       if( it != this->m_PriorLabelParameterMap.end() )
         {
-        labelSigma = ( it->second ).first;
+        labelLambda = ( it->second ).first;
         labelBoundaryProbability = ( it->second ).second;
         }
       for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
-        if( labelSigma == 0 )
+        if( labelLambda == 0 )
           {
           if( ItD.Get() <= 0 )
             {
@@ -2347,7 +2347,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         else if( ItD.Get() >= 0 )
           {
           ItD.Set( labelBoundaryProbability
-                   * vcl_exp( -ItD.Get() / labelSigma ) );
+                   * vcl_exp( -labelLambda * ItD.Get() ) );
           }
         else if( ItD.Get() < 0 )
           {
@@ -2674,10 +2674,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
            this->m_PriorLabelParameterMap.end(); ++it )
         {
         RealType label = it->first;
-        RealType sigma = ( it->second ).first;
+        RealType lambda = ( it->second ).first;
         RealType boundaryProbability = ( it->second ).second;
         os << indent << "    Class " << label
-           << ": sigma = " << sigma
+           << ": lambda = " << lambda
            << ", boundary probability = " << boundaryProbability << std::endl;
         }
       break;
