@@ -2647,10 +2647,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
              this->m_PriorLabelParameterMap.end(); ++it )
           {
           RealType label = it->first;
-          RealType sigma = ( it->second ).first;
+          RealType lambda = ( it->second ).first;
           RealType boundaryProbability = ( it->second ).second;
           os << indent << "    Class " << label
-             << ": sigma = " << sigma
+             << ": lambda = " << lambda
              << ", boundary probability = " << boundaryProbability << std::endl;
           }
         }
@@ -2721,9 +2721,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
-    os << indent << "Class " << n + 1 << ": proportion = "
-       << this->m_MixtureModelProportions[n] << std::endl;
-    this->m_MixtureModelComponents[n]->Print( os, indent.GetNextIndent() );
+    if( this->m_MixtureModelProportions.size() > n )
+      {
+      os << indent << "Class " << n + 1 << ": proportion = "
+         << this->m_MixtureModelProportions[n] << std::endl;
+      }
+    if( this->m_MixtureModelComponents.size() > n )
+      {
+      this->m_MixtureModelComponents[n]->Print( os, indent.GetNextIndent() );
+      }
     }
 }
 } // namespace ants
