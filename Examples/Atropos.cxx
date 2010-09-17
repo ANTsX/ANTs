@@ -1063,19 +1063,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "The propagation of each prior label can be controlled " )
-      + std::string( "by the sigma and boundary probability parameters.  The " )
+      + std::string( "by the lambda and boundary probability parameters.  The " )
       + std::string( "latter parameter is the probability (in the range " )
       + std::string( "[0,1]) of the label on the boundary which increases linearly " )
       + std::string( "to a maximum value of 1.0 in the interior of the labeled " )
       + std::string( "region.  The former parameter dictates the exponential " )
       + std::string( "decay of probability propagation outside the labeled " )
       + std::string( "region from the boundary probability, i.e. " )
-      + std::string( "boundaryProbability*exp( -distance / sigma )." );
+      + std::string( "boundaryProbability*exp( -lambda * distance )." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "label-propagation" );
     option->SetShortName( 'l' );
-    option->SetUsageOption( 0, "whichLabel[sigma=0.0,<boundaryProbability=1.0>]" );
+    option->SetUsageOption( 0, "whichLabel[lambda=0.0,<boundaryProbability=1.0>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
