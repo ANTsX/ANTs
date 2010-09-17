@@ -344,7 +344,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
    * labels
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer labelOption =
-    parser->GetOption( "labels" );
+    parser->GetOption( "label-propagation" );
   if( labelOption && labelOption->GetNumberOfValues() > 0 )
     {
     if( labelOption->GetNumberOfValues() == 1 &&
