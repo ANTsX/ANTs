@@ -347,18 +347,18 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     parser->GetOption( "labels" );
   if( labelOption && labelOption->GetNumberOfValues() > 0 )
     {
-    typename SegmentationFilterType::LabelParameterMapType labelMap;
-    for( unsigned int n = 0; n < labelOption->GetNumberOfValues(); n++ )
+    if( labelOption->GetNumberOfValues() == 1 &&
+        ( labelOption->GetValue( 0 ) ).empty() )
       {
-      typename SegmentationFilterType::LabelParametersType labelPair;
+      typename SegmentationFilterType::LabelParameterMapType labelMap;
 
-      float labelSigma = parser->Convert<float>(
-          labelOption->GetParameter( n, 0 ) );
-      float labelBoundaryProbability = 0.75;
-      if( labelOption->GetNumberOfParameters( n ) > 1 )
+      float labelLambda = parser->Convert<float>(
+          labelOption->GetParameter( 0, 0 ) );
+      float labelBoundaryProbability = 1.0;
+      if( labelOption->GetNumberOfParameters( 0 ) > 1 )
         {
         labelBoundaryProbability = parser->Convert<float>(
-            labelOption->GetParameter( n, 1 ) );
+            labelOption->GetParameter( 0, 1 ) );
         if( labelBoundaryProbability < 0.0 )
           {
           labelBoundaryProbability = 0.0;
@@ -368,15 +368,48 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           labelBoundaryProbability = 1.0;
           }
         }
-      labelPair.first = labelSigma;
+      typename SegmentationFilterType::LabelParametersType labelPair;
+      labelPair.first = labelLambda;
       labelPair.second = labelBoundaryProbability;
-
-      unsigned int whichClass = parser->Convert<unsigned int>(
-          labelOption->GetValue( n ) );
-
-      labelMap[whichClass] = labelPair;
+      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+        {
+        labelMap[n] = labelPair;
+        }
+      segmenter->SetPriorLabelParameterMap( labelMap );
       }
-    segmenter->SetPriorLabelParameterMap( labelMap );
+    else
+      {
+      typename SegmentationFilterType::LabelParameterMapType labelMap;
+      for( unsigned int n = 0; n < labelOption->GetNumberOfValues(); n++ )
+        {
+        typename SegmentationFilterType::LabelParametersType labelPair;
+
+        float labelLambda = parser->Convert<float>(
+            labelOption->GetParameter( n, 0 ) );
+        float labelBoundaryProbability = 1.0;
+        if( labelOption->GetNumberOfParameters( n ) > 1 )
+          {
+          labelBoundaryProbability = parser->Convert<float>(
+              labelOption->GetParameter( n, 1 ) );
+          if( labelBoundaryProbability < 0.0 )
+            {
+            labelBoundaryProbability = 0.0;
+            }
+          if( labelBoundaryProbability > 1.0 )
+            {
+            labelBoundaryProbability = 1.0;
+            }
+          }
+        labelPair.first = labelLambda;
+        labelPair.second = labelBoundaryProbability;
+
+        unsigned int whichClass = parser->Convert<unsigned int>(
+            labelOption->GetValue( n ) );
+
+        labelMap[whichClass] = labelPair;
+        }
+      segmenter->SetPriorLabelParameterMap( labelMap );
+      }
     }
 
   /**
