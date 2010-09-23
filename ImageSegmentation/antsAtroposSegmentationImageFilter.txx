@@ -567,6 +567,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       if( !this->GetMaskImage() ||
           this->GetMaskImage()->GetPixel( ItP.GetIndex() ) == this->m_MaskLabel )
         {
+        ItS.Set( ItS.Get() + ItP.Get() );
         if( ItP.Get() > ItM.Get() )
           {
           ItM.Set( ItP.Get() );
