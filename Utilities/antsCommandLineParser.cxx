@@ -169,9 +169,9 @@ CommandLineParser
 {
   /**
    * Inclusion of this function allows the user to use spaces inside
-   * the left and right delimiters.
+   * the left and right delimiters.  Also replace other left and right
+   * delimiters.
    */
-
   std::vector<std::string> arguments;
 
   std::string currentArg( "" );
@@ -180,6 +180,16 @@ CommandLineParser
   for( unsigned int n = 0; n < argc; n++ )
     {
     std::string a( argv[n] );
+
+    // replace left delimiters
+    std::replace( a.begin(), a.end(), '{', '[' );
+    std::replace( a.begin(), a.end(), '(', '[' );
+    std::replace( a.begin(), a.end(), '<', '[' );
+
+    // replace right delimiters
+    std::replace( a.begin(), a.end(), '}', ']' );
+    std::replace( a.begin(), a.end(), ')', ']' );
+    std::replace( a.begin(), a.end(), '>', ']' );
 
     if( isArgOpen )
       {
