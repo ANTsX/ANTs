@@ -5951,17 +5951,6 @@ int LabelStats(      int argc, char *argv[])
       myCenterOfMass[i] /= (float)totalct;
       }
 
-    if( logfile.good() && !valimage )
-      {
-      logfile << " Volume Of Label " << *it << " is " << (unsigned long) totalvolume << "  Avg-Location "
-              << myCenterOfMass << std::endl;
-      }
-    else if( logfile.good() && valimage )
-      {
-      logfile << " Volume Of Label " << *it << " is " << (unsigned long)  totalvolume <<   "  Avg-Location "
-              << myCenterOfMass << "   Value Sum Is " << totalmass << " average-val is " << totalmass / totalct
-              << std::endl;
-      }
     if( !valimage )
       {
       std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
@@ -6006,9 +5995,16 @@ int ROIStatistics(      int argc, char *argv[])
 
   // first create a label image => ROI value map
   std::map<unsigned int, std::string> cortroimap;
+  cortroimap[1] = std::string("L. Occipital Lobe");
+  cortroimap[2] = std::string("R. Occipital Lobe");
   cortroimap[3] = std::string("L. Cingulate Gyrus");
   cortroimap[4] = std::string("R. Cingulate Gyrus");
   cortroimap[5] = std::string("L. Insula");
+  cortroimap[1] = std::string("CSF");
+  cortroimap[2] = std::string("CGM");
+  cortroimap[3] = std::string("WM");
+  cortroimap[4] = std::string("DGM");
+  cortroimap[5] = std::string("Cerebellum");
   cortroimap[6] = std::string("R. Insula");
   cortroimap[7] = std::string("L. Temporal Pole");
   cortroimap[8] = std::string("R. Temporal Pole");
@@ -6137,7 +6133,7 @@ int ROIStatistics(      int argc, char *argv[])
         }
       }
     }
-  maxlab = 32; // for cortical analysis
+  //  maxlab=32; // for cortical analysis
   // compute the voxel volume
   typename ImageType::SpacingType spacing = image->GetSpacing();
   float volumeelement = 1.0;
@@ -6186,7 +6182,7 @@ int ROIStatistics(      int argc, char *argv[])
   labelcount = 0;
   typename ImageType::PointType myCenterOfMass;
   myCenterOfMass.Fill(0);
-  for( unsigned int i = 0; i < 33; i++ )
+  for( unsigned int i = 0; i <= maxlab; i++ )
     {
     mycomlist[i] = myCenterOfMass;
     }
@@ -6266,12 +6262,31 @@ int ROIStatistics(      int argc, char *argv[])
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
     labelcount++;
     }
-  bool iswm = true;
-  if( maxlab > 13 )
-    {
-    iswm = false;
-    }
+  bool iswm = false;
+  //   if (maxlab > 13 ) iswm=false;
   //    unsigned int roi=(unsigned int) *it;
+  for( unsigned int roi = 1; roi <= maxlab; roi++ )
+    {
+    if( roi < maxlab )
+      {
+      logfile << cortroimap.find(roi)->second << ",";
+      }
+    else
+      {
+      logfile << cortroimap.find(roi)->second << std::endl;
+      }
+    }
+  for( unsigned int roi = 1; roi <= maxlab; roi++ )
+    {
+    if( roi < maxlab )
+      {
+      logfile << clusters[roi] << ",";
+      }
+    else
+      {
+      logfile << clusters[roi] << std::endl;
+      }
+    }
   for( unsigned int roi = 1; roi <= maxlab; roi++ )
     {
     // unsigned int resol=5000;
