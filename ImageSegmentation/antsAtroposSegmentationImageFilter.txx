@@ -44,6 +44,7 @@
 #include "itkSampleClassifierFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
 #include "itkTimeProbe.h"
+#include "itkVariableSizeMatrix.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 
@@ -68,6 +69,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_MaskLabel = NumericTraits<LabelType>::One;
 
   this->m_InitializationStrategy = KMeans;
+  this->m_InitialKMeansParameters.SetSize( 0 );
 
   this->m_PriorProbabilityWeight = 1.0;
   this->m_AdaptiveSmoothingWeights.clear();
@@ -809,29 +811,36 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   treeGenerator->SetBucketSize( 16 );
   treeGenerator->Update();
 
-  /**
-   * Guess initial class means by dividing the dynamic range of the first image
-   *  into equal intervals.
-   */
-
   typedef typename TreeGeneratorType::KdTreeType                TreeType;
   typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
-  typedef typename EstimatorType::ParametersType                ParametersType;
-
-  ParametersType initialMeans( this->m_NumberOfClasses );
-  initialMeans.Fill( 0.0 );
-  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
-    {
-    initialMeans[n] = minValue + ( maxValue - minValue )
-      * ( static_cast<RealType>( n ) + 0.5 )
-      / static_cast<RealType>( this->m_NumberOfClasses );
-    }
-
   typename EstimatorType::Pointer estimator = EstimatorType::New();
-  estimator->SetParameters( initialMeans );
   estimator->SetKdTree( treeGenerator->GetOutput() );
   estimator->SetMaximumIteration( 200 );
   estimator->SetCentroidPositionChangesThreshold( 0.0 );
+
+  typedef typename EstimatorType::ParametersType ParametersType;
+  ParametersType initialMeans( this->m_NumberOfClasses );
+  /**
+   * If the initial KMeans parameters are not set, guess initial class means by
+   * dividing the dynamic range of the first image into equal intervals.
+   */
+  if( this->m_InitialKMeansParameters.Size() == this->m_NumberOfClasses )
+    {
+    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+      {
+      initialMeans[n] = this->m_InitialKMeansParameters[n];
+      }
+    }
+  else
+    {
+    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+      {
+      initialMeans[n] = minValue + ( maxValue - minValue )
+        * ( static_cast<RealType>( n ) + 0.5 )
+        / static_cast<RealType>( this->m_NumberOfClasses );
+      }
+    }
+  estimator->SetParameters( initialMeans );
   estimator->StartOptimization();
 
   /**
@@ -915,27 +924,16 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 
   /**
-   * If there are 1 or more auxiliary images, use the results from the first
-   * kmeans grouping to seed a second invocation of the algorithm using both
+   * If there are more than one intensity images, use the results from the first
+   * kmeans grouping to seed a second invoking of the algorithm using both
    * the input image and the auxiliary images.
    */
-
-  if( this->m_NumberOfIntensityImages == 0 )
+  if( this->m_NumberOfIntensityImages > 1 )
     {
-    return;
-    }
-  else
-    {
-    Array<RealType> minValues;
-    minValues.SetSize( this->m_NumberOfIntensityImages );
-    minValues.Fill( NumericTraits<RealType>::max() );
-    Array<RealType> maxValues;
-    maxValues.SetSize( this->m_NumberOfIntensityImages );
-    maxValues.Fill( NumericTraits<RealType>::NonpositiveMin() );
-
-    minValues[0] = minValue;
-    maxValues[0] = maxValue;
-    for( unsigned int i = 1; i < this->m_NumberOfIntensityImages; i++ )
+    VariableSizeMatrix<RealType> classMeanValues;
+    classMeanValues.SetSize(
+      this->m_NumberOfIntensityImages, this->m_NumberOfClasses );
+    for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
       {
       typedef LabelStatisticsImageFilter<ImageType, ClassifiedImageType> StatsType;
       typename StatsType::Pointer stats = StatsType::New();
@@ -943,9 +941,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       stats->SetLabelInput( this->GetOutput() );
       stats->UseHistogramsOff();
       stats->Update();
-
-      minValues[i] = stats->GetMinimum( this->m_MaskLabel );
-      maxValues[i] = stats->GetMaximum( this->m_MaskLabel );
+      for( unsigned int j = 0; j < this->m_NumberOfClasses; j++ )
+        {
+        classMeanValues( i, j ) = stats->GetMean( j + 1 );
+        }
       }
 
     typedef itk::Statistics::WeightedCentroidKdTreeGenerator<SampleType>
@@ -954,10 +953,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
     typedef typename EstimatorType::ParametersType                ParametersType;
 
-    /**
-     * Guess initial class means by dividing the dynamic range of the first image
-     *  into equal intervals.
-     */
     typename EstimatorType::Pointer estimator = EstimatorType::New();
     ParametersType initialMeans( this->m_NumberOfClasses
                                  * ( this->m_NumberOfIntensityImages ) );
@@ -966,9 +961,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       {
       for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
         {
-        initialMeans[( this->m_NumberOfIntensityImages ) * n + i] = minValues[i]
-          + ( maxValues[0] - minValues[0] ) * ( static_cast<RealType>( n ) + 0.5 )
-          / static_cast<RealType>( this->m_NumberOfClasses );
+        initialMeans[this->m_NumberOfIntensityImages * n + i] =
+          classMeanValues( i, n );
         }
       }
 
@@ -985,8 +979,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           measurement[i] =
             this->GetIntensityImage( i )->GetPixel( ItO.GetIndex() );
-          measurement[i] = minValues[0] + ( measurement[i] - minValues[i] )
-            * ( maxValues[0] - minValues[0] ) / ( maxValues[i] - minValues[i] );
           }
         sample->PushBack( measurement );
         }
