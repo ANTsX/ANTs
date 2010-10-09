@@ -128,6 +128,27 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     else if( !initializationStrategy.compare( std::string( "kmeans" ) ) )
       {
       segmenter->SetInitializationStrategy( SegmentationFilterType::KMeans );
+      if( initializationOption->GetNumberOfParameters() > 1 )
+        {
+        std::vector<float> clusterCenters = parser->ConvertVector<float>(
+            initializationOption->GetParameter( 1 ) );
+        if( clusterCenters.size() != segmenter->GetNumberOfClasses() )
+          {
+          std::cerr << "The cluster center vector size does not equal the "
+                    << "specified number of classes." << std::endl;
+          return EXIT_FAILURE;
+          }
+        else
+          {
+          typename SegmentationFilterType::ParametersType parameters;
+          parameters.SetSize( segmenter->GetNumberOfClasses() );
+          for( unsigned int n = 0; n < parameters.GetSize(); n++ )
+            {
+            parameters[n] = clusterCenters[n];
+            }
+          segmenter->SetInitialKMeansParameters( parameters );
+          }
+        }
       }
     else if( !initializationStrategy.compare(
                std::string( "priorprobabilityimages" ) ) )
@@ -906,7 +927,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "options must be specified.  If one does not have " )
       + std::string( "prior label or probability images we recommend " )
       + std::string( "using kmeans as it is typically faster than otsu and can " )
-      + std::string( "be used with multivariate initialization. " )
+      + std::string( "be used with multivariate initialization. However, since a " )
+      + std::string( "Euclidean distance on the inter cluster distances is used, one " )
+      + std::string( "might have to appropriately scale the additional input images. " )
       + std::string( "Random initialization is meant purely for intellectual " )
       + std::string( "curiosity. The prior weighting (specified in the range " )
       + std::string( "[0,1]) is used to modulate the calculation of the " )
@@ -929,8 +952,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "initialization" );
     option->SetShortName( 'i' );
     option->SetUsageOption( 0, "Random[numberOfClasses]" );
-    option->SetUsageOption( 1, "KMeans[numberOfClasses]" );
-    option->SetUsageOption( 2, "Otsu[numberOfClasses]" );
+    option->SetUsageOption( 1, "Otsu[numberOfClasses]" );
+    option->SetUsageOption( 2,
+                            "KMeans[numberOfClasses,<clusterCenters(in ascending order and for first intensity image only)>]" );
     option->SetUsageOption( 3,
                             "PriorProbabilityImages[numberOfClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting,<priorProbabilityThreshold>]" );
     option->SetUsageOption( 4, "PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
