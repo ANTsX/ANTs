@@ -1621,8 +1621,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             /**
              * Calculate likelihood probability from the model
              */
-            RealType likelihood = this->m_MixtureModelProportions[c]
-              * this->m_MixtureModelComponents[c]->Evaluate( measurement );
+            RealType likelihood =
+              this->m_MixtureModelComponents[c]->Evaluate( measurement );
 
             /**
              * Calculate posterior probability from all previous probability
@@ -1630,7 +1630,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
              */
             RealType posteriorProbability = this->m_PriorProbabilityWeight
               * likelihood * mrfPrior * priorProbability + ( 1.0
-                                                             - this->m_PriorProbabilityWeight ) * likelihood * mrfPrior;
+                                                             - this->m_PriorProbabilityWeight )
+              * this->m_MixtureModelProportions[c] * likelihood * mrfPrior;
 
             if( vnl_math_isnan( posteriorProbability ) ||
                 vnl_math_isinf( posteriorProbability ) )
@@ -1874,8 +1875,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           /**
            * Calculate likelihood probability from the model
            */
-          RealType likelihood = this->m_MixtureModelProportions[whichClass - 1]
-            * this->m_MixtureModelComponents[whichClass - 1]->Evaluate( measurement );
+          RealType likelihood =
+            this->m_MixtureModelComponents[whichClass - 1]->Evaluate( measurement );
 
           /**
            * Calculate posterior probability from all previous probability
@@ -1883,7 +1884,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
            */
           RealType posteriorProbability = this->m_PriorProbabilityWeight
             * likelihood * mrfPrior * priorProbability + ( 1.0
-                                                           - this->m_PriorProbabilityWeight ) * likelihood * mrfPrior;
+                                                           - this->m_PriorProbabilityWeight )
+            * this->m_MixtureModelProportions[whichClass - 1] * likelihood
+            * mrfPrior;
 
           if( vnl_math_isnan( posteriorProbability ) ||
               vnl_math_isinf( posteriorProbability ) )
