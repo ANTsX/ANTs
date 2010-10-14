@@ -17,6 +17,16 @@ Usage:
 
 `basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
 
+Example Case:
+
+ echo " bash $0 -d 3 -m 30x50x20 -t GR  -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz "
+ echo " in this case you use 30x50x20 iterations per registration "
+ echo " 4 iterations over template creation (that is the default) "
+ echo " with Greedy-SyN and CC metrics to guide the mapping. "
+ echo " Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional). "
+ echo " the -c option is set to 1 which will try to use SGE to distribute the computation. "
+ echo " if you do not have SGE, use -c 0 or -c 2 --- read the help."
+
 Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
@@ -591,7 +601,7 @@ if [ "$1" == "-h" ]
     Help >&2
 
 fi
-
+OUTPUTNAME=antsBTP
 # reading command line arguments
 while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
   do
@@ -792,7 +802,7 @@ else
     echo " Initial template found.  This will be used for guiding the registration. use : $REGTEMPLATE and $TEMPLATE "
     echo "--------------------------------------------------------------------------------------"
 	# now move the initial registration template to OUTPUTNAME, otherwise this input gets overwritten.
-    TEMPLATE=$REGTEMPLATE
+
     cp ${REGTEMPLATE} ${TEMPLATE}
 
 fi
