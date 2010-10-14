@@ -12,6 +12,7 @@
 #include "antsCommandLineOption.h"
 #include "antsCommandLineParser.h"
 #include "antsGaussianListSampleFunction.h"
+#include "antsLogEuclideanGaussianListSampleFunction.h"
 #include "antsGrubbsRosnerListSampleFilter.h"
 #include "antsHistogramParzenWindowsListSampleFunction.h"
 #include "antsListSampleToListSampleFilter.h"
@@ -389,11 +390,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           labelBoundaryProbability = 1.0;
           }
         }
-      typename SegmentationFilterType::LabelParametersType labelPair;
-      labelPair.first = labelLambda;
-      labelPair.second = labelBoundaryProbability;
-      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+      for( unsigned int n = 1; n <= segmenter->GetNumberOfClasses(); n++ )
         {
+        typename SegmentationFilterType::LabelParametersType labelPair;
+        labelPair.first = labelLambda;
+        labelPair.second = labelBoundaryProbability;
         labelMap[n] = labelPair;
         }
       segmenter->SetPriorLabelParameterMap( labelMap );
@@ -440,7 +441,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     parser->GetOption( "intensity-image" );
   if( imageOption && imageOption->GetNumberOfValues() > 0 )
     {
-    for( unsigned int n = 0; n < imageOption->GetNumberOfValues(); n++ )
+    unsigned int count = 0;
+    for( int n = imageOption->GetNumberOfValues() - 1; n >= 0; n-- )
       {
       typedef itk::ImageFileReader<InputImageType> ReaderType;
       typename ReaderType::Pointer reader = ReaderType::New();
@@ -454,32 +456,17 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         }
       reader->Update();
 
-      if( n == imageOption->GetNumberOfValues() - 1 )
+      segmenter->SetIntensityImage( count, reader->GetOutput() );
+      if( imageOption->GetNumberOfParameters( count ) > 1 )
         {
-        segmenter->SetInput( reader->GetOutput() );
-        if( imageOption->GetNumberOfParameters( 0 ) > 1 )
-          {
-          segmenter->SetAdaptiveSmoothingWeight( 0, parser->Convert<float>(
-                                                   imageOption->GetParameter( 0, 1 ) ) );
-          }
-        else
-          {
-          segmenter->SetAdaptiveSmoothingWeight( 0, 0.0 );
-          }
+        segmenter->SetAdaptiveSmoothingWeight( count, parser->Convert<float>(
+                                                 imageOption->GetParameter( count, 1 ) ) );
         }
       else
         {
-        segmenter->SetIntensityImage( n + 1, reader->GetOutput() );
-        if( imageOption->GetNumberOfParameters( n + 1 ) > 1 )
-          {
-          segmenter->SetAdaptiveSmoothingWeight( n + 1, parser->Convert<float>(
-                                                   imageOption->GetParameter( n + 1, 1 ) ) );
-          }
-        else
-          {
-          segmenter->SetAdaptiveSmoothingWeight( n + 1, 0.0 );
-          }
+        segmenter->SetAdaptiveSmoothingWeight( count, 0.0 );
         }
+      count++;
       }
     }
   else
@@ -625,6 +612,24 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         hpwLikelihood->SetSigma( sigma );
         hpwLikelihood->SetNumberOfHistogramBins( numberOfBins );
         segmenter->SetLikelihoodFunction( n, hpwLikelihood );
+        }
+      }
+    else if( !likelihoodModel.compare( std::string( "logeuclideangaussian" ) ) )
+      {
+      if( segmenter->GetNumberOfIntensityImages() !=
+          static_cast<unsigned int>( ImageDimension * ( ImageDimension + 1 ) / 2 ) )
+        {
+        std::cerr << "Incorrect number of intensity images specified." << std::endl;
+        return EXIT_FAILURE;
+        }
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::ants::Statistics::LogEuclideanGaussianListSampleFunction
+        <SampleType, float, float> LikelihoodType;
+      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+        {
+        typename LikelihoodType::Pointer gaussianLikelihood =
+          LikelihoodType::New();
+        segmenter->SetLikelihoodFunction( n, gaussianLikelihood );
         }
       }
     else
@@ -809,15 +814,15 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
             segmenter->GetPriorLabelImage() )
           {
-          std::cout << "  Writing B-spline image (class " << i + 1 << ")"
+          std::cout << "  Writing distance image (class " << i + 1 << ")"
                     << std::endl;
 
-          typename InputImageType::Pointer bsplineImage = segmenter->
-            CalculateSmoothIntensityImageFromPriorProbabilityImage( 0, i + 1 );
+          typename InputImageType::Pointer distanceImage = segmenter->
+            GetDistancePriorProbabilityImageFromPriorLabelImage( i + 1 );
 
           typedef  itk::ImageFileWriter<InputImageType> WriterType;
           typename WriterType::Pointer writer = WriterType::New();
-          writer->SetInput( bsplineImage );
+          writer->SetInput( distanceImage );
           writer->SetFileName( imageNames[i].c_str() );
           writer->Update();
           }
@@ -834,22 +839,26 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       fileNamesCreator->SetSeriesFormat( filename.c_str() );
       const std::vector<std::string> & imageNames
         = fileNamesCreator->GetFileNames();
-      for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
+
+      if( segmenter->GetAdaptiveSmoothingWeight( 0 ) > 0.0 )
         {
-        if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
-            segmenter->GetPriorLabelImage() )
+        for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
           {
-          std::cout << "  Writing distance image (class " << i + 1 << ")"
-                    << std::endl;
+          if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
+              segmenter->GetPriorLabelImage() )
+            {
+            std::cout << "  Writing B-spline image (class " << i + 1 << ")"
+                      << std::endl;
 
-          typename InputImageType::Pointer distanceImage = segmenter->
-            GetDistancePriorProbabilityImageFromPriorLabelImage( i + 1 );
+            typename InputImageType::Pointer bsplineImage = segmenter->
+              CalculateSmoothIntensityImageFromPriorProbabilityImage( 0, i + 1 );
 
-          typedef  itk::ImageFileWriter<InputImageType> WriterType;
-          typename WriterType::Pointer writer = WriterType::New();
-          writer->SetInput( distanceImage );
-          writer->SetFileName( imageNames[i].c_str() );
-          writer->Update();
+            typedef  itk::ImageFileWriter<InputImageType> WriterType;
+            typename WriterType::Pointer writer = WriterType::New();
+            writer->SetInput( bsplineImage );
+            writer->SetFileName( imageNames[i].c_str() );
+            writer->Update();
+            }
           }
         }
       }
@@ -1013,6 +1022,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 1, "HistogramParzenWindows[<sigma=1.0>,<numberOfBins=32>]" );
     option->SetUsageOption( 2,
                             "ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
+    option->SetUsageOption( 3, "LogEuclideanGaussian" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
