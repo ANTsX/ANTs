@@ -176,6 +176,8 @@ public:
   itkSetMacro( NumberOfControlPoints, ArrayType );
   itkGetConstMacro( NumberOfControlPoints, ArrayType );
 
+  itkGetConstMacro( NumberOfIntensityImages, unsigned int );
+
   itkSetMacro( MinimizeMemoryUsage, bool );
   itkGetConstMacro( MinimizeMemoryUsage, bool );
   itkBooleanMacro( MinimizeMemoryUsage );
@@ -221,6 +223,10 @@ public:
     if( idx < this->m_AdaptiveSmoothingWeights.size() )
       {
       return this->m_AdaptiveSmoothingWeights[idx];
+      }
+    else
+      {
+      return 0;
       }
   }
 
