@@ -1,159 +1,261 @@
 #!/bin/bash
 
-NUMPARAMS=$#
+function shapeupdatetotemplate {
 
-if [ $NUMPARAMS -lt 4  ]
-then
-echo " USAGE ::  "
-echo "   sh $0  ImageDimension OutputRoot GradientStep <images>"
-echo " example : "
-echo " sh $0  2 TEST 0.5 YFace*nii "
-echo " above, dimension is 2,  TEST is the OutputRoot ,  1 is the grad-step and the images you originally mapped are in the list YFace<var>.nii "
-echo " we assume you used ants.sh naming conventions to deform your images and the deformations are in the same directory as the template and the call to the script . "
-echo " "
-echo " ImageDimension  -  Dimension of your image, eg 3 for 3D."
-echo " OutputRoot      -  Root file name of the output. Should be a file root only, no path information. "
-echo " GradientStep -   the size of the shape update gradient = 0.25 is typical "
-echo " <images>        -  List of images in the current directory, eg *_t1.nii.gz. "
-echo
-echo " This script performs a shape update to the template assuming that  a registration to the template exists. "
-echo
-echo " We assume all files to be added to the template are in the current directory. You can modify the "
-echo " script if you want to relax this assumption, but be sure that the qsubbed jobs get the correct "
-echo " absolute path to the images."
-echo
-echo " Things within the script that you may need to change for your needs are highlighted by EDIT THIS "
-echo
-echo " The template will be written to [OutputRoot]template.nii. If the template file exists, it is used as the starting point for "
-echo " the new template creation. Otherwise, we create an unbiased starting point by averaging the input dataset. "
-exit
-fi
+    # local declaration of values
+    dim=${DIM}
+    template=${TEMPLATE}
+    templatename=${TEMPLATENAME}
+    outputname=${OUTPUTNAME}
+    gradientstep=-${GRADIENTSTEP}
 
-#initialization, here, is unbiased
-DIM=$1
+# debug only
+# echo $dim
+# echo ${template}
+# echo ${templatename}
+# echo ${outputname}
+# echo ${outputname}*formed.nii*
+# echo ${gradientstep}
 
-# Root of the output name, will produce ${OUTPUTNAME}template.nii
-# If this already exists, it will be used to initialize the template building
-OUTPUTNAME=$2
+# We find the average warp to the template and apply its inverse to the template image
+# This keeps the template shape stable over multiple iterations of template building
 
-# ANTSPATH - you will need to edit this if it is not set before the script is called
-# note trailing slash - this is needed
-export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate 1"
+    echo "--------------------------------------------------------------------------------------"
+    ${ANTSPATH}AverageImages $dim ${template} 1 ${outputname}*formed.nii.gz
 
-# System specific queue options, eg "-q name" to submit to a specific queue
-# It can be set to an empty string if you do not need any special cluster options
-QSUBOPTS="" # EDIT THIS
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate 2"
+    echo "--------------------------------------------------------------------------------------"
 
-  TEMPLATENAME=${OUTPUTNAME}template
-  TEMPLATE=${TEMPLATENAME}.nii.gz
-  # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
-  GRADIENTSTEP=-${3}
+    if [ $dim -eq 2  ]
+	then
+	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii.gz 0 `ls ${outputname}*Warpxvec.nii.gz | grep -v "InverseWarpxvec"`
+	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii.gz 0 `ls ${outputname}*Warpyvec.nii.gz | grep -v "InverseWarpyvec"`
 
-shift 3
+    elif [ $dim -eq 3  ]
+	then
+	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii.gz 0 `ls ${outputname}*Warpxvec.nii.gz | grep -v "InverseWarpxvec"`
+	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii.gz 0 `ls ${outputname}*Warpyvec.nii.gz | grep -v "InverseWarpyvec"`
+	${ANTSPATH}AverageImages $dim ${templatename}warpzvec.nii.gz 0 `ls ${outputname}*Warpzvec.nii.gz | grep -v "InverseWarpzvec"`
+    fi
 
-# Optionally disable qsub for debugging purposes - runs jobs in series
-DOQSUB=0
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate 3"
+    echo "--------------------------------------------------------------------------------------"
+    if [ $dim -eq 2  ]
+	then
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii.gz ${gradientstep} ${templatename}warpxvec.nii.gz
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii.gz ${gradientstep} ${templatename}warpyvec.nii.gz
+
+    elif [ $dim -eq 3  ]
+	then
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii.gz ${gradientstep} ${templatename}warpxvec.nii.gz
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii.gz ${gradientstep} ${templatename}warpyvec.nii.gz
+	${ANTSPATH}MultiplyImages $dim ${templatename}warpzvec.nii.gz ${gradientstep} ${templatename}warpzvec.nii.gz
+    fi
+
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate 4"
+    echo "--------------------------------------------------------------------------------------"
+    rm -f ${templatename}Affine.txt
+
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate 5"
+    echo "--------------------------------------------------------------------------------------"
+
+    # Averaging and inversion code
+    if [ ${dim} -eq 2   ]
+	then
+	ANTSAverage2DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
+
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpyvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
+
+    elif [ ${dim} -eq 3  ]
+	then
+	ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
+
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpyvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpzvec.nii.gz ${templatename}warpzvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
+
+	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
+    fi
+
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " shapeupdatetotemplate 6"
+    echo "--------------------------------------------------------------------------------------"
+    if [ ${dim} -eq 2  ]
+	then
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxlog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpylog.txt 1
+    elif [ ${dim} -eq 3  ]
+	then
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxlog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpylog.txt 1
+	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpzvec.nii.gz ${templatename}warpzlog.txt 1
+    fi
+
+}
+
+function ANTSAverage2DAffine {
+
+    OUTNM=${templatename}Affine.txt
+    FLIST=${outputname}*Affine.txt
+    NFILES=0
+    PARAM1=0
+    PARAM2=0
+    PARAM3=0
+    PARAM4=0
+    PARAM5=0
+    PARAM6=0
+    PARAM7=0
+    PARAM8=0
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 2  `
+    for x in $LL ; do  PARAM1=` awk -v a=$PARAM1 -v b=$x 'BEGIN{print (a + b)}' ` ;  let NFILES=$NFILES+1  ; done
+    PARAM1=` awk -v a=$PARAM1 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 3  `
+    for x in $LL ; do PARAM2=` awk -v a=$PARAM2 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM2=` awk -v a=$PARAM2 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 4  `
+    for x in $LL ; do PARAM3=` awk -v a=$PARAM3 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM3=` awk -v a=$PARAM3 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 5  `
+    for x in $LL ; do PARAM4=` awk -v a=$PARAM4 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM4=` awk -v a=$PARAM4 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 6  `
+    for x in $LL ; do PARAM5=` awk -v a=$PARAM5 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM5=0 # ` awk -v a=$PARAM5 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 7  `
+    for x in $LL ; do PARAM6=` awk -v a=$PARAM6 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM6=0 # ` awk -v a=$PARAM6 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` cat $FLIST | grep FixedParamet | cut -d ' ' -f 2  `
+    for x in $LL ; do PARAM7=` awk -v a=$PARAM7 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM7=` awk -v a=$PARAM7 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` cat $FLIST | grep FixedParamet | cut -d ' ' -f 3  `
+    for x in $LL ; do PARAM8=` awk -v a=$PARAM8 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM8=` awk -v a=$PARAM8 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    echo "# Insight Transform File V1.0 " > $OUTNM
+    echo "# Transform 0 " >> $OUTNM
+    echo "Transform: MatrixOffsetTransformBase_double_2_2  " >> $OUTNM
+    echo "Parameters:  $PARAM1 $PARAM2 $PARAM3 $PARAM4 $PARAM5 $PARAM6  " >> $OUTNM
+    echo "FixedParameters: $PARAM7 $PARAM8 " >> $OUTNM
 
 
-IMAGESETVARIABLE=$*
+}
 
-if [ ! -s $TEMPLATE ] ; then
-echo " No initial template exists. Cannot update the template."
-exit
-fi
+function ANTSAverage3DAffine {
 
-echo  " ANTSPATH  $ANTSPATH "
-echo " OutputName :  $OUTPUTNAME "
-echo " template  $TEMPLATE "
-echo " Template Update Steps $ITERATIONLIMIT "
-echo " Template population :   $IMAGESETVARIABLE "
-echo " grad step -- $GRADIENTSTEP "
-echo " if the files and parameters are all ok then uncomment the exit call below this line  "
-echo " "
-#exit
+    OUTNM=${templatename}Affine.txt
+    FLIST=${outputname}*Affine.txt
+    NFILES=0
+    PARAM1=0
+    PARAM2=0
+    PARAM3=0
+    PARAM4=0
+    PARAM5=0
+    PARAM6=0
+    PARAM7=0
+    PARAM8=0
+    PARAM9=0
+    PARAM10=0
+    PARAM11=0
+    PARAM12=0
+    PARAM13=0
+    PARAM14=0
+    PARAM15=0
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 2  `
+    for x in $LL ; do  PARAM1=` awk -v a=$PARAM1 -v b=$x 'BEGIN{print (a + b)}' ` ;  let NFILES=$NFILES+1  ; done
+    PARAM1=` awk -v a=$PARAM1 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
-   rm -f  ${OUTPUTNAME}*InverseWarp*vec.nii*
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 3  `
+    for x in $LL ; do PARAM2=` awk -v a=$PARAM2 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM2=` awk -v a=$PARAM2 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
-deformedimages=(` ls ${OUTPUTNAME}*formed.nii*     `)
-NUM=${#deformedimages[@]}
-if [ $NUM -le 1 ] ; then
-echo " you do not have images of the type :  ${OUTPUTNAME}*formed.nii* "
-echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
-echo " you can try to reset the OUTPUTNAME to an empty string and try again ... this is very dangerous and can produce erroneous results.  "
-echo " try it only if you know what you are doing . "
-read -p " Reset the OUTPUTNAME to an empty string ?  (y/n)?"
-if [ "$REPLY" == "y" ] ; then
-OUTPUTNAME=""
-deformedimages=(` ls ${OUTPUTNAME}*formed.nii*     `)
-else
-echo " Ok - exiting "
-exit
-fi
-fi
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 4  `
+    for x in $LL ; do PARAM3=` awk -v a=$PARAM3 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM3=` awk -v a=$PARAM3 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 5  `
+    for x in $LL ; do PARAM4=` awk -v a=$PARAM4 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM4=` awk -v a=$PARAM4 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
-deformx=(` ls ${OUTPUTNAME}*Warpxvec.nii*     `)
-if [ ${#deformx[@]} -le 1 ] ; then
-echo " you do not have images of the type :  ${OUTPUTNAME}*Warpxvec.nii  "
-echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
-exit
-fi
-deformy=(` ls ${OUTPUTNAME}*Warpyvec.nii*     `)
-if [ ${#deformy[@]} -le 1 ] ; then
-echo " you do not have images of the type :  ${OUTPUTNAME}*Warpyvec.nii  "
-echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
-exit
-fi
-if [ $DIM -eq 3 ] ; then
-deformz=(` ls ${OUTPUTNAME}*Warpzvec.nii*     `)
-if [ ${#deformz[@]} -le 1 ] ; then
-echo " you do not have images of the type :  ${OUTPUTNAME}*Warpzvec.nii  "
-echo " if they dont exist, you need to run ants.sh to map your input images $IMAGESETVARIABLE to the template : $TEMPLATE "
-exit
-fi
-fi
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 6  `
+    for x in $LL ; do PARAM5=` awk -v a=$PARAM5 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM5=` awk -v a=$PARAM5 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 7  `
+    for x in $LL ; do PARAM6=` awk -v a=$PARAM6 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM6=` awk -v a=$PARAM6 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
-${ANTSPATH}AverageImages $DIM ${TEMPLATE} 1 ${OUTPUTNAME}*formed.nii*
-#sh sygnccavg.sh 0.1  $TEMPLATE   # uncomment this for sygn template.
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 8  `
+    for x in $LL ; do PARAM7=` awk -v a=$PARAM7 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM7=` awk -v a=$PARAM7 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
-# below, a cheap approach to integrating the negative velocity field
-# in the absence of other code and saving the velocity fields.
-# additionally, this works for all types of registration algorithms
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 9  `
+    for x in $LL ; do PARAM8=` awk -v a=$PARAM8 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM8=` awk -v a=$PARAM8 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
-     ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpxvec.nii 0 ${OUTPUTNAME}*Warpxvec.nii*
-     ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpyvec.nii 0 ${OUTPUTNAME}*Warpyvec.nii*
-if [ $DIM -gt 2  ]
-then
-     ${ANTSPATH}AverageImages $DIM ${TEMPLATENAME}warpzvec.nii 0 ${OUTPUTNAME}*Warpzvec.nii*
-fi
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpxvec.nii $GRADIENTSTEP ${TEMPLATENAME}warpxvec.nii*
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpyvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpyvec.nii*
-if [ $DIM -gt 2  ]
-then
-     ${ANTSPATH}MultiplyImages  $DIM ${TEMPLATENAME}warpzvec.nii $GRADIENTSTEP  ${TEMPLATENAME}warpzvec.nii*
-fi
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 10  `
+    for x in $LL ; do PARAM9=` awk -v a=$PARAM9 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM9=` awk -v a=$PARAM9 -v b=$NFILES 'BEGIN{print (a / b)}' `
 
-   AAFFSCRIPT=${ANTSPATH}ANTSAverage2DAffine.sh
-   if [[ $DIM -gt 2 ]] ; then  AAFFSCRIPT=${ANTSPATH}ANTSAverage3DAffine.sh ; fi
-   if [[ -s $AAFFSCRIPT  ]] ; then
-     rm -f ${TEMPLATENAME}Affine.txt
-     sh $AAFFSCRIPT ${TEMPLATENAME}Affine.txt ${OUTPUTNAME}*Affine.txt
-     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpxvec.nii   ${TEMPLATENAME}warpxvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
-     ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpyvec.nii   ${TEMPLATENAME}warpyvec.nii    -i  ${TEMPLATENAME}Affine.txt     -R ${TEMPLATE}
-     if [ $DIM -gt 2  ] ; then
-       ${ANTSPATH}WarpImageMultiTransform $DIM    ${TEMPLATENAME}warpzvec.nii  ${TEMPLATENAME}warpzvec.nii    -i  ${TEMPLATENAME}Affine.txt    -R ${TEMPLATE}
-     fi
-     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE} -i   ${TEMPLATENAME}Affine.txt ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
-   else
-     ${ANTSPATH}WarpImageMultiTransform $DIM  ${TEMPLATE}   ${TEMPLATE}  ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii ${TEMPLATENAME}warp.nii  ${TEMPLATENAME}warp.nii  -R ${TEMPLATE}
-   fi
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 11  `
+    for x in $LL ; do PARAM10=` awk -v a=$PARAM10 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM10=0 # ` awk -v a=$PARAM10 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 12  `
+    for x in $LL ; do PARAM11=` awk -v a=$PARAM11 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM11=0 # ` awk -v a=$PARAM11 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` head -n 4 $FLIST | grep Paramet | cut -d ' ' -f 13  `
+    for x in $LL ; do PARAM12=` awk -v a=$PARAM12 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM12=0 # ` awk -v a=$PARAM12 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+# origin params below
+
+    LL=` cat $FLIST | grep FixedParamet | cut -d ' ' -f 2  `
+    for x in $LL ; do  PARAM13=` awk -v a=$PARAM13 -v b=$x 'BEGIN{print (a + b)}' ` ;  done
+    PARAM13=` awk -v a=$PARAM13 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` cat $FLIST | grep FixedParamet | cut -d ' ' -f 3  `
+    for x in $LL ; do PARAM14=` awk -v a=$PARAM14 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM14=` awk -v a=$PARAM14 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    LL=` cat $FLIST | grep FixedParamet | cut -d ' ' -f 4  `
+    for x in $LL ; do PARAM15=` awk -v a=$PARAM15 -v b=$x 'BEGIN{print (a + b)}' `  ; done
+    PARAM15=` awk -v a=$PARAM15 -v b=$NFILES 'BEGIN{print (a / b)}' `
+
+    echo "# Insight Transform File V1.0 " > $OUTNM
+    echo "# Transform 0 " >> $OUTNM
+    echo "Transform: MatrixOffsetTransformBase_double_3_3  " >> $OUTNM
+    echo "Parameters:  $PARAM1 $PARAM2 $PARAM3 $PARAM4 $PARAM5 $PARAM6  $PARAM7 $PARAM8 $PARAM9 $PARAM10 $PARAM11 $PARAM12  " >> $OUTNM
+    echo "FixedParameters: $PARAM13 $PARAM14 $PARAM15 " >> $OUTNM
+
+}
 
 
-
-    ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpxvec.nii  ${TEMPLATENAME}warpxlog.txt  1
-    ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpyvec.nii  ${TEMPLATENAME}warpylog.txt  1
-if [ $DIM -gt 2  ]
-then
-    ${ANTSPATH}MeasureMinMaxMean $DIM ${TEMPLATENAME}warpzvec.nii  ${TEMPLATENAME}warpzlog.txt  1
-fi
+DIM=3
+TEMPLATE=t2template.nii.gz
+TEMPLATENAME=t2template
+OUTPUTNAME=t2
+GRADIENTSTEP=0.1
+  shapeupdatetotemplate ${DIM} ${TEMPLATE} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP}
