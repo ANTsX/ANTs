@@ -168,8 +168,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
                                               initializationOption->GetParameter( 2 ) ) );
       if( initializationOption->GetNumberOfParameters() > 3 )
         {
-        segmenter->SetPriorProbabilityThreshold( parser->Convert<float>(
-                                                   initializationOption->GetParameter( 3 ) ) );
+        segmenter->SetProbabilityThreshold( parser->Convert<float>(
+                                              initializationOption->GetParameter( 3 ) ) );
         }
 
       std::string filename = initializationOption->GetParameter( 1 );
@@ -222,8 +222,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         }
       if( initializationOption->GetNumberOfParameters() > 3 )
         {
-        segmenter->SetPriorProbabilityThreshold( parser->Convert<float>(
-                                                   initializationOption->GetParameter( 3 ) ) );
+        segmenter->SetProbabilityThreshold( parser->Convert<float>(
+                                              initializationOption->GetParameter( 3 ) ) );
         }
       }
     else if( !initializationStrategy.compare( std::string( "priorlabelimage" ) ) )
@@ -818,7 +818,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
                     << std::endl;
 
           typename InputImageType::Pointer distanceImage = segmenter->
-            GetDistancePriorProbabilityImageFromPriorLabelImage( i + 1 );
+            GetDistancePriorProbabilityImage( i + 1 );
 
           typedef  itk::ImageFileWriter<InputImageType> WriterType;
           typename WriterType::Pointer writer = WriterType::New();
