@@ -16,6 +16,8 @@
 =========================================================================*/
 #include "antsCommandLineParser.h"
 
+#include <algorithm>
+
 namespace itk
 {
 namespace ants
