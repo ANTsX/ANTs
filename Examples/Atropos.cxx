@@ -256,6 +256,38 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
 
   /**
+   * Posterior probability formulation
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer posteriorOption =
+    parser->GetOption( "posterior-formulation" );
+  if( posteriorOption )
+    {
+    if( posteriorOption->GetNumberOfParameters() > 0 )
+      {
+      segmenter->SetUseMixtureModelProportions( parser->Convert<bool>(
+                                                  posteriorOption->GetParameter( 0 ) ) );
+      }
+    std::string posteriorStrategy = posteriorOption->GetValue();
+    ConvertToLowerCase( posteriorStrategy );
+
+    if( !posteriorStrategy.compare( std::string( "socrates" ) ) )
+      {
+      segmenter->SetPosteriorProbabilityFormulation(
+        SegmentationFilterType::Socrates );
+      }
+    else if( !posteriorStrategy.compare( std::string( "plato" ) ) )
+      {
+      segmenter->SetPosteriorProbabilityFormulation(
+        SegmentationFilterType::Plato );
+      }
+    else if( !posteriorStrategy.compare( std::string( "aristotle" ) ) )
+      {
+      segmenter->SetPosteriorProbabilityFormulation(
+        SegmentationFilterType::Aristotle );
+      }
+    }
+
+  /**
    * convergence options
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
@@ -851,7 +883,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
                       << std::endl;
 
             typename InputImageType::Pointer bsplineImage = segmenter->
-              CalculateSmoothIntensityImageFromPriorProbabilityImage( 0, i + 1 );
+              GetSmoothIntensityImageFromPriorImage( 0, i + 1 );
 
             typedef  itk::ImageFileWriter<InputImageType> WriterType;
             typename WriterType::Pointer writer = WriterType::New();
@@ -949,14 +981,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "one can specify a prior probability threshold in which only " )
       + std::string( "those pixels exceeding that threshold are stored in memory. ");
 
-//     std::string( "\t  Usage: \n" ) +
-//     std::string( "\t    Option 1:  Random[numberOfClasses]\n" ) +
-//     std::string( "\t    Option 2:  Kmeans[numberOfClasses]\n" ) +
-//     std::string( "\t    Option 3:  Otsu[numberOfClasses]\n" ) +
-//     std::string( "\t    Option 4:  PriorProbabilityImages[numberOfClasses," ) +
-//     std::string( "fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting]\n" ) +
-//     std::string( "\t    Option 5:  PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
-
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initialization" );
     option->SetShortName( 'i' );
@@ -967,6 +991,33 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 3,
                             "PriorProbabilityImages[numberOfClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting,<priorProbabilityThreshold>]" );
     option->SetUsageOption( 4, "PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Different posterior probability formulations are possible ")
+      + std::string( "which include the following:  " )
+      + std::string( " Socrates: posteriorProbability = (spatialPrior)^priorWeight" )
+      + std::string( "*(likelihood*mrfPrior)^(1-priorWeight), " )
+      + std::string( " Plato: posteriorProbability = 1.0, " )
+      + std::string( " Aristotle: posteriorProbability = 1.0, " )/* +
+    std::string( " Zeno: posteriorProbability = 1.0\n" ) +
+    std::string( " Diogenes: posteriorProbability = 1.0\n" ) +
+    std::string( " Thales: posteriorProbability = 1.0\n" ) +
+    std::string( " Democritus: posteriorProbability = 1.0.\n" ) */;
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "posterior-formulation" );
+    option->SetShortName( 'p' );
+    option->SetUsageOption( 0, "Socrates[<useMixtureModelProportions=1>]" );
+    option->SetUsageOption( 1, "Plato[<useMixtureModelProportions=1>]" );
+    option->SetUsageOption( 2, "Aristotle[<useMixtureModelProportions=1>]" );
+//  option->SetUsageOption( 3, "Zeno[<useMixtureModelProportions=1>]" );
+//  option->SetUsageOption( 4, "Diogenes[<useMixtureModelProportions=1>]" );
+//  option->SetUsageOption( 5, "Thales[<useMixtureModelProportions=1>]" );
+//  option->SetUsageOption( 6, "Democritus" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -992,9 +1043,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "less than the specified threshold from the previous " )
       + std::string( "iteration or the maximum number of iterations is exceeded " )
       + std::string( "the program terminates.");
-
-//     std::string( "\t  Usage: \n" ) +
-//     std::string( "\t    [<numberOfIterations=5>,<convergenceThreshold=0.001>]" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "convergence" );
@@ -1044,17 +1092,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetDescription( description );
     parser->AddOption( option );
     }
-
-//   {
-//   std::string description = std::string( "[image,<adaptiveSmoothingWeight>]" ) +
-//     std::string( " -- adaptive smoothing only applies to initialization with prior image(s)" );
-//
-//   OptionType::Pointer option = OptionType::New();
-//   option->SetLongName( "vector-image" );
-//   option->SetShortName( 'v' );
-//   option->SetDescription( description );
-//   parser->AddOption( option );
-//   }
 
     {
     std::string description =
