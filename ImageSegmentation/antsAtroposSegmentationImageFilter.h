@@ -139,6 +139,9 @@ public:
   typedef std::map<LabelType, LabelParametersType> LabelParameterMapType;
   typedef Array<RealType>                          ParametersType;
 
+  enum PosteriorProbabilityFormulationType
+        { Socrates, Plato, Aristotle /*, Zeno, Diogenes, Thales, Democritus*/ };
+
   /** ivars Set/Get functionality */
 
   itkSetClampMacro( NumberOfClasses, unsigned int, 2,
@@ -166,6 +169,12 @@ public:
 
   itkSetMacro( InitialKMeansParameters, ParametersType );
   itkGetConstMacro( InitialKMeansParameters, ParametersType );
+
+  itkSetMacro( PosteriorProbabilityFormulation, PosteriorProbabilityFormulationType );
+  itkGetConstMacro( PosteriorProbabilityFormulation, PosteriorProbabilityFormulationType );
+
+  itkSetMacro( UseMixtureModelProportions, bool );
+  itkGetConstMacro( UseMixtureModelProportions, bool );
 
   itkSetMacro( SplineOrder, unsigned int );
   itkGetConstMacro( SplineOrder, unsigned int );
@@ -305,9 +314,11 @@ public:
    */
   typename RealImageType::Pointer GetLikelihoodImage( unsigned int );
 
+  RealType CalculateLocalPosteriorProbability( RealType, RealType,
+                                               RealType, RealType, RealType );
   typename RealImageType::Pointer GetPosteriorProbabilityImage( unsigned int );
 
-  typename RealImageType::Pointer CalculateSmoothIntensityImageFromPriorProbabilityImage(unsigned int, unsigned int );
+  typename RealImageType::Pointer GetSmoothIntensityImageFromPriorImage( unsigned int, unsigned int );
 
   typename RealImageType::Pointer GetDistancePriorProbabilityImage( unsigned int );
 
@@ -359,6 +370,9 @@ private:
 
   InitializationStrategyType m_InitializationStrategy;
   ParametersType             m_InitialKMeansParameters;
+
+  PosteriorProbabilityFormulationType m_PosteriorProbabilityFormulation;
+  bool                                m_UseMixtureModelProportions;
 
   typename OutlierHandlingFilterType::Pointer    m_OutlierHandlingFilter;
 

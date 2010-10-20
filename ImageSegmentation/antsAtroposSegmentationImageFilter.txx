@@ -71,6 +71,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   this->m_InitializationStrategy = KMeans;
   this->m_InitialKMeansParameters.SetSize( 0 );
 
+  this->m_PosteriorProbabilityFormulation = Socrates;
+  this->m_UseMixtureModelProportions = true;
+
   this->m_PriorProbabilityWeight = 0.0;
   this->m_AdaptiveSmoothingWeights.clear();
   this->m_PriorLabelParameterMap.clear();
@@ -508,9 +511,17 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     this->m_MixtureModelComponents[n]->SetWeights( &weights[n] );
     this->m_MixtureModelComponents[n]->SetInputListSample( samples[n] );
-    this->m_MixtureModelProportions[n] =
-      static_cast<RealType>( samples[n]->Size() )
-      / static_cast<RealType>( totalSampleSize );
+    if( this->m_UseMixtureModelProportions )
+      {
+      this->m_MixtureModelProportions[n] =
+        static_cast<RealType>( samples[n]->Size() )
+        / static_cast<RealType>( totalSampleSize );
+      }
+    else
+      {
+      this->m_MixtureModelProportions[n] = 1.0
+        / static_cast<RealType>( this->m_NumberOfClasses );
+      }
     this->m_MixtureModelComponents[n]->ClearInputListSample();
     }
   for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
@@ -1173,100 +1184,107 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     this->m_MixtureModelComponents[n]->SetInputListSample( sample );
     this->m_MixtureModelComponents[n]->ClearInputListSample();
 
-    /**
-     * Perform the following calculation as a preprocessing step to update the
-     * class proportions.
-     */
-    typename RealImageType::Pointer distancePriorProbabilityImage =
-      this->GetDistancePriorProbabilityImage( n + 1 );
-    typename RealImageType::Pointer priorProbabilityImage =
-      this->GetPriorProbabilityImage( n + 1 );
-
-    ImageRegionIteratorWithIndex<RealImageType> ItW(
-      weightedPriorProbabilityImage,
-      weightedPriorProbabilityImage->GetRequestedRegion() );
-    for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
+    if( this->m_UseMixtureModelProportions )
       {
-      if( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( ItW.GetIndex() ) == this->m_MaskLabel )
+      /**
+       * Perform the following calculation as a preprocessing step to update the
+       * class proportions.
+       */
+      typename RealImageType::Pointer distancePriorProbabilityImage =
+        this->GetDistancePriorProbabilityImage( n + 1 );
+      typename RealImageType::Pointer priorProbabilityImage =
+        this->GetPriorProbabilityImage( n + 1 );
+
+      ImageRegionIteratorWithIndex<RealImageType> ItW(
+        weightedPriorProbabilityImage,
+        weightedPriorProbabilityImage->GetRequestedRegion() );
+      for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
         {
-        RealType priorProbability = 0.0;
-        if( this->m_InitializationStrategy == PriorLabelImage ||
-            this->m_InitializationStrategy == PriorProbabilityImages )
+        if( !this->GetMaskImage() ||
+            this->GetMaskImage()->GetPixel( ItW.GetIndex() ) == this->m_MaskLabel )
           {
-          if( priorProbabilityImage )
+          RealType priorProbability = 0.0;
+          if( this->m_InitializationStrategy == PriorLabelImage ||
+              this->m_InitializationStrategy == PriorProbabilityImages )
             {
-            priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
+            if( priorProbabilityImage )
+              {
+              priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
+              }
+            if( priorProbability <= this->m_ProbabilityThreshold &&
+                distancePriorProbabilityImage )
+              {
+              priorProbability =
+                distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
+              }
             }
-          if( priorProbability <= this->m_ProbabilityThreshold &&
-              distancePriorProbabilityImage )
+          else
             {
-            priorProbability =
-              distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
+            priorProbability = 1.0;
             }
+          ItW.Set( ItW.Get() + this->m_MixtureModelProportions[n]
+                   * priorProbability );
           }
-        else
-          {
-          priorProbability = 1.0;
-          }
-        ItW.Set( ItW.Get() + this->m_MixtureModelProportions[n]
-                 * priorProbability );
         }
       }
     }
   this->SetNthOutput( 0, maxLabels );
-  /**
-   * Update the class proportions
-   */
-  for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
+
+  if( this->m_UseMixtureModelProportions )
     {
-    RealType denominator = 0.0;
-
-    typename RealImageType::Pointer distancePriorProbabilityImage =
-      this->GetDistancePriorProbabilityImage( n + 1 );
-    typename RealImageType::Pointer priorProbabilityImage =
-      this->GetPriorProbabilityImage( n + 1 );
-
-    ImageRegionIteratorWithIndex<RealImageType> ItW(
-      weightedPriorProbabilityImage,
-      weightedPriorProbabilityImage->GetRequestedRegion() );
-    for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
+    /**
+     * Update the class proportions
+     */
+    for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
       {
-      if( !this->GetMaskImage() ||
-          this->GetMaskImage()->GetPixel( ItW.GetIndex() ) == this->m_MaskLabel )
+      RealType denominator = 0.0;
+
+      typename RealImageType::Pointer distancePriorProbabilityImage =
+        this->GetDistancePriorProbabilityImage( n + 1 );
+      typename RealImageType::Pointer priorProbabilityImage =
+        this->GetPriorProbabilityImage( n + 1 );
+
+      ImageRegionIteratorWithIndex<RealImageType> ItW(
+        weightedPriorProbabilityImage,
+        weightedPriorProbabilityImage->GetRequestedRegion() );
+      for( ItW.GoToBegin(); !ItW.IsAtEnd(); ++ItW )
         {
-        RealType priorProbability = 0.0;
-        if( this->m_InitializationStrategy == PriorLabelImage ||
-            this->m_InitializationStrategy == PriorProbabilityImages )
+        if( !this->GetMaskImage() ||
+            this->GetMaskImage()->GetPixel( ItW.GetIndex() ) == this->m_MaskLabel )
           {
-          if( priorProbabilityImage )
+          RealType priorProbability = 0.0;
+          if( this->m_InitializationStrategy == PriorLabelImage ||
+              this->m_InitializationStrategy == PriorProbabilityImages )
             {
-            priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
+            if( priorProbabilityImage )
+              {
+              priorProbability = priorProbabilityImage->GetPixel( ItW.GetIndex() );
+              }
+            if( priorProbability <= this->m_ProbabilityThreshold &&
+                distancePriorProbabilityImage )
+              {
+              priorProbability =
+                distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
+              }
             }
-          if( priorProbability <= this->m_ProbabilityThreshold &&
-              distancePriorProbabilityImage )
+          else
             {
-            priorProbability =
-              distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
+            priorProbability = 1.0;
             }
-          }
-        else
-          {
-          priorProbability = 1.0;
-          }
-        if( ItW.Get() > 0.0 )
-          {
-          denominator += ( priorProbability / ItW.Get() );
+          if( ItW.Get() > 0.0 )
+            {
+            denominator += ( priorProbability / ItW.Get() );
+            }
           }
         }
-      }
-    if( denominator > 0.0 )
-      {
-      this->m_MixtureModelProportions[n] = sumPosteriors[n] / denominator;
-      }
-    else
-      {
-      this->m_MixtureModelProportions[n] = 0.0;
+      if( denominator > 0.0 )
+        {
+        this->m_MixtureModelProportions[n] = sumPosteriors[n] / denominator;
+        }
+      else
+        {
+        this->m_MixtureModelProportions[n] = 0.0;
+        }
       }
     }
 
@@ -1390,6 +1408,61 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::RealType
+AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::CalculateLocalPosteriorProbability( RealType mixtureModelProportion,
+                                      RealType spatialPriorProbability, RealType distancePriorProbability,
+                                      RealType mrfPriorProbability, RealType likelihood )
+{
+  RealType posteriorProbability = 0.0;
+
+  switch( this->m_PosteriorProbabilityFormulation )
+    {
+    case Socrates: default:
+      {
+      posteriorProbability =
+        vcl_pow( static_cast<double>( spatialPriorProbability ),
+                 static_cast<double>( this->m_PriorProbabilityWeight ) )
+        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
+                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
+      break;
+      }
+    case Plato:
+      {
+      posteriorProbability = 1.0;
+      break;
+      }
+    case Aristotle:
+      {
+      posteriorProbability = 1.0;
+      break;
+      }
+//    case Zeno:
+//      {
+//      posteriorProbability = 1.0;
+//      break;
+//      }
+//    case Diogenes:
+//      {
+//      posteriorProbability = 1.0;
+//      break;
+//      }
+//    case Thales:
+//      {
+//      posteriorProbability = 1.0;
+//      break;
+//      }
+//    case Democritus:
+//      {
+//      posteriorProbability = 1.0;
+//      break;
+//      }
+    }
+  return posteriorProbability;
+}
+
+template <class TInputImage, class TMaskImage, class TClassifiedImage>
+typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImageType::Pointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GetPosteriorProbabilityImage( unsigned int whichClass )
@@ -1494,8 +1567,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 this->m_AdaptiveSmoothingWeights[i] > 0.0 )
               {
               smoothImages.push_back(
-                this->CalculateSmoothIntensityImageFromPriorProbabilityImage( i,
-                                                                              c + 1 ) );
+                this->GetSmoothIntensityImageFromPriorImage( i, c + 1 ) );
               }
             else
               {
@@ -1580,9 +1652,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
              * and template-based prior images (if available)
              */
             RealType priorProbability = 0.0;
+            RealType distancePriorProbability = 0.0;
             if( this->m_InitializationStrategy == PriorLabelImage ||
                 this->m_InitializationStrategy == PriorProbabilityImages )
               {
+              if( distancePriorProbabilityImage )
+                {
+                distancePriorProbability =
+                  priorProbabilityImage->GetPixel( ItO.GetIndex() );
+                }
               if( priorProbabilityImage )
                 {
                 priorProbability =
@@ -1598,8 +1676,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               else if( sumPriorProbability <= this->m_ProbabilityThreshold &&
                        distancePriorProbabilityImage )
                 {
-                priorProbability =
-                  distancePriorProbabilityImage->GetPixel( ItO.GetIndex() );
+                priorProbability = distancePriorProbability;
                 }
               }
 
@@ -1632,12 +1709,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
              * labeling configuration, this is the critical energy minimization
              * equation.
              */
-
             RealType posteriorProbability =
-              vcl_pow( static_cast<double>( priorProbability ),
-                       static_cast<double>( this->m_PriorProbabilityWeight ) )
-              * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
-                         static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
+              CalculateLocalPosteriorProbability(
+                this->m_MixtureModelProportions[c], priorProbability,
+                distancePriorProbability, mrfPriorProbability, likelihood );
 
             if( vnl_math_isnan( posteriorProbability ) ||
                 vnl_math_isinf( posteriorProbability ) )
@@ -1753,8 +1828,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               this->m_AdaptiveSmoothingWeights[i] > 0.0 )
             {
             smoothImages.push_back(
-              this->CalculateSmoothIntensityImageFromPriorProbabilityImage( i,
-                                                                            whichClass ) );
+              this->GetSmoothIntensityImageFromPriorImage( i, whichClass ) );
             }
           else
             {
@@ -1836,9 +1910,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
            * and template-based prior images (if available)
            */
           RealType priorProbability = 0.0;
+          RealType distancePriorProbability = 0.0;
           if( this->m_InitializationStrategy == PriorLabelImage ||
               this->m_InitializationStrategy == PriorProbabilityImages )
             {
+            if( distancePriorProbabilityImage )
+              {
+              distancePriorProbability =
+                distancePriorProbabilityImage->GetPixel( ItO.GetIndex() );
+              }
             if( priorProbabilityImage )
               {
               priorProbability =
@@ -1854,8 +1934,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             else if( sumPriorProbability <= this->m_ProbabilityThreshold &&
                      distancePriorProbabilityImage )
               {
-              priorProbability =
-                distancePriorProbabilityImage->GetPixel( ItO.GetIndex() );
+              priorProbability = distancePriorProbability;
               }
             }
 
@@ -1889,10 +1968,9 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
            * equation.
            */
           RealType posteriorProbability =
-            vcl_pow( static_cast<double>( priorProbability ),
-                     static_cast<double>( this->m_PriorProbabilityWeight ) )
-            * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
-                       static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
+            CalculateLocalPosteriorProbability(
+              this->m_MixtureModelProportions[whichClass - 1], priorProbability,
+              distancePriorProbability, mrfPriorProbability, likelihood );
 
           if( vnl_math_isnan( posteriorProbability ) ||
               vnl_math_isinf( posteriorProbability ) )
@@ -2400,8 +2478,8 @@ template <class TInputImage, class TMaskImage, class TClassifiedImage>
 typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::RealImageType::Pointer
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::CalculateSmoothIntensityImageFromPriorProbabilityImage( unsigned int whichImage,
-                                                          unsigned int whichClass )
+::GetSmoothIntensityImageFromPriorImage( unsigned int whichImage,
+                                         unsigned int whichClass )
 {
   typename ScalarImageType::Pointer bsplineImage;
 
@@ -2553,8 +2631,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           this->m_AdaptiveSmoothingWeights[i] > 0.0 )
         {
         smoothImages.push_back(
-          this->CalculateSmoothIntensityImageFromPriorProbabilityImage( i,
-                                                                        whichClass ) );
+          this->GetSmoothIntensityImageFromPriorImage( i, whichClass ) );
         }
       else
         {
@@ -2702,6 +2779,46 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         }
       break;
       }
+    }
+  os << indent << "Posterior probability formulation: ";
+
+  switch( this->m_PosteriorProbabilityFormulation )
+    {
+    case Socrates:
+      {
+      os << "Socrates" << std::endl;
+      break;
+      }
+    case Plato:
+      {
+      os << "Plato" << std::endl;
+      break;
+      }
+    case Aristotle:
+      {
+      os << "Aristotle" << std::endl;
+      break;
+      }
+//    case Zeno:
+//      {
+//      os << "Zeno" << std::endl;
+//      break;
+//      }
+//    case Diogenes:
+//      {
+//      os << "Diogenes" << std::endl;
+//      break;
+//      }
+//    case Thales:
+//      {
+//      os << "Thales" << std::endl;
+//      break;
+//      }
+//    case Democritus:
+//      {
+//      os << "Democritus" << std::endl;
+//      break;
+//      }
     }
 
   os << indent << "MRF parameters" << std::endl;
