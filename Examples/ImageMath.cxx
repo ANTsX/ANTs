@@ -6147,6 +6147,7 @@ int ROIStatistics(      int argc, char *argv[])
   vnl_vector<double> pvals4(maxlab + 1, 1.0);
   vnl_vector<double> pvals5(maxlab + 1, 1.0);
   vnl_vector<double> clusters(maxlab + 1, 0.0);
+  vnl_vector<double> masses(maxlab + 1, 0.0);
   typename ImageType::PointType mycomlist[33];
 
   std::ofstream logfile;
@@ -6253,6 +6254,7 @@ int ROIStatistics(      int argc, char *argv[])
       }
 
     clusters[(unsigned long)*it] = totalvolume;
+    masses[(unsigned long)*it] = totalmass / totalct;
     pvals[(unsigned long)*it] = 1.0 - maxoneminuspval;
     pvals3[(unsigned long)*it] = maxoneminuspval3;
     pvals4[(unsigned long)*it] = 1.0 - maxoneminuspval4;
@@ -6273,7 +6275,18 @@ int ROIStatistics(      int argc, char *argv[])
       }
     else
       {
-      logfile << cortroimap.find(roi)->second << std::endl;
+      logfile << cortroimap.find(roi)->second << ",";  // << std::endl;
+      }
+    }
+  for( unsigned int roi = maxlab + 1; roi <= maxlab * 2; roi++ )
+    {
+    if( roi < maxlab * 2 )
+      {
+      logfile << cortroimap.find(roi - maxlab)->second + std::string("mass") << ",";
+      }
+    else
+      {
+      logfile << cortroimap.find(roi - maxlab)->second + std::string("mass") << std::endl;
       }
     }
   for( unsigned int roi = 1; roi <= maxlab; roi++ )
@@ -6284,7 +6297,18 @@ int ROIStatistics(      int argc, char *argv[])
       }
     else
       {
-      logfile << clusters[roi] << std::endl;
+      logfile << clusters[roi] << ",";  // << std::endl;
+      }
+    }
+  for( unsigned int roi = maxlab + 1; roi <= maxlab * 2; roi++ )
+    {
+    if( roi < maxlab * 2 )
+      {
+      logfile << masses[roi - maxlab] << ",";
+      }
+    else
+      {
+      logfile << masses[roi - maxlab] << std::endl;
       }
     }
   for( unsigned int roi = 1; roi <= maxlab; roi++ )
