@@ -37,7 +37,8 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 <images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
           of the command.
 
-NB: All files to be added to the template should be in the same directory.
+NB: All images to be added to the template should be in the same directory, and this script
+should be invoked from that directory.
 
 Optional arguments:
 
@@ -694,11 +695,11 @@ fi
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
 # The shiftsize variable will give the correct number of arguments to skip. Issuing shift $shiftsize will
 # result in skipping that number of arguments on the command line, so that only the input images remain.
-shiftsize=`expr $OPTIND - 1`
+shiftsize=$(($OPTIND - 1))
 shift $shiftsize
 # The invocation of $* will now read all remaining arguments into the variable IMAGESETVARIABLE
 IMAGESETVARIABLE=$*
-NINFILES=`expr $nargs - $shiftsize`
+NINFILES=$(($nargs - $shiftsize))
 #test if FSL is available in case of 4D, exit if not
 if [  ${TDIM} -eq 4 ] && [  ${#FSLDIR} -le 0 ]
     then
