@@ -659,8 +659,26 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         radius.Fill( 0 );
         if( option->GetNumberOfParameters( i ) > parameterCount )
           {
-          radius.Fill( this->m_Parser->template
-                       Convert<unsigned int>( option->GetParameter( i, parameterCount ) ) );
+          std::vector<unsigned int> rad = this->m_Parser->template
+            ConvertVector<unsigned int>( option->GetParameter( i,
+                                                               parameterCount ) );
+
+          if( rad.size() == 1 )
+            {
+            radius.Fill( rad[0] );
+            }
+          else if( rad.size() == TDimension )
+            {
+            for( unsigned int n = 0; n < TDimension; n++ )
+              {
+              radius[n] = rad[n];
+              }
+            }
+          else
+            {
+            std::cerr << "Badly formed radius specification" << std::endl;
+            exit( 0 );
+            }
           parameterCount++;
           }
         std::cout << "  Radius: " << radius << std::endl;
