@@ -15,6 +15,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
+#include <map>
+// Here I'm using a map but you could choose even other containers
+#include <fstream>
+#include <string>
 
 #include <iostream>
 #include <sstream>
@@ -5975,6 +5979,28 @@ int LabelStats(      int argc, char *argv[])
   return 0;
 }
 
+// int is the key, string the return value
+std::map<unsigned int, std::string> RoiList(std::string file)
+{
+  unsigned int                        wordindex = 0;
+  std::string                         tempstring = "";
+  std::map<unsigned int, std::string> RoiList;
+  char                                str[2000];
+  std::fstream                        file_op(file.c_str(), std::ios::in);
+
+  while( file_op >> str )
+    {
+    tempstring = std::string(str);
+    RoiList[wordindex] = tempstring;
+    wordindex++;
+    std::cout << tempstring << std::endl;
+    }
+
+  return RoiList; // returns the maximum index
+}
+
+// now words can be accessed like this WordList[n]; where 'n' is the index
+
 template <unsigned int ImageDimension>
 int ROIStatistics(      int argc, char *argv[])
 {
@@ -6066,6 +6092,9 @@ int ROIStatistics(      int argc, char *argv[])
   std::string outname = std::string(argv[argct]); argct++;
   std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string(".nii.gz");
   std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn0 = std::string(argv[argct]);   argct++;
+  std::cout << "  fn0 " << fn0 << std::endl;
+  cortroimap = RoiList(fn0);
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = "";
   if(  argc > argct )
@@ -6793,7 +6822,7 @@ int main(int argc, char *argv[])
       <<
     "  LabelStats labelimage.ext valueimage.nii ( compute volumes / masses of objects in a label image -- write to text file ) \n"
       << std::endl;
-    std::cout << "  ROIStatistics labelimage.ext valueimage.nii ( see the code ) \n" << std::endl;
+    std::cout << "  ROIStatistics  LabelNames.txt labelimage.ext valueimage.nii  ( see the code ) \n" << std::endl;
     std::cout
       <<
     " DiceAndMinDistSum  LabelImage1.ext LabelImage2.ext OptionalDistImage  -- outputs DiceAndMinDistSum and Dice Overlap to text log file + optional distance image \n "
