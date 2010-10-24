@@ -5982,7 +5982,7 @@ int LabelStats(      int argc, char *argv[])
 // int is the key, string the return value
 std::map<unsigned int, std::string> RoiList(std::string file)
 {
-  unsigned int                        wordindex = 0;
+  unsigned int                        wordindex = 1;
   std::string                         tempstring = "";
   std::map<unsigned int, std::string> RoiList;
   char                                str[2000];
@@ -6300,44 +6300,44 @@ int ROIStatistics(      int argc, char *argv[])
     {
     if( roi < maxlab )
       {
-      logfile << roimap.find(roi - 1)->second << ",";
+      logfile << roimap.find(roi)->second << ",";
       }
     else
       {
-      logfile << roimap.find(roi - 1)->second << ","; // << std::endl;
+      logfile << roimap.find(roi)->second << ",";  // << std::endl;
       }
     }
   for( unsigned int roi = maxlab + 1; roi <= maxlab * 2; roi++ )
     {
     if( roi < maxlab * 2 )
       {
-      logfile << roimap.find(roi - maxlab - 1)->second + std::string("mass") << ",";
+      logfile << roimap.find(roi - maxlab)->second + std::string("mass") << ",";
       }
     else
       {
-      logfile << roimap.find(roi - maxlab - 1)->second + std::string("mass") << std::endl;
+      logfile << roimap.find(roi - maxlab)->second + std::string("mass") << std::endl;
       }
     }
   for( unsigned int roi = 1; roi <= maxlab; roi++ )
     {
     if( roi < maxlab )
       {
-      logfile << clusters[roi - 1] << ",";
+      logfile << clusters[roi] << ",";
       }
     else
       {
-      logfile << clusters[roi - 1] << ","; // << std::endl;
+      logfile << clusters[roi] << ",";  // << std::endl;
       }
     }
   for( unsigned int roi = maxlab + 1; roi <= maxlab * 2; roi++ )
     {
     if( roi < maxlab * 2 )
       {
-      logfile << masses[roi - maxlab - 1] << ",";
+      logfile << masses[roi - maxlab] << ",";
       }
     else
       {
-      logfile << masses[roi - maxlab - 1] << std::endl;
+      logfile << masses[roi - maxlab] << std::endl;
       }
     }
   logfile.close();
