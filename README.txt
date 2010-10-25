@@ -2,7 +2,7 @@ Release 1.9.2 --- svn release 674++
 
 Homepage: http://www.picsl.upenn.edu/ANTS/
 
-Introduction --  ANTS is a tool for computational neuroanatomy based on
+Introduction -- ANTS is a tool for computational neuroanatomy based on
 medical images.  ANTS reads any image type that can be read by ITK
 (www.itk.org), that is, jpg, tiff, hdr, nii, nii.gz, mha/d and more
 image types as well.  For the most part, ANTS will output float images
