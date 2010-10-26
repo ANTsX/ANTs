@@ -995,7 +995,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 	echo $pexe
 	echo $pexe >> job${count}_${i}.sh
     elif  [ $DOQSUB -eq 0 ] ; then
-	sh $exe
+	bash $exe
     fi
 
     # counter updated, but not directly used in this loop
