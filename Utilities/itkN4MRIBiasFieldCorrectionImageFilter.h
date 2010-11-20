@@ -23,7 +23,6 @@
 #include "itkArray.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkPointSet.h"
-#include "itkSingleValuedCostFunction.h"
 #include "itkVector.h"
 
 #include "vnl/vnl_vector.h"
