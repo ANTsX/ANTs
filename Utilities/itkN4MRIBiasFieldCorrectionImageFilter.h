@@ -220,13 +220,11 @@ private:
   N4MRIBiasFieldCorrectionImageFilter( const Self & ); // purposely not implemented
   void operator=( const Self & );                      // purposely not implemented
 
-  typename RealImageType::Pointer SharpenImage(
-    typename RealImageType::Pointer );
-  typename RealImageType::Pointer UpdateBiasFieldEstimate(
-    typename RealImageType::Pointer );
-  RealType CalculateConvergenceMeasurement(
-    typename RealImageType::Pointer,
-    typename RealImageType::Pointer );
+  void SharpenImage( RealImageType *, RealImageType * );
+
+  void UpdateBiasFieldEstimate( RealImageType *, void * );
+
+  RealType CalculateConvergenceMeasurement( RealImageType *, RealImageType * );
 
   MaskPixelType m_MaskLabel;
 
