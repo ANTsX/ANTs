@@ -346,24 +346,6 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   typename VectorInterpType::Pointer inputInterp = VectorInterpType::New();
   inputInterp->SetInputImage( input );
 
-  // DeformationFieldPointer tempField=DeformationFieldType::New();
-
-  // copy field to TempField
-  // tempField->SetSpacing(m_DeformationField->GetSpacing() );
-  // tempField->SetOrigin(m_DeformationField->GetOrigin() );
-  // tempField->SetLargestPossibleRegion(
-  // m_DeformationField->GetLargestPossibleRegion() );
-  // tempField->SetRequestedRegion(
-  // m_DeformationField->GetRequestedRegion() );
-  // tempField->SetBufferedRegion(m_DeformationField->GetBufferedRegion() );
-  // tempField->Allocate();
-  //  tempField->FillBuffer(  );
-
-  // for ( inputIt.GoToBegin(); !inputIt.IsAtEnd(); ++inputIt )
-  // {
-  // tempField->SetPixel( inputIt.GetIndex(), m_DeformationField->GetPixel( inputIt.GetIndex()));
-  // }
-
   ImageRegionIteratorWithIndex<DeformationFieldType> dispIt( m_DeformationField,
                                                              m_DeformationField->GetLargestPossibleRegion() );
 
@@ -432,22 +414,15 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
           ddlindex[row] = rindex[row] - 2;
           }
 
-        float h = 0.25;
+        float h = 1;
         space = 1.0; // should use image spacing here?
 
         typename DeformationFieldType::PixelType rpix = this->TransformVector( m_DeformationField, difIndex[row][1]);
         typename DeformationFieldType::PixelType lpix = this->TransformVector( m_DeformationField, difIndex[row][0]);
-        typename DeformationFieldType::PixelType rrpix = this->TransformVector( m_DeformationField, ddrindex );
-        typename DeformationFieldType::PixelType llpix = this->TransformVector( m_DeformationField, ddlindex);
-
-        rpix = rpix * h + cpix * (1. - h);
-        lpix = lpix * h + cpix * (1. - h);
-        rrpix = rrpix * h + rpix * (1. - h);
-        llpix = llpix * h + lpix * (1. - h);
 
         // 4th order centered difference
         typename DeformationFieldType::PixelType dPix;
-        dPix = ( lpix * 8.0 - rpix * 8.0 + rrpix - llpix ) * space / (12.0); // 4th order centered differenceX
+        dPix = ( lpix - rpix ); // 2nd order centered difference
         for( unsigned int col = 0; col < ImageDimension; col++ )
           {
           float val;
