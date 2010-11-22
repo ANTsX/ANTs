@@ -71,8 +71,8 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
       covarianceCalculator->Update();
 
       typename GaussianType::MeanType mean;
-      ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
-                                                             this->m_ListSample->GetMeasurementVectorSize() );
+      NumericTraits<typename GaussianType::MeanType>::SetLength( mean,
+                                                                 this->m_ListSample->GetMeasurementVectorSize() );
       for( unsigned int d = 0; d < this->m_ListSample->GetMeasurementVectorSize(); d++ )
         {
         mean[d] = covarianceCalculator->GetMean()[d];
@@ -90,8 +90,8 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
       covarianceCalculator->Update();
 
       typename GaussianType::MeanType mean;
-      ::itk::Statistics::MeasurementVectorTraits::SetLength( mean,
-                                                             this->m_ListSample->GetMeasurementVectorSize() );
+      NumericTraits<typename GaussianType::MeanType>::SetLength( mean,
+                                                                 this->m_ListSample->GetMeasurementVectorSize() );
       for( unsigned int d = 0; d < this->m_ListSample->GetMeasurementVectorSize(); d++ )
         {
         mean[d] = covarianceCalculator->GetMean()[d];
