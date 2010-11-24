@@ -116,13 +116,9 @@ int MeasureMinMaxMean(int argc, char *argv[])
       variance += vnl_math_sqr(val - mean);
       }
     }
-  if( ct > 0 )
-    {
-    variance /= (float)ct;
-    }
-
-  std::cout <<  argv[2] << " Max : " << max << " Min : " << min << " Mean : " << mean << " Var : " << variance
-            << " SD : " << sqrt(variance) << std::endl;
+  float temp = (1.0 / (float)ct) * variance;
+  std::cout <<  argv[2] << " Max : " << max << " Min : " << min << " Mean : " << mean << " Var : " <<  temp
+            << " SD : " << sqrt(1.0 / (float)(ct - 1) * variance) << std::endl;
 
   if( argc > 3 )
     {

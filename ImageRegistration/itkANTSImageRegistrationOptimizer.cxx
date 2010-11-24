@@ -33,7 +33,7 @@
 #include "vnl/vnl_math.h"
 #include "ANTS_affine_registration2.h"
 #include "itkWarpImageMultiTransformFilter.h"
-#include "itkVectorImageFileWriter.h"
+// #include "itkVectorImageFileWriter.h"
 
 namespace itk
 {
@@ -2382,7 +2382,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
     if( false && this->m_CurrentIteration == 1 &&  this->m_SyNFInv  )
       {
-      typedef itk::VectorImageFileWriter<DeformationFieldType, ImageType>
+      typedef itk::ImageFileWriter<DeformationFieldType>
         DeformationFieldWriterType;
       typename DeformationFieldWriterType::Pointer writer = DeformationFieldWriterType::New();
       std::ostringstream osstream;
@@ -2390,7 +2390,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       fct++;
       std::string fnm = std::string("field1") + osstream.str() + std::string("warp.nii.gz");
       std::string fnm2 = std::string("field2") + osstream.str() + std::string("warp.nii.gz");
-      writer->SetUseAvantsNamingConvention( true );
+      //  writer->SetUseAvantsNamingConvention( true );
       writer->SetInput( this->m_SyNFInv );
       writer->SetFileName( fnm.c_str() );
       std::cout << " write " << fnm << std::endl;

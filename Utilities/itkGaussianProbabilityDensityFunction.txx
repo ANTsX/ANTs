@@ -181,8 +181,8 @@ GaussianProbabilityDensityFunction<TMeasurementVector>
   const MeasurementVectorSizeType measurementVectorSize
     = this->GetMeasurementVectorSize();
   MeanType tempVector;
-  MeasurementVectorTraits::SetLength( tempVector, measurementVectorSize );
 
+  NumericTraits<MeanType>::SetLength(tempVector, measurementVectorSize );
   // Compute |y - mean |
   for( unsigned int i = 0; i < measurementVectorSize; i++ )
     {
@@ -192,7 +192,7 @@ GaussianProbabilityDensityFunction<TMeasurementVector>
   if( this->m_UseAnisotropicCovariance )
     {
     MeanType tempVector2;
-    MeasurementVectorTraits::SetLength( tempVector2, measurementVectorSize );
+    ::itk::NumericTraits<MeanType>::SetLength(tempVector2, measurementVectorSize );
     // Compute |y - mean | * inverse(cov)
     for( unsigned int i = 0; i < measurementVectorSize; i++ )
       {

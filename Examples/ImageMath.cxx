@@ -26,7 +26,7 @@
 #include "itkTimeProbe.h"
 #include "itkMedianImageFilter.h"
 #include "itkVariableSizeMatrix.h"
-#include "itkVectorImageFileReader.h"
+// #include "itkVectorImageFileReader.h"
 #include "itkVector.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkHessianRecursiveGaussianImageFilter.h"
@@ -5620,10 +5620,10 @@ int Lipschitz( int argc, char *argv[] )
   /**
    * Read in vector field
    */
-  typedef itk::VectorImageFileReader<RealImageType, VectorImageType> ReaderType;
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( vecname.c_str() );
-  reader->SetUseAvantsNamingConvention( true );
+  // reader->SetUseAvantsNamingConvention( true );
   reader->Update();
   typename VectorImageType::Pointer vecimage = reader->GetOutput();
 
@@ -5744,15 +5744,15 @@ int InvId( int argc, char *argv[] )
   /**
    * Read in vector field
    */
-  typedef itk::VectorImageFileReader<RealImageType, VectorImageType> ReaderType;
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
   typename ReaderType::Pointer reader1 = ReaderType::New();
   reader1->SetFileName( vecname1.c_str() );
-  reader1->SetUseAvantsNamingConvention( true );
+  //  reader1->SetUseAvantsNamingConvention( true );
   reader1->Update();
   typename VectorImageType::Pointer vecimage1 = reader1->GetOutput();
   typename ReaderType::Pointer reader2 = ReaderType::New();
   reader2->SetFileName( vecname2.c_str() );
-  reader2->SetUseAvantsNamingConvention( true );
+  //  reader2->SetUseAvantsNamingConvention( true );
   reader2->Update();
   typename VectorImageType::Pointer vecimage2 = reader2->GetOutput();
 

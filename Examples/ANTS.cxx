@@ -186,14 +186,14 @@ int main(int argc, char *argv[] )
     std::string iterations( " -i " );
     for( int n = numberOfLevels; n > 0; n-- )
       {
-      itk::OStringStream buf;
+      std::ostringstream buf;
       unsigned long      numberOfIterations = ( 5 << (n - 1) );
       buf << numberOfIterations << "x";
       iterations += buf.str();
       }
     iterations = iterations.substr( 0, iterations.length() - 1 );
 
-    itk::OStringStream dimBuf;
+    std::ostringstream dimBuf;
     dimBuf << fdim;
     arguments.clear();
     arguments = std::string( " ANTS " ) + dimBuf.str() + iterations

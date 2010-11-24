@@ -4,8 +4,8 @@
 
 #include "itkImageFileReader.h"
 #include "itkVector.h"
-#include "itkVectorImageFileReader.h"
-#include "itkVectorImageFileWriter.h"
+// #include "itkVectorImageFileReader.h"
+// #include "itkVectorImageFileWriter.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
@@ -273,7 +273,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
 
   typedef itk::TransformFileReader TranReaderType;
 
-  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType>
+  typedef itk::ImageFileReader<DeformationFieldType>
     FieldReaderType;
 
   const int kOptQueueSize = opt_queue.size();
@@ -498,7 +498,7 @@ void ComposeMultiAffine(char *input_affine_txt, char *output_affine_txt,
 
   typedef itk::TransformFileReader TranReaderType;
 
-  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType>
+  typedef itk::ImageFileReader<DeformationFieldType>
     FieldReaderType;
 
   int       cnt_affine = 0;

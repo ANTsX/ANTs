@@ -2,8 +2,8 @@
 #include <string>
 #include "itkImageFileReader.h"
 #include "itkVector.h"
-#include "itkVectorImageFileReader.h"
-#include "itkVectorImageFileWriter.h"
+// #include "itkVectorImageFileReader.h"
+// #include "itkVectorImageFileWriter.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
@@ -191,7 +191,7 @@ void ComposeMultiTransform(char *output_image_filename,
 
   typedef itk::TransformFileReader TranReaderType;
 
-  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType>
+  typedef itk::ImageFileReader<DeformationFieldType>
     FieldReaderType;
 
   const int kOptQueueSize = opt_queue.size();
@@ -261,11 +261,11 @@ void ComposeMultiTransform(char *output_image_filename,
 
   if( extension != std::string(".mha") )
     {
-    typedef itk::VectorImageFileWriter<DeformationFieldType, ImageType>
+    typedef itk::ImageFileWriter<DeformationFieldType>
       WriterType;
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetFileName(output_image_filename);
-    writer->SetUseAvantsNamingConvention(true);
+    //        writer->SetUseAvantsNamingConvention(true);
     writer->SetInput(field_output);
     writer->Update();
     }
@@ -312,7 +312,7 @@ void ComposeMultiAffine(char *output_affine_txt,
 
   typedef itk::TransformFileReader TranReaderType;
 
-  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType>
+  typedef itk::ImageFileReader<DeformationFieldType>
     FieldReaderType;
 
   int       cnt_affine = 0;

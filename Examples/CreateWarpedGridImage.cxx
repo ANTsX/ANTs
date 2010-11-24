@@ -1,6 +1,6 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkVectorImageFileReader.h"
+// #include "itkVectorImageFileReader.h"
 #include "itkVector.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkWarpImageMultiTransformFilter.h"
@@ -64,7 +64,7 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   /**
    * Read in vector field
    */
-  typedef itk::VectorImageFileReader<RealImageType, VectorImageType> ReaderType;
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[2] );
   reader->Update();

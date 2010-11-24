@@ -295,6 +295,8 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       }
     }
 
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
+    parser->GetOption( "output" );
   /**
    * Initialization
    */
@@ -312,8 +314,9 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     if( !labels )
       {
       std::cout << "  Cannot find vtk Array named 'Label' in " << innm << std::endl;
-      std::cout << " exiting " << std::endl;
-      exit(1);
+      std::cout << "  This could cause problems " << std::endl;
+      //	  std::cout <<" exiting " << std::endl;
+      // exit(1);
       }
     innm = inOption->GetParameter( 1 );
     vtkSmartPointer<vtkPolyDataReader> fltReader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -345,6 +348,22 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       inflatedmesh = vtkSmartPointer<vtkPolyData>(smoother->GetOutput() );
       std::cout << " done smoothing " << std::endl;
       flattener->SetSurfaceMesh(inflatedmesh);
+      if( outputOption->GetNumberOfParameters() > 0 )
+        {
+        for( unsigned int p = 0; p < outputOption->GetNumberOfParameters(); p++ )
+          {
+          if( p == 2 && inflatedmesh )
+            {
+            vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+            writer->SetInput(inflatedmesh);
+            std::string outnm = outputOption->GetParameter( 2 );
+            std::cout << " writing " << outnm << std::endl;
+            writer->SetFileName(outnm.c_str() );
+            writer->SetFileTypeToBinary();
+            writer->Update();
+            }
+          }
+        }
       }
     else
       {
@@ -393,8 +412,6 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
-  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
-    parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfValues() > 0 )
     {
     if( outputOption->GetNumberOfParameters() > 0 )

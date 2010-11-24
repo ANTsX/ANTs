@@ -17,7 +17,7 @@
 =========================================================================*/
 
 #include "itkImageFileReader.h"
-#include "itkVectorImageFileReader.h"
+// #include "itkVectorImageFileReader.h"
 #include "itkVector.h"
 #include "itkImageRegionIteratorWithIndex.h"
 
@@ -47,10 +47,10 @@ int main( int argc, char *argv[] )
   typedef itk::Vector<RealType, ImageDimension>  VectorType;
   typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
 
-  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType> ReaderType;
+  typedef itk::ImageFileReader<DeformationFieldType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
-  reader->SetUseAvantsNamingConvention( true );
+  //  reader->SetUseAvantsNamingConvention( true );
   reader->Update();
 
   MaskImageType::Pointer mask = MaskImageType::New();

@@ -12,7 +12,7 @@
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
 
-#include "itkVectorImageFileReader.h"
+// #include "itkVectorImageFileReader.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkWarpImageMultiTransformFilter.h"
 
@@ -452,11 +452,11 @@ int Jacobian(int argc, char *argv[])
   typedef typename  ImageType::SpacingType                       SpacingType;
   typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
 
-  typedef itk::VectorImageFileReader<ImageType, FieldType> ReaderType;
+  typedef itk::ImageFileReader<FieldType> ReaderType;
   // std::cout << "read warp " << std::string(argv[1]) << std::endl;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
-  reader->SetUseAvantsNamingConvention( true );
+  //  reader->SetUseAvantsNamingConvention( true );
   reader->Update();
   typename FieldType::Pointer gWarp = reader->GetOutput();
   //

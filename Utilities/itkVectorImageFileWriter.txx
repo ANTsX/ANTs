@@ -117,7 +117,7 @@ VectorImageFileWriter<TVectorImage, TImage>
   if( strcmp( m_Image->GetNameOfClass(), "VectorImage" ) == 0 )
     {
     typedef typename ImageType::InternalPixelType VectorImageScalarType;
-    m_ImageIO->SetPixelTypeInfo( typeid(VectorImageScalarType) );
+    // m_ImageIO->SetPixelTypeInfo( typeid(VectorImageScalarType) );
 
     typedef typename ImageType::AccessorFunctorType AccessorFunctorType;
     m_ImageIO->SetNumberOfComponents( AccessorFunctorType::GetVectorLength( m_Image ) );
@@ -125,7 +125,7 @@ VectorImageFileWriter<TVectorImage, TImage>
   else
     {
     // Set the pixel and component type; the number of components.
-    m_ImageIO->SetPixelTypeInfo(typeid(ScalarType) );
+    // m_ImageIO->SetPixelTypeInfo(typeid(ScalarType));
     }
 
   // Setup the image IO for writing.
@@ -240,7 +240,7 @@ VectorImageFileWriter<TVectorImage, TImage>
       }
     else
       {
-      itk::OStringStream buf;
+      std::ostringstream buf;
       buf << i;
       filename += ( std::string( "." )  + std::string( buf.str().c_str() ) );
       }
@@ -295,7 +295,7 @@ VectorImageFileWriter<TVectorImage, TImage>
     if( m_ImageIO.IsNull() )
       {
       ImageFileWriterException e(__FILE__, __LINE__);
-      OStringStream            msg;
+      std::ostringstream       msg;
       msg << " Could not create IO object for file "
           << filename.c_str() << std::endl;
       msg << "  Tried to create one of the following:" << std::endl;

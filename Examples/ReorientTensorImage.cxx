@@ -19,7 +19,7 @@
 #include "ReadWriteImage.h"
 #include "TensorFunctions.h"
 #include "itkPreservationOfPrincipalDirectionTensorReorientationImageFilter.h"
-#include "itkVectorImageFileReader.h"
+// #include "itkVectorImageFileReader.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkVectorResampleImageFilter.h"
 #include "itkWarpTensorImageMultiTransformFilter.h"
@@ -617,8 +617,8 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
   // else
   //    img_ref = NULL;
 
-  typedef itk::TransformFileReader                                    TranReaderType;
-  typedef itk::VectorImageFileReader<ImageType, DeformationFieldType> FieldReaderType;
+  typedef itk::TransformFileReader                   TranReaderType;
+  typedef itk::ImageFileReader<DeformationFieldType> FieldReaderType;
   typename DeformationFieldType::Pointer field;
 
   unsigned int transcount = 0;

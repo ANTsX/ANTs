@@ -32,7 +32,7 @@
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkRecursiveGaussianImageFilter.h"
 #include "itkResampleImageFilter.h"
-#include "itkVectorImageFileWriter.h"
+// #include "itkVectorImageFileWriter.h"
 
 #include "vnl/vnl_math.h"
 
@@ -106,17 +106,17 @@ ANTSImageTransformation<TDimension, TReal>
       std::string filename = filePrefix + std::string( "Warp" )
         + extension + gzExtension;
 
-      typedef VectorImageFileWriter<DeformationFieldType, ImageType> WriterType;
+      typedef ImageFileWriter<DeformationFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       std::cout << "filename " << filename << std::endl;
       writer->SetFileName( filename );
-      writer->SetUseAvantsNamingConvention( true );
+      //            writer->SetUseAvantsNamingConvention( true );
       writer->SetInput( this->m_DeformationField );
       writer->Update();
       }
     else
       {
-      std::string filename = filePrefix + std::string( "Warp.mha" );
+      std::string filename = filePrefix + std::string( "Warp.nii.gz" );
       typedef ImageFileWriter<DeformationFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( filename );
@@ -131,11 +131,10 @@ ANTSImageTransformation<TDimension, TReal>
       {
       std::string filename = filePrefix + std::string( "InverseWarp" )
         + extension + gzExtension;
-
-      typedef VectorImageFileWriter<DeformationFieldType, ImageType> WriterType;
+      typedef ImageFileWriter<DeformationFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( filename );
-      writer->SetUseAvantsNamingConvention( true );
+      //            writer->SetUseAvantsNamingConvention( true );
       writer->SetInput( this->m_InverseDeformationField );
       writer->Update();
       }
