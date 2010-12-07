@@ -89,6 +89,7 @@ public:
   /** Typedef support of input types. */
   typedef TInputImage                             ImageType;
   typedef typename ImageType::PixelType           PixelType;
+  typedef typename ImageType::IndexType           IndexType;
   typedef TMaskImage                              MaskImageType;
   typedef typename MaskImageType::PixelType       MaskLabelType;
   typedef TClassifiedImage                        ClassifiedImageType;
@@ -314,8 +315,8 @@ public:
    */
   typename RealImageType::Pointer GetLikelihoodImage( unsigned int );
 
-  RealType CalculateLocalPosteriorProbability( RealType, RealType,
-                                               RealType, RealType, RealType );
+  RealType CalculateLocalPosteriorProbability( RealType, RealType, RealType,
+                                               RealType, RealType, IndexType index, unsigned int whichClass );
   typename RealImageType::Pointer GetPosteriorProbabilityImage( unsigned int );
 
   typename RealImageType::Pointer GetSmoothIntensityImageFromPriorImage( unsigned int, unsigned int );

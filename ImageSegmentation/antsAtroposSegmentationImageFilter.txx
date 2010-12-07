@@ -1103,6 +1103,8 @@ typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImag
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::UpdateClassLabeling()
 {
+  //  std::cout << " start update class labeling DEBUG " << std::endl;
+
   typename RealImageType::Pointer maxPosteriorProbabilityImage =
     RealImageType::New();
   maxPosteriorProbabilityImage->SetOrigin( this->GetOutput()->GetOrigin() );
@@ -1113,6 +1115,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     this->GetOutput()->GetRequestedRegion() );
   maxPosteriorProbabilityImage->Allocate();
   maxPosteriorProbabilityImage->FillBuffer( NumericTraits<RealType>::Zero );
+//  std::cout << "  update class labeling-1 DEBUG " << std::endl;
 
   typename ClassifiedImageType::Pointer maxLabels =
     ClassifiedImageType::New();
@@ -1123,6 +1126,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   maxLabels->Allocate();
   maxLabels->FillBuffer( NumericTraits<LabelType>::Zero );
 
+//  std::cout << "  update class labeling-2 DEBUG " << std::endl;
   typename RealImageType::Pointer weightedPriorProbabilityImage =
     RealImageType::New();
   weightedPriorProbabilityImage->SetRegions(
@@ -1140,6 +1144,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   typename SampleType::Pointer sample = SampleType::New();
   sample = this->GetScalarSamples();
   unsigned long totalSampleSize = sample->Size();
+//  std::cout << "  update class labeling-3 DEBUG " << std::endl;
   for( unsigned int n = 0; n < this->m_NumberOfClasses; n++ )
     {
     typename RealImageType::Pointer posteriorProbabilityImage
@@ -1156,6 +1161,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
     unsigned long count = 0;
 
+//  std::cout << "  update class labeling-4 DEBUG " << std::endl;
     ItP.GoToBegin();
     ItM.GoToBegin();
     ItO.GoToBegin();
@@ -1217,6 +1223,17 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               priorProbability =
                 distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
               }
+            if( this->GetPriorLabelImage() )
+              {
+              if( priorProbability == 0 )
+                {
+                priorProbability = 1.0 / (float)this->m_NumberOfClasses;
+                }
+              else
+                {
+                priorProbability = 1;
+                }
+              }
             }
           else
             {
@@ -1227,9 +1244,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           }
         }
       }
+
+//  std::cout << "  update class labeling-5 DEBUG " << std::endl;
     }
   this->SetNthOutput( 0, maxLabels );
 
+//  std::cout << "  update class labeling-6 DEBUG " << std::endl;
   if( this->m_UseMixtureModelProportions )
     {
     /**
@@ -1266,6 +1286,17 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               priorProbability =
                 distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
               }
+            if( this->GetPriorLabelImage() )
+              {
+              if( priorProbability == 0 )
+                {
+                priorProbability = 1.0 / (float)this->m_NumberOfClasses;
+                }
+              else
+                {
+                priorProbability = 1;
+                }
+              }
             }
           else
             {
@@ -1288,10 +1319,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     }
 
-  /**
-   * Calculate the maximum posterior probability sum over the region of
-   * interest.  This quantity should increase at each iteration.
-   */
+//  std::cout << "  update class labeling-7 DEBUG " << std::endl;
+/**
+ * Calculate the maximum posterior probability sum over the region of
+ * interest.  This quantity should increase at each iteration.
+ */
   RealType maxPosteriorSum = 0.0;
 
   ImageRegionIteratorWithIndex<RealImageType> ItM( maxPosteriorProbabilityImage,
@@ -1304,6 +1336,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       maxPosteriorSum += ItM.Get();
       }
     }
+//  std::cout << " end update class labeling DEBUG " << std::endl;
 
   return maxPosteriorSum / static_cast<RealType>( totalSampleSize );
 }
@@ -1412,7 +1445,8 @@ typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImag
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::CalculateLocalPosteriorProbability( RealType mixtureModelProportion,
                                       RealType spatialPriorProbability, RealType distancePriorProbability,
-                                      RealType mrfPriorProbability, RealType likelihood )
+                                      RealType mrfPriorProbability, RealType likelihood, IndexType index,
+                                      unsigned int whichClass )
 {
   RealType posteriorProbability = 0.0;
 
@@ -1429,7 +1463,31 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     case Plato:
       {
-      posteriorProbability = 1.0;
+      if( this->GetPriorLabelImage() )
+        {
+        if( this->GetPriorLabelImage()->GetPixel(index) == whichClass )
+          {
+          spatialPriorProbability = 1.0;
+          likelihood = 1;
+          mrfPriorProbability = 1;
+          mixtureModelProportion = 1;
+          }
+        }
+      else if( this->GetPriorProbabilityImage(whichClass) )
+        {
+        if( this->GetPriorProbabilityImage(whichClass)->GetPixel(index) == 1 )
+          {
+          spatialPriorProbability = 1.0;
+          likelihood = 1;
+          mrfPriorProbability = 1;
+          mixtureModelProportion = 1;
+          }
+        }
+      posteriorProbability =
+        vcl_pow( static_cast<double>( spatialPriorProbability ),
+                 static_cast<double>( this->m_PriorProbabilityWeight ) )
+        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
+                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
       break;
       }
     case Aristotle:
@@ -1467,6 +1525,7 @@ typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImag
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GetPosteriorProbabilityImage( unsigned int whichClass )
 {
+//  std::cout << " DEBUG enter get postprob " << std::endl;
   if( whichClass > this->m_NumberOfClasses )
     {
     itkExceptionMacro(
@@ -1481,10 +1540,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
    */
   if( whichClass <= this->m_PosteriorProbabilityImages.size() )
     {
+//    std::cout << " DEBUG already calculated " << std::endl;
     return this->m_PosteriorProbabilityImages[whichClass - 1];
     }
   else
     {
+//    std::cout << " DEBUG not already calculated " << std::endl;
     /**
      * Here we assume that the calling function is invoked in order such
      * that GetPosteriorProbabilityImage( 1 ) is called before
@@ -1549,11 +1610,23 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               priorProbability = priorProbabilityImage->GetPixel( ItS.GetIndex() );
               }
+            if( this->GetPriorLabelImage() )
+              {
+              if( priorProbability == 0 )
+                {
+                priorProbability = 1.0 / (float)this->m_NumberOfClasses;
+                }
+              else
+                {
+                priorProbability = 1;
+                }
+              }
             ItS.Set( ItS.Get() + this->m_MixtureModelProportions[c]
                      * priorProbability );
             }
           }
         }
+//        std::cout << " DEBUG not calculated-1 " << std::endl;
       for( unsigned int c = 0; c < this->m_NumberOfClasses; c++ )
         {
         std::vector<typename RealImageType::Pointer> smoothImages;
@@ -1575,6 +1648,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               }
             }
           }
+//        std::cout << " DEBUG not calculated-2 " << std::endl;
 
         typename RealImageType::Pointer distancePriorProbabilityImage =
           this->GetDistancePriorProbabilityImage( c + 1 );
@@ -1588,6 +1662,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           neighborhoodSize *= ( 2 * this->m_MRFRadius[d] + 1 );
           radius[d] = this->m_MRFRadius[d];
           }
+//        std::cout << " DEBUG not calculated-2a " << std::endl;
 
         ConstNeighborhoodIterator<ClassifiedImageType> ItO( radius,
                                                             this->GetOutput(),
@@ -1646,6 +1721,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 mrfPriorProbability = numerator / denominator;
                 }
               }
+//        std::cout << " DEBUG not calculated-2b " << std::endl;
 
             /**
              * Perform prior calculation using both the mixing proportions
@@ -1656,16 +1732,31 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             if( this->m_InitializationStrategy == PriorLabelImage ||
                 this->m_InitializationStrategy == PriorProbabilityImages )
               {
+//        std::cout << " DEBUG not calculated-2bc " << std::endl;
               if( distancePriorProbabilityImage )
                 {
+//        std::cout << " DEBUG not calculated-2bc- " << std::endl;
                 distancePriorProbability =
-                  priorProbabilityImage->GetPixel( ItO.GetIndex() );
+                  distancePriorProbabilityImage->GetPixel( ItO.GetIndex() );
                 }
               if( priorProbabilityImage )
                 {
+//        std::cout << " DEBUG not calculated-2bca " << std::endl;
                 priorProbability =
                   priorProbabilityImage->GetPixel( ItO.GetIndex() );
                 }
+              if( this->GetPriorLabelImage() )
+                {
+                if( priorProbability == 0 )
+                  {
+                  priorProbability = 1.0 / (float)this->m_NumberOfClasses;
+                  }
+                else
+                  {
+                  priorProbability = 1;
+                  }
+                }
+//        std::cout << " DEBUG not calculated-2c " << std::endl;
               RealType sumPriorProbability =
                 sumPriorProbabilityImage->GetPixel( ItO.GetIndex() );
               if( priorProbability > this->m_ProbabilityThreshold )
@@ -1679,6 +1770,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 priorProbability = distancePriorProbability;
                 }
               }
+//        std::cout << " DEBUG not calculated-2d " << std::endl;
 
             MeasurementVectorType measurement;
             measurement.SetSize( this->m_NumberOfIntensityImages );
@@ -1696,6 +1788,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                   * smoothImages[i]->GetPixel( ItO.GetIndex() );
                 }
               }
+//        std::cout << " DEBUG not calculated-2e " << std::endl;
 
             /**
              * Calculate likelihood probability from the model
@@ -1710,9 +1803,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
              * equation.
              */
             RealType posteriorProbability =
-              CalculateLocalPosteriorProbability(
+              this->CalculateLocalPosteriorProbability(
                 this->m_MixtureModelProportions[c], priorProbability,
-                distancePriorProbability, mrfPriorProbability, likelihood );
+                distancePriorProbability, mrfPriorProbability, likelihood,
+                ItO.GetIndex(), c + 1 );
+
+//	  if ( priorProbability == 1 )
+//	  std::cout << " Prior " << priorProbability << " posterior " << posteriorProbability << " class " << whichClass <<
+// std::endl;
 
             if( vnl_math_isnan( posteriorProbability ) ||
                 vnl_math_isinf( posteriorProbability ) )
@@ -1732,6 +1830,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             ItS.Set( ItS.Get() + posteriorProbability  );
             }
           }
+//        std::cout << " DEBUG not calculated-2f " << std::endl;
         if( !this->m_MinimizeMemoryUsage )
           {
           typedef ImageDuplicator<RealImageType> DuplicatorType;
@@ -1743,6 +1842,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             duplicator->GetOutput() );
           }
         }
+//        std::cout << " DEBUG not calculated-3 " << std::endl;
 
       /**
        * Normalize the posterior probability image(s).
@@ -1811,6 +1911,17 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               priorProbability = priorProbabilityImage->GetPixel( ItS.GetIndex() );
               }
+            if( this->GetPriorLabelImage() )
+              {
+              if( priorProbability == 0 )
+                {
+                priorProbability = 1.0 / (float)this->m_NumberOfClasses;
+                }
+              else
+                {
+                priorProbability = 1;
+                }
+              }
             ItS.Set( ItS.Get() + this->m_MixtureModelProportions[c]
                      * priorProbability );
             }
@@ -1849,6 +1960,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         neighborhoodSize *= ( 2 * this->m_MRFRadius[d] + 1 );
         radius[d] = this->m_MRFRadius[d];
         }
+
+//        std::cout << " DEBUG not calculated-4 " << std::endl;
 
       ConstNeighborhoodIterator<ClassifiedImageType> ItO( radius,
                                                           this->GetOutput(), this->GetOutput()->GetRequestedRegion() );
@@ -1936,6 +2049,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               priorProbability = distancePriorProbability;
               }
+// FIXME? PriorLabelImage?
             }
 
           MeasurementVectorType measurement;
@@ -1968,9 +2082,14 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
            * equation.
            */
           RealType posteriorProbability =
-            CalculateLocalPosteriorProbability(
+            this->CalculateLocalPosteriorProbability(
               this->m_MixtureModelProportions[whichClass - 1], priorProbability,
-              distancePriorProbability, mrfPriorProbability, likelihood );
+              distancePriorProbability, mrfPriorProbability, likelihood,
+              ItO.GetIndex(), whichClass );
+
+//	  if ( priorProbability == 1 )
+//	  std::cout << " Prior " << priorProbability << " posterior " << posteriorProbability << " class " << whichClass <<
+// std::endl;
 
           if( vnl_math_isnan( posteriorProbability ) ||
               vnl_math_isinf( posteriorProbability ) )
