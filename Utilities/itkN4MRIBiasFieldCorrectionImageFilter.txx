@@ -66,11 +66,11 @@ void
 N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::GenerateData()
 {
+  this->AllocateOutputs();
+
   /**
    * Calculate the log of the input image.
    */
-
-  typename RealImageType::Pointer logUncorrectedImage = RealImageType::New();
 
   typedef ExpImageFilter<RealImageType, RealImageType>  ExpImageFilterType;
   typedef LogImageFilter<InputImageType, RealImageType> LogFilterType;
@@ -78,13 +78,15 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   typename LogFilterType::Pointer logFilter = LogFilterType::New();
   logFilter->SetInput( this->GetInput() );
   logFilter->Update();
-  logUncorrectedImage = logFilter->GetOutput();
+
+  typename RealImageType::Pointer logInputImage = RealImageType::New();
+  logInputImage = logFilter->GetOutput();
 
   /**
    * Remove possible nans/infs from the log input image.
    */
-  ImageRegionIteratorWithIndex<RealImageType> It( logUncorrectedImage,
-                                                  logUncorrectedImage->GetRequestedRegion() );
+  ImageRegionIteratorWithIndex<RealImageType> It( logInputImage,
+                                                  logInputImage->GetRequestedRegion() );
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     if( ( !this->GetMaskImage() ||
@@ -99,6 +101,17 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
         }
       }
     }
+
+  /**
+   * Duplicate logInputImage since we reuse the original at
+   * each iteration.
+   */
+  typedef ImageDuplicator<RealImageType> DuplicatorType;
+  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+  duplicator->SetInputImage( logInputImage );
+  duplicator->Update();
+
+  typename RealImageType::Pointer logUncorrectedImage = duplicator->GetOutput();
 
   /**
    * Provide an initial log bias field of zeros
@@ -140,8 +153,8 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
       /**
        * Sharpen the current estimate of the uncorrected image.
        */
-      typename RealImageType::Pointer logSharpenedImage = RealImageType::New();
-      this->SharpenImage( logUncorrectedImage, logSharpenedImage );
+      typename RealImageType::Pointer logSharpenedImage =
+        SharpenImage( logUncorrectedImage );
 
       typedef SubtractImageFilter<RealImageType, RealImageType, RealImageType>
         SubtracterType;
@@ -154,9 +167,8 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
        * Smooth the residual bias field estimate and add the resulting
        * control point grid to get the new total bias field estimate.
        */
-      typename RealImageType::Pointer newLogBiasField = NULL;
-      void *img = &newLogBiasField;
-      this->UpdateBiasFieldEstimate( subtracter1->GetOutput(), img );
+      typename RealImageType::Pointer newLogBiasField =
+        this->UpdateBiasFieldEstimate( subtracter1->GetOutput() );
 
       this->m_CurrentConvergenceMeasurement =
         this->CalculateConvergenceMeasurement( logBiasField, newLogBiasField );
@@ -209,15 +221,17 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   typename DividerType::Pointer divider = DividerType::New();
   divider->SetInput1( this->GetInput() );
   divider->SetInput2( expFilter->GetOutput() );
+  divider->GraftOutput( this->GetOutput() );
   divider->Update();
 
-  this->SetNthOutput( 0, divider->GetOutput() );
+  this->GraftOutput( divider->GetOutput() );
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
-void
+typename N4MRIBiasFieldCorrectionImageFilter
+<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
-::SharpenImage( RealImageType *unsharpenedImage, RealImageType *sharpenedImage )
+::SharpenImage( RealImageType *unsharpenedImage )
 {
   /**
    * Build the histogram for the uncorrected image.  Store copy
@@ -407,6 +421,7 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   /**
    * Sharpen the image with the new mapping, E(u|v)
    */
+  typename RealImageType::Pointer sharpenedImage = RealImageType::New();
   sharpenedImage->SetOrigin( unsharpenedImage->GetOrigin() );
   sharpenedImage->SetSpacing( unsharpenedImage->GetSpacing() );
   sharpenedImage->SetRegions( unsharpenedImage->GetLargestPossibleRegion() );
@@ -439,12 +454,15 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
       ItC.Set( correctedPixel );
       }
     }
+
+  return sharpenedImage;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
-void
+typename N4MRIBiasFieldCorrectionImageFilter
+<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
-::UpdateBiasFieldEstimate( RealImageType* fieldEstimate, void *smoothField )
+::UpdateBiasFieldEstimate( RealImageType* fieldEstimate )
 {
   /**
    * Calculate min/max for sigmoid weighting.  Calculate mean for offseting
@@ -611,9 +629,12 @@ N4MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
   selector->Update();
   selector->GetOutput()->SetRegions( this->GetInput()->GetRequestedRegion() );
 
-  typename RealImageType::Pointer * img =
-    (typename RealImageType::Pointer *)smoothField;
-  *img = selector->GetOutput();
+  typename RealImageType::Pointer smoothField = selector->GetOutput();
+  smoothField->Update();
+  smoothField->DisconnectPipeline();
+  smoothField->SetRegions( this->GetInput()->GetRequestedRegion() );
+
+  return smoothField;
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>

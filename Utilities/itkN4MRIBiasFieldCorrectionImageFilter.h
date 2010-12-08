@@ -219,9 +219,9 @@ private:
   N4MRIBiasFieldCorrectionImageFilter( const Self & ); // purposely not implemented
   void operator=( const Self & );                      // purposely not implemented
 
-  void SharpenImage( RealImageType *, RealImageType * );
+  typename RealImageType::Pointer SharpenImage( RealImageType * );
 
-  void UpdateBiasFieldEstimate( RealImageType *, void * );
+  typename RealImageType::Pointer UpdateBiasFieldEstimate( RealImageType * );
 
   RealType CalculateConvergenceMeasurement( RealImageType *, RealImageType * );
 
