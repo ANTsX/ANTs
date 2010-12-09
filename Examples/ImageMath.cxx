@@ -2383,7 +2383,7 @@ int TensorFunctions(int argc, char *argv[])
           for( unsigned int ee = 1; ee < d4size; ee++ )
             {
             ind2[3] = ee;
-            pix6[ee] = d4img->GetPixel(ind2);
+            pix6[ee - 1] = d4img->GetPixel(ind2);
             }
           }
         cimage->SetPixel(ind, pix6);
