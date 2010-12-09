@@ -28,12 +28,10 @@
 
 #include "ReadWriteImage.h"
 
-template <unsigned int ImageDimension>
+template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int MeasureMinMaxMean(int argc, char *argv[])
 {
-  typedef float                                                           PixelType;
-  typedef itk::Vector<float, ImageDimension>                              VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Vector<float, NVectorComponents>                           PixelType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
   typedef itk::ImageFileReader<ImageType>                                 readertype;
   typedef itk::ImageFileWriter<ImageType>                                 writertype;
@@ -47,8 +45,9 @@ int MeasureMinMaxMean(int argc, char *argv[])
 
   typename ImageType::Pointer image = NULL;
   typename ImageType::Pointer mask = NULL;
-//  typename ImageType::SizeType size;
-  double        mean = 0, max = -1.e9, min = 1.e9;
+  PixelType     mean;  mean.Fill(0);
+  PixelType     max;   max.Fill(9.e9);
+  PixelType     min;   min.Fill(-9.e9);
   unsigned long ct = 0;
   ReadImage<ImageType>(image, argv[2]);
   bool takeabsval = false;
@@ -66,24 +65,27 @@ int MeasureMinMaxMean(int argc, char *argv[])
     bool isinside = true;
     if( mask )
       {
-      if( mask->GetPixel(vfIter2.GetIndex() ) < 0.5 )
+      if( mask->GetPixel(vfIter2.GetIndex() ).GetNorm() < 0.5 )
         {
         isinside = false;
         }
       }
     if( isinside )
       {
-      double val = vfIter2.Get();
+      PixelType val = vfIter2.Get();
       if( takeabsval )
         {
-        val = fabs(val);
+        for( unsigned int k = 0; k < NVectorComponents; k++ )
+          {
+          val[k] = fabs(val[k]);
+          }
         }
       mean += val;
-      if( val > max )
+      if( val.GetNorm() > max.GetNorm() )
         {
         max = val;
         }
-      else if( val < min )
+      else if( val.GetNorm() < min.GetNorm() )
         {
         min = val;
         }
@@ -101,19 +103,22 @@ int MeasureMinMaxMean(int argc, char *argv[])
     bool isinside = true;
     if( mask )
       {
-      if( mask->GetPixel(vfIter2.GetIndex() ) < 0.5 )
+      if( mask->GetPixel(vfIter2.GetIndex() ).GetNorm() < 0.5 )
         {
         isinside = false;
         }
       }
     if( isinside )
       {
-      double val = vfIter2.Get();
+      PixelType val = vfIter2.Get();
       if( takeabsval )
         {
-        val = fabs(val);
+        for( unsigned int k = 0; k < NVectorComponents; k++ )
+          {
+          val[k] = fabs(val[k]);
+          }
         }
-      variance += vnl_math_sqr(val - mean);
+      variance += (val - mean).GetSquaredNorm();
       }
     }
   float temp = (1.0 / (float)ct) * variance;
@@ -148,26 +153,105 @@ int main(int argc, char *argv[])
     return 1;
     }
 
+  int                       dim = atoi( argv[1] );
+  itk::ImageIOBase::Pointer imageIO =
+    itk::ImageIOFactory::CreateImageIO(argv[4], itk::ImageIOFactory::ReadMode);
+  imageIO->SetFileName(argv[4]);
+  imageIO->ReadImageInformation();
+  unsigned int ncomponents = imageIO->GetNumberOfComponents();
+  std::cout << " ncomponents " << ncomponents << " dim " << imageIO->GetNumberOfDimensions() <<  std::endl;
+
   // Get the image dimension
   switch( atoi(argv[1]) )
     {
     case 2:
       {
-      MeasureMinMaxMean<2>(argc, argv);
+      switch( ncomponents )
+        {
+        case 3:
+          {
+          MeasureMinMaxMean<2, 3>(argc, argv);
+          }
+          break;
+        case 2:
+          {
+          MeasureMinMaxMean<2, 2>(argc, argv);
+          }
+          break;
+        default:
+          {
+          MeasureMinMaxMean<2, 1>(argc, argv);
+          }
+          break;
+        }
       }
       break;
     case 3:
       {
-      MeasureMinMaxMean<3>(argc, argv);
+      switch( ncomponents )
+        {
+        case 7:
+          {
+          MeasureMinMaxMean<3, 7>(argc, argv);
+          }
+          break;
+        case 6:
+          {
+          MeasureMinMaxMean<3, 6>(argc, argv);
+          }
+          break;
+        case 3:
+          {
+          MeasureMinMaxMean<3, 3>(argc, argv);
+          }
+          break;
+        default:
+          {
+          MeasureMinMaxMean<3, 1>(argc, argv);
+          }
+          break;
+        }
       }
       break;
     case 4:
       {
-      MeasureMinMaxMean<4>(argc, argv);
+      switch( ncomponents )
+        {
+        case 7:
+          {
+          MeasureMinMaxMean<4, 7>(argc, argv);
+          }
+          break;
+        case 6:
+          {
+          MeasureMinMaxMean<4, 6>(argc, argv);
+          }
+          break;
+        case 4:
+          {
+          MeasureMinMaxMean<4, 4>(argc, argv);
+          }
+          break;
+        case 3:
+          {
+          MeasureMinMaxMean<4, 3>(argc, argv);
+          }
+          break;
+        case 2:
+          {
+          MeasureMinMaxMean<4, 2>(argc, argv);
+          }
+          break;
+        default:
+          {
+          MeasureMinMaxMean<4, 1>(argc, argv);
+          }
+          break;
+        }
       }
       break;
     default:
-      std::cerr << "Unsupported dimension" << std::endl;
+      std::cerr << " not supported " << dim  << std::endl;
       exit( EXIT_FAILURE );
     }
 
