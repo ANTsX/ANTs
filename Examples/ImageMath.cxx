@@ -2354,8 +2354,8 @@ int TensorFunctions(int argc, char *argv[])
       typename TensorImageType::Pointer cimage = TensorImageType::New();
       cimage->SetLargestPossibleRegion( tensorregion );
       cimage->SetBufferedRegion( tensorregion );
-      cimage->Allocate();
       cimage->SetLargestPossibleRegion( tensorregion );
+      cimage->Allocate();
       cimage->SetSpacing(spacing);
       cimage->SetOrigin(origin);
       cimage->SetDirection(direction);
