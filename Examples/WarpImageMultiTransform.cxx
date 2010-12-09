@@ -559,11 +559,12 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
   std::cout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
 }
 
-template <int ImageDimension>
+template <int ImageDimension, unsigned int NVectorComponents>
 void WarpImageMultiTransform(char *moving_image_filename, char *output_image_filename,
                              TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
-  typedef itk::Image<float, ImageDimension> ImageType;
+  typedef itk::Vector<float, NVectorComponents> PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Vector<float,
                       ImageDimension>                                                                  VectorType;
   typedef itk::Image<VectorType,
@@ -597,7 +598,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   typename WarperType::Pointer  warper = WarperType::New();
   warper->SetInput(img_mov);
-  warper->SetEdgePaddingValue( 0);
+  PixelType zero; zero.Fill(0);
+  warper->SetEdgePaddingValue( zero );
 
   if( misc_opt.use_NN_interpolator )
     {
@@ -609,12 +611,14 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     }
   else if( misc_opt.use_BSpline_interpolator )
     {
-    typedef typename itk::BSplineInterpolateImageFunction<ImageType,
-                                                          typename WarperType::CoordRepType> BSInterpolateType;
-    typename BSInterpolateType::Pointer interpolator_BS = BSInterpolateType::New();
-    interpolator_BS->SetSplineOrder(3);
-    std::cout << "User B-spline interpolation " << std::endl;
-    warper->SetInterpolator(interpolator_BS);
+    std::cout << " Not currently supported because of a lack of vector support " << std::endl;
+    /*
+      typedef typename itk::BSplineInterpolateImageFunction<ImageType, typename WarperType::CoordRepType> BSInterpolateType;
+      typename BSInterpolateType::Pointer interpolator_BS = BSInterpolateType::New();
+      interpolator_BS->SetSplineOrder(3);
+      std::cout << "User B-spline interpolation " << std::endl;
+      warper->SetInterpolator(interpolator_BS);
+    */
     }
   else
     {
@@ -974,6 +978,12 @@ int main(int argc, char * *argv)
 
   if( is_parsing_ok )
     {
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(moving_image_filename,
+                                                                           itk::ImageIOFactory::ReadMode);
+    imageIO->SetFileName(moving_image_filename);
+    imageIO->ReadImageInformation();
+    unsigned int ncomponents = imageIO->GetNumberOfComponents();
+
     std::cout << "moving_image_filename: " << moving_image_filename << std::endl;
     std::cout << "output_image_filename: " << output_image_filename << std::endl;
     std::cout << "reference_image_filename: ";
@@ -990,16 +1000,46 @@ int main(int argc, char * *argv)
     switch( kImageDim )
       {
       case 2:
-        {
-        WarpImageMultiTransform<2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+
+        switch( ncomponents )
+          {
+          case 2:
+            WarpImageMultiTransform<2, 2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+            break;
+          default:
+            WarpImageMultiTransform<2, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+            break;
+          }
         break;
-        }
       case 3:
-        {
-        WarpImageMultiTransform<3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+
+        switch( ncomponents )
+          {
+          case 3:
+            WarpImageMultiTransform<3, 3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+            break;
+          default:
+            WarpImageMultiTransform<3, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+            break;
+          }
         break;
-        }
+      case 4:
+
+        switch( ncomponents )
+          {
+          case 4:
+            WarpImageMultiTransform<4, 4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+            break;
+          default:
+            WarpImageMultiTransform<4, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+            break;
+          }
+        break;
+      default:
+        std::cerr << " not supported " << kImageDim  << std::endl;
+        exit( EXIT_FAILURE );
       }
+    //	  WarpImageMultiTransform<2,2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
     }
   else
     {
