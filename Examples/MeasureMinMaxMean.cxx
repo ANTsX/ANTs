@@ -46,9 +46,10 @@ int MeasureMinMaxMean(int argc, char *argv[])
   typename ImageType::Pointer image = NULL;
   typename ImageType::Pointer mask = NULL;
   PixelType     mean;  mean.Fill(0);
-  PixelType     max;   max.Fill(9.e9);
-  PixelType     min;   min.Fill(-9.e9);
+  PixelType     max;   max.Fill(0);
+  PixelType     min;   min.Fill(9.e9);
   unsigned long ct = 0;
+
   ReadImage<ImageType>(image, argv[2]);
   bool takeabsval = false;
   if( argc > 4 )
@@ -80,21 +81,22 @@ int MeasureMinMaxMean(int argc, char *argv[])
           val[k] = fabs(val[k]);
           }
         }
-      mean += val;
-      if( val.GetNorm() > max.GetNorm() )
+      mean = mean + val;
+      if( val.GetSquaredNorm() > max.GetSquaredNorm() )
         {
         max = val;
         }
-      else if( val.GetNorm() < min.GetNorm() )
+      else if( val.GetSquaredNorm() < min.GetSquaredNorm() )
         {
         min = val;
         }
       ct++;
       }
     }
+
   if( ct > 0 )
     {
-    mean /= (float)ct;
+    mean = mean / (float)ct;
     }
 
   float variance = 0;
@@ -121,6 +123,7 @@ int MeasureMinMaxMean(int argc, char *argv[])
       variance += (val - mean).GetSquaredNorm();
       }
     }
+
   float temp = (1.0 / (float)ct) * variance;
   std::cout <<  argv[2] << " Max : " << max << " Min : " << min << " Mean : " << mean << " Var : " <<  temp
             << " SD : " << sqrt(1.0 / (float)(ct - 1) * variance) << std::endl;
@@ -152,7 +155,6 @@ int main(int argc, char *argv[])
     std::cout << "  log.txt is optional  - take-abs-val reports min-max-mean of abs val image " << std::endl;
     return 1;
     }
-
   int                       dim = atoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(argv[2], itk::ImageIOFactory::ReadMode);

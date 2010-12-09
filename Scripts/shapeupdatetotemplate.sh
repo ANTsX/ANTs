@@ -31,33 +31,13 @@ function shapeupdatetotemplate {
     echo " shapeupdatetotemplate 2"
     echo "--------------------------------------------------------------------------------------"
 
-    if [ $dim -eq 2  ]
-	then
-	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii.gz 0 `ls ${outputname}*Warpxvec.nii.gz | grep -v "InverseWarpxvec"`
-	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii.gz 0 `ls ${outputname}*Warpyvec.nii.gz | grep -v "InverseWarpyvec"`
-
-    elif [ $dim -eq 3  ]
-	then
-	${ANTSPATH}AverageImages $dim ${templatename}warpxvec.nii.gz 0 `ls ${outputname}*Warpxvec.nii.gz | grep -v "InverseWarpxvec"`
-	${ANTSPATH}AverageImages $dim ${templatename}warpyvec.nii.gz 0 `ls ${outputname}*Warpyvec.nii.gz | grep -v "InverseWarpyvec"`
-	${ANTSPATH}AverageImages $dim ${templatename}warpzvec.nii.gz 0 `ls ${outputname}*Warpzvec.nii.gz | grep -v "InverseWarpzvec"`
-    fi
+	${ANTSPATH}AverageImages $dim ${templatename}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
 
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate 3"
     echo "--------------------------------------------------------------------------------------"
-    if [ $dim -eq 2  ]
-	then
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii.gz ${gradientstep} ${templatename}warpxvec.nii.gz
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii.gz ${gradientstep} ${templatename}warpyvec.nii.gz
-
-    elif [ $dim -eq 3  ]
-	then
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpxvec.nii.gz ${gradientstep} ${templatename}warpxvec.nii.gz
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpyvec.nii.gz ${gradientstep} ${templatename}warpyvec.nii.gz
-	${ANTSPATH}MultiplyImages $dim ${templatename}warpzvec.nii.gz ${gradientstep} ${templatename}warpzvec.nii.gz
-    fi
+	${ANTSPATH}MultiplyImages $dim ${templatename}warp.nii.gz ${gradientstep} ${templatename}warp.nii.gz
 
     echo
     echo "--------------------------------------------------------------------------------------"
@@ -70,41 +50,19 @@ function shapeupdatetotemplate {
     echo " shapeupdatetotemplate 5"
     echo "--------------------------------------------------------------------------------------"
 
-    # Averaging and inversion code
-    if [ ${dim} -eq 2   ]
-	then
-	ANTSAverage2DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
-
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpyvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
-
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
-
-    elif [ ${dim} -eq 3  ]
-	then
-	ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
-
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpyvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warpzvec.nii.gz ${templatename}warpzvec.nii.gz -i  ${templatename}Affine.txt -R ${template}
-
-	${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
+    # Averaging and inversion code --- both are 1st order estimates.
+    if [ ${dim} -eq 2   ] ; then
+      ANTSAverage2DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
+    elif [ ${dim} -eq 3  ] ; then
+      ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
     fi
+    ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warp.nii.gz ${templatename}warp.nii.gz -i  ${templatename}Affine.txt -R ${template}
+    ${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
 
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate 6"
-    echo "--------------------------------------------------------------------------------------"
-    if [ ${dim} -eq 2  ]
-	then
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxlog.txt 1
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpylog.txt 1
-    elif [ ${dim} -eq 3  ]
-	then
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpxvec.nii.gz ${templatename}warpxlog.txt 1
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpyvec.nii.gz ${templatename}warpylog.txt 1
-	${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warpzvec.nii.gz ${templatename}warpzlog.txt 1
-    fi
+    ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warp.nii.gz ${templatename}warplog.txt 1
 
 }
 
