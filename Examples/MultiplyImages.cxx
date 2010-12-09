@@ -123,8 +123,8 @@ int main(int argc, char *argv[])
 
   int                       dim = atoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(argv[4], itk::ImageIOFactory::ReadMode);
-  imageIO->SetFileName(argv[4]);
+    itk::ImageIOFactory::CreateImageIO(argv[2], itk::ImageIOFactory::ReadMode);
+  imageIO->SetFileName(argv[2]);
   imageIO->ReadImageInformation();
   unsigned int ncomponents = imageIO->GetNumberOfComponents();
   std::cout << " ncomponents " << ncomponents << " dim " << imageIO->GetNumberOfDimensions() <<  std::endl;
