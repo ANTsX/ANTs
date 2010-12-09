@@ -26,23 +26,14 @@
 
 #include "ReadWriteImage.h"
 
-template <unsigned int ImageDimension>
+template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int MultiplyImages(int argc, char *argv[])
 {
-  typedef float PixelType;
-  //  const unsigned int ImageDimension = AvantsImageDimension;
-  typedef itk::Vector<float, ImageDimension>                              VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef itk::ImageFileWriter<ImageType>                                 writertype;
-  typedef  typename ImageType::IndexType                                  IndexType;
-  typedef  typename ImageType::SizeType                                   SizeType;
-  typedef  typename ImageType::SpacingType                                SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  typedef itk::Vector<float, NVectorComponents>        PixelType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
 
   std::string fn1 = std::string(argv[2]);
   std::string fn2 = std::string(argv[3]);
@@ -102,22 +93,17 @@ int MultiplyImages(int argc, char *argv[])
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    IndexType ind = vfIter2.GetIndex();
-    float     pix2;
+    typename ImageType::IndexType ind = vfIter2.GetIndex();
+    PixelType pix1 = image1->GetPixel(ind);
     if( isfloat )
       {
-      pix2 = floatval;
+      vfIter2.Set(pix1 * floatval);
       }
     else
       {
-      pix2 = image2->GetPixel(ind);
+      vfIter2.Set(pix1 * image2->GetPixel(ind) );
       }
-    float pix1 = image1->GetPixel(ind);
-    // std::cout << " p1 " << pix1 << " p2 " << pix2 << std::endl;
-    float div = pix1 * pix2;
-    vfIter2.Set(div);
     }
-
   typename writertype::Pointer writer = writertype::New();
   writer->SetFileName(argv[4]);
   writer->SetInput( varimage );
@@ -135,20 +121,105 @@ int main(int argc, char *argv[])
     return 1;
     }
 
+  int                       dim = atoi( argv[1] );
+  itk::ImageIOBase::Pointer imageIO =
+    itk::ImageIOFactory::CreateImageIO(argv[4], itk::ImageIOFactory::ReadMode);
+  imageIO->SetFileName(argv[4]);
+  imageIO->ReadImageInformation();
+  unsigned int ncomponents = imageIO->GetNumberOfComponents();
+  std::cout << " ncomponents " << ncomponents << " dim " << imageIO->GetNumberOfDimensions() <<  std::endl;
+
+  // Get the image dimension
   switch( atoi(argv[1]) )
     {
     case 2:
       {
-      MultiplyImages<2>(argc, argv);
+      switch( ncomponents )
+        {
+        case 3:
+          {
+          MultiplyImages<2, 3>(argc, argv);
+          }
+          break;
+        case 2:
+          {
+          MultiplyImages<2, 2>(argc, argv);
+          }
+          break;
+        default:
+          {
+          MultiplyImages<2, 1>(argc, argv);
+          }
+          break;
+        }
       }
       break;
     case 3:
       {
-      MultiplyImages<3>(argc, argv);
+      switch( ncomponents )
+        {
+        case 7:
+          {
+          MultiplyImages<3, 7>(argc, argv);
+          }
+          break;
+        case 6:
+          {
+          MultiplyImages<3, 6>(argc, argv);
+          }
+          break;
+        case 3:
+          {
+          MultiplyImages<3, 3>(argc, argv);
+          }
+          break;
+        default:
+          {
+          MultiplyImages<3, 1>(argc, argv);
+          }
+          break;
+        }
+      }
+      break;
+    case 4:
+      {
+      switch( ncomponents )
+        {
+        case 7:
+          {
+          MultiplyImages<4, 7>(argc, argv);
+          }
+          break;
+        case 6:
+          {
+          MultiplyImages<4, 6>(argc, argv);
+          }
+          break;
+        case 4:
+          {
+          MultiplyImages<4, 4>(argc, argv);
+          }
+          break;
+        case 3:
+          {
+          MultiplyImages<4, 3>(argc, argv);
+          }
+          break;
+        case 2:
+          {
+          MultiplyImages<4, 2>(argc, argv);
+          }
+          break;
+        default:
+          {
+          MultiplyImages<4, 1>(argc, argv);
+          }
+          break;
+        }
       }
       break;
     default:
-      std::cerr << "Unsupported dimension" << std::endl;
+      std::cerr << " not supported " << dim  << std::endl;
       exit( EXIT_FAILURE );
     }
 

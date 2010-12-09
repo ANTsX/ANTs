@@ -267,6 +267,7 @@ int main(int argc, char * argv[])
   imageIO->SetFileName(argv[4]);
   imageIO->ReadImageInformation();
   unsigned int ncomponents = imageIO->GetNumberOfComponents();
+  std::cout << " ncomponents " << ncomponents << " dim " << imageIO->GetNumberOfDimensions() <<  std::endl;
 
   // Get the image dimension
   switch( atoi(argv[1]) )
@@ -292,6 +293,11 @@ int main(int argc, char * argv[])
       {
       switch( ncomponents )
         {
+        case 7:
+          {
+          AverageImages<3, 7>(argc, argv);
+          }
+          break;
         case 6:
           {
           AverageImages<3, 6>(argc, argv);
@@ -303,13 +309,48 @@ int main(int argc, char * argv[])
           }
           break;
         default:
+          {
           AverageImages1<3, 1>(argc, argv);
+          }
+          break;
+        }
+      }
+      break;
+    case 4:
+      {
+      switch( ncomponents )
+        {
+        case 7:
+          {
+          AverageImages<4, 7>(argc, argv);
+          }
+          break;
+        case 6:
+          {
+          AverageImages<4, 6>(argc, argv);
+          }
+          break;
+        case 4:
+          {
+          AverageImages<4, 4>(argc, argv);
+          }
+          break;
+        case 3:
+          {
+          AverageImages<4, 3>(argc, argv);
+          }
+          break;
+        default:
+          {
+          AverageImages1<4, 1>(argc, argv);
+          }
+          break;
         }
       }
       break;
     default:
-      std::cerr << " You passed ImageDimension: " << dim
-                << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
+      std::cerr << " You passed ImageDimension: " << dim << " . Please use only image domains of 2, 3 or 4  "
+                << std::endl;
       exit( EXIT_FAILURE );
     }
 
