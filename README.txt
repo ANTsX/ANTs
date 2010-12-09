@@ -1,4 +1,4 @@
-Release 1.9.2 --- svn release 674++
+Release 1.9.x --- svn release 700++
 
 Homepage:  http://www.picsl.upenn.edu/ANTS/
 
@@ -29,6 +29,24 @@ tool, including three tissue segmentation, structure-specific
 segmentation and brain extracton.
 
 The ants.pdf file has more details and examples.
+
+New Stuff 1.9.x :  Requires git-itk.  not a "release"
+
+we now save vector nii.gz files and do not store component images.
+
+provide an ImageMath function -- 4DTensorTo3DTensor -- to convert 6 or 7 component 4D tensors to 3D tensor images.
+
+some enhancements include:
+
+you can warp a vector field represented as  a nii.gz   via WarpImageMultiTransform
+
+btp will work without having to split vector fields into components
+
+MeasureMinMaxMean and MultiplyImages support vector images.
+
+the only functionality that we "lost" is the ability to use a bspline interpolator with WIMT.   the BSplineInterpolateImageFunction doesnt support vector valued pixels.
+
+Atropos updated and validated.
 
 New Stuff 1.9.2 :
 

@@ -2278,10 +2278,12 @@ template <unsigned int ImageDimension>
 int TensorFunctions(int argc, char *argv[])
 {
   typedef float PixelType;
-  //  typedef itk::Vector<float, 6> TensorType;
+  // Tensor4DType may contain b0
+  typedef float                                              D4TensorType;
   typedef itk::SymmetricSecondRankTensor<float, 3>           TensorType;
   typedef typename itk::RGBPixel<unsigned char>              RGBType;
   typedef itk::Image<TensorType, ImageDimension>             TensorImageType;
+  typedef itk::Image<D4TensorType, 4>                        D4TensorImageType;
   typedef typename TensorImageType::IndexType                IndexType;
   typedef itk::Image<PixelType, ImageDimension>              ImageType;
   typedef itk::Image<RGBType, ImageDimension>                ColorImageType;
@@ -2304,11 +2306,95 @@ int TensorFunctions(int argc, char *argv[])
     whichvec = atoi(argv[argct]);
     }
   argct++;
-  std::cout << " whichvec " << whichvec << std::endl;
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
   typename ColorImageType::Pointer  cimage = NULL;    // output color image
   typename VectorImageType::Pointer  vecimage = NULL; // output vector image
+
+  if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
+    {
+    std::cout
+      <<
+    " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
+      << std::endl;
+    itk::ImageIOBase::Pointer imageIO =
+      itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::ReadMode);
+    imageIO->SetFileName(fn1.c_str() );
+    imageIO->ReadImageInformation();
+    unsigned int dim = imageIO->GetNumberOfDimensions();
+    if( dim == 4 )
+      {
+      typename D4TensorImageType::Pointer d4img = NULL;
+      ReadImage<D4TensorImageType>(d4img, fn1.c_str() );
+      unsigned int d4size = d4img->GetLargestPossibleRegion().GetSize()[3];
+      if( d4size != 6 && d4size != 7 )
+        {
+        std::cout << " you should not be using this function if the input data is not a tensor. " << std::endl;
+        std::cout
+          <<
+        " there is no way for us to really check if your use of this function is correct right now except checking the size of the 4th dimension which should be 6 or 7 (the latter if you store b0 in the first component) --- you should really store tensors not as 4D images but as 3D images with tensor voxel types. "
+          << std::endl;
+        exit(0);
+        }
+      typename TensorImageType::SizeType size;
+      typename TensorImageType::RegionType tensorregion;
+      typename TensorImageType::SpacingType spacing;
+      typename TensorImageType::PointType origin;
+      typename TensorImageType::DirectionType direction;
+      for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+        {
+        size[dd] = d4img->GetLargestPossibleRegion().GetSize()[dd];
+        origin[dd] = d4img->GetOrigin()[dd];
+        spacing[dd] = d4img->GetSpacing()[dd];
+        for( unsigned int ee = 0; ee < ImageDimension; ee++ )
+          {
+          direction[dd][ee] = d4img->GetDirection()[dd][ee];
+          }
+        }
+      typename TensorImageType::Pointer cimage = TensorImageType::New();
+      cimage->SetLargestPossibleRegion( tensorregion );
+      cimage->SetBufferedRegion( tensorregion );
+      cimage->Allocate();
+      cimage->SetLargestPossibleRegion( tensorregion );
+      cimage->SetSpacing(spacing);
+      cimage->SetOrigin(origin);
+      cimage->SetDirection(direction);
+
+      // now iterate through & set the values of the tensors.
+      Iterator tIter(cimage, cimage->GetLargestPossibleRegion() );
+      for(  tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
+        {
+        typename TensorImageType::IndexType ind = tIter.GetIndex();
+        typename D4TensorImageType::IndexType ind2;
+        for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+          {
+          ind2[dd] = ind[dd];
+          }
+        TensorType pix6 = tIter.Get();
+        if( d4size == 6 )
+          {
+          for( unsigned int ee = 0; ee < d4size; ee++ )
+            {
+            ind2[3] = ee;
+            pix6[ee] = d4img->GetPixel(ind2);
+            }
+          }
+        else if( d4size == 7 )
+          {
+          for( unsigned int ee = 1; ee < d4size; ee++ )
+            {
+            ind2[3] = ee;
+            pix6[ee] = d4img->GetPixel(ind2);
+            }
+          }
+        cimage->SetPixel(ind, pix6);
+        }
+      WriteTensorImage<TensorImageType>(cimage, outname.c_str(), false);
+      return 0;
+      }
+    std::cout << " cannot convert --- input image not 4D --- " << fn1 << std::endl;
+    return 0;
+    }
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
   if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
@@ -6840,6 +6926,7 @@ int main(int argc, char *argv[])
     std::cout << "  PadImage ImageIn Pad-Number ( if Pad-Number is negative, de-Padding occurs ) " << std::endl;
     std::cout << "  Where Image ValueToLookFor maskImage-option tolerance --- the where function from IDL "
               << std::endl;
+    std::cout << "  4DTensorTo3DTensor 4D_DT_Image --- outputs a 3D_DT_Image with the same information. " << std::endl;
     std::cout << "  TensorFA DTImage  " << std::endl;
     std::cout << "  TensorColor DTImage --- produces RGB values identifying principal directions " << std::endl;
     std::cout
@@ -7295,6 +7382,10 @@ int main(int argc, char *argv[])
         Where<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorFA") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
