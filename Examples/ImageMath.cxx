@@ -2351,10 +2351,9 @@ int TensorFunctions(int argc, char *argv[])
           direction[dd][ee] = d4img->GetDirection()[dd][ee];
           }
         }
+      tensorregion.SetSize(size);
       typename TensorImageType::Pointer cimage = TensorImageType::New();
-      cimage->SetLargestPossibleRegion( tensorregion );
-      cimage->SetBufferedRegion( tensorregion );
-      cimage->SetLargestPossibleRegion( tensorregion );
+      cimage->SetRegions( tensorregion );
       cimage->Allocate();
       cimage->SetSpacing(spacing);
       cimage->SetOrigin(origin);
