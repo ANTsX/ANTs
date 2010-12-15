@@ -178,7 +178,7 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 
 template <class TImage, class TDeformationField>
 typename TImage::Pointer
-ComputeJacobian(TDeformationField* field )
+CopyImage(TDeformationField* field )
 {
   typedef TImage ImageType;
   enum { ImageDimension = TImage::ImageDimension };
@@ -200,6 +200,7 @@ ComputeJacobian(TDeformationField* field )
   m_FloatImage->Allocate();
   m_FloatImage->FillBuffer(0);
 
+  return m_FloatImage;
   typename FloatImageType::SizeType m_FieldSize = field->GetLargestPossibleRegion().GetSize();
 
   typedef itk::ImageRegionIteratorWithIndex<FloatImageType> Iterator;
@@ -1087,6 +1088,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   VIterator.GoToBegin();
   while(  !VIterator.IsAtEnd()  )
     {
+    // the velocity field solution value
     VectorType vec = VIterator.Get();
     float      mag = 0;
     for( unsigned dd = 0; dd < ImageDimension; dd++ )
@@ -1094,10 +1096,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       mag += vec[dd] * vec[dd];
       }
     mag = sqrt(mag);
-    if( mag > 0 )
-      {
-      vec = vec / mag;
-      }
+    //      if (mag > 0) vec=vec/mag;
     VIterator.Set( (vec) * gradstep);
     ++VIterator;
     }
@@ -1211,14 +1210,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       gfilter->Update();
       typename DeformationFieldType::Pointer   lapgrad2 = gfilter->GetOutput();
 
-      GradientImageFilterPointer gfilter2 = GradientImageFilterType::New();
-      gfilter2->SetInput(  gm );
-      gfilter2->SetSigma( smoothingsigma );
-      gfilter2->Update();
-      typename DeformationFieldType::Pointer   lapgrad3 = gfilter2->GetOutput();
-
-      typename ImageType::Pointer lapjac = ComputeJacobian<ImageType, DeformationFieldType>(invfield);
-      IteratorType xxIterator( lapjac, lapjac->GetLargestPossibleRegion().GetSize() );
+      // this is the "speed" image
+      typename ImageType::Pointer speed_image = CopyImage<ImageType, DeformationFieldType>(invfield);
+      IteratorType xxIterator( speed_image, speed_image->GetLargestPossibleRegion().GetSize() );
       xxIterator.GoToBegin();
       float maxlapgrad2mag = 0;
       while(  !xxIterator.IsAtEnd()  )
@@ -1226,28 +1220,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         typename ImageType::IndexType speedindex = xxIterator.GetIndex();
         if( segmentationimage->GetPixel(speedindex) == 2 ) // fixme
           {
-//	      float thkval=thkdef->GetPixel(speedindex);
-          float thkval = finalthickimage->GetPixel(speedindex);
-          float prior = 1;
-          if( spatprior )
-            {
-            float prval = wpriorim->GetPixel(speedindex);
-            float partialvol = surfdef->GetPixel(speedindex);
-            if( partialvol >= 0.1 )
-              {
-              prior = prval / partialvol;           // 7;//0.5*origthickprior;// prval;
-              }
-            if( prior > 10 )
-              {
-              prior = 10;       /** Potential cause of problem 1 -- this line added */
-              }
-            }
-          // else thickprior = origthickprior;
-          // } else
           thickprior = origthickprior;
-
           VectorType wgradval = lapgrad2->GetPixel(speedindex);
-          double     gmag = 0, wmag = 0;
+          double     wmag = 0;
           for( unsigned kq = 0; kq < ImageDimension; kq++ )
             {
             wmag += wgradval[kq] * wgradval[kq];
@@ -1256,11 +1231,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             {
             wmag = 0;
             }
-          if( fabs(gmag) < 1.e-6 )
-            {
-            gmag = 0;
-            }
-          gmag = sqrt(gmag);
           wmag = sqrt(wmag);
           if( checknans )
             {
@@ -1271,30 +1241,13 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
               wmag = 0;
               }
             }
-          double fval = (thickprior - thkval);
-          double sigmoidf = 1;
-          if( fval >= 0 )
-            {
-            sigmoidf = 1.0 / (1.0 + exp( (-1.0) * fval * 0.01) );
-            }
-          if( fval < 0 )
-            {
-            sigmoidf = -1.0 * (1.0 - thickprior / thkval);
-            }
-          float thkscale = thickprior / thkval;
-          if( thkscale < 0.99 )
-            {
-            thkscale = 0.99;               // *+thkscale*0.1;
-            }
-          if( fval < 0 )
-            {
-            velofield->SetPixel(speedindex, velofield->GetPixel(speedindex) * thkscale);
-            }
-          float dd = (surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) );
-          totalerr += fabs(dd);
-          dd *= (gradstep * prior * fval); // speed function here IMPORTANT!!
-//	      dd*=stopval*jwt*thindef->GetPixel(speedindex)*sigmoidf*gradstep*dp*gmd*jwt;
-//	      dd*=stopval*sigmoidf*gradstep*jwt*prior;// speed function here IMPORTANT!!
+          totalerr += fabs(surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) );
+//	      float thkval=thkdef->GetPixel(speedindex);
+//	      float thkval=finalthickimage->GetPixel(speedindex);
+          double fval = 1; // (thickprior-thkval);
+          //	      if ( fval > 0 ) fval=1; else fval=-1;
+// speed function here IMPORTANT!!
+          float dd = (surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) ) * gradstep * fval;
           if( checknans )
             {
             if( vnl_math_isnan(dd) || vnl_math_isinf(dd) )
@@ -1302,7 +1255,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
               dd = 0;
               }
             }
-          lapjac->SetPixel(speedindex, dd);
+          speed_image->SetPixel(speedindex, dd);
           if( wmag * dd > maxlapgrad2mag )
             {
             maxlapgrad2mag = wmag * dd;
@@ -1310,7 +1263,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           }
         else
           {
-          lapjac->SetPixel(speedindex, 0);
+          speed_image->SetPixel(speedindex, 0);
           }
         ++xxIterator;
         }
@@ -1319,7 +1272,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         maxlapgrad2mag = 1.e9;
         }
-      //	  lapjac=SmoothImage<ImageType>(lapjac,1);
       if( ttiter == numtimepoints - 1 )
         {
         if( ImageDimension == 2 )
@@ -1336,15 +1288,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           }
         if( ImageDimension == 2 )
           {
-          WriteImage<ImageType>(lapjac, "diff.nii.gz");
-          }
-        //	  if (ImageDimension==2) WriteImage<ImageType>(wpriorim,"prior.nii.gz");
-        if( ImageDimension == 2 )
-          {
           WriteImage<ImageType>(thkdef, "thick2.nii.gz");
           }
-//	  if (ImageDimension==2) WriteJpg<ImageType>(tempim,"dotp.jpg");
-        // exit(0);
         }
       /* Now that we have the gradient image, we need to visit each voxel and compute objective function */
       //	  std::cout << " maxlapgrad2mag " << maxlapgrad2mag << std::endl;
@@ -1352,10 +1297,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       while(  !Iterator.IsAtEnd()  )
         {
         velind = Iterator.GetIndex();
-        //	      float currentthickvalue=finalthickimage->GetPixel(velind);
         VectorType wgradval = lapgrad2->GetPixel(velind); // *5.0/(maxlapgrad2mag*(float)numtimepoints);
-
-        disp = wgradval * lapjac->GetPixel(velind);
+        disp = wgradval * speed_image->GetPixel(velind);
         incrfield->SetPixel(velind, incrfield->GetPixel(velind) + disp);
 
         if( ttiter == 0 ) // make euclidean distance image
@@ -1366,7 +1309,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
             {
             dmag += disp[jj] * disp[jj];
             }
-          //		  if ( dmag > 0 ) std::cout << " disp " << disp << std::endl;
           float bval = bsurf->GetPixel(velind);
           if( checknans )
             {
@@ -1389,22 +1331,12 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           {
           float thkval = thkdef->GetPixel(velind);
           float putval = thindef->GetPixel(velind);
-          //	  float getval=hitimage->GetPixel(velind);
-          //		  if ( putval >= 0.1 ) {
           hitimage->SetPixel(velind, hitimage->GetPixel(velind) + putval);
           totalimage->SetPixel(velind, totalimage->GetPixel(velind) + thkval);
-          // }
           }
 
-        //	      std::cout << "disp " << incrfield->GetPixel(velind) << " hit " << hitimage->GetPixel(velind) << " thk
-        // " << totalimage->GetPixel(velind) << std::endl;
         ++Iterator;
         }
-
-      //	  if (ttiter ==0) {
-      // WriteImage<ImageType>(totalimage,"Ztotalimage.nii.gz");
-      // WriteImage<ImageType>(hitimage,"Zhitimage.nii.gz");
-      // WriteImage<ImageType>(lapjac,"Zlapjac.nii.gz"); }
 
       Iterator.GoToBegin();
       while(  !Iterator.IsAtEnd()  )
@@ -1431,7 +1363,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
                           + incrfield->GetPixel(Iterator.GetIndex() ) );
       float hitval = hitimage->GetPixel(velind);
       float thkval = 0;
-      if( hitval >= 0.001 )  /** potential source of problem 2 -- this value could be smaller ... */
+      if( hitval > 0.001 )  /** potential source of problem 2 -- this value could be smaller ... */
         {
         thkval = totalimage->GetPixel(velind) / hitval - thickoffset;
         }
@@ -1439,7 +1371,14 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         thkval = 0;
         }
-      finalthickimage->SetPixel(velind, thkval);
+      if( segmentationimage->GetPixel(velind) == 2 )
+        {
+        finalthickimage->SetPixel(velind, thkval);
+        }
+      else
+        {
+        finalthickimage->SetPixel(velind, 0);
+        }
       if( thkval > maxth )
         {
         maxth = thkval;
