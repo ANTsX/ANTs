@@ -267,7 +267,6 @@ int main(int argc, char * argv[])
   imageIO->SetFileName(argv[4]);
   imageIO->ReadImageInformation();
   unsigned int ncomponents = imageIO->GetNumberOfComponents();
-  std::cout << " ncomponents " << ncomponents << " dim " << imageIO->GetNumberOfDimensions() <<  std::endl;
 
   // Get the image dimension
   switch( atoi(argv[1]) )
