@@ -2378,6 +2378,10 @@ int TensorFunctions(int argc, char *argv[])
             pix6[ee] = d4img->GetPixel(ind2);
             }
           }
+        // ITK-way
+        //  xx, xy, yy, xz , yz, zz
+        // VTK/other-way
+        //  xx, xy, xz, yy , yz, zz
         else if( d4size == 7 )
           {
           for( unsigned int ee = 1; ee < d4size; ee++ )

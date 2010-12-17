@@ -7,6 +7,7 @@
 #include "itkWarpImageFilter.h"
 
 #include "itkImageFileWriter.h"
+#include "itkFastMarchingUpwindGradientImageFilter.h"
 
 #include "itkRescaleIntensityImageFilter.h"
 #include "vnl/algo/vnl_determinant.h"
@@ -285,6 +286,88 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     }
 
   return temp;
+}
+
+template <class TImage, class TField>
+typename TField::Pointer
+FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
+{
+  typedef TImage ImageType;
+  enum { ImageDimension = TImage::ImageDimension };
+  typename TField::Pointer sfield = TField::New();
+  sfield->SetSpacing( wm->GetSpacing() );
+  sfield->SetOrigin( wm->GetOrigin() );
+  sfield->SetDirection( wm->GetDirection() );
+  sfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
+  sfield->SetRequestedRegion(wm->GetRequestedRegion() );
+  sfield->SetBufferedRegion( wm->GetBufferedRegion() );
+  sfield->Allocate();
+  typename ImageType::Pointer surf = LabelSurface<ImageType>(1, 1, wm, 1.9 );
+
+  typedef itk::FastMarchingUpwindGradientImageFilter<ImageType, ImageType> FloatFMType;
+  typename FloatFMType::Pointer marcher = FloatFMType::New();
+  typedef typename FloatFMType::NodeType      NodeType;
+  typedef typename FloatFMType::NodeContainer NodeContainer;
+  // setup alive points
+  typename NodeContainer::Pointer alivePoints = NodeContainer::New();
+  typename NodeContainer::Pointer targetPoints = NodeContainer::New();
+  typename NodeContainer::Pointer trialPoints = NodeContainer::New();
+  typedef itk::ImageRegionIteratorWithIndex<TImage> IteratorType;
+  IteratorType thIt( wm, wm->GetLargestPossibleRegion().GetSize() );
+  thIt.GoToBegin();
+  unsigned long bb = 0, cc = 0, dd = 0;
+  while(  !thIt.IsAtEnd()  )
+    {
+    if( thIt.Get() > 0.1 && surf->GetPixel(thIt.GetIndex() ) == 0 )
+      {
+      NodeType node;
+      node.SetValue( 0 );
+      node.SetIndex(thIt.GetIndex() );
+      alivePoints->InsertElement(bb, node);
+      bb++;
+      }
+    if( gm->GetPixel(thIt.GetIndex() ) == 0 && wm->GetPixel(thIt.GetIndex() ) == 0  )
+      {
+      NodeType node;
+      node.SetValue( 0 );
+      node.SetIndex(thIt.GetIndex() );
+      targetPoints->InsertElement(cc, node);
+      cc++;
+      }
+    if( surf->GetPixel(thIt.GetIndex() ) == 1 )
+      {
+      NodeType node;
+      node.SetValue( 0 );
+      node.SetIndex(thIt.GetIndex() );
+      trialPoints->InsertElement(cc, node);
+      dd++;
+      }
+    ++thIt;
+    }
+
+  marcher->SetTargetReachedModeToAllTargets();
+  marcher->SetAlivePoints( alivePoints );
+  marcher->SetTrialPoints( trialPoints );
+  marcher->SetTargetPoints( targetPoints );
+  marcher->SetInput( gm );
+  double stoppingValue = 1000.0;
+  marcher->SetStoppingValue( stoppingValue );
+  marcher->GenerateGradientImageOn();
+  marcher->Update();
+  WriteImage<ImageType>(marcher->GetOutput(), "marcher.nii.gz");
+
+  thIt.GoToBegin();
+  while(  !thIt.IsAtEnd()  )
+    {
+    typename TField::PixelType vec;
+    for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+      {
+      vec[dd] = marcher->GetGradientImage()->GetPixel(thIt.GetIndex() )[dd];
+      }
+    ++thIt;
+    }
+
+  return sfield;
 }
 
 template <class TImage, class TField>
@@ -633,8 +716,7 @@ int LaplacianThickness(int argc, char *argv[])
     dosulc = atof(argv[argct]);
     }
   argct++;
-  unsigned int totalits = 500;
-  float        tolerance = 0.001;
+  float tolerance = 0.001;
   if( argc >  argct )
     {
     tolerance = atof(argv[argct]);
@@ -735,7 +817,8 @@ int LaplacianThickness(int argc, char *argv[])
 /** sulc priors done */
     }
 
-  lapgrad = LaplacianGrad<ImageType, DeformationFieldType>(wmb, gmb, smoothparam, totalits, tolerance);
+  lapgrad = LaplacianGrad<ImageType, DeformationFieldType>(wmb, gmb, smoothparam, 500, tolerance);
+  //  lapgrad=FMMGrad<ImageType,DeformationFieldType>(wmb,gmb);
 
   //  LabelSurface(typename TImage::PixelType foreground,
   //       typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )

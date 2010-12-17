@@ -6,7 +6,8 @@
 #include "itkWarpImageFilter.h"
 #include "itkWarpImageMultiTransformFilter.h"
 #include "itkDeformationFieldFromMultiTransformFilter.h"
-
+#include "itkFastMarchingUpwindGradientImageFilter.h"
+#include "itkFastMarchingUpwindGradientImageFilter.h"
 #include "itkImageFileWriter.h"
 
 #include "itkANTSImageRegistrationOptimizer.h"
@@ -1041,14 +1042,14 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //  LabelSurface(typename TImage::PixelType foreground,
   //       typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )
   float distthresh = 1.1;
-  typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 1, true);
+  typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 0, true);
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
   typename ImageType::Pointer speedprior = NULL;
   if(  useCurvaturePrior )
     {
     speedprior = SpeedPrior<ImageType>(gm, wm, bsurf);
     }
-  // WriteImage<ImageType>(bsurf,"surf.hdr");
+  WriteImage<ImageType>(bsurf, "surf.nii.gz");
   //	typename DoubleImageType::Pointer distfromboundary =
   //  typename ImageType::Pointer surf=MaurerDistanceMap<ImageType>(0.5,1.e9,bsurf);
   // surf= SmoothImage<ImageType>(surf,3);
@@ -1234,20 +1235,25 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           wmag = sqrt(wmag);
           if( checknans )
             {
-            if( vnl_math_isnan(wmag) || vnl_math_isinf(wmag) )
+            if( vnl_math_isnan(wmag) || vnl_math_isinf(wmag) || wmag == 0 )
               {
               wgradval.Fill(0);
               lapgrad2->SetPixel(speedindex, wgradval);
               wmag = 0;
               }
+            else
+              {
+              lapgrad2->SetPixel(speedindex, wgradval / wmag);
+              }
             }
           totalerr += fabs(surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) );
 //	      float thkval=thkdef->GetPixel(speedindex);
 //	      float thkval=finalthickimage->GetPixel(speedindex);
-          double fval = 1; // (thickprior-thkval);
+//	      double fval=1; //(thickprior-thkval);
           //	      if ( fval > 0 ) fval=1; else fval=-1;
 // speed function here IMPORTANT!!
-          float dd = (surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) ) * gradstep * fval;
+          float dd = (surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) ) * gradstep;
+          dd *= gm->GetPixel(speedindex);
           if( checknans )
             {
             if( vnl_math_isnan(dd) || vnl_math_isinf(dd) )
@@ -1350,6 +1356,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         corrfield->FillBuffer(zero);
         }
       InvertField<ImageType, DeformationFieldType>( invfield, corrfield, 1.0, 0.1, 20, true);
+      InvertField<ImageType, DeformationFieldType>( corrfield, invfield, 1.0, 0.1, 20, true);
+      //	  InvertField<ImageType,DeformationFieldType>( invfield, corrfield, 1.0,0.1,20,true);
+      //  InvertField<ImageType,DeformationFieldType>( corrfield, invfield, 1.0,0.1,20,true);
       ttiter++;
       }
 
@@ -1383,6 +1392,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         maxth = thkval;
         }
+      if( finalthickimage->GetPixel(velind)  > thickprior )
+        {
+        finalthickimage->SetPixel(velind, thickprior );
+        }
       ++Iterator;
       }
 
@@ -1391,6 +1404,9 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       std::cout << " now smooth " << std::endl;
       }
     m_MFR->SmoothDeformationFieldGauss(velofield, smoothingsigma);
+    WriteImage<DeformationFieldType>(corrfield, "corrfield.nii.gz");
+    WriteImage<DeformationFieldType>(invfield, "invfield.nii.gz");
+
     //    std::string velofieldname = outname + "velofield";
     // WriteDisplacementField<DeformationFieldType>(velofield,velofieldname.c_str());
     // std::string incrfieldname = outname + "incrfield";
