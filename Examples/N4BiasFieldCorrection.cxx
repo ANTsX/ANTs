@@ -85,9 +85,10 @@ int N4( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = inputImageOption->GetValue();
     reader->SetFileName( inputFile.c_str() );
-    reader->Update();
 
     inputImage = reader->GetOutput();
+    inputImage->Update();
+    inputImage->DisconnectPipeline();
     }
   else
     {
@@ -109,8 +110,9 @@ int N4( itk::ants::CommandLineParser *parser )
     maskreader->SetFileName( inputFile.c_str() );
     try
       {
-      maskreader->Update();
       maskImage = maskreader->GetOutput();
+      maskImage->Update();
+      maskImage->DisconnectPipeline();
       }
     catch( ... )
       {
@@ -126,9 +128,10 @@ int N4( itk::ants::CommandLineParser *parser )
     otsu->SetNumberOfHistogramBins( 200 );
     otsu->SetInsideValue( 0 );
     otsu->SetOutsideValue( 1 );
-    otsu->Update();
 
     maskImage = otsu->GetOutput();
+    maskImage->Update();
+    maskImage->DisconnectPipeline();
     }
 
   typename ImageType::Pointer weightImage = NULL;
@@ -141,8 +144,9 @@ int N4( itk::ants::CommandLineParser *parser )
     typedef itk::ImageFileReader<ImageType> ReaderType;
     typename ReaderType::Pointer weightreader = ReaderType::New();
     weightreader->SetFileName( inputFile.c_str() );
-    weightreader->Update();
     weightImage = weightreader->GetOutput();
+    weightImage->Update();
+    weightImage->DisconnectPipeline();
     }
 
   /**
@@ -201,16 +205,6 @@ int N4( itk::ants::CommandLineParser *parser )
       correcter->SetSplineOrder( parser->Convert<unsigned int>(
                                    bsplineOption->GetParameter( 1 ) ) );
       }
-    if( bsplineOption->GetNumberOfParameters() > 2 )
-      {
-      correcter->SetSigmoidNormalizedAlpha( parser->Convert<float>(
-                                              bsplineOption->GetParameter( 2 ) ) );
-      }
-    if( bsplineOption->GetNumberOfParameters() > 3 )
-      {
-      correcter->SetSigmoidNormalizedBeta( parser->Convert<float>(
-                                             bsplineOption->GetParameter( 3 ) ) );
-      }
     if( bsplineOption->GetNumberOfParameters() > 0 )
       {
       std::vector<float> array = parser->ConvertVector<float>(
@@ -240,7 +234,6 @@ int N4( itk::ants::CommandLineParser *parser )
           upperBound[d] = extraPadding - lowerBound[d];
           newOrigin[d] -= ( static_cast<RealType>( lowerBound[d] )
                             * inputImage->GetSpacing()[d] );
-
           numberOfControlPoints[d] = numberOfSpans + correcter->GetSplineOrder();
           }
 
@@ -251,7 +244,9 @@ int N4( itk::ants::CommandLineParser *parser )
         padder->SetPadUpperBound( upperBound );
         padder->SetConstant( 0 );
         padder->Update();
+
         inputImage = padder->GetOutput();
+        inputImage->DisconnectPipeline();
 
         typedef itk::ConstantPadImageFilter<MaskImageType, MaskImageType> MaskPadderType;
         typename MaskPadderType::Pointer maskPadder = MaskPadderType::New();
@@ -260,7 +255,9 @@ int N4( itk::ants::CommandLineParser *parser )
         maskPadder->SetPadUpperBound( upperBound );
         maskPadder->SetConstant( 0 );
         maskPadder->Update();
+
         maskImage = maskPadder->GetOutput();
+        maskImage->DisconnectPipeline();
 
         if( weightImage )
           {
@@ -270,7 +267,9 @@ int N4( itk::ants::CommandLineParser *parser )
           weightPadder->SetPadUpperBound( upperBound );
           weightPadder->SetConstant( 0 );
           weightPadder->Update();
+
           weightImage = weightPadder->GetOutput();
+          weightImage->DisconnectPipeline();
           }
         }
       else if( array.size() == ImageDimension )
@@ -303,7 +302,7 @@ int N4( itk::ants::CommandLineParser *parser )
   typename itk::ants::CommandLineParser::OptionType::Pointer shrinkFactorOption =
     parser->GetOption( "shrink-factor" );
   int shrinkFactor = 4;
-  if( shrinkFactorOption )
+  if( shrinkFactorOption && shrinkFactorOption->GetNumberOfValues() )
     {
     shrinkFactor = parser->Convert<int>( shrinkFactorOption->GetValue() );
     }
@@ -317,18 +316,15 @@ int N4( itk::ants::CommandLineParser *parser )
 
   correcter->SetInput( shrinker->GetOutput() );
   correcter->SetMaskImage( maskshrinker->GetOutput() );
+
+  typedef itk::ShrinkImageFilter<ImageType, ImageType> WeightShrinkerType;
+  typename WeightShrinkerType::Pointer weightshrinker = WeightShrinkerType::New();
   if( weightImage )
     {
-    typedef itk::ShrinkImageFilter<ImageType, ImageType> WeightShrinkerType;
-    typename WeightShrinkerType::Pointer weightshrinker = WeightShrinkerType::New();
     weightshrinker->SetInput( weightImage );
-    weightshrinker->SetShrinkFactors( 1 );
-    if( shrinkFactorOption )
-      {
-      int shrinkFactor = parser->Convert<int>( shrinkFactorOption->GetValue() );
-      weightshrinker->SetShrinkFactors( shrinkFactor );
-      }
+    weightshrinker->SetShrinkFactors(shrinkFactor);
     weightshrinker->Update();
+
     correcter->SetConfidenceImage( weightshrinker->GetOutput() );
     }
 
@@ -362,11 +358,12 @@ int N4( itk::ants::CommandLineParser *parser )
 
   try
     {
+    // correcter->DebugOn();
     correcter->Update();
     }
-  catch( ... )
+  catch( itk::ExceptionObject & e )
     {
-    std::cerr << "Exception caught." << std::endl;
+    std::cerr << "Exception caught: " << e << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -383,10 +380,10 @@ int N4( itk::ants::CommandLineParser *parser )
   if( outputOption )
     {
     /**
-      * Reconstruct the bias field at full image resolution.  Divide
-      * the original input image by the bias field to get the final
-      * corrected image.
-      */
+          * Reconstruct the bias field at full image resolution.  Divide
+          * the original input image by the bias field to get the final
+          * corrected image.
+          */
     typedef itk::BSplineControlPointImageFilter<typename
                                                 CorrecterType::BiasFieldControlPointLatticeType, typename
                                                 CorrecterType::ScalarImageType> BSplinerType;
@@ -600,17 +597,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "of the mesh elements. The latter option is typically preferred. " )
       + std::string( "For each subsequent level, the spline distance decreases in " )
       + std::string( "half, or equivalently, the number of mesh elements doubles " )
-      + std::string( "Cubic splines (order = 3) are typically used.  The final " )
-      + std::string( "two parameters are experimental and really do not need to " )
-      + std::string( "be used for good performance." );
+      + std::string( "Cubic splines (order = 3) are typically used." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "bspline-fitting" );
     option->SetShortName( 'b' );
-    option->SetUsageOption( 0,
-                            "[splineDistance,<splineOrder=3>,<sigmoidAlpha=0.0>,<sigmoidBeta=0.5>]" );
-    option->SetUsageOption( 1,
-                            "[initialMeshResolution,<splineOrder=3>,<sigmoidAlpha=0.0>,<sigmoidBeta=0.5>]" );
+    option->SetUsageOption( 0, "[splineDistance,<splineOrder=3>]" );
+    option->SetUsageOption( 1, "[initialMeshResolution,<splineOrder=3>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
