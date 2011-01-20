@@ -1055,7 +1055,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   // surf= SmoothImage<ImageType>(surf,3);
   typename ImageType::Pointer finalthickimage = BinaryThreshold<ImageType>(3, 3, 1, segmentationimage); // fixme
 
-  // typename ImageType::Pointer gmsurf = LabelSurface<ImageType>(1,1,gmb, distthresh);
+  gmb = BinaryThreshold<ImageType>(2, 3, 1, segmentationimage);  // fixme
+  typename ImageType::Pointer gmsurf = LabelSurface<ImageType>(1, 1, gmb, distthresh);
   //  gmsurf=MaurerDistanceMap<ImageType>(0.5,1.e9,gmsurf);
   //  gmsurf= SmoothImage<ImageType>(gmsurf,3);
 
@@ -1347,7 +1348,26 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       Iterator.GoToBegin();
       while(  !Iterator.IsAtEnd()  )
         {
-        incrinvfield->SetPixel(Iterator.GetIndex(), velofield->GetPixel(Iterator.GetIndex() ) );
+        IndexType velind = Iterator.GetIndex();
+        bool      shouldbezero = false;
+        if( segmentationimage->GetPixel(velind) == 0 )
+          {
+          shouldbezero = true;
+          }
+        if( !shouldbezero )
+          {
+          if( bsurf->GetPixel(velind) == 0 && gmsurf->GetPixel(velind) == 0 )
+            {
+            shouldbezero = true;
+            }
+          }
+        if( shouldbezero   )
+          {
+          velofield->SetPixel(velind, zero);
+          corrfield->SetPixel(velind, zero);
+          invfield->SetPixel(velind, zero);
+          }
+        incrinvfield->SetPixel(velind, velofield->GetPixel(velind) );
         ++Iterator;
         }
 
@@ -1355,6 +1375,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         {
         corrfield->FillBuffer(zero);
         }
+
       InvertField<ImageType, DeformationFieldType>( invfield, corrfield, 1.0, 0.1, 20, true);
       InvertField<ImageType, DeformationFieldType>( corrfield, invfield, 1.0, 0.1, 20, true);
       //	  InvertField<ImageType,DeformationFieldType>( invfield, corrfield, 1.0,0.1,20,true);
