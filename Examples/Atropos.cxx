@@ -54,9 +54,20 @@ public:
 
     std::cout << "  Iteration " << filter->GetElapsedIterations()
               << " (of " << filter->GetMaximumNumberOfIterations() << "): ";
-    std::cout << filter->GetCurrentConvergenceMeasurement()
-              << " (threshold = " << filter->GetConvergenceThreshold()
-              << ")" << std::endl;
+    std::cout << "posterior probability = "
+              << filter->GetCurrentPosteriorProbability();
+
+    typedef typename TFilter::RealType RealType;
+
+    RealType annealingTemperature = filter->GetInitialAnnealingTemperature()
+      * vcl_pow( filter->GetAnnealingRate(), static_cast<RealType>(
+                   filter->GetElapsedIterations() ) );
+
+    annealingTemperature = vnl_math_max( annealingTemperature,
+                                         filter->GetMinimumAnnealingTemperature() );
+
+    std::cout << " (annealing temperature = "
+              << annealingTemperature << ")" << std::endl;
   }
 };
 
@@ -266,6 +277,39 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       {
       segmenter->SetUseMixtureModelProportions( parser->Convert<bool>(
                                                   posteriorOption->GetParameter( 0 ) ) );
+
+      RealType annealingTemperature = 1.0;
+      if( posteriorOption->GetNumberOfParameters() > 1 )
+        {
+        annealingTemperature =
+          parser->Convert<RealType>( posteriorOption->GetParameter( 1 ) );
+        if( annealingTemperature <= 0.0 )
+          {
+          std::cerr << "Annealing temperature must be positive." << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      segmenter->SetInitialAnnealingTemperature( annealingTemperature );
+
+      RealType annealingRate = 1.0;
+      if( posteriorOption->GetNumberOfParameters() > 2 )
+        {
+        annealingRate =
+          parser->Convert<RealType>( posteriorOption->GetParameter( 2 ) );
+        if( annealingRate < 0.0 || annealingRate > 1.0 )
+          {
+          std::cerr << "Annealing rate must be in the range [0, 1]." << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      segmenter->SetAnnealingRate( annealingRate );
+
+      if( posteriorOption->GetNumberOfParameters() > 3 )
+        {
+        RealType minimumAnnealingTemperature =
+          parser->Convert<RealType>( posteriorOption->GetParameter( 3 ) );
+        segmenter->SetMinimumAnnealingTemperature( minimumAnnealingTemperature );
+        }
       }
     std::string posteriorStrategy = posteriorOption->GetValue();
     ConvertToLowerCase( posteriorStrategy );
@@ -547,6 +591,30 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
 
   /**
+   * ICM options
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer icmOption =
+    parser->GetOption( "icm" );
+  if( icmOption && icmOption->GetNumberOfValues() == 1 )
+    {
+    segmenter->SetUseAsynchronousUpdating( parser->Convert<bool>(
+                                             icmOption->GetValue( 0 ) ) );
+    }
+  if( icmOption && icmOption->GetNumberOfValues() > 0 )
+    {
+    if( icmOption->GetNumberOfParameters() > 0 )
+      {
+      segmenter->SetUseAsynchronousUpdating( parser->Convert<bool>(
+                                               icmOption->GetParameter( 0 ) ) );
+      }
+    if( icmOption->GetNumberOfParameters() > 1 )
+      {
+      segmenter->SetMaximumNumberOfICMIterations( parser->Convert<unsigned int>(
+                                                    icmOption->GetParameter( 1 ) ) );
+      }
+    }
+
+  /**
    * euclidean distance
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer distanceOption =
@@ -747,6 +815,19 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
+
+  if( icmOption && icmOption->GetNumberOfParameters() > 2 )
+    {
+    if( segmenter->GetUseAsynchronousUpdating() && segmenter->GetICMCodeImage() )
+      {
+      typedef  itk::ImageFileWriter<LabelImageType> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetInput( segmenter->GetICMCodeImage() );
+      writer->SetFileName( ( icmOption->GetParameter( 2 ) ).c_str() );
+      writer->Update();
+      }
+    }
+
   std::cout << std::endl << "Writing output:" << std::endl;
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -997,12 +1078,21 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Different posterior probability formulations are possible ")
-      + std::string( "which include the following:  " )
-      + std::string( " Socrates: posteriorProbability = (spatialPrior)^priorWeight" )
-      + std::string( "*(likelihood*mrfPrior)^(1-priorWeight), " )
-      + std::string( " Plato: posteriorProbability = 1.0, " )
-      + std::string( " Aristotle: posteriorProbability = 1.0, " )/* +
+      std::string( "Different posterior probability formulations are possible as ")
+      + std::string( "are different update options.  To guarantee theoretical " )
+      + std::string( "convergence properties, a proper formulation of the well-known " )
+      + std::string( "iterated conditional modes (ICM) uses an asynchronous update step " )
+      + std::string( "modulated by a specified annealing temperature.  If one sets " )
+      + std::string( "the AnnealingTemperature > 1 in the posterior formulation " )
+      + std::string( "a traditional code set for a proper ICM update will be created. ")
+      + std::string( "Otherwise, a synchronous update step will take place at each iteration. ")
+      + std::string( "The annealing temperature, T, converts the posteriorProbability " )
+      + std::string( "to posteriorProbability^(1/T) over the course of optimization. ");
+    std::string( "Options include the following:  " )
+    + std::string( " Socrates: posteriorProbability = (spatialPrior)^priorWeight" )
+    + std::string( "*(likelihood*mrfPrior)^(1-priorWeight), " )
+    + std::string( " Plato: posteriorProbability = 1.0, " )
+    + std::string( " Aristotle: posteriorProbability = 1.0, " )/* +
     std::string( " Zeno: posteriorProbability = 1.0\n" ) +
     std::string( " Diogenes: posteriorProbability = 1.0\n" ) +
     std::string( " Thales: posteriorProbability = 1.0\n" ) +
@@ -1011,9 +1101,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "posterior-formulation" );
     option->SetShortName( 'p' );
-    option->SetUsageOption( 0, "Socrates[<useMixtureModelProportions=1>]" );
-    option->SetUsageOption( 1, "Plato[<useMixtureModelProportions=1>]" );
-    option->SetUsageOption( 2, "Aristotle[<useMixtureModelProportions=1>]" );
+    option->SetUsageOption( 0,
+                            "Socrates[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
+    option->SetUsageOption( 1,
+                            "Plato[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
+    option->SetUsageOption( 2,
+                            "Aristotle[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
 //  option->SetUsageOption( 3, "Zeno[<useMixtureModelProportions=1>]" );
 //  option->SetUsageOption( 4, "Diogenes[<useMixtureModelProportions=1>]" );
 //  option->SetUsageOption( 5, "Thales[<useMixtureModelProportions=1>]" );
@@ -1083,12 +1176,34 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "factor of 0.3 provides a moderate amount of smoothing. " )
       + std::string( "Increasing this number causes more smoothing whereas " )
       + std::string( "decreasing the number lessens the smoothing. The radius " )
-      + std::string( "parameter specifies the mrf neighborhood." );
+      + std::string( "parameter specifies the mrf neighborhood.  Different " )
+      + std::string( "update schemes are possible but only the asynchronous " )
+      + std::string( "updating has theoretical convergence properties. " );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
     option->SetShortName( 'm' );
     option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Asynchronous updating requires the construction of an " )
+      + std::string( "ICM code image which is a label image (with labels in the " )
+      + std::string( "range {1,..,MaximumICMCode}) constructed such that no MRF " )
+      + std::string( "neighborhood has duplicate ICM code labels.  Thus, to update " )
+      + std::string( "the voxel class labels we iterate through the code labels " )
+      + std::string( "and, for each code label, we iterate through the image " )
+      + std::string( "and update the voxel class label that has the corresponding " )
+      + std::string( "ICM code label.  One can print out the ICM code image by " )
+      + std::string( "specifying an ITK-compatible image filename." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "icm" );
+    option->SetShortName( 'g' );
+    option->SetUsageOption( 0, "[<useAsynchronousUpdate=1>,<maximumNumberOfICMIterations=1>,<icmCodeImage=''>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
