@@ -17,7 +17,7 @@
 =========================================================================*/
 #ifndef __itkAvantsMutualInformationRegistrationFunction_h
 #define __itkAvantsMutualInformationRegistrationFunction_h
-
+#include "vcl_cmath.h"
 #include "itkImageFileWriter.h"
 #include "itkImageToImageMetric.h"
 #include "itkAvantsPDEDeformableRegistrationFunction.h"
@@ -357,7 +357,7 @@ public:
           if( pxy / denom > 0 )
             {
             // true mi
-            mi = pxy * log(pxy / denom);
+            mi = pxy * vcl_log(pxy / denom);
             // test mi
             // mi = 1.0 + log(pxy/denom);
             ct++;
@@ -368,7 +368,7 @@ public:
         }
       //	  std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
       }
-    this->m_Energy = -1.0 * mival / log(2);
+    this->m_Energy = -1.0 * mival / vcl_log( (double)2.0);
     return this->m_Energy;
   }
 
@@ -448,7 +448,9 @@ public:
   {
     unsigned int movingImageParzenWindowIndex  =
       static_cast<unsigned int>( this->m_Padding
-                                 + round( windowTerm * (float)(this->m_NumberOfHistogramBins - 1 - this->m_Padding) ) );
+                                 + (unsigned int)( windowTerm
+                                                   * (float)(this->m_NumberOfHistogramBins - 1
+                                                             - this->m_Padding) + 0.5 ) );
 
     // Make sure the extreme values are in valid bins
     if( movingImageParzenWindowIndex < this->m_Padding )
