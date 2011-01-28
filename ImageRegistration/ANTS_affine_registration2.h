@@ -183,8 +183,8 @@ template <class StringType, class CastTransformPointerType>
 void ReadAffineTransformFile(StringType filename, CastTransformPointerType & transform)
 {
   typedef typename CastTransformPointerType::ObjectType CastTransformType;
-//    const unsigned int InputSpaceDimension = CastTransformType::InputSpaceDimension;
-//    const unsigned int OutputSpaceDimension = CastTransformType::OutputSpaceDimension;
+  //    const unsigned int InputSpaceDimension = CastTransformType::InputSpaceDimension;
+  //    const unsigned int OutputSpaceDimension = CastTransformType::OutputSpaceDimension;
 
   itk::TransformFactory<CastTransformType>::RegisterTransform();
   itk::TransformFactory<itk::ANTSAffine3DTransform<double> >::RegisterTransform();
@@ -219,7 +219,7 @@ void InitializeAffineOptmizationParameters(OptAffine & opt, double translationSc
     {
     case 2:
       {
-//        const double translationScale = 1.0 / 1000.0;
+      //        const double translationScale = 1.0 / 1000.0;
       opt.gradient_scales[0] = 1.0;
       opt.gradient_scales[1] = 1.0;
       opt.gradient_scales[2] = 1.0;
@@ -232,17 +232,17 @@ void InitializeAffineOptmizationParameters(OptAffine & opt, double translationSc
       break;
     case 3:
       {
-//        const double translationScale = 1.0/1.e4;
-      opt.gradient_scales[0] = 1.0;   // quaternion
-      opt.gradient_scales[1] = 1.0;   // quaternion
-      opt.gradient_scales[2] = 1.0;   // quaternion
-      opt.gradient_scales[3] = 1.0;   // quaternion
-      opt.gradient_scales[4] = 1.0;   // s1
-      opt.gradient_scales[5] = 1.0;   // s2
-      opt.gradient_scales[6] = 1.0;   // s3
-      opt.gradient_scales[7] = 1.0;   // k1
-      opt.gradient_scales[8] = 1.0;   // k2
-      opt.gradient_scales[9] = 1.0;   // k3
+      //        const double translationScale = 1.0/1.e4;
+      opt.gradient_scales[0] = 1.0; // quaternion
+      opt.gradient_scales[1] = 1.0; // quaternion
+      opt.gradient_scales[2] = 1.0; // quaternion
+      opt.gradient_scales[3] = 1.0; // quaternion
+      opt.gradient_scales[4] = 1.0; // s1
+      opt.gradient_scales[5] = 1.0; // s2
+      opt.gradient_scales[6] = 1.0; // s3
+      opt.gradient_scales[7] = 1.0; // k1
+      opt.gradient_scales[8] = 1.0; // k2
+      opt.gradient_scales[9] = 1.0; // k3
       opt.gradient_scales[10] = translationScale;
       opt.gradient_scales[11] = translationScale;
       opt.gradient_scales[12] = translationScale;
@@ -314,9 +314,9 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
     aff_combined->Compose(aff_Im_inv, 0);
     opt.transform_initial = aff_combined;
 
-//            std::cout << "aff_If: " << aff_If << std::endl;
-//            std::cout << "aff_Im: " << aff_Im << std::endl;
-//            std::cout << "aff_combined: " << aff_combined << std::endl;
+    //            std::cout << "aff_If: " << aff_If << std::endl;
+    //            std::cout << "aff_Im: " << aff_Im << std::endl;
+    //            std::cout << "aff_combined: " << aff_combined << std::endl;
     }
 
   if( !opt.use_rotation_header && opt.ignore_void_orgin )
@@ -681,7 +681,7 @@ ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
   typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
 
   RealType minimumSpacing = inputSpacing.GetVnlVector().min_value();
-//    RealType maximumSpacing = inputSpacing.GetVnlVector().max_value();
+  //    RealType maximumSpacing = inputSpacing.GetVnlVector().max_value();
 
   ImagePointer current_image = image;
   for( unsigned int d = 0; d < ImageType::ImageDimension; d++ )
@@ -734,8 +734,9 @@ void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, Ima
     scale_factor *= 2;
     }
 
-//    for(int i=0; i < number_of_levels; i++)
-//      std::cout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() << std::endl;
+  //    for(int i=0; i < number_of_levels; i++)
+  //      std::cout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() <<
+  // std::endl;
 }
 
 template <class ParaType>
@@ -937,7 +938,7 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
         current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
         current_para[j] += (1.0) * invcurrent_gradient[j] * current_step_length / invgradient_magnitude;
         }
-      if( kImageDim == 3 )     // normalize quaternion
+      if( kImageDim == 3 )  // normalize quaternion
         {
         double quat_mag = 0.0;
         for( int j = 0; j < 4; j++ )
@@ -1118,7 +1119,7 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         {
         current_para[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
         }
-      if( kImageDim == 3 )     // normalize quaternion
+      if( kImageDim == 3 )  // normalize quaternion
         {
         double quat_mag = 0.0;
         for( int j = 0; j < 4; j++ )
@@ -1166,7 +1167,12 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
     {
     typename TransformType::Pointer transform2 = TransformType::New();
     ParaType current_para2(kParaDim);
-    current_para2 = opt.transform_initial->GetParameters();
+
+    // GS: should use the inverse of initial transform here, removed the next line:
+    // current_para2 = opt.transform_initial->GetParameters();
+    typename TransformType::Pointer transform2_initial = TransformType::New();
+    opt.transform_initial->GetInverse(transform2_initial);
+    current_para2 = transform2_initial->GetParameters();
 
     maximum_step_length = opt.maximum_step_length;
     relaxation_factor = opt.relaxation_factor;
@@ -1175,7 +1181,7 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
     for( int i = 0; i < number_of_levels; i++ )
       {
       transform2->SetParameters(current_para2);
-      transform2->SetCenter(opt.transform_initial->GetCenter() );
+      transform2->SetCenter(transform2_initial->GetCenter() );
 
       /** see below -- we switch fixed and moving!!  */
       ImagePointerType fixed_image = moving_image_pyramid[i];
@@ -1215,7 +1221,8 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
           {
           std::cerr << "ExceptionObject caught !" << std::endl;
           std::cerr << err << std::endl;
-          return false;
+          // don't have to return here if got anything from the previous forward direction
+//          return false;
           break;
           }
 
@@ -1261,7 +1268,7 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
           {
           current_para2[j] += (-1.0) * current_gradient[j] * current_step_length / gradient_magnitude;
           }
-        if( kImageDim == 3 )   // normalize quaternion
+        if( kImageDim == 3 )  // normalize quaternion
           {
           double quat_mag = 0.0;
           for( int j = 0; j < 4; j++ )
