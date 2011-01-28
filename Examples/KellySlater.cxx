@@ -1041,7 +1041,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
   //  LabelSurface(typename TImage::PixelType foreground,
   //       typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )
-  float distthresh = 1.1;
+  float distthresh = 1.5;
   typename ImageType::Pointer wmgrow = Morphological<ImageType>(wmb, 0, true);
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
   typename ImageType::Pointer speedprior = NULL;
@@ -1056,12 +1056,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typename ImageType::Pointer finalthickimage = BinaryThreshold<ImageType>(3, 3, 1, segmentationimage); // fixme
 
   gmb = BinaryThreshold<ImageType>(2, 3, 1, segmentationimage);  // fixme
-  typename ImageType::Pointer gmgrow = Morphological<ImageType>(gmb, 0, true);
+  typename ImageType::Pointer gmgrow = Morphological<ImageType>(gmb, 1, true);
   typename ImageType::Pointer gmsurf = LabelSurface<ImageType>(1, 1, gmgrow, distthresh); // or wmb ?
   //  WriteImage<ImageType>(gmsurf,"surfdefgm.nii.gz");
   //  WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
-  //  gmsurf=MaurerDistanceMap<ImageType>(0.5,1.e9,gmsurf);
-  //  gmsurf= SmoothImage<ImageType>(gmsurf,3);
 
   typename ImageType::SizeType s = wm->GetLargestPossibleRegion().GetSize();
   typename DeformationFieldType::IndexType velind;  velind.Fill(0);
@@ -1359,7 +1357,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           }
         if( !shouldbezero )
           {
-          if( bsurf->GetPixel(velind) == 0 && gmsurf->GetPixel(velind) == 0 )
+          if( bsurf->GetPixel(velind) == 0 && gmsurf->GetPixel(velind) == 0 && segmentationimage->GetPixel(velind) !=
+              2 )
             {
             shouldbezero = true;
             }
