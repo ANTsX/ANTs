@@ -1058,8 +1058,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   gmb = BinaryThreshold<ImageType>(2, 3, 1, segmentationimage);  // fixme
   typename ImageType::Pointer gmgrow = Morphological<ImageType>(gmb, 0, true);
   typename ImageType::Pointer gmsurf = LabelSurface<ImageType>(1, 1, gmgrow, distthresh); // or wmb ?
-  WriteImage<ImageType>(gmsurf, "surfdefgm.nii.gz");
-  WriteImage<ImageType>(bsurf, "surfdefwm.nii.gz");
+  //  WriteImage<ImageType>(gmsurf,"surfdefgm.nii.gz");
+  //  WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
   //  gmsurf=MaurerDistanceMap<ImageType>(0.5,1.e9,gmsurf);
   //  gmsurf= SmoothImage<ImageType>(gmsurf,3);
 
