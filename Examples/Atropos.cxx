@@ -18,6 +18,7 @@
 #include "antsListSampleToListSampleFilter.h"
 #include "antsManifoldParzenWindowsListSampleFunction.h"
 #include "antsPassThroughListSampleFilter.h"
+#include "antsPartialVolumeGaussianListSampleFunction.h"
 
 #include <string>
 #include <algorithm>
@@ -86,7 +87,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   typedef float                                 RealType;
   typedef itk::Image<PixelType, ImageDimension> InputImageType;
 
-  typedef unsigned char                         LabelType;
+  typedef unsigned int                          LabelType;
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
 
   typedef  itk::ants::AtroposSegmentationImageFilter
@@ -124,8 +125,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    segmenter->SetNumberOfClasses( parser->Convert<unsigned int>(
-                                     initializationOption->GetParameter( 0 ) ) );
+    segmenter->SetNumberOfTissueClasses( parser->Convert<unsigned int>(
+                                           initializationOption->GetParameter( 0 ) ) );
 
     std::string initializationStrategy = initializationOption->GetValue();
     ConvertToLowerCase( initializationStrategy );
@@ -144,7 +145,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         {
         std::vector<float> clusterCenters = parser->ConvertVector<float>(
             initializationOption->GetParameter( 1 ) );
-        if( clusterCenters.size() != segmenter->GetNumberOfClasses() )
+        if( clusterCenters.size() != segmenter->GetNumberOfTissueClasses() )
           {
           std::cerr << "The cluster center vector size does not equal the "
                     << "specified number of classes." << std::endl;
@@ -153,7 +154,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         else
           {
           typename SegmentationFilterType::ParametersType parameters;
-          parameters.SetSize( segmenter->GetNumberOfClasses() );
+          parameters.SetSize( segmenter->GetNumberOfTissueClasses() );
           for( unsigned int n = 0; n < parameters.GetSize(); n++ )
             {
             parameters[n] = clusterCenters[n];
@@ -190,7 +191,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         itk::NumericSeriesFileNames::Pointer fileNamesCreator =
           itk::NumericSeriesFileNames::New();
         fileNamesCreator->SetStartIndex( 1 );
-        fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+        fileNamesCreator->SetEndIndex( segmenter->GetNumberOfTissueClasses() );
         fileNamesCreator->SetSeriesFormat( filename.c_str() );
         const std::vector<std::string> & imageNames
           = fileNamesCreator->GetFileNames();
@@ -213,7 +214,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         reader->Update();
 
         if(  reader->GetOutput()->GetNumberOfComponentsPerPixel()
-             != segmenter->GetNumberOfClasses() )
+             != segmenter->GetNumberOfTissueClasses() )
           {
           std::cerr << "The number of components does not match the number of "
                     << "classes." << std::endl;
@@ -224,7 +225,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           <VectorImageType, InputImageType> CasterType;
         typename CasterType::Pointer caster = CasterType::New();
         caster->SetInput( reader->GetOutput() );
-        for( unsigned int k = 0; k < segmenter->GetNumberOfClasses(); k++ )
+        for( unsigned int k = 0; k < segmenter->GetNumberOfTissueClasses(); k++ )
           {
           caster->SetIndex( k );
           caster->Update();
@@ -466,7 +467,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           labelBoundaryProbability = 1.0;
           }
         }
-      for( unsigned int n = 1; n <= segmenter->GetNumberOfClasses(); n++ )
+      for( unsigned int n = 1; n <= segmenter->GetNumberOfTissueClasses(); n++ )
         {
         typename SegmentationFilterType::LabelParametersType labelPair;
         labelPair.first = labelLambda;
@@ -639,7 +640,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       typedef typename SegmentationFilterType::SampleType SampleType;
       typedef itk::ants::Statistics::GaussianListSampleFunction
         <SampleType, float, float> LikelihoodType;
-      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+      for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
         {
         typename LikelihoodType::Pointer gaussianLikelihood =
           LikelihoodType::New();
@@ -676,7 +677,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         covSigma = parser->Convert<float>(
             likelihoodOption->GetParameter( 3 ) );
         }
-      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+      for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
         {
         typename LikelihoodType::Pointer mpwLikelihood =
           LikelihoodType::New();
@@ -705,7 +706,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         numberOfBins = parser->Convert<unsigned int>(
             likelihoodOption->GetParameter( 1 ) );
         }
-      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+      for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
         {
         typename LikelihoodType::Pointer hpwLikelihood =
           LikelihoodType::New();
@@ -725,7 +726,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       typedef typename SegmentationFilterType::SampleType SampleType;
       typedef itk::ants::Statistics::LogEuclideanGaussianListSampleFunction
         <SampleType, float, float> LikelihoodType;
-      for( unsigned int n = 0; n < segmenter->GetNumberOfClasses(); n++ )
+      for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
         {
         typename LikelihoodType::Pointer gaussianLikelihood =
           LikelihoodType::New();
@@ -740,7 +741,59 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
 
   /**
-   * outliers?
+   * partial volume
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer pvOption =
+    parser->GetOption( "partial-volume-label-set" );
+
+  if( pvOption && pvOption->GetNumberOfValues() > 0 )
+    {
+    unsigned int labelSetCount = 0;
+    for( int n = pvOption->GetNumberOfValues() - 1; n >= 0; n-- )
+      {
+      typename SegmentationFilterType::PartialVolumeLabelSetType labelSet =
+        parser->ConvertVector<LabelType>( pvOption->GetValue( n ) );
+      if( labelSet.size() != 2 )
+        {
+        std::cerr << "Error:  Currently Atropos only supports partial "
+                  << "volume label sets of size equal to 2." << std::endl;
+        return EXIT_FAILURE;
+        }
+      segmenter->AddPartialVolumeLabelSet( labelSet );
+
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::ants::Statistics::PartialVolumeGaussianListSampleFunction
+        <SampleType, float, float> LikelihoodType;
+
+      typename LikelihoodType::Pointer partialVolumeLikelihood =
+        LikelihoodType::New();
+      segmenter->SetLikelihoodFunction( labelSetCount
+                                        + segmenter->GetNumberOfTissueClasses(), partialVolumeLikelihood );
+      labelSetCount++;
+      }
+
+    typename itk::ants::CommandLineParser::OptionType::Pointer pvlOption =
+      parser->GetOption( "use-partial-volume-likelihoods" );
+
+    bool useLikelihoods = false;
+    if( pvlOption && pvlOption->GetNumberOfValues() > 0 )
+      {
+      std::string value = pvlOption->GetValue();
+      ConvertToLowerCase( value );
+      if( !value.compare( "true" ) || !value.compare( "1" ) )
+        {
+        useLikelihoods = true;
+        }
+      else
+        {
+        useLikelihoods = false;
+        }
+      }
+    segmenter->SetUsePartialVolumeLikelihoods( useLikelihoods );
+    }
+
+  /**
+   * outliers handling
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer outlierOption =
     parser->GetOption( "winsorize-outliers" );
@@ -815,7 +868,6 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
-
   if( icmOption && icmOption->GetNumberOfParameters() > 2 )
     {
     if( segmenter->GetUseAsynchronousUpdating() && segmenter->GetICMCodeImage() )
@@ -824,6 +876,22 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetInput( segmenter->GetICMCodeImage() );
       writer->SetFileName( ( icmOption->GetParameter( 2 ) ).c_str() );
+      writer->Update();
+      }
+    }
+
+  /**
+   * output
+   */
+  if( mrfOption && mrfOption->GetNumberOfParameters() > 2 )
+    {
+    if( segmenter->GetUseAsynchronousUpdating() && segmenter->GetICMCodeImage() )
+      {
+      typedef  itk::ImageFileWriter
+        <typename SegmentationFilterType::RealImageType> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetInput( segmenter->GetMRFPriorProbabilityImage() );
+      writer->SetFileName( ( mrfOption->GetParameter( 2 ) ).c_str() );
       writer->Update();
       }
     }
@@ -856,7 +924,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       itk::NumericSeriesFileNames::Pointer fileNamesCreator =
         itk::NumericSeriesFileNames::New();
       fileNamesCreator->SetStartIndex( 1 );
-      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfTissueClasses() );
       fileNamesCreator->SetSeriesFormat( filename.c_str() );
       const std::vector<std::string> & imageNames
         = fileNamesCreator->GetFileNames();
@@ -894,11 +962,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       itk::NumericSeriesFileNames::Pointer fileNamesCreator =
         itk::NumericSeriesFileNames::New();
       fileNamesCreator->SetStartIndex( 1 );
-      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfTissueClasses() );
       fileNamesCreator->SetSeriesFormat( filename.c_str() );
       const std::vector<std::string> & imageNames
         = fileNamesCreator->GetFileNames();
-      for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
+      for( unsigned int i = 0; i < segmenter->GetNumberOfTissueClasses(); i++ )
         {
         std::cout << "  Writing likelihood image (class " << i + 1 << ")"
                   << std::endl;
@@ -918,11 +986,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       itk::NumericSeriesFileNames::Pointer fileNamesCreator =
         itk::NumericSeriesFileNames::New();
       fileNamesCreator->SetStartIndex( 1 );
-      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfTissueClasses() );
       fileNamesCreator->SetSeriesFormat( filename.c_str() );
       const std::vector<std::string> & imageNames
         = fileNamesCreator->GetFileNames();
-      for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
+      for( unsigned int i = 0; i < segmenter->GetNumberOfTissueClasses(); i++ )
         {
         if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
             segmenter->GetPriorLabelImage() )
@@ -948,14 +1016,14 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       itk::NumericSeriesFileNames::Pointer fileNamesCreator =
         itk::NumericSeriesFileNames::New();
       fileNamesCreator->SetStartIndex( 1 );
-      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfClasses() );
+      fileNamesCreator->SetEndIndex( segmenter->GetNumberOfTissueClasses() );
       fileNamesCreator->SetSeriesFormat( filename.c_str() );
       const std::vector<std::string> & imageNames
         = fileNamesCreator->GetFileNames();
 
       if( segmenter->GetAdaptiveSmoothingWeight( 0 ) > 0.0 )
         {
-        for( unsigned int i = 0; i < segmenter->GetNumberOfClasses(); i++ )
+        for( unsigned int i = 0; i < segmenter->GetNumberOfTissueClasses(); i++ )
           {
           if( segmenter->GetPriorProbabilityImage( i + 1 ) ||
               segmenter->GetPriorLabelImage() )
@@ -1066,12 +1134,55 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "initialization" );
     option->SetShortName( 'i' );
     option->SetUsageOption( 0, "Random[numberOfClasses]" );
-    option->SetUsageOption( 1, "Otsu[numberOfClasses]" );
+    option->SetUsageOption( 1, "Otsu[numberOfTissueClasses]" );
     option->SetUsageOption( 2,
-                            "KMeans[numberOfClasses,<clusterCenters(in ascending order and for first intensity image only)>]" );
+                            "KMeans[numberOfTissueClasses,<clusterCenters(in ascending order and for first intensity image only)>]" );
     option->SetUsageOption( 3,
-                            "PriorProbabilityImages[numberOfClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting,<priorProbabilityThreshold>]" );
-    option->SetUsageOption( 4, "PriorLabelImage[numberOfClasses,labelImage,priorWeighting]" );
+                            "PriorProbabilityImages[numberOfTissueClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting,<priorProbabilityThreshold>]" );
+    option->SetUsageOption( 4, "PriorLabelImage[numberOfTissueClasses,labelImage,priorWeighting]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "The partial volume estimation option allows one to model" )
+      + std::string( "mixtures of classes within single voxels.  Atropos " )
+      + std::string( "currently allows the user to model two class mixtures " )
+      + std::string( "per partial volume class. The user specifies a set of " )
+      + std::string( "class labels per partial volume class requested.  For " )
+      + std::string( "example, suppose the user was performing a classic 3-" )
+      + std::string( "tissue segmentation (csf, gm, wm) using kmeans " )
+      + std::string( "initialization.  Suppose the user also wanted to model the " )
+      + std::string( "partial voluming effects between csf/gm and gm/wm. " )
+      + std::string( "The user would specify it using -i kmeans[3] " )
+      + std::string( "and -t 1x2 -t 2x3.  So, for this example, there would be 3 " )
+      + std::string( "tissue classes and 2 partial volume classes.  Optionally," )
+      + std::string( "the user can limit partial volume handling to mrf considerations " )
+      + std::string( "only whereby the output would only be the three tissues." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "partial-volume-label-set" );
+    option->SetShortName( 's' );
+    option->SetUsageOption( 0, "label1xlabel2" );
+    option->SetUsageOption( 0, "label1xlabel2xlabel3" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "The user can specify whether or not to use the partial " )
+      + std::string( "volume likelihoods, in which case the partial volume class " )
+      + std::string( "is considered separate from the tissue classes.  " )
+      + std::string( "Alternatively, one can use the MRF only to handle partial " )
+      + std::string( "volume in which case, partial volume voxels are not " )
+      + std::string( "considered as separate classes." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "use-partial-volume-likelihoods" );
+    option->SetUsageOption( 0, "1/(0)" );
+    option->SetUsageOption( 1, "true/(false)" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -1183,7 +1294,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
     option->SetShortName( 'm' );
-    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>]" );
+    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>,<mrfProbabilityImage>='']" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
