@@ -121,7 +121,10 @@ public:
     <SampleType, RealType, RealType>                  LikelihoodFunctionType;
   typedef typename LikelihoodFunctionType::Pointer LikelihoodFunctionPointer;
   typedef typename LikelihoodFunctionType::
-    WeightArrayType                                   WeightArrayType;
+    ListSampleWeightArrayType                         WeightArrayType;
+
+  typedef std::vector<LabelType>                 PartialVolumeLabelSetType;
+  typedef std::vector<PartialVolumeLabelSetType> PartialVolumeClassesType;
 
   /** Outlier handling typedefs */
   typedef ants::Statistics::
@@ -159,16 +162,53 @@ public:
   // ivars Set/Get functionality
 
   /**
-   * Set the number of segmentation classes which is clamped from below at 2.
+   * Set the number of tissue classes which is clamped from below at 2.
    * Default = 3.
    */
-  itkSetClampMacro( NumberOfClasses, LabelType, 2,
+  itkSetClampMacro( NumberOfTissueClasses, LabelType, 2,
                     NumericTraits<unsigned int>::max() );
 
   /**
    * Get the number of segmentation classes.
    */
-  itkGetConstMacro( NumberOfClasses, unsigned int );
+  itkGetConstMacro( NumberOfTissueClasses, unsigned int );
+
+  /**
+   * Set the partial-volume-label set one at a time.
+   */
+  void AddPartialVolumeLabelSet( PartialVolumeLabelSetType );
+
+  /**
+   * Get the number of partial volume classes
+   */
+  itkGetConstMacro( NumberOfPartialVolumeClasses, unsigned int );
+
+  /**
+   * The user can specify whether or not to use the partial volume likelihoods,
+   * in which case the partial volume class is considered separate from the
+   * tissue classes.  Alternatively, one can use the MRF only to handle
+   * partial volume in which case, partial volume voxels are not considered
+   * as separate classes.
+   */
+  itkSetMacro( UsePartialVolumeLikelihoods, bool );
+
+  /**
+   * The user can specify whether or not to use the partial volume likelihoods,
+   * in which case the partial volume class is considered separate from the
+   * tissue classes.  Alternatively, one can use the MRF only to handle
+   * partial volume in which case, partial volume voxels are not considered
+   * as separate classes.
+   */
+  itkGetConstMacro( UsePartialVolumeLikelihoods, bool );
+
+  /**
+   * The user can specify whether or not to use the partial volume likelihoods,
+   * in which case the partial volume class is considered separate from the
+   * tissue classes.  Alternatively, one can use the MRF only to handle
+   * partial volume in which case, partial volume voxels are not considered
+   * as separate classes.
+   */
+  itkBooleanMacro( UsePartialVolumeLikelihoods );
 
   /**
    * Set the maximum number of iterations.  The algorithm terminates at either
@@ -677,6 +717,11 @@ public:
     return this->m_ICMCodeImage;
   };
 
+  /**
+   * Get the mrf prior probability image
+   */
+  RealImagePointer GetMRFPriorProbabilityImage();
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro( SameDimensionCheck1,
@@ -751,8 +796,13 @@ private:
 
   // ivars
 
-  unsigned int m_NumberOfClasses;
+  unsigned int             m_NumberOfTissueClasses;
+  unsigned int             m_NumberOfPartialVolumeClasses;
+  PartialVolumeClassesType m_PartialVolumeClasses;
+  bool                     m_UsePartialVolumeLikelihoods;
+
   unsigned int m_NumberOfIntensityImages;
+
   unsigned int m_ElapsedIterations;
   unsigned int m_MaximumNumberOfIterations;
   RealType     m_CurrentPosteriorProbability;
@@ -776,8 +826,9 @@ private:
 
   typename RandomizerType::Pointer               m_Randomizer;
 
-  ArrayType m_MRFRadius;
-  RealType  m_MRFSmoothingFactor;
+  ArrayType        m_MRFRadius;
+  RealType         m_MRFSmoothingFactor;
+  RealImagePointer m_MRFPriorProbabilityImage;
 
   unsigned int           m_MaximumICMCode;
   ClassifiedImagePointer m_ICMCodeImage;
