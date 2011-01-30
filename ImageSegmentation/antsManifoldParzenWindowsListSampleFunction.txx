@@ -51,14 +51,14 @@ void
 ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
 {
-  this->m_ListSample = ptr;
+  this->SetInputListSample( ptr );
 
-  if( !this->m_ListSample )
+  if( !this->GetInputListSample() )
     {
     return;
     }
 
-  if( this->m_ListSample->Size() <= 1 )
+  if( this->GetInputListSample()->Size() <= 1 )
     {
     itkWarningMacro( "The input list sample has <= 1 element."
                      << "Function evaluations will be equal to 0." );
@@ -70,21 +70,21 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
    */
   this->m_KdTreeGenerator = TreeGeneratorType::New();
   this->m_KdTreeGenerator->SetSample( const_cast<InputListSampleType *>(
-                                        this->m_ListSample.GetPointer() ) );
+                                        this->GetInputListSample() ) );
   this->m_KdTreeGenerator->SetBucketSize( 16 );
   this->m_KdTreeGenerator->Update();
 
   /**
    * Calculate covariance matrices
    */
-  this->m_Gaussians.resize( this->m_ListSample->Size() );
+  this->m_Gaussians.resize( this->GetInputListSample()->Size() );
   const unsigned int Dimension =
-    this->m_ListSample->GetMeasurementVectorSize();
+    this->GetInputListSample()->GetMeasurementVectorSize();
 
   unsigned long count = 0;
   typename InputListSampleType::ConstIterator It
-    = this->m_ListSample->Begin();
-  while( It != this->m_ListSample->End() )
+    = this->GetInputListSample()->Begin();
+  while( It != this->GetInputListSample()->End() )
     {
     InputMeasurementVectorType inputMeasurement = It.GetMeasurementVector();
 
@@ -111,7 +111,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       ::InstanceIdentifierVectorType neighbors;
       unsigned int numberOfNeighbors = vnl_math_min(
           this->m_CovarianceKNeighborhood, static_cast<unsigned int>(
-            this->m_ListSample->Size() ) );
+            this->GetInputListSample()->Size() ) );
       this->m_KdTreeGenerator->GetOutput()->Search(
         inputMeasurement, numberOfNeighbors, neighbors );
 
@@ -119,16 +119,16 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
       for( unsigned int j = 0; j < numberOfNeighbors; j++ )
         {
         if( neighbors[j] != count
-            && neighbors[j] < this->m_ListSample->Size() )
+            && neighbors[j] < this->GetInputListSample()->Size() )
           {
           InputMeasurementVectorType neighbor
             = this->m_KdTreeGenerator->GetOutput()->GetMeasurementVector(
                 neighbors[j] );
 
           RealType kernelValue = this->m_Gaussians[count]->Evaluate( neighbor );
-          if( this->m_Weights.Size() == this->m_Gaussians.size() )
+          if( this->GetListSampleWeights()->Size() == this->m_Gaussians.size() )
             {
-            kernelValue *= this->m_Weights[count];
+            kernelValue *= ( *this->GetListSampleWeights() )[count];
             }
 
           denominator += kernelValue;
@@ -176,9 +176,9 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   this->m_NormalizationFactor = 0.0;
   for( unsigned int i = 0; i < this->m_Gaussians.size(); i++ )
     {
-    if( this->m_Weights.Size() == this->m_Gaussians.size() )
+    if( this->GetListSampleWeights()->Size() == this->m_Gaussians.size() )
       {
-      this->m_NormalizationFactor += this->m_Weights[i];
+      this->m_NormalizationFactor += ( *this->GetListSampleWeights() )[i];
       }
     else
       {

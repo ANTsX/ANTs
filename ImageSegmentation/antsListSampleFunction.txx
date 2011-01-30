@@ -34,7 +34,8 @@ template <class TInputListSample, class TOutput, class TCoordRep>
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 ::ListSampleFunction()
 {
-  this->m_ListSample = NULL;
+  this->m_ListSamples.clear();
+  this->m_ListSampleWeights.clear();
 }
 
 /**
@@ -43,28 +44,45 @@ ListSampleFunction<TInputListSample, TOutput, TCoordRep>
 template <class TInputListSample, class TOutput, class TCoordRep>
 void
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
-::PrintSelf(
-  std::ostream& os,
-  Indent indent) const
+::PrintSelf( std::ostream& os, Indent indent) const
 {
-  os << indent << "InputListSample: " << m_ListSample.GetPointer() << std::endl;
+  for( unsigned int d = 0; d < this->m_ListSamples.size(); d++ )
+    {
+    os << indent << "InputListSample: " << this->m_ListSamples[d] << std::endl;
+    }
 }
 
 template <class TInputListSample, class TOutput, class TCoordRep>
 void
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
-::SetWeights( WeightArrayType* array )
+::SetListSampleWeights( const unsigned int idx, ListSampleWeightArrayType* array )
 {
-  this->m_Weights = *array;
-  this->Modified();
+  if( idx >= this->m_ListSampleWeights.size() )
+    {
+    this->m_ListSampleWeights.resize( idx + 1 );
+    this->m_ListSampleWeights[idx] = array;
+    this->Modified();
+    }
+  if( this->m_ListSampleWeights[idx] != array )
+    {
+    this->m_ListSampleWeights[idx] = array;
+    this->Modified();
+    }
 }
 
 template <class TInputListSample, class TOutput, class TCoordRep>
-typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::WeightArrayType
+typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::ListSampleWeightArrayType
 * ListSampleFunction<TInputListSample, TOutput, TCoordRep>
-::GetWeights()
+::GetListSampleWeights( const unsigned int idx )
   {
-  return &this->m_Weights;
+  if( idx < this->m_ListSampleWeights.size() )
+    {
+    return this->m_ListSampleWeights[idx];
+    }
+  else
+    {
+    return NULL;
+    }
   }
 
 /**
@@ -73,12 +91,36 @@ typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::WeightArrayTy
 template <class TInputListSample, class TOutput, class TCoordRep>
 void
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
-::SetInputListSample(
-  const InputListSampleType * ptr )
+::SetInputListSample( const unsigned int idx, const InputListSampleType * ptr )
 {
-  // set the input image
-  m_ListSample = ptr;
+  if( idx >= this->m_ListSamples.size() )
+    {
+    this->m_ListSamples.resize( idx + 1 );
+    this->m_ListSamples[idx] = ptr;
+    this->Modified();
+    }
+  if( this->m_ListSamples[idx] != ptr )
+    {
+    this->m_ListSamples[idx] = ptr;
+    this->Modified();
+    }
 }
+
+template <class TInputListSample, class TOutput, class TCoordRep>
+const
+typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::InputListSampleType
+* ListSampleFunction<TInputListSample, TOutput, TCoordRep>
+::GetInputListSample( const unsigned int idx ) const
+  {
+  if( idx < this->m_ListSamples.size() )
+    {
+    return this->m_ListSamples[idx];
+    }
+  else
+    {
+    return NULL;
+    }
+  }
 } // end of namespace Statistics
 } // end of namespace ants
 } // end of namespace itk

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsGaussianListSampleFunction.h,v $
+  Module:    $RCSfile: antsPartialVolumeGaussianListSampleFunction.h,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsGaussianListSampleFunction_h
-#define __antsGaussianListSampleFunction_h
+#ifndef __antsPartialVolumeGaussianListSampleFunction_h
+#define __antsPartialVolumeGaussianListSampleFunction_h
 
 #include "antsListSampleFunction.h"
 
@@ -29,16 +29,16 @@ namespace ants
 {
 namespace Statistics
 {
-/** \class GaussianListSampleFunction.h
+/** \class PartialVolumeGaussianListSampleFunction.h
  * \brief point set filter.
  */
 
 template <class TListSample, class TOutput = double, class TCoordRep = double>
-class ITK_EXPORT GaussianListSampleFunction
+class ITK_EXPORT PartialVolumeGaussianListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:
-  typedef GaussianListSampleFunction Self;
+  typedef PartialVolumeGaussianListSampleFunction Self;
   typedef ListSampleFunction
     <TListSample, TOutput, TCoordRep>                      Superclass;
   typedef SmartPointer<Self>       Pointer;
@@ -48,51 +48,60 @@ public:
   itkNewMacro( Self );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( GaussianListSampleFunction, ListSampleFunction );
+  itkTypeMacro( PartialVolumeGaussianListSampleFunction,
+                ListSampleFunction );
 
   typedef typename Superclass::InputListSampleType        InputListSampleType;
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
   typedef typename Superclass::InputMeasurementType       InputMeasurementType;
 
-  /** List sample typedef support. */
-  typedef TListSample ListSampleType;
-
   typedef typename Superclass::ListSampleWeightArrayType ListSampleWeightArrayType;
 
   /** Gaussian typedefs */
   typedef typename itk::Statistics::GaussianMembershipFunction
-    <InputMeasurementVectorType>                          GaussianType;
+    <InputMeasurementVectorType>                            GaussianType;
+  typedef typename GaussianType::MeanType       MeanType;
+  typedef typename GaussianType::CovarianceType CovarianceType;
+
+  /** List sample typedef support. */
+  typedef TListSample ListSampleType;
 
   /** Other typedef */
   typedef TOutput RealType;
   typedef TOutput OutputType;
 
-  /** Helper functions */
-
-  virtual void SetInputListSample( const InputListSampleType * ptr );
+  virtual void SetInputListSample(unsigned int d, const InputListSampleType * ptr );
 
   virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const;
 
 protected:
-  GaussianListSampleFunction();
-  virtual ~GaussianListSampleFunction();
+  PartialVolumeGaussianListSampleFunction();
+  virtual ~PartialVolumeGaussianListSampleFunction();
   void PrintSelf( std::ostream& os, Indent indent ) const;
 
   void GenerateData();
 
 private:
   // purposely not implemented
-  GaussianListSampleFunction( const Self & );
+  PartialVolumeGaussianListSampleFunction( const Self & );
   void operator=( const Self & );
 
-  typename GaussianType::Pointer                                  m_Gaussian;
+  void CalculateGaussianParametersFromListSample( const InputListSampleType *, const ListSampleWeightArrayType *,
+                                                  MeanType & );
+
+  void CalculateGaussianParameters();
+
+  MeanType m_Mean[2];
+  bool     m_IsCalculated[2];
+
+  typename GaussianType::Pointer                            m_Gaussian;
 };
 } // end of namespace Statistics
 } // end of namespace ants
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsGaussianListSampleFunction.txx"
+#include "antsPartialVolumeGaussianListSampleFunction.txx"
 #endif
 
 #endif

@@ -50,30 +50,31 @@ void
 GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
 {
-  this->m_ListSample = ptr;
+  Superclass::SetInputListSample( ptr );
 
-  if( !this->m_ListSample )
+  if( !this->GetInputListSample() )
     {
     return;
     }
 
-  if( this->m_ListSample->Size() > 1 )
+  if( this->GetInputListSample()->Size() > 1 )
     {
-    if( this->m_Weights.Size() == this->m_ListSample->Size() )
+    if( this->GetListSampleWeights()->Size() == this->GetInputListSample()->Size() )
       {
       typedef typename itk::Statistics::
         WeightedCovarianceSampleFilter<InputListSampleType> CovarianceCalculatorType;
       typename CovarianceCalculatorType::Pointer covarianceCalculator =
         CovarianceCalculatorType::New();
 
-      covarianceCalculator->SetWeights( this->m_Weights );
-      covarianceCalculator->SetInput( this->m_ListSample );
+      covarianceCalculator->SetWeights( *this->GetListSampleWeights() );
+      covarianceCalculator->SetInput( this->GetInputListSample() );
       covarianceCalculator->Update();
 
       typename GaussianType::MeanType mean;
       NumericTraits<typename GaussianType::MeanType>::SetLength( mean,
-                                                                 this->m_ListSample->GetMeasurementVectorSize() );
-      for( unsigned int d = 0; d < this->m_ListSample->GetMeasurementVectorSize(); d++ )
+                                                                 this->GetInputListSample()->GetMeasurementVectorSize() );
+      for( unsigned int d = 0; d < this->GetInputListSample()->
+           GetMeasurementVectorSize(); d++ )
         {
         mean[d] = covarianceCalculator->GetMean()[d];
         }
@@ -86,13 +87,14 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
         CovarianceCalculatorType;
       typename CovarianceCalculatorType::Pointer covarianceCalculator =
         CovarianceCalculatorType::New();
-      covarianceCalculator->SetInput( this->m_ListSample );
+      covarianceCalculator->SetInput( this->GetInputListSample() );
       covarianceCalculator->Update();
 
       typename GaussianType::MeanType mean;
       NumericTraits<typename GaussianType::MeanType>::SetLength( mean,
-                                                                 this->m_ListSample->GetMeasurementVectorSize() );
-      for( unsigned int d = 0; d < this->m_ListSample->GetMeasurementVectorSize(); d++ )
+                                                                 this->GetInputListSample()->GetMeasurementVectorSize() );
+      for( unsigned int d = 0; d < this->GetInputListSample()->
+           GetMeasurementVectorSize(); d++ )
         {
         mean[d] = covarianceCalculator->GetMean()[d];
         }

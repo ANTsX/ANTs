@@ -53,14 +53,14 @@ void
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
 {
-  this->m_ListSample = ptr;
+  Superclass::SetInputListSample( ptr );
 
-  if( !this->m_ListSample )
+  if( !this->GetInputListSample() )
     {
     return;
     }
 
-  if( this->m_ListSample->Size() <= 1 )
+  if( this->GetInputListSample()->Size() <= 1 )
     {
     itkWarningMacro( "The input list sample has <= 1 element."
                      << "Function evaluations will be equal to 0." );
@@ -68,7 +68,7 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 
   const unsigned int Dimension =
-    this->m_ListSample->GetMeasurementVectorSize();
+    this->GetInputListSample()->GetMeasurementVectorSize();
 
   /**
    * Find the min/max values to define the histogram domain
@@ -80,8 +80,8 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
   maxValues.Fill( NumericTraits<RealType>::NonpositiveMin() );
 
   typename InputListSampleType::ConstIterator It
-    = this->m_ListSample->Begin();
-  while( It != this->m_ListSample->End() )
+    = this->GetInputListSample()->Begin();
+  while( It != this->GetInputListSample()->End() )
     {
     InputMeasurementVectorType inputMeasurement = It.GetMeasurementVector();
     for( unsigned int d = 0; d < Dimension; d++ )
@@ -123,15 +123,15 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     }
 
   unsigned long count = 0;
-  It = this->m_ListSample->Begin();
-  while( It != this->m_ListSample->End() )
+  It = this->GetInputListSample()->Begin();
+  while( It != this->GetInputListSample()->End() )
     {
     InputMeasurementVectorType inputMeasurement = It.GetMeasurementVector();
 
     RealType newWeight = 1.0;
-    if( this->m_Weights.Size() == this->m_ListSample->Size() )
+    if( this->GetListSampleWeights()->Size() == this->GetInputListSample()->Size() )
       {
-      newWeight = this->m_Weights[count];
+      newWeight = ( *this->GetListSampleWeights() )[count];
       }
     for( unsigned int d = 0; d < Dimension; d++ )
       {

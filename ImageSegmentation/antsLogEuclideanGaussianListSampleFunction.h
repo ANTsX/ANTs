@@ -54,9 +54,6 @@ public:
   typedef typename Superclass::InputMeasurementVectorType InputMeasurementVectorType;
   typedef typename Superclass::InputMeasurementType       InputMeasurementType;
 
-  /** List sample typedef support. */
-  typedef TListSample ListSampleType;
-
   /** Other typedef */
   typedef TOutput                      RealType;
   typedef TOutput                      OutputType;

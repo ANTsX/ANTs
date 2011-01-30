@@ -62,7 +62,7 @@ public:
   typedef TInputListSample InputListSampleType;
 
   /** Array typedef for weights */
-  typedef Array<double> WeightArrayType;
+  typedef Array<double> ListSampleWeightArrayType;
 
   /** InputPixel typedef support */
   typedef typename InputListSampleType::MeasurementVectorType InputMeasurementVectorType;
@@ -78,25 +78,32 @@ public:
    * \warning this method caches BufferedRegion information.
    * If the BufferedRegion has changed, user must call
    * SetInputListSample again to update cached values. */
-  virtual void SetInputListSample( const InputListSampleType * ptr );
-
-  /** Get the input image. */
-  const InputListSampleType * GetInputListSample() const
+  virtual void SetInputListSample( const InputListSampleType * ptr )
   {
-    return m_ListSample.GetPointer();
+    this->SetInputListSample( 0, ptr );
   }
 
-  /** Clear the input list sample to free memory */
-  virtual void ClearInputListSample()
-  {
-    this->SetInputListSample( NULL );
-  }
+  virtual void SetInputListSample( unsigned int d, const InputListSampleType * ptr );
 
   /** Sets the weights using an array */
-  virtual void SetWeights( WeightArrayType* array );
+  virtual void SetListSampleWeights( ListSampleWeightArrayType *array )
+  {
+    this->SetListSampleWeights( 0, array );
+  }
+
+  virtual void SetListSampleWeights( unsigned int, ListSampleWeightArrayType * );
+
+  /** Get the input image. */
+  virtual const InputListSampleType * GetInputListSample(const unsigned int idx = 0 ) const;
+
+  /** Clear the input list sample to free memory */
+  virtual void ClearInputListSample( unsigned int idx = 0 )
+  {
+    this->SetInputListSample( idx, NULL );
+  }
 
   /** Gets the weights array */
-  WeightArrayType * GetWeights();
+  virtual ListSampleWeightArrayType * GetListSampleWeights( unsigned int idx = 0 );
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
@@ -111,8 +118,8 @@ protected:
   void PrintSelf(std::ostream& os, Indent indent) const;
 
   /** Const pointer to the input image. */
-  typename InputListSampleType::ConstPointer                     m_ListSample;
-  WeightArrayType m_Weights;
+  std::vector<typename InputListSampleType::ConstPointer> m_ListSamples;
+  std::vector<ListSampleWeightArrayType *>                m_ListSampleWeights;
 private:
   ListSampleFunction(const Self &); // purposely not implemented
   void operator=(const Self &);     // purposely not implemented

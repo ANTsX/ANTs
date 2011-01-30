@@ -48,17 +48,17 @@ void
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
 {
-  this->m_ListSample = ptr;
+  this->SetInputListSample( ptr );
 
-  if( !this->m_ListSample )
+  if( !this->GetInputListSample() )
     {
     return;
     }
 
-  if( this->m_ListSample->Size() > 1 )
+  if( this->GetInputListSample()->Size() > 1 )
     {
     RealType L = static_cast<RealType>(
-        this->m_ListSample->GetMeasurementVectorSize() );
+        this->GetInputListSample()->GetMeasurementVectorSize() );
     unsigned int D = static_cast<unsigned int>( 0.5 * ( -1 + vcl_sqrt( 1.0
                                                                        + 8.0 * L ) ) );
     this->m_MeanTensor.SetSize( D, D );
@@ -68,8 +68,8 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     RealType      totalWeight = 0.0;
 
     typename InputListSampleType::ConstIterator It =
-      this->m_ListSample->Begin();
-    while( It != this->m_ListSample->End() )
+      this->GetInputListSample()->Begin();
+    while( It != this->GetInputListSample()->End() )
       {
       InputMeasurementVectorType measurement = It.GetMeasurementVector();
 
@@ -87,9 +87,9 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
       T = this->LogTensorTransform( T );
 
       RealType weight = 1.0;
-      if( this->m_Weights.Size() == this->m_ListSample->Size() )
+      if( this->GetListSampleWeights()->Size() == this->GetInputListSample()->Size() )
         {
-        weight = this->m_Weights[N++];
+        weight = ( *this->GetListSampleWeights() )[N++];
         }
       totalWeight += weight;
       this->m_MeanTensor += ( T * weight );
@@ -109,8 +109,8 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 
     N = 0;
 
-    It = this->m_ListSample->Begin();
-    while( It != this->m_ListSample->End() )
+    It = this->GetInputListSample()->Begin();
+    while( It != this->GetInputListSample()->End() )
       {
       InputMeasurementVectorType measurement = It.GetMeasurementVector();
 
@@ -128,9 +128,9 @@ LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
       RealType distance = this->CalculateTensorDistance( T, this->m_MeanTensor );
 
       RealType weight = 1.0;
-      if( this->m_Weights.Size() == this->m_ListSample->Size() )
+      if( this->GetListSampleWeights()->Size() == this->GetInputListSample()->Size() )
         {
-        weight = this->m_Weights[N++];
+        weight = ( *this->GetListSampleWeights() )[N++];
         }
 
       this->m_Dispersion += ( weight * vnl_math_sqr( distance ) );
