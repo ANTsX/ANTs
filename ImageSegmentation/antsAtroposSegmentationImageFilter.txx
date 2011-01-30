@@ -1545,6 +1545,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     + this->m_NumberOfPartialVolumeClasses;
   for( unsigned int k = 0; k < totalNumberOfClasses; k++ )
     {
+    std::cout << "HERE k = " << k << std::endl;
     // Calculate likelihood probability
 
     RealType likelihood =
@@ -1572,7 +1573,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     // Get the spatial prior probability
 
     RealType priorProbability = 1.0;
-    if( k < this->m_NumberOfTissueClasses )
+    if( this->GetPriorProbabilityImage( k + 1 ) )
       {
       priorProbability =
         this->GetPriorProbabilityImage( k + 1 )->GetPixel( It.GetIndex() );
@@ -1601,6 +1602,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       maxPosteriorProbability = posteriorProbability;
       maxLabel = static_cast<LabelType>( k + 1 );
       }
+    std::cout << "HERSS k = " << k << std::endl;
     }
   It.SetCenterPixel( maxLabel );
 
