@@ -228,20 +228,20 @@ typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImag
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::GetPriorProbabilityImage( unsigned int whichClass ) const
 {
-  unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses
-    + this->m_NumberOfPartialVolumeClasses;
-
-  if( this->m_InitializationStrategy != PriorProbabilityImages ||
-      ( whichClass > this->m_NumberOfTissueClasses && whichClass
-        <= totalNumberOfClasses ) )
+  if( this->m_InitializationStrategy != PriorProbabilityImages )
     {
     return NULL;
     }
-  else
+  if( this->m_NumberOfPartialVolumeClasses == 0 && whichClass
+      > this->m_NumberOfTissueClasses )
     {
     itkExceptionMacro( "The requested prior probability image = "
                        << whichClass << " should be in the range [1, "
                        << this->m_NumberOfTissueClasses << "]" );
+    }
+  else if( whichClass > this->m_NumberOfTissueClasses )
+    {
+    return NULL;
     }
 
   if( ( this->m_MinimizeMemoryUsage &&
@@ -580,7 +580,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
       {
       LabelType label = ItO.Get();
-      if( label == 0 )
+      if( label == 0 || label > this->m_NumberOfTissueClasses )
         {
         continue;
         }
@@ -1560,7 +1560,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       RealType denominator = 0.0;
       for( unsigned int n = 0; n < this->m_NumberOfTissueClasses; n++ )
         {
-        denominator += vcl_exp( this->m_MRFSmoothingFactor
+        denominator += vcl_exp( -this->m_MRFSmoothingFactor
                                 * mrfNeighborhoodWeights[n] );
         }
       if( denominator > 0.0 )
@@ -1572,10 +1572,10 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     // Get the spatial prior probability
 
     RealType priorProbability = 1.0;
-    if(  this->m_PriorProbabilityImages.size() == this->m_NumberOfTissueClasses )
+    if( k < this->m_NumberOfTissueClasses )
       {
       priorProbability =
-        this->m_PriorProbabilityImages[k]->GetPixel( It.GetIndex() );
+        this->GetPriorProbabilityImage( k + 1 )->GetPixel( It.GetIndex() );
       }
 
     //
@@ -2034,7 +2034,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               RealType denominator = 0.0;
               for( unsigned int n = 0; n < totalNumberOfClasses; n++ )
                 {
-                denominator += vcl_exp( this->m_MRFSmoothingFactor
+                denominator += vcl_exp( -this->m_MRFSmoothingFactor
                                         * mrfNeighborhoodWeights[n] );
                 }
               if( denominator > 0.0 )
@@ -2292,7 +2292,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             RealType denominator = 0.0;
             for( unsigned int n = 0; n < totalNumberOfClasses; n++ )
               {
-              denominator += vcl_exp( this->m_MRFSmoothingFactor
+              denominator += vcl_exp( -this->m_MRFSmoothingFactor
                                       * mrfNeighborhoodWeights[n] );
               }
             if( denominator > 0.0 )
@@ -2416,17 +2416,16 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     return NULL;
     }
-  else
+  if( this->m_NumberOfPartialVolumeClasses == 0 && whichClass
+      > this->m_NumberOfTissueClasses )
     {
     itkExceptionMacro( "The requested distance prior probability image = "
                        << whichClass << " should be in the range [1, "
                        << this->m_NumberOfTissueClasses << "]" );
     }
-
-  if( whichClass > totalNumberOfClasses )
+  else if( whichClass > this->m_NumberOfTissueClasses )
     {
-    itkExceptionMacro(
-      "Requested class is greater than the number of classes." );
+    return NULL;
     }
 
   //
@@ -3183,7 +3182,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         RealType denominator = 0.0;
         for( unsigned int n = 0; n < mrfNeighborhoodWeights.size(); n++ )
           {
-          denominator += vcl_exp( this->m_MRFSmoothingFactor
+          denominator += vcl_exp( -this->m_MRFSmoothingFactor
                                   * mrfNeighborhoodWeights[n] );
           }
         if( denominator > 0.0 )
