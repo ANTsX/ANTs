@@ -461,20 +461,20 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         std::cout << "  similarity metric weight: "
                   << similarityMetricScalarWeight << std::endl;
 
-        float        pointSetPercent = 0.5;
-        float        pointSetSigma = 5.0;
+        TReal        pointSetPercent = 0.5;
+        TReal        pointSetSigma = 5.0;
         bool         extractBoundaryPointsOnly = false;
         unsigned int kNeighborhood = 50;
         if( option->GetNumberOfParameters( i ) > parameterCount )
           {
           pointSetPercent = this->m_Parser->template
-            Convert<float>( option->GetParameter( i, parameterCount ) );
+            Convert<TReal>( option->GetParameter( i, parameterCount ) );
           parameterCount++;
           }
         if( option->GetNumberOfParameters( i ) > parameterCount )
           {
           pointSetSigma = this->m_Parser->template
-            Convert<float>( option->GetParameter( i, parameterCount ) );
+            Convert<TReal>( option->GetParameter( i, parameterCount ) );
           parameterCount++;
           }
         if( option->GetNumberOfParameters( i ) > parameterCount )
@@ -578,14 +578,14 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           if( option->GetNumberOfParameters( i ) > parameterCount )
             {
             metric->SetAlpha( this->m_Parser->template
-                              Convert<float>( option->GetParameter( i, parameterCount ) ) );
+                              Convert<TReal>( option->GetParameter( i, parameterCount ) ) );
             parameterCount++;
             }
           if( option->GetNumberOfParameters( i ) > parameterCount )
             {
             typename RegistrationOptimizerType::ArrayType meshResolution;
-            std::vector<float> resolution = this->m_Parser->template
-              ConvertVector<float>( option->GetParameter( i, parameterCount ) );
+            std::vector<TReal> resolution = this->m_Parser->template
+              ConvertVector<TReal>( option->GetParameter( i, parameterCount ) );
             if( resolution.size() != TDimension )
               {
               itkExceptionMacro( "Mesh resolution does not match image dimension." );
@@ -683,10 +683,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           }
         std::cout << "  Radius: " << radius << std::endl;
 
-        float extraparam = -1.e12;
+        TReal extraparam = -1.e12;
         if( option->GetNumberOfParameters( i ) > parameterCount )
           {
-          extraparam = this->m_Parser->template Convert<float>( option->GetParameter( i, parameterCount ) );
+          extraparam = this->m_Parser->template Convert<TReal>( option->GetParameter( i, parameterCount ) );
           std::cout << " Setting Extra Param to :  " << extraparam
                     << " often used as a robustness parameter for longitudinal studies " << std::endl;
           parameterCount++;
@@ -996,7 +996,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "Restrict-Deformation" );
     option->SetDescription(
-      "restrict the gradient that drives the deformation by scalar factors along specified dimensions -- a float 'vector' of length ImageDimension to multiply against the similarity metric's gradient values ---  e.g. in 3D : 0.1x1x0 --- will set the z gradient to zero and scale the x gradient by 0.1 and y by 1 (no change). Thus, you get a 2.5-Dimensional registration as there is still 3D continuity in the mapping. " );
+      "restrict the gradient that drives the deformation by scalar factors along specified dimensions -- a TReal 'vector' of length ImageDimension to multiply against the similarity metric's gradient values ---  e.g. in 3D : 0.1x1x0 --- will set the z gradient to zero and scale the x gradient by 0.1 and y by 1 (no change). Thus, you get a 2.5-Dimensional registration as there is still 3D continuity in the mapping. " );
     std::string nitdefault;
     if( TDimension == 2 )
       {
@@ -1143,7 +1143,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //        OptionType::Pointer option = OptionType::New();
 //        option->SetLongName( "gradient-step-length" );
 //        option->SetShortName( 'l' );
-//        option->SetDescription( "gradient descent parameter - a float :: e.g. 1.0 " );
+//        option->SetDescription( "gradient descent parameter - a TReal :: e.g. 1.0 " );
 //        option->AddValue("1.0");
 //        this->m_Parser->AddOption( option );
 //    }

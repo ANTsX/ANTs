@@ -54,7 +54,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension = 3, class TReal = double>
+template <unsigned int TDimension = 3, class TReal = float>
 class ITK_EXPORT ANTSImageRegistrationOptimizer
   : public       Object
 {
@@ -73,11 +73,12 @@ public:
   itkStaticConstMacro( Dimension, unsigned int, TDimension );
   itkStaticConstMacro( ImageDimension, unsigned int, TDimension );
 
-  typedef TReal RealType;
+  typedef double TComp;
+  typedef TReal  RealType;
   typedef Image<RealType,
                 itkGetStaticConstMacro( Dimension )> ImageType;
   typedef typename ImageType::Pointer                                           ImagePointer;
-  typedef itk::MatrixOffsetTransformBase<TReal, ImageDimension, ImageDimension> TransformType;
+  typedef itk::MatrixOffsetTransformBase<TComp, ImageDimension, ImageDimension> TransformType;
 
   /** Point Types  for landmarks and labeled point-sets */
   typedef itk::ANTSLabeledPointSet<Dimension>        LabeledPointSetType;
@@ -88,9 +89,9 @@ public:
   typedef typename PointSetType::PixelType           PointDataType;
   typedef typename ImageType::PointType              ImagePointType;
 
-  typedef itk::MatrixOffsetTransformBase<TReal, TDimension, TDimension> AffineTransformType;
-  typedef typename AffineTransformType::Pointer                         AffineTransformPointer;
-  typedef OptAffine<AffineTransformPointer, ImagePointer>               OptAffineType;
+  typedef TransformType                                   AffineTransformType;
+  typedef typename AffineTransformType::Pointer           AffineTransformPointer;
+  typedef OptAffine<AffineTransformPointer, ImagePointer> OptAffineType;
 
   typedef itk::Vector<TReal, ImageDimension>     VectorType;
   typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
@@ -624,40 +625,12 @@ public:
       iddir[i][i] = 1;
       }
 
-    typedef itk::LinearInterpolateImageFunction<ImageType, TReal>          InterpolatorType1;
-    typedef itk::NearestNeighborInterpolateImageFunction<ImageType, TReal> InterpolatorType2;
-    typedef itk::BSplineInterpolateImageFunction<ImageType, TReal>         InterpolatorType3;
+    typedef itk::LinearInterpolateImageFunction<ImageType, TComp>          InterpolatorType1;
+    typedef itk::NearestNeighborInterpolateImageFunction<ImageType, TComp> InterpolatorType2;
+    typedef itk::BSplineInterpolateImageFunction<ImageType, TComp>         InterpolatorType3;
     typename InterpolatorType1::Pointer interp1 = InterpolatorType1::New();
     typename InterpolatorType2::Pointer interpnn = InterpolatorType2::New();
     typename InterpolatorType3::Pointer interpcu = InterpolatorType3::New();
-
-    this->m_UseMulti = true;
-
-    if( !this->m_UseMulti )
-      {
-      ImagePointer wmimage = this->SubsampleImage(movingImage, this->m_ScaleFactor,
-                                                  movingImage->GetOrigin(), movingImage->GetDirection(), aff );
-      typedef itk::WarpImageFilter<ImageType, ImageType, DeformationFieldType> WarperType;
-      typename WarperType::Pointer  warper;
-      warper = WarperType::New();
-      warper->SetInput( wmimage);
-      warper->SetDeformationField(totalField);
-      warper->SetOutputSpacing(totalField->GetSpacing() );
-      warper->SetOutputOrigin(totalField->GetOrigin() );
-      warper->SetInterpolator(interp1);
-      if( this->m_UseNN )
-        {
-        warper->SetInterpolator(interpnn);
-        }
-      if( this->m_UseBSplineInterpolation )
-        {
-        warper->SetInterpolator(interpcu);
-        }
-//    warper->SetOutputSize(this->m_CurrentDomainSize);
-//    warper->SetEdgePaddingValue( 0 );
-      warper->Update();
-      return warper->GetOutput();
-      }
 
     typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DeformationFieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();

@@ -668,7 +668,8 @@ void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType
 template <class ImagePointer>
 ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
 {
-  typedef float RealType;
+  typedef typename ImagePointer::ObjectType ImageType;
+  typedef typename ImageType::PixelType     RealType;
 
   typedef typename ImagePointer::ObjectType ImageType;
   typename ImageType::SpacingType inputSpacing = image->GetSpacing();

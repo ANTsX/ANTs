@@ -48,16 +48,16 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro( PICSLAdvancedNormalizationToolKit, Object );
   itkStaticConstMacro( Dimension, unsigned int, TDimension );
-
-  typedef TReal RealType;
+  typedef double TComp;
+  typedef TReal  RealType;
   typedef Image<RealType,
                 itkGetStaticConstMacro( Dimension )>                   ImageType;
   typedef typename ImageType::Pointer   ImagePointer;
   typedef typename ImageType::PixelType PixelType;
 
-  typedef itk::ANTSImageTransformation<Dimension, float>         TransformationModelType;
+  typedef itk::ANTSImageTransformation<Dimension, TReal>         TransformationModelType;
   typedef typename TransformationModelType::Pointer              TransformationModelPointer;
-  typedef itk::ANTSImageRegistrationOptimizer<Dimension, float>  RegistrationOptimizerType;
+  typedef itk::ANTSImageRegistrationOptimizer<Dimension, TReal>  RegistrationOptimizerType;
   typedef typename RegistrationOptimizerType::Pointer            RegistrationOptimizerPointer;
   typedef typename TransformationModelType::DeformationFieldType DeformationFieldType;
   typedef typename TransformationModelType::AffineTransformType  AffineTransformType;
@@ -69,7 +69,7 @@ public:
   typedef typename LabeledPointSetType::PointSetType PointSetType;
 
   /** Typedefs for similarity metrics */
-  typedef ANTSSimilarityMetric<itkGetStaticConstMacro( Dimension ), float> SimilarityMetricType;
+  typedef ANTSSimilarityMetric<itkGetStaticConstMacro( Dimension ), TReal> SimilarityMetricType;
   typedef typename SimilarityMetricType::Pointer                           SimilarityMetricPointer;
   typedef std::vector<SimilarityMetricPointer>                             SimilarityMetricListType;
   typedef typename SimilarityMetricType::MetricType                        MetricBaseType;

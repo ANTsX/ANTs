@@ -92,11 +92,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   typedef ResampleImageFilter<ImageType, ImageType> ResamplerType;
   typename ResamplerType::Pointer resampler = ResamplerType::New();
-  typedef LinearInterpolateImageFunction<ImageType, TReal> InterpolatorType;
+  typedef LinearInterpolateImageFunction<ImageType, TComp> InterpolatorType;
   typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
   interpolator->SetInputImage( image );
   resampler->SetInterpolator( interpolator );
-  typedef itk::IdentityTransform<TReal, TDimension> TransformType;
+  typedef itk::IdentityTransform<TComp, TDimension> TransformType;
   typename TransformType::Pointer transform = TransformType::New();
   transform->SetIdentity();
   resampler->SetTransform( transform );

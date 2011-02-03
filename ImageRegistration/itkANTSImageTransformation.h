@@ -49,6 +49,7 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro( Self );
 
+  typedef double TComp;
   /** Run-time type information (and related methods). */
   itkTypeMacro( ANTSImageTransformation, Object );
   itkStaticConstMacro( Dimension, unsigned int, TDimension );
@@ -59,10 +60,10 @@ public:
                 itkGetStaticConstMacro( Dimension )>                   ImageType;
   /** declare transformation types */
 
-  typedef itk::MatrixOffsetTransformBase<double, TDimension, TDimension> AffineTransformType;
+  typedef itk::MatrixOffsetTransformBase<TComp, TDimension, TDimension> AffineTransformType;
 
   typedef typename AffineTransformType::Pointer     AffineTransformPointer;
-  typedef itk::Vector<float, ImageDimension>        VectorType;
+  typedef itk::Vector<TReal, ImageDimension>        VectorType;
   typedef itk::Image<VectorType, ImageDimension>    DeformationFieldType;
   typedef typename DeformationFieldType::Pointer    DeformationFieldPointer;
   typedef typename DeformationFieldType::RegionType DeformationRegionOfInterestType;
