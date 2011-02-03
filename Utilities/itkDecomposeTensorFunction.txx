@@ -340,6 +340,7 @@ void
 DecomposeTensorFunction<TInput, TRealType, TOutput>
 ::PrintSelf( std::ostream& os, Indent indent ) const
 {
+  Superclass::PrintSelf( os, indent );
 }
 } // end namespace itk
 
