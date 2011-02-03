@@ -126,12 +126,12 @@ GrubbsRosnerListSampleFilter<TScalarListSample>
       if( outlierFound )
         {
         /** Retabulate the variance and mean by removing the previous estimate */
-        RealType count = this->GetInput()->Size()
+        RealType count2 = this->GetInput()->Size()
           - this->m_OutlierInstanceIdentifiers.size();
-        mean = ( mean * count - measurement[0] ) / ( count - 1.0 );
-        variance = ( count - 1.0 ) * variance - ( count - 1.0 )
-          * vnl_math_sqr( measurement[0] - mean ) / count;
-        variance /= ( count - 2.0 );
+        mean = ( mean * count2 - measurement[0] ) / ( count2 - 1.0 );
+        variance = ( count2 - 1.0 ) * variance - ( count2 - 1.0 )
+          * vnl_math_sqr( measurement[0] - mean ) / count2;
+        variance /= ( count2 - 2.0 );
         this->m_OutlierInstanceIdentifiers.push_back( id );
         }
       }
@@ -186,7 +186,8 @@ template <class TScalarListSample>
 typename GrubbsRosnerListSampleFilter<TScalarListSample>
 ::InstanceIdentifierType
 GrubbsRosnerListSampleFilter<TScalarListSample>
-::FindMaximumNonOutlierDeviationValue( RealType mean, RealType variance )
+::FindMaximumNonOutlierDeviationValue( RealType mean,
+                                       RealType itkNotUsed( variance ) )
 {
   RealType               maximumDeviation = 0.0;
   InstanceIdentifierType maximumID =
