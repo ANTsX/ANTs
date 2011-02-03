@@ -857,6 +857,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     {
     std::cout << std::endl << "Progress: " << std::endl;
 
+//    segmenter->DebugOn();
     segmenter->Update();
     }
   catch( itk::ExceptionObject exp )
