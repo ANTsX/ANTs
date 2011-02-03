@@ -54,7 +54,7 @@
 
 namespace itk
 {
-template <unsigned int TDimension = 3, class TReal = float>
+template <unsigned int TDimension = 3, class TReal = double>
 class ITK_EXPORT ANTSImageRegistrationOptimizer
   : public       Object
 {
@@ -76,8 +76,8 @@ public:
   typedef TReal RealType;
   typedef Image<RealType,
                 itkGetStaticConstMacro( Dimension )> ImageType;
-  typedef typename ImageType::Pointer                                            ImagePointer;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> TransformType;
+  typedef typename ImageType::Pointer                                           ImagePointer;
+  typedef itk::MatrixOffsetTransformBase<TReal, ImageDimension, ImageDimension> TransformType;
 
   /** Point Types  for landmarks and labeled point-sets */
   typedef itk::ANTSLabeledPointSet<Dimension>        LabeledPointSetType;
@@ -88,11 +88,11 @@ public:
   typedef typename PointSetType::PixelType           PointDataType;
   typedef typename ImageType::PointType              ImagePointType;
 
-  typedef itk::MatrixOffsetTransformBase<double, TDimension, TDimension> AffineTransformType;
-  typedef typename AffineTransformType::Pointer                          AffineTransformPointer;
-  typedef OptAffine<AffineTransformPointer, ImagePointer>                OptAffineType;
+  typedef itk::MatrixOffsetTransformBase<TReal, TDimension, TDimension> AffineTransformType;
+  typedef typename AffineTransformType::Pointer                         AffineTransformPointer;
+  typedef OptAffine<AffineTransformPointer, ImagePointer>               OptAffineType;
 
-  typedef itk::Vector<float, ImageDimension>     VectorType;
+  typedef itk::Vector<TReal, ImageDimension>     VectorType;
   typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
   typedef typename DeformationFieldType::Pointer DeformationFieldPointer;
 
@@ -100,9 +100,9 @@ public:
   typedef typename TimeVaryingVelocityFieldType::Pointer
     TimeVaryingVelocityFieldPointer;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType,
-                                                    float>   VelocityFieldInterpolatorType;
+                                                    TReal>   VelocityFieldInterpolatorType;
   typedef itk::VectorGaussianInterpolateImageFunction<TimeVaryingVelocityFieldType,
-                                                      float> VelocityFieldInterpolatorType2;
+                                                      TReal> VelocityFieldInterpolatorType2;
   typedef typename DeformationFieldType::IndexType IndexType;
 
   typedef ants::CommandLineParser         ParserType;
@@ -113,7 +113,7 @@ public:
                      itkGetStaticConstMacro( ImageDimension )>                          ArrayType;
 
   /** Typedefs for similarity metrics */
-  typedef ANTSSimilarityMetric<itkGetStaticConstMacro( Dimension ), float> SimilarityMetricType;
+  typedef ANTSSimilarityMetric<itkGetStaticConstMacro( Dimension ), TReal> SimilarityMetricType;
   typedef typename SimilarityMetricType::Pointer                           SimilarityMetricPointer;
   typedef std::vector<SimilarityMetricPointer>                             SimilarityMetricListType;
 
@@ -229,7 +229,7 @@ public:
         }
       ArrayType    meshSize;
       unsigned int splineOrder = this->m_BSplineFieldOrder;
-      float        bsplineKernelVariance = static_cast<float>( splineOrder + 1 ) / 12.0;
+      TReal        bsplineKernelVariance = static_cast<TReal>( splineOrder + 1 ) / 12.0;
       unsigned int numberOfLevels = 1;
 
       if( TrueEqualsGradElseTotal )
@@ -245,7 +245,7 @@ public:
           }
         else
           {
-          float spanLength = vcl_sqrt( this->m_GradSmoothingparam
+          TReal spanLength = vcl_sqrt( this->m_GradSmoothingparam
                                        / bsplineKernelVariance );
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
@@ -270,7 +270,7 @@ public:
           }
         else
           {
-          float spanLength = vcl_sqrt( this->m_TotalSmoothingparam
+          TReal spanLength = vcl_sqrt( this->m_TotalSmoothingparam
                                        / bsplineKernelVariance );
           for( unsigned int d = 0; d < ImageDimension; d++ )
             {
@@ -306,7 +306,7 @@ public:
       }
     else // Gaussian
       {
-      float sig = 0;
+      TReal sig = 0;
       if( TrueEqualsGradElseTotal )
         {
         sig = this->m_GradSmoothingparam;
@@ -319,11 +319,11 @@ public:
       }
   }
 
-  void SmoothDeformationFieldGauss(DeformationFieldPointer field = NULL, float sig = 0.0, bool useparamimage = false,
+  void SmoothDeformationFieldGauss(DeformationFieldPointer field = NULL, TReal sig = 0.0, bool useparamimage = false,
                                    unsigned int lodim = ImageDimension);
 
-//  float = smoothingparam, int = maxdim to smooth
-  void SmoothVelocityGauss(TimeVaryingVelocityFieldPointer field, float, unsigned int);
+//  TReal = smoothingparam, int = maxdim to smooth
+  void SmoothVelocityGauss(TimeVaryingVelocityFieldPointer field, TReal, unsigned int);
 
   void SmoothDeformationFieldBSpline(DeformationFieldPointer field, ArrayType meshSize, unsigned int splineorder,
                                      unsigned int numberoflevels );
@@ -341,14 +341,14 @@ public:
 
   TimeVaryingVelocityFieldPointer ExpandVelocity()
   {
-    float expandFactors[ImageDimension + 1];
+    TReal expandFactors[ImageDimension + 1];
 
     expandFactors[ImageDimension] = 1;
     m_Debug = false;
     for( int idim = 0; idim < ImageDimension; idim++ )
       {
-      expandFactors[idim] = (float)this->m_CurrentDomainSize[idim]
-        / (float) this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize()[idim];
+      expandFactors[idim] = (TReal) this->m_CurrentDomainSize[idim]
+        / (TReal) this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize()[idim];
       if( expandFactors[idim] < 1 )
         {
         expandFactors[idim] = 1;
@@ -371,12 +371,12 @@ public:
   DeformationFieldPointer ExpandField(DeformationFieldPointer field,  typename ImageType::SpacingType targetSpacing)
   {
 //      this->m_Debug=true;
-    float expandFactors[ImageDimension];
+    TReal expandFactors[ImageDimension];
 
     for( int idim = 0; idim < ImageDimension; idim++ )
       {
-      expandFactors[idim] = (float)this->m_CurrentDomainSize[idim]
-        / (float)field->GetLargestPossibleRegion().GetSize()[idim];
+      expandFactors[idim] = (TReal) this->m_CurrentDomainSize[idim]
+        / (TReal)field->GetLargestPossibleRegion().GetSize()[idim];
       if( expandFactors[idim] < 1 )
         {
         expandFactors[idim] = 1;
@@ -591,8 +591,8 @@ public:
       {
       std::cout << " AFTER #points " << count << std::endl;
       }
-//      if (count != sz1 ) std::cout << " WARNING:  POINTS ARE MAPPING OUT OF IMAGE DOMAIN " << 1.0 - (float)
-// count/(float)(sz1+1) << std::endl;
+//      if (count != sz1 ) std::cout << " WARNING:  POINTS ARE MAPPING OUT OF IMAGE DOMAIN " << 1.0 - (TReal)
+// count/(TReal)(sz1+1) << std::endl;
     return outputMesh;
   }
 
@@ -624,9 +624,9 @@ public:
       iddir[i][i] = 1;
       }
 
-    typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-    typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
-    typedef itk::BSplineInterpolateImageFunction<ImageType, double>         InterpolatorType3;
+    typedef itk::LinearInterpolateImageFunction<ImageType, TReal>          InterpolatorType1;
+    typedef itk::NearestNeighborInterpolateImageFunction<ImageType, TReal> InterpolatorType2;
+    typedef itk::BSplineInterpolateImageFunction<ImageType, TReal>         InterpolatorType3;
     typename InterpolatorType1::Pointer interp1 = InterpolatorType1::New();
     typename InterpolatorType2::Pointer interpnn = InterpolatorType2::New();
     typename InterpolatorType3::Pointer interpcu = InterpolatorType3::New();
@@ -730,7 +730,7 @@ public:
     return outimg;
   }
 
-  ImagePointer  SmoothImageToScale(ImagePointer image,  float scalingFactor )
+  ImagePointer  SmoothImageToScale(ImagePointer image,  TReal scalingFactor )
   {
     typename ImageType::SpacingType inputSpacing = image->GetSpacing();
     typename ImageType::RegionType::SizeType inputSize = image->GetRequestedRegion().GetSize();
@@ -753,7 +753,7 @@ public:
       smoother->SetInputImage( image );
       smoother->SetDirection( d );
       smoother->SetNormalizeAcrossScale( false );
-      float sig = (outputSpacing[d] / inputSpacing[d] - 1.0) * 0.2; ///(float)ImageDimension;
+      TReal sig = (outputSpacing[d] / inputSpacing[d] - 1.0) * 0.2; ///(TReal)ImageDimension;
       smoother->SetSigma(sig );
 
       if( smoother->GetSigma() > 0.0 )
@@ -769,7 +769,7 @@ public:
   }
 
   typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DeformationFieldPointer IntegrateConstantVelocity(
-    DeformationFieldPointer totalField, unsigned int ntimesteps, float timeweight);
+    DeformationFieldPointer totalField, unsigned int ntimesteps, TReal timeweight);
 
   /** Base optimization functions */
   // AffineTransformPointer AffineOptimization(AffineTransformPointer &aff_init, OptAffine &affine_opt); // {return
@@ -814,7 +814,7 @@ public:
 // set up parameters for deformation restriction
     std::string temp = this->m_Parser->GetOption( "Restrict-Deformation" )->GetValue();
 
-    this->m_RestrictDeformation = this->m_Parser->template ConvertVector<float>(temp);
+    this->m_RestrictDeformation = this->m_Parser->template ConvertVector<TReal>(temp);
     if( this->m_RestrictDeformation.size() != ImageDimension )
       {
       std::cout << " You input a vector of size :  "  << this->m_RestrictDeformation.size()
@@ -834,7 +834,7 @@ public:
     if( typename OptionType::Pointer option = this->m_Parser->GetOption( "roi" ) )
       {
       temp = this->m_Parser->GetOption( "roi" )->GetValue();
-      this->m_RoiNumbers = this->m_Parser->template ConvertVector<float>(temp);
+      this->m_RoiNumbers = this->m_Parser->template ConvertVector<TReal>(temp);
       if( temp.length() > 3 )
         {
         this->m_UseROI = true;
@@ -871,7 +871,7 @@ public:
     if( transformOption->GetNumberOfParameters() >= 1 )
       {
       std::string parameter = transformOption->GetParameter( 0, 0 );
-      float       temp = this->m_Parser->template Convert<float>( parameter );
+      TReal       temp = this->m_Parser->template Convert<TReal>( parameter );
       this->m_Gradstep = temp;
       this->m_GradstepAltered = temp;
       }
@@ -892,7 +892,7 @@ public:
       {
       std::string parameter = transformOption->GetParameter( 0, 2 );
       this->m_DeltaTime
-        = this->m_Parser->template Convert<float>( parameter );
+        = this->m_Parser->template Convert<TReal>( parameter );
       if( this->m_DeltaTime  > 1 )
         {
         this->m_DeltaTime = 1;
@@ -930,7 +930,7 @@ public:
       if( regularizationOption->GetNumberOfParameters() >= 1 )
         {
         std::string parameter = regularizationOption->GetParameter( 0, 0 );
-        this->m_GradSmoothingparam = this->m_Parser->template Convert<float>( parameter );
+        this->m_GradSmoothingparam = this->m_Parser->template Convert<TReal>( parameter );
         }
       else
         {
@@ -939,7 +939,7 @@ public:
       if( regularizationOption->GetNumberOfParameters() >= 2 )
         {
         std::string parameter = regularizationOption->GetParameter( 0, 1 );
-        this->m_TotalSmoothingparam = this->m_Parser->template Convert<float>( parameter );
+        this->m_TotalSmoothingparam = this->m_Parser->template Convert<TReal>( parameter );
         }
       else
         {
@@ -948,7 +948,7 @@ public:
       if( regularizationOption->GetNumberOfParameters() >= 3 )
         {
         std::string parameter = regularizationOption->GetParameter( 0, 2 );
-        this->m_GaussianTruncation = this->m_Parser->template Convert<float>( parameter );
+        this->m_GaussianTruncation = this->m_Parser->template Convert<TReal>( parameter );
         }
       else
         {
@@ -975,7 +975,7 @@ public:
         else
           {
           this->m_GradSmoothingparam
-            = this->m_Parser->template Convert<float>( parameter );
+            = this->m_Parser->template Convert<TReal>( parameter );
           }
         }
       else
@@ -997,7 +997,7 @@ public:
         else
           {
           this->m_TotalSmoothingparam
-            = this->m_Parser->template Convert<float>( parameter );
+            = this->m_Parser->template Convert<TReal>( parameter );
           }
         }
       else
@@ -1117,9 +1117,9 @@ public:
     minMaxFilter->SetInput( image );
     minMaxFilter->Update();
 
-    double min = minMaxFilter->GetMinimum();
-    double shift = -1.0 * static_cast<double>( min );
-    double scale = static_cast<double>( minMaxFilter->GetMaximum() );
+    TReal min = minMaxFilter->GetMinimum();
+    TReal shift = -1.0 * static_cast<TReal>( min );
+    TReal scale = static_cast<TReal>( minMaxFilter->GetMaximum() );
     scale += shift;
     scale = 1.0 / scale;
 
@@ -1198,12 +1198,12 @@ public:
     for( unsigned int currentLevel = 0; currentLevel < this->m_NumberOfLevels; currentLevel++ )
       {
       this->m_CurrentLevel = currentLevel;
-      typedef Vector<float, 1>                      ProfilePointDataType;
+      typedef Vector<TReal, 1>                      ProfilePointDataType;
       typedef Image<ProfilePointDataType, 1>        CurveType;
       typedef PointSet<ProfilePointDataType, 1>     EnergyProfileType;
       typedef typename EnergyProfileType::PointType ProfilePointType;
-
-      std::vector<EnergyProfileType::Pointer> energyProfiles;
+      typedef typename EnergyProfileType::Pointer   EnergyProfilePointer;
+      std::vector<EnergyProfilePointer> energyProfiles;
       energyProfiles.resize( numberOfMetrics );
       for( unsigned int qq = 0; qq < numberOfMetrics; qq++ )
         {
@@ -1364,7 +1364,7 @@ public:
           energyProfileWindow->Initialize();
 
           unsigned int windowBegin = static_cast<unsigned int>( origin[0] );
-          float        totale = 0;
+          TReal        totale = 0;
           for( unsigned int qq = windowBegin; qq < this->m_CurrentIteration; qq++ )
             {
             ProfilePointType point;
@@ -1401,7 +1401,7 @@ public:
           bspliner->Update();
 
           ProfilePointType endPoint;
-          endPoint[0] = static_cast<float>( this->m_CurrentIteration - domainsize * 0.5 );
+          endPoint[0] = static_cast<TReal>( this->m_CurrentIteration - domainsize * 0.5 );
           typename BSplinerType::GradientType gradient;
           gradient.Fill(0);
           bspliner->EvaluateGradientAtPoint( endPoint, gradient );
@@ -1470,7 +1470,7 @@ public:
 
     if( this->GetTransformationModel() == std::string("SyN") )
       {
-      //         float timestep=1.0/(float)this->m_NTimeSteps;
+      //         TReal timestep=1.0/(TReal)this->m_NTimeSteps;
       //         unsigned int nts=this->m_NTimeSteps;
       if( this->m_SyNType )
         {
@@ -1503,10 +1503,10 @@ public:
       DeformationFieldPointer diffmap =  this->IntegrateConstantVelocity( this->m_DeformationField,
                                                                           (unsigned int)this->m_NTimeSteps, 1 );                        //
                                                                                                                                         // 1.0/
-                                                                                                                                        // (float)this->m_NTimeSteps);
+                                                                                                                                        // (TReal)this->m_NTimeSteps);
       DeformationFieldPointer invdiffmap = this->IntegrateConstantVelocity(this->m_DeformationField,
                                                                            (unsigned int) this->m_NTimeSteps, -1 );                      //
-                                                                                                                                         // -1.0/(float)this->m_NTimeSteps);
+                                                                                                                                         // -1.0/(TReal)this->m_NTimeSteps);
       this->m_InverseDeformationField = invdiffmap;
       this->m_DeformationField = diffmap;
       AffineTransformPointer invaff = NULL;
@@ -1592,7 +1592,7 @@ public:
   void UpdateTimeVaryingVelocityFieldWithSyNFandSyNM();
 
   void CopyOrAddToVelocityField( TimeVaryingVelocityFieldPointer velocity,  DeformationFieldPointer update1,
-                                 DeformationFieldPointer update2, float timept);
+                                 DeformationFieldPointer update2, TReal timept);
 
 // void CopyOrAddToVelocityField( DeformationFieldPointer update,  unsigned int timeindex,  bool
 // CopyIsTrueOtherwiseAdd);
@@ -1629,7 +1629,7 @@ public:
   {
     typedef WarpImageFilter<ImageType, ImageType, DeformationFieldType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
-    typedef NearestNeighborInterpolateImageFunction<ImageType, double>
+    typedef NearestNeighborInterpolateImageFunction<ImageType, TReal>
       InterpolatorType;
     warper->SetInput(image);
     warper->SetDeformationField( field );
@@ -1641,7 +1641,7 @@ public:
   }
 
   void ComposeDiffs(DeformationFieldPointer fieldtowarpby, DeformationFieldPointer field,
-                    DeformationFieldPointer fieldout, float sign);
+                    DeformationFieldPointer fieldout, TReal sign);
 
   void SetSimilarityMetrics( SimilarityMetricListType S )
   {
@@ -1658,16 +1658,16 @@ public:
     this->m_MovingPointSet = p;
   }
 
-  void SetDeltaTime( float t)
+  void SetDeltaTime( TReal t)
   {
     this->m_DeltaTime = t;
   }
 
-  float InvertField(DeformationFieldPointer field,
-                    DeformationFieldPointer inverseField, float weight = 1.0,
-                    float toler = 0.1, int maxiter = 20, bool print = false)
+  TReal InvertField(DeformationFieldPointer field,
+                    DeformationFieldPointer inverseField, TReal weight = 1.0,
+                    TReal toler = 0.1, int maxiter = 20, bool print = false)
   {
-    float        mytoler = toler;
+    TReal        mytoler = toler;
     unsigned int mymaxiter = maxiter;
 
     typename ParserType::OptionType::Pointer thicknessOption
@@ -1680,13 +1680,13 @@ public:
     VectorType zero; zero.Fill(0);
     //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
 
-    ImagePointer floatImage = ImageType::New();
-    floatImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-    floatImage->SetBufferedRegion( field->GetLargestPossibleRegion().GetSize() );
-    floatImage->SetSpacing(field->GetSpacing() );
-    floatImage->SetOrigin(field->GetOrigin() );
-    floatImage->SetDirection(field->GetDirection() );
-    floatImage->Allocate();
+    ImagePointer TRealImage = ImageType::New();
+    TRealImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
+    TRealImage->SetBufferedRegion( field->GetLargestPossibleRegion().GetSize() );
+    TRealImage->SetSpacing(field->GetSpacing() );
+    TRealImage->SetOrigin(field->GetOrigin() );
+    TRealImage->SetDirection(field->GetDirection() );
+    TRealImage->Allocate();
 
     typedef typename DeformationFieldType::PixelType           VectorType;
     typedef typename DeformationFieldType::IndexType           IndexType;
@@ -1714,15 +1714,15 @@ public:
     SizeType size = field->GetLargestPossibleRegion().GetSize();
 
     typename ImageType::SpacingType spacing = field->GetSpacing();
-    float         subpix = 0.0;
+    TReal         subpix = 0.0;
     unsigned long npix = 1;
     for( int j = 0; j < ImageDimension; j++ ) // only use in-plane spacing
       {
       npix *= field->GetLargestPossibleRegion().GetSize()[j];
       }
-    subpix = pow( (float)ImageDimension, (float)ImageDimension) * 0.5;
+    subpix = pow( (TReal)ImageDimension, (TReal)ImageDimension) * 0.5;
 
-    float    max = 0;
+    TReal    max = 0;
     Iterator iter( field, field->GetLargestPossibleRegion() );
     for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
@@ -1730,7 +1730,7 @@ public:
       VectorType vec1 = iter.Get();
       VectorType newvec = vec1 * weight;
       lagrangianInitCond->SetPixel(index, newvec);
-      float mag = 0;
+      TReal mag = 0;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
         mag += newvec[jj] * newvec[jj];
@@ -1744,29 +1744,29 @@ public:
 
     eulerianInitCond->FillBuffer(zero);
 
-    float scale = (1.) / max;
+    TReal scale = (1.) / max;
     if( scale > 1. )
       {
       scale = 1.0;
       }
-//    float initscale=scale;
+//    TReal initscale=scale;
     Iterator vfIter( inverseField, inverseField->GetLargestPossibleRegion() );
 
 //  int num=10;
 //  for (int its=0; its<num; its++)
-    float        difmag = 10.0;
+    TReal        difmag = 10.0;
     unsigned int ct = 0;
-    float        denergy = 10;
-    float        denergy2 = 10;
-    float        laste = 1.e9;
-    float        meandif = 1.e8;
+    TReal        denergy = 10;
+    TReal        denergy2 = 10;
+    TReal        laste = 1.e9;
+    TReal        meandif = 1.e8;
 //    int badct=0;
 //  while (difmag > subpix && meandif > subpix*0.1 && badct < 2 )//&& ct < 20 && denergy > 0)
-//    float length=0.0;
-    float stepl = 2.;
-    float lastdifmag = 0;
+//    TReal length=0.0;
+    TReal stepl = 2.;
+    TReal lastdifmag = 0;
 
-    float epsilon = (float)size[0] / 256;
+    TReal epsilon = (TReal)size[0] / 256;
     if( epsilon > 1 )
       {
       epsilon = 1;
@@ -1786,7 +1786,7 @@ public:
         {
         IndexType  index = vfIter.GetIndex();
         VectorType update = eulerianInitCond->GetPixel(index);
-        float      mag = 0;
+        TReal      mag = 0;
         for( int j = 0; j < ImageDimension; j++ )
           {
           update[j] *= (-1.0);
@@ -1801,9 +1801,9 @@ public:
         //	  if (mag < 1.e-2) update.Fill(0);
 
         eulerianInitCond->SetPixel(index, update);
-        floatImage->SetPixel(index, mag);
+        TRealImage->SetPixel(index, mag);
         }
-      meandif /= (float)npix;
+      meandif /= (TReal)npix;
       if( ct == 0 )
         {
         epsilon = 0.75;
@@ -1815,7 +1815,7 @@ public:
       stepl = difmag * epsilon;
       for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
         {
-        float      val = floatImage->GetPixel(vfIter.GetIndex() );
+        TReal      val = TRealImage->GetPixel(vfIter.GetIndex() );
         VectorType update = eulerianInitCond->GetPixel(vfIter.GetIndex() );
         if( val > stepl )
           {
@@ -1845,12 +1845,10 @@ public:
 
 protected:
 
-  DeformationFieldPointer IntegrateVelocity(float, float);
-
-  DeformationFieldPointer IntegrateLandmarkSetVelocity(float, float, PointSetPointer movingpoints,
+  DeformationFieldPointer IntegrateVelocity(TReal, TReal);
+  DeformationFieldPointer IntegrateLandmarkSetVelocity(TReal, TReal, PointSetPointer movingpoints,
                                                        ImagePointer referenceimage );
-
-  VectorType IntegratePointVelocity(float starttimein, float finishtimein, IndexType startPoint);
+  VectorType IntegratePointVelocity(TReal starttimein, TReal finishtimein, IndexType startPoint);
 
   ImagePointer  MakeSubImage( ImagePointer bigimage)
   {
@@ -1873,7 +1871,7 @@ protected:
     cornerind.Fill(0);
     for( unsigned int ii = 0; ii < ImageDimension; ii++ )
       {
-      float diff = (float)this->m_CurrentDomainOrigin[ii] - (float)this->m_CurrentDomainSize[ii] / 2;
+      TReal diff = (TReal) this->m_CurrentDomainOrigin[ii] - (TReal) this->m_CurrentDomainSize[ii] / 2;
       if( diff < 0 )
         {
         diff = 0;
@@ -1889,8 +1887,8 @@ protected:
       bool oktosample = true;
       for( unsigned int ii = 0; ii < ImageDimension; ii++ )
         {
-        float centerbasedcoord        = (origindex[ii] - this->m_CurrentDomainOrigin[ii]);
-//                float diff =
+        TReal centerbasedcoord        = (origindex[ii] - this->m_CurrentDomainOrigin[ii]);
+//                TReal diff =
 //                    index[ii]=origindex[ii]-cornerind[ii];
         if( fabs(centerbasedcoord) >  (this->m_CurrentDomainSize[ii] / 2 - 1) )
           {
@@ -1908,7 +1906,7 @@ protected:
     return varimage;
   }
 
-  float MeasureDeformation(DeformationFieldPointer field, int option = 0)
+  TReal MeasureDeformation(DeformationFieldPointer field, int option = 0)
   {
     typedef typename DeformationFieldType::PixelType           VectorType;
     typedef typename DeformationFieldType::IndexType           IndexType;
@@ -1919,8 +1917,8 @@ protected:
     Iterator      vfIter( field,  field->GetLargestPossibleRegion() );
     SizeType      size = field->GetLargestPossibleRegion().GetSize();
     unsigned long ct = 1;
-    double        totalmag = 0;
-    float         maxstep = 0;
+    TReal         totalmag = 0;
+    TReal         maxstep = 0;
 //  this->m_EuclideanNorm=0;
 
     typename ImageType::SpacingType myspacing = field->GetSpacing();
@@ -1930,8 +1928,8 @@ protected:
       IndexType  rindex = vfIter.GetIndex();
       IndexType  lindex = vfIter.GetIndex();
       VectorType update = vfIter.Get();
-      float      mag = 0.0;
-      float      stepl = 0.0;
+      TReal      mag = 0.0;
+      TReal      stepl = 0.0;
       for( int i = 0; i < ImageDimension; i++ )
         {
         rindex = index;
@@ -1973,7 +1971,7 @@ protected:
       {
 //  this->StopRegistration();
 // scale the field to the right length
-//  float scale=this->m_ArcLengthGoal/this->m_ElasticPathLength;
+//  TReal scale=this->m_ArcLengthGoal/this->m_ElasticPathLength;
 //  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )vfIter.Set(vfIter.Get()*scale);
       }
     // if (this->m_LinftyNorm <= 0) this->m_LinftyNorm=1;
@@ -2012,8 +2010,8 @@ private:
   DeformationFieldPointer m_DeformationField;
   DeformationFieldPointer m_InverseDeformationField;
 
-  std::vector<float>        m_GradientDescentParameters;
-  std::vector<float>        m_MetricScalarWeights;
+  std::vector<TReal>        m_GradientDescentParameters;
+  std::vector<TReal>        m_MetricScalarWeights;
   std::vector<ImagePointer> m_SmoothFixedImages;
   std::vector<ImagePointer> m_SmoothMovingImages;
 
@@ -2022,7 +2020,7 @@ private:
   typename ParserType::Pointer m_Parser;
   SimilarityMetricListType  m_SimilarityMetrics;
   ImagePointer              m_MaskImage;
-  float                     m_ScaleFactor;
+  TReal                     m_ScaleFactor;
   bool                      m_UseMulti;
   bool                      m_UseROI;
   bool                      m_UseNN;
@@ -2034,20 +2032,20 @@ private:
   PointSetPointer           m_FixedPointSet;
   PointSetPointer           m_MovingPointSet;
   std::vector<unsigned int> m_Iterations;
-  std::vector<float>        m_RestrictDeformation;
-  std::vector<float>        m_RoiNumbers;
-  float                     m_GradSmoothingparam;
-  float                     m_TotalSmoothingparam;
-  float                     m_Gradstep;
-  float                     m_GradstepAltered;
-  float                     m_NTimeSteps;
-  float                     m_GaussianTruncation;
-  float                     m_DeltaTime;
-  float                     m_ESlope;
+  std::vector<TReal>        m_RestrictDeformation;
+  std::vector<TReal>        m_RoiNumbers;
+  TReal                     m_GradSmoothingparam;
+  TReal                     m_TotalSmoothingparam;
+  TReal                     m_Gradstep;
+  TReal                     m_GradstepAltered;
+  TReal                     m_NTimeSteps;
+  TReal                     m_GaussianTruncation;
+  TReal                     m_DeltaTime;
+  TReal                     m_ESlope;
 
 /** energy stuff */
-  std::vector<float>        m_Energy;
-  std::vector<float>        m_LastEnergy;
+  std::vector<TReal>        m_Energy;
+  std::vector<TReal>        m_LastEnergy;
   std::vector<unsigned int> m_EnergyBad;
 
 /** for SyN only */

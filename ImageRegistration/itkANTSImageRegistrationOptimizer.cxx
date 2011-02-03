@@ -45,8 +45,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_InverseDeformationField = NULL;
   this->m_AffineTransform = NULL;
   itk::TransformFactory<TransformType>::RegisterTransform();
-  itk::TransformFactory<itk::ANTSAffine3DTransform<double> >::RegisterTransform();
-  itk::TransformFactory<itk::ANTSCenteredAffine2DTransform<double> >::RegisterTransform();
+  itk::TransformFactory<itk::ANTSAffine3DTransform<TReal> >::RegisterTransform();
+  itk::TransformFactory<itk::ANTSCenteredAffine2DTransform<TReal> >::RegisterTransform();
   this->m_FixedPointSet = NULL;
   this->m_MovingPointSet = NULL;
 
@@ -92,11 +92,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   typedef ResampleImageFilter<ImageType, ImageType> ResamplerType;
   typename ResamplerType::Pointer resampler = ResamplerType::New();
-  typedef LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
+  typedef LinearInterpolateImageFunction<ImageType, TReal> InterpolatorType;
   typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
   interpolator->SetInputImage( image );
   resampler->SetInterpolator( interpolator );
-  typedef itk::IdentityTransform<double, TDimension> TransformType;
+  typedef itk::IdentityTransform<TReal, TDimension> TransformType;
   typename TransformType::Pointer transform = TransformType::New();
   transform->SetIdentity();
   resampler->SetTransform( transform );
@@ -160,7 +160,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::SmoothDeformationFieldGauss(DeformationFieldPointer field, float sig, bool useparamimage, unsigned int lodim)
+::SmoothDeformationFieldGauss(DeformationFieldPointer field, TReal sig, bool useparamimage, unsigned int lodim)
 {
   if( this->m_Debug )
     {
@@ -208,7 +208,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     // smooth along this dimension
     oper->SetDirection( j );
-    float sigt = sig;
+    TReal sigt = sig;
     oper->SetVariance( sigt );
     oper->SetMaximumError(0.001 );
     oper->SetMaximumKernelWidth( (unsigned int) this->m_GaussianTruncation );
@@ -233,12 +233,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   tempField->SetPixelContainer( field->GetPixelContainer() );
 
   // make sure boundary does not move
-  float weight = 1.0;
+  TReal weight = 1.0;
   if( sig < 0.5 )
     {
     weight = 1.0 - 1.0 * (sig / 0.5);
     }
-  float weight2 = 1.0 - weight;
+  TReal weight2 = 1.0 - weight;
   typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
   typename DeformationFieldType::SizeType size = field->GetLargestPossibleRegion().GetSize();
   Iterator outIter( field, field->GetLargestPossibleRegion() );
@@ -278,7 +278,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::SmoothVelocityGauss(TimeVaryingVelocityFieldPointer field, float sig, unsigned int lodim)
+::SmoothVelocityGauss(TimeVaryingVelocityFieldPointer field, TReal sig, unsigned int lodim)
 {
   if( sig <= 0 )
     {
@@ -342,12 +342,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   tempField->SetPixelContainer( field->GetPixelContainer() );
 
   // make sure boundary does not move
-  float weight = 1.0;
+  TReal weight = 1.0;
   if( sig < 0.5 )
     {
     weight = 1.0 - 1.0 * (sig / 0.5);
     }
-  float weight2 = 1.0 - weight;
+  TReal weight2 = 1.0 - weight;
   typedef itk::ImageRegionIteratorWithIndex<TimeVaryingVelocityFieldType> Iterator;
   typename TimeVaryingVelocityFieldType::SizeType size = field->GetLargestPossibleRegion().GetSize();
   Iterator outIter( field, field->GetLargestPossibleRegion() );
@@ -477,9 +477,9 @@ template <unsigned int TDimension, class TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::ComposeDiffs(DeformationFieldPointer fieldtowarpby, DeformationFieldPointer field, DeformationFieldPointer fieldout,
-               float timesign)
+               TReal timesign)
 {
-  typedef Point<float, itkGetStaticConstMacro(ImageDimension)> VPointType;
+  typedef Point<TReal, itkGetStaticConstMacro(ImageDimension)> VPointType;
 
 //  field->SetSpacing( fieldtowarpby->GetSpacing() );
 //  field->SetOrigin( fieldtowarpby->GetOrigin() );
@@ -504,7 +504,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef DeformationFieldType                                             FieldType;
   enum { ImageDimension = FieldType::ImageDimension };
   typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> FieldIterator;
-  typedef ImageType                                               FloatImageType;
+  typedef ImageType                                               TRealImageType;
 
   typedef itk::ImageFileWriter<ImageType> writertype;
 
@@ -514,8 +514,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef typename DeformationFieldType::IndexType IndexType;
   typedef typename DeformationFieldType::PointType PointType;
 
-  typedef itk::VectorLinearInterpolateImageFunction<DeformationFieldType, float>   DefaultInterpolatorType;
-  typedef itk::VectorGaussianInterpolateImageFunction<DeformationFieldType, float> DefaultInterpolatorType2;
+  typedef itk::VectorLinearInterpolateImageFunction<DeformationFieldType, TReal>   DefaultInterpolatorType;
+  typedef itk::VectorGaussianInterpolateImageFunction<DeformationFieldType, TReal> DefaultInterpolatorType2;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   vinterp->SetInputImage(field);
   //    vinterp->SetParameters(NULL,1);
@@ -533,7 +533,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     IndexType index = m_FieldIter.GetIndex();
     bool      dosample = true;
-    //	  if (sub && m_FloatImage->GetPixel(index) < 0.5) dosample=false;
+    //	  if (sub && m_TRealImage->GetPixel(index) < 0.5) dosample=false;
     if( dosample )
       {
       fieldtowarpby->TransformIndexToPhysicalPoint( index, pointIn1 );
@@ -571,7 +571,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DeformationFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::IntegrateConstantVelocity(DeformationFieldPointer totalField, unsigned int ntimesteps, float timestep)
+::IntegrateConstantVelocity(DeformationFieldPointer totalField, unsigned int ntimesteps, TReal timestep)
 {
   VectorType zero;
 
@@ -795,7 +795,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     while( !nD.IsAtEnd() )
       {
       bool  oktosample = true;
-      float maskprob = 1.0;
+      TReal maskprob = 1.0;
       if( mask )
         {
         maskprob = mask->GetPixel( nD.GetIndex() );
@@ -833,7 +833,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     bool restrict = false;
     for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
       {
-      float temp = this->m_RestrictDeformation[jj];
+      TReal temp = this->m_RestrictDeformation[jj];
       if(  fabs( temp - 1 ) > 1.e-5   )
         {
         restrict = true;
@@ -879,7 +879,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     /*
     else // use another strategy -- exact lm? / something like Laplacian
 {
-  float tmag=0;
+  TReal tmag=0;
   for (unsigned int ff=0; ff<5; ff++)
     {
       tmag=0;
@@ -891,7 +891,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   {
     typename ImageType::IndexType index=nD.GetIndex();
     bool oktosample=true;
-    float maskprob=1.0;
+    TReal maskprob=1.0;
     if (mask)
       {
         maskprob=mask->GetPixel( nD.GetIndex() );
@@ -919,7 +919,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
     // compute mags of F1 and F2 -- if large enough, reset them
-    float f1mag=0,f2mag=0,umag=0;
+    TReal f1mag=0,f2mag=0,umag=0;
     for (unsigned int dim=0; dim<ImageDimension; dim++)
       {
         f1mag+=F1[dim]/spacing[dim]*F1[dim]/spacing[dim];
@@ -942,10 +942,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     // normalize update field then add to total field
     typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
     Iterator      dIter(totalUpdateField, totalUpdateField->GetLargestPossibleRegion() );
-    float         mag = 0.0;
-    float         max = 0.0;
+    TReal         mag = 0.0;
+    TReal         max = 0.0;
     unsigned long ct = 0;
-    float         total = 0;
+    TReal         total = 0;
     for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
       {
       typename ImageType::IndexType index = dIter.GetIndex();
@@ -969,7 +969,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       std::cout << "PRE MAX " << max << std::endl;
       }
-    float max2 = 0;
+    TReal max2 = 0;
     if( max <= 0 )
       {
       max = 1;
@@ -1000,13 +1000,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         VectorType intensityupdate = dIter.Get();
         VectorType lmupdate = vec;
-        float      lmag = 0;
+        TReal      lmag = 0;
         for( unsigned int li = 0; li < ImageDimension; li++ )
           {
           lmag += (lmupdate[li] / spacing[li]) * (lmupdate[li] / spacing[li]);
           }
         lmag = sqrt(lmag);
-        float modi = 1;
+        TReal modi = 1;
         if( lmag > 1 )
           {
           modi = 0;
@@ -1015,8 +1015,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
           {
           modi = 1.0 - lmag;
           }
-        float      iwt = 1 * modi;
-        float      lmwt = normalizedWeight;
+        TReal      iwt = 1 * modi;
+        TReal      lmwt = normalizedWeight;
         VectorType totalv = intensityupdate * iwt + lmupdate * lmwt;
         dIter.Set(totalv);
         }
@@ -1029,10 +1029,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     if( totalUpdateInvField )
       {
       Iterator      dIter(totalUpdateInvField, totalUpdateInvField->GetLargestPossibleRegion() );
-      float         mag = 0.0;
-      float         max = 0.0;
+      TReal         mag = 0.0;
+      TReal         max = 0.0;
       unsigned long ct = 0;
-      float         total = 0;
+      TReal         total = 0;
       for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
         {
         typename ImageType::IndexType index = dIter.GetIndex();
@@ -1056,7 +1056,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         std::cout << "PRE MAX " << max << std::endl;
         }
-      float max2 = 0;
+      TReal max2 = 0;
       if( max <= 0 )
         {
         max = 1;
@@ -1088,13 +1088,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
           {
           VectorType intensityupdate = dIter.Get();
           VectorType lmupdate = vec;
-          float      lmag = 0;
+          TReal      lmag = 0;
           for( unsigned int li = 0; li < ImageDimension; li++ )
             {
             lmag += (lmupdate[li] / spacing[li]) * (lmupdate[li] / spacing[li]);
             }
           lmag = sqrt(lmag);
-          float modi = 1;
+          TReal modi = 1;
           if( lmag > 1 )
             {
             modi = 0;
@@ -1103,8 +1103,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
             {
             modi = 1.0 - lmag;
             }
-          float      iwt = 1 * modi;
-          float      lmwt = normalizedWeight;
+          TReal      iwt = 1 * modi;
+          TReal      lmwt = normalizedWeight;
           VectorType totalv = intensityupdate * iwt + lmupdate * lmwt;
           dIter.Set(totalv);
           }
@@ -1313,7 +1313,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     while( !nD.IsAtEnd() )
       {
       bool  oktosample = true;
-      float maskprob = 1.0;
+      TReal maskprob = 1.0;
       if( mask )
         {
         maskprob = mask->GetPixel( nD.GetIndex() );
@@ -1362,7 +1362,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     /*
     else // use another strategy -- exact lm? / something like Laplacian
 {
-  float tmag=0;
+  TReal tmag=0;
   for (unsigned int ff=0; ff<5; ff++)
     {
       tmag=0;
@@ -1374,7 +1374,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   {
     typename ImageType::IndexType index=nD.GetIndex();
     bool oktosample=true;
-    float maskprob=1.0;
+    TReal maskprob=1.0;
     if (mask)
       {
         maskprob=mask->GetPixel( nD.GetIndex() );
@@ -1402,7 +1402,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
     // compute mags of F1 and F2 -- if large enough, reset them
-    float f1mag=0,f2mag=0,umag=0;
+    TReal f1mag=0,f2mag=0,umag=0;
     for (unsigned int dim=0; dim<ImageDimension; dim++)
       {
         f1mag+=F1[dim]/spacing[dim]*F1[dim]/spacing[dim];
@@ -1425,10 +1425,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     // normalize update field then add to total field
     typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
     Iterator      dIter(totalUpdateField, totalUpdateField->GetLargestPossibleRegion() );
-    float         mag = 0.0;
-    float         max = 0.0;
+    TReal         mag = 0.0;
+    TReal         max = 0.0;
     unsigned long ct = 0;
-    float         total = 0;
+    TReal         total = 0;
     for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
       {
       typename ImageType::IndexType index = dIter.GetIndex();
@@ -1452,7 +1452,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       std::cout << "PRE MAX " << max << std::endl;
       }
-    float max2 = 0;
+    TReal max2 = 0;
     if( max <= 0 )
       {
       max = 1;
@@ -1483,14 +1483,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
     VectorType intensityupdate=dIter.Get();
     VectorType lmupdate=vec;
-    float lmag=0;
+    TReal lmag=0;
     for (unsigned int li=0; li<ImageDimension; li++) lmag+=(lmupdate[li]/spacing[li])*(lmupdate[li]/spacing[li]);
     lmag=sqrt(lmag);
-    float modi=1;
+    TReal modi=1;
     if (lmag > 1) modi=0;
     else modi=1.0-lmag;
-    float iwt=1*modi;
-    float lmwt=normalizedWeight;
+    TReal iwt=1*modi;
+    TReal lmwt=normalizedWeight;
     VectorType totalv=intensityupdate*iwt+lmupdate*lmwt;
     dIter.Set(totalv);
         }
@@ -1501,10 +1501,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     if( totalUpdateInvField )
       {
       Iterator      dIter(totalUpdateInvField, totalUpdateInvField->GetLargestPossibleRegion() );
-      float         mag = 0.0;
-      float         max = 0.0;
+      TReal         mag = 0.0;
+      TReal         max = 0.0;
       unsigned long ct = 0;
-      float         total = 0;
+      TReal         total = 0;
       for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
         {
         typename ImageType::IndexType index = dIter.GetIndex();
@@ -1528,7 +1528,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         std::cout << "PRE MAX " << max << std::endl;
         }
-      float max2 = 0;
+      TReal max2 = 0;
       if( max <= 0 )
         {
         max = 1;
@@ -1560,14 +1560,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
 VectorType intensityupdate=dIter.Get();
 VectorType lmupdate=vec;
-float lmag=0;
+TReal lmag=0;
 for (unsigned int li=0; li<ImageDimension; li++) lmag+=(lmupdate[li]/spacing[li])*(lmupdate[li]/spacing[li]);
 lmag=sqrt(lmag);
-float modi=1;
+TReal modi=1;
 if (lmag > 1) modi=0;
 else modi=1.0-lmag;
-float iwt=1*modi;
-float lmwt=normalizedWeight;
+TReal iwt=1*modi;
+TReal lmwt=normalizedWeight;
 VectorType totalv=intensityupdate*iwt+lmupdate*lmwt;
 dIter.Set(totalv);
     }
@@ -1625,7 +1625,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   invdiffmap->SetBufferedRegion( totalField->GetLargestPossibleRegion()  );
   invdiffmap->Allocate();
 
-  //    float timestep=1.0/(float)this->m_NTimeSteps;
+  //    TReal timestep=1.0/(TReal)this->m_NTimeSteps;
   //    for (unsigned int nts=0; nts<=this->m_NTimeSteps; nts+=this->m_NTimeSteps)
   unsigned int nts = (unsigned int)this->m_NTimeSteps;
     {
@@ -1647,7 +1647,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
     DeformationFieldPointer updateField = this->ComputeUpdateField( diffmap, NULL, fpoints, wmpoints);
     //	updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
-    float maxl = this->MeasureDeformation(updateField);
+    TReal maxl = this->MeasureDeformation(updateField);
     if( maxl <= 0 )
       {
       maxl = 1;
@@ -1659,7 +1659,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       dIter.Set( dIter.Get() * this->m_GradstepAltered / maxl);
       }
     this->ComposeDiffs(updateField, totalField, totalField, 1);
-    /*	float maxl= this->MeasureDeformation(updateField);
+    /*	TReal maxl= this->MeasureDeformation(updateField);
   if (maxl <= 0) maxl=1;
   typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
   Iterator dIter(updateField,updateField->GetLargestPossibleRegion() );
@@ -1688,7 +1688,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   // we compose the update with this field.
   DeformationFieldPointer totalField = this->m_DeformationField;
 
-  float        timestep = 1.0 / (float)this->m_NTimeSteps;
+  TReal        timestep = 1.0 / (TReal) this->m_NTimeSteps;
   unsigned int nts = (unsigned int)this->m_NTimeSteps;
 
   ImagePointer            wfimage, wmimage;
@@ -1696,7 +1696,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   AffineTransformPointer  aff = this->m_AffineTransform;
   DeformationFieldPointer updateField = this->ComputeUpdateField( totalField, NULL, fpoints, wmpoints);
   updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
-  float maxl = this->MeasureDeformation(updateField);
+  TReal maxl = this->MeasureDeformation(updateField);
   if( maxl <= 0 )
     {
     maxl = 1;
@@ -1721,7 +1721,7 @@ template <unsigned int TDimension, class TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::AffineTransformPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>::AffineOptimization(OptAffineType & affine_opt)
 {
-  //    typedef itk::Image<float, 3> TempImageType;
+  //    typedef itk::Image<TReal, 3> TempImageType;
   //    typename TempImageType::Pointer fixedImage = TempImageType::New();
   //    typename TempImageType::Pointer movingImage = TempImageType::New();
 
@@ -1887,7 +1887,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 // here, SyNF holds the moving velocity field, SyNM holds the fixed
 // velocity field and we integrate both to generate the inv/fwd fields
 
-  float                   timestep = 1.0 / (float)this->m_NTimeSteps;
+  TReal                   timestep = 1.0 / (TReal) this->m_NTimeSteps;
   unsigned int            nts = this->m_NTimeSteps;
   DeformationFieldPointer fdiffmap = this->IntegrateConstantVelocity(this->m_SyNF, nts, 1);
   this->m_SyNFInv = this->IntegrateConstantVelocity(this->m_SyNF, nts, (-1.) );
@@ -1915,7 +1915,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 // then addd
   typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
   Iterator dIter(this->m_SyNF, this->m_SyNF->GetLargestPossibleRegion() );
-  float    max = 0, max2 = 0;
+  TReal    max = 0, max2 = 0;
   for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
     {
     typename ImageType::IndexType index = dIter.GetIndex();
@@ -1924,8 +1924,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     dIter.Set(dIter.Get() + vecf * this->m_GradstepAltered);
     this->m_SyNM->SetPixel( index, this->m_SyNM->GetPixel( index ) + vecm * this->m_GradstepAltered);
 // min field difference => geodesic => DV/dt=0
-    float      geowt1 = 0.99;
-    float      geowt2 = 1.0 - geowt1;
+    TReal      geowt1 = 0.99;
+    TReal      geowt2 = 1.0 - geowt1;
     VectorType synmv = this->m_SyNM->GetPixel( index );
     VectorType synfv   = this->m_SyNF->GetPixel( index );
     this->m_SyNM->SetPixel( index, synmv * geowt1 - synfv * geowt2);
@@ -1948,8 +1948,8 @@ void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::UpdateTimeVaryingVelocityFieldWithSyNFandSyNM()
 {
-  typedef float                              PixelType;
-  typedef itk::Vector<float, TDimension>     VectorType;
+  typedef TReal                              PixelType;
+  typedef itk::Vector<TReal, TDimension>     VectorType;
   typedef itk::Image<VectorType, TDimension> DeformationFieldType;
   typedef itk::Image<PixelType, TDimension>  ImageType;
   typedef typename  ImageType::IndexType     IndexType;
@@ -2055,10 +2055,10 @@ template <unsigned int TDimension, class TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::CopyOrAddToVelocityField( TimeVaryingVelocityFieldPointer velocity,  DeformationFieldPointer update1,
-                            DeformationFieldPointer update2, float timept)
+                            DeformationFieldPointer update2, TReal timept)
 {
-  typedef float                              PixelType;
-  typedef itk::Vector<float, TDimension>     VectorType;
+  typedef TReal                              PixelType;
+  typedef itk::Vector<TReal, TDimension>     VectorType;
   typedef itk::Image<VectorType, TDimension> DeformationFieldType;
   typedef itk::Image<PixelType, TDimension>  ImageType;
   typedef typename  ImageType::IndexType     IndexType;
@@ -2074,9 +2074,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef typename DeformationFieldType::PointType                DPointType;
   typedef typename TimeVaryingVelocityFieldType::IndexType        VIndexType;
   typedef typename TimeVaryingVelocityFieldType::PointType        VPointType;
-  int tpupdate = (unsigned int) ( ( (float)this->m_NTimeSteps - 1.0) * timept + 0.5);
+  int tpupdate = (unsigned int) ( ( (TReal) this->m_NTimeSteps - 1.0) * timept + 0.5);
   // std::cout <<"  add to " << tpupdate << std::endl;
-  float           tmag = 0;
+  TReal           tmag = 0;
   TVFieldIterator m_FieldIter(velocity, velocity->GetLargestPossibleRegion() );
   for(  m_FieldIter.GoToBegin(); !m_FieldIter.IsAtEnd(); ++m_FieldIter )
     {
@@ -2089,7 +2089,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     if( velind[ImageDimension] == tpupdate && update1 )
       {
       VectorType vel = update1->GetPixel(ind);
-      float      mag = 0;
+      TReal      mag = 0;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
         {
         mag += vel[jj] * vel[jj];
@@ -2150,8 +2150,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 // here, SyNF holds the moving velocity field, SyNM holds the fixed
 // velocity field and we integrate both to generate the inv/fwd fields
   typename JacobianFunctionType::Pointer jfunction = JacobianFunctionType::New();
-  float lot = 0, hit = 0.5;
-  float lot2 = 1.0;
+  TReal lot = 0, hit = 0.5;
+  TReal lot2 = 1.0;
   this->UpdateTimeVaryingVelocityFieldWithSyNFandSyNM();   // sets tvt to SyNF and SyNM -- works only for 2 time points!
   this->m_SyNFInv = this->IntegrateVelocity(hit, lot);
   this->m_SyNMInv = this->IntegrateVelocity(hit, lot2);
@@ -2189,8 +2189,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     this->m_SyNF->SetPixel( index, this->m_SyNF->GetPixel( index ) + vecf * this->m_GradstepAltered);
     this->m_SyNM->SetPixel( index, this->m_SyNM->GetPixel( index ) + vecm * this->m_GradstepAltered);
 // min field difference => geodesic => DV/dt=0
-    float      geowt1 = 0.95;
-    float      geowt2 = 1.0 - geowt1;
+    TReal      geowt1 = 0.95;
+    TReal      geowt2 = 1.0 - geowt1;
     VectorType synmv = this->m_SyNM->GetPixel( index );
     VectorType synfv   = this->m_SyNF->GetPixel( index );
     this->m_SyNM->SetPixel( index, synmv * geowt1 - synfv * geowt2);
@@ -2263,7 +2263,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     this->m_NTimeSteps = 2;
     }
   gsize[TDimension] = (unsigned long) this->m_NTimeSteps;
-  float hitstep = 1.0 / ( (float)this->m_NTimeSteps - 1);
+  TReal hitstep = 1.0 / ( (TReal) this->m_NTimeSteps - 1);
   gspace[TDimension] = 1;
   gregion.SetSize(gsize);
   velocityUpdate->SetSpacing( gspace );
@@ -2373,9 +2373,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 // here, SyNF holds the moving velocity field, SyNM holds the fixed
 // velocity field and we integrate both to generate the inv/fwd fields
   typename JacobianFunctionType::Pointer jfunction = JacobianFunctionType::New();
-  float        lot = 0, lot2 = 1.0;
+  TReal        lot = 0, lot2 = 1.0;
   unsigned int fct = 100;
-  for( float hit = 0; hit <= 1; hit = hit + hitstep )
+  for( TReal hit = 0; hit <= 1; hit = hit + hitstep )
     {
     this->m_SyNFInv = this->IntegrateVelocity(hit, lot);
     this->m_SyNMInv = this->IntegrateVelocity(hit, lot2);
@@ -2435,13 +2435,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   // below is r_k+1
   this->SmoothVelocityGauss( velocityUpdate,  this->m_GradSmoothingparam, ImageDimension );
   // update total velocity with v-update
-  float tmag = 0;
+  TReal tmag = 0;
   typedef itk::ImageRegionIteratorWithIndex<tvt> TVFieldIterator;
   TVFieldIterator m_FieldIter( this->m_TimeVaryingVelocity, this->m_TimeVaryingVelocity->GetLargestPossibleRegion() );
   for(  m_FieldIter.GoToBegin(); !m_FieldIter.IsAtEnd(); ++m_FieldIter )
     {
-    float      A = 1;
-    float      alpha = 0, alpha1 = 0, alpha2 = 0, beta = 0, beta1 = 0, beta2 = 0;
+    TReal      A = 1;
+    TReal      alpha = 0, alpha1 = 0, alpha2 = 0, beta = 0, beta1 = 0, beta2 = 0;
     VectorType vec1 = velocityUpdate->GetPixel(m_FieldIter.GetIndex() );               // r_k+1
     VectorType vec2 = vec1;                                                            // this->m_LastTimeVaryingVelocity->GetPixel(m_FieldIter.GetIndex());
                                                                                        // // r_k
@@ -2480,7 +2480,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     //	VectorType vec2u=vec2 - alpha*A*upd;
     //	this->m_LastTimeVaryingVelocity->SetPixel(m_FieldIter.GetIndex(), vec1 );
     this->m_LastTimeVaryingUpdate->SetPixel(m_FieldIter.GetIndex(), newupd);
-    float      mag = 0;
+    TReal      mag = 0;
     VectorType vv = m_FieldIter.Get();
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
@@ -2488,7 +2488,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
     tmag += sqrt(mag);
     }
-  tmag /= ( (float)this->m_NTimeSteps * (float)numpx);
+  tmag /= ( (TReal) this->m_NTimeSteps * (TReal)numpx);
   std::cout << " DiffLength " << tmag << std::endl;
   if(  this->m_TotalSmoothingparam > 0
        || this->m_TotalSmoothingMeshSize[0] > 0 )
@@ -2504,7 +2504,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DeformationFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::IntegrateVelocity(float starttimein, float finishtimein )
+::IntegrateVelocity(TReal starttimein, TReal finishtimein )
 {
   ImagePointer mask = NULL;
 
@@ -2520,8 +2520,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
 
 //  std::cout << " st " << starttimein << " ft " << finishtimein << std::endl;
-  typedef float                              PixelType;
-  typedef itk::Vector<float, TDimension>     VectorType;
+  typedef TReal                              PixelType;
+  typedef itk::Vector<TReal, TDimension>     VectorType;
   typedef itk::Image<VectorType, TDimension> DeformationFieldType;
   typedef itk::Image<PixelType, TDimension>  ImageType;
   typedef typename  ImageType::IndexType     IndexType;
@@ -2606,7 +2606,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     finishtimein = 1;
     }
 
-  float timesign = 1.0;
+  TReal timesign = 1.0;
   if( starttimein  >  finishtimein )
     {
     timesign = -1.0;
@@ -2653,12 +2653,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DeformationFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::IntegrateLandmarkSetVelocity(float starttimein, float finishtimein,
+::IntegrateLandmarkSetVelocity(TReal starttimein, TReal finishtimein,
                                typename ANTSImageRegistrationOptimizer<TDimension, TReal>::PointSetPointer mypoints,
                                typename ANTSImageRegistrationOptimizer<TDimension, TReal>::ImagePointer refimage )
 {
-  typedef float                              PixelType;
-  typedef itk::Vector<float, TDimension>     VectorType;
+  typedef TReal                              PixelType;
+  typedef itk::Vector<TReal, TDimension>     VectorType;
   typedef itk::Image<VectorType, TDimension> DeformationFieldType;
   typedef itk::Image<PixelType, TDimension>  ImageType;
   typedef typename  ImageType::IndexType     IndexType;
@@ -2712,7 +2712,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     finishtimein = 1;
     }
 
-  float timesign = 1.0;
+  TReal timesign = 1.0;
   if( starttimein  >  finishtimein )
     {
     timesign = -1.0;
@@ -2749,15 +2749,15 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::VectorType
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::IntegratePointVelocity(float starttimein, float finishtimein, IndexType velind)
+::IntegratePointVelocity(TReal starttimein, TReal finishtimein, IndexType velind)
 {
-  typedef Point<float, itkGetStaticConstMacro(ImageDimension + 1)> xPointType;
+  typedef Point<TReal, itkGetStaticConstMacro(ImageDimension + 1)> xPointType;
   this->m_Debug = false;
 //  std::cout <<"Enter IP "<< std::endl;
   typedef typename VelocityFieldInterpolatorType::OutputType InterpPointType;
 
-  typedef float                              PixelType;
-  typedef itk::Vector<float, TDimension>     VectorType;
+  typedef TReal                              PixelType;
+  typedef itk::Vector<TReal, TDimension>     VectorType;
   typedef itk::Image<VectorType, TDimension> DeformationFieldType;
   typedef itk::Image<PixelType, TDimension>  ImageType;
   typedef typename  ImageType::IndexType     IndexType;
@@ -2781,7 +2781,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef typename TimeVaryingVelocityFieldType::PointType        VPointType;
   this->m_VelocityFieldInterpolator->SetInputImage(this->m_TimeVaryingVelocity);
 
-  double       dT = this->m_DeltaTime;
+  TReal        dT = this->m_DeltaTime;
   unsigned int m_NumberOfTimePoints = this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize()[TDimension];
   if( starttimein < 0 )
     {
@@ -2800,7 +2800,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     finishtimein = 1;
     }
 
-  float timesign = 1.0;
+  TReal timesign = 1.0;
   if( starttimein  >  finishtimein )
     {
     timesign = -1.0;
@@ -2813,14 +2813,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   xPointType pointIn3;
   typename VelocityFieldInterpolatorType::ContinuousIndexType  vcontind;
 
-  float         itime = starttimein;
+  TReal         itime = starttimein;
   unsigned long ct = 0;
-  float         inverr = 0;
-  float         thislength = 0, euclideandist = 0;
+  TReal         inverr = 0;
+  TReal         thislength = 0, euclideandist = 0;
   bool          timedone = false;
   inverr = 1110;
   VectorType  disp;
-  double      deltaTime = dT, vecsign = 1.0;
+  TReal       deltaTime = dT, vecsign = 1.0;
   SpacingType spacing = this->m_DeformationField->GetSpacing();
   if( starttimein  > finishtimein )
     {
@@ -2848,8 +2848,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   ct = 0;
   while( !timedone )
     {
-    double itimetn1 = itime - timesign * deltaTime;
-    double itimetn1h = itime - timesign * deltaTime * 0.5;
+    TReal itimetn1 = itime - timesign * deltaTime;
+    TReal itimetn1h = itime - timesign * deltaTime * 0.5;
     if( itimetn1h < 0 )
       {
       itimetn1h = 0;
@@ -2867,7 +2867,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       itimetn1 = 1;
       }
 
-    float totalmag = 0;
+    TReal totalmag = 0;
     // first get current position of particle
     typename VelocityFieldInterpolatorType::OutputType f1;  f1.Fill(0);
     typename VelocityFieldInterpolatorType::OutputType f2;  f2.Fill(0);
@@ -2886,10 +2886,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       std::cout << " p2 " << pointIn2 << std::endl;
       }
 
-    Y1x[TDimension] = itimetn1 * (float)(m_NumberOfTimePoints - 1);
-    Y2x[TDimension] = itimetn1h * (float)(m_NumberOfTimePoints - 1);
-    Y3x[TDimension] = itimetn1h * (float)(m_NumberOfTimePoints - 1);
-    Y4x[TDimension] = itime * (float)(m_NumberOfTimePoints - 1);
+    Y1x[TDimension] = itimetn1 * (TReal)(m_NumberOfTimePoints - 1);
+    Y2x[TDimension] = itimetn1h * (TReal)(m_NumberOfTimePoints - 1);
+    Y3x[TDimension] = itimetn1h * (TReal)(m_NumberOfTimePoints - 1);
+    Y4x[TDimension] = itime * (TReal)(m_NumberOfTimePoints - 1);
 
     if( this->m_Debug )
       {
@@ -2932,10 +2932,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       pointIn3[jj] = pointIn2[jj] + vecsign * deltaTime / 6.0 * ( f1[jj] + 2.0 * f2[jj] + 2.0 * f3[jj] + f4[jj] );
       }
-    pointIn3[TDimension] = itime * (float)(m_NumberOfTimePoints - 1);
+    pointIn3[TDimension] = itime * (TReal)(m_NumberOfTimePoints - 1);
 
     VectorType out;
-    float      mag = 0, dmag = 0;
+    TReal      mag = 0, dmag = 0;
     for( unsigned int jj = 0; jj < TDimension; jj++ )
       {
       out[jj] = pointIn3[jj] - pointIn1[jj];
@@ -2994,8 +2994,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     ct = 0;
     while( !timedone )
       {
-      double itimetn1 = itime - timesign * deltaTime;
-      double itimetn1h = itime - timesign * deltaTime * 0.5;
+      TReal itimetn1 = itime - timesign * deltaTime;
+      TReal itimetn1h = itime - timesign * deltaTime * 0.5;
       if( itimetn1h < 0 )
         {
         itimetn1h = 0;
@@ -3013,7 +3013,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         itimetn1 = 1;
         }
 
-      //      float totalmag=0;
+      //      TReal totalmag=0;
       // first get current position of particle
       typename VelocityFieldInterpolatorType::OutputType f1;  f1.Fill(0);
       typename VelocityFieldInterpolatorType::OutputType f2;  f2.Fill(0);
@@ -3032,10 +3032,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         std::cout << " p2 " << pointIn2 << std::endl;
         }
 
-      Y1x[TDimension] = itimetn1 * (float)(m_NumberOfTimePoints - 1);
-      Y2x[TDimension] = itimetn1h * (float)(m_NumberOfTimePoints - 1);
-      Y3x[TDimension] = itimetn1h * (float)(m_NumberOfTimePoints - 1);
-      Y4x[TDimension] = itime * (float)(m_NumberOfTimePoints - 1);
+      Y1x[TDimension] = itimetn1 * (TReal)(m_NumberOfTimePoints - 1);
+      Y2x[TDimension] = itimetn1h * (TReal)(m_NumberOfTimePoints - 1);
+      Y3x[TDimension] = itimetn1h * (TReal)(m_NumberOfTimePoints - 1);
+      Y4x[TDimension] = itime * (TReal)(m_NumberOfTimePoints - 1);
       if( this->m_Debug )
         {
         std::cout << " p2 " << pointIn2 << " y1 " <<  Y1x[TDimension] <<  " y4 " <<   Y4x[TDimension]  << std::endl;
@@ -3077,10 +3077,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         pointIn3[jj] = pointIn2[jj] + vecsign * deltaTime / 6.0 * ( f1[jj] + 2.0 * f2[jj] + 2.0 * f3[jj] + f4[jj] );
         }
-      pointIn3[TDimension] = itime * (float)(m_NumberOfTimePoints - 1);
+      pointIn3[TDimension] = itime * (TReal)(m_NumberOfTimePoints - 1);
 
       VectorType out;
-      float      mag = 0, dmag = 0;
+      TReal      mag = 0, dmag = 0;
       for( unsigned int jj = 0; jj < TDimension; jj++ )
         {
         out[jj] = pointIn3[jj] - pointIn1[jj];
@@ -3120,8 +3120,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
             {
             unsigned long lastct = (unsigned long) this->m_HitImage->GetPixel(thind);
             unsigned long newct = lastct + 1;
-            float         oldthick = this->m_ThickImage->GetPixel(thind);
-            float         newthick = (float)lastct / (float)newct * oldthick + 1.0 / (float)newct * euclideandist;
+            TReal         oldthick = this->m_ThickImage->GetPixel(thind);
+            TReal         newthick = (TReal)lastct / (TReal)newct * oldthick + 1.0 / (TReal)newct * euclideandist;
             this->m_HitImage->SetPixel( thind,  newct );
             this->m_ThickImage->SetPixel(thind, newthick );
             }
