@@ -1120,7 +1120,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
     typename ClassifierType::ClassLabelVectorObjectType::Pointer classLabels2 =
       ClassifierType::ClassLabelVectorObjectType::New();
-    classifier->SetClassLabels( classLabels2 );
+    classifier2->SetClassLabels( classLabels2 );
     typename ClassifierType::ClassLabelVectorType & classLabelVector2 =
       classLabels2->Get();
 
@@ -1142,7 +1142,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     typename ClassifierType::MembershipFunctionVectorType & membershipFunctionsVector2 =
       membershipFunctions2->Get();
 
-    classifier->SetMembershipFunctions( membershipFunctions2 );
+    classifier2->SetMembershipFunctions( membershipFunctions2 );
     for( unsigned int n = 0; n < this->m_NumberOfTissueClasses; n++ )
       {
       typename MembershipFunctionType::Pointer
