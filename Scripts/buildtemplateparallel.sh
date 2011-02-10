@@ -6,7 +6,14 @@ VERSION="0.0.13"
 trap control_c SIGINT
 
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
- export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
+if [ ${#ANTSPATH} -le 3 ] ; then
+  echo we guess at your ants path
+  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+fi
+if [ ! -s ${ANTSPATH}/ANTS ] ; then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
+fi
 
 #assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 

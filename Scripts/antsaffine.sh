@@ -1,5 +1,12 @@
 #!/bin/sh
-export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"}
+if [ ${#ANTSPATH} -le 3 ] ; then
+  echo we guess at your ants path
+  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+fi
+if [ ! -s ${ANTSPATH}/ANTS ] ; then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
+fi
 
 NUMPARAMS=$#
 
