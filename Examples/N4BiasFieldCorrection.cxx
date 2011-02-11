@@ -346,7 +346,7 @@ int N4( itk::ants::CommandLineParser *parser )
       }
     if( histOption->GetNumberOfParameters() > 1 )
       {
-      correcter->SetWeinerFilterNoise( parser->Convert<float>(
+      correcter->SetWienerFilterNoise( parser->Convert<float>(
                                          histOption->GetParameter( 1 ) ) );
       }
     if( histOption->GetNumberOfParameters() > 2 )
