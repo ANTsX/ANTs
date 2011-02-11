@@ -9,21 +9,21 @@
 #include "itkRGBPixel.h"
 #include "itkRGBAPixel.h"
 
-#include "itkRedColormapFunctor.h"
-#include "itkGreenColormapFunctor.h"
-#include "itkBlueColormapFunctor.h"
-#include "itkGreyColormapFunctor.h"
-#include "itkHotColormapFunctor.h"
-#include "itkCoolColormapFunctor.h"
-#include "itkSpringColormapFunctor.h"
-#include "itkSummerColormapFunctor.h"
-#include "itkAutumnColormapFunctor.h"
-#include "itkWinterColormapFunctor.h"
-#include "itkCopperColormapFunctor.h"
-#include "itkHSVColormapFunctor.h"
-#include "itkJetColormapFunctor.h"
-#include "itkCustomColormapFunctor.h"
-#include "itkOverUnderColormapFunctor.h"
+#include "itkRedColormapFunction.h"
+#include "itkGreenColormapFunction.h"
+#include "itkBlueColormapFunction.h"
+#include "itkGreyColormapFunction.h"
+#include "itkHotColormapFunction.h"
+#include "itkCoolColormapFunction.h"
+#include "itkSpringColormapFunction.h"
+#include "itkSummerColormapFunction.h"
+#include "itkAutumnColormapFunction.h"
+#include "itkWinterColormapFunction.h"
+#include "itkCopperColormapFunction.h"
+#include "itkHSVColormapFunction.h"
+#include "itkJetColormapFunction.h"
+#include "itkCustomColormapFunction.h"
+#include "itkOverUnderColormapFunction.h"
 
 #include "itkScalarToRGBColormapImageFilter.h"
 
@@ -115,16 +115,16 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   else if( colormapString == "jet"  )
     {
 //    rgbfilter->SetColormap( RGBFilterType::Jet );
-    typedef itk::Functor::JetColormapFunctor<typename RealImageType::PixelType,
-                                             typename RGBImageType::PixelType> ColormapType;
+    typedef itk::Function::JetColormapFunction<typename RealImageType::PixelType,
+                                               typename RGBImageType::PixelType> ColormapType;
     typename ColormapType::Pointer colormap = ColormapType::New();
     rgbfilter->SetColormap( colormap );
     }
   else if( colormapString == "hsv"  )
     {
 //    rgbfilter->SetColormap( RGBFilterType::HSV );
-    typedef itk::Functor::HSVColormapFunctor<typename RealImageType::PixelType,
-                                             typename RGBImageType::PixelType> ColormapType;
+    typedef itk::Function::HSVColormapFunction<typename RealImageType::PixelType,
+                                               typename RGBImageType::PixelType> ColormapType;
     typename ColormapType::Pointer colormap = ColormapType::New();
     rgbfilter->SetColormap( colormap );
     }
@@ -134,8 +134,8 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     }
   else if( colormapString == "custom"  )
     {
-    typedef itk::Functor::CustomColormapFunctor<typename RealImageType::PixelType,
-                                                typename RGBImageType::PixelType> ColormapType;
+    typedef itk::Function::CustomColormapFunction<typename RealImageType::PixelType,
+                                                  typename RGBImageType::PixelType> ColormapType;
     typename ColormapType::Pointer colormap = ColormapType::New();
 
     std::ifstream str( argv[6] );
