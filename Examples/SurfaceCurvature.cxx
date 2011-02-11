@@ -50,6 +50,7 @@ int main(int argc, char *argv[])
     std::cout << " e.g  :   SurfaceCurvature    BrainIn.nii BrainOut.nii   3  0 " << std::endl;
     std::cout << " option 0 means just compute mean curvature from intensity " << std::endl;
     std::cout << " option 5 means characterize surface from intensity " << std::endl;
+    std::cout << " option 6 means compute gaussian curvature " << std::endl;
     std::cout << " ... " << std::endl;
     std::cout << " for surface characterization " << std::endl;
     std::cout << " 1 == cup " << std::endl;
@@ -134,7 +135,7 @@ int main(int argc, char *argv[])
 //  Parameterizer->IntegrateFunctionOverSurface(true);
 
   std::cout << " computing frame " << std::endl;
-  if( opt != 5 )
+  if( opt != 5 && opt != 6 )
     {
     Parameterizer->ComputeFrameOverDomain( 3 );
     }
