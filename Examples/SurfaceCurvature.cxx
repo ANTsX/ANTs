@@ -50,6 +50,19 @@ int main(int argc, char *argv[])
     std::cout << " e.g  :   SurfaceCurvature    BrainIn.nii BrainOut.nii   3  0 " << std::endl;
     std::cout << " option 0 means just compute mean curvature from intensity " << std::endl;
     std::cout << " option 5 means characterize surface from intensity " << std::endl;
+    std::cout << " ... " << std::endl;
+    std::cout << " for surface characterization " << std::endl;
+    std::cout << " 1 == cup " << std::endl;
+    std::cout << " 2 == a U shape  " << std::endl;
+    std::cout << " 3 == a saddle shape with more positiveness " << std::endl;
+    std::cout << " 4 == flat " << std::endl;
+    std::cout << " 5 == a perfectly even saddle (rare) " << std::endl;
+    std::cout << " 6 == inverted cup " << std::endl;
+    std::cout << " 7 == inverted U shape " << std::endl;
+    std::cout << " 8 == a saddle shape with more negativeness " << std::endl;
+    std::cout << " " << std::endl;
+    std::cout << " we add 128 to mean curvature results s.t. they are differentiated from background (zero) "
+              << std::endl;
     return 0;
     }
 

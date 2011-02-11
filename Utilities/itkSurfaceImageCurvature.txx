@@ -1232,6 +1232,10 @@ void  SurfaceImageCurvature<TSurface>
       {
       offset = 128.0;
       }
+    if( which == 5 )
+      {
+      offset = 0;
+      }
     this->m_FunctionImage->SetPixel(index, offset + kpix);
     ct2++;
     ++ti;
