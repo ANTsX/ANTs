@@ -130,7 +130,14 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool success = true)
   double e1 = D(0, 0);
   double e2 = D(1, 1);
   double e3 = D(2, 2);
-
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
   // float peigeps=1.e-12;
 
   if( fabs(e3) < eps )
@@ -184,59 +191,33 @@ TensorType TensorExp( TensorType dtv, bool takelog, bool success = true)
 template <class TensorType>
 float  GetTensorFA( TensorType dtv )
 {
-// inner product
-  float xx = dtv[0];
-  float xy = dtv[1];
-  float xz = dtv[2];
-  float yy = dtv[3];
-  float yz = dtv[4];
-  float zz = dtv[5];
-  float isp = ( xx * xx + yy * yy + zz * zz + 2.0 * (xy * xy + xz * xz + yz * yz) );
-
-  // Computed as
-  // FA = vcl_sqrt(1.5*sum(sum(N.*N))/sum((sum(D.*D))))
-  // where N = D - ((1/3)*trace(D)*eye(3,3))
-  // equation (28) in http://lmi.bwh.harvard.edu/papers/pdfs/2002/westinMEDIA02.pdf
-
-  if( isp > 0.0 )
+  typedef vnl_matrix<double> MatrixType;
+  MatrixType DT(3, 3);
+  DT.fill(0);
+  DT(0, 0) = dtv[0];
+  DT(1, 1) = dtv[3];
+  DT(2, 2) = dtv[5];
+  DT(1, 0) = DT(0, 1) = dtv[1];
+  DT(2, 0) = DT(0, 2) = dtv[2];
+  DT(2, 1) = DT(1, 2) = dtv[4];
+  vnl_symmetric_eigensystem<double> eig(DT);
+  double                            e1 = (eig.D(0, 0) );
+  double                            e2 = (eig.D(1, 1) );
+  double                            e3 = (eig.D(2, 2) );
+  if( e1 < 0 )
     {
-    float trace = dtv[0];
-    trace += dtv[3];
-    trace += dtv[5];
-
-    float anisotropy = 3.0 * isp - trace * trace;
-    float fractionalAnisotropy = ( vcl_sqrt(anisotropy / ( 2.0 * isp ) ) );
-    return fractionalAnisotropy;
+    e1 = e2;
     }
-
-  return 0.0;
-
-  /*
-  // Computed as
-  // FA = vcl_sqrt(1.5 * ( \sum_i ( lambda_i - lambda_mean )^2 ) / \sum_i ( lambda_i^2 ) )
-  // as in http://splweb.bwh.harvard.edu:8000/pages/papers/martha/DTI_Tech354.pdf
-  // [lambda = eig(A)].
-  EigenValuesArrayType eigenValues;
-  ComputeEigenValues( eigenValues );
-  eigenValues[0] = vnl_math_abs(eigenValues[0]);
-  eigenValues[1] = vnl_math_abs(eigenValues[1]);
-  eigenValues[2] = vnl_math_abs(eigenValues[2]);
-  const RealValueType norm_E = vnl_math_sqr(eigenValues[0])
-                             + vnl_math_sqr(eigenValues[1])
-                             + vnl_math_sqr(eigenValues[2]);
-
-  if( norm_E > 0.0 )
+  if( e3 < 0 )
     {
-    const RealValueType anisotropy =
-                     vnl_math_sqr(eigenValues[0] - eigenValues[1]) +
-                     vnl_math_sqr(eigenValues[1] - eigenValues[2]) +
-                     vnl_math_sqr(eigenValues[2] - eigenValues[0]);
-    const RealValueType fractionalAnisotropy = vcl_sqrt( 0.5 * anisotropy/norm_E);
-    return fractionalAnisotropy;
+    e3 = e2;
     }
-
-  return 0.0;
-  */
+  // compute variance of e's
+  double emean = (e1 + e2 + e3) / 3.0;
+  double numer = sqrt( (e1 - emean) * (e1 - emean) + (e2 - emean) * (e2 - emean) + (e3 - emean) * (e3 - emean) );
+  double denom = sqrt(e1 * e1 + e2 * e2 + e3 * e3);
+  double fa = sqrt(3.0 / 2.0) * numer / denom;
+  return fa;
 }
 
 template <class TVectorType, class TTensorType>
@@ -256,7 +237,15 @@ float  GetMetricTensorCost(  TVectorType dpath,  TTensorType dtv, unsigned int m
   double                            e1 = (eig.D(0, 0) );
   double                            e2 = (eig.D(1, 1) );
   double                            e3 = (eig.D(2, 2) );
-  double                            etot = e1 + e2 + e3;
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
+  double etot = e1 + e2 + e3;
   if( etot == 0 )
     {
     etot = 1;
@@ -296,7 +285,15 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
   double                            e3 = (eig.D(0, 0) );
   double                            e2 = (eig.D(1, 1) );
   double                            e1 = (eig.D(2, 2) );
-  double                            etot = e1 + e2 + e3;
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
+  double etot = e1 + e2 + e3;
   if( etot == 0 )
     {
     etot = 1;
@@ -421,7 +418,14 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
   double                            e1 = (eig.D(0, 0) );
   double                            e2 = (eig.D(1, 1) );
   double                            e3 = (eig.D(2, 2) );
-
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
   if( opt <= 1 )
     {
     return (e1 + e1 + e3) / 3.0;
@@ -551,7 +555,14 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
   double e1 = (eig.D(0, 0) );
   double e2 = (eig.D(1, 1) );
   double e3 = (eig.D(2, 2) );
-
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
   itk::RGBPixel<float> rgb;
 
   float xx = dtv[0];
@@ -698,7 +709,15 @@ static float GetMetricTensorCost(  itk::Vector<float, 3> dpath,  TTensorType dtv
   double                            e1 = (eig.D(0, 0) );
   double                            e2 = (eig.D(1, 1) );
   double                            e3 = (eig.D(2, 2) );
-  double                            etot = e1 + e2 + e3;
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
+  double etot = e1 + e2 + e3;
   if( etot == 0 )
     {
     etot = 1;
