@@ -53,14 +53,14 @@ int main(int argc, char *argv[])
     std::cout << " option 6 means compute gaussian curvature " << std::endl;
     std::cout << " ... " << std::endl;
     std::cout << " for surface characterization " << std::endl;
-    std::cout << " 1 == cup " << std::endl;
-    std::cout << " 2 == a U shape  " << std::endl;
-    std::cout << " 3 == a saddle shape with more positiveness " << std::endl;
-    std::cout << " 4 == flat " << std::endl;
-    std::cout << " 5 == a perfectly even saddle (rare) " << std::endl;
-    std::cout << " 6 == inverted cup " << std::endl;
-    std::cout << " 7 == inverted U shape " << std::endl;
-    std::cout << " 8 == a saddle shape with more negativeness " << std::endl;
+    std::cout << " 1 == (+) bowl " << std::endl;
+    std::cout << " 2 == (-) bowl  " << std::endl;
+    std::cout << " 3 == (+) saddle " << std::endl;
+    std::cout << " 4 == (-) saddle " << std::endl;
+    std::cout << " 5 == (+) U " << std::endl;
+    std::cout << " 6 == (-) U " << std::endl;
+    std::cout << " 7 == flat " << std::endl;
+    std::cout << " 8 == a perfectly even saddle (rare) " << std::endl;
     std::cout << " " << std::endl;
     std::cout << " we add 128 to mean curvature results s.t. they are differentiated from background (zero) "
               << std::endl;

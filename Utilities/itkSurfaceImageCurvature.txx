@@ -1223,6 +1223,10 @@ void  SurfaceImageCurvature<TSurface>
         {
         kpix = this->CharacterizeSurface();
         }
+      if( which == 6 )
+        {
+        kpix = this->m_GaussianKappa;
+        }
       ct++;
       this->m_PointList.clear();
       }
