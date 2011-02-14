@@ -6,7 +6,7 @@
 #include "itkExtractImageFilter.h"
 
 template <unsigned int ImageDimension>
-int ExtractSliceFromImage( int argc, char *argv[] )
+int ExtractSliceFromImage( int itkNotUsed( argc ), char *argv[] )
 {
   typedef float PixelType;
 
@@ -31,6 +31,7 @@ int ExtractSliceFromImage( int argc, char *argv[] )
   typename ExtracterType::Pointer extracter = ExtracterType::New();
   extracter->SetInput( reader->GetOutput() );
   extracter->SetExtractionRegion( region );
+  extracter->SetDirectionCollapseToIdentity();
   extracter->Update();
 
   typedef itk::ImageFileWriter<SliceType> WriterType;
