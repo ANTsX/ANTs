@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkJensenHavrdaCharvatTsallisPointSetMetric.h,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 23:46:06 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2008/12/06 04:52:56 $
+  Version:   $Revision: 1.3 $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -112,7 +111,8 @@ public:
   void GetValueAndDerivative( const TransformParametersType & parameters, MeasureType& Value,
                               DerivativeType& Derivative ) const;
 
-  itkSetClampMacro( Alpha, RealType, 1.0, 2.0 );
+//  itkSetClampMacro( Alpha, RealType, 1.0, 2.0 );
+  itkSetMacro( Alpha, RealType );
   itkGetConstMacro( Alpha, RealType );
 
   itkSetMacro( UseRegularizationTerm, bool );

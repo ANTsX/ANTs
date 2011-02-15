@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkJensenHavrdaCharvatTsallisPointSetMetric.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 23:46:06 $
-  Version:   $Revision: 1.18 $
+  Date:      $Date: 2008/12/06 05:19:54 $
+  Version:   $Revision: 1.5 $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -227,9 +226,10 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
     {
     PointType samplePoint = It.Value();
 
-    RealType probabilityStar = densityFunctions[0]->Evaluate( samplePoint )
-      * static_cast<RealType>( points[0]->GetNumberOfPoints() )
-      + densityFunctions[1]->Evaluate( samplePoint )
+    RealType probabilityStar =
+//         densityFunctions[0]->Evaluate( samplePoint ) *
+//         static_cast<RealType>( points[0]->GetNumberOfPoints() ) +
+      densityFunctions[1]->Evaluate( samplePoint )
       * static_cast<RealType>( points[1]->GetNumberOfPoints() );
     probabilityStar /= totalNumberOfPoints;
 
@@ -241,16 +241,21 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
     if( this->m_Alpha == 1.0 )
       {
-      energyTerm1 += ( prefactor
-                       * vcl_log( probabilityStar )  / vnl_math::ln2 );
+      energyTerm1 += vcl_log( probabilityStar );
       }
     else
       {
-      energyTerm1 += ( prefactor * vcl_pow( probabilityStar,
-                                            static_cast<RealType>( this->m_Alpha - 1.0 ) ) );
+      energyTerm1 += vcl_pow( probabilityStar,
+                              static_cast<RealType>( this->m_Alpha - 1.0 ) );
       }
     ++It;
     }
+
+  if( this->m_Alpha != 1.0 )
+    {
+    energyTerm1 -= 1.0;
+    }
+  energyTerm1 *= prefactor;
 
   /**
     * second term, i.e. regularization term
@@ -280,8 +285,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
       if( this->m_Alpha == 1.0 )
         {
-        energyTerm2 += ( prefactor2
-                         * vcl_log( probability ) / vnl_math::ln2 );
+        energyTerm2 += ( prefactor2 * vcl_log( probability ) );
         }
       else
         {
@@ -290,6 +294,12 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
         }
       ++It;
       }
+
+    if( this->m_Alpha != 1.0 )
+      {
+      energyTerm2 -= 1.0;
+      }
+    energyTerm2 *= prefactor2;
     }
 
   measure[0] = energyTerm1 - energyTerm2;
@@ -383,9 +393,10 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
     {
     PointType fixedSamplePoint = It.Value();
 
-    RealType probabilityStar = densityFunctions[0]->Evaluate( fixedSamplePoint )
-      * static_cast<RealType>( points[0]->GetNumberOfPoints() )
-      + densityFunctions[1]->Evaluate( fixedSamplePoint )
+    RealType probabilityStar =
+//         densityFunctions[0]->Evaluate( fixedSamplePoint ) *
+//         static_cast<RealType>( points[0]->GetNumberOfPoints() ) +
+      densityFunctions[1]->Evaluate( fixedSamplePoint )
       * static_cast<RealType>( points[1]->GetNumberOfPoints() );
     probabilityStar /= totalNumberOfPoints;
 
@@ -619,9 +630,10 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
     {
     PointType fixedSamplePoint = It.Value();
 
-    RealType probabilityStar = densityFunctions[0]->Evaluate( fixedSamplePoint )
-      * static_cast<RealType>( points[0]->GetNumberOfPoints() )
-      + densityFunctions[1]->Evaluate( fixedSamplePoint )
+    RealType probabilityStar =
+//       densityFunctions[0]->Evaluate( fixedSamplePoint ) *
+//       static_cast<RealType>( points[0]->GetNumberOfPoints() ) +
+      densityFunctions[1]->Evaluate( fixedSamplePoint )
       * static_cast<RealType>( points[1]->GetNumberOfPoints() );
 
     probabilityStar /= totalNumberOfPoints;
@@ -634,8 +646,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
     if( this->m_Alpha == 1.0 )
       {
-      energyTerm1 += ( prefactor[0]
-                       * vcl_log( probabilityStar )  / vnl_math::ln2 );
+      energyTerm1 += ( prefactor[0] * vcl_log( probabilityStar ) );
       }
     else
       {
@@ -694,6 +705,12 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
     ++It;
     }
 
+  if( this->m_Alpha != 1.0 )
+    {
+    energyTerm1 -= 1.0;
+    }
+  energyTerm1 *= prefactor[0];
+
   /**
    * second term, i.e. regularization term
    */
@@ -726,8 +743,7 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
 
       if( this->m_Alpha == 1.0 )
         {
-        energyTerm2 += ( prefactor2[0]
-                         * vcl_log( probability ) / vnl_math::ln2 );
+        energyTerm2 += ( prefactor2[0] * vcl_log( probability ) );
         }
       else
         {
@@ -786,6 +802,12 @@ JensenHavrdaCharvatTsallisPointSetMetric<TPointSet>
         }
       ++It;
       }
+
+    if( this->m_Alpha != 1.0 )
+      {
+      energyTerm2 -= 1.0;
+      }
+    energyTerm2 *= prefactor2[0];
     }
 
   value[0] = energyTerm1 - energyTerm2;
