@@ -446,11 +446,13 @@ int N4( itk::ants::CommandLineParser *parser )
     typename CropperType::Pointer cropper = CropperType::New();
     cropper->SetInput( divider->GetOutput() );
     cropper->SetExtractionRegion( inputRegion );
+    cropper->SetDirectionCollapseToSubmatrix();
     cropper->Update();
 
     typename CropperType::Pointer biasFieldCropper = CropperType::New();
     biasFieldCropper->SetInput( expFilter->GetOutput() );
     biasFieldCropper->SetExtractionRegion( inputRegion );
+    biasFieldCropper->SetDirectionCollapseToSubmatrix();
     biasFieldCropper->Update();
 
     if( outputOption->GetNumberOfParameters() == 0 )
