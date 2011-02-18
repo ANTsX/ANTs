@@ -19,10 +19,18 @@ echo " Other parameters are defaults used in the A. Klein evaluation paper in Ne
 echo " "
 echo " The DT component is distortion corrected to the T1 image either by the B-Zero Image / Average-DWI Image "
 echo " or whatever is passed as the last parameter --- Alternatively, we compute the FA from the DTI and then "
-echo" distortion correct to it.   One should test the validity of this approach on your data before widely applying ."
+echo " distortion correct to it.   One should test the validity of this approach on your data before widely applying ."
 echo " We use the cross-correlation to perform the distortion correction. "
 echo " Some parameter tuning may be required, depending on the distortions present in your acquisition. "
 exit
+fi
+if [ ${#ANTSPATH} -le 3 ] ; then
+  echo we guess at your ants path
+  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+fi
+if [ ! -s ${ANTSPATH}/ANTS ] ; then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
 fi
 
 #initialization, here, is unbiased
@@ -94,14 +102,10 @@ fi
   NUMLEVELS=${#ITERATLEVEL[@]}
   echo $NUMLEVELS
   REGULARIZATION=Gauss[3,0]
-  METRIC=PR[
-    METRICPARAMS=1,2]
+  METRIC=CC[
+  METRICPARAMS=1,2]
 #echo " $METRICPARAMS  &  $METRIC "
 #exit
-
-
-#ANTSPATH=/mnt/aibs1/avants/bin/ants/
-#ANTSPATH=YOURANTSPATH
 
 echo  " ANTSPATH  $ANTSPATH "
 echo " Mapping Parameters  :: "
@@ -120,25 +124,25 @@ echo " "
 
 # first, do distortion correction of MOVINGDT to MOVING
 # use the B0 image
-${ANTSPATH}ANTS 3 -m PR[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0  --do-rigid 1
+${ANTSPATH}ANTS 3 -m CC[${MOVINGBZ},${MOVING},1,2]  -o ${OUTPUTNAME}distcorr  -r Gauss[3,0] -t SyN[0.25]  -i 25x20x0  --number-of-affine-iterations 10000x10000x10000
 
-${ANTSPATH}WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii ${OUTPUTNAME}distcorrWarp.nii ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
+${ANTSPATH}WarpImageMultiTransform 3 $MOVING   ${OUTPUTNAME}distcorr.nii.gz ${OUTPUTNAME}distcorrWarp.nii.gz ${OUTPUTNAME}distcorrAffine.txt  -R $MOVINGBZ
 #exit
 
 if [[ ! -s ${OUTPUTNAME}Affine.txt ]] ; then
-sh ${ANTSPATH}/ants.sh $DIM $FIXED $MOVING ${OUTPUTNAME}
+  sh ${ANTSPATH}/ants.sh $DIM $FIXED $MOVING ${OUTPUTNAME}
 fi
 
-
 if  [[ -s ${MOVINGDT}  ]] &&  [[  -s ${OUTPUTNAME}Affine.txt ]] ; then
-    DTDEF=${OUTPUTNAME}DTdeformed.nii
-    FIXEDSUB=${OUTPUTNAME}fixedsub.nii
-    ${ANTSPATH}ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
+    DTDEF=${OUTPUTNAME}DTdeformed.nii.gz
+    FIXEDSUB=${OUTPUTNAME}fixedsub.nii.gz
+#    ${ANTSPATH}ResampleImageBySpacing 3 $FIXED $FIXEDSUB 2 2 2
+    FIXEDSUB=$FIXED
     echo " Warp DT "
-    ${ANTSPATH}WarpTensorImageMultiTransform $DIM  $MOVINGDT    $DTDEF ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii   -R $FIXEDSUB
+    ${ANTSPATH}WarpTensorImageMultiTransform $DIM  $MOVINGDT    $DTDEF ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz   -R $FIXEDSUB
 
-    COMPWARP=${OUTPUTNAME}DTwarp.nii
-    ${ANTSPATH}ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii
+    COMPWARP=${OUTPUTNAME}DTwarp.nii.gz
+    ${ANTSPATH}ComposeMultiTransform $DIM $COMPWARP   -R ${FIXEDSUB}  ${OUTPUTNAME}Warp.nii.gz ${OUTPUTNAME}Affine.txt  -i  ${OUTPUTNAME}distcorrAffine.txt   ${OUTPUTNAME}distcorrInverseWarp.nii.gz
     ${ANTSPATH}ReorientTensorImage 3 $DTDEF  $DTDEF  $COMPWARP
 
 fi
@@ -146,3 +150,5 @@ fi
 
 
 exit
+
+
