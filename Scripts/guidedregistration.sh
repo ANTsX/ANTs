@@ -6,6 +6,14 @@ echo " the template = fixed.nii   ,   the individual = moving.nii "
 echo " iterations should be of the form  100x100x10 "
 exit
 fi
+if [ ${#ANTSPATH} -le 3 ] ; then
+  echo we guess at your ants path
+  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+fi
+if [ ! -s ${ANTSPATH}/ANTS ] ; then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
+fi
 
 FIX=$1
 FIXH=$2
@@ -51,15 +59,15 @@ PCT=0.1 # percent of labeled voxels to use
 PARZ=100 # PARZEN sigma
 LM=PSE[${FIX},${MOV},$FIXH,$MOVH,${LMWT},${PCT},${PARZ},0,25,100]
 
-INTENSITY=PR[$FIX,${MOV},${INTWT},4]
+INTENSITY=CC[$FIX,${MOV},${INTWT},4]
 
 #  == Important Parameters end? ==
 
  ${ANTSPATH}ANTS $DIM -o $OUT  -i $ITS -t SyN[0.25]  -r Gauss[3,0] -m $INTENSITY   -m   $LM
 
- ${ANTSPATH}WarpImageMultiTransform $DIM $MOV ${OUT}toTemplate.nii ${OUT}Warp.nii ${OUT}Affine.txt  -R $FIX
+ ${ANTSPATH}WarpImageMultiTransform $DIM $MOV ${OUT}toTemplate.nii.gz ${OUT}Warp.nii.gz ${OUT}Affine.txt  -R $FIX
 
- ${ANTSPATH}WarpImageMultiTransform $DIM  $FIX ${OUT}toMov.nii -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii  -R $MOV
+ ${ANTSPATH}WarpImageMultiTransform $DIM  $FIX ${OUT}toMov.nii.gz -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii.gz  -R $MOV
 
- ${ANTSPATH}WarpImageMultiTransform $DIM $FIXH  ${OUT}hipp.nii -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii  -R $MOV --UseNN
+ ${ANTSPATH}WarpImageMultiTransform $DIM $FIXH  ${OUT}hipp.nii.gz -i ${OUT}Affine.txt  ${OUT}InverseWarp.nii.gz  -R $MOV --UseNN
 
