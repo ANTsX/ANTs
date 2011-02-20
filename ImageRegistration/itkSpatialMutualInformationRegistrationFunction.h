@@ -451,7 +451,7 @@ public:
     //	std::cout << " JE " << JointEntropy << " JEXuY " << JointEntropyXuY << " JEXYu " << JointEntropyXYu << " JEXuYr
     // " << JointEntropyXuYr << std::endl;
 
-    this->m_Energy = (-1.0) * fabs(SMI / log(2) );
+    this->m_Energy = (-1.0) * fabs(SMI);
     return this->m_Energy;
   }
 
@@ -531,7 +531,9 @@ public:
   {
     unsigned int movingImageParzenWindowIndex  =
       static_cast<unsigned int>( this->m_Padding
-                                 + round( windowTerm * (float)(this->m_NumberOfHistogramBins - 1 - this->m_Padding) ) );
+                                 + (unsigned int)( windowTerm
+                                                   * (float)(this->m_NumberOfHistogramBins - 1 - this->m_Padding
+                                                             + 0.5) ) );
 
     // Make sure the extreme values are in valid bins
     if( movingImageParzenWindowIndex < this->m_Padding )

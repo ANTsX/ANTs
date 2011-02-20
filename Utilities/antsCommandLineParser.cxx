@@ -431,25 +431,25 @@ CommandLineParser
             }
           }
 
-        unsigned int n = (*it)->GetValues().size() - 1;
+        unsigned int nn = (*it)->GetValues().size() - 1;
 
-        os << (*it)->GetValue( n );
-        if( (*it)->GetParameters( n ).size() > 0 )
+        os << (*it)->GetValue( nn );
+        if( (*it)->GetParameters( nn ).size() > 0 )
           {
           os << "[";
-          if( (*it)->GetParameters( n ).size() == 1 )
+          if( (*it)->GetParameters( nn ).size() == 1 )
             {
-            os << (*it)->GetParameter( n, 0 ) << "]";
+            os << (*it)->GetParameter( nn, 0 ) << "]";
             }
           else
             {
             for( unsigned int i = 0;
-                 i < (*it)->GetParameters( n ).size() - 1; i++ )
+                 i < (*it)->GetParameters( nn ).size() - 1; i++ )
               {
-              os << (*it)->GetParameter( n, i ) << ",";
+              os << (*it)->GetParameter( nn, i ) << ",";
               }
-            os << (*it)->GetParameter( n,
-                                       (*it)->GetParameters( n ).size() - 1 ) << "]";
+            os << (*it)->GetParameter( nn,
+                                       (*it)->GetParameters( nn ).size() - 1 ) << "]";
             }
           }
         }

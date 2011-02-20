@@ -131,6 +131,28 @@ int main(int argc, char *argv[])
   // Get the image dimension
   switch( atoi(argv[1]) )
     {
+    case 1:
+      {
+      switch( ncomponents )
+        {
+        case 3:
+          {
+          MultiplyImages<1, 3>(argc, argv);
+          }
+          break;
+        case 2:
+          {
+          MultiplyImages<1, 2>(argc, argv);
+          }
+          break;
+        default:
+          {
+          MultiplyImages<1, 1>(argc, argv);
+          }
+          break;
+        }
+      }
+      break;
     case 2:
       {
       switch( ncomponents )

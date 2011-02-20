@@ -345,6 +345,11 @@ int main(int argc, char *argv[])
 
   switch( imageIO->GetNumberOfDimensions() )
     {
+    case 1:
+      {
+      PrintHeader<1>(argc, argv);
+      }
+      break;
     case 2:
       {
       PrintHeader<2>(argc, argv);

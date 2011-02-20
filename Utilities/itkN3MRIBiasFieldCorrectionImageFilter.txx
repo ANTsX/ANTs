@@ -320,10 +320,10 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 }
 
 template <class TInputImage, class TMaskImage, class TOutputImage>
-typename N3MRIBiasFieldCorrectionImageFilter
-<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
+typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
-::SharpenImage( typename RealImageType::Pointer unsharpenedImage )
+::SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
+                unsharpenedImage )
 {
   /**
    * Build the histogram for the uncorrected image.  Store copy
@@ -555,7 +555,8 @@ template <class TInputImage, class TMaskImage, class TOutputImage>
 typename N3MRIBiasFieldCorrectionImageFilter
 <TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
-::SmoothField( typename RealImageType::Pointer fieldEstimate )
+::SmoothField( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
+               fieldEstimate )
 {
   /**
    * Get original direction and change to identity temporarily for the

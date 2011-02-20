@@ -14,7 +14,7 @@ fi
 Image_To_Be_Labeled=$2
 if [[ ! -s $Image_To_Be_Labeled ]] || [[ ${#Image_To_Be_Labeled} -lt 3 ]] ; then
   echo you need to pass an image you want to label as the 2nd argument
-  echo you tried to pass $Image_To_Be_Labeled  with name length ${#Image_To_Be_Labeled} --- sure that's right?
+  echo " you tried to pass $Image_To_Be_Labeled  with name length ${#Image_To_Be_Labeled} --- sure that's right? "
   exit
 fi
 

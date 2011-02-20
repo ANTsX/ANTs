@@ -218,12 +218,12 @@ public:
     double              fixedGradientSquaredMagnitude = 0;
     fixedValue = (double) Superclass::Superclass::m_FixedImage->GetPixel( index );
     fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
-    for( unsigned int j = 0; j < ImageDimension; j++ )
+    unsigned int j = 0;
+    for( j = 0; j < ImageDimension; j++ )
       {
       fixedGradientSquaredMagnitude += vnl_math_sqr( fixedGradient[j] );
       }
     double    movingValue;
-    int       j;
     PointType mappedPoint;
     for( j = 0; j < ImageDimension; j++ )
       {
