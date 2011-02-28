@@ -522,6 +522,32 @@ void ComputeInitialPosition(ImagePointerType & I_fixed, ImagePointerType & I_mov
     }
 }
 
+// fake a all-zero vector
+template <class ImagePointerType, class PointType, class VectorType>
+void ComputeInitialPosition_tmp(ImagePointerType & I_fixed, ImagePointerType & I_moving, PointType & center,
+                                VectorType & translation_vec)
+{
+  typedef typename ImagePointerType::ObjectType           ImageType;
+  typedef typename itk::ImageMomentsCalculator<ImageType> ImageCalculatorType;
+
+  const unsigned int ImageDimension = ImageType::ImageDimension;
+
+  typename ImageCalculatorType::Pointer calculator = ImageCalculatorType::New();
+
+  calculator->SetImage(  I_fixed );
+  calculator->Compute();
+  typename ImageCalculatorType::VectorType fixed_center = calculator->GetCenterOfGravity();
+
+  calculator->SetImage(  I_moving );
+  calculator->Compute();
+  typename ImageCalculatorType::VectorType moving_center = calculator->GetCenterOfGravity();
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    center[i] = fixed_center[i];
+    translation_vec[i] = fixed_center[i] - fixed_center[i];
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////
 template <class PointType, class VectorType, class TransformPointerType>
 void InjectInitialPara(PointType & center, VectorType & translation_vec, TransformPointerType & transform)
@@ -659,6 +685,8 @@ void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType
     {
     PointType  center;
     VectorType translation_vec;
+    // std::cout << "GS: debug: fake a all zero translation_vec" << std::endl;
+    // ComputeInitialPosition_tmp(fixed_image, moving_image, center, translation_vec);
     ComputeInitialPosition(fixed_image, moving_image, center, translation_vec);
     opt.transform_initial = TransformType::New();
     InjectInitialPara(center, translation_vec, opt.transform_initial);

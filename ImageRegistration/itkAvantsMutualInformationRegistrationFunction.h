@@ -368,7 +368,9 @@ public:
         }
       //	  std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
       }
-    this->m_Energy = -1.0 * mival / vcl_log( (double)2.0);
+    // GS: temp edit to make sure if this is decreasing (should be )
+    // this->m_Energy = -1.0*mival/vcl_log((double)2.0);
+    this->m_Energy = mival / vcl_log( (double)2.0);
     return this->m_Energy;
   }
 
