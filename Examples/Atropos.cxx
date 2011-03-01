@@ -15,6 +15,7 @@
 #include "antsLogEuclideanGaussianListSampleFunction.h"
 #include "antsGrubbsRosnerListSampleFilter.h"
 #include "antsHistogramParzenWindowsListSampleFunction.h"
+#include "antsJointHistogramParzenShapeAndOrientationListSampleFunction.h"
 #include "antsListSampleToListSampleFilter.h"
 #include "antsManifoldParzenWindowsListSampleFunction.h"
 #include "antsPassThroughListSampleFilter.h"
@@ -715,11 +716,49 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         segmenter->SetLikelihoodFunction( n, hpwLikelihood );
         }
       }
+    else if( !likelihoodModel.compare( std::string( "jointshapeandorientationprobability" ) ) )
+      {
+      if( segmenter->GetNumberOfIntensityImages() !=
+          static_cast<unsigned int>( ImageDimension * ( ImageDimension + 1 ) / 2 ) )
+        {
+        std::cerr << " Expect images in upper triangular order " << std::endl;
+        std::cerr << " xx xy xz yy yz zz " << std::endl;
+        std::cerr << "Incorrect number of intensity images specified." << std::endl;
+        return EXIT_FAILURE;
+        }
+      typedef typename SegmentationFilterType::SampleType SampleType;
+      typedef itk::ants::Statistics::
+        JointHistogramParzenShapeAndOrientationListSampleFunction
+        <SampleType, float, float> LikelihoodType;
+
+      float sigma = 1.0;
+      if( likelihoodOption->GetNumberOfParameters() > 0 )
+        {
+        sigma = parser->Convert<float>(
+            likelihoodOption->GetParameter( 0 ) );
+        }
+      unsigned int numberOfBins = 32;
+      if( likelihoodOption->GetNumberOfParameters() > 1 )
+        {
+        numberOfBins = parser->Convert<unsigned int>(
+            likelihoodOption->GetParameter( 1 ) );
+        }
+      for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
+        {
+        typename LikelihoodType::Pointer hpwLikelihood =
+          LikelihoodType::New();
+        hpwLikelihood->SetSigma( sigma );
+        hpwLikelihood->SetNumberOfJointHistogramBins( numberOfBins );
+        segmenter->SetLikelihoodFunction( n, hpwLikelihood );
+        }
+      }
     else if( !likelihoodModel.compare( std::string( "logeuclideangaussian" ) ) )
       {
       if( segmenter->GetNumberOfIntensityImages() !=
           static_cast<unsigned int>( ImageDimension * ( ImageDimension + 1 ) / 2 ) )
         {
+        std::cerr << " Expect images in upper triangular order " << std::endl;
+        std::cerr << " xx xy xz yy yz zz " << std::endl;
         std::cerr << "Incorrect number of intensity images specified." << std::endl;
         return EXIT_FAILURE;
         }
@@ -1275,7 +1314,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 1, "HistogramParzenWindows[<sigma=1.0>,<numberOfBins=32>]" );
     option->SetUsageOption( 2,
                             "ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
-    option->SetUsageOption( 3, "LogEuclideanGaussian" );
+    option->SetUsageOption( 3, "JointShapeAndOrientationProbability[<sigma=1.0>,<numberOfBins=32>]" );
+    option->SetUsageOption( 4, "LogEuclideanGaussian" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
