@@ -48,7 +48,7 @@ void
 LogEuclideanGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 ::SetInputListSample( const InputListSampleType * ptr )
 {
-  this->SetInputListSample( ptr );
+  Superclass::SetInputListSample( ptr );
 
   if( !this->GetInputListSample() )
     {
