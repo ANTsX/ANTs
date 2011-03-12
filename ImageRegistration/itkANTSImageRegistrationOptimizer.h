@@ -1380,7 +1380,7 @@ public:
           bspliner2->SetSpacing( spacing );
           bspliner2->SetSize( size );
           bspliner2->SetSplineOrder( 1 );
-          bspliner2->SetInputImage( bspliner->GetOutput() );
+          bspliner2->SetInputImage( bspliner->GetPhiLattice() );
 
           ProfilePointType endPoint;
           endPoint[0] = static_cast<TReal>( this->m_CurrentIteration - domainsize * 0.5 );
