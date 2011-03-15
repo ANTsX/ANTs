@@ -117,6 +117,7 @@ int main( int argc, char *argv[] )
 
   ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
   extractFilter->SetInput( firstReader->GetOutput() );
+  extractFilter->SetDirectionCollapseToIdentity();
   extractFilter->SetExtractionRegion( extractRegion );
   extractFilter->Update();
 
@@ -182,6 +183,7 @@ int main( int argc, char *argv[] )
     //    std::cout << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
     ExtractFilterType::Pointer extract = ExtractFilterType::New();
     extract->SetInput( reader->GetOutput() );
+    extract->SetDirectionCollapseToIdentity();
     extract->SetExtractionRegion( extractRegion );
     extract->Update();
 
