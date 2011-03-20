@@ -2479,6 +2479,24 @@ int TensorFunctions(int argc, char *argv[])
         }
       vimage->SetPixel(ind, result);
       }
+    else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
+      {
+      result = GetTensorFANumerator<TensorType>(tIter.Value() );
+      if( vnl_math_isnan(result) )
+        {
+        result = 0;
+        }
+      vimage->SetPixel(ind, result);
+      }
+    else if( strcmp(operation.c_str(), "TensorFADenominator") == 0 )
+      {
+      result = GetTensorFADenominator<TensorType>(tIter.Value() );
+      if( vnl_math_isnan(result) )
+        {
+        result = 0;
+        }
+      vimage->SetPixel(ind, result);
+      }
     else if( strcmp(operation.c_str(), "TensorColor") == 0 )
       {
       RGBType rgb = GetTensorRGB<TensorType>(tIter.Value() );
@@ -6988,6 +7006,8 @@ int main(int argc, char *argv[])
               << std::endl;
     std::cout << "  4DTensorTo3DTensor 4D_DT_Image --- outputs a 3D_DT_Image with the same information. " << std::endl;
     std::cout << "  TensorFA DTImage  " << std::endl;
+    std::cout << "  TensorFANumerator DTImage  " << std::endl;
+    std::cout << "  TensorFADenominator DTImage  " << std::endl;
     std::cout << "  TensorColor DTImage --- produces RGB values identifying principal directions " << std::endl;
     std::cout
       <<
@@ -7452,6 +7472,14 @@ int main(int argc, char *argv[])
         Where<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorFA") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorFADenominator") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
