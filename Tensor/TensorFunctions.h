@@ -220,6 +220,65 @@ float  GetTensorFA( TensorType dtv )
   return fa;
 }
 
+template <class TensorType>
+float  GetTensorFANumerator( TensorType dtv )
+{
+  typedef vnl_matrix<double> MatrixType;
+  MatrixType DT(3, 3);
+  DT.fill(0);
+  DT(0, 0) = dtv[0];
+  DT(1, 1) = dtv[3];
+  DT(2, 2) = dtv[5];
+  DT(1, 0) = DT(0, 1) = dtv[1];
+  DT(2, 0) = DT(0, 2) = dtv[2];
+  DT(2, 1) = DT(1, 2) = dtv[4];
+  vnl_symmetric_eigensystem<double> eig(DT);
+  double                            e1 = (eig.D(0, 0) );
+  double                            e2 = (eig.D(1, 1) );
+  double                            e3 = (eig.D(2, 2) );
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
+  // compute variance of e's
+  double emean = (e1 + e2 + e3) / 3.0;
+  float  numer = sqrt( (e1 - emean) * (e1 - emean) + (e2 - emean) * (e2 - emean) + (e3 - emean) * (e3 - emean) );
+  return numer;
+}
+
+template <class TensorType>
+float  GetTensorFADenominator( TensorType dtv )
+{
+  typedef vnl_matrix<double> MatrixType;
+  MatrixType DT(3, 3);
+  DT.fill(0);
+  DT(0, 0) = dtv[0];
+  DT(1, 1) = dtv[3];
+  DT(2, 2) = dtv[5];
+  DT(1, 0) = DT(0, 1) = dtv[1];
+  DT(2, 0) = DT(0, 2) = dtv[2];
+  DT(2, 1) = DT(1, 2) = dtv[4];
+  vnl_symmetric_eigensystem<double> eig(DT);
+  double                            e1 = (eig.D(0, 0) );
+  double                            e2 = (eig.D(1, 1) );
+  double                            e3 = (eig.D(2, 2) );
+  if( e1 < 0 )
+    {
+    e1 = e2;
+    }
+  if( e3 < 0 )
+    {
+    e3 = e2;
+    }
+  // compute variance of e's
+  float denom = sqrt(e1 * e1 + e2 * e2 + e3 * e3);
+  return denom;
+}
+
 template <class TVectorType, class TTensorType>
 float  GetMetricTensorCost(  TVectorType dpath,  TTensorType dtv, unsigned int matrixpower)
 {
