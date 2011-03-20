@@ -909,6 +909,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::string newLineTabs( "\n\t\t" );
 
     std::string intensityBasedDescription( "Intensity-Based Metrics: " );
+    std::string weightDescription(
+      "The metric weights are relative to the weights on the N other metrics passed to ANTS --- N is unlimited.  So, the weight, w_i on the i^{th} metric will be  w_i=w_i/ ( sum_i  w_i ).");
     std::string intensityBasedOptions( "[fixedImage,movingImage,weight,radius/OrForMI-#histogramBins]" );
     std::string ccDescription( "CC/cross-correlation/CrossCorrelation" );
     std::string miDescription( "MI/mutual-information/MutualInformation" );
@@ -937,7 +939,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     pointBasedDescription += (
         newLineTabs + pseDescription + pointBasedOptions + pseOptions
         + newLineTabs + jtbDescription + pointBasedOptions + jtbOptions );
-    std::string description = intensityBasedDescription
+    std::string description = weightDescription + intensityBasedDescription
       + pointBasedDescription;
 
     option->SetDescription( description );
