@@ -223,7 +223,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
           {
           distance[j] = movingpoint[j] - fixedpoint[j];
           mag += distance[j] / spacing[j] * distance[j] / spacing[j];
-//		  mag+=distance[j]*distance[j];
           force[j] = distance[j] * inweight;
           }
         float sigma = this->m_FixedPointSetSigma;
@@ -231,7 +230,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
           {
           sigma = this->m_MovingPointSetSigma;
           }
-        prob = exp(-1.0 * mag / sigma);
+        double prob = 1.0 / sqrt(3.14186 * 2.0 * sigma * sigma) * exp(-1.0 * mag / (2.0 * sigma * sigma) );
+        force = force * prob;
         PointDataType movinglabel = 0;
         if( whichdirection )
           {
@@ -336,9 +336,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
       mpt[j] = resultlms(ii, j);
       }
 
-    // for (unsigned long jj=0; jj<sz2; jj++)
-    // for (int j=0; j<ImageDimension; j++) sforce[j]+=sinkhorn(ii,jj)*(movinglms(jj,j)-fixedlms(ii,j));
-
     bool      convok = false;
     IndexType fixedindex;
     convok = this->GetFixedImage()->TransformPhysicalPointToIndex(fpt, fixedindex);
@@ -352,7 +349,14 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
         mag += distance[j] / spacing[j] * distance[j] / spacing[j];
         force[j] = distance[j] * inweight;
         }
-      mag = sqrt(mag);
+      float sigma = this->m_FixedPointSetSigma;
+      if( !whichdirection )
+        {
+        sigma = this->m_MovingPointSetSigma;
+        }
+      double prob = 1.0 / sqrt(3.14186 * 2.0 * sigma * sigma) * exp(-1.0 * mag / (2.0 * sigma * sigma) );
+      force = force * prob;
+
 //      if (fixedlabel !=4 ) force.Fill(0);
 /*
       if (mag > 50)
@@ -369,8 +373,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
         maxerr = mag;
         }
       energy += mag;
-      std::cout << " ii " << ii << " force " << force << " mag " << mag << " mpt " << mpt << " fpt " << fixedpoint
-                <<  " nrg " << energy / (float)ii << std::endl;
+      std::cout << " ii " << ii << " force " << force << " mag " << sqrt(mag) << " mpt " << mpt << " fpt "
+                << fixedpoint <<  " nrg " << energy / (float)ii << std::endl;
       lmField->SetPixel(fixedindex, force + lmField->GetPixel(fixedindex) );
       }
 //    lmField->SetPixel(fixedindex,sforce);
@@ -527,7 +531,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 {
   GlobalDataStruct * globalData = (GlobalDataStruct *) gd;
 
-  m_MetricCalculationLock.Lock();
   m_SumOfSquaredDifference  += globalData->m_SumOfSquaredDifference;
   m_NumberOfPixelsProcessed += globalData->m_NumberOfPixelsProcessed;
   m_SumOfSquaredChange += globalData->m_SumOfSquaredChange;
@@ -538,7 +541,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
     m_RMSChange = vcl_sqrt( m_SumOfSquaredChange
                             / static_cast<double>( m_NumberOfPixelsProcessed ) );
     }
-  m_MetricCalculationLock.Unlock();
 
   delete globalData;
 }
@@ -713,7 +715,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
           {
           sigma = this->m_MovingPointSetSigma;
           }
-        double prob = exp(-1.0 * mag / sigma);
+        double prob = 1.0 / sqrt(3.14186 * 2.0 * sigma * sigma) * exp(-1.0 * mag / (2.0 * sigma * sigma) );
         probtotal += prob;
         probabilities(dd) = prob;
         }
@@ -746,6 +748,13 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
         force[j] = distance[j] * inweight;
         bpoint[j] = fixedpoint[j];
         }
+      float sigma = this->m_FixedPointSetSigma;
+      if( !whichdirection )
+        {
+        sigma = this->m_MovingPointSetSigma;
+        }
+      double prob = 1.0 / sqrt(3.14186 * 2.0 * sigma * sigma) * exp(-1.0 * mag / (2.0 * sigma * sigma) );
+      force = force * prob;
 
 //
       this->m_bpoints->SetPoint( this->m_bcount, bpoint );

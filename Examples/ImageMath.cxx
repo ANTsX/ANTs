@@ -357,6 +357,7 @@ int ExtractSlice(int argc, char *argv[])
 
   typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
   extractFilter->SetInput( image1 );
+  extractFilter->SetDirectionCollapseToIdentity();
   extractFilter->SetExtractionRegion( extractRegion );
   extractFilter->Update();
   outimage = extractFilter->GetOutput();

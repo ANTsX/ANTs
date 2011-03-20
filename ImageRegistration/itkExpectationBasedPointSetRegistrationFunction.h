@@ -306,7 +306,7 @@ private:
   mutable double        m_SumOfSquaredChange;
 
   /** Mutex lock to protect modification to metric. */
-  mutable SimpleFastMutexLock m_MetricCalculationLock;
+  //  mutable SimpleFastMutexLock     m_MetricCalculationLock;
 
   DeformationFieldTypePointer m_DerivativeFixedField;
   DeformationFieldTypePointer m_DerivativeMovingField;

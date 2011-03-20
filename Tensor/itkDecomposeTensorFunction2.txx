@@ -29,7 +29,6 @@
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_matrix_fixed.h"
 #include "vnl/vnl_det.h"
-#include "vxl/vcl/vcl_complex.h"
 
 namespace itk
 {
