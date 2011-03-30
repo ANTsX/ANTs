@@ -4306,12 +4306,12 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   typedef unsigned char                               OutputPixelType;
   typedef itk::Image<OutputPixelType, ImageDimension> OutputImageType;
 
+  //  option->SetUsageOption( 0, "[speedImage,seedImage,<stoppingValue=max>,<topologyCheck=0>]" );
   unsigned int argct = 2;
   std::string  outname = std::string(argv[argct]); argct++;
   std::string  operation = std::string(argv[argct]);  argct++;
   std::string  fn1 = std::string(argv[argct]);   argct++;
   std::string  fn2 = "";
-  float        stoppingValue = 100.0;
   if(  argc > argct )
     {
     fn2 = std::string(argv[argct]);   argct++;
@@ -4320,48 +4320,43 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
     {
     std::cout << " not enough parameters -- need label image " << std::endl;  return 0;
     }
+  float stoppingValue = 100.0;
   if(  argc > argct )
     {
     stoppingValue = atof(argv[argct]);   argct++;
     }
+  int topocheck = 0;
+  if(  argc > argct )
+    {
+    topocheck = atoi(argv[argct]);   argct++;
+    }
 
-  typename ImageType::Pointer speedimage = NULL;
-  ReadImage<ImageType>(speedimage, fn1.c_str() );
-  typename ImageType::Pointer labimage = NULL;
-  ReadImage<ImageType>(labimage, fn2.c_str() );
-  typename ImageType::Pointer fastimage = NULL;
-  ReadImage<ImageType>(fastimage, fn1.c_str() );
-  typename ImageType::Pointer outlabimage = NULL;
-  ReadImage<ImageType>(outlabimage, fn2.c_str() );
+  typedef itk::ImageFileReader<ImageType> ReaderType;
+  typename ReaderType::Pointer reader1 = ReaderType::New();
+  reader1->SetFileName( fn1.c_str() );
 
-  /*
-  typedef itk::WellComposedImageFilter<ImageType> WCFilterType;
-  typename WCFilterType::Pointer filter3D = WCFilterType::New();
-  filter3D->SetInput( labimage );
-  filter3D->SetTotalNumberOfLabels( 1 );
-  filter3D->Update();
-  labimage=filter3D->GetOutput();
-  WriteImage<ImageType>(labimage,"temp.nii.gz");
-  */
+  typedef itk::FastMarchingImageFilter<ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( reader1->GetOutput() );
 
-  typedef  itk::FastMarchingImageFilter
-    <InternalImageType, InternalImageType> FastMarchingFilterType;
-  typename FastMarchingFilterType::Pointer fastMarching
-    = FastMarchingFilterType::New();
-  fastMarching->SetInput( speedimage );
+  typedef typename FilterType::NodeContainer  NodeContainer;
+  typedef typename FilterType::NodeType       NodeType;
+  typedef typename FilterType::LabelImageType LabelImageType;
 
-  typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
-  typedef typename FastMarchingFilterType::NodeType      NodeType;
-  //  typedef typename FastMarchingFilterType::LabelImageType LabelImageType;
-  typedef ImageType LabelImageType;
+  typedef itk::ImageFileReader<LabelImageType> LabelImageReaderType;
+  typename LabelImageReaderType::Pointer labelImageReader =
+    LabelImageReaderType::New();
+  labelImageReader->SetFileName( fn2.c_str() );
+  labelImageReader->Update();
 
-  typedef itk::LabelContourImageFilter<ImageType, LabelImageType> ContourFilterType;
+  typedef itk::LabelContourImageFilter<LabelImageType, LabelImageType>
+    ContourFilterType;
   typename ContourFilterType::Pointer contour = ContourFilterType::New();
-  contour->SetInput(   labimage  );
+  contour->SetInput( labelImageReader->GetOutput() );
   contour->FullyConnectedOff();
-  contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
+  contour->SetBackgroundValue(
+    itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
   contour->Update();
-  //  WriteImage<ImageType>(contour->GetOutput(),"temp2.nii.gz");
 
   typename NodeContainer::Pointer alivePoints = NodeContainer::New();
   alivePoints->Initialize();
@@ -4370,13 +4365,15 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   trialPoints->Initialize();
   unsigned long trialCount = 0;
 
-  itk::ImageRegionIteratorWithIndex<ImageType> ItL(   labimage,
-                                                      labimage->GetLargestPossibleRegion() );
+  itk::ImageRegionIteratorWithIndex<LabelImageType> ItL(
+    labelImageReader->GetOutput(),
+    labelImageReader->GetOutput()->GetLargestPossibleRegion() );
   itk::ImageRegionIteratorWithIndex<LabelImageType> ItC( contour->GetOutput(),
                                                          contour->GetOutput()->GetLargestPossibleRegion() );
   for( ItL.GoToBegin(), ItC.GoToBegin(); !ItL.IsAtEnd(); ++ItL, ++ItC )
     {
-    if( ItC.Get() != itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
+    if( ItC.Get() !=
+        itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
       {
       typename LabelImageType::IndexType position = ItC.GetIndex();
 
@@ -4387,7 +4384,8 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
       node.SetIndex( position );
       trialPoints->InsertElement( trialCount++, node );
       }
-    if( ItL.Get() != itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
+    else if( ItL.Get() !=
+             itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
       {
       typename LabelImageType::IndexType position = ItL.GetIndex();
 
@@ -4399,25 +4397,23 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
       alivePoints->InsertElement( aliveCount++, node );
       }
     }
-  fastMarching->SetTrialPoints(  trialPoints  );
-  fastMarching->SetAlivePoints(  alivePoints  );
+  filter->SetTrialPoints( trialPoints );
+  filter->SetAlivePoints( alivePoints );
 
-  fastMarching->SetStoppingValue( stoppingValue );
-  fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
-  if( argc > 7 && atoi( argv[7] ) == 1 )
+  filter->SetStoppingValue( stoppingValue );
+  filter->SetTopologyCheck( FilterType::None );
+  if( topocheck == 1 )  // Strict
     {
-    std::cout << "Strict." << std::endl;
-    fastMarching->SetTopologyCheck( FastMarchingFilterType::Strict );
+    filter->SetTopologyCheck( FilterType::Strict );
     }
-  if( argc > 7 && atoi( argv[7] ) == 2 )
+  if( topocheck == 2 )  // No handles
     {
-    std::cout << "No handles." << std::endl;
-    fastMarching->SetTopologyCheck( FastMarchingFilterType::NoHandles );
+    filter->SetTopologyCheck( FilterType::NoHandles );
     }
 
   try
     {
-    fastMarching->Update();
+    filter->Update();
     }
   catch( itk::ExceptionObject & excep )
     {
@@ -4425,22 +4421,25 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
     std::cerr << excep << std::endl;
     }
 
-  typedef itk::BinaryThresholdImageFilter
-    <InternalImageType, OutputImageType> ThresholdingFilterType;
-  typename ThresholdingFilterType::Pointer thresholder
-    = ThresholdingFilterType::New();
+  itk::ImageRegionIteratorWithIndex<ImageType> ItF(
+    filter->GetOutput(),
+    filter->GetOutput()->GetLargestPossibleRegion() );
+  for( ItL.GoToBegin(), ItF.GoToBegin(); !ItL.IsAtEnd(); ++ItL, ++ItF )
+    {
+    if( ItL.Get() !=
+        itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
+      {
+      ItF.Set( -ItF.Get() );
+      }
+    }
 
-  thresholder->SetLowerThreshold( 0.0 );
-  thresholder->SetUpperThreshold( stoppingValue );
-  thresholder->SetOutsideValue( 0 );
-  thresholder->SetInsideValue( 1 );
-  thresholder->SetInput( fastMarching->GetOutput() );
-
-  typedef  itk::ImageFileWriter<OutputImageType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetInput( thresholder->GetOutput() );
-  writer->SetFileName( outname.c_str() );
-  writer->Update();
+    {
+    typedef itk::ImageFileWriter<ImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( outname.c_str() );
+    writer->SetInput( filter->GetOutput() );
+    writer->Update();
+    }
 
   return 0;
 }
