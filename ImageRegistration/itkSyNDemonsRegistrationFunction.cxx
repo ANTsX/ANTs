@@ -64,6 +64,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 
   m_MovingImageGradientCalculator = MovingImageGradientCalculatorType::New();
   m_UseMovingImageGradient = false;
+  m_UseSSD = false;
 }
 
 /*
@@ -230,7 +231,10 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
   double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
     + gradientSquaredMagnitude;
   this->m_Energy += speedValue * speedValue;
-
+  if( m_UseSSD )
+    {
+    denominator = 1;
+    }
   if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
       denominator < m_DenominatorThreshold )
     {
@@ -346,7 +350,6 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 {
   GlobalDataStruct * globalData = (GlobalDataStruct *) gd;
 
-  m_MetricCalculationLock.Lock();
   m_SumOfSquaredDifference  += globalData->m_SumOfSquaredDifference;
   m_NumberOfPixelsProcessed += globalData->m_NumberOfPixelsProcessed;
   m_SumOfSquaredChange += globalData->m_SumOfSquaredChange;
@@ -357,7 +360,6 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
     m_RMSChange = vcl_sqrt( m_SumOfSquaredChange
                             / static_cast<double>( m_NumberOfPixelsProcessed ) );
     }
-  m_MetricCalculationLock.Unlock();
 
   delete globalData;
 }

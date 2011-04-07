@@ -735,6 +735,34 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           similarityMetric->SetMaximizeMetric( true );
           this->m_SimilarityMetrics.push_back( similarityMetric );
           }
+        else if( whichMetric == "SSD" )
+          {
+          typedef itk::HistogramMatchingImageFilter<ImageType, ImageType> FilterType;
+          typename FilterType::Pointer filter = FilterType::New();
+          filter->SetInput(movingImage );
+          filter->SetReferenceImage(fixedImage);
+          filter->SetNumberOfHistogramLevels( 256 );
+          filter->SetNumberOfMatchPoints( 12 );
+          filter->ThresholdAtMeanIntensityOn();
+          filter->Update();   std::cout <<  " use Histogram Matching " << std::endl;
+          movingImage = filter->GetOutput();
+          movingImage = this->PreprocessImage(movingImage);
+          similarityMetric->SetMovingImage( movingImage );
+          typedef SyNDemonsRegistrationFunction
+            <ImageType, ImageType, DeformationFieldType> MetricType;
+          typename MetricType::Pointer metric = MetricType::New();
+          if( radius[0] > 0 )
+            {
+            metric->SetUseMovingImageGradient( true );
+            }
+          metric->SetIntensityDifferenceThreshold( extraparam );
+          metric->SetRobustnessParameter( extraparam );
+          metric->SetUseSSD(true);
+          metric->SetRadius( radius );
+          similarityMetric->SetMetric( metric );
+          similarityMetric->SetMaximizeMetric( true );
+          this->m_SimilarityMetrics.push_back( similarityMetric );
+          }
         else if( whichMetric == "mutual-information" ||
                  whichMetric == "MutualInformation" ||
                  whichMetric == "MI" )
@@ -916,12 +944,15 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::string miDescription( "MI/mutual-information/MutualInformation" );
     std::string smiDescription( "SMI/spatial-mutual-information/SpatialMutualInformation" );
     std::string prDescription( "PR/probabilistic/Probabilistic" );
-    std::string msqDescription( "MSQ/mean-squares/MeanSquares -- radius > 0 uses moving image gradient in metric deriv." );
+    std::string msqDescription(
+      "MSQ/mean-squares/MeanSquares -- demons-like, radius > 0 uses moving image gradient in metric deriv." );
+    std::string ssdDescription( "SSD --- standard intensity difference." );
     intensityBasedDescription += (
         newLineTabs + ccDescription + intensityBasedOptions
         + newLineTabs + miDescription + intensityBasedOptions
         + newLineTabs + smiDescription + intensityBasedOptions
         + newLineTabs + prDescription + intensityBasedOptions
+        + newLineTabs + ssdDescription + intensityBasedOptions
         + newLineTabs + msqDescription + intensityBasedOptions );
 
     std::string pointBasedDescription( "\n\t      Point-Set-Based Metrics: " );
@@ -1250,7 +1281,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "affine-metric-type" );
     option->SetDescription(
-      "MI: mutual information (default), MSQ: mean square error, CC: Normalized correlation, CCH: Histogram-based correlation coefficient (not recommended), GD: gradient difference (not recommended) " );
+      "MI: mutual information (default), MSQ: mean square error, SSD, CC: Normalized correlation, CCH: Histogram-based correlation coefficient (not recommended), GD: gradient difference (not recommended) " );
     std::string nitdefault = std::string("MI");
     option->AddValue(nitdefault);
     this->m_Parser->AddOption( option );
