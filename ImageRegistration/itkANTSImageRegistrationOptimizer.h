@@ -142,6 +142,12 @@ public:
     this->m_DeformationField = A;
   }
 
+  void SetTimeVaryingVelocityField(TimeVaryingVelocityFieldPointer A)
+  {
+    this->m_TimeVaryingVelocity = A;
+    this->m_VelocityFieldInterpolator->SetInputImage(this->m_TimeVaryingVelocity);
+  }
+
   void SetInverseDeformationField(DeformationFieldPointer A)
   {
     this->m_InverseDeformationField = A;
@@ -1824,12 +1830,13 @@ public:
     this->m_UseBSplineInterpolation = useNN;
   }
 
+  VectorType IntegratePointVelocity(TReal starttimein, TReal finishtimein, IndexType startPoint);
+
 protected:
 
   DeformationFieldPointer IntegrateVelocity(TReal, TReal);
   DeformationFieldPointer IntegrateLandmarkSetVelocity(TReal, TReal, PointSetPointer movingpoints,
                                                        ImagePointer referenceimage );
-  VectorType IntegratePointVelocity(TReal starttimein, TReal finishtimein, IndexType startPoint);
 
   ImagePointer  MakeSubImage( ImagePointer bigimage)
   {

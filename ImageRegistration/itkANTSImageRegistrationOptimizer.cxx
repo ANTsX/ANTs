@@ -1987,7 +1987,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       gspace[dim] = this->m_CurrentDomainSpacing[dim];
       gorigin[dim] = this->m_CurrentDomainOrigin[dim];
       }
-    gsize[TDimension] = 2; // this->m_NTimeSteps;
+    gsize[TDimension] = this->m_NTimeSteps;
     gspace[TDimension] = 1;
     gregion.SetSize(gsize);
 
@@ -2779,6 +2779,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typedef typename DeformationFieldType::PointType                DPointType;
   typedef typename TimeVaryingVelocityFieldType::IndexType        VIndexType;
   typedef typename TimeVaryingVelocityFieldType::PointType        VPointType;
+
   this->m_VelocityFieldInterpolator->SetInputImage(this->m_TimeVaryingVelocity);
 
   TReal        dT = this->m_DeltaTime;

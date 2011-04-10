@@ -1,10 +1,7 @@
 project(ANTS)
 
-cmake_minimum_required(VERSION 2.4)
-
-if(COMMAND cmake_policy)
-       cmake_policy(SET CMP0003 NEW)
-endif(COMMAND cmake_policy)
+cmake_minimum_required(VERSION 2.8.2)
+set(CMAKE_BUILD_TYPE "Release")
 
 #Change PROJECT_NAME to the name of your project
 
@@ -282,10 +279,11 @@ endif(USE_VTK)
 add_executable(ANTSIntegrateVectorField ANTSIntegrateVectorField.cxx)
 target_link_libraries(ANTSIntegrateVectorField ${ITK_LIBRARIES})
 
-if( ITK_USE_REVIEW )
+add_executable(ANTSIntegrateVelocityField ANTSIntegrateVelocityField.cxx)
+target_link_libraries(ANTSIntegrateVelocityField ${ITK_LIBRARIES})
+
   add_executable(Atropos Atropos.cxx ${UI_SOURCES})
   target_link_libraries(Atropos ${ITK_LIBRARIES}   )
-endif( ITK_USE_REVIEW )
 
 
 #Set any libraries that your project depends on.
