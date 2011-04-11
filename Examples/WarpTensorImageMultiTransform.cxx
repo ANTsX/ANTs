@@ -796,13 +796,6 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       }
     }
 
-  typedef itk::ExpTensorImageFilter<TensorImageType, TensorImageType> ExpFilterType;
-  typename ExpFilterType::Pointer expFilter = ExpFilterType::New();
-  expFilter->SetInput( img_output );
-  expFilter->Update();
-
-  // typename TensorImageType::Pointer final_out = expFilter->GetOutput();
-
   DirectionCorrect<TensorImageType>(img_output, img_mov);
 
   WriteTensorImage<TensorImageType>(img_output, output_image_filename, true);
