@@ -53,23 +53,40 @@ public:
   typedef TTensorImage OutputImageType;
   typedef TVectorImage DeformationFieldType;
 
-  typedef typename DeformationFieldType::Pointer DeformationFieldPointer;
+  typedef typename DeformationFieldType::Pointer   DeformationFieldPointer;
+  typedef typename DeformationFieldType::PixelType VectorType;
 
-  typedef Matrix<double, 3, 3> MatrixType;
-  typedef Vector<double, 3>    VectorType;
+  typedef Matrix<float, 3, 3> MatrixType;
+  // typedef Vector<float, 3> VectorType;
+  typedef VariableSizeMatrix<float> VariableMatrixType;
 
-  typedef Vector<double, 6> FakeVectorType;
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TTensorImage::ImageDimension);
 
   typedef itk::Image<float, ImageDimension> FloatImageType;
 
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
+
+  typedef typename AffineTransformType::Pointer AffineTransformPointer;
+
+  typedef typename AffineTransformType::InputVectorType TransformInputVectorType;
+
+  typedef typename AffineTransformType::OutputVectorType TransformOutputVectorType;
+
+  typedef typename AffineTransformType::InverseTransformBaseType InverseTransformType;
+
+  typedef typename InverseTransformType::Pointer InverseTransformPointer;
+
   //  typedef Vector<float, 6> TensorType;
-  typedef itk::SymmetricSecondRankTensor<float, 3> TensorType;
-  typedef Image<TensorType, ImageDimension>        TensorImageType;
-  typedef typename TensorImageType::Pointer        TensorImagePointer;
-  typedef vnl_matrix<float>                        VnlMatrixType;
-  typedef vnl_vector<float>                        vvec;
+  // typedef itk::SymmetricSecondRankTensor< float, 3 >  TensorType;
+  // typedef Image<TensorType, ImageDimension> TensorImageType;
+  // typedef typename TensorImageType::Pointer TensorImagePointer;
+  typedef typename InputImageType::PixelType InputImagePixelType;
+  typedef InputImagePixelType                TensorType;
+
+  typedef vnl_matrix<float> VnlMatrixType;
+  typedef vnl_vector<float> VnlVectorType;
+  typedef vnl_vector<float> vvec;
 
   /** Standard class typedefs. */
   typedef PreservationOfPrincipalDirectionTensorReorientationImageFilter Self;
@@ -82,6 +99,17 @@ public:
 
   itkSetMacro(DeformationField, DeformationFieldPointer);
   itkGetMacro(DeformationField, DeformationFieldPointer);
+
+  void SetAffineTransform( AffineTransformPointer aff )
+  {
+    this->m_AffineTransform = aff;
+    this->m_UseAffine = true;
+  }
+
+  itkGetMacro( AffineTransform, AffineTransformPointer );
+
+  itkSetMacro( UseImageDirection, bool );
+  itkGetMacro( UseImageDirection, bool );
 
   /** Run-time type information (and related methods). */
   itkTypeMacro(PreservationOfPrincipalDirectionTensorReorientationImageFilter, ImageToImageFilter);
@@ -100,20 +128,6 @@ public:
   typedef typename OutputImageType::SizeType  OutputSizeType;
   typedef typename InputImageType::IndexType  InputIndexType;
   typedef typename OutputImageType::IndexType OutputIndexType;
-
-  InputPixelType PPD(typename InputImageType::IndexType ind,  VnlMatrixType jac);
-
-  vnl_matrix<float>  FindRotation( vnl_vector<float>,  vnl_vector<float> );
-
-  TensorType ReorientTensors( TensorType fixedTens,  TensorType movingTens,  typename TTensorImage::IndexType index);
-
-  // ::ReorientTensors( Vector<float, 6>  fixedTens, Vector<float, 6> movingTens,  typename TTensorImage::IndexType
-  // index)
-
-  TensorImagePointer m_ReferenceImage;
-  typename FloatImageType::Pointer m_ThetaImage;
-  typename FloatImageType::Pointer m_PsiImage;
-  typename FloatImageType::Pointer m_AngleEnergyImage;
 protected:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter();
   virtual ~PreservationOfPrincipalDirectionTensorReorientationImageFilter()
@@ -134,28 +148,27 @@ protected:
    *     ImageToImageFilter::GenerateData() */
   void GenerateData( void );
 
-  typename DeformationFieldType::PixelType TransformVector(DeformationFieldType* field,
-                                                           typename FloatImageType::IndexType index )
-  {
-    typename DeformationFieldType::PixelType vec = field->GetPixel(index);
-    typename DeformationFieldType::PixelType newvec;
-    newvec.Fill(0);
-    for( unsigned int row = 0; row < ImageDimension; row++ )
-      {
-      for( unsigned int col = 0; col < ImageDimension; col++ )
-        {
-        newvec[row] += vec[col] * field->GetDirection()[row][col];
-        }
-      }
-
-    return newvec;
-  }
-
 private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &); // purposely not implemented
   void operator=(const Self &);                                                 // purposely not implemented
 
+  AffineTransformPointer GetLocalDeformation(DeformationFieldPointer, typename DeformationFieldType::IndexType );
+
+  TensorType ApplyReorientation(InverseTransformPointer, TensorType );
+
+  void DirectionCorrectTransform( AffineTransformPointer, AffineTransformPointer );
+
   DeformationFieldPointer m_DeformationField;
+
+  AffineTransformPointer m_DirectionTransform;
+
+  AffineTransformPointer m_AffineTransform;
+
+  InverseTransformPointer m_InverseAffineTransform;
+
+  bool m_UseAffine;
+
+  bool m_UseImageDirection;
 };
 } // end namespace itk
 
