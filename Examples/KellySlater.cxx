@@ -218,6 +218,7 @@ LabelSurface(typename TImage::PixelType foreground,
   Image->SetLargestPossibleRegion(input->GetLargestPossibleRegion()  );
   Image->SetBufferedRegion(input->GetLargestPossibleRegion() );
   Image->Allocate();
+  Image->FillBuffer( 0.0 );
   Image->SetSpacing(input->GetSpacing() );
   Image->SetOrigin(input->GetOrigin() );
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
