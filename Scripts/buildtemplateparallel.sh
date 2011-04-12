@@ -237,7 +237,7 @@ see the FSL website for more information about installation:
 http://www.fmrib.ox.ac.uk/fsl/fsl/downloading.html
 
 SETFSLPATH
-    exit 1
+#    exit 1
 }
 
 
@@ -677,9 +677,12 @@ if [ ${NINFILES} -eq 0 ]
     echo "Please provide at least 2 filenames for the template."
     echo "Use `basename $0` -h for help"
     exit 1
-elif [[ ${NINFILES} -eq 1 ]] && [[ -s ${FSLDIR}/bin/fslnvols ]]
+elif [[ ${NINFILES} -eq 1 ]] # && [[ -s ${FSLDIR}/bin/fslnvols ]]
     then
-    range=`fslnvols ${IMAGESETVARIABLE}`
+
+#    range=`fslnvols ${IMAGESETVARIABLE}`
+    range=` ${ANTSPATH}ImageMath $TDIM a nvols ${IMAGESETVARIABLE}  `
+
     if [ ${range} -eq 1 ] && [ ${TDIM} -ne 4 ]
 	then
 	echo "Please provide at least 2 filenames for the template."
@@ -703,26 +706,28 @@ elif [[ ${NINFILES} -eq 1 ]] && [[ -s ${FSLDIR}/bin/fslnvols ]]
 		#split the 4D file into 3D elements
 	cp ${IMAGESETVARIABLE} tmp/
 	cd tmp/
-	fslsplit ${IMAGESETVARIABLE}
-	rm -f ${IMAGESETVARIABLE}
+        ${ANTSPATH}ImageMath $TDIM selection/vol.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} 16
+
+#	fslsplit ${IMAGESETVARIABLE}
+#	rm -f ${IMAGESETVARIABLE}
 
 		# selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection. folder
-	for ((i = 0; i < 16 ; i++))
-	  do
-	  number=$RANDOM
-	  let "number %= $range"
-
-	  if [ ${number} -lt 10 ]
-	      then
-	      cp vol000${number}.nii.gz selection/
-	  elif [ ${number} -ge 10 ] && [ ${number} -lt 100 ]
-	      then
-	      cp vol00${number}.nii.gz selection/
-	  elif [ ${number} -ge 100 ] && [ ${number} -lt 1000 ]
-	      then
-	      cp vol0${number}.nii.gz selection/
-	  fi
-	done
+#	for ((i = 0; i < 16 ; i++))
+#	  do
+#	  number=$RANDOM
+#	  let "number %= $range"
+#
+#	  if [ ${number} -lt 10 ]
+#	      then
+#	      cp vol000${number}.nii.gz selection/
+#	  elif [ ${number} -ge 10 ] && [ ${number} -lt 100 ]
+#	      then
+#	      cp vol00${number}.nii.gz selection/
+#	  elif [ ${number} -ge 100 ] && [ ${number} -lt 1000 ]
+#	      then
+#	      cp vol0${number}.nii.gz selection/
+#	  fi
+#	done
 
 		# set filelist variable
 	cd selection/
