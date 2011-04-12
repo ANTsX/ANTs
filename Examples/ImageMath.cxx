@@ -1556,6 +1556,82 @@ int PadImage(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int TimeSeriesSubset(int argc, char *argv[])
+{
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  unsigned int n_sub_vols = atoi(argv[argct]);   argct++;
+  std::cout << " Extract " << n_sub_vols << " subvolumes " << std::endl;
+  std::string::size_type idx;
+  idx = outname.find_first_of('.');
+  std::string tempname = outname.substr(0, idx);
+  std::string extension = outname.substr(idx, outname.length() );
+
+  typename ImageType::Pointer image1 = NULL;
+  typename OutImageType::Pointer outimage = NULL;
+
+  typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  float        step = (float)timedims / (float)n_sub_vols;
+  if( n_sub_vols >= timedims )
+    {
+    n_sub_vols = timedims; step = 1;
+    }
+  for( unsigned int i = 0; i < n_sub_vols; i++ )
+    {
+    std::string       s;
+    std::stringstream out;
+    out << (100 + i);
+    s = out.str();
+    std::string kname = tempname + s + extension;
+    typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
+    extractRegion.SetSize(ImageDimension - 1, 0);
+    unsigned int sub_vol = (unsigned int)( (float)i * step);
+    if( sub_vol >= timedims )
+      {
+      sub_vol = timedims - 1;
+      }
+    extractRegion.SetIndex(ImageDimension - 1, sub_vol );
+
+    typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+    extractFilter->SetInput( image1 );
+    extractFilter->SetDirectionCollapseToIdentity();
+    extractFilter->SetExtractionRegion( extractRegion );
+    extractFilter->Update();
+    outimage = extractFilter->GetOutput();
+    WriteImage<OutImageType>(outimage, kname.c_str() );
+    }
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int StackImage(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
@@ -4404,10 +4480,12 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   filter->SetTopologyCheck( FilterType::None );
   if( topocheck == 1 )  // Strict
     {
+    std::cout << " strict " << std::endl;
     filter->SetTopologyCheck( FilterType::Strict );
     }
   if( topocheck == 2 )  // No handles
     {
+    std::cout << " no handles " << std::endl;
     filter->SetTopologyCheck( FilterType::NoHandles );
     }
 
@@ -4891,15 +4969,26 @@ int PrintHeader(int argc, char *argv[])
   std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
+  //  std::string opt = std::string(argv[argct]);   argct++;
 
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(fn1.c_str() );
   reader->Update();
-  std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
-  std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
-  std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
-  std::cout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+  // std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
+  // std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
+  // std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
+  // std::cout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
 
+  //  if (strcmp(operation.c_str(),"n_last_dim") == 0){
+  unsigned int lastdim = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  //   std::ofstream logfile;
+  // logfile.open(outname.c_str() );
+  // if (logfile.good()  )
+  // {
+  //  logfile << lastdim << std::endl;
+  // }
+  std::cout << lastdim << std::endl;
+  // }
   return 1;
 }
 
@@ -7684,6 +7773,10 @@ int main(int argc, char *argv[])
         {
         PrintHeader<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "nvols") == 0 )
+        {
+        PrintHeader<4>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "Byte") == 0 )
         {
         ByteImage<4>(argc, argv);
@@ -7822,6 +7915,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
         {
         ConvertLandmarkFile<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TimeSeriesSubset") == 0 )
+        {
+        TimeSeriesSubset<4>(argc, argv);
         }
       else
         {
