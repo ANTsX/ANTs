@@ -72,7 +72,8 @@ template <class TImage>
 typename TImage::Pointer BinaryThreshold(
   typename TImage::PixelType low,
   typename TImage::PixelType high,
-  typename TImage::PixelType replaceval, typename TImage::Pointer input)
+  typename TImage::PixelType insideval, typename TImage::PixelType outsideval,
+  typename TImage::Pointer input )
 {
   std::cout << " Binary Thresh " << std::endl;
 
@@ -83,13 +84,8 @@ typename TImage::Pointer BinaryThreshold(
     InputThresholderType::New();
 
   inputThresholder->SetInput( input );
-  inputThresholder->SetInsideValue(  replaceval );
-  int outval = 0;
-  if( (float) replaceval == (float) -1 )
-    {
-    outval = 1;
-    }
-  inputThresholder->SetOutsideValue( outval );
+  inputThresholder->SetInsideValue(  insideval );
+  inputThresholder->SetOutsideValue( outsideval );
 
   if( high < low )
     {
@@ -255,7 +251,18 @@ int ThresholdImage( int argc, char * argv[] )
     }
   else
     {
-    thresh = BinaryThreshold<FixedImageType>(atof(argv[4]), atof(argv[5]), 1., fixedReader->GetOutput() );
+    PixelType insideValue = 1;
+    PixelType outsideValue = 0;
+    if( argc > 6 )
+      {
+      insideValue = static_cast<PixelType>( atof( argv[6] ) );
+      }
+    if( argc > 7 )
+      {
+      outsideValue = static_cast<PixelType>( atof( argv[7] ) );
+      }
+    thresh = BinaryThreshold<FixedImageType>(atof(argv[4]), atof(argv[5]),
+                                             insideValue, outsideValue, fixedReader->GetOutput() );
     }
 
   movingWriter->SetInput(thresh);
@@ -268,7 +275,8 @@ int main( int argc, char * argv[] )
   if( argc < 3 )
     {
     std::cerr << "Usage: " << argv[0];
-    std::cerr << "   ImageDimension ImageIn.ext outImage.ext  threshlo threshhi " << std::endl;
+    std::cerr << "   ImageDimension ImageIn.ext outImage.ext  threshlo threshhi <insideValue> <outsideValue>"
+              << std::endl;
     std::cerr << "   ImageDimension ImageIn.ext outImage.ext  Otsu NumberofThresholds " << std::endl;
 
     std::cout << " Inclusive thresholds " << std::endl;
