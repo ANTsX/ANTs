@@ -222,6 +222,8 @@ target_link_libraries(ExtractSliceFromImage ${ITK_LIBRARIES})
 add_executable(TileImages TileImages.cxx )
 target_link_libraries(TileImages ${ITK_LIBRARIES})
 
+add_executable(CreateImage CreateImage.cxx )
+target_link_libraries(CreateImage ${ITK_LIBRARIES})
 
 add_executable(WarpTensorImageMultiTransform WarpTensorImageMultiTransform.cxx)
 target_link_libraries(WarpTensorImageMultiTransform ${ITK_LIBRARIES})
