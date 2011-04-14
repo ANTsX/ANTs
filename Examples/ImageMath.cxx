@@ -557,7 +557,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
     {
     std::cout << " need more args -- see usage   " << std::endl
               <<
-    " ImageMath 3 outimage.nii.gz  TruncateImageIntensity inputImage  {lowerQuantile=0.025} {upperQuantile=0.975}  {numberOfBins=65}  {binary-maskImage} "
+      " ImageMath 3 outimage.nii.gz  TruncateImageIntensity inputImage  {lowerQuantile=0.025} {upperQuantile=0.975}  {numberOfBins=65}  {binary-maskImage} "
               << std::endl;  exit(0);
     }
 
@@ -2392,7 +2392,7 @@ int TensorFunctions(int argc, char *argv[])
     {
     std::cout
       <<
-    " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
+      " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
       << std::endl;
     itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn1.c_str(), itk::ImageIOFactory::ReadMode);
@@ -2409,7 +2409,7 @@ int TensorFunctions(int argc, char *argv[])
         std::cout << " you should not be using this function if the input data is not a tensor. " << std::endl;
         std::cout
           <<
-        " there is no way for us to really check if your use of this function is correct right now except checking the size of the 4th dimension which should be 6 or 7 (the latter if you store b0 in the first component) --- you should really store tensors not as 4D images but as 3D images with tensor voxel types. "
+          " there is no way for us to really check if your use of this function is correct right now except checking the size of the 4th dimension which should be 6 or 7 (the latter if you store b0 in the first component) --- you should really store tensors not as 4D images but as 3D images with tensor voxel types. "
           << std::endl;
         exit(0);
         }
@@ -5604,23 +5604,23 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   LabelSetType myLabelSet2;
   unsigned int labct = 0;
-          { Iterator It( image2, image2->GetLargestPossibleRegion() );
-          for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-            {
-            PixelType label = It.Get();
-            if( fabs(label) > 0 )
+            { Iterator It( image2, image2->GetLargestPossibleRegion() );
+            for( It.GoToBegin(); !It.IsAtEnd(); ++It )
               {
-              if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
-                  == myLabelSet2.end()   &&
-                  find( myLabelSet1.begin(), myLabelSet1.end(), label )
-                  != myLabelSet1.end() )
+              PixelType label = It.Get();
+              if( fabs(label) > 0 )
                 {
-                myLabelSet2.push_back( label );
-                labct++;
+                if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
+                    == myLabelSet2.end()   &&
+                    find( myLabelSet1.begin(), myLabelSet1.end(), label )
+                    != myLabelSet1.end() )
+                  {
+                  myLabelSet2.push_back( label );
+                  labct++;
+                  }
                 }
               }
             }
-          }
 
   vnl_vector<double> distances(labct, 0.0);
   vnl_vector<double> dicevals(labct, 0.0);
@@ -7038,136 +7038,247 @@ int main(int argc, char *argv[])
 {
   if( argc < 5 )
     {
-    std::cout << "Usage:  " << std::endl;
-    std::cout << argv[0] << " ImageDimension  OutputImage.ext   Operator   Image1.ext   Image2.extOrFloat  "
-              << std::endl;
-    std::cout << "  some options output text files " << std::endl;
+    std::cout << "\nUsage: " << argv[0]
+              << " ImageDimension <OutputImage.ext> [operations and inputs] <Image1.ext> <Image2.ext>" << std::endl;
+
+    std::cout << "\nUsage Information " << std::endl;
+    std::cout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional operations)." << std::endl;
+    std::cout << " ImageDimension: 4 (for operations on 4D file, e.g. time-series data)." << std::endl;
+    std::cout << " Operator: See list of valid operators below." << std::endl;
     std::cout << " The last two arguments can be an image or float value " << std::endl;
+    std::cout << " NB: Some options output text files" << std::endl;
+
+    std::cout << "\nMathematical Operations:" << std::endl;
+    std::cout << "  m			: Multiply"<< std::endl;
+    std::cout << "  +       : Add"<< std::endl;
+    std::cout << "  -       : Subtract"<< std::endl;
+    std::cout << "  /       : Divide"<< std::endl;
+    std::cout << "  ^			: Power"<< std::endl;
+    std::cout << "  exp			: Take exponent exp(imagevalue*value)"<< std::endl;
+    std::cout << "  addtozero		: add image-b to image-a only over points where image-a has zero values"<< std::endl;
+    std::cout << "  overadd		: replace image-a pixel with image-b pixel if image-b pixel is non-zero"<< std::endl;
+    std::cout << "  abs			: absolute value "<< std::endl;
+    std::cout << "  total			: Sums up values in an image or in image1*image2 (img2 is the probability mask)"
+              << std::endl;
+    std::cout << "  Decision		: Computes result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))"<< std::endl;
+    std::cout << "  Neg			: Produce image negative"<< std::endl;
+
+    std::cout << "\nSpatial Filtering:" << std::endl;
+    std::cout << "  G Image1.ext s	: Smooth with Gaussian of sigma = s"<< std::endl;
+    std::cout << "  MD Image1.ext s	: Morphological Dilation with radius s" << std::endl;
+    std::cout << "  ME Image1.ext s	: Morphological Erosion with radius s" << std::endl;
+    std::cout << "  MO Image1.ext s	: Morphological Opening with radius s" << std::endl;
+    std::cout << "  MC Image1.ext s	: Morphological Closing with radius s" << std::endl;
+    std::cout << "  GD Image1.ext s	: Grayscale Dilation with radius s" << std::endl;
+    std::cout << "  GE Image1.ext s	: Grayscale Erosion with radius s" << std::endl;
+    std::cout << "  GO Image1.ext s	: Grayscale Opening with radius s" << std::endl;
+    std::cout << "  GC Image1.ext s	: Grayscale Closing with radius s" << std::endl;
+
+    std::cout << "\nTensor Operations:" << std::endl;
+    std::cout << "  4DTensorTo3DTensor	: Outputs a 3D_DT_Image with the same information. "<< std::endl;
+    std::cout << "    Usage		: 4DTensorTo3DTensor 4D_DTImage.ext"<< std::endl;
+    std::cout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
+    std::cout << "    Usage		: ExtractVectorComponent VecImage WhichVec"<< std::endl;
+    std::cout << "  TensorColor		: Produces RGB values identifying principal directions "<< std::endl;
+    std::cout << "    Usage		: TensorColor DTImage.ext"<< std::endl;
+    std::cout << "  TensorFA		: "<< std::endl;
+    std::cout << "    Usage		: TensorFA DTImage.ext"<< std::endl;
+    std::cout << "  TensorFADenominator	: " << std::endl;
+    std::cout << "    Usage		: TensorFADenominator DTImage.ext"<< std::endl;
+    std::cout << "  TensorFANumerator	: " << std::endl;
+    std::cout << "    Usage		: TensorFANumerator DTImage.ext"<< std::endl;
+    std::cout << "  TensorIOTest	: Will write the DT image back out ... tests I/O processes for consistency. "
+              << std::endl;
+    std::cout << "    Usage		: TensorIOTest DTImage.ext"<< std::endl;
+    std::cout << "  TensorMeanDiffusion	: " << std::endl;
+    std::cout << "    Usage		: TensorMeanDiffusion DTImage.ext"<< std::endl;
+    std::cout
+      << "  TensorToVector	: Produces vector field identifying one of the principal directions, 2 = largest eigenvalue"
+      << std::endl;
+    std::cout << "    Usage		: TensorToVector DTImage.ext WhichVec"<< std::endl;
     std::cout
       <<
-    " Valid Operators :   \n m (multiply)  , \n   +  (add)  , \n   - (subtract)  , \n   / (divide)  , \n   ^ (power)  , \n exp -- take exponent exp(imagevalue*value) \n addtozero \n overadd \n abs  \n total -- sums up values in an image or in image1*image2 (img2 is the probability mask) \n Decision -- computes  result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))  "
+      "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest eigenvalue). 3 = 8 => gets values from the tensor "
       << std::endl;
-    std::cout <<  "   Neg (Produce Image Negative ) , \n   G Image1.ext s  (Smooth with Gaussian of sigma = s )  "
+    std::cout << "    Usage		: TensorToVectorComponent DTImage.ext WhichVec"<< std::endl;
+
+    std::cout << "\nUnclassified Operators:" << std::endl;
+
+    std::cout << "  Byte			: Convert to Byte image in [0,255]"<< std::endl;
+
+    std::cout
+      << "\n  CompareHeadersAndImages: Tries to find and fix header errors. Outputs a repaired image with new header. "
+      << std::endl;
+    std::cout << "          Never use this if you trust your header information. "<< std::endl;
+    std::cout << "      Usage		: CompareHeadersAndImages Image1 Image2"<< std::endl;
+
+    std::cout
+      <<
+      "\n  ConvertImageSetToMatrix: Each row/column contains image content extracted from mask applied to images in *img.nii "
+      << std::endl;
+    std::cout << "      Usage		: ConvertImageSetToMatrix rowcoloption Mask.nii *images.nii"<< std::endl;
+
+    std::cout << "\n  ConvertImageToFile	: Writes voxel values to a file  "<< std::endl;
+    std::cout << "      Usage		: ConvertImageToFile imagevalues.nii {Optional-ImageMask.nii}"<< std::endl;
+
+    std::cout
+      << "\n  ConvertLandmarkFile	: Converts landmark file between formats. See ANTS.pdf for description of formats."
+      << std::endl;
+    std::cout << "      Usage		: ConvertLandmarkFile InFile.txt"<< std::endl;
+    std::cout << "      Example 1		: ImageMath 3  outfile.vtk  ConvertLandmarkFile  infile.txt"<< std::endl;
+
+    std::cout << "\n  ConvertToGaussian	: " << std::endl;
+    std::cout << "      Usage		: ConvertToGaussian  TValueImage  sigma-float"<< std::endl;
+
+    std::cout
+      <<
+      "\n  ConvertVectorToImage	: The vector contains image content extracted from a mask. Here the vector is returned to its spatial origins as image content "
+      << std::endl;
+    std::cout << "      Usage		: ConvertVectorToImage Mask.nii vector.nii"<< std::endl;
+
+    std::cout << "\n  CorrelationUpdate	: In voxels, compute update that makes Image2 more like Image1." << std::endl;
+    std::cout << "      Usage		: CorrelationUpdate Image1.ext Image2.ext RegionRadius"<< std::endl;
+
+    std::cout << "\n  CountVoxelDifference	: The where function from IDL "<< std::endl;
+    std::cout << "      Usage		: CountVoxelDifference Image1 Image2 Mask"<< std::endl;
+
+    std::cout << "\n  CorruptImage		: "<< std::endl;
+    std::cout << "      Usage		: CorruptImage Image NoiseLevel Smoothing"<< std::endl;
+
+    std::cout << "\n  D			: DistanceTransform"<< std::endl;
+
+    std::cout
+      << "\n  DiceAndMinDistSum	: Outputs DiceAndMinDistSum and Dice Overlap to text log file + optional distance image"
+      << std::endl;
+    std::cout << "      Usage		: DiceAndMinDistSum LabelImage1.ext LabelImage2.ext OptionalDistImage"<< std::endl;
+
+    std::cout << "\n  EnumerateLabelInterfaces: " << std::endl;
+    std::cout << "      Usage		: EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore"
+              << std::endl;
+
+    std::cout << "\n  ExtractSlice		: Extracts slice number from last dimension of volume (2,3,4) dimensions "
+              << std::endl;
+    std::cout << "      Usage		: ExtractSlice volume.nii.gz slicetoextract"<< std::endl;
+
+    std::cout
+      <<
+      "\n  FastMarchingSegmentation: final output is the propagated label image. Optional stopping value: higher values allow more distant propagation "
+      << std::endl;
+    std::cout
+      <<
+    "      Usage		: FastMarchingSegmentation speed/binaryimagemask.ext initiallabelimage.ext Optional-Stopping-Value"
+      << std::endl;
+
+    std::cout << "\n  FillHoles		: Parameter = ratio of edge at object to edge at background;  --  "<< std::endl;
+    std::cout << "          Parameter = 1 is a definite hole bounded by object only, 0.99 is close"<< std::endl;
+    std::cout << "          Default of parameter > 1 will fill all holes"<< std::endl;
+    std::cout << "      Usage		: FillHoles Image.ext parameter"<< std::endl;
+
+    std::cout << "\n  FitSphere		: "<< std::endl;
+    std::cout << "      Usage		: FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}"<< std::endl;
+
+    std::cout << "\n  FlattenImage		: Replaces values greater than %ofMax*Max to the value %ofMax*Max "<< std::endl;
+    std::cout << "      Usage		: FlattenImage Image %ofMax"<< std::endl;
+
+    std::cout << "\n  GetLargestComponent	: Get the largest object in an image" << std::endl;
+    std::cout << "      Usage		: GetLargestComponent InputImage {MinObjectSize}"<< std::endl;
+
+    std::cout << "\n  Grad			: Gradient magnitude with sigma s (if normalize, then output in range [0, 1])"
+              << std::endl;
+    std::cout << "      Usage		: Grad Image.ext s normalize?"<< std::endl;
+
+    std::cout << "\n  HistogramMatch	: "<< std::endl;
+    std::cout
+      << "      Usage		: HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} {NumberPoints-Default=64}"
+      << std::endl;
+
+    std::cout
+      <<
+      "\n  InvId			: computes the inverse-consistency of two deformations and write the inverse consistency error image "
+      << std::endl;
+    std::cout << "      Usage		: InvId VectorFieldName VectorFieldName"<< std::endl;
+
+    std::cout << "\n  LabelStats		: Compute volumes / masses of objects in a label image. Writes to text file"
+              << std::endl;
+    std::cout << "      Usage		: LabelStats labelimage.ext valueimage.nii"<< std::endl;
+
+    std::cout << "\n  Laplacian		: Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
+              << std::endl;
+    std::cout << "      Usage		: Laplacian Image.ext s normalize?"<< std::endl;
+
+    std::cout << "\n  Lipschitz		: Computes the Lipschitz norm of a vector field "<< std::endl;
+    std::cout << "      Usage		: Lipschitz VectorFieldName"<< std::endl;
+
+    std::cout << "\n  MakeImage		: "<< std::endl;
+    std::cout << "      Usage		: MakeImage SizeX  SizeY {SizeZ};"<< std::endl;
+
+    std::cout << "\n  Normalize		: Normalize to [0,1]. Option instead divides by average value"<< std::endl;
+    std::cout << "      Usage		: Normalize Image.ext opt"<< std::endl;
+
+    std::cout << "\n  PadImage		: If Pad-Number is negative, de-Padding occurs"<< std::endl;
+    std::cout << "      Usage		: PadImage ImageIn Pad-Number"<< std::endl;
+
+    std::cout << "\n  PH			: Print Header"<< std::endl;
+
+    std::cout
+      <<
+      "\n  PropagateLabelsThroughMask: Final output is the propagated label image. Optional stopping value: higher values allow more distant propagation"
+      << std::endl;
+    std::cout
+      <<
+      "      Usage		: PropagateLabelsThroughMask speed/binaryimagemask.nii.gz initiallabelimage.nii.gz Optional-Stopping-Value"
+      << std::endl;
+
+    std::cout << "\n  PValueImage		: "<< std::endl;
+    std::cout << "      Usage		: PValueImage TValueImage dof"<< std::endl;
+
+    std::cout << "\n  RemoveLabelInterfaces: " << std::endl;
+    std::cout << "      Usage		: RemoveLabelInterfaces ImageIn"<< std::endl;
+
+    std::cout << "\n  ROIStatistics		: See the code"<< std::endl;
+    std::cout << "      Usage		: ROIStatistics LabelNames.txt labelimage.ext valueimage.nii"<< std::endl;
+
+    std::cout << "\n  SetOrGetPixel	: "  << std::endl;
+    std::cout << "      Usage		: SetOrGetPixel ImageIn Get/Set-Value IndexX IndexY {IndexZ}"<< std::endl;
+    std::cout
+      << "      Example 1		: ImageMath 2 outimage.nii SetOrGetPixel Image Get 24 34; Gets the value at 24, 34"
+      << std::endl;
+    std::cout
+      <<
+      "      Example 2		: ImageMath 2 outimage.nii SetOrGetPixel Image 1.e9 24 34; This sets 1.e9 as the value at 23 34"
+      << std::endl;
+    std::cout << "          You can also pass a boolean at the end to force the physical space to be used"<< std::endl;
+
+    std::cout << "\n  Segment		: Segment an Image  with option of Priors, weight 1 => maximally local/prior-based )"
               << std::endl;
     std::cout
-      <<
-    " MD Image1.ext  s ( Morphological Dilation with radius s ) , \n  \n ME Image1.ext s ( Morphological Erosion with radius s ) , \n \n MO Image1.ext s ( Morphological Opening with radius s ) \n \n MC Image1.ext ( Morphological Closing with radius s ) \n \n  GD Image1.ext  s ( Grayscale Dilation with radius s ) , \n  \n GE Image1.ext s ( Grayscale Erosion with radius s ) , \n \n GO Image1.ext s ( Grayscale Opening with radius s ) \n \n GC Image1.ext ( Grayscale Closing with radius s ) \n"
+      << "      Usage		: Segment Image1.ext N-Classes LocalityVsGlobalityWeight-In-ZeroToOneRange OptionalPriorImages"
       << std::endl;
-    std::cout
-      <<
-    " D (DistanceTransform) , \n   \n Segment Image1.ext N-Classes LocalityVsGlobalityWeight-In-ZeroToOneRange  OptionalPriorImages  ( Segment an Image  with option of Priors ,  weight 1 => maximally local/prior-based )  \n "
-      << std::endl;
-    std::cout
-      << " Grad Image.ext S ( Gradient magnitude with sigma s -- if normalize, then output in range [0, 1] ) , \n    "
-      << std::endl;    std::cout
-      <<
-    " Laplacian Image.ext S normalize? ( laplacian computed with sigma s --  if normalize, then output in range [0, 1] ) , \n    "
-      << std::endl;
-    std::cout << " Normalize image.ext opt ( Normalize to [0,1] option instead divides by average value ) \n  "
-              << std::endl;
-    std::cout << " PH (Print Header) , \n   Byte ( Convert to Byte image in [0,255] ) \n " << std::endl;
+
+    std::cout << "\n  stack			: Will put 2 images in the same volume"<< std::endl;
+    std::cout << "      Usage		: Stack Image1.ext Image2.ext"<< std::endl;
+
+    std::cout << "\n  ThresholdAtMean	: See the code" << std::endl;
+    std::cout << "      Usage		: ThresholdAtMean Image %ofMean"<< std::endl;
+
+    std::cout << "\n  TileImages	: "<< std::endl;
+    std::cout << "      Usage		: TileImages NumColumns ImageList*"<< std::endl;
+
+    std::cout << "\n  TriPlanarView	: " << std::endl;
     std::cout
       <<
-    "  LabelStats labelimage.ext valueimage.nii ( compute volumes / masses of objects in a label image -- write to text file ) \n"
+      "      Usage		: TriPlanarView  ImageIn.nii.gz PercentageToClampLowIntensity PercentageToClampHiIntensity x-slice y-slice z-slice"
       << std::endl;
-    std::cout << "  ROIStatistics  LabelNames.txt labelimage.ext valueimage.nii  ( see the code ) \n" << std::endl;
+
+    std::cout << "\n  TruncateImageIntensity: " << std::endl;
     std::cout
       <<
-    " DiceAndMinDistSum  LabelImage1.ext LabelImage2.ext OptionalDistImage  -- outputs DiceAndMinDistSum and Dice Overlap to text log file + optional distance image \n "
+      "      Usage		: TruncateImageIntensity InputImage.ext {lowerQuantile=0.05} {upperQuantile=0.95} {numberOfBins=65} {binary-maskImage}"
       << std::endl;
-    std::cout << "  Lipschitz   VectorFieldName  -- prints to cout  & writes to image   \n " << std::endl;
-    std::cout << "  InvId VectorFieldName  VectorFieldName   -- prints to cout  & writes to image \n " << std::endl;
-    std::cout << "  GetLargestComponent InputImage {MinObjectSize}  -- get largest object in image \n " << std::endl;
-    std::cout << "  ThresholdAtMean  Image  %ofMean \n " << std::endl;
-    std::cout
-      << "  FlattenImage  Image  %ofMax -- replaces values greater than %ofMax*Max to the value %ofMax*Max \n "
-      << std::endl;
-    std::cout << "  stack Image1.nii.gz Image2.nii.gz --- will put these 2 images in the same volume " << std::endl;
-    std::cout << "  CorruptImage Image  NoiseLevel Smoothing " << std::endl;
-    std::cout << "  TileImages NumColumns  ImageList* " << std::endl;
-    std::cout << "  RemoveLabelInterfaces ImageIn " << std::endl;
-    std::cout << "  EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore " << std::endl;
-    std::cout << "  FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}" << std::endl;
-    std::cout << "  HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} {NumberPoints-Default=64}"
-              << std::endl;
-    std::cout << "  PadImage ImageIn Pad-Number ( if Pad-Number is negative, de-Padding occurs ) " << std::endl;
-    std::cout << "  Where Image ValueToLookFor maskImage-option tolerance --- the where function from IDL "
-              << std::endl;
-    std::cout << "  4DTensorTo3DTensor 4D_DT_Image --- outputs a 3D_DT_Image with the same information. " << std::endl;
-    std::cout << "  TensorFA DTImage  " << std::endl;
-    std::cout << "  TensorFANumerator DTImage  " << std::endl;
-    std::cout << "  TensorFADenominator DTImage  " << std::endl;
-    std::cout << "  TensorColor DTImage --- produces RGB values identifying principal directions " << std::endl;
-    std::cout
-      <<
-    "  TensorToVector DTImage WhichVec --- produces vector field identifying one of the principal directions, 2 = largest eigenvalue "
-      << std::endl;
-    std::cout
-      <<
-    "  TensorToVectorComponent DTImage WhichVec --- 0 => 2 produces component of the principal vector field , i.e. largest eigenvalue.   3 = 8 => gets values from the tensor "
-      << std::endl;
-    std::cout << "  ExtractVectorComponent VecImage WhichVec ---  produces the WhichVec component of the vector "
-              << std::endl;
-    std::cout
-      << "  TensorIOTest DTImage --- will write the DT image back out ... tests I/O processes for consistency. "
-      << std::endl;
-    std::cout << "  MakeImage  SizeX  SizeY {SizeZ}  " << std::endl;
-    std::cout
-      <<
-    "  SetOrGetPixel  ImageIn Get/Set-Value  IndexX  IndexY {IndexZ}  -- for example \n  ImageMath 2 outimage.nii SetOrGetPixel Image  Get 24 34 -- gets the value at 24, 34 \n   ImageMath 2 outimage.nii SetOrGetPixel Image 1.e9  24 34  -- this sets 1.e9 as the value at 23 34  "
-      << std::endl << " you can also pass a boolean at the end to force the physical space to be used "  << std::endl;
-    std::cout << "  TensorMeanDiffusion DTImage  " << std::endl;
-    std::cout
-      <<
-    "  CompareHeadersAndImages Image1 Image2 --- tries to find and fix header error! output is the repaired image with new header.  never use this if you trust your header information. "
-      << std::endl;
-    std::cout << "  CountVoxelDifference Image1 Image2 Mask --- the where function from IDL " << std::endl;
-    std::cout << "  stack image1 image2  --- stack image2 onto image1  " << std::endl;
-    std::cout
-      <<
-    "  CorrelationUpdate Image1 Image2  RegionRadius --- in voxels , Compute update that makes Image2  more like Image1 "
-      << std::endl;
-    std::cout
-      << "  ConvertImageToFile  imagevalues.nii {Optional-ImageMask.nii} -- will write voxel values to a file  "
-      << std::endl;
-    std::cout << "  PValueImage  TValueImage  dof  " << std::endl;
-    std::cout << "  ConvertToGaussian  TValueImage  sigma-float  " << std::endl;
-    std::cout
-      <<
-    "  ConvertImageSetToMatrix  rowcoloption Mask.nii  *images.nii --  each row/column contains image content extracted from mask applied to images in *img.nii "
-      << std::endl;
-    std::cout
-      <<
-    "  ConvertVectorToImage   Mask.nii vector.nii  -- the vector contains image content extracted from a mask - here we return the vector to its spatial origins as image content "
-      << std::endl;
-    std::cout
-      <<
-    "  TriPlanarView  ImageIn.nii.gz PercentageToClampLowIntensity  PercentageToClampHiIntensity x-slice y-slice z-slice  "
-      << std::endl;
-    std::cout
-      <<
-    "  TruncateImageIntensity inputImage  {lowerQuantile=0.05} {upperQuantile=0.95}  {numberOfBins=65}  {binary-maskImage} "
-      << std::endl;
-    std::cout
-      <<
-    "  FillHoles Image parameter : parameter = ratio of edge at object to edge at background = 1 is a definite hole bounded by object only, 0.99 is close -- default of parameter > 1 will fill all holes "
-      << std::endl;
-    std::cout
-      <<
-    " PropagateLabelsThroughMask   speed/binaryimagemask.nii.gz   initiallabelimage.nii.gz Optional-Stopping-Value  -- final output is the propagated label image  "
-      << std::endl <<  " optional stopping value -- higher values allow more distant propagation "  << std::endl;
-    std::cout
-      <<
-    " FastMarchingSegmentation   speed/binaryimagemask.nii.gz   initiallabelimage.nii.gz Optional-Stopping-Value  -- final output is the propagated label image  "
-      << std::endl <<  " optional stopping value -- higher values allow more distant propagation "  << std::endl;
-    std::cout
-      <<
-    " ExtractSlice  volume.nii.gz slicetoextract --- will extract slice number from last dimension of volume (2,3,4) dimensions "
-      << std::endl;
-    std::cout
-      <<
-    " ConvertLandmarkFile  InFile.txt ---- will convert landmark file between formats.  see ants.pdf for description of formats.  e.g. ImageMath 3  outfile.vtk  ConvertLandmarkFile  infile.txt "
-      << std::endl;
+
+    std::cout << "\n  Where			: The where function from IDL"<< std::endl;
+    std::cout << "      Usage		: Where Image ValueToLookFor maskImage-option tolerance"<< std::endl;
+
     return 1;
     }
 
