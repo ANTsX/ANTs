@@ -212,6 +212,19 @@ public:
 
   VectorType GetCovMatEigenvector( MatrixType p, unsigned int evec );
 
+  VectorType AverageColumns( MatrixType p )
+  {
+    unsigned int ncol = p.columns();
+    VectorType   v = p.get_column(0);
+
+    v.fill(0);
+    for( unsigned int i = 0; i < ncol; i++ )
+      {
+      v = v + p.get_column(i);
+      }
+    return v / (RealType)ncol;
+  }
+
   MatrixType WhitenMatrix(MatrixType p, RealType regularization = 1.e-2 )
   {
     MatrixType invcov = this->CovarianceMatrix(p, regularization);
