@@ -1319,6 +1319,12 @@ public:
          * the desired window will start at the user-specified origin and
          * end at the current iteration).
          */
+
+        // Added by Paul: allow weighted metric to be used here
+        typename ParserType::OptionType::Pointer regularizationOption
+          = this->m_Parser->GetOption( "use-all-metrics-for-convergence" );
+        bool use_all_metrics = (atoi(regularizationOption->GetValue().c_str() ) > 0);
+
         unsigned int domtar = 12;
         if( this->m_CurrentIteration > domtar )
           {
@@ -1351,7 +1357,22 @@ public:
             point[0] = qq;
             ProfilePointDataType energy;
             energy.Fill( 0 );
-            energyProfiles[0]->GetPointData( qq, &energy );
+            if( use_all_metrics )
+              {
+              for( unsigned int im = 0; im < numberOfMetrics; im++ )
+                {
+                ProfilePointType pm;
+                pm[0] = qq;
+                ProfilePointDataType em;
+                energyProfiles[im]->GetPointData( qq, &em );
+                RealType weight = this->m_SimilarityMetrics[im]->GetWeightScalar();
+                energy[0] += weight * em[0];
+                }
+              }
+            else
+              {
+              energyProfiles[0]->GetPointData( qq, &energy );
+              }
             totale += energy[0];
             energyProfileWindow->SetPoint( qq - windowBegin, point );
             energyProfileWindow->SetPointData( qq - windowBegin, energy );
@@ -1364,7 +1385,22 @@ public:
           for( unsigned int qq = windowBegin; qq < this->m_CurrentIteration; qq++ )
             {
             ProfilePointDataType energy;  energy.Fill(0);
-            energyProfiles[0]->GetPointData( qq, &energy );
+            if( use_all_metrics )
+              {
+              for( unsigned int im = 0; im < numberOfMetrics; im++ )
+                {
+                ProfilePointType pm;
+                pm[0] = qq;
+                ProfilePointDataType em;
+                energyProfiles[im]->GetPointData( qq, &em );
+                RealType weight = this->m_SimilarityMetrics[im]->GetWeightScalar();
+                energy[0] += weight * em[0];
+                }
+              }
+            else
+              {
+              energyProfiles[0]->GetPointData( qq, &energy );
+              }
             energyProfileWindow->SetPointData( qq - windowBegin, energy / totale);
             }
 
