@@ -773,6 +773,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
     extractRegion.SetIndex(ImageDimension - 1, timedim );
     typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
     extractFilter->SetInput( img_mov );
+    extractFilter->SetDirectionCollapseToSubmatrix();
     extractFilter->SetExtractionRegion( extractRegion );
     extractFilter->Update();
     typename ImageType::Pointer warpthisimage = extractFilter->GetOutput();
