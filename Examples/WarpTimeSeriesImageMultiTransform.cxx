@@ -1056,28 +1056,51 @@ int main(int argc, char * *argv)
 {
   if( argc <= 3 )
     {
-    std::cout << argv[0]
+    std::cout << "\nUsage 1 (Forward warp): " << argv[0]
               <<
-    " ImageDimension moving_image output_image -R fixed_image  MyWarp.nii.gz MyAffine.txt --use-NN (Nearest Neighbor Interpolator option) "
+    " ImageDimension <moving_image.ext> <output_image.ext> -R <fixed_image.ext> <MyWarp.ext> <MyAffine.txt> [interpolation]"
               << std::endl;
-    std::cout << argv[0]
+
+    std::cout << "\nUsage 2 (Inverse warp): " << argv[0]
               <<
-    " ImageDimension fixed_image output_image -R moving_image  -i MyAffine.txt  MyInverseWarp.nii.gz --use-NN (Nearest Neighbor Interpolator option ) "
+    " ImageDimension <fixed_image.ext> <output_image.ext> -R <moving_image.ext> -i <MyAffine.txt> <MyInverseWarp.ext> [interpolation]"
               << std::endl;
+
+    std::cout << "\nUsage Information " << std::endl;
+    std::cout << " ImageDimension			: 3 or 4 (required argument)."<< std::endl;
     std::cout
       <<
-    " you can also string together series of mappings --- e.g.:      MyAffine.txt MySecondAffine.txt  MyWarp.nii.gz MySecondWarp.nii.gz -i MyInverseAffine.txt    --- this can be an arbitrarily long series. "
+    " <moving_image.ext>		: The image to apply the transformation to. The moving_image will be either a 3-D image with vector voxels or a 4D image with scalar voxels."
       << std::endl;
     std::cout
       <<
-    " For this program, your moving_image will be either a 3-D image with vector voxels or a 4D image with scalar voxels. "
+    " <output_image.ext>		: The resulting image. Output will be of the same type as input, but will be resampled to the domain size defined by the -R image."
       << std::endl;
-    std::cout << " You must define whether the image is 3/4D via the first parameter to the program " << std::endl;
     std::cout
       <<
-    " Output will be of the same type as input, but will be resampled to the domain size defined by the -R image ... "
+    " <MyWarp.ext> <MyAffine.txt>	: Mappings can be stringed together, e.g.: MyAffine.txt MySecondAffine.txt MyWarp.nii.gz MySecondWarp.nii.gz -i MyInverseAffine.txt"
       << std::endl;
-    std::cout << " See WarpImageMultiTransform  for more detailed usage " << std::endl;
+
+    std::cout << "\nOptions:" << std::endl;
+    std::cout << " -i				: Will use the inversion of the following affine transform."<< std::endl;
+    std::cout << " \n -R				: Reference image space that you wish to warp into."<< std::endl;
+    std::cout
+      <<
+    " --reslice-by-header		: Equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
+      << std::endl;
+    std::cout
+      <<
+    " --tightest-bounding-box	: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R <reference_image.ext> if given."
+      << std::endl;
+    std::cout
+      << " These options can be used together with -R and are typically not used together with any other transforms."
+      << std::endl;
+
+    std::cout << "\nInterpolation:" << std::endl;
+    std::cout << " --use-NN			: Use Nearest Neighbor Interpolator"<< std::endl;
+    std::cout << " --use-BSpline			: Use 3rd order B-Spline Interpolation."<< std::endl;
+
+    std::cout << "\n " << std::endl;
     exit(0);
     }
 
