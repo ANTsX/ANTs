@@ -1720,7 +1720,7 @@ int CompCorr(int argc, char *argv[])
       {
       ct_ref++;
       }
-    if( vfIter2.Get() == 2 ||  vfIter2.Get() == 1 )      // gm roi
+    if( vfIter2.Get() > 0 )      // gm roi
       {
       ct_gm++;
       }
