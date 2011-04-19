@@ -3,7 +3,7 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkDiReCTImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "ItkImage.h"
+#include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkTimeProbe.h"
