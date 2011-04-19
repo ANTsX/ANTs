@@ -433,8 +433,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           {
           if( integrationPoint == 1 )
             {
-            typename InputImageType::PixelType whiteMatterContoursValue =
-              ItWhiteMatterContours.Get();
+            RealType whiteMatterContoursValue = ItWhiteMatterContours.Get();
             hitImage->SetPixel( index, whiteMatterContoursValue );
 
             VectorType vector = integratedField->GetPixel( index );
