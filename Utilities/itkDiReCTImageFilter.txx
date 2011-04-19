@@ -551,6 +551,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           static_cast<typename ProfilePointType::CoordRepType>( i );
 
         ProfilePointDataType windowEnergy;
+        windowEnergy[0] = 0.0;
         energyProfile->GetPointData( i, &windowEnergy );
 
         totalEnergy += vnl_math_abs( windowEnergy[0] );
@@ -561,6 +562,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         windowPoint[0] = static_cast<typename ProfilePointType::CoordRepType>( i );
 
         ProfilePointDataType windowEnergy;
+        windowEnergy[0] = 0.0;
         energyProfile->GetPointData( i, &windowEnergy );
 
         energyProfileWindow->SetPoint( i - startIndex, windowPoint );
