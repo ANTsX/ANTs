@@ -240,6 +240,9 @@ target_link_libraries(N4BiasFieldCorrection ${ITK_LIBRARIES})
 add_executable(KellySlater KellySlater.cxx)
 target_link_libraries(KellySlater ${ITK_LIBRARIES})
 
+add_executable(KellyKapowski KellyKapowski.cxx  ${UI_SOURCES})
+target_link_libraries(KellyKapowski ${ITK_LIBRARIES})
+
 IF (USE_VTK)
 INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
 IF (USE_VTK_FILE)
