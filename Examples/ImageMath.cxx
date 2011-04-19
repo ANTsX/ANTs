@@ -1635,7 +1635,7 @@ int TimeSeriesSubset(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
-int CompCorRestingStateConnectivity(int argc, char *argv[])
+int CompCorr(int argc, char *argv[])
 {
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -1726,8 +1726,8 @@ int CompCorRestingStateConnectivity(int argc, char *argv[])
       }
     }
 
-  // step 1.  compute , in label 3 ( the nuisance region ), the average value of the time series over the region.  at
-  // the same time, compute the average value in label 2 ( the reference region ).
+  // step 1.  compute , in label 3 ( the nuisance region ), the representative value of the time series over the region.
+  //  at the same time, compute the average value in label 2 ( the reference region ).
   // step 2.  factor out the nuisance region from the activation at each voxel in the ROI (nonzero labels).
   // step 3.  compute the correlation of the reference region with every voxel in the roi.
   typedef vnl_matrix<Scalar> timeMatrixType;
@@ -1771,7 +1771,7 @@ int CompCorRestingStateConnectivity(int argc, char *argv[])
         }
       ref_vox++;
       }
-    if( vfIter2.Get() == 1 || vfIter2.Get() == 2 )      // reference
+    if( vfIter2.Get() > 0  )      // in brain
       {
       IndexType tind;
       for( unsigned int i = 0; i < ImageDimension - 1; i++ )
@@ -1818,26 +1818,35 @@ int CompCorRestingStateConnectivity(int argc, char *argv[])
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     OutIndexType ind = vfIter2.GetIndex();
-    if( vfIter2.Get() == 1 || vfIter2.Get() == 2 )      // compute the gm-reference correlation
-      { //	Scalar corrxy=matrixOps->PearsonCorr(mSample.get_column(gm_vox),mReference.get_column(0));
-       //	Scalar corrxz=matrixOps->PearsonCorr(mSample.get_column(gm_vox),mNuisance.get_column(0));
-       //	Scalar partialcorrnumer=corrxy-corrxz*corryz;
-       //	Scalar partialcorrdenom=sqrt(1-corrxz*corrxz)*sqrt(1-corryz*corryz);
-       //	if ( partialcorrdenom == 0 ) partialcorrdenom=1;
-       //	Scalar partialcorr=partialcorrnumer/partialcorrdenom;
-       //	outimage->SetPixel(ind,partialcorr);
+    if( vfIter2.Get() > 0 )
+      {
       timeVectorType samp = mSample.get_column(gm_vox);
-      Scalar         corr = matrixOps->PearsonCorr(samp, vReference);
-      Scalar         corr2 = matrixOps->PearsonCorr(samp, vReference2);
+// correct the original image
+      IndexType tind;
+      for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+        {
+        tind[i] = ind[i];
+        }
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        image1->SetPixel(tind, samp[t]);
+        }
+// compute the gm-reference correlation
+      Scalar corr = matrixOps->PearsonCorr(samp, vReference);
+      Scalar corr2 = matrixOps->PearsonCorr(samp, vReference2);
       outimage->SetPixel(ind, corr);
       outimage2->SetPixel(ind, corr2);
       gm_vox++;
       }
     }
+
   std::string kname = tempname + std::string("first_evec") + extension;
   WriteImage<OutImageType>(outimage, kname.c_str() );
   kname = tempname + std::string("second_evec") + extension;
   WriteImage<OutImageType>(outimage2, kname.c_str() );
+  kname = tempname + std::string("_corrected") + extension;
+  WriteImage<ImageType>(image1, kname.c_str() );
   return 0;
 }
 
@@ -7287,9 +7296,9 @@ int main(int argc, char *argv[])
     std::cout << "\nTime Series Operations:" << std::endl;
     std::cout
       <<
-      " CompCorRestingStateConnectivity : Outputs a 3D image measuring the correlation of a time series voxel/region with a reference voxel/region factored out.  Requires a label image with 1=overall region of interest,  2=reference voxel, 3=region to factor out"
+      " CompCorr : Outputs a comp-corr corrected 4D image as well as a 3D image measuring the correlation of a time series voxel/region with a reference voxel/region factored out.  Requires a label image with 1=overall region of interest,  2=reference voxel, 3=region to factor out"
       << std::endl;
-    std::cout << "    Usage		: CompCorRestingStateConnectivity 4D_TimeSeries.nii.gz LabeLimage.nii.gz "<< std::endl;
+    std::cout << "    Usage		: CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz "<< std::endl;
     std::cout
       << " TimeSeriesSubset : Outputs n 3D image sub-volumes extracted uniformly from the input time-series 4D image."
       << std::endl;
@@ -8252,9 +8261,9 @@ int main(int argc, char *argv[])
         {
         TimeSeriesSubset<4>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "CompCorRestingStateConnectivity") == 0 )
+      else if( strcmp(operation.c_str(), "CompCorr") == 0 )
         {
-        CompCorRestingStateConnectivity<4>(argc, argv);
+        CompCorr<4>(argc, argv);
         }
       else
         {
