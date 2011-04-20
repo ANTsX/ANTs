@@ -603,7 +603,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   if( movingwarp && this->m_MaskImage && !this->m_ComputeThickness )
     {
-    mask = this->WarpMultiTransform( this->m_MaskImage, this->m_MaskImage, NULL, movingwarp, false,
+    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, NULL, movingwarp, false,
                                      this->m_FixedImageAffineTransform );
     }
   else if( this->m_MaskImage && !this->m_ComputeThickness  )
@@ -709,9 +709,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     ImagePointer wmimage = NULL;
     if( fixedwarp )
       {
-      wmimage =
-        this->WarpMultiTransform(  this->m_SmoothFixedImages[metricCount], this->m_SmoothMovingImages[metricCount],
-                                   this->m_AffineTransform, fixedwarp, false, NULL );
+      wmimage = this->WarpMultiTransform(  this->m_ReferenceSpaceImage, this->m_SmoothMovingImages[metricCount],
+                                           this->m_AffineTransform, fixedwarp, false, NULL );
       }
     else
       {
@@ -724,9 +723,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     ImagePointer wfimage = NULL;
     if( movingwarp )
       {
-      wfimage = this->WarpMultiTransform( this->m_SmoothFixedImages[metricCount],
-                                          this->m_SmoothFixedImages[metricCount], NULL, movingwarp, false,
-                                          this->m_FixedImageAffineTransform );
+      wfimage = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_SmoothFixedImages[metricCount], NULL,
+                                          movingwarp, false, this->m_FixedImageAffineTransform );
       }
     else
       {
@@ -1138,7 +1136,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   if( movingwarp && this->m_MaskImage )
     {
-    mask = this->WarpMultiTransform( this->m_MaskImage, this->m_MaskImage, NULL, movingwarp, false,
+    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, NULL, movingwarp, false,
                                      this->m_FixedImageAffineTransform );
     }
   else if( this->m_MaskImage )
@@ -1239,9 +1237,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     ImagePointer wmimage = NULL;
     if( fixedwarp )
       {
-      wmimage =
-        this->WarpMultiTransform(  this->m_SmoothFixedImages[metricCount], this->m_SmoothMovingImages[metricCount],
-                                   this->m_AffineTransform, fixedwarp, false, this->m_FixedImageAffineTransform );
+      wmimage = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_SmoothMovingImages[metricCount],
+                                          this->m_AffineTransform, fixedwarp, false,
+                                          this->m_FixedImageAffineTransform );
       }
     else
       {
@@ -1254,9 +1252,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     ImagePointer wfimage = NULL;
     if( movingwarp )
       {
-      wfimage = this->WarpMultiTransform( this->m_SmoothFixedImages[metricCount],
-                                          this->m_SmoothFixedImages[metricCount], NULL, movingwarp, false,
-                                          this->m_FixedImageAffineTransform );
+      wfimage = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_SmoothFixedImages[metricCount], NULL,
+                                          movingwarp, false, this->m_FixedImageAffineTransform );
       }
     else
       {
@@ -1642,7 +1639,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     if( mpoints )
       {       // need full inverse map
       DeformationFieldPointer tinvdiffmap = this->IntegrateConstantVelocity(totalField, nts, (-1.) );
-      wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  mpoints,  aff, tinvdiffmap, true,
+      wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  mpoints,  aff, tinvdiffmap, true,
                                           this->m_FixedImageAffineTransform );
       }
 
@@ -1811,13 +1808,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   if( mpoints )
     {
-    wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  mpoints,  aff, this->m_SyNM, true,
+    wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  mpoints,  aff, this->m_SyNM, true,
                                         this->m_FixedImageAffineTransform );
     }
 
   if( fpoints )
     {  // need full inverse map
-    wfpoints = this->WarpMultiTransform(fixedImage, fixedImage, fpoints,  NULL, this->m_SyNF, false,
+    wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, fpoints,  NULL, this->m_SyNF, false,
                                         this->m_FixedImageAffineTransform  );
     }
   // syncom
@@ -1902,12 +1899,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
   if( mpoints )
     {
-    wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  mpoints,  aff, this->m_SyNM, true,
+    wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  mpoints,  aff, this->m_SyNM, true,
                                         this->m_FixedImageAffineTransform );
     }
   if( fpoints )
     {  // need full inverse map
-    wfpoints = this->WarpMultiTransform(fixedImage, fixedImage, fpoints,  NULL, this->m_SyNF, false,
+    wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, fpoints,  NULL, this->m_SyNF, false,
                                         this->m_FixedImageAffineTransform );
     }
 
@@ -1988,7 +1985,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       gspace[dim] = this->m_CurrentDomainSpacing[dim];
       gorigin[dim] = this->m_CurrentDomainOrigin[dim];
       }
-    gsize[TDimension] = this->m_NTimeSteps;
+    gsize[TDimension] = (long unsigned int) this->m_NTimeSteps;
     gspace[TDimension] = 1;
     gregion.SetSize(gsize);
 
@@ -2168,16 +2165,19 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 //      std::cout <<" aff " << std::endl;
 /** NOte, totalUpdateInvField is filled with zeroes! -- we only want
       affine mapping */
-    wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  mpoints,  aff, totalUpdateInvField, true, NULL );
+    wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  mpoints,  aff, totalUpdateInvField,
+                                        true, NULL );
     DeformationFieldPointer mdiffmap = this->IntegrateLandmarkSetVelocity(lot2, hit, wmpoints, movingImage);
-    wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  wmpoints,  NULL, mdiffmap, true, NULL );
+    wmpoints =
+      this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  wmpoints,  NULL, mdiffmap, true, NULL );
     }
   if( fpoints )
     {  // need full inverse map
-    wfpoints = this->WarpMultiTransform(fixedImage, movingImage,  fpoints, NULL, totalUpdateInvField, true,
-                                        this->m_FixedImageAffineTransform );
+    wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  fpoints, NULL, totalUpdateInvField,
+                                        true, this->m_FixedImageAffineTransform );
     DeformationFieldPointer fdiffmap = this->IntegrateLandmarkSetVelocity(lot, hit, wfpoints, fixedImage);
-    wfpoints = this->WarpMultiTransform(fixedImage, fixedImage, wfpoints,  NULL, fdiffmap, false, NULL );
+    wfpoints =
+      this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, wfpoints,  NULL, fdiffmap, false, NULL );
     }
   totalUpdateField = this->ComputeUpdateField( this->m_SyNMInv, this->m_SyNFInv, wfpoints, wmpoints,
                                                totalUpdateInvField, true);
@@ -2413,16 +2413,19 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 //      std::cout <<" aff " << std::endl;
 /** NOte, totalUpdateInvField is filled with zeroes! -- we only want
       affine mapping */
-      wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  mpoints,  aff, totalUpdateInvField, true, NULL );
+      wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  mpoints,  aff, totalUpdateInvField,
+                                          true, NULL );
       DeformationFieldPointer mdiffmap = this->IntegrateLandmarkSetVelocity(lot2, hit, wmpoints, movingImage);
-      wmpoints = this->WarpMultiTransform(fixedImage, movingImage,  wmpoints,  NULL, mdiffmap, true, NULL );
+      wmpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  wmpoints,  NULL, mdiffmap, true,
+                                          NULL );
       }
     if( fpoints )
       { // need full inverse map
-      wfpoints = this->WarpMultiTransform(fixedImage, movingImage,  fpoints, NULL, totalUpdateInvField, true,
-                                          this->m_FixedImageAffineTransform );
+      wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, movingImage,  fpoints, NULL, totalUpdateInvField,
+                                          true, this->m_FixedImageAffineTransform );
       DeformationFieldPointer fdiffmap = this->IntegrateLandmarkSetVelocity(lot, hit, wfpoints, fixedImage);
-      wfpoints = this->WarpMultiTransform(fixedImage, fixedImage, wfpoints,  NULL, fdiffmap, false, NULL );
+      wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, wfpoints,  NULL, fdiffmap, false,
+                                          NULL );
       }
     totalUpdateField = this->ComputeUpdateField( this->m_SyNMInv, this->m_SyNFInv, wfpoints, wmpoints,
                                                  totalUpdateInvField, true);
@@ -2511,7 +2514,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   if( this->m_SyNMInv && this->m_MaskImage )
     {
-    mask = this->WarpMultiTransform( this->m_MaskImage, this->m_MaskImage, NULL, this->m_SyNMInv, false,
+    mask = this->WarpMultiTransform( this->m_ReferenceSpaceImage, this->m_MaskImage, NULL, this->m_SyNMInv, false,
                                      this->m_FixedImageAffineTransform );
     }
   else if( this->m_MaskImage )
