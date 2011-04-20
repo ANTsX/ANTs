@@ -53,7 +53,7 @@ namespace itk
 template <class TInputImage, class TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::DiReCTImageFilter() :
-  m_ThicknessPriorEstimate( 6.0 ),
+  m_ThicknessPriorEstimate( 10.0 ),
   m_SmoothingSigma( 1.5 ),
   m_GradientStep( 0.5 ),
   m_NumberOfIntegrationPoints( 10 ),
@@ -433,7 +433,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           {
           if( integrationPoint == 1 )
             {
-            RealType whiteMatterContoursValue = ItWhiteMatterContours.Get();
+            typename InputImageType::PixelType whiteMatterContoursValue =
+              ItWhiteMatterContours.Get();
             hitImage->SetPixel( index, whiteMatterContoursValue );
 
             VectorType vector = integratedField->GetPixel( index );
@@ -551,7 +552,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           static_cast<typename ProfilePointType::CoordRepType>( i );
 
         ProfilePointDataType windowEnergy;
-        windowEnergy[0] = 0.0;
         energyProfile->GetPointData( i, &windowEnergy );
 
         totalEnergy += vnl_math_abs( windowEnergy[0] );
@@ -562,7 +562,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         windowPoint[0] = static_cast<typename ProfilePointType::CoordRepType>( i );
 
         ProfilePointDataType windowEnergy;
-        windowEnergy[0] = 0.0;
         energyProfile->GetPointData( i, &windowEnergy );
 
         energyProfileWindow->SetPoint( i - startIndex, windowPoint );

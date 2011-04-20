@@ -32,15 +32,6 @@ namespace itk
  *     are all labeled with values of 1, 2, and 3, respectively.
  *   - Corresponding grey matter and white matter probability maps.
  *
- * In addition to specifying the input point set, one must specify the number
- * of control points.  The specified number of control points must be
- * > m_SplineOrder.  If one wishes to use the multilevel component of
- * this algorithm, one must also specify the number of levels in the
- * hierarchy.  If this is desired, the number of control points becomes
- * the number of control points for the coarsest level.  The algorithm
- * then increases the number of control points at each level so that
- * the B-spline n-D grid is refined to twice the previous level.
- *
  * \author Nicholas J. Tustison
  *
  * Contributed by Nicholas J. Tustison, Brian B. Avants
@@ -94,8 +85,7 @@ public:
 
   /**
    * Set the segmentation image.  The segmentation image is a labeled image
-   * with voxel values of '0' for background, '1' for csf, '2' for gm, and
-   * '3' for wm.
+   * with specified labels for the gray and white matters.
    */
   void SetSegmentationImage( const InputImageType *seg )
   {
@@ -157,42 +147,48 @@ public:
   itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
 
   /**
-   * Set the gray matter label in the segmentation image.
+   * Set the gray matter label in the segmentation image.  Default = 2.
    */
   itkSetMacro( GrayMatterLabel, unsigned int );
 
   /**
-   * Get the gray matter label in the segmentation image.
+   * Get the gray matter label in the segmentation image.  Default = 2.
    */
   itkGetConstMacro( GrayMatterLabel, unsigned int );
 
   /**
-   * Set the white matter label in the segmentation image.
+   * Set the white matter label in the segmentation image.  Default = 3.
    */
   itkSetMacro( WhiteMatterLabel, unsigned int );
 
   /**
-   * Get the white matter label in the segmentation image.
+   * Get the white matter label in the segmentation image.  Default = 3.
    */
   itkGetConstMacro( WhiteMatterLabel, unsigned int );
 
   /**
-   * Set the convergence threshold.  Convergence is determined by the
+   * Set the convergence threshold.  Default = 0.001.
    */
   itkSetMacro( ConvergenceThreshold, RealType );
 
   /**
-   * Get the convergence threshold.  Convergence is determined by the
+   * Get the convergence threshold.  Default = 0.001.
    */
   itkGetConstMacro( ConvergenceThreshold, RealType );
 
   /**
-   * Set the convergence threshold.  Convergence is determined by the
+   * Set the convergence window size. Convergence is determined by fitting a
+   * line to the normalized energy profile of the last N iterations (where
+   * N is specified by the window size) and determining the slope which is
+   * then compared with the convergence threshold.  Default = 10.
    */
   itkSetMacro( ConvergenceWindowSize, unsigned int );
 
   /**
-   * Get the convergence threshold.  Convergence is determined by the
+   * Get the convergence window size. Convergence is determined by fitting a
+   * line to the normalized energy profile of the last N iterations (where
+   * N is specified by the window size) and determining the slope which is
+   * then compared with the convergence threshold. Default = 10.
    */
   itkGetConstMacro( ConvergenceWindowSize, unsigned int );
 
@@ -201,7 +197,7 @@ public:
    * final thickness measurement.  References in the literature
    * give a normal thickness of typically 3 mm with normal range
    * from ~2 mm in the calcarine cortex to ~4 mm in the precentral
-   * gyrus. Default = 6 mm.
+   * gyrus. Default = 10 mm.
    */
   itkSetMacro( ThicknessPriorEstimate, RealType );
 
@@ -210,7 +206,7 @@ public:
    * final thickness measurement.  References in the literature
    * give a normal thickness of typically 3 mm with normal range
    * from ~2 mm in the calcarine cortex to ~4 mm in the precentral
-   * gyrus.  Default = 6 mm.
+   * gyrus.  Default = 10 mm.
    */
   itkGetConstMacro( ThicknessPriorEstimate, RealType );
 
@@ -225,12 +221,12 @@ public:
   itkGetConstMacro( GradientStep, RealType );
 
   /**
-   * Set the smoothing sigma.  Default = 1.0.
+   * Set the smoothing sigma.  Default = 1.5.
    */
   itkSetClampMacro( SmoothingSigma, RealType, 0, NumericTraits<RealType>::max() );
 
   /**
-   * Get the smoothing sigma.  Default = 1.0.
+   * Get the smoothing sigma.  Default = 1.5.
    */
   itkGetConstMacro( SmoothingSigma, RealType );
 
@@ -263,22 +259,27 @@ protected:
 private:
 
   /**
+   * Private function for extracting regions (e.g. gray or white).
    */
   InputImagePointer ExtractRegion( const InputImageType *, unsigned int );
 
   /**
+   * Private function for extracting regional contours (e.g. gray or white).
    */
   InputImagePointer ExtractRegionalContours( const InputImageType *, unsigned int );
 
   /**
+   * Private function for warping an image.
    */
   RealImagePointer WarpImage( const RealImageType *, const VectorImageType * );
 
   /**
+   * Private function for inverting the deformation field.
    */
   void InvertDeformationField( const VectorImageType *, VectorImageType * );
 
   /**
+   * Private function for smoothing the deformation field.
    */
   VectorImagePointer SmoothDeformationField( const VectorImageType *, const RealType );
 
