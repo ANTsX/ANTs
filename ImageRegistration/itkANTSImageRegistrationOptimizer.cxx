@@ -53,6 +53,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_UseMulti = true;
   this->m_UseROI = false;
   this->m_MaskImage = NULL;
+  this->m_ReferenceSpaceImage = NULL;
   this->m_ScaleFactor = 1.0;
   this->m_Debug = false;
 
