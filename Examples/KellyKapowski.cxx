@@ -313,7 +313,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, N4 tries to " )
+      + std::string( "dimensional image.  If not specified, DiReCT tries to " )
       + std::string( "infer the dimensionality from the input image." );
 
     OptionType::Pointer option = OptionType::New();
@@ -327,7 +327,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "A segmentation image must be supplied labeling the gray" )
-      + std::string( "and white matters (default values = 2 and 3, respectively." );
+      + std::string( "and white matters.  Ddefault values = 2 and 3, respectively." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "segmentation-image" );
@@ -370,7 +370,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Convergence is determined by...." );
+      std::string( "Convergence is determined by fitting a line to the normalized energy " )
+      + std::string( "profile of the last N iterations (where N is specified by " )
+      + std::string( "the window size) and determining the slope which is then " )
+      + std::string( "compared with the convergence threshold." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "convergence" );
@@ -515,8 +518,8 @@ int main( int argc, char *argv[] )
       }
     else
       {
-      std::cerr << "No input images were specified.  Specify an input image"
-                << " with the -i option" << std::endl;
+      std::cerr << "No input images were specified.  Specify an input "
+                << " segmentation image with the -s option" << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
