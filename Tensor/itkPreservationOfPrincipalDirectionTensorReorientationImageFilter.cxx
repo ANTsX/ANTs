@@ -183,14 +183,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       }
     }
 
-  if( !oktosample )
-    {
-    for( unsigned int i = 0; i < ImageDimension; i++ )
-      {
-      jMatrix(i, i) = 1.0;
-      }
-    }
-  else
+  if( oktosample )
     {
     typename DeformationFieldType::PixelType cpix = m_DeformationField->GetPixel(index);
     if( this->m_UseImageDirection )
@@ -242,6 +235,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       for( unsigned int col = 0; col < ImageDimension; col++ )
         {
         float val = dPix[col] / spacing[col];
+
         if( row == col )
           {
           val += 1.0;
@@ -249,6 +243,25 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 
         jMatrix(col, row) = val;
         }
+      }
+    }
+  for( unsigned int jx = 0; jx < ImageDimension; jx++ )
+    {
+    for( unsigned int jy = 0; jy < ImageDimension; jy++ )
+      {
+      if( !vnl_math_isfinite(jMatrix(jx, jy) )  )
+        {
+        oktosample = false;
+        }
+      }
+    }
+
+  if( !oktosample )
+    {
+    jMatrix.Fill(0.0);
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      jMatrix(i, i) = 1.0;
       }
     }
 
@@ -308,6 +321,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   for( outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt )
     {
     InverseTransformPointer localDeformation;
+
     // FIXME - eventually this will be callable via a generic transform base class
     if( this->m_UseAffine )
       {
@@ -315,8 +329,8 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       }
     else
       {
-      localDeformation =
-        this->GetLocalDeformation( this->m_DeformationField, outputIt.GetIndex() )->GetInverseTransform();
+      AffineTransformPointer deformation = this->GetLocalDeformation( this->m_DeformationField, outputIt.GetIndex() );
+      localDeformation = deformation->GetInverseTransform();
       }
 
     TensorType inTensor = input->GetPixel(outputIt.GetIndex() );
@@ -326,13 +340,20 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     bool hasNans = false;
     for( unsigned int jj = 0; jj < 6; jj++ )
       {
-      if( vnl_math_isnan( inTensor[jj] ) )
+      if( vnl_math_isnan( inTensor[jj] ) || vnl_math_isinf( inTensor[jj]) )
         {
         hasNans = true;;
         }
       }
 
-    if( hasNans )
+    bool  isNull = false;
+    float trace = inTensor[0] + inTensor[3] + inTensor[5];
+    if( trace <= 0 )
+      {
+      isNull = true;
+      }
+
+    if( hasNans || isNull )
       {
       outTensor = inTensor;
       }
