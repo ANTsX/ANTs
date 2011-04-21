@@ -307,12 +307,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     {
     this->SetInput( image );
     }
-  if( which > this->m_NumberOfIntensityImages - 1 )
+  else if( which > this->m_NumberOfIntensityImages - 1 )
     {
     this->m_NumberOfIntensityImages = which + 1;
+    this->SetNthInput( 2 + which, const_cast<ImageType *>( image ) );
     }
-  this->SetNthInput( 2 + this->m_NumberOfTissueClasses + which,
-                     const_cast<ImageType *>( image ) );
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
@@ -330,12 +329,12 @@ const typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifi
   else if( which > 0 && which <= this->m_NumberOfIntensityImages )
     {
     image = dynamic_cast<const ImageType *>(
-        this->ProcessObject::GetInput( 2 + this->m_NumberOfTissueClasses + which ) );
+        this->ProcessObject::GetInput( 2 + which ) );
     }
   else
     {
     itkExceptionMacro( "Image " << which << " is outside the range "
-                                << "[1+m_NumberOfTissueClasses...1+m_NumberOfTissueClasses+m_NumberOfIntensityImages]." )
+                                << "[1,...,1 + m_NumberOfIntensityImages]." );
     }
   return image;
   }
