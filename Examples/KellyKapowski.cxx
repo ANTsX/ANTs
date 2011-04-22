@@ -149,8 +149,8 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       ThresholderType;
     typename ThresholderType::Pointer thresholder = ThresholderType::New();
     thresholder->SetInput( segmentationImage );
-    thresholder->SetLowerThreshold( 2 );
-    thresholder->SetUpperThreshold( 2 );
+    thresholder->SetLowerThreshold( direct->GetGrayMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetGrayMatterLabel() );
     thresholder->SetInsideValue( 1 );
     thresholder->SetOutsideValue( 0 );
 
@@ -193,8 +193,8 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       ThresholderType;
     typename ThresholderType::Pointer thresholder = ThresholderType::New();
     thresholder->SetInput( segmentationImage );
-    thresholder->SetLowerThreshold( 3 );
-    thresholder->SetUpperThreshold( 3 );
+    thresholder->SetLowerThreshold( direct->GetWhiteMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetWhiteMatterLabel() );
     thresholder->SetInsideValue( 1 );
     thresholder->SetOutsideValue( 0 );
 
