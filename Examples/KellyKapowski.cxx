@@ -373,7 +373,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       std::string( "Convergence is determined by fitting a line to the normalized energy " )
       + std::string( "profile of the last N iterations (where N is specified by " )
       + std::string( "the window size) and determining the slope which is then " )
-      + std::string( "compared with the convergence threshold.  Default = 0.001." );
+      + std::string( "compared with the convergence threshold." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "convergence" );
@@ -385,11 +385,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Provides a constraint on the final thickness measurement. " )
-      + std::string( "References in the literature give a normal thickness of " )
-      + std::string( "typically 3 mm with normal range from ~2 mm in the " )
-      + std::string( "calcarine cortex to ~4 mm in the precentral gyrus. " )
-      + std::string( "Default = 10 mm." );
+      std::string( "Provides a prior constraint on the final thickness measurement. Default = 10 mm." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "thickness-prior-estimate" );
