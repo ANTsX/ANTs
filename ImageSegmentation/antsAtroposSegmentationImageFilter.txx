@@ -2079,13 +2079,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 }
               RealType sumPriorProbability =
                 sumPriorProbabilityImage->GetPixel( ItO.GetIndex() );
-              if( priorProbability > this->m_ProbabilityThreshold )
+              if( sumPriorProbability > this->m_ProbabilityThreshold )
                 {
                 priorProbability *= ( this->m_MixtureModelProportions[c]
                                       / sumPriorProbability );
                 }
-              else if( sumPriorProbability <= this->m_ProbabilityThreshold &&
-                       distancePriorProbabilityImage )
+              else if( distancePriorProbabilityImage )
                 {
                 priorProbability = distancePriorProbability;
                 }
@@ -2325,13 +2324,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               }
             RealType sumPriorProbability =
               sumPriorProbabilityImage->GetPixel( ItO.GetIndex() );
-            if( priorProbability > this->m_ProbabilityThreshold )
+            if( sumPriorProbability > this->m_ProbabilityThreshold )
               {
               priorProbability *= ( this->m_MixtureModelProportions[whichClass - 1]
                                     / sumPriorProbability );
               }
-            else if( sumPriorProbability <= this->m_ProbabilityThreshold &&
-                     distancePriorProbabilityImage )
+            else if( distancePriorProbabilityImage )
               {
               priorProbability = distancePriorProbability;
               }
