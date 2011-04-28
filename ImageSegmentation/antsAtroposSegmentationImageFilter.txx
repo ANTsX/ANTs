@@ -1985,7 +1985,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               priorProbability = priorProbabilityImage->GetPixel( ItS.GetIndex() );
               }
-            if( this->GetPriorLabelImage() )
+            else if( this->GetPriorLabelImage() )
               {
               if( priorProbability == 0 )
                 {
@@ -2092,7 +2092,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 priorProbability =
                   priorProbabilityImage->GetPixel( ItO.GetIndex() );
                 }
-              if( this->GetPriorLabelImage() )
+              else if( this->GetPriorLabelImage() )
                 {
                 if( priorProbability == 0.0 )
                   {
@@ -2251,7 +2251,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
               {
               priorProbability = priorProbabilityImage->GetPixel( ItS.GetIndex() );
               }
-            if( this->GetPriorLabelImage() )
+            else if( this->GetPriorLabelImage() )
               {
               if( priorProbability == 0.0 )
                 {
