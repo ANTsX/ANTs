@@ -137,7 +137,8 @@ function Help {
 	CC = cross-correlation
 	MI = mutual information
 	PR = probability mapping (default)
-	MSQ = mean square difference
+	MSQ = mean square difference (Demons-like)
+	SSD = sum of squared differences
 
 	For intermodal image registration, use:
 	MI = mutual information
@@ -479,8 +480,14 @@ then
 METRIC=MSQ[
 METRICPARAMS=1,0]
 
+elif [ "${METRICTYPE}" == "SSD" ]
+then
+# Mapping Parameters
+METRIC=SSD[
+METRICPARAMS=1,0]
+
 else
-echo "Invalid similarity metric. Use CC, MI, MSQ or PR or type sh $0 -h."
+echo "Invalid similarity metric. Use CC, MI, MSQ, SSD or PR or type sh $0 -h."
 exit 1
 fi
 

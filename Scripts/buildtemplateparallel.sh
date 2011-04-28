@@ -149,7 +149,8 @@ Optional arguments:
 	     CC = cross-correlation
 	     MI = mutual information
 	     PR = probability mapping (default)
-	     MSQ = mean square difference
+      MSQ = mean square difference (Demons-like)
+      SSD = sum of squared differences
 
 	     For intermodal image registration, use:
 	     MI = mutual information
