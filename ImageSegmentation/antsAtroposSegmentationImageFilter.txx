@@ -39,6 +39,7 @@
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkMinimumDecisionRule2.h"
+#include "itkMultiplyImageFilter.h"
 #include "itkOtsuMultipleThresholdsCalculator.h"
 #include "itkSampleClassifierFilter.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
@@ -509,11 +510,37 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     case PriorLabelImage:
       {
-      typedef ImageDuplicator<ClassifiedImageType> DuplicatorType;
-      typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
-      duplicator->SetInputImage( this->GetPriorLabelImage() );
-      duplicator->Update();
-      this->SetNthOutput( 0, duplicator->GetOutput() );
+      if( this->GetMaskImage() )
+        {
+        typedef BinaryThresholdImageFilter<ClassifiedImageType, ClassifiedImageType>
+          ThresholderType;
+        typename ThresholderType::Pointer thresholder = ThresholderType::New();
+        thresholder->SetInput( this->GetMaskImage() );
+        thresholder->SetLowerThreshold( this->m_MaskLabel );
+        thresholder->SetUpperThreshold( this->m_MaskLabel );
+        thresholder->SetInsideValue( 1 );
+        thresholder->SetOutsideValue( 0 );
+        thresholder->Update();
+
+        typedef MultiplyImageFilter<ClassifiedImageType, ClassifiedImageType,
+                                    ClassifiedImageType> MultiplierType;
+        typename MultiplierType::Pointer multiplier = MultiplierType::New();
+        multiplier->SetInput1( this->GetPriorLabelImage() );
+        multiplier->SetInput2( thresholder->GetOutput() );
+        multiplier->Update();
+
+        this->SetNthOutput( 0, multiplier->GetOutput() );
+        }
+      else
+        {
+        typedef ImageDuplicator<ClassifiedImageType> DuplicatorType;
+        typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+        duplicator->SetInputImage( this->GetPriorLabelImage() );
+        duplicator->Update();
+
+        this->SetNthOutput( 0, duplicator->GetOutput() );
+        }
+
       break;
       }
     }
