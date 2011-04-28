@@ -1388,6 +1388,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         / static_cast<RealType>( totalNumberOfClasses );
       }
     }
+  this->SetNthOutput( 0, maxLabels );
 
 //  The commented code below is used to calculate the mixture model proportions
 //  according to the formulae given in Ashburner et al., "Unified Segmentation",
