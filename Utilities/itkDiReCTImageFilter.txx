@@ -85,10 +85,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
   typename InputImageType::DirectionType identity;
   identity.SetIdentity();
-  typename InputImageType::DirectionType directions[this->GetNumberOfInputs()];
-  for( unsigned int d = 0; d < this->GetNumberOfInputs(); d++ )
+  unsigned int                                        numinputs = this->GetNumberOfInputs();
+  std::vector<typename InputImageType::DirectionType> directions;
+  for( unsigned int d = 0; d < numinputs; d++ )
     {
-    directions[d] = this->GetInput( d )->GetDirection();
+    directions.push_back(  this->GetInput( d )->GetDirection()  );
     const_cast<InputImageType *>( this->GetInput( d ) )->SetDirection( identity );
     }
 
