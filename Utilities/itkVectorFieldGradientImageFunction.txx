@@ -1,14 +1,13 @@
 /*=========================================================================
 
-  Program:   Advanced Normalization Tools
+  Program:   Insight Segmentation & Registration Toolkit
   Module:    $RCSfile: itkVectorFieldGradientImageFunction.txx,v $
   Language:  C++
-  Date:      $Date: 2008/11/15 23:46:06 $
-  Version:   $Revision: 1.16 $
+  Date:      $Date: 2009/04/22 16:11:04 $
+  Version:   $Revision: 1.4 $
 
-  Copyright (c) ConsortiumOfANTS. All rights reserved.
-  See accompanying COPYING.txt or
- http://sourceforge.net/projects/advants/files/ANTS/ANTSCopyright.txt for details.
+  Copyright (c) Insight Software Consortium. All rights reserved.
+  See ITKCopyright.txt or http://www.itk.org/HTML/Copyright.htm for details.
 
      This software is distributed WITHOUT ANY WARRANTY; without even
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
@@ -73,9 +72,13 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
   x = interpolator->Evaluate( ipoint );
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    typename InterpolatorType::PointType::VectorType delta;
+    typename PointType::VectorType delta;
     delta.Fill( 0.0 );
     delta[i] = spacing[i];
+
+    typename InterpolatorType::PointType::VectorType idelta;
+    idelta.Fill( 0.0 );
+    idelta[i] = spacing[i];
 
     typename InterpolatorType::OutputType xp1;
     typename InterpolatorType::OutputType xp2;
@@ -88,10 +91,10 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
       }
     else
       {
-      xp1 = interpolator->Evaluate( ipoint + delta );
+      xp1 = interpolator->Evaluate( ipoint + idelta );
       if( this->IsInsideBuffer( point + delta * 2.0 ) )
         {
-        xp2 = interpolator->Evaluate( ipoint + delta * 2.0 );
+        xp2 = interpolator->Evaluate( ipoint + idelta * 2.0 );
         }
       else
         {
@@ -105,22 +108,16 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
       }
     else
       {
-      xm1 = interpolator->Evaluate( ipoint - delta );
+      xm1 = interpolator->Evaluate( ipoint - idelta );
       if( this->IsInsideBuffer( point - delta * 2.0 ) )
         {
-        xm2 = interpolator->Evaluate( ipoint - delta * 2.0 );
+        xm2 = interpolator->Evaluate( ipoint - idelta * 2.0 );
         }
       else
         {
         xm2 = xm1;
         }
       }
-
-    RealType h = 0.5;
-    xp1 = xp1 * h + x * (1.0 - h);
-    xm1 = xm1 * h + x * (1.0 - h);
-    xp2 = xp2 * h + xp1 * (1.0 - h);
-    xp2 = xm2 * h + xm1 * (1.0 - h);
 
     RealType weight = 1.0 / ( 12.0 * delta[i] );
     for( unsigned int j = 0; j < VectorDimension; j++ )
@@ -220,12 +217,6 @@ VectorFieldGradientImageFunction<TInputImage, TRealType, TOutputImage>
         xm2 = xm1;
         }
       }
-
-    RealType h = 0.5;
-    xp1 = xp1 * h + x * (1.0 - h);
-    xm1 = xm1 * h + x * (1.0 - h);
-    xp2 = xp2 * h + xp1 * (1.0 - h);
-    xp2 = xm2 * h + xm1 * (1.0 - h);
 
     RealType weight = 1.0
       / ( 12.0 * static_cast<RealType>( offset1[i] ) * spacing[i] );
