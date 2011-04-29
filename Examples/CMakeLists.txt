@@ -301,6 +301,14 @@ target_link_libraries(ANTSIntegrateVelocityField ${ITK_LIBRARIES})
   target_link_libraries(Atropos ${ITK_LIBRARIES}   )
 
 
+
+INSTALL(TARGETS ANTS ImageMath Atropos WarpImageMultiTransform  ThresholdImage ANTSUseDeformationFieldToGetAffineTransform ANTSUseLandmarkImagesToGetAffineTransform  ANTSJacobian
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
+
 #Set any libraries that your project depends on.
 #examples: ${ITK_LIBRARIES}, VTKRendering, etc
 set(Libraries
@@ -576,3 +584,13 @@ set(R16_PRIORS ${DATA_DIR}/r16priors.nii.gz)
 
 endif(RUN_LONG_TESTS)
 
+set(CPACK_PACKAGE_NAME "ANTs")
+set(CPACK_PACKAGE_VENDOR "CMake.org")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
+set(CPACK_PACKAGE_VERSION "1.9.x")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "9")
+set(CPACK_PACKAGE_VERSION_PATCH "x")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS")
+# This must always be last!
+include(CPack)
