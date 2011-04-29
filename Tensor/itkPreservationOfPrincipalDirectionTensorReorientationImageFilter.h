@@ -48,24 +48,24 @@ class ITK_EXPORT PreservationOfPrincipalDirectionTensorReorientationImageFilter 
   public         ImageToImageFilter<TTensorImage, TTensorImage>
 {
 public:
-
   typedef TTensorImage InputImageType;
   typedef TTensorImage OutputImageType;
   typedef TVectorImage DeformationFieldType;
 
   typedef typename DeformationFieldType::Pointer   DeformationFieldPointer;
   typedef typename DeformationFieldType::PixelType VectorType;
+  typedef typename VectorType::RealValueType       RealType;
 
-  typedef Matrix<float, 3, 3> MatrixType;
-  // typedef Vector<float, 3> VectorType;
-  typedef VariableSizeMatrix<float> VariableMatrixType;
+  typedef Matrix<RealType, 3, 3> MatrixType;
+  // typedef Vector<RealType, 3> VectorType;
+  typedef VariableSizeMatrix<RealType> VariableMatrixType;
 
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TTensorImage::ImageDimension);
 
-  typedef itk::Image<float, ImageDimension> FloatImageType;
+  typedef itk::Image<RealType, ImageDimension> RealTypeImageType;
 
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
+  typedef itk::MatrixOffsetTransformBase<RealType, ImageDimension, ImageDimension> AffineTransformType;
 
   typedef typename AffineTransformType::Pointer AffineTransformPointer;
 
@@ -77,16 +77,16 @@ public:
 
   typedef typename InverseTransformType::Pointer InverseTransformPointer;
 
-  //  typedef Vector<float, 6> TensorType;
-  // typedef itk::SymmetricSecondRankTensor< float, 3 >  TensorType;
+  //  typedef Vector<RealType, 6> TensorType;
+  // typedef itk::SymmetricSecondRankTensor< RealType, 3 >  TensorType;
   // typedef Image<TensorType, ImageDimension> TensorImageType;
   // typedef typename TensorImageType::Pointer TensorImagePointer;
   typedef typename InputImageType::PixelType InputImagePixelType;
   typedef InputImagePixelType                TensorType;
 
-  typedef vnl_matrix<float> VnlMatrixType;
-  typedef vnl_vector<float> VnlVectorType;
-  typedef vnl_vector<float> vvec;
+  typedef vnl_matrix<RealType> VnlMatrixType;
+  typedef vnl_vector<RealType> VnlVectorType;
+  typedef vnl_vector<RealType> vvec;
 
   /** Standard class typedefs. */
   typedef PreservationOfPrincipalDirectionTensorReorientationImageFilter Self;
