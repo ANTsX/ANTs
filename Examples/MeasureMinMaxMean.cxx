@@ -15,17 +15,6 @@
 
 =========================================================================*/
 
-// #include "DoSomethingToImage.cxx"
-
-//  RecursiveAverageImages img1  img2  weight
-
-// We divide the 2nd input image by its mean and add it to the first
-// input image with weight 1/n.
-// The output overwrites the 1st img with the sum.
-
-// Note: could easily add variance computation
-// http://people.revoledu.com/kardi/tutorial/RecursiveStatistic/Time-Variance.htm
-
 #include "ReadWriteImage.h"
 
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
