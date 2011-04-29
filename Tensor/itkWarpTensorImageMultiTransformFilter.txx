@@ -413,12 +413,12 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
     PointType point1, point2;
 
     // get the output image index
-    IndexType index = outputIt.GetIndex();
-    outputPtr->TransformIndexToPhysicalPoint( index, point1 );
+    IndexType index2 = outputIt.GetIndex();
+    outputPtr->TransformIndexToPhysicalPoint( index2, point1 );
 
-    bool isinside = MultiTransformPoint(point1, point2, m_bFirstDeformNoInterp, index);
+    bool isinside = MultiTransformPoint(point1, point2, m_bFirstDeformNoInterp, index2);
 
-    // std::cout << "point1:" << point1 << "  point2:" << point2 << " index:" << index << std::endl;
+    // std::cout << "point1:" << point1 << "  point2:" << point2 << " index:" << index2 << std::endl;
     // exit(-1);
     // DeformationFieldType::PixelType diff;
     // diff[0] = point2[0]-point1[0];

@@ -29,7 +29,7 @@ MatrixType RotationMatrixFromVectors(VectorType from, VectorType to)
   f = (e < 0) ? -e : e;
   if( f > 1.0 - EPSILON ) /* "from" and "to"-vector almost parallel */
     {
-    VectorType u, v;       /* temporary storage vectors */
+    VectorType ut, vt;     /* temporary storage vectors */
     VectorType x;          /* vector most nearly orthogonal to "from" */
     float      c1, c2, c3; /* coefficients for later use */
     int        i, j;
@@ -61,17 +61,17 @@ MatrixType RotationMatrixFromVectors(VectorType from, VectorType to)
         }
       }
 
-    u[0] = x[0] - from[0]; u[1] = x[1] - from[1]; u[2] = x[2] - from[2];
-    v[0] = x[0] - to[0];   v[1] = x[1] - to[1];   v[2] = x[2] - to[2];
+    ut[0] = x[0] - from[0]; ut[1] = x[1] - from[1]; ut[2] = x[2] - from[2];
+    vt[0] = x[0] - to[0];   vt[1] = x[1] - to[1];   vt[2] = x[2] - to[2];
 
-    c1 = 2.0 / (u * u);
-    c2 = 2.0 / (v * v);
-    c3 = c1 * c2  * (u * v);
+    c1 = 2.0 / (ut * ut);
+    c2 = 2.0 / (vt * vt);
+    c3 = c1 * c2  * (ut * vt);
     for( i = 0; i < 3; i++ )
       {
       for( j = 0; j < 3; j++ )
         {
-        mtx[i][j] =  -c1 * u[i] * u[j] - c2 * v[i] * v[j] + c3 * v[i] * u[j];
+        mtx[i][j] =  -c1 * ut[i] * ut[j] - c2 * vt[i] * vt[j] + c3 * vt[i] * ut[j];
         }
       mtx[i][i] += 1.0;
       }

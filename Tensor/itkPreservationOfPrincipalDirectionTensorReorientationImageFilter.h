@@ -148,6 +148,25 @@ protected:
    *     ImageToImageFilter::GenerateData() */
   void GenerateData( void );
 
+  typename DeformationFieldType::PixelType TransformVectorByDirection( typename DeformationFieldType::PixelType cpix )
+  {
+    typedef itk::Vector<double, ImageDimension> locVectorType;
+    if( this->m_UseImageDirection )
+      {
+      locVectorType outpix;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        outpix[d] = cpix[d];
+        }
+      outpix = m_DirectionTransform->TransformVector( outpix );
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        cpix[d] = outpix[d];
+        }
+      }
+    return cpix;
+  }
+
 private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &); // purposely not implemented
   void operator=(const Self &);                                                 // purposely not implemented

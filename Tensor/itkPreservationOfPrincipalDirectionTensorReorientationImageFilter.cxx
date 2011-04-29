@@ -186,10 +186,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   if( oktosample )
     {
     typename DeformationFieldType::PixelType cpix = m_DeformationField->GetPixel(index);
-    if( this->m_UseImageDirection )
-      {
-      cpix = m_DirectionTransform->TransformVector( cpix );
-      }
+    cpix = this->TransformVectorByDirection(cpix);
     // itkCentralDifferenceImageFunction does not support vector images so do this manually here
     for( unsigned int row = 0; row < ImageDimension; row++ )
       {
@@ -218,10 +215,10 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 
       if( this->m_UseImageDirection )
         {
-        rpix = m_DirectionTransform->TransformVector( rpix );
-        lpix = m_DirectionTransform->TransformVector( lpix );
-        rrpix = m_DirectionTransform->TransformVector( rrpix );
-        llpix = m_DirectionTransform->TransformVector( llpix );
+        rpix = this->TransformVectorByDirection(rpix);
+        lpix = this->TransformVectorByDirection(lpix);
+        rrpix = this->TransformVectorByDirection(rrpix);
+        llpix = this->TransformVectorByDirection(llpix);
         }
 
       rpix = rpix * h + cpix * (1. - h);
