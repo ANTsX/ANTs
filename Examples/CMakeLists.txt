@@ -304,7 +304,6 @@ INSTALL(TARGETS ANTS
   ANTSJacobian
   PrintHeader
   ResetDirection
-  ResetDirection2
   ANTSUseLandmarkImagesToGetAffineTransform
   ANTSUseDeformationFieldToGetAffineTransform
   ImageMath
@@ -332,7 +331,6 @@ INSTALL(TARGETS ANTS
   WarpImageMultiTransform
   ComposeMultiTransform
   StackSlices
-  ANTSOrientImage
   PermuteFlipImageOrientationAxes
   ImageCompare
   ResampleImageBySpacing
