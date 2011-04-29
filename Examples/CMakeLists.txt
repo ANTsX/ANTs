@@ -300,9 +300,62 @@ target_link_libraries(ANTSIntegrateVelocityField ${ITK_LIBRARIES})
   add_executable(Atropos Atropos.cxx ${UI_SOURCES})
   target_link_libraries(Atropos ${ITK_LIBRARIES}   )
 
-
-
-INSTALL(TARGETS ANTS ImageMath Atropos WarpImageMultiTransform  ThresholdImage ANTSUseDeformationFieldToGetAffineTransform ANTSUseLandmarkImagesToGetAffineTransform  ANTSJacobian
+INSTALL(TARGETS ANTS
+  ANTSJacobian
+  PrintHeader
+  ResetDirection
+  ResetDirection2
+  ANTSUseLandmarkImagesToGetAffineTransform
+  ANTSUseDeformationFieldToGetAffineTransform
+  ImageMath
+  SurfaceCurvature
+  SurfaceBasedSmoothing
+  LaplacianThickness
+  SetOrigin
+  SetSpacing
+  SetDirectionByMatrix
+  ConvertScalarImageToRGB
+  CreateWarpedGridImage
+  MeasureImageSimilarity
+  ConvertToJpg
+  ConvertImagePixelType
+  AverageImages
+  AverageTensorImages
+  ImageSetStatistics
+  ThresholdImage
+  MultiplyImages
+  SmoothImage
+  ClusterImageStatistics
+  LabelClustersUniquely
+  LabelOverlapMeasures
+  MeasureMinMaxMean
+  WarpImageMultiTransform
+  ComposeMultiTransform
+  StackSlices
+  ANTSOrientImage
+  PermuteFlipImageOrientationAxes
+  ImageCompare
+  ResampleImageBySpacing
+  CopyImageHeaderInformation
+  WarpTimeSeriesImageMultiTransform
+  ResampleImage
+  ExtractSliceFromImage
+  TileImages
+  CreateImage
+  WarpTensorImageMultiTransform
+  ReorientTensorImage
+  N3BiasFieldCorrection
+  N4BiasFieldCorrection
+  KellySlater
+  KellyKapowski
+#  ConvertVectorFieldToVTK
+#  GetMeshAndTopology
+#  CheckTopology
+#  WarpVTKPolyDataMultiTransform
+#  ANTSConformalMapping
+  ANTSIntegrateVectorField
+  ANTSIntegrateVelocityField
+  Atropos
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
