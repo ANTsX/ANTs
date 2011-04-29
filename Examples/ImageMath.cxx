@@ -1557,6 +1557,118 @@ int PadImage(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int PadImageToTargetSize(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = "";
+  if( argc > argct )
+    {
+    fn2 = std::string(argv[argct]);
+    }
+  argct++;
+
+  typename ImageType::Pointer padimage = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(padimage, fn1.c_str() );
+    }
+  typename ImageType::Pointer image1 = NULL;
+  if( fn2.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn2.c_str() );
+    }
+
+  typename ImageType::PointType origin = image1->GetOrigin();
+  typename ImageType::PointType origin2 = image1->GetOrigin();
+  padimage->SetSpacing(image1->GetSpacing() );
+  padimage->SetDirection(image1->GetDirection() );
+
+  typename ImageType::PointType point1;
+  typename ImageType::PointType outside_points;
+  typename ImageType::PointType inside_points;
+  typename ImageType::PointType cm_points;
+  typename ImageType::PointType all_points;
+  typename ImageType::PointType neworigin;
+  unsigned long ct_out = 0;
+  unsigned long ct_in = 0;
+  float         out_in_ratio = 1;
+  Iterator      iter( image1,  image1->GetLargestPossibleRegion() );
+  unsigned int  its = 0;
+  while( out_in_ratio > 0 && its < 100 )
+    {
+    padimage->FillBuffer( 0 );
+    outside_points.Fill(0);
+    cm_points.Fill(0);
+    all_points.Fill(0);
+    inside_points.Fill(0);
+    double iweight = 0;
+    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+      {
+      typename ImageType::IndexType oindex = iter.GetIndex();
+      typename ImageType::IndexType padindex = iter.GetIndex();
+      image1->TransformIndexToPhysicalPoint(oindex, point1);
+      padimage->TransformPhysicalPointToIndex(point1, padindex);
+      bool isinside = padimage->TransformPhysicalPointToIndex(point1, padindex);
+      if( isinside )
+        {
+        padimage->SetPixel(padindex, iter.Get() );
+        for( unsigned int d = 0; d < outside_points.Size(); d++ )
+          {
+          cm_points[d] = cm_points[d] + point1[d] * iter.Get();
+          inside_points[d] = inside_points[d] + point1[d];
+          all_points[d] = all_points[d] + point1[d];
+          }
+        iweight += iter.Get();
+        ct_in++;
+        }
+      else
+        {
+        for( unsigned int d = 0; d < outside_points.Size(); d++ )
+          {
+          outside_points[d] = outside_points[d] + point1[d];
+          }
+        ct_out++;
+        }
+      }
+    for( unsigned int d = 0; d < outside_points.Size(); d++ )
+      {
+      outside_points[d] = outside_points[d] / (float)ct_out;
+      inside_points[d] = inside_points[d] / (float)ct_in;
+      cm_points[d] = cm_points[d] / iweight;
+      all_points[d] = all_points[d] / (float)ct_in;
+      neworigin[d] = padimage->GetOrigin()[d] + (outside_points[d] - inside_points[d]);
+      //    neworigin[d]=cm_points[d]*(-1);
+      }
+    padimage->SetOrigin(neworigin);
+    out_in_ratio = (float)ct_out / (float)ct_in;
+    // std::cout <<" in " << ct_in <<" out " << ct_out << " outside_points " << outside_points << " inside_points " <<
+    // inside_points << std::endl;
+    its++;
+    } // while
+
+  // std::cout << " cm " << cm_points << " orig " << padimage->GetOrigin() << std::endl;
+  WriteImage<ImageType>(padimage, outname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int TimeSeriesSubset(int argc, char *argv[])
 {
   typedef float                                        PixelType;
@@ -7447,6 +7559,9 @@ int main(int argc, char *argv[])
     std::cout << "\n  PadImage		: If Pad-Number is negative, de-Padding occurs"<< std::endl;
     std::cout << "      Usage		: PadImage ImageIn Pad-Number"<< std::endl;
 
+    std::cout << "\n  PadImageToTargetSize		: for giving images the same domain size"<< std::endl;
+    std::cout << "      Usage		: PadImageToTargetSize TargetImage ImageToPad "<< std::endl;
+
     std::cout << "\n  PH			: Print Header"<< std::endl;
 
     std::cout
@@ -7672,6 +7787,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
         PadImage<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PadImageToTargetSize") == 0 )
+        {
+        PadImageToTargetSize<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
         {

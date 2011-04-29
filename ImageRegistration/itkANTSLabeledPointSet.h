@@ -45,7 +45,7 @@ public:
   itkTypeMacro( ANTSLabeledPointSet, Object );
   itkStaticConstMacro( Dimension, unsigned int, TDimension );
 
-  typedef float                                                  RealType;
+  typedef double                                                 RealType;
   typedef Image<RealType,  itkGetStaticConstMacro( Dimension )>  ImageType;
   typedef typename ImageType::Pointer                            ImagePointer;
   typedef Vector<RealType, itkGetStaticConstMacro( Dimension )>  VectorType;

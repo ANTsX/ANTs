@@ -300,7 +300,38 @@ target_link_libraries(ANTSIntegrateVelocityField ${ITK_LIBRARIES})
   add_executable(Atropos Atropos.cxx ${UI_SOURCES})
   target_link_libraries(Atropos ${ITK_LIBRARIES}   )
 
-INSTALL(TARGETS ANTS
+INSTALL(FILES
+       ${CMAKE_SOURCE_DIR}/../Scripts/ants.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/buildtemplateparallel.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/ANTSAverage2DAffine.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/ANTSAverage3DAffine.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/ANTSpexec.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/ants.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/antsIntroduction.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/antsaffine.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/antsbashstats.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/antsdeformationmag.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/antsqsub.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/antswithdt.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/basic_ants_example.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/buildtemplateparallel.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/geodesicinterpolation.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/guidedregistration.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/landmarkmatch.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/multi_template_script.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/optimalsmooth.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/shapeupdatetotemplate.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/submitexperimentalbuild.sh
+       ${CMAKE_SOURCE_DIR}/../Scripts/registerimages.pl
+       ${CMAKE_SOURCE_DIR}/../Scripts/runprogramonimageset.pl
+       ${CMAKE_SOURCE_DIR}/../Scripts/waitForSGEQJobs.pl
+       ${CMAKE_SOURCE_DIR}/../Scripts/warpimages.pl
+       ${CMAKE_SOURCE_DIR}/../Scripts/weightedaverage.pl
+       DESTINATION bin/ants/
+       PERMISSIONS OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE)
+
+INSTALL(TARGETS
+  ANTS
   ANTSJacobian
   PrintHeader
   ResetDirection
@@ -354,9 +385,9 @@ INSTALL(TARGETS ANTS
   ANTSIntegrateVectorField
   ANTSIntegrateVelocityField
   Atropos
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin/ants/
+  LIBRARY DESTINATION lib/ants/
+  ARCHIVE DESTINATION lib/ants/
 )
 
 

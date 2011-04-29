@@ -188,196 +188,201 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     typename DeformationFieldType::PixelType cpix = m_DeformationField->GetPixel(index);
     if( this->m_UseImageDirection )
       {
-      cpix = m_DirectionTransform->TransformVector( cpix );
-      }
-    // itkCentralDifferenceImageFunction does not support vector images so do this manually here
-    for( unsigned int row = 0; row < ImageDimension; row++ )
-      {
-      difIndex[row][0] = index;
-      difIndex[row][1] = index;
-      ddrindex = index;
-      ddlindex = index;
-      if( (int) index[row] < (int)(size[row] - 2) )
-        {
-        difIndex[row][0][row] = index[row] + posoff;
-        ddrindex[row] = index[row] + posoff * 2;
-        }
-      if( index[row] > 1 )
-        {
-        difIndex[row][1][row] = index[row] - 1;
-        ddlindex[row] = index[row] - 2;
-        }
+      for( unsigned int
+           cpix = m_DirectionTransform->TransformVector( cpix );
+           }
+           // itkCentralDifferenceImageFunction does not support vector images so do this manually here
+           for( unsigned int row = 0; row < ImageDimension; row++ )
+             {
+             difIndex[row][0] = index;
+             difIndex[row][1] = index;
+             ddrindex = index;
+             ddlindex = index;
+             if( (int) index[row] < (int)(size[row] - 2) )
+               {
+               difIndex[row][0][row] = index[row] + posoff;
+               ddrindex[row] = index[row] + posoff * 2;
+               }
+             if( index[row] > 1 )
+               {
+               difIndex[row][1][row] = index[row] - 1;
+               ddlindex[row] = index[row] - 2;
+               }
 
-      float h = 1;
-      space = 1.0; // should use image spacing here?
+             float h = 1;
+             space = 1.0; // should use image spacing here?
 
-      typename DeformationFieldType::PixelType rpix = m_DeformationField->GetPixel( difIndex[row][1] );
-      typename DeformationFieldType::PixelType lpix = m_DeformationField->GetPixel( difIndex[row][0] );
-      typename DeformationFieldType::PixelType rrpix = m_DeformationField->GetPixel( ddrindex );
-      typename DeformationFieldType::PixelType llpix = m_DeformationField->GetPixel( ddlindex );
+             typename DeformationFieldType::PixelType rpix = m_DeformationField->GetPixel( difIndex[row][1] );
+             typename DeformationFieldType::PixelType lpix = m_DeformationField->GetPixel( difIndex[row][0] );
+             typename DeformationFieldType::PixelType rrpix = m_DeformationField->GetPixel( ddrindex );
+             typename DeformationFieldType::PixelType llpix = m_DeformationField->GetPixel( ddlindex );
 
-      if( this->m_UseImageDirection )
-        {
-        rpix = m_DirectionTransform->TransformVector( rpix );
-        lpix = m_DirectionTransform->TransformVector( lpix );
-        rrpix = m_DirectionTransform->TransformVector( rrpix );
-        llpix = m_DirectionTransform->TransformVector( llpix );
-        }
+             if( this->m_UseImageDirection )
+               {
+               rpix = m_DirectionTransform->TransformVector( rpix );
+               lpix = m_DirectionTransform->TransformVector( lpix );
+               rrpix = m_DirectionTransform->TransformVector( rrpix );
+               llpix = m_DirectionTransform->TransformVector( llpix );
+               }
 
-      rpix = rpix * h + cpix * (1. - h);
-      lpix = lpix * h + cpix * (1. - h);
-      rrpix = rrpix * h + rpix * (1. - h);
-      llpix = llpix * h + lpix * (1. - h);
+             rpix = rpix * h + cpix * (1. - h);
+             lpix = lpix * h + cpix * (1. - h);
+             rrpix = rrpix * h + rpix * (1. - h);
+             llpix = llpix * h + lpix * (1. - h);
 
-      typename DeformationFieldType::PixelType dPix
-        = ( lpix * 8.0 + llpix - rrpix - rpix * 8.0 ) * space / (12.0); // 4th order centered difference
-      // typename DeformationFieldType::PixelType dPix=( lpix - rpix )*space/(2.0*h); //4th order centered difference
-      for( unsigned int col = 0; col < ImageDimension; col++ )
-        {
-        float val = dPix[col] / spacing[col];
+             typename DeformationFieldType::PixelType dPix
+               = ( lpix * 8.0 + llpix - rrpix - rpix * 8.0 ) * space / (12.0); // 4th order centered difference
+                                                                               // typename
+                                                                               // DeformationFieldType::PixelType dPix=(
+                                                                               // lpix - rpix )*space/(2.0*h); //4th
+                                                                               // order centered difference
+             for( unsigned int col = 0; col < ImageDimension; col++ )
+               {
+               float val = dPix[col] / spacing[col];
 
-        if( row == col )
-          {
-          val += 1.0;
-          }
+               if( row == col )
+                 {
+                 val += 1.0;
+                 }
 
-        jMatrix(col, row) = val;
-        }
-      }
-    }
-  for( unsigned int jx = 0; jx < ImageDimension; jx++ )
-    {
-    for( unsigned int jy = 0; jy < ImageDimension; jy++ )
-      {
-      if( !vnl_math_isfinite(jMatrix(jx, jy) )  )
-        {
-        oktosample = false;
-        }
-      }
-    }
+               jMatrix(col, row) = val;
+               }
+             }
+           }
+           for( unsigned int jx = 0; jx < ImageDimension; jx++ )
+             {
+             for( unsigned int jy = 0; jy < ImageDimension; jy++ )
+               {
+               if( !vnl_math_isfinite(jMatrix(jx, jy) )  )
+                 {
+                 oktosample = false;
+                 }
+               }
+             }
 
-  if( !oktosample )
-    {
-    jMatrix.Fill(0.0);
-    for( unsigned int i = 0; i < ImageDimension; i++ )
-      {
-      jMatrix(i, i) = 1.0;
-      }
-    }
+           if( !oktosample )
+             {
+             jMatrix.Fill(0.0);
+             for( unsigned int i = 0; i < ImageDimension; i++ )
+               {
+               jMatrix(i, i) = 1.0;
+               }
+             }
 
-  affineTransform->SetMatrix( jMatrix );
-  // this->DirectionCorrectTransform( affineTransform, this->m_DirectionTransform );
+           affineTransform->SetMatrix( jMatrix );
+           // this->DirectionCorrectTransform( affineTransform, this->m_DirectionTransform );
 
-  return affineTransform;
-}
+           return affineTransform;
+           }
 
-template <typename TTensorImage, typename TVectorImage>
-void
-PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
-::GenerateData()
-{
-  // get input and output images
-  // FIXME - use buffered region, etc
-  InputImagePointer  input = this->GetInput();
-  OutputImagePointer output = this->GetOutput();
+           template <typename TTensorImage, typename TVectorImage>
+           void
+           PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
+           ::GenerateData()
+             {
+             // get input and output images
+             // FIXME - use buffered region, etc
+             InputImagePointer input = this->GetInput();
+             OutputImagePointer output = this->GetOutput();
 
-  this->m_DirectionTransform = AffineTransformType::New();
-  this->m_DirectionTransform->SetIdentity();
-  AffineTransformPointer directionTranspose = AffineTransformType::New();
-  directionTranspose->SetIdentity();
+             this->m_DirectionTransform = AffineTransformType::New();
+             this->m_DirectionTransform->SetIdentity();
+             AffineTransformPointer directionTranspose = AffineTransformType::New();
+             directionTranspose->SetIdentity();
 
-  if( this->m_UseAffine )
-    {
-    this->m_DirectionTransform->SetMatrix( input->GetDirection() );
-    if( this->m_UseImageDirection )
-      {
-      this->DirectionCorrectTransform( this->m_AffineTransform, this->m_DirectionTransform );
-      }
-    this->m_InverseAffineTransform = this->m_AffineTransform->GetInverseTransform();
+             if( this->m_UseAffine )
+               {
+               this->m_DirectionTransform->SetMatrix( input->GetDirection() );
+               if( this->m_UseImageDirection )
+                 {
+                 this->DirectionCorrectTransform( this->m_AffineTransform, this->m_DirectionTransform );
+                 }
+               this->m_InverseAffineTransform = this->m_AffineTransform->GetInverseTransform();
 
-    output->SetRegions( input->GetLargestPossibleRegion() );
-    output->SetSpacing( input->GetSpacing() );
-    output->SetOrigin( input->GetOrigin() );
-    output->SetDirection( input->GetDirection() );
-    output->Allocate();
-    }
-  else
-    {
-    this->m_DirectionTransform->SetMatrix( m_DeformationField->GetDirection() );
+               output->SetRegions( input->GetLargestPossibleRegion() );
+               output->SetSpacing( input->GetSpacing() );
+               output->SetOrigin( input->GetOrigin() );
+               output->SetDirection( input->GetDirection() );
+               output->Allocate();
+               }
+             else
+               {
+               this->m_DirectionTransform->SetMatrix( m_DeformationField->GetDirection() );
 
-    output->SetRegions( m_DeformationField->GetLargestPossibleRegion() );
-    output->SetSpacing( m_DeformationField->GetSpacing() );
-    output->SetOrigin( m_DeformationField->GetOrigin() );
-    output->SetDirection( m_DeformationField->GetDirection() );
-    output->Allocate();
-    }
+               output->SetRegions( m_DeformationField->GetLargestPossibleRegion() );
+               output->SetSpacing( m_DeformationField->GetSpacing() );
+               output->SetOrigin( m_DeformationField->GetOrigin() );
+               output->SetDirection( m_DeformationField->GetDirection() );
+               output->Allocate();
+               }
 
-  ImageRegionIteratorWithIndex<OutputImageType> outputIt( output, output->GetLargestPossibleRegion() );
+             ImageRegionIteratorWithIndex<OutputImageType> outputIt( output, output->GetLargestPossibleRegion() );
 
-  VariableMatrixType jMatrixAvg;
-  jMatrixAvg.SetSize(ImageDimension, ImageDimension);
-  jMatrixAvg.Fill(0.0);
-  // for all voxels
-  for( outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt )
-    {
-    InverseTransformPointer localDeformation;
+             VariableMatrixType jMatrixAvg;
+             jMatrixAvg.SetSize(ImageDimension, ImageDimension);
+             jMatrixAvg.Fill(0.0);
+             // for all voxels
+             for( outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt )
+               {
+               InverseTransformPointer localDeformation;
 
-    // FIXME - eventually this will be callable via a generic transform base class
-    if( this->m_UseAffine )
-      {
-      localDeformation = this->m_InverseAffineTransform;
-      }
-    else
-      {
-      AffineTransformPointer deformation = this->GetLocalDeformation( this->m_DeformationField, outputIt.GetIndex() );
-      localDeformation = deformation->GetInverseTransform();
-      }
+               // FIXME - eventually this will be callable via a generic transform base class
+               if( this->m_UseAffine )
+                 {
+                 localDeformation = this->m_InverseAffineTransform;
+                 }
+               else
+                 {
+                 AffineTransformPointer deformation =
+                   this->GetLocalDeformation( this->m_DeformationField, outputIt.GetIndex() );
+                 localDeformation = deformation->GetInverseTransform();
+                 }
 
-    TensorType inTensor = input->GetPixel(outputIt.GetIndex() );
-    TensorType outTensor;
+               TensorType inTensor = input->GetPixel(outputIt.GetIndex() );
+               TensorType outTensor;
 
-    // valid values?
-    bool hasNans = false;
-    for( unsigned int jj = 0; jj < 6; jj++ )
-      {
-      if( vnl_math_isnan( inTensor[jj] ) || vnl_math_isinf( inTensor[jj]) )
-        {
-        hasNans = true;;
-        }
-      }
+               // valid values?
+               bool hasNans = false;
+               for( unsigned int jj = 0; jj < 6; jj++ )
+                 {
+                 if( vnl_math_isnan( inTensor[jj] ) || vnl_math_isinf( inTensor[jj]) )
+                   {
+                   hasNans = true;;
+                   }
+                 }
 
-    bool  isNull = false;
-    float trace = inTensor[0] + inTensor[3] + inTensor[5];
-    if( trace <= 0 )
-      {
-      isNull = true;
-      }
+               bool isNull = false;
+               float trace = inTensor[0] + inTensor[3] + inTensor[5];
+               if( trace <= 0 )
+                 {
+                 isNull = true;
+                 }
 
-    if( hasNans || isNull )
-      {
-      outTensor = inTensor;
-      }
-    else
-      {
-      outTensor = this->ApplyReorientation( localDeformation, inTensor );
-      }
+               if( hasNans || isNull )
+                 {
+                 outTensor = inTensor;
+                 }
+               else
+                 {
+                 outTensor = this->ApplyReorientation( localDeformation, inTensor );
+                 }
 
-    outputIt.Set( outTensor );
-    }
-}
+               outputIt.Set( outTensor );
+               }
+             }
 
 /**
  * Standard "PrintSelf" method
  */
-template <typename TTensorImage, typename TVectorImage>
-void
-PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
-::PrintSelf(
-  std::ostream& os,
-  Indent indent) const
-{
-  Superclass::PrintSelf( os, indent );
-}
-} // end namespace itk
+           template <typename TTensorImage, typename TVectorImage>
+           void
+           PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
+           ::PrintSelf(
+             std::ostream & os,
+             Indent indent) const
+             {
+             Superclass::PrintSelf( os, indent );
+             }
+           } // end namespace itk
 
 #endif
