@@ -21,6 +21,16 @@ if(USE_ITK)
       "Cannot build without ITK.  Please set ITK_DIR.")
   endif(ITK_FOUND)
 endif(USE_ITK)
+#
+# now check if we have the minimum required itk version number
+#
+# refer to this variable from ITK .... set( ITK_VERSION_MAJOR "4")
+SET( number ${ITK_VERSION_MAJOR}  )
+SET( operation LESS )
+SET( limit 3 )
+IF( number ${operation} ${limit} )
+  MESSAGE(FATAL_ERROR "Oops, you have itk version ${number} ... we require at  least version ${limit}." )
+ENDIF( number ${operation} ${limit} )
 
 # Set up VTK
 if(USE_VTK)
@@ -468,11 +478,11 @@ set(DEVIL_IMAGE_TXT ${DATA_DIR}/Frown.txt)
 set(ANGEL_IMAGE_VTK ${DATA_DIR}/Smile.vtk)
 set(DEVIL_IMAGE_VTK ${DATA_DIR}/Frown.vtk)
 
-add_test(ANTS_PSE_MSQ_TXT ANTS 2 -i 91x70x55x40x30  -r Gauss[3,0.,32] -t SyN[0.25]
+add_test(ANTS_PSE_MSQ_TXT ANTS 2 -i 191x170x155x40x30  -r Gauss[3,0] -t SyN[0.2]
                                  -m MSQ[${DEVIL_IMAGE},${ANGEL_IMAGE},1,0]
-                                 -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE_TXT},${ANGEL_IMAGE_TXT},1,0.33,11,1,25]
+                                 -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE_TXT},${ANGEL_IMAGE_TXT},1,0.1,11,1,1]
                                  --continue-affine 0 --number-of-affine-iterations 0
-                                 -o ${OUTPUT_PREFIX}.nii.gz)
+                                 -o ${OUTPUT_PREFIX}.nii.gz   --use-all-metrics-for-convergence 1 )
 add_test(ANTS_PSE_MSQ_VTK ANTS 2 -i 91x70x55x40x30  -r Gauss[3,0.,32] -t SyN[0.25]
                                  -m MSQ[${DEVIL_IMAGE},${ANGEL_IMAGE},1,0]
                                  -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE_VTK},${ANGEL_IMAGE_VTK},1,0.33,11,1,25]
