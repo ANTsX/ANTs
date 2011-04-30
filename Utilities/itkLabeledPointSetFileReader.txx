@@ -508,15 +508,15 @@ LabeledPointSetFileReader<TOutputMesh>
     {
     for( unsigned int i = 0; i < numberOfLines; i++ )
       {
-      LineType     line;
+      LineType     line_loc;
       unsigned int numberOfPoints;
       inputFile >> numberOfPoints;
-      line.SetSize( numberOfPoints );
+      line_loc.SetSize( numberOfPoints );
       for( unsigned int d = 0; d < numberOfPoints; d++ )
         {
-        inputFile >> line[d];
+        inputFile >> line_loc[d];
         }
-      this->m_Lines->InsertElement( i, line );
+      this->m_Lines->InsertElement( i, line_loc );
       }
     }
 
