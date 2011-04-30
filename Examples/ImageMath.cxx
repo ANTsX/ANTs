@@ -7880,147 +7880,540 @@ int main(int argc, char *argv[])
         }
       }
       break;
-    /*
-  case 3:
-    if (strcmp(operation.c_str(),"m") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"mresample") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"+") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"-") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"/") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"^") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"exp") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"abs") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"addtozero") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"overadd") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"total") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Decision") == 0)  ImageMath<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Neg") == 0)  NegativeImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"G") == 0)  SmoothImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"MD") == 0 || strcmp(operation.c_str(),"ME") == 0)  MorphImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"MO") == 0 || strcmp(operation.c_str(),"MC") == 0)  MorphImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"GD") == 0 || strcmp(operation.c_str(),"GE") == 0)  MorphImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"GO") == 0 || strcmp(operation.c_str(),"GC") == 0)  MorphImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"D") == 0 )  DistanceMap<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Normalize") == 0 )  NormalizeImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Grad") == 0 )  GradientImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Laplacian") == 0 )  LaplacianImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"PH") == 0 )  PrintHeader<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Byte") == 0 )  ByteImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"LabelStats") == 0 )  LabelStats<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ROIStatistics") == 0 )  ROIStatistics<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"DiceAndMinDistSum") == 0 )  DiceAndMinDistSum<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Lipschitz") == 0 )  Lipschitz<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"InvId") == 0 )  InvId<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"GetLargestComponent") == 0 )  GetLargestComponent<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ExtractVectorComponent") == 0 )  ExtractVectorComponent<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ThresholdAtMean") == 0 )  ThresholdAtMean<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"FlattenImage") == 0 )  FlattenImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"CorruptImage") == 0 )  CorruptImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"RemoveLabelInterfaces") == 0 )  RemoveLabelInterfaces<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"EnumerateLabelInterfaces") == 0 )  EnumerateLabelInterfaces<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"FitSphere") == 0 )  FitSphere<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"Where") == 0 )  Where<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorFANumerator") == 0 )  TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorFADenominator") == 0 )  TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"4DTensorTo3DTensor") == 0 )  TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"FillHoles") == 0 )  FillHoles<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"HistogramMatch") == 0) HistogramMatching<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"PadImage") == 0 )  PadImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"MakeImage") == 0 )  MakeImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"stack") == 0 )  StackImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"CompareHeadersAndImages") == 0 )  CompareHeadersAndImages<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"CountVoxelDifference") == 0 )  CountVoxelDifference<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertImageToFile") == 0 )  ConvertImageToFile<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"PValueImage") == 0 )  PValueImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"CorrelationUpdate") == 0 )  CorrelationUpdate<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertImageSetToMatrix") == 0 )  ConvertImageSetToMatrix<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertVectorToImage") == 0 )  ConvertVectorToImage<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"PropagateLabelsThroughMask") == 0 )  PropagateLabelsThroughMask<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"FastMarchingSegmentation") == 0 )  FastMarchingSegmentation<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TriPlanarView") == 0 )  TriPlanarView<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"TruncateImageIntensity") == 0 ) TruncateImageIntensity<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ExtractSlice") == 0)  ExtractSlice<3>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<3>(argc,argv);
-    else std::cout << " cannot find operation : " << operation << std::endl;
-     break;
 
-case 4:
-    if (strcmp(operation.c_str(),"m") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"mresample") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"+") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"-") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"/") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"^") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"exp") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"abs") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"addtozero") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"overadd") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"total") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Decision") == 0)  ImageMath<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Neg") == 0)  NegativeImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"G") == 0)  SmoothImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"MD") == 0 || strcmp(operation.c_str(),"ME") == 0)  MorphImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"MO") == 0 || strcmp(operation.c_str(),"MC") == 0)  MorphImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"GD") == 0 || strcmp(operation.c_str(),"GE") == 0)  MorphImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"GO") == 0 || strcmp(operation.c_str(),"GC") == 0)  MorphImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"D") == 0 )  DistanceMap<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Normalize") == 0 )  NormalizeImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Grad") == 0 )  GradientImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Laplacian") == 0 )  LaplacianImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"PH") == 0 )  PrintHeader<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"nvols") == 0 )  PrintHeader<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Byte") == 0 )  ByteImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"LabelStats") == 0 )  LabelStats<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ROIStatistics") == 0 )  ROIStatistics<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"DiceAndMinDistSum") == 0 )  DiceAndMinDistSum<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Lipschitz") == 0 )  Lipschitz<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"InvId") == 0 )  InvId<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"GetLargestComponent") == 0 )  GetLargestComponent<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ExtractVectorComponent") == 0 )  ExtractVectorComponent<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ThresholdAtMean") == 0 )  ThresholdAtMean<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"FlattenImage") == 0 )  FlattenImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"CorruptImage") == 0 )  CorruptImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"RemoveLabelInterfaces") == 0 )  RemoveLabelInterfaces<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"EnumerateLabelInterfaces") == 0 )  EnumerateLabelInterfaces<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"FitSphere") == 0 )  FitSphere<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"Where") == 0 )  Where<4>(argc,argv);
-    //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
-    // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
-    // else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<4>(argc,argv);
-    // else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<4>(argc,argv);
-    // else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<4>(argc,argv);
-    // else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"FillHoles") == 0 )  FillHoles<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"HistogramMatch") == 0) HistogramMatching<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"PadImage") == 0 )  PadImage<4>(argc,argv);
-  //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"MakeImage") == 0 )  MakeImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"stack") == 0 )  StackImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"CompareHeadersAndImages") == 0 )  CompareHeadersAndImages<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"CountVoxelDifference") == 0 )  CountVoxelDifference<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertImageToFile") == 0 )  ConvertImageToFile<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"PValueImage") == 0 )  PValueImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"CorrelationUpdate") == 0 )  CorrelationUpdate<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertImageSetToMatrix") == 0 )  ConvertImageSetToMatrix<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertVectorToImage") == 0 )  ConvertVectorToImage<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"PropagateLabelsThroughMask") == 0 )  PropagateLabelsThroughMask<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"FastMarchingSegmentation") == 0 )  FastMarchingSegmentation<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"TriPlanarView") == 0 )  TriPlanarView<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"TruncateImageIntensity") == 0 ) TruncateImageIntensity<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ExtractSlice") == 0)  ExtractSlice<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"TimeSeriesSubset") == 0)  TimeSeriesSubset<4>(argc,argv);
-    else if (strcmp(operation.c_str(),"CompCorr") == 0)  CompCorr<4>(argc,argv);
-    else std::cout << " cannot find operation : " << operation << std::endl;
-     break;
-    */
+    case 3:
+      {
+      if( strcmp(operation.c_str(), "m") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "mresample") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "+") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "-") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "/") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "^") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "exp") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "abs") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "addtozero") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "overadd") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "total") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Decision") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Neg") == 0 )
+        {
+        NegativeImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "G") == 0 )
+        {
+        SmoothImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
+        {
+        MorphImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
+        {
+        MorphImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
+        {
+        MorphImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
+        {
+        MorphImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "D") == 0 )
+        {
+        DistanceMap<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Normalize") == 0 )
+        {
+        NormalizeImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Grad") == 0 )
+        {
+        GradientImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
+        {
+        LaplacianImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PH") == 0 )
+        {
+        PrintHeader<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
+        {
+        CenterImage2inImage1<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Byte") == 0 )
+        {
+        ByteImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
+        {
+        LabelStats<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
+        {
+        ROIStatistics<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
+        {
+        DiceAndMinDistSum<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
+        {
+        Lipschitz<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "InvId") == 0 )
+        {
+        InvId<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
+        {
+        GetLargestComponent<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
+        {
+        ExtractVectorComponent<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
+        {
+        ThresholdAtMean<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
+        {
+        FlattenImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
+        {
+        CorruptImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
+        {
+        RemoveLabelInterfaces<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
+        {
+        EnumerateLabelInterfaces<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FitSphere") == 0 )
+        {
+        FitSphere<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Where") == 0 )
+        {
+        Where<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorFA") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorFADenominator") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorColor") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorToVectorComponent") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
+        {
+        FillHoles<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
+        {
+        HistogramMatching<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PadImage") == 0 )
+        {
+        PadImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
+        {
+        SetOrGetPixel<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
+        {
+        MakeImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "stack") == 0 )
+        {
+        StackImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
+        {
+        CompareHeadersAndImages<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
+        {
+        CountVoxelDifference<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
+        {
+        ConvertImageToFile<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
+        {
+        PValueImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
+        {
+        CorrelationUpdate<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
+        {
+        ConvertImageSetToMatrix<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
+        {
+        ConvertVectorToImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
+        {
+        PropagateLabelsThroughMask<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
+        {
+        FastMarchingSegmentation<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
+        {
+        TriPlanarView<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
+        {
+        TruncateImageIntensity<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
+        {
+        ExtractSlice<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
+        {
+        ConvertLandmarkFile<3>(argc, argv);
+        }
+      else
+        {
+        std::cout << " cannot find operation : " << operation << std::endl;
+        }
+      }
+      break;
+
+    case 4:
+      {
+      if( strcmp(operation.c_str(), "m") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "mresample") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "+") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "-") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "/") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "^") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "exp") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "abs") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "addtozero") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "overadd") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "total") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Decision") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Neg") == 0 )
+        {
+        NegativeImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "G") == 0 )
+        {
+        SmoothImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
+        {
+        MorphImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "D") == 0 )
+        {
+        DistanceMap<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Normalize") == 0 )
+        {
+        NormalizeImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Grad") == 0 )
+        {
+        GradientImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
+        {
+        LaplacianImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PH") == 0 )
+        {
+        PrintHeader<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "nvols") == 0 )
+        {
+        PrintHeader<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
+        {
+        CenterImage2inImage1<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Byte") == 0 )
+        {
+        ByteImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
+        {
+        LabelStats<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
+        {
+        ROIStatistics<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
+        {
+        DiceAndMinDistSum<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
+        {
+        Lipschitz<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "InvId") == 0 )
+        {
+        InvId<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
+        {
+        GetLargestComponent<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
+        {
+        ExtractVectorComponent<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
+        {
+        ThresholdAtMean<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
+        {
+        FlattenImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
+        {
+        CorruptImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
+        {
+        RemoveLabelInterfaces<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
+        {
+        EnumerateLabelInterfaces<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FitSphere") == 0 )
+        {
+        FitSphere<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Where") == 0 )
+        {
+        Where<4>(argc, argv);
+        }
+      //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<4>(argc,argv);
+      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
+        {
+        FillHoles<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
+        {
+        HistogramMatching<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PadImage") == 0 )
+        {
+        PadImage<4>(argc, argv);
+        }
+      //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
+      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
+        {
+        MakeImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "stack") == 0 )
+        {
+        StackImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
+        {
+        CompareHeadersAndImages<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
+        {
+        CountVoxelDifference<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
+        {
+        ConvertImageToFile<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
+        {
+        PValueImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
+        {
+        CorrelationUpdate<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
+        {
+        ConvertImageSetToMatrix<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
+        {
+        ConvertVectorToImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
+        {
+        PropagateLabelsThroughMask<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
+        {
+        FastMarchingSegmentation<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
+        {
+        TriPlanarView<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
+        {
+        TruncateImageIntensity<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
+        {
+        ExtractSlice<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
+        {
+        ConvertLandmarkFile<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TimeSeriesSubset") == 0 )
+        {
+        TimeSeriesSubset<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CompCorr") == 0 )
+        {
+        CompCorr<4>(argc, argv);
+        }
+      else
+        {
+        std::cout << " cannot find operation : " << operation << std::endl;
+        }
+      }
+      break;
+
     default:
       std::cerr << " Dimension Not supported " << atoi(argv[1]) << std::endl;
       exit( 1 );
