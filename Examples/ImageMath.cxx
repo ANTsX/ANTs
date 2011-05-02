@@ -1588,6 +1588,7 @@ int CenterImage2inImage1(int argc, char *argv[])
     {
     ReadImage<ImageType>(image1, fn1.c_str() );
     }
+  image1->FillBuffer(0);
   typename ImageType::Pointer image2 = NULL;
   if( fn2.length() > 3 )
     {
