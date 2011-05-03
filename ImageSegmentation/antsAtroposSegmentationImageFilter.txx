@@ -1745,7 +1745,7 @@ typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImag
 ::RealType
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::CalculateLocalPosteriorProbability( RealType itkNotUsed( mixtureModelProportion ),
-                                      RealType spatialPriorProbability, RealType itkNotUsed( distancePriorProbability ),
+                                      RealType spatialPriorProbability, RealType distancePriorProbability,
                                       RealType mrfPriorProbability, RealType likelihood, IndexType index,
                                       unsigned int whichClass )
 {
@@ -1788,7 +1788,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     case Aristotle:
       {
-      posteriorProbability = 1.0;
+      posteriorProbability =
+        vcl_pow( static_cast<double>( spatialPriorProbability
+                                      * distancePriorProbability),
+                 static_cast<double>( this->m_PriorProbabilityWeight ) )
+        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
+                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
       break;
       }
     }
