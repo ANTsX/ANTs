@@ -178,6 +178,14 @@ int N4( itk::ants::CommandLineParser *parser )
                                             convergenceOption->GetParameter( 1 ) ) );
       }
     }
+  else // set default values
+    {
+    typename CorrecterType::VariableSizeArrayType
+      maximumNumberOfIterations( 4 );
+    maximumNumberOfIterations.Fill( 50 );
+    correcter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+    correcter->SetConvergenceThreshold( 0.000001 );
+    }
 
   /**
    * B-spline options -- we place this here to take care of the case where
@@ -584,7 +592,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "convergence" );
     option->SetShortName( 'c' );
-    option->SetUsageOption( 0, "[<numberOfIterations=50>,<convergenceThreshold=0.001>]" );
+    option->SetUsageOption( 0, "[<numberOfIterations=50x50x50x50>,<convergenceThreshold=0.000001>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
