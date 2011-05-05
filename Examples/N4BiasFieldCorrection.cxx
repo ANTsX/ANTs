@@ -154,7 +154,7 @@ int N4( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
     parser->GetOption( "convergence" );
-  if( convergenceOption )
+  if( convergenceOption && convergenceOption->GetNumberOfValues() )
     {
     if( convergenceOption->GetNumberOfParameters() > 0 )
       {
@@ -184,6 +184,7 @@ int N4( itk::ants::CommandLineParser *parser )
       maximumNumberOfIterations( 4 );
     maximumNumberOfIterations.Fill( 50 );
     correcter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
+    correcter->SetNumberOfFittingLevels( 4 );
     correcter->SetConvergenceThreshold( 0.000001 );
     }
 
