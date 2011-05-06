@@ -1394,6 +1394,44 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->AddValue(nitdefault);
     this->m_Parser->AddOption( option );
     }
+
+  if( true )
+    {
+    std::string description =
+      std::string( "At each resolution level the image is subsampled " )
+      + std::string( "and smoothed by Gaussian convolution. This option " )
+      + std::string( "allows the user to override the default smoothing " )
+      + std::string( "by specifying sigma values (in mm) for smoothing " )
+      + std::string( "both fixed and moving images for each resolution " )
+      + std::string( "level." );
+
+    std::string defaultValue = std::string( "" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "gaussian-smoothing-sigmas" );
+    option->SetDescription( description );
+    option->AddValue( defaultValue );
+    this->m_Parser->AddOption( option );
+    }
+
+  if( true )
+    {
+    std::string description =
+      std::string( "At each resolution level the image is subsampled " )
+      + std::string( "and smoothed by Gaussian convolution. This option " )
+      + std::string( "allows the user to override the default subsampling " )
+      + std::string( "by specifying the subsampling factor for " )
+      + std::string( "both fixed and moving images for each resolution " )
+      + std::string( "level." );
+
+    std::string defaultValue = std::string( "" );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "subsampling-factors" );
+    option->SetDescription( description );
+    option->AddValue( defaultValue );
+    this->m_Parser->AddOption( option );
+    }
 }
 } // end namespace itk
 #endif

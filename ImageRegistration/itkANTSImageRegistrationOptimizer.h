@@ -23,6 +23,7 @@
 #include "itkVectorGaussianInterpolateImageFunction.h"
 #include "antsCommandLineParser.h"
 #include "itkShiftScaleImageFilter.h"
+#include "itkDiscreteGaussianImageFilter.h"
 #include "itkMinimumMaximumImageFilter.h"
 #include "itkImage.h"
 #include "itkMacro.h"
@@ -753,6 +754,23 @@ public:
     return image;
   }
 
+  ImagePointer GaussianSmoothImage( ImagePointer image,  TReal sigma )
+  {
+    typedef DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( vnl_math_sqr( sigma ) );
+    smoother->SetMaximumError( 0.01 );
+    smoother->SetInput( image );
+
+    ImagePointer smoothImage = smoother->GetOutput();
+    smoothImage->Update();
+    smoothImage->DisconnectPipeline();
+
+    smoothImage = this->NormalizeImage( smoothImage );
+
+    return smoothImage;
+  }
+
   typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DeformationFieldPointer IntegrateConstantVelocity(
     DeformationFieldPointer totalField, unsigned int ntimesteps, TReal timeweight);
 
@@ -1044,12 +1062,20 @@ public:
 //            RealType maximumSpacing = this->m_FullDomainSpacing.GetVnlVector().max_value();
     for( unsigned int d = 0; d < Dimension; d++ )
       {
-      RealType scaling =
-        vnl_math_min( this->m_ScaleFactor * minimumSpacing / this->m_FullDomainSpacing[d],
-                      static_cast<RealType>( this->m_FullDomainSize[d] ) / 32.0 );
-      if( scaling < 1 )
+      RealType scaling = this->m_ScaleFactor;
+
+      // If the user doesn't specify subsampling factors, we go to the
+      // default behavior
+
+      if( this->m_SubsamplingFactors.size() == 0 )
         {
-        scaling = 1;
+        scaling = vnl_math_min( this->m_ScaleFactor * minimumSpacing
+                                / this->m_FullDomainSpacing[d],
+                                static_cast<RealType>( this->m_FullDomainSize[d] ) / 32.0 );
+        }
+      if( scaling < 1.0 )
+        {
+        scaling = 1.0;
         }
       this->m_CurrentDomainSpacing[d] = this->m_FullDomainSpacing[d] * scaling;
       this->m_CurrentDomainSize[d] =
@@ -1060,6 +1086,7 @@ public:
                                     * static_cast<RealType>( this->m_FullDomainOrigin[d] )
                                     / this->m_CurrentDomainSpacing[d] + 0.5 );
       }
+
 //            this->m_Debug=true;
     if( this->m_Debug )
       {
@@ -1130,6 +1157,50 @@ public:
     std::cout << " setting N-TimeSteps = "
               << this->m_NTimeSteps << " trunc " << this->m_GaussianTruncation << std::endl;
 
+    // Get subsample factors and gaussian smoothing sigmas if specified
+    // by the user.
+    std::string subsamplingfactors =
+      this->m_Parser->GetOption( "subsampling-factors" )->GetValue();
+    if( subsamplingfactors.size() > 0 )
+      {
+      std::vector<float> factors =
+        this->m_Parser->template ConvertVector<float>( subsamplingfactors );
+      if( factors.size() != this->m_NumberOfLevels )
+        {
+        itkWarningMacro( "The number of levels does not match the size of factors."
+                         << "  Using default settings." );
+        }
+      else
+        {
+        this->m_SubsamplingFactors.SetSize( this->m_NumberOfLevels );
+        for( unsigned int d = 0; d < this->m_NumberOfLevels; d++ )
+          {
+          this->m_SubsamplingFactors[d] = factors[d];
+          }
+        }
+      }
+
+    std::string gaussiansmoothingsigmas =
+      this->m_Parser->GetOption( "gaussian-smoothing-sigmas" )->GetValue();
+    if( gaussiansmoothingsigmas.size() > 0 )
+      {
+      std::vector<float> sigmas =
+        this->m_Parser->template ConvertVector<float>( gaussiansmoothingsigmas );
+      if( sigmas.size() != this->m_NumberOfLevels )
+        {
+        itkWarningMacro( "The number of levels does not match the size of sigmas."
+                         << "  Using default settings." );
+        }
+      else
+        {
+        this->m_GaussianSmoothingSigmas.SetSize( this->m_NumberOfLevels );
+        for( unsigned int d = 0; d < this->m_NumberOfLevels; d++ )
+          {
+          this->m_GaussianSmoothingSigmas[d] = sigmas[d];
+          }
+        }
+      }
+
     unsigned int maxits = 0;
     for( unsigned int currentLevel = 0; currentLevel < this->m_NumberOfLevels; currentLevel++ )
       {
@@ -1199,9 +1270,22 @@ public:
       ImagePointer fixedImage;
       ImagePointer movingImage;
       this->m_GradstepAltered = this->m_Gradstep;
-      this->m_ScaleFactor = pow( 2.0, (int)static_cast<RealType>( this->m_NumberOfLevels - currentLevel - 1 ) );
-      std::cout << " this->m_ScaleFactor " << this->m_ScaleFactor
-                << " nlev " << this->m_NumberOfLevels << " curl " << currentLevel << std::endl;
+
+      if( this->m_SubsamplingFactors.Size() == 0 )
+        {
+        this->m_ScaleFactor = vcl_pow( 2.0, (int)static_cast<RealType>( this->m_NumberOfLevels - currentLevel - 1 ) );
+        }
+      else
+        {
+        this->m_ScaleFactor = this->m_SubsamplingFactors[currentLevel];
+        }
+      std::cout << " ScaleFactor " << this->m_ScaleFactor;
+      if( this->m_GaussianSmoothingSigmas.size() > 0 )
+        {
+        std::cout << " smoothing sigma " << this->m_GaussianSmoothingSigmas[currentLevel];
+        }
+      std::cout << " nlev " << this->m_NumberOfLevels << " curl " << currentLevel << std::endl;
+
       /** FIXME -- here we assume the metrics all have the same image */
       fixedImage = this->m_SimilarityMetrics[0]->GetFixedImage();
       movingImage = this->m_SimilarityMetrics[0]->GetMovingImage();
@@ -1214,10 +1298,22 @@ public:
       /*  generate smoothed images for all metrics */
       for( unsigned int metricCount = 0;  metricCount < numberOfMetrics;  metricCount++ )
         {
-        this->m_SmoothFixedImages[metricCount] = this->SmoothImageToScale(
-            this->m_SimilarityMetrics[metricCount]->GetFixedImage(), this->m_ScaleFactor);
-        this->m_SmoothMovingImages[metricCount] = this->SmoothImageToScale(
-            this->m_SimilarityMetrics[metricCount]->GetMovingImage(), this->m_ScaleFactor);
+        if( this->m_GaussianSmoothingSigmas.size() == 0 )
+          {
+          this->m_SmoothFixedImages[metricCount] = this->SmoothImageToScale(
+              this->m_SimilarityMetrics[metricCount]->GetFixedImage(), this->m_ScaleFactor );
+          this->m_SmoothMovingImages[metricCount] = this->SmoothImageToScale(
+              this->m_SimilarityMetrics[metricCount]->GetMovingImage(), this->m_ScaleFactor );
+          }
+        else
+          {
+          this->m_SmoothFixedImages[metricCount] = this->GaussianSmoothImage(
+              this->m_SimilarityMetrics[metricCount]->GetFixedImage(),
+              this->m_GaussianSmoothingSigmas[currentLevel] );
+          this->m_SmoothMovingImages[metricCount] = this->GaussianSmoothImage(
+              this->m_SimilarityMetrics[metricCount]->GetMovingImage(),
+              this->m_GaussianSmoothingSigmas[currentLevel] );
+          }
         }
       fixedImage = this->m_SmoothFixedImages[0];
       movingImage = this->m_SmoothMovingImages[0];
@@ -2103,6 +2199,10 @@ private:
   ImagePointer m_ThickImage;
   unsigned int m_ComputeThickness;
   unsigned int m_SyNFullTime;
+
+/** Subsampling/Gaussian smoothing parameters */
+  Array<float> m_GaussianSmoothingSigmas;
+  Array<float> m_SubsamplingFactors;
 };
 }
 // end namespace itk

@@ -54,8 +54,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_UseROI = false;
   this->m_MaskImage = NULL;
   this->m_ReferenceSpaceImage = NULL;
-  this->m_ScaleFactor = 1.0;
   this->m_Debug = false;
+
+  this->m_ScaleFactor = 1.0;
+  this->m_SubsamplingFactors.SetSize( 0 );
+  this->m_GaussianSmoothingSigmas.SetSize( 0 );
 
   this->m_SyNF = NULL;
   this->m_SyNFInv = NULL;
