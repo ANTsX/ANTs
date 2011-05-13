@@ -21,7 +21,7 @@ TRAN=" -i 100x100x1000 -t SyN[0.1] "
 # gaussian
 # ANTS $DIM -m CC[$I,$J,1,4] -o J_to_I_diff $TRAN -r Gauss[3,0] $AFFITS   -F I_initAffine.txt -a J_initAffine.txt
 # dmffd
- ANTS $DIM -m CC[$I,$J,1,4] -o J_to_I_diff $TRAN -r DMFFD[10x10x10,0,3] $AFFITS   -F I_initAffine.txt -a J_initAffine.txt
+ ANTS $DIM -m CC[$I,$J,1,4] -o J_to_I_diff $TRAN -r DMFFD[10x10x10,0,3] $AFFITS  --fixed-image-initial-affine $REFSPACE  -F I_initAffine.txt -a J_initAffine.txt  --fixed-image-initial-affine $REFSPACE
 # now warp J to I just to check correctness
  WarpImageMultiTransform $DIM $J J_to_I.nii.gz -R $I   -i I_initAffine.txt J_to_I_diffWarp.nii.gz J_initAffine.txt
 #
