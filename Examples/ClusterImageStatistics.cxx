@@ -220,8 +220,10 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
 
     // now begin output
     //  std::cout << " Writing Text File " << outname << std::endl;
-    std::string   outname2 = outname + std::string(".csv");
-    std::ofstream outf( (outname2).c_str(), std::ofstream::app);
+    std::string   outname2 = outname + std::string("average.csv");
+    std::string   outname3 = outname + std::string("volume.csv");
+    std::ofstream outf( (outname2).c_str(), std::ofstream::out);
+    std::ofstream outf2( (outname3).c_str(), std::ofstream::out);
     if( outf.good() )
       {
       //    outf << std::string(argv[filecount]) << std::endl;
@@ -261,6 +263,30 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
       std::cout << " File No Good! " << outname << std::endl;
       }
     outf.close();
+
+    if( outf2.good() )
+      {
+      for( unsigned int i = 0; i <= range; i++ )
+        {
+        if( countinlabel[i] == 0 )
+          {
+          countinlabel[i] = 1;
+          }
+        if( i >= 0 && i < range )
+          {
+          outf2 <<  (float)countinlabel[i] << ",";
+          }
+        else
+          {
+          outf2 <<  (float)countinlabel[i] << std::endl;
+          }
+        }
+      }
+    else
+      {
+      std::cout << " File No Good! " << outname << std::endl;
+      }
+    outf2.close();
     }
 
   return 0;
