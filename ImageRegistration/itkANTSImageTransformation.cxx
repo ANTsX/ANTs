@@ -65,6 +65,7 @@ ANTSImageTransformation<TDimension, TReal>
 {
   std::cout << " begin writing " << m_NamingConvention << std::endl;
 
+  bool                   is_supported = false;
   std::string            filePrefix = this->m_NamingConvention;
   std::string::size_type pos = filePrefix.rfind( "." );
   std::string            extension;
@@ -84,12 +85,51 @@ ANTSImageTransformation<TDimension, TReal>
                                filePrefix.length() - 1 );
       filePrefix = std::string( filePrefix, 0, pos );
       }
+
+    // GetSupportedWriteExtensions
+    typedef itk::ImageIOBase                           IOBaseType;
+    typedef std::list<itk::LightObject::Pointer>       ArrayOfImageIOType;
+    typedef typename IOBaseType::ArrayOfExtensionsType ArrayOfExtensionsType;
+    ArrayOfImageIOType           allobjects = itk::ObjectFactoryBase::CreateAllInstance("itkImageIOBase");
+    ArrayOfImageIOType::iterator itr = allobjects.begin();
+    while( itr != allobjects.end() )
+      {
+      IOBaseType * io = dynamic_cast<IOBaseType *>( itr->GetPointer() );
+      if( !io )
+        {
+        std::cerr << "Got a null pointer in the array" << std::endl;
+        }
+      else
+        {
+        const ArrayOfExtensionsType &         writeExtensions = io->GetSupportedWriteExtensions();
+        ArrayOfExtensionsType::const_iterator writeItr = writeExtensions.begin();
+        while( writeItr != writeExtensions.end() )
+          {
+          std::string test_ext = *writeItr;
+          //	    std::cout <<" compare " << extension << " to " << test_ext << std::endl;
+          if( extension == test_ext )
+            {
+            is_supported = true;
+            }
+          //	    else std::cout <<" not the same " << std::endl;
+          ++writeItr;
+          }
+        }
+      ++itr;
+      }
+
+    if( !is_supported )
+      {
+      std::cout << " WARNING! we are guessing you want nii.gz for your image output instead of: " << extension
+                << std::endl;
+      filePrefix = this->m_NamingConvention;
+      extension = std::string(".nii.gz");
+      }
     }
   else
     {
     extension = std::string( ".nii.gz" );
     }
-
   // Added by songgang
   if( this->m_AffineTransform )
     {
