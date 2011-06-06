@@ -19,6 +19,8 @@
 #define __itkLabeledPointSetFileWriter_txx
 
 #include "itkLabeledPointSetFileWriter.h"
+
+#include "itkBoundingBox.h"
 #include "itkImageFileWriter.h"
 
 #include <fstream>
@@ -93,14 +95,17 @@ LabeledPointSetFileWriter<TInputMesh>
 
   if( this->m_ImageSize[0] == 0 )
     {
-    this->m_ImageSize.Fill( 100 );
-    this->m_ImageOrigin.CastFrom(
-      this->m_Input->GetBoundingBox()->GetMinimum() );
+    typedef BoundingBox<unsigned long, Dimension,
+                        typename TInputMesh::CoordRepType, typename TInputMesh::PointsContainer>
+      BoundingBoxType;
+    typename BoundingBoxType::Pointer bbox = BoundingBoxType::New();
+    bbox->SetPoints( this->m_Input->GetPoints() );
+    bbox->ComputeBoundingBox();
     for( unsigned int d = 0; d < Dimension; d++ )
       {
       this->m_ImageSpacing[d] = (
-          this->m_Input->GetBoundingBox()->GetMaximum()[d]
-          - this->m_Input->GetBoundingBox()->GetMinimum()[d] )
+          bbox->GetMaximum()[d]
+          - bbox->GetMinimum()[d] )
         / static_cast<double>( this->m_ImageSize[d] + 1 );
       }
     this->m_ImageDirection.SetIdentity();
