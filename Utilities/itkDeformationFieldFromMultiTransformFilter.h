@@ -95,7 +95,7 @@ protected:
    * As such, it needs to provide and implementation for
    * ThreadedGenerateData(). */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                            int threadId )
+                            ThreadIdType threadId )
   {
     OutputImagePointer outputPtr = this->GetOutput();
 

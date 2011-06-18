@@ -83,7 +83,7 @@ template <class TInputImage, class TOutputImage, class TParamImage>
 void
 VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TParamImage>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
-                       int threadId)
+                       ThreadIdType threadId)
 {
   typedef NeighborhoodAlgorithm::ImageBoundaryFacesCalculator<InputImageType>
     BFC;
