@@ -344,6 +344,8 @@ INSTALL(TARGETS ANTS
   WarpTimeSeriesImageMultiTransform
   ResampleImage
   ExtractSliceFromImage
+  ExtractRegionFromImage
+  LabelGeometryMeasures
   TileImages
   CreateImage
   WarpTensorImageMultiTransform
@@ -365,6 +367,14 @@ INSTALL(TARGETS ANTS
   ARCHIVE DESTINATION lib
 )
 
+install(PROGRAMS ../Scripts/ants.sh  ../Scripts/basic_ants_example.sh
+                ../Scripts/antsIntroduction.sh
+                ../Scripts/antsaffine.sh
+                ../Scripts/ANTSAverage2DAffine.sh ../Scripts/ANTSAverage3DAffine.sh
+                ../Scripts/buildtemplateparallel.sh ../Scripts/ANTSpexec.sh
+                ../Scripts/waitForSGEQJobs.pl DESTINATION bin
+                PERMISSIONS GROUP_EXECUTE
+                CONFIGURATIONS  Release )
 
 #Set any libraries that your project depends on.
 #examples: ${ITK_LIBRARIES}, VTKRendering, etc
