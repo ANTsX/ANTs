@@ -229,6 +229,12 @@ target_link_libraries(ResampleImage ${ITK_LIBRARIES})
 add_executable(ExtractSliceFromImage ExtractSliceFromImage.cxx )
 target_link_libraries(ExtractSliceFromImage ${ITK_LIBRARIES})
 
+add_executable(ExtractRegionFromImage ExtractRegionFromImage.cxx )
+target_link_libraries(ExtractRegionFromImage ${ITK_LIBRARIES})
+
+add_executable(LabelGeometryMeasures LabelGeometryMeasures.cxx )
+target_link_libraries(LabelGeometryMeasures ${ITK_LIBRARIES})
+
 add_executable(TileImages TileImages.cxx )
 target_link_libraries(TileImages ${ITK_LIBRARIES})
 
