@@ -1732,6 +1732,138 @@ int TimeSeriesSubset(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int ComputeTimeSeriesLeverage(int argc, char *argv[])
+{
+  if( argc <= 2 )
+    {
+    std::cout << " too few options " << std::endl; return 1;
+    }
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef typename OutImageType::IndexType             OutIndexType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+  typedef double                                            Scalar;
+  typedef itk::ants::antsMatrixUtilities<ImageType, Scalar> matrixOpType;
+  typename matrixOpType::Pointer matrixOps = matrixOpType::New();
+
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  unsigned int k_neighbors = atoi(argv[argct]);   argct++;
+  typename ImageType::Pointer image1 = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+  unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+
+  typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+
+  typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  unsigned int sub_vol = 0;
+  extractRegion.SetIndex(ImageDimension - 1, sub_vol );
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( image1 );
+  //    extractFilter->SetDirectionCollapseToIdentity();
+  extractFilter->SetDirectionCollapseToSubmatrix();
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  typename OutImageType::Pointer outimage = extractFilter->GetOutput();
+  outimage->FillBuffer(0);
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>    ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType> SliceIt;
+
+  // step 1.  compute , for each image in the time series, the effect on the average.
+  // step 2.  the effect is defined as the influence of that point on the average or, more simply, the distance of that
+  // image from the average ....
+  typedef vnl_vector<Scalar> timeVectorType;
+  timeVectorType mSample(timedims, 0);
+  timeVectorType mLeverage(timedims, 0);
+  timeVectorType kDistance(timedims, 0);
+  SliceIt        vfIter2( outimage, outimage->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    IndexType    tind;
+    // first collect all samples for that location
+    for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+      {
+      tind[i] = ind[i];
+      }
+    double all_mean = 0;
+    for( unsigned int t = 0; t < timedims; t++ )
+      {
+      tind[ImageDimension - 1] = t;
+      Scalar pix = image1->GetPixel(tind);
+      mSample(t) = pix;
+      all_mean += pix;
+      }
+    all_mean /= (double)timedims;
+    // second compute the leverage for each time point and add that to the total leverage
+    // this is a simple approach --- just the difference from the mean.
+    for( unsigned int t = 0; t < timedims; t++ )
+      {
+      mLeverage(t) += fabs(all_mean - mSample(t) );
+      }
+    }
+  // now use k neighbors to get a distance
+  for( unsigned int t = 0; t < timedims; t++ )
+    {
+    int lo = (int)t - k_neighbors / 2;
+    int hi = (int)t + k_neighbors / 2;
+    if( lo < (int) 0 )
+      {
+      lo = 0;
+      }
+    if( hi > (int)(timedims - 1) )
+      {
+      hi = timedims - 1;
+      }
+    unsigned int ct = 0;
+    for( int k = lo; k < hi; k++ )
+      {
+      if( k != (int)t )
+        {
+        kDistance(t) += fabs(mLeverage(t) - mLeverage(k) );
+        ct++;
+        }
+      }
+    kDistance(t) /= (double)ct;
+    }
+
+  // now write the mLeverage value for each time point ...
+  std::ofstream logfile;
+  logfile.open(outname.c_str() );
+  if( logfile.good() )
+    {
+    logfile << "Raw_Leverage,K_Neighbors_Distance" <<  std::endl;
+    for( unsigned int t = 0; t < timedims; t++ )
+      {
+      logfile <<  mLeverage(t) << "," << kDistance(t) << std::endl;
+      }
+    }
+  logfile.close();
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int CompCorr(int argc, char *argv[])
 {
   if( argc <= 2 )
@@ -7432,6 +7564,12 @@ int main(int argc, char *argv[])
       << std::endl;
     std::cout << "    Usage		: TimeSeriesSubset 4D_TimeSeries.nii.gz n "<< std::endl;
 
+    std::cout
+      <<
+      " ComputeTimeSeriesLeverage : Outputs a csv file that identifies the leverage for each time point in the 4D image.  leverage, here, is the effect of the left-out image on the average of the n-1 remaining images."
+      << std::endl;
+    std::cout << "    Usage		: ComputeTimeSeriesLeverage 4D_TimeSeries.nii.gz k_neighbors "<< std::endl;
+
     std::cout << "\nTensor Operations:" << std::endl;
     std::cout << "  4DTensorTo3DTensor	: Outputs a 3D_DT_Image with the same information. "<< std::endl;
     std::cout << "    Usage		: 4DTensorTo3DTensor 4D_DTImage.ext"<< std::endl;
@@ -8407,6 +8545,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "CompCorr") == 0 )
         {
         CompCorr<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ComputeTimeSeriesLeverage") == 0 )
+        {
+        ComputeTimeSeriesLeverage<4>(argc, argv);
         }
       else
         {
