@@ -29,7 +29,7 @@ Optional arguments:
      -j:  Number of cpu cores to use (default: 2; -- requires "-c 2")
      -g:  Gray matter probability image
      -w:  White matter probability image
-     -t:  Thickness prior estimate
+     -t:  Thickness prior estimate (could be a .csv file, e.g. for label 3 with a thickness of 4.5 -> 3,4.5)
      -m:  Smoothing sigma
      -r:  Gradient step size (default=0.025) -- smaller in magnitude results in more cautious steps
      -i:  number of iterations (default=50)
@@ -92,6 +92,31 @@ getLabelsAndBoundingBoxes() {
     done
     count=`expr $count + 1`;
   done
+
+  ## read thickness .csv file if it exists
+  extension=`echo ${THICKNESS_PRIOR_ESTIMATE#*.}`
+
+
+  if [[ extension='csv' || extension='txt' ]]; then
+
+    echo ${LABELS[@]}
+
+    while read line
+      do
+      bar=(`echo $line | tr ',' ' '`)
+
+      for (( i=0; i<${#LABELS[@]}; i++ )); do
+        if [[ ${bar[0]} -eq ${LABELS[$i]} ]]; then
+          LABEL_THICKNESSES[$i]=${bar[1]}
+        fi
+      done
+
+    done < $THICKNESS_PRIOR_ESTIMATE
+  else
+    for (( count = 0; count<${#LABELS[@]}; count++ )); do
+      LABEL_THICKNESSES[$count]=$THICKNESS_PRIOR_ESTIMATE
+    done
+  fi
 }
 
 writeSubimages() {
@@ -128,16 +153,36 @@ writeSubimages() {
    minIndex=${minIndex:1};
    maxIndex=${maxIndex:1};
 
-   OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $SEG_IMAGE ${TMPDIR}seg_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
-   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`);
+   maskImage=${TMPDIR}/maskImage.nii.gz
+   maskImage2=${TMPDIR}/maskImage2.nii.gz
+
+   OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $LABEL_IMAGE $maskImage ${LABELS[$i]} ${LABELS[$i]} 1 0`)
+   OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $SEG_IMAGE $maskImage2 3 3 3 0`)
+   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $SEG_IMAGE`)
+   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage + $maskImage $maskImage2`)
+   OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $maskImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $minIndex $maxIndex`)
+   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`)
    if [ -d "$WMPROB_IMAGE" ]; then
-     OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $WMPROB_IMAGE ${TMPDIR}wm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
+     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $LABEL_IMAGE $maskImage ${LABELS[$i]} ${LABELS[$i]} 1 0`)
+     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $SEG_IMAGE $maskImage2 3 3 3 0`)
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $SEG_IMAGE`)
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage + $maskImage $maskImage2`)
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $WMPROB_IMAGE`)
+     OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $maskImage ${TMPDIR}wm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
      OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`);
    fi
    if [ -d "$GMPROB_IMAGE" ]; then
+     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $LABEL_IMAGE $maskImage ${LABELS[$i]} ${LABELS[$i]} 1 0`)
+     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $SEG_IMAGE $maskImage2 3 3 3 0`)
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $SEG_IMAGE`)
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage + $maskImage $maskImage2`)
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $GMPROB_IMAGE`)
      OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $GMPROB_IMAGE ${TMPDIR}gm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
      OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`);
    fi
+
+   rm -rf $maskImage
+   rm -rf $maskImage2
 
   done
 }
@@ -220,6 +265,7 @@ WMPROB_IMAGE=""
 OUTPUT_IMAGE=""
 LABEL_IMAGE=""
 LABELS=()
+LABEL_THICKNESSES=()
 BOUNDING_BOXES=()
 PADDING=5;
 
@@ -335,7 +381,7 @@ for LABEL in ${LABELS[@]}
   gmLabelImage=${TMPDIR}gm_${LABEL}.nii.gz
   wmLabelImage=${TMPDIR}wm_${LABEL}.nii.gz
 
-  exe="${DIRECT} -d ${DIMENSION} -c [$ITERATION_LIMIT,0.000001,10] -t $THICKNESS_PRIOR_ESTIMATE -r $GRADIENT_STEP -m $SMOOTHING_SIGMA -s $segLabelImage -o ${TMPDIR}direct_${LABEL}.nii.gz"
+  exe="${DIRECT} -d ${DIMENSION} -c [$ITERATION_LIMIT,0.000001,10] -t ${LABEL_THICKNESSES[$count]} -r $GRADIENT_STEP -m $SMOOTHING_SIGMA -s $segLabelImage -o ${TMPDIR}direct_${LABEL}.nii.gz"
   if [[ -d "$gmLabelImage" ]]; then
     exe=${exe}" -g $gmLabelImage"
   fi
@@ -373,6 +419,7 @@ for LABEL in ${LABELS[@]}
       exit 1;
     fi
   fi
+  count=`expr $count + 1`
 done
 
 # Run jobs on localhost and wait to finish
