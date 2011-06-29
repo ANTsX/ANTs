@@ -235,6 +235,9 @@ target_link_libraries(ExtractRegionFromImage ${ITK_LIBRARIES})
 add_executable(LabelGeometryMeasures LabelGeometryMeasures.cxx )
 target_link_libraries(LabelGeometryMeasures ${ITK_LIBRARIES})
 
+add_executable(PasteImageIntoImage PasteImageIntoImage.cxx )
+target_link_libraries(PasteImageIntoImage ${ITK_LIBRARIES})
+
 add_executable(TileImages TileImages.cxx )
 target_link_libraries(TileImages ${ITK_LIBRARIES})
 
