@@ -96,11 +96,9 @@ getLabelsAndBoundingBoxes() {
   ## read thickness .csv file if it exists
   extension=`echo ${THICKNESS_PRIOR_ESTIMATE#*.}`
 
-
-  if [[ extension='csv' || extension='txt' ]]; then
+  if [[ $extension = 'csv' ]] || [[ $extension = 'txt' ]] ; then
 
     echo ${LABELS[@]}
-
     while read line
       do
       bar=(`echo $line | tr ',' ' '`)
@@ -110,13 +108,15 @@ getLabelsAndBoundingBoxes() {
           LABEL_THICKNESSES[$i]=${bar[1]}
         fi
       done
-
     done < $THICKNESS_PRIOR_ESTIMATE
   else
     for (( count = 0; count<${#LABELS[@]}; count++ )); do
       LABEL_THICKNESSES[$count]=$THICKNESS_PRIOR_ESTIMATE
     done
+
   fi
+
+
 }
 
 writeSubimages() {
