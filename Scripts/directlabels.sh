@@ -3,6 +3,20 @@
 # Usage:  $0 imageDimension segmentationImage grayMatterProbabilityImage
 # whiteMatterProbabilityImage outputImage
 
+VERSION="0.0"
+
+# trap keyboard interrupt (control-c)
+trap control_c SIGINT
+
+# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
+if [ ${#ANTSPATH} -le 3 ] ; then
+  echo we guess at your ants path
+  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+fi
+if [ ! -s ${ANTSPATH}/ANTS ] ; then
+  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
+fi
 
 function Usage {
     cat <<USAGE
@@ -300,7 +314,7 @@ done
 if [[ $# -eq 0 ]] ; then
   Usage >&2
 else
-  while getopts "c:d:g:i:j:m:o:s:r:t:h:l:" OPT
+  while getopts "c:d:g:i:j:w:m:o:s:r:t:h:l:" OPT
     do
     case $OPT in
         h) #help
