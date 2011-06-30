@@ -268,8 +268,8 @@ cleanup() {
 ################################################################################
 
 time_start=`date +%s`
-CURRENTDIR=`pwd`
-TMPDIR=${CURRENTDIR}/tmp/
+CURRENTDIR=`pwd`/
+TMPDIR=${CURRENTDIR}/tmp$RANDOM/
 
 DIRECT=${ANTSPATH}KellyKapowski
 DIMENSION=3
@@ -285,7 +285,7 @@ PADDING=5;
 
 GRADIENT_STEP=0.025
 SMOOTHING_SIGMA=1.5
-THICKNESS_PRIOR_ESTIMATE=10.0
+THICKNESS_PRIOR_ESTIMATE=8.0
 ITERATION_LIMIT=50
 
 DOQSUB=0
