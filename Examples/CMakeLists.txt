@@ -1,7 +1,7 @@
 project(ANTS)
 
 cmake_minimum_required(VERSION 2.8.2)
-set(CMAKE_BUILD_TYPE "Release")
+# set(CMAKE_BUILD_TYPE "Release")
 
 #Change PROJECT_NAME to the name of your project
 
@@ -9,7 +9,6 @@ option(USE_ITK "Use ITK Libraries" ON)
 option(USE_VTK "Use VTK Libraries" OFF)
 
 set (CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
-
 
 # Set up ITK
 if(USE_ITK)
@@ -42,9 +41,34 @@ if(USE_VTK)
   endif(VTK_FOUND)
 endif(USE_VTK)
 
+option(USE_FFTWD "Use double precision fftw if found" OFF)
+option(USE_FFTWF "Use single precision fftw if found" OFF)
+option(USE_SYSTEM_FFTW "Use an installed version of fftw" OFF)
+if (USE_FFTWD OR USE_FFTWF)
+       if(USE_SYSTEM_FFTW)
+           find_package( FFTW )
+           link_directories(${FFTW_LIBDIR})
+       else(USE_SYSTEM_FFTW)
+           link_directories(${ITK_DIR}/fftw/lib)
+           include_directories(${ITK_DIR}/fftw/include)
+       endif(USE_SYSTEM_FFTW)
+endif(USE_FFTWD OR USE_FFTWF)
+
+
+
 #The following lines are required to use Dart
 include(CTest)
 enable_testing()
+
+
+
+
+
+
+
+
+
+
 
 
 #INCLUDE (${CMAKE_ROOT}/Modules/FindITK.cmake)
@@ -262,6 +286,10 @@ target_link_libraries(KellySlater ${ITK_LIBRARIES})
 add_executable(KellyKapowski KellyKapowski.cxx  ${UI_SOURCES})
 target_link_libraries(KellyKapowski ${ITK_LIBRARIES})
 
+add_executable(AverageAffineTransform AverageAffineTransform.cxx)
+ target_link_libraries(AverageAffineTransform ${ITK_LIBRARIES})
+
+
 IF (USE_VTK)
 INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
 IF (USE_VTK_FILE)
@@ -294,6 +322,8 @@ target_link_libraries(WarpVTKPolyDataMultiTransform ${ITK_LIBRARIES} vtksys vtkI
 
  add_executable(ANTSConformalMapping ANTSConformalMapping.cxx ${UI_SOURCES})
   target_link_libraries(ANTSConformalMapping ${ITK_LIBRARIES} FLATFEM ${ITK_LIBRARIES} ITKMetaIO  vtkRendering vtkIO)
+
+
 
 ENDIF (USE_VTK_FILE)
 endif(USE_VTK)
