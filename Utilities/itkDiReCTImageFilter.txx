@@ -33,7 +33,7 @@
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
-#include "itkGradientToMagnitudeImageFilter.h"
+#include "itkVectorMagnitudeImageFilter.h"
 #include "itkImageDuplicator.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
@@ -721,7 +721,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     constantMultiplier->SetConstantVector( spacingFactor );
     constantMultiplier->SetInput( composer->GetOutput() );
 
-    typedef GradientToMagnitudeImageFilter<VectorImageType, RealImageType>
+    typedef VectorMagnitudeImageFilter<VectorImageType, RealImageType>
       NormFilterType;
     typename NormFilterType::Pointer normFilter = NormFilterType::New();
     normFilter->SetInput( constantMultiplier->GetOutput() );
