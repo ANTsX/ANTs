@@ -317,11 +317,13 @@ function shapeupdatetotemplate {
     echo "--------------------------------------------------------------------------------------"
 
     # Averaging and inversion code --- both are 1st order estimates.
-    if [ ${dim} -eq 2   ] ; then
-      ANTSAverage2DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
-    elif [ ${dim} -eq 3  ] ; then
-      ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
-    fi
+#    if [ ${dim} -eq 2   ] ; then
+#      ANTSAverage2DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
+#    elif [ ${dim} -eq 3  ] ; then
+#      ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
+#    fi
+    ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}Affine.txt ${outputname}*Affine.txt
+
     ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warp.nii.gz ${templatename}warp.nii.gz -i  ${templatename}Affine.txt -R ${template}
     ${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
 
