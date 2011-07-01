@@ -89,7 +89,13 @@ set(PICSL_INCLUDE_DIRS
 
 include_directories(${PICSL_INCLUDE_DIRS})
 
-LINK_DIRECTORIES( ${ITK_LIBRARY_PATH} )
+LINK_DIRECTORIES( ${ITK_LIBRARY_PATH}  )
+
+
+
+# message("${ITK_LIBRARIES}")
+
+
 
 # non-templated class -- this should be stored in a library and linked in...
 set(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLineOption" )

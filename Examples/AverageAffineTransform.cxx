@@ -18,6 +18,7 @@
 #include "itkTransformFileWriter.h"
 #include <stdlib.h>
 #include <string>
+#include <errno.h>
 
 typedef enum
   {
