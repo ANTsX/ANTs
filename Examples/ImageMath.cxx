@@ -55,9 +55,14 @@
 #include "itkRelabelComponentImageFilter.h"
 #include "itkTranslationTransform.h"
 #include "itkImageMomentsCalculator.h"
+#include "itkImageDuplicator.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "ReadWriteImage.h"
 #include "itkBSplineControlPointImageFilter.h"
+#include "itkLabelStatisticsImageFilter.h"
+#include "itkMaximumImageFilter.h"
+#include "itkMultiplyImageFilter.h"
+#include "itkSubtractImageFilter.h"
 #include "itkExpImageFilter.h"
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
@@ -5586,6 +5591,127 @@ int LaplacianImage(      int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int PoissonDiffusion( int argc, char *argv[])
+{
+  if( argc < 6 )
+    {
+    std::cerr << "Usage error---not enough arguments.   See help menu."
+              << std::endl;
+    exit( 1 );
+    }
+
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::Image<int, ImageDimension>       LabelImageType;
+
+  typedef itk::ImageFileReader<ImageType> ReaderType;
+  typename ReaderType::Pointer reader = ReaderType::New();
+  reader->SetFileName( argv[4] );
+  reader->Update();
+
+  typedef itk::ImageDuplicator<ImageType> DuplicatorType;
+  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+  duplicator->SetInputImage( reader->GetOutput() );
+  duplicator->Update();
+
+  typename ImageType::Pointer output = duplicator->GetOutput();
+  output->DisconnectPipeline();
+
+  typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+  typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+  labelReader->SetFileName( argv[5] );
+  labelReader->Update();
+
+  float label = 1.0;
+  if( argc > 7 )
+    {
+    label = atof( argv[7] );
+    }
+
+  typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> ThresholderType;
+  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  thresholder->SetInput( labelReader->GetOutput() );
+  thresholder->SetOutsideValue( 0 );
+  thresholder->SetInsideValue( 1 );
+  thresholder->SetLowerThreshold( label );
+  thresholder->SetUpperThreshold( label );
+  thresholder->Update();
+
+  float sigma = 1.0;
+  if( argc > 6 )
+    {
+    sigma = atof( argv[6] );
+    }
+
+  float convergence = itk::NumericTraits<float>::max();
+  float convergenceThreshold = 1e-10;
+  if( argc > 9 )
+    {
+    convergenceThreshold = atof( argv[9] );
+    }
+  unsigned int maximumNumberOfIterations = 500;
+  if( argc > 8 )
+    {
+    maximumNumberOfIterations = atoi( argv[8] );
+    }
+
+  unsigned int iterations = 0;
+  while( iterations++ < maximumNumberOfIterations && convergence >= 1e-10 )
+    {
+    std::cout << "  Iteration " << iterations << ": " << convergence << std::endl;
+    typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( vnl_math_sqr( sigma ) );
+    smoother->SetMaximumError( 0.01f );
+    smoother->SetInput( output );
+
+    typedef itk::MaximumImageFilter<ImageType, ImageType, ImageType>
+      MaximumFilterType;
+    typename MaximumFilterType::Pointer maximumFilter = MaximumFilterType::New();
+    maximumFilter->SetInput1( smoother->GetOutput() );
+    maximumFilter->SetInput2( reader->GetOutput() );
+
+    typedef itk::MultiplyImageFilter<ImageType, LabelImageType, ImageType>
+      MultiplierType;
+    typename MultiplierType::Pointer multiplier = MultiplierType::New();
+    multiplier->SetInput1( maximumFilter->GetOutput() );
+    multiplier->SetInput2( thresholder->GetOutput() );
+
+    typedef itk::AddImageFilter<ImageType, ImageType, ImageType>
+      AdderType;
+    typename AdderType::Pointer adder = AdderType::New();
+    adder->SetInput1( reader->GetOutput() );
+    adder->SetInput2( multiplier->GetOutput() );
+
+    typedef itk::SubtractImageFilter<ImageType, ImageType, ImageType>
+      SubtracterType;
+    typename SubtracterType::Pointer subtracter = SubtracterType::New();
+    subtracter->SetInput1( adder->GetOutput() );
+    subtracter->SetInput2( output );
+
+    typedef itk::LabelStatisticsImageFilter<ImageType, LabelImageType>
+      StatsFilterType;
+    typename StatsFilterType::Pointer stats = StatsFilterType::New();
+    stats->SetInput( subtracter->GetOutput() );
+    stats->SetLabelInput( thresholder->GetOutput() );
+    stats->Update();
+
+    convergence = stats->GetMean( 1 );
+
+    output = adder->GetOutput();
+    output->DisconnectPipeline();
+    }
+
+  typedef itk::ImageFileWriter<ImageType> WriterType;
+  typename WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName( argv[2] );
+  writer->SetInput( output );
+  writer->Update();
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 void
 RemoveLabelInterfaces(int argc, char *argv[])
 {
@@ -7727,6 +7853,13 @@ int main(int argc, char *argv[])
 
     std::cout << "\n  PH			: Print Header"<< std::endl;
 
+    std::cout << "\n  PoissonDiffusion		: Solves Poisson's equation in a designated region using non-zero sources"
+              << std::endl;
+    std::cout
+      <<
+      "      Usage		: PoissonDiffusion inputImage labelImage [sigma=1.0] [regionLabel=1] [numberOfIterations=500] [convergenceThreshold=1e-10]"
+      << std::endl;
+
     std::cout
       <<
       "\n  PropagateLabelsThroughMask: Final output is the propagated label image. Optional stopping value: higher values allow more distant propagation"
@@ -7979,6 +8112,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
         {
         RemoveLabelInterfaces<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
+        {
+        PoissonDiffusion<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
         {
@@ -8266,6 +8403,10 @@ int main(int argc, char *argv[])
         {
         CorrelationUpdate<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
+        {
+        PoissonDiffusion<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
         {
         ConvertImageSetToMatrix<3>(argc, argv);
@@ -8509,6 +8650,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "PValueImage") == 0 )
         {
         PValueImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
+        {
+        PoissonDiffusion<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
         {
