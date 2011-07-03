@@ -24,6 +24,7 @@
 #include "itkArray.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkContinuousIndex.h"
+#include "itkDecomposeTensorFunction.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkDivideByConstantImageFilter.h"
 #include "itkStatisticsImageFilter.h"

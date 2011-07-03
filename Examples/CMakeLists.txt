@@ -342,6 +342,9 @@ target_link_libraries(ANTSIntegrateVectorField ${ITK_LIBRARIES})
 add_executable(ANTSIntegrateVelocityField ANTSIntegrateVelocityField.cxx)
 target_link_libraries(ANTSIntegrateVelocityField ${ITK_LIBRARIES})
 
+  add_executable(AtroposMin AtroposMin.cxx ${UI_SOURCES})
+  target_link_libraries(AtroposMin ${ITK_LIBRARIES}   )
+
   add_executable(Atropos Atropos.cxx ${UI_SOURCES})
   target_link_libraries(Atropos ${ITK_LIBRARIES}   )
 
