@@ -76,10 +76,15 @@ int PasteImageIntoImage( unsigned int argc, char *argv[] )
     {
     backgroundValue = static_cast<PixelType>( atof( argv[6] ) );
     }
-  bool writeOver = true;
+  unsigned int writeOver = 1;
   if( argc > 7 )
     {
-    writeOver = static_cast<bool>( atoi( argv[7] ) );
+    writeOver = static_cast<unsigned int>( atoi( argv[7] ) );
+    }
+  PixelType conflictLabel = -1;
+  if( argc > 8 )
+    {
+    conflictLabel = static_cast<PixelType>( atof( argv[8] ) );
     }
 
   itk::ImageRegionIteratorWithIndex<ImageType> It(
@@ -87,20 +92,27 @@ int PasteImageIntoImage( unsigned int argc, char *argv[] )
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
     typename ImageType::IndexType index = It.GetIndex();
-    PixelType value = It.Get();
+    PixelType paintValue = It.Get();
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
       index[d] += startIndex[d];
       }
-    if( value != backgroundValue )
+    if( paintValue != backgroundValue )
       {
       if( reader1->GetOutput()->GetLargestPossibleRegion().IsInside( index ) )
         {
         PixelType canvasValue = reader1->GetOutput()->GetPixel( index );
-
-        if( canvasValue == backgroundValue || writeOver == true )
+        if( canvasValue == backgroundValue || writeOver == 1 )
           {
-          reader1->GetOutput()->SetPixel( index, value );
+          reader1->GetOutput()->SetPixel( index, paintValue );
+          }
+        else if( canvasValue != backgroundValue && writeOver == 0 )
+          {
+          continue;
+          }
+        else
+          {
+          reader1->GetOutput()->SetPixel( index, conflictLabel );
           }
         }
       }
@@ -120,7 +132,18 @@ int main( int argc, char *argv[] )
   if( argc < 6 )
     {
     std::cout << argv[0] << " imageDimension inputCanvasImage inputImage "
-              << "outputImage startIndex [backgroundLabel=0] [writeOverNonBackgroundLabels=1]" << std::endl;
+              << "outputImage startIndex [backgroundLabel=0] [paintOverNonBackgroundVoxels=0] [conflictLabel=-1]"
+              << std::endl;
+    std::cout
+      <<
+    "   If the current painting image voxel is nonbackground and corresponds to a background voxel in the canvas image "
+      << std::endl;
+    std::cout << "     paintOverNonBackgroundVoxels = 0 -> leave the canvas voxel as is." << std::endl;
+    std::cout
+      << "     paintOverNonBackgroundVoxels = 1 -> replace canvas voxel value with painting image voxel value"
+      << std::endl;
+    std::cout << "     paintOverNonBackgroundVoxels = 2 -> replace canvas voxel walue with conflictLabel"  << std::endl;
+
     exit( 1 );
     }
 
