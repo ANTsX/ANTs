@@ -137,6 +137,7 @@ writeSubimages() {
 
   if [ ! -d "$TMPDIR" ]; then
     mkdir $TMPDIR
+    chmod ugo+rw $TMPDIR
   fi
 
   OUTFN=${POO%.*.*}
@@ -167,36 +168,36 @@ writeSubimages() {
    minIndex=${minIndex:1};
    maxIndex=${maxIndex:1};
 
-   maskImage=${TMPDIR}/maskImage.nii.gz
-   maskImage2=${TMPDIR}/maskImage2.nii.gz
+   grayMatterMask=${TMPDIR}/grayMatterMask.nii.gz
+   whiteMatterMask=${TMPDIR}/whiteMatterMask.nii.gz
+   gmWmMask=${TMPDIR}/gmWmMask.nii.gz
 
-   OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $LABEL_IMAGE $maskImage ${LABELS[$i]} ${LABELS[$i]} 1 0`)
-   OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $SEG_IMAGE $maskImage2 3 3 3 0`)
-   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $SEG_IMAGE`)
-   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage + $maskImage $maskImage2`)
-   OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $maskImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $minIndex $maxIndex`)
+   # For each label, we perform the following steps:
+   #   1. Threshold out everything but the label region
+   #   2. Threshold out everything but the white matter
+   #   3. Combine the result from 1) and 2) to have an image with only
+   #      the white matter and the current label (as the grey matter).
+   #
+   OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $LABEL_IMAGE $grayMatterMask ${LABELS[$i]} ${LABELS[$i]} 1 0`)
+   OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $SEG_IMAGE $whiteMatterMask 3 3 3 0`)
+   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $grayMatterMask m $grayMatterMask $SEG_IMAGE`)
+   OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $gmWmMask + $grayMatterMask $whiteMatterMask`)
+   OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $gmWmMask ${TMPDIR}seg_${LABELS[$i]}.nii.gz $minIndex $maxIndex`)
    OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`)
-   if [ -d "$WMPROB_IMAGE" ]; then
-     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $LABEL_IMAGE $maskImage ${LABELS[$i]} ${LABELS[$i]} 1 0`)
-     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $SEG_IMAGE $maskImage2 3 3 3 0`)
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $SEG_IMAGE`)
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage + $maskImage $maskImage2`)
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $WMPROB_IMAGE`)
-     OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $maskImage ${TMPDIR}wm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`);
+   if [ -f $WMPROB_IMAGE ]; then
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $whiteMatterMask m $whiteMatterMask $WMPROB_IMAGE`)
+     OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $whiteMatterMask ${TMPDIR}wm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}wm_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}wm_${LABELS[$i]}.nii.gz $PADDING`);
    fi
-   if [ -d "$GMPROB_IMAGE" ]; then
-     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $LABEL_IMAGE $maskImage ${LABELS[$i]} ${LABELS[$i]} 1 0`)
-     OUTPUT=(`${ANTSPATH}ThresholdImage $DIMENSION $SEG_IMAGE $maskImage2 3 3 3 0`)
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $SEG_IMAGE`)
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage + $maskImage $maskImage2`)
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $maskImage m $maskImage $GMPROB_IMAGE`)
-     OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $GMPROB_IMAGE ${TMPDIR}gm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
-     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}seg_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}seg_${LABELS[$i]}.nii.gz $PADDING`);
+   if [ -f $GMPROB_IMAGE ]; then
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION $grayMatterMask m $grayMatterMask $GMPROB_IMAGE`)
+     OUTPUT=(`${ANTSPATH}ExtractRegionFromImage $DIMENSION $grayMatterMask ${TMPDIR}gm_${LABELS[$i]}.nii.gz $minIndex $maxIndex`);
+     OUTPUT=(`${ANTSPATH}ImageMath $DIMENSION ${TMPDIR}gm_${LABELS[$i]}.nii.gz PadImage ${TMPDIR}gm_${LABELS[$i]}.nii.gz $PADDING`);
    fi
 
-   rm -rf $maskImage
-   rm -rf $maskImage2
+   rm -rf $grayMatterMask
+   rm -rf $whiteMatterMask
+   rm -rf $gmWmMask
 
   done
 }
@@ -252,7 +253,7 @@ function pasteImages {
 
     minIndex=${minIndex:1};
 
-    output=(`${ANTSPATH}PasteImageIntoImage $DIMENSION $OUTPUT_IMAGE $TMPDIR/direct_${LABELS[$i]}.nii.gz $OUTPUT_IMAGE $minIndex 0 0`);
+    output=(`${ANTSPATH}PasteImageIntoImage $DIMENSION $OUTPUT_IMAGE $TMPDIR/direct_${LABELS[$i]}.nii.gz $OUTPUT_IMAGE $minIndex 0 2 -1`);
   done
 
 }
@@ -396,10 +397,10 @@ for LABEL in ${LABELS[@]}
   wmLabelImage=${TMPDIR}wm_${LABEL}.nii.gz
 
   exe="${DIRECT} -d ${DIMENSION} -c [$ITERATION_LIMIT,0.000001,10] -t ${LABEL_THICKNESSES[$count]} -r $GRADIENT_STEP -m $SMOOTHING_SIGMA -s $segLabelImage -o ${TMPDIR}direct_${LABEL}.nii.gz"
-  if [[ -d "$gmLabelImage" ]]; then
+  if [[ -f "$gmLabelImage" ]]; then
     exe=${exe}" -g $gmLabelImage"
   fi
-  if [[ -d "$wmLabelImage" ]]; then
+  if [[ -f "$wmLabelImage" ]]; then
     exe=${exe}" -w $wmLabelImage"
   fi
   pexe=" $exe >> ${TMPDIR}job_label_${LABEL}_metriclog.txt "
