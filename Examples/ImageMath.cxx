@@ -5627,7 +5627,6 @@ int PoissonDiffusion( int argc, char *argv[])
     {
     label = atof( argv[7] );
     }
-
   typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> ThresholderType;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
   thresholder->SetInput( labelReader->GetOutput() );
@@ -5636,6 +5635,15 @@ int PoissonDiffusion( int argc, char *argv[])
   thresholder->SetLowerThreshold( label );
   thresholder->SetUpperThreshold( label );
   thresholder->Update();
+
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType2;
+  typename ThresholderType2::Pointer thresholder2 = ThresholderType2::New();
+  thresholder2->SetInput( reader->GetOutput() );
+  thresholder2->SetOutsideValue( 0 );
+  thresholder2->SetInsideValue( 1 );
+  thresholder2->SetLowerThreshold( 0.2 );
+  thresholder2->SetUpperThreshold( 1.e9 );
+  thresholder2->Update();
 
   float sigma = 1.0;
   if( argc > 6 )
@@ -5654,9 +5662,10 @@ int PoissonDiffusion( int argc, char *argv[])
     {
     maximumNumberOfIterations = atoi( argv[8] );
     }
-
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  float        lastmean = 0;
   unsigned int iterations = 0;
-  while( iterations++ < maximumNumberOfIterations && convergence >= 1e-10 )
+  while( iterations++ < maximumNumberOfIterations && convergence >= convergenceThreshold )
     {
     std::cout << "  Iteration " << iterations << ": " << convergence << std::endl;
     typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
@@ -5665,6 +5674,7 @@ int PoissonDiffusion( int argc, char *argv[])
     smoother->SetMaximumError( 0.01f );
     smoother->SetInput( output );
 
+    /*
     typedef itk::MaximumImageFilter<ImageType, ImageType, ImageType>
       MaximumFilterType;
     typename MaximumFilterType::Pointer maximumFilter = MaximumFilterType::New();
@@ -5678,7 +5688,7 @@ int PoissonDiffusion( int argc, char *argv[])
     multiplier->SetInput2( thresholder->GetOutput() );
 
     typedef itk::AddImageFilter<ImageType, ImageType, ImageType>
-      AdderType;
+     AdderType;
     typename AdderType::Pointer adder = AdderType::New();
     adder->SetInput1( reader->GetOutput() );
     adder->SetInput2( multiplier->GetOutput() );
@@ -5688,18 +5698,40 @@ int PoissonDiffusion( int argc, char *argv[])
     typename SubtracterType::Pointer subtracter = SubtracterType::New();
     subtracter->SetInput1( adder->GetOutput() );
     subtracter->SetInput2( output );
-
+    */
     typedef itk::LabelStatisticsImageFilter<ImageType, LabelImageType>
       StatsFilterType;
     typename StatsFilterType::Pointer stats = StatsFilterType::New();
-    stats->SetInput( subtracter->GetOutput() );
+    stats->SetInput( smoother->GetOutput() );
     stats->SetLabelInput( thresholder->GetOutput() );
     stats->Update();
 
-    convergence = stats->GetMean( 1 );
-
-    output = adder->GetOutput();
+    convergence = stats->GetMean( 1 ) - lastmean;
+    lastmean = stats->GetMean( 1 );
+    output =  smoother->GetOutput();
     output->DisconnectPipeline();
+
+    Iterator vfIter( output,  output->GetLargestPossibleRegion() );
+    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      {
+      if(  thresholder2->GetOutput()->GetPixel(vfIter.GetIndex() ) == 1 )
+        {
+        vfIter.Set(reader->GetOutput()->GetPixel(vfIter.GetIndex() ) );
+        }
+      }
+    }
+
+  Iterator vfIter( output,  output->GetLargestPossibleRegion() );
+  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+    {
+    if(  thresholder2->GetOutput()->GetPixel(vfIter.GetIndex() ) == 1 )
+      {
+      vfIter.Set(reader->GetOutput()->GetPixel(vfIter.GetIndex() ) );
+      }
+    if(  thresholder->GetOutput()->GetPixel(vfIter.GetIndex() ) == 0 )
+      {
+      vfIter.Set(0);
+      }
     }
 
   typedef itk::ImageFileWriter<ImageType> WriterType;
@@ -8405,7 +8437,7 @@ int main(int argc, char *argv[])
         }
       else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
         {
-        PoissonDiffusion<2>(argc, argv);
+        PoissonDiffusion<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
         {
@@ -8653,7 +8685,7 @@ int main(int argc, char *argv[])
         }
       else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
         {
-        PoissonDiffusion<2>(argc, argv);
+        PoissonDiffusion<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
         {
