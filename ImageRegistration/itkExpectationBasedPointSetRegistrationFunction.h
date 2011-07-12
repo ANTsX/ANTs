@@ -19,7 +19,7 @@
 #define _itkExpectationBasedPointSetRegistrationFunction_h_
 
 #include "itkPointSetFunction.h"
-#include "itkGaussianProbabilityDensityFunction.h"
+#include "itkGaussianMembershipFunction.h"
 #include "itkKdTreeGenerator.h"
 #include "itkListSample.h"
 #include "itkMatrix.h"
@@ -143,7 +143,7 @@ public:
   typedef typename Statistics
     ::MersenneTwisterRandomVariateGenerator                  RandomizerType;
   typedef typename Statistics
-    ::GaussianProbabilityDensityFunction<VectorType>          GaussianType;
+    ::GaussianMembershipFunction<VectorType>          GaussianType;
 
   /** Fixed image gradient calculator type. */
   typedef CentralDifferenceImageFunction<FixedImageType> GradientCalculatorType;

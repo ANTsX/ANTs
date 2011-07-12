@@ -20,7 +20,7 @@
 
 #include "itkPointSetFunction.h"
 
-#include "itkGaussianProbabilityDensityFunction.h"
+#include "itkGaussianMembershipFunction.h"
 #include "itkKdTreeGenerator.h"
 #include "itkListSample.h"
 #include "itkMatrix.h"
@@ -82,7 +82,7 @@ public:
   typedef typename Statistics
     ::MersenneTwisterRandomVariateGenerator              RandomizerType;
   typedef typename Statistics::
-    GaussianProbabilityDensityFunction
+    GaussianMembershipFunction
     <MeasurementVectorType>                              GaussianType;
   typedef std::vector<typename GaussianType::Pointer> GaussianContainerType;
   typedef typename GaussianType::MatrixType           CovarianceMatrixType;

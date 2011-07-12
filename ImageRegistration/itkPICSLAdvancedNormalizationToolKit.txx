@@ -44,7 +44,7 @@
 // #include "itkRobustOpticalFlow.h"
 // #include "itkSectionMutualInformationRegistrationFunction.h"
 
-#include "itkJensenTsallisBSplineRegistrationFunction.h"
+// #include "itkJensenTsallisBSplineRegistrationFunction.h"
 
 #include "vnl/vnl_math.h"
 
@@ -431,10 +431,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
       if( whichMetric == "point-set-expectation" ||
           whichMetric == "PointSetExpectation" ||
-          whichMetric == "PSE" ||
-          whichMetric == "jensen-tsallis-bspline" ||
-          whichMetric == "JensenTsallisBSpline" ||
-          whichMetric == "JTB"
+          whichMetric == "PSE"
+//                whichMetric == "jensen-tsallis-bspline" ||
+//                whichMetric == "JensenTsallisBSpline" ||
+//                whichMetric == "JTB"
           )
         {
         isMetricPointSetBased = true;
@@ -571,79 +571,80 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           similarityMetric->SetMovingPointSet(movingPointSetReader->GetOutput() );
           this->m_SimilarityMetrics.push_back( similarityMetric );
           }
-        else if( whichMetric == "jensen-tsallis-bspline" ||
-                 whichMetric == "JensenTsallisBSpline" ||
-                 whichMetric == "JTB" )
-          {
-          typedef itk::JensenTsallisBSplineRegistrationFunction
-            <ImageType, PointSetType, ImageType, PointSetType, DeformationFieldType> MetricType;
-          typename MetricType::Pointer metric = MetricType::New();
-          metric->SetRadius( radius );
-          metric->SetFixedPointSet( fixedPointSetReader->GetOutput() );
-          metric->SetMovingPointSet( movingPointSetReader->GetOutput() );
-          metric->SetFixedPointSetSigma( pointSetSigma );
-          metric->SetMovingPointSetSigma( pointSetSigma );
-          metric->SetFixedEvaluationKNeighborhood( kNeighborhood );
-          metric->SetMovingEvaluationKNeighborhood( kNeighborhood );
-
-          if( option->GetNumberOfParameters( i ) > parameterCount )
-            {
-            metric->SetAlpha( this->m_Parser->template
-                              Convert<TReal>( option->GetParameter( i, parameterCount ) ) );
-            parameterCount++;
-            }
-          if( option->GetNumberOfParameters( i ) > parameterCount )
-            {
-            typename RegistrationOptimizerType::ArrayType meshResolution;
-            std::vector<TReal> resolution = this->m_Parser->template
-              ConvertVector<TReal>( option->GetParameter( i, parameterCount ) );
-            if( resolution.size() != TDimension )
-              {
-              itkExceptionMacro( "Mesh resolution does not match image dimension." );
-              }
-            for( unsigned int d = 0; d < TDimension; d++ )
-              {
-              meshResolution[d] = resolution[d];
-              }
-            metric->SetMeshResolution( meshResolution );
-            parameterCount++;
-            }
-          if( option->GetNumberOfParameters( i ) > parameterCount )
-            {
-            metric->SetSplineOrder( this->m_Parser->template
-                                    Convert<unsigned int>( option->GetParameter( i, parameterCount ) ) );
-            parameterCount++;
-            }
-          if( option->GetNumberOfParameters( i ) > parameterCount )
-            {
-            metric->SetNumberOfLevels( this->m_Parser->template
-                                       Convert<unsigned int>( option->GetParameter( i, parameterCount ) ) );
-            parameterCount++;
-            }
-          if( option->GetNumberOfParameters( i ) > parameterCount )
-            {
-            metric->SetUseAnisotropicCovariances(
-              this->m_Parser->template Convert<bool>(
-                option->GetParameter( i, parameterCount ) ) );
-            parameterCount++;
-            }
-
-          std::cout << "  B-spline parameters " << std::endl;
-          std::cout << "    mesh resolution: " << metric->GetMeshResolution() << std::endl;
-          std::cout << "    spline order: " << metric->GetSplineOrder() << std::endl;
-          std::cout << "    number of levels: " << metric->GetNumberOfLevels() << std::endl;
-          std::cout << "  Alpha: " << metric->GetAlpha() << std::endl;
-          if( metric->GetUseAnisotropicCovariances() )
-            {
-            std::cout << "  using anisotropic covariances." << std::endl;
-            }
-
-          similarityMetric->SetMetric( metric );
-          similarityMetric->SetMaximizeMetric( true );
-          similarityMetric->SetFixedPointSet( fixedPointSetReader->GetOutput() );
-          similarityMetric->SetMovingPointSet( movingPointSetReader->GetOutput() );
-          this->m_SimilarityMetrics.push_back( similarityMetric );
-          }
+//              else if ( whichMetric == "jensen-tsallis-bspline" ||
+//                        whichMetric == "JensenTsallisBSpline" ||
+//                        whichMetric == "JTB" )
+//                {
+//                typedef itk::JensenTsallisBSplineRegistrationFunction
+//                    <ImageType, PointSetType, ImageType, PointSetType, DeformationFieldType> MetricType;
+//                typename MetricType::Pointer metric = MetricType::New();
+//                metric->SetRadius( radius );
+//                metric->SetFixedPointSet( fixedPointSetReader->GetOutput() );
+//                metric->SetMovingPointSet( movingPointSetReader->GetOutput() );
+//                metric->SetFixedPointSetSigma( pointSetSigma );
+//                metric->SetMovingPointSetSigma( pointSetSigma );
+//                metric->SetFixedEvaluationKNeighborhood( kNeighborhood );
+//                metric->SetMovingEvaluationKNeighborhood( kNeighborhood );
+//
+//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                  {
+//                  metric->SetAlpha( this->m_Parser->template
+//                  Convert<TReal>( option->GetParameter( i, parameterCount ) ) );
+//                  parameterCount++;
+//                  }
+//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                  {
+//                  typename RegistrationOptimizerType::ArrayType meshResolution;
+//                  std::vector<TReal> resolution = this->m_Parser->template
+//                    ConvertVector<TReal>( option->GetParameter( i, parameterCount ) );
+//                  if ( resolution.size() != TDimension )
+//                    {
+//                    itkExceptionMacro( "Mesh resolution does not match image dimension." );
+//                    }
+//                  for ( unsigned int d = 0; d < TDimension; d++ )
+//                    {
+//                    meshResolution[d] = resolution[d];
+//                    }
+//                  metric->SetMeshResolution( meshResolution );
+//                  parameterCount++;
+//                  }
+//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                  {
+//                  metric->SetSplineOrder( this->m_Parser->template
+//                  Convert<unsigned int>( option->GetParameter( i, parameterCount ) ) );
+//                  parameterCount++;
+//                  }
+//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                  {
+//                  metric->SetNumberOfLevels( this->m_Parser->template
+//                  Convert<unsigned int>( option->GetParameter( i, parameterCount ) ) );
+//                  parameterCount++;
+//                  }
+//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                  {
+//                  metric->SetUseAnisotropicCovariances(
+//                    this->m_Parser->template Convert<bool>(
+//                    option->GetParameter( i, parameterCount ) ) );
+//                  parameterCount++;
+//                  }
+//
+//
+//                std::cout << "  B-spline parameters " << std::endl;
+//                std::cout << "    mesh resolution: " << metric->GetMeshResolution() << std::endl;
+//                std::cout << "    spline order: " << metric->GetSplineOrder() << std::endl;
+//                std::cout << "    number of levels: " << metric->GetNumberOfLevels() << std::endl;
+//                std::cout << "  Alpha: " << metric->GetAlpha() << std::endl;
+//                if ( metric->GetUseAnisotropicCovariances() )
+//                  {
+//                  std::cout << "  using anisotropic covariances." << std::endl;
+//                  }
+//
+//                similarityMetric->SetMetric( metric );
+//                similarityMetric->SetMaximizeMetric( true );
+//                similarityMetric->SetFixedPointSet( fixedPointSetReader->GetOutput() );
+//                similarityMetric->SetMovingPointSet( movingPointSetReader->GetOutput() );
+//                this->m_SimilarityMetrics.push_back( similarityMetric );
+//                }
         }
       else       // similarity metric is image-based
         {
@@ -977,13 +978,13 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::string pseDescription( "PSE/point-set-expectation/PointSetExpectation" );
     std::string pseOptions(
       ", PartialMatchingIterations=100000]   \n the partial matching option assumes the complete labeling is in the first set of label parameters ... more iterations leads to more symmetry in the matching  - 0 iterations means full asymmetry " );
-    std::string jtbDescription( "JTB/jensen-tsallis-bspline/JensenTsallisBSpline" );
+//      std::string jtbDescription( "JTB/jensen-tsallis-bspline/JensenTsallisBSpline" );
     std::string jtbOptions
       = std::string( ",alpha,meshResolution,splineOrder,numberOfLevels" )
         + std::string( ",useAnisotropicCovariances]" );
     pointBasedDescription += (
         newLineTabs + pseDescription + pointBasedOptions + pseOptions
-        + newLineTabs + jtbDescription + pointBasedOptions + jtbOptions );
+        + newLineTabs + /*jtbDescription + */ pointBasedOptions + jtbOptions );
     std::string description = weightDescription + intensityBasedDescription
       + pointBasedDescription;
 
