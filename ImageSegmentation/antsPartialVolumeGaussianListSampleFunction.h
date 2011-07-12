@@ -60,8 +60,8 @@ public:
   /** Gaussian typedefs */
   typedef typename itk::Statistics::GaussianMembershipFunction
     <InputMeasurementVectorType>                            GaussianType;
-  typedef typename GaussianType::MeanType       MeanType;
-  typedef typename GaussianType::CovarianceType CovarianceType;
+  typedef typename GaussianType::MeanVectorType       MeanType;
+  typedef typename GaussianType::CovarianceMatrixType CovarianceType;
 
   /** List sample typedef support. */
   typedef TListSample ListSampleType;

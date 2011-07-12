@@ -88,7 +88,7 @@ ManifoldParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
     {
     InputMeasurementVectorType inputMeasurement = It.GetMeasurementVector();
 
-    typename GaussianType::MeanType mean( Dimension );
+    typename GaussianType::MeanVectorType mean( Dimension );
     for( unsigned int d = 0; d < Dimension; d++ )
       {
       mean[d] = inputMeasurement[d];
