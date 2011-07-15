@@ -100,6 +100,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       this->GetSegmentationImage(), this->m_GrayMatterLabel );
   InputImagePointer whiteMatter = this->ExtractRegion(
       this->GetSegmentationImage(), this->m_WhiteMatterLabel );
+  typename InputImageType::SpacingType spacing = grayMatter->GetSpacing();
 
   typedef AddImageFilter<InputImageType, InputImageType, InputImageType> AdderType;
   typename AdderType::Pointer adder = AdderType::New();
@@ -471,6 +472,31 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         }
       this->InvertDeformationField( inverseField, integratedField );
       this->InvertDeformationField( integratedField, inverseField );
+      }
+
+    double max_norm = 0;
+    /** calculate the size of the solution to allow us to adjust the gradient step length */
+    ItIntegratedField.GoToBegin();
+    while( !ItIntegratedField.IsAtEnd() )
+      {
+      VectorType v = ItIntegratedField.Get();
+      for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+        {
+        v[dd] = v[dd] / spacing[dd];
+        }
+      RealType norm = v.GetNorm();
+      if( norm > max_norm )
+        {
+        max_norm = norm;
+        }
+      ++ItIntegratedField;
+      }
+
+    std::cout << " max_norm " << max_norm << " it " << this->m_ElapsedIterations << std::endl;
+    if( this->m_ElapsedIterations == 2 )
+      {
+      this->m_GradientStep = this->m_GradientStep * 2.0 / max_norm;
+      velocityField->FillBuffer( zeroVector );
       }
 
     ItCorticalThicknessImage.GoToBegin();
