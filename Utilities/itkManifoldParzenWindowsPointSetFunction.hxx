@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkManifoldParzenWindowsPointSetFunction.txx,v $
+  Module:    $RCSfile: itkManifoldParzenWindowsPointSetFunction.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.17 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkManifoldParzenWindowsPointSetFunction_txx
-#define __itkManifoldParzenWindowsPointSetFunction_txx
+#ifndef __itkManifoldParzenWindowsPointSetFunction_hxx
+#define __itkManifoldParzenWindowsPointSetFunction_hxx
 
 #include "itkManifoldParzenWindowsPointSetFunction.h"
 

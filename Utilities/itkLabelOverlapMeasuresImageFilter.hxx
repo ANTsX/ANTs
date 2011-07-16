@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkLabelOverlapMeasuresImageFilter.txx,v $
+  Module:    $RCSfile: itkLabelOverlapMeasuresImageFilter.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkLabelOverlapMeasuresImageFilter_txx
-#define _itkLabelOverlapMeasuresImageFilter_txx
+#ifndef _itkLabelOverlapMeasuresImageFilter_hxx
+#define _itkLabelOverlapMeasuresImageFilter_hxx
 
 #include "itkLabelOverlapMeasuresImageFilter.h"
 
@@ -112,7 +112,7 @@ LabelOverlapMeasuresImageFilter<TLabelImage>
 ::AfterThreadedGenerateData()
 {
   // Run through the map for each thread and accumulate the set measures.
-  for( int n = 0; n < this->GetNumberOfThreads(); n++ )
+  for( unsigned int n = 0; n < this->GetNumberOfThreads(); n++ )
     {
     // iterate over the map for this thread
     for( MapConstIterator threadIt = this->m_LabelSetMeasuresPerThread[n].begin();

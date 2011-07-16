@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkVectorImageFileReader.txx,v $
+  Module:    $RCSfile: itkVectorImageFileReader.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.16 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkVectorImageFileReader_txx
-#define _itkVectorImageFileReader_txx
+#ifndef _itkVectorImageFileReader_hxx
+#define _itkVectorImageFileReader_hxx
 #include "itkVectorImageFileReader.h"
 
 #include "itkObjectFactory.h"

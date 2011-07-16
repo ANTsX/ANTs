@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkWarpImageWAffineFilter.txx,v $
+  Module:    $RCSfile: itkWarpImageWAffineFilter.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/10 15:39:12 $
   Version:   $Revision: 1.12 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkWarpImageWAffineFilter_txx
-#define __itkWarpImageWAffineFilter_txx
+#ifndef __itkWarpImageWAffineFilter_hxx
+#define __itkWarpImageWAffineFilter_hxx
 #include "itkWarpImageWAffineFilter.h"
 
 #include "itkImageRegionIterator.h"

@@ -143,7 +143,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkLabeledPointSetFileReader.txx"
+#include "itkLabeledPointSetFileReader.hxx"
 #endif
 
 #endif // _itkLabeledPointSetFileReader_h

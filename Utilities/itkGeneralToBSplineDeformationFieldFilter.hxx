@@ -1,5 +1,5 @@
-#ifndef __itkGeneralToBSplineDeformationFieldFilter_txx
-#define __itkGeneralToBSplineDeformationFieldFilter_txx
+#ifndef __itkGeneralToBSplineDeformationFieldFilter_hxx
+#define __itkGeneralToBSplineDeformationFieldFilter_hxx
 
 #include "itkGeneralToBSplineDeformationFieldFilter.h"
 

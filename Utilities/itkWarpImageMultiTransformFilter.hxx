@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkWarpTensorImageMultiTransformFilter.txx,v $
+  Module:    $RCSfile: itkWarpImageMultiTransformFilter.hxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/28 22:38:04 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/01/08 21:36:48 $
+  Version:   $Revision: 1.18 $
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
@@ -15,9 +15,9 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkWarpTensorImageMultiTransformFilter_txx
-#define __itkWarpTensorImageMultiTransformFilter_txx
-#include "itkWarpTensorImageMultiTransformFilter.h"
+#ifndef __itkWarpImageMultiTransformFilter_hxx
+#define __itkWarpImageMultiTransformFilter_hxx
+#include "itkWarpImageMultiTransformFilter.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
@@ -32,8 +32,8 @@ namespace itk
  * Default constructor.
  */
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
-::WarpTensorImageMultiTransformFilter()
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+::WarpImageMultiTransformFilter()
 {
   // Setup the number of required inputs
   this->SetNumberOfRequiredInputs( 1 );
@@ -42,10 +42,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
   m_OutputSpacing.Fill( 1.0 );
   m_OutputOrigin.Fill( 0.0 );
 
-  PixelType Zero;
-  Zero.SetIdentity();
-  Zero = Zero * 1.e-6;
-  m_EdgePaddingValue = Zero;
+  m_EdgePaddingValue = NumericTraits<PixelType>::Zero;
 
   // Setup default interpolator
   typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
@@ -61,7 +58,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 // template <class TInputImage,class TOutputImage,class TDeformationField, class TTransform>
 // void
-// WarpTensorImageMultiTransformFilter<TInputImage,TOutputImage,TDeformationField, TTransform>
+// WarpImageMultiTransformFilter<TInputImage,TOutputImage,TDeformationField, TTransform>
 // ::SetInterpolator1(InterpolatorPointer interp)
 // {
 //    m_Interpolator = static_cast<InterpolatorType*> (interp.GetPointer());
@@ -70,7 +67,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::PrintTransformList()
 {
   std::cout << "transform list: " << std::endl;
@@ -98,7 +95,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
  */
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -119,7 +116,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
  */
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::SetOutputSpacing(
   const double* spacing)
 {
@@ -134,7 +131,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
  */
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::SetOutputOrigin(
   const double* origin)
 {
@@ -150,7 +147,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
  */
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::BeforeThreadedGenerateData()
 {
   if( !m_Interpolator )
@@ -174,7 +171,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
  */
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::AfterThreadedGenerateData()
 {
   // Disconnect input image from interpolator
@@ -183,7 +180,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass's implementation
@@ -202,7 +199,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::GenerateOutputInformation()
 {
   // call the superclass's implementation of this method
@@ -229,7 +226,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::SetSmoothScale(double scale)
 {
 /*
@@ -299,7 +296,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
  */
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::ThreadedGenerateData(
   const OutputImageRegionType& outputRegionForThread,
   ThreadIdType threadId )
@@ -358,7 +355,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 // template <class TInputImage,class TOutputImage,class TDeformationField, class TTransform>
 // void
-// WarpTensorImageMultiTransformFilter<TInputImage,TOutputImage,TDeformationField, TTransform>
+// WarpImageMultiTransformFilter<TInputImage,TOutputImage,TDeformationField, TTransform>
 // ::UpdateSizeByScale()
 // {
 //
@@ -377,7 +374,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::PushBackAffineTransform(const TransformType* t)
 {
   if( t )
@@ -390,7 +387,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::PushBackDeformationFieldTransform(const DeformationFieldType* t)
 {
   if( t )
@@ -399,14 +396,14 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
     t1.dex.field = const_cast<DeformationFieldType *>(t);
     t1.dex.vinterp = DefaultVectorInterpolatorType::New();
     t1.dex.vinterp->SetInputImage(t1.dex.field);
-
+//	t1.dex.vinterp->SetParameters(NULL,1);
     m_TransformList.push_back(SingleTransformItemType(EnumDeformationFieldType, t1) );
     }
 }
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 bool
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::MultiTransformSinglePoint(const PointType & point1, PointType & point2)
 {
   IndexType null_index;
@@ -418,7 +415,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 bool
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::IsOutOfNumericBoundary(const PointType & p)
 {
   const DisplacementScalarValueType kMaxDisp = itk::NumericTraits<DisplacementScalarValueType>::max();
@@ -439,7 +436,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::ComposeAffineOnlySequence(const PointType & center_output, TransformTypePointer & affine_output)
 {
 //    std::cout << "test " ;
@@ -481,7 +478,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 bool
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::MultiInverseAffineOnlySinglePoint(const PointType & p1, PointType & p2)
 {
   bool      isinside = true;
@@ -535,7 +532,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 bool
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::MultiTransformPoint(const PointType & p1, PointType & p2, bool bFisrtDeformNoInterp, const IndexType & index)
 {
   bool      isinside = false;
@@ -615,7 +612,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 
 template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
 void
-WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ::DetermineFirstDeformNoInterp()
 {
   m_bFirstDeformNoInterp = false;
@@ -638,4 +635,4 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDeformationField
 }
 } // end namespace itk
 
-#endif  // __itkWarpTensorImageMultiTransformFilter_txx
+#endif  // __itkWarpImageMultiTransformFilter_hxx

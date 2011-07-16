@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkSurfaceImageCurvature.txx,v $
+  Module:    $RCSfile: itkSurfaceImageCurvature.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.12 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _SurfaceImageCurvature_txx
-#define _SurfaceImageCurvature_txx
+#ifndef _SurfaceImageCurvature_hxx
+#define _SurfaceImageCurvature_hxx
 
 #include <vnl/algo/vnl_real_eigensystem.h>
 

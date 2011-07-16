@@ -2,7 +2,7 @@
 
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsMatrixUtilities.txx,v $
+  Module:    $RCSfile: antsMatrixUtilities.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $

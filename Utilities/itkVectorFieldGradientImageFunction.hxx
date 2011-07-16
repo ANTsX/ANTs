@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkVectorFieldGradientImageFunction.txx,v $
+  Module:    $RCSfile: itkVectorFieldGradientImageFunction.hxx,v $
   Language:  C++
   Date:      $Date: 2009/04/22 16:11:04 $
   Version:   $Revision: 1.4 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkVectorFieldGradientImageFunction_txx
-#define _itkVectorFieldGradientImageFunction_txx
+#ifndef _itkVectorFieldGradientImageFunction_hxx
+#define _itkVectorFieldGradientImageFunction_hxx
 
 #include "itkVectorFieldGradientImageFunction.h"
 

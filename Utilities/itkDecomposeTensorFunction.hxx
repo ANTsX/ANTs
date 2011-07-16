@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkDecomposeTensorFunction.txx,v $
+  Module:    $RCSfile: itkDecomposeTensorFunction.hxx,v $
   Language:  C++
   Date:      $Date: 2009/05/11 13:55:21 $
   Version:   $Revision: 1.17 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkDecomposeTensorFunction_txx
-#define __itkDecomposeTensorFunction_txx
+#ifndef __itkDecomposeTensorFunction_hxx
+#define __itkDecomposeTensorFunction_hxx
 
 #include "itkDecomposeTensorFunction.h"
 

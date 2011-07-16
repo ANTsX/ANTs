@@ -197,7 +197,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkVectorImageFileWriter.txx"
+#include "itkVectorImageFileWriter.hxx"
 #endif
 
 #endif // __itkVectorImageFileWriter_h

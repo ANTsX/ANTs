@@ -141,7 +141,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkOptimalSharpeningImageFilter.txx"
+#include "itkOptimalSharpeningImageFilter.hxx"
 #endif
 
 #endif

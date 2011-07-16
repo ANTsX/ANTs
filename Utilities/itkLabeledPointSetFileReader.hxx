@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkLabeledPointSetFileReader.txx,v $
+  Module:    $RCSfile: itkLabeledPointSetFileReader.hxx,v $
   Language:  C++
   Date:      $Date: 2009/03/13 19:48:16 $
   Version:   $Revision: 1.23 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkLabeledPointSetFileReader_txx
-#define __itkLabeledPointSetFileReader_txx
+#ifndef __itkLabeledPointSetFileReader_hxx
+#define __itkLabeledPointSetFileReader_hxx
 
 #include "itkLabeledPointSetFileReader.h"
 

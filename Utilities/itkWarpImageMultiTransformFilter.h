@@ -317,7 +317,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkWarpImageMultiTransformFilter.txx"
+#include "itkWarpImageMultiTransformFilter.hxx"
 #endif
 
 #endif /*ITKWARPIMAGEMULTITRANSFORMFILTER_H_*/

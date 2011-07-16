@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkPointSetFunction.txx,v $
+  Module:    $RCSfile: itkPointSetFunction.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.16 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkPointSetFunction_txx
-#define __itkPointSetFunction_txx
+#ifndef __itkPointSetFunction_hxx
+#define __itkPointSetFunction_hxx
 
 #include "itkPointSetFunction.h"
 

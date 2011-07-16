@@ -15,8 +15,8 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef __itkComposeDiffeomorphismsImageFilter_txx
-#define __itkComposeDiffeomorphismsImageFilter_txx
+#ifndef __itkComposeDiffeomorphismsImageFilter_hxx
+#define __itkComposeDiffeomorphismsImageFilter_hxx
 
 #include "itkComposeDiffeomorphismsImageFilter.h"
 

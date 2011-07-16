@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkVectorImageFileWriter.txx,v $
+  Module:    $RCSfile: itkVectorImageFileWriter.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.16 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkVectorImageFileWriter_txx
-#define _itkVectorImageFileWriter_txx
+#ifndef _itkVectorImageFileWriter_hxx
+#define _itkVectorImageFileWriter_hxx
 
 #include "itkVectorImageFileWriter.h"
 #include "itkImageFileWriter.h"

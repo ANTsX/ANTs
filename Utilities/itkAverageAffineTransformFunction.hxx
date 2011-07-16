@@ -1,7 +1,7 @@
 /*=========================================================================
 
  Program:   Advanced Normalization Tools
- Module:    $RCSfile: itkWarpImageMultiTransformFilter.txx,v $
+ Module:    $RCSfile: itkWarpImageMultiTransformFilter.hxx,v $
  Language:  C++
  Date:      $Date: 2009/01/08 21:36:48 $
  Version:   $Revision: 1.18 $
@@ -15,8 +15,8 @@
  PURPOSE.  See the above copyright notices for more information.
 
  =========================================================================*/
-#ifndef __itkAverageAffineTransformFunction_txx
-#define __itkAverageAffineTransformFunction_txx
+#ifndef __itkAverageAffineTransformFunction_hxx
+#define __itkAverageAffineTransformFunction_hxx
 #include "itkAverageAffineTransformFunction.h"
 
 #include "itkNumericTraits.h"
@@ -330,4 +330,4 @@ void HelperType<Dispatcher<3> >::ComputeAverageTranslationParameters(
 } // end namespace AverageAffineTransformFunctionHelperNameSpace
 } // end namespace itk
 
-#endif  // __itkAverageAffineTransformFunction_txx
+#endif  // __itkAverageAffineTransformFunction_hxx

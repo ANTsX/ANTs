@@ -22,7 +22,7 @@
 #include "itkFastMutexLock.h"
 #include "itkNumericTraits.h"
 
-#include "itk_hash_map.h"
+#include "itksys/hash_map.hxx"
 
 namespace itk
 {
@@ -101,9 +101,9 @@ public:
   };
 
   /** Type of the map used to store data per label */
-  typedef hash_map<LabelType, LabelSetMeasures> MapType;
-  typedef typename MapType::iterator            MapIterator;
-  typedef typename MapType::const_iterator      MapConstIterator;
+  typedef itksys::hash_map<LabelType, LabelSetMeasures> MapType;
+  typedef typename MapType::iterator                    MapIterator;
+  typedef typename MapType::const_iterator              MapConstIterator;
 
   /** Image related typedefs. */
   itkStaticConstMacro( ImageDimension, unsigned int,
@@ -228,7 +228,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkLabelOverlapMeasuresImageFilter.txx"
+#include "itkLabelOverlapMeasuresImageFilter.hxx"
 #endif
 
 #endif

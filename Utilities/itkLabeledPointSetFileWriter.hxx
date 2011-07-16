@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkLabeledPointSetFileWriter.txx,v $
+  Module:    $RCSfile: itkLabeledPointSetFileWriter.hxx,v $
   Language:  C++
   Date:      $Date: 2009/03/04 23:10:58 $
   Version:   $Revision: 1.18 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkLabeledPointSetFileWriter_txx
-#define __itkLabeledPointSetFileWriter_txx
+#ifndef __itkLabeledPointSetFileWriter_hxx
+#define __itkLabeledPointSetFileWriter_hxx
 
 #include "itkLabeledPointSetFileWriter.h"
 

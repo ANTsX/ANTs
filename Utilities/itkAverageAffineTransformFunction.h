@@ -197,7 +197,7 @@ protected:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkAverageAffineTransformFunction.txx"
+#include "itkAverageAffineTransformFunction.hxx"
 #endif
 
 #endif /*__itkAverageAffineTransformFunction_h*/

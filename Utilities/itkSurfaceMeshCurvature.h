@@ -140,7 +140,7 @@ private:
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-// #include "itkSurfaceMeshCurvature.txx"
+// #include "itkSurfaceMeshCurvature.hxx"
 #endif
 
 #endif

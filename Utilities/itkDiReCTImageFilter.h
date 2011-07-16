@@ -301,7 +301,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkDiReCTImageFilter.txx"
+#include "itkDiReCTImageFilter.hxx"
 #endif
 
 #endif

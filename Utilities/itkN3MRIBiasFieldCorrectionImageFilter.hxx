@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkN3MRIBiasFieldCorrectionImageFilter.txx,v $
+  Module:    $RCSfile: itkN3MRIBiasFieldCorrectionImageFilter.hxx,v $
   Language:  C++
   Date:      $Date: 2009/06/09 16:22:05 $
   Version:   $Revision: 1.6 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkN3MRIBiasFieldCorrectionImageFilter_txx
-#define __itkN3MRIBiasFieldCorrectionImageFilter_txx
+#ifndef __itkN3MRIBiasFieldCorrectionImageFilter_hxx
+#define __itkN3MRIBiasFieldCorrectionImageFilter_hxx
 
 #include "itkN3MRIBiasFieldCorrectionImageFilter.h"
 

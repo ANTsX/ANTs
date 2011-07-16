@@ -270,7 +270,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkWarpImageWAffineFilter.txx"
+#include "itkWarpImageWAffineFilter.hxx"
 #endif
 
 #endif

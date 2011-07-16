@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkSurfaceCurvatureBase.txx,v $
+  Module:    $RCSfile: itkSurfaceCurvatureBase.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.12 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _SurfaceCurvatureBase_txx
-#define _SurfaceCurvatureBase_txx
+#ifndef _SurfaceCurvatureBase_hxx
+#define _SurfaceCurvatureBase_hxx
 
 #include <vcl_cmath.h>
 #include <vcl_iostream.h>

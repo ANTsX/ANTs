@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkOptimalSharpeningImageFilter.txx,v $
+  Module:    $RCSfile: itkOptimalSharpeningImageFilter.hxx,v $
   Language:  C++
   Date:      $Date: 2008/12/13 21:51:03 $
   Version:   $Revision: 1.2 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkOptimalSharpeningImageFilter_txx
-#define __itkOptimalSharpeningImageFilter_txx
+#ifndef __itkOptimalSharpeningImageFilter_hxx
+#define __itkOptimalSharpeningImageFilter_hxx
 #include "itkOptimalSharpeningImageFilter.h"
 
 #include "itkNeighborhoodOperatorImageFilter.h"
