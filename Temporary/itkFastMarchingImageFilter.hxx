@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkFastMarchingImageFilter.txx,v $
+  Module:    $RCSfile: itkFastMarchingImageFilter.hxx,v $
   Language:  C++
   Date:      $Date: 2009/03/10 17:30:41 $
   Version:   $Revision: 1.1 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkFastMarchingImageFilter_txx
-#define __itkFastMarchingImageFilter_txx
+#ifndef __itkFastMarchingImageFilter_hxx
+#define __itkFastMarchingImageFilter_hxx
 
 #include "itkFastMarchingImageFilter.h"
 

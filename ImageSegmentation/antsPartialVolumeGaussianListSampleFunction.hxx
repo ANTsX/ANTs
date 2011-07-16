@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsPartialVolumeGaussianListSampleFunction.txx,v $
+  Module:    $RCSfile: antsPartialVolumeGaussianListSampleFunction.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsPartialVolumeGaussianListSampleFunction_txx
-#define __antsPartialVolumeGaussianListSampleFunction_txx
+#ifndef __antsPartialVolumeGaussianListSampleFunction_hxx
+#define __antsPartialVolumeGaussianListSampleFunction_hxx
 
 #include "antsPartialVolumeGaussianListSampleFunction.h"
 

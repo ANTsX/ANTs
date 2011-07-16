@@ -139,7 +139,7 @@ private:
 #endif
 
 #if ITK_TEMPLATE_TXX
-#include "antsListSampleFunction.txx"
+#include "antsListSampleFunction.hxx"
 #endif
 
 #endif

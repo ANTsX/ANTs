@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkANTSImageRegistrationOptimizer_txx_
-#define _itkANTSImageRegistrationOptimizer_txx_
+#ifndef _itkANTSImageRegistrationOptimizer_hxx_
+#define _itkANTSImageRegistrationOptimizer_hxx_
 
 // disable debug warnings in MS compiler
 #ifdef _MSC_VER

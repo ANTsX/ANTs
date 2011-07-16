@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkCrossCorrelationRegistrationFunction_txx_
-#define _itkCrossCorrelationRegistrationFunction_txx_
+#ifndef _itkCrossCorrelationRegistrationFunction_hxx_
+#define _itkCrossCorrelationRegistrationFunction_hxx_
 
 #include "itkCrossCorrelationRegistrationFunction.h"
 #include "itkExceptionObject.h"

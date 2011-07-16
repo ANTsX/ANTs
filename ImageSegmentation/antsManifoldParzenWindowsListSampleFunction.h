@@ -121,7 +121,7 @@ private:
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsManifoldParzenWindowsListSampleFunction.txx"
+#include "antsManifoldParzenWindowsListSampleFunction.hxx"
 #endif
 
 #endif

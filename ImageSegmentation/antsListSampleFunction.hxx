@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsListSampleFunction.txx,v $
+  Module:    $RCSfile: antsListSampleFunction.hxx,v $
   Language:  C++
   Date:      $Date: 2008/10/18 00:20:04 $
   Version:   $Revision: 1.1.1.1 $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsListSampleFunction_txx
-#define __antsListSampleFunction_txx
+#ifndef __antsListSampleFunction_hxx
+#define __antsListSampleFunction_hxx
 
 #include "antsListSampleFunction.h"
 

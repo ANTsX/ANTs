@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsGrubbsRosnerListSampleFilter.txx,v $
+  Module:    $RCSfile: antsGrubbsRosnerListSampleFilter.hxx,v $
   Language:  C++
   Date:      $Date:  $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsGrubbsRosnerListSampleFilter_txx
-#define __antsGrubbsRosnerListSampleFilter_txx
+#ifndef __antsGrubbsRosnerListSampleFilter_hxx
+#define __antsGrubbsRosnerListSampleFilter_hxx
 
 #include "antsGrubbsRosnerListSampleFilter.h"
 

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: antsAtroposSegmentationImageFilter.txx,v $
+  Module:    $RCSfile: antsAtroposSegmentationImageFilter.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsAtroposSegmentationImageFilter_txx
-#define __antsAtroposSegmentationImageFilter_txx
+#ifndef __antsAtroposSegmentationImageFilter_hxx
+#define __antsAtroposSegmentationImageFilter_hxx
 
 #include "antsAtroposSegmentationImageFilter.h"
 #include "antsGaussianListSampleFunction.h"

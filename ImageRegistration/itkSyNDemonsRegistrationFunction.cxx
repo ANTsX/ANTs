@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkSyNDemonsRegistrationFunction_txx_
-#define _itkSyNDemonsRegistrationFunction_txx_
+#ifndef _itkSyNDemonsRegistrationFunction_hxx_
+#define _itkSyNDemonsRegistrationFunction_hxx_
 
 #include "itkSyNDemonsRegistrationFunction.h"
 #include "itkExceptionObject.h"

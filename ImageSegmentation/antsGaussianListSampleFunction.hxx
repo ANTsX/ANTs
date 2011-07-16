@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsGaussianListSampleFunction.txx,v $
+  Module:    $RCSfile: antsGaussianListSampleFunction.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsGaussianListSampleFunction_txx
-#define __antsGaussianListSampleFunction_txx
+#ifndef __antsGaussianListSampleFunction_hxx
+#define __antsGaussianListSampleFunction_hxx
 
 #include "antsGaussianListSampleFunction.h"
 

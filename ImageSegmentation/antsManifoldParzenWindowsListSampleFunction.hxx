@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsManifoldParzenWindowsListSampleFunction.txx,v $
+  Module:    $RCSfile: antsManifoldParzenWindowsListSampleFunction.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsManifoldParzenWindowsListSampleFunction_txx
-#define __antsManifoldParzenWindowsListSampleFunction_txx
+#ifndef __antsManifoldParzenWindowsListSampleFunction_hxx
+#define __antsManifoldParzenWindowsListSampleFunction_hxx
 
 #include "antsManifoldParzenWindowsListSampleFunction.h"
 

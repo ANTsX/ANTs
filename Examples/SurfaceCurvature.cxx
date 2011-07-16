@@ -1,5 +1,4 @@
 
-
 // #include "curvatureapp.h"
 
 #include "itkSurfaceCurvatureBase.h"

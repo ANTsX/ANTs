@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkVectorParameterizedNeighborhoodOperatorImageFilter.txx,v $
+  Module:    $RCSfile: itkVectorParameterizedNeighborhoodOperatorImageFilter.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.18 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkVectorParameterizedNeighborhoodOperatorImageFilter_txx
-#define _itkVectorParameterizedNeighborhoodOperatorImageFilter_txx
+#ifndef _itkVectorParameterizedNeighborhoodOperatorImageFilter_hxx
+#define _itkVectorParameterizedNeighborhoodOperatorImageFilter_hxx
 #include "itkVectorParameterizedNeighborhoodOperatorImageFilter.h"
 
 #include "itkNeighborhoodAlgorithm.h"

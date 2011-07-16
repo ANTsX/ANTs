@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _FEMConformalMap_txx
-#define _FEMConformalMap_txx
+#ifndef _FEMConformalMap_hxx
+#define _FEMConformalMap_hxx
 
 #include "vtkFeatureEdges.h"
 #include "vtkPointLocator.h"

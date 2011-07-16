@@ -120,7 +120,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkLogTensorImageFilter.txx"
+#include "itkLogTensorImageFilter.hxx"
 #endif
 
 #endif

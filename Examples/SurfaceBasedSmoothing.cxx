@@ -1,5 +1,4 @@
 
-
 #include "itkBinaryThresholdImageFilter.h"
 
 #include "itkBinaryThresholdImageFilter.h"

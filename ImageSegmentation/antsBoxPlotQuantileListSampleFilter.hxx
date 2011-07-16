@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsBoxPlotQuantileListSampleFilter.txx,v $
+  Module:    $RCSfile: antsBoxPlotQuantileListSampleFilter.hxx,v $
   Language:  C++
   Date:      $Date:  $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsBoxPlotQuantileListSampleFilter_txx
-#define __antsBoxPlotQuantileListSampleFilter_txx
+#ifndef __antsBoxPlotQuantileListSampleFilter_hxx
+#define __antsBoxPlotQuantileListSampleFilter_hxx
 
 #include "antsBoxPlotQuantileListSampleFilter.h"
 

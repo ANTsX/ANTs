@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsListSampleToListSampleFilter.txx,v $
+  Module:    $RCSfile: antsListSampleToListSampleFilter.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkListSampleToListSampleFilter_txx
-#define _itkListSampleToListSampleFilter_txx
+#ifndef _itkListSampleToListSampleFilter_hxx
+#define _itkListSampleToListSampleFilter_hxx
 
 #include "antsListSampleToListSampleFilter.h"
 

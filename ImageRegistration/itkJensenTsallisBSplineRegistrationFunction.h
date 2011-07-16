@@ -363,7 +363,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkJensenTsallisBSplineRegistrationFunction.txx"
+#include "itkJensenTsallisBSplineRegistrationFunction.hxx"
 #endif
 
 #endif

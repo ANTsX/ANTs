@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsHistogramParzenWindowsListSampleFunction.txx,v $
+  Module:    $RCSfile: antsHistogramParzenWindowsListSampleFunction.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsHistogramParzenWindowsListSampleFunction_txx
-#define __antsHistogramParzenWindowsListSampleFunction_txx
+#ifndef __antsHistogramParzenWindowsListSampleFunction_hxx
+#define __antsHistogramParzenWindowsListSampleFunction_hxx
 
 #include "antsHistogramParzenWindowsListSampleFunction.h"
 

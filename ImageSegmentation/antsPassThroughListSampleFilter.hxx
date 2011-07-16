@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsPassThroughListSampleFilter.txx,v $
+  Module:    $RCSfile: antsPassThroughListSampleFilter.hxx,v $
   Language:  C++
   Date:      $Date:  $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsPassThroughListSampleFilter_txx
-#define __antsPassThroughListSampleFilter_txx
+#ifndef __antsPassThroughListSampleFilter_hxx
+#define __antsPassThroughListSampleFilter_hxx
 
 #include "antsPassThroughListSampleFilter.h"
 

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkExpectationBasedPointSetRegistrationFunction.txx,v $
+  Module:    $RCSfile: itkExpectationBasedPointSetRegistrationFunction.hxx,v $
   Language:  C++
   Date:      $Date: 2009/03/09 17:03:46 $
   Version:   $Revision: 1.25 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkExpectationBasedPointSetRegistrationFunction_txx_
-#define _itkExpectationBasedPointSetRegistrationFunction_txx_
+#ifndef _itkExpectationBasedPointSetRegistrationFunction_hxx_
+#define _itkExpectationBasedPointSetRegistrationFunction_hxx_
 
 #include "itkExpectationBasedPointSetRegistrationFunction.h"
 #include "itkExceptionObject.h"

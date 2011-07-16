@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkFEMElement3DMembrane1DOF.txx,v $
+  Module:    $RCSfile: itkFEMElement3DMembrane1DOF.hxx,v $
   Language:  C++
   Date:      $Date: 2006/10/16 16:30:27 $
   Version:   $Revision: 1.2 $
@@ -15,8 +15,8 @@
 
 =========================================================================*/
 
-#ifndef __itkFEMElement3DMembrane1DOF_txx
-#define __itkFEMElement3DMembrane1DOF_txx
+#ifndef __itkFEMElement3DMembrane1DOF_hxx
+#define __itkFEMElement3DMembrane1DOF_hxx
 
 #include "itkFEMElement3DMembrane1DOF.h"
 
@@ -160,4 +160,4 @@ static void Dummy( void );
 }
 }  // end namespace itk::fem
 
-#endif // #ifndef __itkFEMElement3DMembrane1DOF_txx
+#endif // #ifndef __itkFEMElement3DMembrane1DOF_hxx

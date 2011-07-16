@@ -1,4 +1,3 @@
-
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -303,14 +302,10 @@ int main( int argc, char *argv[] )
   switch( atoi( argv[1] ) )
     {
     case 2:
-      {
       ConvertScalarImageToRGB<2>( argc, argv );
-      }
       break;
     case 3:
-      {
       ConvertScalarImageToRGB<3>( argc, argv );
-      }
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;

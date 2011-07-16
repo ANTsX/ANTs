@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkANTSCenteredAffine2DTransform.txx,v $
+  Module:    $RCSfile: itkANTSCenteredAffine2DTransform.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.18 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkANTSCenteredAffine2DTransform_txx
-#define _itkANTSCenteredAffine2DTransform_txx
+#ifndef _itkANTSCenteredAffine2DTransform_hxx
+#define _itkANTSCenteredAffine2DTransform_hxx
 
 // #include "itkRigid2DTransform.h"
 #include "itkANTSCenteredAffine2DTransform.h"

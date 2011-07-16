@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkJensenHavrdaCharvatTsallisPointSetMetric.txx,v $
+  Module:    $RCSfile: itkJensenHavrdaCharvatTsallisPointSetMetric.hxx,v $
   Language:  C++
   Date:      $Date: 2008/12/06 05:19:54 $
   Version:   $Revision: 1.5 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkJensenHavrdaCharvatTsallisPointSetMetric_txx
-#define __itkJensenHavrdaCharvatTsallisPointSetMetric_txx
+#ifndef __itkJensenHavrdaCharvatTsallisPointSetMetric_hxx
+#define __itkJensenHavrdaCharvatTsallisPointSetMetric_hxx
 
 #include "itkJensenHavrdaCharvatTsallisPointSetMetric.h"
 

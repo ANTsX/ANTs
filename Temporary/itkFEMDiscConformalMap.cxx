@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _FEMDiscConformalMap_txx
-#define _FEMDiscConformalMap_txx
+#ifndef _FEMDiscConformalMap_hxx
+#define _FEMDiscConformalMap_hxx
 
 #include <vcl_cmath.h>
 #include <vcl_iostream.h>

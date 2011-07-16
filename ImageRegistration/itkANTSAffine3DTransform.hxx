@@ -1,5 +1,5 @@
-#ifndef _itkANTSAffine3DTransform_txx
-#define _itkANTSAffine3DTransform_txx
+#ifndef _itkANTSAffine3DTransform_hxx
+#define _itkANTSAffine3DTransform_hxx
 
 #include "itkANTSAffine3DTransform.h"
 #include "vnl/algo/vnl_qr.h"

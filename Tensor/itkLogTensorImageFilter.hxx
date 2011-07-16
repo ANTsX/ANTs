@@ -1,10 +1,10 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkExpTensorImageFilter.txx,v $
+  Module:    $RCSfile: itkLogTensorImageFilter.hxx,v $
   Language:  C++
-  Date:      $Date: 2009/01/27 19:56:28 $
-  Version:   $Revision: 1.1 $
+  Date:      $Date: 2009/03/17 18:59:48 $
+  Version:   $Revision: 1.3 $
 
   Copyright (c) ConsortiumOfANTS. All rights reserved.
   See accompanying COPYING.txt or
@@ -15,32 +15,32 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkExpTensorImageFilter_txx
-#define _itkExpTensorImageFilter_txx
+#ifndef _itkLogTensorImageFilter_hxx
+#define _itkLogTensorImageFilter_hxx
 
 #include "itkConstNeighborhoodIterator.h"
 #include "itkNeighborhoodInnerProduct.h"
-#include "itkImageRegionIterator.h"
+#include "itkImageRegionIteratorWithIndex.h"
 #include "itkImageRegionConstIterator.h"
 #include "itkOffset.h"
 #include "itkProgressReporter.h"
 #include "itkObjectFactory.h"
 #include "vnl/vnl_matrix.h"
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
-#include "itkExpTensorImageFilter.h"
+#include "itkLogTensorImageFilter.h"
 #include "TensorFunctions.h"
 
 namespace itk
 {
 template <class TInputImage, class TOutputImage>
-ExpTensorImageFilter<TInputImage, TOutputImage>
-::ExpTensorImageFilter()
+LogTensorImageFilter<TInputImage, TOutputImage>
+::LogTensorImageFilter()
 {
 }
 
 template <class TInputImage, class TOutputImage>
 void
-ExpTensorImageFilter<TInputImage, TOutputImage>
+LogTensorImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
 {
   InputImagePointer  input = this->GetInput();
@@ -52,11 +52,12 @@ ExpTensorImageFilter<TInputImage, TOutputImage>
   output->SetRegions( input->GetLargestPossibleRegion() );
   output->Allocate();
 
-  ImageRegionIterator<OutputImageType> outputIt( output, output->GetLargestPossibleRegion() );
+  ImageRegionIteratorWithIndex<OutputImageType> outputIt( output, output->GetLargestPossibleRegion() );
   for( inputIt.GoToBegin(), outputIt.GoToBegin();
-       !inputIt.IsAtEnd() && !outputIt.IsAtEnd(); ++inputIt, ++outputIt )
+       !inputIt.IsAtEnd() && !outputIt.IsAtEnd();
+       ++inputIt, ++outputIt )
     {
-    InputPixelType result = TensorLogAndExp<InputPixelType>(inputIt.Value(), false);
+    InputPixelType result = TensorLog<InputPixelType>(inputIt.Value() );
     outputIt.Set( result );
     }
 }
@@ -66,7 +67,7 @@ ExpTensorImageFilter<TInputImage, TOutputImage>
  */
 template <class TInputImage, class TOutput>
 void
-ExpTensorImageFilter<TInputImage, TOutput>
+LogTensorImageFilter<TInputImage, TOutput>
 ::PrintSelf(
   std::ostream& os,
   Indent indent) const

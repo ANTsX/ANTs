@@ -1,4 +1,3 @@
-
 #include "itkPICSLAdvancedNormalizationToolKit.h"
 #include "itkCommandLineParser.h"
 

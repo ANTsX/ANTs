@@ -1,4 +1,3 @@
-
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "vnl/algo/vnl_determinant.h"
@@ -487,19 +486,13 @@ int main(int argc, char *argv[])
   switch( dim )
     {
     case 2:
-      {
       IntegrateVectorField<2>(argc, argv);
-      }
       break;
     case 3:
-      {
       IntegrateVectorField<3>(argc, argv);
-      }
       break;
     case 4:
-      {
       IntegrateVectorField<4>(argc, argv);
-      }
       break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;

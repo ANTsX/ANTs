@@ -81,7 +81,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkDecomposeTensorFunction2.txx"
+#include "itkDecomposeTensorFunction2.hxx"
 #endif
 
 #endif

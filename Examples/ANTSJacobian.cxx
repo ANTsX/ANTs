@@ -1,4 +1,3 @@
-
 // #include "DoSomethingToImage.cxx"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"

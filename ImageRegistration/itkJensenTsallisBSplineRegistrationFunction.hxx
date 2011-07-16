@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkJensenTsallisBSplineRegistrationFunction.txx,v $
+  Module:    $RCSfile: itkJensenTsallisBSplineRegistrationFunction.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.18 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkJensenTsallisBSplineRegistrationFunction_txx_
-#define _itkJensenTsallisBSplineRegistrationFunction_txx_
+#ifndef _itkJensenTsallisBSplineRegistrationFunction_hxx_
+#define _itkJensenTsallisBSplineRegistrationFunction_hxx_
 
 #include "itkJensenTsallisBSplineRegistrationFunction.h"
 

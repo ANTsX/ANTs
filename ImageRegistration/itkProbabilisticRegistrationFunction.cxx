@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkProbabilisticRegistrationFunction_txx_
-#define _itkProbabilisticRegistrationFunction_txx_
+#ifndef _itkProbabilisticRegistrationFunction_hxx_
+#define _itkProbabilisticRegistrationFunction_hxx_
 
 #include "itkProbabilisticRegistrationFunction.h"
 #include "itkExceptionObject.h"

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: antsJointHistogramParzenShapeAndOrientationListSampleFunction.txx,v $
+  Module:    $RCSfile: antsJointHistogramParzenShapeAndOrientationListSampleFunction.hxx,v $
   Language:  C++
   Date:      $Date: $
   Version:   $Revision: $
@@ -16,8 +16,8 @@
   PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __antsJointHistogramParzenShapeAndOrientationListSampleFunction_txx
-#define __antsJointHistogramParzenShapeAndOrientationListSampleFunction_txx
+#ifndef __antsJointHistogramParzenShapeAndOrientationListSampleFunction_hxx
+#define __antsJointHistogramParzenShapeAndOrientationListSampleFunction_hxx
 
 #include "antsJointHistogramParzenShapeAndOrientationListSampleFunction.h"
 

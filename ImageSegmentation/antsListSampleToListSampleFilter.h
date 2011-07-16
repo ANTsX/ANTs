@@ -91,7 +91,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsListSampleToListSampleFilter.txx"
+#include "antsListSampleToListSampleFilter.hxx"
 #endif
 
 #endif

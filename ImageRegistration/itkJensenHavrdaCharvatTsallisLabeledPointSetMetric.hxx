@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkJensenHavrdaCharvatTsallisLabeledPointSetMetric.txx,v $
+  Module:    $RCSfile: itkJensenHavrdaCharvatTsallisLabeledPointSetMetric.hxx,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.18 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkJensenHavrdaCharvatTsallisLabeledPointSetMetric_txx
-#define _itkJensenHavrdaCharvatTsallisLabeledPointSetMetric_txx
+#ifndef _itkJensenHavrdaCharvatTsallisLabeledPointSetMetric_hxx
+#define _itkJensenHavrdaCharvatTsallisLabeledPointSetMetric_hxx
 
 #include "itkJensenHavrdaCharvatTsallisLabeledPointSetMetric.h"
 

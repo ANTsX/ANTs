@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkPICSLAdvancedNormalizationToolKit.txx,v $
+  Module:    $RCSfile: itkPICSLAdvancedNormalizationToolKit.hxx,v $
   Language:  C++
   Date:      $Date: 2009/03/08 19:51:49 $
   Version:   $Revision: 1.22 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef _itkPICSLAdvancedNormalizationToolKit_txx_
-#define _itkPICSLAdvancedNormalizationToolKit_txx_
+#ifndef _itkPICSLAdvancedNormalizationToolKit_hxx_
+#define _itkPICSLAdvancedNormalizationToolKit_hxx_
 
 // disable debug warnings in MS compiler
 #ifdef _MSC_VER

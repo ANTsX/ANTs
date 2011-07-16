@@ -101,7 +101,7 @@ private:
 } // end of namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "antsPartialVolumeGaussianListSampleFunction.txx"
+#include "antsPartialVolumeGaussianListSampleFunction.hxx"
 #endif
 
 #endif
