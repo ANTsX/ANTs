@@ -498,7 +498,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     std::cout << " max_norm " << maxNorm << " it " << this->m_ElapsedIterations << std::endl;
     if( this->m_ElapsedIterations == 2 )
       {
-      this->m_GradientStep = this->m_GradientStep * 2.0 / maxNorm;
+      this->m_GradientStep = this->m_GradientStep * 1.0 / maxNorm;
       velocityField->FillBuffer( zeroVector );
       }
 
