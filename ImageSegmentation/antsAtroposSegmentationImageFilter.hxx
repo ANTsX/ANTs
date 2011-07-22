@@ -38,7 +38,7 @@
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelStatisticsImageFilter.h"
-#include "itkMinimumDecisionRule2.h"
+#include "itkMinimumDecisionRule.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkOtsuMultipleThresholdsCalculator.h"
 #include "itkSampleClassifierFilter.h"
@@ -983,7 +983,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   //
   // Classify the samples
   //
-  typedef itk::Statistics::MinimumDecisionRule2 DecisionRuleType;
+  typedef itk::Statistics::MinimumDecisionRule DecisionRuleType;
   typename DecisionRuleType::Pointer decisionRule = DecisionRuleType::New();
 
   typedef itk::Statistics::SampleClassifierFilter<SampleType> ClassifierType;
@@ -1135,7 +1135,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     //
     // Classify the samples
     //
-    typedef itk::Statistics::MinimumDecisionRule2 DecisionRuleType;
+    typedef itk::Statistics::MinimumDecisionRule DecisionRuleType;
     typename DecisionRuleType::Pointer decisionRule2 = DecisionRuleType::New();
 
     typedef itk::Statistics::SampleClassifierFilter<SampleType> ClassifierType;
