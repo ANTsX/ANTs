@@ -2094,9 +2094,10 @@ int CompCorr(int argc, char *argv[])
         }
 // compute the gm-reference correlation
       Scalar corr = matrixOps->PearsonCorr(samp, vReference);
-      Scalar corr2 = matrixOps->PearsonCorr(samp, vReference2);
+      //	Scalar corr2=matrixOps->PearsonCorr(samp,vReference2);
       outimage->SetPixel(ind, corr);
-      outimage2->SetPixel(ind, corr2);
+      //	outimage2->SetPixel(ind,corr2);
+      outimage2->SetPixel(ind, samp.two_norm() ); // the power of the time series
       gm_vox++;
       }
     }
@@ -2104,7 +2105,8 @@ int CompCorr(int argc, char *argv[])
   std::string kname = tempname + std::string("first_evec") + extension;
   WriteImage<OutImageType>(outimage, kname.c_str() );
   //  kname=tempname+std::string("second_evec")+extension;
-  //  WriteImage<OutImageType>(outimage2,kname.c_str());
+  kname = tempname + std::string("power") + extension;
+  WriteImage<OutImageType>(outimage2, kname.c_str() );
   kname = tempname + std::string("_corrected") + extension;
   WriteImage<ImageType>(image1, kname.c_str() );
   return 0;
