@@ -476,7 +476,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     // calculate the size of the solution to allow us to adjust the
     // gradient step length.
 
-    RealType maxNorm = 0;
+    RealType maxNorm = 0.0;
 
     typename InputImageType::SpacingType spacing = grayMatter->GetSpacing();
 
@@ -495,7 +495,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         maxNorm = norm;
         }
       }
-    std::cout << " max_norm " << maxNorm << " it " << this->m_ElapsedIterations << std::endl;
+    itkDebugMacro( "   MaxNorm = " << maxNorm );
+
     if( this->m_ElapsedIterations == 2 )
       {
       this->m_GradientStep = this->m_GradientStep * 1.0 / maxNorm;

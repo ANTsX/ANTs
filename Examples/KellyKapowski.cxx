@@ -56,6 +56,14 @@ public:
   }
 };
 
+void ConvertToLowerCase( std::string& str )
+{
+  std::transform( str.begin(), str.end(), str.begin(), tolower );
+// You may need to cast the above line to (int(*)(int))
+// tolower - this works as is on VC 7.1 but may not work on
+// other compilers
+}
+
 template <unsigned int ImageDimension>
 int DiReCT( itk::ants::CommandLineParser *parser )
 {
@@ -268,6 +276,33 @@ int DiReCT( itk::ants::CommandLineParser *parser )
                                  smoothingSigmaOption->GetValue() ) );
     }
 
+  //
+  // debugging information
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  debugOption = parser->GetOption( "print-debug-information" );
+  if( debugOption )
+    {
+    std::string value = debugOption->GetValue();
+    ConvertToLowerCase( value );
+    if( std::strcmp( value.c_str(), "true" ) ||
+        parser->Convert<int>( debugOption->GetValue() ) != 0 )
+      {
+      direct->DebugOn();
+      }
+    }
+
+  //
+  // set maximum number of threads
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  threadOption = parser->GetOption( "maximum-number-of-threads" );
+  if( threadOption )
+    {
+    unsigned int numThreads = parser->Convert<int>( debugOption->GetValue() );
+    direct->SetNumberOfThreads( numThreads );
+    }
+
   typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
   typename CommandType::Pointer observer = CommandType::New();
   direct->AddObserver( itk::IterationEvent(), observer );
@@ -428,6 +463,32 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "imageFilename" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Boolean option to print out the debug information.  " )
+      + std::string( "ITK and ANTs must be compiled in debug or RelWithDebInfo." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "print-debug-information" );
+    option->SetShortName( 'd' );
+    option->SetUsageOption( 0, "1" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Option to set the maximum number of threads.  If this " )
+      + std::string( "option is not set, it defaults to the ITK filter behavior." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "maximum-number-of-threads" );
+    option->SetShortName( 'e' );
+    option->SetUsageOption( 0, "numberOfThreads" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
