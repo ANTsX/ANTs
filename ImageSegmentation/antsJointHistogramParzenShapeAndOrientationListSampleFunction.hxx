@@ -22,7 +22,6 @@
 #include "antsJointHistogramParzenShapeAndOrientationListSampleFunction.h"
 
 #include "itkArray.h"
-#include "itkBSplineInterpolateImageFunction.h"
 #include "itkContinuousIndex.h"
 #include "itkDecomposeTensorFunction.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -46,7 +45,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   this->m_MaximumEigenvalue2 = 0;
   this->m_MinimumEigenvalue1 = 0.1;
   this->m_MinimumEigenvalue2 = 0.1;
-
+  this->m_Interpolator = InterpolatorType::New();
   this->m_JointHistogramImages[0] = NULL;
   this->m_JointHistogramImages[1] = NULL;
   this->m_JointHistogramImages[2] = NULL;
@@ -539,8 +538,8 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     eigenvalue1 /= ( this->m_MaximumEigenvalue1 - this->m_MinimumEigenvalue1 );
     eigenvalue2 /= ( this->m_MaximumEigenvalue2 - this->m_MinimumEigenvalue2 );
 
-    std::cout << " ev1 " << eigenvalue1 << " oev1 "
-              << W(2, 2) << " ev2 " << eigenvalue2 << " oev2 " << W(1, 1) << std::endl;
+    //    std::cout << " ev1 " << eigenvalue1 << " oev1 " << W(2,2) << " ev2 " << eigenvalue2 << " oev2 " << W(1,1) <<
+    // std::endl;
 
     /** joint-hist model for the eigenvalues */
     this->IncrementJointHistogramForShape( eigenvalue1, eigenvalue2 );
@@ -592,21 +591,17 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 {
   try
     {
-    typedef BSplineInterpolateImageFunction<JointHistogramImageType>
-      InterpolatorType;
-
     RealType probability = 1.0;
     for( unsigned int d = 0; d < 3; d++ )
       {
       typename JointHistogramImageType::PointType point;
       point[0] = measurement[d];
 
-      typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-      interpolator->SetSplineOrder( 3 );
-      interpolator->SetInputImage( this->m_JointHistogramImages[d] );
-      if( interpolator->IsInsideBuffer( point ) )
+      //      this->m_Interpolator->SetSplineOrder( 3 );
+      this->m_Interpolator->SetInputImage( this->m_JointHistogramImages[d] );
+      if( this->m_Interpolator->IsInsideBuffer( point ) )
         {
-        probability *= interpolator->Evaluate( point );
+        probability *= this->m_Interpolator->Evaluate( point );
         }
       else
         {
