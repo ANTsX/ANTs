@@ -43,9 +43,10 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   this->m_UseNearestNeighborIncrements = true;
   this->m_MaximumEigenvalue1 = 0;
   this->m_MaximumEigenvalue2 = 0;
-  this->m_MinimumEigenvalue1 = 0.1;
-  this->m_MinimumEigenvalue2 = 0.1;
+  this->m_MinimumEigenvalue1 = 1;
+  this->m_MinimumEigenvalue2 = 1;
   this->m_Interpolator = InterpolatorType::New();
+  this->m_Interpolator->SetSplineOrder( 3 );
   this->m_JointHistogramImages[0] = NULL;
   this->m_JointHistogramImages[1] = NULL;
   this->m_JointHistogramImages[2] = NULL;
@@ -486,7 +487,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 
     // for each tensor sample, we add its content to the relevant histogram.
     RealType eigenvalue1 = W(2, 2);
-    RealType eigenvalue2 = ( W(1, 1) + W(0, 0) ) * 0.5;
+    RealType eigenvalue2 = ( W(1, 1) ); // + W(0, 0) ) * 0.5;
     if( eigenvalue1 > this->m_MaximumEigenvalue1 )
       {
       this->m_MaximumEigenvalue1 = eigenvalue1;
@@ -592,12 +593,11 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   try
     {
     RealType probability = 1.0;
-    for( unsigned int d = 0; d < 3; d++ )
+    for( unsigned int d = 0; d < 2; d++ )
       {
       typename JointHistogramImageType::PointType point;
       point[0] = measurement[d];
 
-      //      this->m_Interpolator->SetSplineOrder( 3 );
       this->m_Interpolator->SetInputImage( this->m_JointHistogramImages[d] );
       if( this->m_Interpolator->IsInsideBuffer( point ) )
         {

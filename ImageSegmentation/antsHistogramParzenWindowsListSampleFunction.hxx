@@ -38,6 +38,9 @@ template <class TListSample, class TOutput, class TCoordRep>
 HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 ::HistogramParzenWindowsListSampleFunction()
 {
+  this->m_Interpolator = InterpolatorType::New();
+  this->m_Interpolator->SetSplineOrder( 3 );
+
   this->m_NumberOfHistogramBins = 32;
   this->m_Sigma = 1.0;
 }
@@ -197,20 +200,16 @@ HistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 {
   try
     {
-    typedef BSplineInterpolateImageFunction<HistogramImageType> InterpolatorType;
-
     RealType probability = 1.0;
     for( unsigned int d = 0; d < this->m_HistogramImages.size(); d++ )
       {
       typename HistogramImageType::PointType point;
       point[0] = measurement[d];
 
-      typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
-      interpolator->SetSplineOrder( 3 );
-      interpolator->SetInputImage( this->m_HistogramImages[d] );
-      if( interpolator->IsInsideBuffer( point ) )
+      this->m_Interpolator->SetInputImage( this->m_HistogramImages[d] );
+      if( this->m_Interpolator->IsInsideBuffer( point ) )
         {
-        probability *= interpolator->Evaluate( point );
+        probability *= this->m_Interpolator->Evaluate( point );
         }
       else
         {
