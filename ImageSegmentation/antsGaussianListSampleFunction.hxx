@@ -107,6 +107,22 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
     itkWarningMacro( "The input list sample has <= 1 element."
                      << "Function evaluations will be equal to 0." );
     }
+
+  // Check to see if the covariance matrix is nonsingular
+
+  vnl_matrix_inverse<double> inv_cov(
+    ( this->m_Gaussian->GetCovariance() ).GetVnlMatrix() );
+  double det = inv_cov.determinant_magnitude();
+
+  if( det < 0.0 )
+    {
+    itkExceptionMacro( "Determinant of the covariance < 0" );
+    }
+  else if( det < 1.0e-6 )
+    {
+    itkExceptionMacro( "Covariance is singular (determinant = "
+                       << det << " < 1.0e-6)" );
+    }
 }
 
 template <class TListSample, class TOutput, class TCoordRep>
