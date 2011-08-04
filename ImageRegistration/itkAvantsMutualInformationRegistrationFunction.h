@@ -29,7 +29,7 @@
 #include "itkCentralDifferenceImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkBSplineDeformableTransform.h"
+#include "itkBSplineTransform.h"
 #include "itkTranslationTransform.h"
 #include "itkArray2D.h"
 #include "itkImageBase.h"
@@ -646,7 +646,7 @@ private:
 
   /**
    * Types and variables related to BSpline deformable transforms.
-   * If the transform is of type third order BSplineDeformableTransform,
+   * If the transform is of type third order BSplineTransform,
    * then we can speed up the metric derivative calculation by
    * only inspecting the parameters within the support region
    * of a mapped point.
@@ -669,9 +669,9 @@ private:
   enum { DeformationSplineOrder = 3 };
 
   /**
-   * Typedefs for the BSplineDeformableTransform.
+   * Typedefs for the BSplineTransform.
    */
-  typedef BSplineDeformableTransform<
+  typedef BSplineTransform<
       CoordinateRepresentationType,
       ::itk::GetImageDimension<FixedImageType>::ImageDimension,
       DeformationSplineOrder> BSplineTransformType;

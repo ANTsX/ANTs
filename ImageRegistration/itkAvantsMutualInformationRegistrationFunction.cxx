@@ -27,7 +27,6 @@
 #include "itkImageIterator.h"
 #include "vnl/vnl_math.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "itkBSplineDeformableTransform.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 
 namespace itk
