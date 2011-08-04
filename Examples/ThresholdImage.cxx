@@ -16,14 +16,6 @@
 
 =========================================================================*/
 
-//  Software Guide : BeginLatex
-//
-//  This example illustrates how to deform an image using a BSplineTransform.
-//
-//  \index{BSplineDeformableTransform}
-//
-//  Software Guide : EndLatex
-
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
@@ -36,7 +28,6 @@
 #include "itkResampleImageFilter.h"
 #include "itkLinearInterpolateImageFunction.h"
 
-#include "itkBSplineDeformableTransform.h"
 #include "itkExtractImageFilter.h"
 
 #include "itkBinaryThresholdImageFilter.h"
