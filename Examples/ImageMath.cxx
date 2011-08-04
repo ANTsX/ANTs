@@ -18,10 +18,10 @@
 #include <map>
 // Here I'm using a map but you could choose even other containers
 #include <fstream>
+#include <sstream>
 #include <string>
 #include "itkCSVNumericObjectFileWriter.h"
 #include <iostream>
-#include <sstream>
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
 #include "itkMedianImageFilter.h"
@@ -2052,7 +2052,7 @@ int CompCorr(int argc, char *argv[])
   timeMatrixType reducedNuisance(timedims, nnuis);
   for( unsigned int i = 0; i < nnuis; i++ )
     {
-    timeVectorType nuisi = matrixOps->GetCovMatEigenvector(mNuisance, nnuis);
+    timeVectorType nuisi = matrixOps->GetCovMatEigenvector(mNuisance, i);
     reducedNuisance.set_column(i, nuisi);
     }
   timeVectorType vGlobal = matrixOps->AverageColumns(mSample);
@@ -7589,6 +7589,191 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   return 0;
 }
 
+template <class T>
+inline std::string to_string(const T& t)
+{
+  std::stringstream ss;
+
+  ss << t;
+  return ss.str();
+}
+
+template <unsigned int ImageDimension>
+int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::Image<PixelType, 2>                                        MatrixImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int argct = 2;
+  if( argc < 5 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    }
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  ext = std::string(".csv"); // itksys::SystemTools::GetFilenameExtension( outname );
+  std::string  operation = std::string(argv[argct]);  argct++;
+  unsigned int n_evecs = atoi(argv[argct]);   argct++;
+  unsigned int rowcoloption = 1;
+  std::string  maskfn = std::string(argv[argct]); argct++;
+  unsigned int numberofimages = 0;
+  typename ImageType::Pointer mask = NULL;
+  ReadImage<ImageType>(mask, maskfn.c_str() );
+  /** 1. compute max value in mask */
+  unsigned long maxval = 0;
+  Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() > maxval )
+      {
+      maxval = (unsigned long) mIter.Get();
+      }
+    }
+  if( maxval == 0 )
+    {
+    std::cout << " Max value in mask is <= 0, aborting. " << maxval << std::endl;
+    exit(1);
+    }
+
+  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::SizeType size;
+  size.Fill(0);
+  unsigned int bigimage = 0;
+  for( unsigned int j = argct; j < argc; j++ )
+    {
+    numberofimages++;
+    // Get the image dimension
+    std::string fn = std::string(argv[j]);
+    typename itk::ImageIOBase::Pointer imageIO =
+      itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
+    imageIO->SetFileName(fn.c_str() );
+    imageIO->ReadImageInformation();
+    for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
+      {
+      if( imageIO->GetDimensions(i) > size[i] )
+        {
+        size[i] = imageIO->GetDimensions(i);
+        bigimage = j;
+        std::cout << " bigimage " << j << " size " << size << std::endl;
+        }
+      }
+    }
+
+  std::cout << " largest image " << size << " num images " << numberofimages << std::endl;
+  for( unsigned long mv = 1; mv <= maxval; mv++ )
+    {
+    /** 2. count the voxels in this label */
+    unsigned long voxct = 0;
+    Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
+    for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+      {
+      if( mIter.Get() == mv )
+        {
+        voxct++;
+        }
+      }
+
+    unsigned long xx1 = 0, yy1 = 0;
+    if( rowcoloption == 0 )
+      {
+      std::cout << " row option " << std::endl;  xx1 = voxct;  yy1 = numberofimages;
+      }
+    if( rowcoloption == 1 )
+      {
+      std::cout << " col option " << std::endl;  yy1 = voxct;  xx1 = numberofimages;
+      }
+    unsigned long xsize = xx1;
+    unsigned long ysize = yy1;
+
+    if( strcmp(ext.c_str(), ".csv") == 0 )
+      {
+      typedef itk::Array2D<double> MatrixType;
+      MatrixType matrix(xsize, ysize);
+      matrix.Fill(0);
+      unsigned int imagecount = 0;
+      for( unsigned int j = argct; j < argc; j++ )
+        {
+        std::string fn = std::string(argv[j]);
+        ReadImage<ImageType>(image2, fn.c_str() );
+        std::cout << " image " << j << " is "  << fn << std::endl;
+        unsigned long xx = 0, yy = 0, tvoxct = 0;
+        if( rowcoloption == 0 )
+          {
+          yy = imagecount;
+          }
+        if( rowcoloption == 1 )
+          {
+          xx = imagecount;
+          }
+        for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+          {
+          if( mIter.Get() == mv )
+            {
+            if( rowcoloption == 0 )
+              {
+              xx = tvoxct;
+              }
+            if( rowcoloption == 1 )
+              {
+              yy = tvoxct;
+              }
+            matrix[xx][yy] = image2->GetPixel(mIter.GetIndex() );
+            tvoxct++;
+            }
+          }
+        imagecount++;
+        }
+
+      typedef double                                            Scalar;
+      typedef itk::ants::antsMatrixUtilities<ImageType, Scalar> matrixOpType;
+      typename matrixOpType::Pointer matrixOps = matrixOpType::New();
+      MatrixType evec_matrix(xsize, n_evecs);
+      typedef vnl_vector<Scalar> VectorType;
+      evec_matrix.Fill(0);
+      for( unsigned int i = 0; i < n_evecs; i++ )
+        {
+        /** the GetCovMatEigenvector function normalizes the matrix & computes the covariance matrix internally */
+        VectorType evec = matrixOps->GetCovMatEigenvector(matrix, i);
+        evec_matrix.set_column(i, evec);
+        }
+
+      // write out the array2D object
+      typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+      WriterType::Pointer writer = WriterType::New();
+      std::string         num = std::string("evecs_for_label") + to_string<unsigned long>(mv);
+      std::string         eoutname = outname + num + ext;
+      writer->SetFileName( eoutname );
+      writer->SetInput( &evec_matrix );
+      try
+        {
+        writer->Write();
+        }
+      catch( itk::ExceptionObject& exp )
+        {
+        std::cerr << "Exception caught!" << std::endl;
+        std::cerr << exp << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    else
+      {
+      std::cout << " can only write out csv files " << std::endl;
+      }
+    } // end loop over mv variable
+
+  return 0;
+}
+
 template <unsigned int ImageDimension>
 int ConvertImageToFile(      int argc, char *argv[])
 {
@@ -7844,6 +8029,14 @@ int main(int argc, char *argv[])
       << std::endl;
     std::cout << "      Usage		: ConvertImageSetToMatrix rowcoloption Mask.nii *images.nii"<< std::endl;
     std::cout << " ConvertImageSetToMatrix output can be an image type or csv file type." << std::endl;
+
+    std::cout
+      <<
+      "\n  ConvertImageSetToEigenvectors: Each row/column contains image content extracted from mask applied to images in *img.nii "
+      << std::endl;
+    std::cout << "      Usage		: ConvertImageSetToEigenvectors N_Evecs Mask.nii *images.nii"<< std::endl;
+    std::cout << " ConvertImageSetToEigenvectors output will be a csv file for each label value > 0 in the mask."
+              << std::endl;
 
     std::cout << "\n  ConvertImageToFile	: Writes voxel values to a file  "<< std::endl;
     std::cout << "      Usage		: ConvertImageToFile imagevalues.nii {Optional-ImageMask.nii}"<< std::endl;
@@ -8234,6 +8427,10 @@ int main(int argc, char *argv[])
         {
         ConvertImageSetToMatrix<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
+        {
+        ConvertImageSetToEigenvectors<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
         {
         ConvertVectorToImage<2>(argc, argv);
@@ -8508,6 +8705,10 @@ int main(int argc, char *argv[])
         {
         ConvertImageSetToMatrix<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
+        {
+        ConvertImageSetToEigenvectors<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
         {
         ConvertVectorToImage<3>(argc, argv);
@@ -8759,6 +8960,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
         {
         ConvertImageSetToMatrix<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
+        {
+        ConvertImageSetToEigenvectors<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
         {
