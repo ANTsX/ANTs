@@ -7739,9 +7739,9 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
       typename matrixOpType::Pointer matrixOps = matrixOpType::New();
       typedef vnl_vector<Scalar> VectorType;
       MatrixType evec_matrix(xsize, n_evecs + 1);
+      evec_matrix.Fill(0);
       VectorType avg = matrixOps->AverageColumns(matrix);
       evec_matrix.set_column(0, avg);
-      evec_matrix.Fill(0);
       for( unsigned int i = 0; i < n_evecs; i++ )
         {
         /** the GetCovMatEigenvector function normalizes the matrix & computes the covariance matrix internally */
