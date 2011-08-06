@@ -129,5 +129,31 @@ antsMatrixUtilities<TInputImage, TRealType>
     return vec1;
     }
 }
+
+template <class TInputImage, class TRealType>
+typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType
+antsMatrixUtilities<TInputImage, TRealType>
+::GetCovMatEigenvectors( typename antsMatrixUtilities<TInputImage, TRealType>::MatrixType rin  )
+{
+  double     pinvTolerance = this->m_PinvTolerance;
+  MatrixType dd = this->NormalizeMatrix(rin);
+  MatrixType cov = dd * dd.transpose();
+
+  cov.set_identity();
+  TRealType regularization = 1.e-3;
+  cov = cov * regularization + rin * rin.transpose();
+  vnl_svd<RealType> eig(cov, pinvTolerance);
+  VectorType        vec1 = eig.U().get_column(0);
+  VectorType        vec2 = eig.V().get_column(0);
+//  std::cout <<" W 1 " << eig.W(0,0) << " W 2 " << eig.W(1,1) << std::endl;
+  if( vec2.size() == rin.rows() )
+    {
+    return eig.V();
+    }
+  else
+    {
+    return eig.U();
+    }
+}
 } // namespace ants
 } // namespace itk

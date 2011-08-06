@@ -210,7 +210,9 @@ public:
       }
   }
 
-  VectorType GetCovMatEigenvector( MatrixType p, unsigned int evec );
+  VectorType GetCovMatEigenvector( MatrixType p, unsigned int evec  );
+
+  MatrixType GetCovMatEigenvectors( MatrixType p );
 
   VectorType AverageColumns( MatrixType p )
   {

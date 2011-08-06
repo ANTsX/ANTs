@@ -7745,11 +7745,12 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
       VectorType avg = matrixOps->AverageColumns(matrix);
       avg_matrix.set_column(mv, avg);
       evec_matrix.set_column(0, avg);
+      MatrixType tempm = matrixOps->GetCovMatEigenvectors(matrix);
       for( unsigned int i = 0; i < n_evecs; i++ )
         {
         /** the GetCovMatEigenvector function normalizes the matrix & computes the covariance matrix internally */
-        VectorType evec = matrixOps->GetCovMatEigenvector(matrix, i);
-        evec_matrix.set_column(i + 1, evec);
+        //      VectorType evec=matrixOps->GetCovMatEigenvector(matrix,i);
+        evec_matrix.set_column(i + 1, tempm.get_column(i) );
         }
 
       // write out the array2D object
