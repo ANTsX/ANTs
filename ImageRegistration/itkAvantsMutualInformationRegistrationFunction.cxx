@@ -67,9 +67,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   m_CubicBSplineDerivativeKernel = NULL;
   m_BSplineInterpolator = NULL;
   m_DerivativeCalculator = NULL;
-  m_NumParametersPerDim = 0;
-  m_NumBSplineWeights = 0;
-  m_BSplineTransform = NULL;
   m_NumberOfParameters = ImageDimension;
 
   m_FixedImageGradientCalculator = GradientCalculatorType::New();
@@ -121,8 +118,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   os << m_MovingImageBinSize << std::endl;
   os << indent << "InterpolatorIsBSpline: ";
   os << m_InterpolatorIsBSpline << std::endl;
-  os << indent << "TransformIsBSpline: ";
-  os << m_TransformIsBSpline << std::endl;
 }
 
 /**

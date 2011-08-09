@@ -29,7 +29,6 @@
 #include "itkCentralDifferenceImageFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
-#include "itkBSplineTransform.h"
 #include "itkTranslationTransform.h"
 #include "itkArray2D.h"
 #include "itkImageBase.h"
@@ -653,53 +652,11 @@ private:
    */
 
   /** Boolean to indicate if the transform is BSpline deformable. */
-  bool m_TransformIsBSpline;
-
-  /** The number of BSpline parameters per image dimension. */
-  long m_NumParametersPerDim;
-
-  /**
-   * The number of BSpline transform weights is the number of
-   * of parameter in the support region (per dimension ). */
-  unsigned long m_NumBSplineWeights;
 
   /**
    * Enum of the deformabtion field spline order.
    */
   enum { DeformationSplineOrder = 3 };
-
-  /**
-   * Typedefs for the BSplineTransform.
-   */
-  typedef BSplineTransform<
-      CoordinateRepresentationType,
-      ::itk::GetImageDimension<FixedImageType>::ImageDimension,
-      DeformationSplineOrder> BSplineTransformType;
-  typedef typename BSplineTransformType::WeightsType
-    BSplineTransformWeightsType;
-  typedef typename BSplineTransformType::ParameterIndexArrayType
-    BSplineTransformIndexArrayType;
-
-  /**
-   * Variables used when transform is of type BSpline deformable.
-   */
-  typename BSplineTransformType::Pointer m_BSplineTransform;
-
-  /**
-   * Cache pre-transformed points, weights, indices and
-   * within support region flag.
-   */
-  typedef typename BSplineTransformWeightsType::ValueType    WeightsValueType;
-  typedef          Array2D<WeightsValueType>                 BSplineTransformWeightsArrayType;
-  typedef typename BSplineTransformIndexArrayType::ValueType IndexValueType;
-  typedef          Array2D<IndexValueType>                   BSplineTransformIndicesArrayType;
-  typedef          std::vector<MovingImagePointType>         MovingImagePointArrayType;
-  typedef          std::vector<bool>                         BooleanArrayType;
-
-  BSplineTransformWeightsArrayType m_BSplineTransformWeightsArray;
-  BSplineTransformIndicesArrayType m_BSplineTransformIndicesArray;
-  MovingImagePointArrayType        m_PreTransformPointsArray;
-  BooleanArrayType                 m_WithinSupportRegionArray;
 
   typename TFixedImage::SpacingType                  m_FixedImageSpacing;
   typename TFixedImage::PointType                  m_FixedImageOrigin;
