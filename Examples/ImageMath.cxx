@@ -131,7 +131,15 @@ bool from_string(T& t,
 {
   std::istringstream iss(s);
 
-  return !(iss >> f >> t).fail();
+  iss >> f >> t;
+
+  // Check to see that there is nothing left over
+  if( !iss.eof() )
+    {
+    return false;
+    }
+
+  return true;
 }
 
 std::string ANTSGetFilePrefix(const char *str)
