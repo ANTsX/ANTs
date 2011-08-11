@@ -125,6 +125,15 @@
 #include "antsMatrixUtilities.h"
 
 template <class T>
+inline std::string ants_to_string(const T& t)
+{
+  std::stringstream ss;
+
+  ss << t;
+  return ss.str();
+}
+
+template <class T>
 bool from_string(T& t,
                  const std::string& s,
                  std::ios_base & (*f)(std::ios_base &) )
@@ -1891,6 +1900,140 @@ int ComputeTimeSeriesLeverage(int argc, char *argv[])
       }
     }
   logfile.close();
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int TimeSeriesToMatrix(int argc, char *argv[])
+{
+  if( argc <= 2 )
+    {
+    std::cout << " too few options " << std::endl; return 1;
+    }
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef typename OutImageType::IndexType             OutIndexType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+  typedef double                                            Scalar;
+  typedef itk::ants::antsMatrixUtilities<ImageType, Scalar> matrixOpType;
+  typename matrixOpType::Pointer matrixOps = matrixOpType::New();
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string ext = itksys::SystemTools::GetFilenameExtension( outname );
+  if( strcmp(ext.c_str(), ".csv") != 0 )
+    {
+    std::cout << " must use .csv as output file extension " << std::endl;
+    return EXIT_FAILURE;
+    }
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string maskfn = std::string(argv[argct]);   argct++;
+  typename ImageType::Pointer image1 = NULL;
+  typename OutImageType::Pointer mask = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+  if( maskfn.length() > 3 )
+    {
+    ReadImage<OutImageType>(mask, maskfn.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+  unsigned int  timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  unsigned long voxct = 0;
+  typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+  SliceIt mIter( mask, mask->GetLargestPossibleRegion() );
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() >= 0.5 )
+      {
+      voxct++;
+      }
+    }
+
+  typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  unsigned int sub_vol = 0;
+  extractRegion.SetIndex(ImageDimension - 1, sub_vol );
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( image1 );
+  //    extractFilter->SetDirectionCollapseToIdentity();
+  extractFilter->SetDirectionCollapseToSubmatrix();
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  typename OutImageType::Pointer outimage = extractFilter->GetOutput();
+  outimage->FillBuffer(0);
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>    ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType> SliceIt;
+
+  typedef vnl_vector<Scalar> timeVectorType;
+  timeVectorType mSample(timedims, 0);
+  typedef itk::Array2D<double> MatrixType;
+  std::vector<std::string> ColumnHeaders;
+  MatrixType               matrix(timedims, voxct);
+  matrix.Fill(0);
+  SliceIt vfIter2( outimage, outimage->GetLargestPossibleRegion() );
+  voxct = 0;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    if( mask->GetPixel(ind) >= 0.5 )
+      {
+      IndexType tind;
+      // first collect all samples for that location
+      for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+        {
+        tind[i] = ind[i];
+        }
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        Scalar pix = image1->GetPixel(tind);
+        mSample(t) = pix;
+        matrix[t][voxct] = pix;
+        }
+      std::string colname = std::string("V") + ants_to_string<unsigned int>(voxct);
+      ColumnHeaders.push_back( colname );
+      voxct++;
+      } // check mask
+    }
+
+  // write out the array2D object
+  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName( outname );
+  writer->SetInput( &matrix );
+  writer->SetColumnHeaders( ColumnHeaders );
+  try
+    {
+    writer->Write();
+    }
+  catch( itk::ExceptionObject& exp )
+    {
+    std::cerr << "Exception caught!" << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
   return 0;
 }
 
@@ -7400,15 +7543,6 @@ int PValueImage(      int argc, char *argv[])
   return 0;
 }
 
-template <class T>
-inline std::string ants_to_string(const T& t)
-{
-  std::stringstream ss;
-
-  ss << t;
-  return ss.str();
-}
-
 template <unsigned int ImageDimension>
 int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
 {
@@ -8025,6 +8159,11 @@ int main(int argc, char *argv[])
       << " TimeSeriesSubset : Outputs n 3D image sub-volumes extracted uniformly from the input time-series 4D image."
       << std::endl;
     std::cout << "    Usage		: TimeSeriesSubset 4D_TimeSeries.nii.gz n "<< std::endl;
+    std::cout
+      <<
+      " TimeSeriesToMatrix : Converts a 4D image + mask to matrix (stored as csv file) where rows are time and columns are space ."
+      << std::endl;
+    std::cout << "    Usage		: TimeSeriesToMatrix 4D_TimeSeries.nii.gz mask "<< std::endl;
 
     std::cout
       <<
@@ -9043,6 +9182,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "TimeSeriesSubset") == 0 )
         {
         TimeSeriesSubset<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TimeSeriesToMatrix") == 0 )
+        {
+        TimeSeriesToMatrix<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "CompCorr") == 0 )
         {
