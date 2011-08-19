@@ -18,6 +18,7 @@
 
 =========================================================================*/
 #include <vnl/vnl_random.h>
+#include <vnl/vnl_trace.h>
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_generalized_eigensystem.h>
 #include "antsMatrixUtilities.h"
@@ -145,6 +146,13 @@ antsMatrixUtilities<TInputImage, TRealType>
   vnl_svd<RealType> eig(cov, pinvTolerance);
   VectorType        vec1 = eig.U().get_column(0);
   VectorType        vec2 = eig.V().get_column(0);
+  double            trace = vnl_trace<double>(cov);
+  double            evalsum = 0;
+  for( unsigned int i = 0; i < cov.rows(); i++ )
+    {
+    evalsum += eig.W(i, i);
+    std::cout << " variance-explained-eval " << i << " = " << evalsum / trace * 100  << std::endl;
+    }
 //  std::cout <<" W 1 " << eig.W(0,0) << " W 2 " << eig.W(1,1) << std::endl;
   if( vec2.size() == rin.rows() )
     {
