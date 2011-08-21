@@ -125,15 +125,6 @@
 #include "antsMatrixUtilities.h"
 
 template <class T>
-inline std::string ants_to_string(const T& t)
-{
-  std::stringstream ss;
-
-  ss << t;
-  return ss.str();
-}
-
-template <class T>
 bool from_string(T& t,
                  const std::string& s,
                  std::ios_base & (*f)(std::ios_base &) )
@@ -3003,16 +2994,11 @@ int TensorFunctions(int argc, char *argv[])
   typedef itk::Image<VectorType, ImageDimension>             VectorImageType;
   typedef itk::ImageRegionIteratorWithIndex<VectorImageType> vecIterator;
 
-  int          argct = 2;
-  std::string  outname = std::string(argv[argct]); argct++;
-  std::string  operation = std::string(argv[argct]);  argct++;
-  std::string  fn1 = std::string(argv[argct]);   argct++;
-  unsigned int whichvec = ImageDimension - 1;
-  if( argc > argct )
-    {
-    whichvec = atoi(argv[argct]);
-    }
-  argct++;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
   typename ColorImageType::Pointer  cimage = NULL;    // output color image
@@ -3116,6 +3102,61 @@ int TensorFunctions(int argc, char *argv[])
     std::cout << " cannot convert --- input image not 4D --- " << fn1 << std::endl;
     return 0;
     }
+
+  if( strcmp(operation.c_str(), "ComponentTo3DTensor") == 0 )
+    {
+    std::string extension = std::string( ".nii.gz" );
+    if( argc > argct )
+      {
+      extension = std::string( argv[argct++] );
+      }
+
+    typename ImageType::Pointer xx, xy, xz, yy, yz, zz;
+
+    std::string fn1xx = fn1 + std::string( "xx" ) + extension;
+    std::string fn1xy = fn1 + std::string( "xy" ) + extension;
+    std::string fn1xz = fn1 + std::string( "xz" ) + extension;
+    std::string fn1yy = fn1 + std::string( "yy" ) + extension;
+    std::string fn1yz = fn1 + std::string( "yz" ) + extension;
+    std::string fn1zz = fn1 + std::string( "zz" ) + extension;
+
+    ReadImage<ImageType>( xx, fn1xx.c_str() );
+    ReadImage<ImageType>( xy, fn1xy.c_str() );
+    ReadImage<ImageType>( xz, fn1xz.c_str() );
+    ReadImage<ImageType>( yy, fn1yy.c_str() );
+    ReadImage<ImageType>( yz, fn1yz.c_str() );
+    ReadImage<ImageType>( zz, fn1zz.c_str() );
+
+    timage = TensorImageType::New();
+    timage->CopyInformation( xx );
+    timage->SetRegions( xx->GetLargestPossibleRegion() );
+    timage->Allocate();
+
+    Iterator tIter( timage, timage->GetLargestPossibleRegion() );
+    for( tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
+      {
+      typename TensorImageType::IndexType ind = tIter.GetIndex();
+      TensorType pix6 = tIter.Get();
+
+      pix6[0] = xx->GetPixel( ind );
+      pix6[1] = xy->GetPixel( ind );
+      pix6[2] = xz->GetPixel( ind );
+      pix6[3] = yy->GetPixel( ind );
+      pix6[4] = yz->GetPixel( ind );
+      pix6[5] = zz->GetPixel( ind );
+
+      tIter.Set( pix6 );
+      }
+    WriteTensorImage<TensorImageType>( timage, outname.c_str(), false );
+    return 0;
+    }
+
+  unsigned int whichvec = ImageDimension - 1;
+  if( argc > argct )
+    {
+    whichvec = atoi(argv[argct]);
+    }
+  argct++;
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
   if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
@@ -8174,6 +8215,9 @@ int main(int argc, char *argv[])
     std::cout << "\nTensor Operations:" << std::endl;
     std::cout << "  4DTensorTo3DTensor	: Outputs a 3D_DT_Image with the same information. "<< std::endl;
     std::cout << "    Usage		: 4DTensorTo3DTensor 4D_DTImage.ext"<< std::endl;
+    std::cout << "  ComponentTo3DTensor	: Outputs a 3D_DT_Image with the same information as component images. "
+              << std::endl;
+    std::cout << "    Usage		: ComponentTo3DTensor component_image_prefix[xx,xy,xz,yy,yz,zz] extension"<< std::endl;
     std::cout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
     std::cout << "    Usage		: ExtractVectorComponent VecImage WhichVec"<< std::endl;
     std::cout << "  TensorColor		: Produces RGB values identifying principal directions "<< std::endl;
@@ -8816,6 +8860,10 @@ int main(int argc, char *argv[])
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ComponentTo3DTensor") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
