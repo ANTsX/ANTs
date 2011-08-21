@@ -142,6 +142,15 @@ bool from_string(T& t,
   return true;
 }
 
+template <class T>
+std::string ants_to_string(T t)
+{
+  std::stringstream istream;
+
+  istream << t;
+  return istream.str();
+}
+
 std::string ANTSGetFilePrefix(const char *str)
 {
   std::string            filename = str;
