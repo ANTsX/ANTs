@@ -264,6 +264,9 @@ public:
   typedef JointPDFDerivativesType::PixelType  JointPDFDerivativesValueType;
   typedef JointPDFDerivativesType::RegionType JointPDFDerivativesRegionType;
   typedef JointPDFDerivativesType::SizeType   JointPDFDerivativesSizeType;
+  typedef typename MarginalPDFType::PointType MarginalPDFPointType;
+  typedef typename JointPDFType::PointType    JointPDFPointType;
+  typedef typename JointPDFType::SpacingType  JointPDFSpacingType;
 
   /**  Get the value and derivatives for single valued optimizers. */
   double GetValueAndDerivative( IndexType index, MeasureType& Value, DerivativeType& Derivative1,
@@ -313,6 +316,124 @@ public:
   }
 
   void GetProbabilities();
+
+  void ComputeJointPDFPoint( double fixedImageValue, double movingImageValue, JointPDFPointType& jointPDFpoint )
+  {
+    double a = (fixedImageValue - this->m_FixedImageTrueMin) / (this->m_FixedImageTrueMax - this->m_FixedImageTrueMin);
+    double b =
+      (movingImageValue - this->m_MovingImageTrueMin) / (this->m_MovingImageTrueMax - this->m_MovingImageTrueMin);
+
+    jointPDFpoint[0] = a;
+    jointPDFpoint[1] = b;
+  }
+
+  inline double ComputeFixedImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint, unsigned int threadID )
+  {
+    double               offset = 0.25 * this->m_JointPDFSpacing[0], eps = this->m_JointPDFSpacing[0]; // offset in
+                                                                                                       // voxels
+    MarginalPDFPointType leftpoint = margPDFpoint;
+
+    leftpoint[0] -= offset;
+    MarginalPDFPointType rightpoint = margPDFpoint;
+    rightpoint[0] += offset;
+    if( leftpoint[0] < eps )
+      {
+      leftpoint[0] = eps;
+      }
+    if( rightpoint[0] < eps )
+      {
+      rightpoint[0] = eps;
+      }
+    //    if (leftpoint[0] > 1-eps ) leftpoint[0]=1-eps;
+    //    if (rightpoint[0] > 1-eps ) rightpoint[0]=1-eps;
+    double delta = rightpoint[0] - leftpoint[0];
+    if( delta > 0 )
+      {
+      double deriv = pdfinterpolator2->Evaluate(rightpoint)
+        - pdfinterpolator2->Evaluate(leftpoint);
+      return deriv;
+      }
+    else
+      {
+      return 0;
+      }
+  }
+
+  inline double ComputeMovingImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint, unsigned int threadID )
+  {
+    double               offset = 0.5 * this->m_JointPDFSpacing[0];
+    double               eps = this->m_JointPDFSpacing[0]; // offset in voxels
+    MarginalPDFPointType leftpoint = margPDFpoint;
+
+    leftpoint[0] -= offset;
+    MarginalPDFPointType rightpoint = margPDFpoint;
+    rightpoint[0] += offset;
+    if( leftpoint[0] < eps )
+      {
+      leftpoint[0] = eps;
+      }
+    if( rightpoint[0] < eps )
+      {
+      rightpoint[0] = eps;
+      }
+    if( leftpoint[0] > 1 )
+      {
+      leftpoint[0] = 1;
+      }
+    if( rightpoint[0] > 1  )
+      {
+      rightpoint[0] = 1;
+      }
+    double delta = rightpoint[0] - leftpoint[0];
+    if( delta > 0 )
+      {
+      double deriv = pdfinterpolator3->Evaluate(rightpoint)
+        - pdfinterpolator3->Evaluate(leftpoint);
+      return deriv / delta;
+      }
+    else
+      {
+      return 0;
+      }
+  }
+
+  inline double ComputeJointPDFDerivative( JointPDFPointType jointPDFpoint, unsigned int threadID, unsigned int ind  )
+  {
+    double            offset = 0.5 * this->m_JointPDFSpacing[ind];
+    double            eps = this->m_JointPDFSpacing[ind]; // offset in voxels
+    JointPDFPointType leftpoint = jointPDFpoint;
+
+    leftpoint[ind] -= offset;
+    JointPDFPointType rightpoint = jointPDFpoint;
+    rightpoint[ind] += offset;
+    if( leftpoint[ind] < eps )
+      {
+      leftpoint[ind] = eps;
+      }
+    if( rightpoint[ind] < eps )
+      {
+      rightpoint[ind] = eps;
+      }
+    if( leftpoint[ind] > 1 )
+      {
+      leftpoint[ind] = 1;
+      }
+    if( rightpoint[ind] > 1 )
+      {
+      rightpoint[ind] = 1;
+      }
+    double delta = rightpoint[ind] - leftpoint[ind];
+    double deriv = 0;
+    if( delta > 0 )
+      {
+      deriv = pdfinterpolator->Evaluate(rightpoint) - pdfinterpolator->Evaluate(leftpoint);
+      return deriv / delta;
+      }
+    else
+      {
+      return deriv;
+      }
+  }
 
   double ComputeMutualInformation()
   {
@@ -406,40 +527,29 @@ public:
     fdvec2.Fill(0);
     fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( oindex );
     double nccm1 = 0;
-    loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
-    float eps = 10;
-    if( loce > eps )
-      {
-      loce = eps;
-      }
-    if( loce < eps * (-1.0) )
-      {
-      loce = eps * (-1.0);
-      }
+    loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
+    //    if ( loce > 1.5 ) std::cout << " loce " << loce << " ind " << oindex << std::endl;
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
       update[imd] = loce * fixedGradient[imd] * spacing[imd] * (1);
       }
-    if( this->m_MetricImage )
-      {
-      this->m_MetricImage->SetPixel(oindex, loce);
-      }
+    // if (this->m_MetricImage) this->m_MetricImage->SetPixel(oindex,loce);
     return update;
   }
 
   /*   Normalizing the image to the range of [0 1] */
   double GetMovingParzenTerm( double intensity )
   {
+    return intensity;
     double windowTerm = static_cast<double>( intensity ) -  this->m_MovingImageTrueMin;
-
     windowTerm = windowTerm / ( this->m_MovingImageTrueMax - this->m_MovingImageTrueMin   );
     return windowTerm;
   }
 
   double GetFixedParzenTerm( double intensity )
   {
+    return intensity;
     double windowTerm = static_cast<double>( intensity ) -  this->m_FixedImageTrueMin;
-
     windowTerm = windowTerm / ( this->m_FixedImageTrueMax - this->m_FixedImageTrueMin   );
     return windowTerm;
   }
@@ -505,21 +615,12 @@ public:
     movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex( oindex );
 
     double nccm1 = 0;
-    loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
-
-    float eps = 10;
-    if( loce > eps )
-      {
-      loce = eps;
-      }
-    if( loce < eps * (-1.0) )
-      {
-      loce = eps * (-1.0);
-      }
+    loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
       update[imd] = loce * movingGradient[imd] * spacing[imd] * (1);
       }
+    //    if( oindex[1] == 250 && oindex[0] == 250  ) WriteImages();
     return update;
   }
 
@@ -543,11 +644,6 @@ public:
   typename JointPDFType::Pointer GetJointPDF()
   {
     return m_JointPDF;
-  }
-
-  typename JointPDFType::Pointer GetJointHist()
-  {
-    return m_JointHist;
   }
 
   void SetFixedImageMask( FixedImageType* img)
@@ -600,7 +696,6 @@ private:
   AvantsMutualInformationRegistrationFunction(const Self &); // purposely not implemented
   void operator=(const Self &);                              // purposely not implemented
 
-  typename JointPDFType::Pointer m_JointHist;
   typename JointPDFDerivativesType::Pointer m_JointPDFDerivatives;
 
   /** Typedefs for BSpline kernel and derivative functions. */
@@ -679,17 +774,18 @@ private:
   double m_NormalizeMetric;
   float  m_Normalizer;
 
-  typedef BSplineInterpolateImageFunction<JointPDFType, double> pdfintType;
+  typedef LinearInterpolateImageFunction<JointPDFType, double> pdfintType;
   typename pdfintType::Pointer pdfinterpolator;
 
-  typedef BSplineInterpolateImageFunction<JointPDFDerivativesType, double> dpdfintType;
+  typedef LinearInterpolateImageFunction<JointPDFDerivativesType, double> dpdfintType;
   typename dpdfintType::Pointer dpdfinterpolator;
 
   typedef BSplineInterpolateImageFunction<MarginalPDFType, double> pdfintType2;
   typename pdfintType2::Pointer pdfinterpolator2;
   typename pdfintType2::Pointer pdfinterpolator3;
 
-  unsigned int m_Padding;
+  unsigned int        m_Padding;
+  JointPDFSpacingType m_JointPDFSpacing;
 };
 } // end namespace itk
 

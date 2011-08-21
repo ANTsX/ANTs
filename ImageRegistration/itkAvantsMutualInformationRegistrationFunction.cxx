@@ -139,13 +139,12 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 
 //  this->ComputeMetricImage();
 
-//    bool makenewimage=false;
   typedef ImageRegionIteratorWithIndex<TFixedImage> ittype;
   TFixedImage* img = const_cast<TFixedImage *>(this->m_FixedImage.GetPointer() );
   typename TFixedImage::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
-
   /*
-  if (!this->m_MetricImage )makenewimage=true;
+  bool makenewimage=false;
+  if (!this->m_MetricImage ) makenewimage=true;
   else if (imagesize[0] != this->m_MetricImage->GetLargestPossibleRegion().GetSize()[0])
     makenewimage = true;
   else this->m_MetricImage->FillBuffer(0);
@@ -252,75 +251,76 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   this->m_FixedImageTrueMax = fixedImageMax;
   this->m_MovingImageTrueMin = movingImageMin;
   this->m_FixedImageTrueMin = fixedImageMin;
-  fixedImageMax = 1. * ( fixedImageMax - fixedImageMin ) + fixedImageMin;
-  movingImageMax = 1. * ( movingImageMax - movingImageMin ) + movingImageMin;
 
-  m_FixedImageBinSize = ( fixedImageMax - fixedImageMin )
-    / static_cast<double>( m_NumberOfHistogramBins - 2 * this->m_Padding );
-  m_FixedImageNormalizedMin = fixedImageMin / m_FixedImageBinSize
-    - static_cast<double>( this->m_Padding );
-
-  m_MovingImageBinSize = ( movingImageMax - movingImageMin )
-    / static_cast<double>( m_NumberOfHistogramBins - 2 * this->m_Padding );
-  m_MovingImageNormalizedMin = movingImageMin / m_MovingImageBinSize
-    - static_cast<double>( this->m_Padding );
-
-  m_FixedImageMarginalPDF = MarginalPDFType::New();
-  m_MovingImageMarginalPDF = MarginalPDFType::New();
-  typename MarginalPDFType::RegionType            mPDFRegion;
-  typename MarginalPDFType::SizeType              mPDFSize;
-  typename MarginalPDFType::IndexType              mPDFIndex;
-  typename MarginalPDFType::SpacingType              mPDFspacing;
-  mPDFspacing.Fill(1);
-  mPDFIndex.Fill( 0 );
-  mPDFSize.Fill( m_NumberOfHistogramBins );
-  mPDFRegion.SetIndex( mPDFIndex );
-  mPDFRegion.SetSize( mPDFSize );
-  m_FixedImageMarginalPDF->SetRegions( mPDFRegion );
-  m_FixedImageMarginalPDF->Allocate();
-  m_FixedImageMarginalPDF->SetSpacing(mPDFspacing);
-  m_MovingImageMarginalPDF->SetRegions( mPDFRegion );
-  m_MovingImageMarginalPDF->Allocate();
-  m_MovingImageMarginalPDF->SetSpacing(mPDFspacing);
-
-  /**
-   * Allocate memory for the joint PDF and joint PDF derivatives.
-   * The joint PDF and joint PDF derivatives are store as itk::Image.
-   */
-  m_JointPDF = JointPDFType::New();
+  // Allocate memory for the joint PDF.
+  this->m_JointPDF = JointPDFType::New();
 
   // Instantiate a region, index, size
   JointPDFRegionType jointPDFRegion;
   JointPDFIndexType  jointPDFIndex;
   JointPDFSizeType   jointPDFSize;
 
-  // For the joint PDF define a region starting from {0,0}
-  // with size {m_NumberOfHistogramBins, m_NumberOfHistogramBins}.
-  // The dimension represents fixed image parzen window index
-  // and moving image parzen window index, respectively.
-  jointPDFIndex.Fill( 0 );
-  jointPDFSize.Fill( m_NumberOfHistogramBins );
-
-  jointPDFRegion.SetIndex( jointPDFIndex );
-  jointPDFRegion.SetSize( jointPDFSize );
+  // the jointPDF is of size NumberOfBins x NumberOfBins
+  jointPDFSize.Fill(m_NumberOfHistogramBins);
+  jointPDFIndex.Fill(0);
+  jointPDFRegion.SetIndex(jointPDFIndex);
+  jointPDFRegion.SetSize(jointPDFSize);
 
   // Set the regions and allocate
-  m_JointPDF->SetRegions( jointPDFRegion );
-  m_JointPDF->Allocate();
+  this->m_JointPDF->SetRegions(jointPDFRegion);
 
-  m_JointHist = JointPDFType::New();
-  m_JointHist->SetRegions(jointPDFRegion );
-  m_JointHist->Allocate();
+  // By setting these values, the joint histogram physical locations will correspond to intensity values.
+  JointPDFSpacingType spacing;
+  spacing[0] = 1 / (double)(this->m_NumberOfHistogramBins - (double)this->m_Padding * 2 - 1);
+  spacing[1] = spacing[0];
+  this->m_JointPDF->SetSpacing(spacing);
+  this->m_JointPDFSpacing = this->m_JointPDF->GetSpacing();
+  JointPDFPointType origin;
+  origin[0] = this->m_JointPDFSpacing[0] * (double)this->m_Padding * (-1.0);
+  origin[1] = origin[0];
+  this->m_JointPDF->SetOrigin(origin);
+  this->m_JointPDF->Allocate();
 
+  // do the same thing for the marginal pdfs
+  this->m_FixedImageMarginalPDF = MarginalPDFType::New();
+  this->m_MovingImageMarginalPDF = MarginalPDFType::New();
+
+  // Instantiate a region, index, size
+  typedef typename MarginalPDFType::RegionType MarginalPDFRegionType;
+  typedef typename MarginalPDFType::SizeType   MarginalPDFSizeType;
+  MarginalPDFRegionType marginalPDFRegion;
+  MarginalPDFIndexType  marginalPDFIndex;
+  MarginalPDFSizeType   marginalPDFSize;
+
+  // the marginalPDF is of size NumberOfBins x NumberOfBins
+  marginalPDFSize.Fill(m_NumberOfHistogramBins);
+  marginalPDFIndex.Fill(0);
+  marginalPDFRegion.SetIndex(marginalPDFIndex);
+  marginalPDFRegion.SetSize(marginalPDFSize);
+
+  // Set the regions and allocate
+  this->m_FixedImageMarginalPDF->SetRegions(marginalPDFRegion);
+  this->m_MovingImageMarginalPDF->SetRegions(marginalPDFRegion);
+
+  // By setting these values, the marginal histogram physical locations will correspond to intensity values.
+  typename MarginalPDFType::PointType fixedorigin;
+  typename MarginalPDFType::PointType movingorigin;
+  fixedorigin[0] = origin[0];
+  movingorigin[0] = origin[1];
+  this->m_FixedImageMarginalPDF->SetOrigin(fixedorigin);
+  this->m_MovingImageMarginalPDF->SetOrigin(movingorigin);
+  typename MarginalPDFType::SpacingType mspacing;
+  mspacing[0] = spacing[0];
+  this->m_FixedImageMarginalPDF->SetSpacing(mspacing);
+  mspacing[0] = spacing[1];
+  this->m_MovingImageMarginalPDF->SetSpacing(mspacing);
+  this->m_FixedImageMarginalPDF->Allocate();
+  this->m_MovingImageMarginalPDF->Allocate();
   // For the derivatives of the joint PDF define a region starting from {0,0,0}
   // with size {m_NumberOfParameters,m_NumberOfHistogramBins,
   // m_NumberOfHistogramBins}. The dimension represents transform parameters,
   // fixed image parzen window index and moving image parzen window index,
   // respectively.
-
-  typename JointPDFType::SpacingType jspacing; jspacing.Fill(1);
-  this->m_JointHist->SetSpacing(jspacing);
-  this->m_JointPDF->SetSpacing(jspacing);
 
   m_NormalizeMetric = 1.0;
   for( int i = 0; i < ImageDimension; i++ )
@@ -334,9 +334,10 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   pdfinterpolator->SetInputImage(m_JointPDF);
   pdfinterpolator2->SetInputImage(m_FixedImageMarginalPDF);
   pdfinterpolator3->SetInputImage(m_MovingImageMarginalPDF);
-  pdfinterpolator->SetSplineOrder(3);
+  /*  pdfinterpolator->SetSplineOrder(3);
   pdfinterpolator2->SetSplineOrder(3);
   pdfinterpolator3->SetSplineOrder(3);
+  */
 }
 
 /**
@@ -349,17 +350,11 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 {
   typedef ImageRegionConstIteratorWithIndex<FixedImageType> RandomIterator;
   RandomIterator randIter( this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion() );
-  for( unsigned int j = 0; j < m_NumberOfHistogramBins; j++ )
-    {
-    MarginalPDFIndexType mind;
-    mind[0] = j;
-    m_FixedImageMarginalPDF->SetPixel(mind, 0);
-    m_MovingImageMarginalPDF->SetPixel(mind, 0);
-    }
+  this->m_FixedImageMarginalPDF->FillBuffer(0);
+  this->m_MovingImageMarginalPDF->FillBuffer(0);
 
   // Reset the joint pdfs to zero
   m_JointPDF->FillBuffer( 0.0 );
-  m_JointHist->FillBuffer( 0.0 );
 
   unsigned long  nSamples = 0;
   RandomIterator iter( this->m_FixedImage, this->m_FixedImage->GetLargestPossibleRegion() );
@@ -389,17 +384,13 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
       double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( index )  );
       double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( index )  );
 
-      unsigned int movingImageParzenWindowIndex = this->FitIndexInBins(  movingImageValue );
-      unsigned int fixedImageParzenWindowIndex = this->FitIndexInBins( fixedImageValue  );
-
-      //	std::cout << " fiv " << fixedImageValue << " fip " << fixedImageParzenWindowIndex << " miv " <<
-      // movingImageValue << " mip " << movingImageParzenWindowIndex << std::endl;
-
-      JointPDFValueType *pdfPtr = m_JointPDF->GetBufferPointer()
-        + ( fixedImageParzenWindowIndex * m_NumberOfHistogramBins );
-      int pdfMovingIndex = static_cast<int>( movingImageParzenWindowIndex );
-      pdfPtr += pdfMovingIndex;
-      *(pdfPtr) += static_cast<PDFValueType>( 1 );
+      /** add the paired intensity points to the joint histogram */
+      JointPDFPointType jointPDFpoint;
+      this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, jointPDFpoint);
+      JointPDFIndexType jointPDFIndex;
+      jointPDFIndex.Fill(0);
+      this->m_JointPDF->TransformPhysicalPointToIndex(jointPDFpoint, jointPDFIndex);
+      this->m_JointPDF->SetPixel(jointPDFIndex, this->m_JointPDF->GetPixel(jointPDFIndex) + 1);
 
       ++nSamples;
       }
@@ -414,44 +405,13 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 
   // Compute joint PDF normalization factor (to ensure joint PDF sum adds to 1.0)
   double jointPDFSum = 0.0;
-  float  max = 0;
-  float  max2 = 0;
-  float  max3 = 0;
-  float  max4 = 0;
   jointPDFIterator.GoToBegin();
   while( !jointPDFIterator.IsAtEnd() )
     {
     float temp = jointPDFIterator.Get();
-    m_JointHist->SetPixel(jointPDFIterator.GetIndex(), temp);
-    if( temp > max )
-      {
-      max = temp;
-      }
-    if( temp > max2 && temp < max )
-      {
-      max2 = temp;
-      }
-    if( temp > max3 && temp < max2 )
-      {
-      max3 = temp;
-      }
-    if( temp > max4 && temp < max3 )
-      {
-      max4 = temp;
-      }
-    ++jointPDFIterator;
-    }
-
-  jointPDFIterator.GoToBegin();
-  while( !jointPDFIterator.IsAtEnd() )
-    {
-    float temp = jointPDFIterator.Get();
-    jointPDFIterator.Set(temp);
     jointPDFSum += temp;
     ++jointPDFIterator;
     }
-
-  // std::cout << " Joint PDF Summation? " << jointPDFSum << std::endl;
 
 // of derivatives
   if( jointPDFSum == 0.0 )
@@ -473,7 +433,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
     typedef DiscreteGaussianImageFilter<JointPDFType, JointPDFType> dgtype;
     typename dgtype::Pointer dg = dgtype::New();
     dg->SetInput(this->m_JointPDF);
-    dg->SetVariance(1.);
+    dg->SetVariance(1.5);
     dg->SetUseImageSpacingOff();
     dg->SetMaximumError(.01f);
     dg->Update();
@@ -484,7 +444,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   typedef ImageLinearIteratorWithIndex<JointPDFType> JointPDFLinearIterator;
   JointPDFLinearIterator linearIter(
     m_JointPDF, m_JointPDF->GetBufferedRegion() );
-
   linearIter.SetDirection( 0 );
   linearIter.GoToBegin();
   unsigned int fixedIndex = 0;
@@ -541,38 +500,31 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 
   double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( oindex )  );
   double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( oindex )  );
-  double movingImageParzenWindowContIndex = this->FitContIndexInBins(  movingImageValue );
-  double fixedImageParzenWindowContIndex = this->FitContIndexInBins( fixedImageValue  );
 
   double dJPDF = 0, dFmPDF = 0, jointPDFValue = 0, fixedImagePDFValue = 0;
 
-    {
-    typename  pdfintType::ContinuousIndexType pdfind;
-    pdfind[1] = fixedImageParzenWindowContIndex;
-    pdfind[0] = movingImageParzenWindowContIndex;
-    jointPDFValue = pdfinterpolator->EvaluateAtContinuousIndex(pdfind);
-    dJPDF = (1.0) * (pdfinterpolator->EvaluateDerivativeAtContinuousIndex( pdfind ) )[1];
-    }
+  JointPDFPointType pdfind;
+  this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, pdfind);
+  jointPDFValue = pdfinterpolator->Evaluate(pdfind);
+  dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 0 );
 
-    {
-    typename   pdfintType2::ContinuousIndexType  mind;
-    mind[0] = fixedImageParzenWindowContIndex;
-    fixedImagePDFValue = pdfinterpolator2->EvaluateAtContinuousIndex(mind);
-    dFmPDF = (pdfinterpolator2->EvaluateDerivativeAtContinuousIndex(mind) )[0];
-    }
+  typename   pdfintType2::ContinuousIndexType  mind;
+  mind[0] = pdfind[0];
+  fixedImagePDFValue = pdfinterpolator2->Evaluate(mind);
+  dFmPDF = this->ComputeFixedImageMarginalPDFDerivative( mind, 0 );
 
-  double term1 = 0, term2 = 0, eps = 1.e-12;
+  double term1 = 0, term2 = 0, eps = 1.e-16;
   if( jointPDFValue > eps &&  (fixedImagePDFValue) > 0 )
     {
-    term1 = dJPDF / jointPDFValue;
-    term2 = dFmPDF / fixedImagePDFValue;
-    value =  (term1 * (-1.0) + term2);
-    }    // end if-block to check non-zero bin contribution
+    const double pRatio = vcl_log(jointPDFValue) - vcl_log(fixedImagePDFValue);
+    term1 = dJPDF * pRatio;
+    term2 = vcl_log(2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
+    value =  (term2 - term1);
+    }  // end if-block to check non-zero bin contribution
   else
     {
     value = 0;
     }
-
   return value;
 }
 
@@ -590,41 +542,31 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 
   double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( oindex )  );
   double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( oindex )  );
-  double movingImageParzenWindowContIndex = this->FitContIndexInBins(  movingImageValue );
-  double fixedImageParzenWindowContIndex = this->FitContIndexInBins( fixedImageValue  );
 
   double dJPDF = 0, dMmPDF = 0, jointPDFValue = 0, movingImagePDFValue = 0;
 
-    {
-    typename   pdfintType::ContinuousIndexType   pdfind;
-    pdfind[1] = fixedImageParzenWindowContIndex;
-    pdfind[0] = movingImageParzenWindowContIndex;
-    jointPDFValue = pdfinterpolator->EvaluateAtContinuousIndex(pdfind);
-    dJPDF = (1.0) * (pdfinterpolator->EvaluateDerivativeAtContinuousIndex( pdfind ) )[0];
-    }
+  JointPDFPointType pdfind;
+  this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, pdfind);
+  jointPDFValue = pdfinterpolator->Evaluate(pdfind);
+  dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 1 );
 
-    {
-    typename   pdfintType2::ContinuousIndexType  mind;
-    mind[0] = movingImageParzenWindowContIndex;
-    movingImagePDFValue = pdfinterpolator3->EvaluateAtContinuousIndex(mind);
-    dMmPDF = (pdfinterpolator3->EvaluateDerivativeAtContinuousIndex(mind) )[0];
-    }
+  typename   pdfintType2::ContinuousIndexType  mind;
+  mind[0] = pdfind[1];
+  movingImagePDFValue = pdfinterpolator3->EvaluateAtContinuousIndex(mind);
+  dMmPDF = this->ComputeMovingImageMarginalPDFDerivative( mind, 0 );
 
-  double term1 = 0, term2 = 0, eps = 1.e-12;
+  double term1 = 0, term2 = 0, eps = 1.e-16;
   if( jointPDFValue > eps &&  (movingImagePDFValue) > 0 )
     {
-    term1 = dJPDF / jointPDFValue;
-    term2 = dMmPDF / movingImagePDFValue;
-    value =  (term1 * (-1.0) + term2);
+    const double pRatio = vcl_log(jointPDFValue) - vcl_log(movingImagePDFValue);
+    term1 = dJPDF * pRatio;
+    term2 = vcl_log(2) * dMmPDF * jointPDFValue / movingImagePDFValue;
+    value =  (term2 - term1);
     } // end if-block to check non-zero bin contribution
   else
     {
     value = 0;
     }
-
-  // double pmr=jointPDFValue;
-  // double pmt=jointPDFValue;
-  // double Fx=log( ( pmr / pr )  /  ( pmt / pt  ) );
 
   return value;
 }
