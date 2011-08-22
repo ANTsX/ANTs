@@ -59,7 +59,7 @@ Optional arguments:
 
      -m:  Max-iterations in each registration
 
-     -n:  N3BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
+     -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
 
      -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
           you do not have an initial template
@@ -135,7 +135,7 @@ Optional arguments:
 	  Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another
 	  iteration level.
 
-     -n:  N3BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
+     -n:  N4BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
 
      -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
           you do not have an initial template
@@ -251,7 +251,7 @@ function reportMappingParameters {
  ANTSPATH is $ANTSPATH
 
  Dimensionality:			$DIM
- N3BiasFieldCorrection:			$N3CORRECT
+ N4BiasFieldCorrection:			$N4CORRECT
  Similarity Metric:			$METRICTYPE
  Transformation:			$TRANSFORMATIONTYPE
  Regularization:			$REGULARIZATION
@@ -515,7 +515,7 @@ cleanup()
 
 # 1st attempt to kill all remaining processes
 # put all related processes in array
-  runningANTSpids=( `ps -C ANTS -C N3BiasFieldCorrection -C fslsplit | awk '{ printf "%s\n", $1 ; }'` )
+  runningANTSpids=( `ps -C ANTS -C N4BiasFieldCorrection -C fslsplit | awk '{ printf "%s\n", $1 ; }'` )
 
 # debug only
   #echo list 1: ${runningANTSpids[@]}
@@ -548,7 +548,7 @@ MAXITERATIONS=30x90x20
 LABELIMAGE=0 # initialize optional parameter
 METRICTYPE=CC # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
-N3CORRECT=1 # initialize optional parameter
+N4CORRECT=1 # initialize optional parameter
 DOQSUB=1 # By default, buildtemplateparallel tries to do things in parallel
 GRADIENTSTEP=0.25 # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
 ITERATIONLIMIT=4
@@ -607,7 +607,7 @@ while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
 	  MAXITERATIONS=$OPTARG
 	  ;;
       n) #apply bias field correction
-	  N3CORRECT=$OPTARG
+	  N4CORRECT=$OPTARG
 	  ;;
       o) #output name prefix
 	  OUTPUTNAME=$OPTARG
@@ -957,7 +957,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
     fi
 
     # 5 prepare registration command
-    exe="${ANTSSCRIPTNAME} -d ${DIM} -r ${dir}/${TEMPLATE} -i ${dir}/${IMG} -o ${dir}/${OUTFN} -m ${MAXITERATIONS} -n ${N3CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
+    exe="${ANTSSCRIPTNAME} -d ${DIM} -r ${dir}/${TEMPLATE} -i ${dir}/${IMG} -o ${dir}/${OUTFN} -m ${MAXITERATIONS} -n ${N4CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
     pexe=" $exe >> job_${count}_${i}_metriclog.txt "
 
     # 6 submit to SGE or else run locally

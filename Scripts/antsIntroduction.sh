@@ -35,7 +35,7 @@ Optional arguments
 
 -m:  Max-iterations
 
--n:  N3BiasFieldCorrection of moving image ( 0 = off (default); 1 = on )
+-n:  N4BiasFieldCorrection of moving image ( 0 = off (default); 1 = on )
 
 -o:  OUTPREFIX; A prefix that is prepended to all output files.
 
@@ -106,7 +106,7 @@ function Help {
 	Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another
 	iteration level.
 
- -n:  N3BiasFieldCorrection of moving image ( 0 = off (default); 1 = on )
+ -n:  N4BiasFieldCorrection of moving image ( 0 = off (default); 1 = on )
 
  -o:  OUTPREFIX; A prefix that is prepended to all output files.
 
@@ -230,7 +230,7 @@ Dimensionality:				$DIM
 Fixed image:				$FIXED
 Moving image:				$MOVING
 Use label image:			$LABELIMAGE
-N3BiasFieldCorrection:			$N3CORRECT
+N4BiasFieldCorrection:			$N4CORRECT
 DoANTS Quality Check: 			$DoANTSQC
 Similarity Metric:			$METRICTYPE
 Transformation:				$TRANSFORMATIONTYPE
@@ -278,7 +278,7 @@ LABELIMAGE=0 # initialize optional parameter
 DoANTSQC=0 # initialize optional parameter
 METRICTYPE="PR" # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
-N3CORRECT=0 # initialize optional parameter
+N4CORRECT=0 # initialize optional parameter
 RIGID=0
 IGNORE_HDR_WARNING=1
 
@@ -315,7 +315,7 @@ do
         MAXITERATIONS=$OPTARG
         ;;
     n) #apply bias field correction
-        N3CORRECT=$OPTARG
+        N4CORRECT=$OPTARG
         ;;
     o) #output name prefix
         OUTPUTNAME=$OPTARG
@@ -507,7 +507,7 @@ echo "DIM=$DIM" >> ${MOVINGBASE}.cfg
 echo "FIXED=$FIXED" >> ${MOVINGBASE}.cfg
 echo "MOVING=$MOVING" >> ${MOVINGBASE}.cfg
 echo "LABELIMAGE=$LABELIMAGE" >> ${MOVINGBASE}.cfg
-echo "N3CORRECT=$N3CORRECT" >> ${MOVINGBASE}.cfg
+echo "N4CORRECT=$N4CORRECT" >> ${MOVINGBASE}.cfg
 echo "DoANTSQC=$DoANTSQC" >> ${MOVINGBASE}.cfg
 echo "METRICTYPE=$METRICTYPE" >> ${MOVINGBASE}.cfg
 echo "TRANSFORMATIONTYPE=$TRANSFORMATIONTYPE" >> ${MOVINGBASE}.cfg
@@ -516,9 +516,9 @@ echo "MAXITERATIONS=$MAXITERATIONS" >> ${MOVINGBASE}.cfg
 echo "NUMLEVELS=$NUMLEVELS" >> ${MOVINGBASE}.cfg
 echo "OUTPUTNAME=$OUTPUTNAME" >> ${MOVINGBASE}.cfg
 
-if  [ ${N3CORRECT} -eq 0 ] && [ ${RIGID} -eq 0 ]
+if  [ ${N4CORRECT} -eq 0 ] && [ ${RIGID} -eq 0 ]
 then
-# Apply ANTS mapping command without N3BiasFieldCorrection
+# Apply ANTS mapping command without N4BiasFieldCorrection
 exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 "
 echo
 echo "--------------------------------------------------------------------------------------"
@@ -554,19 +554,19 @@ ${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz
 echo "warpinv=${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz -R ${MOVING} -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz" >> ${MOVINGBASE}.cfg
 fi
 
-elif [ ${N3CORRECT} -eq 1 ] && [ ${RIGID} -eq 0 ]
+elif [ ${N4CORRECT} -eq 1 ] && [ ${RIGID} -eq 0 ]
 then
-# Apply N3BiasFieldCorrection
-exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
+# Apply N4BiasFieldCorrection
+exe="${ANTSPATH}N4BiasFieldCorrection -d $DIM -i $MOVING -s 2 -c [50x50x50x50,0.0000001] -b [200] -o ${OUTPUTNAME}.nii.gz"
 echo
 echo "--------------------------------------------------------------------------------------"
-echo "N3BiasFieldCorrection command:"
+echo "N4BiasFieldCorrection command:"
 echo "$exe "
 echo "--------------------------------------------------------------------------------------"
 $exe
-echo "execN3=$exe" >> ${MOVINGBASE}.cfg
+echo "execN4=$exe" >> ${MOVINGBASE}.cfg
 
-# Apply ANTS mapping command on N3 corrected image
+# Apply ANTS mapping command on N4 corrected image
 exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}.nii.gz,${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000  "
 echo
 echo "--------------------------------------------------------------------------------------"
@@ -601,7 +601,7 @@ ${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz
 echo "warpinv=${ANTSPATH}WarpImageMultiTransform $DIM ${FIXED} ${FIXEDBASE}_InverseWarp.nii.gz -R ${OUTPUTNAME}.nii.gz -i ${OUTPUTNAME}Affine.txt ${OUTPUTNAME}InverseWarp.nii.gz" >> ${MOVINGBASE}.cfg
 fi
 
-elif  [ ${N3CORRECT} -eq 0 ] && [ ${RIGID} -eq 1 ]
+elif  [ ${N4CORRECT} -eq 0 ] && [ ${RIGID} -eq 1 ]
 then
 exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 ${RIGIDTRANSF} "
 echo
@@ -619,17 +619,17 @@ echo "Applying rigid transformation to ${MOVING}"
 echo "--------------------------------------------------------------------------------------"
 ${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz ${OUTPUTNAME}Affine.txt -R ${FIXED}
 
-elif  [ ${N3CORRECT} -eq 1 ] && [ ${RIGID} -eq 1 ]
+elif  [ ${N4CORRECT} -eq 1 ] && [ ${RIGID} -eq 1 ]
 then
-# Apply N3BiasFieldCorrection
-exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
+# Apply N4BiasFieldCorrection
+exe="${ANTSPATH}N4BiasFieldCorrection -d $DIM -i $MOVING -s 2 -c [50x50x50x50,0.0000001] -b [200] -o ${OUTPUTNAME}.nii.gz"
 echo
 echo "--------------------------------------------------------------------------------------"
-echo "N3BiasFieldCorrection command:"
+echo "N4BiasFieldCorrection command:"
 echo "$exe "
 echo "--------------------------------------------------------------------------------------"
 $exe
-echo "execN3=$exe" >> ${MOVINGBASE}.cfg
+echo "execN4=$exe" >> ${MOVINGBASE}.cfg
 
 exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 ${RIGIDTRANSF} "
 echo

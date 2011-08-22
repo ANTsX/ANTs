@@ -116,7 +116,8 @@ echo " "
 
 
 if [[ ! -s ${OUTPUTNAME}repaired.nii.gz ]] ; then
-${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING   ${OUTPUTNAME}repaired.nii.gz  4
+${ANTSPATH}N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}repaired.nii.gz -s 2 -c [50x50x50x50,0.000001] -b [200]
+# ${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING   ${OUTPUTNAME}repaired.nii.gz  4
 fi
 exe=" ${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}repaired.nii.gz,${METRICPARAMS}  -t $TRANSFORMATION  -r $REGULARIZATION -o ${OUTPUTNAME}   -i $MAXITERATIONS   --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000  "
 
