@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 VERSION="0.0.13"
 
 # trap keyboard interrupt (control-c)
@@ -19,6 +20,12 @@ fi
 
 function Usage {
     cat <<USAGE
+
+Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script in your studies.
+A reproducible evaluation of ANTs similarity metric performance in brain image registration.
+Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
+
+Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.  The script has been updated and improved since this publication.
 
 Usage:
 
@@ -88,6 +95,11 @@ USAGE
 
 function Help {
     cat <<HELP
+Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script in your studies.
+A reproducible evaluation of ANTs similarity metric performance in brain image registration.
+Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
+
+Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.  The script has been updated and improved since this publication.
 
 ./buildtemplateparallel.sh  will make a template out of the input files using an elastic
 or diffeomorphic transformation. This script builds a template iteratively from the input
@@ -558,7 +570,6 @@ RIGID=0
 RIGIDTYPE=" --do-rigid" # set to an empty string to use affine initialization
 range=0
 REGTEMPLATE=target
-cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -633,14 +644,6 @@ while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
   esac
 done
 
-if [ $DOQSUB -eq 1 ] ; then
-  qq=`which  qsub`
-  if [  ${#qq} -lt 1 ] ; then
-    echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
-    exit
-  fi
-fi
-
 # Provide different output for Usage and Help
 if [ ${TDIM} -eq 4 ] && [ $nargs -lt 5 ]
     then
@@ -653,6 +656,15 @@ elif [ $nargs -lt 6 ]
     then
     Usage >&2
 fi
+
+if [ $DOQSUB -eq 1 ] ; then
+  qq=`which  qsub`
+  if [  ${#qq} -lt 1 ] ; then
+    echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
+    exit
+  fi
+fi
+cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
 
 #ANTSPATH=YOURANTSPATH
 if [  ${#ANTSPATH} -le 0 ]
