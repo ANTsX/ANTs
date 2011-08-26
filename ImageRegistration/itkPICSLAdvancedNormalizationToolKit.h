@@ -55,13 +55,13 @@ public:
   typedef typename ImageType::Pointer   ImagePointer;
   typedef typename ImageType::PixelType PixelType;
 
-  typedef itk::ANTSImageTransformation<Dimension, TReal>         TransformationModelType;
-  typedef typename TransformationModelType::Pointer              TransformationModelPointer;
-  typedef itk::ANTSImageRegistrationOptimizer<Dimension, TReal>  RegistrationOptimizerType;
-  typedef typename RegistrationOptimizerType::Pointer            RegistrationOptimizerPointer;
-  typedef typename TransformationModelType::DeformationFieldType DeformationFieldType;
-  typedef typename TransformationModelType::AffineTransformType  AffineTransformType;
-  typedef typename RegistrationOptimizerType::OptAffineType      OptAffineType;
+  typedef itk::ANTSImageTransformation<Dimension, TReal>          TransformationModelType;
+  typedef typename TransformationModelType::Pointer               TransformationModelPointer;
+  typedef itk::ANTSImageRegistrationOptimizer<Dimension, TReal>   RegistrationOptimizerType;
+  typedef typename RegistrationOptimizerType::Pointer             RegistrationOptimizerPointer;
+  typedef typename TransformationModelType::DisplacementFieldType DisplacementFieldType;
+  typedef typename TransformationModelType::AffineTransformType   AffineTransformType;
+  typedef typename RegistrationOptimizerType::OptAffineType       OptAffineType;
 
   /** Point Set Type */
   typedef itk::ANTSLabeledPointSet<Dimension>        LabeledPointSetType;

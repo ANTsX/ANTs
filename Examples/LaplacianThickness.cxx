@@ -724,7 +724,7 @@ int LaplacianThickness(int argc, char *argv[])
   std::cout << " using tolerance " << tolerance << std::endl;
   typedef float                                      PixelType;
   typedef itk::Vector<float, ImageDimension>         VectorType;
-  typedef itk::Image<VectorType, ImageDimension>     DeformationFieldType;
+  typedef itk::Image<VectorType, ImageDimension>     DisplacementFieldType;
   typedef itk::Image<PixelType, ImageDimension>      ImageType;
   typedef itk::ImageFileReader<ImageType>            readertype;
   typedef itk::ImageFileWriter<ImageType>            writertype;
@@ -750,8 +750,8 @@ int LaplacianThickness(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
   typename ImageType::Pointer wmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, wm);
-  typename DeformationFieldType::Pointer lapgrad = NULL;
-  typename DeformationFieldType::Pointer lapgrad2 = NULL;
+  typename DisplacementFieldType::Pointer lapgrad = NULL;
+  typename DisplacementFieldType::Pointer lapgrad2 = NULL;
   typename ImageType::Pointer gmb = BinaryThreshold<ImageType>(0.5, 1.e9, 1, gm);
 
 /** get sulcal priors */
@@ -803,7 +803,7 @@ int LaplacianThickness(int argc, char *argv[])
     std::cout << " modified gm prior by sulcus prior " << std::endl;
     WriteImage<ImageType>(sulci, "sulcigm.nii");
 
-    typedef itk::GradientRecursiveGaussianImageFilter<ImageType, DeformationFieldType>
+    typedef itk::GradientRecursiveGaussianImageFilter<ImageType, DisplacementFieldType>
       GradientImageFilterType;
     typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
     GradientImageFilterPointer filter = GradientImageFilterType::New();
@@ -816,8 +816,8 @@ int LaplacianThickness(int argc, char *argv[])
 /** sulc priors done */
     }
 
-  lapgrad = LaplacianGrad<ImageType, DeformationFieldType>(wmb, gmb, smoothparam, 500, tolerance);
-  //  lapgrad=FMMGrad<ImageType,DeformationFieldType>(wmb,gmb);
+  lapgrad = LaplacianGrad<ImageType, DisplacementFieldType>(wmb, gmb, smoothparam, 500, tolerance);
+  //  lapgrad=FMMGrad<ImageType,DisplacementFieldType>(wmb,gmb);
 
   //  LabelSurface(typename TImage::PixelType foreground,
   //       typename TImage::PixelType newval, typename TImage::Pointer input, float distthresh )
@@ -839,7 +839,7 @@ int LaplacianThickness(int argc, char *argv[])
   float finishtime = timeone; // s[ImageDimension]-1;//timeone;
   // std::cout << " MUCKING WITH START FINISH TIME " <<  finishtime <<  std::endl;
 
-  typename DeformationFieldType::IndexType velind;
+  typename DisplacementFieldType::IndexType velind;
   typename ImageType::Pointer smooththick = NULL;
   float timesign = 1.0;
   if( starttime  >  finishtime )
@@ -847,14 +847,14 @@ int LaplacianThickness(int argc, char *argv[])
     timesign = -1.0;
     }
   unsigned int m_NumberOfTimePoints = 2;
-  typedef   DeformationFieldType                                                         TimeVaryingVelocityFieldType;
-  typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType>                        FieldIterator;
-  typedef typename DeformationFieldType::IndexType                                       DIndexType;
-  typedef typename DeformationFieldType::PointType                                       DPointType;
+  typedef   DisplacementFieldType                                                        TimeVaryingVelocityFieldType;
+  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType>                       FieldIterator;
+  typedef typename DisplacementFieldType::IndexType                                      DIndexType;
+  typedef typename DisplacementFieldType::PointType                                      DPointType;
   typedef typename TimeVaryingVelocityFieldType::IndexType                               VIndexType;
   typedef typename TimeVaryingVelocityFieldType::PointType                               VPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> DefaultInterpolatorType;
-  typedef itk::VectorLinearInterpolateImageFunction<DeformationFieldType, float>         DefaultInterpolatorType2;
+  typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, float>        DefaultInterpolatorType2;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
   typename ScalarInterpolatorType::Pointer sinterp =  ScalarInterpolatorType::New();
@@ -871,7 +871,7 @@ int LaplacianThickness(int argc, char *argv[])
   typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
   DPointType pointIn3;
 
-  typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> VIteratorType;
+  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
   VIteratorType VIterator( lapgrad, lapgrad->GetLargestPossibleRegion().GetSize() );
   VIterator.GoToBegin();
   while(  !VIterator.IsAtEnd()  )
@@ -941,13 +941,13 @@ int LaplacianThickness(int argc, char *argv[])
           }
         vinterp->SetInputImage(lapgrad);
         gradsign = -1.0; vecsign = -1.0;
-        float len1 = IntegrateLength<ImageType, DeformationFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
+        float len1 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
             (gmsurf, thickimage, velind, lapgrad,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
             sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
             gm, priorthickval, smooththick, printprobability, sulci );
 
         gradsign = 1.0;  vecsign = 1;
-        float len2 = IntegrateLength<ImageType, DeformationFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
+        float len2 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
             (gmsurf, thickimage, velind, lapgrad,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
             sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
             gm, priorthickval - len1, smooththick, printprobability, sulci );
@@ -957,13 +957,13 @@ int LaplacianThickness(int argc, char *argv[])
           {
           vinterp->SetInputImage(lapgrad2);
           gradsign = -1.0; vecsign = -1.0;
-          len3 = IntegrateLength<ImageType, DeformationFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
+          len3 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
               (gmsurf, thickimage, velind, lapgrad2,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
               sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
               gm, priorthickval, smooththick, printprobability, sulci );
 
           gradsign = 1.0;  vecsign = 1;
-          len4 = IntegrateLength<ImageType, DeformationFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
+          len4 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
               (gmsurf, thickimage, velind, lapgrad2,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
               sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
               gm, priorthickval - len3, smooththick, printprobability, sulci );

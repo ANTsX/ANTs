@@ -42,8 +42,8 @@ template <unsigned int TDimension, class TReal>
 ANTSImageTransformation<TDimension, TReal>
 ::ANTSImageTransformation()
 {
-  this->m_DeformationField = NULL;
-  this->m_InverseDeformationField = NULL;
+  this->m_DisplacementField = NULL;
+  this->m_InverseDisplacementField = NULL;
   this->m_AffineTransform = NULL;
   this->m_WriteComponentImages = false;
   m_DeformationRegionOfInterestSize.Fill(0);
@@ -138,7 +138,7 @@ ANTSImageTransformation<TDimension, TReal>
     WriteAffineTransformFile(this->m_AffineTransform, filename);
     }
 
-  if( this->m_DeformationField )
+  if( this->m_DisplacementField )
     {
     std::cout << " writing " << filePrefix << " def " <<  std::endl;
     if( extension != std::string( ".mha" ) )
@@ -146,45 +146,45 @@ ANTSImageTransformation<TDimension, TReal>
       std::string filename = filePrefix + std::string( "Warp" )
         + extension + gzExtension;
 
-      typedef ImageFileWriter<DeformationFieldType> WriterType;
+      typedef ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       std::cout << "filename " << filename << std::endl;
       writer->SetFileName( filename );
       //            writer->SetUseAvantsNamingConvention( true );
-      writer->SetInput( this->m_DeformationField );
+      writer->SetInput( this->m_DisplacementField );
       writer->Update();
       }
     else
       {
       std::string filename = filePrefix + std::string( "Warp.nii.gz" );
-      typedef ImageFileWriter<DeformationFieldType> WriterType;
+      typedef ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( filename );
-      writer->SetInput( this->m_DeformationField );
+      writer->SetInput( this->m_DisplacementField );
       writer->Update();
       }
     }
 
-  if( this->m_InverseDeformationField )
+  if( this->m_InverseDisplacementField )
     {
     if( extension != std::string( ".mha" ) )
       {
       std::string filename = filePrefix + std::string( "InverseWarp" )
         + extension + gzExtension;
-      typedef ImageFileWriter<DeformationFieldType> WriterType;
+      typedef ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( filename );
       //            writer->SetUseAvantsNamingConvention( true );
-      writer->SetInput( this->m_InverseDeformationField );
+      writer->SetInput( this->m_InverseDisplacementField );
       writer->Update();
       }
     else
       {
       std::string filename = filePrefix + std::string( "InverseWarp.mha" );
-      typedef ImageFileWriter<DeformationFieldType> WriterType;
+      typedef ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( filename );
-      writer->SetInput( this->m_InverseDeformationField );
+      writer->SetInput( this->m_InverseDisplacementField );
       writer->Update();
       }
     }

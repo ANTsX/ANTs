@@ -71,7 +71,7 @@ namespace itk
  * type of the output image and the type of the deformation field.
  *
  * The input image is set via SetInput. The input deformation field
- * is set via SetDeformationField.
+ * is set via SetDisplacementField.
  *
  * This filter is implemented as a multithreaded filter.
  *
@@ -83,7 +83,7 @@ namespace itk
 template <
   class TInputImage,
   class TOutputImage,
-  class TDeformationField,
+  class TDisplacementField,
   class TTransform
   >
 class ITK_EXPORT WarpTensorImageMultiTransformFilter :
@@ -93,7 +93,7 @@ public:
   /** transform order type **/
   // typedef enum _TransformOrderType {AffineFirst=0, AffineLast} TransformOrderType;
   /** transform type **/
-  typedef enum _SingleTransformType { EnumAffineType = 0, EnumDeformationFieldType } SingleTransformType;
+  typedef enum _SingleTransformType { EnumAffineType = 0, EnumDisplacementFieldType } SingleTransformType;
 
   /** Standard class typedefs. */
   typedef WarpTensorImageMultiTransformFilter           Self;
@@ -127,33 +127,33 @@ public:
                       TOutputImage::ImageDimension );
   itkStaticConstMacro(InputImageDimension, unsigned int,
                       TInputImage::ImageDimension );
-  itkStaticConstMacro(DeformationFieldDimension, unsigned int,
-                      TDeformationField::ImageDimension );
+  itkStaticConstMacro(DisplacementFieldDimension, unsigned int,
+                      TDisplacementField::ImageDimension );
 
   /** Deformation field typedef support. */
-  typedef TDeformationField                        DeformationFieldType;
-  typedef typename DeformationFieldType::Pointer   DeformationFieldPointer;
-  typedef typename DeformationFieldType::PixelType DisplacementType;
-  typedef typename DisplacementType::ValueType     DisplacementScalarValueType;
+  typedef TDisplacementField                        DisplacementFieldType;
+  typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
+  typedef typename DisplacementFieldType::PixelType DisplacementType;
+  typedef typename DisplacementType::ValueType      DisplacementScalarValueType;
 
   /** songgang: Affine transform typedef support. */
   typedef TTransform                      TransformType;
   typedef typename TransformType::Pointer TransformTypePointer;
 
   /** Interpolator typedef support. */
-  typedef double                                                                   CoordRepType;
-  typedef VectorInterpolateImageFunction<InputImageType, CoordRepType>             InterpolatorType;
-  typedef typename InterpolatorType::Pointer                                       InterpolatorPointer;
-  typedef VectorLinearInterpolateImageFunction<InputImageType, CoordRepType>       DefaultInterpolatorType;
-  typedef VectorLinearInterpolateImageFunction<DeformationFieldType, CoordRepType> DefaultVectorInterpolatorType;
-  typedef typename DefaultVectorInterpolatorType::Pointer                          VectorInterpolatorPointer;
+  typedef double                                                                    CoordRepType;
+  typedef VectorInterpolateImageFunction<InputImageType, CoordRepType>              InterpolatorType;
+  typedef typename InterpolatorType::Pointer                                        InterpolatorPointer;
+  typedef VectorLinearInterpolateImageFunction<InputImageType, CoordRepType>        DefaultInterpolatorType;
+  typedef VectorLinearInterpolateImageFunction<DisplacementFieldType, CoordRepType> DefaultVectorInterpolatorType;
+  typedef typename DefaultVectorInterpolatorType::Pointer                           VectorInterpolatorPointer;
 
   /** Point type */
   typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
 
   typedef struct _DeformationTypeEx
     {
-    DeformationFieldPointer field;
+    DisplacementFieldPointer field;
     VectorInterpolatorPointer vinterp;
     } DeformationTypeEx;
 
@@ -251,7 +251,7 @@ public:
 
   void PushBackAffineTransform(const TransformType* t);
 
-  void PushBackDeformationFieldTransform(const DeformationFieldType* t);
+  void PushBackDisplacementFieldTransform(const DisplacementFieldType* t);
 
   bool MultiInverseAffineOnlySinglePoint(const PointType & point1, PointType & point2);
 
@@ -272,13 +272,13 @@ public:
   itkConceptMacro(SameDimensionCheck1,
                   (Concept::SameDimension<ImageDimension, InputImageDimension> ) );
   itkConceptMacro(SameDimensionCheck2,
-                  (Concept::SameDimension<ImageDimension, DeformationFieldDimension> ) );
+                  (Concept::SameDimension<ImageDimension, DisplacementFieldDimension> ) );
 
 // removed to be compatible with vector form input image
 //    itkConceptMacro(InputHasNumericTraitsCheck,
 //            (Concept::HasNumericTraits<typename TInputImage::PixelType>));
-  itkConceptMacro(DeformationFieldHasNumericTraitsCheck,
-                  (Concept::HasNumericTraits<typename TDeformationField::PixelType::ValueType> ) );
+  itkConceptMacro(DisplacementFieldHasNumericTraitsCheck,
+                  (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType> ) );
   /** End concept checking */
 #endif
 
@@ -297,13 +297,13 @@ protected:
 
   InterpolatorPointer m_Interpolator;
 
-  PixelType               m_EdgePaddingValue;
-  SpacingType             m_OutputSpacing;
-  PointType               m_OutputOrigin;
-  SizeType                m_OutputSize;
-  DirectionType           m_OutputDirection;
-  TransformListType       m_TransformList;
-  DeformationFieldPointer m_FullWarp;
+  PixelType                m_EdgePaddingValue;
+  SpacingType              m_OutputSpacing;
+  PointType                m_OutputOrigin;
+  SizeType                 m_OutputSize;
+  DirectionType            m_OutputDirection;
+  TransformListType        m_TransformList;
+  DisplacementFieldPointer m_FullWarp;
 
   double m_SmoothScale;
 

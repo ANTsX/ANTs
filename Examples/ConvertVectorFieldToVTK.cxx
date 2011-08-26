@@ -32,7 +32,7 @@ int main( int argc, char *argv[] )
   if( argc < 3 )
     {
     std::cout << "Usage: " << argv[0]
-              << " inputDeformationField outputVTKFile maskImage(optional) slice(optional) whichAxis(optional)"
+              << " inputDisplacementField outputVTKFile maskImage(optional) slice(optional) whichAxis(optional)"
               << std::endl;
     exit( 1 );
     }
@@ -45,9 +45,9 @@ int main( int argc, char *argv[] )
 
   typedef double                                 RealType;
   typedef itk::Vector<RealType, ImageDimension>  VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
+  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
 
-  typedef itk::ImageFileReader<DeformationFieldType> ReaderType;
+  typedef itk::ImageFileReader<DisplacementFieldType> ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
   //  reader->SetUseAvantsNamingConvention( true );
@@ -103,13 +103,13 @@ int main( int argc, char *argv[] )
     ( mask, mask->GetLargestPossibleRegion() );
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
-    DeformationFieldType::IndexType idx = It.GetIndex();
+    DisplacementFieldType::IndexType idx = It.GetIndex();
 
     if( ( argc > 4 && idx[atoi( argv[5] )] != atoi( argv[4] ) ) || It.Get() == 0 )
       {
       continue;
       }
-    DeformationFieldType::PointType point;
+    DisplacementFieldType::PointType point;
     reader->GetOutput()->TransformIndexToPhysicalPoint( idx, point );
 
     VectorType V = reader->GetOutput()->GetPixel( idx );

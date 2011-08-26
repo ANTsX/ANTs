@@ -35,8 +35,8 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
-CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
+CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::CrossCorrelationRegistrationFunction()
 {
   m_AvgMag = 0;
@@ -81,9 +81,9 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -102,9 +102,9 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
 {
   typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
@@ -398,12 +398,12 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
-typename TDeformationField::PixelType
-CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
-::ComputeMetricAtPairB(IndexType oindex, typename TDeformationField::PixelType vec)
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
+typename TDisplacementField::PixelType
+CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
+::ComputeMetricAtPairB(IndexType oindex, typename TDisplacementField::PixelType vec)
 {
-  typename TDeformationField::PixelType deriv;
+  typename TDisplacementField::PixelType deriv;
   deriv.Fill(0.0);
   double sff = 0.0;
   double smm = 0.0;
@@ -463,12 +463,12 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationFiel
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
-typename TDeformationField::PixelType
-CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
-::ComputeMetricAtPairC(IndexType oindex, typename TDeformationField::PixelType vec)
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
+typename TDisplacementField::PixelType
+CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
+::ComputeMetricAtPairC(IndexType oindex, typename TDisplacementField::PixelType vec)
 {
-  typename TDeformationField::PixelType deriv;
+  typename TDisplacementField::PixelType deriv;
   deriv.Fill(0.0);
   double sff = 0.0;
   double smm = 0.0;

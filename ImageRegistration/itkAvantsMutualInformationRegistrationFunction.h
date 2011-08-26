@@ -119,15 +119,15 @@ namespace itk
  * \ingroup RegistrationMetrics
  * \ingroup ThreadUnSafe
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 class ITK_EXPORT AvantsMutualInformationRegistrationFunction :
-  public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+  public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
   typedef AvantsMutualInformationRegistrationFunction Self;
   typedef AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                  TMovingImage, TDeformationField>    Superclass;
+                                                  TMovingImage, TDisplacementField>    Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
@@ -150,10 +150,10 @@ public:
   typedef typename FixedImageType::SpacingType   SpacingType;
 
   /** Deformation field type. */
-  typedef typename Superclass::VectorType           VectorType;
-  typedef typename Superclass::DeformationFieldType DeformationFieldType;
-  typedef typename Superclass::DeformationFieldTypePointer
-    DeformationFieldTypePointer;
+  typedef typename Superclass::VectorType            VectorType;
+  typedef typename Superclass::DisplacementFieldType DisplacementFieldType;
+  typedef typename Superclass::DisplacementFieldTypePointer
+    DisplacementFieldTypePointer;
 
   /** Inherit some enums from the superclass. */
   itkStaticConstMacro(ImageDimension, unsigned int, Superclass::ImageDimension);

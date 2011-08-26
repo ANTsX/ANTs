@@ -9,7 +9,7 @@ namespace itk
 // Constructor with default arguments
 template <class TScalarType>
 ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
-  Superclass(SpaceDimension, ParametersDimension)
+  Superclass(ParametersDimension)
 {
   m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * vcl_sin(t/2), vcl_cos(t/2)
   m_S1 = NumericTraits<TScalarType>::One;

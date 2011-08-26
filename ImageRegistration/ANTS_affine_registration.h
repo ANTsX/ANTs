@@ -52,21 +52,21 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
 //        itk::Image<float, 2>::Pointer I_moving,
 //        itk::Image<float, 2>::Pointer mask_fixed,
 //        itk::CenteredAffine2DTransform<double>::Pointer &transform);
-template <class DeformationFieldPointerType>
-void create_deformation_field_byref(const DeformationFieldPointerType & ref, DeformationFieldPointerType & field);
+template <class DisplacementFieldPointerType>
+void create_deformation_field_byref(const DisplacementFieldPointerType & ref, DisplacementFieldPointerType & field);
 
 // this is obsolet, use itkWarpImageWAffineFilter
-template <class TransformPointerType, class DeformationFieldPointerType>
-void compose_affine_with_field(const TransformPointerType & aff, const DeformationFieldPointerType & field,
-                               DeformationFieldPointerType & field_output);
+template <class TransformPointerType, class DisplacementFieldPointerType>
+void compose_affine_with_field(const TransformPointerType & aff, const DisplacementFieldPointerType & field,
+                               DisplacementFieldPointerType & field_output);
 
-template <class ImagePointerType, class DeformationFieldPointerType>
-void warp_image_field(const ImagePointerType & img_input, const DeformationFieldPointerType & field,
+template <class ImagePointerType, class DisplacementFieldPointerType>
+void warp_image_field(const ImagePointerType & img_input, const DisplacementFieldPointerType & field,
                       ImagePointerType & img_output);
 
-template <class ImagePointerType, class TransformPointerType, class DeformationFieldPointerType>
+template <class ImagePointerType, class TransformPointerType, class DisplacementFieldPointerType>
 void warp_image_field_waffine(const ImagePointerType & img_input, const TransformPointerType & aff,
-                              const DeformationFieldPointerType & field, ImagePointerType & img_output);
+                              const DisplacementFieldPointerType & field, ImagePointerType & img_output);
 
 template <class ImageTypePointer, class RefImageTypePointer, class TransformTypePointer>
 void affine_image(const ImageTypePointer & input_image, const TransformTypePointer & transform,
@@ -127,8 +127,8 @@ void read_transform_file(StringType filename, CastTransformPointerType & transfo
   return;
 }
 
-template <class TransformPointerType, class DeformationFieldType>
-void convert_affine_para_to_deformation_field(TransformPointerType & transform, DeformationFieldType & def)
+template <class TransformPointerType, class DisplacementFieldType>
+void convert_affine_para_to_deformation_field(TransformPointerType & transform, DisplacementFieldType & def)
 {
   return;
 }
@@ -1258,13 +1258,13 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
     }
 }
 
-template <class DeformationFieldPointerType>
-void create_deformation_field_byref(const DeformationFieldPointerType & ref, DeformationFieldPointerType & field)
+template <class DisplacementFieldPointerType>
+void create_deformation_field_byref(const DisplacementFieldPointerType & ref, DisplacementFieldPointerType & field)
 {
-  typedef typename DeformationFieldPointerType::ObjectType DeformationFieldType;
-  // field = DeformationFieldType::New();
+  typedef typename DisplacementFieldPointerType::ObjectType DisplacementFieldType;
+  // field = DisplacementFieldType::New();
 
-  typename DeformationFieldType::RegionType region;
+  typename DisplacementFieldType::RegionType region;
   region.SetSize(ref->GetLargestPossibleRegion().GetSize() );
   region.SetIndex(ref->GetLargestPossibleRegion().GetIndex() );
   field->SetRegions( region );
@@ -1276,17 +1276,17 @@ void create_deformation_field_byref(const DeformationFieldPointerType & ref, Def
 // compose affine transform (in a matrix format A: (Ax+b)) with a deformation field F:
 // the new field is: F_new (x)  = F ( A (x) )
 // output should be allocated outside
-template <class TransformPointerType, class DeformationFieldPointerType>
-void compose_affine_with_field(const TransformPointerType & aff, const DeformationFieldPointerType & field,
-                               DeformationFieldPointerType & field_output)
+template <class TransformPointerType, class DisplacementFieldPointerType>
+void compose_affine_with_field(const TransformPointerType & aff, const DisplacementFieldPointerType & field,
+                               DisplacementFieldPointerType & field_output)
 {
-  typedef typename DeformationFieldPointerType::ObjectType        DeformationFieldType;
-  typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> FieldIterator;
-  typedef typename DeformationFieldType::IndexType                IndexType;
-  typedef typename DeformationFieldType::PointType                PointType;
-  typedef typename DeformationFieldType::PixelType                VectorType;
+  typedef typename DisplacementFieldPointerType::ObjectType        DisplacementFieldType;
+  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
+  typedef typename DisplacementFieldType::IndexType                IndexType;
+  typedef typename DisplacementFieldType::PointType                PointType;
+  typedef typename DisplacementFieldType::PixelType                VectorType;
 
-  const unsigned int ImageDimension = DeformationFieldType::ImageDimension;
+  const unsigned int ImageDimension = DisplacementFieldType::ImageDimension;
 
   //    PointType zeroorigin;
   //    zeroorigin.Fill(0);
@@ -1331,18 +1331,18 @@ void compose_affine_with_field(const TransformPointerType & aff, const Deformati
 }
 
 // this is obsolet, use itkWarpImageWAffineFilter
-template <class ImagePointerType, class DeformationFieldPointerType>
-void warp_image_field(const ImagePointerType & img_input, const DeformationFieldPointerType & field,
+template <class ImagePointerType, class DisplacementFieldPointerType>
+void warp_image_field(const ImagePointerType & img_input, const DisplacementFieldPointerType & field,
                       ImagePointerType & img_output)
 {
-  typedef typename ImagePointerType::ObjectType            ImageType;
-  typedef typename DeformationFieldPointerType::ObjectType DeformationFieldType;
+  typedef typename ImagePointerType::ObjectType             ImageType;
+  typedef typename DisplacementFieldPointerType::ObjectType DisplacementFieldType;
 
-  typedef typename itk::WarpImageFilter<ImageType, ImageType, DeformationFieldType> WarperType;
+  typedef typename itk::WarpImageFilter<ImageType, ImageType, DisplacementFieldType> WarperType;
   typename WarperType::Pointer  warper = WarperType::New();
 
   warper->SetInput(img_input);
-  warper->SetDeformationField(field);
+  warper->SetDisplacementField(field);
   warper->SetEdgePaddingValue( 0);
   warper->SetOutputSpacing(field->GetSpacing() );
   warper->SetOutputOrigin( field->GetOrigin() );
@@ -1376,26 +1376,26 @@ void affine_image(const ImageTypePointer & input_image,  const TransformPointerT
   img_aff = resampler->GetOutput();
 }
 
-template <class ImagePointerType, class TransformPointerType, class DeformationFieldPointerType>
+template <class ImagePointerType, class TransformPointerType, class DisplacementFieldPointerType>
 void warp_image_field_waffine(const ImagePointerType & img_input, const TransformPointerType & aff,
-                              const DeformationFieldPointerType & field, ImagePointerType & img_output)
+                              const DisplacementFieldPointerType & field, ImagePointerType & img_output)
 {
   // TODO: add a new WarpImageFilter to support affine as an input
   // temporary solution:
-  typedef typename DeformationFieldPointerType::ObjectType DeformationFieldType;
-  typename DeformationFieldType::Pointer field_comp = DeformationFieldType::New();
+  typedef typename DisplacementFieldPointerType::ObjectType DisplacementFieldType;
+  typename DisplacementFieldType::Pointer field_comp = DisplacementFieldType::New();
 
   //    create_deformation_field_byref(field, field_comp);
   //    compose_affine_with_field(aff, field, field_comp);
   //    warp_image_field(img_input, field_comp, img_output);
 
-  typedef typename TransformPointerType::ObjectType                                              TransformType;
-  typedef typename ImagePointerType::ObjectType                                                  ImageType;
-  typedef itk::WarpImageWAffineFilter<ImageType, ImageType, DeformationFieldType, TransformType> WarperType;
+  typedef typename TransformPointerType::ObjectType                                               TransformType;
+  typedef typename ImagePointerType::ObjectType                                                   ImageType;
+  typedef itk::WarpImageWAffineFilter<ImageType, ImageType, DisplacementFieldType, TransformType> WarperType;
   typename WarperType::Pointer  warper = WarperType::New();
 
   warper->SetInput(img_input);
-  warper->SetDeformationField(field);
+  warper->SetDisplacementField(field);
   warper->SetAffineTransform(aff);
   warper->SetEdgePaddingValue( 0);
   warper->SetOutputSpacing(field->GetSpacing() );

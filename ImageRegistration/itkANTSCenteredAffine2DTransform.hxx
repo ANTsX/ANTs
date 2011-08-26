@@ -34,7 +34,7 @@ namespace itk
 // }
 template <class TScalarType>
 ANTSCenteredAffine2DTransform<TScalarType>::ANTSCenteredAffine2DTransform() :
-  Superclass(OutputSpaceDimension, ParametersDimension)
+  Superclass(ParametersDimension)
 {
   m_Angle = NumericTraits<TScalarType>::Zero;
   m_S1 = NumericTraits<TScalarType>::One;

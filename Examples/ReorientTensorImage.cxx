@@ -264,7 +264,7 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
   typedef itk::Image<PixelType, ImageDimension>                                  TensorImageType;
   typedef itk::Image<float, ImageDimension>                                      ImageType;
   typedef itk::Vector<float, ImageDimension>                                     VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                                 DeformationFieldType;
+  typedef itk::Image<VectorType, ImageDimension>                                 DisplacementFieldType;
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
@@ -278,9 +278,9 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 
   typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
 
-  typedef itk::TransformFileReader                   TranReaderType;
-  typedef itk::ImageFileReader<DeformationFieldType> FieldReaderType;
-  typename DeformationFieldType::Pointer field = NULL;
+  typedef itk::TransformFileReader                    TranReaderType;
+  typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
+  typename DisplacementFieldType::Pointer field = NULL;
   typename AffineTransformType::Pointer aff = NULL;
 
   const int kOptQueueSize = opt_queue.size();
@@ -292,7 +292,7 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
     }
 
   typedef itk::PreservationOfPrincipalDirectionTensorReorientationImageFilter<TensorImageType,
-                                                                              DeformationFieldType> PPDReorientType;
+                                                                              DisplacementFieldType> PPDReorientType;
   typename PPDReorientType::Pointer reo = PPDReorientType::New();
   reo->SetInput( img_mov );
 
@@ -318,7 +318,7 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
       field_reader->SetFileName( opt.filename );
       field_reader->Update();
       // field = field_reader->GetOutput();
-      reo->SetDeformationField( field_reader->GetOutput() );
+      reo->SetDisplacementField( field_reader->GetOutput() );
       std::cout << "Warp transform" << std::endl;
       break;
       }

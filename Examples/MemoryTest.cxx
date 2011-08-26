@@ -95,14 +95,14 @@ int MemoryTest(unsigned int argc, char *argv[])
 
   typedef ImageType FixedImageType;
   typedef ImageType MovingImageType;
-  typedef FieldType DeformationFieldType;
+  typedef FieldType DisplacementFieldType;
 
   // Choose the similarity metric
   typedef itk::AvantsMutualInformationRegistrationFunction<FixedImageType, MovingImageType,
-                                                           DeformationFieldType> MIMetricType;
+                                                           DisplacementFieldType> MIMetricType;
   typedef itk::CrossCorrelationRegistrationFunction<FixedImageType, MovingImageType,
-                                                    DeformationFieldType>        CCMetricType;
-  // typedef itk::LandmarkCrossCorrelationRegistrationFunction<FixedImageType,MovingImageType,DeformationFieldType>
+                                                    DisplacementFieldType>        CCMetricType;
+  // typedef itk::LandmarkCrossCorrelationRegistrationFunction<FixedImageType,MovingImageType,DisplacementFieldType>
   // MetricType;
   // typename
   typename MIMetricType::Pointer mimet = MIMetricType::New();
@@ -116,14 +116,14 @@ int MemoryTest(unsigned int argc, char *argv[])
   typename MIMetricType::RadiusType miradius;
   miradius.Fill(0);
 
-//  mimet->SetDeformationField(field);
+//  mimet->SetDisplacementField(field);
   mimet->SetFixedImage(image1);
   mimet->SetMovingImage(image2);
   mimet->SetRadius(miradius);
   mimet->SetGradientStep(1.e2);
   mimet->SetNormalizeGradient(false);
 
-//  ccmet->SetDeformationField(field);
+//  ccmet->SetDisplacementField(field);
   ccmet->SetFixedImage(image1);
   ccmet->SetMovingImage(image2);
   ccmet->SetRadius(ccradius);

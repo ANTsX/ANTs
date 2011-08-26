@@ -30,16 +30,17 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
                                          TransformPointerType & transform);
 
 template <class StringType, class PointContainerType>
-void FetchLandmarkMappingFromDeformationField(const StringType & deformation_field_file_name, float load_ratio,
-                                              PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
-                                              itk::Image<float, 3>::Pointer maskimg);
+void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_field_file_name, float load_ratio,
+                                               PointContainerType & fixedLandmarks,
+                                               PointContainerType & movingLandmarks, itk::Image<float,
+                                                                                                3>::Pointer maskimg);
 
 //
 // The test specifies a bunch of fixed and moving landmarks and test if the
 // fixed landmarks after transform by the computed transform coincides
 // with the moving landmarks....
 
-int DeformationFieldBasedTransformInitializer3D(int argc, char * argv[])
+int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
 {
   const unsigned int Dim = 3;
 
@@ -69,8 +70,8 @@ int DeformationFieldBasedTransformInitializer3D(int argc, char * argv[])
     ReadImage<ImageType>(maskimg, maskfn.c_str() );
     }
 
-  FetchLandmarkMappingFromDeformationField(deformation_field_file_name, load_ratio, fixedLandmarks, movingLandmarks,
-                                           maskimg);
+  FetchLandmarkMappingFromDisplacementField(deformation_field_file_name, load_ratio, fixedLandmarks, movingLandmarks,
+                                            maskimg);
 
   if( bRigid )
     {
@@ -315,7 +316,7 @@ void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & AN
   WriteAffineTransformFile(transform_ANTS, ANTS_affine_filename);
 }
 
-int DeformationFieldBasedTransformInitializer2D(int, char * [])
+int DisplacementFieldBasedTransformInitializer2D(int, char * [])
 {
   std::cout << " not implemented " << std::endl;
 
@@ -340,23 +341,24 @@ typedef itk::Rigid2DTransform< double > TransformType;
 }
 
 template <class StringType, class PointContainerType>
-void FetchLandmarkMappingFromDeformationField(const StringType & deformation_field_file_name, float load_ratio,
-                                              PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
-                                              itk::Image<float, 3>::Pointer maskimg)
+void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_field_file_name, float load_ratio,
+                                               PointContainerType & fixedLandmarks,
+                                               PointContainerType & movingLandmarks, itk::Image<float,
+                                                                                                3>::Pointer maskimg)
 {
   const unsigned int ImageDimension = 3;
 
   typedef typename PointContainerType::value_type PointType;
 
-  typedef itk::Image<float, ImageDimension>          ImageType;
-  typedef itk::Vector<float, ImageDimension>         VectorType;
-  typedef itk::Image<VectorType, ImageDimension>     DeformationFieldType;
-  typedef itk::ImageFileReader<DeformationFieldType> FieldReaderType;
+  typedef itk::Image<float, ImageDimension>           ImageType;
+  typedef itk::Vector<float, ImageDimension>          VectorType;
+  typedef itk::Image<VectorType, ImageDimension>      DisplacementFieldType;
+  typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
 
   typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
   field_reader->SetFileName( deformation_field_file_name );
   field_reader->Update();
-  typename DeformationFieldType::Pointer field = field_reader->GetOutput();
+  typename DisplacementFieldType::Pointer field = field_reader->GetOutput();
 
   fixedLandmarks.clear();
   movingLandmarks.clear();
@@ -376,7 +378,7 @@ void FetchLandmarkMappingFromDeformationField(const StringType & deformation_fie
   fixedLandmarks.reserve(nb_try_to_load );
   movingLandmarks.reserve(nb_try_to_load );
 
-  typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> FieldIteratorType;
+  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIteratorType;
 
   FieldIteratorType it(field, field->GetLargestPossibleRegion() );
 
@@ -404,7 +406,7 @@ void FetchLandmarkMappingFromDeformationField(const StringType & deformation_fie
 
       PointType point1, point2;
       // get the output image index
-      typename DeformationFieldType::IndexType index = it.GetIndex();
+      typename DisplacementFieldType::IndexType index = it.GetIndex();
       field->TransformIndexToPhysicalPoint(index, point1 );
       VectorType displacement = field->GetPixel(index);
       for( unsigned int j = 0; j < ImageDimension; j++ )
@@ -453,12 +455,12 @@ int main(int argc, char *argv[])
     {
     case 2:
       {
-      DeformationFieldBasedTransformInitializer2D(argc, argv);
+      DisplacementFieldBasedTransformInitializer2D(argc, argv);
       }
       break;
     case 3:
       {
-      DeformationFieldBasedTransformInitializer3D(argc, argv);
+      DisplacementFieldBasedTransformInitializer3D(argc, argv);
       }
       break;
     default:

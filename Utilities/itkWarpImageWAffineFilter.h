@@ -68,7 +68,7 @@ namespace itk
  * type of the output image and the type of the deformation field.
  *
  * The input image is set via SetInput. The input deformation field
- * is set via SetDeformationField.
+ * is set via SetDisplacementField.
  *
  * This filter is implemented as a multithreaded filter.
  *
@@ -80,7 +80,7 @@ namespace itk
 template <
   class TInputImage,
   class TOutputImage,
-  class TDeformationField,
+  class TDisplacementField,
   class TTransform
   >
 class ITK_EXPORT WarpImageWAffineFilter :
@@ -121,13 +121,13 @@ public:
                       TOutputImage::ImageDimension );
   itkStaticConstMacro(InputImageDimension, unsigned int,
                       TInputImage::ImageDimension );
-  itkStaticConstMacro(DeformationFieldDimension, unsigned int,
-                      TDeformationField::ImageDimension );
+  itkStaticConstMacro(DisplacementFieldDimension, unsigned int,
+                      TDisplacementField::ImageDimension );
 
   /** Deformation field typedef support. */
-  typedef TDeformationField                        DeformationFieldType;
-  typedef typename DeformationFieldType::Pointer   DeformationFieldPointer;
-  typedef typename DeformationFieldType::PixelType DisplacementType;
+  typedef TDisplacementField                        DisplacementFieldType;
+  typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
+  typedef typename DisplacementFieldType::PixelType DisplacementType;
 
   /** songgang: Affine transform typedef support. */
   typedef TTransform                      TransformType;
@@ -144,10 +144,10 @@ public:
   typedef Point<CoordRepType, itkGetStaticConstMacro(ImageDimension)> PointType;
 
   /** Set the deformation field. */
-  void SetDeformationField( const DeformationFieldType * field );
+  void SetDisplacementField( const DisplacementFieldType * field );
 
   /** Get a pointer the deformation field. */
-  DeformationFieldType * GetDeformationField(void);
+  DisplacementFieldType * GetDisplacementField(void);
 
   /** songgang: Set / Get  the affine transform. */
   // void SetAffineTransform( const TransformType * aff );
@@ -229,11 +229,11 @@ public:
   itkConceptMacro(SameDimensionCheck1,
                   (Concept::SameDimension<ImageDimension, InputImageDimension> ) );
   itkConceptMacro(SameDimensionCheck2,
-                  (Concept::SameDimension<ImageDimension, DeformationFieldDimension> ) );
+                  (Concept::SameDimension<ImageDimension, DisplacementFieldDimension> ) );
   itkConceptMacro(InputHasNumericTraitsCheck,
                   (Concept::HasNumericTraits<typename TInputImage::PixelType> ) );
-  itkConceptMacro(DeformationFieldHasNumericTraitsCheck,
-                  (Concept::HasNumericTraits<typename TDeformationField::PixelType::ValueType> ) );
+  itkConceptMacro(DisplacementFieldHasNumericTraitsCheck,
+                  (Concept::HasNumericTraits<typename TDisplacementField::PixelType::ValueType> ) );
   /** End concept checking */
 #endif
 protected:

@@ -58,7 +58,7 @@ ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
     {
     this->m_Interpolator = interpolator;
     this->Modified();
-    if( !this->GetDeformationField() )
+    if( !this->GetDisplacementField() )
       {
       this->m_Interpolator->SetInputImage( this->GetInput( 0 ) );
       }

@@ -578,17 +578,19 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
                              TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
   // typedef itk::Vector<float,6> PixelType;
-  typedef itk::SymmetricSecondRankTensor<float, 3> PixelType;
+  typedef itk::SymmetricSecondRankTensor<float,
+                                         3>                       PixelType;
   typedef itk::Image<PixelType,
-                     ImageDimension>                                                               TensorImageType;
-  typedef itk::Image<float, ImageDimension> ImageType;
+                     ImageDimension>                              TensorImageType;
+  typedef itk::Image<float,
+                     ImageDimension>                              ImageType;
   typedef itk::Vector<float,
-                      ImageDimension>                                                                  VectorType;
+                      ImageDimension>                             VectorType;
   typedef itk::Image<VectorType,
-                     ImageDimension>                                                              DeformationFieldType;
+                     ImageDimension>                              DisplacementFieldType;
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>                              AffineTransformType;
-  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DeformationFieldType,
+                                         ImageDimension>          AffineTransformType;
+  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
                                              AffineTransformType> WarperType;
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
@@ -649,8 +651,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       warper->SetInterpolator(interpolator_NN);
       }
 
-    typedef itk::TransformFileReader                   TranReaderType;
-    typedef itk::ImageFileReader<DeformationFieldType> FieldReaderType;
+    typedef itk::TransformFileReader                    TranReaderType;
+    typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
 
     unsigned int transcount = 0;
     const int    kOptQueueSize = opt_queue.size();
@@ -733,9 +735,9 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
           field_reader->SetFileName( opt.filename );
           field_reader->Update();
-          typename DeformationFieldType::Pointer field = field_reader->GetOutput();
+          typename DisplacementFieldType::Pointer field = field_reader->GetOutput();
 
-          warper->PushBackDeformationFieldTransform(field);
+          warper->PushBackDisplacementFieldTransform(field);
           warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
           warper->SetOutputOrigin(field->GetOrigin() );
           warper->SetOutputSpacing(field->GetSpacing() );

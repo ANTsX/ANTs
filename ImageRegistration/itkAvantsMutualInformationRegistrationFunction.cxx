@@ -34,8 +34,8 @@ namespace itk
 /**
  * Constructor
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::AvantsMutualInformationRegistrationFunction()
 {
   this->Superclass::m_NormalizeGradient = true;
@@ -89,9 +89,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 /**
  * Print out internal information about this class
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -123,9 +123,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 /**
  * Initialize
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
 {
   m_CubicBSplineKernel = CubicBSplineFunctionType::New();
@@ -343,9 +343,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 /**
  * Get the both Value and Derivative Measure
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::GetProbabilities()
 {
   typedef ImageRegionConstIteratorWithIndex<FixedImageType> RandomIterator;
@@ -486,9 +486,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
 /**
  * Get the both Value and Derivative Measure
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 double
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::GetValueAndDerivative(IndexType oindex,
                         MeasureType& valuei,
                         DerivativeType& derivative1, DerivativeType& derivative2)
@@ -528,9 +528,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformat
   return value;
 }
 
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 double
-AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::GetValueAndDerivativeInv(IndexType oindex,
                            MeasureType& valuei,
                            DerivativeType& derivative1, DerivativeType& derivative2)

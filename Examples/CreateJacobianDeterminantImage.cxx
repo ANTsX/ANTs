@@ -12,13 +12,13 @@
 #include "itkZeroFluxNeumannBoundaryCondition.h"
 #include "itkANTSImageRegistrationOptimizer.h"
 
-template <class TImage, class TDeformationField>
-typename TDeformationField::PixelType
-TransformVector(TDeformationField* field, typename TImage::IndexType index )
+template <class TImage, class TDisplacementField>
+typename TDisplacementField::PixelType
+TransformVector(TDisplacementField* field, typename TImage::IndexType index )
 {
   enum { ImageDimension = TImage::ImageDimension };
-  typename TDeformationField::PixelType vec = field->GetPixel(index);
-  typename TDeformationField::PixelType newvec;
+  typename TDisplacementField::PixelType vec = field->GetPixel(index);
+  typename TDisplacementField::PixelType newvec;
   newvec.Fill(0);
   for( unsigned int row = 0; row < ImageDimension; row++ )
     {
@@ -53,7 +53,7 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
   typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, float> RegistrationOptimizerType;
   typedef typename RegistrationOptimizerType::Pointer                RegistrationOptimizerPointer;
   RegistrationOptimizerPointer reg = RegistrationOptimizerType::New();
-  reg->SmoothDeformationFieldGauss(vecimg, 3);
+  reg->SmoothDisplacementFieldGauss(vecimg, 3);
 
   typename VectorImageType::SpacingType spacing
     = vecimg->GetSpacing();

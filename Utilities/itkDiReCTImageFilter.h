@@ -291,7 +291,7 @@ private:
   /**
    * Private function for inverting the deformation field.
    */
-  void InvertDeformationField( const VectorImageType *, VectorImageType * );
+  void InvertDisplacementField( const VectorImageType *, VectorImageType * );
 
   /**
    * Private function for converting a scalar image to a sparse image
@@ -311,7 +311,7 @@ private:
   /**
    * Private function for smoothing the deformation field.
    */
-  VectorImagePointer SmoothDeformationField( const VectorImageType *, const RealType );
+  VectorImagePointer SmoothDisplacementField( const VectorImageType *, const RealType );
 
   RealType     m_ThicknessPriorEstimate;
   RealType     m_SmoothingSigma;

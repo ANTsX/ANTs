@@ -284,7 +284,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       {
       typedef ComposeDiffeomorphismsImageFilter<VectorImageType> ComposerType;
       typename ComposerType::Pointer composer = ComposerType::New();
-      composer->SetDeformationField( inverseIncrementalField );
+      composer->SetDisplacementField( inverseIncrementalField );
       composer->SetWarpingField( inverseField );
 
       inverseField = composer->GetOutput();
@@ -454,8 +454,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         {
         integratedField->FillBuffer( zeroVector );
         }
-      this->InvertDeformationField( inverseField, integratedField );
-      this->InvertDeformationField( integratedField, inverseField );
+      this->InvertDisplacementField( inverseField, integratedField );
+      this->InvertDisplacementField( integratedField, inverseField );
       }
 
     // calculate the size of the solution to allow us to adjust the
@@ -532,8 +532,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       ++ItVelocityField;
       }
 
-    velocityField = this->SmoothDeformationField( velocityField,
-                                                  this->m_SmoothingSigma );
+    velocityField = this->SmoothDisplacementField( velocityField,
+                                                   this->m_SmoothingSigma );
 
     // Calculate current energy and current convergence measurement
 
@@ -698,7 +698,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     WarperType;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetInput( inputImage );
-  warper->SetDeformationField( deformationField );
+  warper->SetDisplacementField( deformationField );
   warper->SetEdgePaddingValue( 0 );
   warper->SetOutputSpacing( inputImage->GetSpacing() );
   warper->SetOutputOrigin( inputImage->GetOrigin() );
@@ -732,8 +732,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
-::InvertDeformationField( const VectorImageType *deformationField,
-                          VectorImageType *inverseField )
+::InvertDisplacementField( const VectorImageType *deformationField,
+                           VectorImageType *inverseField )
 {
   typename VectorImageType::SpacingType spacing =
     deformationField->GetSpacing();
@@ -753,7 +753,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
     typedef ComposeDiffeomorphismsImageFilter<VectorImageType> ComposerType;
     typename ComposerType::Pointer composer = ComposerType::New();
-    composer->SetDeformationField( deformationField );
+    composer->SetDisplacementField( deformationField );
     composer->SetWarpingField( inverseField );
 
     typedef MultiplyByConstantVectorImageFilter<VectorImageType, VectorType,
@@ -808,8 +808,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::VectorImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
-::SmoothDeformationField( const VectorImageType *inputField,
-                          const RealType variance )
+::SmoothDisplacementField( const VectorImageType *inputField,
+                           const RealType variance )
 {
   typedef ImageDuplicator<VectorImageType> DuplicatorType;
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();

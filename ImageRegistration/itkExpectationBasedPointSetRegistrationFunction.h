@@ -60,17 +60,17 @@ namespace itk
 * \sa ExpectationBasedPointSetRegistrationFilter
 * \ingroup FiniteDifferenceFunctions
 */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 class ITK_EXPORT ExpectationBasedPointSetRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage,
-                                                         TDeformationField>
+                                                         TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
   typedef ExpectationBasedPointSetRegistrationFunction Self;
   typedef PDEDeformableRegistrationFunction<TFixedImage,
-                                            TMovingImage, TDeformationField
+                                            TMovingImage, TDisplacementField
                                             >    Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
@@ -95,10 +95,10 @@ public:
   typedef typename FixedImageType::SpacingType   SpacingType;
 
   /** Deformation field type. */
-  typedef typename Superclass::DeformationFieldType DeformationFieldType;
-  typedef typename Superclass::DeformationFieldTypePointer
-    DeformationFieldTypePointer;
-  typedef typename DeformationFieldType::PixelType VectorType;
+  typedef typename Superclass::DisplacementFieldType DisplacementFieldType;
+  typedef typename Superclass::DisplacementFieldTypePointer
+    DisplacementFieldTypePointer;
+  typedef typename DisplacementFieldType::PixelType VectorType;
 
   /** Inherit some enums from the superclass. */
   itkStaticConstMacro(ImageDimension, unsigned  int, Superclass::ImageDimension);
@@ -132,7 +132,7 @@ public:
   typedef PointSet<VectorType,
                    itkGetStaticConstMacro( ImageDimension )>              BSplinePointSetType;
   typedef BSplineScatteredDataPointSetToImageFilter
-    <BSplinePointSetType, DeformationFieldType>            BSplineFilterType;
+    <BSplinePointSetType, DisplacementFieldType>            BSplineFilterType;
   typedef typename BSplineFilterType::WeightsContainerType BSplineWeightsType;
   typedef typename BSplineFilterType::PointDataImageType   ControlPointLatticeType;
   typedef typename BSplineFilterType::ArrayType            ArrayType;
@@ -308,8 +308,8 @@ private:
   /** Mutex lock to protect modification to metric. */
   //  mutable SimpleFastMutexLock     m_MetricCalculationLock;
 
-  DeformationFieldTypePointer m_DerivativeFixedField;
-  DeformationFieldTypePointer m_DerivativeMovingField;
+  DisplacementFieldTypePointer m_DerivativeFixedField;
+  DisplacementFieldTypePointer m_DerivativeMovingField;
 
   float m_FixedPointSetSigma;
   float m_MovingPointSetSigma;

@@ -37,16 +37,16 @@ namespace itk
  * \sa AvantsPDEDeformableRegistrationFilter
  * \ingroup PDEDeformableRegistrationFunctions
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 class ITK_EXPORT AvantsPDEDeformableRegistrationFunction :
-  public         PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+  public         PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
-  typedef AvantsPDEDeformableRegistrationFunction                                         Self;
-  typedef PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDeformationField> Superclass;
-  typedef SmartPointer<Self>                                                              Pointer;
-  typedef SmartPointer<const Self>                                                        ConstPointer;
+  typedef AvantsPDEDeformableRegistrationFunction                                          Self;
+  typedef PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField> Superclass;
+  typedef SmartPointer<Self>                                                               Pointer;
+  typedef SmartPointer<const Self>                                                         ConstPointer;
 
   /** Run-time type information (and related methods) */
   itkTypeMacro( AvantsPDEDeformableRegistrationFunction,
@@ -66,11 +66,11 @@ public:
   typedef typename Superclass::FloatOffsetType  FloatOffsetType;
 
   /** Deformation field type. */
-  typedef TDeformationField DeformationFieldType;
-  typedef typename DeformationFieldType::Pointer
-    DeformationFieldTypePointer;
+  typedef TDisplacementField DisplacementFieldType;
+  typedef typename DisplacementFieldType::Pointer
+    DisplacementFieldTypePointer;
 
-  typedef typename TDeformationField::PixelType VectorType;
+  typedef typename TDisplacementField::PixelType VectorType;
 
   /**  PointSet Types */
   typedef  itk::PointSet<long, ImageDimension> PointSetType;
@@ -106,15 +106,15 @@ public:
   }
 
   /** Set the fixed image. */
-  void SetDeformationField(  DeformationFieldTypePointer ptr )
+  void SetDisplacementField(  DisplacementFieldTypePointer ptr )
   {
-    Superclass::m_DeformationField = ptr;
+    Superclass::m_DisplacementField = ptr;
   }
 
   /** Get the fixed image. */
-  DeformationFieldTypePointer GetDeformationField(void)
+  DisplacementFieldTypePointer GetDisplacementField(void)
   {
-    return Superclass::m_DeformationField;
+    return Superclass::m_DisplacementField;
   }
 
   void SetEnergy( double e)
@@ -190,7 +190,7 @@ public:
   }
 
   virtual double ComputeMetricAtPair(IndexType fixedindex,
-                                     typename TDeformationField::PixelType vec)
+                                     typename TDisplacementField::PixelType vec)
   {
     return 0.0;
   }
@@ -205,7 +205,7 @@ public:
     update.Fill(0.0);
     typename FixedImageType::SpacingType spacing = this->GetFixedImage()->GetSpacing();
     IndexType oindex = neighborhood.GetIndex();
-    typename TDeformationField::PixelType vec = this->m_DeformationField->GetPixel(oindex);
+    typename TDisplacementField::PixelType vec = this->m_DisplacementField->GetPixel(oindex);
     float  loce = 0.0;
     double nccp1, nccm1;
     if( m_Use1SidedDiff )
@@ -214,8 +214,8 @@ public:
       }
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
-      typename TDeformationField::PixelType fdvec1 = this->m_DeformationField->GetPixel(oindex);
-      typename TDeformationField::PixelType fdvec2 = this->m_DeformationField->GetPixel(oindex);
+      typename TDisplacementField::PixelType fdvec1 = this->m_DisplacementField->GetPixel(oindex);
+      typename TDisplacementField::PixelType fdvec2 = this->m_DisplacementField->GetPixel(oindex);
       float step = 0.1 * spacing[imd];
       fdvec1[imd] = vec[imd] + step;
       if( !m_Use1SidedDiff )
@@ -246,7 +246,7 @@ public:
     update.Fill(0.0);
     typename FixedImageType::SpacingType spacing = this->GetFixedImage()->GetSpacing();
     IndexType oindex = neighborhood.GetIndex();
-    typename TDeformationField::PixelType vec = this->m_DeformationField->GetPixel(oindex);
+    typename TDisplacementField::PixelType vec = this->m_DisplacementField->GetPixel(oindex);
     float  loce = 0.0;
     double nccp1, nccm1;
     if( m_Use1SidedDiff )
@@ -255,8 +255,8 @@ public:
       }
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
-      typename TDeformationField::PixelType fdvec1 = this->m_DeformationField->GetPixel(oindex);
-      typename TDeformationField::PixelType fdvec2 = this->m_DeformationField->GetPixel(oindex);
+      typename TDisplacementField::PixelType fdvec1 = this->m_DisplacementField->GetPixel(oindex);
+      typename TDisplacementField::PixelType fdvec2 = this->m_DisplacementField->GetPixel(oindex);
       float step = 0.1 * spacing[imd];
       fdvec1[imd] = vec[imd] + step;
       if( !m_Use1SidedDiff )
@@ -314,7 +314,7 @@ protected:
     this->m_MovingImage = NULL;
     m_MetricImage = NULL;
     this->m_FixedImage = NULL;
-    this->m_DeformationField = NULL;
+    this->m_DisplacementField = NULL;
     this->m_Energy = 0.0;
     m_BestEnergy = 0.0;
     this->m_NormalizeGradient = true;

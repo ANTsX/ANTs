@@ -53,7 +53,7 @@ public:
   typedef Vector<RealType,
                  itkGetStaticConstMacro( Dimension )>                   VectorType;
   typedef Image<VectorType,
-                itkGetStaticConstMacro( Dimension )>                   DeformationFieldType;
+                itkGetStaticConstMacro( Dimension )>                   DisplacementFieldType;
 
   /** Point Types  for landmarks and labeled point-sets */
   typedef itk::ANTSLabeledPointSet<Dimension>        LabeledPointSetType;
@@ -66,7 +66,7 @@ public:
 
   /** Typedefs for similarity metrics */
   typedef AvantsPDEDeformableRegistrationFunction
-    <ImageType, ImageType, DeformationFieldType>           MetricType;
+    <ImageType, ImageType, DisplacementFieldType>           MetricType;
   typedef typename MetricType::Pointer    MetricPointer;
   typedef typename MetricType::RadiusType RadiusType;
 

@@ -48,9 +48,9 @@ void AverageAffineTransformFunction<TTransform>::PrintTransformList()
 ///**
 // * Standard PrintSelf method.
 // */
-// template <class TInputImage,class TOutputImage,class TDeformationField, class TTransform>
+// template <class TInputImage,class TOutputImage,class TDisplacementField, class TTransform>
 // void
-// WarpImageMultiTransformFilter<TInputImage,TOutputImage,TDeformationField, TTransform>
+// WarpImageMultiTransformFilter<TInputImage,TOutputImage,TDisplacementField, TTransform>
 // ::PrintSelf(std::ostream& os, Indent indent) const
 // {
 //

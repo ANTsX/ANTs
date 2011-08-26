@@ -62,13 +62,13 @@ public:
 
   typedef itk::MatrixOffsetTransformBase<TComp, TDimension, TDimension> AffineTransformType;
 
-  typedef typename AffineTransformType::Pointer     AffineTransformPointer;
-  typedef itk::Vector<TReal, ImageDimension>        VectorType;
-  typedef itk::Image<VectorType, ImageDimension>    DeformationFieldType;
-  typedef typename DeformationFieldType::Pointer    DeformationFieldPointer;
-  typedef typename DeformationFieldType::RegionType DeformationRegionOfInterestType;
-  typedef typename DeformationFieldType::SizeType   DeformationRegionOfInterestSizeType;
-  typedef typename DeformationFieldType::PointType  DeformationRegionOfInterestCenterType;
+  typedef typename AffineTransformType::Pointer      AffineTransformPointer;
+  typedef itk::Vector<TReal, ImageDimension>         VectorType;
+  typedef itk::Image<VectorType, ImageDimension>     DisplacementFieldType;
+  typedef typename DisplacementFieldType::Pointer    DisplacementFieldPointer;
+  typedef typename DisplacementFieldType::RegionType DeformationRegionOfInterestType;
+  typedef typename DisplacementFieldType::SizeType   DeformationRegionOfInterestSizeType;
+  typedef typename DisplacementFieldType::PointType  DeformationRegionOfInterestCenterType;
 
   typedef typename ants::CommandLineParser ParserType;
   typedef typename ParserType::OptionType  OptionType;
@@ -76,7 +76,7 @@ public:
   /** Set functions */
   void SetDeformationRegionOfInterest( DeformationRegionOfInterestCenterType DRC,
                                        DeformationRegionOfInterestSizeType DRS,
-                                       typename DeformationFieldType::SpacingType DRSp)
+                                       typename DisplacementFieldType::SpacingType DRSp)
   {
     m_DeformationRegionOfInterestCenter = DRC;
     m_DeformationRegionOfInterestSize = DRS;
@@ -88,14 +88,14 @@ public:
     this->m_AffineTransform = A;
   }
 
-  void SetDeformationField(DeformationFieldPointer A)
+  void SetDisplacementField(DisplacementFieldPointer A)
   {
-    this->m_DeformationField = A;
+    this->m_DisplacementField = A;
   }
 
-  void SetInverseDeformationField(DeformationFieldPointer A)
+  void SetInverseDisplacementField(DisplacementFieldPointer A)
   {
-    this->m_InverseDeformationField = A;
+    this->m_InverseDisplacementField = A;
   }
 
   void SetNamingConvention(std::string name)
@@ -109,14 +109,14 @@ public:
     return this->m_AffineTransform;
   }
 
-  DeformationFieldPointer GetDeformationField()
+  DisplacementFieldPointer GetDisplacementField()
   {
-    return this->m_DeformationField;
+    return this->m_DisplacementField;
   }
 
-  DeformationFieldPointer GetInverseDeformationField()
+  DisplacementFieldPointer GetInverseDisplacementField()
   {
-    return this->m_InverseDeformationField;
+    return this->m_InverseDisplacementField;
   }
 
   void SetFixedImageAffineTransform(AffineTransformPointer A)
@@ -138,19 +138,19 @@ public:
       this->m_AffineTransform->SetIdentity();
       }
     // deformation fields too
-    if( !this->m_DeformationField )
+    if( !this->m_DisplacementField )
       {
       VectorType zero;
       zero.Fill(0);
-      this->m_DeformationField = DeformationFieldType::New();
+      this->m_DisplacementField = DisplacementFieldType::New();
 /*      m_DeformationRegionOfInterest.SetSize( m_DeformationRegionOfInterestSize );
-      this->m_DeformationField->SetSpacing( m_DeformationRegionSpacing );
-      this->m_DeformationField->SetOrigin( m_DeformationRegionOfInterestCenter );
-      this->m_DeformationField->SetLargestPossibleRegion( m_DeformationRegionOfInterest );
-      this->m_DeformationField->SetRequestedRegion( m_DeformationRegionOfInterest );
-      this->m_DeformationField->SetBufferedRegion( m_DeformationRegionOfInterest );
-      this->m_DeformationField->Allocate();
-      this->m_DeformationField->FillBuffer(zero);
+      this->m_DisplacementField->SetSpacing( m_DeformationRegionSpacing );
+      this->m_DisplacementField->SetOrigin( m_DeformationRegionOfInterestCenter );
+      this->m_DisplacementField->SetLargestPossibleRegion( m_DeformationRegionOfInterest );
+      this->m_DisplacementField->SetRequestedRegion( m_DeformationRegionOfInterest );
+      this->m_DisplacementField->SetBufferedRegion( m_DeformationRegionOfInterest );
+      this->m_DisplacementField->Allocate();
+      this->m_DisplacementField->FillBuffer(zero);
 */
       }
   }
@@ -181,14 +181,14 @@ private:
 
   AffineTransformPointer                m_AffineTransform;
   AffineTransformPointer                m_FixedImageAffineTransform;
-  DeformationFieldPointer               m_DeformationField;
+  DisplacementFieldPointer              m_DisplacementField;
   DeformationRegionOfInterestType       m_DeformationRegionOfInterest;
   DeformationRegionOfInterestCenterType m_DeformationRegionOfInterestCenter;
   DeformationRegionOfInterestSizeType   m_DeformationRegionOfInterestSize;
-  typename DeformationFieldType::SpacingType m_DeformationRegionSpacing;
-  DeformationFieldPointer m_InverseDeformationField;
-  std::string             m_NamingConvention;
-  bool                    m_WriteComponentImages;
+  typename DisplacementFieldType::SpacingType m_DeformationRegionSpacing;
+  DisplacementFieldPointer m_InverseDisplacementField;
+  std::string              m_NamingConvention;
+  bool                     m_WriteComponentImages;
 };
 } // end namespace itk
 

@@ -32,16 +32,16 @@ namespace itk
  */
 template <class TFixedImage, class TFixedPointSet,
           class TMovingImage, class TMovingPointSet,
-          class TDeformationField>
+          class TDisplacementField>
 class ITK_EXPORT JensenTsallisBSplineRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                         TMovingImage, TDeformationField>
+                                                         TMovingImage, TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
   typedef JensenTsallisBSplineRegistrationFunction Self;
   typedef AvantsPDEDeformableRegistrationFunction
-    <TFixedImage, TMovingImage, TDeformationField>         Superclass;
+    <TFixedImage, TMovingImage, TDisplacementField>         Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
@@ -87,9 +87,9 @@ public:
   /**
    * Deformation field typedefs
    */
-  typedef TDeformationField                        DeformationFieldType;
-  typedef typename DeformationFieldType::Pointer   DeformationFieldPointer;
-  typedef typename DeformationFieldType::PixelType VectorType;
+  typedef TDisplacementField                        DisplacementFieldType;
+  typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
+  typedef typename DisplacementFieldType::PixelType VectorType;
 
   /**
    * BSpline typedefs
@@ -98,7 +98,7 @@ public:
   typedef PointSet<VectorType,
                    itkGetStaticConstMacro( ImageDimension )>              BSplinePointSetType;
   typedef BSplineScatteredDataPointSetToImageFilter
-    <BSplinePointSetType, DeformationFieldType>            BSplineFilterType;
+    <BSplinePointSetType, DisplacementFieldType>            BSplineFilterType;
   typedef typename BSplineFilterType::WeightsContainerType BSplineWeightsType;
   typedef typename BSplineFilterType::PointDataImageType   ControlPointLatticeType;
   typedef typename BSplineFilterType::ArrayType            ArrayType;
@@ -336,8 +336,8 @@ private:
   bool m_UseInputAsSamples;
   bool m_UseAnisotropicCovariances;
 
-  typename DeformationFieldType::Pointer                   m_DerivativeFixedField;
-  typename DeformationFieldType::Pointer                   m_DerivativeMovingField;
+  typename DisplacementFieldType::Pointer                   m_DerivativeFixedField;
+  typename DisplacementFieldType::Pointer                   m_DerivativeMovingField;
 
   RealType      m_FixedPointSetSigma;
   RealType      m_FixedKernelSigma;

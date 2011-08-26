@@ -30,8 +30,8 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ExpectationBasedPointSetRegistrationFunction()
 {
   RadiusType   r;
@@ -75,9 +75,9 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 void
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -86,9 +86,9 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 void
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::SetEuclideanDistanceThreshold(double threshold)
 {
   m_EuclideanDistanceThreshold = threshold;
@@ -97,9 +97,9 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /**
  *
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 double
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::GetEuclideanDistanceThreshold() const
 {
   return m_EuclideanDistanceThreshold;
@@ -108,12 +108,12 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 void
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ExpectationLandmarkField(float weight, bool whichdirection)
 {
-  typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
+  typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
 
   SpacingType   spacing = this->GetFixedImage()->GetSpacing();
   unsigned long sz1 = this->m_FixedPointSet->GetNumberOfPoints();
@@ -138,7 +138,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
     return;
     }
 
-  DeformationFieldTypePointer lmField = this->m_DerivativeFixedField;
+  DisplacementFieldTypePointer lmField = this->m_DerivativeFixedField;
   if( !whichdirection )
     {
     lmField = this->m_DerivativeMovingField;
@@ -387,9 +387,9 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 void
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::InitializeIteration()
 {
   //  std::cout << " INIT ITER " << std::endl;
@@ -418,16 +418,16 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   m_NumberOfPixelsProcessed = 0L;
   m_SumOfSquaredChange      = 0.0;
 
-  typename DeformationFieldType::PixelType zero;
+  typename DisplacementFieldType::PixelType zero;
   zero.Fill(0);
-  this->m_DerivativeFixedField = DeformationFieldType::New();
+  this->m_DerivativeFixedField = DisplacementFieldType::New();
   this->m_DerivativeFixedField->SetSpacing( this->GetFixedImage()->GetSpacing() );
   this->m_DerivativeFixedField->SetOrigin( this->GetFixedImage()->GetOrigin() );
   this->m_DerivativeFixedField->SetLargestPossibleRegion(this->GetFixedImage()->GetLargestPossibleRegion() );
   this->m_DerivativeFixedField->SetRequestedRegion(this->GetFixedImage()->GetLargestPossibleRegion() );
   this->m_DerivativeFixedField->SetBufferedRegion( this->GetFixedImage()->GetLargestPossibleRegion() );
   this->m_DerivativeFixedField->Allocate();
-  this->m_DerivativeMovingField = DeformationFieldType::New();
+  this->m_DerivativeMovingField = DisplacementFieldType::New();
   this->m_DerivativeMovingField->SetSpacing( this->GetMovingImage()->GetSpacing() );
   this->m_DerivativeMovingField->SetOrigin( this->GetMovingImage()->GetOrigin() );
   this->m_DerivativeMovingField->SetLargestPossibleRegion(this->GetMovingImage()->GetLargestPossibleRegion() );
@@ -489,10 +489,10 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
-typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PixelType
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ComputeUpdate(const NeighborhoodType & it, void * gd,
                 const FloatOffsetType & itkNotUsed(offset) )
 {
@@ -509,10 +509,10 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /*
  * Compute update at a specify neighbourhood
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
-typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
+typename ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::PixelType
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ComputeUpdateInv(const NeighborhoodType & it, void * gd,
                    const FloatOffsetType & itkNotUsed(offset) )
 {
@@ -524,9 +524,9 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /*
  * Update the metric and release the per-thread-global data.
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 void
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ReleaseGlobalDataPointer( void *gd ) const
 {
   GlobalDataStruct * globalData = (GlobalDataStruct *) gd;
@@ -549,9 +549,9 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
  * Set the function state values before each iteration
  */
 
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 void
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>::SetUpKDTrees(
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>::SetUpKDTrees(
   long whichlabel)
 {
   // convert this->m_FixedPointSet to a sample type
@@ -611,9 +611,9 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField, class TPointSet>
+template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
 void
-ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeformationField, TPointSet>
+ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobspline)
 {
   /**
@@ -628,7 +628,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
   m_MeshResolution.Fill(1);
   unsigned int PointDimension = ImageDimension;
 
-  typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
+  typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
   SpacingType spacing = this->GetFixedImage()->GetSpacing();
 
   typename TreeGeneratorType::Pointer fkdtree;
@@ -654,7 +654,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDeforma
     return;
     }
 
-  DeformationFieldTypePointer lmField = this->m_DerivativeFixedField;
+  DisplacementFieldTypePointer lmField = this->m_DerivativeFixedField;
   if( !whichdirection )
     {
     lmField = this->m_DerivativeMovingField;

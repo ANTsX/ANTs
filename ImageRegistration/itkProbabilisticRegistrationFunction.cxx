@@ -32,8 +32,8 @@ namespace itk
 /*
  * Default constructor
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
-ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
+ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ProbabilisticRegistrationFunction()
 {
   m_AvgMag = 0;
@@ -78,9 +78,9 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 /*
  * Standard "PrintSelf" method.
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -99,9 +99,9 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
 {
   typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
@@ -588,9 +588,9 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 /*
  * Set the function state values before each iteration
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 void
-ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
+ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIterationOld()
 {
   typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
@@ -823,12 +823,12 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
-typename TDeformationField::PixelType
-ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
-::ComputeMetricAtPairB(IndexType oindex, typename TDeformationField::PixelType vec)
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
+typename TDisplacementField::PixelType
+ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
+::ComputeMetricAtPairB(IndexType oindex, typename TDisplacementField::PixelType vec)
 {
-  typename TDeformationField::PixelType deriv;
+  typename TDisplacementField::PixelType deriv;
   deriv.Fill(0.0);
   double sff = 0.0;
   double smm = 0.0;
@@ -907,12 +907,12 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
 /*
  * Compute the ncc metric everywhere
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
-typename TDeformationField::PixelType
-ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDeformationField>
-::ComputeMetricAtPairC(IndexType oindex, typename TDeformationField::PixelType vec)
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
+typename TDisplacementField::PixelType
+ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
+::ComputeMetricAtPairC(IndexType oindex, typename TDisplacementField::PixelType vec)
 {
-  typename TDeformationField::PixelType deriv;
+  typename TDisplacementField::PixelType deriv;
   deriv.Fill(0.0);
   double sff = 0.0;
   double smm = 0.0;

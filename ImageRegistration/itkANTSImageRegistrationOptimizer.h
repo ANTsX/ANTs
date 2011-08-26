@@ -43,12 +43,12 @@
 #include "itkPDEDeformableRegistrationFilter.h"
 #include "itkWarpImageFilter.h"
 #include "itkWarpImageMultiTransformFilter.h"
-#include "itkDeformationFieldFromMultiTransformFilter.h"
+#include "itkDisplacementFieldFromMultiTransformFilter.h"
 #include "itkWarpImageWAffineFilter.h"
 #include "itkPointSet.h"
 #include "itkVector.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
-#include "itkGeneralToBSplineDeformationFieldFilter.h"
+#include "itkGeneralToBSplineDisplacementFieldFilter.h"
 #include "itkBSplineControlPointImageFunction.h"
 #include "ANTS_affine_registration2.h"
 #include "itkVectorFieldGradientImageFunction.h"
@@ -95,9 +95,9 @@ public:
   typedef typename AffineTransformType::Pointer           AffineTransformPointer;
   typedef OptAffine<AffineTransformPointer, ImagePointer> OptAffineType;
 
-  typedef itk::Vector<TReal, ImageDimension>     VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
-  typedef typename DeformationFieldType::Pointer DeformationFieldPointer;
+  typedef itk::Vector<TReal, ImageDimension>      VectorType;
+  typedef itk::Image<VectorType, ImageDimension>  DisplacementFieldType;
+  typedef typename DisplacementFieldType::Pointer DisplacementFieldPointer;
 
   typedef itk::Image<VectorType, ImageDimension + 1> TimeVaryingVelocityFieldType;
   typedef typename TimeVaryingVelocityFieldType::Pointer
@@ -106,12 +106,12 @@ public:
                                                     TReal>   VelocityFieldInterpolatorType;
   typedef itk::VectorGaussianInterpolateImageFunction<TimeVaryingVelocityFieldType,
                                                       TReal> VelocityFieldInterpolatorType2;
-  typedef typename DeformationFieldType::IndexType IndexType;
+  typedef typename DisplacementFieldType::IndexType IndexType;
 
   typedef ants::CommandLineParser         ParserType;
   typedef typename ParserType::OptionType OptionType;
 
-  typedef GeneralToBSplineDeformationFieldFilter<DeformationFieldType> BSplineFilterType;
+  typedef GeneralToBSplineDisplacementFieldFilter<DisplacementFieldType> BSplineFilterType;
   typedef FixedArray<RealType,
                      itkGetStaticConstMacro( ImageDimension )>                          ArrayType;
 
@@ -121,16 +121,16 @@ public:
   typedef std::vector<SimilarityMetricPointer>                             SimilarityMetricListType;
 
   /** FiniteDifferenceFunction type. */
-  typedef FiniteDifferenceFunction<DeformationFieldType>      FiniteDifferenceFunctionType;
+  typedef FiniteDifferenceFunction<DisplacementFieldType>     FiniteDifferenceFunctionType;
   typedef typename FiniteDifferenceFunctionType::TimeStepType TimeStepType;
   typedef typename
     FiniteDifferenceFunctionType::Pointer FiniteDifferenceFunctionPointer;
   typedef AvantsPDEDeformableRegistrationFunction<ImageType, ImageType,
-                                                  DeformationFieldType> MetricBaseType;
+                                                  DisplacementFieldType> MetricBaseType;
   typedef typename MetricBaseType::Pointer MetricBaseTypePointer;
 
   /* Jacobian and other calculations */
-  typedef itk::VectorFieldGradientImageFunction<DeformationFieldType> JacobianFunctionType;
+  typedef itk::VectorFieldGradientImageFunction<DisplacementFieldType> JacobianFunctionType;
 
   /** Set functions */
   void SetAffineTransform(AffineTransformPointer A)
@@ -138,9 +138,9 @@ public:
     this->m_AffineTransform = A;
   }
 
-  void SetDeformationField(DeformationFieldPointer A)
+  void SetDisplacementField(DisplacementFieldPointer A)
   {
-    this->m_DeformationField = A;
+    this->m_DisplacementField = A;
   }
 
   void SetTimeVaryingVelocityField(TimeVaryingVelocityFieldPointer A)
@@ -149,9 +149,9 @@ public:
     this->m_VelocityFieldInterpolator->SetInputImage(this->m_TimeVaryingVelocity);
   }
 
-  void SetInverseDeformationField(DeformationFieldPointer A)
+  void SetInverseDisplacementField(DisplacementFieldPointer A)
   {
-    this->m_InverseDeformationField = A;
+    this->m_InverseDisplacementField = A;
   }
 
   void SetMaskImage( ImagePointer m)
@@ -180,14 +180,14 @@ public:
     return this->m_AffineTransform;
   }
 
-  DeformationFieldPointer GetDeformationField()
+  DisplacementFieldPointer GetDisplacementField()
   {
-    return this->m_DeformationField;
+    return this->m_DisplacementField;
   }
 
-  DeformationFieldPointer GetInverseDeformationField()
+  DisplacementFieldPointer GetInverseDisplacementField()
   {
-    return this->m_InverseDeformationField;
+    return this->m_InverseDisplacementField;
   }
 
   /** Initialize all parameters */
@@ -203,7 +203,7 @@ public:
   }
 
   /** Basic operations */
-  DeformationFieldPointer CopyDeformationField( DeformationFieldPointer input );
+  DisplacementFieldPointer CopyDisplacementField( DisplacementFieldPointer input );
 
   std::string localANTSGetFilePrefix(const char *str)
   {
@@ -228,7 +228,7 @@ public:
     return filepre;
   }
 
-  void SmoothDeformationField(DeformationFieldPointer field,  bool TrueEqualsGradElseTotal )
+  void SmoothDisplacementField(DisplacementFieldPointer field,  bool TrueEqualsGradElseTotal )
   {
     typename ParserType::OptionType::Pointer regularizationOption
       = this->m_Parser->GetOption( "regularization" );
@@ -268,8 +268,8 @@ public:
                 / spanLength + 0.5 );
             }
           }
-        this->SmoothDeformationFieldBSpline( field, meshSize, splineOrder,
-                                             numberOfLevels );
+        this->SmoothDisplacementFieldBSpline( field, meshSize, splineOrder,
+                                              numberOfLevels );
         }
       else
         {
@@ -296,8 +296,8 @@ public:
 
         RealType maxMagnitude = 0.0;
 
-        ImageRegionIterator<DeformationFieldType> It( field,
-                                                      field->GetLargestPossibleRegion() );
+        ImageRegionIterator<DisplacementFieldType> It( field,
+                                                       field->GetLargestPossibleRegion() );
         for( It.GoToBegin(); !It.IsAtEnd(); ++It )
           {
           RealType magnitude = ( It.Get() ).GetNorm();
@@ -306,8 +306,8 @@ public:
             maxMagnitude = magnitude;
             }
           }
-        this->SmoothDeformationFieldBSpline( field, meshSize, splineOrder,
-                                             numberOfLevels );
+        this->SmoothDisplacementFieldBSpline( field, meshSize, splineOrder,
+                                              numberOfLevels );
 
         if( maxMagnitude > 0.0 )
           {
@@ -329,29 +329,29 @@ public:
         {
         sig = this->m_TotalSmoothingparam;
         }
-      this->SmoothDeformationFieldGauss(field, sig);
+      this->SmoothDisplacementFieldGauss(field, sig);
       }
   }
 
-  void SmoothDeformationFieldGauss(DeformationFieldPointer field = NULL, TReal sig = 0.0, bool useparamimage = false,
-                                   unsigned int lodim = ImageDimension);
+  void SmoothDisplacementFieldGauss(DisplacementFieldPointer field = NULL, TReal sig = 0.0, bool useparamimage = false,
+                                    unsigned int lodim = ImageDimension);
 
 //  TReal = smoothingparam, int = maxdim to smooth
   void SmoothVelocityGauss(TimeVaryingVelocityFieldPointer field, TReal, unsigned int);
 
-  void SmoothDeformationFieldBSpline(DeformationFieldPointer field, ArrayType meshSize, unsigned int splineorder,
-                                     unsigned int numberoflevels );
+  void SmoothDisplacementFieldBSpline(DisplacementFieldPointer field, ArrayType meshSize, unsigned int splineorder,
+                                      unsigned int numberoflevels );
 
-  DeformationFieldPointer ComputeUpdateFieldAlternatingMin(DeformationFieldPointer fixedwarp,
-                                                           DeformationFieldPointer movingwarp,
-                                                           PointSetPointer  fpoints = NULL,
-                                                           PointSetPointer wpoints = NULL,
-                                                           DeformationFieldPointer updateFieldInv = NULL,
-                                                           bool updateenergy = true);
+  DisplacementFieldPointer ComputeUpdateFieldAlternatingMin(DisplacementFieldPointer fixedwarp,
+                                                            DisplacementFieldPointer movingwarp,
+                                                            PointSetPointer  fpoints = NULL,
+                                                            PointSetPointer wpoints = NULL,
+                                                            DisplacementFieldPointer updateFieldInv = NULL,
+                                                            bool updateenergy = true);
 
-  DeformationFieldPointer ComputeUpdateField(DeformationFieldPointer fixedwarp, DeformationFieldPointer movingwarp,
-                                             PointSetPointer  fpoints = NULL,  PointSetPointer wpoints = NULL,
-                                             DeformationFieldPointer updateFieldInv = NULL, bool updateenergy = true);
+  DisplacementFieldPointer ComputeUpdateField(DisplacementFieldPointer fixedwarp, DisplacementFieldPointer movingwarp,
+                                              PointSetPointer  fpoints = NULL,  PointSetPointer wpoints = NULL,
+                                              DisplacementFieldPointer updateFieldInv = NULL, bool updateenergy = true);
 
   TimeVaryingVelocityFieldPointer ExpandVelocity()
   {
@@ -382,7 +382,7 @@ public:
     return m_FieldExpander->GetOutput();
   }
 
-  DeformationFieldPointer ExpandField(DeformationFieldPointer field,  typename ImageType::SpacingType targetSpacing)
+  DisplacementFieldPointer ExpandField(DisplacementFieldPointer field,  typename ImageType::SpacingType targetSpacing)
   {
 //      this->m_Debug=true;
     TReal expandFactors[ImageDimension];
@@ -401,7 +401,7 @@ public:
 
     VectorType pad;
     pad.Fill(0);
-    typedef VectorExpandImageFilter<DeformationFieldType, DeformationFieldType> ExpanderType;
+    typedef VectorExpandImageFilter<DisplacementFieldType, DisplacementFieldType> ExpanderType;
     typename ExpanderType::Pointer m_FieldExpander = ExpanderType::New();
     m_FieldExpander->SetInput(field);
     m_FieldExpander->SetExpandFactors( expandFactors );
@@ -409,7 +409,7 @@ public:
 //        m_FieldExpander->SetEdgePaddingValue( pad );
     m_FieldExpander->UpdateLargestPossibleRegion();
 
-    typename DeformationFieldType::Pointer fieldout = m_FieldExpander->GetOutput();
+    typename DisplacementFieldType::Pointer fieldout = m_FieldExpander->GetOutput();
     fieldout->SetSpacing(targetSpacing);
     fieldout->SetOrigin(field->GetOrigin() );
     if( this->m_Debug )
@@ -421,10 +421,10 @@ public:
     return fieldout;
   }
 
-  ImagePointer GetVectorComponent(DeformationFieldPointer field, unsigned int index)
+  ImagePointer GetVectorComponent(DisplacementFieldPointer field, unsigned int index)
   {
     // Initialize the Moving to the displacement field
-    typedef DeformationFieldType FieldType;
+    typedef DisplacementFieldType FieldType;
 
     typename ImageType::Pointer sfield = ImageType::New();
     sfield->SetSpacing( field->GetSpacing() );
@@ -449,8 +449,8 @@ public:
   ImagePointer SubsampleImage( ImagePointer, RealType, typename ImageType::PointType outputOrigin,
                                typename ImageType::DirectionType outputDirection,   AffineTransformPointer aff = NULL);
 
-  DeformationFieldPointer SubsampleField( DeformationFieldPointer field, typename ImageType::SizeType
-                                          targetSize, typename ImageType::SpacingType targetSpacing )
+  DisplacementFieldPointer SubsampleField( DisplacementFieldPointer field, typename ImageType::SizeType
+                                           targetSize, typename ImageType::SpacingType targetSpacing )
   {
     std::cout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
     std::cout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
@@ -458,7 +458,7 @@ public:
     std::cout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
     std::cout << " SUBSAM FIELD SUBSAM FIELD SUBSAM FIELD " << std::endl;
 
-    typename DeformationFieldType::Pointer sfield = DeformationFieldType::New();
+    typename DisplacementFieldType::Pointer sfield = DisplacementFieldType::New();
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
       typename ImageType::Pointer precomp = this->GetVectorComponent(field, i);
@@ -474,8 +474,8 @@ public:
         sfield->Allocate();
         }
 
-      typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
-      typedef typename DeformationFieldType::PixelType                VectorType;
+      typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
+      typedef typename DisplacementFieldType::PixelType                VectorType;
       VectorType v1;
       VectorType zero;
       zero.Fill(0.0);
@@ -493,7 +493,7 @@ public:
 
   PointSetPointer  WarpMultiTransform(ImagePointer referenceimage, ImagePointer movingImage,
                                       PointSetPointer movingpoints,  AffineTransformPointer aff,
-                                      DeformationFieldPointer totalField, bool doinverse,
+                                      DisplacementFieldPointer totalField, bool doinverse,
                                       AffineTransformPointer  fixedaff  )
   {
     if( !movingpoints )
@@ -514,7 +514,7 @@ public:
       fixedaff->GetInverse(fixedaffinverse);
       }
 
-    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DeformationFieldType, TransformType> WarperType;
+    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
     warper->SetInput(movingImage);
     warper->SetEdgePaddingValue( 0);
@@ -523,7 +523,7 @@ public:
       {
       if( totalField )
         {
-        warper->PushBackDeformationFieldTransform(totalField);
+        warper->PushBackDisplacementFieldTransform(totalField);
         }
       if( fixedaff )
         {
@@ -546,7 +546,7 @@ public:
         }
       if( totalField )
         {
-        warper->PushBackDeformationFieldTransform(totalField);
+        warper->PushBackDisplacementFieldTransform(totalField);
         }
       }
 
@@ -611,7 +611,7 @@ public:
   }
 
   ImagePointer WarpMultiTransform( ImagePointer referenceimage,  ImagePointer movingImage,  AffineTransformPointer aff,
-                                   DeformationFieldPointer totalField, bool doinverse,
+                                   DisplacementFieldPointer totalField, bool doinverse,
                                    AffineTransformPointer  fixedaff  )
   {
     typedef typename ImageType::DirectionType DirectionType;
@@ -645,7 +645,7 @@ public:
     typename InterpolatorType2::Pointer interpnn = InterpolatorType2::New();
     typename InterpolatorType3::Pointer interpcu = InterpolatorType3::New();
 
-    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DeformationFieldType, TransformType> WarperType;
+    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
     warper->SetInput(movingImage);
     warper->SetEdgePaddingValue( 0);
@@ -659,7 +659,7 @@ public:
       {
       if( totalField )
         {
-        warper->PushBackDeformationFieldTransform(totalField);
+        warper->PushBackDisplacementFieldTransform(totalField);
         }
       if( fixedaff )
         {
@@ -682,7 +682,7 @@ public:
         }
       if( totalField )
         {
-        warper->PushBackDeformationFieldTransform(totalField);
+        warper->PushBackDisplacementFieldTransform(totalField);
         }
       }
 
@@ -771,8 +771,8 @@ public:
     return smoothImage;
   }
 
-  typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DeformationFieldPointer IntegrateConstantVelocity(
-    DeformationFieldPointer totalField, unsigned int ntimesteps, TReal timeweight);
+  typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer IntegrateConstantVelocity(
+    DisplacementFieldPointer totalField, unsigned int ntimesteps, TReal timeweight);
 
   /** Base optimization functions */
   // AffineTransformPointer AffineOptimization(AffineTransformPointer &aff_init, OptAffine &affine_opt); // {return
@@ -1095,25 +1095,25 @@ public:
       }
 //            this->m_Debug=false;
 
-    if( !this->m_DeformationField )
+    if( !this->m_DisplacementField )
       {      /*FIXME -- need initial deformation strategy */
-      this->m_DeformationField = DeformationFieldType::New();
-      this->m_DeformationField->SetSpacing( this->m_CurrentDomainSpacing);
-      this->m_DeformationField->SetOrigin( fixedImage->GetOrigin() );
-      this->m_DeformationField->SetDirection( fixedImage->GetDirection() );
+      this->m_DisplacementField = DisplacementFieldType::New();
+      this->m_DisplacementField->SetSpacing( this->m_CurrentDomainSpacing);
+      this->m_DisplacementField->SetOrigin( fixedImage->GetOrigin() );
+      this->m_DisplacementField->SetDirection( fixedImage->GetDirection() );
       typename ImageType::RegionType region;
       region.SetSize( this->m_CurrentDomainSize);
-      this->m_DeformationField->SetLargestPossibleRegion(region);
-      this->m_DeformationField->SetRequestedRegion(region);
-      this->m_DeformationField->SetBufferedRegion(region);
-      this->m_DeformationField->Allocate();
-      this->m_DeformationField->FillBuffer(zero);
-      std::cout <<  " allocated def field " << this->m_DeformationField->GetDirection() << std::endl;
+      this->m_DisplacementField->SetLargestPossibleRegion(region);
+      this->m_DisplacementField->SetRequestedRegion(region);
+      this->m_DisplacementField->SetBufferedRegion(region);
+      this->m_DisplacementField->Allocate();
+      this->m_DisplacementField->FillBuffer(zero);
+      std::cout <<  " allocated def field " << this->m_DisplacementField->GetDirection() << std::endl;
       // exit(0);
       }
     else
       {
-      this->m_DeformationField = this->ExpandField(this->m_DeformationField, this->m_CurrentDomainSpacing);
+      this->m_DisplacementField = this->ExpandField(this->m_DisplacementField, this->m_CurrentDomainSpacing);
       if( this->m_TimeVaryingVelocity )
         {
         this->ExpandVelocity();
@@ -1148,7 +1148,7 @@ public:
 
   void DeformableOptimization()
   {
-    DeformationFieldPointer updateField = NULL;
+    DisplacementFieldPointer updateField = NULL;
 
     this->SetUpParameters();
     typename ImageType::SpacingType spacing;
@@ -1211,8 +1211,8 @@ public:
       }
     if( maxits == 0 )
       {
-      this->m_DeformationField = NULL;
-      this->m_InverseDeformationField = NULL;
+      this->m_DisplacementField = NULL;
+      this->m_InverseDisplacementField = NULL;
       //	this->ComputeMultiResolutionParameters(this->m_SimilarityMetrics[0]->GetFixedImage());
       return;
       }
@@ -1608,36 +1608,36 @@ public:
         //         this->m_SyNF= this->IntegrateConstantVelocity(this->m_SyNF, nts, timestep);
         //         this->m_SyNM= this->IntegrateConstantVelocity(this->m_SyNM,
         //         nts, timestep);
-        //	 DeformationFieldPointer fdiffmap = this->IntegrateVelocity(0,0.5);
+        //	 DisplacementFieldPointer fdiffmap = this->IntegrateVelocity(0,0.5);
         //	 this->m_SyNFInv = this->IntegrateVelocity(0.5,0);
-        //	 DeformationFieldPointer mdiffmap = this->IntegrateVelocity(0.5,1);
+        //	 DisplacementFieldPointer mdiffmap = this->IntegrateVelocity(0.5,1);
         //	 this->m_SyNMInv = this->IntegrateVelocity(1,0.5);
-        //	 this->m_SyNM=this->CopyDeformationField(mdiffmap);
-        //	 this->m_SyNF=this->CopyDeformationField(fdiffmap);
-        this->m_DeformationField = this->IntegrateVelocity(0, 1);
+        //	 this->m_SyNM=this->CopyDisplacementField(mdiffmap);
+        //	 this->m_SyNF=this->CopyDisplacementField(fdiffmap);
+        this->m_DisplacementField = this->IntegrateVelocity(0, 1);
         //	 ImagePointer wmimage= this->WarpMultiTransform(
         //  this->m_SmoothFixedImages[0],this->m_SmoothMovingImages[0], this->m_AffineTransform,
-        // this->m_DeformationField, false , this->m_ScaleFactor );
-        this->m_InverseDeformationField = this->IntegrateVelocity(1, 0);
+        // this->m_DisplacementField, false , this->m_ScaleFactor );
+        this->m_InverseDisplacementField = this->IntegrateVelocity(1, 0);
         }
       else
         {
-        this->m_InverseDeformationField = this->CopyDeformationField( this->m_SyNM);
-        this->ComposeDiffs(this->m_SyNF, this->m_SyNMInv, this->m_DeformationField, 1);
-        this->ComposeDiffs(this->m_SyNM, this->m_SyNFInv, this->m_InverseDeformationField, 1);
+        this->m_InverseDisplacementField = this->CopyDisplacementField( this->m_SyNM);
+        this->ComposeDiffs(this->m_SyNF, this->m_SyNMInv, this->m_DisplacementField, 1);
+        this->ComposeDiffs(this->m_SyNM, this->m_SyNFInv, this->m_InverseDisplacementField, 1);
         }
       }
     else if( this->GetTransformationModel() == std::string("Exp") )
       {
-      DeformationFieldPointer diffmap =  this->IntegrateConstantVelocity( this->m_DeformationField,
-                                                                          (unsigned int)this->m_NTimeSteps, 1 );                        //
-                                                                                                                                        // 1.0/
-                                                                                                                                        // (TReal)this->m_NTimeSteps);
-      DeformationFieldPointer invdiffmap = this->IntegrateConstantVelocity(this->m_DeformationField,
-                                                                           (unsigned int) this->m_NTimeSteps, -1 );                      //
-                                                                                                                                         // -1.0/(TReal)this->m_NTimeSteps);
-      this->m_InverseDeformationField = invdiffmap;
-      this->m_DeformationField = diffmap;
+      DisplacementFieldPointer diffmap =  this->IntegrateConstantVelocity( this->m_DisplacementField,
+                                                                           (unsigned int)this->m_NTimeSteps, 1 );                         //
+                                                                                                                                          // 1.0/
+                                                                                                                                          // (TReal)this->m_NTimeSteps);
+      DisplacementFieldPointer invdiffmap = this->IntegrateConstantVelocity(this->m_DisplacementField,
+                                                                            (unsigned int) this->m_NTimeSteps, -1 );                       //
+                                                                                                                                           // -1.0/(TReal)this->m_NTimeSteps);
+      this->m_InverseDisplacementField = invdiffmap;
+      this->m_DisplacementField = diffmap;
       AffineTransformPointer invaff = NULL;
       if( this->m_AffineTransform )
         {
@@ -1655,9 +1655,9 @@ public:
       }
     else if( this->GetTransformationModel() == std::string("GreedyExp") )
       {
-      DeformationFieldPointer diffmap = this->m_DeformationField;
-      this->m_InverseDeformationField = NULL;
-      this->m_DeformationField = diffmap;
+      DisplacementFieldPointer diffmap = this->m_DisplacementField;
+      this->m_InverseDisplacementField = NULL;
+      this->m_DisplacementField = diffmap;
       AffineTransformPointer invaff = NULL;
       if( this->m_AffineTransform )
         {
@@ -1674,12 +1674,12 @@ public:
         }
       }
 
-    this->m_DeformationField->SetOrigin( this->m_ReferenceSpaceImage->GetOrigin() );
-    this->m_DeformationField->SetDirection( this->m_ReferenceSpaceImage->GetDirection() );
-    if( this->m_InverseDeformationField )
+    this->m_DisplacementField->SetOrigin( this->m_ReferenceSpaceImage->GetOrigin() );
+    this->m_DisplacementField->SetDirection( this->m_ReferenceSpaceImage->GetDirection() );
+    if( this->m_InverseDisplacementField )
       {
-      this->m_InverseDeformationField->SetOrigin( this->m_ReferenceSpaceImage->GetOrigin() );
-      this->m_InverseDeformationField->SetDirection( this->m_ReferenceSpaceImage->GetDirection() );
+      this->m_InverseDisplacementField->SetOrigin( this->m_ReferenceSpaceImage->GetOrigin() );
+      this->m_InverseDisplacementField->SetDirection( this->m_ReferenceSpaceImage->GetDirection() );
       }
 
     if( this->m_TimeVaryingVelocity  )
@@ -1720,10 +1720,10 @@ public:
 */
   void UpdateTimeVaryingVelocityFieldWithSyNFandSyNM();
 
-  void CopyOrAddToVelocityField( TimeVaryingVelocityFieldPointer velocity,  DeformationFieldPointer update1,
-                                 DeformationFieldPointer update2, TReal timept);
+  void CopyOrAddToVelocityField( TimeVaryingVelocityFieldPointer velocity,  DisplacementFieldPointer update1,
+                                 DisplacementFieldPointer update2, TReal timept);
 
-// void CopyOrAddToVelocityField( DeformationFieldPointer update,  unsigned int timeindex,  bool
+// void CopyOrAddToVelocityField( DisplacementFieldPointer update,  unsigned int timeindex,  bool
 // CopyIsTrueOtherwiseAdd);
 
   void ElasticRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage)
@@ -1731,12 +1731,12 @@ public:
     typename ImageType::SpacingType spacing;
     VectorType zero;
     zero.Fill(0);
-    DeformationFieldPointer updateField;
+    DisplacementFieldPointer updateField;
 
-    updateField = this->ComputeUpdateField(this->m_DeformationField, NULL, NULL, NULL, NULL);
+    updateField = this->ComputeUpdateField(this->m_DisplacementField, NULL, NULL, NULL, NULL);
 
-    typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
-    Iterator dIter(this->m_DeformationField, this->m_DeformationField->GetLargestPossibleRegion() );
+    typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
+    Iterator dIter(this->m_DisplacementField, this->m_DisplacementField->GetLargestPossibleRegion() );
     for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter )
       {
       typename ImageType::IndexType index = dIter.GetIndex();
@@ -1747,21 +1747,21 @@ public:
     if( this->m_Debug )
       {
       std::cout << " updated elast " << " up-sz " << updateField->GetLargestPossibleRegion() <<  std::endl;
-      std::cout <<  " t-sz " << this->m_DeformationField->GetLargestPossibleRegion() <<  std::endl;
+      std::cout <<  " t-sz " << this->m_DisplacementField->GetLargestPossibleRegion() <<  std::endl;
       }
-    this->SmoothDeformationField(this->m_DeformationField, false);
+    this->SmoothDisplacementField(this->m_DisplacementField, false);
 
     return;
   }
 
-  ImagePointer WarpImageBackward( ImagePointer image, DeformationFieldPointer field )
+  ImagePointer WarpImageBackward( ImagePointer image, DisplacementFieldPointer field )
   {
-    typedef WarpImageFilter<ImageType, ImageType, DeformationFieldType> WarperType;
+    typedef WarpImageFilter<ImageType, ImageType, DisplacementFieldType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
     typedef NearestNeighborInterpolateImageFunction<ImageType, TReal>
       InterpolatorType;
     warper->SetInput(image);
-    warper->SetDeformationField( field );
+    warper->SetDisplacementField( field );
     warper->SetEdgePaddingValue( 0);
     warper->SetOutputSpacing(field->GetSpacing() );
     warper->SetOutputOrigin( field->GetOrigin() );
@@ -1769,8 +1769,8 @@ public:
     return warper->GetOutput();
   }
 
-  void ComposeDiffs(DeformationFieldPointer fieldtowarpby, DeformationFieldPointer field,
-                    DeformationFieldPointer fieldout, TReal sign);
+  void ComposeDiffs(DisplacementFieldPointer fieldtowarpby, DisplacementFieldPointer field,
+                    DisplacementFieldPointer fieldout, TReal sign);
 
   void SetSimilarityMetrics( SimilarityMetricListType S )
   {
@@ -1792,8 +1792,8 @@ public:
     this->m_DeltaTime = t;
   }
 
-  TReal InvertField(DeformationFieldPointer field,
-                    DeformationFieldPointer inverseField, TReal weight = 1.0,
+  TReal InvertField(DisplacementFieldPointer field,
+                    DisplacementFieldPointer inverseField, TReal weight = 1.0,
                     TReal toler = 0.1, int maxiter = 20, bool print = false)
   {
     TReal        mytoler = toler;
@@ -1817,12 +1817,12 @@ public:
     TRealImage->SetDirection(field->GetDirection() );
     TRealImage->Allocate();
 
-    typedef typename DeformationFieldType::PixelType           VectorType;
-    typedef typename DeformationFieldType::IndexType           IndexType;
-    typedef typename VectorType::ValueType                     ScalarType;
-    typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
+    typedef typename DisplacementFieldType::PixelType           VectorType;
+    typedef typename DisplacementFieldType::IndexType           IndexType;
+    typedef typename VectorType::ValueType                      ScalarType;
+    typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
 
-    DeformationFieldPointer lagrangianInitCond = DeformationFieldType::New();
+    DisplacementFieldPointer lagrangianInitCond = DisplacementFieldType::New();
     lagrangianInitCond->SetSpacing( field->GetSpacing() );
     lagrangianInitCond->SetOrigin( field->GetOrigin() );
     lagrangianInitCond->SetDirection( field->GetDirection() );
@@ -1830,7 +1830,7 @@ public:
     lagrangianInitCond->SetRequestedRegion(field->GetRequestedRegion() );
     lagrangianInitCond->SetBufferedRegion( field->GetLargestPossibleRegion() );
     lagrangianInitCond->Allocate();
-    DeformationFieldPointer eulerianInitCond = DeformationFieldType::New();
+    DisplacementFieldPointer eulerianInitCond = DisplacementFieldType::New();
     eulerianInitCond->SetSpacing( field->GetSpacing() );
     eulerianInitCond->SetOrigin( field->GetOrigin() );
     eulerianInitCond->SetDirection( field->GetDirection() );
@@ -1839,7 +1839,7 @@ public:
     eulerianInitCond->SetBufferedRegion( field->GetLargestPossibleRegion() );
     eulerianInitCond->Allocate();
 
-    typedef typename DeformationFieldType::SizeType SizeType;
+    typedef typename DisplacementFieldType::SizeType SizeType;
     SizeType size = field->GetLargestPossibleRegion().GetSize();
 
     typename ImageType::SpacingType spacing = field->GetSpacing();
@@ -1976,9 +1976,9 @@ public:
 
 protected:
 
-  DeformationFieldPointer IntegrateVelocity(TReal, TReal);
-  DeformationFieldPointer IntegrateLandmarkSetVelocity(TReal, TReal, PointSetPointer movingpoints,
-                                                       ImagePointer referenceimage );
+  DisplacementFieldPointer IntegrateVelocity(TReal, TReal);
+  DisplacementFieldPointer IntegrateLandmarkSetVelocity(TReal, TReal, PointSetPointer movingpoints,
+                                                        ImagePointer referenceimage );
 
   ImagePointer  MakeSubImage( ImagePointer bigimage)
   {
@@ -2036,13 +2036,13 @@ protected:
     return varimage;
   }
 
-  TReal MeasureDeformation(DeformationFieldPointer field, int option = 0)
+  TReal MeasureDeformation(DisplacementFieldPointer field, int option = 0)
   {
-    typedef typename DeformationFieldType::PixelType           VectorType;
-    typedef typename DeformationFieldType::IndexType           IndexType;
-    typedef typename DeformationFieldType::SizeType            SizeType;
-    typedef typename VectorType::ValueType                     ScalarType;
-    typedef ImageRegionIteratorWithIndex<DeformationFieldType> Iterator;
+    typedef typename DisplacementFieldType::PixelType           VectorType;
+    typedef typename DisplacementFieldType::IndexType           IndexType;
+    typedef typename DisplacementFieldType::SizeType            SizeType;
+    typedef typename VectorType::ValueType                      ScalarType;
+    typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
     // all we have to do here is add the local field to the global field.
     Iterator      vfIter( field,  field->GetLargestPossibleRegion() );
     SizeType      size = field->GetLargestPossibleRegion().GetSize();
@@ -2135,10 +2135,10 @@ private:
   typename ImageType::PointType   m_FullDomainOrigin;
   typename ImageType::SpacingType   m_FullDomainSpacing;
 
-  AffineTransformPointer  m_AffineTransform;
-  AffineTransformPointer  m_FixedImageAffineTransform;
-  DeformationFieldPointer m_DeformationField;
-  DeformationFieldPointer m_InverseDeformationField;
+  AffineTransformPointer   m_AffineTransform;
+  AffineTransformPointer   m_FixedImageAffineTransform;
+  DisplacementFieldPointer m_DisplacementField;
+  DisplacementFieldPointer m_InverseDisplacementField;
 
   std::vector<TReal>        m_GradientDescentParameters;
   std::vector<TReal>        m_MetricScalarWeights;
@@ -2180,10 +2180,10 @@ private:
   std::vector<unsigned int> m_EnergyBad;
 
 /** for SyN only */
-  DeformationFieldPointer         m_SyNF;
-  DeformationFieldPointer         m_SyNFInv;
-  DeformationFieldPointer         m_SyNM;
-  DeformationFieldPointer         m_SyNMInv;
+  DisplacementFieldPointer        m_SyNF;
+  DisplacementFieldPointer        m_SyNFInv;
+  DisplacementFieldPointer        m_SyNM;
+  DisplacementFieldPointer        m_SyNMInv;
   TimeVaryingVelocityFieldPointer m_TimeVaryingVelocity;
   TimeVaryingVelocityFieldPointer m_LastTimeVaryingVelocity;
   TimeVaryingVelocityFieldPointer m_LastTimeVaryingUpdate;

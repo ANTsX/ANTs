@@ -56,7 +56,7 @@ int IntegrateVelocityField(int argc, char *argv[])
   PixelType finishtime = timeone;
   typedef float                                                          PixelType;
   typedef itk::Vector<PixelType, ImageDimension>                         VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                         DeformationFieldType;
+  typedef itk::Image<VectorType, ImageDimension>                         DisplacementFieldType;
   typedef itk::Image<VectorType, ImageDimension + 1>                     TimeVaryingVelocityFieldType;
   typedef itk::Image<PixelType, ImageDimension>                          ImageType;
   typedef typename  ImageType::IndexType                                 IndexType;
@@ -64,7 +64,7 @@ int IntegrateVelocityField(int argc, char *argv[])
   typedef typename  ImageType::SpacingType                               SpacingType;
   typedef TimeVaryingVelocityFieldType                                   tvt;
   typedef itk::ImageFileReader<tvt>                                      readertype;
-  typedef itk::ImageFileWriter<DeformationFieldType>                     writertype;
+  typedef itk::ImageFileWriter<DisplacementFieldType>                    writertype;
   typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, PixelType> ROType;
   typename ROType::Pointer m_MFR = ROType::New();
   //  std::cout << " a " << std::endl;
@@ -74,7 +74,7 @@ int IntegrateVelocityField(int argc, char *argv[])
   typename tvt::Pointer timeVaryingVelocity;
   ReadImage<tvt>(timeVaryingVelocity, vectorfn.c_str() );
 
-  typename DeformationFieldType::Pointer deformation = DeformationFieldType::New();
+  typename DisplacementFieldType::Pointer deformation = DisplacementFieldType::New();
   deformation->SetSpacing(    image->GetSpacing() );
   deformation->SetOrigin(     image->GetOrigin() );
   deformation->SetDirection(  image->GetDirection() );
@@ -83,7 +83,7 @@ int IntegrateVelocityField(int argc, char *argv[])
   //  m_MFR->SetFixedImage(image);
   //  m_MFR->SetMovingImage(image);
   // std::cout << " b " << std::endl;
-  m_MFR->SetDeformationField(deformation);
+  m_MFR->SetDisplacementField(deformation);
   m_MFR->SetTimeVaryingVelocityField(timeVaryingVelocity);
   m_MFR->SetDeltaTime(dT);
   VectorType zero;
@@ -98,12 +98,12 @@ int IntegrateVelocityField(int argc, char *argv[])
     {
     std::cout << " No TV Field " << std::endl;  return EXIT_FAILURE;
     }
-  typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> FieldIterator;
-  typedef itk::ImageRegionIteratorWithIndex<tvt>                  TVFieldIterator;
-  typedef typename DeformationFieldType::IndexType                DIndexType;
-  typedef typename DeformationFieldType::PointType                DPointType;
-  typedef typename TimeVaryingVelocityFieldType::IndexType        VIndexType;
-  typedef typename TimeVaryingVelocityFieldType::PointType        VPointType;
+  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
+  typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
+  typedef typename DisplacementFieldType::IndexType                DIndexType;
+  typedef typename DisplacementFieldType::PointType                DPointType;
+  typedef typename TimeVaryingVelocityFieldType::IndexType         VIndexType;
+  typedef typename TimeVaryingVelocityFieldType::PointType         VPointType;
 
   if( starttime < 0 )
     {
@@ -132,7 +132,7 @@ int IntegrateVelocityField(int argc, char *argv[])
     deformation->SetPixel(velind, disp);
     }
 
-  WriteImage<DeformationFieldType>(deformation, outname.c_str() );
+  WriteImage<DisplacementFieldType>(deformation, outname.c_str() );
   return 0;
 }
 

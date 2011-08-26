@@ -50,11 +50,11 @@ class ITK_EXPORT PreservationOfPrincipalDirectionTensorReorientationImageFilter 
 public:
   typedef TTensorImage InputImageType;
   typedef TTensorImage OutputImageType;
-  typedef TVectorImage DeformationFieldType;
+  typedef TVectorImage DisplacementFieldType;
 
-  typedef typename DeformationFieldType::Pointer   DeformationFieldPointer;
-  typedef typename DeformationFieldType::PixelType VectorType;
-  typedef typename VectorType::RealValueType       RealType;
+  typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
+  typedef typename DisplacementFieldType::PixelType VectorType;
+  typedef typename VectorType::RealValueType        RealType;
 
   typedef Matrix<RealType, 3, 3> MatrixType;
   // typedef Vector<RealType, 3> VectorType;
@@ -97,8 +97,8 @@ public:
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
 
-  itkSetMacro(DeformationField, DeformationFieldPointer);
-  itkGetMacro(DeformationField, DeformationFieldPointer);
+  itkSetMacro(DisplacementField, DisplacementFieldPointer);
+  itkGetMacro(DisplacementField, DisplacementFieldPointer);
 
   void SetAffineTransform( AffineTransformPointer aff )
   {
@@ -148,7 +148,7 @@ protected:
    *     ImageToImageFilter::GenerateData() */
   void GenerateData( void );
 
-  typename DeformationFieldType::PixelType TransformVectorByDirection( typename DeformationFieldType::PixelType cpix )
+  typename DisplacementFieldType::PixelType TransformVectorByDirection( typename DisplacementFieldType::PixelType cpix )
   {
     typedef itk::Vector<double, ImageDimension> locVectorType;
     if( this->m_UseImageDirection )
@@ -171,13 +171,13 @@ private:
   PreservationOfPrincipalDirectionTensorReorientationImageFilter(const Self &); // purposely not implemented
   void operator=(const Self &);                                                 // purposely not implemented
 
-  AffineTransformPointer GetLocalDeformation(DeformationFieldPointer, typename DeformationFieldType::IndexType );
+  AffineTransformPointer GetLocalDeformation(DisplacementFieldPointer, typename DisplacementFieldType::IndexType );
 
   TensorType ApplyReorientation(InverseTransformPointer, TensorType );
 
   void DirectionCorrectTransform( AffineTransformPointer, AffineTransformPointer );
 
-  DeformationFieldPointer m_DeformationField;
+  DisplacementFieldPointer m_DisplacementField;
 
   AffineTransformPointer m_DirectionTransform;
 

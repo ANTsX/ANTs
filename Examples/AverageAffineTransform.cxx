@@ -10,7 +10,7 @@
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 // #include "itkWarpImageMultiTransformFilter.h"
-// #include "itkDeformationFieldFromMultiTransformFilter.h"
+// #include "itkDisplacementFieldFromMultiTransformFilter.h"
 
 #include "itkAverageAffineTransformFunction.h"
 
@@ -218,12 +218,12 @@ void AverageAffineTransform(char *output_affine_txt, char *reference_affine_txt,
 {
 //    typedef itk::Image<float, ImageDimension> ImageType;
 //    typedef itk::Vector<float, ImageDimension> VectorType;
-//    typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
+//    typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
 
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
                                          ImageDimension> AffineTransformType;
 //    typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType,
-//            DeformationFieldType, AffineTransformType> WarperType;
+//            DisplacementFieldType, AffineTransformType> WarperType;
 
   typedef itk::AverageAffineTransformFunction<AffineTransformType> WarperType;
 
@@ -244,7 +244,7 @@ void AverageAffineTransform(char *output_affine_txt, char *reference_affine_txt,
 
   typedef itk::TransformFileReader TranReaderType;
 
-//    typedef itk::ImageFileReader<DeformationFieldType> FieldReaderType;
+//    typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
 
   int       cnt_affine = 0;
   const int kOptQueueSize = opt_queue.size();

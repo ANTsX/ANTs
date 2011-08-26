@@ -49,7 +49,7 @@ public:
   typedef Image<RealType,  itkGetStaticConstMacro( Dimension )>  ImageType;
   typedef typename ImageType::Pointer                            ImagePointer;
   typedef Vector<RealType, itkGetStaticConstMacro( Dimension )>  VectorType;
-  typedef Image<VectorType, itkGetStaticConstMacro( Dimension )> DeformationFieldType;
+  typedef Image<VectorType, itkGetStaticConstMacro( Dimension )> DisplacementFieldType;
 
   /** Point Types  for landmarks and labeled point-sets */
   typedef long                                          PointDataVectorType;

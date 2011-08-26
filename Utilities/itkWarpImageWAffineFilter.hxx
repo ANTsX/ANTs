@@ -30,8 +30,8 @@ namespace itk
 /**
  * Default constructor.
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::WarpImageWAffineFilter()
 {
   // Setup the number of required inputs
@@ -56,9 +56,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 /**
  * Standard PrintSelf method.
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -75,9 +75,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
  * Set the output image spacing.
  *
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::SetOutputSpacing(
   const double* spacing)
 {
@@ -90,9 +90,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
  * Set the output image origin.
  *
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::SetOutputOrigin(
   const double* origin)
 {
@@ -105,15 +105,15 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
  * Set deformation field as Inputs[1] for this ProcessObject.
  *
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
-::SetDeformationField(
-  const DeformationFieldType * field )
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
+::SetDisplacementField(
+  const DisplacementFieldType * field )
 {
   // const cast is needed because the pipeline is not const-correct.
-  DeformationFieldType * input =
-    const_cast<DeformationFieldType *>( field );
+  DisplacementFieldType * input =
+    const_cast<DisplacementFieldType *>( field );
 
   this->ProcessObject::SetNthInput( 1, input );
 }
@@ -121,13 +121,13 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 /**
  * Return a pointer to the deformation field.
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
-typename WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
-::DeformationFieldType
-* WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
-::GetDeformationField(void)
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
+typename WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
+::DisplacementFieldType
+* WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
+::GetDisplacementField(void)
   {
-  return static_cast<DeformationFieldType *>
+  return static_cast<DisplacementFieldType *>
          ( this->ProcessObject::GetInput( 1 ) );
   }
 
@@ -136,9 +136,9 @@ typename WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TT
  * InterpolatorType::SetInputImage is not thread-safe and hence
  * has to be setup before ThreadedGenerateData
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::BeforeThreadedGenerateData()
 {
   if( !m_Interpolator )
@@ -160,9 +160,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 /**
  * Setup state of filter after multi-threading.
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::AfterThreadedGenerateData()
 {
   // Disconnect input image from interpolator
@@ -172,9 +172,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 ///**
 // * Compute the output for the region specified by outputRegionForThread.
 // */
-// template <class TInputImage,class TOutputImage,class TDeformationField, class TTransform>
+// template <class TInputImage,class TOutputImage,class TDisplacementField, class TTransform>
 // void
-// WarpImageWAffineFilter<TInputImage,TOutputImage,TDeformationField, TTransform>
+// WarpImageWAffineFilter<TInputImage,TOutputImage,TDisplacementField, TTransform>
 // ::ThreadedGenerateData(
 //        const OutputImageRegionType& outputRegionForThread,
 //        int threadId )
@@ -182,7 +182,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 //
 //    InputImageConstPointer inputPtr = this->GetInput();
 //    OutputImagePointer outputPtr = this->GetOutput();
-//    DeformationFieldPointer fieldPtr = this->GetDeformationField();
+//    DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
 //    TransformTypePointer aff = this->GetAffineTransform();
 //
 //    // std::cout << aff << std::endl;
@@ -195,7 +195,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 //            outputPtr, outputRegionForThread );
 //
 //    // iterator for the deformation field
-//    ImageRegionIterator<DeformationFieldType> fieldIt(
+//    ImageRegionIterator<DisplacementFieldType> fieldIt(
 //            fieldPtr, outputRegionForThread );
 //
 //    IndexType index;
@@ -241,9 +241,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 //
 // }
 
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass's implementation
@@ -259,7 +259,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 
   // just propagate up the output requested region for the
   // deformation field.
-  DeformationFieldPointer fieldPtr = this->GetDeformationField();
+  DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
   //    OutputImagePointer outputPtr = this->GetOutput();
   if( fieldPtr )
     {
@@ -270,9 +270,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
   return;
 }
 
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::GenerateOutputInformation()
 {
   // call the superclass's implementation of this method
@@ -292,7 +292,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
   outputPtr->SetSpacing( m_OutputSpacing );
   outputPtr->SetOrigin( m_OutputOrigin );
 
-  //    DeformationFieldPointer fieldPtr = this->GetDeformationField();
+  //    DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
   //    if( fieldPtr )
   //    {
   //        outputPtr->SetLargestPossibleRegion( fieldPtr->
@@ -300,9 +300,9 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
   //    }
 }
 
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::SetSmoothScale(double scale)
 {
   if( m_SmoothScale != scale )
@@ -358,17 +358,17 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
 /**
  * Compute the output for the region specified by outputRegionForThread.
  */
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::ThreadedGenerateData(
   const OutputImageRegionType& outputRegionForThread,
   ThreadIdType threadId )
 {
-  InputImageConstPointer  inputPtr = this->GetInput();
-  OutputImagePointer      outputPtr = this->GetOutput();
-  DeformationFieldPointer fieldPtr = this->GetDeformationField();
-  TransformTypePointer    aff = this->GetAffineTransform();
+  InputImageConstPointer   inputPtr = this->GetInput();
+  OutputImagePointer       outputPtr = this->GetOutput();
+  DisplacementFieldPointer fieldPtr = this->GetDisplacementField();
+  TransformTypePointer     aff = this->GetAffineTransform();
 
   // std::cout << aff << std::endl;
 
@@ -380,7 +380,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
     outputPtr, outputRegionForThread );
 
   // iterator for the deformation field
-  ImageRegionIterator<DeformationFieldType> fieldIt(
+  ImageRegionIterator<DisplacementFieldType> fieldIt(
     fieldPtr, outputRegionForThread );
 
   IndexType        index;
@@ -418,7 +418,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
         {
         point2 = aff->TransformPoint(point1);
 
-        typedef itk::VectorLinearInterpolateImageFunction<DeformationFieldType, float> DefaultInterpolatorType;
+        typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, float> DefaultInterpolatorType;
         typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
         vinterp->SetInputImage(fieldPtr);
 
@@ -467,12 +467,12 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
     }
 }
 
-template <class TInputImage, class TOutputImage, class TDeformationField, class TTransform>
+template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
-WarpImageWAffineFilter<TInputImage, TOutputImage, TDeformationField, TTransform>
+WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::UpdateSizeByScale()
 {
-  DeformationFieldPointer field = this->GetDeformationField();
+  DisplacementFieldPointer field = this->GetDisplacementField();
 
   SetOutputSpacing( field->GetSpacing() / m_SmoothScale );
   SetOutputOrigin( field->GetOrigin() );

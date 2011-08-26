@@ -48,7 +48,7 @@ template <typename TTensorImage, typename TVectorImage>
 PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
 ::PreservationOfPrincipalDirectionTensorReorientationImageFilter()
 {
-  m_DeformationField = NULL;
+  m_DisplacementField = NULL;
   m_DirectionTransform = NULL;
   m_AffineTransform = NULL;
   m_InverseAffineTransform = NULL;
@@ -142,7 +142,7 @@ template <typename TTensorImage, typename TVectorImage>
 typename PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage,
                                                                         TVectorImage>::AffineTransformPointer
 PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVectorImage>
-::GetLocalDeformation(DeformationFieldPointer field, typename DeformationFieldType::IndexType index)
+::GetLocalDeformation(DisplacementFieldPointer field, typename DisplacementFieldType::IndexType index)
 {
   AffineTransformPointer affineTransform = AffineTransformType::New();
 
@@ -151,13 +151,13 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   typename AffineTransformType::MatrixType jMatrix;
   jMatrix.Fill(0.0);
 
-  typename DeformationFieldType::SizeType size = field->GetLargestPossibleRegion().GetSize();
-  typename DeformationFieldType::SpacingType spacing = field->GetSpacing();
+  typename DisplacementFieldType::SizeType size = field->GetLargestPossibleRegion().GetSize();
+  typename DisplacementFieldType::SpacingType spacing = field->GetSpacing();
 
-  typename DeformationFieldType::IndexType ddrindex;
-  typename DeformationFieldType::IndexType ddlindex;
+  typename DisplacementFieldType::IndexType ddrindex;
+  typename DisplacementFieldType::IndexType ddlindex;
 
-  typename DeformationFieldType::IndexType difIndex[ImageDimension][2];
+  typename DisplacementFieldType::IndexType difIndex[ImageDimension][2];
 
   unsigned int posoff = 1;
   RealType     difspace = 1.0;
@@ -185,7 +185,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 
   if( oktosample )
     {
-    typename DeformationFieldType::PixelType cpix = m_DeformationField->GetPixel(index);
+    typename DisplacementFieldType::PixelType cpix = m_DisplacementField->GetPixel(index);
     cpix = this->TransformVectorByDirection(cpix);
     // itkCentralDifferenceImageFunction does not support vector images so do this manually here
     for( unsigned int row = 0; row < ImageDimension; row++ )
@@ -208,10 +208,10 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       RealType h = 1;
       space = 1.0; // should use image spacing here?
 
-      typename DeformationFieldType::PixelType rpix = m_DeformationField->GetPixel( difIndex[row][1] );
-      typename DeformationFieldType::PixelType lpix = m_DeformationField->GetPixel( difIndex[row][0] );
-      typename DeformationFieldType::PixelType rrpix = m_DeformationField->GetPixel( ddrindex );
-      typename DeformationFieldType::PixelType llpix = m_DeformationField->GetPixel( ddlindex );
+      typename DisplacementFieldType::PixelType rpix = m_DisplacementField->GetPixel( difIndex[row][1] );
+      typename DisplacementFieldType::PixelType lpix = m_DisplacementField->GetPixel( difIndex[row][0] );
+      typename DisplacementFieldType::PixelType rrpix = m_DisplacementField->GetPixel( ddrindex );
+      typename DisplacementFieldType::PixelType llpix = m_DisplacementField->GetPixel( ddlindex );
 
       if( this->m_UseImageDirection )
         {
@@ -226,9 +226,9 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       rrpix = rrpix * h + rpix * (1. - h);
       llpix = llpix * h + lpix * (1. - h);
 
-      typename DeformationFieldType::PixelType dPix
+      typename DisplacementFieldType::PixelType dPix
         = ( lpix * 8.0 + llpix - rrpix - rpix * 8.0 ) * space / (12.0); // 4th order centered difference
-      // typename DeformationFieldType::PixelType dPix=( lpix - rpix )*space/(2.0*h); //4th order centered difference
+      // typename DisplacementFieldType::PixelType dPix=( lpix - rpix )*space/(2.0*h); //4th order centered difference
       for( unsigned int col = 0; col < ImageDimension; col++ )
         {
         RealType val = dPix[col] / spacing[col];
@@ -300,12 +300,12 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     }
   else
     {
-    this->m_DirectionTransform->SetMatrix( m_DeformationField->GetDirection() );
+    this->m_DirectionTransform->SetMatrix( m_DisplacementField->GetDirection() );
 
-    output->SetRegions( m_DeformationField->GetLargestPossibleRegion() );
-    output->SetSpacing( m_DeformationField->GetSpacing() );
-    output->SetOrigin( m_DeformationField->GetOrigin() );
-    output->SetDirection( m_DeformationField->GetDirection() );
+    output->SetRegions( m_DisplacementField->GetLargestPossibleRegion() );
+    output->SetSpacing( m_DisplacementField->GetSpacing() );
+    output->SetOrigin( m_DisplacementField->GetOrigin() );
+    output->SetDirection( m_DisplacementField->GetDirection() );
     output->Allocate();
     }
 
@@ -326,7 +326,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       }
     else
       {
-      AffineTransformPointer deformation = this->GetLocalDeformation( this->m_DeformationField, outputIt.GetIndex() );
+      AffineTransformPointer deformation = this->GetLocalDeformation( this->m_DisplacementField, outputIt.GetIndex() );
       localDeformation = deformation->GetInverseTransform();
       }
 

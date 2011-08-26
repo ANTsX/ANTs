@@ -332,7 +332,7 @@ int IntegrateVectorField(int argc, char *argv[])
 {
   typedef float                                  PixelType;
   typedef itk::Vector<float, ImageDimension>     VectorType;
-  typedef itk::Image<VectorType, ImageDimension> DeformationFieldType;
+  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
   typedef itk::Image<PixelType, ImageDimension>  ImageType;
   typedef itk::ImageFileReader<ImageType>        readertype;
   typedef itk::ImageFileWriter<ImageType>        writertype;
@@ -363,8 +363,8 @@ int IntegrateVectorField(int argc, char *argv[])
   typename ImageType::Pointer thickimage;
   ReadImage<ImageType>(thickimage, roifn.c_str() );
   thickimage->FillBuffer(0);
-  typename DeformationFieldType::Pointer VECimage;
-  ReadImage<DeformationFieldType>(VECimage, vectorfn.c_str() );
+  typename DisplacementFieldType::Pointer VECimage;
+  ReadImage<DisplacementFieldType>(VECimage, vectorfn.c_str() );
   SpacingType spacing = ROIimage->GetSpacing();
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
   IteratorType Iterator( ROIimage, ROIimage->GetLargestPossibleRegion().GetSize() );
@@ -375,20 +375,20 @@ int IntegrateVectorField(int argc, char *argv[])
   float  starttime = timezero; // timezero;
   float  finishtime = timeone; // s[ImageDimension]-1;//timeone;
 
-  typename DeformationFieldType::IndexType velind;
+  typename DisplacementFieldType::IndexType velind;
   float timesign = 1.0;
   if( starttime  >  finishtime )
     {
     timesign = -1.0;
     }
-  typedef   DeformationFieldType                                                         TimeVaryingVelocityFieldType;
-  typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType>                        FieldIterator;
-  typedef typename DeformationFieldType::IndexType                                       DIndexType;
-  typedef typename DeformationFieldType::PointType                                       DPointType;
+  typedef   DisplacementFieldType                                                        TimeVaryingVelocityFieldType;
+  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType>                       FieldIterator;
+  typedef typename DisplacementFieldType::IndexType                                      DIndexType;
+  typedef typename DisplacementFieldType::PointType                                      DPointType;
   typedef typename TimeVaryingVelocityFieldType::IndexType                               VIndexType;
   typedef typename TimeVaryingVelocityFieldType::PointType                               VPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> DefaultInterpolatorType;
-  typedef itk::VectorLinearInterpolateImageFunction<DeformationFieldType, float>         DefaultInterpolatorType2;
+  typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, float>        DefaultInterpolatorType2;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
   VectorType zero;
@@ -399,7 +399,7 @@ int IntegrateVectorField(int argc, char *argv[])
   typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
   DPointType pointIn3;
 
-  typedef itk::ImageRegionIteratorWithIndex<DeformationFieldType> VIteratorType;
+  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
   VIteratorType VIterator( VECimage, VECimage->GetLargestPossibleRegion().GetSize() );
   VIterator.GoToBegin();
   while(  !VIterator.IsAtEnd()  )
@@ -433,12 +433,12 @@ int IntegrateVectorField(int argc, char *argv[])
       {
       vinterp->SetInputImage(VECimage);
       gradsign = -1.0; vecsign = -1.0;
-      float len1 = IntegrateLength<ImageType, DeformationFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
+      float len1 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
           (ROIimage, thickimage, velind, VECimage,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
           spacing, vecsign, gradsign, timesign);
 
       gradsign = 1.0;  vecsign = 1;
-      float len2 = IntegrateLength<ImageType, DeformationFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
+      float len2 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
           (ROIimage, thickimage, velind, VECimage,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
           spacing, vecsign, gradsign, timesign );
 

@@ -107,13 +107,13 @@ typename ImageType::Pointer ReadAnImage(char* fn)
   return reffilter->GetOutput();
 }
 
-template <class TImage, class TDeformationField>
-typename TDeformationField::PixelType
-TransformVector(TDeformationField* field, typename TImage::IndexType index )
+template <class TImage, class TDisplacementField>
+typename TDisplacementField::PixelType
+TransformVector(TDisplacementField* field, typename TImage::IndexType index )
 {
   enum { ImageDimension = TImage::ImageDimension };
-  typename TDeformationField::PixelType vec = field->GetPixel(index);
-  typename TDeformationField::PixelType newvec;
+  typename TDisplacementField::PixelType vec = field->GetPixel(index);
+  typename TDisplacementField::PixelType newvec;
   newvec.Fill(0);
   for( unsigned int row = 0; row < ImageDimension; row++ )
     {
@@ -126,13 +126,13 @@ TransformVector(TDeformationField* field, typename TImage::IndexType index )
   return newvec;
 }
 
-template <class TImage, class TDeformationField>
+template <class TImage, class TDisplacementField>
 void
-ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog = false, bool norm = false,
+ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog = false, bool norm = false,
                 bool use2ndorder = false)
 {
-  typedef TImage            ImageType;
-  typedef TDeformationField FieldType;
+  typedef TImage             ImageType;
+  typedef TDisplacementField FieldType;
   enum { ImageDimension = TImage::ImageDimension };
   typedef itk::Image<float, ImageDimension> FloatImageType;
   typename FloatImageType::RegionType m_JacobianRegion;
@@ -167,7 +167,7 @@ ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog =
     warper->SetInput(grid);
     warper->SetEdgePaddingValue( 0);
     warper->SetSmoothScale(1);
-    warper->PushBackDeformationFieldTransform(field);
+    warper->PushBackDisplacementFieldTransform(field);
     warper->SetOutputOrigin(field->GetOrigin() );
     warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
     warper->SetOutputSpacing(field->GetSpacing() );
@@ -197,7 +197,7 @@ ComputeJacobian(TDeformationField* field, char* fnm, char* maskfn, bool uselog =
   jMatrix.set_size(ImageDimension, ImageDimension);
   avgMatrix.set_size(ImageDimension, ImageDimension);
   avgMatrix.fill(0);
-  itk::ImageRegionIteratorWithIndex<TDeformationField>
+  itk::ImageRegionIteratorWithIndex<TDisplacementField>
   m_FieldIter( field, field->GetLargestPossibleRegion() );
   typename TImage::IndexType rindex;
   typename TImage::IndexType ddrindex;

@@ -50,17 +50,17 @@ namespace itk
 * \sa SyNDemonsRegistrationFilter
 * \ingroup FiniteDifferenceFunctions
 */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 class ITK_EXPORT SyNDemonsRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage,
-                                                         TDeformationField>
+                                                         TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
   typedef SyNDemonsRegistrationFunction Self;
   typedef PDEDeformableRegistrationFunction<TFixedImage,
-                                            TMovingImage, TDeformationField
+                                            TMovingImage, TDisplacementField
                                             >    Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
@@ -84,9 +84,9 @@ public:
   typedef typename FixedImageType::SpacingType   SpacingType;
 
   /** Deformation field type. */
-  typedef typename Superclass::DeformationFieldType DeformationFieldType;
-  typedef typename Superclass::DeformationFieldTypePointer
-    DeformationFieldTypePointer;
+  typedef typename Superclass::DisplacementFieldType DisplacementFieldType;
+  typedef typename Superclass::DisplacementFieldTypePointer
+    DisplacementFieldTypePointer;
 
   /** Inherit some enums from the superclass. */
   itkStaticConstMacro(ImageDimension, unsigned

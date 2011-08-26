@@ -159,7 +159,7 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   warper->SetInput(grid);
   warper->SetEdgePaddingValue( 0);
   warper->SetSmoothScale(1);
-  warper->PushBackDeformationFieldTransform(reader->GetOutput() );
+  warper->PushBackDisplacementFieldTransform(reader->GetOutput() );
   warper->SetOutputOrigin(reader->GetOutput()->GetOrigin() );
   warper->SetOutputSize(reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
   warper->SetOutputSpacing(reader->GetOutput()->GetSpacing() );

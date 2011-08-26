@@ -53,16 +53,16 @@ namespace itk
  * \sa ProbabilisticRegistrationFilter
  * \ingroup FiniteDifferenceFunctions
  */
-template <class TFixedImage, class TMovingImage, class TDeformationField>
+template <class TFixedImage, class TMovingImage, class TDisplacementField>
 class ITK_EXPORT ProbabilisticRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                         TMovingImage, TDeformationField>
+                                                         TMovingImage, TDisplacementField>
 {
 public:
   /** Standard class typedefs. */
   typedef ProbabilisticRegistrationFunction Self;
   typedef AvantsPDEDeformableRegistrationFunction<TFixedImage,
-                                                  TMovingImage, TDeformationField>    Superclass;
+                                                  TMovingImage, TDisplacementField>    Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
 
@@ -86,10 +86,10 @@ public:
   typedef typename FixedImageType::SizeType             SizeType;
 
   /** Deformation field type. */
-  typedef typename Superclass::DeformationFieldType DeformationFieldType;
-  typedef typename Superclass::DeformationFieldTypePointer
-    DeformationFieldTypePointer;
-  typedef typename TDeformationField::PixelType VectorType;
+  typedef typename Superclass::DisplacementFieldType DisplacementFieldType;
+  typedef typename Superclass::DisplacementFieldTypePointer
+    DisplacementFieldTypePointer;
+  typedef typename TDisplacementField::PixelType VectorType;
 
   typedef CovariantVector<float,
                           itkGetStaticConstMacro(ImageDimension)> GradientPixelType;
@@ -140,10 +140,10 @@ public:
     return m_MovingImageInterpolator;
   }
 
-  typename TDeformationField::PixelType ComputeMetricAtPairB(IndexType fixedindex,
-                                                             typename TDeformationField::PixelType vec );
-  typename TDeformationField::PixelType ComputeMetricAtPairC(IndexType fixedindex,
-                                                             typename TDeformationField::PixelType vec );
+  typename TDisplacementField::PixelType ComputeMetricAtPairB(IndexType fixedindex,
+                                                              typename TDisplacementField::PixelType vec );
+  typename TDisplacementField::PixelType ComputeMetricAtPairC(IndexType fixedindex,
+                                                              typename TDisplacementField::PixelType vec );
 
   /** This class uses a constant timestep of 1. */
   virtual TimeStepType ComputeGlobalTimeStep(void *GlobalData) const
@@ -207,7 +207,7 @@ public:
     // Get fixed image related information
     IndexType index = neighborhood.GetIndex();
 
-    typename TDeformationField::PixelType vec = Superclass::m_DeformationField->GetPixel(index);
+    typename TDisplacementField::PixelType vec = Superclass::m_DisplacementField->GetPixel(index);
     VectorType update;
     update.Fill(0.0);
     double              fixedValue;
@@ -408,7 +408,7 @@ private:
   MetricImagePointer m_MovingImageMask;
 
   typedef itk::AvantsMutualInformationRegistrationFunction<FixedImageType, MovingImageType,
-                                                           DeformationFieldType> MetricType2;
+                                                           DisplacementFieldType> MetricType2;
   typename MetricType2::Pointer m_MIFunct;
   unsigned int m_NumberOfHistogramBins;
   bool         m_FullyRobust;

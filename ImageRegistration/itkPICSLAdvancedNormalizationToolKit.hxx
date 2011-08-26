@@ -296,8 +296,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   /** Second, optimize Diff */
   this->m_RegistrationOptimizer->DeformableOptimization();
   std::cout << " Registration Done " << std::endl;
-  this->m_TransformationModel->SetDeformationField(this->m_RegistrationOptimizer->GetDeformationField() );
-  this->m_TransformationModel->SetInverseDeformationField(this->m_RegistrationOptimizer->GetInverseDeformationField() );
+  this->m_TransformationModel->SetDisplacementField(this->m_RegistrationOptimizer->GetDisplacementField() );
+  this->m_TransformationModel->SetInverseDisplacementField(this->m_RegistrationOptimizer->GetInverseDisplacementField() );
 }
 
 template <unsigned int TDimension, class TReal>
@@ -547,7 +547,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             whichMetric == "PSE" )
           {
           typedef itk::ExpectationBasedPointSetRegistrationFunction
-            <ImageType, ImageType, DeformationFieldType, PointSetType> MetricType;
+            <ImageType, ImageType, DisplacementFieldType, PointSetType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
           metric->SetRadius( radius );
           metric->SetFixedPointSet( fixedPointSetReader->GetOutput() );
@@ -576,7 +576,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //                        whichMetric == "JTB" )
 //                {
 //                typedef itk::JensenTsallisBSplineRegistrationFunction
-//                    <ImageType, PointSetType, ImageType, PointSetType, DeformationFieldType> MetricType;
+//                    <ImageType, PointSetType, ImageType, PointSetType, DisplacementFieldType> MetricType;
 //                typename MetricType::Pointer metric = MetricType::New();
 //                metric->SetRadius( radius );
 //                metric->SetFixedPointSet( fixedPointSetReader->GetOutput() );
@@ -730,7 +730,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             similarityMetric->SetMovingImage( movingImage );
             }
           typedef SyNDemonsRegistrationFunction
-            <ImageType, ImageType, DeformationFieldType> MetricType;
+            <ImageType, ImageType, DisplacementFieldType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
           if( radius[0] > 0 )
             {
@@ -764,7 +764,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             }
           similarityMetric->SetMovingImage( movingImage );
           typedef SyNDemonsRegistrationFunction
-            <ImageType, ImageType, DeformationFieldType> MetricType;
+            <ImageType, ImageType, DisplacementFieldType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
           if( radius[0] > 0 )
             {
@@ -783,7 +783,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
                  whichMetric == "MI" )
           {
           typedef itk::AvantsMutualInformationRegistrationFunction
-            <ImageType, ImageType, DeformationFieldType> MetricType;
+            <ImageType, ImageType, DisplacementFieldType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
           metric->SetNumberOfHistogramBins( numberOfHistogramBins );
           metric->SetNormalizeGradient( false );
@@ -805,7 +805,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
                  whichMetric == "SMI" )
           {
           typedef itk::SpatialMutualInformationRegistrationFunction
-            <ImageType, ImageType, DeformationFieldType> MetricType;
+            <ImageType, ImageType, DisplacementFieldType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
           metric->SetNumberOfHistogramBins( numberOfHistogramBins );
           metric->SetNormalizeGradient( false );
@@ -846,7 +846,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             }
 
           typedef itk::CrossCorrelationRegistrationFunction
-            <ImageType, ImageType, DeformationFieldType> MetricType;
+            <ImageType, ImageType, DisplacementFieldType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
           metric->SetNormalizeGradient( false );
           metric->SetRadius( radius );
@@ -875,7 +875,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             similarityMetric->SetMovingImage( movingImage );
             }
           typedef itk::ProbabilisticRegistrationFunction
-            <ImageType, ImageType, DeformationFieldType> MetricType;
+            <ImageType, ImageType, DisplacementFieldType> MetricType;
           typename MetricType::Pointer metric = MetricType::New();
           metric->SetNormalizeGradient( false );
           metric->SetRadius( radius );
