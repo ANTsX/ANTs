@@ -1,7 +1,7 @@
-#ifndef __itkGeneralToBSplineDeformationFieldFilter_hxx
-#define __itkGeneralToBSplineDeformationFieldFilter_hxx
+#ifndef __itkGeneralToBSplineDisplacementFieldFilter_hxx
+#define __itkGeneralToBSplineDisplacementFieldFilter_hxx
 
-#include "itkGeneralToBSplineDeformationFieldFilter.h"
+#include "itkGeneralToBSplineDisplacementFieldFilter.h"
 
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
@@ -9,8 +9,8 @@
 namespace itk
 {
 template <class TInputImage, class TOutputImage>
-GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
-::GeneralToBSplineDeformationFieldFilter()
+GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
+::GeneralToBSplineDisplacementFieldFilter()
 {
   this->m_IgnorePixelValue.Fill(
     NumericTraits<InputPixelComponentType>::max() );
@@ -21,14 +21,14 @@ GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
-::~GeneralToBSplineDeformationFieldFilter()
+GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
+::~GeneralToBSplineDisplacementFieldFilter()
 {
 }
 
 template <class TInputImage, class TOutputImage>
 void
-GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
+GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
 ::GenerateData()
 {
   typename PointSetType::Pointer fieldPoints = PointSetType::New();
@@ -98,7 +98,7 @@ GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
  */
 template <class TInputImage, class TOutputImage>
 void
-GeneralToBSplineDeformationFieldFilter<TInputImage, TOutputImage>
+GeneralToBSplineDisplacementFieldFilter<TInputImage, TOutputImage>
 ::PrintSelf( std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf( os, indent );

@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkGeneralToBSplineDeformationFieldFilter.h,v $
+  Module:    $RCSfile: itkGeneralToBSplineDisplacementFieldFilter.h,v $
   Language:  C++
   Date:      $Date: 2008/11/15 23:46:06 $
   Version:   $Revision: 1.16 $
@@ -15,8 +15,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkGeneralToBSplineDeformationFieldFilter_h
-#define __itkGeneralToBSplineDeformationFieldFilter_h
+#ifndef __itkGeneralToBSplineDisplacementFieldFilter_h
+#define __itkGeneralToBSplineDisplacementFieldFilter_h
 
 #include "itkImageToImageFilter.h"
 
@@ -26,12 +26,12 @@
 namespace itk
 {
 template <class TInputImage, class TOutputImage = TInputImage>
-class GeneralToBSplineDeformationFieldFilter :
+class GeneralToBSplineDisplacementFieldFilter :
   public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef GeneralToBSplineDeformationFieldFilter Self;
+  typedef GeneralToBSplineDisplacementFieldFilter Self;
   typedef ImageToImageFilter<
       TInputImage,
       TOutputImage>           Superclass;
@@ -81,8 +81,8 @@ public:
   itkGetConstMacro( IgnorePixelValue, InputPixelType );
 protected:
 
-  GeneralToBSplineDeformationFieldFilter();
-  virtual ~GeneralToBSplineDeformationFieldFilter();
+  GeneralToBSplineDisplacementFieldFilter();
+  virtual ~GeneralToBSplineDisplacementFieldFilter();
 
   void PrintSelf( std::ostream& os, Indent indent ) const;
 
@@ -99,7 +99,7 @@ private:
 } // end namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkGeneralToBSplineDeformationFieldFilter.hxx"
+#include "itkGeneralToBSplineDisplacementFieldFilter.hxx"
 #endif
 
 #endif
