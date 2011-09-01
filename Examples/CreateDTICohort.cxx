@@ -14,6 +14,8 @@
 #include "itkTimeProbe.h"
 #include "itkVariableSizeMatrix.h"
 
+#include <itksys/SystemTools.hxx>
+
 #include "vnl/vnl_matrix.h"
 #include "vnl/vnl_vector.h"
 #include "vcl_complex.h"
@@ -131,6 +133,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   // Get the number of output images and duplicate the atlas for each cohort.
   //
+  std::string  outputDirectory( "./" );
   std::string  rootOutputFileName( "outputDWI" );
   unsigned int numberOfControls = 10;
   unsigned int numberOfExperimentals = 10;
@@ -141,17 +144,21 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     {
     if( outputOption->GetNumberOfParameters() > 0 )
       {
-      rootOutputFileName = outputOption->GetParameter( 0 );
+      outputDirectory = outputOption->GetParameter( 0 );
       }
     if( outputOption->GetNumberOfParameters() > 1 )
       {
-      numberOfControls = parser->Convert<unsigned int>(
-          outputOption->GetParameter( 1 ) );
+      rootOutputFileName = outputOption->GetParameter( 1 );
       }
     if( outputOption->GetNumberOfParameters() > 2 )
       {
-      numberOfExperimentals = parser->Convert<unsigned int>(
+      numberOfControls = parser->Convert<unsigned int>(
           outputOption->GetParameter( 2 ) );
+      }
+    if( outputOption->GetNumberOfParameters() > 3 )
+      {
+      numberOfExperimentals = parser->Convert<unsigned int>(
+          outputOption->GetParameter( 3 ) );
       }
     }
   else
@@ -348,6 +355,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     parser->GetOption( "registered-population" );
   if( populationOption && populationOption->GetNumberOfValues() > 0 )
     {
+    std::cout << "--- Modeling intersubject variability ---" << std::endl
+              << std::endl;
+
     std::vector<std::string> imageNames;
 
     std::string filename = populationOption->GetValue();
@@ -370,6 +380,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     M.Fill( 0 );
     for( unsigned int k = 0; k < imageNames.size(); k++ )
       {
+      std::cout << "Processing " << imageNames[k] << " (" << k + 1 << " of "
+                << imageNames.size() << ")." << std::endl;
       typename TensorReaderType::Pointer tensorReader = TensorReaderType::New();
       tensorReader->SetFileName( imageNames[k].c_str() );
       tensorReader->Update();
@@ -414,6 +426,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           }
         }
       }
+
+    std::cout << std::endl;
     // Now that the matrix M has been calculated, we need to subtract out
     // the longitudinal mean before performing PCA
     for( unsigned int i = 0; i < M.Cols(); i++ )
@@ -421,15 +435,14 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       RealType columnAverage = 0.0;
       for( unsigned int j = 0; j < M.Rows(); j++ )
         {
-        columnAverage += M(i, j);
+        columnAverage += M(j, i);
         }
       columnAverage /= static_cast<RealType>( M.Rows() );
       for( unsigned int j = 0; j < M.Rows(); j++ )
         {
-        M(i, j) -= columnAverage;
+        M(j, i) -= columnAverage;
         }
       }
-
     // Perform PCA decomposition
 
     MatrixType MMt = M;
@@ -437,7 +450,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     decomposer->EvaluateSymmetricEigenDecomposition( MMt, Lambda, E );
 
     ISV = ( M.GetTranspose() * E.GetVnlMatrix() )
-      / vcl_sqrt( imageNames.size() );
+      / vcl_sqrt( static_cast<float>( imageNames.size() ) );
 
     applyISV = true;
     }
@@ -530,6 +543,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //     3a. Use DTI from 2 to reconstruct DWI in current direction
   //     3b. Add Rician noise
   //
+  itksys::SystemTools::MakeDirectory( outputDirectory.c_str() );
 
   itk::Array2D<RealType> meanFAandMD( labels.size(), 5 );
   meanFAandMD.Fill( 0.0 );
@@ -625,7 +639,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       //
       RealType pathologyLongitudinalChange = 0.0;
       RealType pathologyTransverseChange = 0.0;
-      if( n <= numberOfControls && randomizer->GetUniformVariate( 0.0, 1.0 ) <=
+      if( n > numberOfControls && randomizer->GetUniformVariate( 0.0, 1.0 ) <=
           pathologyParameters(labelIndex, 2) )
         {
         pathologyLongitudinalChange = pathologyParameters(labelIndex, 0);
@@ -725,7 +739,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
     if( n == 0 )
       {
-      std::cout << "   " << std::left << std::setw( 7 ) << "Label"
+      std::cout << "   " << std::left << std::setw( 7 ) << "Region"
                 << std::left << std::setw( 15 ) << "FA (original)"
                 << std::left << std::setw( 15 ) << "FA (pathology)"
                 << std::left << std::setw( 15 ) << "FA (diff.)"
@@ -766,10 +780,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        istream << ( numberOfControls - n );
+        istream << ( n - numberOfControls );
         }
       std::string dwiSeriesFileNames = which + istream.str()
-        + rootOutputFileName + std::string( "Direction%d.nii.gz" );
+        + rootOutputFileName + std::string( "Direction%00d.nii.gz" );
 
       itk::NumericSeriesFileNames::Pointer dwiFileNamesCreator =
         itk::NumericSeriesFileNames::New();
@@ -882,6 +896,21 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
+      std::string( "A mask image can be specified which determines the region(s). " )
+      + std::string( "to which the simulated pathology operations are applied. " )
+      + std::string( "See also the option '--pathology'.  If no mask is specified " )
+      + std::string( "one is created by thresholding the atlas FA map at 0.2.  " );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "label-mask-image" );
+    option->SetShortName( 'x' );
+    option->SetUsageOption( 0, "maskImageFileName" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
       std::string( "This parameter characterizes the Rician noise in the original DWI" )
       + std::string( "images.  Van Hecke uses the noise-estimation method of Sijbers et " )
       + std::string( "al. \"Automatic estimation of the noise variance from the " )
@@ -892,21 +921,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "noise-sigma" );
     option->SetShortName( 'n' );
     option->SetUsageOption( 0, "<noiseSigma=18>" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description =
-      std::string( "A mask image can be specified which determines the region(s). " )
-      + std::string( "to which the simulated pathology operations are applied. " )
-      + std::string( "See also the option '--pathology'.  If no mask is specified " )
-      + std::string( "one is created by thresholding the atlas FA map at 0.2.  " );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "label-mask-image" );
-    option->SetShortName( 'x' );
-    option->SetUsageOption( 0, "maskImageFileName" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -994,7 +1008,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0,
-                            "[fileNameSeriesRootName,<numberOfControls=10>,<numberOfExperimentals=10>" );
+                            "[outputDirectory,fileNameSeriesRootName,<numberOfControls=10>,<numberOfExperimentals=10>" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
