@@ -145,6 +145,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     if( outputOption->GetNumberOfParameters() > 0 )
       {
       outputDirectory = outputOption->GetParameter( 0 );
+      outputDirectory += std::string( "/" );
       }
     if( outputOption->GetNumberOfParameters() > 1 )
       {
@@ -782,8 +783,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         {
         istream << ( n - numberOfControls );
         }
-      std::string dwiSeriesFileNames = which + istream.str()
-        + rootOutputFileName + std::string( "Direction%00d.nii.gz" );
+      std::string dwiSeriesFileNames = outputDirectory + which + istream.str()
+        + rootOutputFileName + std::string( "Direction%03d.nii.gz" );
 
       itk::NumericSeriesFileNames::Pointer dwiFileNamesCreator =
         itk::NumericSeriesFileNames::New();
