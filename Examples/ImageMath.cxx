@@ -3129,7 +3129,7 @@ int TensorFunctions(int argc, char *argv[])
     std::string fn1yz = fn1 + std::string( "yz" ) + extension;
     std::string fn1zz = fn1 + std::string( "zz" ) + extension;
 
-    ReadImage<ImageType>( xx, fn1.c_str() );
+    ReadImage<ImageType>( xx, fn1xx.c_str() );
     ReadImage<ImageType>( xy, fn1xy.c_str() );
     ReadImage<ImageType>( xz, fn1xz.c_str() );
     ReadImage<ImageType>( yy, fn1yy.c_str() );
