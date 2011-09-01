@@ -1042,6 +1042,19 @@ int main( int argc, char *argv[] )
 
   parser->Parse( argc, argv );
 
+  if( argc < 2 || parser->Convert<bool>(
+        parser->GetOption( "help" )->GetValue() ) )
+    {
+    parser->PrintMenu( std::cout, 5, false );
+    exit( EXIT_FAILURE );
+    }
+  else if( parser->Convert<bool>(
+             parser->GetOption( 'h' )->GetValue() ) )
+    {
+    parser->PrintMenu( std::cout, 5, true );
+    exit( EXIT_FAILURE );
+    }
+
   // Get dimensionality
   unsigned int dimension = 3;
 
@@ -1078,19 +1091,6 @@ int main( int argc, char *argv[] )
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
         filename.c_str(), itk::ImageIOFactory::ReadMode );
     dimension = imageIO->GetNumberOfDimensions();
-    }
-
-  if( argc < 2 || parser->Convert<bool>(
-        parser->GetOption( "help" )->GetValue() ) )
-    {
-    parser->PrintMenu( std::cout, 5, false );
-    exit( EXIT_FAILURE );
-    }
-  else if( parser->Convert<bool>(
-             parser->GetOption( 'h' )->GetValue() ) )
-    {
-    parser->PrintMenu( std::cout, 5, true );
-    exit( EXIT_FAILURE );
     }
 
   std::cout << std::endl << "Creating DTI cohort for "
