@@ -765,7 +765,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     else
       {
       std::string which;
-      if( n < numberOfControls )
+      if( n <= numberOfControls )
         {
         which = std::string( "Control" );
         }
