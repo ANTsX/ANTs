@@ -7374,12 +7374,12 @@ int ROIStatistics(      int argc, char *argv[])
     //    float vv = valimage->GetPixel(It.GetIndex());
     if(  label > 0  && fabs(vv) > 1.e-9 )
       {
-      clusters[(unsigned long) label - 1] = clusters[(unsigned long) label - 1] + 1;
-      masses[(unsigned long) label - 1] = masses[(unsigned long) label - 1] + vv;
+      clusters[(unsigned long) label] = clusters[(unsigned long) label] + 1;
+      masses[(unsigned long) label] = masses[(unsigned long) label] + vv;
       }
     }
   logfile << "ROIName,ClusterSize,Mass" << std::endl;
-  for( unsigned int roi = 0; roi < roimap.size(); roi++ )
+  for( unsigned int roi = 1; roi < roimap.size(); roi++ )
     {
     std::cout << roimap[roi] << "," << clusters[roi] << "," << masses[roi] << std::endl;
     if( roi < maxlab )
