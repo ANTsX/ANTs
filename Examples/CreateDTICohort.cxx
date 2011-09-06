@@ -465,6 +465,11 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   std::vector<vnl_vector<RealType> > directions;
   std::vector<RealType>              bvalues;
 
+  // Add a B0 value at direction 0
+  direction.fill( 0.0 );
+  directions.push_back( direction );
+  bvalues.push_back( 0 );
+
   typename itk::ants::CommandLineParser::OptionType::Pointer dwiOption =
     parser->GetOption( "dwi-parameters" );
   if( dwiOption && dwiOption->GetNumberOfValues() > 0 &&
@@ -490,11 +495,6 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
     RealType             x = 0.0;
     vnl_vector<RealType> direction( ImageDimension );
-
-    // Add a B0 value at direction 0
-    direction.fill( 0.0 );
-    directions.push_back( direction );
-    bvalues.push_back( 0 );
 
     unsigned int count = 0;
     while( str >> x )
