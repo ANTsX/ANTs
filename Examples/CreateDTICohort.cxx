@@ -7,6 +7,7 @@
 #include "itkImageDuplicator.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkImageRegionConstIterator.h"
 #include "itkImageRegionIterator.h"
 #include "itkLabelGeometryImageFilter.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
@@ -596,8 +597,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       }
 
     //
-    // Iterate through the image to apply pathology, inter-subject variability,
-    // and noise in a voxelwise fashion.
+    // Iterate through the image to apply pathology and inter-subject variability
     //
     unsigned long count = 0;
 
@@ -691,6 +691,13 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         newEigenvalues[0] = ( eigenvalues[0] / eigenvalues[1] )
           * newEigenvalues[1];
         }
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        if( vnl_math_isnan( newEigenvalues[d] ) )
+          {
+          newEigenvalues[d] = 0.0;
+          }
+        }
 
       if( newEigenvalues[0] < 0 )
         {
@@ -708,9 +715,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         eigenvalueMatrix(d, d) = newEigenvalues[d];
         }
 
-      typename TensorType::MatrixType D = eigenvectors;
+      typename TensorType::MatrixType D( eigenvectors.GetTranspose() );
       D *= eigenvalueMatrix;
-      D *= eigenvectors.GetTranspose();
+      D *= eigenvectors;
 
       TensorType newTensor;
       for( unsigned int i = 0; i < ImageDimension; i++ )
@@ -720,6 +727,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           newTensor(i, j) = D(i, j);
           }
         }
+
       if( label != 0 && n == 0 )
         {
         meanFAandMD(labelIndex, 0) +=
@@ -788,76 +796,89 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
       itk::NumericSeriesFileNames::Pointer dwiFileNamesCreator =
         itk::NumericSeriesFileNames::New();
-      dwiFileNamesCreator->SetStartIndex( 1 );
+      dwiFileNamesCreator->SetStartIndex( 0 );
       dwiFileNamesCreator->SetEndIndex( directions.size() );
       dwiFileNamesCreator->SetSeriesFormat( dwiSeriesFileNames.c_str() );
       std::vector<std::string> dwiImageNames = dwiFileNamesCreator->GetFileNames();
-      for( unsigned int d = 0; d < directions.size(); d++ )
+      for( unsigned int d = 0; d <= directions.size(); d++ )
         {
-        vnl_vector<RealType> bk = directions[d];
-
-        std::cout << "  Applying direction " << d + 1 << " (of "
-                  << directions.size() << "): [" << bk << "]"
-                  << ", bvalue = " << bvalues[d] << std::endl;
-
-        typename ImageType::Pointer dwi = ImageType::New();
-        dwi->CopyInformation( dti );
-        dwi->SetRegions( dti->GetLargestPossibleRegion() );
-        dwi->Allocate();
-        dwi->FillBuffer( 0 );
-
-        itk::ImageRegionIterator<ImageType> ItB( b0Image,
-                                                 b0Image->GetLargestPossibleRegion() );
-        itk::ImageRegionIterator<ImageType> ItD( dwi,
-                                                 dwi->GetLargestPossibleRegion() );
-        for( It.GoToBegin(), ItB.GoToBegin(), ItD.GoToBegin(); !It.IsAtEnd();
-             ++It, ++ItB, ++ItD )
+        if( d == 0 )
           {
-          TensorType tensor = It.Get();
-          for( unsigned int i = 0; i < tensor.GetNumberOfComponents(); i++ )
-            {
-            if( vnl_math_isnan( tensor[i] ) )
-              {
-              tensor[i] = 0.0;
-              }
-            }
-
-          vnl_matrix<RealType> D( ImageDimension, ImageDimension );
-          for( unsigned int i = 0; i < ImageDimension; i++ )
-            {
-            for( unsigned int j = 0; j < ImageDimension; j++ )
-              {
-              D(i, j) = tensor(i, j);
-              }
-            }
-          vnl_vector<RealType> bkD = bk * D;
-
-          RealType signal = ItB.Get() * vcl_exp( -bvalues[d]
-                                                 * inner_product( bkD, bk ) );
-
-          // Add Rician noise
-          RealType realNoise = 0.0;
-          RealType imagNoise = 0.0;
-          if( noiseSigma > 0.0 )
-            {
-            realNoise = randomizer->GetNormalVariate( 0.0,
-                                                      vnl_math_sqr( noiseSigma ) );
-            imagNoise = randomizer->GetNormalVariate( 0.0,
-                                                      vnl_math_sqr( noiseSigma ) );
-            }
-          RealType realSignal = signal + realNoise;
-          RealType imagSignal = imagNoise;
-
-          vcl_complex<RealType> noisySignal( realSignal, imagSignal );
-
-          ItD.Set( vcl_norm( noisySignal ) );
+          typedef itk::ImageFileWriter<ImageType> WriterType;
+          typename WriterType::Pointer writer = WriterType::New();
+          writer->SetFileName( dwiImageNames[d].c_str() );
+          writer->SetInput( b0Image );
+          writer->Update();
           }
+        else
+          {
+          vnl_vector<RealType> bk = directions[d - 1];
+          RealType             bvalue = bvalues[d - 1];
 
-        typedef itk::ImageFileWriter<ImageType> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( dwiImageNames[d].c_str() );
-        writer->SetInput( dwi );
-        writer->Update();
+          std::cout << "  Applying direction " << d << " (of "
+                    << directions.size() << "): [" << bk << "]"
+                    << ", bvalue = " << bvalue << std::endl;
+
+          typename ImageType::Pointer dwi = ImageType::New();
+          dwi->CopyInformation( dti );
+          dwi->SetRegions( dti->GetLargestPossibleRegion() );
+          dwi->Allocate();
+          dwi->FillBuffer( 0 );
+
+          itk::ImageRegionConstIterator<ImageType> ItB( b0Image,
+                                                        b0Image->GetLargestPossibleRegion() );
+          itk::ImageRegionIterator<ImageType> ItD( dwi,
+                                                   dwi->GetLargestPossibleRegion() );
+          for( It.GoToBegin(), ItB.GoToBegin(), ItD.GoToBegin(); !It.IsAtEnd();
+               ++It, ++ItB, ++ItD )
+            {
+            TensorType tensor = It.Get();
+            for( unsigned int i = 0; i < tensor.GetNumberOfComponents(); i++ )
+              {
+              if( vnl_math_isnan( tensor[i] ) )
+                {
+                tensor[i] = 0.0;
+                }
+              }
+
+            vnl_matrix<RealType> D(ImageDimension, ImageDimension);
+            for( unsigned int i = 0; i < ImageDimension; i++ )
+              {
+              for( unsigned int j = 0; j < ImageDimension; j++ )
+                {
+                D(i, j) = tensor(i, j);
+                }
+              }
+
+            vnl_vector<RealType> bkD = bk * D;
+
+            RealType signal = ItB.Get() * vcl_exp( -bvalue * inner_product( bkD, bk ) );
+
+            // Add Rician noise
+            RealType realNoise = 0.0;
+            RealType imagNoise = 0.0;
+            if( noiseSigma > 0.0 )
+              {
+              realNoise = randomizer->GetNormalVariate( 0.0,
+                                                        vnl_math_sqr( noiseSigma ) );
+              imagNoise = randomizer->GetNormalVariate( 0.0,
+                                                        vnl_math_sqr( noiseSigma ) );
+              }
+            RealType realSignal = signal + realNoise;
+            RealType imagSignal = imagNoise;
+
+            vcl_complex<RealType> noisySignal( realSignal, imagSignal );
+
+            RealType finalSignal = vcl_sqrt( vcl_norm( noisySignal ) );
+
+            ItD.Set( finalSignal );
+            }
+          typedef itk::ImageFileWriter<ImageType> WriterType;
+          typename WriterType::Pointer writer = WriterType::New();
+          writer->SetFileName( dwiImageNames[d].c_str() );
+          writer->SetInput( dwi );
+          writer->Update();
+          }
         }
       }
     }
