@@ -174,6 +174,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
     parser->GetOption( "label-mask-image" );
+  RealType lowerThresholdValue = 0.2;
   if( maskImageOption && maskImageOption->GetNumberOfValues() )
     {
     std::string inputFile = maskImageOption->GetValue();
@@ -188,37 +189,42 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       }
     catch( ... )
       {
-      std::cout << "Mask not read.  Creating mask by thresholding "
-                << "the FA of the DTI atlas at >= 0.2." << std::endl;
-
-      typename ImageType::Pointer faImage = ImageType::New();
-      faImage->CopyInformation( inputAtlas );
-      faImage->SetRegions( inputAtlas->GetLargestPossibleRegion() );
-      faImage->Allocate();
-      faImage->FillBuffer( 0.0 );
-
-      itk::ImageRegionIterator<TensorImageType> ItA( inputAtlas,
-                                                     inputAtlas->GetLargestPossibleRegion() );
-      itk::ImageRegionIterator<ImageType> ItF( faImage,
-                                               faImage->GetLargestPossibleRegion() );
-      for( ItA.GoToBegin(), ItF.GoToBegin(); !ItA.IsAtEnd(); ++ItA, ++ItF )
-        {
-        ItF.Set( CalculateFractionalAnisotropy<TensorType>( ItA.Get() ) );
-        }
-
-      typedef itk::BinaryThresholdImageFilter<ImageType, MaskImageType>
-        ThresholderType;
-      typename ThresholderType::Pointer thresholder = ThresholderType::New();
-      thresholder->SetInput( faImage );
-      thresholder->SetInsideValue( 1 );
-      thresholder->SetOutsideValue( 0 );
-      thresholder->SetLowerThreshold( 0.2 );
-      thresholder->SetUpperThreshold( 2.0 );
-
-      maskImage = thresholder->GetOutput();
-      maskImage->Update();
-      maskImage->DisconnectPipeline();
+      lowerThresholdValue = parser->Convert<RealType>( maskImageOption->GetValue() );
       }
+    }
+  if( !maskImage->GetBufferPointer() )
+    {
+    std::cout << "Mask not read.  Creating mask by thresholding "
+              << "the FA of the DTI atlas at >= " << lowerThresholdValue
+              << "." << std::endl << std::endl;
+
+    typename ImageType::Pointer faImage = ImageType::New();
+    faImage->CopyInformation( inputAtlas );
+    faImage->SetRegions( inputAtlas->GetLargestPossibleRegion() );
+    faImage->Allocate();
+    faImage->FillBuffer( 0.0 );
+
+    itk::ImageRegionIterator<TensorImageType> ItA( inputAtlas,
+                                                   inputAtlas->GetLargestPossibleRegion() );
+    itk::ImageRegionIterator<ImageType> ItF( faImage,
+                                             faImage->GetLargestPossibleRegion() );
+    for( ItA.GoToBegin(), ItF.GoToBegin(); !ItA.IsAtEnd(); ++ItA, ++ItF )
+      {
+      ItF.Set( CalculateFractionalAnisotropy<TensorType>( ItA.Get() ) );
+      }
+
+    typedef itk::BinaryThresholdImageFilter<ImageType, MaskImageType>
+      ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( faImage );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+    thresholder->SetLowerThreshold( lowerThresholdValue );
+    thresholder->SetUpperThreshold( 2.0 );
+
+    maskImage = thresholder->GetOutput();
+    maskImage->Update();
+    maskImage->DisconnectPipeline();
     }
 
   //
@@ -465,6 +471,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   std::vector<vnl_vector<RealType> > directions;
   std::vector<RealType>              bvalues;
 
+  vnl_vector<RealType> direction( ImageDimension );
+
   // Add a B0 value at direction 0
   direction.fill( 0.0 );
   directions.push_back( direction );
@@ -493,8 +501,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       str >> numberOfDirections;
       }
 
-    RealType             x = 0.0;
-    vnl_vector<RealType> direction( ImageDimension );
+    RealType x = 0.0;
 
     unsigned int count = 0;
     while( str >> x )
@@ -511,7 +518,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           }
         else
           {
-          bvalues.push_back( bvalues[0] );
+          bvalues.push_back( bvalues[1] );
           }
         }
       }
@@ -813,7 +820,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         RealType             bvalue = bvalues[d];
 
         std::cout << "  Applying direction " << d << " (of "
-                  << directions.size() << "): [" << bk << "]"
+                  << directions.size() - 1 << "): [" << bk << "]"
                   << ", bvalue = " << bvalue << std::endl;
 
         typename ImageType::Pointer dwi = ImageType::New();
@@ -917,12 +924,14 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       std::string( "A mask image can be specified which determines the region(s). " )
       + std::string( "to which the simulated pathology operations are applied. " )
       + std::string( "See also the option '--pathology'.  If no mask is specified " )
-      + std::string( "one is created by thresholding the atlas FA map at 0.2.  " );
+      + std::string( "one is created by thresholding the atlas FA map at 0.2 unless  " )
+      + std::string( "a lower threshold is specified." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "label-mask-image" );
     option->SetShortName( 'x' );
     option->SetUsageOption( 0, "maskImageFileName" );
+    option->SetUsageOption( 1, "lowerThresholdValue" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
