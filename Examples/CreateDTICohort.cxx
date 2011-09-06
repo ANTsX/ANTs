@@ -11,7 +11,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkLabelGeometryImageFilter.h"
 #include "itkMersenneTwisterRandomVariateGenerator.h"
-#include "itkNumericSeriesFilenames.h"
+#include "itkNumericSeriesFileNames.h"
 #include "itkTimeProbe.h"
 #include "itkVariableSizeMatrix.h"
 
