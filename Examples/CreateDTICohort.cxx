@@ -1035,7 +1035,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0,
-                            "[outputDirectory,fileNameSeriesRootName,<numberOfControls=10>,<numberOfExperimentals=10>" );
+                            "[outputDirectory,fileNameSeriesRootName,<numberOfControls=10>,<numberOfExperimentals=10>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
