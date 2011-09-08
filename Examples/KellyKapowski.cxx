@@ -114,12 +114,12 @@ int DiReCT( itk::ants::CommandLineParser *parser )
         segmentationImage->DisconnectPipeline();
         if( segmentationImageOption->GetNumberOfParameters() > 1 )
           {
-          direct->SetGrayMatterLabel( parser->Convert<LabelType>(
+          direct->SetGrayMatterLabel( parser->Convert<unsigned int>(
                                         segmentationImageOption->GetParameter( 1 ) ) );
           }
         if( segmentationImageOption->GetNumberOfParameters() > 2 )
           {
-          direct->SetWhiteMatterLabel( parser->Convert<LabelType>(
+          direct->SetWhiteMatterLabel( parser->Convert<unsigned int>(
                                          segmentationImageOption->GetParameter( 2 ) ) );
           }
         }
