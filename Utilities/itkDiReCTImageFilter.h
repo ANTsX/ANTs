@@ -160,22 +160,22 @@ public:
   /**
    * Set the gray matter label in the segmentation image.  Default = 2.
    */
-  itkSetMacro( GrayMatterLabel, unsigned int );
+  itkSetMacro( GrayMatterLabel, InputPixelType );
 
   /**
    * Get the gray matter label in the segmentation image.  Default = 2.
    */
-  itkGetConstMacro( GrayMatterLabel, unsigned int );
+  itkGetConstMacro( GrayMatterLabel, InputPixelType );
 
   /**
    * Set the white matter label in the segmentation image.  Default = 3.
    */
-  itkSetMacro( WhiteMatterLabel, unsigned int );
+  itkSetMacro( WhiteMatterLabel, InputPixelType );
 
   /**
    * Get the white matter label in the segmentation image.  Default = 3.
    */
-  itkGetConstMacro( WhiteMatterLabel, unsigned int );
+  itkGetConstMacro( WhiteMatterLabel, InputPixelType );
 
   /**
    * Set the convergence threshold.  Default = 0.001.
@@ -323,8 +323,8 @@ private:
   RealType     m_GradientStep;
   unsigned int m_NumberOfIntegrationPoints;
 
-  unsigned int m_GrayMatterLabel;
-  unsigned int m_WhiteMatterLabel;
+  InputPixelType m_GrayMatterLabel;
+  InputPixelType m_WhiteMatterLabel;
 
   unsigned int m_ElapsedIterations;
   unsigned int m_MaximumNumberOfIterations;
