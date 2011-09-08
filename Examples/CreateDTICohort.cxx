@@ -695,8 +695,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
           + eigenvalues[2] * pathologyLongitudinalChange
           + isvLongitudinalProjection;
         RealType eigenAverage = 0.5 * ( eigenvalues[1] + eigenvalues[0] );
-        newEigenvalues[1] = ( eigenvalues[1] + eigenvalues[0] + 2.0
-                              * pathologyTransverseChange * eigenAverage + isvTransverseProjection )
+        newEigenvalues[1] = ( eigenvalues[1] + eigenvalues[0] + ( 2.0
+                                                                  * pathologyTransverseChange * eigenAverage
+                                                                  + isvTransverseProjection ) )
           / ( eigenvalues[0] / eigenvalues[1] + 1.0 );
         if( newEigenvalues[1] >= newEigenvalues[2] )
           {
