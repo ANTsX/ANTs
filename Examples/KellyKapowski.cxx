@@ -67,8 +67,8 @@ void ConvertToLowerCase( std::string& str )
 template <unsigned int ImageDimension>
 int DiReCT( itk::ants::CommandLineParser *parser )
 {
-  typedef float         RealType;
-  typedef unsigned char LabelType;
+  typedef float RealType;
+  typedef short LabelType;
 
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
   typename LabelImageType::Pointer segmentationImage = NULL;
@@ -154,7 +154,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     std::cout << "  Grey matter probability image not specified. "
               << "Creating one from the segmentation image." << std::endl;
 
-    typedef itk::BinaryThresholdImageFilter<LabelImageType, ImageType>
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType>
       ThresholderType;
     typename ThresholderType::Pointer thresholder = ThresholderType::New();
     thresholder->SetInput( segmentationImage );
@@ -163,7 +163,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     thresholder->SetInsideValue( 1 );
     thresholder->SetOutsideValue( 0 );
 
-    typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
+    typedef itk::DiscreteGaussianImageFilter<LabelImageType, ImageType> SmootherType;
     typename SmootherType::Pointer smoother = SmootherType::New();
     smoother->SetVariance( 1.0 );
     smoother->SetUseImageSpacingOn();
