@@ -37,6 +37,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkIterationReporter.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
+#include "itkLabelGeometryImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkMinimumDecisionRule.h"
 #include "itkMultiplyImageFilter.h"
@@ -554,6 +555,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
   this->m_MixtureModelProportions.SetSize( totalNumberOfClasses );
 
+  this->m_LabelVolumes.SetSize( totalNumberOfClasses );
+
   unsigned int totalSampleSize = 0;
 
   std::vector<typename SampleType::Pointer> samples;
@@ -600,6 +603,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     WeightArrayType weightArray( samples[n]->Size() );
     weightArray.Fill( 1.0 );
     weights.push_back( weightArray );
+
+    this->m_LabelVolumes[n] = samples[n]->Size();
     }
   if( this->m_InitializationStrategy == PriorProbabilityImages )
     {
@@ -1342,11 +1347,18 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         //   posteriorProbability = 0.0;
         //   }
 
-        if( posteriorProbability > this->m_ProbabilityThreshold &&
-            posteriorProbability >= ItM.Get() )
+        if( posteriorProbability > ItM.Get() )
           {
           ItM.Set( posteriorProbability );
           ItO.Set( static_cast<LabelType>( n + 1 ) );
+          }
+        else if( posteriorProbability == ItM.Get() )
+          {
+          LabelType currentLabel = ItO.Get();
+          if( currentLabel >= 1 && this->m_LabelVolumes[n] < this->m_LabelVolumes[currentLabel - 1] )
+            {
+            ItO.Set( static_cast<LabelType>( n + 1 ) );
+            }
           }
         sumPosteriors[n] += posteriorProbability;
         }
@@ -1388,6 +1400,16 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         / static_cast<RealType>( totalNumberOfClasses );
       }
     }
+
+  typedef LabelGeometryImageFilter<ClassifiedImageType, ImageType> GeometryType;
+  typename GeometryType::Pointer geom = GeometryType::New();
+  geom->SetInput( maxLabels );
+  geom->Update();
+  for( unsigned int n = 0; n < totalNumberOfClasses; n++ )
+    {
+    this->m_LabelVolumes[n] = geom->GetVolume( n + 1 );
+    }
+
   this->SetNthOutput( 0, maxLabels );
 
 //  The commented code below is used to calculate the mixture model proportions
@@ -3173,60 +3195,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 
   this->m_MaximumICMCode--;
-}
-
-template <class TInputImage, class TMaskImage, class TClassifiedImage>
-typename AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::RealImagePointer
-AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
-::GetMRFPriorProbabilityImage()
-{
-  RealImagePointer mrfImage = RealImageType::New();
-
-  mrfImage->CopyInformation( this->GetOutput() );
-  mrfImage->SetRegions( this->GetOutput()->GetRequestedRegion() );
-  mrfImage->Allocate();
-  mrfImage->FillBuffer( 0.0 );
-
-  typename NeighborhoodIterator<ClassifiedImageType>::RadiusType radius;
-  unsigned int neighborhoodSize = 1;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
-    neighborhoodSize *= ( 2 * this->m_MRFRadius[d] + 1 );
-    radius[d] = this->m_MRFRadius[d];
-    }
-
-  ConstNeighborhoodIterator<ClassifiedImageType> ItO( radius,
-                                                      this->GetOutput(), this->GetOutput()->GetRequestedRegion() );
-  ImageRegionIterator<RealImageType> ItM( mrfImage,
-                                          mrfImage->GetRequestedRegion() );
-  for( ItO.GoToBegin(), ItM.GoToBegin(); !ItO.IsAtEnd(); ++ItO, ++ItM )
-    {
-    if( !this->GetMaskImage() ||
-        this->GetMaskImage()->GetPixel( ItO.GetIndex() ) == this->m_MaskLabel )
-      {
-      if( this->m_MRFSmoothingFactor > 0.0 &&
-          ( ItO.GetNeighborhood() ).Size() > 1 )
-        {
-        Array<RealType> mrfNeighborhoodWeights;
-        this->EvaluateMRFNeighborhoodWeights( ItO, mrfNeighborhoodWeights );
-
-        RealType numerator = vcl_exp( -this->m_MRFSmoothingFactor
-                                      * mrfNeighborhoodWeights[ItO.GetCenterPixel() - 1] );
-        RealType denominator = 0.0;
-        for( unsigned int n = 0; n < mrfNeighborhoodWeights.size(); n++ )
-          {
-          denominator += vcl_exp( -this->m_MRFSmoothingFactor
-                                  * mrfNeighborhoodWeights[n] );
-          }
-        if( denominator > 0.0 )
-          {
-          ItM.Set( numerator / denominator );
-          }
-        }
-      }
-    }
-  return mrfImage;
 }
 
 template <class TInputImage, class TMaskImage, class TClassifiedImage>

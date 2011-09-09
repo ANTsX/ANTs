@@ -369,6 +369,67 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       reader->Update();
 
       segmenter->SetMaskImage( reader->GetOutput() );
+
+      // Check to see that the labels in the prior label image or the non-zero
+      // probability voxels in the prior probability images encompass the entire
+      // mask region.
+
+      if( segmenter->GetInitializationStrategy() ==
+          SegmentationFilterType::PriorLabelImage )
+        {
+        itk::ImageRegionConstIterator<LabelImageType> ItM( segmenter->GetMaskImage(),
+                                                           segmenter->GetMaskImage()->GetLargestPossibleRegion() );
+        itk::ImageRegionConstIterator<LabelImageType> ItP( segmenter->GetPriorLabelImage(),
+                                                           segmenter->GetPriorLabelImage()->GetLargestPossibleRegion() );
+        for( ItM.GoToBegin(), ItP.GoToBegin(); !ItM.IsAtEnd(); ++ItM, ++ItP )
+          {
+          if( ItM.Get() == segmenter->GetMaskLabel() && ItP.Get() == 0 )
+            {
+            std::cout << std::endl;
+            std::cout << "Warning: the labels in the the prior label image do "
+                      << "not encompass the entire mask region.  As a result each unlabeled voxel will be "
+                      << "initially assigned a random label.  The user might want to consider "
+                      << "various alternative strategies like assigning an additional "
+                      << "\"background\" label to the unlabeled voxels or propagating "
+                      << "the labels within the mask region."
+                      << std::endl;
+            std::cout << std::endl;
+            break;
+            }
+          }
+        }
+      else if( segmenter->GetInitializationStrategy() ==
+               SegmentationFilterType::PriorProbabilityImages )
+        {
+        itk::ImageRegionConstIteratorWithIndex<LabelImageType> ItM( segmenter->GetMaskImage(),
+                                                                    segmenter->GetMaskImage()->GetLargestPossibleRegion() );
+        for( ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM )
+          {
+          if( ItM.Get() == segmenter->GetMaskLabel() )
+            {
+            RealType sumPriorProbability = 0.0;
+            for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
+              {
+              sumPriorProbability +=
+                segmenter->GetPriorProbabilityImage( n + 1 )->GetPixel( ItM.GetIndex() );
+              }
+            if( sumPriorProbability < segmenter->GetProbabilityThreshold() )
+              {
+              std::cout << std::endl;
+              std::cout << "Warning: the sum of the priors from the the prior probability images are "
+                        << "less than the probability threshold within the mask region.  As a result "
+                        << "each zero probability voxel will be "
+                        << "initially assigned a random label.  The user might want to consider "
+                        << "various alternative strategies like assigning an additional "
+                        << "\"background\" label to the zero probability voxels or propagating "
+                        << "the probabilities within the mask region."
+                        << std::endl;
+              std::cout << std::endl;
+              break;
+              }
+            }
+          }
+        }
       }
     catch( ... )
       {
@@ -927,22 +988,6 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       }
     }
 
-  /**
-   * output
-   */
-  if( mrfOption && mrfOption->GetNumberOfParameters() > 2 )
-    {
-    if( segmenter->GetUseAsynchronousUpdating() && segmenter->GetICMCodeImage() )
-      {
-      typedef  itk::ImageFileWriter
-        <typename SegmentationFilterType::RealImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( segmenter->GetMRFPriorProbabilityImage() );
-      writer->SetFileName( ( mrfOption->GetParameter( 2 ) ).c_str() );
-      writer->Update();
-      }
-    }
-
   std::cout << std::endl << "Writing output:" << std::endl;
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -1343,7 +1388,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
     option->SetShortName( 'm' );
-    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>,<mrfProbabilityImage>='']" );
+    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

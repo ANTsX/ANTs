@@ -717,11 +717,6 @@ public:
     return this->m_ICMCodeImage;
   };
 
-  /**
-   * Get the mrf prior probability image
-   */
-  RealImagePointer GetMRFPriorProbabilityImage();
-
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro( SameDimensionCheck1,
@@ -854,6 +849,8 @@ private:
   bool                          m_UseEuclideanDistanceForPriorLabels;
   std::vector<RealImagePointer> m_DistancePriorProbabilityImages;
   std::vector<RealImagePointer> m_PosteriorProbabilityImages;
+
+  itk::Array<unsigned long> m_LabelVolumes;
 
   // inline functions to help with the sparse image creation
 
