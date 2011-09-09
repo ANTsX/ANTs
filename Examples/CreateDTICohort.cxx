@@ -764,10 +764,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       std::cout << "   " << std::left << std::setw( 7 ) << "Region"
                 << std::left << std::setw( 15 ) << "FA (original)"
                 << std::left << std::setw( 15 ) << "FA (pathology)"
-                << std::left << std::setw( 15 ) << "FA (diff.)"
+                << std::left << std::setw( 15 ) << "FA (% change)"
                 << std::left << std::setw( 15 ) << "MD (original)"
                 << std::left << std::setw( 15 ) << "MD (pathology)"
-                << std::left << std::setw( 15 ) << "MD (diff.)"
+                << std::left << std::setw( 15 ) << "MD (% change)"
                 << std::endl;
       for( unsigned int l = 1; l < labels.size(); l++ )
         {
@@ -775,11 +775,11 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 0) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 2) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 )
-                  << ( meanFAandMD(l, 0) - meanFAandMD(l, 2) ) / meanFAandMD(l, 4)
+                  << ( meanFAandMD(l, 0) - meanFAandMD(l, 2) ) / meanFAandMD(l, 0)
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 1) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 3) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 )
-                  << ( meanFAandMD(l, 1) - meanFAandMD(l, 3) ) / meanFAandMD(l, 4)
+                  << ( meanFAandMD(l, 1) - meanFAandMD(l, 3) ) / meanFAandMD(l, 1)
                   << std::endl;
         }
       }
