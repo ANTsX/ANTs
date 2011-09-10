@@ -258,9 +258,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   itk::Array2D<RealType> pathologyParameters( labels.size(), 3 );
   for( unsigned int i = 0; i < labels.size(); i++ )
     {
-    pathologyParameters(i, 0) = -0.05;
-    pathologyParameters(i, 1) = 0.05;
-    pathologyParameters(i, 2) = 1.0;
+    pathologyParameters(i, 0) = 0.0;
+    pathologyParameters(i, 1) = 0.0;
+    pathologyParameters(i, 2) = 0.0;
     }
 
   /**
@@ -273,9 +273,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     if( pathologyOption->GetNumberOfValues() == 1 &&
         ( pathologyOption->GetValue( 0 ) ).empty() )
       {
-      float pathologyDeltaEig1 = 0.1;
-      float pathologyDeltaEig2_Eig3 = 0.1;
-      float percentageVoxels = 1.0;
+      float pathologyDeltaEig1 = 0.0;
+      float pathologyDeltaEig2_Eig3 = 0.0;
+      float percentageVoxels = 0.0;
 
       if( pathologyOption->GetNumberOfParameters( 0 ) > 0 )
         {
@@ -654,8 +654,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       //
       RealType pathologyLongitudinalChange = 0.0;
       RealType pathologyTransverseChange = 0.0;
-      if( n > numberOfControls && randomizer->GetUniformVariate( 0.0, 1.0 ) <=
-          pathologyParameters(labelIndex, 2) )
+      if( ( n == 0 || n > numberOfControls ) && randomizer->GetUniformVariate(
+            0.0, 1.0 ) <= pathologyParameters(labelIndex, 2) )
         {
         pathologyLongitudinalChange = pathologyParameters(labelIndex, 0);
         pathologyTransverseChange = pathologyParameters(labelIndex, 1);
@@ -775,11 +775,11 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 0) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 2) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 )
-                  << ( meanFAandMD(l, 0) - meanFAandMD(l, 2) ) / meanFAandMD(l, 0)
+                  << ( meanFAandMD(l, 2) - meanFAandMD(l, 0) ) / meanFAandMD(l, 0)
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 1) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 ) << meanFAandMD(l, 3) / meanFAandMD(l, 4)
                   << std::left << std::setw( 15 )
-                  << ( meanFAandMD(l, 1) - meanFAandMD(l, 3) ) / meanFAandMD(l, 1)
+                  << ( meanFAandMD(l, 3) - meanFAandMD(l, 1) ) / meanFAandMD(l, 1)
                   << std::endl;
         }
       }
