@@ -4,6 +4,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkMaskImageFilter.h"
 #include "itkNumericSeriesFileNames.h"
+#include "itkSymmetricSecondRankTensor.h"
 #include "itkVectorImage.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
@@ -652,6 +653,23 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
       segmenter->SetMRFRadius( radius );
+      }
+    if( mrfOption->GetNumberOfParameters() > 2 )
+      {
+      typedef typename SegmentationFilterType::MRFNeighborhoodDefiningImageType
+        MRFNeighborhoodDefiningImageType;
+      typedef itk::ImageFileReader<MRFNeighborhoodDefiningImageType>
+        MRFNeighborhoodImageReaderType;
+      typename MRFNeighborhoodImageReaderType::Pointer mrfNeighborhoodReader =
+        MRFNeighborhoodImageReaderType::New();
+      mrfNeighborhoodReader->SetFileName( mrfOption->GetValue() );
+
+      typename MRFNeighborhoodDefiningImageType::Pointer mrfNeighborhoodImage =
+        mrfNeighborhoodReader->GetOutput();
+      mrfNeighborhoodImage->Update();
+      mrfNeighborhoodImage->DisconnectPipeline();
+
+      segmenter->SetMRFNeighborhoodDefiningImage( mrfNeighborhoodImage );
       }
     }
 
@@ -1388,7 +1406,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
     option->SetShortName( 'm' );
-    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>]" );
+    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>,<mrfTensorImage=none>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

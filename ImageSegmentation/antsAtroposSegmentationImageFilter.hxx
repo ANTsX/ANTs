@@ -29,6 +29,7 @@
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
+#include "itkContinuousIndex.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkFastMarchingImageFilter.h"
 #include "itkImageDuplicator.h"
@@ -1850,12 +1851,13 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses
     + this->m_NumberOfPartialVolumeClasses;
 
+  mrfNeighborhoodWeights.SetSize( totalNumberOfClasses );
+  mrfNeighborhoodWeights.Fill( 0.0 );
+
   unsigned int neighborhoodSize = ( It.GetNeighborhood() ).Size();
 
   if( this->m_MRFSmoothingFactor > 0.0 && neighborhoodSize > 1 )
     {
-    mrfNeighborhoodWeights.SetSize( totalNumberOfClasses );
-    mrfNeighborhoodWeights.Fill( 0.0 );
     for( unsigned int label = 1; label <= totalNumberOfClasses; label++ )
       {
       for( unsigned int n = 0; n < neighborhoodSize; n++ )
@@ -1864,64 +1866,213 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           {
           continue;
           }
-        bool      isInBounds = false;
-        LabelType neighborLabel = It.GetPixel( n, isInBounds );
-        if( !isInBounds || neighborLabel == 0 )
+        if( this->m_MRFNeighborhoodDefiningImage )
           {
-          continue;
-          }
-        typename ClassifiedImageType::OffsetType offset = It.GetOffset( n );
+          IndexType currentIndex = It.GetIndex();
 
-        RealType distance = 0.0;
-        for( unsigned int d = 0; d < ImageDimension; d++ )
-          {
-          distance += vnl_math_sqr( offset[d]
-                                    * this->GetOutput()->GetSpacing()[d] );
-          }
-        distance = vcl_sqrt( distance );
+          MRFNeighborhoodTensorType mrfNeighborhood =
+            this->m_MRFNeighborhoodDefiningImage->GetPixel( currentIndex );
+          typename MRFNeighborhoodTensorType::EigenValuesArrayType eigenvalues;
+          typename MRFNeighborhoodTensorType::EigenVectorsMatrixType eigenvectors;
+          mrfNeighborhood.ComputeEigenAnalysis( eigenvalues, eigenvectors );
 
-        RealType delta = 0.0;
-        if( label == neighborLabel )
-          {
-          if( this->m_NumberOfPartialVolumeClasses > 0 )
+          typedef typename ClassifiedImageType::PointType MRFPointType;
+          typedef typename MRFPointType::VectorType       MRFVectorType;
+
+          typename ClassifiedImageType::OffsetType offset = It.GetOffset( n );
+
+          MRFPointType centerPoint;
+          this->m_MRFNeighborhoodDefiningImage->TransformIndexToPhysicalPoint(
+            It.GetIndex(), centerPoint );
+          MRFVectorType offsetVector;
+          offsetVector.Fill( 0.0 );
+          for( unsigned int d = 0; d < ImageDimension; d++ )
             {
-            delta = -2.0;
-            }
-          else
-            {
-            delta = -1.0;
-            }
-          }
-        else
-          {
-          bool isCommonTissue = false;
-          typename PartialVolumeClassesType::const_iterator it;
-          for( it = this->m_PartialVolumeClasses.begin();
-               it != this->m_PartialVolumeClasses.end(); ++it )
-            {
-            if( std::find( it->begin(), it->end(),
-                           static_cast<LabelType>( label ) ) != it->end() &&
-                std::find( it->begin(), it->end(),
-                           static_cast<LabelType>( neighborLabel ) ) != it->end() )
+            for( unsigned int e = 0; e < ImageDimension; e++ )
               {
-              isCommonTissue = true;
+              offsetVector[d] += ( eigenvectors[d][e] * offset[d] * eigenvalues[d] );
+              }
+            }
+          MRFPointType offsetPoint = centerPoint + offsetVector;
+
+          ContinuousIndex<double, ImageDimension> cidx;
+          bool                                    isInsideImage = this->m_MRFNeighborhoodDefiningImage->
+            TransformPhysicalPointToContinuousIndex( offsetPoint, cidx );
+          if( !isInside )
+            {
+            continue;
+            }
+
+          unsigned int numberOfSamplingNeighbors = 1 << ImageDimension;
+
+          IndexType baseIndex;
+          IndexType startIndex = this->GetOutput()->GetLargestPossibleRegion().GetIndex();
+          IndexType endIndex = startIndex;
+
+          double distance[ImageDimension];
+          for( unsigned int d = 0; d < ImageDimension; d++ )
+            {
+            baseIndex[d] = Math::Floor<typename IndexType::IndexValueType>( cidx[d] );
+            endIndex[d] += ( this->GetOutput()->GetLargestPossibleRegion().GetSize()[d] - 1 );
+            distance[d] = cidx[d] - static_cast<double>( baseIndex[d] );
+            }
+
+          RealType totalOverlap = NumericTraits<RealType>::Zero;
+          bool     firstOverlap = true;
+          for( unsigned int counter = 0; counter < numberOfSamplingNeighbors; counter++ )
+            {
+            double       overlap = 1.0;
+            unsigned int upper = counter;
+            IndexType    neighborIndex;
+            for( unsigned int d = 0; d < ImageDimension; d++ )
+              {
+              if( upper & 1 )
+                {
+                neighborIndex[d] = baseIndex[d] + 1;
+                if( neighborIndex[d] > endIndex[d] )
+                  {
+                  neighborIndex[d] = endIndex[d];
+                  }
+                overlap *= distance[d];
+                }
+              else
+                {
+                neighborIndex[d] = baseIndex[d];
+
+                if( neighborIndex[d] < startIndex[d] )
+                  {
+                  neighborIndex[d] = startIndex[d];
+                  }
+                overlap *= 1.0 - distance[d];
+                }
+              upper >>= 1;
+              }
+
+            if( overlap )
+              {
+              RealType distance = 0.0;
+              for( unsigned int d = 0; d < ImageDimension; d++ )
+                {
+                distance += vnl_math_sqr( ( neighborIndex[d] - currentIndex[d] )
+                                          * this->GetOutput()->GetSpacing()[d] );
+                }
+              distance = vcl_sqrt( distance );
+
+              RealType delta = 0.0;
+              if( label == neighborLabel )
+                {
+                if( this->m_NumberOfPartialVolumeClasses > 0 )
+                  {
+                  delta = -2.0;
+                  }
+                else
+                  {
+                  delta = -1.0;
+                  }
+                }
+              else
+                {
+                bool isCommonTissue = false;
+                typename PartialVolumeClassesType::const_iterator it;
+                for( it = this->m_PartialVolumeClasses.begin();
+                     it != this->m_PartialVolumeClasses.end(); ++it )
+                  {
+                  if( std::find( it->begin(), it->end(),
+                                 static_cast<LabelType>( label ) ) != it->end() &&
+                      std::find( it->begin(), it->end(),
+                                 static_cast<LabelType>( neighborLabel ) ) != it->end() )
+                    {
+                    isCommonTissue = true;
+                    break;
+                    }
+                  }
+                if( isCommonTissue )
+                  {
+                  delta = -1.0;
+                  }
+                else if( this->m_NumberOfPartialVolumeClasses > 0 )
+                  {
+                  delta = 1.0;
+                  }
+                else
+                  {
+                  delta = 0.0;
+                  }
+                }
+              LabelType neighborLabel = this->GetOutput()->GetPixel( neighborIndex );
+              mrfNeighborhoodWeights[neighborLabel - 1] += ( delta * overlap / distance );
+              totalOverlap += overlap;
+              }
+
+            if( totalOverlap == 1.0 )
+              {
+              // finished
               break;
               }
             }
-          if( isCommonTissue )
+          itkExceptionMacro( "Not implemented yet." );
+          }
+        else
+          {
+          bool      isInBounds = false;
+          LabelType neighborLabel = It.GetPixel( n, isInBounds );
+          if( !isInBounds || neighborLabel == 0 )
             {
-            delta = -1.0;
+            continue;
             }
-          else if( this->m_NumberOfPartialVolumeClasses > 0 )
+          typename ClassifiedImageType::OffsetType offset = It.GetOffset( n );
+
+          RealType distance = 0.0;
+          for( unsigned int d = 0; d < ImageDimension; d++ )
             {
-            delta = 1.0;
+            distance += vnl_math_sqr( offset[d]
+                                      * this->GetOutput()->GetSpacing()[d] );
+            }
+          distance = vcl_sqrt( distance );
+
+          RealType delta = 0.0;
+          if( label == neighborLabel )
+            {
+            if( this->m_NumberOfPartialVolumeClasses > 0 )
+              {
+              delta = -2.0;
+              }
+            else
+              {
+              delta = -1.0;
+              }
             }
           else
             {
-            delta = 0.0;
+            bool isCommonTissue = false;
+            typename PartialVolumeClassesType::const_iterator it;
+            for( it = this->m_PartialVolumeClasses.begin();
+                 it != this->m_PartialVolumeClasses.end(); ++it )
+              {
+              if( std::find( it->begin(), it->end(),
+                             static_cast<LabelType>( label ) ) != it->end() &&
+                  std::find( it->begin(), it->end(),
+                             static_cast<LabelType>( neighborLabel ) ) != it->end() )
+                {
+                isCommonTissue = true;
+                break;
+                }
+              }
+            if( isCommonTissue )
+              {
+              delta = -1.0;
+              }
+            else if( this->m_NumberOfPartialVolumeClasses > 0 )
+              {
+              delta = 1.0;
+              }
+            else
+              {
+              delta = 0.0;
+              }
             }
+          mrfNeighborhoodWeights[label - 1] += ( delta / distance );
           }
-        mrfNeighborhoodWeights[label - 1] += ( delta / distance );
         }
       }
     }

@@ -32,6 +32,7 @@
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkNeighborhoodIterator.h"
 #include "itkPointSet.h"
+#include "itkSymmetricSecondRankTensor.h"
 #include "itkVector.h"
 
 #include <algorithm>
@@ -102,15 +103,13 @@ public:
   typedef typename ClassifiedImageType::PixelType LabelType;
 
   /** Some convenient typedefs. */
-  typedef float RealType;
-  typedef Image<RealType,
-                itkGetStaticConstMacro( ImageDimension )>         RealImageType;
+  typedef float                           RealType;
+  typedef Image<RealType, ImageDimension> RealImageType;
   typedef typename RealImageType::Pointer RealImagePointer;
 
-  typedef FixedArray<unsigned,
-                     itkGetStaticConstMacro( ImageDimension )>         ArrayType;
-  typedef PointSet<RealType, 1>             SparseImageType;
-  typedef typename SparseImageType::Pointer SparseImagePointer;
+  typedef FixedArray<unsigned, ImageDimension> ArrayType;
+  typedef PointSet<RealType, 1>                SparseImageType;
+  typedef typename SparseImageType::Pointer    SparseImagePointer;
 
   /** Mixture model component typedefs */
   typedef Array<RealType> MeasurementVectorType;
@@ -136,11 +135,9 @@ public:
     MersenneTwisterRandomVariateGenerator             RandomizerType;
 
   /** B-spline fitting typedefs */
-  typedef Vector<RealType, 1> ScalarType;
-  typedef Image<ScalarType,
-                itkGetStaticConstMacro( ImageDimension )>         ScalarImageType;
-  typedef PointSet<ScalarType,
-                   itkGetStaticConstMacro( ImageDimension )>         PointSetType;
+  typedef Vector<RealType, 1>                  ScalarType;
+  typedef Image<ScalarType, ImageDimension>    ScalarImageType;
+  typedef PointSet<ScalarType, ImageDimension> PointSetType;
   typedef BSplineScatteredDataPointSetToImageFilter
     <PointSetType, ScalarImageType>                   BSplineFilterType;
   typedef typename
@@ -158,6 +155,10 @@ public:
 
   /** Posterior probability formulation typedefs */
   enum PosteriorProbabilityFormulationType { Socrates, Plato, Aristotle };
+
+  typedef SymmetricSecondRankTensor<RealType, ImageDimension> MRFNeighborhoodTensorType;
+  typedef Image<MRFNeighborhoodTensorType, ImageDimension>    MRFNeighborhoodDefiningImageType;
+  typedef typename MRFNeighborhoodDefiningImageType::Pointer  MRFNeighborhoodDefiningImagePointer;
 
   // ivars Set/Get functionality
 
@@ -252,8 +253,7 @@ public:
    * cause a greater spatial homogeneity in the final labeling.  Default value
    * = 0.3.
    */
-  itkSetClampMacro( MRFSmoothingFactor, RealType, 0.0,
-                    NumericTraits<RealType>::max() );
+  itkSetClampMacro( MRFSmoothingFactor, RealType, 0.0, NumericTraits<RealType>::max() );
 
   /**
    * Get the MRF smoothing parameter.
@@ -274,14 +274,23 @@ public:
   itkGetConstMacro( MRFRadius, ArrayType );
 
   /**
+   * Set the MRF neighborhood-defining image.
+   */
+  itkSetObjectMacro( MRFNeighborhoodDefiningImage, MRFNeighborhoodDefiningImageType );
+
+  /**
+   * Get the MRF neighborhood-defining image.
+   */
+  itkGetConstObjectMacro( MRFNeighborhoodDefiningImage, MRFNeighborhoodDefiningImageType );
+
+  /**
    * Set the annealing temperature for ICM asynchronous updating.  For values
    * different from unity, the posterior probability is exponentiated by the
    * inverse of the annealing temperature, i.e. posterior probability \prop
    * (likelihoods * priors)^(1/T) where T is specified annealing temperature
    * raised to the number of elapsed iterations.  Default value = 1.0.
    */
-  itkSetClampMacro( InitialAnnealingTemperature, RealType, 0.0,
-                    NumericTraits<RealType>::max() );
+  itkSetClampMacro( InitialAnnealingTemperature, RealType, 0.0, NumericTraits<RealType>::max() );
 
   /**
    * Get the initial annealing temperature.  For values
@@ -518,7 +527,7 @@ public:
   /**
    * Set a prior probability image (numbered between 1,...,numberOfClasses).
    */
-  void SetPriorProbabilityImage(unsigned int whichClass, RealImageType * prior );
+  void SetPriorProbabilityImage( unsigned int whichClass, RealImageType * prior );
 
   /**
    * Get a prior probability image (numbered between 1,...,numberOfClasses).
@@ -821,9 +830,9 @@ private:
 
   typename RandomizerType::Pointer               m_Randomizer;
 
-  ArrayType        m_MRFRadius;
-  RealType         m_MRFSmoothingFactor;
-  RealImagePointer m_MRFPriorProbabilityImage;
+  ArrayType                           m_MRFRadius;
+  RealType                            m_MRFSmoothingFactor;
+  MRFNeighborhoodDefiningImagePointer m_MRFNeighborhoodDefiningImage;
 
   unsigned int           m_MaximumICMCode;
   ClassifiedImagePointer m_ICMCodeImage;
