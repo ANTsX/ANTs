@@ -2,6 +2,9 @@
 
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkDiReCTImageFilter.h"
+#include "itkDiReCTImageFilter926.h"
+#include "itkDiReCTImageFilter949.h"
+#include "itkDiReCTImageFilter953.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
@@ -65,7 +68,7 @@ void ConvertToLowerCase( std::string& str )
 }
 
 template <unsigned int ImageDimension>
-int DiReCT( itk::ants::CommandLineParser *parser )
+int DiReCT0( itk::ants::CommandLineParser *parser )
 {
   typedef float RealType;
   typedef short LabelType;
@@ -78,6 +81,843 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   typename ImageType::Pointer whiteMatterProbabilityImage = NULL;
 
   typedef itk::DiReCTImageFilter<LabelImageType, ImageType> DiReCTFilterType;
+  typename DiReCTFilterType::Pointer direct = DiReCTFilterType::New();
+
+  //
+  // segmentation image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  segmentationImageOption = parser->GetOption( "segmentation-image" );
+  if( segmentationImageOption )
+    {
+    if( segmentationImageOption->GetNumberOfValues() > 0 )
+      {
+      if( segmentationImageOption->GetNumberOfParameters() == 0 )
+        {
+        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+        std::string inputFile = segmentationImageOption->GetValue();
+        labelReader->SetFileName( inputFile.c_str() );
+
+        segmentationImage = labelReader->GetOutput();
+        segmentationImage->Update();
+        segmentationImage->DisconnectPipeline();
+        }
+      else if( segmentationImageOption->GetNumberOfParameters() > 0 )
+        {
+        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+        std::string inputFile = segmentationImageOption->GetParameter( 0 );
+        labelReader->SetFileName( inputFile.c_str() );
+
+        segmentationImage = labelReader->GetOutput();
+        segmentationImage->Update();
+        segmentationImage->DisconnectPipeline();
+        if( segmentationImageOption->GetNumberOfParameters() > 1 )
+          {
+          direct->SetGrayMatterLabel( parser->Convert<LabelType>(
+                                        segmentationImageOption->GetParameter( 1 ) ) );
+          }
+        if( segmentationImageOption->GetNumberOfParameters() > 2 )
+          {
+          direct->SetWhiteMatterLabel( parser->Convert<LabelType>(
+                                         segmentationImageOption->GetParameter( 2 ) ) );
+          }
+        }
+      }
+    }
+  else
+    {
+    std::cerr << "Segmentation image not specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+  direct->SetSegmentationImage( segmentationImage );
+
+  //
+  // gray matter probability image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  grayMatterOption = parser->GetOption( "gray-matter-probability-image" );
+  if( grayMatterOption && grayMatterOption->GetNumberOfValues() > 0 )
+    {
+    typedef itk::ImageFileReader<ImageType> ReaderType;
+    typename ReaderType::Pointer gmReader = ReaderType::New();
+
+    std::string gmFile = grayMatterOption->GetValue();
+    gmReader->SetFileName( gmFile.c_str() );
+
+    grayMatterProbabilityImage = gmReader->GetOutput();
+    grayMatterProbabilityImage->Update();
+    grayMatterProbabilityImage->DisconnectPipeline();
+    }
+  else
+    {
+    std::cout << "  Grey matter probability image not specified. "
+              << "Creating one from the segmentation image." << std::endl;
+
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType>
+      ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( segmentationImage );
+    thresholder->SetLowerThreshold( direct->GetGrayMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetGrayMatterLabel() );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::DiscreteGaussianImageFilter<LabelImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( 1.0 );
+    smoother->SetUseImageSpacingOn();
+    smoother->SetMaximumError( 0.01 );
+    smoother->SetInput( thresholder->GetOutput() );
+    smoother->Update();
+
+    grayMatterProbabilityImage = smoother->GetOutput();
+    grayMatterProbabilityImage->DisconnectPipeline();
+    }
+  direct->SetGrayMatterProbabilityImage( grayMatterProbabilityImage );
+
+  //
+  // white matter probability image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  whiteMatterOption = parser->GetOption( "white-matter-probability-image" );
+  if( whiteMatterOption && whiteMatterOption->GetNumberOfValues() > 0 )
+    {
+    typedef itk::ImageFileReader<ImageType> ReaderType;
+    typename ReaderType::Pointer wmReader = ReaderType::New();
+
+    std::string wmFile = whiteMatterOption->GetValue();
+    wmReader->SetFileName( wmFile.c_str() );
+
+    whiteMatterProbabilityImage = wmReader->GetOutput();
+    whiteMatterProbabilityImage->Update();
+    whiteMatterProbabilityImage->DisconnectPipeline();
+    }
+  else
+    {
+    std::cout << "  White matter probability image not specified. "
+              << "Creating one from the segmentation image." << std::endl << std::endl;
+
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, ImageType>
+      ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( segmentationImage );
+    thresholder->SetLowerThreshold( direct->GetWhiteMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetWhiteMatterLabel() );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( 1.0 );
+    smoother->SetUseImageSpacingOn();
+    smoother->SetMaximumError( 0.01 );
+    smoother->SetInput( thresholder->GetOutput() );
+    smoother->Update();
+
+    whiteMatterProbabilityImage = smoother->GetOutput();
+    whiteMatterProbabilityImage->DisconnectPipeline();
+    }
+  direct->SetWhiteMatterProbabilityImage( whiteMatterProbabilityImage );
+
+  //
+  // convergence options
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
+    parser->GetOption( "convergence" );
+  if( convergenceOption )
+    {
+    if( convergenceOption->GetNumberOfParameters() > 0 )
+      {
+      direct->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
+                                              convergenceOption->GetParameter( 0 ) ) );
+      }
+    if( convergenceOption->GetNumberOfParameters() > 1 )
+      {
+      direct->SetConvergenceThreshold( parser->Convert<float>(
+                                         convergenceOption->GetParameter( 1 ) ) );
+      }
+    if( convergenceOption->GetNumberOfParameters() > 2 )
+      {
+      direct->SetConvergenceWindowSize( parser->Convert<unsigned int>(
+                                          convergenceOption->GetParameter( 2 ) ) );
+      }
+    }
+
+  //
+  // thickness prior estimate
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  thicknessPriorOption = parser->GetOption( "thickness-prior-estimate" );
+  if( thicknessPriorOption )
+    {
+    direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
+                                         thicknessPriorOption->GetValue() ) );
+    }
+
+  //
+  // gradient step
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  gradientStepOption = parser->GetOption( "gradient-step" );
+  if( gradientStepOption )
+    {
+    direct->SetGradientStep( parser->Convert<RealType>(
+                               gradientStepOption->GetValue() ) );
+    }
+
+  //
+  // smoothing sigma
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  smoothingSigmaOption = parser->GetOption( "smoothing-sigma" );
+  if( smoothingSigmaOption )
+    {
+    direct->SetSmoothingSigma( parser->Convert<RealType>(
+                                 smoothingSigmaOption->GetValue() ) );
+    }
+
+  //
+  // debugging information
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  debugOption = parser->GetOption( "print-debug-information" );
+  if( debugOption )
+    {
+    std::string value = debugOption->GetValue();
+    ConvertToLowerCase( value );
+    if( std::strcmp( value.c_str(), "true" ) ||
+        parser->Convert<int>( debugOption->GetValue() ) != 0 )
+      {
+      direct->DebugOn();
+      }
+    }
+
+  //
+  // set maximum number of threads
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  threadOption = parser->GetOption( "maximum-number-of-threads" );
+  if( threadOption )
+    {
+    unsigned int numThreads = parser->Convert<unsigned int>(
+        threadOption->GetValue() );
+    direct->SetNumberOfThreads( numThreads );
+    }
+
+  typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
+  typename CommandType::Pointer observer = CommandType::New();
+  direct->AddObserver( itk::IterationEvent(), observer );
+
+  itk::TimeProbe timer;
+  try
+    {
+    // direct->DebugOn();
+    timer.Start();
+    direct->Update();
+    timer.Stop();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Exception caught: " << e << std::endl;
+    return EXIT_FAILURE;
+    }
+  direct->Print( std::cout, 3 );
+
+  std::cout << "DiReCT elapsed time: " << timer.GetMeanTime() << std::endl;
+
+  /**
+   * output
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
+    parser->GetOption( "output" );
+  if( outputOption )
+    {
+    typedef  itk::ImageFileWriter<ImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetInput( direct->GetOutput() );
+    writer->SetFileName( ( outputOption->GetValue() ).c_str() );
+    writer->Update();
+    }
+
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
+int DiReCT1( itk::ants::CommandLineParser *parser )
+{
+  typedef float RealType;
+  typedef short LabelType;
+
+  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  typename LabelImageType::Pointer segmentationImage = NULL;
+
+  typedef itk::Image<RealType, ImageDimension> ImageType;
+  typename ImageType::Pointer grayMatterProbabilityImage = NULL;
+  typename ImageType::Pointer whiteMatterProbabilityImage = NULL;
+
+  typedef itk::DiReCTImageFilter926<LabelImageType, ImageType> DiReCTFilterType;
+  typename DiReCTFilterType::Pointer direct = DiReCTFilterType::New();
+
+  //
+  // segmentation image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  segmentationImageOption = parser->GetOption( "segmentation-image" );
+  if( segmentationImageOption )
+    {
+    if( segmentationImageOption->GetNumberOfValues() > 0 )
+      {
+      if( segmentationImageOption->GetNumberOfParameters() == 0 )
+        {
+        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+        std::string inputFile = segmentationImageOption->GetValue();
+        labelReader->SetFileName( inputFile.c_str() );
+
+        segmentationImage = labelReader->GetOutput();
+        segmentationImage->Update();
+        segmentationImage->DisconnectPipeline();
+        }
+      else if( segmentationImageOption->GetNumberOfParameters() > 0 )
+        {
+        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+        std::string inputFile = segmentationImageOption->GetParameter( 0 );
+        labelReader->SetFileName( inputFile.c_str() );
+
+        segmentationImage = labelReader->GetOutput();
+        segmentationImage->Update();
+        segmentationImage->DisconnectPipeline();
+        if( segmentationImageOption->GetNumberOfParameters() > 1 )
+          {
+          direct->SetGrayMatterLabel( parser->Convert<LabelType>(
+                                        segmentationImageOption->GetParameter( 1 ) ) );
+          }
+        if( segmentationImageOption->GetNumberOfParameters() > 2 )
+          {
+          direct->SetWhiteMatterLabel( parser->Convert<LabelType>(
+                                         segmentationImageOption->GetParameter( 2 ) ) );
+          }
+        }
+      }
+    }
+  else
+    {
+    std::cerr << "Segmentation image not specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+  direct->SetSegmentationImage( segmentationImage );
+
+  //
+  // gray matter probability image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  grayMatterOption = parser->GetOption( "gray-matter-probability-image" );
+  if( grayMatterOption && grayMatterOption->GetNumberOfValues() > 0 )
+    {
+    typedef itk::ImageFileReader<ImageType> ReaderType;
+    typename ReaderType::Pointer gmReader = ReaderType::New();
+
+    std::string gmFile = grayMatterOption->GetValue();
+    gmReader->SetFileName( gmFile.c_str() );
+
+    grayMatterProbabilityImage = gmReader->GetOutput();
+    grayMatterProbabilityImage->Update();
+    grayMatterProbabilityImage->DisconnectPipeline();
+    }
+  else
+    {
+    std::cout << "  Grey matter probability image not specified. "
+              << "Creating one from the segmentation image." << std::endl;
+
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType>
+      ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( segmentationImage );
+    thresholder->SetLowerThreshold( direct->GetGrayMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetGrayMatterLabel() );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::DiscreteGaussianImageFilter<LabelImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( 1.0 );
+    smoother->SetUseImageSpacingOn();
+    smoother->SetMaximumError( 0.01 );
+    smoother->SetInput( thresholder->GetOutput() );
+    smoother->Update();
+
+    grayMatterProbabilityImage = smoother->GetOutput();
+    grayMatterProbabilityImage->DisconnectPipeline();
+    }
+  direct->SetGrayMatterProbabilityImage( grayMatterProbabilityImage );
+
+  //
+  // white matter probability image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  whiteMatterOption = parser->GetOption( "white-matter-probability-image" );
+  if( whiteMatterOption && whiteMatterOption->GetNumberOfValues() > 0 )
+    {
+    typedef itk::ImageFileReader<ImageType> ReaderType;
+    typename ReaderType::Pointer wmReader = ReaderType::New();
+
+    std::string wmFile = whiteMatterOption->GetValue();
+    wmReader->SetFileName( wmFile.c_str() );
+
+    whiteMatterProbabilityImage = wmReader->GetOutput();
+    whiteMatterProbabilityImage->Update();
+    whiteMatterProbabilityImage->DisconnectPipeline();
+    }
+  else
+    {
+    std::cout << "  White matter probability image not specified. "
+              << "Creating one from the segmentation image." << std::endl << std::endl;
+
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, ImageType>
+      ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( segmentationImage );
+    thresholder->SetLowerThreshold( direct->GetWhiteMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetWhiteMatterLabel() );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( 1.0 );
+    smoother->SetUseImageSpacingOn();
+    smoother->SetMaximumError( 0.01 );
+    smoother->SetInput( thresholder->GetOutput() );
+    smoother->Update();
+
+    whiteMatterProbabilityImage = smoother->GetOutput();
+    whiteMatterProbabilityImage->DisconnectPipeline();
+    }
+  direct->SetWhiteMatterProbabilityImage( whiteMatterProbabilityImage );
+
+  //
+  // convergence options
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
+    parser->GetOption( "convergence" );
+  if( convergenceOption )
+    {
+    if( convergenceOption->GetNumberOfParameters() > 0 )
+      {
+      direct->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
+                                              convergenceOption->GetParameter( 0 ) ) );
+      }
+    if( convergenceOption->GetNumberOfParameters() > 1 )
+      {
+      direct->SetConvergenceThreshold( parser->Convert<float>(
+                                         convergenceOption->GetParameter( 1 ) ) );
+      }
+    if( convergenceOption->GetNumberOfParameters() > 2 )
+      {
+      direct->SetConvergenceWindowSize( parser->Convert<unsigned int>(
+                                          convergenceOption->GetParameter( 2 ) ) );
+      }
+    }
+
+  //
+  // thickness prior estimate
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  thicknessPriorOption = parser->GetOption( "thickness-prior-estimate" );
+  if( thicknessPriorOption )
+    {
+    direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
+                                         thicknessPriorOption->GetValue() ) );
+    }
+
+  //
+  // gradient step
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  gradientStepOption = parser->GetOption( "gradient-step" );
+  if( gradientStepOption )
+    {
+    direct->SetGradientStep( parser->Convert<RealType>(
+                               gradientStepOption->GetValue() ) );
+    }
+
+  //
+  // smoothing sigma
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  smoothingSigmaOption = parser->GetOption( "smoothing-sigma" );
+  if( smoothingSigmaOption )
+    {
+    direct->SetSmoothingSigma( parser->Convert<RealType>(
+                                 smoothingSigmaOption->GetValue() ) );
+    }
+
+  //
+  // debugging information
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  debugOption = parser->GetOption( "print-debug-information" );
+  if( debugOption )
+    {
+    std::string value = debugOption->GetValue();
+    ConvertToLowerCase( value );
+    if( std::strcmp( value.c_str(), "true" ) ||
+        parser->Convert<int>( debugOption->GetValue() ) != 0 )
+      {
+      direct->DebugOn();
+      }
+    }
+
+  //
+  // set maximum number of threads
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  threadOption = parser->GetOption( "maximum-number-of-threads" );
+  if( threadOption )
+    {
+    unsigned int numThreads = parser->Convert<unsigned int>(
+        threadOption->GetValue() );
+    direct->SetNumberOfThreads( numThreads );
+    }
+
+  typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
+  typename CommandType::Pointer observer = CommandType::New();
+  direct->AddObserver( itk::IterationEvent(), observer );
+
+  itk::TimeProbe timer;
+  try
+    {
+    // direct->DebugOn();
+    timer.Start();
+    direct->Update();
+    timer.Stop();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Exception caught: " << e << std::endl;
+    return EXIT_FAILURE;
+    }
+  direct->Print( std::cout, 3 );
+
+  std::cout << "DiReCT elapsed time: " << timer.GetMeanTime() << std::endl;
+
+  /**
+   * output
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
+    parser->GetOption( "output" );
+  if( outputOption )
+    {
+    typedef  itk::ImageFileWriter<ImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetInput( direct->GetOutput() );
+    writer->SetFileName( ( outputOption->GetValue() ).c_str() );
+    writer->Update();
+    }
+
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
+int DiReCT2( itk::ants::CommandLineParser *parser )
+{
+  typedef float RealType;
+  typedef short LabelType;
+
+  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  typename LabelImageType::Pointer segmentationImage = NULL;
+
+  typedef itk::Image<RealType, ImageDimension> ImageType;
+  typename ImageType::Pointer grayMatterProbabilityImage = NULL;
+  typename ImageType::Pointer whiteMatterProbabilityImage = NULL;
+
+  typedef itk::DiReCTImageFilter949<LabelImageType, ImageType> DiReCTFilterType;
+  typename DiReCTFilterType::Pointer direct = DiReCTFilterType::New();
+
+  //
+  // segmentation image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  segmentationImageOption = parser->GetOption( "segmentation-image" );
+  if( segmentationImageOption )
+    {
+    if( segmentationImageOption->GetNumberOfValues() > 0 )
+      {
+      if( segmentationImageOption->GetNumberOfParameters() == 0 )
+        {
+        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+        std::string inputFile = segmentationImageOption->GetValue();
+        labelReader->SetFileName( inputFile.c_str() );
+
+        segmentationImage = labelReader->GetOutput();
+        segmentationImage->Update();
+        segmentationImage->DisconnectPipeline();
+        }
+      else if( segmentationImageOption->GetNumberOfParameters() > 0 )
+        {
+        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+        std::string inputFile = segmentationImageOption->GetParameter( 0 );
+        labelReader->SetFileName( inputFile.c_str() );
+
+        segmentationImage = labelReader->GetOutput();
+        segmentationImage->Update();
+        segmentationImage->DisconnectPipeline();
+        if( segmentationImageOption->GetNumberOfParameters() > 1 )
+          {
+          direct->SetGrayMatterLabel( parser->Convert<LabelType>(
+                                        segmentationImageOption->GetParameter( 1 ) ) );
+          }
+        if( segmentationImageOption->GetNumberOfParameters() > 2 )
+          {
+          direct->SetWhiteMatterLabel( parser->Convert<LabelType>(
+                                         segmentationImageOption->GetParameter( 2 ) ) );
+          }
+        }
+      }
+    }
+  else
+    {
+    std::cerr << "Segmentation image not specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+  direct->SetSegmentationImage( segmentationImage );
+
+  //
+  // gray matter probability image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  grayMatterOption = parser->GetOption( "gray-matter-probability-image" );
+  if( grayMatterOption && grayMatterOption->GetNumberOfValues() > 0 )
+    {
+    typedef itk::ImageFileReader<ImageType> ReaderType;
+    typename ReaderType::Pointer gmReader = ReaderType::New();
+
+    std::string gmFile = grayMatterOption->GetValue();
+    gmReader->SetFileName( gmFile.c_str() );
+
+    grayMatterProbabilityImage = gmReader->GetOutput();
+    grayMatterProbabilityImage->Update();
+    grayMatterProbabilityImage->DisconnectPipeline();
+    }
+  else
+    {
+    std::cout << "  Grey matter probability image not specified. "
+              << "Creating one from the segmentation image." << std::endl;
+
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType>
+      ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( segmentationImage );
+    thresholder->SetLowerThreshold( direct->GetGrayMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetGrayMatterLabel() );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::DiscreteGaussianImageFilter<LabelImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( 1.0 );
+    smoother->SetUseImageSpacingOn();
+    smoother->SetMaximumError( 0.01 );
+    smoother->SetInput( thresholder->GetOutput() );
+    smoother->Update();
+
+    grayMatterProbabilityImage = smoother->GetOutput();
+    grayMatterProbabilityImage->DisconnectPipeline();
+    }
+  direct->SetGrayMatterProbabilityImage( grayMatterProbabilityImage );
+
+  //
+  // white matter probability image
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  whiteMatterOption = parser->GetOption( "white-matter-probability-image" );
+  if( whiteMatterOption && whiteMatterOption->GetNumberOfValues() > 0 )
+    {
+    typedef itk::ImageFileReader<ImageType> ReaderType;
+    typename ReaderType::Pointer wmReader = ReaderType::New();
+
+    std::string wmFile = whiteMatterOption->GetValue();
+    wmReader->SetFileName( wmFile.c_str() );
+
+    whiteMatterProbabilityImage = wmReader->GetOutput();
+    whiteMatterProbabilityImage->Update();
+    whiteMatterProbabilityImage->DisconnectPipeline();
+    }
+  else
+    {
+    std::cout << "  White matter probability image not specified. "
+              << "Creating one from the segmentation image." << std::endl << std::endl;
+
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, ImageType>
+      ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( segmentationImage );
+    thresholder->SetLowerThreshold( direct->GetWhiteMatterLabel() );
+    thresholder->SetUpperThreshold( direct->GetWhiteMatterLabel() );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
+    typename SmootherType::Pointer smoother = SmootherType::New();
+    smoother->SetVariance( 1.0 );
+    smoother->SetUseImageSpacingOn();
+    smoother->SetMaximumError( 0.01 );
+    smoother->SetInput( thresholder->GetOutput() );
+    smoother->Update();
+
+    whiteMatterProbabilityImage = smoother->GetOutput();
+    whiteMatterProbabilityImage->DisconnectPipeline();
+    }
+  direct->SetWhiteMatterProbabilityImage( whiteMatterProbabilityImage );
+
+  //
+  // convergence options
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
+    parser->GetOption( "convergence" );
+  if( convergenceOption )
+    {
+    if( convergenceOption->GetNumberOfParameters() > 0 )
+      {
+      direct->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
+                                              convergenceOption->GetParameter( 0 ) ) );
+      }
+    if( convergenceOption->GetNumberOfParameters() > 1 )
+      {
+      direct->SetConvergenceThreshold( parser->Convert<float>(
+                                         convergenceOption->GetParameter( 1 ) ) );
+      }
+    if( convergenceOption->GetNumberOfParameters() > 2 )
+      {
+      direct->SetConvergenceWindowSize( parser->Convert<unsigned int>(
+                                          convergenceOption->GetParameter( 2 ) ) );
+      }
+    }
+
+  //
+  // thickness prior estimate
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  thicknessPriorOption = parser->GetOption( "thickness-prior-estimate" );
+  if( thicknessPriorOption )
+    {
+    direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
+                                         thicknessPriorOption->GetValue() ) );
+    }
+
+  //
+  // gradient step
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  gradientStepOption = parser->GetOption( "gradient-step" );
+  if( gradientStepOption )
+    {
+    direct->SetGradientStep( parser->Convert<RealType>(
+                               gradientStepOption->GetValue() ) );
+    }
+
+  //
+  // smoothing sigma
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  smoothingSigmaOption = parser->GetOption( "smoothing-sigma" );
+  if( smoothingSigmaOption )
+    {
+    direct->SetSmoothingSigma( parser->Convert<RealType>(
+                                 smoothingSigmaOption->GetValue() ) );
+    }
+
+  //
+  // debugging information
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  debugOption = parser->GetOption( "print-debug-information" );
+  if( debugOption )
+    {
+    std::string value = debugOption->GetValue();
+    ConvertToLowerCase( value );
+    if( std::strcmp( value.c_str(), "true" ) ||
+        parser->Convert<int>( debugOption->GetValue() ) != 0 )
+      {
+      direct->DebugOn();
+      }
+    }
+
+  //
+  // set maximum number of threads
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  threadOption = parser->GetOption( "maximum-number-of-threads" );
+  if( threadOption )
+    {
+    unsigned int numThreads = parser->Convert<unsigned int>(
+        threadOption->GetValue() );
+    direct->SetNumberOfThreads( numThreads );
+    }
+
+  typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
+  typename CommandType::Pointer observer = CommandType::New();
+  direct->AddObserver( itk::IterationEvent(), observer );
+
+  itk::TimeProbe timer;
+  try
+    {
+    // direct->DebugOn();
+    timer.Start();
+    direct->Update();
+    timer.Stop();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Exception caught: " << e << std::endl;
+    return EXIT_FAILURE;
+    }
+  direct->Print( std::cout, 3 );
+
+  std::cout << "DiReCT elapsed time: " << timer.GetMeanTime() << std::endl;
+
+  /**
+   * output
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
+    parser->GetOption( "output" );
+  if( outputOption )
+    {
+    typedef  itk::ImageFileWriter<ImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetInput( direct->GetOutput() );
+    writer->SetFileName( ( outputOption->GetValue() ).c_str() );
+    writer->Update();
+    }
+
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
+int DiReCT3( itk::ants::CommandLineParser *parser )
+{
+  typedef float RealType;
+  typedef short LabelType;
+
+  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  typename LabelImageType::Pointer segmentationImage = NULL;
+
+  typedef itk::Image<RealType, ImageDimension> ImageType;
+  typename ImageType::Pointer grayMatterProbabilityImage = NULL;
+  typename ImageType::Pointer whiteMatterProbabilityImage = NULL;
+
+  typedef itk::DiReCTImageFilter953<LabelImageType, ImageType> DiReCTFilterType;
   typename DiReCTFilterType::Pointer direct = DiReCTFilterType::New();
 
   //
@@ -514,6 +1354,25 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
     }
+
+    {
+    std::string description =
+      std::string( "Option to set the DiReCT Image Filter svn revision " )
+      + std::string( "(0, 926, 949, 953).  Version 926 is most likely the " )
+      + std::string( "but it comes at the cost of a huge memory footprint. " )
+      + std::string( "Memory-saving strategies were employed for version " )
+      + std::string( "949 but at a computational speed cost.  Additional " )
+      + std::string( "memory-saving strategies were used in version 953." )
+      + std::string( "If this option is not set, it defaults to the latest " )
+      + std::string( "DiReCT revision (0)." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "DiReCT-Image-Filter-Revision" );
+    option->SetShortName( 'z' );
+    option->SetUsageOption( 0, "itkDiReCTImageFilterRevision" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
 }
 
 int main( int argc, char *argv[] )
@@ -589,14 +1448,75 @@ int main( int argc, char *argv[] )
   std::cout << std::endl << "Running DiReCT for "
             << dimension << "-dimensional images." << std::endl << std::endl;
 
+  unsigned int                                      whichDiReCTVersion = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer directOption =
+    parser->GetOption( "DiReCT-Image-Filter-Revision" );
+  if( directOption && directOption->GetNumberOfValues() > 0 )
+    {
+    whichDiReCTVersion = parser->Convert<unsigned int>( directOption->GetValue() );
+    if( whichDiReCTVersion != 953 || whichDiReCTVersion != 949 ||
+        whichDiReCTVersion != 926 || whichDiReCTVersion != 0 )
+      {
+      std::cerr << "Unknown requested DiReCT version. See long help menu "
+                << "for the description of the different versions (i.e. --help )." << std::endl;
+      exit( EXIT_FAILURE );
+      }
+    }
+
   switch( dimension )
     {
     case 2:
-      DiReCT<2>( parser );
-      break;
+      {
+      switch( whichDiReCTVersion )
+        {
+        case 0: default:
+          {
+          DiReCT0<2>( parser );
+          break;
+          }
+        case 926:
+          {
+          DiReCT1<2>( parser );
+          break;
+          }
+        case 949:
+          {
+          DiReCT2<2>( parser );
+          break;
+          }
+        case 953:
+          {
+          DiReCT3<2>( parser );
+          break;
+          }
+        }
+      }
     case 3:
-      DiReCT<3>( parser );
-      break;
+      {
+      switch( whichDiReCTVersion )
+        {
+        case 0: default:
+          {
+          DiReCT0<3>( parser );
+          break;
+          }
+        case 926:
+          {
+          DiReCT1<3>( parser );
+          break;
+          }
+        case 949:
+          {
+          DiReCT2<3>( parser );
+          break;
+          }
+        case 953:
+          {
+          DiReCT3<3>( parser );
+          break;
+          }
+        }
+      }
     default:
       std::cerr << "Unsupported dimension" << std::endl;
       exit( EXIT_FAILURE );
