@@ -1890,13 +1890,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
             {
             for( unsigned int e = 0; e < ImageDimension; e++ )
               {
-              offsetVector[d] += ( eigenvectors[d][e] * offset[d] * eigenvalues[d] );
+              // eigenvalues are ordered smallest to largest
+              offsetVector[d] += ( eigenvectors[ImageDimension - d - 1][e]
+                                   * offset[d] * eigenvalues[ImageDimension - d - 1] );
               }
             }
           MRFPointType offsetPoint = centerPoint + offsetVector;
 
           ContinuousIndex<double, ImageDimension> cidx;
-          bool                                    isInsideImage = this->m_MRFNeighborhoodDefiningImage->
+          bool                                    isInside = this->m_MRFNeighborhoodDefiningImage->
             TransformPhysicalPointToContinuousIndex( offsetPoint, cidx );
           if( !isInside )
             {
@@ -1958,6 +1960,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                 }
               distance = vcl_sqrt( distance );
 
+              LabelType neighborLabel = this->GetOutput()->GetPixel( neighborIndex );
+
               RealType delta = 0.0;
               if( label == neighborLabel )
                 {
@@ -1999,7 +2003,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                   delta = 0.0;
                   }
                 }
-              LabelType neighborLabel = this->GetOutput()->GetPixel( neighborIndex );
               mrfNeighborhoodWeights[neighborLabel - 1] += ( delta * overlap / distance );
               totalOverlap += overlap;
               }
