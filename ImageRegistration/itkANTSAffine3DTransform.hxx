@@ -229,12 +229,166 @@ const typename ANTSAffine3DTransform<TScalarType>::ParametersType
   return this->m_Parameters;
   }
 
-// Get parameters
+//// Get parameters
+// template<class TScalarType>
+// const typename ANTSAffine3DTransform<TScalarType>::JacobianType &
+// ANTSAffine3DTransform<TScalarType>::GetJacobian(
+//        const InputPointType & p) const {
+//
+//    this->m_Jacobian.Fill(0.0);
+//
+//    TScalarType c1 = this->GetCenter()[0];
+//    TScalarType c2 = this->GetCenter()[1];
+//    TScalarType c3 = this->GetCenter()[2];
+//    TScalarType s1 = this->m_S1;
+//    TScalarType s2 = this->m_S2;
+//    TScalarType s3 = this->m_S3;
+//    TScalarType k1 = this->m_K1;
+//    TScalarType k2 = this->m_K2;
+//    TScalarType k3 = this->m_K3;
+//    TScalarType x1 = p[0];
+//    TScalarType x2 = p[1];
+//    TScalarType x3 = p[2];
+//
+//    // z1,z2,z3 is the S*K*point p
+//    TScalarType w1 = (x1 - c1) + k1 * (x2 - c2) + k2 * (x3 - c3);
+//    TScalarType w2 = (x2 - c2) + k3 * (x3 - c2);
+//    TScalarType w3 = (x3 - c3);
+//
+//    TScalarType z1 = s1 * w1;
+//    TScalarType z2 = s2 * w2;
+//    TScalarType z3 = s3 * w3;
+//
+//    // compute Jacobian with respect to quaternion parameters
+//    this->m_Jacobian[0][0] = 2.0
+//            * (m_Rotation.x() * z1 + m_Rotation.y() * z2 + m_Rotation.z() * z3);
+//    this->m_Jacobian[0][1] =
+//            2.0
+//                    * (-m_Rotation.y() * z1 + m_Rotation.x() * z2
+//                            + m_Rotation.r() * z3);
+//    this->m_Jacobian[0][2] =
+//            2.0
+//                    * (-m_Rotation.z() * z1 - m_Rotation.r() * z2
+//                            + m_Rotation.x() * z3);
+//    this->m_Jacobian[0][3] =
+//            -2.0
+//                    * (-m_Rotation.r() * z1 + m_Rotation.z() * z2
+//                            - m_Rotation.y() * z3);
+//
+//    this->m_Jacobian[1][0] = -this->m_Jacobian[0][1];
+//    this->m_Jacobian[1][1] = this->m_Jacobian[0][0];
+//    this->m_Jacobian[1][2] = this->m_Jacobian[0][3];
+//    this->m_Jacobian[1][3] = -this->m_Jacobian[0][2];
+//
+//    this->m_Jacobian[2][0] = -this->m_Jacobian[0][2];
+//    this->m_Jacobian[2][1] = -this->m_Jacobian[0][3];
+//    this->m_Jacobian[2][2] = this->m_Jacobian[0][0];
+//    this->m_Jacobian[2][3] = this->m_Jacobian[0][1];
+//
+//    // get rotation matrix first
+//    // this is done to compensate for the transposed representation
+//    // between VNL and ITK
+//    VnlQuaternionType conjugateRotation = m_Rotation.conjugate();
+//    MatrixType newMatrix;
+//    newMatrix = conjugateRotation.rotation_matrix_transpose();
+//
+//    TScalarType r11 = newMatrix[0][0];
+//    TScalarType r12 = newMatrix[0][1];
+//    TScalarType r13 = newMatrix[0][2];
+//    TScalarType r21 = newMatrix[1][0];
+//    TScalarType r22 = newMatrix[1][1];
+//    TScalarType r23 = newMatrix[1][2];
+//    TScalarType r31 = newMatrix[2][0];
+//    TScalarType r32 = newMatrix[2][1];
+//    TScalarType r33 = newMatrix[2][2];
+//
+//    // compute Jacobian wrt S1/S2/S3
+//    this->m_Jacobian[0][4] = r11 * w1;
+//    this->m_Jacobian[0][5] = r12 * w2;
+//    this->m_Jacobian[0][6] = r13 * w3;
+//    this->m_Jacobian[1][4] = r21 * w1;
+//    this->m_Jacobian[1][5] = r22 * w2;
+//    this->m_Jacobian[1][6] = r23 * w3;
+//    this->m_Jacobian[2][4] = r31 * w1;
+//    this->m_Jacobian[2][5] = r32 * w2;
+//    this->m_Jacobian[2][6] = r33 * w3;
+//
+//    // compute Jacobian wrt K1/K2/K3
+//    this->m_Jacobian[0][7] = r11 * s1 * (x2 - c2);
+//    this->m_Jacobian[0][8] = r11 * s1 * (x3 - c3);
+//    this->m_Jacobian[0][9] = r12 * s2 * (x3 - c3);
+//    this->m_Jacobian[1][7] = r21 * s1 * (x2 - c2);
+//    this->m_Jacobian[1][8] = r21 * s1 * (x3 - c3);
+//    this->m_Jacobian[1][9] = r22 * s2 * (x3 - c3);
+//    this->m_Jacobian[2][7] = r31 * s1 * (x2 - c2);
+//    this->m_Jacobian[2][8] = r31 * s1 * (x3 - c3);
+//    this->m_Jacobian[2][9] = r32 * s2 * (x3 - c3);
+//
+//    // for test purpose
+//    // FORCE ONLY DO DERIVATIVE ON S
+//    //   for(int ii=0; ii <3; ii++){
+//    //     for(int jj=0; jj<=9;jj++){
+//    //       this->m_Jacobian[ii][jj] = 0.0;
+//    //     }
+//    //   }
+//    //   this->m_Jacobian[0][4] = r11 * w1;
+//    //   this->m_Jacobian[1][4] = r21 * w1;
+//    //   this->m_Jacobian[2][4] = r31 * w1;
+//
+//    // compute derivatives for the translation part
+//    unsigned int blockOffset = 10;
+//    for (unsigned int dim = 0; dim < SpaceDimension; dim++) {
+//        this->m_Jacobian[dim][blockOffset + dim] = 1.0;
+//    }
+//
+//    return this->m_Jacobian;
+//
+//    //   // compute derivatives with respect to rotation
+//    //   this->m_Jacobian.Fill(0.0);
+//
+//    //   const TScalarType x = p[0] - this->GetCenter()[0];
+//    //   const TScalarType y = p[1] - this->GetCenter()[1];
+//    //   const TScalarType z = p[2] - this->GetCenter()[2];
+//
+//    //   // compute Jacobian with respect to quaternion parameters
+//    //   this->m_Jacobian[0][0] =   2.0 * (  m_Rotation.x() * x + m_Rotation.y() * y
+//    //                               + m_Rotation.z() * z );
+//    //   this->m_Jacobian[0][1] =   2.0 * (- m_Rotation.y() * x + m_Rotation.x() * y
+//    //                               + m_Rotation.r() * z );
+//    //   this->m_Jacobian[0][2] =   2.0 * (- m_Rotation.z() * x - m_Rotation.r() * y
+//    //                               + m_Rotation.x() * z );
+//    //   this->m_Jacobian[0][3] = - 2.0 * (- m_Rotation.r() * x + m_Rotation.z() * y
+//    //                               - m_Rotation.y() * z );
+//
+//    //   this->m_Jacobian[1][0] = - this->m_Jacobian[0][1];
+//    //   this->m_Jacobian[1][1] =   this->m_Jacobian[0][0];
+//    //   this->m_Jacobian[1][2] =   this->m_Jacobian[0][3];
+//    //   this->m_Jacobian[1][3] = - this->m_Jacobian[0][2];
+//
+//    //   this->m_Jacobian[2][0] = - this->m_Jacobian[0][2];
+//    //   this->m_Jacobian[2][1] = - this->m_Jacobian[0][3];
+//    //   this->m_Jacobian[2][2] =   this->m_Jacobian[0][0];
+//    //   this->m_Jacobian[2][3] =   this->m_Jacobian[0][1];
+//
+//    //   // compute derivatives for the translation part
+//    //   unsigned int blockOffset = 4;
+//    //   for(unsigned int dim=0; dim < SpaceDimension; dim++ )
+//    //     {
+//    //     this->m_Jacobian[ dim ][ blockOffset + dim ] = 1.0;
+//    //     }
+//
+//    //   return this->m_Jacobian;
+//
+// }
+
 template <class TScalarType>
-const typename ANTSAffine3DTransform<TScalarType>::JacobianType
-& ANTSAffine3DTransform<TScalarType>::GetJacobian(
-  const InputPointType &p) const {
-  this->m_Jacobian.Fill(0.0);
+void ANTSAffine3DTransform<TScalarType>
+::ComputeJacobianWithRespectToParameters(
+  const InputPointType  & p,
+  JacobianType & j) const
+{
+  j.SetSize( this->GetOutputSpaceDimension(), this->GetNumberOfLocalParameters() );
+  j.Fill(0.0);
 
   TScalarType c1 = this->GetCenter()[0];
   TScalarType c2 = this->GetCenter()[1];
@@ -259,30 +413,30 @@ const typename ANTSAffine3DTransform<TScalarType>::JacobianType
   TScalarType z3 = s3 * w3;
 
   // compute Jacobian with respect to quaternion parameters
-  this->m_Jacobian[0][0] = 2.0
+  j[0][0] = 2.0
     * (m_Rotation.x() * z1 + m_Rotation.y() * z2 + m_Rotation.z() * z3);
-  this->m_Jacobian[0][1] =
+  j[0][1] =
     2.0
     * (-m_Rotation.y() * z1 + m_Rotation.x() * z2
        + m_Rotation.r() * z3);
-  this->m_Jacobian[0][2] =
+  j[0][2] =
     2.0
     * (-m_Rotation.z() * z1 - m_Rotation.r() * z2
        + m_Rotation.x() * z3);
-  this->m_Jacobian[0][3] =
+  j[0][3] =
     -2.0
     * (-m_Rotation.r() * z1 + m_Rotation.z() * z2
        - m_Rotation.y() * z3);
 
-  this->m_Jacobian[1][0] = -this->m_Jacobian[0][1];
-  this->m_Jacobian[1][1] = this->m_Jacobian[0][0];
-  this->m_Jacobian[1][2] = this->m_Jacobian[0][3];
-  this->m_Jacobian[1][3] = -this->m_Jacobian[0][2];
+  j[1][0] = -j[0][1];
+  j[1][1] = j[0][0];
+  j[1][2] = j[0][3];
+  j[1][3] = -j[0][2];
 
-  this->m_Jacobian[2][0] = -this->m_Jacobian[0][2];
-  this->m_Jacobian[2][1] = -this->m_Jacobian[0][3];
-  this->m_Jacobian[2][2] = this->m_Jacobian[0][0];
-  this->m_Jacobian[2][3] = this->m_Jacobian[0][1];
+  j[2][0] = -j[0][2];
+  j[2][1] = -j[0][3];
+  j[2][2] = j[0][0];
+  j[2][3] = j[0][1];
 
   // get rotation matrix first
   // this is done to compensate for the transposed representation
@@ -302,83 +456,81 @@ const typename ANTSAffine3DTransform<TScalarType>::JacobianType
   TScalarType r33 = newMatrix[2][2];
 
   // compute Jacobian wrt S1/S2/S3
-  this->m_Jacobian[0][4] = r11 * w1;
-  this->m_Jacobian[0][5] = r12 * w2;
-  this->m_Jacobian[0][6] = r13 * w3;
-  this->m_Jacobian[1][4] = r21 * w1;
-  this->m_Jacobian[1][5] = r22 * w2;
-  this->m_Jacobian[1][6] = r23 * w3;
-  this->m_Jacobian[2][4] = r31 * w1;
-  this->m_Jacobian[2][5] = r32 * w2;
-  this->m_Jacobian[2][6] = r33 * w3;
+  j[0][4] = r11 * w1;
+  j[0][5] = r12 * w2;
+  j[0][6] = r13 * w3;
+  j[1][4] = r21 * w1;
+  j[1][5] = r22 * w2;
+  j[1][6] = r23 * w3;
+  j[2][4] = r31 * w1;
+  j[2][5] = r32 * w2;
+  j[2][6] = r33 * w3;
 
   // compute Jacobian wrt K1/K2/K3
-  this->m_Jacobian[0][7] = r11 * s1 * (x2 - c2);
-  this->m_Jacobian[0][8] = r11 * s1 * (x3 - c3);
-  this->m_Jacobian[0][9] = r12 * s2 * (x3 - c3);
-  this->m_Jacobian[1][7] = r21 * s1 * (x2 - c2);
-  this->m_Jacobian[1][8] = r21 * s1 * (x3 - c3);
-  this->m_Jacobian[1][9] = r22 * s2 * (x3 - c3);
-  this->m_Jacobian[2][7] = r31 * s1 * (x2 - c2);
-  this->m_Jacobian[2][8] = r31 * s1 * (x3 - c3);
-  this->m_Jacobian[2][9] = r32 * s2 * (x3 - c3);
+  j[0][7] = r11 * s1 * (x2 - c2);
+  j[0][8] = r11 * s1 * (x3 - c3);
+  j[0][9] = r12 * s2 * (x3 - c3);
+  j[1][7] = r21 * s1 * (x2 - c2);
+  j[1][8] = r21 * s1 * (x3 - c3);
+  j[1][9] = r22 * s2 * (x3 - c3);
+  j[2][7] = r31 * s1 * (x2 - c2);
+  j[2][8] = r31 * s1 * (x3 - c3);
+  j[2][9] = r32 * s2 * (x3 - c3);
 
   // for test purpose
   // FORCE ONLY DO DERIVATIVE ON S
   //   for(int ii=0; ii <3; ii++){
   //     for(int jj=0; jj<=9;jj++){
-  //       this->m_Jacobian[ii][jj] = 0.0;
+  //       j[ii][jj] = 0.0;
   //     }
   //   }
-  //   this->m_Jacobian[0][4] = r11 * w1;
-  //   this->m_Jacobian[1][4] = r21 * w1;
-  //   this->m_Jacobian[2][4] = r31 * w1;
+  //   j[0][4] = r11 * w1;
+  //   j[1][4] = r21 * w1;
+  //   j[2][4] = r31 * w1;
 
   // compute derivatives for the translation part
   unsigned int blockOffset = 10;
   for( unsigned int dim = 0; dim < SpaceDimension; dim++ )
     {
-    this->m_Jacobian[dim][blockOffset + dim] = 1.0;
+    j[dim][blockOffset + dim] = 1.0;
     }
 
-  return this->m_Jacobian;
-
   //   // compute derivatives with respect to rotation
-  //   this->m_Jacobian.Fill(0.0);
+  //   j.Fill(0.0);
 
   //   const TScalarType x = p[0] - this->GetCenter()[0];
   //   const TScalarType y = p[1] - this->GetCenter()[1];
   //   const TScalarType z = p[2] - this->GetCenter()[2];
 
   //   // compute Jacobian with respect to quaternion parameters
-  //   this->m_Jacobian[0][0] =   2.0 * (  m_Rotation.x() * x + m_Rotation.y() * y
+  //   j[0][0] =   2.0 * (  m_Rotation.x() * x + m_Rotation.y() * y
   //                               + m_Rotation.z() * z );
-  //   this->m_Jacobian[0][1] =   2.0 * (- m_Rotation.y() * x + m_Rotation.x() * y
+  //   j[0][1] =   2.0 * (- m_Rotation.y() * x + m_Rotation.x() * y
   //                               + m_Rotation.r() * z );
-  //   this->m_Jacobian[0][2] =   2.0 * (- m_Rotation.z() * x - m_Rotation.r() * y
+  //   j[0][2] =   2.0 * (- m_Rotation.z() * x - m_Rotation.r() * y
   //                               + m_Rotation.x() * z );
-  //   this->m_Jacobian[0][3] = - 2.0 * (- m_Rotation.r() * x + m_Rotation.z() * y
+  //   j[0][3] = - 2.0 * (- m_Rotation.r() * x + m_Rotation.z() * y
   //                               - m_Rotation.y() * z );
 
-  //   this->m_Jacobian[1][0] = - this->m_Jacobian[0][1];
-  //   this->m_Jacobian[1][1] =   this->m_Jacobian[0][0];
-  //   this->m_Jacobian[1][2] =   this->m_Jacobian[0][3];
-  //   this->m_Jacobian[1][3] = - this->m_Jacobian[0][2];
+  //   j[1][0] = - j[0][1];
+  //   j[1][1] =   j[0][0];
+  //   j[1][2] =   j[0][3];
+  //   j[1][3] = - j[0][2];
 
-  //   this->m_Jacobian[2][0] = - this->m_Jacobian[0][2];
-  //   this->m_Jacobian[2][1] = - this->m_Jacobian[0][3];
-  //   this->m_Jacobian[2][2] =   this->m_Jacobian[0][0];
-  //   this->m_Jacobian[2][3] =   this->m_Jacobian[0][1];
+  //   j[2][0] = - j[0][2];
+  //   j[2][1] = - j[0][3];
+  //   j[2][2] =   j[0][0];
+  //   j[2][3] =   j[0][1];
 
   //   // compute derivatives for the translation part
   //   unsigned int blockOffset = 4;
   //   for(unsigned int dim=0; dim < SpaceDimension; dim++ )
   //     {
-  //     this->m_Jacobian[ dim ][ blockOffset + dim ] = 1.0;
+  //     j[ dim ][ blockOffset + dim ] = 1.0;
   //     }
 
-  //   return this->m_Jacobian;
-  }
+  //   return j;
+}
 
 // template<class TScalarType>
 // const typename ANTSAffine3DTransform< TScalarType >::InverseMatrixType &

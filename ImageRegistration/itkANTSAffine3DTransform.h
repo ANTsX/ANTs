@@ -110,12 +110,23 @@ public:
 
   const ParametersType & GetParameters() const;
 
-  /** Compute the Jacobian of the transformation.
-   * This method computes the Jacobian matrix of the transformation.
-   * given point or vector, returning the transformed point or
-   * vector. The rank of the Jacobian will also indicate if the transform
-   * is invertible at this point. */
-  const JacobianType & GetJacobian(const InputPointType  & point ) const;
+//  /** Compute the Jacobian of the transformation.
+//   * This method computes the Jacobian matrix of the transformation.
+//   * given point or vector, returning the transformed point or
+//   * vector. The rank of the Jacobian will also indicate if the transform
+//   * is invertible at this point. */
+//  const JacobianType & GetJacobian(const InputPointType  &point ) const;
+
+  /** Compute the Jacobian of the transformation
+ *
+ * This method computes the Jacobian matrix of the transformation.
+ * given point or vector, returning the transformed point or
+ * vector. The rank of the Jacobian will also indicate if the transform
+ * is invertible at this point.
+ * Get local Jacobian for the given point
+ * \c j will sized properly as needed.
+ */
+  virtual void ComputeJacobianWithRespectToParameters(const InputPointType  & p, JacobianType & j) const;
 
 protected:
 /*   ANTSAffine3DTransform(const MatrixType &matrix, */

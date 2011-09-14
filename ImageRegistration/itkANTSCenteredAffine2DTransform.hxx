@@ -357,64 +357,117 @@ GetParameters( void ) const
   return this->m_Parameters;
   }
 
-// Compute transformation Jacobian
+//// Compute transformation Jacobian
+// template<class TScalarType>
+// const typename ANTSCenteredAffine2DTransform<TScalarType>::JacobianType &
+// ANTSCenteredAffine2DTransform<TScalarType>::
+// GetJacobian( const InputPointType & p ) const
+// {
+//
+//    const double ca = vcl_cos(this->GetAngle() );
+//    const double sa = vcl_sin(this->GetAngle() );
+//    const double s1 = m_S1;
+//    const double s2 = m_S2;
+//    const double k = m_K;
+//
+//    this->m_Jacobian.Fill(0.0);
+//
+//    const double cx = this->GetCenter()[0];
+//    const double cy = this->GetCenter()[1];
+//
+//    // derivatives with respect to the angle
+//    // this->m_Jacobian[0][0] = -sa * ( p[0] - cx ) - ca * ( p[1] - cy );
+//    // this->m_Jacobian[1][0] =  ca * ( p[0] - cx ) - sa * ( p[1] - cy );
+//
+//    double pxoff = (p[0]-cx)+k*(p[1]-cy);
+//    double pyoff = p[1]-cy;
+//
+//    // wrt. theta
+//    this->m_Jacobian[0][0] = s1*( pxoff )*(-sa) + s2*( pyoff )*(-ca);
+//    this->m_Jacobian[1][0] = s1*( pxoff )*(ca) + s2*( pyoff )*(-sa);
+//
+//    // wrt. s1/s2
+//    this->m_Jacobian[0][1] = ca * pxoff;
+//    this->m_Jacobian[0][2] = -sa * pyoff;
+//
+//    this->m_Jacobian[1][1] = sa * pxoff;
+//    this->m_Jacobian[1][2] = ca * pyoff;
+//
+//    // wrt. k
+//    this->m_Jacobian[0][3] = ca * s1 * pyoff;
+//    this->m_Jacobian[1][3] = sa * s1 * pyoff;
+//
+//    // wrt. cx/cy
+//    this->m_Jacobian[0][4] = - s1*ca + 1.0;
+//    this->m_Jacobian[0][5] = -(k*s1*ca - s2*sa);
+//    this->m_Jacobian[1][4] = - s1*sa;
+//    this->m_Jacobian[1][5] = -(k*s1*sa + s2*ca) + 1.0;
+//
+//
+//    // wrt. t1/t2
+//    this->m_Jacobian[0][6] = 1.0;
+//    this->m_Jacobian[1][7] = 1.0;
+//
+//    // compute derivatives for the translation part
+//    // unsigned int blockOffset = 1;
+//    // for(unsigned int dim=0; dim < OutputSpaceDimension; dim++ )
+//    //  {
+//    //  this->m_Jacobian[ dim ][ blockOffset + dim ] = 1.0;
+//    //  }
+//
+//    return this->m_Jacobian;
+//
+// }
+
 template <class TScalarType>
-const typename ANTSCenteredAffine2DTransform<TScalarType>::JacobianType
-& ANTSCenteredAffine2DTransform<TScalarType>::
-GetJacobian( const InputPointType &p ) const
-  {
+void
+ANTSCenteredAffine2DTransform<TScalarType>::ComputeJacobianWithRespectToParameters(const InputPointType  & p,
+                                                                                   JacobianType & j) const
+{
   const double ca = vcl_cos(this->GetAngle() );
   const double sa = vcl_sin(this->GetAngle() );
   const double s1 = m_S1;
   const double s2 = m_S2;
   const double k = m_K;
 
-  this->m_Jacobian.Fill(0.0);
+  j.SetSize( this->GetOutputSpaceDimension(), this->GetNumberOfLocalParameters() );
+  j.Fill(0.0);
 
   const double cx = this->GetCenter()[0];
   const double cy = this->GetCenter()[1];
 
   // derivatives with respect to the angle
-  // this->m_Jacobian[0][0] = -sa * ( p[0] - cx ) - ca * ( p[1] - cy );
-  // this->m_Jacobian[1][0] =  ca * ( p[0] - cx ) - sa * ( p[1] - cy );
+  // j[0][0] = -sa * ( p[0] - cx ) - ca * ( p[1] - cy );
+  // j[1][0] =  ca * ( p[0] - cx ) - sa * ( p[1] - cy );
 
   double pxoff = (p[0] - cx) + k * (p[1] - cy);
   double pyoff = p[1] - cy;
 
   // wrt. theta
-  this->m_Jacobian[0][0] = s1 * ( pxoff ) * (-sa) + s2 * ( pyoff ) * (-ca);
-  this->m_Jacobian[1][0] = s1 * ( pxoff ) * (ca) + s2 * ( pyoff ) * (-sa);
+  j[0][0] = s1 * ( pxoff ) * (-sa) + s2 * ( pyoff ) * (-ca);
+  j[1][0] = s1 * ( pxoff ) * (ca) + s2 * ( pyoff ) * (-sa);
 
   // wrt. s1/s2
-  this->m_Jacobian[0][1] = ca * pxoff;
-  this->m_Jacobian[0][2] = -sa * pyoff;
+  j[0][1] = ca * pxoff;
+  j[0][2] = -sa * pyoff;
 
-  this->m_Jacobian[1][1] = sa * pxoff;
-  this->m_Jacobian[1][2] = ca * pyoff;
+  j[1][1] = sa * pxoff;
+  j[1][2] = ca * pyoff;
 
   // wrt. k
-  this->m_Jacobian[0][3] = ca * s1 * pyoff;
-  this->m_Jacobian[1][3] = sa * s1 * pyoff;
+  j[0][3] = ca * s1 * pyoff;
+  j[1][3] = sa * s1 * pyoff;
 
   // wrt. cx/cy
-  this->m_Jacobian[0][4] = -s1 * ca + 1.0;
-  this->m_Jacobian[0][5] = -(k * s1 * ca - s2 * sa);
-  this->m_Jacobian[1][4] = -s1 * sa;
-  this->m_Jacobian[1][5] = -(k * s1 * sa + s2 * ca) + 1.0;
+  j[0][4] = -s1 * ca + 1.0;
+  j[0][5] = -(k * s1 * ca - s2 * sa);
+  j[1][4] = -s1 * sa;
+  j[1][5] = -(k * s1 * sa + s2 * ca) + 1.0;
 
   // wrt. t1/t2
-  this->m_Jacobian[0][6] = 1.0;
-  this->m_Jacobian[1][7] = 1.0;
-
-  // compute derivatives for the translation part
-  // unsigned int blockOffset = 1;
-  // for(unsigned int dim=0; dim < OutputSpaceDimension; dim++ )
-  //  {
-  //  this->m_Jacobian[ dim ][ blockOffset + dim ] = 1.0;
-  //  }
-
-  return this->m_Jacobian;
-  }
+  j[0][6] = 1.0;
+  j[1][7] = 1.0;
+}
 
 // Back transform a point
 template <class TScalarType>
