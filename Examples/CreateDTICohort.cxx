@@ -874,7 +874,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
           RealType finalSignal = vcl_sqrt( vcl_norm( noisySignal ) );
 
-          if( finalSignal <= ItB.Get() )
+          if( signal <= ItB.Get() )
             {
             ItD.Set( finalSignal );
             }
