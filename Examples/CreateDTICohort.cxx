@@ -874,7 +874,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
           RealType finalSignal = vcl_sqrt( vcl_norm( noisySignal ) );
 
-          ItD.Set( finalSignal );
+          if( finalSignal <= ItB.Get() )
+            {
+            ItD.Set( finalSignal );
+            }
           }
         typedef itk::ImageFileWriter<ImageType> WriterType;
         typename WriterType::Pointer writer = WriterType::New();
