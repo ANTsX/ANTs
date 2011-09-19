@@ -25,6 +25,7 @@
 #include "itkNumericTraits.h"
 #include "itkVector.h"
 #include "itkSymmetricSecondRankTensor.h"
+#include "itkDisplacementFieldTransform.h"
 
 namespace itk
 {
@@ -55,6 +56,10 @@ public:
   typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
   typedef typename DisplacementFieldType::PixelType VectorType;
   typedef typename VectorType::RealValueType        RealType;
+
+  typedef itk::DisplacementFieldTransform<double, 3> DisplacementFieldTransformType;
+
+  typedef typename DisplacementFieldTransformType::Pointer DisplacementFieldTransformPointer;
 
   typedef Matrix<RealType, 3, 3> MatrixType;
   // typedef Vector<RealType, 3> VectorType;
@@ -178,6 +183,8 @@ private:
   void DirectionCorrectTransform( AffineTransformPointer, AffineTransformPointer );
 
   DisplacementFieldPointer m_DisplacementField;
+
+  DisplacementFieldTransformPointer m_DisplacementTransform;
 
   AffineTransformPointer m_DirectionTransform;
 
