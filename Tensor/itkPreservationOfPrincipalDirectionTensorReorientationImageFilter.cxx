@@ -307,6 +307,9 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     output->SetOrigin( m_DisplacementField->GetOrigin() );
     output->SetDirection( m_DisplacementField->GetDirection() );
     output->Allocate();
+
+    this->m_DisplacementTransform = DisplacementFieldTransformType::New();
+    this->m_DisplacementTransform->SetDisplacementField( m_DisplacementField );
     }
 
   ImageRegionIteratorWithIndex<OutputImageType> outputIt( output, output->GetLargestPossibleRegion() );
@@ -314,6 +317,8 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   VariableMatrixType jMatrixAvg;
   jMatrixAvg.SetSize(ImageDimension, ImageDimension);
   jMatrixAvg.Fill(0.0);
+
+  std::cout << "Iterating over image" << std::endl;
   // for all voxels
   for( outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt )
     {
@@ -345,7 +350,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
 
     bool     isNull = false;
     RealType trace = inTensor[0] + inTensor[3] + inTensor[5];
-    if( trace <= 0 )
+    if( trace <= 0.0 )
       {
       isNull = true;
       }
@@ -356,7 +361,28 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
       }
     else
       {
+      // outTensor = inTensor;
+      // InverseTransformPointer localDeformation;
+      if( this->m_UseAffine )
+        {
+        outTensor = this->m_AffineTransform->TransformDiffusionTensor( inTensor );
+        // localDeformation = this->m_InverseAffineTransform;
+        }
+      else
+        {
+        typename DisplacementFieldType::PointType pt;
+        this->m_DisplacementField->TransformIndexToPhysicalPoint( outputIt.GetIndex(), pt );
+        outTensor = this->m_DisplacementTransform->TransformDiffusionTensor( inTensor, pt );
+        // AffineTransformPointer deformation = this->GetLocalDeformation( this->m_DeformationField, outputIt.GetIndex()
+        // );
+        // localDeformation = deformation->GetInverseTransform();
+        }
+
+      /*
+      std::cout << "apply";
       outTensor = this->ApplyReorientation( localDeformation, inTensor );
+      std::cout << " ok" << std::endl;
+      */
       }
     // valid values?
     for( unsigned int jj = 0; jj < 6; jj++ )
