@@ -259,11 +259,11 @@ void DisplayOpt(const TRAN_OPT & opt)
 template <int ImageDimension>
 void ReorientTensorImage(char *moving_image_filename, char *output_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::SymmetricSecondRankTensor<float, 3>                               TensorType;
-  typedef itk::SymmetricSecondRankTensor<float, 3>                               PixelType;
+  typedef itk::DiffusionTensor3D<double>                                         TensorType;
+  typedef itk::DiffusionTensor3D<double>                                         PixelType;
   typedef itk::Image<PixelType, ImageDimension>                                  TensorImageType;
   typedef itk::Image<float, ImageDimension>                                      ImageType;
-  typedef itk::Vector<float, ImageDimension>                                     VectorType;
+  typedef itk::Vector<double, ImageDimension>                                    VectorType;
   typedef itk::Image<VectorType, ImageDimension>                                 DisplacementFieldType;
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
