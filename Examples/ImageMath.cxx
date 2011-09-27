@@ -3331,7 +3331,7 @@ int TensorFunctions(int argc, char *argv[])
       {
       if( whichvec <= 2 )
         {
-        VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), whichvec);
+        VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), 2);
         vimage->SetPixel(ind, vv[whichvec]);
         }
       else if( whichvec > 2 && whichvec < 9 )
