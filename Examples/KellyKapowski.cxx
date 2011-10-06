@@ -1444,7 +1444,7 @@ int main( int argc, char *argv[] )
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  unsigned int                                      whichDiReCTVersion = 0;
+  unsigned int                                      whichDiReCTVersion = 926;
   itk::ants::CommandLineParser::OptionType::Pointer directOption =
     parser->GetOption( "DiReCT-revision" );
   if( directOption && directOption->GetNumberOfValues() > 0 )
