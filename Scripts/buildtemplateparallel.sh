@@ -56,17 +56,20 @@ should be invoked from that directory.
 
 Optional arguments:
 
-     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,  2 == use PEXEC (localhost)
+     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
+          2 == use PEXEC (localhost),  3 == Apple XGrid
 
      -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default: 2; -- requires "-c 2"
+     -j:  Number of cpu cores to use (default: 2; -- requires "-c 2")
 
      -m:  Max-iterations in each registration
 
      -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
+
+     -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
 
      -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
           you do not have an initial template
@@ -74,6 +77,8 @@ Optional arguments:
      -s:  Type of similarity metric used for registration.
 
      -t:  Type of transformation model used for registration.
+
+     -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
 
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
@@ -87,6 +92,10 @@ University of Pennsylvania
 
 --------------------------------------------------------------------------------------
 script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
+--------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------
+Apple XGrid support by Craig Stark
 --------------------------------------------------------------------------------------
 
 USAGE
@@ -149,6 +158,8 @@ Optional arguments:
 
      -n:  N4BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
 
+     -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
+
      -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
           you do not have an initial template
 
@@ -180,6 +191,8 @@ Optional arguments:
 	     EX = Exponential
              DD = Diffeomorphic Demons style exponential mapping
 
+     -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
+
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
 
@@ -190,6 +203,8 @@ will terminate prematurely if these files are not present or are not executable.
 - antsIntroduction.sh
 - pexec.sh
 - waitForSGEQJobs.pl (only for use with Sun Grid Engine)
+- ANTSpexec.sh (only for use with localhost parallel execution)
+- waitForXGridJobs.pl (only for use with Apple XGrid)
 
 For 4D template building FSL is also needed
 
@@ -212,6 +227,9 @@ University of Pennsylvania
 
 --------------------------------------------------------------------------------------
 script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
+--------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------
+Apple XGrid support by Craig Stark
 --------------------------------------------------------------------------------------
 
 HELP
@@ -570,6 +588,20 @@ RIGID=0
 RIGIDTYPE=" --do-rigid" # set to an empty string to use affine initialization
 range=0
 REGTEMPLATE=target
+XGRIDOPTS=""
+SCRIPTPREPEND=""
+# System specific queue options, eg "-q name" to submit to a specific queue
+# It can be set to an empty string if you do not need any special cluster options
+QSUBOPTS="" # EDIT THIS
+
+
+
+if [ $OSTYPE == 'darwin' ]
+	then
+	cpu_count=`sysctl -n hw.physicalcpu`
+else
+	cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
+fi
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -584,7 +616,7 @@ if [ "$1" == "-h" ]
 fi
 OUTPUTNAME=antsBTP
 # reading command line arguments
-while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
+while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:z:" OPT
   do
   case $OPT in
       h) #help
@@ -625,6 +657,9 @@ while getopts "c:d:g:i:j:h:m:n:o:s:r:t:z:" OPT
 	  TEMPLATENAME=${OUTPUTNAME}template
 	  TEMPLATE=${TEMPLATENAME}.nii.gz
 	  ;;
+      p) #Script prepend
+	  SCRIPTPREPEND=$OPTARG
+	  ;;
       s) #similarity model
 	  METRICTYPE=$OPTARG
 	  ;;
@@ -664,7 +699,6 @@ if [ $DOQSUB -eq 1 ] ; then
     exit
   fi
 fi
-cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
 
 #ANTSPATH=YOURANTSPATH
 if [  ${#ANTSPATH} -le 0 ]
@@ -751,17 +785,14 @@ elif [[ ${NINFILES} -eq 1 ]] # && [[ -s ${FSLDIR}/bin/fslnvols ]]
     fi
 fi
 
-# System specific queue options, eg "-q name" to submit to a specific queue
-# It can be set to an empty string if you do not need any special cluster options
-QSUBOPTS="" # EDIT THIS
-
 # Test availability of helper scripts.
 # No need to test this more than once. Can reside outside of the main loop.
 ANTSSCRIPTNAME=${ANTSPATH}antsIntroduction.sh
 PEXEC=${ANTSPATH}ANTSpexec.sh
 SGE=${ANTSPATH}waitForSGEQJobs.pl
+XGRID=${ANTSPATH}waitForXGridJobs.pl
 
-for FLE in $ANTSSCRIPTNAME $PEXEC $SGE
+for FLE in $ANTSSCRIPTNAME $PEXEC $SGE $XGRID
   do
   if [ ! -x $FLE  ] ;
       then
@@ -822,7 +853,9 @@ if [ "$RIGID" -eq 1 ] ;
 
       qscript="job_${count}_qsub.sh"
 
-      echo "$exe" > $qscript
+	  echo "$SCRIPTPREPEND" > $qscript
+
+      echo "$exe" >> $qscript
 
       echo "$exe2" >> $qscript
 
@@ -831,10 +864,14 @@ if [ "$RIGID" -eq 1 ] ;
 	  jobIDs="$jobIDs $id"
 	  sleep 0.5
       elif  [ $DOQSUB -eq 2 ] ; then
-	  # Send pexe and exe2 to same job file so that they execute in series
-	  echo $pexe >> job${count}_r.sh
-	  echo $exe2 >> job${count}_r.sh
-      elif  [ $DOQSUB -eq 0 ] ; then
+		# Send pexe and exe2 to same job file so that they execute in series
+		echo $pexe >> job${count}_r.sh
+		echo $exe2 >> job${count}_r.sh
+      elif  [ $DOQSUB -eq 3 ] ; then
+	id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
+	#echo "xgrid $XGRIDOPTS -job submit /bin/bash $qscript"
+		jobIDs="$jobIDs $id"
+	  elif  [ $DOQSUB -eq 0 ] ; then
 	  # execute jobs in series
 	  $exe
 	  $exe2
@@ -874,13 +911,29 @@ if [ "$RIGID" -eq 1 ] ;
 	$PEXEC -j ${CORES} "sh" job*.sh
     fi
 
+    if [ $DOQSUB -eq 3 ];
+	then
+	# Run jobs on XGrid and wait to finish
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Starting ANTS rigid registration on XGrid cluster. Submitted $count jobs "
+	echo "--------------------------------------------------------------------------------------"
+        # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+	${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 30 $jobIDs
+	# Returns 1 if there are errors
+	if [ ! $? -eq 0 ]; then
+	    echo "XGrid submission failed - jobs went into error state"
+	    exit 1;
+	fi
+    fi
+
     # Update template
     ${ANTSPATH}AverageImages $DIM $TEMPLATE 1 $RIGID_IMAGESET
 
     # cleanup and save output in seperate folder
 
     mkdir rigid
-    mv *.cfg rigid_*.nii.gz *Affine.txt rigid/
+    mv *.cfg rigid_*.nii.gz rigid_*.nii *Affine.txt rigid/
 
     # backup logs
     if [ $DOQSUB -eq 1 ];
@@ -891,8 +944,11 @@ if [ "$RIGID" -eq 1 ] ;
 	rm -f job_${count}_qsub.sh
 
     elif [ $DOQSUB -eq 2 ];
-	then
-	mv job*.txt rigid/
+		then
+		mv job*.txt rigid/
+	elif [ $DOQSUB -eq 3 ];
+		then
+		rm -f job_*_qsub.sh
     fi
 
 
@@ -980,6 +1036,13 @@ while [  $i -lt ${ITERATIONLIMIT} ]
     elif [ $DOQSUB -eq 2 ] ; then
 	echo $pexe
 	echo $pexe >> job${count}_${i}.sh
+    elif [ $DOQSUB -eq 3 ] ; then
+      qscript="job_${count}_${i}.sh"
+      exe="${ANTSSCRIPTNAME} -d ${DIM} -r ./${TEMPLATE} -i ./${IMG} -o ./${OUTFN} -m ${MAXITERATIONS} -n ${N3CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
+	  echo "$SCRIPTPREPEND" > $qscript
+	  echo "$exe" >> $qscript
+      id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
+	  jobIDs="$jobIDs $id"
     elif  [ $DOQSUB -eq 0 ] ; then
 	bash $exe
     fi
@@ -1022,6 +1085,22 @@ while [  $i -lt ${ITERATIONLIMIT} ]
       $PEXEC -j ${CORES} sh job*.sh
   fi
 
+  if [ $DOQSUB -eq 3 ];
+	then
+	# Run jobs on XGrid and wait to finish
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Starting ANTS rigid registration on XGrid cluster. Submitted $count jobs "
+	echo "--------------------------------------------------------------------------------------"
+        # now wait for the jobs to finish. This is slow, so poll less often
+	${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
+	# Returns 1 if there are errors
+	if [ ! $? -eq 0 ]; then
+	    echo "XGrid submission failed - jobs went into error state"
+	    exit 1;
+	fi
+  fi
+
   shapeupdatetotemplate ${DIM} ${TEMPLATE} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP}
 
   echo
@@ -1040,6 +1119,9 @@ while [  $i -lt ${ITERATIONLIMIT} ]
   elif [ $DOQSUB -eq 2 ];
       then
       mv job*.txt ${TRANSFORMATIONTYPE}_iteration_${i}
+  elif [ $DOQSUB -eq 3 ];
+      then
+      rm -f job_*.sh
   fi
 
 
