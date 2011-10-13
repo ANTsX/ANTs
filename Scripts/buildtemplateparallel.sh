@@ -860,9 +860,9 @@ if [ "$RIGID" -eq 1 ] ;
       echo "$exe2" >> $qscript
 
       if [ $DOQSUB -eq 1 ] ; then
-	  id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
-	  jobIDs="$jobIDs $id"
-	  sleep 0.5
+		id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
+		jobIDs="$jobIDs $id"
+		sleep 0.5
       elif  [ $DOQSUB -eq 2 ] ; then
 		# Send pexe and exe2 to same job file so that they execute in series
 		echo $pexe >> job${count}_r.sh
@@ -873,8 +873,8 @@ if [ "$RIGID" -eq 1 ] ;
 		jobIDs="$jobIDs $id"
 	  elif  [ $DOQSUB -eq 0 ] ; then
 	  # execute jobs in series
-	  $exe
-	  $exe2
+		$exe
+		$exe2
       fi
 
       ((count++))
@@ -1034,17 +1034,17 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 	jobIDs="$jobIDs $id"
 	sleep 0.5
     elif [ $DOQSUB -eq 2 ] ; then
-	echo $pexe
-	echo $pexe >> job${count}_${i}.sh
+		echo $pexe
+		echo $pexe >> job${count}_${i}.sh
     elif [ $DOQSUB -eq 3 ] ; then
       qscript="job_${count}_${i}.sh"
-      exe="${ANTSSCRIPTNAME} -d ${DIM} -r ./${TEMPLATE} -i ./${IMG} -o ./${OUTFN} -m ${MAXITERATIONS} -n ${N3CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
+      #exe="${ANTSSCRIPTNAME} -d ${DIM} -r ./${TEMPLATE} -i ./${IMG} -o ./${OUTFN} -m ${MAXITERATIONS} -n ${N4CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
 	  echo "$SCRIPTPREPEND" > $qscript
 	  echo "$exe" >> $qscript
       id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
 	  jobIDs="$jobIDs $id"
     elif  [ $DOQSUB -eq 0 ] ; then
-	bash $exe
+		bash $exe
     fi
 
     # counter updated, but not directly used in this loop
@@ -1090,7 +1090,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 	# Run jobs on XGrid and wait to finish
 	echo
 	echo "--------------------------------------------------------------------------------------"
-	echo " Starting ANTS rigid registration on XGrid cluster. Submitted $count jobs "
+	echo " Starting ANTS registration on XGrid cluster. Submitted $count jobs "
 	echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. This is slow, so poll less often
 	${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
