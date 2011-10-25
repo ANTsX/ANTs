@@ -627,8 +627,28 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     {
     if( mrfOption->GetNumberOfParameters() > 0 )
       {
-      segmenter->SetMRFSmoothingFactor( parser->Convert<float>(
-                                          mrfOption->GetParameter( 0 ) ) );
+      try
+        {
+        typedef typename SegmentationFilterType::RealImageType
+          MRFCoefficientImageType;
+        typedef itk::ImageFileReader<MRFCoefficientImageType>
+          MRFNeighborhoodImageReaderType;
+        typename MRFNeighborhoodImageReaderType::Pointer mrfNeighborhoodReader =
+          MRFNeighborhoodImageReaderType::New();
+        mrfNeighborhoodReader->SetFileName( mrfOption->GetParameter( 0 ) );
+
+        typename MRFCoefficientImageType::Pointer mrfCoefficientImage =
+          mrfNeighborhoodReader->GetOutput();
+        mrfCoefficientImage->Update();
+        mrfCoefficientImage->DisconnectPipeline();
+
+        segmenter->SetMRFCoefficientImage( mrfCoefficientImage );
+        }
+      catch( ... )
+        {
+        segmenter->SetMRFSmoothingFactor( parser->Convert<float>(
+                                            mrfOption->GetParameter( 0 ) ) );
+        }
       }
     if( mrfOption->GetNumberOfParameters() > 1 )
       {
@@ -653,23 +673,6 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
       segmenter->SetMRFRadius( radius );
-      }
-    if( mrfOption->GetNumberOfParameters() > 2 )
-      {
-      typedef typename SegmentationFilterType::RealImageType
-        MRFCoefficientImageType;
-      typedef itk::ImageFileReader<MRFCoefficientImageType>
-        MRFNeighborhoodImageReaderType;
-      typename MRFNeighborhoodImageReaderType::Pointer mrfNeighborhoodReader =
-        MRFNeighborhoodImageReaderType::New();
-      mrfNeighborhoodReader->SetFileName( mrfOption->GetValue() );
-
-      typename MRFCoefficientImageType::Pointer mrfCoefficientImage =
-        mrfNeighborhoodReader->GetOutput();
-      mrfCoefficientImage->Update();
-      mrfCoefficientImage->DisconnectPipeline();
-
-      segmenter->SetMRFCoefficientImage( mrfCoefficientImage );
       }
     }
 
@@ -1406,7 +1409,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mrf" );
     option->SetShortName( 'm' );
-    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>,<mrfCoefficientImage=none>]" );
+    option->SetUsageOption( 0, "[<smoothingFactor=0.3>,<radius=1x1x...>]" );
+    option->SetUsageOption( 1, "[<mrfCoefficientImage>,<radius=1x1x...>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

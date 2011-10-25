@@ -1583,6 +1583,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     measurement[i] = this->GetIntensityImage( i )->GetPixel( It.GetIndex() );
     }
 
+  RealType mrfSmoothingFactor = this->m_MRFSmoothingFactor;
+  if( this->m_MRFCoefficientImage )
+    {
+    mrfSmoothingFactor = this->m_MRFCoefficientImage->GetPixel( It.GetIndex() );
+    }
+
   Array<RealType> mrfNeighborhoodWeights;
   this->EvaluateMRFNeighborhoodWeights( It, mrfNeighborhoodWeights );
 
@@ -1603,15 +1609,13 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     // Calculate the mrf prior probability
 
     RealType mrfPriorProbability = 1.0;
-    if( this->m_MRFSmoothingFactor > 0.0 && ( It.GetNeighborhood() ).Size() > 1 )
+    if( mrfSmoothingFactor > 0.0 && ( It.GetNeighborhood() ).Size() > 1 )
       {
-      RealType numerator = vcl_exp( -this->m_MRFSmoothingFactor
-                                    * mrfNeighborhoodWeights[k] );
+      RealType numerator = vcl_exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[k] );
       RealType denominator = 0.0;
       for( unsigned int n = 0; n < this->m_NumberOfTissueClasses; n++ )
         {
-        denominator += vcl_exp( -this->m_MRFSmoothingFactor
-                                * mrfNeighborhoodWeights[n] );
+        denominator += vcl_exp( -mrfSmoothingFactor * mrfNeighborhoodWeights[n] );
         }
       if( denominator > 0.0 )
         {
@@ -1851,12 +1855,19 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses
     + this->m_NumberOfPartialVolumeClasses;
 
+  RealType mrfSmoothingFactor = this->m_MRFSmoothingFactor;
+
+  if( this->m_MRFCoefficientImage )
+    {
+    mrfSmoothingFactor = this->m_MRFCoefficientImage->GetPixel( It.GetIndex() );
+    }
+
   mrfNeighborhoodWeights.SetSize( totalNumberOfClasses );
   mrfNeighborhoodWeights.Fill( 0.0 );
 
   unsigned int neighborhoodSize = ( It.GetNeighborhood() ).Size();
 
-  if( this->m_MRFSmoothingFactor > 0.0 && neighborhoodSize > 1 )
+  if( mrfSmoothingFactor > 0.0 && neighborhoodSize > 1 )
     {
     for( unsigned int label = 1; label <= totalNumberOfClasses; label++ )
       {
@@ -3345,8 +3356,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
      << this->m_MinimumAnnealingTemperature << std::endl;
 
   os << indent << "MRF parameters" << std::endl;
-  os << indent << "  MRF smoothing factor = "
-     << this->m_MRFSmoothingFactor << std::endl;
+  if( this->m_MRFCoefficientImage )
+    {
+    os << indent << "  Using MRF coefficient image" << std::endl;
+    }
+  else
+    {
+    os << indent << "  MRF smoothing factor = "
+       << this->m_MRFSmoothingFactor << std::endl;
+    }
   os << indent << "  MRF radius = "
      << this->m_MRFRadius << std::endl;
 
