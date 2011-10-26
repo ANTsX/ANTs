@@ -108,13 +108,14 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   this->m_JointHistogramImages[0]->TransformPhysicalPointToContinuousIndex(
     shapePoint, shapeCidx );
 
-  typename JointHistogramImageType::IndexType shapeIdx;
+  typedef typename JointHistogramImageType::IndexType JointHistogramImageIndexType;
+  JointHistogramImageIndexType shapeIdx;
 
   /** Nearest neighbor increment to JH */
   if( this->m_UseNearestNeighborIncrements )
     {
-    shapeIdx[0] = vcl_floor( shapeCidx[0] + 0.5);
-    shapeIdx[1] = vcl_floor( shapeCidx[1] + 0.5 );
+    shapeIdx[0] = static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( shapeCidx[0] + 0.5 ) );
+    shapeIdx[1] = static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( shapeCidx[1] + 0.5 ) );
     if( this->m_JointHistogramImages[0]->
         GetLargestPossibleRegion().IsInside( shapeIdx ) )
       {
@@ -296,13 +297,16 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   this->m_JointHistogramImages[whichHistogram]->
   TransformPhysicalPointToContinuousIndex( orientPoint, orientCidx );
 
-  typename JointHistogramImageType::IndexType orientIdx;
+  typedef typename JointHistogramImageType::IndexType JointHistogramImageIndexType;
+  JointHistogramImageIndexType orientIdx;
 
   /** Nearest neighbor interpolation */
   if( this->m_UseNearestNeighborIncrements )
     {
-    orientIdx[0] = vcl_floor( orientCidx[0] + 0.5 );
-    orientIdx[1] = vcl_floor( orientCidx[1] + 0.5 );
+    orientIdx[0] =
+      static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( orientCidx[0] + 0.5 ) );
+    orientIdx[1] =
+      static_cast<typename JointHistogramImageIndexType::IndexValueType>( vcl_floor( orientCidx[1] + 0.5 ) );
     if( this->m_JointHistogramImages[whichHistogram]->
         GetLargestPossibleRegion().IsInside( orientIdx ) )
       {
