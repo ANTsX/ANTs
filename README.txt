@@ -91,7 +91,7 @@ Speed up number one for the CC metric (number two coming later).
 
 Atropos !  new tool for segmentation.
 
-Nick's N4 bias correction tool (publication on the way).
+Nick's N4 bias correction tool.
 
 Updates to buildtemplateparallel that allow parallel use on multicore machines.
 
