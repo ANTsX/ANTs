@@ -38,7 +38,7 @@
 #include "itkBinaryDilateImageFilter.h"
 #include "itkLabeledPointSetFileReader.h"
 #include "itkLabeledPointSetFileWriter.h"
-
+#include "itkImageRandomConstIteratorWithIndex.h"
 // #include "itkBinaryMorphologicalClosingImageFilter.h"
 // #include "itkBinaryMorphologicalOpeningImageFilter.h"
 #include "itkGrayscaleErodeImageFilter.h"
@@ -7794,7 +7794,10 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
             }
           matrix[xx][yy] = image2->GetPixel(mIter.GetIndex() );
           std::string colname = std::string("V") + ants_to_string<unsigned int>(tvoxct);
-          ColumnHeaders.push_back( colname );
+          if( imagecount == 0 )
+            {
+            ColumnHeaders.push_back( colname );
+            }
           tvoxct++;
           }
         }
@@ -7879,6 +7882,102 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
 
     std::cout << " mat size " << matimage->GetLargestPossibleRegion().GetSize() << std::endl;
     WriteImage<MatrixImageType>(matimage, outname.c_str() );
+    }
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::Image<PixelType, 2>                                        MatrixImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRandomConstIteratorWithIndex<ImageType>               Iterator;
+
+  int argct = 2;
+  if( argc < 5 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    }
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  ext = itksys::SystemTools::GetFilenameExtension( outname );
+  std::string  operation = std::string(argv[argct]);  argct++;
+  unsigned int n_samples = atoi(argv[argct]);   argct++;
+  /* std::string maskfn=std::string(argv[argct]); argct++;
+  typename ImageType::Pointer mask = NULL;
+  ReadImage<ImageType>(mask,maskfn.c_str());
+  Iterator mIter( mask,mask->GetLargestPossibleRegion() );
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    if (mIter.Get() >= 0.5) voxct++;
+  */
+  unsigned long voxct = 0;
+  unsigned int  numberofimages = 0;
+
+  typename ImageType::Pointer image2 = NULL;
+  for( unsigned int j = argct; j < argc; j++ )
+    {
+    numberofimages++;
+    }
+  unsigned long xsize = numberofimages;
+  unsigned long ysize = n_samples;
+
+  if( strcmp(ext.c_str(), ".csv") == 0 )
+    {
+    typedef itk::Array2D<double> MatrixType;
+    std::vector<std::string> ColumnHeaders;
+    MatrixType               matrix(xsize, ysize);
+    matrix.Fill(0);
+    unsigned int imagecount = 0;
+    for( unsigned int j = argct; j < argc; j++ )
+      {
+      std::string fn = std::string(argv[j]);
+      ReadImage<ImageType>(image2, fn.c_str() );
+      Iterator mIter( image2, image2->GetLargestPossibleRegion() );
+      mIter.SetNumberOfSamples(n_samples);
+      std::cout << " image " << j << " is "  << fn << std::endl;
+      voxct = 0;
+      for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+        {
+        matrix[imagecount][voxct] = image2->GetPixel(mIter.GetIndex() );
+        if( imagecount == 0 )
+          {
+          std::string colname = std::string("V") + ants_to_string<unsigned int>(voxct);
+          ColumnHeaders.push_back( colname );
+          }
+        voxct++;
+        }
+      imagecount++;
+      }
+
+    // write out the array2D object
+    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( outname );
+    writer->SetInput( &matrix );
+    writer->SetColumnHeaders( ColumnHeaders );
+    try
+      {
+      writer->Write();
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+  else
+    {
+    std::cout << " need a csv file as output type , you tried " << outname << std::endl;
     }
   return 0;
 }
@@ -8360,6 +8459,11 @@ int main(int argc, char *argv[])
     std::cout << "      Usage		: ConvertImageSetToMatrix rowcoloption Mask.nii *images.nii"<< std::endl;
     std::cout << " ConvertImageSetToMatrix output can be an image type or csv file type." << std::endl;
 
+    std::cout << "\n  RandomlySampleImageSetToCSV: N random samples are selected from each image in a list "
+              << std::endl;
+    std::cout << "      Usage		: RandomlySampleImageSetToCSV N_samples *images.nii"<< std::endl;
+    std::cout << " RandomlySampleImageSetToCSV outputs a csv file type." << std::endl;
+
     std::cout
       <<
       "\n  ConvertImageSetToEigenvectors: Each row/column contains image content extracted from mask applied to images in *img.nii "
@@ -8760,6 +8864,10 @@ int main(int argc, char *argv[])
         {
         ConvertImageSetToMatrix<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
+        {
+        RandomlySampleImageSetToCSV<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
         {
         ConvertImageSetToEigenvectors<2>(argc, argv);
@@ -9046,6 +9154,10 @@ int main(int argc, char *argv[])
         {
         ConvertImageSetToMatrix<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
+        {
+        RandomlySampleImageSetToCSV<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
         {
         ConvertImageSetToEigenvectors<3>(argc, argv);
@@ -9301,6 +9413,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
         {
         ConvertImageSetToMatrix<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
+        {
+        RandomlySampleImageSetToCSV<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
         {
