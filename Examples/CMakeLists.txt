@@ -169,6 +169,8 @@ add_executable(ExtractSliceFromImage ExtractSliceFromImage.cxx )
 target_link_libraries(ExtractSliceFromImage ${ITK_LIBRARIES})
 add_executable(ExtractRegionFromImage ExtractRegionFromImage.cxx )
 target_link_libraries(ExtractRegionFromImage ${ITK_LIBRARIES})
+add_executable(ExtractRegionFromImageByMask ExtractRegionFromImageByMask.cxx )
+target_link_libraries(ExtractRegionFromImageByMask ${ITK_LIBRARIES})
 add_executable(LabelGeometryMeasures LabelGeometryMeasures.cxx )
 target_link_libraries(LabelGeometryMeasures ${ITK_LIBRARIES})
 add_executable(PasteImageIntoImage PasteImageIntoImage.cxx )
@@ -269,6 +271,7 @@ INSTALL(TARGETS ANTS
   ResampleImage
   ExtractSliceFromImage
   ExtractRegionFromImage
+  ExtractRegionFromImageByMask
   LabelGeometryMeasures
   TileImages
   CreateImage
