@@ -238,6 +238,7 @@ INSTALL(TARGETS ANTS
   ResetDirection
   ANTSUseLandmarkImagesToGetAffineTransform
   ANTSUseDeformationFieldToGetAffineTransform
+  AverageAffineTransform
   ImageMath
   SurfaceCurvature
   SurfaceBasedSmoothing
@@ -296,6 +297,7 @@ INSTALL(TARGETS ANTS
 install(PROGRAMS ../Scripts/ants.sh  ../Scripts/basic_ants_example.sh
                 ../Scripts/antsIntroduction.sh
                 ../Scripts/antsaffine.sh
+		../Scripts/waitForXGridJobs.pl
                 ../Scripts/ANTSAverage2DAffine.sh ../Scripts/ANTSAverage3DAffine.sh
                 ../Scripts/buildtemplateparallel.sh ../Scripts/ANTSpexec.sh
                 ../Scripts/waitForSGEQJobs.pl DESTINATION bin
@@ -328,10 +330,10 @@ endif( COPY_SCRIPT_FILES_TO_BIN_DIR )
 set(CPACK_PACKAGE_NAME "ANTs")
 set(CPACK_PACKAGE_VENDOR "CMake.org")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
-set(CPACK_PACKAGE_VERSION "1.9.x")
+set(CPACK_PACKAGE_VERSION "1.9.y")
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "9")
-set(CPACK_PACKAGE_VERSION_PATCH "x")
+set(CPACK_PACKAGE_VERSION_PATCH "y")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS")
 # This must always be last!
 include(CPack)
