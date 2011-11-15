@@ -26,6 +26,7 @@
 #include "itkJointHistogramMutualInformationImageToImageObjectMetric.h"
 
 #include "itkAffineTransform.h"
+#include "itkBSplineTransform.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkCompositeTransform.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
@@ -34,6 +35,7 @@
 #include "itkRigid3DTransform.h"
 #include "itkTransform.h"
 
+#include "itkBSplineTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 
@@ -397,6 +399,81 @@ int hormigita( itk::ants::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
       }
+//    else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
+//      {
+//      if( ImageDimension == 2 )
+//        {
+//        typedef itk::Rigid2DTransform<double> RigidTransformType;
+//        typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
+//
+//        typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType, RigidTransformType>
+// RigidRegistrationType;
+//        typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+//
+//        rigidRegistration->SetFixedImage( fixedImage );
+//        rigidRegistration->SetMovingImage( movingImage );
+//        rigidRegistration->SetNumberOfLevels( numberOfLevels );
+//        rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+//        rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+//        rigidRegistration->SetMetric( metric );
+//        rigidRegistration->SetOptimizer( optimizer );
+//        rigidRegistration->SetTransform( rigidTransform );
+//        rigidRegistration->SetCompositeTransform( compositeTransform );
+//
+//        typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
+//        typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
+//        rigidObserver->SetNumberOfIterations( iterations );
+//
+//        rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
+//
+//        try
+//          {
+//          std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
+//          rigidRegistration->StartRegistration();
+//          }
+//        catch( itk::ExceptionObject &e )
+//          {
+//          std::cerr << "Exception caught: " << e << std::endl;
+//          return EXIT_FAILURE;
+//          }
+//        }
+//      else // ImageDimension == 3
+//        {
+//        typedef itk::Rigid3DTransform<double> RigidTransformType;
+//        typename RigidTransformType::Pointer rigidTransform;
+//
+//        typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType, RigidTransformType>
+// RigidRegistrationType;
+//        typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+//
+//        rigidRegistration->SetFixedImage( fixedImage );
+//        rigidRegistration->SetMovingImage( movingImage );
+//        rigidRegistration->SetNumberOfLevels( numberOfLevels );
+//        rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+//        rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+//        rigidRegistration->SetMetric( metric );
+//        rigidRegistration->SetOptimizer( optimizer );
+//        rigidRegistration->SetTransform( rigidTransform );
+//        rigidRegistration->SetCompositeTransform( compositeTransform );
+//
+//        typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
+//        typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
+//        rigidObserver->SetNumberOfIterations( iterations );
+//
+//        rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
+//
+//        try
+//          {
+//          std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
+//          rigidRegistration->StartRegistration();
+//          }
+//        catch( itk::ExceptionObject &e )
+//          {
+//          std::cerr << "Exception caught: " << e << std::endl;
+//          return EXIT_FAILURE;
+//          }
+//        }
+//      }
     else if( std::strcmp( whichTransform.c_str(),
                           "displacementfield" ) == 0 ||  std::strcmp( whichTransform.c_str(), "df" ) == 0 )
       {
@@ -623,6 +700,89 @@ int hormigita( itk::ants::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
       }
+    else if( std::strcmp( whichTransform.c_str(), "bspline" ) == 0 )
+      {
+      const unsigned int SplineOrder = 3;
+      typedef itk::BSplineTransform<RealType, ImageDimension, SplineOrder> BSplineTransformType;
+      typename BSplineTransformType::Pointer bsplineTransform = BSplineTransformType::New();
+
+      typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType,
+                                                 BSplineTransformType> BSplineRegistrationType;
+
+      std::vector<unsigned int> size =
+        parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+
+      typename BSplineTransformType::PhysicalDimensionsType physicalDimensions;
+      typename BSplineTransformType::MeshSizeType meshSize;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        physicalDimensions[d] = fixedImage->GetSpacing()[d]
+          * static_cast<RealType>( fixedImage->GetLargestPossibleRegion().GetSize()[d] - 1 );
+        meshSize[d] = size[d];
+        }
+
+      bsplineTransform->SetTransformDomainOrigin( fixedImage->GetOrigin() );
+      bsplineTransform->SetTransformDomainPhysicalDimensions( physicalDimensions );
+      bsplineTransform->SetTransformDomainMeshSize( meshSize );
+      bsplineTransform->SetTransformDomainDirection( fixedImage->GetDirection() );
+
+      // Create the transform adaptors
+
+      typedef itk::BSplineTransformParametersAdaptor<BSplineTransformType> BSplineTransformAdaptorType;
+      typename BSplineRegistrationType::TransformParametersAdaptorsContainerType adaptors;
+      // Create the transform adaptors specific to B-splines
+      for( unsigned int level = 0; level < numberOfLevels; level++ )
+        {
+        // A good heuristic is to double the b-spline mesh resolution at each level
+
+        typename BSplineTransformType::MeshSizeType requiredMeshSize;
+        for( unsigned int d = 0; d < ImageDimension; d++ )
+          {
+          requiredMeshSize[d] = meshSize[d] << ( level + 1 );
+          }
+
+        typedef itk::BSplineTransformParametersAdaptor<BSplineTransformType> BSplineAdaptorType;
+        typename BSplineAdaptorType::Pointer bsplineAdaptor = BSplineAdaptorType::New();
+        bsplineAdaptor->SetTransform( bsplineTransform );
+        bsplineAdaptor->SetRequiredTransformDomainMeshSize( requiredMeshSize );
+        bsplineAdaptor->SetRequiredTransformDomainOrigin( bsplineTransform->GetTransformDomainOrigin() );
+        bsplineAdaptor->SetRequiredTransformDomainDirection( bsplineTransform->GetTransformDomainDirection() );
+        bsplineAdaptor->SetRequiredTransformDomainPhysicalDimensions(
+          bsplineTransform->GetTransformDomainPhysicalDimensions() );
+
+        adaptors.push_back( bsplineAdaptor.GetPointer() );
+        }
+
+      typename BSplineRegistrationType::Pointer bsplineRegistration = BSplineRegistrationType::New();
+      bsplineRegistration->SetFixedImage( fixedImage );
+      bsplineRegistration->SetMovingImage( movingImage );
+      bsplineRegistration->SetNumberOfLevels( numberOfLevels );
+      bsplineRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      bsplineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+      bsplineRegistration->SetCompositeTransform( compositeTransform );
+      bsplineRegistration->SetTransform( bsplineTransform );
+      bsplineRegistration->SetMetric( metric );
+      bsplineRegistration->SetOptimizer( optimizer );
+      bsplineRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
+
+      typedef CommandIterationUpdate<BSplineRegistrationType> BSplineCommandType;
+      typename BSplineCommandType::Pointer bsplineObserver = BSplineCommandType::New();
+      bsplineObserver->SetNumberOfIterations( iterations );
+
+      bsplineRegistration->AddObserver( itk::IterationEvent(), bsplineObserver );
+
+      try
+        {
+        std::cout << std::endl << "*** Running bspline registration (meshSizeAtBaseLevel = " << meshSize << ") ***"
+                  << std::endl << std::endl;
+        bsplineRegistration->StartRegistration();
+        }
+      catch( itk::ExceptionObject & e )
+        {
+        std::cerr << "Exception caught: " << e << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
     }
 
   // For debugging purposes, we warp the fixed and moving images from the first stage
@@ -708,8 +868,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "transform" );
     option->SetShortName( 't' );
-    option->SetUsageOption( 0, "Affine[gradientStep]" );
-    option->SetUsageOption( 1, "Field[gradientStep]" );
+    option->SetUsageOption( 0, "Rigid[gradientStep]" );
+    option->SetUsageOption( 1, "Affine[gradientStep]" );
+    option->SetUsageOption( 2, "DisplacementField[gradientStep]" );
+    option->SetUsageOption( 3, "BSpline[gradientStep,meshSize]" );
+    option->SetUsageOption( 4,
+                            "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldTimeSigma]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -721,7 +885,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "regularization" );
     option->SetShortName( 'r' );
     option->SetUsageOption( 0, "none" );
-    option->SetUsageOption( 1, "Gaussian[sigmaInPhysicalSpace]" );
+    option->SetUsageOption( 1, "Gaussian[updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetUsageOption( 2, "DMFFD[updateFieldMeshSize,totalFieldMeshSize,splineOrder]" );
     option->SetDescription( description );
     parser->AddOption( option );
