@@ -1,50 +1,82 @@
 #!/bin/bash
 
-
-VERSION="0.0.13"
+VERSION="0.0.14 test"
 
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
 
+function setPath {
+    cat <<SETPATH
+
+--------------------------------------------------------------------------------------
+Error locating ANTS
+--------------------------------------------------------------------------------------
+It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
+variable. This can be achieved by editing the .bash_profile in the home directory.
+Add:
+
+ANTSPATH=/home/yourname/bin/ants/
+
+Or the correct location of the ANTS binaries.
+
+Alternatively, edit this script ( `basename $0` ) to set up this parameter correctly.
+
+SETPATH
+    exit 1
+}
+
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-if [ ${#ANTSPATH} -le 3 ] ; then
-  echo we guess at your ants path
-  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+# export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+
+#ANTSPATH=YOURANTSPATH
+if [  ${#ANTSPATH} -le 3 ]
+    then
+    setPath >&2
 fi
+
 if [ ! -s ${ANTSPATH}/ANTS ] ; then
-  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  echo "ANTS program can't be found. Please (re)define \$ANTSPATH in your environment."
   exit
 fi
+
+# Test availability of helper scripts.
+# No need to test this more than once. Can reside outside of the main loop.
+ANTSSCRIPTNAME=${ANTSPATH}antsIntroduction.sh
+PEXEC=${ANTSPATH}ANTSpexec.sh
+SGE=${ANTSPATH}waitForSGEQJobs.pl
+XGRID=${ANTSPATH}waitForXGridJobs.pl
+
+fle_error=0
+for FLE in $ANTSSCRIPTNAME $PEXEC $SGE $XGRID
+  do
+  if [ ! -x $FLE  ] ;
+      then
+      echo
+      echo "--------------------------------------------------------------------------------------"
+      echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
+      echo "--------------------------------------------------------------------------------------"
+      echo " if the file is not executable, please change its permissions. "
+      fle_error=1
+  fi
+done
+if [ $fle_error = 1 ] ; then
+  exit 1
+fi
+
 
 #assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 
 function Usage {
     cat <<USAGE
 
-Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script in your studies.
-A reproducible evaluation of ANTs similarity metric performance in brain image registration.
-Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
-
-Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.  The script has been updated and improved since this publication.
-
 Usage:
 
 `basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
 
-Example Case:
-
- echo " bash $0 -d 3 -m 30x50x20 -t GR  -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz "
- echo " in this case you use 30x50x20 iterations per registration "
- echo " 4 iterations over template creation (that is the default) "
- echo " with Greedy-SyN and CC metrics to guide the mapping. "
- echo " Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional). "
- echo " the -c option is set to 1 which will try to use SGE to distribute the computation. "
- echo " if you do not have SGE, use -c 0 or -c 2 --- read the help."
-
 Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-	  ImageDimension: 4 (for 3 dimensional registration of time-series; requires FSL)
+	  ImageDimension: 4 (for template generation of time-series data)
 
      -o:  OUTPREFIX; A prefix that is prepended to all output files.
 
@@ -57,13 +89,13 @@ should be invoked from that directory.
 Optional arguments:
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost),  3 == Apple XGrid
+	  2 == use PEXEC (localhost), 3 == Apple XGrid
 
      -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default: 2; -- requires "-c 2")
+     -j:  Number of cpu cores to use (default: 2; -- requires "-c 2"
 
      -m:  Max-iterations in each registration
 
@@ -83,6 +115,16 @@ Optional arguments:
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
 
+Example:
+
+`basename $0` -d 3 -m 30x50x20 -t GR -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz
+
+- In this example 30x50x20 iterations per registration are used for template creation (that is the default)
+- Greedy-SyN and CC are the metrics to guide the mapping.
+- Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
+- The -c option is set to 1, which will result in using the Sun Grid Engine (SGE) to distribute the computation.
+- if you do not have SGE, read the help for multi-core computation on the local machine, or Apple X-grid options.
+
 --------------------------------------------------------------------------------------
 ANTS was created by:
 --------------------------------------------------------------------------------------
@@ -90,10 +132,18 @@ Brian B. Avants, Nick Tustison and Gang Song
 Penn Image Computing And Science Laboratory
 University of Pennsylvania
 
+Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script
+in your studies. A reproducible evaluation of ANTs similarity metric performance in
+brain image registration:
+
+* Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
+
+Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.
+
+The script has been updated and improved since this publication.
+
 --------------------------------------------------------------------------------------
 script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
---------------------------------------------------------------------------------------
-
 --------------------------------------------------------------------------------------
 Apple XGrid support by Craig Stark
 --------------------------------------------------------------------------------------
@@ -104,13 +154,8 @@ USAGE
 
 function Help {
     cat <<HELP
-Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script in your studies.
-A reproducible evaluation of ANTs similarity metric performance in brain image registration.
-Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
 
-Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.  The script has been updated and improved since this publication.
-
-./buildtemplateparallel.sh  will make a template out of the input files using an elastic
+`basename $0` will make a template out of the input files using an elastic
 or diffeomorphic transformation. This script builds a template iteratively from the input
 images and uses Sun Grid Engine (SGE) or multiple cpu cores on the localhost (min 2) to
 parallelize the registration of each subject to the template.
@@ -119,10 +164,23 @@ Usage:
 
 `basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
 
+Example Case:
+
+ bash `basename $0` -d 3 -m 30x50x20 -t GR  -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz
+
+ - In this case you use 30x50x20 iterations per registration
+ - 4 iterations over template creation (that is the default)
+ - With Greedy-SyN and CC metrics to guide the mapping.
+ - Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
+ - The -c option is set to 1 which will try to use SGE to distribute the computation.
+ - If you do not have SGE, use -c 0 or -c 2 combined with -j.
+
+ - Continue reading this help file if things are not yet clear.
+
 Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options)::
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-	  ImageDimension: 4 (for 3 dimensional registration of time-series; requires FSL)
+	  ImageDimension: 4 (for template generation of time-series data)
 
      -o:  OUTPREFIX; A prefix that is prepended to all output files.
 
@@ -133,7 +191,8 @@ NB: All files to be added to the template should be in the same directory.
 
 Optional arguments:
 
-     -c:  Control for parallel computation   --- if set to zero, run serially, if set to 2 , use PEXEC (localhost), if set to 1 , use SGE qsub.
+     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
+	  2 == use PEXEC (localhost), 3 == Apple XGrid
 
      -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
 
@@ -172,14 +231,18 @@ Optional arguments:
 	     CC = cross-correlation
 	     MI = mutual information
 	     PR = probability mapping (default)
-      MSQ = mean square difference (Demons-like)
-      SSD = sum of squared differences
+	     MSQ = mean square difference (Demons-like)
+	     SSD = sum of squared differences
 
 	     For intermodal image registration, use:
 	     MI = mutual information
 	     PR = probability mapping (default)
 
      -t:  Type of transformation model used for registration.
+
+	     For rigid image registration, use:
+	     RI = Purely rigid
+	     RA = Affine rigid
 
 	     For elastic image registration, use:
 	     EL = elastic transformation model (less deformation possible)
@@ -206,8 +269,6 @@ will terminate prematurely if these files are not present or are not executable.
 - ANTSpexec.sh (only for use with localhost parallel execution)
 - waitForXGridJobs.pl (only for use with Apple XGrid)
 
-For 4D template building FSL is also needed
-
 --------------------------------------------------------------------------------------
 Get the latest ANTS version at:
 --------------------------------------------------------------------------------------
@@ -225,9 +286,18 @@ Brian B. Avants, Nick Tustison and Gang Song
 Penn Image Computing And Science Laboratory
 University of Pennsylvania
 
+Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script
+in your studies. A reproducible evaluation of ANTs similarity metric performance in
+brain image registration:
+
+* Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
+
+Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.
+
+The script has been updated and improved since this publication.
+
 --------------------------------------------------------------------------------------
 script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
---------------------------------------------------------------------------------------
 --------------------------------------------------------------------------------------
 Apple XGrid support by Craig Stark
 --------------------------------------------------------------------------------------
@@ -235,42 +305,6 @@ Apple XGrid support by Craig Stark
 HELP
     exit 1
 }
-
-function setPath {
-    cat <<SETPATH
-
---------------------------------------------------------------------------------------
-Error locating ANTS
---------------------------------------------------------------------------------------
-It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
-variable. This can be achieved by editing the .bash_profile in the home directory.
-Add:
-
-ANTSPATH=/home/yourname/bin/ants/
-
-Or the correct location of the ANTS binaries.
-
-Alternatively, edit this script ( $0 ) to set up this parameter correctly.
-
-SETPATH
-    exit 1
-}
-
-setFSLPath() {
-    cat <<SETFSLPATH
---------------------------------------------------------------------------------------
-Error locating FSL
---------------------------------------------------------------------------------------
-The FSLDIR environment variable is not set. Please add the FSLDIR variable.
-
-see the FSL website for more information about installation:
-
-http://www.fmrib.ox.ac.uk/fsl/fsl/downloading.html
-
-SETFSLPATH
-#    exit 1
-}
-
 
 function reportMappingParameters {
     cat <<REPORTMAPPINGPARAMETERS
@@ -319,7 +353,7 @@ function shapeupdatetotemplate {
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate 1"
     echo "--------------------------------------------------------------------------------------"
-    ${ANTSPATH}AverageImages $dim ${template} 1 ${outputname}*formed.nii.gz
+	${ANTSPATH}AverageImages $dim ${template} 1 ${outputname}*formed.nii.gz
 
     echo
     echo "--------------------------------------------------------------------------------------"
@@ -332,6 +366,7 @@ function shapeupdatetotemplate {
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate 3"
     echo "--------------------------------------------------------------------------------------"
+
 	${ANTSPATH}MultiplyImages $dim ${templatename}warp.nii.gz ${gradientstep} ${templatename}warp.nii.gz
 
 
@@ -339,7 +374,8 @@ function shapeupdatetotemplate {
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate 4"
     echo "--------------------------------------------------------------------------------------"
-    rm -f ${templatename}Affine.txt
+
+	rm -f ${templatename}Affine.txt
 
     echo
     echo "--------------------------------------------------------------------------------------"
@@ -352,15 +388,18 @@ function shapeupdatetotemplate {
 #    elif [ ${dim} -eq 3  ] ; then
 #      ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
 #    fi
-    ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}Affine.txt ${outputname}*Affine.txt
 
+    ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}Affine.txt ${outputname}*Affine.txt
     ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warp.nii.gz ${templatename}warp.nii.gz -i  ${templatename}Affine.txt -R ${template}
     ${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
 
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate 6"
+    echo "--------------------------------------------------------------------------------------"
+    echo
     ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}warp.nii.gz ${templatename}warplog.txt 1
+
 
 }
 
@@ -414,8 +453,6 @@ function ANTSAverage2DAffine {
     echo "Transform: MatrixOffsetTransformBase_double_2_2  " >> $OUTNM
     echo "Parameters:  $PARAM1 $PARAM2 $PARAM3 $PARAM4 $PARAM5 $PARAM6  " >> $OUTNM
     echo "FixedParameters: $PARAM7 $PARAM8 " >> $OUTNM
-
-
 }
 
 function ANTSAverage3DAffine {
@@ -545,7 +582,7 @@ cleanup()
 
 # 1st attempt to kill all remaining processes
 # put all related processes in array
-  runningANTSpids=( `ps -C ANTS -C N4BiasFieldCorrection -C fslsplit | awk '{ printf "%s\n", $1 ; }'` )
+  runningANTSpids=( `ps -C ANTS -C N4BiasFieldCorrection -C ImageMath| awk '{ printf "%s\n", $1 ; }'` )
 
 # debug only
   #echo list 1: ${runningANTSpids[@]}
@@ -578,6 +615,10 @@ MAXITERATIONS=30x90x20
 LABELIMAGE=0 # initialize optional parameter
 METRICTYPE=CC # initialize optional parameter
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
+if [[ $dim == 4 ]] ; then
+  # we use a more constrained regularization for 4D mapping b/c we expect deformations to be relatively small and local
+  TRANSFORMATIONTYPE="GR_Constrained"
+fi
 N4CORRECT=1 # initialize optional parameter
 DOQSUB=1 # By default, buildtemplateparallel tries to do things in parallel
 GRADIENTSTEP=0.25 # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
@@ -593,20 +634,19 @@ SCRIPTPREPEND=""
 # System specific queue options, eg "-q name" to submit to a specific queue
 # It can be set to an empty string if you do not need any special cluster options
 QSUBOPTS="" # EDIT THIS
-
-
-
-if [ $OSTYPE == 'darwin' ]
-	then
-	cpu_count=`sysctl -n hw.physicalcpu`
-else
-	cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
-fi
+OUTPUTNAME=antsBTP
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
 # RAMfree=`cat /proc/meminfo | sed -n -e '/MemFree/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
 # cpu_free_ram=$((${RAMfree}/${cpu_count}))
+
+if [ ${OSTYPE:0:6} == 'darwin' ]
+	then
+	cpu_count=`sysctl -n hw.physicalcpu`
+else
+	cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
+fi
 
 # Provide output for Help
 if [ "$1" == "-h" ]
@@ -614,9 +654,9 @@ if [ "$1" == "-h" ]
     Help >&2
 
 fi
-OUTPUTNAME=antsBTP
+
 # reading command line arguments
-while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:z:" OPT
+while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -626,7 +666,7 @@ while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:z:" OPT
       c) #use SGE cluster
 	  DOQSUB=$OPTARG
 	  if [[ ${#DOQSUB} -gt 2 ]] ; then
-	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec ) you passed  -c $DOQSUB "
+	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3 Xgrid ) you passed  -c $DOQSUB "
 	      exit 1
 	  fi
 	  ;;
@@ -669,6 +709,9 @@ while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:z:" OPT
       t) #transformation model
 	  TRANSFORMATIONTYPE=$OPTARG
 	  ;;
+      x) #initialization template
+	  XGRIDOPTS=$XGRIDOPTS
+	  ;;
       z) #initialization template
 	  REGTEMPLATE=$OPTARG
 	  ;;
@@ -700,12 +743,6 @@ if [ $DOQSUB -eq 1 ] ; then
   fi
 fi
 
-#ANTSPATH=YOURANTSPATH
-if [  ${#ANTSPATH} -le 0 ]
-    then
-    setPath >&2
-fi
-
 # Creating the file list of images to make a template from.
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
 # The shiftsize variable will give the correct number of arguments to skip. Issuing shift $shiftsize will
@@ -715,22 +752,23 @@ shift $shiftsize
 # The invocation of $* will now read all remaining arguments into the variable IMAGESETVARIABLE
 IMAGESETVARIABLE=$*
 NINFILES=$(($nargs - $shiftsize))
-#test if FSL is available in case of 4D, exit if not
-if [  ${TDIM} -eq 4 ] && [  ${#FSLDIR} -le 0 ]
-    then
-    setFSLPath >&2
-fi
+
+# FSL not needed anymore, all dependent on ImageMath
+# #test if FSL is available in case of 4D, exit if not
+# if [  ${TDIM} -eq 4 ] && [  ${#FSLDIR} -le 0 ]
+#     then
+#     setFSLPath >&2
+# fi
 
 if [ ${NINFILES} -eq 0 ]
     then
     echo "Please provide at least 2 filenames for the template."
     echo "Use `basename $0` -h for help"
     exit 1
-elif [[ ${NINFILES} -eq 1 ]] # && [[ -s ${FSLDIR}/bin/fslnvols ]]
+elif [[ ${NINFILES} -eq 1 ]]
     then
 
-#    range=`fslnvols ${IMAGESETVARIABLE}`
-    range=` ${ANTSPATH}ImageMath $TDIM a nvols ${IMAGESETVARIABLE}  `
+    range=`${ANTSPATH}ImageMath $TDIM abs nvols ${IMAGESETVARIABLE} | tail -1 | cut -d "," -f 4 | cut -d " " -f 2 | cut -d "]" -f 1 `
 
     if [ ${range} -eq 1 ] && [ ${TDIM} -ne 4 ]
 	then
@@ -744,66 +782,111 @@ elif [[ ${NINFILES} -eq 1 ]] # && [[ -s ${FSLDIR}/bin/fslnvols ]]
 	exit 1
     elif [ ${range} -gt 1 ] && [ ${TDIM} -eq 4 ]
 	then
+	echo
 	echo "--------------------------------------------------------------------------------------"
 	echo " Creating template of 4D input. "
 	echo "--------------------------------------------------------------------------------------"
-		#splitting volume
-		#setting up working dirs
-	mkdir tmp
-	mkdir tmp/selection
 
-		#split the 4D file into 3D elements
-	cp ${IMAGESETVARIABLE} tmp/
-	cd tmp/
-        ${ANTSPATH}ImageMath $TDIM selection/vol.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} 16
+	#splitting volume
+	#setting up working dirs
+	tmpdir=${currentdir}/tmp_${RANDOM}_${RANDOM}_${RANDOM}_$$
+	(umask 077 && mkdir ${tmpdir}) || {
+		echo "Could not create temporary directory! Exiting." 1>&2
+		exit 1
+	}
 
-#	fslsplit ${IMAGESETVARIABLE}
+	mkdir ${tmpdir}/selection
+
+	#split the 4D file into 3D elements
+	cp ${IMAGESETVARIABLE} ${tmpdir}/
+	cd ${tmpdir}/
+ #       ${ANTSPATH}ImageMath $TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
 #	rm -f ${IMAGESETVARIABLE}
 
-		# selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection. folder
-#	for ((i = 0; i < 16 ; i++))
-#	  do
-#	  number=$RANDOM
-#	  let "number %= $range"
-#
-#	  if [ ${number} -lt 10 ]
-#	      then
-#	      cp vol000${number}.nii.gz selection/
-#	  elif [ ${number} -ge 10 ] && [ ${number} -lt 100 ]
-#	      then
-#	      cp vol00${number}.nii.gz selection/
-#	  elif [ ${number} -ge 100 ] && [ ${number} -lt 1000 ]
-#	      then
-#	      cp vol0${number}.nii.gz selection/
-#	  fi
-#	done
+	# selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection folder.
+	# the script will automatically divide timeseries into $total_volumes/16 bins from wich to take the random volumes;
+        # if there are more than 32 volumes in the time-series (in case they are smaller
+	if [ ${range} -gt 31  ]
+	then
 
-		# set filelist variable
+		BINSIZE=$((${range} / 16))
+
+		j=1 # initialize counter j
+		for ((i = 0; i < 16 ; i++))
+			do
+
+			FLOOR=$((${i} * ${BINSIZE}))
+			BINrange=$((${j} * ${BINSIZE}))
+
+			# Retrieve random number between two limits.
+			number=0   #initialize
+				while [ "$number" -le $FLOOR ]
+				do
+				number=$RANDOM
+					if [ $i -lt 15 ]
+						then
+						let "number %= $BINrange"  # Scales $number down within $range.
+					elif [ $i -eq 15 ]
+						then
+						let "number %= $range"  # Scales $number down within $range.
+					fi
+				done
+
+	#debug only
+			echo
+			echo "Random number between $FLOOR and $BINrange ---  $number"
+#			echo "Random number between $FLOOR and $range ---  $number"
+				if [ ${number} -lt 10 ]
+					then
+					${ANTSPATH}ImageMath $TDIM selection/vol000${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+#					cp vol000${number}.nii.gz selection/
+				elif [ ${number} -ge 10 ] && [ ${number} -lt 100 ]
+					then
+					${ANTSPATH}ImageMath $TDIM selection/vol00${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+#					cp vol00${number}.nii.gz selection/
+				elif [ ${number} -ge 100 ] && [ ${number} -lt 1000 ]
+					then
+					${ANTSPATH}ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+#					cp vol0${number}.nii.gz selection/
+				fi
+
+			let j++
+		done
+
+	elif [ ${range} -gt 16  ] && [ ${range} -lt 32  ]
+		then
+
+			for ((i = 0; i < 16 ; i++))
+			do
+			number=$RANDOM
+			let "number %= $range"
+
+				if [ ${number} -lt 10 ]
+					then
+					${ANTSPATH}ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+#					cp vol000${number}.nii.gz selection/
+				elif [ ${number} -ge 10 ] && [ ${number} -lt 100 ]
+					then
+					${ANTSPATH}ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
+#					cp vol00${number}.nii.gz selection/
+				fi
+			done
+
+	elif [ ${range} -lt 17  ]
+		then
+
+		${ANTSPATH}ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
+#		cp *.nii.gz selection/
+
+	fi
+
+	# set filelist variable
+	rm -f ${IMAGESETVARIABLE}
 	cd selection/
 	IMAGESETVARIABLE=`ls *.nii.gz`
 
     fi
 fi
-
-# Test availability of helper scripts.
-# No need to test this more than once. Can reside outside of the main loop.
-ANTSSCRIPTNAME=${ANTSPATH}antsIntroduction.sh
-PEXEC=${ANTSPATH}ANTSpexec.sh
-SGE=${ANTSPATH}waitForSGEQJobs.pl
-XGRID=${ANTSPATH}waitForXGridJobs.pl
-
-for FLE in $ANTSSCRIPTNAME $PEXEC $SGE $XGRID
-  do
-  if [ ! -x $FLE  ] ;
-      then
-      echo
-      echo "--------------------------------------------------------------------------------------"
-      echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
-      echo "--------------------------------------------------------------------------------------"
-      echo " if the file is not executable, please change its permissions. "
-      exit 1
-  fi
-done
 
 # exit
 # check for an initial template image and perform rigid body registration if requested
@@ -853,28 +936,28 @@ if [ "$RIGID" -eq 1 ] ;
 
       qscript="job_${count}_qsub.sh"
 
-	  echo "$SCRIPTPREPEND" > $qscript
+      echo "$SCRIPTPREPEND" > $qscript
 
-      echo "$exe" >> $qscript
+      echo "$exe" > $qscript
 
       echo "$exe2" >> $qscript
 
       if [ $DOQSUB -eq 1 ] ; then
-		id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
-		jobIDs="$jobIDs $id"
-		sleep 0.5
+	  id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
+	  jobIDs="$jobIDs $id"
+	  sleep 0.5
       elif  [ $DOQSUB -eq 2 ] ; then
-		# Send pexe and exe2 to same job file so that they execute in series
-		echo $pexe >> job${count}_r.sh
-		echo $exe2 >> job${count}_r.sh
+	  # Send pexe and exe2 to same job file so that they execute in series
+	  echo $pexe >> job${count}_r.sh
+	  echo $exe2 >> job${count}_r.sh
       elif  [ $DOQSUB -eq 3 ] ; then
 	id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
 	#echo "xgrid $XGRIDOPTS -job submit /bin/bash $qscript"
 		jobIDs="$jobIDs $id"
-	  elif  [ $DOQSUB -eq 0 ] ; then
+      elif  [ $DOQSUB -eq 0 ] ; then
 	  # execute jobs in series
-		$exe
-		$exe2
+	  $exe
+	  $exe2
       fi
 
       ((count++))
@@ -927,13 +1010,14 @@ if [ "$RIGID" -eq 1 ] ;
 	fi
     fi
 
+
     # Update template
     ${ANTSPATH}AverageImages $DIM $TEMPLATE 1 $RIGID_IMAGESET
 
     # cleanup and save output in seperate folder
 
     mkdir rigid
-    mv *.cfg rigid_*.nii.gz rigid_*.nii *Affine.txt rigid/
+    mv *.cfg rigid_*.nii.gz *Affine.txt rigid/
 
     # backup logs
     if [ $DOQSUB -eq 1 ];
@@ -944,11 +1028,12 @@ if [ "$RIGID" -eq 1 ] ;
 	rm -f job_${count}_qsub.sh
 
     elif [ $DOQSUB -eq 2 ];
-		then
-		mv job*.txt rigid/
-	elif [ $DOQSUB -eq 3 ];
-		then
-		rm -f job_*_qsub.sh
+	then
+	mv job*.txt rigid/
+
+    elif [ $DOQSUB -eq 3 ];
+	    then
+	    rm -f job_*_qsub.sh
     fi
 
 
@@ -965,6 +1050,7 @@ NUMLEVELS=${#ITERATLEVEL[@]}
 #echo $NUMLEVELS
 #echo ${ITERATIONLIMIT}
 
+echo
 echo "--------------------------------------------------------------------------------------"
 echo " Start to build template: ${TEMPLATE}"
 echo "--------------------------------------------------------------------------------------"
@@ -1034,8 +1120,8 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 	jobIDs="$jobIDs $id"
 	sleep 0.5
     elif [ $DOQSUB -eq 2 ] ; then
-		echo $pexe
-		echo $pexe >> job${count}_${i}.sh
+	echo $pexe
+	echo $pexe >> job${count}_${i}.sh
     elif [ $DOQSUB -eq 3 ] ; then
       qscript="job_${count}_${i}.sh"
       #exe="${ANTSSCRIPTNAME} -d ${DIM} -r ./${TEMPLATE} -i ./${IMG} -o ./${OUTFN} -m ${MAXITERATIONS} -n ${N4CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
@@ -1044,7 +1130,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
       id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
 	  jobIDs="$jobIDs $id"
     elif  [ $DOQSUB -eq 0 ] ; then
-		bash $exe
+	bash $exe
     fi
 
     # counter updated, but not directly used in this loop
@@ -1124,8 +1210,6 @@ while [  $i -lt ${ITERATIONLIMIT} ]
       rm -f job_*.sh
   fi
 
-
-
   ((i++))
 
 done
@@ -1137,9 +1221,9 @@ rm -f job*.sh
 #cleanup of 4D files
 if [ "${range}" -gt 1 ] && [ "${TDIM}" -eq 4 ]
     then
-    mv ${currentdir}/tmp/selection/${TEMPLATE} ${currentdir}/
+    mv ${tmpdir}/selection/${TEMPLATE} ${currentdir}/
     cd ${currentdir}
-    rm -rf ${currentdir}/tmp/
+    rm -rf ${tmpdir}/
 fi
 
 time_end=`date +%s`

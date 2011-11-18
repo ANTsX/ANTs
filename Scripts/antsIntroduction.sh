@@ -1,14 +1,41 @@
 #!/bin/bash
 
-VERSION="0.0.7"
+VERSION="0.0.8 dev"
+
+# trap keyboard interrupt (control-c)
+trap control_c SIGINT
+
+function setPath {
+    cat <<SETPATH
+
+--------------------------------------------------------------------------------------
+Error locating ANTS
+--------------------------------------------------------------------------------------
+It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
+variable. This can be achieved by editing the .bash_profile in the home directory.
+Add:
+
+ANTSPATH=/home/yourname/bin/ants/
+
+Or the correct location of the ANTS binaries.
+
+Alternatively, edit this script ( `basename $0` ) to set up this parameter correctly.
+
+SETPATH
+    exit 1
+}
 
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
-if [ ${#ANTSPATH} -le 3 ] ; then
-  echo we guess at your ants path
-  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+# export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+
+#ANTSPATH=YOURANTSPATH
+if [  ${#ANTSPATH} -le 3 ]
+    then
+    setPath >&2
 fi
+
 if [ ! -s ${ANTSPATH}/ANTS ] ; then
-  echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  echo "ANTS program can't be found. Please (re)define \$ANTSPATH in your environment."
   exit
 fi
 
@@ -17,7 +44,7 @@ function Usage {
 
 Usage:
 
-$0 -d ImageDimension -r fixed.ext -i moving.ext
+`basename $0` -d ImageDimension -r fixed.ext -i moving.ext
 
 Compulsory arguments:
 
@@ -47,7 +74,7 @@ Optional arguments
 
  You can change the values for each of these methods in this script.
 
- Use $0 -h for extended help.
+ Use `basename $0` -h for extended help.
 --------------------------------------------------------------------------------------
  ANTS was created by:
  Brian B. Avants, Nick Tustison and Gang Song
@@ -64,7 +91,7 @@ USAGE
 function Help {
     cat <<Help
 
- $0 will perform an elastic or diffeomorphic transformation of the moving image
+ `basename $0` will perform an elastic or diffeomorphic transformation of the moving image
  into the fixed image space.
 
  this script encodes some reasonable defaults for the parameters and is useful for testing and comparing methods
@@ -74,7 +101,7 @@ function Help {
 
  Usage:
 
- $0 -d ImageDimension -r fixed.ext -i moving.ext
+ `basename $0` -d ImageDimension -r fixed.ext -i moving.ext
 
  Compulsory arguments:
 
@@ -137,8 +164,7 @@ function Help {
 	CC = cross-correlation
 	MI = mutual information
 	PR = probability mapping (default)
-	MSQ = mean square difference (Demons-like)
-	SSD = sum of squared differences
+	MSQ = mean square difference
 
 	For intermodal image registration, use:
 	MI = mutual information
@@ -200,25 +226,6 @@ Help
     exit 0
 }
 
-function setPath {
-    cat <<setPath
---------------------------------------------------------------------------------------
-Error locating ANTS
---------------------------------------------------------------------------------------
-It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
-variable. This can be achieved by editing the .bash_profile in the home directory.
-Add:
-
-ANTSPATH=/home/yourname/bin/ants/
-
-Or the correct location of the ANTS binaries.
-
-Alternatively, edit this script ( $0 ) to set up this parameter correctly.
-
-setPath
-    exit 1
-}
-
 function reportMappingParameters {
     cat <<reportMappingParameters
 --------------------------------------------------------------------------------------
@@ -269,6 +276,40 @@ dataCheck
 
 }
 
+cleanup()
+# example cleanup function
+{
+
+  cd ${currentdir}/
+
+  echo -en "\n*** Performing cleanup, please wait ***\n"
+
+# 1st attempt to kill all remaining processes
+# put all related processes in array
+  runningANTSpids=( `ps -C ANTS -C N4BiasFieldCorrection -C antsIntroduction.sh | awk '{ printf "%s\n", $1 ; }'` )
+
+# debug only
+  #echo list 1: ${runningANTSpids[@]}
+
+# kill these processes, skip the first since it is text and not a PID
+  for ((i = 1; i < ${#runningANTSpids[@]} ; i++))
+  do
+  echo "killing:  ${runningANTSpids[${i}]}"
+  kill ${runningANTSpids[${i}]}
+  done
+
+  return $?
+}
+
+control_c()
+# run if user hits control-c
+{
+  echo -en "\n*** User pressed CTRL + C ***\n"
+  cleanup
+  exit $?
+  echo -en "\n*** Script cancelled by user ***\n"
+}
+
 time_start=`date +%s`
 currentdir=`pwd`
 nargs=$#
@@ -306,7 +347,7 @@ do
         ;;
     i) #input or moving image
         MOVING=$OPTARG
-        OUTPUTNAME=` echo $MOVING | cut -d '.' -f 1 `
+        OUTPUTNAME=` echo basename $MOVING | cut -d '.' -f 1 `
         ;;
     l) #use label image
         LABELIMAGE=$OPTARG
@@ -339,11 +380,17 @@ do
     esac
 done
 
-#ANTSPATH=YOURANTSPATH
-if [  ${#ANTSPATH} -le 0 ]
-then
-setPath >&2
-fi
+tmpdir=${currentdir}/tmp_${RANDOM}_${RANDOM}_${RANDOM}_$$
+(umask 077 && mkdir ${tmpdir}) || {
+	echo "Could not create temporary directory! Exiting." 1>&2
+	exit 1
+}
+
+cp ${FIXED} ${MOVING} ${tmpdir}/
+cd ${tmpdir}/
+
+FIXED=`basename ${FIXED}`
+MOVING=`basename ${MOVING}`
 
 # test input parameter before starting
 if  [ ${#DIM} -gt 1 ]
@@ -437,6 +484,12 @@ then
 TRANSFORMATION=SyN[0.25]
 REGULARIZATION=Gauss[3,0]
 
+elif [ "${TRANSFORMATIONTYPE}" == "GR_Constrained" ]
+then
+# Mapping Parameters for the greedy gradient descent (fast) version of SyN -- only needs GradientStepLength
+TRANSFORMATION=SyN[0.25]
+REGULARIZATION=Gauss[3,0.5]
+
 elif [ "${TRANSFORMATIONTYPE}" == "EX" ]
 then
 # Mapping Parameters
@@ -451,7 +504,7 @@ TRANSFORMATION=GreedyExp[0.5,10]
 REGULARIZATION=Gauss[3,0.5]
 
 else
-echo "Invalid transformation metric. Use RI, RA, EL, SY, S2, GR , DD or EX or type sh $0 -h."
+echo "Invalid transformation metric. Use RI, RA, EL, SY, S2, GR , DD or EX or type bash `basename $0` -h."
 exit 1
 fi
 
@@ -480,14 +533,8 @@ then
 METRIC=MSQ[
 METRICPARAMS=1,0]
 
-elif [ "${METRICTYPE}" == "SSD" ]
-then
-# Mapping Parameters
-METRIC=SSD[
-METRICPARAMS=1,0]
-
 else
-echo "Invalid similarity metric. Use CC, MI, MSQ, SSD or PR or type sh $0 -h."
+echo "Invalid similarity metric. Use CC, MI, MSQ or PR or type bash`basename $0` -h."
 exit 1
 fi
 
@@ -557,7 +604,9 @@ fi
 elif [ ${N4CORRECT} -eq 1 ] && [ ${RIGID} -eq 0 ]
 then
 # Apply N4BiasFieldCorrection
-exe="${ANTSPATH}N4BiasFieldCorrection -d $DIM -i $MOVING -s 2 -c [50x50x50x50,0.0000001] -b [200] -o ${OUTPUTNAME}.nii.gz"
+#Uncomment/comment below to switch between N3 and N4 bias field correction binaries
+#exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
+exe="${ANTSPATH}N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}.nii.gz -b [200] -s 3 -c [50x50x30x20,1e-6]"
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "N4BiasFieldCorrection command:"
@@ -566,7 +615,7 @@ echo "--------------------------------------------------------------------------
 $exe
 echo "execN4=$exe" >> ${MOVINGBASE}.cfg
 
-# Apply ANTS mapping command on N4 corrected image
+# Apply ANTS mapping command on N3 corrected image
 exe="${ANTSPATH}ANTS $DIM -m  ${METRIC}${FIXED},${OUTPUTNAME}.nii.gz,${METRICPARAMS} -t $TRANSFORMATION -r $REGULARIZATION -o ${OUTPUTNAME} -i $MAXITERATIONS --use-Histogram-Matching  --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000  "
 echo
 echo "--------------------------------------------------------------------------------------"
@@ -603,7 +652,7 @@ fi
 
 elif  [ ${N4CORRECT} -eq 0 ] && [ ${RIGID} -eq 1 ]
 then
-exe=" ${ANTSPATH}ANTS $DIM -m MI[${FIXED},${MOVING},1,32] -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 ${RIGIDTRANSF} "
+exe=" ${ANTSPATH}ANTS $DIM -m ${METRIC}${FIXED},${MOVING},${METRICPARAMS} -o ${OUTPUTNAME}.nii.gz -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 --MI-option 32x16000 ${RIGIDTRANSF} "
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "ANTS command:"
@@ -622,7 +671,9 @@ ${ANTSPATH}WarpImageMultiTransform $DIM ${MOVING} ${OUTPUTNAME}deformed.nii.gz $
 elif  [ ${N4CORRECT} -eq 1 ] && [ ${RIGID} -eq 1 ]
 then
 # Apply N4BiasFieldCorrection
-exe="${ANTSPATH}N4BiasFieldCorrection -d $DIM -i $MOVING -s 2 -c [50x50x50x50,0.0000001] -b [200] -o ${OUTPUTNAME}.nii.gz"
+#Uncomment/comment below to switch between N3 and N4 bias field correction binaries
+#exe="${ANTSPATH}N3BiasFieldCorrection $DIM $MOVING ${OUTPUTNAME}.nii.gz 4"
+exe="${ANTSPATH}N4BiasFieldCorrection -d $DIM -i $MOVING -o ${OUTPUTNAME}.nii.gz -b [200] -s 3 -c [50x50x30x20,1e-6]"
 echo
 echo "--------------------------------------------------------------------------------------"
 echo "N4BiasFieldCorrection command:"
@@ -680,6 +731,13 @@ ${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}dicestats.txt DiceAndMinDistSum  ${OUTPUT
 # we compare the output of these last two lines:
 #  the Volume of the movlabstat computation vs. the mass of the jaclabstat
 fi
+
+# save output in starting dir - remove inputs, then remove tempdir
+rm `basename ${FIXED}`
+rm `basename ${MOVING}`
+cp * ../
+cd ${currentdir}
+rm -rf ${tmpdir}/
 
 time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
