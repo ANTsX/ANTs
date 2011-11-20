@@ -806,13 +806,12 @@ elif [[ ${NINFILES} -eq 1 ]]
 	# selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection folder.
 	# the script will automatically divide timeseries into $total_volumes/16 bins from wich to take the random volumes;
         # if there are more than 32 volumes in the time-series (in case they are smaller
-	if [ ${range} -gt 31  ]
-	then
-
-		BINSIZE=$((${range} / 16))
-
+	nfmribins=2
+	let
+	if [ ${range} -gt 31  ]  ; then
+		BINSIZE=$((${range} / ${nfmribins}))
 		j=1 # initialize counter j
-		for ((i = 0; i < 16 ; i++))
+		for ((i = 0; i < ${nfmribins} ; i++))
 			do
 
 			FLOOR=$((${i} * ${BINSIZE}))
@@ -853,10 +852,10 @@ elif [[ ${NINFILES} -eq 1 ]]
 			let j++
 		done
 
-	elif [ ${range} -gt 16  ] && [ ${range} -lt 32  ]
+	elif [ ${range} -gt ${nfmribins}  ] && [ ${range} -lt 32  ]
 		then
 
-			for ((i = 0; i < 16 ; i++))
+			for ((i = 0; i < ${nfmribins} ; i++))
 			do
 			number=$RANDOM
 			let "number %= $range"
@@ -872,7 +871,7 @@ elif [[ ${NINFILES} -eq 1 ]]
 				fi
 			done
 
-	elif [ ${range} -lt 17  ]
+	elif [ ${range} -le ${nfmribins}  ]
 		then
 
 		${ANTSPATH}ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}

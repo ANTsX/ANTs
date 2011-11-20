@@ -2074,6 +2074,307 @@ int TimeSeriesToMatrix(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int CompCorrAuto(int argc, char *argv[])
+{
+  if( argc <= 2 )
+    {
+    std::cout << " too few options " << std::endl; return 1;
+    }
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef typename OutImageType::IndexType             OutIndexType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+  typedef double                                            Scalar;
+  typedef itk::ants::antsMatrixUtilities<ImageType, Scalar> matrixOpType;
+  typename matrixOpType::Pointer matrixOps = matrixOpType::New();
+
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  std::string  fn_label = std::string(argv[argct]);   argct++;
+  unsigned int n_comp_corr_vecs = 4; // number of eigenvectors to get from high variance voxels
+  if( argc > argct )
+    {
+    n_comp_corr_vecs = atoi(argv[argct]);
+    }
+  argct++;
+  std::string::size_type idx;
+  idx = outname.find_first_of('.');
+  std::string tempname = outname.substr(0, idx);
+  std::string extension = outname.substr(idx, outname.length() );
+
+  typename ImageType::Pointer image1 = NULL;
+  typename OutImageType::Pointer outimage = NULL;
+  typename OutImageType::Pointer outimage2 = NULL;
+  typename OutImageType::Pointer label_image = NULL;
+  typename OutImageType::Pointer var_image = NULL;
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>    ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType> SliceIt;
+
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+  if( fn_label.length() > 3 )
+    {
+    ReadImage<OutImageType>(label_image, fn_label.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+  if( fn_label.length() > 3 )
+    {
+    ReadImage<OutImageType>(outimage, fn_label.c_str() );
+    }
+  if( fn_label.length() > 3 )
+    {
+    ReadImage<OutImageType>(outimage2, fn_label.c_str() );
+    }
+  if( fn_label.length() > 3 )
+    {
+    ReadImage<OutImageType>(var_image, fn_label.c_str() );
+    }
+  var_image->FillBuffer(0);
+  outimage->FillBuffer(0);
+  outimage2->FillBuffer(0);
+  std::cout << " read images " << std::endl;
+  unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  std::cout << "timedims " << timedims << " size " << image1->GetLargestPossibleRegion().GetSize() << std::endl;
+
+  // first, count the label numbers
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
+  labIterator   vfIter2( label_image,  label_image->GetLargestPossibleRegion() );
+  unsigned long ct_nuis = 0;
+  unsigned long ct_vox = 0;
+  std::cout << " verify input " << std::endl;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    if( vfIter2.Get() == 1 )      // in brain
+      {
+      ct_vox++;
+      }
+    }
+  std::cout << " counted " << ct_vox << " voxels " <<  std::endl;
+  if( ct_vox == 0 )
+    {
+    std::cout << ct_vox << " not enough voxels labeled as gm (or brain) " << std::endl;
+    return 1;
+    }
+  // step 1.  compute , in label 3 ( the nuisance region ), the representative value of the time series over the region.
+  //  at the same time, compute the average value in label 2 ( the reference region ).
+  // step 2.  factor out the nuisance region from the activation at each voxel in the ROI (nonzero labels).
+  // step 3.  compute the correlation of the reference region with every voxel in the roi.
+  typedef vnl_matrix<Scalar> timeMatrixType;
+  typedef vnl_vector<Scalar> timeVectorType;
+  timeMatrixType mSample(timedims, ct_vox, 0);
+  unsigned long  nuis_vox = 0;
+  timeVectorType sample(timedims, 0);
+  //  FIRST -- get high variance (in time) voxels
+  float maxvar = 0;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    if( vfIter2.Get() > 0 )      // in-brain
+      {
+      IndexType tind;
+      for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+        {
+        tind[i] = ind[i];
+        }
+      float total = 0;
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        Scalar pix = image1->GetPixel(tind);
+        sample(t) = pix;
+        total += pix;
+        }
+      float mean = total / (float)timedims;
+      float var = 0;
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        var += ( (sample(t) - mean) * (sample(t) - mean) );
+        }
+      var /= (float)(timedims);
+      var = sqrt(var);
+      if( var > maxvar )
+        {
+        maxvar = var;
+        }
+      var_image->SetPixel(ind, var);
+      }
+    }
+  std::cout << " got var " << std::endl;
+  // now build the histogram
+  unsigned int   histsize = 50;
+  float          binsize = maxvar / histsize;
+  timeVectorType varhist(histsize, 0);
+  float          varhistsum = 0;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    float        var = var_image->GetPixel(ind);
+    if( vfIter2.Get() > 0 && var > 0 )      // in-brain
+      {
+      int bin = (int)( var / binsize ) - 1;
+      if( bin < 0 )
+        {
+        bin = 0;
+        }
+      varhist[bin] += 1;
+      varhistsum += 1;
+      }
+    }
+  varhist = varhist / varhistsum;
+  std::cout << " got var hist " << std::endl;
+  float temp = 0;
+  float varval_csf = 0;
+  for( unsigned int j = 0; j < histsize; j++ )
+    {
+    temp += varhist(j);
+    float varth = (float)j / (float)histsize * maxvar;
+    std::cout << " j " << j << " temp " << temp << " varth " << varth << std::endl;
+    if( temp >= 0.95 && varval_csf <=  0 )
+      {
+      varval_csf = (float)j * binsize;
+      }
+    }
+
+  std::cout << " maxvar " << maxvar << " varval_csf " << varval_csf << std::endl;
+  ct_nuis = 0;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
+      {
+      ct_nuis++;
+      }
+    }
+  timeMatrixType mNuisance(timedims, ct_nuis, 0);
+  nuis_vox = 0;
+  unsigned long brain_vox = 0;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
+      {
+      IndexType tind;
+      for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+        {
+        tind[i] = ind[i];
+        }
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        Scalar pix = image1->GetPixel(tind);
+        mNuisance(t, nuis_vox) = pix;
+        }
+      nuis_vox++;
+      }
+    if( vfIter2.Get() > 0  )      // in brain
+      {
+      IndexType tind;
+      for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+        {
+        tind[i] = ind[i];
+        }
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        Scalar pix = image1->GetPixel(tind);
+        mSample(t, brain_vox) = pix;
+        }
+      brain_vox++;
+      }
+    }
+  // factor out the nuisance variables by OLS
+  timeVectorType vGlobal = matrixOps->AverageColumns(mSample);
+  //  typedef itk::Array2D<double> csvMatrixType;
+  timeMatrixType           reducedNuisance(timedims, n_comp_corr_vecs + 1);
+  std::vector<std::string> ColumnHeaders;
+  std::string              colname = std::string("GlobalSignal");
+  ColumnHeaders.push_back( colname );
+  reducedNuisance.set_column(0, vGlobal);
+  if( ct_nuis <= 0 )
+    {
+    n_comp_corr_vecs = 1;
+    }
+  for( unsigned int i = 0; i < n_comp_corr_vecs; i++ )
+    {
+    timeVectorType nuisi = matrixOps->GetCovMatEigenvector(mNuisance, i);
+    reducedNuisance.set_column(i + 1, nuisi);
+    colname = std::string("CompCorrVec") + ants_to_string<unsigned int>(i + 1);
+    ColumnHeaders.push_back( colname );
+    }
+
+  // write out these nuisance variables
+  // write out the array2D object
+  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  WriterType::Pointer writer = WriterType::New();
+  std::string         kname = tempname + std::string("_compcorr.csv");
+  writer->SetFileName( kname );
+  writer->SetInput( &reducedNuisance );
+  writer->SetColumnHeaders( ColumnHeaders );
+  try
+    {
+    writer->Write();
+    }
+  catch( itk::ExceptionObject& exp )
+    {
+    std::cerr << "Exception caught!" << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  timeMatrixType RRt = matrixOps->ProjectionMatrix(reducedNuisance);
+  mSample = matrixOps->NormalizeMatrix(mSample);
+  mSample = mSample - RRt * mSample;
+  brain_vox = 0;
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    if( vfIter2.Get() > 0 )
+      {
+      timeVectorType samp = mSample.get_column(brain_vox);
+// correct the original image
+      IndexType tind;
+      for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+        {
+        tind[i] = ind[i];
+        }
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        image1->SetPixel(tind, samp[t]);
+        }
+      brain_vox++;
+      }
+    }
+  kname = tempname + std::string("_corrected") + extension;
+  WriteImage<ImageType>(image1, kname.c_str() );
+  kname = tempname + std::string("_variance") + extension;
+  WriteImage<OutImageType>(var_image, kname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int CompCorr(int argc, char *argv[])
 {
   if( argc <= 2 )
@@ -2384,7 +2685,7 @@ int CompCorr(int argc, char *argv[])
       }
     }
   // factor out the nuisance variables by OLS
-  unsigned int nnuis = 3;
+  unsigned int nnuis = 3; // number of eigenvectors to get from high variance voxels
   if( ct_nuis <= 0 )
     {
     nnuis = 1;
@@ -8549,6 +8850,11 @@ int main(int argc, char *argv[])
     std::cout << "\nTime Series Operations:" << std::endl;
     std::cout
       <<
+      " CompCorrAuto : Outputs a csv file containing global signal vector and N comp-corr eigenvectors determined from PCA of the high-variance voxels.  Also outputs a comp-corr + global signal corrected 4D image as well as a 3D image measuring the time series variance.  Requires a label image with label 1 identifying voxels in the brain."
+      << std::endl;
+    std::cout << "    Usage		: CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  N-comp-corr-eigenvectors "<< std::endl;
+    std::cout
+      <<
       " CompCorr : Outputs a comp-corr corrected 4D image as well as a 3D image measuring the correlation of a time series voxel/region with a reference voxel/region factored out.  Requires a label image with 1=overall region of interest,  2=reference voxel, 3=region to factor out.  If there is no 3rd label, then only the global signal is factored out."
       << std::endl;
     std::cout << "    Usage		: CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  Sigma-for-temporal-smoothing "
@@ -9620,6 +9926,10 @@ int main(int argc, char *argv[])
       else if( strcmp(operation.c_str(), "CompCorr") == 0 )
         {
         CompCorr<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CompCorrAuto") == 0 )
+        {
+        CompCorrAuto<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "ComputeTimeSeriesLeverage") == 0 )
         {
