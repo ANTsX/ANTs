@@ -198,11 +198,10 @@ int ants_moco( itk::ants::CommandLineParser *parser )
   typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
   typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
   typedef vnl_matrix<double>                        vMatrix;
-  vMatrix metric_values;
   vMatrix param_values;
 
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
-  unsigned int   nparams = 0;
+  unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
   // We iterate backwards because the command line options are stored as a stack (first in last out)
@@ -291,7 +290,6 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     //
     // Set up the image metric and scales estimator
     unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-    metric_values.set_size(timedims, 2);  metric_values.fill(0);
     for( unsigned int timedim = 0;  timedim < timedims - 1;  timedim++ )
       {
       typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
@@ -424,7 +422,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
         typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
-        nparams = affineTransform->GetNumberOfParameters();
+        nparams = affineTransform->GetNumberOfParameters() + 2;
         affineTransform->SetIdentity();
         affineRegistration->SetFixedImage( fixed_time_slice );
         affineRegistration->SetMovingImage( moving_time_slice );
@@ -468,7 +466,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
           }
         for( unsigned int i = 0; i < nparams; i++ )
           {
-          param_values(timedim, i) = affineRegistration->GetOutput()->Get()->GetParameters()[i];
+          param_values(timedim, i + 2) = affineRegistration->GetOutput()->Get()->GetParameters()[i];
           }
         }
       else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
@@ -479,7 +477,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
                                                    RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
         typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
-        nparams = rigidTransform->GetNumberOfParameters();
+        nparams = rigidTransform->GetNumberOfParameters() + 2;
         rigidTransform->SetIdentity();
         rigidRegistration->SetFixedImage( fixed_time_slice );
         rigidRegistration->SetMovingImage( moving_time_slice );
@@ -519,7 +517,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
           }
         for( unsigned int i = 0; i < nparams; i++ )
           {
-          param_values(timedim, i) = rigidRegistration->GetOutput()->Get()->GetParameters()[i];
+          param_values(timedim, i + 2) = rigidRegistration->GetOutput()->Get()->GetParameters()[i];
           }
         }
       else
@@ -527,19 +525,23 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
-      metric_values(timedim, 0) = metric->GetValue();
+      param_values(timedim, 1) = metric->GetValue();
       }
     }
   // Write out warped image(s), if requested.
   totalTimer.Stop();
-  metric_values(metric_values.rows() - 1, 0) = metric_values(metric_values.rows() - 2, 0);
   for( unsigned int i = 0; i < nparams; i++ )
     {
-    param_values(metric_values.rows() - 1, i) = param_values(metric_values.rows() - 2, i);
+    param_values(param_values.rows() - 1, i) = param_values(param_values.rows() - 2, i);
     }
   std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMeanTime() << std::endl;
     {
     std::vector<std::string> ColumnHeaders;
+    std::string              colname;
+    colname = std::string("MetricPre");
+    ColumnHeaders.push_back( colname );
+    colname = std::string("MetricPost");
+    ColumnHeaders.push_back( colname );
     for( unsigned int nv = 0; nv < nparams; nv++ )
       {
       std::string colname = std::string("MOCOparam") + ants_moco_to_string<unsigned int>(nv);
@@ -552,21 +554,6 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     writer->SetFileName( fnmp.c_str() );
     writer->SetColumnHeaders(ColumnHeaders);
     writer->SetInput( &param_values );
-    writer->Write();
-    }
-    {
-    std::vector<std::string> ColumnHeaders;
-    std::string              colname = std::string("MetricPost");
-    ColumnHeaders.push_back( colname );
-    colname = std::string("MetricPre");
-    ColumnHeaders.push_back( colname );
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
-    WriterType::Pointer writer = WriterType::New();
-    std::string         fnmp = outputPrefix + std::string("Metric.csv");
-    std::cout << " write " << fnmp << std::endl;
-    writer->SetFileName( fnmp.c_str() );
-    writer->SetColumnHeaders(ColumnHeaders);
-    writer->SetInput( &metric_values );
     writer->Write();
     }
   return EXIT_SUCCESS;
