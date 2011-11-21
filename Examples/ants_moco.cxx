@@ -58,6 +58,15 @@
 
 #include <sstream>
 
+template <class T>
+inline std::string ants_moco_to_string(const T& t)
+{
+  std::stringstream ss;
+
+  ss << t;
+  return ss.str();
+}
+
 template <class TFilter>
 class CommandIterationUpdate : public itk::Command
 {
@@ -358,7 +367,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     typename GradientDescentObjectOptimizerType::Pointer optimizer = GradientDescentObjectOptimizerType::New();
     optimizer->SetLearningRate( learningRate );
     optimizer->SetNumberOfIterations( iterations[0] );
-    optimizer->SetScalesEstimator( scalesEstimator );
+    //    optimizer->SetScalesEstimator( scalesEstimator );
 
     // the fixed image is a reference image in 3D while the moving is a 4D image
     // loop over every time point and register image_i+1 to image_i
@@ -370,8 +379,17 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       typedef itk::ImageRegionIteratorWithIndex<FixedImageType>        SliceIt;
 
       typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
-      extractRegion.SetSize(ImageDimension - 1, 0);
-      extractRegion.SetIndex(ImageDimension - 1, timedim );
+      std::cout << " direction ";
+      for( unsigned int qq = 0; qq < ImageDimension; qq++ )
+        {
+        for( unsigned int pp = 0; pp < ImageDimension; pp++ )
+          {
+          std::cout << movingImage->GetDirection()[qq][pp] << " ";
+          }
+        }
+      std::cout << std::endl;
+      extractRegion.SetSize(ImageDimension, 0);
+      extractRegion.SetIndex(ImageDimension, timedim );
       typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
       extractFilter->SetInput( movingImage );
       extractFilter->SetDirectionCollapseToSubmatrix();
@@ -379,7 +397,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       extractFilter->Update();
       typename FixedImageType::Pointer fixed_time_slice = extractFilter->GetOutput();
 
-      extractRegion.SetIndex(ImageDimension - 1, timedim + 1 );
+      extractRegion.SetIndex(ImageDimension, timedim + 1 );
       typename ExtractFilterType::Pointer extractFilter2 = ExtractFilterType::New();
       extractFilter2->SetInput( movingImage );
       extractFilter2->SetDirectionCollapseToSubmatrix();
@@ -436,13 +454,12 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
         {
-        typedef itk::Euler3DTransform<double> RigidTransformType;
-        typename RigidTransformType::Pointer rigidTransform;
-
+        typedef itk::Euler3DTransform<double>
+                                                                       RigidTransformType;
         typedef itk::SimpleImageRegistrationMethod<FixedImageType, FixedImageType,
                                                    RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
-
+        typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
         rigidRegistration->SetFixedImage( fixed_time_slice );
         rigidRegistration->SetMovingImage( moving_time_slice );
         rigidRegistration->SetNumberOfLevels( numberOfLevels );
@@ -452,7 +469,6 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         rigidRegistration->SetOptimizer( optimizer );
         rigidRegistration->SetTransform( rigidTransform );
         rigidRegistration->SetCompositeTransform( compositeTransform );
-
         typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
         typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
         rigidObserver->SetNumberOfIterations( iterations );
@@ -467,6 +483,14 @@ int ants_moco( itk::ants::CommandLineParser *parser )
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
+        // Write out the rigid transform
+        std::string filename = outputPrefix + std::string("TimeSlice") + ants_moco_to_string<unsigned int>(timedim)
+          + std::string( "Rigid.txt" );
+        typedef itk::TransformFileWriter TransformWriterType;
+        typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+        transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
+        transformWriter->SetFileName( filename.c_str() );
+        transformWriter->Update();
         }
       else
         {
@@ -530,15 +554,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "transform" );
     option->SetShortName( 't' );
-//  option->SetUsageOption( 0, "Rigid[gradientStep]" );
     option->SetUsageOption( 0, "Affine[gradientStep]" );
-    option->SetUsageOption( 1, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption( 2,
-                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
-    option->SetUsageOption( 3,
-                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption( 4,
-                            "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
+    option->SetUsageOption( 1, "Rigid[gradientStep]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -573,16 +590,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "shrinkFactors" );
     option->SetShortName( 'f' );
     option->SetUsageOption( 0, "MxNx0..." );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description = std::string( "Histogram match the images before registration." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "useHistogramMatching" );
-    option->SetShortName( 'u' );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -631,7 +638,9 @@ int main( int argc, char *argv[] )
     + std::string( "registration application meant to utilize ITKv4-only classes. The user can specify " )
     + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
     + std::string( " and iterations, shrink factors, and smoothing sigmas for each level. " )
-    + std::string( " Specialized for 4D time series data. " );
+    + std::string(
+      " Specialized for 4D time series data: fixed image is 3D, moving image should be the 4D time series. ")
+    + std::string( " Fixed image is a reference space or time slice.");
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
 
