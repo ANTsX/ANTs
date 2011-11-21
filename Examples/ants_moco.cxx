@@ -17,7 +17,7 @@
 *=========================================================================*/
 
 #include "antsCommandLineParser.h"
-
+#include "itkCSVNumericObjectFileWriter.h"
 #include "itkSimpleImageRegistrationMethod.h"
 #include "itkTimeVaryingVelocityFieldImageRegistrationMethod.h"
 
@@ -136,10 +136,6 @@ void ConvertToLowerCase( std::string& str )
 template <unsigned int ImageDimension>
 int ants_moco( itk::ants::CommandLineParser *parser )
 {
-  itk::TimeProbe totalTimer;
-
-  totalTimer.Start();
-
   // We infer the number of stages by the number of transformations
   // specified by the user which should match the number of metrics.
 
@@ -201,20 +197,17 @@ int ants_moco( itk::ants::CommandLineParser *parser )
   typedef double                                    RealType;
   typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
   typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
+  typedef vnl_matrix<double>                        vMatrix;
+  vMatrix metric_values;
+  vMatrix param_values;
 
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
-  typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
-
-  typedef itk::IdentityTransform<RealType, ImageDimension> IdentityTransformType;
-  typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
-
-  compositeTransform->AddTransform( identityTransform );
+  unsigned int   nparams = 0;
+  itk::TimeProbe totalTimer;
+  totalTimer.Start();
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
-    itk::TimeProbe timer;
-    timer.Start();
-
     typedef itk::SimpleImageRegistrationMethod<FixedImageType, FixedImageType> AffineRegistrationType;
 
     std::cout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
@@ -293,101 +286,20 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
       }
 
-    // Set up the image metric and scales estimator
-
-    typedef itk::ImageToImageObjectMetric<FixedImageType, FixedImageType> MetricType;
-    typename MetricType::Pointer metric;
-
-    std::string whichMetric = metricOption->GetValue( currentStage );
-    ConvertToLowerCase( whichMetric );
-    if( std::strcmp( whichMetric.c_str(), "cc" ) == 0 )
-      {
-      unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
-
-      std::cout << "  using the CC metric (radius = " << radiusOption << ")." << std::endl;
-      typedef itk::ANTSNeighborhoodCorrelationImageToImageObjectMetric<FixedImageType,
-                                                                       FixedImageType> CorrelationMetricType;
-      typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
-      typename CorrelationMetricType::RadiusType radius;
-      radius.Fill( radiusOption );
-      correlationMetric->SetRadius( radius );
-      correlationMetric->SetDoFixedImagePreWarp( true );
-      correlationMetric->SetDoMovingImagePreWarp( true );
-      correlationMetric->SetUseMovingImageGradientFilter( false );
-      correlationMetric->SetUseFixedImageGradientFilter( false );
-
-      metric = correlationMetric;
-      }
-    else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
-      {
-      unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
-
-      std::cout << "  using the MI metric (number of bins = " << binOption << ")" << std::endl;
-      typedef itk::JointHistogramMutualInformationImageToImageObjectMetric<FixedImageType,
-                                                                           FixedImageType> MutualInformationMetricType;
-      typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
-      mutualInformationMetric = mutualInformationMetric;
-      mutualInformationMetric->SetNumberOfHistogramBins( binOption );
-      mutualInformationMetric->SetDoFixedImagePreWarp( true );
-      mutualInformationMetric->SetDoMovingImagePreWarp( true );
-      mutualInformationMetric->SetUseMovingImageGradientFilter( false );
-      mutualInformationMetric->SetUseFixedImageGradientFilter( false );
-      mutualInformationMetric->SetUseFixedSampledPointSet( false );
-
-      metric = mutualInformationMetric;
-      }
-    else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
-      {
-      std::cout << "  using the Demons metric." << std::endl;
-
-      typedef itk::DemonsImageToImageObjectMetric<FixedImageType, FixedImageType> DemonsMetricType;
-      typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
-      demonsMetric = demonsMetric;
-      demonsMetric->SetDoFixedImagePreWarp( true );
-      demonsMetric->SetDoMovingImagePreWarp( true );
-
-      metric = demonsMetric;
-      }
-    else
-      {
-      std::cerr << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
-      }
-
-    // Set up the optimizer.  To change the iteration number for each level we rely
-    // on the command observer.
-
-    typedef itk::RegistrationParameterScalesFromShift<MetricType> ScalesEstimatorType;
-    typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
-    scalesEstimator->SetMetric( metric );
-    scalesEstimator->SetTransformForward( true );
-
-    float learningRate = parser->Convert<float>( transformOption->GetParameter( currentStage, 0 ) );
-
-    typedef itk::GradientDescentObjectOptimizer GradientDescentObjectOptimizerType;
-    typename GradientDescentObjectOptimizerType::Pointer optimizer = GradientDescentObjectOptimizerType::New();
-    optimizer->SetLearningRate( learningRate );
-    optimizer->SetNumberOfIterations( iterations[0] );
-    //    optimizer->SetScalesEstimator( scalesEstimator );
-
     // the fixed image is a reference image in 3D while the moving is a 4D image
     // loop over every time point and register image_i+1 to image_i
+    //
+    // Set up the image metric and scales estimator
     unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+    metric_values.set_size(timedims, 2);  metric_values.fill(0);
     for( unsigned int timedim = 0;  timedim < timedims - 1;  timedim++ )
       {
+      typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
+      typedef itk::IdentityTransform<RealType, ImageDimension> IdentityTransformType;
+      typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+      //
       typedef itk::ExtractImageFilter<MovingImageType, FixedImageType> ExtractFilterType;
-      typedef itk::ImageRegionIteratorWithIndex<MovingImageType>       ImageIt;
-      typedef itk::ImageRegionIteratorWithIndex<FixedImageType>        SliceIt;
-
       typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
-      std::cout << " direction ";
-      for( unsigned int qq = 0; qq < ImageDimension; qq++ )
-        {
-        for( unsigned int pp = 0; pp < ImageDimension; pp++ )
-          {
-          std::cout << movingImage->GetDirection()[qq][pp] << " ";
-          }
-        }
-      std::cout << std::endl;
       extractRegion.SetSize(ImageDimension, 0);
       extractRegion.SetIndex(ImageDimension, timedim );
       typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
@@ -405,16 +317,115 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       extractFilter2->Update();
       typename FixedImageType::Pointer moving_time_slice = extractFilter->GetOutput();
 
+      typedef itk::ImageToImageObjectMetric<FixedImageType, FixedImageType> MetricType;
+      typename MetricType::Pointer metric;
+
+      std::string whichMetric = metricOption->GetValue( currentStage );
+      ConvertToLowerCase( whichMetric );
+      if( std::strcmp( whichMetric.c_str(), "cc" ) == 0 )
+        {
+        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+
+        std::cout << "  using the CC metric (radius = " << radiusOption << ")." << std::endl;
+        typedef itk::ANTSNeighborhoodCorrelationImageToImageObjectMetric<FixedImageType,
+                                                                         FixedImageType> CorrelationMetricType;
+        typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+        typename CorrelationMetricType::RadiusType radius;
+        radius.Fill( radiusOption );
+        correlationMetric->SetRadius( radius );
+        correlationMetric->SetDoFixedImagePreWarp( true );
+        correlationMetric->SetDoMovingImagePreWarp( true );
+        correlationMetric->SetUseMovingImageGradientFilter( false );
+        correlationMetric->SetUseFixedImageGradientFilter( false );
+
+        metric = correlationMetric;
+        }
+      else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
+        {
+        unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+        unsigned int npoints_to_skip = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 4 ) );
+        typedef itk::JointHistogramMutualInformationImageToImageObjectMetric<FixedImageType,
+                                                                             FixedImageType> MutualInformationMetricType;
+        typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
+        mutualInformationMetric = mutualInformationMetric;
+        mutualInformationMetric->SetNumberOfHistogramBins( binOption );
+        mutualInformationMetric->SetDoFixedImagePreWarp( true );
+        mutualInformationMetric->SetDoMovingImagePreWarp( true );
+        mutualInformationMetric->SetUseMovingImageGradientFilter( false );
+        mutualInformationMetric->SetUseFixedImageGradientFilter( false );
+        typedef typename MutualInformationMetricType::FixedSampledPointSetType PointSetType;
+        typedef typename PointSetType::PointType                               PointType;
+        typename PointSetType::Pointer                    pset(PointSetType::New() );
+        unsigned long                                     ind = 0, ct = 0;
+        itk::ImageRegionIteratorWithIndex<FixedImageType> It(fixed_time_slice,
+                                                             fixed_time_slice->GetLargestPossibleRegion() );
+        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+          {
+          // take every N^th point
+          if( ct % npoints_to_skip == 0  ) // about a factor of 5 speed-up over dense
+            {
+            PointType pt;
+            fixed_time_slice->TransformIndexToPhysicalPoint( It.GetIndex(), pt);
+            pset->SetPoint(ind, pt);
+            ind++;
+            }
+          ct++;
+          }
+        mutualInformationMetric->SetFixedSampledPointSet( pset );
+        mutualInformationMetric->SetUseFixedSampledPointSet( true );
+        metric = mutualInformationMetric;
+        }
+      else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
+        {
+        std::cout << "  using the Demons metric." << std::endl;
+
+        typedef itk::DemonsImageToImageObjectMetric<FixedImageType, FixedImageType> DemonsMetricType;
+        typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
+        demonsMetric = demonsMetric;
+        demonsMetric->SetDoFixedImagePreWarp( true );
+        demonsMetric->SetDoMovingImagePreWarp( true );
+
+        metric = demonsMetric;
+        }
+      else
+        {
+        std::cerr << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
+        }
+
+      // Set up the optimizer.  To change the iteration number for each level we rely
+      // on the command observer.
+      //    typedef itk::JointHistogramMutualInformationImageToImageObjectMetric<FixedImageType, FixedImageType>
+      // MutualInformationMetricType;
+      typedef itk::RegistrationParameterScalesFromShift<MetricType> ScalesEstimatorType;
+      typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
+      scalesEstimator->SetMetric( metric );
+      scalesEstimator->SetTransformForward( true );
+      scalesEstimator->SetSamplingStrategy(ScalesEstimatorType::CornerSampling);
+
+      float learningRate = parser->Convert<float>( transformOption->GetParameter( currentStage, 0 ) );
+
+      typedef itk::GradientDescentObjectOptimizer GradientDescentObjectOptimizerType;
+      typename GradientDescentObjectOptimizerType::Pointer optimizer = GradientDescentObjectOptimizerType::New();
+      optimizer->SetLearningRate( learningRate );
+      optimizer->SetNumberOfIterations( iterations[0] );
+      optimizer->SetScalesEstimator( scalesEstimator );
+      double small_step = 0;
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        small_step += fixed_time_slice->GetSpacing()[i] * fixed_time_slice->GetSpacing()[i];
+        }
+      optimizer->SetMaximumStepSizeInPhysicalSpaceUnits(sqrt(small_step) * 0.1);
+
       // Set up the image registration methods along with the transforms
       std::string whichTransform = transformOption->GetValue( currentStage );
       ConvertToLowerCase( whichTransform );
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
-
         typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
-
+        nparams = affineTransform->GetNumberOfParameters();
+        affineTransform->SetIdentity();
         affineRegistration->SetFixedImage( fixed_time_slice );
         affineRegistration->SetMovingImage( moving_time_slice );
         affineRegistration->SetNumberOfLevels( numberOfLevels );
@@ -433,7 +444,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
 
         try
           {
-          std::cout << std::endl << "*** Running affine registration ***" << std::endl << std::endl;
+          std::cout << std::endl << "*** Running affine registration ***" << timedim << std::endl << std::endl;
           affineRegistration->StartRegistration();
           }
         catch( itk::ExceptionObject & e )
@@ -443,14 +454,22 @@ int ants_moco( itk::ants::CommandLineParser *parser )
           }
 
         // Write out the affine transform
-
-        std::string filename = outputPrefix + currentStageString.str() + std::string( "Affine.txt" );
-
+        std::string filename = outputPrefix + std::string("TimeSlice") + ants_moco_to_string<unsigned int>(timedim)
+          + std::string( "Affine.txt" );
         typedef itk::TransformFileWriter TransformWriterType;
         typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
         transformWriter->SetInput( affineRegistration->GetOutput()->Get() );
         transformWriter->SetFileName( filename.c_str() );
         transformWriter->Update();
+        if( timedim == 0 )
+          {
+          param_values.set_size(timedims, nparams);
+          param_values.fill(0);
+          }
+        for( unsigned int i = 0; i < nparams; i++ )
+          {
+          param_values(timedim, i) = affineRegistration->GetOutput()->Get()->GetParameters()[i];
+          }
         }
       else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
         {
@@ -460,6 +479,8 @@ int ants_moco( itk::ants::CommandLineParser *parser )
                                                    RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
         typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
+        nparams = rigidTransform->GetNumberOfParameters();
+        rigidTransform->SetIdentity();
         rigidRegistration->SetFixedImage( fixed_time_slice );
         rigidRegistration->SetMovingImage( moving_time_slice );
         rigidRegistration->SetNumberOfLevels( numberOfLevels );
@@ -475,7 +496,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
         try
           {
-          std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
+          std::cout << std::endl << "*** Running rigid registration ***" << timedim  << std::endl << std::endl;
           rigidRegistration->StartRegistration();
           }
         catch( itk::ExceptionObject & e )
@@ -491,21 +512,63 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
         transformWriter->SetFileName( filename.c_str() );
         transformWriter->Update();
+        if( timedim == 0 )
+          {
+          param_values.set_size(timedims, nparams);
+          param_values.fill(0);
+          }
+        for( unsigned int i = 0; i < nparams; i++ )
+          {
+          param_values(timedim, i) = rigidRegistration->GetOutput()->Get()->GetParameters()[i];
+          }
         }
       else
         {
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
-      timer.Stop();
-      std::cout << "  Elapsed time (stage " << currentStage + 1 << "): " << timer.GetMeanTime() << " time-dim "
-                << timedim <<  std::endl << std::endl;
+      metric_values(timedim, 0) = metric->GetValue();
       }
     }
   // Write out warped image(s), if requested.
   totalTimer.Stop();
+  metric_values(metric_values.rows() - 1, 0) = metric_values(metric_values.rows() - 2, 0);
+  for( unsigned int i = 0; i < nparams; i++ )
+    {
+    param_values(metric_values.rows() - 1, i) = param_values(metric_values.rows() - 2, i);
+    }
   std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMeanTime() << std::endl;
-
+    {
+    std::vector<std::string> ColumnHeaders;
+    for( unsigned int nv = 0; nv < nparams; nv++ )
+      {
+      std::string colname = std::string("MOCOparam") + ants_moco_to_string<unsigned int>(nv);
+      ColumnHeaders.push_back( colname );
+      }
+    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    std::string         fnmp = outputPrefix + std::string("MOCOparams.csv");
+    std::cout << " write " << fnmp << std::endl;
+    writer->SetFileName( fnmp.c_str() );
+    writer->SetColumnHeaders(ColumnHeaders);
+    writer->SetInput( &param_values );
+    writer->Write();
+    }
+    {
+    std::vector<std::string> ColumnHeaders;
+    std::string              colname = std::string("MetricPost");
+    ColumnHeaders.push_back( colname );
+    colname = std::string("MetricPre");
+    ColumnHeaders.push_back( colname );
+    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    std::string         fnmp = outputPrefix + std::string("Metric.csv");
+    std::cout << " write " << fnmp << std::endl;
+    writer->SetFileName( fnmp.c_str() );
+    writer->SetColumnHeaders(ColumnHeaders);
+    writer->SetInput( &metric_values );
+    writer->Write();
+    }
   return EXIT_SUCCESS;
 }
 
@@ -539,7 +602,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "metric" );
     option->SetShortName( 'm' );
     option->SetUsageOption( 0, "CC[fixedImage,movingImage,metricWeight,radius]" );
-    option->SetUsageOption( 1, "MI[fixedImage,movingImage,metricWeight,numberOfBins]" );
+    option->SetUsageOption( 1, "MI[fixedImage,movingImage,metricWeight,numberOfBins,n_points_to_skip]" );
     option->SetUsageOption( 2, "Demons[fixedImage,movingImage,metricWeight]" );
     option->SetDescription( description );
     parser->AddOption( option );
