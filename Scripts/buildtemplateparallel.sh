@@ -44,6 +44,7 @@ fi
 ANTSSCRIPTNAME=${ANTSPATH}antsIntroduction.sh
 PEXEC=${ANTSPATH}ANTSpexec.sh
 SGE=${ANTSPATH}waitForSGEQJobs.pl
+PBS=${ANTSPATH}waitForPBSQJobs.pl
 XGRID=${ANTSPATH}waitForXGridJobs.pl
 
 fle_error=0
@@ -89,13 +90,13 @@ should be invoked from that directory.
 Optional arguments:
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-	  2 == use PEXEC (localhost), 3 == Apple XGrid
+          2 == use PEXEC (localhost),  3 == Apple XGrid, 4 == PBS qsub
 
      -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
-     -j:  Number of cpu cores to use (default: 2; -- requires "-c 2"
+     -j:  Number of cpu cores to use (default: 2; -- requires "-c 2")
 
      -m:  Max-iterations in each registration
 
@@ -192,7 +193,7 @@ NB: All files to be added to the template should be in the same directory.
 Optional arguments:
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-	  2 == use PEXEC (localhost), 3 == Apple XGrid
+	  2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS Grid
 
      -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
 
@@ -666,7 +667,7 @@ while getopts "c:d:g:i:j:h:m:n:o:p:s:r:t:x:z:" OPT
       c) #use SGE cluster
 	  DOQSUB=$OPTARG
 	  if [[ ${#DOQSUB} -gt 2 ]] ; then
-	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3 Xgrid ) you passed  -c $DOQSUB "
+	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
 	      exit 1
 	  fi
 	  ;;
@@ -735,7 +736,7 @@ elif [ $nargs -lt 6 ]
     Usage >&2
 fi
 
-if [ $DOQSUB -eq 1 ] ; then
+if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]] ; then
   qq=`which  qsub`
   if [  ${#qq} -lt 1 ] ; then
     echo do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ...
@@ -937,14 +938,19 @@ if [ "$RIGID" -eq 1 ] ;
 
       echo "$SCRIPTPREPEND" > $qscript
 
-      echo "$exe" > $qscript
+      echo "$exe" >> $qscript
 
       echo "$exe2" >> $qscript
 
       if [ $DOQSUB -eq 1 ] ; then
-	  id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
-	  jobIDs="$jobIDs $id"
-	  sleep 0.5
+		id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
+		jobIDs="$jobIDs $id"
+		    sleep 0.5
+		  elif [ $DOQSUB -eq 4 ]; then
+        echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
+		id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
+		jobIDs="$jobIDs $id"
+		    sleep 0.5
       elif  [ $DOQSUB -eq 2 ] ; then
 	  # Send pexe and exe2 to same job file so that they execute in series
 	  echo $pexe >> job${count}_r.sh
@@ -968,10 +974,27 @@ if [ "$RIGID" -eq 1 ] ;
 	# Run jobs on SGE and wait to finish
 	echo
 	echo "--------------------------------------------------------------------------------------"
-	echo " Starting ANTS rigid registration on cluster. Submitted $count jobs "
+	echo " Starting ANTS rigid registration on SGE cluster. Submitted $count jobs "
 	echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
 	${ANTSPATH}waitForSGEQJobs.pl 1 60 $jobIDs
+
+	# Returns 1 if there are errors
+	if [ ! $? -eq 0 ]; then
+	    echo "qsub submission failed - jobs went into error state"
+	    exit 1;
+	fi
+    fi
+
+    if [ $DOQSUB -eq 4 ];
+	then
+	# Run jobs on PBS and wait to finish
+	echo
+	echo "--------------------------------------------------------------------------------------"
+	echo " Starting ANTS rigid registration on PBS cluster. Submitted $count jobs "
+	echo "--------------------------------------------------------------------------------------"
+        # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+	${ANTSPATH}waitForPBSQJobs.pl 1 60 $jobIDs
 
 	# Returns 1 if there are errors
 	if [ ! $? -eq 0 ]; then
@@ -1016,7 +1039,7 @@ if [ "$RIGID" -eq 1 ] ;
     # cleanup and save output in seperate folder
 
     mkdir rigid
-    mv *.cfg rigid_*.nii.gz *Affine.txt rigid/
+    mv *.cfg rigid*.nii.gz *Affine.txt rigid/
 
     # backup logs
     if [ $DOQSUB -eq 1 ];
@@ -1025,14 +1048,19 @@ if [ "$RIGID" -eq 1 ] ;
 
         # Remove qsub scripts
 	rm -f job_${count}_qsub.sh
+    elif [ $DOQSUB -eq 4 ];
+      then
+      mv antsrigid* rigid/
+
+        # Remove qsub scripts
+	rm -f job_${count}_qsub.sh
 
     elif [ $DOQSUB -eq 2 ];
-	then
-	mv job*.txt rigid/
-
-    elif [ $DOQSUB -eq 3 ];
-	    then
-	    rm -f job_*_qsub.sh
+		then
+		mv job*.txt rigid/
+	elif [ $DOQSUB -eq 3 ];
+		then
+		rm -f job_*_qsub.sh
     fi
 
 
@@ -1113,10 +1141,18 @@ while [  $i -lt ${ITERATIONLIMIT} ]
     exe="${ANTSSCRIPTNAME} -d ${DIM} -r ${dir}/${TEMPLATE} -i ${dir}/${IMG} -o ${dir}/${OUTFN} -m ${MAXITERATIONS} -n ${N4CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
     pexe=" $exe >> job_${count}_${i}_metriclog.txt "
 
-    # 6 submit to SGE or else run locally
+    # 6 submit to SGE (DOQSUB=1), PBS (DOQSUB=4), PEXEC (DOQSUB=2), XGrid (DOQSUB=3) or else run locally (DOQSUB=0)
     if [ $DOQSUB -eq 1 ]; then
 	id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
-	jobIDs="$jobIDs $id"
+	     jobIDs="$jobIDs $id"
+	     sleep 0.5
+    elif [ $DOQSUB -eq 4 ]; then
+      qscript="job_${count}_${i}.sh"
+	    echo "$SCRIPTPREPEND" > $qscript
+	     echo "$exe" >> $qscript
+      echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
+	     id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
+	     jobIDs="$jobIDs $id"
 	sleep 0.5
     elif [ $DOQSUB -eq 2 ] ; then
 	echo $pexe
@@ -1124,12 +1160,12 @@ while [  $i -lt ${ITERATIONLIMIT} ]
     elif [ $DOQSUB -eq 3 ] ; then
       qscript="job_${count}_${i}.sh"
       #exe="${ANTSSCRIPTNAME} -d ${DIM} -r ./${TEMPLATE} -i ./${IMG} -o ./${OUTFN} -m ${MAXITERATIONS} -n ${N4CORRECT} -s ${METRICTYPE} -t ${TRANSFORMATIONTYPE} "
-	  echo "$SCRIPTPREPEND" > $qscript
-	  echo "$exe" >> $qscript
+	    echo "$SCRIPTPREPEND" > $qscript
+	     echo "$exe" >> $qscript
       id=`xgrid $XGRIDOPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
-	  jobIDs="$jobIDs $id"
+	     jobIDs="$jobIDs $id"
     elif  [ $DOQSUB -eq 0 ] ; then
-	bash $exe
+		    bash $exe
     fi
 
     # counter updated, but not directly used in this loop
@@ -1150,8 +1186,24 @@ while [  $i -lt ${ITERATIONLIMIT} ]
       ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
 
       if [ ! $? -eq 0 ]; then
-	  echo "qsub submission failed - jobs went into error state"
-	  exit 1;
+        echo "qsub submission failed - jobs went into error state"
+        exit 1;
+      fi
+
+  elif [ $DOQSUB -eq 4 ];
+
+      then
+      echo
+      echo "--------------------------------------------------------------------------------------"
+      echo " Starting ANTS registration on PBS cluster. Iteration: $itdisplay of $ITERATIONLIMIT"
+      echo "--------------------------------------------------------------------------------------"
+
+      # now wait for the stuff to finish - this will take a while so poll queue every 10 mins
+      ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
+
+      if [ ! $? -eq 0 ]; then
+        echo "qsub submission failed - jobs went into error state"
+        exit 1;
       fi
 
   fi
@@ -1171,19 +1223,19 @@ while [  $i -lt ${ITERATIONLIMIT} ]
   fi
 
   if [ $DOQSUB -eq 3 ];
-	then
-	# Run jobs on XGrid and wait to finish
-	echo
-	echo "--------------------------------------------------------------------------------------"
-	echo " Starting ANTS registration on XGrid cluster. Submitted $count jobs "
-	echo "--------------------------------------------------------------------------------------"
-        # now wait for the jobs to finish. This is slow, so poll less often
-	${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
-	# Returns 1 if there are errors
-	if [ ! $? -eq 0 ]; then
-	    echo "XGrid submission failed - jobs went into error state"
-	    exit 1;
-	fi
+    then
+    # Run jobs on XGrid and wait to finish
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting ANTS registration on XGrid cluster. Submitted $count jobs "
+    echo "--------------------------------------------------------------------------------------"
+           # now wait for the jobs to finish. This is slow, so poll less often
+    ${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRIDOPTS" -verbose -delay 300 $jobIDs
+    # Returns 1 if there are errors
+    if [ ! $? -eq 0 ]; then
+        echo "XGrid submission failed - jobs went into error state"
+        exit 1;
+    fi
   fi
 
   shapeupdatetotemplate ${DIM} ${TEMPLATE} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP}
@@ -1200,6 +1252,10 @@ while [  $i -lt ${ITERATIONLIMIT} ]
   if [ $DOQSUB -eq 1 ];
       then
       mv antsBuildTemplate_deformable_* ${TRANSFORMATIONTYPE}_iteration_${i}
+
+  elif [ $DOQSUB -eq 4 ];
+      then
+      mv antsdef* ${TRANSFORMATIONTYPE}_iteration_${i}
 
   elif [ $DOQSUB -eq 2 ];
       then

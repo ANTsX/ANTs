@@ -33,8 +33,7 @@ elsif( $delay > 3600 )
 
 print "  Waiting for " . scalar( @jobIDs ) . " jobs: @jobIDs\n";
 
-# my $user=`whoami`;
-my $user='xw2u';
+my $user=`whoami`;
 
 my $qstatOutput = `qstat -u $user`;
 
