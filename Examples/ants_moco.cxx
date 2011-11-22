@@ -313,7 +313,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       extractFilter2->SetDirectionCollapseToSubmatrix();
       extractFilter2->SetExtractionRegion( extractRegion );
       extractFilter2->Update();
-      typename FixedImageType::Pointer moving_time_slice = extractFilter->GetOutput();
+      typename FixedImageType::Pointer moving_time_slice = extractFilter2->GetOutput();
 
       typedef itk::ImageToImageObjectMetric<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
