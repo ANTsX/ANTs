@@ -289,7 +289,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     // loop over every time point and register image_i+1 to image_i
     //
     // Set up the image metric and scales estimator
-    unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+    unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
     for( unsigned int timedim = 0;  timedim < timedims - 1;  timedim++ )
       {
       typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
