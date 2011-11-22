@@ -544,7 +544,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     ColumnHeaders.push_back( colname );
     for( unsigned int nv = 2; nv < nparams; nv++ )
       {
-      std::string colname = std::string("MOCOparam") + ants_moco_to_string<unsigned int>(nv);
+      std::string colname = std::string("MOCOparam") + ants_moco_to_string<unsigned int>(nv - 2);
       ColumnHeaders.push_back( colname );
       }
     typedef itk::CSVNumericObjectFileWriter<double> WriterType;
