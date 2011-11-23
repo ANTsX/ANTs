@@ -529,14 +529,14 @@ int ants_moco( itk::ants::CommandLineParser *parser )
           param_values.set_size(timedims, nparams);
           param_values.fill(0);
           }
-        for( unsigned int i = 0; i < nparams; i++ )
+        for( unsigned int i = 0; i < nparams - 2; i++ )
           {
           param_values(timedim, i + 2) = affineRegistration->GetOutput()->Get()->GetParameters()[i];
           }
         }
       else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
         {
-        typedef itk::Euler3DTransform<double>
+        typedef itk::Euler2DTransform<double>
                                                                        RigidTransformType;
         typedef itk::SimpleImageRegistrationMethod<FixedImageType, FixedImageType,
                                                    RigidTransformType> RigidRegistrationType;
@@ -589,7 +589,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
           param_values.set_size(timedims, nparams);
           param_values.fill(0);
           }
-        for( unsigned int i = 0; i < nparams; i++ )
+        for( unsigned int i = 0; i < nparams - 2; i++ )
           {
           param_values(timedim, i + 2) = rigidRegistration->GetOutput()->Get()->GetParameters()[i];
           }
@@ -636,7 +636,6 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       writer->Update();
       }
     }
-  // Write out warped image(s), if requested.
   totalTimer.Stop();
   for( unsigned int i = 0; i < nparams; i++ )
     {
@@ -854,14 +853,14 @@ int main( int argc, char *argv[] )
 
   switch( dimension )
     {
-    //   case 2:
-    //  hormigita<2>( parser );
-    //  break;
-    case 3:
+    case 2:
       {
-      ants_moco<3>( parser );
+      ants_moco<2>( parser );
       }
       break;
+    // case 3:
+    // ants_moco<3>( parser );
+    // break;
     default:
       std::cerr << "Unsupported dimension" << std::endl;
       exit( EXIT_FAILURE );
