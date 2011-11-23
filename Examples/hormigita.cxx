@@ -1151,14 +1151,14 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "transform" );
     option->SetShortName( 't' );
-//  option->SetUsageOption( 0, "Rigid[gradientStep]" );
-    option->SetUsageOption( 0, "Affine[gradientStep]" );
-    option->SetUsageOption( 1, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption( 2,
-                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
+    option->SetUsageOption( 0, "Rigid[gradientStep]" );
+    option->SetUsageOption( 1, "Affine[gradientStep]" );
+    option->SetUsageOption( 2, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
     option->SetUsageOption( 3,
-                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetUsageOption( 4,
+                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption( 5,
                             "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
     option->SetDescription( description );
     parser->AddOption( option );
