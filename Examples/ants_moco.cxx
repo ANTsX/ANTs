@@ -152,17 +152,18 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
     {
     typename OutImageType::PixelType  fval = 0;
     typename ImageType::IndexType ind;
+    typename OutImageType::IndexType spind = vfIter2.GetIndex();
     for( unsigned int xx = 0; xx < time_dims; xx++ )
       {
       for( unsigned int yy = 0; yy < ImageDimension - 1; yy++ )
         {
-        ind[yy] = vfIter2.GetIndex()[yy];
+        ind[yy] = spind[yy];
         }
-      ind[ImageDimension] = xx;
+      ind[ImageDimension - 1] = xx;
       fval += image_in->GetPixel(ind);
       }
     fval /= (double)time_dims;
-    image_avg->SetPixel(vfIter2.GetIndex(), fval);
+    image_avg->SetPixel(spind, fval);
     }
   return;
 }
@@ -670,7 +671,18 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     if( outputOption && outputOption->GetNumberOfParameters( 0 ) > 2 && outputImage )
       {
       std::string fileName = outputOption->GetParameter( 0, 2 );
-      typename FixedImageType::Pointer avgImage = moving_time_slice;
+      typename FixedImageType::Pointer avgImage;
+      typedef itk::ExtractImageFilter<MovingImageType, FixedImageType> ExtractFilterType;
+      typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
+      extractRegion.SetSize(ImageDimension, 0);
+      typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+      extractFilter->SetInput( movingImage );
+      extractFilter->SetDirectionCollapseToSubmatrix();
+      unsigned int td = 0;
+      extractRegion.SetIndex(ImageDimension, td );
+      extractFilter->SetExtractionRegion( extractRegion );
+      extractFilter->Update();
+      avgImage = extractFilter->GetOutput();
       AverageTimeImages<MovingImageType, FixedImageType>( outputImage, avgImage, timedims );
       typedef itk::ImageFileWriter<FixedImageType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
