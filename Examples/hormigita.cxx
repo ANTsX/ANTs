@@ -431,80 +431,42 @@ int hormigita( itk::ants::CommandLineParser *parser )
       transformWriter->SetFileName( filename.c_str() );
       transformWriter->Update();
       }
-    else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
-      {
-#if ImageDimension == 2
-      typedef itk::Euler2DTransform<double> RigidTransformType;
-      typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
-
-      typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType,
-                                                 RigidTransformType> RigidRegistrationType;
-      typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
-
-      rigidRegistration->SetFixedImage( fixedImage );
-      rigidRegistration->SetMovingImage( movingImage );
-      rigidRegistration->SetNumberOfLevels( numberOfLevels );
-      rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
-      rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-      rigidRegistration->SetMetric( metric );
-      rigidRegistration->SetOptimizer( optimizer );
-      rigidRegistration->SetTransform( rigidTransform );
-      rigidRegistration->SetCompositeTransform( compositeTransform );
-
-      typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
-      typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
-      rigidObserver->SetNumberOfIterations( iterations );
-
-      rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
-
-      try
-        {
-        std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
-        rigidRegistration->StartRegistration();
-        }
-      catch( itk::ExceptionObject & e )
-        {
-        std::cerr << "Exception caught: " << e << std::endl;
-        return EXIT_FAILURE;
-        }
-
-#elif ImageDimension == 3
-
-      typedef itk::Euler3DTransform<double> RigidTransformType;
-      typename RigidTransformType::Pointer rigidTransform;
-
-      typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType,
-                                                 RigidTransformType> RigidRegistrationType;
-      typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
-
-      rigidRegistration->SetFixedImage( fixedImage );
-      rigidRegistration->SetMovingImage( movingImage );
-      rigidRegistration->SetNumberOfLevels( numberOfLevels );
-      rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
-      rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-      rigidRegistration->SetMetric( metric );
-      rigidRegistration->SetOptimizer( optimizer );
-      rigidRegistration->SetTransform( rigidTransform );
-      rigidRegistration->SetCompositeTransform( compositeTransform );
-
-      typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
-      typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
-      rigidObserver->SetNumberOfIterations( iterations );
-
-      rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
-
-      try
-        {
-        std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
-        rigidRegistration->StartRegistration();
-        }
-      catch( itk::ExceptionObject & e )
-        {
-        std::cerr << "Exception caught: " << e << std::endl;
-        return EXIT_FAILURE;
-        }
-#endif
-      }
+//    else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
+//      {
+//      typedef itk::Euler2DTransform<double> RigidTransformType;
+//      typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
+//
+//      typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType, RigidTransformType>
+// RigidRegistrationType;
+//      typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+//
+//      rigidRegistration->SetFixedImage( fixedImage );
+//      rigidRegistration->SetMovingImage( movingImage );
+//      rigidRegistration->SetNumberOfLevels( numberOfLevels );
+//      rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+//      rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+//      rigidRegistration->SetMetric( metric );
+//      rigidRegistration->SetOptimizer( optimizer );
+//      rigidRegistration->SetTransform( rigidTransform );
+//      rigidRegistration->SetCompositeTransform( compositeTransform );
+//
+//      typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
+//      typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
+//      rigidObserver->SetNumberOfIterations( iterations );
+//
+//      rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
+//
+//      try
+//        {
+//        std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
+//        rigidRegistration->StartRegistration();
+//        }
+//      catch( itk::ExceptionObject &e )
+//        {
+//        std::cerr << "Exception caught: " << e << std::endl;
+//        return EXIT_FAILURE;
+//        }
+//      }
     else if( std::strcmp( whichTransform.c_str(),
                           "gaussiandisplacementfield" ) == 0 ||  std::strcmp( whichTransform.c_str(), "gdf" ) == 0 )
       {
@@ -777,6 +739,7 @@ int hormigita( itk::ants::CommandLineParser *parser )
       bsplineTransform->SetTransformDomainPhysicalDimensions( physicalDimensions );
       bsplineTransform->SetTransformDomainMeshSize( meshSize );
       bsplineTransform->SetTransformDomainDirection( fixedImage->GetDirection() );
+      bsplineTransform->SetIdentity();
 
       // Create the transform adaptors
 
@@ -790,7 +753,7 @@ int hormigita( itk::ants::CommandLineParser *parser )
         typename BSplineTransformType::MeshSizeType requiredMeshSize;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          requiredMeshSize[d] = meshSize[d] << ( level + 1 );
+          requiredMeshSize[d] = meshSize[d] << level;
           }
 
         typedef itk::BSplineTransformParametersAdaptor<BSplineTransformType> BSplineAdaptorType;
@@ -804,6 +767,8 @@ int hormigita( itk::ants::CommandLineParser *parser )
 
         adaptors.push_back( bsplineAdaptor.GetPointer() );
         }
+
+      optimizer->SetScalesEstimator( NULL );
 
       typename BSplineRegistrationType::Pointer bsplineRegistration = BSplineRegistrationType::New();
       bsplineRegistration->SetFixedImage( fixedImage );
@@ -1287,9 +1252,11 @@ int main( int argc, char *argv[] )
 
   switch( dimension )
     {
-//   case 2:
-//     hormigita<2>( parser );
-//     break;
+    case 2:
+      {
+      hormigita<2>( parser );
+      }
+      break;
     case 3:
       {
       hormigita<3>( parser );
