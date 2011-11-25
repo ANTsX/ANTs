@@ -115,6 +115,32 @@ private:
   std::vector<unsigned int> m_NumberOfIterations;
 };
 
+//
+// Transform traits to generalize the rigid transform
+//
+template <unsigned int ImageDimension>
+class RigidTransformTraits
+{
+// Don't worry about the fact that the default option is the
+// affine Transform, that one will not actually be instantiated.
+public:
+  typedef itk::AffineTransform<double, ImageDimension> TransformType;
+};
+
+template <>
+class RigidTransformTraits<2>
+{
+public:
+  typedef itk::Euler2DTransform<double> TransformType;
+};
+
+template <>
+class RigidTransformTraits<3>
+{
+public:
+  typedef itk::Euler3DTransform<double> TransformType;
+};
+
 void ConvertToLowerCase( std::string& str )
 {
   std::transform( str.begin(), str.end(), str.begin(), tolower );
@@ -431,42 +457,42 @@ int hormigita( itk::ants::CommandLineParser *parser )
       transformWriter->SetFileName( filename.c_str() );
       transformWriter->Update();
       }
-//    else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
-//      {
-//      typedef itk::Euler2DTransform<double> RigidTransformType;
-//      typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
-//
-//      typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType, RigidTransformType>
-// RigidRegistrationType;
-//      typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
-//
-//      rigidRegistration->SetFixedImage( fixedImage );
-//      rigidRegistration->SetMovingImage( movingImage );
-//      rigidRegistration->SetNumberOfLevels( numberOfLevels );
-//      rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
-//      rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-//      rigidRegistration->SetMetric( metric );
-//      rigidRegistration->SetOptimizer( optimizer );
-//      rigidRegistration->SetTransform( rigidTransform );
-//      rigidRegistration->SetCompositeTransform( compositeTransform );
-//
-//      typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
-//      typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
-//      rigidObserver->SetNumberOfIterations( iterations );
-//
-//      rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
-//
-//      try
-//        {
-//        std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
-//        rigidRegistration->StartRegistration();
-//        }
-//      catch( itk::ExceptionObject &e )
-//        {
-//        std::cerr << "Exception caught: " << e << std::endl;
-//        return EXIT_FAILURE;
-//        }
-//      }
+    else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
+      {
+      typedef typename RigidTransformTraits<ImageDimension>::TransformType RigidTransformType;
+      typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
+
+      typedef itk::SimpleImageRegistrationMethod<FixedImageType, MovingImageType,
+                                                 RigidTransformType> RigidRegistrationType;
+      typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+
+      rigidRegistration->SetFixedImage( fixedImage );
+      rigidRegistration->SetMovingImage( movingImage );
+      rigidRegistration->SetNumberOfLevels( numberOfLevels );
+      rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+      rigidRegistration->SetMetric( metric );
+      rigidRegistration->SetOptimizer( optimizer );
+      rigidRegistration->SetTransform( rigidTransform );
+      rigidRegistration->SetCompositeTransform( compositeTransform );
+
+      typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
+      typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
+      rigidObserver->SetNumberOfIterations( iterations );
+
+      rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
+
+      try
+        {
+        std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
+        rigidRegistration->StartRegistration();
+        }
+      catch( itk::ExceptionObject & e )
+        {
+        std::cerr << "Exception caught: " << e << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
     else if( std::strcmp( whichTransform.c_str(),
                           "gaussiandisplacementfield" ) == 0 ||  std::strcmp( whichTransform.c_str(), "gdf" ) == 0 )
       {
