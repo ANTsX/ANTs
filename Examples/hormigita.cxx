@@ -328,7 +328,7 @@ int hormigita( itk::ants::CommandLineParser *parser )
       {
       for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
         {
-        smoothingSigmasPerLevel[n] = factors[n];
+        smoothingSigmasPerLevel[n] = sigmas[n];
         }
       std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
       }
