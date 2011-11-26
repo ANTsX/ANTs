@@ -165,6 +165,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
     fval /= (double)time_dims;
     image_avg->SetPixel(spind, fval);
     }
+  std::cout << " averaging images done " << std::endl;
   return;
 }
 
@@ -323,7 +324,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       {
       for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
         {
-        smoothingSigmasPerLevel[n] = factors[n];
+        smoothingSigmasPerLevel[n] = sigmas[n];
         }
       std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
       }
@@ -721,6 +722,11 @@ int ants_moco( itk::ants::CommandLineParser *parser )
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
+        if( timedim == 0 )
+          {
+          param_values.set_size(timedims, nparams);
+          param_values.fill(0);
+          }
         }
       else
         {
@@ -790,13 +796,10 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       writer->SetFileName( fileName.c_str() );
       writer->SetInput( avgImage );
       writer->Update();
+      std::cout << " done writing avg image " << std::endl;
       }
     }
   totalTimer.Stop();
-  for( unsigned int i = 0; i < nparams; i++ )
-    {
-    param_values(param_values.rows() - 1, i) = param_values(param_values.rows() - 2, i);
-    }
   std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMeanTime() << std::endl;
     {
     std::vector<std::string> ColumnHeaders;
