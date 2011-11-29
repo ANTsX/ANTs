@@ -1151,6 +1151,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
                             "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
     option->SetUsageOption( 5,
                             "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
+    option->SetUsageOption( 6, "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
