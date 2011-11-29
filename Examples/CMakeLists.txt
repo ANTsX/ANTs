@@ -199,6 +199,8 @@ add_executable(hormigita hormigita.cxx ${UI_SOURCES})
  target_link_libraries(hormigita ${ITK_LIBRARIES})
 add_executable(ants_moco ants_moco.cxx ${UI_SOURCES})
  target_link_libraries(ants_moco ${ITK_LIBRARIES})
+add_executable(sccan sccan.cxx ${UI_SOURCES})
+target_link_libraries(sccan ${ITK_LIBRARIES} )
 IF (USE_VTK)
 INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
 IF (USE_VTK_FILE)
@@ -237,7 +239,9 @@ target_link_libraries(ANTSIntegrateVelocityField ${ITK_LIBRARIES})
   add_executable(Atropos Atropos.cxx ${UI_SOURCES})
   target_link_libraries(Atropos ${ITK_LIBRARIES}   )
 INSTALL(TARGETS ANTS
+  AverageAffineTransform
   ANTSJacobian
+  PasteImageIntoImage
   PrintHeader
   ResetDirection
   ANTSUseLandmarkImagesToGetAffineTransform
@@ -286,6 +290,9 @@ INSTALL(TARGETS ANTS
   N4BiasFieldCorrection
   KellySlater
   KellyKapowski
+  ants_moco
+  hormigita
+  sccan
 #  ConvertVectorFieldToVTK
 #  GetMeshAndTopology
 #  CheckTopology
