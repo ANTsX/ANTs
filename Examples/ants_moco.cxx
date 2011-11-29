@@ -68,6 +68,21 @@ inline std::string ants_moco_to_string(const T& t)
   return ss.str();
 }
 
+template <class T>
+struct ants_moco_index_cmp
+  {
+  ants_moco_index_cmp(const T arr) : arr(arr)
+  {
+  }
+
+  bool operator()(const size_t a, const size_t b) const
+  {
+    return arr[a] < arr[b];
+  }
+
+  const T arr;
+  };
+
 template <class TFilter>
 class CommandIterationUpdate : public itk::Command
 {
@@ -137,32 +152,40 @@ void ConvertToLowerCase( std::string& str )
 
 template <class TImageIn, class TImageOut>
 void
-AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Pointer image_avg, unsigned int time_dims )
+AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Pointer image_avg,
+                   std::vector<unsigned int> timelist )
 {
-  std::cout << " averaging images " << std::endl;
-
   typedef TImageIn  ImageType;
   typedef TImageOut OutImageType;
   enum { ImageDimension = ImageType::ImageDimension };
   typedef float                                           PixelType;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> Iterator;
   image_avg->FillBuffer(0);
+  unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  if( timelist.size() == 0 )
+    {
+    for( unsigned int timedim = 0; timedim < timedims; timedim++ )
+      {
+      timelist.push_back(timedim);
+      }
+    }
+  std::cout << " averaging with " << timelist.size() << " images of " <<  timedims <<  " timedims " << std::endl;
   Iterator vfIter2(  image_avg, image_avg->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     typename OutImageType::PixelType  fval = 0;
     typename ImageType::IndexType ind;
     typename OutImageType::IndexType spind = vfIter2.GetIndex();
-    for( unsigned int xx = 0; xx < time_dims; xx++ )
+    for( unsigned int xx = 0; xx < timelist.size(); xx++ )
       {
       for( unsigned int yy = 0; yy < ImageDimension - 1; yy++ )
         {
         ind[yy] = spind[yy];
         }
-      ind[ImageDimension - 1] = xx;
+      ind[ImageDimension - 1] = timelist[xx];
       fval += image_in->GetPixel(ind);
       }
-    fval /= (double)time_dims;
+    fval /= (double)timelist.size();
     image_avg->SetPixel(spind, fval);
     }
   std::cout << " averaging images done " << std::endl;
@@ -176,8 +199,62 @@ int ants_moco( itk::ants::CommandLineParser *parser )
   // specified by the user which should match the number of metrics.
   unsigned numberOfStages = 0;
 
+  typedef float                                     PixelType;
+  typedef double                                    RealType;
+  typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
+  typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
+  typedef vnl_matrix<double>                        vMatrix;
+  vMatrix param_values;
+  typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
+  std::vector<typename CompositeTransformType::Pointer> CompositeTransformVector;
+
   typedef typename itk::ants::CommandLineParser ParserType;
   typedef typename ParserType::OptionType       OptionType;
+
+  typename OptionType::Pointer averageOption = parser->GetOption( "average-image" );
+  if( averageOption && averageOption->GetNumberOfValues() > 0 )
+    {
+    typename OptionType::Pointer outputOption = parser->GetOption( "output" );
+    if( !outputOption )
+      {
+      std::cerr << "Output option not specified.  Should be the output average image name." << std::endl;
+      return EXIT_FAILURE;
+      }
+    std::string outputPrefix = outputOption->GetParameter( 0, 0 );
+    if( outputPrefix.length() < 3 )
+      {
+      outputPrefix = outputOption->GetValue( 0 );
+      }
+    std::string fn = averageOption->GetValue( 0 );
+    typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
+    typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
+    movingImageReader->SetFileName( fn.c_str() );
+    movingImageReader->Update();
+    typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+    movingImage->Update();
+    movingImage->DisconnectPipeline();
+    typename FixedImageType::Pointer avgImage;
+    typedef itk::ExtractImageFilter<MovingImageType, FixedImageType> ExtractFilterType;
+    typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
+    extractRegion.SetSize(ImageDimension, 0);
+    typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+    extractFilter->SetInput( movingImage );
+    extractFilter->SetDirectionCollapseToSubmatrix();
+    unsigned int td = 0;
+    extractRegion.SetIndex(ImageDimension, td );
+    extractFilter->SetExtractionRegion( extractRegion );
+    extractFilter->Update();
+    avgImage = extractFilter->GetOutput();
+    std::vector<unsigned int> timelist;
+    AverageTimeImages<MovingImageType, FixedImageType>( movingImage, avgImage, timelist );
+    typedef itk::ImageFileWriter<FixedImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( outputPrefix.c_str() );
+    writer->SetInput( avgImage );
+    writer->Update();
+    std::cout << " done writing avg image " << std::endl;
+    return EXIT_SUCCESS;
+    }
 
   typename OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfValues() > 0 )
@@ -227,15 +304,18 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
   std::string outputPrefix = outputOption->GetParameter( 0, 0 );
+  if( outputPrefix.length() < 3 )
+    {
+    outputPrefix = outputOption->GetValue( 0 );
+    }
 
-  typedef float                                     PixelType;
-  typedef double                                    RealType;
-  typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
-  typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
-  typedef vnl_matrix<double>                        vMatrix;
-  vMatrix param_values;
-  typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
-  std::vector<typename CompositeTransformType::Pointer> CompositeTransformVector;
+  unsigned int                                      nimagestoavg = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer navgOption = parser->GetOption( "n-images" );
+  if( navgOption && navgOption->GetNumberOfValues() > 0 )
+    {
+    nimagestoavg = parser->Convert<unsigned int>( navgOption->GetValue() );
+    std::cout << " nimagestoavg " << nimagestoavg << std::endl;
+    }
 
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
@@ -333,9 +413,16 @@ int ants_moco( itk::ants::CommandLineParser *parser )
     // loop over every time point and register image_i+1 to image_i
     //
     // Set up the image metric and scales estimator
-    unsigned int timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
-    for( unsigned int timedim = 0;  timedim < timedims;  timedim++ )
+    unsigned int              timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
+    std::vector<unsigned int> timelist;
+    std::vector<double>       metriclist;
+    for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
+      timelist.push_back(timedim);
+      }
+    for( unsigned int timelistindex = 0;  timelistindex < timelist.size();  timelistindex++ )
+      {
+      unsigned int timedim = timelist[timelistindex];
       typename CompositeTransformType::Pointer compositeTransform = NULL;
       if(  currentStage == (numberOfStages - 1) )
         {
@@ -400,6 +487,22 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         moving_time_slice = extractFilter2->GetOutput();
         }
 
+        {
+        std::string fileName = std::string("moving.nii.gz");
+        typedef itk::ImageFileWriter<FixedImageType> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( fileName.c_str() );
+        writer->SetInput( moving_time_slice );
+        writer->Update();
+        }
+        {
+        std::string fileName = std::string("fixed.nii.gz");
+        typedef itk::ImageFileWriter<FixedImageType> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( fileName.c_str() );
+        writer->SetInput( fixed_time_slice );
+        writer->Update();
+        }
       typedef itk::ImageToImageObjectMetric<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
 
@@ -733,12 +836,8 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
-      if( std::strcmp( whichTransform.c_str(),
-                       "gaussiandisplacementfield" ) != 0 && std::strcmp( whichTransform.c_str(), "gdf" ) != 0 )
-        {
-        param_values(timedim, 1) = metric->GetValue();
-        }
-
+      param_values(timedim, 1) = metric->GetValueResult();
+      metriclist.push_back( param_values(timedim, 1) );
       // resample the moving image and then put it in its place
       typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
@@ -766,16 +865,20 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         outputImage->SetPixel(ind, fval);
         }
       }
-    if( outputOption && outputOption->GetNumberOfParameters( 0 ) > 1 )
+    if( outputOption && outputOption->GetNumberOfParameters( 0 ) > 1  && currentStage == 0 )
       {
       std::string fileName = outputOption->GetParameter( 0, 1 );
+      if( outputPrefix.length() < 3 )
+        {
+        outputPrefix = outputOption->GetValue( 0 );
+        }
       typedef itk::ImageFileWriter<MovingImageType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( fileName.c_str() );
       writer->SetInput( outputImage );
       writer->Update();
       }
-    if( outputOption && outputOption->GetNumberOfParameters( 0 ) > 2 && outputImage )
+    if( outputOption && outputOption->GetNumberOfParameters( 0 ) > 2 && outputImage && currentStage == 0 )
       {
       std::string fileName = outputOption->GetParameter( 0, 2 );
       typename FixedImageType::Pointer avgImage;
@@ -790,7 +893,18 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       extractFilter->SetExtractionRegion( extractRegion );
       extractFilter->Update();
       avgImage = extractFilter->GetOutput();
-      AverageTimeImages<MovingImageType, FixedImageType>( outputImage, avgImage, timedims );
+      std::sort(timelist.begin(), timelist.end(), ants_moco_index_cmp<std::vector<double> &>(metriclist) );
+      if( nimagestoavg == 0 )
+        {
+        nimagestoavg = timelist.size();
+        }
+      std::vector<unsigned int> timelistsort;
+      for( unsigned int i = 0; i < nimagestoavg; i++ )
+        {
+        timelistsort.push_back(timelist[i]);
+        std::cout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
+        }
+      AverageTimeImages<MovingImageType, FixedImageType>( outputImage, avgImage, timelistsort );
       typedef itk::ImageFileWriter<FixedImageType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( fileName.c_str() );
@@ -840,6 +954,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "dimensionality" );
     option->SetShortName( 'd' );
     option->SetUsageOption( 0, "2/3" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "This option sets the number of images to use to construct the template image.");
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "n-images" );
+    option->SetShortName( 'n' );
+    option->SetUsageOption( 0, "10" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -941,6 +1066,15 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "[outputTransformPrefix,<outputWarpedImage>,<outputAverageImage>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string         description = std::string( "Average the input time series image." );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "average-image" );
+    option->SetShortName( 'a' );
     option->SetDescription( description );
     parser->AddOption( option );
     }
