@@ -1338,12 +1338,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description =
       std::string( "Option to set the DiReCT Image Filter svn revision " )
       + std::string( "(0, 926, 949, 953).  Version 926 is most likely the " )
-      + std::string( "but it comes at the cost of a huge memory footprint. " )
+      + std::string( "best option but it comes at the cost of a larger memory footprint. " )
       + std::string( "Memory-saving strategies were employed for version " )
       + std::string( "949 but at a computational speed cost.  Additional " )
       + std::string( "memory-saving strategies were used in version 953." )
       + std::string( "If this option is not set, it defaults to the latest " )
-      + std::string( "DiReCT revision (0)." );
+      + std::string( "DiReCT revision (0) which is currently the same as 926." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "DiReCT-revision" );
@@ -1444,7 +1444,7 @@ int main( int argc, char *argv[] )
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  unsigned int                                      whichDiReCTVersion = 926;
+  unsigned int                                      whichDiReCTVersion = 0;
   itk::ants::CommandLineParser::OptionType::Pointer directOption =
     parser->GetOption( "DiReCT-revision" );
   if( directOption && directOption->GetNumberOfValues() > 0 )
