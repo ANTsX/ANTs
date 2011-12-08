@@ -56,7 +56,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 ::DiReCTImageFilter() :
   m_ThicknessPriorEstimate( 10.0 ),
   m_SmoothingSigma( 1.5 ),
-  m_GradientStep( 0.5 ),
+  m_InitialGradientStep( 0.025 ),
+  m_CurrentGradientStep( 0.025 ),
   m_NumberOfIntegrationPoints( 10 ),
   m_GrayMatterLabel( 2 ),
   m_WhiteMatterLabel( 3 ),
@@ -79,6 +80,8 @@ void
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::GenerateData()
 {
+  this->m_CurrentGradientStep = this->m_InitialGradientStep;
+
   // Convert all input direction matrices to identities saving the original
   // directions to put back at the end of filter processing. We do this
   // because the white and gray matters reside in the same space and the
@@ -420,7 +423,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           numberOfGrayMatterVoxels++;
 
           RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get()
-            * this->m_GradientStep;
+            * this->m_CurrentGradientStep;
           if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
             {
             speedValue = 0.0;
@@ -534,7 +537,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
     if( this->m_ElapsedIterations == 2 )
       {
-      this->m_GradientStep = this->m_GradientStep * 1.0 / maxNorm;
+      this->m_CurrentGradientStep = this->m_CurrentGradientStep * 1.0 / maxNorm;
       velocityField->FillBuffer( zeroVector );
       }
 
@@ -930,8 +933,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             << this->m_ThicknessPriorEstimate << std::endl;
   std::cout << indent << "Smoothing sigma = "
             << this->m_SmoothingSigma << std::endl;
-  std::cout << indent << "Gradient step = "
-            << this->m_GradientStep << std::endl;
+  std::cout << indent << "Initial gradient step = "
+            << this->m_InitialGradientStep << std::endl;
+  std::cout << indent << "Current gradient step = "
+            << this->m_CurrentGradientStep << std::endl;
   std::cout << indent << "Convergence threshold = "
             << this->m_ConvergenceThreshold << std::endl;
   std::cout << indent << "Convergence window size = "

@@ -222,14 +222,19 @@ public:
   itkGetConstMacro( ThicknessPriorEstimate, RealType );
 
   /**
-   * Set the gradient step size.  Default = 0.5.
+   * Set the gradient step size.  Default = 0.025.
    */
-  itkSetClampMacro( GradientStep, RealType, 0, NumericTraits<RealType>::max() );
+  itkSetClampMacro( InitialGradientStep, RealType, 0, NumericTraits<RealType>::max() );
 
   /**
-   * Get the gradient step.  Default = 0.5.
+   * Get the gradient step.  Default = 0.025.
    */
-  itkGetConstMacro( GradientStep, RealType );
+  itkGetConstMacro( InitialGradientStep, RealType );
+
+  /**
+   * Get the current gradient step.
+   */
+  itkGetConstMacro( CurrentGradientStep, RealType );
 
   /**
    * Set the smoothing sigma.  Default = 1.5.
@@ -320,7 +325,8 @@ private:
 
   RealType     m_ThicknessPriorEstimate;
   RealType     m_SmoothingSigma;
-  RealType     m_GradientStep;
+  RealType     m_InitialGradientStep;
+  RealType     m_CurrentGradientStep;
   unsigned int m_NumberOfIntegrationPoints;
 
   unsigned int m_GrayMatterLabel;
