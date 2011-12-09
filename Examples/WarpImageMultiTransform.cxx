@@ -12,6 +12,32 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 
+#include "itkLabelImageGaussianInterpolateImageFunction.h"
+// Needed for the LabelImageGaussianInterpolateImageFunction to work on
+// vector images
+
+template <class TPixel, unsigned int VDim>
+class VectorPixelCompare
+{
+public:
+  bool operator()(const itk::Vector<TPixel, VDim> & v1, const itk::Vector<TPixel, VDim> & v2)
+  {
+    // Ordering of vectors based on 1st component, then second, etc.
+    for( size_t i = 0; i < VDim; i++ )
+      {
+      if( v1[i] < v2[i] )
+        {
+        return true;
+        }
+      else if( v1[i] > v2[i] )
+        {
+        return false;
+        }
+      }
+    return false;
+  }
+};
+
 typedef enum { INVALID_FILE = 1, AFFINE_FILE, DEFORMATION_FILE, IMAGE_AFFINE_HEADER,
                IDENTITY_TRANSFORM } TRAN_FILE_TYPE;
 typedef struct
@@ -32,11 +58,20 @@ typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
 
 typedef struct
   {
+  bool physical_units;
+  std::vector<double> sigma;
+  } MLINTERP_OPT;
+
+typedef struct
+  {
   bool use_NN_interpolator;
+  bool use_MultiLabel_interpolator;
   bool use_BSpline_interpolator;
   bool use_TightestBoundingBox;
   char * reference_image_filename;
   bool use_RotationHeader;
+
+  MLINTERP_OPT opt_ML;
   } MISC_OPT;
 
 void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue);
@@ -153,7 +188,8 @@ void SetAffineInvFlag(TRAN_OPT & opt, bool & set_current_affine_inv)
 
 bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
                 char *& output_image_filename,
-                TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
+                TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt,
+                int NDimensions)
 {
   opt_queue.clear();
   opt_queue.reserve(argc - 2);
@@ -164,6 +200,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
   misc_opt.use_RotationHeader = false;
 
   misc_opt.use_NN_interpolator = false;
+  misc_opt.use_MultiLabel_interpolator = false;
   misc_opt.use_BSpline_interpolator = false;
 
   moving_image_filename = argv[0];
@@ -182,6 +219,62 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
       {
       misc_opt.use_BSpline_interpolator = true;
       }
+    else if( strcmp(argv[ind], "--use-ML") == 0 )
+      {
+      misc_opt.use_MultiLabel_interpolator = true;
+      ind++; if( ind >= argc )
+        {
+        return false;
+        }
+
+      char *s = argv[ind];
+      if( strlen(s) > 3 && strcmp(s + strlen(s) - 3, "vox") == 0 )
+        {
+        misc_opt.opt_ML.physical_units = false;
+        s[strlen(s) - 3] = 0;
+        }
+      else if( strlen(s) > 2 && strcmp(s + strlen(s) - 2, "mm") == 0 )
+        {
+        misc_opt.opt_ML.physical_units = true;
+        s[strlen(s) - 2] = 0;
+        }
+      else
+        {
+        std::cerr << "Wrong specification of sigma in --use-ML. Must end with 'mm' or 'vox'" << std::endl;
+        return false;
+        }
+
+      misc_opt.opt_ML.sigma.resize(NDimensions);
+      if( strchr(s, 'x') )
+        {
+        char *tok = strtok(s, "x");
+        for( size_t i = 0; i < NDimensions; i++ )
+          {
+          if( tok == NULL )
+            {
+            std::cerr << "Invalid sigma specification:" << s << std::endl;
+            }
+          double x = atof(tok);
+          if( x < 0 )
+            {
+            std::cerr << "Negative sigma specification:" << s << std::endl;
+            }
+          misc_opt.opt_ML.sigma[i] = x;
+          tok = strtok(NULL, "x");
+          }
+        }
+      else
+        {
+        double x = atof(s);
+        if( x < 0 )
+          {
+          std::cerr << "Negative sigma specification:" << s << std::endl;
+          }
+        misc_opt.opt_ML.sigma.resize(NDimensions);
+        std::fill(misc_opt.opt_ML.sigma.begin(), misc_opt.opt_ML.sigma.end(), x);
+        }
+      }
+
     else if( strcmp(argv[ind], "-R") == 0 )
       {
       ind++; if( ind >= argc )
@@ -615,6 +708,35 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     std::cout << "User nearest neighbor interpolation (was Haha) " << std::endl;
     warper->SetInterpolator(interpolator_NN);
     }
+  else if( misc_opt.use_MultiLabel_interpolator )
+    {
+    typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
+    typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType,
+                                                                     typename WarperType::CoordRepType,
+                                                                     CompareType> MLInterpolateType;
+    typename MLInterpolateType::Pointer interpolator_ML = MLInterpolateType::New();
+
+    std::cout << "Using multi-label anti-aliasing interpolation " << std::endl;
+    vnl_vector_fixed<double, ImageDimension> sigma;
+    for( size_t i = 0; i < ImageDimension; i++ )
+      {
+      if( misc_opt.opt_ML.physical_units )
+        {
+        sigma[i] = misc_opt.opt_ML.sigma[i] / img_mov->GetSpacing()[i];
+        }
+      else
+        {
+        sigma[i] = misc_opt.opt_ML.sigma[i];
+        }
+      }
+
+    std::cout << "  Sigma = " << sigma << " (voxel units)" << std::endl;
+
+    interpolator_ML->SetParameters(sigma.data_block(), 4.0);
+
+    warper->SetInterpolator(interpolator_ML);
+    }
+
   else if( misc_opt.use_BSpline_interpolator )
     {
     std::cout << " Not currently supported because of a lack of vector support " << std::endl;
@@ -934,6 +1056,15 @@ int main(int argc, char * *argv)
 
     std::cout << " --use-NN: Use Nearest Neighbor Interpolation. \n " << std::endl;
     std::cout << " --use-BSpline: Use 3rd order B-Spline Interpolation. \n " << std::endl;
+    std::cout
+      <<
+    " --use-ML sigma: Use anti-aliasing interpolation for multi-label images, with Gaussian smoothing with standard deviation sigma. \n "
+      << std::endl;
+    std::cout
+      <<
+    "                 Sigma can be specified in physical or voxel units, as in Convert3D. It can be a scalar or a vector. \n "
+      << std::endl;
+    std::cout << "                 Examples:  --use-ML 0.4mm    -use-ML 0.8x0.8x0.8vox    " << std::endl;
 
     //	std::cout << " --ANTS-prefix prefix-name: followed by a deformation field filename. \n " << std::endl;
 
@@ -980,7 +1111,8 @@ int main(int argc, char * *argv)
   bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename, opt_queue, misc_opt);
+  is_parsing_ok = ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename, opt_queue, misc_opt,
+                             kImageDim);
 
   if( is_parsing_ok )
     {
