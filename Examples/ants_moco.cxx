@@ -486,23 +486,6 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         extractFilter2->Update();
         moving_time_slice = extractFilter2->GetOutput();
         }
-
-        {
-        std::string fileName = std::string("moving.nii.gz");
-        typedef itk::ImageFileWriter<FixedImageType> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( fileName.c_str() );
-        writer->SetInput( moving_time_slice );
-        writer->Update();
-        }
-        {
-        std::string fileName = std::string("fixed.nii.gz");
-        typedef itk::ImageFileWriter<FixedImageType> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( fileName.c_str() );
-        writer->SetInput( fixed_time_slice );
-        writer->Update();
-        }
       typedef itk::ImageToImageObjectMetric<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
 
@@ -836,7 +819,10 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
-      param_values(timedim, 1) = metric->GetValueResult();
+      if( currentStage == (numberOfStages - 1) )
+        {
+        param_values(timedim, 1) = metric->GetValue();
+        }
       metriclist.push_back( param_values(timedim, 1) );
       // resample the moving image and then put it in its place
       typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
