@@ -7610,18 +7610,18 @@ int LabelStats(      int argc, char *argv[])
 // int is the key, string the return value
 std::map<unsigned int, std::string> RoiList(std::string file)
 {
-  unsigned int                        wordindex = 1;
+  unsigned int                        wordindex = 0;
   std::string                         tempstring = "";
   std::map<unsigned int, std::string> RoiList;
-  char                                str[2000];
-  std::fstream                        file_op(file.c_str(), std::ios::in);
+  //  RoiList[0]=std::string("Background");
+  char         str[2000];
+  std::fstream file_op(file.c_str(), std::ios::in);
 
   while( file_op >> str )
     {
     tempstring = std::string(str);
     RoiList[wordindex] = tempstring;
     wordindex++;
-    std::cout << tempstring << std::endl;
     }
 
   return RoiList; // returns the maximum index
@@ -7716,9 +7716,19 @@ int ROIStatistics(      int argc, char *argv[])
   wmroimap[13] = std::string("Mid-body corpus callosum");
   //  if(grade_list.find("Tim") == grade_list.end()) {  std::cout<<"Tim is not in the map!"<<endl; }
   // mymap.find('a')->second
-  int         argct = 2;
+  int argct = 2;
+  if( argc < 6 )
+    {
+    std::cout << " not enough parameters --- usage example 1 :" << "" << std::endl;
+    std::cout << argv[0]
+              << " ImageMath  3 output.csv ROIStatistics roinames.txt LabelImage.nii.gz ValueImage.nii.gz  "
+              << std::endl;
+    exit(1);
+    }
   std::string outname = std::string(argv[argct]); argct++;
   std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string(".nii.gz");
+  std::string csvname = ANTSGetFilePrefix(outname.c_str() ) + std::string(".csv");
+  typedef vnl_matrix<double> MatrixType;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn0 = std::string(argv[argct]);   argct++;
   std::cout << "  fn0 " << fn0 << std::endl;
@@ -7790,6 +7800,11 @@ int ROIStatistics(      int argc, char *argv[])
         }
       }
     }
+  // define the output matrix
+  // for a csv file of  n_regions for rows
+  // with columns of   Volume,CenterOfMassX,CenterOfMassY,CenterOfMassZ,CenterOfMassTime,
+  MatrixType mCSVMatrix(maxlab, ImageDimension + 1, 0);
+
   //  maxlab=32; // for cortical analysis
   // compute the voxel volume
   typename ImageType::SpacingType spacing = image->GetSpacing();
@@ -7814,16 +7829,19 @@ int ROIStatistics(      int argc, char *argv[])
   unsigned long labelcount = 0;
   for( it = myLabelSet.begin(); it != myLabelSet.end(); ++it )
     {
-    if( roimap.size() > *it )
-      {
-      std::cout << " label " << *it << " name " << roimap[*it] << std::endl;
-      }
     labelcount++;
     }
 
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
   typename ScalarInterpolatorType::Pointer interp =  ScalarInterpolatorType::New();
-  interp->SetInputImage(valimage);
+  if( valimage )
+    {
+    interp->SetInputImage(valimage);
+    }
+  else
+    {
+    interp->SetInputImage(image);
+    }
   // iterate over the label image and index into the stat image
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
     {
@@ -7838,13 +7856,69 @@ int ROIStatistics(      int argc, char *argv[])
       masses[(unsigned long) label] = masses[(unsigned long) label] + vv;
       }
     }
-  logfile << "ROIName,ClusterSize,Mass" << std::endl;
-  for( unsigned int roi = 1; roi < roimap.size(); roi++ )
+  logfile << "ROIName,ROINumber,ClusterSize,Mass,comX,comY,comZ,comT" << std::endl;
+  //  for( it = myLabelSet.begin(); it != myLabelSet.end(); ++it )
+  for( unsigned int mylabel = 1; mylabel < maxlab + 1; mylabel++ )
     {
-    std::cout << roimap[roi] << "," << clusters[roi] << "," << masses[roi] << std::endl;
-    if( roi < maxlab )
+    unsigned int roi = mylabel - 1;
+    /* first count which roi it is by iterating through the label sets
+    it = myLabelSet.begin();
+    while (  (*it) != mylabel && it != myLabelSet.end() )
+{
+  std::cout << " it " << *it << " roi " << roi << " mylabel " << mylabel << std::endl;
+  roi++;
+  ++it;
+  }*/
+
+    typename ImageType::PointType myCenterOfMass;
+    myCenterOfMass.Fill(0);
+    unsigned long totalct = 0;
+    if( clusters[mylabel] > 0 )
       {
-      logfile << roimap[roi] << "," << clusters[roi] << "," << masses[roi] << std::endl;
+      for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+        {
+        PixelType label = It.Get();
+        if(  label == mylabel )
+          {
+          totalct += 1;
+          // compute center of mass
+          typename ImageType::PointType point;
+          image->TransformIndexToPhysicalPoint(It.GetIndex(), point);
+          for( unsigned int i = 0; i < spacing.Size(); i++ )
+            {
+            myCenterOfMass[i] += point[i];
+            }
+          }
+        }
+      } // if clusters big enough
+    if( totalct == 0 )
+      {
+      totalct = 1;
+      }
+    for( unsigned int i = 0; i < spacing.Size(); i++ )
+      {
+      myCenterOfMass[i] /= (float)totalct;
+      }
+    double comx = 0, comy = 0, comz = 0, comt = 0;
+    comx = myCenterOfMass[0];
+    if( ImageDimension >= 2 )
+      {
+      comy = myCenterOfMass[1];
+      }
+    if( ImageDimension >= 3 )
+      {
+      comz = myCenterOfMass[2];
+      }
+    if( ImageDimension == 4 )
+      {
+      comt = myCenterOfMass[3];
+      }
+    if( roi < roimap.size() )
+      {
+      logfile << roimap[roi] << "," << roi + 1 << ","
+              << clusters[roi
+                  + 1] << ","
+              << masses[roi + 1] << "," << comx << "," << comy << "," << comz << "," << comt << std::endl;
       }
     }
   logfile.close();
@@ -8017,9 +8091,53 @@ int ROIStatistics(      int argc, char *argv[])
                         * 10) ) / 10.  << " "
                 <<  (float)( (int)(myCenterOfMass[2] * 10) ) / 10.  << "   \\ " << std::endl;
       }
+
+    mCSVMatrix(roi, 0) = clusters[roi];
+    for( unsigned int mydim = 0; mydim < ImageDimension; mydim++ )
+      {
+      mCSVMatrix(roi, mydim + 1) = myCenterOfMass[mydim];
+      }
     }
 
   //  WriteImage<TwoDImageType>(squareimage,imagename.c_str());
+
+  // write out the array2D object
+  std::vector<std::string> ColumnHeaders;
+  std::string              colname = std::string("ClusterSize");
+  ColumnHeaders.push_back( colname );
+  colname = std::string("comX");
+  ColumnHeaders.push_back( colname );
+  colname = std::string("comY");
+  if( ImageDimension >= 2 )
+    {
+    ColumnHeaders.push_back( colname );
+    }
+  colname = std::string("comZ");
+  if( ImageDimension >= 3 )
+    {
+    ColumnHeaders.push_back( colname );
+    }
+  colname = std::string("comT");
+  if( ImageDimension >= 4 )
+    {
+    ColumnHeaders.push_back( colname );
+    }
+
+  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  WriterType::Pointer writer = WriterType::New();
+  writer->SetFileName( csvname );
+  writer->SetInput( &mCSVMatrix );
+  writer->SetColumnHeaders( ColumnHeaders );
+  try
+    {
+    writer->Write();
+    }
+  catch( itk::ExceptionObject& exp )
+    {
+    std::cerr << "Exception caught!" << std::endl;
+    std::cerr << exp << std::endl;
+    return EXIT_FAILURE;
+    }
 
   return 0;
 }
@@ -9119,826 +9237,233 @@ int main(int argc, char *argv[])
 
   switch( atoi(argv[1]) )
     {
-    case 2:
-      {
-      if( strcmp(operation.c_str(), "m") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mresample") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "+") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "-") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "/") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "^") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "exp") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "abs") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "addtozero") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "overadd") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "total") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Decision") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Neg") == 0 )
-        {
-        NegativeImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "G") == 0 )
-        {
-        SmoothImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "D") == 0 )
-        {
-        DistanceMap<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Normalize") == 0 )
-        {
-        NormalizeImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Grad") == 0 )
-        {
-        GradientImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
-        {
-        LaplacianImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PH") == 0 )
-        {
-        PrintHeader<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
-        {
-        CenterImage2inImage1<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Byte") == 0 )
-        {
-        ByteImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
-        {
-        LabelStats<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
-        {
-        ROIStatistics<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
-        {
-        DiceAndMinDistSum<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
-        {
-        Lipschitz<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InvId") == 0 )
-        {
-        InvId<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
-        {
-        GetLargestComponent<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
-        {
-        ExtractVectorComponent<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
-        {
-        ThresholdAtMean<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
-        {
-        FlattenImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
-        {
-        CorruptImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TileImages") == 0 )
-        {
-        TileImages<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Where") == 0 )
-        {
-        Where<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
-        {
-        FillHoles<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
-        {
-        HistogramMatching<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PadImage") == 0 )
-        {
-        PadImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
-        {
-        SetOrGetPixel<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
-        {
-        MakeImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack") == 0 )
-        {
-        StackImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
-        {
-        CompareHeadersAndImages<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
-        {
-        CountVoxelDifference<2>(argc, argv);
-        }
-      //     else if (strcmp(operation.c_str(),"AddToZero") == 0 )  AddToZero<2>(argc,argv);
-      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
-        {
-        RemoveLabelInterfaces<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
-        {
-        PoissonDiffusion<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
-        {
-        EnumerateLabelInterfaces<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
-        {
-        ConvertImageToFile<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
-        {
-        PValueImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
-        {
-        CorrelationUpdate<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
-        {
-        ConvertImageSetToMatrix<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
-        {
-        RandomlySampleImageSetToCSV<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
-        {
-        ConvertImageSetToEigenvectors<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
-        {
-        ConvertVectorToImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
-        {
-        PropagateLabelsThroughMask<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
-        {
-        FastMarchingSegmentation<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
-        {
-        TruncateImageIntensity<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
-        {
-        ExtractSlice<2>(argc, argv);
-        }
-      //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
-      else
-        {
-        std::cout << " cannot find operation : " << operation << std::endl;
-        }
-      }
-      break;
-
+    /*
+  case 2:
+    if (strcmp(operation.c_str(),"m") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"mresample") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"+") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"-") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"/") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"^") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"exp") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"abs") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"addtozero") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"overadd") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"total") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Decision") == 0)  ImageMath<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Neg") == 0)  NegativeImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"G") == 0)  SmoothImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"MD") == 0 || strcmp(operation.c_str(),"ME") == 0)  MorphImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"MO") == 0 || strcmp(operation.c_str(),"MC") == 0)  MorphImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"GD") == 0 || strcmp(operation.c_str(),"GE") == 0)  MorphImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"GO") == 0 || strcmp(operation.c_str(),"GC") == 0)  MorphImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"D") == 0 )  DistanceMap<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Normalize") == 0 )  NormalizeImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Grad") == 0 )  GradientImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Laplacian") == 0 )  LaplacianImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"PH") == 0 )  PrintHeader<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"CenterImage2inImage1") == 0 )  CenterImage2inImage1<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Byte") == 0 )  ByteImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"LabelStats") == 0 )  LabelStats<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ROIStatistics") == 0 )  ROIStatistics<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"DiceAndMinDistSum") == 0 )  DiceAndMinDistSum<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Lipschitz") == 0 )  Lipschitz<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"InvId") == 0 )  InvId<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"GetLargestComponent") == 0 )  GetLargestComponent<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ExtractVectorComponent") == 0 )  ExtractVectorComponent<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ThresholdAtMean") == 0 )  ThresholdAtMean<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"FlattenImage") == 0 )  FlattenImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"CorruptImage") == 0 )  CorruptImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"TileImages") == 0 )  TileImages<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"Where") == 0 )  Where<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"FillHoles") == 0 )  FillHoles<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"HistogramMatch") == 0) HistogramMatching<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"PadImage") == 0 )  PadImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"MakeImage") == 0 )  MakeImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"stack") == 0 )  StackImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"CompareHeadersAndImages") == 0 )  CompareHeadersAndImages<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"CountVoxelDifference") == 0 )  CountVoxelDifference<2>(argc,argv);
+    //     else if (strcmp(operation.c_str(),"AddToZero") == 0 )  AddToZero<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"RemoveLabelInterfaces") == 0 )  RemoveLabelInterfaces<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"PoissonDiffusion") == 0 )  PoissonDiffusion<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"EnumerateLabelInterfaces") == 0 )  EnumerateLabelInterfaces<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ConvertImageToFile") == 0 )  ConvertImageToFile<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"PValueImage") == 0 )  PValueImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"CorrelationUpdate") == 0 )  CorrelationUpdate<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ConvertImageSetToMatrix") == 0 )  ConvertImageSetToMatrix<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"RandomlySampleImageSetToCSV") == 0 )  RandomlySampleImageSetToCSV<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ConvertImageSetToEigenvectors") == 0 )  ConvertImageSetToEigenvectors<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ConvertVectorToImage") == 0 )  ConvertVectorToImage<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"PropagateLabelsThroughMask") == 0 )  PropagateLabelsThroughMask<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"FastMarchingSegmentation") == 0 )  FastMarchingSegmentation<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"TruncateImageIntensity") == 0 ) TruncateImageIntensity<2>(argc,argv);
+    else if (strcmp(operation.c_str(),"ExtractSlice") == 0)  ExtractSlice<2>(argc,argv);
+    //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
+    else std::cout << " cannot find operation : " << operation << std::endl;
+    break;
+    */
     case 3:
       {
       if( strcmp(operation.c_str(), "m") == 0 )
         {
         ImageMath<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "mresample") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "+") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "-") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "/") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "^") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "exp") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "abs") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "addtozero") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "overadd") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "total") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Decision") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Neg") == 0 )
-        {
-        NegativeImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "G") == 0 )
-        {
-        SmoothImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "D") == 0 )
-        {
-        DistanceMap<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Normalize") == 0 )
-        {
-        NormalizeImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Grad") == 0 )
-        {
-        GradientImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
-        {
-        LaplacianImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PH") == 0 )
-        {
-        PrintHeader<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
-        {
-        CenterImage2inImage1<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Byte") == 0 )
-        {
-        ByteImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
-        {
-        LabelStats<3>(argc, argv);
-        }
+
+      /*     else if (strcmp(operation.c_str(),"mresample") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"+") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"-") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"/") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"^") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"exp") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"abs") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"addtozero") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"overadd") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"total") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"Decision") == 0)  ImageMath<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"Neg") == 0)  NegativeImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"G") == 0)  SmoothImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"MD") == 0 || strcmp(operation.c_str(),"ME") == 0)  MorphImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"MO") == 0 || strcmp(operation.c_str(),"MC") == 0)  MorphImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"GD") == 0 || strcmp(operation.c_str(),"GE") == 0)  MorphImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"GO") == 0 || strcmp(operation.c_str(),"GC") == 0)  MorphImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"D") == 0 )  DistanceMap<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"Normalize") == 0 )  NormalizeImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"Grad") == 0 )  GradientImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"Laplacian") == 0 )  LaplacianImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"PH") == 0 )  PrintHeader<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"CenterImage2inImage1") == 0 )  CenterImage2inImage1<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"Byte") == 0 )  ByteImage<3>(argc,argv);
+      else if (strcmp(operation.c_str(),"LabelStats") == 0 )  LabelStats<3>(argc,argv);
+ */
       else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
         {
         ROIStatistics<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
-        {
-        DiceAndMinDistSum<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
-        {
-        Lipschitz<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InvId") == 0 )
-        {
-        InvId<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
-        {
-        GetLargestComponent<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
-        {
-        ExtractVectorComponent<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
-        {
-        ThresholdAtMean<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
-        {
-        FlattenImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
-        {
-        CorruptImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
-        {
-        RemoveLabelInterfaces<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
-        {
-        EnumerateLabelInterfaces<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FitSphere") == 0 )
-        {
-        FitSphere<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Where") == 0 )
-        {
-        Where<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorFA") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorFADenominator") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ComponentTo3DTensor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractComponentFrom3DTensor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorColor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorToVectorComponent") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
-        {
-        FillHoles<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
-        {
-        HistogramMatching<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PadImage") == 0 )
-        {
-        PadImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
-        {
-        SetOrGetPixel<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
-        {
-        MakeImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack") == 0 )
-        {
-        StackImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
-        {
-        CompareHeadersAndImages<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
-        {
-        CountVoxelDifference<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
-        {
-        ConvertImageToFile<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
-        {
-        PValueImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
-        {
-        CorrelationUpdate<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
-        {
-        PoissonDiffusion<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
-        {
-        ConvertImageSetToMatrix<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
-        {
-        RandomlySampleImageSetToCSV<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
-        {
-        ConvertImageSetToEigenvectors<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
-        {
-        ConvertVectorToImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
-        {
-        PropagateLabelsThroughMask<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
-        {
-        FastMarchingSegmentation<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
-        {
-        TriPlanarView<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
-        {
-        TruncateImageIntensity<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
-        {
-        ExtractSlice<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
-        {
-        ConvertLandmarkFile<3>(argc, argv);
-        }
-      else
-        {
-        std::cout << " cannot find operation : " << operation << std::endl;
-        }
-      }
-      break;
+      /*
+        else if (strcmp(operation.c_str(),"DiceAndMinDistSum") == 0 )  DiceAndMinDistSum<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"Lipschitz") == 0 )  Lipschitz<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"InvId") == 0 )  InvId<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"GetLargestComponent") == 0 )  GetLargestComponent<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ExtractVectorComponent") == 0 )  ExtractVectorComponent<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ThresholdAtMean") == 0 )  ThresholdAtMean<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"FlattenImage") == 0 )  FlattenImage<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"CorruptImage") == 0 )  CorruptImage<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"RemoveLabelInterfaces") == 0 )  RemoveLabelInterfaces<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"EnumerateLabelInterfaces") == 0 )  EnumerateLabelInterfaces<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"FitSphere") == 0 )  FitSphere<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"Where") == 0 )  Where<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorFANumerator") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorFADenominator") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"4DTensorTo3DTensor") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ComponentTo3DTensor") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ExtractComponentFrom3DTensor") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"FillHoles") == 0 )  FillHoles<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"HistogramMatch") == 0) HistogramMatching<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"PadImage") == 0 )  PadImage<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"MakeImage") == 0 )  MakeImage<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"stack") == 0 )  StackImage<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"CompareHeadersAndImages") == 0 )  CompareHeadersAndImages<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"CountVoxelDifference") == 0 )  CountVoxelDifference<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertImageToFile") == 0 )  ConvertImageToFile<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"PValueImage") == 0 )  PValueImage<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"CorrelationUpdate") == 0 )  CorrelationUpdate<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"PoissonDiffusion") == 0 )  PoissonDiffusion<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertImageSetToMatrix") == 0 )  ConvertImageSetToMatrix<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"RandomlySampleImageSetToCSV") == 0 )  RandomlySampleImageSetToCSV<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertImageSetToEigenvectors") == 0 )  ConvertImageSetToEigenvectors<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertVectorToImage") == 0 )  ConvertVectorToImage<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"PropagateLabelsThroughMask") == 0 )  PropagateLabelsThroughMask<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"FastMarchingSegmentation") == 0 )  FastMarchingSegmentation<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TriPlanarView") == 0 )  TriPlanarView<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"TruncateImageIntensity") == 0 ) TruncateImageIntensity<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ExtractSlice") == 0)  ExtractSlice<3>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<3>(argc,argv);
+        else std::cout << " cannot find operation : " << operation << std::endl;
+         break;
     case 4:
-      {
-      if( strcmp(operation.c_str(), "m") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mresample") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "+") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "-") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "/") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "^") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "exp") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "abs") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "addtozero") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "overadd") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "total") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Decision") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Neg") == 0 )
-        {
-        NegativeImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "G") == 0 )
-        {
-        SmoothImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "D") == 0 )
-        {
-        DistanceMap<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Normalize") == 0 )
-        {
-        NormalizeImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Grad") == 0 )
-        {
-        GradientImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
-        {
-        LaplacianImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PH") == 0 )
-        {
-        PrintHeader<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "nvols") == 0 )
-        {
-        PrintHeader<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
-        {
-        CenterImage2inImage1<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Byte") == 0 )
-        {
-        ByteImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
-        {
-        LabelStats<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
-        {
-        ROIStatistics<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
-        {
-        DiceAndMinDistSum<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
-        {
-        Lipschitz<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InvId") == 0 )
-        {
-        InvId<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
-        {
-        GetLargestComponent<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
-        {
-        ExtractVectorComponent<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
-        {
-        ThresholdAtMean<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
-        {
-        FlattenImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
-        {
-        CorruptImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
-        {
-        RemoveLabelInterfaces<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
-        {
-        EnumerateLabelInterfaces<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FitSphere") == 0 )
-        {
-        FitSphere<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Where") == 0 )
-        {
-        Where<4>(argc, argv);
-        }
-      //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<4>(argc,argv);
-      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
-        {
-        FillHoles<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
-        {
-        HistogramMatching<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PadImage") == 0 )
-        {
-        PadImage<4>(argc, argv);
-        }
+        if (strcmp(operation.c_str(),"m") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"mresample") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"+") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"-") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"/") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"^") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"exp") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"abs") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"addtozero") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"overadd") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"total") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Decision") == 0)  ImageMath<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Neg") == 0)  NegativeImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"G") == 0)  SmoothImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"MD") == 0 || strcmp(operation.c_str(),"ME") == 0)  MorphImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"MO") == 0 || strcmp(operation.c_str(),"MC") == 0)  MorphImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"GD") == 0 || strcmp(operation.c_str(),"GE") == 0)  MorphImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"GO") == 0 || strcmp(operation.c_str(),"GC") == 0)  MorphImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"D") == 0 )  DistanceMap<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Normalize") == 0 )  NormalizeImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Grad") == 0 )  GradientImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Laplacian") == 0 )  LaplacianImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"PH") == 0 )  PrintHeader<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"nvols") == 0 )  PrintHeader<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"CenterImage2inImage1") == 0 )  CenterImage2inImage1<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Byte") == 0 )  ByteImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"LabelStats") == 0 )  LabelStats<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ROIStatistics") == 0 )  ROIStatistics<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"DiceAndMinDistSum") == 0 )  DiceAndMinDistSum<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Lipschitz") == 0 )  Lipschitz<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"InvId") == 0 )  InvId<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"GetLargestComponent") == 0 )  GetLargestComponent<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ExtractVectorComponent") == 0 )  ExtractVectorComponent<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ThresholdAtMean") == 0 )  ThresholdAtMean<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"FlattenImage") == 0 )  FlattenImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"CorruptImage") == 0 )  CorruptImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"RemoveLabelInterfaces") == 0 )  RemoveLabelInterfaces<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"EnumerateLabelInterfaces") == 0 )  EnumerateLabelInterfaces<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"FitSphere") == 0 )  FitSphere<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"Where") == 0 )  Where<4>(argc,argv);
+        //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
+        // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
+        // else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<4>(argc,argv);
+        // else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<4>(argc,argv);
+        // else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<4>(argc,argv);
+        // else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"FillHoles") == 0 )  FillHoles<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"HistogramMatch") == 0) HistogramMatching<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"PadImage") == 0 )  PadImage<4>(argc,argv);
       //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
-      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
-        {
-        MakeImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack") == 0 )
-        {
-        StackImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
-        {
-        CompareHeadersAndImages<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
-        {
-        CountVoxelDifference<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
-        {
-        ConvertImageToFile<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
-        {
-        PValueImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
-        {
-        PoissonDiffusion<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
-        {
-        CorrelationUpdate<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
-        {
-        ConvertImageSetToMatrix<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
-        {
-        RandomlySampleImageSetToCSV<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
-        {
-        ConvertImageSetToEigenvectors<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
-        {
-        ConvertVectorToImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
-        {
-        PropagateLabelsThroughMask<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
-        {
-        FastMarchingSegmentation<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
-        {
-        TriPlanarView<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
-        {
-        TruncateImageIntensity<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
-        {
-        ExtractSlice<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
-        {
-        ConvertLandmarkFile<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesSubset") == 0 )
-        {
-        TimeSeriesSubset<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesToMatrix") == 0 )
-        {
-        TimeSeriesToMatrix<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompCorr") == 0 )
-        {
-        CompCorr<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompCorrAuto") == 0 )
-        {
-        CompCorrAuto<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ComputeTimeSeriesLeverage") == 0 )
-        {
-        ComputeTimeSeriesLeverage<4>(argc, argv);
-        }
-      else
-        {
-        std::cout << " cannot find operation : " << operation << std::endl;
-        }
+        else if (strcmp(operation.c_str(),"MakeImage") == 0 )  MakeImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"stack") == 0 )  StackImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"CompareHeadersAndImages") == 0 )  CompareHeadersAndImages<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"CountVoxelDifference") == 0 )  CountVoxelDifference<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertImageToFile") == 0 )  ConvertImageToFile<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"PValueImage") == 0 )  PValueImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"PoissonDiffusion") == 0 )  PoissonDiffusion<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"CorrelationUpdate") == 0 )  CorrelationUpdate<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertImageSetToMatrix") == 0 )  ConvertImageSetToMatrix<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"RandomlySampleImageSetToCSV") == 0 )  RandomlySampleImageSetToCSV<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertImageSetToEigenvectors") == 0 )  ConvertImageSetToEigenvectors<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertVectorToImage") == 0 )  ConvertVectorToImage<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"PropagateLabelsThroughMask") == 0 )  PropagateLabelsThroughMask<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"FastMarchingSegmentation") == 0 )  FastMarchingSegmentation<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"TriPlanarView") == 0 )  TriPlanarView<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"TruncateImageIntensity") == 0 ) TruncateImageIntensity<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ExtractSlice") == 0)  ExtractSlice<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"TimeSeriesSubset") == 0)  TimeSeriesSubset<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"TimeSeriesToMatrix") == 0)  TimeSeriesToMatrix<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"CompCorr") == 0)  CompCorr<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"CompCorrAuto") == 0)  CompCorrAuto<4>(argc,argv);
+        else if (strcmp(operation.c_str(),"ComputeTimeSeriesLeverage") == 0)  ComputeTimeSeriesLeverage<4>(argc,argv);
+        else std::cout << " cannot find operation : " << operation << std::endl;
+      */
       }
       break;
 

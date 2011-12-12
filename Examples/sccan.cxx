@@ -456,6 +456,9 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
   tilesize[0] = xsize;
   tilesize[1] = ysize;
 
+  //      std::cout <<" have voxct " << voxct << " and nsub " << filecount << " or " << image_fn_list.size()<<
+  // std::endl;
+
   if( strcmp(ext.c_str(), ".csv") == 0 )
     {
     typedef itk::Array2D<double> MatrixType;
@@ -476,8 +479,11 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
           {
           yy = tvoxct;
           matrix[xx][yy] = reader2->GetOutput()->GetPixel(mIter.GetIndex() );
-          std::string colname = std::string("V") + sccan_to_string<unsigned int>(tvoxct);
-          ColumnHeaders.push_back( colname );
+          if( j == 0 )
+            {
+            std::string colname = std::string("V") + sccan_to_string<unsigned long>(tvoxct);
+            ColumnHeaders.push_back( colname );
+            }
           tvoxct++;
           }
         }
@@ -711,7 +717,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
 
 template <class PixelType>
 int
-ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outname )
+ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outname, unsigned long rowOrCol )
 {
   typedef PixelType             Scalar;
   typedef vnl_matrix<PixelType> vMatrix;
@@ -737,22 +743,51 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
   vMatrix p;
   p.fill(0);
   ReadMatrixFromCSVorImageSet<Scalar>(csvfn, p);
-  if( mct != p.rows() )
+  if( mct != p.rows() && mct != p.cols() )
     {
     std::cout << " csv-vec rows " << p.rows() << " cols " << p.cols() << " mask non zero elements " << mct
               <<  std::endl;
-    }
-  mct = 0;
-  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
-    {
-    if( mIter.Get() >= 0.5 )
-      {
-      PixelType val = p(mct, 0);
-      outimage->SetPixel(mIter.GetIndex(), val);
-      mct++;
-      }
+    exit(1);
     }
 
+  if( mct == p.rows() )
+    {
+    if( rowOrCol > p.cols() - 1 )
+      {
+      std::cout << " You are trying to select the " << rowOrCol << "th column but there are only " << p.cols()
+                << " columns " << std::endl;
+      exit(1);
+      }
+    mct = 0;
+    for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+      {
+      if( mIter.Get() >= 0.5 )
+        {
+        PixelType val = p(mct, rowOrCol);
+        outimage->SetPixel(mIter.GetIndex(), val);
+        mct++;
+        }
+      }
+    }
+  else if( mct == p.cols()  )  // map the cols to the vector
+    {
+    if( rowOrCol > p.rows() - 1 )
+      {
+      std::cout << " You are trying to select the " << rowOrCol << "th row but there are only " << p.rows()
+                << " rows " << std::endl;
+      exit(1);
+      }
+    mct = 0;
+    for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+      {
+      if( mIter.Get() >= 0.5 )
+        {
+        PixelType val = p(rowOrCol, mct);
+        outimage->SetPixel(mIter.GetIndex(), val);
+        mct++;
+        }
+      }
+    }
   typedef itk::ImageFileWriter<ImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outname );
@@ -1707,7 +1742,6 @@ int sccan( itk::ants::CommandLineParser *parser )
     std::string outname =  outputOption->GetValue( 0 );
     std::string imagelist = matrixOption->GetParameter( 0 );
     std::string maskfn = matrixOption->GetParameter( 1 );
-    typedef itk::Image<double, 2> MyImageType;
     ConvertImageListToMatrix<ImageDimension, double>( imagelist,  maskfn, outname );
     return EXIT_SUCCESS;
     }
@@ -1741,10 +1775,11 @@ int sccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "vector-to-image" );
   if( matrixOptionV2I && matrixOptionV2I->GetNumberOfValues() > 0 )
     {
-    std::string outname = outputOption->GetValue( 0 );
-    std::string csvfn = matrixOptionV2I->GetParameter( 0 );
-    std::string maskfn = matrixOptionV2I->GetParameter( 1 );
-    ConvertCSVVectorToImage<double>( csvfn,  maskfn, outname );
+    std::string   outname = outputOption->GetValue( 0 );
+    std::string   csvfn = matrixOptionV2I->GetParameter( 0 );
+    std::string   maskfn = matrixOptionV2I->GetParameter( 1 );
+    unsigned long rowOrCol = parser->Convert<unsigned long>( matrixOptionV2I->GetParameter( 2 ) );
+    ConvertCSVVectorToImage<double>( csvfn,  maskfn, outname, rowOrCol );
     std::cout << " V2I done " << outname << std::endl;
     return EXIT_SUCCESS;
     }
@@ -1965,10 +2000,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string(
-        "converts the 1st column vector in a csv file back to an image --- currently needs the csv file to have > 1 columns " );
+        "converts the 1st column vector in a csv file back to an image --- currently needs the csv file to have > 1 columns.  if the number of entries in the column does not equal the number of entries in the mask but the number of rows does equal the number of entries in the mask, then it will convert the row vector to an image. " );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "vector-to-image" );
-    option->SetUsageOption( 0, "[vector.csv,three_d_mask.nii.gz]" );
+    option->SetUsageOption( 0, "[vector.csv,three_d_mask.nii.gz, which-row-or-col ]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
