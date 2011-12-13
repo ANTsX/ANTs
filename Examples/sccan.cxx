@@ -154,14 +154,14 @@ inline std::string sccan_to_string(const T& t)
     std::stringstream ss0;
     ss0 << 0;
     std::string extend = ss0.str();
-    stringout = std::string(stringout + extend);
+    stringout = std::string(extend + stringout);
     }
   if( t < 10 )
     {
     std::stringstream ss0;
     ss0 << 0;
     std::string extend = ss0.str();
-    stringout = std::string(stringout + extend);
+    stringout = std::string(extend + stringout);
     }
   return stringout;
 }
