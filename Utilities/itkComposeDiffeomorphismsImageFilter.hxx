@@ -83,12 +83,14 @@ ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
 {
   VectorType zeroVector( 0.0 );
 
+  typename OutputFieldType::Pointer output = this->GetOutput();
+
   ImageRegionConstIterator<InputFieldType>      ItW( this->GetWarpingField(), region );
-  ImageRegionIteratorWithIndex<OutputFieldType> ItF( this->GetOutput(), region );
+  ImageRegionIteratorWithIndex<OutputFieldType> ItF( output, region );
   for( ItW.GoToBegin(), ItF.GoToBegin(); !ItW.IsAtEnd(); ++ItW, ++ItF )
     {
     PointType point1;
-    this->GetOutput()->TransformIndexToPhysicalPoint( ItF.GetIndex(), point1 );
+    output->TransformIndexToPhysicalPoint( ItF.GetIndex(), point1 );
 
     typename ImageRegionConstIterator<InputFieldType>::PixelType tmpWarp = ItW.Get();
     PointType point2 = point1;

@@ -197,7 +197,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   typedef BinaryThresholdImageFilter<InputImageType, InputImageType>
     ThresholderType;
   typename ThresholderType::Pointer thresholder = ThresholderType::New();
-  thresholder->SetInput( this->GetSegmentationImage() );
+  thresholder->SetInput( segmentationImageImporter->GetOutput() );
   thresholder->SetLowerThreshold( 0 );
   thresholder->SetUpperThreshold( 0 );
   thresholder->SetInsideValue( 0 );
@@ -216,55 +216,55 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   VectorType zeroVector( 0.0 );
 
   RealImagePointer corticalThicknessImage = RealImageType::New();
-  corticalThicknessImage->CopyInformation( this->GetInput() );
-  corticalThicknessImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  corticalThicknessImage->CopyInformation( segmentationImageImporter->GetOutput() );
+  corticalThicknessImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   corticalThicknessImage->Allocate();
   corticalThicknessImage->FillBuffer( 0.0 );
 
   VectorImagePointer forwardIncrementalField = VectorImageType::New();
-  forwardIncrementalField->CopyInformation( this->GetInput() );
-  forwardIncrementalField->SetRegions( this->GetInput()->GetRequestedRegion() );
+  forwardIncrementalField->CopyInformation( segmentationImageImporter->GetOutput() );
+  forwardIncrementalField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   forwardIncrementalField->Allocate();
 
   RealImagePointer hitImage = RealImageType::New();
-  hitImage->CopyInformation( this->GetInput() );
-  hitImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  hitImage->CopyInformation( segmentationImageImporter->GetOutput() );
+  hitImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   hitImage->Allocate();
 
   VectorImagePointer integratedField = VectorImageType::New();
-  integratedField->CopyInformation( this->GetInput() );
-  integratedField->SetRegions( this->GetInput()->GetRequestedRegion() );
+  integratedField->CopyInformation( segmentationImageImporter->GetOutput() );
+  integratedField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   integratedField->Allocate();
   integratedField->FillBuffer( zeroVector );
 
   VectorImagePointer inverseField = VectorImageType::New();
-  inverseField->CopyInformation( this->GetInput() );
-  inverseField->SetRegions( this->GetInput()->GetRequestedRegion() );
+  inverseField->CopyInformation( segmentationImageImporter->GetOutput() );
+  inverseField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   inverseField->Allocate();
 
   VectorImagePointer inverseIncrementalField = VectorImageType::New();
-  inverseIncrementalField->CopyInformation( this->GetInput() );
-  inverseIncrementalField->SetRegions( this->GetInput()->GetRequestedRegion() );
+  inverseIncrementalField->CopyInformation( segmentationImageImporter->GetOutput() );
+  inverseIncrementalField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   inverseIncrementalField->Allocate();
 
   RealImagePointer speedImage = RealImageType::New();
-  speedImage->CopyInformation( this->GetInput() );
-  speedImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  speedImage->CopyInformation( segmentationImageImporter->GetOutput() );
+  speedImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   speedImage->Allocate();
 
   RealImagePointer thicknessImage = RealImageType::New();
-  thicknessImage->CopyInformation( this->GetInput() );
-  thicknessImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  thicknessImage->CopyInformation( segmentationImageImporter->GetOutput() );
+  thicknessImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   thicknessImage->Allocate();
 
   RealImagePointer totalImage = RealImageType::New();
-  totalImage->CopyInformation( this->GetInput() );
-  totalImage->SetRegions( this->GetInput()->GetRequestedRegion() );
+  totalImage->CopyInformation( segmentationImageImporter->GetOutput() );
+  totalImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   totalImage->Allocate();
 
   VectorImagePointer velocityField = VectorImageType::New();
-  velocityField->CopyInformation( this->GetInput() );
-  velocityField->SetRegions( this->GetInput()->GetRequestedRegion() );
+  velocityField->CopyInformation( segmentationImageImporter->GetOutput() );
+  velocityField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   velocityField->Allocate();
   velocityField->FillBuffer( zeroVector );
 
