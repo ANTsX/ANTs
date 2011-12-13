@@ -321,7 +321,7 @@ install(PROGRAMS ../Scripts/ants.sh  ../Scripts/basic_ants_example.sh
                 ../Scripts/ANTSAverage2DAffine.sh ../Scripts/ANTSAverage3DAffine.sh
                 ../Scripts/buildtemplateparallel.sh ../Scripts/ANTSpexec.sh
                 ../Scripts/waitForSGEQJobs.pl DESTINATION bin
-                PERMISSIONS GROUP_EXECUTE
+                PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
                 CONFIGURATIONS  Release )
 #Set any libraries that your project depends on.
 #examples: ${ITK_LIBRARIES}, VTKRendering, etc
