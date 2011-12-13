@@ -90,13 +90,20 @@ ComposeDiffeomorphismsImageFilter<InputImage, TOutputImage>
     PointType point1;
     this->GetOutput()->TransformIndexToPhysicalPoint( ItF.GetIndex(), point1 );
 
-    PointType point2 = point1 + ItW.Get();
+    ImageRegionConstIterator<InputFieldType>::PixelType tmpWarp = ItW.Get();
+    PointType                                           point2 = point1;
+    for( unsigned int d = 0; d < point2.PointDimension; d++ )
+      {
+      point2[d] += tmpWarp[d];
+      }
 
     typename InterpolatorType::OutputType displacement;
     if( this->m_Interpolator->IsInsideBuffer( point2 ) )
       {
       displacement = this->m_Interpolator->Evaluate( point2 );
-      ItF.Set( ( point2 + displacement ) - point1 );
+      ImageRegionIteratorWithIndex<OutputFieldType>::PixelType tmpOut;
+      tmpOut = ( point2 + displacement ) - point1;
+      ItF.Set( tmpOut );
       }
     }
 }

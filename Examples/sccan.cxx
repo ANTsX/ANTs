@@ -178,7 +178,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
     ColumnHeaders.push_back( colname );
     }
-  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( fnmp.c_str() );
   writer->SetColumnHeaders(ColumnHeaders);
@@ -213,7 +213,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
       ColumnHeaders.push_back( colname );
       }
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( fnmp.c_str() );
     writer->SetColumnHeaders(ColumnHeaders);
@@ -489,7 +489,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
         }
       }
     // write out the array2D object
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( outname );
     writer->SetInput( &matrix );
@@ -697,7 +697,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
       } // check mask
     }
 
-  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outname );
   writer->SetInput( &matrix );

@@ -2054,7 +2054,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
     }
 
   // write out the array2D object
-  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( outname );
   writer->SetInput( &matrix );
@@ -2326,7 +2326,7 @@ int CompCorrAuto(int argc, char *argv[])
 
   // write out these nuisance variables
   // write out the array2D object
-  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   std::string         kname = tempname + std::string("_compcorr.csv");
   writer->SetFileName( kname );
@@ -8123,7 +8123,7 @@ int ROIStatistics(      int argc, char *argv[])
     ColumnHeaders.push_back( colname );
     }
 
-  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( csvname );
   writer->SetInput( &mCSVMatrix );
@@ -8383,7 +8383,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       }
 
     // write out the array2D object
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( outname );
     writer->SetInput( &matrix );
@@ -8537,7 +8537,7 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
       }
 
     // write out the array2D object
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( outname );
     writer->SetInput( &matrix );
@@ -8725,7 +8725,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
         }
 
       // write out the array2D object
-      typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+      typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
       std::string         num = std::string("evecs_for_label") + to_string<unsigned long>(mv);
       std::string         eoutname = outname + num + ext;
@@ -8750,7 +8750,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
 
     {
     // write out the array2D object
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     std::string         num = std::string("avg_for_labels");
     std::string         eoutname = outname + num + ext;

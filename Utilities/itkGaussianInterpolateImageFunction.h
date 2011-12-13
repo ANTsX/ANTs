@@ -275,6 +275,7 @@ private:
   int                nt[VDim], stride[VDim];
   double             sigma[VDim], alpha;
 
+  template <class TInputImage, class TCoordRep, class TPixelCompare>
   friend class LabelImageGaussianInterpolateImageFunction;
 };
 } // end namespace itk

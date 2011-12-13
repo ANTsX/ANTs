@@ -518,7 +518,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
     {
     const double pRatio = vcl_log(jointPDFValue) - vcl_log(fixedImagePDFValue);
     term1 = dJPDF * pRatio;
-    term2 = vcl_log(2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
+    term2 = vcl_log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
     value =  (term2 - term1);
     }  // end if-block to check non-zero bin contribution
   else
@@ -560,7 +560,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
     {
     const double pRatio = vcl_log(jointPDFValue) - vcl_log(movingImagePDFValue);
     term1 = dJPDF * pRatio;
-    term2 = vcl_log(2) * dMmPDF * jointPDFValue / movingImagePDFValue;
+    term2 = vcl_log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
     value =  (term2 - term1);
     } // end if-block to check non-zero bin contribution
   else

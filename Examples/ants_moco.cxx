@@ -913,7 +913,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
       std::string colname = std::string("MOCOparam") + ants_moco_to_string<unsigned int>(nv - 2);
       ColumnHeaders.push_back( colname );
       }
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     std::string         fnmp = outputPrefix + std::string("MOCOparams.csv");
     std::cout << " write " << fnmp << std::endl;

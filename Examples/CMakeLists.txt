@@ -34,6 +34,15 @@ if(USE_VTK)
      message("Cannot build some programs without VTK.  Please set VTK_DIR if you need these programs.")
   endif(VTK_FOUND)
 endif(USE_VTK)
+
+# With MS compilers on Win64, we need the /bigobj switch, else generated
+# code results in objects with number of sections exceeding object file
+# format.
+# see http://msdn.microsoft.com/en-us/library/ms173499.aspx
+if(CMAKE_CL_64 OR MSVC)
+  add_definitions(/bigobj)
+endif()
+
 option(USE_FFTWD "Use double precision fftw if found" OFF)
 option(USE_FFTWF "Use single precision fftw if found" OFF)
 option(USE_SYSTEM_FFTW "Use an installed version of fftw" OFF)
