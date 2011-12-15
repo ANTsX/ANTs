@@ -40,7 +40,6 @@
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkTimeVaryingVelocityFieldTransformParametersAdaptor.h"
-#include "itkTimeVaryingBSplineVelocityFieldTransformParametersAdaptor.h"
 
 #include "itkGradientDescentOptimizerv4.h"
 
