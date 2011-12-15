@@ -18,13 +18,12 @@
 
 #include "antsCommandLineParser.h"
 #include "itkCSVNumericObjectFileWriter.h"
-#include "itkSimpleImageRegistrationMethod.h"
-#include "itkTimeVaryingVelocityFieldImageRegistrationMethod.h"
+#include "itkImageRegistrationMethodv4.h"
 
-#include "itkANTSNeighborhoodCorrelationImageToImageObjectMetric.h"
-#include "itkDemonsImageToImageObjectMetric.h"
-#include "itkImageToImageObjectMetric.h"
-#include "itkJointHistogramMutualInformationImageToImageObjectMetric.h"
+#include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
+#include "itkDemonsImageToImageMetricv4.h"
+#include "itkImageToImageMetricv4.h"
+#include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
 
 #include "itkAffineTransform.h"
 #include "itkBSplineTransform.h"
@@ -42,8 +41,8 @@
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkTimeVaryingVelocityFieldTransformParametersAdaptor.h"
 
-#include "itkGradientDescentObjectOptimizer.h"
-#include "itkQuasiNewtonObjectOptimizer.h"
+#include "itkGradientDescentOptimizerv4.h"
+#include "itkQuasiNewtonOptimizerv4.h"
 
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkImageFileReader.h"
@@ -124,8 +123,8 @@ public:
     std::cout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
               << std::endl;
 
-    typedef itk::GradientDescentObjectOptimizer OptimizerType;
-    typedef itk::QuasiNewtonObjectOptimizer     OptimizerType2;
+    typedef itk::GradientDescentOptimizerv4 OptimizerType;
+    typedef itk::QuasiNewtonOptimizerv4     OptimizerType2;
 
     OptimizerType * optimizer = reinterpret_cast<OptimizerType *>(
         const_cast<typename TFilter::OptimizerType *>( filter->GetOptimizer() ) );
@@ -323,7 +322,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
-    typedef itk::SimpleImageRegistrationMethod<FixedImageType, FixedImageType> AffineRegistrationType;
+    typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType> AffineRegistrationType;
 
     std::cout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
     std::stringstream currentStageString;
@@ -486,7 +485,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         extractFilter2->Update();
         moving_time_slice = extractFilter2->GetOutput();
         }
-      typedef itk::ImageToImageObjectMetric<FixedImageType, FixedImageType> MetricType;
+      typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
       typename MetricType::Pointer metric;
 
       std::string whichMetric = metricOption->GetValue( currentStage );
@@ -496,8 +495,8 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
 
         std::cout << "  using the CC metric (radius = " << radiusOption << ")." << std::endl;
-        typedef itk::ANTSNeighborhoodCorrelationImageToImageObjectMetric<FixedImageType,
-                                                                         FixedImageType> CorrelationMetricType;
+        typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType,
+                                                                     FixedImageType> CorrelationMetricType;
         typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
         typename CorrelationMetricType::RadiusType radius;
         radius.Fill( radiusOption );
@@ -513,8 +512,8 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         {
         unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
         unsigned int npoints_to_skip = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 4 ) );
-        typedef itk::JointHistogramMutualInformationImageToImageObjectMetric<FixedImageType,
-                                                                             FixedImageType> MutualInformationMetricType;
+        typedef itk::JointHistogramMutualInformationImageToImageMetricv4<FixedImageType,
+                                                                         FixedImageType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
@@ -548,7 +547,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         {
         std::cout << "  using the Demons metric." << std::endl;
 
-        typedef itk::DemonsImageToImageObjectMetric<FixedImageType, FixedImageType> DemonsMetricType;
+        typedef itk::DemonsImageToImageMetricv4<FixedImageType, FixedImageType> DemonsMetricType;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
         demonsMetric = demonsMetric;
         demonsMetric->SetDoFixedImagePreWarp( true );
@@ -563,7 +562,7 @@ int ants_moco( itk::ants::CommandLineParser *parser )
 
       // Set up the optimizer.  To change the iteration number for each level we rely
       // on the command observer.
-      //    typedef itk::JointHistogramMutualInformationImageToImageObjectMetric<FixedImageType, FixedImageType>
+      //    typedef itk::JointHistogramMutualInformationImageToImageMetricv4<FixedImageType, FixedImageType>
       // MutualInformationMetricType;
       typedef itk::RegistrationParameterScalesFromShift<MetricType> ScalesEstimatorType;
       typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
@@ -573,8 +572,8 @@ int ants_moco( itk::ants::CommandLineParser *parser )
 
       float learningRate = parser->Convert<float>( transformOption->GetParameter( currentStage, 0 ) );
 
-      typedef itk::GradientDescentObjectOptimizer OptimizerType;
-      typedef itk::QuasiNewtonObjectOptimizer     OptimizerType2;
+      typedef itk::GradientDescentOptimizerv4 OptimizerType;
+      typedef itk::QuasiNewtonOptimizerv4     OptimizerType2;
       typename OptimizerType::Pointer optimizer = OptimizerType::New();
       optimizer->SetLearningRate( learningRate );
       optimizer->SetNumberOfIterations( iterations[0] );
@@ -666,10 +665,9 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichTransform.c_str(), "rigid" ) == 0 )
         {
-        typedef TRigid
-                                                                       RigidTransformType;
-        typedef itk::SimpleImageRegistrationMethod<FixedImageType, FixedImageType,
-                                                   RigidTransformType> RigidRegistrationType;
+        typedef TRigid RigidTransformType;
+        typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
+                                               RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
         typename RigidTransformType::Pointer rigidTransform = RigidTransformType::New();
         rigidTransform->SetIdentity();
@@ -738,8 +736,8 @@ int ants_moco( itk::ants::CommandLineParser *parser )
         typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType,
                                                                          ImageDimension> DisplacementFieldTransformType;
 
-        typedef itk::SimpleImageRegistrationMethod<FixedImageType, FixedImageType,
-                                                   DisplacementFieldTransformType> DisplacementFieldRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
+                                               DisplacementFieldTransformType> DisplacementFieldRegistrationType;
 
         // Create the transform adaptors
 
