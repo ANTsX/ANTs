@@ -857,6 +857,11 @@ private:
 
   itk::Array<unsigned long> m_LabelVolumes;
 
+  std::vector<const ImageType *> m_IntensityImages;
+
+  typename ClassifiedImageType::ConstPointer     m_PriorLabelImage;
+  typename MaskImageType::ConstPointer           m_MaskImage;
+
   // inline functions to help with the sparse image creation
 
   inline typename RealImageType::IndexType NumberToIndex(
