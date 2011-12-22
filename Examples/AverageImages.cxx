@@ -31,6 +31,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkOptimalSharpeningImageFilter.h"
+#include "itkLaplacianSharpeningImageFilter.h"
 
 template <unsigned int ImageDimension, unsigned int NVectorComponents>
 int AverageImages1(unsigned int argc, char *argv[])
@@ -119,12 +120,13 @@ int AverageImages1(unsigned int argc, char *argv[])
       }
     }
 
-  typedef itk::OptimalSharpeningImageFilter<ImageType, ImageType> sharpeningFilter;
+  //  typedef itk::OptimalSharpeningImageFilter<ImageType,ImageType > sharpeningFilter;
+  typedef itk::LaplacianSharpeningImageFilter<ImageType, ImageType> sharpeningFilter;
   typename sharpeningFilter::Pointer shFilter = sharpeningFilter::New();
   if( normalizei && argc > 3 && vectorlength == 1 )
     {
     shFilter->SetInput( averageimage );
-    shFilter->SetSValue(0.5);
+    //    shFilter->SetSValue(0.5);
     averageimage =  shFilter->GetOutput();
     }
 
