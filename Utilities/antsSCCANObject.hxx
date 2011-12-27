@@ -926,9 +926,9 @@ void antsSCCANObject<TInputImage, TRealType>
       }
     }
   //  for (unsigned int i=0; i<evals.size(); i++) {
-  //  std::cout << " sorted " << i << " is " << sorted_indices[i] << " ev " << evals[i] <<" oev "<<oevals[i]<<
+  //    std::cout << " sorted " << i << " is " << sorted_indices[i] << " ev " << evals[i] <<" oev "<<oevals[i]<<
   // std::endl;
-  // }
+  //  }
   // std::cout<<"sort-c"<<std::endl;
   VectorType newcorrs(n_vecs, 0);
   MatrixType varp(this->m_MatrixP.cols(), n_vecs, 0);
@@ -936,15 +936,14 @@ void antsSCCANObject<TInputImage, TRealType>
   // std::cout<<"sort-d"<<std::endl;
   for( unsigned int i = 0; i < n_vecs; i++ )
     {
-    if( sorted_indices[i] > 0 )
+    // if ( sorted_indices[i] > 0 ) {
+    varp.set_column(i, this->m_VariatesP.get_column( sorted_indices[i] ) );
+    if( varq.columns() > i )
       {
-      varp.set_column(i, this->m_VariatesP.get_column( sorted_indices[i] ) );
-      if( varq.columns() > i )
-        {
-        varq.set_column(i, this->m_VariatesQ.get_column( sorted_indices[i] ) );
-        }
-      newcorrs[i] = (this->m_CanonicalCorrelations[sorted_indices[i]]);
+      varq.set_column(i, this->m_VariatesQ.get_column( sorted_indices[i] ) );
       }
+    newcorrs[i] = (this->m_CanonicalCorrelations[sorted_indices[i]]);
+    // }
     }
   //  std::cout<<"sort-e"<<std::endl;
   for( unsigned int i = 0; i < n_vecs; i++ )
@@ -1152,7 +1151,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         ip = 1 - inner_product( proj / p2n,  v / vn );
         }
       // if ( vn > this->m_Epsilon) ip=1-inner_product( u/unorm ,  v/vn );
-      eigenvalue_i *= ip;
+      //	eigenvalue_i*=ip;
       }
     if( i < mind - 1 )
       {
