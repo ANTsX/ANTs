@@ -204,8 +204,10 @@ add_executable(CreateDTICohort CreateDTICohort.cxx  ${UI_SOURCES})
 target_link_libraries(CreateDTICohort ${ITK_LIBRARIES})
 add_executable(AverageAffineTransform AverageAffineTransform.cxx)
  target_link_libraries(AverageAffineTransform ${ITK_LIBRARIES})
-add_executable(hormigita hormigita.cxx ${UI_SOURCES})
- target_link_libraries(hormigita ${ITK_LIBRARIES})
+#add_executable(antsRegistration antsRegistration.cxx ${UI_SOURCES})
+# target_link_libraries(antsRegistration ${ITK_LIBRARIES})
+add_executable(antsApplyTransforms antsApplyTransforms.cxx ${UI_SOURCES})
+ target_link_libraries(antsApplyTransforms ${ITK_LIBRARIES})
 add_executable(ants_moco ants_moco.cxx ${UI_SOURCES})
  target_link_libraries(ants_moco ${ITK_LIBRARIES})
 add_executable(sccan sccan.cxx ${UI_SOURCES})
@@ -300,7 +302,8 @@ INSTALL(TARGETS ANTS
   KellySlater
   KellyKapowski
   ants_moco
-  hormigita
+#  antsRegistration
+  antsApplyTransform
   sccan
 #  ConvertVectorFieldToVTK
 #  GetMeshAndTopology

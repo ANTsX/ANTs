@@ -20,6 +20,7 @@
 
 #include "itkImageRegistrationMethodv4.h"
 #include "itkTimeVaryingVelocityFieldImageRegistrationMethodv4.h"
+#include "itkTimeVaryingBSplineVelocityFieldImageRegistrationMethod.h"
 
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkDemonsImageToImageMetricv4.h"
@@ -40,6 +41,7 @@
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkTimeVaryingVelocityFieldTransformParametersAdaptor.h"
+#include "itkTimeVaryingBSplineVelocityFieldTransformParametersAdaptor.h"
 
 #include "itkGradientDescentOptimizerv4.h"
 
@@ -150,7 +152,7 @@ void ConvertToLowerCase( std::string& str )
 }
 
 template <unsigned int ImageDimension>
-int hormigita( itk::ants::CommandLineParser *parser )
+int antsRegistration( itk::ants::CommandLineParser *parser )
 {
   itk::TimeProbe totalTimer;
 
@@ -211,7 +213,11 @@ int hormigita( itk::ants::CommandLineParser *parser )
     std::cerr << "Output option not specified." << std::endl;
     return EXIT_FAILURE;
     }
-  std::string outputPrefix = outputOption->GetParameter( 0, 0 );
+  std::string outputPrefix = outputOption->GetValue( 0 );
+  if( outputOption->GetNumberOfParameters( 0 ) > 0 )
+    {
+    outputPrefix = outputOption->GetParameter( 0, 0 );
+    }
 
   typedef float                                 PixelType;
   typedef double                                RealType;
@@ -233,9 +239,9 @@ int hormigita( itk::ants::CommandLineParser *parser )
 
     typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType> AffineRegistrationType;
 
-    std::cout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
+    std::cout << std::endl << "Stage " << ( numberOfStages - currentStage - 1 ) << std::endl;
     std::stringstream currentStageString;
-    currentStageString << currentStage;
+    currentStageString << ( numberOfStages - currentStage - 1 );
 
     // Get the fixed and moving images
 
@@ -449,7 +455,7 @@ int hormigita( itk::ants::CommandLineParser *parser )
 
       // Write out the affine transform
 
-      std::string filename = outputPrefix + currentStageString.str() + std::string( "Affine.txt" );
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Affine.mat" );
 
       typedef itk::TransformFileWriter TransformWriterType;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
@@ -491,6 +497,15 @@ int hormigita( itk::ants::CommandLineParser *parser )
         std::cerr << "Exception caught: " << e << std::endl;
         return EXIT_FAILURE;
         }
+      // Write out the affine transform
+
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Rigid.mat" );
+
+      typedef itk::TransformFileWriter TransformWriterType;
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
+      transformWriter->SetFileName( filename.c_str() );
+      transformWriter->Update();
       }
     else if( std::strcmp( whichTransform.c_str(),
                           "gaussiandisplacementfield" ) == 0 ||  std::strcmp( whichTransform.c_str(), "gdf" ) == 0 )
@@ -836,7 +851,7 @@ int hormigita( itk::ants::CommandLineParser *parser )
       transformWriter->Update();
       }
     else if( std::strcmp( whichTransform.c_str(),
-                          "TimeVaryingVelocityField" ) == 0 || std::strcmp( whichTransform.c_str(), "tvf" ) == 0 )
+                          "timevaryingvelocityfield" ) == 0 || std::strcmp( whichTransform.c_str(), "tvf" ) == 0 )
       {
       typedef itk::Vector<RealType, ImageDimension> VectorType;
       VectorType zeroVector( 0.0 );
@@ -923,9 +938,7 @@ int hormigita( itk::ants::CommandLineParser *parser )
         {
         numberOfIterationsPerLevel[d] = iterations[d];
         }
-
       velocityFieldRegistration->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
-
       velocityFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
       velocityFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
 
@@ -976,6 +989,12 @@ int hormigita( itk::ants::CommandLineParser *parser )
 
       velocityFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
 
+      typedef CommandIterationUpdate<VelocityFieldRegistrationType> VelocityFieldCommandType;
+      typename VelocityFieldCommandType::Pointer velocityFieldRegistrationObserver = VelocityFieldCommandType::New();
+      velocityFieldRegistrationObserver->SetNumberOfIterations( iterations );
+
+      velocityFieldRegistration->AddObserver( itk::IterationEvent(), velocityFieldRegistrationObserver );
+
       try
         {
         std::cout << std::endl << "*** Running time-varying velocity field registration (sigmaForUpdateField = "
@@ -1010,7 +1029,179 @@ int hormigita( itk::ants::CommandLineParser *parser )
       typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
       inverseWriter->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>(
                                  velocityFieldRegistration->GetOutput()->Get() )->GetInverseDisplacementField() );
-      inverseWriter->SetFileName( filename.c_str() );
+      inverseWriter->SetFileName( inverseFilename.c_str() );
+      inverseWriter->Update();
+      }
+    else if( std::strcmp( whichTransform.c_str(),
+                          "timevaryingbsplinevelocityfield" ) == 0 ||
+             std::strcmp( whichTransform.c_str(), "tvdmffd" ) == 0 )
+      {
+      typedef itk::Vector<RealType, ImageDimension> VectorType;
+      VectorType zeroVector( 0.0 );
+
+      // Determine the parameters (size, spacing, etc) for the time-varying velocity field control point lattice
+
+      std::vector<unsigned int> meshSize = parser->ConvertVector<unsigned int>( transformOption->GetParameter( 0, 1 ) );
+      if( meshSize.size() != ImageDimension + 1 )
+        {
+        std::cerr << "The transform domain mesh size does not have the correct number of elements."
+                  << "For image dimension = " << ImageDimension << ", you need " << ImageDimension + 1
+                  << "elements. " << std::endl;
+        return EXIT_FAILURE;
+        }
+
+      unsigned int numberOfTimePointSamples = 4;
+      if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+        {
+        numberOfTimePointSamples = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+        }
+      unsigned int splineOrder = 3;
+      if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+        {
+        splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+        }
+
+      typedef itk::Image<VectorType, ImageDimension + 1> TimeVaryingVelocityFieldControlPointLatticeType;
+      typename TimeVaryingVelocityFieldControlPointLatticeType::Pointer velocityFieldLattice =
+        TimeVaryingVelocityFieldControlPointLatticeType::New();
+
+      typename FixedImageType::IndexType fixedImageIndex = fixedImage->GetBufferedRegion().GetIndex();
+      typename FixedImageType::SizeType fixedImageSize = fixedImage->GetBufferedRegion().GetSize();
+      typename FixedImageType::PointType fixedImageOrigin = fixedImage->GetOrigin();
+      typename FixedImageType::SpacingType fixedImageSpacing = fixedImage->GetSpacing();
+      typename FixedImageType::DirectionType fixedImageDirection = fixedImage->GetDirection();
+
+      typename TimeVaryingVelocityFieldControlPointLatticeType::SizeType transformDomainMeshSize;
+      typename TimeVaryingVelocityFieldControlPointLatticeType::PointType transformDomainOrigin;
+      typename TimeVaryingVelocityFieldControlPointLatticeType::SpacingType transformDomainPhysicalDimensions;
+      typename TimeVaryingVelocityFieldControlPointLatticeType::DirectionType transformDomainDirection;
+
+      transformDomainDirection.SetIdentity();
+      transformDomainOrigin.Fill( 0.0 );
+      transformDomainPhysicalDimensions.Fill( 1.0 );
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        transformDomainOrigin[i] = fixedImageOrigin[i];
+        transformDomainMeshSize[i] = 3;
+        transformDomainPhysicalDimensions[i] = static_cast<double>( fixedImageSize[i] - 1 ) * fixedImageSpacing[i];
+        for( unsigned int j = 0; j < ImageDimension; j++ )
+          {
+          transformDomainDirection[i][j] = fixedImageDirection[i][j];
+          }
+        }
+      for( unsigned int i = 0; i < meshSize.size(); i++ )
+        {
+        transformDomainMeshSize[i] = meshSize[i];
+        }
+      typename TimeVaryingVelocityFieldControlPointLatticeType::SizeType initialTransformDomainMeshSize =
+        transformDomainMeshSize;
+
+      typedef itk::TimeVaryingBSplineVelocityFieldImageRegistrationMethod<FixedImageType,
+                                                                          MovingImageType> VelocityFieldRegistrationType;
+      typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration = VelocityFieldRegistrationType::New();
+      velocityFieldRegistration->SetFixedImage( fixedImage );
+      velocityFieldRegistration->SetMovingImage( movingImage );
+      velocityFieldRegistration->SetNumberOfLevels( numberOfLevels );
+      velocityFieldRegistration->SetNumberOfTimePointSamples( numberOfTimePointSamples );
+      velocityFieldRegistration->SetCompositeTransform( compositeTransform );
+      velocityFieldRegistration->SetMetric( metric );
+      velocityFieldRegistration->SetLearningRate( learningRate );
+      velocityFieldRegistration->GetTransform()->SetSplineOrder( splineOrder );
+      velocityFieldRegistration->GetTransform()->SetLowerTimeBound( 0.0 );
+      velocityFieldRegistration->GetTransform()->SetUpperTimeBound( 1.0 );
+
+      typedef itk::TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<typename VelocityFieldRegistrationType::
+                                                                             TransformType>
+        VelocityFieldTransformAdaptorType;
+      typename VelocityFieldTransformAdaptorType::Pointer initialFieldTransformAdaptor =
+        VelocityFieldTransformAdaptorType::New();
+      initialFieldTransformAdaptor->SetTransform( velocityFieldRegistration->GetTransform() );
+      initialFieldTransformAdaptor->SetRequiredTransformDomainOrigin( transformDomainOrigin );
+      initialFieldTransformAdaptor->SetRequiredTransformDomainPhysicalDimensions( transformDomainPhysicalDimensions );
+      initialFieldTransformAdaptor->SetRequiredTransformDomainMeshSize( transformDomainMeshSize );
+      initialFieldTransformAdaptor->SetRequiredTransformDomainDirection( transformDomainDirection );
+
+      velocityFieldLattice->SetOrigin( initialFieldTransformAdaptor->GetRequiredControlPointLatticeOrigin() );
+      velocityFieldLattice->SetSpacing( initialFieldTransformAdaptor->GetRequiredControlPointLatticeSpacing() );
+      velocityFieldLattice->SetDirection( initialFieldTransformAdaptor->GetRequiredControlPointLatticeDirection() );
+      velocityFieldLattice->SetRegions( initialFieldTransformAdaptor->GetRequiredControlPointLatticeSize() );
+      velocityFieldLattice->Allocate();
+      velocityFieldLattice->FillBuffer( zeroVector );
+
+      velocityFieldRegistration->GetTransform()->SetTimeVaryingVelocityFieldControlPointLattice( velocityFieldLattice );
+      velocityFieldRegistration->GetTransform()->SetDisplacementFieldOrigin( fixedImageOrigin );
+      velocityFieldRegistration->GetTransform()->SetDisplacementFieldDirection( fixedImageDirection );
+      velocityFieldRegistration->GetTransform()->SetDisplacementFieldSpacing( fixedImageSpacing );
+      velocityFieldRegistration->GetTransform()->SetDisplacementFieldSize( fixedImageSize );
+      velocityFieldRegistration->GetTransform()->IntegrateVelocityField();
+
+      typename VelocityFieldRegistrationType::ShrinkFactorsArrayType numberOfIterationsPerLevel;
+      numberOfIterationsPerLevel.SetSize( numberOfLevels );
+      for( unsigned int d = 0; d < numberOfLevels; d++ )
+        {
+        numberOfIterationsPerLevel[d] = iterations[d];
+        }
+      velocityFieldRegistration->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
+      velocityFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      velocityFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+
+      typename VelocityFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
+      for( unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); level++ )
+        {
+        typename VelocityFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
+          VelocityFieldTransformAdaptorType::New();
+        fieldTransformAdaptor->SetTransform( velocityFieldRegistration->GetTransform() );
+        fieldTransformAdaptor->SetRequiredTransformDomainOrigin( transformDomainOrigin );
+        fieldTransformAdaptor->SetRequiredTransformDomainMeshSize( transformDomainMeshSize );
+        fieldTransformAdaptor->SetRequiredTransformDomainDirection( transformDomainDirection );
+        fieldTransformAdaptor->SetRequiredTransformDomainPhysicalDimensions( transformDomainPhysicalDimensions );
+
+        adaptors.push_back( fieldTransformAdaptor.GetPointer() );
+        for( unsigned int i = 0; i <= ImageDimension; i++ )
+          {
+          transformDomainMeshSize[i] <<= 1;
+          }
+        }
+      velocityFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
+
+      typedef CommandIterationUpdate<VelocityFieldRegistrationType> VelocityFieldCommandType;
+      typename VelocityFieldCommandType::Pointer velocityFieldRegistrationObserver = VelocityFieldCommandType::New();
+      velocityFieldRegistrationObserver->SetNumberOfIterations( iterations );
+
+      velocityFieldRegistration->AddObserver( itk::IterationEvent(), velocityFieldRegistrationObserver );
+
+      try
+        {
+        std::cout << std::endl << "*** Running time-varying velocity field registration (initial mesh size = "
+                  << initialTransformDomainMeshSize << ") ***" << std::endl << std::endl;
+        velocityFieldRegistration->StartRegistration();
+        }
+      catch( itk::ExceptionObject & e )
+        {
+        std::cerr << "Exception caught: " << e << std::endl;
+        return EXIT_FAILURE;
+        }
+
+      // Write out the displacement fields
+
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Warp.nii.gz" );
+
+      typedef typename VelocityFieldRegistrationType::TransformType::DisplacementFieldType DisplacementFieldType;
+
+      typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>( velocityFieldRegistration->
+                                                                                             GetOutput()->Get() )->GetDisplacementField() );
+      writer->SetFileName( filename.c_str() );
+      writer->Update();
+
+      std::string inverseFilename = outputPrefix + currentStageString.str() + std::string( "InverseWarp.nii.gz" );
+
+      typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
+      typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+      inverseWriter->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>(
+                                 velocityFieldRegistration->GetOutput()->Get() )->GetInverseDisplacementField() );
+      inverseWriter->SetFileName( inverseFilename.c_str() );
       inverseWriter->Update();
       }
     else
@@ -1019,7 +1210,8 @@ int hormigita( itk::ants::CommandLineParser *parser )
       return EXIT_FAILURE;
       }
     timer.Stop();
-    std::cout << "  Elapsed time (stage " << currentStage + 1 << "): " << timer.GetMeanTime() << std::endl << std::endl;
+    std::cout << "  Elapsed time (stage "
+              << ( numberOfStages - currentStage - 1 ) << "): " << timer.GetMeanTime() << std::endl << std::endl;
     }
 
   // Write out warped image(s), if requested.
@@ -1150,7 +1342,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
                             "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
     option->SetUsageOption( 5,
                             "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
-    option->SetUsageOption( 6, "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize]" );
+    option->SetUsageOption( 6,
+                            "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -1239,7 +1432,7 @@ int main( int argc, char *argv[] )
 
   parser->SetCommand( argv[0] );
 
-  std::string commandDescription = std::string( "hormigita---little ant.  This program is a user-level " )
+  std::string commandDescription = std::string( "antsRegistration---little ant.  This program is a user-level " )
     + std::string( "registration application meant to utilize ITKv4-only classes. The user can specify " )
     + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
     + std::string( " and iterations, shrink factors, and smoothing sigmas for each level." );
@@ -1274,18 +1467,19 @@ int main( int argc, char *argv[] )
     exit( EXIT_FAILURE );
     }
 
-  std::cout << std::endl << "Running hormigita for " << dimension << "-dimensional images." << std::endl << std::endl;
+  std::cout << std::endl << "Running antsRegistration for " << dimension << "-dimensional images." << std::endl
+            << std::endl;
 
   switch( dimension )
     {
     case 2:
       {
-      hormigita<2>( parser );
+      antsRegistration<2>( parser );
       }
       break;
     case 3:
       {
-      hormigita<3>( parser );
+      antsRegistration<3>( parser );
       }
       break;
     default:
