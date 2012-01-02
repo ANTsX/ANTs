@@ -615,7 +615,9 @@ int main( int argc, char *argv[] )
   parser->SetCommand( argv[0] );
 
   std::string commandDescription =
-    std::string( "antsWarp is a sweet piece of code." );
+    std::string( "antsApplyTransforms, applied to an input image, transforms it " )
+    + std::string( "according to a reference image and a transform " )
+    + std::string( "(or a set of transforms)." );
 
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );

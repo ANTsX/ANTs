@@ -31,11 +31,15 @@
 #include "itkBSplineTransform.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkCompositeTransform.h"
+#include "itkDisplacementFieldTransform.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkIdentityTransform.h"
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
+#include "itkMatrixOffsetTransformBase.h"
 #include "itkTransform.h"
+#include "itkTransformFactory.h"
+#include "itkTransformFileReader.h"
 
 #include "itkBSplineTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
@@ -227,10 +231,123 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
+  // Register the matrix offset transform base class to the
+  // transform factory for compatibility with the current ANTs.
+  typedef itk::MatrixOffsetTransformBase
+    <PixelType, ImageDimension, ImageDimension> MatrixOffsetTransformType;
+  itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+  typedef itk::AffineTransform<PixelType, ImageDimension> AffineTransformType;
+  itk::TransformFactory<AffineTransformType>::RegisterTransform();
+
+  // Load an identity transform in case no transforms are loaded.
   typedef itk::IdentityTransform<RealType, ImageDimension> IdentityTransformType;
   typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
 
   compositeTransform->AddTransform( identityTransform );
+
+  // Load an initial initialTransform if requested
+  typename itk::ants::CommandLineParser::OptionType::Pointer initialTransformOption =
+    parser->GetOption( "initialTransform" );
+  if( initialTransformOption && initialTransformOption->GetNumberOfValues() > 0 )
+    {
+    std::string initialTransformName;
+    std::string initialTransformType;
+
+    typedef itk::Transform<double, ImageDimension, ImageDimension> TransformType;
+    typename TransformType::Pointer initialTransform;
+
+    bool hasTransformBeenRead = false;
+    try
+      {
+      initialTransformName = initialTransformOption->GetValue( 0 );
+
+      typedef itk::DisplacementFieldTransform<double, ImageDimension>
+        DisplacementFieldTransformType;
+
+      typedef typename DisplacementFieldTransformType::DisplacementFieldType
+        DisplacementFieldType;
+
+      typedef itk::ImageFileReader<DisplacementFieldType> DisplacementFieldReaderType;
+      typename DisplacementFieldReaderType::Pointer fieldReader =
+        DisplacementFieldReaderType::New();
+      fieldReader->SetFileName( initialTransformName.c_str() );
+      fieldReader->Update();
+
+      typename DisplacementFieldTransformType::Pointer displacementFieldTransform =
+        DisplacementFieldTransformType::New();
+      displacementFieldTransform->SetDisplacementField( fieldReader->GetOutput() );
+      initialTransform = dynamic_cast<TransformType *>( displacementFieldTransform.GetPointer() );
+
+      hasTransformBeenRead = true;
+      }
+    catch( ... )
+      {
+      hasTransformBeenRead = false;
+      }
+
+    if( !hasTransformBeenRead )
+      {
+      try
+        {
+        typedef itk::TransformFileReader TransformReaderType;
+        typename TransformReaderType::Pointer initialTransformReader
+          = TransformReaderType::New();
+
+        if( initialTransformOption->GetNumberOfParameters( 0 ) == 0 )
+          {
+          initialTransformName = initialTransformOption->GetValue( 0 );
+          initialTransformReader->SetFileName( initialTransformName.c_str() );
+          initialTransformReader->Update();
+          initialTransform = dynamic_cast<TransformType *>(
+              ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
+          }
+        else
+          {
+          initialTransformName = initialTransformOption->GetParameter( 0, 0 );
+          initialTransformReader->SetFileName( initialTransformName.c_str() );
+          initialTransformReader->Update();
+          initialTransform = dynamic_cast<TransformType *>(
+              ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
+          if( ( initialTransformOption->GetNumberOfParameters( 0 ) > 1 ) &&
+              parser->Convert<bool>( initialTransformOption->GetParameter( 0, 1 ) ) )
+            {
+            initialTransform = dynamic_cast<TransformType *>(
+                initialTransform->GetInverseTransform().GetPointer() );
+            if( !initialTransform )
+              {
+              std::cerr << "Inverse does not exist for " << initialTransformName
+                        << std::endl;
+              return EXIT_FAILURE;
+              }
+            initialTransformName = std::string( "inverse of " ) + initialTransformName;
+            }
+          }
+        }
+      catch( const itk::ExceptionObject & e )
+        {
+        std::cerr << "Transform reader for "
+                  << initialTransformName << " caught an ITK exception:\n";
+        e.Print( std::cerr );
+        return EXIT_FAILURE;
+        }
+      catch( const std::exception & e )
+        {
+        std::cerr << "Transform reader for "
+                  << initialTransformName << " caught an exception:\n";
+        std::cerr << e.what() << std::endl;
+        return EXIT_FAILURE;
+        }
+      catch( ... )
+        {
+        std::cerr << "Transform reader for "
+                  << initialTransformName << " caught an unknown exception!!!\n";
+        return EXIT_FAILURE;
+        }
+      }
+    std::cout << "Applying the initial transform:  " << initialTransformName << std::endl;
+
+    compositeTransform->AddTransform( initialTransform );
+    }
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
@@ -1110,8 +1227,9 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       velocityFieldRegistration->GetTransform()->SetLowerTimeBound( 0.0 );
       velocityFieldRegistration->GetTransform()->SetUpperTimeBound( 1.0 );
 
-      typedef itk::TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<typename VelocityFieldRegistrationType::
-                                                                             TransformType>
+      typedef typename VelocityFieldRegistrationType::TransformType TransformType;
+
+      typedef itk::TimeVaryingBSplineVelocityFieldTransformParametersAdaptor<TransformType>
         VelocityFieldTransformAdaptorType;
       typename VelocityFieldTransformAdaptorType::Pointer initialFieldTransformAdaptor =
         VelocityFieldTransformAdaptorType::New();
@@ -1128,11 +1246,31 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       velocityFieldLattice->Allocate();
       velocityFieldLattice->FillBuffer( zeroVector );
 
+      typename TransformType::VelocityFieldPointType        sampledVelocityFieldOrigin;
+      typename TransformType::VelocityFieldSpacingType      sampledVelocityFieldSpacing;
+      typename TransformType::VelocityFieldSizeType         sampledVelocityFieldSize;
+      typename TransformType::VelocityFieldDirectionType    sampledVelocityFieldDirection;
+
+      sampledVelocityFieldOrigin.Fill( 0.0 );
+      sampledVelocityFieldSpacing.Fill( 1.0 );
+      sampledVelocityFieldSize.Fill( numberOfTimePointSamples );
+      sampledVelocityFieldDirection.SetIdentity();
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        sampledVelocityFieldOrigin[i] = fixedImage->GetOrigin()[i];
+        sampledVelocityFieldSpacing[i] = fixedImage->GetSpacing()[i];
+        sampledVelocityFieldSize[i] = fixedImage->GetRequestedRegion().GetSize()[i];
+        for( unsigned int j = 0; j < ImageDimension; j++ )
+          {
+          sampledVelocityFieldDirection[i][j] = fixedImage->GetDirection()[i][j];
+          }
+        }
+
       velocityFieldRegistration->GetTransform()->SetTimeVaryingVelocityFieldControlPointLattice( velocityFieldLattice );
-      velocityFieldRegistration->GetTransform()->SetDisplacementFieldOrigin( fixedImageOrigin );
-      velocityFieldRegistration->GetTransform()->SetDisplacementFieldDirection( fixedImageDirection );
-      velocityFieldRegistration->GetTransform()->SetDisplacementFieldSpacing( fixedImageSpacing );
-      velocityFieldRegistration->GetTransform()->SetDisplacementFieldSize( fixedImageSize );
+      velocityFieldRegistration->GetTransform()->SetVelocityFieldOrigin( sampledVelocityFieldOrigin );
+      velocityFieldRegistration->GetTransform()->SetVelocityFieldDirection( sampledVelocityFieldDirection );
+      velocityFieldRegistration->GetTransform()->SetVelocityFieldSpacing( sampledVelocityFieldSpacing );
+      velocityFieldRegistration->GetTransform()->SetVelocityFieldSize( sampledVelocityFieldSize );
       velocityFieldRegistration->GetTransform()->IntegrateVelocityField();
 
       typename VelocityFieldRegistrationType::ShrinkFactorsArrayType numberOfIterationsPerLevel;
@@ -1307,6 +1445,31 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string( "Specify the output transform prefix (output format is .nii.gz )." )
+      + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
+      + std::string( "inverse transform exists, one can also output the warped fixed image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "output" );
+    option->SetShortName( 'o' );
+    option->SetUsageOption( 0, "[outputTransformPrefix,<outputWarpedImage>,<outputInverseWarpedImage>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Specify the initial transform which gets immediately" )
+      + std::string( "incorporated into the composite transform." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initialTransform" );
+    option->SetShortName( 'r' );
+    option->SetUsageOption( 0, "[initialTransform,useInverse]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Three image metrics are available--- " )
       + std::string( "CC:  ANTS neighborhood cross correlation, MI:  Mutual information, and " )
       + std::string( "Demons:  Thirion's Demons (modified mean-squares). " )
@@ -1393,19 +1556,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Specify the output transform prefix (output format is .nii.gz )." )
-      + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
-      + std::string( "inverse transform exists, one can also output the warped fixed image." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "output" );
-    option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "[outputTransformPrefix,<outputWarpedImage>,<outputInverseWarpedImage>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -1432,7 +1582,7 @@ int main( int argc, char *argv[] )
 
   parser->SetCommand( argv[0] );
 
-  std::string commandDescription = std::string( "antsRegistration---little ant.  This program is a user-level " )
+  std::string commandDescription = std::string( "This program is a user-level " )
     + std::string( "registration application meant to utilize ITKv4-only classes. The user can specify " )
     + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
     + std::string( " and iterations, shrink factors, and smoothing sigmas for each level." );
