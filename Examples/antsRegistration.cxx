@@ -623,16 +623,16 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     // Set up the optimizer.  To change the iteration number for each level we rely
     // on the command observer.
 
+    float learningRate = parser->Convert<float>( transformOption->GetParameter( currentStage, 0 ) );
     typedef itk::RegistrationParameterScalesFromShift<MetricType> ScalesEstimatorType;
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( metric );
     scalesEstimator->SetTransformForward( true );
 
-    float learningRate = parser->Convert<float>( transformOption->GetParameter( currentStage, 0 ) );
-
     typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
     typename GradientDescentOptimizerType::Pointer optimizer = GradientDescentOptimizerType::New();
     optimizer->SetLearningRate( learningRate );
+    optimizer->SetMaximumStepSizeInPhysicalUnits(learningRate);
     optimizer->SetNumberOfIterations( iterations[0] );
     optimizer->SetScalesEstimator( scalesEstimator );
 
