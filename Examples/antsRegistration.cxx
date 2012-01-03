@@ -36,7 +36,10 @@
 #include "itkIdentityTransform.h"
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
+#include "itkSimilarity2DTransform.h"
+#include "itkSimilarity3DTransform.h"
 #include "itkMatrixOffsetTransformBase.h"
+#include "itkTranslationTransform.h"
 #include "itkTransform.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
@@ -147,6 +150,29 @@ public:
   typedef itk::Euler3DTransform<double> TransformType;
 };
 
+template <unsigned int ImageDimension>
+class SimilarityTransformTraits
+{
+// Don't worry about the fact that the default option is the
+// affine Transform, that one will not actually be instantiated.
+public:
+  typedef itk::AffineTransform<double, ImageDimension> TransformType;
+};
+
+template <>
+class SimilarityTransformTraits<2>
+{
+public:
+  typedef itk::Similarity2DTransform<double> TransformType;
+};
+
+template <>
+class SimilarityTransformTraits<3>
+{
+public:
+  typedef itk::Similarity3DTransform<double> TransformType;
+};
+
 void ConvertToLowerCase( std::string& str )
 {
   std::transform( str.begin(), str.end(), str.begin(), tolower );
@@ -250,103 +276,114 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     parser->GetOption( "initialTransform" );
   if( initialTransformOption && initialTransformOption->GetNumberOfValues() > 0 )
     {
-    std::string initialTransformName;
-    std::string initialTransformType;
-
-    typedef itk::Transform<double, ImageDimension, ImageDimension> TransformType;
-    typename TransformType::Pointer initialTransform;
-
-    bool hasTransformBeenRead = false;
-    try
+    std::deque<std::string> initialTransformNames;
+    std::deque<std::string> initialTransformTypes;
+    for( unsigned int n = 0; n < transformOption->GetNumberOfValues(); n++ )
       {
-      initialTransformName = initialTransformOption->GetValue( 0 );
+      std::string initialTransformName;
+      std::string initialTransformType;
 
-      typedef itk::DisplacementFieldTransform<double, ImageDimension>
-        DisplacementFieldTransformType;
+      typedef itk::Transform<double, ImageDimension, ImageDimension> TransformType;
+      typename TransformType::Pointer initialTransform;
 
-      typedef typename DisplacementFieldTransformType::DisplacementFieldType
-        DisplacementFieldType;
-
-      typedef itk::ImageFileReader<DisplacementFieldType> DisplacementFieldReaderType;
-      typename DisplacementFieldReaderType::Pointer fieldReader =
-        DisplacementFieldReaderType::New();
-      fieldReader->SetFileName( initialTransformName.c_str() );
-      fieldReader->Update();
-
-      typename DisplacementFieldTransformType::Pointer displacementFieldTransform =
-        DisplacementFieldTransformType::New();
-      displacementFieldTransform->SetDisplacementField( fieldReader->GetOutput() );
-      initialTransform = dynamic_cast<TransformType *>( displacementFieldTransform.GetPointer() );
-
-      hasTransformBeenRead = true;
-      }
-    catch( ... )
-      {
-      hasTransformBeenRead = false;
-      }
-
-    if( !hasTransformBeenRead )
-      {
+      bool hasTransformBeenRead = false;
       try
         {
-        typedef itk::TransformFileReader TransformReaderType;
-        typename TransformReaderType::Pointer initialTransformReader
-          = TransformReaderType::New();
+        initialTransformName = initialTransformOption->GetValue( n );
 
-        if( initialTransformOption->GetNumberOfParameters( 0 ) == 0 )
-          {
-          initialTransformName = initialTransformOption->GetValue( 0 );
-          initialTransformReader->SetFileName( initialTransformName.c_str() );
-          initialTransformReader->Update();
-          initialTransform = dynamic_cast<TransformType *>(
-              ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
-          }
-        else
-          {
-          initialTransformName = initialTransformOption->GetParameter( 0, 0 );
-          initialTransformReader->SetFileName( initialTransformName.c_str() );
-          initialTransformReader->Update();
-          initialTransform = dynamic_cast<TransformType *>(
-              ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
-          if( ( initialTransformOption->GetNumberOfParameters( 0 ) > 1 ) &&
-              parser->Convert<bool>( initialTransformOption->GetParameter( 0, 1 ) ) )
-            {
-            initialTransform = dynamic_cast<TransformType *>(
-                initialTransform->GetInverseTransform().GetPointer() );
-            if( !initialTransform )
-              {
-              std::cerr << "Inverse does not exist for " << initialTransformName
-                        << std::endl;
-              return EXIT_FAILURE;
-              }
-            initialTransformName = std::string( "inverse of " ) + initialTransformName;
-            }
-          }
-        }
-      catch( const itk::ExceptionObject & e )
-        {
-        std::cerr << "Transform reader for "
-                  << initialTransformName << " caught an ITK exception:\n";
-        e.Print( std::cerr );
-        return EXIT_FAILURE;
-        }
-      catch( const std::exception & e )
-        {
-        std::cerr << "Transform reader for "
-                  << initialTransformName << " caught an exception:\n";
-        std::cerr << e.what() << std::endl;
-        return EXIT_FAILURE;
+        typedef itk::DisplacementFieldTransform<double, ImageDimension>
+          DisplacementFieldTransformType;
+
+        typedef typename DisplacementFieldTransformType::DisplacementFieldType
+          DisplacementFieldType;
+
+        typedef itk::ImageFileReader<DisplacementFieldType> DisplacementFieldReaderType;
+        typename DisplacementFieldReaderType::Pointer fieldReader =
+          DisplacementFieldReaderType::New();
+        fieldReader->SetFileName( initialTransformName.c_str() );
+        fieldReader->Update();
+
+        typename DisplacementFieldTransformType::Pointer displacementFieldTransform =
+          DisplacementFieldTransformType::New();
+        displacementFieldTransform->SetDisplacementField( fieldReader->GetOutput() );
+        initialTransform = dynamic_cast<TransformType *>( displacementFieldTransform.GetPointer() );
+
+        hasTransformBeenRead = true;
         }
       catch( ... )
         {
-        std::cerr << "Transform reader for "
-                  << initialTransformName << " caught an unknown exception!!!\n";
-        return EXIT_FAILURE;
+        hasTransformBeenRead = false;
         }
-      }
-    std::cout << "Applying the initial transform:  " << initialTransformName << std::endl;
 
-    compositeTransform->AddTransform( initialTransform );
+      if( !hasTransformBeenRead )
+        {
+        try
+          {
+          typedef itk::TransformFileReader TransformReaderType;
+          typename TransformReaderType::Pointer initialTransformReader
+            = TransformReaderType::New();
+
+          if( initialTransformOption->GetNumberOfParameters( n ) == 0 )
+            {
+            initialTransformName = initialTransformOption->GetValue( n );
+            initialTransformReader->SetFileName( initialTransformName.c_str() );
+            initialTransformReader->Update();
+            initialTransform = dynamic_cast<TransformType *>(
+                ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
+            }
+          else
+            {
+            initialTransformName = initialTransformOption->GetParameter( n, 0 );
+            initialTransformReader->SetFileName( initialTransformName.c_str() );
+            initialTransformReader->Update();
+            initialTransform = dynamic_cast<TransformType *>(
+                ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
+            if( ( initialTransformOption->GetNumberOfParameters( n ) > 1 ) &&
+                parser->Convert<bool>( initialTransformOption->GetParameter( n, 1 ) ) )
+              {
+              initialTransform = dynamic_cast<TransformType *>(
+                  initialTransform->GetInverseTransform().GetPointer() );
+              if( !initialTransform )
+                {
+                std::cerr << "Inverse does not exist for " << initialTransformName
+                          << std::endl;
+                return EXIT_FAILURE;
+                }
+              initialTransformName = std::string( "inverse of " ) + initialTransformName;
+              }
+            }
+          }
+        catch( const itk::ExceptionObject & e )
+          {
+          std::cerr << "Transform reader for "
+                    << initialTransformName << " caught an ITK exception:\n";
+          e.Print( std::cerr );
+          return EXIT_FAILURE;
+          }
+        catch( const std::exception & e )
+          {
+          std::cerr << "Transform reader for "
+                    << initialTransformName << " caught an exception:\n";
+          std::cerr << e.what() << std::endl;
+          return EXIT_FAILURE;
+          }
+        catch( ... )
+          {
+          std::cerr << "Transform reader for "
+                    << initialTransformName << " caught an unknown exception!!!\n";
+          return EXIT_FAILURE;
+          }
+        }
+      compositeTransform->AddTransform( initialTransform );
+      initialTransformNames.push_back( initialTransformName );
+      initialTransformTypes.push_back( initialTransform->GetNameOfClass() );
+      }
+    std::cout << "Initializing with the following transforms " << "(in order): " << std::endl;
+    for( unsigned int n = 0; n < initialTransformNames.size(); n++ )
+      {
+      std::cout << "  " << n + 1 << ". " << initialTransformNames[n] << " (type = "
+                << initialTransformTypes[n] << ")" << std::endl;
+      }
     }
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
@@ -621,6 +658,96 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       typedef itk::TransformFileWriter TransformWriterType;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
       transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
+      transformWriter->SetFileName( filename.c_str() );
+      transformWriter->Update();
+      }
+    else if( std::strcmp( whichTransform.c_str(), "similarity" ) == 0 )
+      {
+      typedef typename SimilarityTransformTraits<ImageDimension>::TransformType SimilarityTransformType;
+      typename SimilarityTransformType::Pointer similarityTransform = SimilarityTransformType::New();
+
+      typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType,
+                                             SimilarityTransformType> SimilarityRegistrationType;
+      typename SimilarityRegistrationType::Pointer similarityRegistration = SimilarityRegistrationType::New();
+
+      similarityRegistration->SetFixedImage( fixedImage );
+      similarityRegistration->SetMovingImage( movingImage );
+      similarityRegistration->SetNumberOfLevels( numberOfLevels );
+      similarityRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      similarityRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+      similarityRegistration->SetMetric( metric );
+      similarityRegistration->SetOptimizer( optimizer );
+      similarityRegistration->SetTransform( similarityTransform );
+      similarityRegistration->SetCompositeTransform( compositeTransform );
+
+      typedef CommandIterationUpdate<SimilarityRegistrationType> SimilarityCommandType;
+      typename SimilarityCommandType::Pointer similarityObserver = SimilarityCommandType::New();
+      similarityObserver->SetNumberOfIterations( iterations );
+
+      similarityRegistration->AddObserver( itk::IterationEvent(), similarityObserver );
+
+      try
+        {
+        std::cout << std::endl << "*** Running similarity registration ***" << std::endl << std::endl;
+        similarityRegistration->StartRegistration();
+        }
+      catch( itk::ExceptionObject & e )
+        {
+        std::cerr << "Exception caught: " << e << std::endl;
+        return EXIT_FAILURE;
+        }
+      // Write out the affine transform
+
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Similarity.mat" );
+
+      typedef itk::TransformFileWriter TransformWriterType;
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetInput( similarityRegistration->GetOutput()->Get() );
+      transformWriter->SetFileName( filename.c_str() );
+      transformWriter->Update();
+      }
+    else if( std::strcmp( whichTransform.c_str(), "translation" ) == 0 )
+      {
+      typedef itk::TranslationTransform<RealType, ImageDimension> TranslationTransformType;
+      typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
+
+      typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType,
+                                             TranslationTransformType> TranslationRegistrationType;
+      typename TranslationRegistrationType::Pointer translationRegistration = TranslationRegistrationType::New();
+
+      translationRegistration->SetFixedImage( fixedImage );
+      translationRegistration->SetMovingImage( movingImage );
+      translationRegistration->SetNumberOfLevels( numberOfLevels );
+      translationRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      translationRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+      translationRegistration->SetMetric( metric );
+      translationRegistration->SetOptimizer( optimizer );
+      translationRegistration->SetTransform( translationTransform );
+      translationRegistration->SetCompositeTransform( compositeTransform );
+
+      typedef CommandIterationUpdate<TranslationRegistrationType> TranslationCommandType;
+      typename TranslationCommandType::Pointer translationObserver = TranslationCommandType::New();
+      translationObserver->SetNumberOfIterations( iterations );
+
+      translationRegistration->AddObserver( itk::IterationEvent(), translationObserver );
+
+      try
+        {
+        std::cout << std::endl << "*** Running translation registration ***" << std::endl << std::endl;
+        translationRegistration->StartRegistration();
+        }
+      catch( itk::ExceptionObject & e )
+        {
+        std::cerr << "Exception caught: " << e << std::endl;
+        return EXIT_FAILURE;
+        }
+      // Write out the affine transform
+
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Translation.mat" );
+
+      typedef itk::TransformFileWriter TransformWriterType;
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetInput( translationRegistration->GetOutput()->Get() );
       transformWriter->SetFileName( filename.c_str() );
       transformWriter->Update();
       }
@@ -1458,8 +1585,11 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Specify the initial transform which gets immediately" )
-      + std::string( "incorporated into the composite transform." );
+    std::string description = std::string( "Specify the initial transform(s) which get immediately" )
+      + std::string( "incorporated into the composite transform.  The order of the " )
+      + std::string( "transforms is stack-esque in that the last transform specified on" )
+      + std::string( "the command line is the first to be applied.  See antsApplyTransforms" )
+      + std::string( "for additional information." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initialTransform" );
@@ -1498,14 +1628,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 't' );
     option->SetUsageOption( 0, "Rigid[gradientStep]" );
     option->SetUsageOption( 1, "Affine[gradientStep]" );
-    option->SetUsageOption( 2, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption( 3,
-                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
-    option->SetUsageOption( 4,
-                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption( 2, "Similarity[gradientStep]" );
+    option->SetUsageOption( 3, "Translation[gradientStep]" );
+    option->SetUsageOption( 4, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
     option->SetUsageOption( 5,
-                            "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
+                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetUsageOption( 6,
+                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption( 7,
+                            "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
+    option->SetUsageOption( 8,
                             "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
     option->SetDescription( description );
     parser->AddOption( option );
