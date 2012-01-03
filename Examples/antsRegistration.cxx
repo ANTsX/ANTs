@@ -17,7 +17,8 @@
 *=========================================================================*/
 
 #include "antsCommandLineParser.h"
-
+#include "itkMersenneTwisterRandomVariateGenerator.h"
+#include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegistrationMethodv4.h"
 #include "itkTimeVaryingVelocityFieldImageRegistrationMethodv4.h"
 #include "itkTimeVaryingBSplineVelocityFieldImageRegistrationMethod.h"
@@ -521,8 +522,19 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
       {
       unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+      std::string  SamplingStrategy = "";
+      if(  metricOption->GetNumberOfParameters() > 4 )
+        {
+        SamplingStrategy = metricOption->GetParameter( currentStage, 4 );
+        }
+      float SamplingPercent = 0.1;
+      if(  metricOption->GetNumberOfParameters() > 5 )
+        {
+        SamplingPercent = parser->Convert<float>( metricOption->GetParameter( currentStage, 5 ) );
+        }
 
-      std::cout << "  using the MI metric (number of bins = " << binOption << ")" << std::endl;
+      std::cout << "  using the MI metric (number of bins = " << binOption << ")" << " SamplingStrategy "
+                << SamplingStrategy << " FractionToUse " << SamplingPercent << std::endl;
       typedef itk::JointHistogramMutualInformationImageToImageMetricv4<FixedImageType,
                                                                        MovingImageType> MutualInformationMetricType;
       typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
@@ -533,7 +545,61 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       mutualInformationMetric->SetUseMovingImageGradientFilter( false );
       mutualInformationMetric->SetUseFixedImageGradientFilter( false );
       mutualInformationMetric->SetUseFixedSampledPointSet( false );
-
+      if( std::strcmp(SamplingStrategy.c_str(),
+                      "Regular" ) == 0 || std::strcmp( SamplingStrategy.c_str(), "Random" ) == 0 )
+        {
+        mutualInformationMetric->SetDoMovingImagePreWarp( false );
+        typedef itk::Statistics::MersenneTwisterRandomVariateGenerator Twister;
+        Twister::GetInstance()->SetSeed( 1234 );
+        Twister::Pointer twister = Twister::New();
+        typedef typename MutualInformationMetricType::FixedSampledPointSetType PointSetType;
+        typedef typename PointSetType::PointType                               PointType;
+        typename PointSetType::Pointer pset(PointSetType::New() );
+        unsigned long                  modct = fixedImage->GetBufferedRegion().GetNumberOfPixels();
+        unsigned long                  ind = 0, ct = 0;
+        if( std::strcmp(SamplingStrategy.c_str(), "Regular" ) )
+          {
+          modct = (unsigned long)( (float)1 / SamplingPercent + 0.5);
+          itk::ImageRegionIteratorWithIndex<FixedImageType> It(fixedImage, fixedImage->GetLargestPossibleRegion() );
+          for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+            {
+            if( ct % modct == 0  )
+              {
+              PointType pt;
+              fixedImage->TransformIndexToPhysicalPoint( It.GetIndex(), pt);
+              // randomly perturb the point within a voxel (approximately)
+              for( unsigned int d = 0; d < ImageDimension; d++ )
+                {
+                pt[d] += twister->GetNormalVariate() / 3.0 * fixedImage->GetSpacing()[d];
+                }
+              pset->SetPoint(ind, pt);
+              ind++;
+              }
+            ct++;
+            }
+          }
+        if( std::strcmp( SamplingStrategy.c_str(), "Random" ) == 0 )
+          {
+          modct = (unsigned long)( (float)modct * SamplingPercent);
+          typedef itk::ImageRandomConstIteratorWithIndex<FixedImageType> RandIterator;
+          RandIterator mIter( fixedImage, fixedImage->GetLargestPossibleRegion() );
+          mIter.SetNumberOfSamples(modct);
+          for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+            {
+            PointType pt;
+            fixedImage->TransformIndexToPhysicalPoint( mIter.GetIndex(), pt);
+            // randomly perturb the point within a voxel (approximately)
+            for( unsigned int d = 0; d < ImageDimension; d++ )
+              {
+              pt[d] += twister->GetNormalVariate() / 3.0 * fixedImage->GetSpacing()[d];
+              }
+            pset->SetPoint(ind, pt);
+            ind++;
+            }
+          }
+        mutualInformationMetric->SetFixedSampledPointSet( pset );
+        mutualInformationMetric->SetUseFixedSampledPointSet( true );
+        }
       metric = mutualInformationMetric;
       }
     else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
@@ -1605,13 +1671,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "Demons:  Thirion's Demons (modified mean-squares). " )
       + std::string( "Note that the metricWeight is currently not used.  " )
       + std::string( "Rather, it is a temporary place holder until multivariate metrics " )
-      + std::string( "are available for a single stage." );
+      + std::string( "are available for a single stage. " )
+      + std::string( "Mutual information also takes the SubSamplingStrategy and FractionToUse options. " )
+      + std::string(
+        "SubSamplingStrategy defaults to dense, otherwise it defines a point set over which to optimize MI. " )
+      + std::string( "The point set can be on a regular lattice or a random lattice of points. " )
+      + std::string( "FractionToUse defines the fraction of points to select from the domain. " );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "metric" );
     option->SetShortName( 'm' );
     option->SetUsageOption( 0, "CC[fixedImage,movingImage,metricWeight,radius]" );
-    option->SetUsageOption( 1, "MI[fixedImage,movingImage,metricWeight,numberOfBins]" );
+    option->SetUsageOption( 1,
+                            "MI[fixedImage,movingImage,metricWeight,numberOfBins,SubSamplingStrategy={Regular,Random},FractionToUse]" );
     option->SetUsageOption( 2, "Demons[fixedImage,movingImage,metricWeight]" );
     option->SetDescription( description );
     parser->AddOption( option );
