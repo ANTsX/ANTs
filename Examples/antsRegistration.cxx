@@ -279,7 +279,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     {
     std::deque<std::string> initialTransformNames;
     std::deque<std::string> initialTransformTypes;
-    for( unsigned int n = 0; n < transformOption->GetNumberOfValues(); n++ )
+    for( unsigned int n = 0; n < initialTransformOption->GetNumberOfValues(); n++ )
       {
       std::string initialTransformName;
       std::string initialTransformType;
@@ -632,7 +632,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
     typename GradientDescentOptimizerType::Pointer optimizer = GradientDescentOptimizerType::New();
     optimizer->SetLearningRate( learningRate );
-    optimizer->SetMaximumStepSizeInPhysicalUnits(learningRate);
+    optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer->SetNumberOfIterations( iterations[0] );
     optimizer->SetScalesEstimator( scalesEstimator );
 
