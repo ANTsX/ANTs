@@ -10,6 +10,8 @@
 #include "itkResampleImageFilter.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
+#include "itkTransformToDisplacementFieldSource.h"
+#include "itkVector.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
@@ -56,10 +58,12 @@ public:
 template <unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser *parser )
 {
-  typedef double RealType;
-  typedef double PixelType;
+  typedef double                           RealType;
+  typedef double                           PixelType;
+  typedef itk::Vector<RealType, Dimension> VectorType;
 
-  typedef itk::Image<PixelType, Dimension> ImageType;
+  typedef itk::Image<PixelType, Dimension>  ImageType;
+  typedef itk::Image<VectorType, Dimension> DisplacementFieldType;
 
   typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
   typename ResamplerType::Pointer resampleFilter = ResamplerType::New();
@@ -69,6 +73,8 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption =
     parser->GetOption( "input" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
+    parser->GetOption( "output" );
   if( inputOption && inputOption->GetNumberOfValues() > 0 )
     {
     std::cout << "Input object: " << inputOption->GetValue() << std::endl;
@@ -80,15 +86,24 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
 
     resampleFilter->SetInput( reader->GetOutput() );
     }
-  else
+  else if( outputOption && outputOption->GetNumberOfValues() > 0 )
     {
-    std::cerr << "Error:  No input object specified." << std::endl;
-    return EXIT_FAILURE;
+    if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
+        parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
+      {
+      std::cerr << "An input image is required." << std::endl;
+      return EXIT_FAILURE;
+      }
     }
 
   /**
    * Reference image option
    */
+
+  // read in the image as char since we only need the header information.
+  typedef itk::Image<char, Dimension> ReferenceImageType;
+  typename ReferenceImageType::Pointer referenceImage = ReferenceImageType::New();
+
   typename itk::ants::CommandLineParser::OptionType::Pointer referenceOption =
     parser->GetOption( "reference-image" );
   if( referenceOption && referenceOption->GetNumberOfValues() > 0 )
@@ -101,10 +116,17 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
     typename ReferenceReaderType::Pointer referenceReader =
       ReferenceReaderType::New();
     referenceReader->SetFileName( ( referenceOption->GetValue() ).c_str() );
-    referenceReader->Update();
 
-    resampleFilter->SetOutputParametersFromImage( referenceReader->GetOutput() );
+    referenceImage = referenceReader->GetOutput();
+    referenceImage->Update();
+    referenceImage->DisconnectPipeline();
     }
+  else
+    {
+    std::cerr << "Error:  No reference image specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+  resampleFilter->SetOutputParametersFromImage( referenceImage );
 
   /**
    * Transform option
@@ -435,9 +457,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
   /**
    * Default voxel value
    */
+  resampleFilter->SetDefaultPixelValue( 0 );
   typename itk::ants::CommandLineParser::OptionType::Pointer defaultOption =
     parser->GetOption( "default-value" );
-  if( defaultOption )
+  if( defaultOption && defaultOption->GetNumberOfValues() > 0 )
     {
     PixelType defaultValue =
       parser->Convert<PixelType>( defaultOption->GetValue() );
@@ -449,17 +472,44 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
-  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
-    parser->GetOption( "output" );
-  if( outputOption )
+  if( outputOption && outputOption->GetNumberOfValues() > 0 )
     {
-    std::cout << "Output object: " << outputOption->GetValue() << std::endl;
+    if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
+        parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) != 0 )
+      {
+      std::cout << "Output composite transform displacement field: " << outputOption->GetParameter( 0, 0 ) << std::endl;
 
-    typedef  itk::ImageFileWriter<ImageType> WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetInput( resampleFilter->GetOutput() );
-    writer->SetFileName( ( outputOption->GetValue() ).c_str() );
-    writer->Update();
+      typedef typename itk::TransformToDisplacementFieldSource<DisplacementFieldType> ConverterType;
+      typename ConverterType::Pointer converter = ConverterType::New();
+      converter->SetOutputParametersFromImage( referenceImage );
+      converter->SetTransform( resampleFilter->GetTransform() );
+
+      typedef  itk::ImageFileWriter<DisplacementFieldType> DisplacementFieldWriterType;
+      typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
+      displacementFieldWriter->SetInput( converter->GetOutput() );
+      displacementFieldWriter->SetFileName( ( outputOption->GetParameter( 0, 0 ) ).c_str() );
+      displacementFieldWriter->Update();
+      }
+    else
+      {
+      std::string outputFileName = "";
+      if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
+          parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
+        {
+        outputFileName = outputOption->GetParameter( 0, 0 );
+        }
+      else
+        {
+        outputFileName = outputOption->GetValue();
+        }
+      std::cout << "Output warped image: " << outputFileName << std::endl;
+
+      typedef  itk::ImageFileWriter<ImageType> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetInput( resampleFilter->GetOutput() );
+      writer->SetFileName( ( outputFileName ).c_str() );
+      writer->Update();
+      }
     }
 
   return EXIT_SUCCESS;
@@ -513,12 +563,15 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "The warped object---currently only valid for images." );
+      std::string( "One can either output the warped image or, if the boolean " )
+      + std::string( "is set, one can print out the displacement field based on the" )
+      + std::string( "composite transform and the reference image." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "warpedOutputFileName" );
+    option->SetUsageOption( 1, "[compositeDisplacementField,<printOutCompositeWarpFile=0>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -641,7 +694,7 @@ int main( int argc, char *argv[] )
   std::string filename;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
-    parser->GetOption( "input" );
+    parser->GetOption( "reference-image" );
   if( inputOption && inputOption->GetNumberOfValues() > 0 )
     {
     if( inputOption->GetNumberOfParameters( 0 ) > 0 )
@@ -655,8 +708,7 @@ int main( int argc, char *argv[] )
     }
   else
     {
-    std::cerr << "No inputs were specified.  Specify an input"
-              << " with the -i option" << std::endl;
+    std::cerr << "No reference image was specified." << std::endl;
     return EXIT_FAILURE;
     }
 
