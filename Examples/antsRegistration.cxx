@@ -602,8 +602,8 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer->SetNumberOfIterations( iterations[0] );
     optimizer->SetScalesEstimator( scalesEstimator );
-    optimizer->SetMinimumConvergenceValue( 1e-6 );
-    optimizer->SetConvergenceWindowSize( 10 );
+//    optimizer->SetMinimumConvergenceValue( 1e-6 );
+//    optimizer->SetConvergenceWindowSize( 10 );
 
     // Set up the image registration methods along with the transforms
 
