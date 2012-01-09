@@ -245,7 +245,6 @@ typename antsSCCANObject<TInputImage, TRealType>::MatrixType
 antsSCCANObject<TInputImage, TRealType>
 ::NormalizeMatrix( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p )
 {
-  vnl_random randgen(time(0) );
   MatrixType np( p.rows(), p.columns() );
 
   for( unsigned long i = 0; i < p.columns(); i++ )
@@ -254,22 +253,22 @@ antsSCCANObject<TInputImage, TRealType>
     VectorType wpcol2 = wpcol - wpcol.mean();
     double     sd = wpcol2.squared_magnitude();
     sd = sqrt( sd / (p.rows() - 1) );
-    if( sd <= 0 )
+    if( sd <= 0 && i == 0 )
       {
-      if( this->m_Debug )
-        {
-        std::cout << " bad-row " << i <<  wpcol << std::endl;
-        }
-      for( unsigned long j = 0; j < wpcol.size(); j++ )
-        {
-        wpcol2(j) = randgen.drand32();
-        }
-      wpcol2 = wpcol2 - wpcol2.mean();
-      sd = wpcol2.squared_magnitude();
-      sd = sqrt( sd / (p.rows() - 1) );
+      std::cout << " row " << i << " has zero variance --- exiting " << std::endl;
+      exit(1);
       }
-    wpcol = wpcol2 / sd;
-    np.set_column(i, wpcol);
+    if( sd <= 0 && i > 0 )
+      {
+      std::cout << " row " << i << " has zero variance --- copying the previous row " << std::endl;
+      std::cout << " the row is " << wpcol << std::endl;
+      np.set_column(i, np.get_column(i - 1) );
+      }
+    else
+      {
+      wpcol = wpcol2 / sd;
+      np.set_column(i, wpcol);
+      }
     }
   return np;
 }
@@ -1193,8 +1192,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::SparsePartialArnoldiCCA(unsigned int n_vecs)
+::SparsePartialArnoldiCCA(unsigned int n_vecs_in)
 {
+  unsigned int n_vecs = n_vecs_in;
+
+  if( n_vecs < 2 )
+    {
+    n_vecs = 2;
+    }
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
   std::cout << " arnoldi sparse partial cca " << std::endl;
@@ -1251,22 +1256,32 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
-      VectorType ptemp = this->m_VariatesP.get_column(k);
-      VectorType qtemp = this->m_VariatesQ.get_column(k);
-      /*    vnl_diag_matrix<TRealType> indicatorp(this->m_MatrixP.cols(),1);
-          vnl_diag_matrix<TRealType> indicatorq(this->m_MatrixQ.cols(),1);
-      if (loop > 50000 ) {
-        for ( unsigned int j=0; j< ptemp.size(); j++) if ( fabs(ptemp(j)) < this->m_Epsilon ) indicatorp(j,j)=0;
-        for ( unsigned int j=0; j< qtemp.size(); j++) if ( fabs(qtemp(j)) < this->m_Epsilon ) indicatorq(j,j)=0;
-        }*/
-      MatrixType pmod = this->m_MatrixP; // *indicatorp;
-      MatrixType qmod = this->m_MatrixQ; // *indicatorq;
+      VectorType                 ptemp = this->m_VariatesP.get_column(k);
+      VectorType                 qtemp = this->m_VariatesQ.get_column(k);
+      vnl_diag_matrix<TRealType> indicatorp(this->m_MatrixP.cols(), 1);
+      vnl_diag_matrix<TRealType> indicatorq(this->m_MatrixQ.cols(), 1);
+      // if (loop > 50000 ) {
+      for( unsigned int j = 0; j < ptemp.size(); j++ )
+        {
+        if( fabs(ptemp(j) ) < this->m_Epsilon )
+          {
+          indicatorp(j, j) = 0;
+          }
+        }
+      for( unsigned int j = 0; j < qtemp.size(); j++ )
+        {
+        if( fabs(qtemp(j) ) < this->m_Epsilon )
+          {
+          indicatorq(j, j) = 0;
+          }
+        }
+      //  }
+      MatrixType pmod = this->m_MatrixP * indicatorp;
+      MatrixType qmod = this->m_MatrixQ * indicatorq;
       VectorType pveck = qmod * qtemp;
       VectorType qveck = pmod * ptemp;
       pveck = pmod.transpose() * pveck;
       qveck = qmod.transpose() * qveck;
-      //    this->ReSoftThreshold( pveck , fnp , this->m_KeepPositiveP );
-      //    this->ReSoftThreshold( qveck , fnq , this->m_KeepPositiveQ );
       if( k > 0 )
         {
         for( unsigned int j = 0; j < k; j++ )
@@ -1336,7 +1351,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     } // outer loop
   this->SortResults(n_vecs);
   //  this->RunDiagnostics(n_vecs);
-  if( n_vecs > 1 )
+  if( n_vecs_in > 1 )
     {
     return fabs(this->m_CanonicalCorrelations[1]) + fabs(this->m_CanonicalCorrelations[0]);
     }
