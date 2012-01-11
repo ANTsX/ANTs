@@ -1010,7 +1010,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType                 ptemp = this->m_VariatesP.get_column(k);
       vnl_diag_matrix<TRealType> indicator(this->m_MatrixP.cols(), 1);
       // don't use the indicator function if you are not even close to the solution
-      if( loop > 10 && !this->m_KeepPositiveP )
+      if( loop > 20 && !this->m_KeepPositiveP )
         {
         for( unsigned int j = 0; j < ptemp.size(); j++ )
           {
@@ -1020,8 +1020,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
             }
           }
         }
+      if( loop > 20 && this->m_KeepPositiveP )
+        {
+        for( unsigned int j = 0; j < ptemp.size(); j++ )
+          {
+          if( fabs(ptemp(j) ) < this->m_Epsilon )
+            {
+            indicator(j, j) = 0;
+            }
+          }
+        fnp = 1;
+        }
       MatrixType pmod = this->m_MatrixP * indicator;
-      VectorType pveck = pmod.transpose() * (pmod * ptemp);
+      VectorType pveck = (pmod.transpose() * (pmod * ptemp) ) * indicator;
       //  X^T X x
       RealType hkkm1 = pveck.two_norm();
       if( hkkm1 > this->m_Epsilon /* && k == 0 */  )
@@ -1057,6 +1068,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           {
           pveck = pveck_temp;
           }
+        }
+      if( loop > 20 && this->m_KeepPositiveP )
+        {
+        pveck = indicator * pveck;
         }
       double pveckabssum = 0;
       for( unsigned int pp = 0; pp < pveck.size(); pp++ )
@@ -1269,20 +1284,26 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType                 qtemp = this->m_VariatesQ.get_column(k);
       vnl_diag_matrix<TRealType> indicatorp(this->m_MatrixP.cols(), 1);
       vnl_diag_matrix<TRealType> indicatorq(this->m_MatrixQ.cols(), 1);
-      if( false /*loop > 10*/ )
+      if( loop > 10 )
         {
-        for( unsigned int j = 0; j < ptemp.size(); j++ )
+        if( !this->m_KeepPositiveP )
           {
-          if( fabs(ptemp(j) ) < this->m_Epsilon )
+          for( unsigned int j = 0; j < ptemp.size(); j++ )
             {
-            indicatorp(j, j) = 0;
+            if( fabs(ptemp(j) ) < this->m_Epsilon )
+              {
+              indicatorp(j, j) = 0;
+              }
             }
           }
-        for( unsigned int j = 0; j < qtemp.size(); j++ )
+        if( !this->m_KeepPositiveQ )
           {
-          if( fabs(qtemp(j) ) < this->m_Epsilon )
+          for( unsigned int j = 0; j < qtemp.size(); j++ )
             {
-            indicatorq(j, j) = 0;
+            if( fabs(qtemp(j) ) < this->m_Epsilon )
+              {
+              indicatorq(j, j) = 0;
+              }
             }
           }
         }
