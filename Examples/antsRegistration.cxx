@@ -22,11 +22,13 @@
 #include "itkImageRegistrationMethodv4.h"
 #include "itkTimeVaryingVelocityFieldImageRegistrationMethodv4.h"
 #include "itkTimeVaryingBSplineVelocityFieldImageRegistrationMethod.h"
-
+#include "itkANTSAffine3DTransform.h"
+#include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkImageToImageMetricv4.h"
 #include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
+#include "itkMattesMutualInformationImageToImageMetricv4.h"
 
 #include "itkAffineTransform.h"
 #include "itkBSplineTransform.h"
@@ -37,6 +39,8 @@
 #include "itkIdentityTransform.h"
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
+#include "itkVersorRigid3DTransform.h"
+#include "itkQuaternionRigidTransform.h"
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
 #include "itkMatrixOffsetTransformBase.h"
@@ -157,6 +161,8 @@ template <>
 class RigidTransformTraits<3>
 {
 public:
+  // typedef itk::VersorRigid3DTransform<double> TransformType;
+  // typedef itk::QuaternionRigidTransform<double>  TransformType;
   typedef itk::Euler3DTransform<double> TransformType;
 };
 
@@ -181,6 +187,27 @@ class SimilarityTransformTraits<3>
 {
 public:
   typedef itk::Similarity3DTransform<double> TransformType;
+};
+
+template <unsigned int ImageDimension>
+class CompAffTransformTraits
+{
+// Don't worry about the fact that the default option is the
+// affine Transform, that one will not actually be instantiated.
+public:
+  typedef itk::AffineTransform<double, ImageDimension> TransformType;
+};
+template <>
+class CompAffTransformTraits<2>
+{
+public:
+  typedef itk::ANTSCenteredAffine2DTransform<double> TransformType;
+};
+template <>
+class CompAffTransformTraits<3>
+{
+public:
+  typedef itk::ANTSAffine3DTransform<double> TransformType;
 };
 
 void ConvertToLowerCase( std::string& str )
@@ -464,6 +491,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
     std::vector<unsigned int> iterations = parser->ConvertVector<unsigned int>( iterationsOption->GetValue(
                                                                                   currentStage ) );
+    std::cout << "  iterations = " << iterationsOption->GetValue( currentStage ) << std::endl;
     unsigned int numberOfLevels = iterations.size();
     std::cout << "  number of levels = " << numberOfLevels << std::endl;
 
@@ -558,6 +586,22 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
       metric = correlationMetric;
       }
+    else if( std::strcmp( whichMetric.c_str(), "mattes" ) == 0 )
+      {
+      unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+      std::cout << "  using the Mattes MI metric (number of bins = " << binOption << ")" << std::endl;
+      typedef itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
+                                                               MovingImageType> MutualInformationMetricType;
+      typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
+      mutualInformationMetric = mutualInformationMetric;
+      mutualInformationMetric->SetNumberOfHistogramBins( binOption );
+      mutualInformationMetric->SetDoFixedImagePreWarp( true );
+      mutualInformationMetric->SetDoMovingImagePreWarp( true );
+      mutualInformationMetric->SetUseMovingImageGradientFilter( false );
+      mutualInformationMetric->SetUseFixedImageGradientFilter( false );
+      mutualInformationMetric->SetUseFixedSampledPointSet( false );
+      metric = mutualInformationMetric;
+      }
     else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
       {
       unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
@@ -573,6 +617,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       mutualInformationMetric->SetUseMovingImageGradientFilter( false );
       mutualInformationMetric->SetUseFixedImageGradientFilter( false );
       mutualInformationMetric->SetUseFixedSampledPointSet( false );
+      mutualInformationMetric->SetVarianceForJointPDFSmoothing( 1.0 );
       metric = mutualInformationMetric;
       }
     else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
@@ -690,6 +735,53 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       try
         {
         std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
+        rigidRegistration->StartRegistration();
+        }
+      catch( itk::ExceptionObject & e )
+        {
+        std::cerr << "Exception caught: " << e << std::endl;
+        return EXIT_FAILURE;
+        }
+      // Write out the affine transform
+
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Rigid.mat" );
+
+      typedef itk::TransformFileWriter TransformWriterType;
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
+      transformWriter->SetFileName( filename.c_str() );
+      transformWriter->Update();
+      }
+    else if( std::strcmp( whichTransform.c_str(), "compaff" ) == 0 )
+      {
+      typedef typename CompAffTransformTraits<ImageDimension>::TransformType CompAffTransformType;
+      typename CompAffTransformType::Pointer compAffTransform = CompAffTransformType::New();
+      typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType,
+                                             CompAffTransformType> RigidRegistrationType;
+      typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+
+      rigidRegistration->SetFixedImage( fixedImage );
+      rigidRegistration->SetMovingImage( movingImage );
+      rigidRegistration->SetNumberOfLevels( numberOfLevels );
+      rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+      rigidRegistration->SetMetric( metric );
+      rigidRegistration->SetMetricSamplingStrategy(
+        static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+      rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
+      rigidRegistration->SetOptimizer( optimizer );
+      rigidRegistration->SetTransform( compAffTransform );
+      rigidRegistration->SetCompositeTransform( compositeTransform );
+
+      typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
+      typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
+      rigidObserver->SetNumberOfIterations( iterations );
+
+      rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
+
+      try
+        {
+        std::cout << std::endl << "*** Running composite affine registration ***" << std::endl << std::endl;
         rigidRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
