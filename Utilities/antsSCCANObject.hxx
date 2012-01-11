@@ -1032,7 +1032,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         fnp = 1;
         }
       MatrixType pmod = this->m_MatrixP * indicator;
-      VectorType pveck = (pmod.transpose() * (pmod * ptemp) ) * indicator;
+      VectorType pveck = (pmod.transpose() * (pmod * ptemp) );
       //  X^T X x
       RealType hkkm1 = pveck.two_norm();
       if( hkkm1 > this->m_Epsilon /* && k == 0 */  )
