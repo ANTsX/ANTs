@@ -20,10 +20,9 @@
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegistrationMethodv4.h"
+#include "itkSyNImageRegistrationMethod.h"
 #include "itkTimeVaryingVelocityFieldImageRegistrationMethodv4.h"
 #include "itkTimeVaryingBSplineVelocityFieldImageRegistrationMethod.h"
-#include "itkANTSAffine3DTransform.h"
-#include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkImageToImageMetricv4.h"
@@ -31,6 +30,8 @@
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 
 #include "itkAffineTransform.h"
+#include "itkANTSAffine3DTransform.h"
+#include "itkANTSCenteredAffine2DTransform.h"
 #include "itkBSplineTransform.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkCompositeTransform.h"
@@ -134,7 +135,6 @@ public:
   }
 
 private:
-
   std::vector<unsigned int> m_NumberOfIterations;
 };
 
@@ -190,7 +190,7 @@ public:
 };
 
 template <unsigned int ImageDimension>
-class CompAffTransformTraits
+class CompositeAffineTransformTraits
 {
 // Don't worry about the fact that the default option is the
 // affine Transform, that one will not actually be instantiated.
@@ -198,13 +198,13 @@ public:
   typedef itk::AffineTransform<double, ImageDimension> TransformType;
 };
 template <>
-class CompAffTransformTraits<2>
+class CompositeAffineTransformTraits<2>
 {
 public:
   typedef itk::ANTSCenteredAffine2DTransform<double> TransformType;
 };
 template <>
-class CompAffTransformTraits<3>
+class CompositeAffineTransformTraits<3>
 {
 public:
   typedef itk::ANTSAffine3DTransform<double> TransformType;
@@ -752,37 +752,38 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       transformWriter->SetFileName( filename.c_str() );
       transformWriter->Update();
       }
-    else if( std::strcmp( whichTransform.c_str(), "compaff" ) == 0 )
+    else if( std::strcmp( whichTransform.c_str(),
+                          "compositeaffine" ) == 0 || std::strcmp( whichTransform.c_str(), "compaff" ) == 0 )
       {
-      typedef typename CompAffTransformTraits<ImageDimension>::TransformType CompAffTransformType;
-      typename CompAffTransformType::Pointer compAffTransform = CompAffTransformType::New();
+      typedef typename CompositeAffineTransformTraits<ImageDimension>::TransformType CompositeAffineTransformType;
+      typename CompositeAffineTransformType::Pointer compositeAffineTransform = CompositeAffineTransformType::New();
       typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType,
-                                             CompAffTransformType> RigidRegistrationType;
-      typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+                                             CompositeAffineTransformType> AffineRegistrationType;
+      typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
 
-      rigidRegistration->SetFixedImage( fixedImage );
-      rigidRegistration->SetMovingImage( movingImage );
-      rigidRegistration->SetNumberOfLevels( numberOfLevels );
-      rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
-      rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-      rigidRegistration->SetMetric( metric );
-      rigidRegistration->SetMetricSamplingStrategy(
-        static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
-      rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
-      rigidRegistration->SetOptimizer( optimizer );
-      rigidRegistration->SetTransform( compAffTransform );
-      rigidRegistration->SetCompositeTransform( compositeTransform );
+      affineRegistration->SetFixedImage( fixedImage );
+      affineRegistration->SetMovingImage( movingImage );
+      affineRegistration->SetNumberOfLevels( numberOfLevels );
+      affineRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      affineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+      affineRegistration->SetMetric( metric );
+      affineRegistration->SetMetricSamplingStrategy(
+        static_cast<typename AffineRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+      affineRegistration->SetMetricSamplingPercentage( samplingPercentage );
+      affineRegistration->SetOptimizer( optimizer );
+      affineRegistration->SetTransform( compositeAffineTransform );
+      affineRegistration->SetCompositeTransform( compositeTransform );
 
-      typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
-      typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
-      rigidObserver->SetNumberOfIterations( iterations );
+      typedef CommandIterationUpdate<AffineRegistrationType> AffineCommandType;
+      typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
+      affineObserver->SetNumberOfIterations( iterations );
 
-      rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
+      affineRegistration->AddObserver( itk::IterationEvent(), affineObserver );
 
       try
         {
         std::cout << std::endl << "*** Running composite affine registration ***" << std::endl << std::endl;
-        rigidRegistration->StartRegistration();
+        affineRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
         {
@@ -791,11 +792,11 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
         }
       // Write out the affine transform
 
-      std::string filename = outputPrefix + currentStageString.str() + std::string( "Rigid.mat" );
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Affine.mat" );
 
       typedef itk::TransformFileWriter TransformWriterType;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-      transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
+      transformWriter->SetInput( affineRegistration->GetOutput()->Get() );
       transformWriter->SetFileName( filename.c_str() );
       transformWriter->Update();
       }
@@ -1332,7 +1333,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       velocityFieldRegistration->GetTransform()->SetLowerTimeBound( 0.0 );
       velocityFieldRegistration->GetTransform()->SetUpperTimeBound( 1.0 );
 
-      typename VelocityFieldRegistrationType::ShrinkFactorsArrayType numberOfIterationsPerLevel;
+      typename VelocityFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
       numberOfIterationsPerLevel.SetSize( numberOfLevels );
       for( unsigned int d = 0; d < numberOfLevels; d++ )
         {
@@ -1559,7 +1560,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       velocityFieldRegistration->GetTransform()->SetVelocityFieldSize( sampledVelocityFieldSize );
       velocityFieldRegistration->GetTransform()->IntegrateVelocityField();
 
-      typename VelocityFieldRegistrationType::ShrinkFactorsArrayType numberOfIterationsPerLevel;
+      typename VelocityFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
       numberOfIterationsPerLevel.SetSize( numberOfLevels );
       for( unsigned int d = 0; d < numberOfLevels; d++ )
         {
@@ -1626,6 +1627,131 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       inverseWriter->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>(
                                  velocityFieldRegistration->GetOutput()->Get() )->GetInverseDisplacementField() );
       inverseWriter->SetFileName( inverseFilename.c_str() );
+      inverseWriter->Update();
+      }
+    else if( std::strcmp( whichTransform.c_str(),
+                          "syn" ) == 0 ||  std::strcmp( whichTransform.c_str(), "symmetricnormalization" ) == 0 )
+      {
+      typedef itk::Vector<RealType, ImageDimension> VectorType;
+      VectorType zeroVector( 0.0 );
+      typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
+      typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
+      displacementField->CopyInformation( fixedImage );
+      displacementField->SetRegions( fixedImage->GetBufferedRegion() );
+      displacementField->Allocate();
+      displacementField->FillBuffer( zeroVector );
+
+      typename DisplacementFieldType::Pointer inverseDisplacementField = DisplacementFieldType::New();
+      inverseDisplacementField->CopyInformation( fixedImage );
+      inverseDisplacementField->SetRegions( fixedImage->GetBufferedRegion() );
+      inverseDisplacementField->Allocate();
+      inverseDisplacementField->FillBuffer( zeroVector );
+
+      typedef itk::DisplacementFieldTransform<RealType, ImageDimension> DisplacementFieldTransformType;
+      typename DisplacementFieldTransformType::Pointer displacementFieldTransform =
+        DisplacementFieldTransformType::New();
+      displacementFieldTransform->SetDisplacementField( displacementField );
+      displacementFieldTransform->SetInverseDisplacementField( inverseDisplacementField );
+
+      typedef itk::SyNImageRegistrationMethod<FixedImageType, MovingImageType,
+                                              DisplacementFieldTransformType> DisplacementFieldRegistrationType;
+
+      // Create the transform adaptors
+
+      typedef itk::DisplacementFieldTransformParametersAdaptor<DisplacementFieldTransformType>
+        DisplacementFieldTransformAdaptorType;
+      typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
+      // Create the transform adaptors
+      // For the gaussian displacement field, the specified variances are in image spacing terms
+      // and, in normal practice, we typically don't change these values at each level.  However,
+      // if the user wishes to add that option, they can use the class
+      // GaussianSmoothingOnUpdateDisplacementFieldTransformAdaptor
+      for( unsigned int level = 0; level < numberOfLevels; level++ )
+        {
+        // We use the shrink image filter to calculate the fixed parameters of the virtual
+        // domain at each level.  To speed up calculation and avoid unnecessary memory
+        // usage, we could calculate these fixed parameters directly.
+
+        typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
+        typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+        shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+        shrinkFilter->SetInput( displacementField );
+        shrinkFilter->Update();
+
+        typename DisplacementFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
+          DisplacementFieldTransformAdaptorType::New();
+        fieldTransformAdaptor->SetRequiredSpacing( shrinkFilter->GetOutput()->GetSpacing() );
+        fieldTransformAdaptor->SetRequiredSize( shrinkFilter->GetOutput()->GetBufferedRegion().GetSize() );
+        fieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
+        fieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+        fieldTransformAdaptor->SetTransform( displacementFieldTransform );
+
+        adaptors.push_back( fieldTransformAdaptor.GetPointer() );
+        }
+
+      // Extract parameters
+      typename DisplacementFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
+      numberOfIterationsPerLevel.SetSize( numberOfLevels );
+      for( unsigned int d = 0; d < numberOfLevels; d++ )
+        {
+        numberOfIterationsPerLevel[d] = iterations[d];
+        }
+
+      RealType sigmaForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
+      RealType sigmaForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+
+      typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
+        DisplacementFieldRegistrationType::New();
+      displacementFieldRegistration->SetFixedImage( fixedImage );
+      displacementFieldRegistration->SetMovingImage( movingImage );
+      displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
+      displacementFieldRegistration->SetCompositeTransform( compositeTransform );
+      displacementFieldRegistration->SetTransform( displacementFieldTransform );
+      displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+      displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+      displacementFieldRegistration->SetMetric( metric );
+      displacementFieldRegistration->SetLearningRate( learningRate );
+      displacementFieldRegistration->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
+      displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
+      displacementFieldRegistration->SetGaussianSmoothingVarianceForTheUpdateField( sigmaForUpdateField );
+      displacementFieldRegistration->SetGaussianSmoothingVarianceForTheTotalField( sigmaForTotalField );
+
+      typedef CommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
+      typename DisplacementFieldCommandType::Pointer dfObserver = DisplacementFieldCommandType::New();
+      dfObserver->SetNumberOfIterations( iterations );
+
+      displacementFieldRegistration->AddObserver( itk::IterationEvent(), dfObserver );
+
+      try
+        {
+        std::cout << std::endl << "*** Running SyN registration (sigmaForUpdateField = "
+                  << sigmaForUpdateField << ", sigmaForTotalField = " << sigmaForTotalField << ") ***" << std::endl
+                  << std::endl;
+        displacementFieldRegistration->StartRegistration();
+        }
+      catch( itk::ExceptionObject & e )
+        {
+        std::cerr << "Exception caught: " << e << std::endl;
+        return EXIT_FAILURE;
+        }
+
+      // Write out the displacement field and its inverse
+
+      std::string filename = outputPrefix + currentStageString.str() + std::string( "Warp.nii.gz" );
+
+      typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetInput( const_cast<typename DisplacementFieldRegistrationType::TransformType *>(
+                          displacementFieldRegistration->GetOutput()->Get() )->GetDisplacementField() );
+      writer->SetFileName( filename.c_str() );
+      writer->Update();
+
+      filename = outputPrefix + currentStageString.str() + std::string( "InverseWarp.nii.gz" );
+
+      typename WriterType::Pointer inverseWriter = WriterType::New();
+      inverseWriter->SetInput( const_cast<typename DisplacementFieldRegistrationType::TransformType *>(
+                                 displacementFieldRegistration->GetOutput()->Get() )->GetInverseDisplacementField() );
+      inverseWriter->SetFileName( filename.c_str() );
       inverseWriter->Update();
       }
     else
@@ -1788,7 +1914,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Several transform options are available.  The gradientStep or" )
+    std::string description = std::string( "Several transform options are available.  The gradientStep or " )
       + std::string( "learningRate characterizes the gradient descent optimization and is scaled appropriately " )
       + std::string( "for each transform using the shift scales estimator.  Subsequent parameters are " )
       + std::string( "transform-specific and can be determined from the usage. " );
@@ -1798,17 +1924,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 't' );
     option->SetUsageOption( 0, "Rigid[gradientStep]" );
     option->SetUsageOption( 1, "Affine[gradientStep]" );
-    option->SetUsageOption( 2, "Similarity[gradientStep]" );
-    option->SetUsageOption( 3, "Translation[gradientStep]" );
-    option->SetUsageOption( 4, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption( 5,
-                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
+    option->SetUsageOption( 2, "CompositeAffine[gradientStep]" );
+    option->SetUsageOption( 3, "Similarity[gradientStep]" );
+    option->SetUsageOption( 4, "Translation[gradientStep]" );
+    option->SetUsageOption( 5, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
     option->SetUsageOption( 6,
-                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetUsageOption( 7,
-                            "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
+                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
     option->SetUsageOption( 8,
+                            "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
+    option->SetUsageOption( 9,
                             "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
+    option->SetUsageOption( 10, "SyN[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
