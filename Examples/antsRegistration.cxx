@@ -296,9 +296,10 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
   // Register the matrix offset transform base class to the
   // transform factory for compatibility with the current ANTs.
-  typedef itk::MatrixOffsetTransformBase
-    <PixelType, ImageDimension, ImageDimension> MatrixOffsetTransformType;
+  typedef itk::MatrixOffsetTransformBase<PixelType, ImageDimension, ImageDimension> MatrixOffsetTransformType;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+  typedef itk::TranslationTransform<PixelType, ImageDimension> TranslationTransformType;
+  itk::TransformFactory<TranslationTransformType>::RegisterTransform();
   typedef itk::AffineTransform<PixelType, ImageDimension> AffineTransformType;
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
@@ -2015,7 +2016,7 @@ int main( int argc, char *argv[] )
   std::string commandDescription = std::string( "This program is a user-level " )
     + std::string( "registration application meant to utilize ITKv4-only classes. The user can specify " )
     + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
-    + std::string( " and iterations, shrink factors, and smoothing sigmas for each level." );
+    + std::string( "and iterations, shrink factors, and smoothing sigmas for each level." );
 
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
