@@ -26,8 +26,6 @@
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkBinaryDilateImageFilter.h"
-#include "itkBSplineControlPointImageFunction.h"
-#include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkCastImageFilter.h"
 #include "itkComposeDisplacementFieldsImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
