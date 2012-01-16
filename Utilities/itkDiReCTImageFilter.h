@@ -76,23 +76,13 @@ public:
   typedef TOutputImage                        OutputImageType;
   typedef TOutputImage                        RealImageType;
 
-  typedef typename OutputImageType::PixelType RealType;
-  typedef typename RealImageType::Pointer     RealImagePointer;
-  typedef Vector<RealType,
-                 itkGetStaticConstMacro( ImageDimension )>   VectorType;
-  typedef Image<VectorType,
-                itkGetStaticConstMacro( ImageDimension )>   VectorImageType;
-  typedef typename VectorImageType::Pointer   VectorImagePointer;
-  typedef typename VectorType::ValueType      VectorValueType;
-  typedef typename VectorImageType::PointType PointType;
-
-  typedef PointSet<RealType,
-                   itkGetStaticConstMacro( ImageDimension )>      SparseImageType;
-  typedef typename SparseImageType::Pointer SparseImagePointer;
-  typedef PointSet<VectorType,
-                   itkGetStaticConstMacro( ImageDimension )>      SparseVectorImageType;
-  typedef typename SparseVectorImageType::Pointer SparseVectorImagePointer;
-  typedef typename SparseImageType::PointType     SparseIndexType;
+  typedef typename OutputImageType::PixelType       RealType;
+  typedef typename RealImageType::Pointer           RealImagePointer;
+  typedef Vector<RealType, ImageDimension>          VectorType;
+  typedef Image<VectorType, ImageDimension>         DisplacementFieldType;
+  typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
+  typedef typename VectorType::ValueType            VectorValueType;
+  typedef typename DisplacementFieldType::PointType PointType;
 
   /**
    * Set the segmentation image.  The segmentation image is a labeled image
@@ -291,37 +281,17 @@ private:
   /**
    * Private function for warping an image.
    */
-  RealImagePointer WarpImage( const RealImageType *, const VectorImageType * );
+  RealImagePointer WarpImage( const RealImageType *, const DisplacementFieldType * );
 
   /**
    * Private function for inverting the deformation field.
    */
-  void InvertDisplacementField( const VectorImageType *, VectorImageType * );
+  void InvertDisplacementField( const DisplacementFieldType *, DisplacementFieldType * );
 
   /**
    * Private function for smoothing the deformation field.
    */
-  VectorImagePointer SmoothDisplacementField( const VectorImageType *, const RealType );
-
-  /**
-   * Private function for converting a scalar image to a sparse image
-   */
-  SparseImagePointer ConvertRealImageToSparseImage( const RealImageType *, const InputImageType * );
-
-  /**
-   * Private function for converting a sparse image to a scalar image
-   */
-  RealImagePointer ConvertSparseImageToRealImage( const SparseImageType *, const InputImageType * );
-
-  /**
-   * Private function for converting a vector image to a sparse vector image
-   */
-  SparseVectorImagePointer ConvertVectorImageToSparseVectorImage(const VectorImageType *, const InputImageType * );
-
-  /**
-   * Private function for converting a sparse vector image to a vector image
-   */
-  VectorImagePointer ConvertSparseVectorImageToVectorImage(const SparseVectorImageType *, const InputImageType * );
+  DisplacementFieldPointer SmoothDisplacementField( const DisplacementFieldType *, const RealType );
 
   RealType     m_ThicknessPriorEstimate;
   RealType     m_SmoothingSigma;

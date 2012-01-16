@@ -29,7 +29,7 @@
 #include "itkBSplineControlPointImageFunction.h"
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkCastImageFilter.h"
-#include "itkComposeDiffeomorphismsImageFilter.h"
+#include "itkComposeDisplacementFieldsImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
@@ -38,6 +38,7 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImportImageFilter.h"
+#include "itkInvertDisplacementFieldImageFilter.h"
 #include "itkIterationReporter.h"
 #include "itkMaximumImageFilter.h"
 #include "itkMultiplyByConstantImageFilter.h"
@@ -48,6 +49,7 @@
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
 #include "itkWarpImageFilter.h"
+#include "itkWindowConvergenceMonitoringFunction.h"
 
 namespace itk
 {
@@ -221,7 +223,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   corticalThicknessImage->Allocate();
   corticalThicknessImage->FillBuffer( 0.0 );
 
-  VectorImagePointer forwardIncrementalField = VectorImageType::New();
+  DisplacementFieldPointer forwardIncrementalField = DisplacementFieldType::New();
   forwardIncrementalField->CopyInformation( segmentationImageImporter->GetOutput() );
   forwardIncrementalField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   forwardIncrementalField->Allocate();
@@ -231,18 +233,18 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   hitImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   hitImage->Allocate();
 
-  VectorImagePointer integratedField = VectorImageType::New();
+  DisplacementFieldPointer integratedField = DisplacementFieldType::New();
   integratedField->CopyInformation( segmentationImageImporter->GetOutput() );
   integratedField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   integratedField->Allocate();
   integratedField->FillBuffer( zeroVector );
 
-  VectorImagePointer inverseField = VectorImageType::New();
+  DisplacementFieldPointer inverseField = DisplacementFieldType::New();
   inverseField->CopyInformation( segmentationImageImporter->GetOutput() );
   inverseField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   inverseField->Allocate();
 
-  VectorImagePointer inverseIncrementalField = VectorImageType::New();
+  DisplacementFieldPointer inverseIncrementalField = DisplacementFieldType::New();
   inverseIncrementalField->CopyInformation( segmentationImageImporter->GetOutput() );
   inverseIncrementalField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   inverseIncrementalField->Allocate();
@@ -262,7 +264,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   totalImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   totalImage->Allocate();
 
-  VectorImagePointer velocityField = VectorImageType::New();
+  DisplacementFieldPointer velocityField = DisplacementFieldType::New();
   velocityField->CopyInformation( segmentationImageImporter->GetOutput() );
   velocityField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   velocityField->Allocate();
@@ -279,16 +281,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   ImageRegionIterator<RealImageType> ItHitImage(
     hitImage,
     hitImage->GetRequestedRegion() );
-  ImageRegionIterator<VectorImageType> ItForwardIncrementalField(
+  ImageRegionIterator<DisplacementFieldType> ItForwardIncrementalField(
     forwardIncrementalField,
     forwardIncrementalField->GetRequestedRegion() );
   ImageRegionConstIterator<InputImageType> ItDilatedMatterContours(
     dilatedMatterContours,
     dilatedMatterContours->GetRequestedRegion() );
-  ImageRegionIterator<VectorImageType> ItIntegratedField(
-    integratedField,
-    integratedField->GetRequestedRegion() );
-  ImageRegionIterator<VectorImageType> ItInverseIncrementalField(
+  ImageRegionIterator<DisplacementFieldType> ItInverseIncrementalField(
     inverseIncrementalField,
     inverseIncrementalField->GetRequestedRegion() );
   ImageRegionConstIterator<InputImageType> ItMaskImage(
@@ -310,15 +309,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     whiteMatterContours,
     whiteMatterContours->GetRequestedRegion() );
 
-  // Instantiate objects for profiling energy convergence
-
-  typedef Vector<RealType, 1>                   ProfilePointDataType;
-  typedef Image<ProfilePointDataType, 1>        CurveType;
-  typedef PointSet<ProfilePointDataType, 1>     EnergyProfileType;
-  typedef typename EnergyProfileType::PointType ProfilePointType;
-
-  typename EnergyProfileType::Pointer energyProfile = EnergyProfileType::New();
-  energyProfile->Initialize();
+  // Monitor the convergence
+  typedef itk::Function::WindowConvergenceMonitoringFunction<double> ConvergenceMonitoringType;
+  ConvergenceMonitoringType::Pointer convergenceMonitoring = ConvergenceMonitoringType::New();
+  convergenceMonitoring->SetWindowSize( this->m_ConvergenceWindowSize );
 
   // Instantiate the progress reporter
 
@@ -330,8 +324,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   while( this->m_ElapsedIterations++ < this->m_MaximumNumberOfIterations &&
          isConverged == false )
     {
-    ProfilePointDataType currentEnergy;
-    currentEnergy[0] = 0.0;
+    RealType currentEnergy = 0.0;
     RealType numberOfGrayMatterVoxels = 0.0;
 
     forwardIncrementalField->FillBuffer( zeroVector );
@@ -342,20 +335,20 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     totalImage->FillBuffer( 0.0 );
     thicknessImage->FillBuffer( 0.0 );
 
-    ImageRegionIterator<VectorImageType> ItVelocityField(
+    ImageRegionIterator<DisplacementFieldType> ItVelocityField(
       velocityField,
       velocityField->GetRequestedRegion() );
 
     unsigned int integrationPoint = 0;
     while( integrationPoint++ < this->m_NumberOfIntegrationPoints )
       {
-      typedef ComposeDiffeomorphismsImageFilter<VectorImageType> ComposerType;
+      typedef ComposeDisplacementFieldsImageFilter<DisplacementFieldType> ComposerType;
       typename ComposerType::Pointer composer = ComposerType::New();
       composer->SetDisplacementField( inverseIncrementalField );
       composer->SetWarpingField( inverseField );
-      composer->Update();
 
       inverseField = composer->GetOutput();
+      inverseField->Update();
       inverseField->DisconnectPipeline();
 
       RealImagePointer warpedWhiteMatterProbabilityMap = this->WarpImage(
@@ -365,7 +358,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       RealImagePointer warpedThicknessImage = this->WarpImage(
           thicknessImage, inverseField );
 
-      typedef GradientRecursiveGaussianImageFilter<RealImageType, VectorImageType>
+      typedef GradientRecursiveGaussianImageFilter<RealImageType, DisplacementFieldType>
         GradientImageFilterType;
       typename GradientImageFilterType::Pointer gradientFilter =
         GradientImageFilterType::New();
@@ -373,16 +366,13 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       gradientFilter->SetSigma( this->m_SmoothingSigma );
       gradientFilter->Update();
 
-      VectorImagePointer gradientImage = gradientFilter->GetOutput();
+      DisplacementFieldPointer gradientImage = gradientFilter->GetOutput();
 
       // Instantiate the iterators all in one place
 
-      ImageRegionIterator<VectorImageType> ItGradientImage(
+      ImageRegionIterator<DisplacementFieldType> ItGradientImage(
         gradientImage,
         gradientImage->GetRequestedRegion() );
-      ImageRegionIterator<VectorImageType> ItInverseField(
-        inverseField,
-        inverseField->GetRequestedRegion() );
       ImageRegionIterator<RealImageType> ItWarpedThicknessImage(
         warpedThicknessImage,
         warpedThicknessImage->GetRequestedRegion() );
@@ -392,6 +382,12 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       ImageRegionIterator<RealImageType> ItWarpedWhiteMatterContours(
         warpedWhiteMatterContours,
         warpedWhiteMatterContours->GetRequestedRegion() );
+      ImageRegionIterator<DisplacementFieldType> ItInverseField(
+        inverseField,
+        inverseField->GetRequestedRegion() );
+      ImageRegionIterator<DisplacementFieldType> ItIntegratedField(
+        integratedField,
+        integratedField->GetRequestedRegion() );
 
       // Generate speed image
 
@@ -419,7 +415,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get()
                              - ItGrayMatterProbabilityMap.Get() );
 
-          currentEnergy[0] += vnl_math_abs( delta );
+          currentEnergy += vnl_math_abs( delta );
           numberOfGrayMatterVoxels++;
 
           RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get()
@@ -507,8 +503,29 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         {
         integratedField->FillBuffer( zeroVector );
         }
-      this->InvertDisplacementField( inverseField, integratedField );
-      this->InvertDisplacementField( integratedField, inverseField );
+
+      typedef InvertDisplacementFieldImageFilter<DisplacementFieldType> InverterType;
+
+      typename InverterType::Pointer inverter1 = InverterType::New();
+      inverter1->SetInput( inverseField );
+      inverter1->SetMaximumNumberOfIterations( 20 );
+      inverter1->SetMeanErrorToleranceThreshold( 0.001 );
+      inverter1->SetMaxErrorToleranceThreshold( 0.1 );
+      inverter1->Update();
+
+      integratedField = inverter1->GetOutput();
+      integratedField->Update();
+      integratedField->DisconnectPipeline();
+
+      typename InverterType::Pointer inverter2 = InverterType::New();
+      inverter2->SetInput( integratedField );
+      inverter2->SetMaximumNumberOfIterations( 20 );
+      inverter2->SetMeanErrorToleranceThreshold( 0.001 );
+      inverter2->SetMaxErrorToleranceThreshold( 0.1 );
+
+      inverseField = inverter2->GetOutput();
+      inverseField->Update();
+      inverseField->DisconnectPipeline();
       }
 
     // calculate the size of the solution to allow us to adjust the
@@ -518,11 +535,15 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
     typename InputImageType::SpacingType spacing = grayMatter->GetSpacing();
 
-    ItIntegratedField.GoToBegin();
-    for( ItIntegratedField.GoToBegin(); !ItIntegratedField.IsAtEnd();
-         ++ItIntegratedField )
+    ImageRegionIterator<DisplacementFieldType> ItIntegratedField2(
+      integratedField,
+      integratedField->GetRequestedRegion() );
+
+    ItIntegratedField2.GoToBegin();
+    for( ItIntegratedField2.GoToBegin(); !ItIntegratedField2.IsAtEnd();
+         ++ItIntegratedField2 )
       {
-      VectorType vector = ItIntegratedField.Get();
+      VectorType vector = ItIntegratedField2.Get();
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
         vector[d] = vector[d] / spacing[d];
@@ -584,92 +605,15 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
     // Calculate current energy and current convergence measurement
 
-    currentEnergy[0] /= numberOfGrayMatterVoxels;
-    this->m_CurrentEnergy = currentEnergy[0];
+    currentEnergy /= numberOfGrayMatterVoxels;
+    this->m_CurrentEnergy = currentEnergy;
 
-    ProfilePointType point;
-    point[0] = this->m_ElapsedIterations - 1;
+    convergenceMonitoring->AddEnergyValue( this->m_CurrentEnergy );
+    this->m_CurrentConvergenceMeasurement = convergenceMonitoring->GetConvergenceValue();
 
-    energyProfile->SetPoint( this->m_ElapsedIterations - 1, point );
-    energyProfile->SetPointData( this->m_ElapsedIterations - 1, currentEnergy );
-
-    if( this->m_ElapsedIterations >= this->m_ConvergenceWindowSize )
+    if( this->m_CurrentConvergenceMeasurement < this->m_ConvergenceThreshold )
       {
-      typename CurveType::PointType    origin;
-      typename CurveType::SizeType     size;
-      typename CurveType::SpacingType  spacing;
-
-      origin[0] = this->m_ElapsedIterations - this->m_ConvergenceWindowSize;
-      size[0] = this->m_ConvergenceWindowSize;
-      spacing[0] = 1.0;
-
-      typedef BSplineScatteredDataPointSetToImageFilter<EnergyProfileType,
-                                                        CurveType> BSplinerType;
-      typename BSplinerType::Pointer bspliner = BSplinerType::New();
-
-      typename EnergyProfileType::Pointer energyProfileWindow =
-        EnergyProfileType::New();
-      energyProfileWindow->Initialize();
-
-      RealType totalEnergy = 0.0;
-
-      unsigned int startIndex = static_cast<unsigned int>( origin[0] );
-      for( unsigned int i = startIndex; i < this->m_ElapsedIterations; i++ )
-        {
-        ProfilePointType windowPoint;
-        windowPoint[0] =
-          static_cast<typename ProfilePointType::CoordRepType>( i );
-
-        ProfilePointDataType windowEnergy;
-        windowEnergy.Fill( 0.0 );
-        energyProfile->GetPointData( i, &windowEnergy );
-
-        totalEnergy += vnl_math_abs( windowEnergy[0] );
-        }
-      for( unsigned int i = startIndex; i < this->m_ElapsedIterations; i++ )
-        {
-        ProfilePointType windowPoint;
-        windowPoint[0] = static_cast<typename ProfilePointType::CoordRepType>( i );
-
-        ProfilePointDataType windowEnergy;
-        windowEnergy.Fill( 0.0 );
-        energyProfile->GetPointData( i, &windowEnergy );
-
-        energyProfileWindow->SetPoint( i - startIndex, windowPoint );
-        energyProfileWindow->SetPointData( i - startIndex,
-                                           windowEnergy / totalEnergy );
-        }
-
-      bspliner->SetInput( energyProfileWindow );
-      bspliner->SetOrigin( origin );
-      bspliner->SetSpacing( spacing );
-      bspliner->SetSize( size );
-      bspliner->SetNumberOfLevels( 1 );
-      bspliner->SetSplineOrder( 1 );
-      typename BSplinerType::ArrayType ncps;
-      ncps.Fill( bspliner->GetSplineOrder()[0] + 1 );
-      bspliner->SetNumberOfControlPoints( ncps );
-      bspliner->Update();
-
-      typedef BSplineControlPointImageFunction<CurveType> BSplinerFunctionType;
-      typename BSplinerFunctionType::Pointer bsplinerFunction =
-        BSplinerFunctionType::New();
-      bsplinerFunction->SetOrigin( origin );
-      bsplinerFunction->SetSpacing( spacing );
-      bsplinerFunction->SetSize( size );
-      bsplinerFunction->SetSplineOrder( bspliner->GetSplineOrder() );
-      bsplinerFunction->SetInputImage( bspliner->GetPhiLattice() );
-
-      ProfilePointType endPoint;
-      endPoint[0] = static_cast<RealType>( this->m_ElapsedIterations - 1 );
-      typename BSplinerFunctionType::GradientType gradient =
-        bsplinerFunction->EvaluateGradientAtParametricPoint( endPoint );
-      this->m_CurrentConvergenceMeasurement = -gradient[0][0];
-
-      if( this->m_CurrentConvergenceMeasurement < this->m_ConvergenceThreshold )
-        {
-        isConverged = true;
-        }
+      isConverged = true;
       }
 
     reporter.CompletedStep();
@@ -730,9 +674,9 @@ template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::WarpImage( const RealImageType *inputImage,
-             const VectorImageType *DisplacementField )
+             const DisplacementFieldType *DisplacementField )
 {
-  typedef WarpImageFilter<RealImageType, RealImageType, VectorImageType>
+  typedef WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType>
     WarperType;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetInput( inputImage );
@@ -750,95 +694,19 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
-void
+typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
-::InvertDisplacementField( const VectorImageType *DisplacementField,
-                           VectorImageType *inverseField )
-{
-  typename VectorImageType::SpacingType spacing =
-    DisplacementField->GetSpacing();
-  VectorType spacingFactor;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
-    spacingFactor[d] = 1.0 / spacing[d];
-    }
-
-  RealType     maxNorm = 1.0;
-  RealType     meanNorm = 1.0;
-  unsigned int iteration = 0;
-  while( iteration++ < 20 && maxNorm > 0.1 && meanNorm > 0.001 )
-    {
-    meanNorm = 0.0;
-    maxNorm = 0.0;
-
-    typedef ComposeDiffeomorphismsImageFilter<VectorImageType> ComposerType;
-    typename ComposerType::Pointer composer = ComposerType::New();
-    composer->SetDisplacementField( DisplacementField );
-    composer->SetWarpingField( inverseField );
-
-    typedef MultiplyByConstantVectorImageFilter<VectorImageType, VectorType,
-                                                VectorImageType> ConstantMultiplierType;
-    typename ConstantMultiplierType::Pointer constantMultiplier =
-      ConstantMultiplierType::New();
-    constantMultiplier->SetConstantVector( spacingFactor );
-    constantMultiplier->SetInput( composer->GetOutput() );
-
-    typedef VectorMagnitudeImageFilter<VectorImageType, RealImageType>
-      NormFilterType;
-    typename NormFilterType::Pointer normFilter = NormFilterType::New();
-    normFilter->SetInput( constantMultiplier->GetOutput() );
-
-    typedef StatisticsImageFilter<RealImageType> StatisticsType;
-    typename StatisticsType::Pointer statistics = StatisticsType::New();
-    statistics->SetInput( normFilter->GetOutput() );
-    statistics->Update();
-
-    meanNorm = statistics->GetMean();
-    maxNorm = statistics->GetMaximum();
-
-    RealType epsilon = 0.5;
-    if( iteration == 1 )
-      {
-      epsilon = 0.75;
-      }
-    RealType normFactor = 1.0;
-    for( unsigned int d = 0; d < ImageDimension; d++ )
-      {
-      normFactor /= spacing[d];
-      }
-
-    ImageRegionIterator<VectorImageType> ItE( composer->GetOutput(),
-                                              composer->GetOutput()->GetRequestedRegion() );
-    ImageRegionIterator<VectorImageType> ItI( inverseField,
-                                              inverseField->GetRequestedRegion() );
-    for( ItI.GoToBegin(), ItE.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItE )
-      {
-      VectorType update = -ItE.Get();
-      RealType   updateNorm = update.GetNorm();
-
-      if( updateNorm > epsilon * maxNorm / normFactor )
-        {
-        update *= ( epsilon * maxNorm / ( updateNorm * normFactor ) );
-        }
-      ItI.Set( ItI.Get() + update * epsilon );
-      }
-    }
-}
-
-template <class TInputImage, class TOutputImage>
-typename DiReCTImageFilter<TInputImage, TOutputImage>::VectorImagePointer
-DiReCTImageFilter<TInputImage, TOutputImage>
-::SmoothDisplacementField( const VectorImageType *inputField,
+::SmoothDisplacementField( const DisplacementFieldType *inputField,
                            const RealType variance )
 {
-  typedef ImageDuplicator<VectorImageType> DuplicatorType;
+  typedef ImageDuplicator<DisplacementFieldType> DuplicatorType;
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( inputField );
   duplicator->Update();
-  VectorImagePointer outputField = duplicator->GetOutput();
+  DisplacementFieldPointer outputField = duplicator->GetOutput();
 
-  typedef VectorNeighborhoodOperatorImageFilter<VectorImageType,
-                                                VectorImageType> SmootherType;
+  typedef VectorNeighborhoodOperatorImageFilter<DisplacementFieldType,
+                                                DisplacementFieldType> SmootherType;
   typename SmootherType::Pointer smoother = SmootherType::New();
 
   typedef GaussianOperator<VectorValueType, ImageDimension> GaussianType;
@@ -869,8 +737,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     }
   RealType weight2 = 1.0 - weight1;
 
-  typedef MultiplyByConstantImageFilter<VectorImageType, RealType,
-                                        VectorImageType> MultiplierType;
+  typedef MultiplyByConstantImageFilter<DisplacementFieldType, RealType,
+                                        DisplacementFieldType> MultiplierType;
 
   typename MultiplierType::Pointer multiplier1 = MultiplierType::New();
   multiplier1->SetConstant2( weight1 );
@@ -880,8 +748,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   multiplier2->SetConstant2( weight2 );
   multiplier2->SetInput1( inputField );
 
-  typedef AddImageFilter<VectorImageType, VectorImageType, VectorImageType>
-    AdderType;
+  typedef AddImageFilter<DisplacementFieldType, DisplacementFieldType, DisplacementFieldType> AdderType;
   typename AdderType::Pointer adder = AdderType::New();
   adder->SetInput1( multiplier1->GetOutput() );
   adder->SetInput2( multiplier2->GetOutput() );
@@ -892,8 +759,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
   VectorType zeroVector( 0.0 );
 
-  ImageLinearIteratorWithIndex<VectorImageType> It( outputField,
-                                                    outputField->GetRequestedRegion() );
+  ImageLinearIteratorWithIndex<DisplacementFieldType> It( outputField,
+                                                          outputField->GetRequestedRegion() );
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     It.SetDirection( d );
