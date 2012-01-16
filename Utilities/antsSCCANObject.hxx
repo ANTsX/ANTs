@@ -966,9 +966,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_CanonicalCorrelations.fill(0);
   std::cout << " arnoldi sparse svd " << std::endl;
   this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
-  //  this->m_MatrixP=this->m_OriginalMatrixP;
   this->m_MatrixQ = this->m_MatrixP;
-  std::cout << " this->m_OriginalMatrixR.size() " << this->m_OriginalMatrixR.size() << std::endl;
   if( this->m_OriginalMatrixR.size() > 0 )
     {
     this->m_MatrixRRt = this->ProjectionMatrix(this->m_OriginalMatrixR);
@@ -980,8 +978,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   this->m_ClusterSizes.set_size(n_vecs);
   this->m_ClusterSizes.fill(0);
-  MatrixType covmat = this->m_MatrixP * this->m_MatrixP.transpose();
-  double     trace = vnl_trace<double>(covmat);
+  //  MatrixType covmat=this->m_MatrixP*this->m_MatrixP.transpose();
+  double trace = 0; // vnl_trace<double>(covmat);
+  for( unsigned int i = 0; i < this->m_MatrixP.cols(); i++ )
+    {
+    trace += inner_product(this->m_MatrixP.get_column(i), this->m_MatrixP.get_column(i) );
+    }
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
@@ -993,15 +995,55 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int loop = 0;
   double       lastconv = 0;
   bool         debug = false;
-  while( loop<maxloop && fabs(conv - lastconv)> 1.e-6 || loop < 5 )
+  /** these methods are sensitive to initialization.   we therefore perform a two stage optimization.
+   *    1. stage 1 'anneals' from sparseness 1 to the user-specified sparseness value while performing arnoldi iteration.
+   *      this makes the solution space smoother and allows information about the eigenvectors to propagate down to the
+   *      locally optimal sparse solution.
+   *   2. as we reach the desired sparseness, we employ indicator functions that allow us to estimate the true eigenvector
+   *      for the selected sub-matrix.  note that sub-matrices may be redundant with other submatrices so that eigenvectors
+   *      will usually not be perfectly orthogonal to each other.  this often leads to explained variance > 1 which indicates
+   *      the degree of redundancy.  it is possible to estimate the 'true' explained variance which is often fairly low.
+   *      indicator functions lead to a solid convergent solution.
+   */
+  double convcrit = 1;
+  float  ann[100]; // set up the sparseness schedule
+  for( unsigned int i = 0; i < 100; i++ )
     {
-    if( debug )
+    if( i < 20 )
       {
-      std::cout << "wloopstart" << std::endl;
+      ann[i] = 1;
       }
-    RealType fnp = this->m_FractionNonZeroP;
-    //  if ( loop < 10 && ! this->m_KeepPositiveP ) fnp=-1;
-    // if ( loop < 10 ) fnp=-1;
+    else
+      {
+      ann[i] = 1.0 - (float)i / 100.0;
+      if( ann[i] < fabs(this->m_FractionNonZeroP) )
+        {
+        ann[i] = this->m_FractionNonZeroP;                                         // dont go below user specified
+                                                                                   // sparseness
+        }
+      }
+    }
+  bool         anneal = false; // reduce sparseness slowly
+  bool         doind = true;   // use indicator function when we are itoff iterations from the maximum iterations & if
+                               // the solution has not yet converged.
+  unsigned int itoff = 10;     // the last itoff iterations just optimize wrt user selected sparseness
+  RealType     fnp = 1;
+  while( loop<maxloop && convcrit> 1.e-8 )
+    {
+    fnp = this->m_FractionNonZeroP;
+    // if (loop<20) fnp=1; else
+    bool condition2 = ( loop > (maxloop - itoff + 1) );
+    if( anneal && loop < (maxloop - itoff) )
+      {
+      if( fabs(fnp) < fabs(this->m_FractionNonZeroP) )
+        {
+        fnp = this->m_FractionNonZeroP;
+        }
+      if( loop < 100 )
+        {
+        fnp = ann[loop];
+        }
+      }
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
       if( debug )
@@ -1010,8 +1052,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       VectorType                 ptemp = this->m_VariatesP.get_column(k);
       vnl_diag_matrix<TRealType> indicator(this->m_MatrixP.cols(), 1);
+      MatrixType                 pmod = this->m_MatrixP;
       // don't use the indicator function if you are not even close to the solution
-      if( loop > 20 && !this->m_KeepPositiveP )
+      if( doind && condition2 && !this->m_KeepPositiveP )
         {
         for( unsigned int j = 0; j < ptemp.size(); j++ )
           {
@@ -1021,7 +1064,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
             }
           }
         }
-      if( loop > 20 && this->m_KeepPositiveP )
+      if( doind && condition2 &&  this->m_KeepPositiveP )
         {
         for( unsigned int j = 0; j < ptemp.size(); j++ )
           {
@@ -1032,7 +1075,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           }
         fnp = 1;
         }
-      MatrixType pmod = this->m_MatrixP * indicator;
+      if( doind && condition2                           )
+        {
+        pmod = pmod * indicator;
+        }
       VectorType pveck = (pmod.transpose() * (pmod * ptemp) );
       //  X^T X x
       RealType hkkm1 = pveck.two_norm();
@@ -1053,7 +1099,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         pveck = pveck - qj * hjk;
         }
       //  x_i is sparse
-      if( loop > 2 )
+      if( fnp < 1 )
         {
         if( this->m_KeepPositiveP )
           {
@@ -1070,7 +1116,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           pveck = pveck_temp;
           }
         }
-      if( loop > 20 && this->m_KeepPositiveP )
+      if( doind && condition2 && this->m_KeepPositiveP )
         {
         pveck = indicator * pveck;
         }
@@ -1084,14 +1130,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         pveck = pveck / pveckabssum;
         }
-      else
-        {
-        pveck[0] = 1.e-4;
-        }
       this->m_ClusterSizes[k] = this->m_KeptClusterSize;
       this->m_VariatesP.set_column(k, pveck);
-      //    if (debug)
-      // std::cout<<"kloopdone"<<k<<" pveckabssum " << pveckabssum << std::endl;
+      if( debug )
+        {
+        std::cout << "kloopdone" << k << " pveckabssum " << pveckabssum << std::endl;
+        }
       } // kloop
     this->m_VariatesQ = this->m_VariatesP;
     lastconv = conv;
@@ -1109,8 +1153,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       std::cout << " sort-done " << std::endl;
       }
+    convcrit = fabs(conv - lastconv);
     std::cout << "Iteration: " << loop << " Eigenvals: " << this->m_CanonicalCorrelations / trace << " Sparseness: "
-              << fnp  << " convergence-criterion: " << fabs(conv - lastconv) << " vex " << conv << std::endl;
+              << fnp  << " convergence-criterion: " << convcrit << " vex " << conv << std::endl;
     //  this->RunDiagnostics(n_vecs);
     loop++;
     if( debug )
@@ -1165,17 +1210,18 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // factor out the % of the eigenvector that is not orthogonal to higher ranked eigenvectors
     for( unsigned int j = 0; j < i; j++ )
       {
-      VectorType v = this->m_MatrixP * this->m_VariatesP.get_column(j);
-      // VectorType  v=this->m_VariatesP.get_column(j);
-      double vn = v.two_norm();
-      double ip = 1;
-      double p2n = proj.two_norm();
-      if( vn > this->m_Epsilon && p2n >  this->m_Epsilon  )
+      //	VectorType  v=this->m_MatrixP*this->m_VariatesP.get_column(j);
+      VectorType v = this->m_VariatesP.get_column(j);
+      double     vn = v.two_norm();
+      double     ip = 1;
+      // double p2n=proj.two_norm();
+      //	if ( vn > this->m_Epsilon && p2n >  this->m_Epsilon  ) ip=1-inner_product( proj/p2n ,  v/vn );
+      if( vn > this->m_Epsilon && unorm >  this->m_Epsilon  )
         {
-        ip = 1 - inner_product( proj / p2n,  v / vn );
+        ip = 1 - inner_product( u / unorm,  v / vn );
         }
-      // if ( vn > this->m_Epsilon) ip=1-inner_product( u/unorm ,  v/vn );
-      //	eigenvalue_i*=ip;
+      eigenvalue_i *= ip;
+      //	std::cout <<" ip " << j << " is " << ip << " ei " << eigenvalue_i << std::endl;
       }
     if( i < mind - 1 )
       {
@@ -1229,9 +1275,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_CanonicalCorrelations.fill(0);
   std::cout << " arnoldi sparse partial cca " << std::endl;
   std::cout << "  pos-p " << this->GetKeepPositiveP() << " pos-q " << this->GetKeepPositiveQ() << std::endl;
-  this->m_MatrixP = this->m_OriginalMatrixP; // this->NormalizeMatrix(this->m_OriginalMatrixP);
-  this->m_MatrixQ = this->m_OriginalMatrixQ; // this->NormalizeMatrix(this->m_OriginalMatrixQ);
-  this->m_MatrixR = this->m_OriginalMatrixR; // this->NormalizeMatrix(this->m_OriginalMatrixR);
   this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
   this->m_MatrixQ = this->NormalizeMatrix(this->m_OriginalMatrixQ);
   this->m_MatrixR = this->NormalizeMatrix(this->m_OriginalMatrixR);
@@ -1263,28 +1306,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   for( unsigned int loop = 0; loop < maxloop; loop++ )
     {
-    RealType frac = ( (RealType)maxloop - (RealType)loop - (RealType)10) / (RealType)maxloop;
-    if( frac < 0 )
-      {
-      frac = 0;
-      }
-    //  RealType fnp=fabs(this->m_FractionNonZeroP)+(1.0-this->m_FractionNonZeroP)*frac;
-    //  RealType fnq=fabs(this->m_FractionNonZeroQ)+(1.0-this->m_FractionNonZeroQ)*frac;
     RealType fnp = this->m_FractionNonZeroP;
     RealType fnq = this->m_FractionNonZeroQ;
-    if( loop < 10 )
-      {
-      fnp = 1; fnq = 1;
-      }
-    //  if ( this->m_FractionNonZeroP  < 0 ) fnp*=(-1);
-    //  if ( this->m_FractionNonZeroQ  < 0 ) fnq*=(-1);
-    //  if ( fabs(fnp) < fabs(this->m_FractionNonZeroP) ) fnp=this->m_FractionNonZeroP;
-    // if ( fabs(fnq) < fabs(this->m_FractionNonZeroQ) ) fnq=this->m_FractionNonZeroQ;
-    if( this->m_MatrixP.cols() == 1 || this->m_MatrixQ.cols() == 1  )
-      {
-      fnp = this->m_FractionNonZeroP;
-      fnq = this->m_FractionNonZeroQ;
-      }
 // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
@@ -1292,7 +1315,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType                 qtemp = this->m_VariatesQ.get_column(k);
       vnl_diag_matrix<TRealType> indicatorp(this->m_MatrixP.cols(), 1);
       vnl_diag_matrix<TRealType> indicatorq(this->m_MatrixQ.cols(), 1);
-      if( loop > 20  )
+      bool                       condition2 = ( loop > ( maxloop - 10 ) );
+      if( condition2  )
         {
         if( !this->m_KeepPositiveP )
           {
@@ -1384,15 +1408,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         this->ReSoftThreshold( qveck, fnq, !this->m_KeepPositiveQ );
         }
-      if( loop > 20 && this->m_KeepPositiveP )
+      if( condition2 && this->m_KeepPositiveP )
         {
         pveck = indicatorp * pveck;
         }
-      if( loop > 20 && this->m_KeepPositiveQ )
+      if( condition2 && this->m_KeepPositiveQ )
         {
         qveck = indicatorq * qveck;
         }
-      if( loop > 10 )
+      if( loop > 2 )
         {
         if( this->m_MaskImageP )
           {
