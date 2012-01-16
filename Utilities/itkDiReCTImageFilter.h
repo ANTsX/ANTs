@@ -20,7 +20,6 @@
 
 #include "itkImageToImageFilter.h"
 
-#include "itkPointSet.h"
 #include "itkVector.h"
 
 namespace itk
