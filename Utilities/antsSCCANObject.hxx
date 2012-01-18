@@ -230,13 +230,13 @@ antsSCCANObject<TInputImage, TRealType>
     vnl_random randgen(time(0) );
     for( unsigned long i = 0; i < p.columns(); i++ )
       {
-      //      w_p(i)=randgen.normal();
+      w_p(i) = randgen.normal();
       //      w_p(i)=randgen.drand32();//1.0/p.rows();//
-      w_p(i) = 1.0 / p.rows(); // +randgen.normal()*this->m_Epsilon;
+      w_p(i) = 1.0; // +randgen.normal()*this->m_Epsilon;
 // 1.0+fabs(randgen.drand32())*1.e-3;
       }
     }
-  w_p = w_p / w_p.two_norm();
+  w_p = w_p / p.columns();
   return w_p;
 }
 
@@ -965,6 +965,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
   std::cout << " arnoldi sparse svd " << std::endl;
+  std::vector<RealType> vexlist;
   this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
   this->m_MatrixQ = this->m_MatrixP;
   if( this->m_OriginalMatrixR.size() > 0 )
@@ -991,10 +992,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   unsigned int maxloop = this->m_MaximumNumberOfIterations;
 // Arnoldi Iteration SVD/SPCA
-  RealType     conv = 1;
   unsigned int loop = 0;
-  double       lastconv = 0;
   bool         debug = false;
+  bool         condition2 = false;
   /** these methods are sensitive to initialization.   we therefore perform a two stage optimization.
    *    1. stage 1 'anneals' from sparseness 1 to the user-specified sparseness value while performing arnoldi iteration.
    *      this makes the solution space smoother and allows information about the eigenvectors to propagate down to the
@@ -1032,7 +1032,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     fnp = this->m_FractionNonZeroP;
     // if (loop<20) fnp=1; else
-    bool condition2 = ( loop > (maxloop - itoff + 1) );
+    if( !condition2 )
+      {
+      condition2 = ( loop > (maxloop - itoff + 1) ||  convcrit < 1.e-5   );
+      }
     if( anneal && loop < (maxloop - itoff) )
       {
       if( fabs(fnp) < fabs(this->m_FractionNonZeroP) )
@@ -1138,25 +1141,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       } // kloop
     this->m_VariatesQ = this->m_VariatesP;
-    lastconv = conv;
     if( debug )
       {
       std::cout << " get evecs " << std::endl;
       }
-    conv = this->ComputeSPCAEigenvalues(n_vecs, trace);
-    if( debug )
-      {
-      std::cout << " sort " << std::endl;
-      }
+    RealType vex = this->ComputeSPCAEigenvalues(n_vecs, trace);
+    vexlist.push_back(   vex    );
     this->SortResults(n_vecs);
-    if( debug )
-      {
-      std::cout << " sort-done " << std::endl;
-      }
-    convcrit = fabs(conv - lastconv);
+    convcrit = fabs( this->ComputeEnergySlope(vexlist, 20) );
     std::cout << "Iteration: " << loop << " Eigenvals: " << this->m_CanonicalCorrelations / trace << " Sparseness: "
-              << fnp  << " convergence-criterion: " << convcrit << " vex " << conv << std::endl;
-    //  this->RunDiagnostics(n_vecs);
+              << fnp  << " convergence-criterion: " << convcrit <<  " vex " << vex << std::endl;
     loop++;
     if( debug )
       {
