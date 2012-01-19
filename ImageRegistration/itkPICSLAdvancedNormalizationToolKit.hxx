@@ -344,7 +344,20 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   filter->SetScale( scale );
   filter->Update();
 
-  return filter->GetOutput();
+  // when the image is a constant image, the scale filter will fail
+  // replace again everything into $pixel
+  ImagePointer                   image2 = filter->GetOutput();
+  ImageRegionIterator<ImageType> It2( image2, image2->GetRequestedRegion() );
+  for( It2.GoToBegin(); !It2.IsAtEnd(); ++It2 )
+    {
+    PixelType pixel = It2.Get();
+    if( vnl_math_isinf( pixel ) || vnl_math_isnan( pixel ) )
+      {
+      It2.Set( value );
+      }
+    }
+
+  return image2;
 }
 
 /**
