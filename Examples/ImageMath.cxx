@@ -3494,6 +3494,7 @@ int TensorFunctions(int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>                 VectorType;
   typedef itk::Image<VectorType, ImageDimension>             VectorImageType;
   typedef itk::ImageRegionIteratorWithIndex<VectorImageType> vecIterator;
+  typedef itk::Matrix<float, 3, 3>                           MatrixType;
 
   int         argct = 2;
   std::string outname = std::string(argv[argct]); argct++;
@@ -3504,6 +3505,7 @@ int TensorFunctions(int argc, char *argv[])
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
   typename ColorImageType::Pointer  cimage = NULL;    // output color image
   typename VectorImageType::Pointer  vecimage = NULL; // output vector image
+  typename TensorImageType::Pointer toimage = NULL;   // output tensor image
 
   if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
     {
@@ -3723,6 +3725,7 @@ int TensorFunctions(int argc, char *argv[])
   argct++;
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
+
   if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
     {
     std::cout << " test function for tensor I/O " << std::endl;
@@ -3754,6 +3757,21 @@ int TensorFunctions(int argc, char *argv[])
     vecimage->SetDirection(timage->GetDirection() );
     VectorType zero;  zero.Fill(0);
     vecimage->FillBuffer(zero);
+    }
+  else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
+           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0) )
+    {
+    toimage = TensorImageType::New();
+    toimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
+    toimage->SetBufferedRegion( timage->GetLargestPossibleRegion() );
+    toimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
+    toimage->Allocate();
+    toimage->SetSpacing(timage->GetSpacing() );
+    toimage->SetOrigin(timage->GetOrigin() );
+    toimage->SetDirection(timage->GetDirection() );
+    typename TensorImageType::PixelType zero;
+    zero.Fill(0);
+    toimage->FillBuffer(zero);
     }
   else
     {
@@ -3831,6 +3849,72 @@ int TensorFunctions(int argc, char *argv[])
         vimage->SetPixel(ind, tIter.Value()[whichvec]);
         }
       }
+    else if( strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0 )
+      {
+      typename TensorType::EigenValuesArrayType eigenValues;
+      typename TensorType::EigenVectorsMatrixType eigenVectors;
+      typename TensorType::EigenVectorsMatrixType eigenVectorsPhysical;
+      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix;
+      eigenValuesMatrix.Fill( 0.0 );
+      tIter.Value().ComputeEigenAnalysis( eigenValues, eigenVectors );
+      for( unsigned int i = 0; i < 3; i++ )
+        {
+        eigenValuesMatrix(i, i) = fabs( eigenValues[i] );
+
+        itk::Vector<float, 3> ev;
+        for( unsigned int j = 0; j < 3; j++ )
+          {
+          ev[j] = eigenVectors(j, i);
+          }
+
+        itk::Vector<float, 3> evp;
+        timage->TransformLocalVectorToPhysicalVector( ev, evp );
+
+        itk::Vector<float, 3> evl;
+        timage->TransformPhysicalVectorToLocalVector( evp, evl );
+        for( unsigned int j = 0; j < 3; j++ )
+          {
+          eigenVectorsPhysical(j, i) = evp[j];
+          }
+        }
+
+      typename TensorType::MatrixType::InternalMatrixType phyTensor
+        = eigenVectorsPhysical.GetTranspose() * eigenValuesMatrix.GetVnlMatrix() * eigenVectorsPhysical.GetVnlMatrix();
+
+      TensorType oTensor = Matrix2Vector<TensorType, TensorType::MatrixType::InternalMatrixType>( phyTensor );
+      toimage->SetPixel( tIter.GetIndex(), oTensor );
+      }
+    else if( strcmp(operation.c_str(), "TensorToLocalSpace") == 0 )
+      {
+      typename TensorType::EigenValuesArrayType eigenValues;
+      typename TensorType::EigenVectorsMatrixType eigenVectors;
+      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix;
+      eigenValuesMatrix.Fill( 0.0 );
+      tIter.Value().ComputeEigenAnalysis( eigenValues, eigenVectors );
+      for( unsigned int i = 0; i < 3; i++ )
+        {
+        eigenValuesMatrix(i, i) = fabs( eigenValues[i] );
+
+        itk::Vector<float, 3> ev;
+        for( unsigned int j = 0; j < 3; j++ )
+          {
+          ev[j] = eigenVectors(j, i);
+          }
+
+        itk::Vector<float, 3> evp;
+        timage->TransformPhysicalVectorToLocalVector( ev, evp );
+        for( unsigned int j = 0; j < 3; j++ )
+          {
+          eigenVectors(j, i) = evp[j];
+          }
+        }
+
+      typename TensorType::MatrixType::InternalMatrixType lclTensor
+        = eigenVectors.GetTranspose() * eigenValuesMatrix.GetVnlMatrix() * eigenVectors.GetVnlMatrix();
+
+      TensorType oTensor = Matrix2Vector<TensorType, TensorType::MatrixType::InternalMatrixType>( lclTensor );
+      toimage->SetPixel( tIter.GetIndex(), oTensor );
+      }
     }
 
   if( strcmp(operation.c_str(), "TensorColor") == 0 )
@@ -3844,8 +3928,14 @@ int TensorFunctions(int argc, char *argv[])
     {
     WriteImage<VectorImageType>(vecimage, outname.c_str() );
     }
+  else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
+           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) )
+    {
+    WriteTensorImage<TensorImageType>(toimage, outname.c_str(), false );
+    }
   else
     {
+    std::cout << "Writing scalar image" << std::endl;
     WriteImage<ImageType>(vimage, outname.c_str() );
     }
 
@@ -9679,6 +9769,14 @@ int main(int argc, char *argv[])
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorToLocalSpace") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
