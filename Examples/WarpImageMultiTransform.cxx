@@ -710,31 +710,29 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     }
   else if( misc_opt.use_MultiLabel_interpolator )
     {
-    typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
-    typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType,
-                                                                     typename WarperType::CoordRepType,
-                                                                     CompareType> MLInterpolateType;
-    typename MLInterpolateType::Pointer interpolator_ML = MLInterpolateType::New();
-
-    std::cout << "Using multi-label anti-aliasing interpolation " << std::endl;
-    vnl_vector_fixed<double, ImageDimension> sigma;
-    for( size_t i = 0; i < ImageDimension; i++ )
-      {
-      if( misc_opt.opt_ML.physical_units )
-        {
-        sigma[i] = misc_opt.opt_ML.sigma[i] / img_mov->GetSpacing()[i];
-        }
-      else
-        {
-        sigma[i] = misc_opt.opt_ML.sigma[i];
-        }
-      }
-
-    std::cout << "  Sigma = " << sigma << " (voxel units)" << std::endl;
-
-    interpolator_ML->SetParameters(sigma.data_block(), 4.0);
-
-    warper->SetInterpolator(interpolator_ML);
+    std::cout << " Need to fix in main itk repository " << std::endl;
+//      typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
+//      typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType,
+//                                                                       typename WarperType::CoordRepType,
+//                                                                       CompareType> MLInterpolateType;
+//      typename MLInterpolateType::Pointer interpolator_ML = MLInterpolateType::New();
+//
+//
+//      std::cout << "Using multi-label anti-aliasing interpolation " << std::endl;
+//      vnl_vector_fixed<double, ImageDimension> sigma;
+//      for(size_t i = 0; i < ImageDimension; i++)
+//        {
+//        if(misc_opt.opt_ML.physical_units)
+//          sigma[i] = misc_opt.opt_ML.sigma[i] / img_mov->GetSpacing()[i];
+//        else
+//          sigma[i] = misc_opt.opt_ML.sigma[i];
+//        }
+//
+//      std::cout << "  Sigma = " << sigma << " (voxel units)" << std::endl;
+//
+//      interpolator_ML->SetParameters(sigma.data_block(), 4.0);
+//
+//      warper->SetInterpolator(interpolator_ML);
     }
 
   else if( misc_opt.use_BSpline_interpolator )
