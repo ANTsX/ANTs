@@ -207,15 +207,33 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
             {
             transformName = transformOption->GetValue( n );
             transformReader->SetFileName( transformName.c_str() );
-            transformReader->Update();
+            try
+              {
+              transformReader->Update();
+              }
+            catch( itk::ExceptionObject & excp )
+              {
+              std::cerr << excp << std::endl;
+              return EXIT_FAILURE;
+              }
             transform = dynamic_cast<TransformType *>(
                 ( ( transformReader->GetTransformList() )->front() ).GetPointer() );
             }
           else
             {
             transformName = transformOption->GetParameter( n, 0 );
+
             transformReader->SetFileName( transformName.c_str() );
-            transformReader->Update();
+            try
+              {
+              transformReader->Update();
+              }
+            catch( itk::ExceptionObject & excp )
+              {
+              std::cerr << excp << std::endl;
+              return EXIT_FAILURE;
+              }
+
             transform = dynamic_cast<TransformType *>(
                 ( ( transformReader->GetTransformList() )->front() ).GetPointer() );
             if( ( transformOption->GetNumberOfParameters( n ) > 1 ) &&
