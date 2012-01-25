@@ -95,37 +95,30 @@ public:
   {
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
-    if( typeid( event ) != typeid( itk::IterationEvent ) )
+    unsigned int currentLevel = 0;
+
+    if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
-      return;
+      currentLevel = filter->GetCurrentLevel() + 1;
       }
-
-    unsigned int currentLevel = filter->GetCurrentLevel();
-    typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
-    typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
-    typename TFilter::TransformParametersAdaptorsContainerType adaptors =
-      filter->GetTransformParametersAdaptorsPerLevel();
-
-    std::cout << "  Current level = " << currentLevel << std::endl;
-    std::cout << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
-    std::cout << "    shrink factor = " << shrinkFactors[currentLevel] << std::endl;
-    std::cout << "      virtual domain size = "
-              << filter->GetMetric()->GetVirtualDomainImage()->GetRequestedRegion().GetSize() << std::endl;
-    std::cout << "      virtual domain spacing = " << filter->GetMetric()->GetVirtualDomainImage()->GetSpacing()
-              << std::endl;
-    std::cout << "      virtual domain origin = " << filter->GetMetric()->GetVirtualDomainImage()->GetOrigin()
-              << std::endl;
-    std::cout << "    smoothing sigma = " << smoothingSigmas[currentLevel] << std::endl;
-    std::cout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-              << std::endl;
-
-    typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
-
-    GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
-        const_cast<typename TFilter::OptimizerType *>( filter->GetOptimizer() ) );
-    if( currentLevel + 1 < this->m_NumberOfIterations.size() )
+    if( currentLevel < this->m_NumberOfIterations.size() )
       {
-      optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel + 1] );
+      typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
+      typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
+      typename TFilter::TransformParametersAdaptorsContainerType adaptors =
+        filter->GetTransformParametersAdaptorsPerLevel();
+
+      std::cout << "  Current level = " << currentLevel << std::endl;
+      std::cout << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
+      std::cout << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
+      std::cout << "    smoothing sigmas = " << smoothingSigmas[currentLevel] << std::endl;
+      std::cout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
+                << std::endl;
+
+      typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+      GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
+          const_cast<typename TFilter::OptimizerType *>( filter->GetOptimizer() ) );
+      optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
       }
   }
 
@@ -704,6 +697,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       try
         {
         std::cout << std::endl << "*** Running affine registration ***" << std::endl << std::endl;
+        affineObserver->Execute( affineRegistration, itk::StartEvent() );
         affineRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -752,6 +746,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       try
         {
         std::cout << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
+        rigidObserver->Execute( rigidRegistration, itk::StartEvent() );
         rigidRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -800,6 +795,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       try
         {
         std::cout << std::endl << "*** Running composite affine registration ***" << std::endl << std::endl;
+        affineObserver->Execute( affineRegistration, itk::StartEvent() );
         affineRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -848,6 +844,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       try
         {
         std::cout << std::endl << "*** Running similarity registration ***" << std::endl << std::endl;
+        similarityObserver->Execute( similarityRegistration, itk::StartEvent() );
         similarityRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -896,6 +893,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       try
         {
         std::cout << std::endl << "*** Running translation registration ***" << std::endl << std::endl;
+        translationObserver->Execute( translationRegistration, itk::StartEvent() );
         translationRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -995,16 +993,18 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
 
       typedef CommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
-      typename DisplacementFieldCommandType::Pointer dfObserver = DisplacementFieldCommandType::New();
-      dfObserver->SetNumberOfIterations( iterations );
+      typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
+        DisplacementFieldCommandType::New();
+      displacementFieldRegistrationObserver->SetNumberOfIterations( iterations );
 
-      displacementFieldRegistration->AddObserver( itk::IterationEvent(), dfObserver );
+      displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
 
       try
         {
         std::cout << std::endl << "*** Running gaussian displacement field registration (sigmaForUpdateField = "
                   << sigmaForUpdateField << ", sigmaForTotalField = " << sigmaForTotalField << ") ***" << std::endl
                   << std::endl;
+        displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
         displacementFieldRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -1136,16 +1136,18 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
 
       typedef CommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
-      typename DisplacementFieldCommandType::Pointer dfObserver = DisplacementFieldCommandType::New();
-      dfObserver->SetNumberOfIterations( iterations );
+      typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
+        DisplacementFieldCommandType::New();
+      displacementFieldRegistrationObserver->SetNumberOfIterations( iterations );
 
-      displacementFieldRegistration->AddObserver( itk::IterationEvent(), dfObserver );
+      displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
 
       try
         {
         std::cout << std::endl << "*** Running bspline displacement field registration (updateMeshSizeAtBaseLevel = "
                   << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
                   << std::endl;
+        displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
         displacementFieldRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -1247,6 +1249,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
         {
         std::cout << std::endl << "*** Running bspline registration (meshSizeAtBaseLevel = " << meshSize << ") ***"
                   << std::endl << std::endl;
+        bsplineObserver->Execute( bsplineRegistration, itk::StartEvent() );
         bsplineRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -1420,6 +1423,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
                   << ", sigmaForUpdateFieldTime = "
                   << sigmaForUpdateFieldTime << ", sigmaForTotalFieldTime = " << sigmaForTotalFieldTime << ") ***"
                   << std::endl << std::endl;
+        velocityFieldRegistrationObserver->Execute( velocityFieldRegistration, itk::StartEvent() );
         velocityFieldRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -1616,6 +1620,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
         {
         std::cout << std::endl << "*** Running time-varying velocity field registration (initial mesh size = "
                   << initialTransformDomainMeshSize << ") ***" << std::endl << std::endl;
+        velocityFieldRegistrationObserver->Execute( velocityFieldRegistration, itk::StartEvent() );
         velocityFieldRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
@@ -1734,16 +1739,18 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       displacementFieldRegistration->SetGaussianSmoothingVarianceForTheTotalField( sigmaForTotalField );
 
       typedef CommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
-      typename DisplacementFieldCommandType::Pointer dfObserver = DisplacementFieldCommandType::New();
-      dfObserver->SetNumberOfIterations( iterations );
+      typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
+        DisplacementFieldCommandType::New();
+      displacementFieldRegistrationObserver->SetNumberOfIterations( iterations );
 
-      displacementFieldRegistration->AddObserver( itk::IterationEvent(), dfObserver );
+      displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
 
       try
         {
         std::cout << std::endl << "*** Running SyN registration (sigmaForUpdateField = "
                   << sigmaForUpdateField << ", sigmaForTotalField = " << sigmaForTotalField << ") ***" << std::endl
                   << std::endl;
+        displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
         displacementFieldRegistration->StartRegistration();
         }
       catch( itk::ExceptionObject & e )
