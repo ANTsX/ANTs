@@ -208,8 +208,8 @@ add_executable(antsRegistration antsRegistration.cxx ${UI_SOURCES})
  target_link_libraries(antsRegistration ${ITK_LIBRARIES})
 add_executable(antsApplyTransforms antsApplyTransforms.cxx ${UI_SOURCES})
  target_link_libraries(antsApplyTransforms ${ITK_LIBRARIES})
-add_executable(ants_moco ants_moco.cxx ${UI_SOURCES})
- target_link_libraries(ants_moco ${ITK_LIBRARIES})
+add_executable(antsMotionCorr antsMotionCorr.cxx ${UI_SOURCES})
+ target_link_libraries(antsMotionCorr ${ITK_LIBRARIES})
 add_executable(sccan sccan.cxx ${UI_SOURCES})
 target_link_libraries(sccan ${ITK_LIBRARIES} )
 IF (USE_VTK)
@@ -301,7 +301,7 @@ INSTALL(TARGETS ANTS
   N4BiasFieldCorrection
   KellySlater
   KellyKapowski
-  ants_moco
+  antsMotionCorr
   antsRegistration
   antsApplyTransforms
   sccan
