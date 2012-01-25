@@ -17,12 +17,11 @@
 *=========================================================================*/
 
 #include "antsCommandLineParser.h"
-#include "itkMersenneTwisterRandomVariateGenerator.h"
-#include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegistrationMethodv4.h"
 #include "itkSyNImageRegistrationMethod.h"
 #include "itkTimeVaryingVelocityFieldImageRegistrationMethodv4.h"
 #include "itkTimeVaryingBSplineVelocityFieldImageRegistrationMethod.h"
+
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkImageToImageMetricv4.h"
@@ -49,6 +48,7 @@
 #include "itkTransform.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
+#include "itkTransformFileWriter.h"
 
 #include "itkBSplineTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
@@ -58,16 +58,16 @@
 
 #include "itkGradientDescentOptimizerv4.h"
 
+#include "itkRegistrationParameterScalesFromShift.h"
+
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkMacro.h"
-#include "itkRegistrationParameterScalesFromShift.h"
 #include "itkResampleImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkTimeProbe.h"
-#include "itkTransformFileReader.h"
-#include "itkTransformFileWriter.h"
 #include "itkVector.h"
 
 #include <sstream>
@@ -1931,6 +1931,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
                             "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption( 1,
                             "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption( 1,
+                            "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption( 2,
                             "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
