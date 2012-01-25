@@ -453,14 +453,30 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     fixedImageReader->SetFileName( fixedImageFileName.c_str() );
     fixedImageReader->Update();
     typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-    fixedImage->Update();
+    try
+      {
+      fixedImage->Update();
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+      }
     fixedImage->DisconnectPipeline();
 
     typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
     movingImageReader->SetFileName( movingImageFileName.c_str() );
     movingImageReader->Update();
     typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
-    movingImage->Update();
+    try
+      {
+      movingImage->Update();
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+      }
     movingImage->DisconnectPipeline();
 
     // Histogram match images if requested by the user
