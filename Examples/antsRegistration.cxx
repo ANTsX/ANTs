@@ -555,13 +555,13 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     ConvertToLowerCase( whichMetric );
 
     float samplingPercentage = 1.0;
-    if( metricOption->GetNumberOfParameters() > 5 )
+    if( metricOption->GetNumberOfParameters( currentStage ) > 5 )
       {
       samplingPercentage = parser->Convert<float>( metricOption->GetParameter( currentStage, 5 ) );
       }
 
     std::string samplingStrategy = "";
-    if( metricOption->GetNumberOfParameters() > 4 )
+    if( metricOption->GetNumberOfParameters( currentStage ) > 4 )
       {
       samplingStrategy = metricOption->GetParameter( currentStage, 4 );
       }
@@ -1941,11 +1941,11 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
                             "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption( 1,
                             "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 1,
-                            "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption( 2,
-                            "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+                            "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption( 3,
+                            "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption( 4,
                             "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
