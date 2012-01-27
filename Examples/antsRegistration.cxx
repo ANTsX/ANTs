@@ -253,14 +253,14 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
-  typename OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrinkFactors" );
+  typename OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrink-factors" );
   if( !shrinkFactorsOption || shrinkFactorsOption->GetNumberOfValues() != numberOfStages  )
     {
     std::cerr << "The number of shrinkFactor sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
-  typename OptionType::Pointer smoothingSigmasOption = parser->GetOption( "smoothingSigmas" );
+  typename OptionType::Pointer smoothingSigmasOption = parser->GetOption( "smoothing-sigmas" );
   if( !smoothingSigmasOption || smoothingSigmasOption->GetNumberOfValues() != numberOfStages  )
     {
     std::cerr << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
@@ -306,7 +306,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
   unsigned int numberOfInitialTransforms = 0;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer initialTransformOption =
-    parser->GetOption( "initialTransform" );
+    parser->GetOption( "initial-transform" );
   if( initialTransformOption && initialTransformOption->GetNumberOfValues() > 0 )
     {
     numberOfInitialTransforms = initialTransformOption->GetNumberOfValues();
@@ -474,7 +474,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
     // Histogram match images if requested by the user
 
-    typename OptionType::Pointer histOption = parser->GetOption( "useHistogramMatching" );
+    typename OptionType::Pointer histOption = parser->GetOption( "use-histogram-matching" );
     if( histOption && histOption->GetNumberOfValues() > 0 )
       {
       std::string histValue = histOption->GetValue( 0 );
@@ -1921,7 +1921,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "for additional information." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initialTransform" );
+    option->SetLongName( "initial-transform" );
     option->SetShortName( 'r' );
     option->SetUsageOption( 0, "initialTransform" );
     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
