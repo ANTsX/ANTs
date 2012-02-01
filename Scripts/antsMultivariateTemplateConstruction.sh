@@ -1028,17 +1028,21 @@ if [ "$RIGID" -eq 1 ];
 
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
         do
-        IMAGERIGIDSET=""
-        for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
+        IMAGERIGIDSET=()
+        for (( i = $j; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
             do
+            k=0
+            let k=$i-$j
             IMGbase=`basename ${IMAGESETARRAY[$i]}`
             BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
-            RIGID="${outdir}/rigid${i}_${j}_${IMGbase}"
+            RIGID="${outdir}/rigid${k}_${j}_${IMGbase}"
 
-            IMAGERIGIDSET="$IMAGERIGIDSET $RIGID"
+            IMAGERIGIDSET[${#IMAGERIGIDSET[@]}]=$RIGID
         done
+        echo
+        echo  "${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
 
-	   ${ANTSPATH}AverageImages $dim ${TEMPLATES[$j]} 1 ${IMAGEMETRICSET}
+	   ${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
     done
 
     # cleanup and save output in seperate folder
