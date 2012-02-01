@@ -928,11 +928,11 @@ if [ "$RIGID" -eq 1 ];
             let k=$i+$j
             IMGbase=`basename ${IMAGESETARRAY[$k]}`
             BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
-            RIGID="${outdir}/rigid${k}_${j}_${IMGbase}"
+            RIGID="${outdir}/rigid${i}_${j}_${IMGbase}"
             IMGbaseBASE=`basename ${IMAGESETARRAY[$i]}`
             BASENAMEBASE=` echo ${IMGbaseBASE} | cut -d '.' -f 1 `
-            exe2="$exe2 ${WARP} $DIM ${IMAGESETARRAY[$k]} $RIGID ${outdir}/rigid${k}_0_${BASENAMEBASE}Affine.txt -R ${TEMPLATES[$j]}\n"
-            pexe2="$exe2 ${WARP} $DIM ${IMAGESETARRAY[$k]} $RIGID ${outdir}/rigid${k}_0_${BASENAMEBASE}Affine.txt -R ${TEMPLATES[$j]} >> ${outdir}/job_${count}_metriclog.txt\n"
+            exe2="$exe2 ${WARP} $DIM ${IMAGESETARRAY[$k]} $RIGID ${outdir}/rigid${i}_0_${BASENAMEBASE}Affine.txt -R ${TEMPLATES[$j]}\n"
+            pexe2="$exe2 ${WARP} $DIM ${IMAGESETARRAY[$k]} $RIGID ${outdir}/rigid${i}_0_${BASENAMEBASE}Affine.txt -R ${TEMPLATES[$j]} >> ${outdir}/job_${count}_metriclog.txt\n"
         done
 
         echo -e "$exe2" >> $qscript;
@@ -1029,7 +1029,7 @@ if [ "$RIGID" -eq 1 ];
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
         do
         IMAGERIGIDSET=""
-        for (( i = $j; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
+        for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
             do
             IMGbase=`basename ${IMAGESETARRAY[$i]}`
             BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
