@@ -1357,7 +1357,6 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
         static_cast<typename VelocityFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
       velocityFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
       velocityFieldRegistration->SetLearningRate( learningRate );
-      velocityFieldRegistration->SetNumberOfIntegrationStepsPerTimeIndex( 5 );
       velocityFieldRegistration->GetTransform()->SetGaussianSpatialSmoothingVarianceForTheTotalField( sigmaForTotalField );
       velocityFieldRegistration->GetTransform()->SetGaussianSpatialSmoothingVarianceForTheUpdateField(
         sigmaForUpdateField );
@@ -1596,7 +1595,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       velocityFieldRegistration->GetTransform()->SetVelocityFieldDirection( sampledVelocityFieldDirection );
       velocityFieldRegistration->GetTransform()->SetVelocityFieldSpacing( sampledVelocityFieldSpacing );
       velocityFieldRegistration->GetTransform()->SetVelocityFieldSize( sampledVelocityFieldSize );
-      velocityFieldRegistration->GetTransform()->IntegrateVelocityField();
+//      velocityFieldRegistration->GetTransform()->IntegrateVelocityField();
 
       typename VelocityFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
       numberOfIterationsPerLevel.SetSize( numberOfLevels );
@@ -1635,7 +1634,8 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
       try
         {
-        std::cout << std::endl << "*** Running time-varying velocity field registration (initial mesh size = "
+        std::cout << std::endl
+                  << "*** Running time-varying b-spline velocity field registration (initial mesh size = "
                   << initialTransformDomainMeshSize << ") ***" << std::endl << std::endl;
         velocityFieldRegistrationObserver->Execute( velocityFieldRegistration, itk::StartEvent() );
         velocityFieldRegistration->StartRegistration();
