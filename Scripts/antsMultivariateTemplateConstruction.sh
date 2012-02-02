@@ -715,7 +715,6 @@ elif [[ ${NINFILES} -eq 1 ]]
                 do
                 IMAGESETARRAY[$IMAGECOUNT]=${files[$i]}
                 ((IMAGECOUNT++))
-
             done
          done < $IMAGESFILE
     else
@@ -832,6 +831,12 @@ elif [[ ${NINFILES} -eq 1 ]]
           IMAGESETARRAY[${#IMAGESETARRAY[@]}]=$IMG
           done
     fi
+else
+    IMAGESETARRAY=()
+    for IMG in $IMAGESETVARIABLE
+      do
+      IMAGESETARRAY[${#IMAGESETARRAY[@]}]=$IMG
+      done
 fi
 
 if [ $NUMBEROFMODALITIES -gt 1 ];
@@ -862,7 +867,8 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         then
         echo
         echo "--------------------------------------------------------------------------------------"
-        echo " Creating template $i from a population average image from the inputs."
+        echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
+        echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
         ${ANTSPATH}AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
     else
