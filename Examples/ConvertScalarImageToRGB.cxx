@@ -113,18 +113,18 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     }
   else if( colormapString == "jet"  )
     {
-//    rgbfilter->SetColormap( RGBFilterType::Jet );
-    typedef itk::Function::JetColormapFunction<typename RealImageType::PixelType,
-                                               typename RGBImageType::PixelType> ColormapType;
-    typename ColormapType::Pointer colormap = ColormapType::New();
+    rgbfilter->SetColormap( RGBFilterType::Jet );
+//    typedef itk::Function::JetColormapFunction<typename RealImageType::PixelType,
+//      typename RGBImageType::PixelType> ColormapType;
+//    typename ColormapType::Pointer colormap = ColormapType::New();
 //    rgbfilter->SetColormap( colormap );
     }
   else if( colormapString == "hsv"  )
     {
-//    rgbfilter->SetColormap( RGBFilterType::HSV );
-    typedef itk::Function::HSVColormapFunction<typename RealImageType::PixelType,
-                                               typename RGBImageType::PixelType> ColormapType;
-    typename ColormapType::Pointer colormap = ColormapType::New();
+    rgbfilter->SetColormap( RGBFilterType::HSV );
+//    typedef itk::Function::HSVColormapFunction<typename RealImageType::PixelType,
+//      typename RGBImageType::PixelType> ColormapType;
+//    typename ColormapType::Pointer colormap = ColormapType::New();
 //    rgbfilter->SetColormap( colormap );
     }
   else if( colormapString == "overunder"  )
