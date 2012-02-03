@@ -19,12 +19,12 @@ endif(USE_ITK)
 # now check if we have the minimum required itk version number
 #
 # refer to this variable from ITK .... set( ITK_VERSION_MAJOR "4")
-SET( number ${ITK_VERSION_MAJOR}  )
-SET( operation LESS )
-SET( limit 4 )
-IF( number ${operation} ${limit} )
-  MESSAGE(FATAL_ERROR "Oops, you have itk version ${number} ... we require at  least version ${limit}." )
-ENDIF( number ${operation} ${limit} )
+set( number ${ITK_VERSION_MAJOR}  )
+set( operation LESS )
+set( limit 4 )
+if( number ${operation} ${limit} )
+  message(FATAL_ERROR "Oops, you have itk version ${number} ... we require at  least version ${limit}." )
+endif( number ${operation} ${limit} )
 # Set up VTK
 if(USE_VTK)
   find_package(VTK)
@@ -58,8 +58,8 @@ endif(USE_FFTWD OR USE_FFTWF)
 #The following lines are required to use Dart
 include(CTest)
 enable_testing()
-#INCLUDE (${CMAKE_ROOT}/Modules/FindITK.cmake)
-#IF (USE_ITK_FILE)
+#include(${CMAKE_ROOT}/Modules/FindITK.cmake)
+#if(USE_ITK_FILE)
 #  include(${USE_ITK_FILE})
 #endif(USE_ITK_FILE)
 set(DART_TESTING_TIMEOUT 1500)
@@ -72,7 +72,7 @@ set(PICSL_INCLUDE_DIRS
 ../Temporary
 )
 include_directories(${PICSL_INCLUDE_DIRS})
-LINK_DIRECTORIES( ${ITK_LIBRARY_PATH}  )
+link_directories( ${ITK_LIBRARY_PATH}  )
 # message("${ITK_LIBRARIES}")
 # non-templated class -- this should be stored in a library and linked in...
 set(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLineOption" )
@@ -212,9 +212,9 @@ add_executable(antsMotionCorr antsMotionCorr.cxx ${UI_SOURCES})
  target_link_libraries(antsMotionCorr ${ITK_LIBRARIES})
 add_executable(sccan sccan.cxx ${UI_SOURCES})
 target_link_libraries(sccan ${ITK_LIBRARIES} )
-IF (USE_VTK)
-INCLUDE (${CMAKE_ROOT}/Modules/FindVTK.cmake)
-IF (USE_VTK_FILE)
+if(USE_VTK)
+include(${CMAKE_ROOT}/Modules/FindVTK.cmake)
+if(USE_VTK_FILE)
   include(${USE_VTK_FILE})
   add_executable(ConvertVectorFieldToVTK ConvertVectorFieldToVTK.cxx )
   target_link_libraries(ConvertVectorFieldToVTK ${ITK_LIBRARIES} vtkIO)
@@ -230,7 +230,7 @@ target_link_libraries(WarpVTKPolyDataMultiTransform ${ITK_LIBRARIES} vtksys vtkI
 #     ../Temporary/itkFEMElement3DC0LinearTriangularMembrane.cxx
 #   )
 #   # Build the library
-#   ADD_LIBRARY(FLATFEM ${FLAT_SRC})
+#   add_library(FLATFEM ${FLAT_SRC})
 #   target_link_libraries(FLATFEM ${ITK_LIBRARIES})
 #
 #
@@ -239,7 +239,7 @@ target_link_libraries(WarpVTKPolyDataMultiTransform ${ITK_LIBRARIES} vtksys vtkI
 #
 #  add_executable(ANTSConformalMapping ANTSConformalMapping.cxx ${UI_SOURCES})
 #   target_link_libraries(ANTSConformalMapping ${ITK_LIBRARIES} FLATFEM ${ITK_LIBRARIES} ITKMetaIO  vtkRendering vtkIO)
-ENDIF (USE_VTK_FILE)
+endif(USE_VTK_FILE)
 endif(USE_VTK)
 add_executable(ANTSIntegrateVectorField ANTSIntegrateVectorField.cxx)
 target_link_libraries(ANTSIntegrateVectorField ${ITK_LIBRARIES})
@@ -249,7 +249,7 @@ target_link_libraries(ANTSIntegrateVelocityField ${ITK_LIBRARIES})
   target_link_libraries(AtroposMin ${ITK_LIBRARIES}   )
   add_executable(Atropos Atropos.cxx ${UI_SOURCES})
   target_link_libraries(Atropos ${ITK_LIBRARIES}   )
-INSTALL(TARGETS ANTS
+install(TARGETS ANTS
   AverageAffineTransform
   ANTSJacobian
   PasteImageIntoImage
@@ -339,16 +339,16 @@ ${ITK_LIBRARIES}
 ##
 option( COPY_SCRIPT_FILES_TO_BIN_DIR "Copy the script files to the ANTS bin directory." ON )
 if( COPY_SCRIPT_FILES_TO_BIN_DIR )
-  FILE( GLOB SCRIPT_FILES "${CMAKE_SOURCE_DIR}/../Scripts/*.sh" )
-  FILE( GLOB PSCRIPT_FILES "${CMAKE_SOURCE_DIR}/../Scripts/*.pl" )
-  FOREACH( SCRIPT_FILE ${SCRIPT_FILES} )
-    ADD_CUSTOM_COMMAND( TARGET ANTS POST_BUILD
+  file( GLOB SCRIPT_FILES "${CMAKE_SOURCE_DIR}/../Scripts/*.sh" )
+  file( GLOB PSCRIPT_FILES "${CMAKE_SOURCE_DIR}/../Scripts/*.pl" )
+  foreach( SCRIPT_FILE ${SCRIPT_FILES} )
+    add_custom_command( TARGET ANTS POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPT_FILE} ${CMAKE_BINARY_DIR} )
-  ENDFOREACH( SCRIPT_FILE )
-  FOREACH( SCRIPT_FILE ${PSCRIPT_FILES} )
-    ADD_CUSTOM_COMMAND( TARGET ANTS POST_BUILD
+  endforeach( SCRIPT_FILE )
+  foreach( SCRIPT_FILE ${PSCRIPT_FILES} )
+    add_custom_command( TARGET ANTS POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy ${SCRIPT_FILE} ${CMAKE_BINARY_DIR} )
-  ENDFOREACH( SCRIPT_FILE )
+  endforeach( SCRIPT_FILE )
 endif( COPY_SCRIPT_FILES_TO_BIN_DIR )
 set(CPACK_PACKAGE_NAME "ANTs")
 set(CPACK_PACKAGE_VENDOR "CMake.org")
