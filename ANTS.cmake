@@ -25,7 +25,7 @@ set(INVERSEWARP_IMAGE ${CMAKE_BINARY_DIR}/inversewarped.nii.gz)
 set(DEVIL_IMAGE ${DATA_DIR}/Frown.nii)
 set(ANGEL_IMAGE ${DATA_DIR}/Smile.nii)
 set(SEG_IMAGE ${DATA_DIR}/nslice.nii.gz)
-set(TEST_BINARY_DIR ${CMAKE_BINARY_DIR}/Examples)
+set(TEST_BINARY_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 ###
 #  ANTS metric testing
