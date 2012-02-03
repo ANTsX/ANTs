@@ -320,7 +320,7 @@ install(TARGETS ANTS
 install(PROGRAMS ../Scripts/ants.sh  ../Scripts/basic_ants_example.sh
                 ../Scripts/antsIntroduction.sh
                 ../Scripts/antsaffine.sh
-		../Scripts/waitForXGridJobs.pl
+        ../Scripts/waitForXGridJobs.pl
                 ../Scripts/ANTSAverage2DAffine.sh ../Scripts/ANTSAverage3DAffine.sh
                 ../Scripts/buildtemplateparallel.sh ../Scripts/ANTSpexec.sh
                 ../Scripts/waitForSGEQJobs.pl DESTINATION bin

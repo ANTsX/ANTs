@@ -276,7 +276,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       image2->TransformPhysicalPointToIndex(point, index);
       float temp = image2->GetPixel(index);
       //    param->InsertNextValue(temp);
-      //	float temp=surfk->CurvatureAtIndex(index);
+      //    float temp=surfk->CurvatureAtIndex(index);
       if( i % 1000 == 0 )
         {
         std::cout << " kappa " << temp << std::endl;
@@ -288,14 +288,14 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       /*
       if (vvv > 128)
         {
-    float dif=255-vvv;
-    vvv = 128 - dif;
+      float dif=255-vvv;
+      vvv = 128 - dif;
         }
       else
         {
-    float dif=128-vvv;
-    vvv = 128 + dif;
-    }*/
+      float dif=128-vvv;
+      vvv = 128 + dif;
+      }*/
       param->InsertNextValue(vvv);
       }
     vtkmesh->GetPointData()->SetScalars(param);

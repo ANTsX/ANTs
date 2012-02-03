@@ -59,43 +59,44 @@ int main(int argc, char *argv[] )
               << std::endl;
     std::cout << " Compulsory arguments:\n " << std::endl;
     std::cout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
-    std::cout << " -m:	Type of similarity model used for registration. \n "<< std::endl;
-    std::cout << "	For intramodal image registration, use: "<< std::endl;
-    std::cout << "		CC = cross-correlation "<< std::endl;
-    std::cout << "		MI = mutual information "<< std::endl;
-    std::cout << "		PR = probability mapping "<< std::endl;
-    std::cout << "		MSQ = mean square difference "<< std::endl;
+    std::cout << " -m:    Type of similarity model used for registration. \n " << std::endl;
+    std::cout << "    For intramodal image registration, use: " << std::endl;
+    std::cout << "        CC = cross-correlation " << std::endl;
+    std::cout << "        MI = mutual information " << std::endl;
+    std::cout << "        PR = probability mapping " << std::endl;
+    std::cout << "        MSQ = mean square difference " << std::endl;
     std::cout << " \n " << std::endl;
-    std::cout << "	For intermodal image registration, use: "<< std::endl;
-    std::cout << "		MI = mutual information "<< std::endl;
-    std::cout << "		PR = probability mapping "<< std::endl;
+    std::cout << "    For intermodal image registration, use: " << std::endl;
+    std::cout << "        MI = mutual information " << std::endl;
+    std::cout << "        PR = probability mapping " << std::endl;
     std::cout << " \n " << std::endl;
-    std::cout << " -o   Outputfname.nii.gz: the name of the resulting image.\n "<< std::endl;
-    std::cout << " -i   Max-iterations in format: JxKxL, where: "<< std::endl;
-    std::cout << "		J = max iterations at coarsest resolution (here, reduce by power of 2^2) "<< std::endl;
-    std::cout << "		K = middle resolution iterations (here,reduce by power of 2) "<< std::endl;
-    std::cout
-      << "		L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
-      << std::endl;
-    std::cout
-      << "      Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another iteration level.\n "
-      << std::endl;
-    std::cout << " -r   Regularization \n"<< std::endl;
-    std::cout << " -t   Type of transformation model used for registration \n"<< std::endl;
-    std::cout << "	For elastic image registration, use: "<< std::endl;
-    std::cout << "		Elast = elastic transformation model (less deformation possible)\n "<< std::endl;
-    std::cout << "	For diffeomorphic image registration, use: "<< std::endl;
+    std::cout << " -o     Outputfname.nii.gz: the name of the resulting image.\n " << std::endl;
+    std::cout << " -i     Max-iterations in format: JxKxL, where: " << std::endl;
+    std::cout << "        J = max iterations at coarsest resolution (here, reduce by power of 2^2) " << std::endl;
+    std::cout << "        K = middle resolution iterations (here,reduce by power of 2) " << std::endl;
     std::cout
       <<
-    "		Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
+    "        L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
+      << std::endl;
+    std::cout
+      << "        Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another iteration level.\n "
+      << std::endl;
+    std::cout << " -r     Regularization \n" << std::endl;
+    std::cout << " -t     Type of transformation model used for registration \n" << std::endl;
+    std::cout << "    For elastic image registration, use: " << std::endl;
+    std::cout << "        Elast = elastic transformation model (less deformation possible)\n " << std::endl;
+    std::cout << "    For diffeomorphic image registration, use: " << std::endl;
+    std::cout
+      <<
+    "        Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
       << std::endl;
     std::cout
       <<
-    "		SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
+    "        SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
       << std::endl;
-    std::cout << "		SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  "<< std::endl;
-    std::cout << "		Exp[GradStep,TimePoints] = Exponential "<< std::endl;
-    std::cout << "		GreedyExp = Diffeomorphic Demons style exponential mapping "<< std::endl;
+    std::cout << "        SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  " << std::endl;
+    std::cout << "        Exp[GradStep,TimePoints] = Exponential " << std::endl;
+    std::cout << "        GreedyExp = Diffeomorphic Demons style exponential mapping " << std::endl;
     std::cout << " \n " << std::endl;
     std::cout
       <<

@@ -597,7 +597,7 @@ public:
           }
         outputMesh->SetPointData( count, label );
         outputMesh->SetPoint( count, wpoint );
-//	  if (ii % 100 == 0) std::cout << " pt " << pt << " wpt " << wpt << std::endl;
+//      if (ii % 100 == 0) std::cout << " pt " << pt << " wpt " << wpt << std::endl;
         count++;
         }
       }
@@ -1213,7 +1213,7 @@ public:
       {
       this->m_DisplacementField = NULL;
       this->m_InverseDisplacementField = NULL;
-      //	this->ComputeMultiResolutionParameters(this->m_SimilarityMetrics[0]->GetFixedImage());
+      //    this->ComputeMultiResolutionParameters(this->m_SimilarityMetrics[0]->GetFixedImage());
       return;
       }
 
@@ -1482,7 +1482,7 @@ public:
             energyProfileWindow->SetPoint( qq - windowBegin, point );
             energyProfileWindow->SetPointData( qq - windowBegin, energy );
             }
-//	  std::cout <<" totale " << totale << std::endl;
+//      std::cout <<" totale " << totale << std::endl;
           if( totale > 0 )
             {
             totale *= (-1.0);
@@ -1570,7 +1570,7 @@ public:
         // if ( this->m_EnergyBad[0] > 2)
         //         {
         //          this->m_GradstepAltered*=0.8;
-        //	    std::cout <<" reducing gradstep " <<  this->m_GradstepAltered;
+        //        std::cout <<" reducing gradstep " <<  this->m_GradstepAltered;
         // this->m_EnergyBad[this->m_Energy.size()-1]=0;
         // }
         std::cout << std::endl;
@@ -1608,14 +1608,14 @@ public:
         //         this->m_SyNF= this->IntegrateConstantVelocity(this->m_SyNF, nts, timestep);
         //         this->m_SyNM= this->IntegrateConstantVelocity(this->m_SyNM,
         //         nts, timestep);
-        //	 DisplacementFieldPointer fdiffmap = this->IntegrateVelocity(0,0.5);
-        //	 this->m_SyNFInv = this->IntegrateVelocity(0.5,0);
-        //	 DisplacementFieldPointer mdiffmap = this->IntegrateVelocity(0.5,1);
-        //	 this->m_SyNMInv = this->IntegrateVelocity(1,0.5);
-        //	 this->m_SyNM=this->CopyDisplacementField(mdiffmap);
-        //	 this->m_SyNF=this->CopyDisplacementField(fdiffmap);
+        //     DisplacementFieldPointer fdiffmap = this->IntegrateVelocity(0,0.5);
+        //     this->m_SyNFInv = this->IntegrateVelocity(0.5,0);
+        //     DisplacementFieldPointer mdiffmap = this->IntegrateVelocity(0.5,1);
+        //     this->m_SyNMInv = this->IntegrateVelocity(1,0.5);
+        //     this->m_SyNM=this->CopyDisplacementField(mdiffmap);
+        //     this->m_SyNF=this->CopyDisplacementField(fdiffmap);
         this->m_DisplacementField = this->IntegrateVelocity(0, 1);
-        //	 ImagePointer wmimage= this->WarpMultiTransform(
+        //     ImagePointer wmimage= this->WarpMultiTransform(
         //  this->m_SmoothFixedImages[0],this->m_SmoothMovingImages[0], this->m_AffineTransform,
         // this->m_DisplacementField, false , this->m_ScaleFactor );
         this->m_InverseDisplacementField = this->IntegrateVelocity(1, 0);
@@ -1630,12 +1630,12 @@ public:
     else if( this->GetTransformationModel() == std::string("Exp") )
       {
       DisplacementFieldPointer diffmap =  this->IntegrateConstantVelocity( this->m_DisplacementField,
-                                                                           (unsigned int)this->m_NTimeSteps, 1 );                         //
-                                                                                                                                          // 1.0/
-                                                                                                                                          // (TReal)this->m_NTimeSteps);
+                                                                           (unsigned int)this->m_NTimeSteps, 1 );                           //
+                                                                                                                                            // 1.0/
+                                                                                                                                            // (TReal)this->m_NTimeSteps);
       DisplacementFieldPointer invdiffmap = this->IntegrateConstantVelocity(this->m_DisplacementField,
-                                                                            (unsigned int) this->m_NTimeSteps, -1 );                       //
-                                                                                                                                           // -1.0/(TReal)this->m_NTimeSteps);
+                                                                            (unsigned int) this->m_NTimeSteps, -1 );                         //
+                                                                                                                                             // -1.0/(TReal)this->m_NTimeSteps);
       this->m_InverseDisplacementField = invdiffmap;
       this->m_DisplacementField = diffmap;
       AffineTransformPointer invaff = NULL;
@@ -1691,7 +1691,7 @@ public:
       writer->SetFileName(outname.c_str() );
       writer->SetInput( this->m_TimeVaryingVelocity);
       writer->UpdateLargestPossibleRegion();
-      //	writer->Write();
+      //    writer->Write();
       std::cout << " write tv field " << outname << std::endl;
       //        WriteImage<TimeVaryingVelocityFieldType>( this->m_TimeVaryingVelocity , outname.c_str());
       }
@@ -1927,7 +1927,7 @@ public:
           {
           difmag = mag;
           }
-        //	  if (mag < 1.e-2) update.Fill(0);
+        //      if (mag < 1.e-2) update.Fill(0);
 
         eulerianInitCond->SetPixel(index, update);
         TRealImage->SetPixel(index, mag);

@@ -425,12 +425,12 @@ void  SurfaceImageCurvature<TSurface>
   while(!ti.IsAtEnd()  )
   {
     index=ti.GetIndex();
-    //if (ti.Get() == this->m_SurfaceLabel)
+      //if (ti.Get() == this->m_SurfaceLabel)
     if(this->IsValidSurface(ti.Get(),index))
     {
       double curvature = inCurvature->EvaluateAtIndex( index );
       this->m_FunctionImage->SetPixel(index,fabs(curvature));
-    }
+      }
     ++ti;
   }
 */
@@ -922,7 +922,7 @@ SurfaceImageCurvature<TSurface>
         p[k] = (RealType) index[k];
         }
       this->SetOrigin(p);
-//	      std::cout << " find nhood ";
+//          std::cout << " find nhood ";
       this->FindNeighborhood();
 //        std::cout << " get area ";
       RealType area = this->IntegrateFunctionOverNeighborhood(norm);
@@ -1062,10 +1062,10 @@ void  SurfaceImageCurvature<TSurface>
           {
           localindex[k] = (long) this->m_PointList[pp][k];
           }
-//	      PointType dd=this->m_Origin-this->m_PointList[pp];
-//	      double wi=dd.magnitude();
-//	      if (wi!=0.0) wi=1./wi;
-//	      tw+=wi;vector<int> vec;
+//          PointType dd=this->m_Origin-this->m_PointList[pp];
+//          double wi=dd.magnitude();
+//          if (wi!=0.0) wi=1./wi;
+//          tw+=wi;vector<int> vec;
 
         curvature = this->m_FunctionImage->GetPixel( localindex );
         kvec.push_back(curvature);
@@ -1074,7 +1074,7 @@ void  SurfaceImageCurvature<TSurface>
       std::sort(kvec.begin(), kvec.end() ); // Sort the vector
 
       this->m_PointList.clear();
-//	    curvature/=tw;
+//        curvature/=tw;
       this->m_FunctionImage->SetPixel(index, kvec[kvec.size() / 2]);
       kvec.clear();
       }

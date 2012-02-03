@@ -89,7 +89,7 @@ antsMatrixUtilities<TInputImage, TRealType>
   for( unsigned int j = 0; j < ss; j++ )
     {
     RealType eval = eig.W(j, j);
-    if( eval > pinvTolerance )    // FIXME -- check tolerances against matlab pinv
+    if( eval > pinvTolerance )      // FIXME -- check tolerances against matlab pinv
       {
       eig.W(j, j) = 1 / (eval); // need eval for inv cov
       if( take_sqrt )

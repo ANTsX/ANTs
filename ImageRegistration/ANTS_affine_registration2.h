@@ -778,7 +778,7 @@ void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, Ima
     }
 
   //    for(int i=0; i < number_of_levels; i++)
-  //      std::cout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() <<
+  //        std::cout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() <<
   // std::endl;
 }
 

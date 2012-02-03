@@ -589,7 +589,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //                        whichMetric == "JTB" )
 //                {
 //                typedef itk::JensenTsallisBSplineRegistrationFunction
-//                    <ImageType, PointSetType, ImageType, PointSetType, DisplacementFieldType> MetricType;
+//                        <ImageType, PointSetType, ImageType, PointSetType, DisplacementFieldType> MetricType;
 //                typename MetricType::Pointer metric = MetricType::New();
 //                metric->SetRadius( radius );
 //                metric->SetFixedPointSet( fixedPointSetReader->GetOutput() );

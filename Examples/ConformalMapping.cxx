@@ -181,7 +181,7 @@ void vtkCompositeManagerExitInteractor(vtkObject *vtkNotUsed(o),
       int X, Y;
       char keypressed = *(inter -> GetKeySym());
       inter -> GetMousePosition(&X, &Y);
-    std::cout <<" X Y " << X << " " << Y << std::endl;
+      std::cout <<" X Y " << X << " " << Y << std::endl;
   renWin->Render();
   inter->Start();*/
 
@@ -409,7 +409,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
       index[j] = (int)(vtkpoints->GetPoint(i)[j] / spacing[j] + 0.5);
       }
     float temp = kimg->GetPixel(index);
-//	float temp=image->GetPixel(index);
+//    float temp=image->GetPixel(index);
     if( fabs(temp) > mx )
       {
       mx = fabs(temp);
@@ -444,7 +444,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
         index[j] = (int)(vtkpoints->GetPoint(i)[j] / spacing[j] + 0.5);
         }
       float temp = kimg->GetPixel(index);
-//	float temp=surfk->CurvatureAtIndex(index);
+//    float temp=surfk->CurvatureAtIndex(index);
       if( i % 1000 == 0 )
         {
         std::cout << " kappa " << temp << std::endl;
@@ -548,7 +548,7 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
       std::string        outnm;
       std::ostringstream buf;
       buf << ( segct + 10 );
-      //	outnm=outfn+std::string(buf.str().c_str())+"mapflat.vtk";
+      //    outnm=outfn+std::string(buf.str().c_str())+"mapflat.vtk";
       outnm = outfn + "mapflat.vtk";
       std::cout << " writing " << outnm << std::endl;
       writer->SetFileName(outnm.c_str() );
@@ -586,85 +586,85 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
 template <class TImage>
 void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
 {
-  const unsigned int Dimension = 2;
-  const int splineOrder = 3;
-  const int component = 0;
-  const char* dataname = "scalars";
-  typedef TImage ImageType;
-  typedef vtkPolyData MeshType;
-  typedef typename ImageType::PixelType PixelType;
-  typedef typename itk::Vector<PixelType, 1> FunctionalDataType;
-  typedef typename itk::Image<FunctionalDataType, Dimension> FunctionalImageType;
+    const unsigned int Dimension = 2;
+    const int splineOrder = 3;
+    const int component = 0;
+    const char* dataname = "scalars";
+    typedef TImage ImageType;
+    typedef vtkPolyData MeshType;
+    typedef typename ImageType::PixelType PixelType;
+    typedef typename itk::Vector<PixelType, 1> FunctionalDataType;
+    typedef typename itk::Image<FunctionalDataType, Dimension> FunctionalImageType;
 
-  int numVertices = vtkmesh->GetNumberOfPoints();
-  vtkmesh->GetPointData()->SetActiveScalars( dataname );
-  std::cout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
+    int numVertices = vtkmesh->GetNumberOfPoints();
+    vtkmesh->GetPointData()->SetActiveScalars( dataname );
+    std::cout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
 
-  typedef itk::PointSet<FunctionalDataType, Dimension> FunctionalMapType;
-  typedef itk::BSplineScatteredDataPointSetToImageFilter
-    <FunctionalMapType, FunctionalImageType> BSplineFilterType;
+    typedef itk::PointSet<FunctionalDataType, Dimension> FunctionalMapType;
+    typedef itk::BSplineScatteredDataPointSetToImageFilter
+        <FunctionalMapType, FunctionalImageType> BSplineFilterType;
 
-  typename FunctionalMapType::Pointer funcdataPoints =
-    FunctionalMapType::New();
-  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+    typename FunctionalMapType::Pointer funcdataPoints =
+        FunctionalMapType::New();
+    typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
 
-  FunctionalDataType data, data1;
-  typename FunctionalMapType::PointType point;
-  double bounds[6];
-  vtkPoints *meshpoints = vtkmesh->GetPoints();
-  meshpoints->ComputeBounds();
-  meshpoints->GetBounds( bounds );
+    FunctionalDataType data, data1;
+    typename FunctionalMapType::PointType point;
+    double bounds[6];
+    vtkPoints *meshpoints = vtkmesh->GetPoints();
+    meshpoints->ComputeBounds();
+    meshpoints->GetBounds( bounds );
 
-  for (int ID=0; ID < numVertices; ++ID)
-  {
-    data[0] = vtkmesh->GetPointData()->GetScalars()->GetComponent(ID, component);
-    for (int dir=0; dir < Dimension; ++dir)
-      point[dir] = meshpoints->GetPoint(ID)[dir];
-    //Debug
-    //data[0] = 1*point[0] + 0*point[1];
+    for (int ID=0; ID < numVertices; ++ID)
+    {
+        data[0] = vtkmesh->GetPointData()->GetScalars()->GetComponent(ID, component);
+        for (int dir=0; dir < Dimension; ++dir)
+            point[dir] = meshpoints->GetPoint(ID)[dir];
+        //Debug
+        //data[0] = 1*point[0] + 0*point[1];
 
 
-    funcdataPoints->SetPointData( ID, data);
-    funcdataPoints->SetPoint( ID, point);
-    //std::cout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
-  }
+        funcdataPoints->SetPointData( ID, data);
+        funcdataPoints->SetPoint( ID, point);
+        //std::cout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
+    }
 
-  std::cout << "Read all mesh data" << std::endl;
+    std::cout << "Read all mesh data" << std::endl;
 
-  typename FunctionalImageType::PointType origin;
-  typename FunctionalImageType::SpacingType spacing;
-  typename FunctionalImageType::SizeType size;
-  float maxX, minX, maxY, minY;
-  maxX = static_cast<float>(bounds[1]);
-  minX = static_cast<float>(bounds[0]);
-  maxY = static_cast<float>(bounds[3]);
-  minY = static_cast<float>(bounds[2]);
-  std::cout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
+    typename FunctionalImageType::PointType origin;
+    typename FunctionalImageType::SpacingType spacing;
+    typename FunctionalImageType::SizeType size;
+    float maxX, minX, maxY, minY;
+       maxX = static_cast<float>(bounds[1]);
+       minX = static_cast<float>(bounds[0]);
+       maxY = static_cast<float>(bounds[3]);
+       minY = static_cast<float>(bounds[2]);
+    std::cout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
 
-  size[0] = imagesize;
-  size[1] = imagesize;
+    size[0] = imagesize;
+    size[1] = imagesize;
 
-  origin[0] = (minX + maxX)/2;
-  origin[1] = (minY + maxY)/2;
-  origin[0] = minX - (maxX-minX)*0.1;
-  origin[1] = minY - (maxY-minY)*0.1;
-  origin[0] = minX;
-  origin[1] = minY;
+    origin[0] = (minX + maxX)/2;
+    origin[1] = (minY + maxY)/2;
+    origin[0] = minX - (maxX-minX)*0.1;
+    origin[1] = minY - (maxY-minY)*0.1;
+    origin[0] = minX;
+    origin[1] = minY;
 
         spacing[0] = 1.1*((((maxX-minX)>(maxY-minY))?(maxX-minX):(maxY-minY)))/imagesize;
-  spacing[1] = spacing[0];
+    spacing[1] = spacing[0];
 
-  std::cout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
+    std::cout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
         typename BSplineFilterType::ArrayType ncps;
-  ncps.Fill(  splineOrder + 1 );
+    ncps.Fill(  splineOrder + 1 );
 
-  //const int numLevels = round((1/static_cast<double>(Dimension))*log(static_cast<double>(numVertices))/log(2.0));
-  const int numLevels = 13;
+    //const int numLevels = round((1/static_cast<double>(Dimension))*log(static_cast<double>(numVertices))/log(2.0));
+    const int numLevels = 13;
 
-  typename BSplineFilterType::ArrayType close;
-  close.Fill( false );
+      typename BSplineFilterType::ArrayType close;
+     close.Fill( false );
 
-  std::cout << "No. of levels " << numLevels << " splineOrder " << splineOrder << " #control points " << ncps << std::endl;
+    std::cout << "No. of levels " << numLevels << " splineOrder " << splineOrder << " #control points " << ncps << std::endl;
 
         bspliner->SetOrigin( origin );
         bspliner->SetSpacing( spacing );
@@ -674,36 +674,36 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
         bspliner->SetSplineOrder( splineOrder );
         bspliner->SetNumberOfControlPoints( ncps );
         bspliner->SetCloseDimension( close );
-  bspliner->SetInput( funcdataPoints );
-  bspliner->DebugOn();
+    bspliner->SetInput( funcdataPoints );
+    bspliner->DebugOn();
 
 
-  std::cout << "Entering BSpline" << std::endl;
-  bspliner->Update();
-  std::cout << "BSpline fitting done" << std::endl;
+    std::cout << "Entering BSpline" << std::endl;
+    bspliner->Update();
+    std::cout << "BSpline fitting done" << std::endl;
 
-  typename ImageType::Pointer outimage = ImageType::New();
-  outimage->SetSpacing( bspliner->GetOutput()->GetSpacing() );
-  outimage->SetOrigin( bspliner->GetOutput()->GetOrigin() );
-  outimage->SetRegions( bspliner->GetOutput()->GetLargestPossibleRegion() );
-  outimage->Allocate();
+    typename ImageType::Pointer outimage = ImageType::New();
+    outimage->SetSpacing( bspliner->GetOutput()->GetSpacing() );
+    outimage->SetOrigin( bspliner->GetOutput()->GetOrigin() );
+    outimage->SetRegions( bspliner->GetOutput()->GetLargestPossibleRegion() );
+    outimage->Allocate();
 
-  typename itk::ImageRegionIterator<ImageType>
-    ItO( outimage, outimage->GetRequestedRegion() );
-  typename itk::ImageRegionConstIterator<FunctionalImageType>
-    ItB( bspliner->GetOutput(), bspliner->GetOutput()->GetRequestedRegion() );
+    typename itk::ImageRegionIterator<ImageType>
+        ItO( outimage, outimage->GetRequestedRegion() );
+    typename itk::ImageRegionConstIterator<FunctionalImageType>
+        ItB( bspliner->GetOutput(), bspliner->GetOutput()->GetRequestedRegion() );
 
-  for ( ItB.GoToBegin(), ItO.GoToBegin(); !ItB.IsAtEnd(); ++ItB, ++ItO )
+    for ( ItB.GoToBegin(), ItO.GoToBegin(); !ItB.IsAtEnd(); ++ItB, ++ItO )
         {
-    ItO.Set( static_cast<PixelType>( ItB.Get()[0] ) );
+            ItO.Set( static_cast<PixelType>( ItB.Get()[0] ) );
         }
 
-  typename itk::ImageFileWriter<ImageType>::Pointer writer;
-  writer = itk::ImageFileWriter<ImageType>::New();
-  std::string fn=outfn+"flat.nii";
-  writer->SetFileName(fn.c_str());
-  writer->SetInput( outimage );
-  writer->Write();
+      typename itk::ImageFileWriter<ImageType>::Pointer writer;
+    writer = itk::ImageFileWriter<ImageType>::New();
+      std::string fn=outfn+"flat.nii";
+      writer->SetFileName(fn.c_str());
+      writer->SetInput( outimage );
+      writer->Write();
 */
 /*** Evaluate quality of fit ***/
 /*
@@ -716,8 +716,8 @@ for (int ID=0; ID < numVertices; ++ID)
 data[0] = vtkmesh->GetPointData()->GetScalars()->GetComponent(ID, component);
 for (int dir=0; dir < Dimension; ++dir)
 {
-point[dir] = meshpoints->GetPoint(ID)[dir];
-testpoint[dir] = point[dir] - origin[dir];
+    point[dir] = meshpoints->GetPoint(ID)[dir];
+    testpoint[dir] = point[dir] - origin[dir];
 }
 vtkmesh->GetPointData()->GetScalars()->SetComponent(ID, component, static_cast<int>(data[0]) - static_cast<int>(interp->Evaluate( testpoint )));
 
@@ -754,106 +754,106 @@ RemoveNaNs(typename TImage::Pointer image, float replaceval )
 template <class TImage>
 void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::string outfn)
 {
-  const unsigned int Dimension = 2;
-  const int splineOrder = 3;
-  const int imagesize = 512;
-  const int component = 0;
-  const char* dataname = "points";
-  typedef TImage ImageType;
-  typedef vtkPolyData MeshType;
-  typedef typename ImageType::PixelType PixelType;
-  typedef typename itk::Vector<PixelType, 1> FunctionalDataType;
-  typedef typename itk::Image<FunctionalDataType, Dimension> FunctionalImageType;
+    const unsigned int Dimension = 2;
+    const int splineOrder = 3;
+    const int imagesize = 512;
+    const int component = 0;
+    const char* dataname = "points";
+    typedef TImage ImageType;
+    typedef vtkPolyData MeshType;
+    typedef typename ImageType::PixelType PixelType;
+    typedef typename itk::Vector<PixelType, 1> FunctionalDataType;
+    typedef typename itk::Image<FunctionalDataType, Dimension> FunctionalImageType;
 
-  float replaceval = 5;
-  image = RemoveNaNs<TImage>(image, replaceval);
+    float replaceval = 5;
+    image = RemoveNaNs<TImage>(image, replaceval);
 
-  int numVertices = vtkmesh->GetNumberOfPoints();
-  vtkmesh->GetPointData()->SetActiveScalars( dataname );
-  std::cout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
+    int numVertices = vtkmesh->GetNumberOfPoints();
+    vtkmesh->GetPointData()->SetActiveScalars( dataname );
+    std::cout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
 
-  typedef itk::PointSet<FunctionalDataType, Dimension> FunctionalMapType;
-  typedef itk::BSplineScatteredDataPointSetToImageFilter
-    <FunctionalMapType, FunctionalImageType> BSplineFilterType;
+    typedef itk::PointSet<FunctionalDataType, Dimension> FunctionalMapType;
+    typedef itk::BSplineScatteredDataPointSetToImageFilter
+        <FunctionalMapType, FunctionalImageType> BSplineFilterType;
 
-  typename FunctionalMapType::Pointer funcdataPoints =
-    FunctionalMapType::New();
-  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+    typename FunctionalMapType::Pointer funcdataPoints =
+        FunctionalMapType::New();
+    typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
 
-  FunctionalDataType data;
-  typename FunctionalMapType::PointType point;
-  double bounds[6];
-  vtkPoints *meshpoints = vtkmesh->GetPoints();
-  meshpoints->ComputeBounds();
-  meshpoints->GetBounds( bounds );
+    FunctionalDataType data;
+    typename FunctionalMapType::PointType point;
+    double bounds[6];
+    vtkPoints *meshpoints = vtkmesh->GetPoints();
+    meshpoints->ComputeBounds();
+    meshpoints->GetBounds( bounds );
 
-  for (int ID=0; ID < numVertices; ++ID)
-  {
-    data[0] = vtkmesh->GetPointData()->GetScalars()->GetComponent(ID, component);
-    for (int dir=0; dir < Dimension; ++dir)
-      point[dir] = meshpoints->GetPoint(ID)[dir];
-    //Debug
-    //data[0] = 1*point[0] + 0*point[1];
+    for (int ID=0; ID < numVertices; ++ID)
+    {
+        data[0] = vtkmesh->GetPointData()->GetScalars()->GetComponent(ID, component);
+        for (int dir=0; dir < Dimension; ++dir)
+            point[dir] = meshpoints->GetPoint(ID)[dir];
+        //Debug
+        //data[0] = 1*point[0] + 0*point[1];
 
 
-    funcdataPoints->SetPointData( ID, data);
-    funcdataPoints->SetPoint( ID, point);
-    //std::cout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
-  }
+        funcdataPoints->SetPointData( ID, data);
+        funcdataPoints->SetPoint( ID, point);
+        //std::cout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
+    }
 
-  std::cout << "Read all mesh data" << std::endl;
+    std::cout << "Read all mesh data" << std::endl;
 
-  // Create new data array
-  vtkFloatArray *newdata;
-  newdata = vtkFloatArray::New();
-  newdata->SetName("atlas");
+    // Create new data array
+    vtkFloatArray *newdata;
+    newdata = vtkFloatArray::New();
+    newdata->SetName("atlas");
 
-  typename FunctionalImageType::PointType origin;
-  typename FunctionalImageType::SpacingType spacing;
-  typename FunctionalImageType::SizeType size;
-  float maxX, minX, maxY, minY;
-  maxX = static_cast<float>(bounds[1]);
-  minX = static_cast<float>(bounds[0]);
-  maxY = static_cast<float>(bounds[3]);
-  minY = static_cast<float>(bounds[2]);
-  std::cout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
+    typename FunctionalImageType::PointType origin;
+    typename FunctionalImageType::SpacingType spacing;
+    typename FunctionalImageType::SizeType size;
+    float maxX, minX, maxY, minY;
+       maxX = static_cast<float>(bounds[1]);
+       minX = static_cast<float>(bounds[0]);
+       maxY = static_cast<float>(bounds[3]);
+       minY = static_cast<float>(bounds[2]);
+    std::cout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
 
-  size[0] = imagesize;
-  size[1] = imagesize;
+    size[0] = imagesize;
+    size[1] = imagesize;
 
-  origin[0] = (minX + maxX)/2;
-  origin[1] = (minY + maxY)/2;
-  origin[0] = minX - (maxX-minX)*0.1;
-  origin[1] = minY - (maxY-minY)*0.1;
-  origin[0] = minX;
-  origin[1] = minY;
+    origin[0] = (minX + maxX)/2;
+    origin[1] = (minY + maxY)/2;
+    origin[0] = minX - (maxX-minX)*0.1;
+    origin[1] = minY - (maxY-minY)*0.1;
+    origin[0] = minX;
+    origin[1] = minY;
 
         spacing[0] = 1.1*((((maxX-minX)>(maxY-minY))?(maxX-minX):(maxY-minY)))/imagesize;
-  spacing[1] = spacing[0];
+    spacing[1] = spacing[0];
 
-  std::cout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
+    std::cout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
 */
 /* bspline code -- not doing b-spline now
 
-      typename BSplineFilterType::ArrayType ncps;
+    typename BSplineFilterType::ArrayType ncps;
 ncps.Fill(  splineOrder + 1 );
 
 //const int numLevels = round((1/static_cast<double>(Dimension))*log(static_cast<double>(numVertices))/log(2.0));
 const int numLevels = 13;
 
-typename BSplineFilterType::ArrayType close;
-close.Fill( false );
+  typename BSplineFilterType::ArrayType close;
+ close.Fill( false );
 
 std::cout << "No. of levels " << numLevels << " splineOrder " << splineOrder << " #control points " << ncps << std::endl;
 
-      bspliner->SetOrigin( origin );
-      bspliner->SetSpacing( spacing );
-      bspliner->SetSize( size );
-      bspliner->SetGenerateOutputImage( true );
-      bspliner->SetNumberOfLevels( numLevels );
-      bspliner->SetSplineOrder( splineOrder );
-      bspliner->SetNumberOfControlPoints( ncps );
-      bspliner->SetCloseDimension( close );
+    bspliner->SetOrigin( origin );
+    bspliner->SetSpacing( spacing );
+    bspliner->SetSize( size );
+    bspliner->SetGenerateOutputImage( true );
+    bspliner->SetNumberOfLevels( numLevels );
+    bspliner->SetSplineOrder( splineOrder );
+    bspliner->SetNumberOfControlPoints( ncps );
+    bspliner->SetCloseDimension( close );
 bspliner->SetInput( funcdataPoints );
 bspliner->DebugOn();
 
@@ -871,7 +871,7 @@ outimage->Allocate();
 */
 /*
 typename itk::ImageRegionIterator<ImageType>
-  ItO( image, image->GetRequestedRegion() );
+    ItO( image, image->GetRequestedRegion() );
 
 
 
@@ -883,24 +883,24 @@ typedef typename itk::ContinuousIndex< float, Dimension > ContinuousIndexType;
 
 typename InterpolatorType::Pointer interp = InterpolatorType::New();
 interp->SetInputImage( image );
-      ContinuousIndexType contind;
+    ContinuousIndexType contind;
 
 
 for (int ID=0; ID < numVertices; ++ID)
 {
-  for (int dir=0; dir < Dimension; ++dir)
-    testpoint[dir] = meshpoints->GetPoint(ID)[dir] - origin[dir];
-  newdata->InsertNextValue( interp->Evaluate( testpoint ) );
-  //vtkmesh->GetPointData()->GetScalars()->SetComponent(ID, component, (interp->Evaluate( testpoint )));
+    for (int dir=0; dir < Dimension; ++dir)
+        testpoint[dir] = meshpoints->GetPoint(ID)[dir] - origin[dir];
+    newdata->InsertNextValue( interp->Evaluate( testpoint ) );
+    //vtkmesh->GetPointData()->GetScalars()->SetComponent(ID, component, (interp->Evaluate( testpoint )));
 
-  //vtkmesh->GetPointData()->GetScalars()->SetComponent(ID, component,  interp->Evaluate( testpoint ));
-//	cout << vtkmesh->GetPointData()->GetScalars()->GetComponent(ID, component) << " " << data[0] << " " << interp->Evaluate( testpoint ) << endl;
+    //vtkmesh->GetPointData()->GetScalars()->SetComponent(ID, component,  interp->Evaluate( testpoint ));
+//    cout << vtkmesh->GetPointData()->GetScalars()->GetComponent(ID, component) << " " << data[0] << " " << interp->Evaluate( testpoint ) << endl;
 }
 vtkmesh->GetPointData()->AddArray( newdata );
 vtkPolyDataWriter *vtkwriter = vtkPolyDataWriter::New();
 vtkwriter->SetInput( vtkmesh );
-std::string fn=outfn+".vtk";
-vtkwriter->SetFileName(fn.c_str());
+  std::string fn=outfn+".vtk";
+  vtkwriter->SetFileName(fn.c_str());
 vtkwriter->Write();
 
 
@@ -1058,7 +1058,7 @@ int main(int argc, char *argv[])
     smoother->Update();
 
     vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-    writer->SetInput( smoother->GetOutput() );
+    writer->SetInput(    smoother->GetOutput() );
     writer->SetFileName(outfn.c_str() );
     writer->SetFileTypeToBinary();
     writer->Update();

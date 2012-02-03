@@ -324,7 +324,7 @@ public:
     unsigned long ct = 0;
 
     typename JointPDFType::IndexType index;
-    //	for (unsigned int ii=this->m_Padding+1; ii<m_NumberOfHistogramBins-this->m_Padding-2; ii++)
+    //    for (unsigned int ii=this->m_Padding+1; ii<m_NumberOfHistogramBins-this->m_Padding-2; ii++)
     for( unsigned int ii = 0; ii < m_NumberOfHistogramBins; ii++ )
       {
       MarginalPDFIndexType mind;
@@ -362,7 +362,7 @@ public:
 
         mival += mi;
         }
-      //	  std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
+      //      std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
       }
     this->m_Energy = (-1.0) * mival / log(2);
     return this->m_Energy;
@@ -447,8 +447,8 @@ public:
     SMI = (0.5) * (JointEntropyXuY + JointEntropyXYu + JointEntropyXlY + JointEntropyXYl)
       - (0.25) * (4 * JointEntropy + JointEntropyXuYr + JointEntropyXrYu + JointEntropyXlYu + JointEntropyXuYl);
 
-    //	std::cout << " JE " << JointEntropy << " JEXuY " << JointEntropyXuY << " JEXYu " << JointEntropyXYu << " JEXuYr
-    // " << JointEntropyXuYr << std::endl;
+    //    std::cout << " JE " << JointEntropy << " JEXuY " << JointEntropyXuY << " JEXYu " << JointEntropyXYu << "
+    // JEXuYr " << JointEntropyXuYr << std::endl;
 
     this->m_Energy = (-1.0) * fabs(SMI);
     return this->m_Energy;

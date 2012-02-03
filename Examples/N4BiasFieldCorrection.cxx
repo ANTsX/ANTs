@@ -389,10 +389,10 @@ int N4( itk::ants::CommandLineParser *parser )
   if( outputOption )
     {
     /**
-          * Reconstruct the bias field at full image resolution.  Divide
-          * the original input image by the bias field to get the final
-          * corrected image.
-          */
+                    * Reconstruct the bias field at full image resolution.  Divide
+                    * the original input image by the bias field to get the final
+                    * corrected image.
+                    */
     typedef itk::BSplineControlPointImageFilter<typename
                                                 CorrecterType::BiasFieldControlPointLatticeType, typename
                                                 CorrecterType::ScalarImageType> BSplinerType;

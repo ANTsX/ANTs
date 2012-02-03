@@ -407,8 +407,8 @@ double TTest(int numSubjects,   int* groupLabel, double * featureValue )
 // unequal vars
   float denom = varA / n1 + varB / n2;
   // for equal vars
-  //	float var =  ( (n1-1.)*newvar1 + (n2-1.)*newvar2 ) / df;
-  //	denom = var*(1.0/n1+1.0/n2);
+  //    float var =  ( (n1-1.)*newvar1 + (n2-1.)*newvar2 ) / df;
+  //    denom = var*(1.0/n1+1.0/n2);
   double tt = 0;
   if( denom > 0 )
     {
@@ -560,22 +560,22 @@ int StudentsTestOnImages(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-  std::cout <<  " df  P = 0.05  P = 0.01   P = 0.001  " << std::endl;
-  std::cout << " 1             12.71  63.66   636.61  "<< std::endl;
-  std::cout << " 2	4.30  9.92  31.60    "<< std::endl;
-  std::cout << " 3	3.18  5.84  12.92"<< std::endl;
-  std::cout << " 4	2.78  4.60  8.61"<< std::endl;
-  std::cout << " 5	2.57  4.03  6.87"<< std::endl;
-  std::cout << " 6  2.45  3.71  5.96" << std::endl;
-  std::cout << " 7	2.36  3.50  5.41"<< std::endl;
-  std::cout << " 8	2.31  3.36  5.04"<< std::endl;
-  std::cout << " 9	2.26  3.25  4.78"<< std::endl;
-  std::cout << " 10	2.23  3.17  4.59" << std::endl;
-  std::cout << " 15	2.13  2.95  4.07" << std::endl;
-  std::cout << " 20	2.09  2.85  3.85" << std::endl;
-  std::cout << " 30	2.04  2.75  3.65" << std::endl;
-  std::cout << " 50	2.01  2.68  3.50" << std::endl;
-  std::cout << " 100	1.98  2.63  3.39  "<< std::endl;
+  std::cout <<  " df     P = 0.05  P = 0.01   P = 0.001  " << std::endl;
+  std::cout << " 1             12.71     63.66     636.61  " << std::endl;
+  std::cout << " 2    4.30     9.92     31.60    " << std::endl;
+  std::cout << " 3    3.18     5.84     12.92" << std::endl;
+  std::cout << " 4    2.78     4.60     8.61" << std::endl;
+  std::cout << " 5    2.57     4.03     6.87" << std::endl;
+  std::cout << " 6     2.45     3.71     5.96" << std::endl;
+  std::cout << " 7    2.36     3.50     5.41" << std::endl;
+  std::cout << " 8    2.31     3.36     5.04" << std::endl;
+  std::cout << " 9    2.26     3.25     4.78" << std::endl;
+  std::cout << " 10    2.23     3.17     4.59" << std::endl;
+  std::cout << " 15    2.13     2.95     4.07" << std::endl;
+  std::cout << " 20    2.09     2.85     3.85" << std::endl;
+  std::cout << " 30    2.04     2.75     3.65" << std::endl;
+  std::cout << " 50    2.01     2.68     3.50" << std::endl;
+  std::cout << " 100    1.98     2.63     3.39  " << std::endl;
 
   if( argc < 6 )
     {

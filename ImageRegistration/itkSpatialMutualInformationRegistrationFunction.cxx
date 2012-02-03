@@ -466,7 +466,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           }
         }
 
-//          std::cout << " Image size? " << imagesize << std::endl;
+//            std::cout << " Image size? " << imagesize << std::endl;
 
       if( inimage )
         {
@@ -569,7 +569,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         }
       }
     }
-//	std::cout << " Image Rotation Number " << nSamples << std::endl;
+//    std::cout << " Image Rotation Number " << nSamples << std::endl;
 
   /**
    * Normalize the PDFs, compute moving image marginal PDF
@@ -597,7 +597,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     ++jointPDFIterator;
     }
 
-//	std::cout << " Joint PDF Summation? " << jointPDFSum << std::endl;
+//    std::cout << " Joint PDF Summation? " << jointPDFSum << std::endl;
 
   // of derivatives
   if( jointPDFSum == 0.0 )
@@ -719,8 +719,8 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 
   double jointPDFValueXuY = 0, dJPDFXuY = 0, jointPDFValueXYu = 0, dJPDFXYu = 0, jointPDFValueXlY = 0, dJPDFXlY = 0,
     jointPDFValueXYl = 0;
-  double dJPDFXYl = 0, jointPDFValueXuYl = 0, dJPDFXuYl = 0, jointPDFValueXlYu = 0, dJPDFXlYu = 0, jointPDFValueXuYr =
-    0, dJPDFXuYr = 0, jointPDFValueXrYu = 0, dJPDFXrYu = 0;
+  double dJPDFXYl = 0, jointPDFValueXuYl = 0, dJPDFXuYl = 0, jointPDFValueXlYu = 0,    dJPDFXlYu = 0,
+    jointPDFValueXuYr = 0, dJPDFXuYr = 0, jointPDFValueXrYu = 0,    dJPDFXrYu = 0;
 
     {
     /** take derivative of joint pdf with respect to the b-spline */
@@ -794,8 +794,8 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 
   double jointPDFValueXuY = 0, dJPDFXuY = 0, jointPDFValueXYu = 0, dJPDFXYu = 0, jointPDFValueXlY = 0, dJPDFXlY = 0,
     jointPDFValueXYl = 0;
-  double dJPDFXYl = 0, jointPDFValueXuYl = 0, dJPDFXuYl = 0, jointPDFValueXlYu = 0, dJPDFXlYu = 0, jointPDFValueXuYr =
-    0, dJPDFXuYr = 0, jointPDFValueXrYu = 0, dJPDFXrYu = 0;
+  double dJPDFXYl = 0, jointPDFValueXuYl = 0, dJPDFXuYl = 0, jointPDFValueXlYu = 0,    dJPDFXlYu = 0,
+    jointPDFValueXuYr = 0, dJPDFXuYr = 0, jointPDFValueXrYu = 0,    dJPDFXrYu = 0;
 
     {
     /** take derivative of joint pdf with respect to the b-spline */
@@ -839,7 +839,7 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
       / jointPDFValueXuYr + dJPDFXrYu / jointPDFValueXrYu
       - 2 * dJPDFXYu / jointPDFValueXYu - 2 * dJPDFXuY / jointPDFValueXuY - 2 * dJPDFXYl / jointPDFValueXYl - 2
       * dJPDFXlY / jointPDFValueXlY;
-    } // end if-block to check non-zero bin contribution
+    }  // end if-block to check non-zero bin contribution
   else
     {
     value = 0;

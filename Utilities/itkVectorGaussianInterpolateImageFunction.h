@@ -289,7 +289,7 @@ private:
     for( int i = k0; i < k1; i++ )
       {
       t += sfac;
-      //	std::cout << " t2 " << t << std::endl;
+      //    std::cout << " t2 " << t << std::endl;
       double e_now = vnl_erf(t);
       dx_erf[i] = e_now - e_last;
       if( gx_erf )

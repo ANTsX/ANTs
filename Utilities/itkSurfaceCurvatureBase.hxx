@@ -293,11 +293,11 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::ComputeFrameAndKappa(PointType
   {
     m_Kappa1=0.0;
     m_Kappa2=0.0;
-  m_A=0.;
-  m_B=0.;
-  m_C=0.0;
+    m_A=0.;
+    m_B=0.;
+    m_C=0.0;
     m_GaussianKappa=0.0;
-  m_TotalDKap=0.0;
+    m_TotalDKap=0.0;
     return;
   }
 */
@@ -1049,11 +1049,11 @@ void     SurfaceCurvatureBase<TSurface, TDimension>
   {
     m_Kappa1=0.0;
     m_Kappa2=0.0;
-  m_A=0.;
-  m_B=0.;
-  m_C=0.0;
+    m_A=0.;
+    m_B=0.;
+    m_C=0.0;
     m_GaussianKappa=0.0;
-  m_TotalDKap=0.0;
+    m_TotalDKap=0.0;
     return;
   }*/
 

@@ -315,7 +315,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       {
       std::cout << "  Cannot find vtk Array named 'Label' in " << innm << std::endl;
       std::cout << "  This could cause problems " << std::endl;
-      //	  std::cout <<" exiting " << std::endl;
+      //      std::cout <<" exiting " << std::endl;
       // exit(1);
       }
     innm = inOption->GetParameter( 1 );

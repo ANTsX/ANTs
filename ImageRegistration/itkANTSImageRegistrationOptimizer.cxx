@@ -537,7 +537,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     IndexType index = m_FieldIter.GetIndex();
     bool      dosample = true;
-    //	  if (sub && m_TRealImage->GetPixel(index) < 0.5) dosample=false;
+    //      if (sub && m_TRealImage->GetPixel(index) < 0.5) dosample=false;
     if( dosample )
       {
       fieldtowarpby->TransformIndexToPhysicalPoint( index, pointIn1 );
@@ -689,7 +689,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
 //        TimeStepType timeStep;
     void *globalData;
-//	std::cout << " B " << std::endl;
+//    std::cout << " B " << std::endl;
 
     AffineTransformPointer faffinverse = NULL;
     if( this->m_FixedImageAffineTransform )
@@ -722,7 +722,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                                       this->m_SmoothMovingImages[metricCount]->GetDirection(),  NULL);
       }
 
-//	std::cout << " C " << std::endl;
+//    std::cout << " C " << std::endl;
     ImagePointer wfimage = NULL;
     if( movingwarp )
       {
@@ -738,17 +738,17 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     /*
     if (this->m_TimeVaryingVelocity && ! this->m_MaskImage ) {
       std::string outname=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("thick.nii.gz");
-      ///	  WriteImage<ImageType>(wmimage,outname.c_str());
+      ///      WriteImage<ImageType>(wmimage,outname.c_str());
       outname=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("thick2.nii.gz");
       WriteImage<ImageType>(wfimage,outname.c_str());
     }
     */
-    //	  std::string
+    //      std::string
     // outname=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("temp.nii.gz");
-    //	  WriteImage<ImageType>(wmimage,outname.c_str());
-    //	  std::string
+    //      WriteImage<ImageType>(wmimage,outname.c_str());
+    //      std::string
     // outname2=this->localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str())+std::string("temp2.nii.gz");
-    //	  WriteImage<ImageType>(wfimage,outname2.c_str());
+    //      WriteImage<ImageType>(wfimage,outname2.c_str());
 
 /** MV Loop END -- Would have to collect update fields then add them
 * together somehow -- Would also have to eliminate the similarity
@@ -880,65 +880,65 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     ///}
     /*
     else // use another strategy -- exact lm? / something like Laplacian
-{
-  TReal tmag=0;
-  for (unsigned int ff=0; ff<5; ff++)
-    {
-      tmag=0;
-      this->SmoothDisplacementField(updateField,true);
-      if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
-      nD.GoToBegin();
-      nU.GoToBegin();
-      while( !nD.IsAtEnd() )
   {
-    typename ImageType::IndexType index=nD.GetIndex();
-    bool oktosample=true;
-    TReal maskprob=1.0;
-    if (mask)
+    TReal tmag=0;
+    for (unsigned int ff=0; ff<5; ff++)
       {
-        maskprob=mask->GetPixel( nD.GetIndex() );
-        if (maskprob > 1.0) maskprob=1.0;
-        if ( maskprob < 0.1) oktosample=false;
-      }
-    VectorType F1;
-    F1.Fill(0);
-    VectorType F2;
-    F2.Fill(0);
-    if ( oktosample )
+        tmag=0;
+        this->SmoothDisplacementField(updateField,true);
+        if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
+        nD.GoToBegin();
+        nU.GoToBegin();
+        while( !nD.IsAtEnd() )
       {
-        F1 = df->ComputeUpdate(nD, globalData)*maskprob;
-        if (totalUpdateInvField)
-    {
-      F2 = df->ComputeUpdateInv(nD, globalData)*maskprob;
-    }
-        ++nD;
-        ++nU;
-      }
-    else
-      {
-        ++nD;
-        ++nU;
-      }
+        typename ImageType::IndexType index=nD.GetIndex();
+        bool oktosample=true;
+        TReal maskprob=1.0;
+        if (mask)
+          {
+            maskprob=mask->GetPixel( nD.GetIndex() );
+            if (maskprob > 1.0) maskprob=1.0;
+            if ( maskprob < 0.1) oktosample=false;
+          }
+        VectorType F1;
+        F1.Fill(0);
+        VectorType F2;
+        F2.Fill(0);
+        if ( oktosample )
+          {
+            F1 = df->ComputeUpdate(nD, globalData)*maskprob;
+            if (totalUpdateInvField)
+          {
+            F2 = df->ComputeUpdateInv(nD, globalData)*maskprob;
+          }
+            ++nD;
+            ++nU;
+          }
+        else
+          {
+            ++nD;
+            ++nU;
+          }
 
-    // compute mags of F1 and F2 -- if large enough, reset them
-    TReal f1mag=0,f2mag=0,umag=0;
-    for (unsigned int dim=0; dim<ImageDimension; dim++)
-      {
-        f1mag+=F1[dim]/spacing[dim]*F1[dim]/spacing[dim];
-        f2mag+=F2[dim]/spacing[dim]*F2[dim]/spacing[dim];
-        umag+=updateField->GetPixel(index)[dim]/spacing[dim]*updateField->GetPixel(index)[dim]/spacing[dim];
+        // compute mags of F1 and F2 -- if large enough, reset them
+        TReal f1mag=0,f2mag=0,umag=0;
+        for (unsigned int dim=0; dim<ImageDimension; dim++)
+          {
+            f1mag+=F1[dim]/spacing[dim]*F1[dim]/spacing[dim];
+            f2mag+=F2[dim]/spacing[dim]*F2[dim]/spacing[dim];
+            umag+=updateField->GetPixel(index)[dim]/spacing[dim]*updateField->GetPixel(index)[dim]/spacing[dim];
+          }
+        f1mag=sqrt(f1mag); f2mag=sqrt(f2mag); umag=sqrt(umag);
+        if ( f1mag > 0.05 ) updateField->SetPixel(index,F1);
+        if ( f2mag > 0.05 ) updateFieldInv->SetPixel(index,F2);
+        tmag+=umag;
       }
-    f1mag=sqrt(f1mag); f2mag=sqrt(f2mag); umag=sqrt(umag);
-    if ( f1mag > 0.05 ) updateField->SetPixel(index,F1);
-    if ( f2mag > 0.05 ) updateFieldInv->SetPixel(index,F2);
-    tmag+=umag;
+        //           std::cout << " total mag " << tmag << std::endl;
+      }
+    //smooth the total field
+    this->SmoothDisplacementField(updateField,true);
+    if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
   }
-      //	       std::cout << " total mag " << tmag << std::endl;
-    }
-  //smooth the total field
-  this->SmoothDisplacementField(updateField,true);
-  if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
-}
 
     */
     // normalize update field then add to total field
@@ -1189,7 +1189,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     bool ispointsetmetric = false;
 
     /** build an update field */
-    if( true ) // this->m_SimilarityMetrics.size() == 1 )
+    if( true )  // this->m_SimilarityMetrics.size() == 1 )
       {
       updateField = totalUpdateField;
       if( totalUpdateInvField )
@@ -1230,7 +1230,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
 //        TimeStepType timeStep;
     void *globalData;
-//	std::cout << " B " << std::endl;
+//    std::cout << " B " << std::endl;
 
 // for each metric, warp the assoc. Images
 /** We loop Over This To Do MultiVariate */
@@ -1251,7 +1251,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                                       this->m_SmoothMovingImages[metricCount]->GetDirection(),  NULL);
       }
 
-//	std::cout << " C " << std::endl;
+//    std::cout << " C " << std::endl;
     ImagePointer wfimage = NULL;
     if( movingwarp )
       {
@@ -1265,7 +1265,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                                       this->m_SmoothFixedImages[metricCount]->GetDirection(),  NULL);
       }
 
-//	std::cout << " D " << std::endl;
+//    std::cout << " D " << std::endl;
 
 /** MV Loop END -- Would have to collect update fields then add them
 * together somehow -- Would also have to eliminate the similarity
@@ -1362,65 +1362,65 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     //  }
     /*
     else // use another strategy -- exact lm? / something like Laplacian
-{
-  TReal tmag=0;
-  for (unsigned int ff=0; ff<5; ff++)
-    {
-      tmag=0;
-      this->SmoothDisplacementField(updateField,true);
-      if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
-      nD.GoToBegin();
-      nU.GoToBegin();
-      while( !nD.IsAtEnd() )
   {
-    typename ImageType::IndexType index=nD.GetIndex();
-    bool oktosample=true;
-    TReal maskprob=1.0;
-    if (mask)
+    TReal tmag=0;
+    for (unsigned int ff=0; ff<5; ff++)
       {
-        maskprob=mask->GetPixel( nD.GetIndex() );
-        if (maskprob > 1.0) maskprob=1.0;
-        if ( maskprob < 0.1) oktosample=false;
-      }
-    VectorType F1;
-    F1.Fill(0);
-    VectorType F2;
-    F2.Fill(0);
-    if ( oktosample )
+        tmag=0;
+        this->SmoothDisplacementField(updateField,true);
+        if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
+        nD.GoToBegin();
+        nU.GoToBegin();
+        while( !nD.IsAtEnd() )
       {
-        F1 = df->ComputeUpdate(nD, globalData)*maskprob;
-        if (totalUpdateInvField)
-    {
-      F2 = df->ComputeUpdateInv(nD, globalData)*maskprob;
-    }
-        ++nD;
-        ++nU;
-      }
-    else
-      {
-        ++nD;
-        ++nU;
-      }
+        typename ImageType::IndexType index=nD.GetIndex();
+        bool oktosample=true;
+        TReal maskprob=1.0;
+        if (mask)
+          {
+            maskprob=mask->GetPixel( nD.GetIndex() );
+            if (maskprob > 1.0) maskprob=1.0;
+            if ( maskprob < 0.1) oktosample=false;
+          }
+        VectorType F1;
+        F1.Fill(0);
+        VectorType F2;
+        F2.Fill(0);
+        if ( oktosample )
+          {
+            F1 = df->ComputeUpdate(nD, globalData)*maskprob;
+            if (totalUpdateInvField)
+          {
+            F2 = df->ComputeUpdateInv(nD, globalData)*maskprob;
+          }
+            ++nD;
+            ++nU;
+          }
+        else
+          {
+            ++nD;
+            ++nU;
+          }
 
-    // compute mags of F1 and F2 -- if large enough, reset them
-    TReal f1mag=0,f2mag=0,umag=0;
-    for (unsigned int dim=0; dim<ImageDimension; dim++)
-      {
-        f1mag+=F1[dim]/spacing[dim]*F1[dim]/spacing[dim];
-        f2mag+=F2[dim]/spacing[dim]*F2[dim]/spacing[dim];
-        umag+=updateField->GetPixel(index)[dim]/spacing[dim]*updateField->GetPixel(index)[dim]/spacing[dim];
+        // compute mags of F1 and F2 -- if large enough, reset them
+        TReal f1mag=0,f2mag=0,umag=0;
+        for (unsigned int dim=0; dim<ImageDimension; dim++)
+          {
+            f1mag+=F1[dim]/spacing[dim]*F1[dim]/spacing[dim];
+            f2mag+=F2[dim]/spacing[dim]*F2[dim]/spacing[dim];
+            umag+=updateField->GetPixel(index)[dim]/spacing[dim]*updateField->GetPixel(index)[dim]/spacing[dim];
+          }
+        f1mag=sqrt(f1mag); f2mag=sqrt(f2mag); umag=sqrt(umag);
+        if ( f1mag > 0.05 ) updateField->SetPixel(index,F1);
+        if ( f2mag > 0.05 ) updateFieldInv->SetPixel(index,F2);
+        tmag+=umag;
       }
-    f1mag=sqrt(f1mag); f2mag=sqrt(f2mag); umag=sqrt(umag);
-    if ( f1mag > 0.05 ) updateField->SetPixel(index,F1);
-    if ( f2mag > 0.05 ) updateFieldInv->SetPixel(index,F2);
-    tmag+=umag;
+        //           std::cout << " total mag " << tmag << std::endl;
+      }
+    //smooth the total field
+    this->SmoothDisplacementField(updateField,true);
+    if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
   }
-      //	       std::cout << " total mag " << tmag << std::endl;
-    }
-  //smooth the total field
-  this->SmoothDisplacementField(updateField,true);
-  if (updateFieldInv) this->SmoothDisplacementField(updateFieldInv,true);
-}
 
     */
     // normalize update field then add to total field
@@ -1482,18 +1482,18 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       /*            RealType weight = this->m_SimilarityMetrics[metricCount]->GetWeightImage()->GetPixel( diter.GetIndex() );
       if (ispointsetmetric )
         {
-    VectorType intensityupdate=dIter.Get();
-    VectorType lmupdate=vec;
-    TReal lmag=0;
-    for (unsigned int li=0; li<ImageDimension; li++) lmag+=(lmupdate[li]/spacing[li])*(lmupdate[li]/spacing[li]);
-    lmag=sqrt(lmag);
-    TReal modi=1;
-    if (lmag > 1) modi=0;
-    else modi=1.0-lmag;
-    TReal iwt=1*modi;
-    TReal lmwt=normalizedWeight;
-    VectorType totalv=intensityupdate*iwt+lmupdate*lmwt;
-    dIter.Set(totalv);
+      VectorType intensityupdate=dIter.Get();
+      VectorType lmupdate=vec;
+      TReal lmag=0;
+      for (unsigned int li=0; li<ImageDimension; li++) lmag+=(lmupdate[li]/spacing[li])*(lmupdate[li]/spacing[li]);
+      lmag=sqrt(lmag);
+      TReal modi=1;
+      if (lmag > 1) modi=0;
+      else modi=1.0-lmag;
+      TReal iwt=1*modi;
+      TReal lmwt=normalizedWeight;
+      VectorType totalv=intensityupdate*iwt+lmupdate*lmwt;
+      dIter.Set(totalv);
         }
         else */
       dIter.Set(dIter.Get() + vec * normalizedWeight);
@@ -1558,21 +1558,21 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 //            RealType weight = this->m_SimilarityMetrics[metricCount]->GetWeightImage()->GetPixel( diter.GetIndex() );
         /*
         if (ispointsetmetric )
-    {
-VectorType intensityupdate=dIter.Get();
-VectorType lmupdate=vec;
-TReal lmag=0;
-for (unsigned int li=0; li<ImageDimension; li++) lmag+=(lmupdate[li]/spacing[li])*(lmupdate[li]/spacing[li]);
-lmag=sqrt(lmag);
-TReal modi=1;
-if (lmag > 1) modi=0;
-else modi=1.0-lmag;
-TReal iwt=1*modi;
-TReal lmwt=normalizedWeight;
-VectorType totalv=intensityupdate*iwt+lmupdate*lmwt;
-dIter.Set(totalv);
-    }
-    else */
+      {
+    VectorType intensityupdate=dIter.Get();
+    VectorType lmupdate=vec;
+    TReal lmag=0;
+    for (unsigned int li=0; li<ImageDimension; li++) lmag+=(lmupdate[li]/spacing[li])*(lmupdate[li]/spacing[li]);
+    lmag=sqrt(lmag);
+    TReal modi=1;
+    if (lmag > 1) modi=0;
+    else modi=1.0-lmag;
+    TReal iwt=1*modi;
+    TReal lmwt=normalizedWeight;
+    VectorType totalv=intensityupdate*iwt+lmupdate*lmwt;
+    dIter.Set(totalv);
+      }
+      else */
         dIter.Set(dIter.Get() + vec * normalizedWeight);
         }
       }
@@ -1601,8 +1601,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   //  DiffDem cannot reconstruct the path between images without recomputing the registration.
   // DiffDem also cannot create an inverse mapping.
   /** FIXME really should pass an image list and then warp each one in
-  turn  then expand the update field to fit size of total
-  deformation */
+    turn  then expand the update field to fit size of total
+    deformation */
   typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
   VectorType zero;
   zero.Fill(0);
@@ -1647,7 +1647,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
     DisplacementFieldPointer updateField = this->ComputeUpdateField( diffmap, NULL, fpoints, wmpoints);
-    //	updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
+    //    updateField = this->IntegrateConstantVelocity( updateField, nts, timestep);
     TReal maxl = this->MeasureDeformation(updateField);
     if( maxl <= 0 )
       {
@@ -1660,14 +1660,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       dIter.Set( dIter.Get() * this->m_GradstepAltered / maxl);
       }
     this->ComposeDiffs(updateField, totalField, totalField, 1);
-    /*	TReal maxl= this->MeasureDeformation(updateField);
-  if (maxl <= 0) maxl=1;
-  typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
-  Iterator dIter(updateField,updateField->GetLargestPossibleRegion() );
-  for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter ) {
-    dIter.Set( dIter.Get()*this->m_GradstepAltered/this->m_NTimeSteps );
-    totalField->SetPixel(dIter.GetIndex(), dIter.Get() +  totalField->GetPixel(dIter.GetIndex()) );
-  } */
+    /*    TReal maxl= this->MeasureDeformation(updateField);
+    if (maxl <= 0) maxl=1;
+    typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
+    Iterator dIter(updateField,updateField->GetLargestPossibleRegion() );
+    for( dIter.GoToBegin(); !dIter.IsAtEnd(); ++dIter ) {
+      dIter.Set( dIter.Get()*this->m_GradstepAltered/this->m_NTimeSteps );
+      totalField->SetPixel(dIter.GetIndex(), dIter.Get() +  totalField->GetPixel(dIter.GetIndex()) );
+        } */
     }
   this->SmoothDisplacementField(totalField, false);
 
@@ -1711,7 +1711,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->ComposeDiffs(updateField, totalField, totalField, 1);
   //    maxl= this->MeasureDeformation(totalField);
   //    std::cout << " maxl " << maxl << " gsa " << this->m_GradstepAltered   << std::endl;
-  //	totalField=this->CopyDisplacementField(totalUpdateField);
+  //    totalField=this->CopyDisplacementField(totalUpdateField);
   this->SmoothDisplacementField(totalField, false);
 
   return;
@@ -2001,7 +2001,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       for( unsigned int j = 0; j < ImageDimension + 1; j++ )
         {
-//	if (i == j) iddir[i][j]=1;
+//    if (i == j) iddir[i][j]=1;
         if( i < ImageDimension && j < ImageDimension )
           {
           iddir[i][j] = this->GetDisplacementField()->GetDirection()[i][j];
@@ -2282,7 +2282,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     for( unsigned int j = 0; j < ImageDimension + 1; j++ )
       {
-//	if (i == j) iddir[i][j]=1;
+//    if (i == j) iddir[i][j]=1;
       if( i < ImageDimension && j < ImageDimension )
         {
         iddir[i][j] = this->GetDisplacementField()->GetDirection()[i][j];
@@ -2476,7 +2476,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       {
       alpha = 1;
       }
-    //		std::cout <<" beta " << beta << " alpha " << alpha << " it " << this->m_CurrentIteration << std::endl;
+    //        std::cout <<" beta " << beta << " alpha " << alpha << " it " << this->m_CurrentIteration << std::endl;
     VectorType newupd = (vec1);
     if( this->m_CurrentIteration  > 2 )
       {
@@ -2484,8 +2484,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
     VectorType newsoln = m_FieldIter.Get() + this->m_GradstepAltered * newupd;
     m_FieldIter.Set( newsoln );
-    //	VectorType vec2u=vec2 - alpha*A*upd;
-    //	this->m_LastTimeVaryingVelocity->SetPixel(m_FieldIter.GetIndex(), vec1 );
+    //    VectorType vec2u=vec2 - alpha*A*upd;
+    //    this->m_LastTimeVaryingVelocity->SetPixel(m_FieldIter.GetIndex(), vec1 );
     this->m_LastTimeVaryingUpdate->SetPixel(m_FieldIter.GetIndex(), newupd);
     TReal      mag = 0;
     VectorType vv = m_FieldIter.Get();
@@ -2743,9 +2743,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     // std::cout <<" inside? " << bisinside  << std::endl;
     if( bisinside )
       {
-//	  std::cout <<  "integrate " << std::endl;
+//      std::cout <<  "integrate " << std::endl;
       VectorType disp = this->IntegratePointVelocity(starttimein, finishtimein, velind);
-//	  std::cout <<  "put inside " << std::endl;
+//      std::cout <<  "put inside " << std::endl;
       intfield->SetPixel(velind, disp);
       }
     }

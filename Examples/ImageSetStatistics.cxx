@@ -315,16 +315,16 @@ GetClusterStat(typename TImage::Pointer image, float Tthreshold, unsigned int mi
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
       if (relabel->GetOutput()->GetPixel(vfIter.GetIndex()) > 0 )
-  {
-    float pix = relabel->GetOutput()->GetPixel(vfIter.GetIndex());
-    float val;
-    if (whichstat == 0) val=pix;
-    else if (whichstat == 1) val = labstat->GetSum(pix);
-    else if (whichstat == 2) val = labstat->GetMean(pix);
-    else if (whichstat == 3) val = labstat->GetMaximum(pix);
-    if (val > maximum) maximum=val;
-    vfIter.Set(val);
-  }
+    {
+      float pix = relabel->GetOutput()->GetPixel(vfIter.GetIndex());
+      float val;
+      if (whichstat == 0) val=pix;
+      else if (whichstat == 1) val = labstat->GetSum(pix);
+      else if (whichstat == 2) val = labstat->GetMean(pix);
+      else if (whichstat == 3) val = labstat->GetMaximum(pix);
+      if (val > maximum) maximum=val;
+      vfIter.Set(val);
+    }
     }
   */
   float                     maximum = relabel->GetNumberOfObjects();
@@ -436,7 +436,7 @@ float median(std::vector<float> vec)
     {
     return 0;
     }
-  //			throw domain_error("median of an empty vector");
+  //            throw domain_error("median of an empty vector");
 
   sort(vec.begin(), vec.end() );
 
@@ -456,7 +456,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
     {
     return 0;
     }
-  //			throw domain_error("median of an empty vector");
+  //            throw domain_error("median of an empty vector");
 
   float mean = 0, var = 0;
   float max = -1.e9, min = 1.e9;
@@ -486,16 +486,16 @@ float npdf(std::vector<float> vec, bool opt,  float www)
     {
     return mean;
     }
-  //	else std::cout << " Mean " << mean << " var " << var << std::endl;
+  //    else std::cout << " Mean " << mean << " var " << var << std::endl;
 
   // eval parzen probability
   std::vector<float> prob(size);
   float              maxprob = 0;
-//		float maxprobval=0;
+//        float maxprobval=0;
   float        weightedmean = 0;
   float        weighttotal = 0;
   unsigned int maxprobind = 0;
-//		float sample=0.0;
+//        float sample=0.0;
   float width;
   if( www > 0 )
     {
@@ -505,8 +505,8 @@ float npdf(std::vector<float> vec, bool opt,  float www)
     {
     width = sqrt(var) / 2.0;
     }
-  //		std::cout << " using width " << width << std::endl;
-//		float N=(float)size;
+  //        std::cout << " using width " << width << std::endl;
+//        float N=(float)size;
   for( unsigned int j = 0; j < size; j++ )
     {
     float sample = vec[j];
@@ -517,7 +517,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
       delt *= delt;
       prob[i] = 1.0 / (2.0 * 3.1214 * width) * exp(-0.5 * delt / (width * width) );
       total += prob[i];
-      //		    maxprobval+=prob[i]
+      //            maxprobval+=prob[i]
       }
     if( total > maxprob )
       {
@@ -526,7 +526,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
 
     weightedmean += sample * total;
     weighttotal += total;
-    //		for (unsigned int i=0; i<size; i++) prob[i]=prob[i]/total;
+    //        for (unsigned int i=0; i<size; i++) prob[i]=prob[i]/total;
     }
 
   weightedmean /= weighttotal;
@@ -538,7 +538,7 @@ float npdf(std::vector<float> vec, bool opt,  float www)
     }
   else
     {
-    return weightedmean;     // vec[maxprobind];
+    return weightedmean;         // vec[maxprobind];
     }
 }
 
@@ -551,7 +551,7 @@ float trimmean(std::vector<float> vec)
     {
     return 0;
     }
-  //			throw domain_error("median of an empty vector");
+  //            throw domain_error("median of an empty vector");
 
   sort(vec.begin(), vec.end() );
 
@@ -621,10 +621,10 @@ float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> s
       {
       maxsim = simval; max = i;
       }
-    //		    std::cout << " simval " << simval << " i " << i << " appval " << appval << " maxsim " << maxsim << " max "
-    // << max << std::endl;
+    //            std::cout << " simval " << simval << " i " << i << " appval " << appval << " maxsim " << maxsim << "
+    // max " << max << std::endl;
     }
-  //		std::cout <<"  estapp " << estapp << " max " << max << std::endl;
+  //        std::cout <<"  estapp " << estapp << " max " << max << std::endl;
   // return estapp;
   if( opt == true )
     {
@@ -715,7 +715,7 @@ int ImageSetStatistics(int argc, char *argv[])
 
       if( sscanf( lineBuffer, "%s ", filenm) != 1 )
         {
-        //	  std::cout << "Done.  read " << lineBuffer << " n " << ct1 << " files " << std::endl;
+        //      std::cout << "Done.  read " << lineBuffer << " n " << ct1 << " files " << std::endl;
         // std::cout << std::endl;
         continue;
         }
@@ -744,7 +744,7 @@ int ImageSetStatistics(int argc, char *argv[])
 
       if( sscanf( lineBuffer, "%s ", filenm) != 1 )
         {
-        //	  std::cout << "Done.  read " << lineBuffer << " n " << ct1 << " files " << std::endl;
+        //      std::cout << "Done.  read " << lineBuffer << " n " << ct1 << " files " << std::endl;
         // std::cout << std::endl;
         continue;
         }
@@ -785,7 +785,7 @@ int ImageSetStatistics(int argc, char *argv[])
 
     if( sscanf( lineBuffer, "%s ", filenm) != 1 )
       {
-      //	  std::cout << "Done.  read " << lineBuffer << " n " << ct1 << " files " << std::endl;
+      //      std::cout << "Done.  read " << lineBuffer << " n " << ct1 << " files " << std::endl;
       // std::cout << std::endl;
       continue;
       }

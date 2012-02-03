@@ -52,7 +52,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
     /*
     m_GraphIndex = GraphIterator.GetIndex();
     //std::cout << " allocating "  << m_GraphIndex << std::endl;
-  ///GraphSearchNode<PixelType,CoordRep,GraphDimension>::Pointer G=
+    ///GraphSearchNode<PixelType,CoordRep,GraphDimension>::Pointer G=
     G=TGraphSearchNode::New();
     G->SetUnVisited();
     G->SetTotalCost(m_MaxCost);
@@ -203,7 +203,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
     if( !GHood.GetPixel(m_EdgeTemplate[i]) ) // std::cout << " OK " << std::endl;
     ///else
       {
-      //	std::cout << " NOT OK  " <<std::endl;
+      //    std::cout << " NOT OK  " <<std::endl;
       GraphNeighborhoodIndexType ind = GHood.GetIndex(m_EdgeTemplate[i]);
       typename TGraphSearchNode::Pointer G = TGraphSearchNode::New();
       G->SetUnVisited();

@@ -795,8 +795,8 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
           {
           double fixedValue = (double)this->finitediffimages[0]->GetPixel( index );
           double movingValue = (double)this->finitediffimages[1]->GetPixel( index );
-//	      double ofixedValue =(double)this->GetFixedImage()->GetPixel( index );
-//	      double omovingValue=(double)this->GetMovingImage()->GetPixel( index );
+//          double ofixedValue =(double)this->GetFixedImage()->GetPixel( index );
+//          double omovingValue=(double)this->GetMovingImage()->GetPixel( index );
 
           sff += fixedValue * fixedValue;
           smm += movingValue * movingValue;
@@ -868,7 +868,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     smm = 1.0;
     }
   gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
-  //	gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
+  //    gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
 
   float Ji = finitediffimages[1]->GetPixel(index);
   float Ii = finitediffimages[0]->GetPixel(index);
@@ -877,7 +877,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   for( int qq = 0; qq < ImageDimension; qq++ )
     {
     deriv[qq]   -= 2.0 * sfm / (sff * smm) * ( Ji - sfm / sff * Ii ) * gradI[qq];
-    //	    derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
+    //        derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
     }
 
   if( sff * smm != 0.0 )

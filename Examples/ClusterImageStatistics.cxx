@@ -231,7 +231,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
         {
         if( histogram[i] >= minSize )
           {
-          //	      outf << " Cluster " << i << " size  " << histogram[i] <<  " average " <<
+          //          outf << " Cluster " << i << " size  " << histogram[i] <<  " average " <<
           // sumofvalues[i]/(float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
           std::cout << " Cluster " << i << " size  " << histogram[i] <<  " average " << sumofvalues[i]
             / (float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
@@ -239,13 +239,13 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
         }
       for( unsigned int i = 0; i <= range; i++ )
         {
-        //	  if ( countinlabel[i] > 0)
+        //      if ( countinlabel[i] > 0)
           {
           if( countinlabel[i] == 0 )
             {
             countinlabel[i] = 1;
             }
-          //	      outf << " Label " << i+min <<   " average " << suminlabel[i]/(float)countinlabel[i] <<  std::endl;
+          //          outf << " Label " << i+min <<   " average " << suminlabel[i]/(float)countinlabel[i] <<  std::endl;
           std::cout << " Label " << i + min <<   " average " << suminlabel[i] / (float)countinlabel[i] <<  std::endl;
           if( i >= 0 && i < range )
             {

@@ -796,7 +796,7 @@ int LaplacianThickness(int argc, char *argv[])
       float sprob = sulci->GetPixel(Iterator.GetIndex() );
       sprob = 1 / (1. + exp(-0.1 * (sprob - 0.5) / dosulc) );
       sulci->SetPixel(Iterator.GetIndex(), sprob );
-//	if (gmprob > 0) std::cout << " gmp " << gmprob << std::endl;
+//    if (gmprob > 0) std::cout << " gmp " << gmprob << std::endl;
       ++Iterator;
       }
 
@@ -932,8 +932,8 @@ int LaplacianThickness(int argc, char *argv[])
         bool   domeasure = false;
         float  gradsign = 1.0;
         bool   printprobability = false;
-//	std::cout << " wmb " << wmb->GetPixel(velind) << " gm " << gm->GetPixel(velind) << std::endl;
-//	if (surf->GetPixel(velind) != 0) printprobability=true;
+//    std::cout << " wmb " << wmb->GetPixel(velind) << " gm " << gm->GetPixel(velind) << std::endl;
+//    if (surf->GetPixel(velind) != 0) printprobability=true;
         if( gm->GetPixel(velind) > 0.25 ) // && wmb->GetPixel(velind) < 1 )
           {
           cter++;
@@ -969,7 +969,7 @@ int LaplacianThickness(int argc, char *argv[])
               gm, priorthickval - len3, smooththick, printprobability, sulci );
           }
         float totalength = len1 + len2;
-//	if (totalength > 5 && totalength <  8) std::cout<< " t1 " << len3+len4 << " t2 " << len1+len2 << std::endl;
+//    if (totalength > 5 && totalength <  8) std::cout<< " t1 " << len3+len4 << " t2 " << len1+len2 << std::endl;
         if( len3 + len4 < totalength )
           {
           totalength = len3 + len4;

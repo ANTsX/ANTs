@@ -210,7 +210,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
       {
       mindist = dist;
       m_SourceNodeNumber = i;
-      //	std::cout << "  label " << label  << " chose " << labels->GetTuple1(i)  << std::endl;
+      //    std::cout << "  label " << label  << " chose " << labels->GetTuple1(i)  << std::endl;
       }
     }
   if( this->FindLoopAroundNode( this->m_SourceNodeNumber ) == 2  )
@@ -527,7 +527,7 @@ unsigned int FEMDiscConformalMap<TSurface, TImage, TDimension>
   unsigned long MAXLIST = 200;
   if( this->m_DiscBoundaryList.size() > MAXLIST )
     {
-    std::cout <<  this->m_RootNode->GetLocation() << std::endl;
+    std::cout <<     this->m_RootNode->GetLocation() << std::endl;
     std::cout << "long list " << MAXLIST << std::endl;
     return 2;
     }
@@ -582,7 +582,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
       parameterization via FEM */
   this->SetDiscBoundaryList( manifoldIntegrator->m_BoundaryList );
   //  this->m_DiscBoundaryList.assign(manifoldIntegrator->m_BoundaryList.begin(),
-  //				  manifoldIntegrator->m_BoundaryList.end());
+  //                  manifoldIntegrator->m_BoundaryList.end());
 
   this->m_HelpFindLoop.clear();
   this->m_HelpFindLoop.resize(gsz, 0);
@@ -651,7 +651,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   lastlooper->SetSurfaceMesh(this->m_SurfaceMesh);
   lastlooper->InitializeGraph3();
   lastlooper->SetMaxCost(1.e9);
-  //	 std::cout << " dcz "<< lastlooper->GetGraphSize() << std::endl;
+  //     std::cout << " dcz "<< lastlooper->GetGraphSize() << std::endl;
   for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
     {
     lastlooper->GetGraphNode(i)->SetTotalCost(vnl_huge_val(lastlooper->GetMaxCost() ) );
@@ -688,10 +688,10 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
         farnode3 = lastlooper->GetGraphNode(i);
         }
       vct++;
-      //	       std::cout << " dist " << t << " vct " << vct << std::endl;
+      //           std::cout << " dist " << t << " vct " << vct << std::endl;
       }
     }
-  //	 exit(1);
+  //     exit(1);
   // finally reuse lastlooper with farnode3 as root ...
   for( int i = 0; i < lastlooper->GetGraphSize(); i++ )
     {
@@ -715,27 +715,27 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   //
   this->m_DiscBoundaryList.clear();
   // add both the above to the list
-  //	 std::cout << " part 1 " << std::endl;
+  //     std::cout << " part 1 " << std::endl;
   for( unsigned int i = 0; i < discParameterizer->GetPathSize(); i++ )
     {
     unsigned int id = discParameterizer->GetPathAtIndex(i)->GetIdentity();
     //  std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
-  //	 std::cout << " part 2 " << std::endl;
+  //     std::cout << " part 2 " << std::endl;
   lastlooper->BackTrack( lastlooper->GetGraphNode( farnode1->GetIdentity() ) );
   for( unsigned int i = 0; i < lastlooper->GetPathSize(); i++ )
     {
     unsigned int id = lastlooper->GetPathAtIndex(i)->GetIdentity();
-    //	     std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    //         std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
 
-  //	 std::cout << farnode1->GetLocation() << std::endl;
+  //     std::cout << farnode1->GetLocation() << std::endl;
   // std::cout << farnode2->GetLocation() << std::endl;
-  //	 std::cout << farnode3->GetLocation() << std::endl;
-  //	 std::cout << " another idea --- get two points far apart  then solve a minimization problem across the graph that
-  // gives the average value in 0 => 1 ... " << std::endl;
+  //     std::cout << farnode3->GetLocation() << std::endl;
+  //     std::cout << " another idea --- get two points far apart  then solve a minimization problem across the graph
+  // that gives the average value in 0 => 1 ... " << std::endl;
   // std::cout << " path 1 sz " << discParameterizer->GetPathSize() << std::endl;
 
   // finally do but add in reverse order
@@ -745,7 +745,7 @@ unsigned int  FEMDiscConformalMap<TSurface, TImage, TDimension>
   for( unsigned int i = lastlooper->GetPathSize() - 1; i > 0; i-- )
     {
     unsigned int id = lastlooper->GetPathAtIndex(i)->GetIdentity();
-    //	     std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
+    //         std::cout << manifoldIntegrator->GetGraphNode(id)->GetLocation() << std::endl;
     this->m_DiscBoundaryList.push_back( manifoldIntegrator->GetGraphNode(id) );
     }
   std::cout << " Almost ... " << std::endl;
@@ -793,7 +793,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
             inb = 1;
             }
           } // neighborhood
-        if( inb > 0 ) //	  std::cout <<  " Node is in boundary " << std::endl;
+        if( inb > 0 ) //      std::cout <<  " Node is in boundary " << std::endl;
           {
           inb = 0;
           for( unsigned int i = 0; i < manifoldIntegrator->GetGraphNode(j)->m_NumberOfNeighbors; i++ )
@@ -846,11 +846,11 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
           for( unsigned int n = 0; n < this->m_DiscBoundaryList[rootind]->m_NumberOfNeighbors; n++ )
             {
             if(  this->m_DiscBoundaryList[myi] == this->m_DiscBoundaryList[rootind]->m_Neighbors[n] &&
-                 !alreadyfound[myi] )                                                                                    //
-                                                                                                                         // its
-                                                                                                                         // in
-                                                                                                                         // the
-                                                                                                                         // bndry
+                 !alreadyfound[myi] )                                                                                        //
+                                                                                                                             // its
+                                                                                                                             // in
+                                                                                                                             // the
+                                                                                                                             // bndry
               { // check that it's not an isolated bastard
               bool oknode = true;
               if( oknode )
@@ -1006,7 +1006,7 @@ bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
     {
     //  if ( i % rate == 0 && i > rate ) std::cout << "  " <<  (float) i / (float) toti << " ";
     // turn the cell into an element
-    //	  std::cout << " points ids a " << pts[0] << " b " << pts[1] << " c " << pts[2] << std::endl;
+    //      std::cout << " points ids a " << pts[0] << " b " << pts[1] << " c " << pts[2] << std::endl;
     bool                 eltok = true;
     ElementType::Pointer e;
     e = dynamic_cast<ElementType *>(e1->Clone() );
@@ -1015,7 +1015,7 @@ bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
       {
       e->SetNode(2, narr[pts[0]]);
       }
-    //		  e->SetNode(2,m_Solver.node.Find( pts[0] ));
+    //          e->SetNode(2,m_Solver.node.Find( pts[0] ));
     else
       {
       eltok = false;
@@ -1025,7 +1025,7 @@ bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
       {
       e->SetNode(1, narr[pts[1]]);
       }
-    //		  e->SetNode(1,m_Solver.node.Find( pts[1] ));
+    //          e->SetNode(1,m_Solver.node.Find( pts[1] ));
     else
       {
       eltok = false;
@@ -1035,7 +1035,7 @@ bool  FEMDiscConformalMap<TSurface, TImage, TDimension>
       {
       e->SetNode(0, narr[pts[2]]);
       }
-    //		  e->SetNode(0,m_Solver.node.Find( pts[2] ));
+    //          e->SetNode(0,m_Solver.node.Find( pts[2] ));
     else
       {
       eltok = false;
@@ -1092,35 +1092,35 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
           {
           fixvalue = this->GetBoundaryParameterForSquare(nodeid, option);
           }
-        l1->m_value = vnl_vector<double>(1, fixvalue);   // for direct rad
+        l1->m_value = vnl_vector<double>(1, fixvalue);  // for direct rad
         m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*l1) );
         /*
-      itk::fem::LoadNode::Pointer ln1=itk::fem::LoadNode::New();
-      ln1->m_pt=0;
-      ln1->F.set_size(1);
-      ln1->F.fill(fixvalue);
-      ln1->m_element=(*elt);
-      m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*ln1) );
+    itk::fem::LoadNode::Pointer ln1=itk::fem::LoadNode::New();
+    ln1->m_pt=0;
+    ln1->F.set_size(1);
+    ln1->F.fill(fixvalue);
+    ln1->m_element=(*elt);
+    m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*ln1) );
 
-      itk::fem::LoadNode::Pointer ln2=itk::fem::LoadNode::New();
-      ln2->m_pt=1;
-      ln2->F.set_size(1);
-      ln2->F.fill(fixvalue);
-      ln2->m_element=(*elt);
-      m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*ln2) );
+    itk::fem::LoadNode::Pointer ln2=itk::fem::LoadNode::New();
+    ln2->m_pt=1;
+    ln2->F.set_size(1);
+    ln2->F.fill(fixvalue);
+    ln2->m_element=(*elt);
+    m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*ln2) );
 
-      itk::fem::LoadNode::Pointer ln3=itk::fem::LoadNode::New();
-      ln3->m_pt=2;
-      ln3->F.set_size(1);
-      ln3->F.fill(fixvalue);
-      ln3->m_element=(*elt);
-      m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*ln3) );
+    itk::fem::LoadNode::Pointer ln3=itk::fem::LoadNode::New();
+    ln3->m_pt=2;
+    ln3->F.set_size(1);
+    ln3->F.fill(fixvalue);
+    ln3->m_element=(*elt);
+    m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*ln3) );
         */
         if( i == 0 )
           {
           fixct++;
           }
-        //	      std::cout << " bord coord "<< manifoldIntegrator->GetGraphNode(nodeid)->GetLocation() << std::endl;
+        //          std::cout << " bord coord "<< manifoldIntegrator->GetGraphNode(nodeid)->GetLocation() << std::endl;
         }
       }
     elt++;
@@ -1215,7 +1215,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::MakeFlatImage()
     for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
       {
       float temp = 255.0 - manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(3); // curvature
-      //	  float temp=255.0*manifoldIntegrator->GetGraphNode((*n)->GN)->GetValue(2); // extrinsic dist
+      //      float temp=255.0*manifoldIntegrator->GetGraphNode((*n)->GN)->GetValue(2); // extrinsic dist
       index[0] =
         (long int)(0.5 + ( 1.0 + manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(0) ) * (float)(sz - 1) / 2.);
       index[1] =
@@ -1244,7 +1244,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::MakeFlatImage()
         float x = (float)index[0] - (float)sz / 2.0;
         float y = (float)index[1] - (float)sz / 2.0;
         float dist = sqrt(x * x + y * y);
-        //	    std::cout << "center " << center <<  " index " << index << "dist " << dist ;
+        //        std::cout << "center " << center <<  " index " << index << "dist " << dist ;
         if( dist > center )
           {
           it.Set( 0.0 );
@@ -1480,7 +1480,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
          d++ )
       {
       m_RealSolution[dof] = m_Solver.GetSolution(dof);
-      //	  if ( ct % 10 == 0) std::cout << " mrdof " <<  m_RealSolution[dof]  << " dof " << dof << std::endl;
+      //      if ( ct % 10 == 0) std::cout << " mrdof " <<  m_RealSolution[dof]  << " dof " << dof << std::endl;
       }
     ct++;
     }
@@ -1507,7 +1507,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
          d++ )
       {
       m_ImagSolution[dof] = m_Solver.GetSolution(dof);
-      //	  if (ct % 10 == 0) std::cout << " midof " <<  m_ImagSolution[dof]  <<  " dof " << dof << std::endl;
+      //      if (ct % 10 == 0) std::cout << " midof " <<  m_ImagSolution[dof]  <<  " dof " << dof << std::endl;
       }
     ct++;
     }
@@ -1609,11 +1609,11 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
     unsigned long dof = (*n)->GetDegreeOfFreedom(0);
     if( dof < m_RealSolution.size() )
       {
-//		std::cout << " dof " << dof << std::endl;
+//        std::cout << " dof " << dof << std::endl;
       float U = m_RealSolution[dof];
-//		std::cout << " U " << U << std::endl;
+//        std::cout << " U " << U << std::endl;
       float V = m_ImagSolution[dof];
-//		std::cout << " V " << V << " ngn " << (*n)->GN << std::endl;
+//        std::cout << " V " << V << " ngn " << (*n)->GN << std::endl;
       manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(U, 0);
       manifoldIntegrator->GetGraphNode( (*n)->GN )->SetValue(V, 1);
       //     if (ct % 100 == 0) std::cout << " U "   << U<< " V " << V <<  std::endl;
@@ -1641,7 +1641,7 @@ for ( unsigned int j = 0 ; j < this->m_DiscBoundaryList.size(); j ++ )
     pt1[0]=loc[0];
     pt1[1]=loc[1];
     pt1[2]=loc[2];
-    //	    unsigned int idx=this->m_DiscBoundaryList[j]->GetIdentity();
+    //        unsigned int idx=this->m_DiscBoundaryList[j]->GetIdentity();
     points->SetPoint(idx,pt);
     idx++;
   }
@@ -1657,7 +1657,7 @@ clipMapper->SetInput(clip->GetOutput());
 vtkActor *clipActor = vtkActor::New();
 clipActor->SetMapper(clipMapper);
 clipActor->AddPosition(1, 0, 0);
-//	clipActor->GetProperty()->SetColor(0, 0, 1); //Set colour blue
+//    clipActor->GetProperty()->SetColor(0, 0, 1); //Set colour blue
 
 
 vtkRenderer *ren1 = vtkRenderer::New();

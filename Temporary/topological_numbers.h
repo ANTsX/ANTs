@@ -51,8 +51,8 @@ int connectivityNumber(int connectivity)
   switch( connectivity )
     {
     case 1:   /*for the connectivity 1 [=(6+,18)], the topological
-    neighborhood of a point x is defined by {x /
-    ||a-x||1<=1 } -> the 6 neighborhood! */
+        neighborhood of a point x is defined by {x /
+        ||a-x||1<=1 } -> the 6 neighborhood! */
       con = 1;
       break;
     case 2:  /*the 18-neighborhood*/

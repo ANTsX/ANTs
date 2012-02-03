@@ -85,7 +85,7 @@ public:
   void InitializeGraph2();  /** initializes all graph values appropriately */
 
   void InitializeQueue();  /** initializes all queue values appropriately
-                call AFTER source and sink are set*/
+                                call AFTER source and sink are set*/
 
   inline void EmptyQ()
   {
@@ -128,7 +128,7 @@ public:
 
     while( P && G != P )
       {
-//		std::cout << " Backtrack " << G->GetValue(0) << std::endl;
+//        std::cout << " Backtrack " << G->GetValue(0) << std::endl;
       G = P;
       P = G->GetPredecessor();
       //    if (P->GetValue(1) < G->GetValue(1) ) P->SetValue(G->GetValue(1),1);
@@ -158,7 +158,7 @@ public:
     G->SetTotalCost(intval);
     while( P && G != P )
       {
-//		NodeLocationType dif=P->GetLocation()-G->GetLocation();
+//        NodeLocationType dif=P->GetLocation()-G->GetLocation();
       float dU = (P->GetValue() - G->GetValue() );
       intval += dU;
       P->SetTotalCost(intval);
@@ -166,7 +166,7 @@ public:
       P = G->GetPredecessor();
       }
 
-//	std::cout << " intval " << intval << " at " << G->GetLocation() << std::endl;
+//    std::cout << " intval " << intval << " at " << G->GetLocation() << std::endl;
     if( !P )
       {
       cout << " null pred ";       // else cout << " pred == self \n";
@@ -184,7 +184,7 @@ public:
     G->SetTotalCost(intval);
     while( P && G != P )
       {
-//		NodeLocationType dif=P->GetLocation()-G->GetLocation();
+//        NodeLocationType dif=P->GetLocation()-G->GetLocation();
       float dU = (P->GetValue() - G->GetValue() );
       intval += dU;
       P->SetTotalCost(intval);
@@ -192,7 +192,7 @@ public:
       P = G->GetAncestor();
       }
 
-//	std::cout << " intval " << intval << " at " << G->GetLocation() << std::endl;
+//    std::cout << " intval " << intval << " at " << G->GetLocation() << std::endl;
     if( !P )
       {
       cout << " null pred ";       // else cout << " pred == self \n";

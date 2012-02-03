@@ -987,7 +987,7 @@ int main(int argc, char * *argv)
     std::cout <<  " \n " << std::endl;
     std::cout <<  "Usage: \n " << std::endl;
 
-    //	std::cout << argv[0] <<  " ImageDimension moving_image output_image [-R reference_image |
+    //    std::cout << argv[0] <<  " ImageDimension moving_image output_image [-R reference_image |
     // --tightest-bounding-box] (--reslice-by-header) [--use-NN]"
     // << "[--ANTS-prefix prefix-name | --ANTS-prefix-invert prefix-name] {[deformation_field | [-i]
     // InverseAffineTransform.txt | --Id | [-i] --moving-image-header / -mh  | [-i] --reference-image-header / -rh]} \n"
@@ -1042,14 +1042,14 @@ int main(int argc, char * *argv)
     std::cout << " -R: reference_image space that you wish to warp INTO." << std::endl;
     std::cout
       <<
-    "	   --tightest-bounding-box: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R reference_image if given."
+    "       --tightest-bounding-box: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R reference_image if given."
       << std::endl;
     std::cout
       <<
-    "	   --reslice-by-header: equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
+    "       --reslice-by-header: equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
       << std::endl;
     std::cout
-      << "	   It can be used together with -R. This is typically not used together with any other transforms.\n "
+      << "       It can be used together with -R. This is typically not used together with any other transforms.\n "
       << std::endl;
 
     std::cout << " --use-NN: Use Nearest Neighbor Interpolation. \n " << std::endl;
@@ -1064,19 +1064,19 @@ int main(int argc, char * *argv)
       << std::endl;
     std::cout << "                 Examples:  --use-ML 0.4mm    -use-ML 0.8x0.8x0.8vox    " << std::endl;
 
-    //	std::cout << " --ANTS-prefix prefix-name: followed by a deformation field filename. \n " << std::endl;
+    //    std::cout << " --ANTS-prefix prefix-name: followed by a deformation field filename. \n " << std::endl;
 
-    //	std::cout << " --ANTS-prefix-invert: . \n" << std::endl;
+    //    std::cout << " --ANTS-prefix-invert: . \n" << std::endl;
 
     std::cout << " -i: will use the inversion of the following affine transform. \n " << std::endl;
 
-    //	std::cout << " --Id: use an identity transform. \n " << std::endl;
+    //    std::cout << " --Id: use an identity transform. \n " << std::endl;
 
     // std::cout << " --moving-image-header or -mh: will use the orientation header of the moving image file. This is
     // typically not used with --reslice-by-header.\n " << std::endl;
 
-    //	std::cout << " --reference-image-header or -rh: use the orientation matrix and origin encoded in the image file
-    // header. It can be used together with -R.\n " << std::endl;
+    //    std::cout << " --reference-image-header or -rh: use the orientation matrix and origin encoded in the image
+    // file header. It can be used together with -R.\n " << std::endl;
     std::cout <<  " \n " << std::endl;
 
     //        std::cout << " For ANTS users:" << std::endl;
@@ -1178,7 +1178,7 @@ int main(int argc, char * *argv)
         std::cerr << " not supported " << kImageDim  << std::endl;
         exit( EXIT_FAILURE );
       }
-    //	  WarpImageMultiTransform<2,2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+    //      WarpImageMultiTransform<2,2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
     }
   else
     {

@@ -1459,17 +1459,17 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 //              priorProbability =
 //                distancePriorProbabilityImage->GetPixel( ItW.GetIndex() );
 //              }
-//	           if( this->GetPriorLabelImage() )
+//               if( this->GetPriorLabelImage() )
 //              {
 //              if( priorProbability == 0.0 )
 //                {
 //                priorProbability = 1.0 / static_cast<RealType>(
 //                  this->m_NumberOfTissueClasses );
 //                }
-//	             else
-//	               {
-//	               priorProbability = 1.0;
-//	               }
+//                 else
+//                   {
+//                   priorProbability = 1.0;
+//                   }
 //              }
 //            }
 //          else
@@ -1528,8 +1528,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 //                }
 //              else
 //                {
-//                 priorProbability = 1.0;
-//                 }
+//                   priorProbability = 1.0;
+//                   }
 //              }
 //            }
 //          else

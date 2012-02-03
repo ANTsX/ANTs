@@ -552,7 +552,7 @@ protected:
     eMatrix m_out(m.rows(),m.cols());
     for ( long i=0; i<m.rows(); ++i)
       for ( long j=0; j<m.cols(); ++j)
-  m_out(i,j)=m(i,j);
+    m_out(i,j)=m(i,j);
     return m_out;
    }
   */

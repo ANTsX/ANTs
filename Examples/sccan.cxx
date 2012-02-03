@@ -123,7 +123,7 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
         std::cout << " this is likely a mask problem --- exiting! " << std::endl;
         exit(1);
         }
-      //	    std::cout << " val " << val << std::endl;
+      //        std::cout << " val " << val << std::endl;
       weights->SetPixel(mIter.GetIndex(), val);
       vecind++;
       }
@@ -1496,15 +1496,15 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
                vVector w_p_perm=sccanobjPerm->GetVariateP(0);
                vVector w_q_perm=sccanobjPerm->GetVariateQ(0);
                for (unsigned long j=0; j<p.cols(); j++)
-           if ( w_p_perm(j) > sccanobjCovar->GetVariateP(0)(j))
-             {
-               w_p_signif_ct(j)=w_p_signif_ct(j)++;
-             }
+             if ( w_p_perm(j) > sccanobjCovar->GetVariateP(0)(j))
+               {
+                 w_p_signif_ct(j)=w_p_signif_ct(j)++;
+               }
                for (unsigned long j=0; j<q.cols(); j++)
-           if ( w_q_perm(j) >  sccanobjCovar->GetVariateQ(0)(j) )
-             {
-               w_q_signif_ct(j)=w_q_signif_ct(j)++;
-             }
+             if ( w_q_perm(j) >  sccanobjCovar->GetVariateQ(0)(j) )
+               {
+                 w_q_signif_ct(j)=w_q_signif_ct(j)++;
+               }
                // end solve cca permutation
                */
           std::cout << permcorr << " p-value " <<  (double)perm_exceed_ct

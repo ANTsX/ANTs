@@ -192,7 +192,7 @@ public:
           {
           this->m_MetricImage->SetPixel(oindex, cc);
           // if ( fabs(cc) > 0)
-          //	 std::cout << " set cc " << cc << std::endl;
+          //     std::cout << " set cc " << cc << std::endl;
           }
         totalcc += cc;
         }

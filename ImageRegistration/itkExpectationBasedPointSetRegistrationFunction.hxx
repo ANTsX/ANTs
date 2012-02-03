@@ -241,8 +241,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           {
           this->m_FixedPointSet->GetPointData(jj, &movinglabel);
           }
-//	    if (ii == 2 && jj==2) std::cout << "prob " << prob << " sigma " << sigma << "  " << mag << " fl " << fixedlabel
-// << " ml " << movinglabel << std::endl;
+//        if (ii == 2 && jj==2) std::cout << "prob " << prob << " sigma " << sigma << "  " << mag << " fl " <<
+// fixedlabel << " ml " << movinglabel << std::endl;
         if( fixedlabel != movinglabel )
           {
           prob = 0;
@@ -360,13 +360,13 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 //      if (fixedlabel !=4 ) force.Fill(0);
 /*
       if (mag > 50)
-  {
-  float tot=0;
-  for (int k=0; k < sz2; k++) { tot+=sinkhorn(ii,k); }
-  std::cout << "TOT " << tot << std::endl;
-  force.Fill(0);
-  mag=0;
-  }
+    {
+    float tot=0;
+    for (int k=0; k < sz2; k++) { tot+=sinkhorn(ii,k); }
+    std::cout << "TOT " << tot << std::endl;
+    force.Fill(0);
+    mag=0;
+    }
 */
       if( mag > maxerr )
         {
@@ -617,8 +617,8 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 ::FastExpectationLandmarkField(float weight, bool whichdirection, long whichlabel, bool dobspline)
 {
   /**
- * BSpline typedefs
- */
+* BSpline typedefs
+*/
   /** Typedefs for B-spline filter */
 
   unsigned int m_SplineOrder = 3;
@@ -735,7 +735,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
               }
             }
           //
-//	if (ii % 245 && pp > 1.e-3) std::cout << " prob " << pp <<  " mpt " << mpt << " dd " << dd <<" wpt " << wpt << "
+//    if (ii % 245 && pp > 1.e-3) std::cout << " prob " << pp <<  " mpt " << mpt << " dd " << dd <<" wpt " << wpt << "
 // movinpoint " << movingpoint << " ptot " << probtotal <<  std::endl;
           }
         }

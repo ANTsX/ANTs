@@ -458,7 +458,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
           }
         else
           {
-          temp = 0;                                       // round
+          temp = 0;                                         // round
           }
         rindex[f] = temp / spacing[f];
         disp[f] = (Float) 1.0 * Sol[f];
@@ -484,7 +484,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 
       if( inimage )
         {
-        m_Image->SetPixel(rindex,  gridval);          // *100. +110.0);
+        m_Image->SetPixel(rindex,  gridval);            // *100. +110.0);
         }
       }
     } // end of elt array loop

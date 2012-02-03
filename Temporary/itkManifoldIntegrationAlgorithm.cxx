@@ -106,9 +106,9 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
       {
       myLabelSet.push_back( label );
       }
-    //    std::cout << " label " <<    scs->GetTuple1(i) << std::endl;
-    // std::cout << " set3 " <<    scs->GetTuple3(i) << std::endl;
-    // std::cout << " set4 " <<    scs->GetTuple4(i) << std::endl;
+    //    std::cout << " label " <<      scs->GetTuple1(i) << std::endl;
+    // std::cout << " set3 " <<      scs->GetTuple3(i) << std::endl;
+    // std::cout << " set4 " <<      scs->GetTuple4(i) << std::endl;
     for( int j = 0; j < GraphDimension; j++ )
       {
       loc[j] = pt[j];
@@ -142,7 +142,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
   for( int i = 0; i < numPoints; i++ )
     {
     m_GraphX[i]->m_Neighbors.resize(m_GraphX[i]->m_NumberOfNeighbors);
-//	std::cout <<" Num Neigh " << i << " is " << m_GraphX[i]->m_NumberOfNeighbors << std::endl;
+//    std::cout <<" Num Neigh " << i << " is " << m_GraphX[i]->m_NumberOfNeighbors << std::endl;
     m_GraphX[i]->m_NumberOfNeighbors = 0;
     }
   for( vtkcells->InitTraversal(); vtkcells->GetNextCell(npts, pts); )
@@ -270,8 +270,8 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
     // Place the edge into the Edge structure
     assert(nPoints == 2);
     // Place the edge into the Edge structure
-//	std::cout << " nPoints " << nPoints << std::endl;
-//	std::cout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
+//    std::cout << " nPoints " << nPoints << std::endl;
+//    std::cout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
     assert(nPoints == 2);
     m_GraphX[xPoints[0]]->m_NumberOfNeighbors++;
     }
@@ -293,10 +293,10 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
     m_GraphX[xPoints[0]]->m_NumberOfNeighbors++;
     }
 
-//	vtkPolyDataConnectivityFilter* con = vtkPolyDataConnectivityFilter::New();
+//    vtkPolyDataConnectivityFilter* con = vtkPolyDataConnectivityFilter::New();
 //    con->SetExtractionModeToLargestRegion();
 //    con->SetInput(m_EdgePolys);
-//	m_SurfaceMesh=con->GetOutput();
+//    m_SurfaceMesh=con->GetOutput();
   m_SurfaceMesh = m_EdgePolys;
 }
 
@@ -355,8 +355,8 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
     // Get the next edge
     edg1->GetCellPoints(i, nPoints, xPoints);
     // Place the edge into the Edge structure
-//	std::cout << " nPoints " << nPoints << std::endl;
-//	std::cout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
+//    std::cout << " nPoints " << nPoints << std::endl;
+//    std::cout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
     assert(nPoints == 2);
     m_GraphX[xPoints[0]]->m_NumberOfNeighbors++;
     }
@@ -405,16 +405,16 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeQueue()
     G->SetPredecessor(G);
     m_QS->m_Q.push(G);
     loc = G->GetLocation();
-//    for (int d=0;d<GraphDimension;d++) m_GraphIndex[d]=loc[d];
-//	    m_Graph->SetPixel(m_GraphIndex,G);
+//      for (int d=0;d<GraphDimension;d++) m_GraphIndex[d]=loc[d];
+//        m_Graph->SetPixel(m_GraphIndex,G);
     }
   for( unsigned int i = 0; i < m_QS->m_SinkNodes.size(); i++ )
     {
     typename GraphSearchNode<PixelType, CoordRep, GraphDimension>::Pointer G = m_QS->m_SinkNodes[i];
     G->SetPredecessor(NULL);
     loc = G->GetLocation();
-//	  for (int d=0;d<GraphDimension;d++) m_GraphIndex[d]=(long)loc[d];
-//	    m_Graph->SetPixel(m_GraphIndex,G);
+//      for (int d=0;d<GraphDimension;d++) m_GraphIndex[d]=(long)loc[d];
+//        m_Graph->SetPixel(m_GraphIndex,G);
     }
   m_SearchFinished = false;
 }
@@ -455,7 +455,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
         I_Am_A_Neighbor = true;
         canparam = true;
         }
-      if(  neighbor->IsInQueue() && !inb ) // add to border list
+      if(  neighbor->IsInQueue() && !inb )  // add to border list
         {
         neighborlist.push_back(neighbor);
         curNode = neighbor;
@@ -539,8 +539,8 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
   for( i = 0; i < m_CurrentNode->m_NumberOfNeighbors; i++ )
     {
     m_NeighborNode = m_CurrentNode->m_Neighbors[i];
-    //      std::cout << " i " << i << " position " << m_NeighborNode->GetLocation() << endl;
-    //      std::cout << " i " << i << " position " << m_NeighborNode->GetLocation() << " label " <<
+    //        std::cout << " i " << i << " position " << m_NeighborNode->GetLocation() << endl;
+    //        std::cout << " i " << i << " position " << m_NeighborNode->GetLocation() << " label " <<
     // m_CurrentNode->GetValue() << endl;
     TerminationCondition();
     if( !m_SearchFinished && m_CurrentNode != m_NeighborNode &&
@@ -578,8 +578,8 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
 {
   NodeLocationType dif = m_CurrentNode->GetLocation() - m_NeighborNode->GetLocation();
 
-//	std::cout << " visited? " << m_NeighborNode->GetVisited() <<
-//		" old cost " << m_NeighborNode->GetTotalCost() << " new cost " <<m_NewCost << std::endl;
+//    std::cout << " visited? " << m_NeighborNode->GetVisited() <<
+//        " old cost " << m_NeighborNode->GetTotalCost() << " new cost " <<m_NewCost << std::endl;
   if( !m_NeighborNode->GetVisited() && !m_NeighborNode->GetUnVisitable() )
     {
     // set the cost and put into the queue
@@ -603,11 +603,11 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
     //  m_NeighborNode->SetUnVisitable();
     // }
 
-    //	std::cout << " Pushing new node on " << m_NewCost << std::endl;
+    //    std::cout << " Pushing new node on " << m_NewCost << std::endl;
     }
   else if( m_NewCost < m_NeighborNode->GetTotalCost() && !m_NeighborNode->GetUnVisitable()  )
     {
-    //	  std::cout << " Updating " << std::endl;
+    //      std::cout << " Updating " << std::endl;
     float delt = fabs(m_CurrentNode->GetValue() - m_NeighborNode->GetValue() ); // *dif.magnitude();
     m_NeighborNode->SetValue(m_CurrentNode->GetValue() + delt);
     m_NeighborNode->SetTotalCost(m_NewCost);

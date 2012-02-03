@@ -482,17 +482,17 @@ TTensorType TensorLogAndExp( TTensorType dtv, bool takelog , bool success=true)
   MatrixType eigmat(3,3);
   eigmat.fill(0);
       if (takelog)
-  {
-    eigmat(0,0)=log(e1);
-    eigmat(1,1)=log(e2);
-    eigmat(2,2)=log(e3);
-  }
+    {
+      eigmat(0,0)=log(e1);
+      eigmat(1,1)=log(e2);
+      eigmat(2,2)=log(e3);
+    }
       else //take exp
-  {
-    eigmat(0,0)=exp(e1);
-    eigmat(1,1)=exp(e2);
-    eigmat(2,2)=exp(e3);
-  }
+    {
+      eigmat(0,0)=exp(e1);
+      eigmat(1,1)=exp(e2);
+      eigmat(2,2)=exp(e3);
+    }
       //      std::cout << " e1 " << e1 <<  " e2 " << e2 << " e3 " << std::endl;
 
       MatrixType DTrec=eig.V*eigmat*eig.V.transpose();

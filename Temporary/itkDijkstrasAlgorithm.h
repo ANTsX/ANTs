@@ -515,7 +515,7 @@ public:
   void InitializeGraph();  /** initializes all graph values appropriately */
 
   void InitializeQueue();  /** initializes all queue values appropriately
-                call AFTER source and sink are set*/
+                                call AFTER source and sink are set*/
 
   void InitializeEdgeTemplate(); /** helper function initializes edge set appropriately */
 

@@ -653,7 +653,7 @@ InvertField( typename TField::Pointer field,
         {
         difmag = mag;
         }
-      //	  if (mag < 1.e-2) update.Fill(0);
+      //      if (mag < 1.e-2) update.Fill(0);
 
       eulerianInitCond->SetPixel(index, update);
       realImage->SetPixel(index, mag);
@@ -840,7 +840,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typename ImageType::Pointer bsurf = LabelSurface<ImageType>(1, 1, wmgrow, distthresh); // or wmb ?
   typename ImageType::Pointer speedprior = NULL;
   WriteImage<ImageType>(bsurf, "surf.nii.gz");
-  //	typename RealTypeImageType::Pointer distfromboundary =
+  //    typename RealTypeImageType::Pointer distfromboundary =
   //  typename ImageType::Pointer surf=MaurerDistanceMap<ImageType>(0.5,1.e9,bsurf);
   // surf= SmoothImage<ImageType>(surf,3);
   typename ImageType::Pointer finalthickimage = BinaryThreshold<ImageType>(3, 3, 1, segmentationimage); // fixme
@@ -960,7 +960,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
     while( ttiter < numtimepoints )    // N time integration points
       {
-      //	  m_MFR->Compose(incrinvfield,invfield,NULL);
+      //      m_MFR->Compose(incrinvfield,invfield,NULL);
       m_MFR->ComposeDiffs(invfield, incrinvfield, invfield, 1);
 
       if( debug )
@@ -968,8 +968,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         std::cout << " exp " << std::endl;
         }
       // Integrate the negative velocity field to generate diffeomorphism corrfield step 3(a)
-      //	  corrfield=ExpDiffMap<ImageType,DisplacementFieldType>( velofield,  wm, -1, numtimepoints-ttiter);
-      //	  std::cout  << " corrf len " << m_MFR->MeasureDeformation( corrfield ) << std::endl;
+      //      corrfield=ExpDiffMap<ImageType,DisplacementFieldType>( velofield,  wm, -1, numtimepoints-ttiter);
+      //      std::cout  << " corrf len " << m_MFR->MeasureDeformation( corrfield ) << std::endl;
       if( debug )
         {
         std::cout << " gmdef " << std::endl;
@@ -1011,7 +1011,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       while(  !xxIterator.IsAtEnd()  )
         {
         typename ImageType::IndexType speedindex = xxIterator.GetIndex();
-        if( segmentationimage->GetPixel(speedindex) == 2 ) // fixme
+        if( segmentationimage->GetPixel(speedindex) == 2 )  // fixme
           {
           thickprior = origthickprior;
           VectorType wgradval = lapgrad2->GetPixel(speedindex);
@@ -1039,10 +1039,10 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
               }
             }
           totalerr += fabs(surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) );
-//	      RealType thkval=thkdef->GetPixel(speedindex);
-//	      RealType thkval=finalthickimage->GetPixel(speedindex);
-//	      RealType fval=1; //(thickprior-thkval);
-          //	      if ( fval > 0 ) fval=1; else fval=-1;
+//          RealType thkval=thkdef->GetPixel(speedindex);
+//          RealType thkval=finalthickimage->GetPixel(speedindex);
+//          RealType fval=1; //(thickprior-thkval);
+          //          if ( fval > 0 ) fval=1; else fval=-1;
 // speed function here IMPORTANT!!
           RealType dd = (surfdef->GetPixel(speedindex) - gmdef->GetPixel(speedindex) ) * gradstep;
           dd *= gm->GetPixel(speedindex);
@@ -1090,7 +1090,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           }
         }
       /* Now that we have the gradient image, we need to visit each voxel and compute objective function */
-      //	  std::cout << " maxlapgrad2mag " << maxlapgrad2mag << std::endl;
+      //      std::cout << " maxlapgrad2mag " << maxlapgrad2mag << std::endl;
       Iterator.GoToBegin();
       while(  !Iterator.IsAtEnd()  )
         {
@@ -1099,7 +1099,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
         disp = wgradval * speed_image->GetPixel(velind);
         incrfield->SetPixel(velind, incrfield->GetPixel(velind) + disp);
 
-        if( ttiter == 0 ) // make euclidean distance image
+        if( ttiter == 0 )  // make euclidean distance image
           {
           dmag = 0;
           disp = corrfield->GetPixel(velind);
@@ -1125,7 +1125,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
           totalimage->SetPixel(velind, dmag);
           hitimage->SetPixel(velind, bval);
           }
-        else if( segmentationimage->GetPixel(velind) == 2 )   // fixme
+        else if( segmentationimage->GetPixel(velind) == 2 )     // fixme
           {
           RealType thkval = thkdef->GetPixel(velind);
           RealType putval = thindef->GetPixel(velind);
@@ -1170,7 +1170,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
       InvertField<ImageType, DisplacementFieldType>( invfield, corrfield, 1.0, 0.1, 20, true);
       InvertField<ImageType, DisplacementFieldType>( corrfield, invfield, 1.0, 0.1, 20, true);
-      //	  InvertField<ImageType,DisplacementFieldType>( invfield, corrfield, 1.0,0.1,20,true);
+      //      InvertField<ImageType,DisplacementFieldType>( invfield, corrfield, 1.0,0.1,20,true);
       //  InvertField<ImageType,DisplacementFieldType>( corrfield, invfield, 1.0,0.1,20,true);
       ttiter++;
       }
@@ -1185,7 +1185,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
                           + incrfield->GetPixel(Iterator.GetIndex() ) );
       RealType hitval = hitimage->GetPixel(velind);
       RealType thkval = 0;
-      if( hitval > 0.001 )  /** potential source of problem 2 -- this value could be smaller ... */
+      if( hitval > 0.001 )    /** potential source of problem 2 -- this value could be smaller ... */
         {
         thkval = totalimage->GetPixel(velind) / hitval - thickoffset;
         }

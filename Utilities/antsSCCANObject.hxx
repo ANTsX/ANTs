@@ -199,8 +199,8 @@ antsSCCANObject<TInputImage, TRealType>
         if( clustersize > minclust )
           {
           keepct += 1;
-          }                                    // get clusters > minclust
-        //	if ( clustersize == largest_component_size ) { keepct++; } // get largest cluster
+          }                                      // get clusters > minclust
+        //    if ( clustersize == largest_component_size ) { keepct++; } // get largest cluster
         else
           {
           w_p(vecind) = 0;
@@ -290,7 +290,7 @@ antsSCCANObject<TInputImage, TRealType>
   for( unsigned int j = 0; j < ss; j++ )
     {
     RealType eval = eig.W(j, j);
-    if( eval > pinvTolerance )    // FIXME -- check tolerances against matlab pinv
+    if( eval > pinvTolerance )      // FIXME -- check tolerances against matlab pinv
       {
       eig.W(j, j) = 1 / (eval); // need eval for inv cov
       if( take_sqrt )
@@ -396,7 +396,7 @@ antsSCCANObject<TInputImage, TRealType>
       }
     else
       {
-      //	v_in(i)=v_in(i)-minthresh;
+      //    v_in(i)=v_in(i)-minthresh;
       }
     }
   double tminv = v_in.min_value();
@@ -1204,18 +1204,18 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // factor out the % of the eigenvector that is not orthogonal to higher ranked eigenvectors
     for( unsigned int j = 0; j < i; j++ )
       {
-      //	VectorType  v=this->m_MatrixP*this->m_VariatesP.get_column(j);
+      //    VectorType  v=this->m_MatrixP*this->m_VariatesP.get_column(j);
       VectorType v = this->m_VariatesP.get_column(j);
       double     vn = v.two_norm();
       double     ip = 1;
       // double p2n=proj.two_norm();
-      //	if ( vn > this->m_Epsilon && p2n >  this->m_Epsilon  ) ip=1-inner_product( proj/p2n ,  v/vn );
+      //    if ( vn > this->m_Epsilon && p2n >  this->m_Epsilon  ) ip=1-inner_product( proj/p2n ,  v/vn );
       if( vn > this->m_Epsilon && unorm >  this->m_Epsilon  )
         {
         ip = 1 - inner_product( u / unorm,  v / vn );
         }
       eigenvalue_i *= ip;
-      //	std::cout <<" ip " << j << " is " << ip << " ei " << eigenvalue_i << std::endl;
+      //    std::cout <<" ip " << j << " is " << ip << " ei " << eigenvalue_i << std::endl;
       }
     if( i < mind - 1 )
       {
@@ -1525,7 +1525,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 
        VectorType proj=this->m_MatrixQ*this->m_WeightsQ;
-  if ( false && ( this->m_SCCANFormulation == PminusRQ ||  this->m_SCCANFormulation == PminusRQminusR ) )
+    if ( false && ( this->m_SCCANFormulation == PminusRQ ||  this->m_SCCANFormulation == PminusRQminusR ) )
         for (unsigned int kk=0; kk< this->m_OriginalMatrixR.cols(); kk++)
           proj=this->Orthogonalize(proj,this->m_MatrixR.get_column(kk));
         this->m_WeightsP=this->m_MatrixP.transpose()*(proj);
@@ -2060,31 +2060,31 @@ antsSCCANObject<TInputImage, TRealType>
       if ( which_e_vec > 0   && false )
        {
 // here, factor out previous evecs globally
-  MatrixType temp;
-  MatrixType pp;
-  unsigned int basect=this->m_MatrixR.columns();
-  basect=0;
-  pp.set_size(this->m_MatrixP.rows(),which_e_vec+basect);
-//	for (unsigned int kk=0; kk<this->m_MatrixR.columns(); kk++)
+    MatrixType temp;
+    MatrixType pp;
+    unsigned int basect=this->m_MatrixR.columns();
+    basect=0;
+    pp.set_size(this->m_MatrixP.rows(),which_e_vec+basect);
+//    for (unsigned int kk=0; kk<this->m_MatrixR.columns(); kk++)
 //          pp.set_column(kk,this->m_MatrixR.get_column(kk));
-  unsigned int colcount=0; //this->m_MatrixR.columns();
-  for (unsigned int kk=which_e_vec-1; kk<which_e_vec; kk++) {
+    unsigned int colcount=0; //this->m_MatrixR.columns();
+    for (unsigned int kk=which_e_vec-1; kk<which_e_vec; kk++) {
           pp.set_column(colcount,this->m_MatrixP*this->m_VariatesP.get_column(kk));
-    colcount++;
+      colcount++;
         }
         temp=this->NormalizeMatrix(pp);
         temp=this->WhitenMatrix(temp);
         temp=temp*temp.transpose();
         this->m_MatrixP=(this->m_MatrixP-temp*this->m_MatrixP);
 
-  MatrixType qq;
-  qq.set_size(this->m_MatrixQ.rows(),which_e_vec+this->m_MatrixR.columns());
-  for (unsigned int kk=0; kk<this->m_MatrixR.columns(); kk++)
+    MatrixType qq;
+    qq.set_size(this->m_MatrixQ.rows(),which_e_vec+this->m_MatrixR.columns());
+    for (unsigned int kk=0; kk<this->m_MatrixR.columns(); kk++)
           qq.set_column(kk,this->m_MatrixR.get_column(kk));
-  colcount=this->m_MatrixR.columns();
-  for (unsigned int kk=which_e_vec-1; kk<which_e_vec; kk++) {
+    colcount=this->m_MatrixR.columns();
+    for (unsigned int kk=which_e_vec-1; kk<which_e_vec; kk++) {
           qq.set_column(colcount,this->m_MatrixQ*this->m_VariatesQ.get_column(kk));
-    colcount++;
+      colcount++;
         }
         temp=this->NormalizeMatrix(qq);
         temp=this->WhitenMatrix(temp);
@@ -2102,18 +2102,18 @@ antsSCCANObject<TInputImage, TRealType>
         ip=0;
         this->ReSoftThreshold( this->m_WeightsP , this->m_FractionNonZeroP , this->m_KeepPositiveP );
         VectorType ptem=this->m_WeightsP;
-  if ( which_e_vec >= 1 )
+    if ( which_e_vec >= 1 )
           ptem=this->Orthogonalize(ptem,this->m_VariatesP.get_column(0),&this->m_MatrixP);
-  if ( which_e_vec >= 2 )
+      if ( which_e_vec >= 2 )
           ptem=this->Orthogonalize(ptem,this->m_VariatesP.get_column(1),&this->m_MatrixP);
-  this->m_WeightsP=ptem;
+    this->m_WeightsP=ptem;
         this->ReSoftThreshold( this->m_WeightsP , this->m_FractionNonZeroP , this->m_KeepPositiveP );
         ip+=this->PearsonCorr(this->m_MatrixP*this->m_WeightsP,this->m_MatrixP*this->m_VariatesP.get_column(0));
-  if ( which_e_vec >= 2)
+    if ( which_e_vec >= 2)
           ip+=this->PearsonCorr(this->m_MatrixP*this->m_WeightsP,this->m_MatrixP*this->m_VariatesP.get_column(1));
-  deltaip=fabs(lastip)-fabs(ip);
-  lastip=ip;
-  ct++;
+    deltaip=fabs(lastip)-fabs(ip);
+    lastip=ip;
+    ct++;
          if ( this->m_Debug ) std::cout << " pip-b " << ip << " delt " << deltaip << std::endl;
         }
 
@@ -2123,18 +2123,18 @@ antsSCCANObject<TInputImage, TRealType>
         ip=0;
         this->ReSoftThreshold( this->m_WeightsQ , this->m_FractionNonZeroQ , this->m_KeepPositiveQ );
         VectorType ptem=this->m_WeightsQ;
-  if ( which_e_vec >= 1 )
+    if ( which_e_vec >= 1 )
           ptem=this->Orthogonalize(ptem,this->m_VariatesQ.get_column(0),&this->m_MatrixQ);
-  if ( which_e_vec >= 2 )
+      if ( which_e_vec >= 2 )
           ptem=this->Orthogonalize(ptem,this->m_VariatesQ.get_column(1),&this->m_MatrixQ);
-  this->m_WeightsQ=ptem;
+    this->m_WeightsQ=ptem;
         this->ReSoftThreshold( this->m_WeightsQ , this->m_FractionNonZeroQ , this->m_KeepPositiveQ );
         ip+=this->PearsonCorr(this->m_MatrixQ*this->m_WeightsQ,this->m_MatrixQ*this->m_VariatesQ.get_column(0));
-  if ( which_e_vec >= 2)
+    if ( which_e_vec >= 2)
           ip+=this->PearsonCorr(this->m_MatrixQ*this->m_WeightsQ,this->m_MatrixQ*this->m_VariatesQ.get_column(1));
-  deltaip=fabs(lastip)-fabs(ip);
-  lastip=ip;
-  ct++;
+    deltaip=fabs(lastip)-fabs(ip);
+    lastip=ip;
+    ct++;
          if ( this->m_Debug ) std::cout << " qip-b " << ip << " delt " << deltaip << std::endl;
         }
 

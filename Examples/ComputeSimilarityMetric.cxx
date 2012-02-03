@@ -193,7 +193,7 @@ int ComputeSimilarityMetric(int argc, char *argv[])
       met->ComputeMetricAtPairB(index,  zero);
       metricimg->SetPixel(index, val);
       //if (ct % 10000 == 0)
-      //		std::cout << val << " index " << index << std::endl;
+      //        std::cout << val << " index " << index << std::endl;
       //      asamIt.SetLocation(index);
       //      totval+=met->localProbabilistic;
       ct++;

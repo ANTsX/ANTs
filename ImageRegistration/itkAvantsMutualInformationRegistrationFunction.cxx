@@ -374,12 +374,12 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
       // Get sampled index
       FixedImageIndexType index = iter.GetIndex();
       typename FixedImageType::SizeType imagesize = this->m_FixedImage->GetLargestPossibleRegion().GetSize();
-/*	bool inimage=true;
-  for (unsigned int dd=0; dd<ImageDimension; dd++)
-    {
-      if ( index[dd] < 1 ||    index[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd]-1) )
-        inimage=false;
-    }
+/*    bool inimage=true;
+    for (unsigned int dd=0; dd<ImageDimension; dd++)
+      {
+        if ( index[dd] < 1 ||    index[dd] >= static_cast<typename IndexType::IndexValueType>(imagesize[dd]-1) )
+          inimage=false;
+      }
 */
       double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( index )  );
       double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( index )  );

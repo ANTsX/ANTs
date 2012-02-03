@@ -177,12 +177,12 @@ int CreateZeroImage( int argc, char *argv[] )
           }
 //        case 2:
 //         {
-//									itk::ImageRegionIteratorWithIndex<ImageType> ItI( image,
-//											image->GetLargestPossibleRegion() );
-//									for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
-//											{
-//											ItI.Set( constant - ItI.GetIndex()[d] );
-//											}
+//                                    itk::ImageRegionIteratorWithIndex<ImageType> ItI( image,
+//                                            image->GetLargestPossibleRegion() );
+//                                    for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
+//                                            {
+//                                            ItI.Set( constant - ItI.GetIndex()[d] );
+//                                            }
 //          break;
 //          }
 //        default:
@@ -252,12 +252,12 @@ int CreateZeroImage( int argc, char *argv[] )
           }
 //        case 2:
 //         {
-//									itk::ImageRegionIteratorWithIndex<ImageType> ItI( image,
-//											image->GetLargestPossibleRegion() );
-//									for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
-//											{
-//											ItI.Set( constant - ItI.GetIndex()[d] );
-//											}
+//                                    itk::ImageRegionIteratorWithIndex<ImageType> ItI( image,
+//                                            image->GetLargestPossibleRegion() );
+//                                    for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
+//                                            {
+//                                            ItI.Set( constant - ItI.GetIndex()[d] );
+//                                            }
 //          break;
 //          }
 //        default:

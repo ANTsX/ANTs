@@ -811,7 +811,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
         }
       ind[ImageDimension - 1] = timedim;
       transformedvecimage->SetPixel(ind, fval);
-      //	if ( ind[0] == 53 && ind[1] == 19 && ind[2] == 30 ) std::cout << " fval " << fval << " td " << timedim <<
+      //    if ( ind[0] == 53 && ind[1] == 19 && ind[2] == 30 ) std::cout << " fval " << fval << " td " << timedim <<
       // std::endl;
       }
 
@@ -1070,38 +1070,38 @@ int main(int argc, char * *argv)
               << std::endl;
 
     std::cout << "\nUsage Information " << std::endl;
-    std::cout << " ImageDimension			: 3 or 4 (required argument)."<< std::endl;
+    std::cout << " ImageDimension            : 3 or 4 (required argument)." << std::endl;
     std::cout
       <<
-    " <moving_image.ext>		: The image to apply the transformation to. The moving_image will be either a 3-D image with vector voxels or a 4D image with scalar voxels."
+    " <moving_image.ext>        : The image to apply the transformation to. The moving_image will be either a 3-D image with vector voxels or a 4D image with scalar voxels."
       << std::endl;
     std::cout
       <<
-    " <output_image.ext>		: The resulting image. Output will be of the same type as input, but will be resampled to the domain size defined by the -R image."
+    " <output_image.ext>        : The resulting image. Output will be of the same type as input, but will be resampled to the domain size defined by the -R image."
       << std::endl;
     std::cout
       <<
-    " <MyWarp.ext> <MyAffine.txt>	: Mappings can be stringed together, e.g.: MyAffine.txt MySecondAffine.txt MyWarp.nii.gz MySecondWarp.nii.gz -i MyInverseAffine.txt"
+    " <MyWarp.ext> <MyAffine.txt>    : Mappings can be stringed together, e.g.: MyAffine.txt MySecondAffine.txt MyWarp.nii.gz MySecondWarp.nii.gz -i MyInverseAffine.txt"
       << std::endl;
 
     std::cout << "\nOptions:" << std::endl;
-    std::cout << " -i				: Will use the inversion of the following affine transform."<< std::endl;
-    std::cout << " \n -R				: Reference image space that you wish to warp into."<< std::endl;
+    std::cout << " -i                : Will use the inversion of the following affine transform." << std::endl;
+    std::cout << " \n -R                : Reference image space that you wish to warp into." << std::endl;
     std::cout
       <<
-    " --reslice-by-header		: Equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
+    " --reslice-by-header        : Equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
       << std::endl;
     std::cout
       <<
-    " --tightest-bounding-box	: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R <reference_image.ext> if given."
+    " --tightest-bounding-box    : Computes the tightest bounding box using all the affine transformations. It will be overrided by -R <reference_image.ext> if given."
       << std::endl;
     std::cout
       << " These options can be used together with -R and are typically not used together with any other transforms."
       << std::endl;
 
     std::cout << "\nInterpolation:" << std::endl;
-    std::cout << " --use-NN			: Use Nearest Neighbor Interpolator"<< std::endl;
-    std::cout << " --use-BSpline			: Use 3rd order B-Spline Interpolation."<< std::endl;
+    std::cout << " --use-NN            : Use Nearest Neighbor Interpolator" << std::endl;
+    std::cout << " --use-BSpline            : Use 3rd order B-Spline Interpolation." << std::endl;
 
     std::cout << "\n " << std::endl;
     exit(0);

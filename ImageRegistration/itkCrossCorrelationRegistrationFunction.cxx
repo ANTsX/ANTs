@@ -438,7 +438,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
     }
   IndexType index = oindex;  // hoodIt.GetIndex(indct);
   gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
-  //	gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
+  //    gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
 
   float Ji = finitediffimages[1]->GetPixel(index);
   float Ii = finitediffimages[0]->GetPixel(index);
@@ -447,7 +447,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   for( int qq = 0; qq < ImageDimension; qq++ )
     {
     deriv[qq]   -= 2.0 * sfm / (sff * smm) * ( Ji - sfm / sff * Ii ) * gradI[qq];
-    //	    derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
+    //        derivinv[qq]-=2.0*sfm/(sff*smm)*( Ii - sfm/smm*Ji )*gradJ[qq];
     }
 
   //  if ( this->localCrossCorrelation*(-1.0) < this->m_RobustnessParameter) deriv.Fill(0);

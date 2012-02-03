@@ -54,7 +54,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
       if( find( myFixLabelSet.begin(), myFixLabelSet.end(), label )
           == myFixLabelSet.end() )
         {
-        //	      std::cout <<" f-label " << label << std::endl;
+        //          std::cout <<" f-label " << label << std::endl;
         myFixLabelSet.push_back( label );
         }
       }
@@ -68,7 +68,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
       if( find( myMovLabelSet.begin(), myMovLabelSet.end(), label )
           == myMovLabelSet.end() )
         {
-        //	      std::cout <<" m-label " << label << std::endl;
+        //          std::cout <<" m-label " << label << std::endl;
         myMovLabelSet.push_back( label );
         }
       }

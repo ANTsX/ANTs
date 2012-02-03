@@ -106,12 +106,12 @@ ANTSImageTransformation<TDimension, TReal>
         while( writeItr != writeExtensions.end() )
           {
           std::string test_ext = *writeItr;
-          //	    std::cout <<" compare " << extension << " to " << test_ext << std::endl;
+          //        std::cout <<" compare " << extension << " to " << test_ext << std::endl;
           if( extension == test_ext )
             {
             is_supported = true;
             }
-          //	    else std::cout <<" not the same " << std::endl;
+          //        else std::cout <<" not the same " << std::endl;
           ++writeItr;
           }
         }
