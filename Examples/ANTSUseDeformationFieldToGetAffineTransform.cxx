@@ -113,6 +113,28 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   //    return EXIT_SUCCESS;
 }
 
+////////////////////////////////////////////////////////////////////////
+// Stripped from ANTS_affine_registration2.h
+template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
+inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
+                                   AffineTransformPointerType & transform)
+{
+  typedef typename RunningAffineTransformPointerType::ObjectType RunningAffineTransformType;
+  typedef typename AffineTransformPointerType::ObjectType        AffineTransformType;
+
+  transform->SetCenter(*(reinterpret_cast<typename AffineTransformType::InputPointType *>
+                         (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
+                                                                                              GetCenter() ) ) ) ) );
+  transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>
+                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running->
+                                                                                                     GetTranslation() ) ) ) ) );
+  transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
+                         (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
+
+  // std::cout << "transform_running" << transform_running << std::endl;
+  // std::cout << "transform" << transform << std::endl;
+}
+
 template <class PointContainerType, class TransformPointerType>
 void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                          TransformPointerType & aff)
@@ -271,28 +293,6 @@ void WriteAffineTransformFile(TransformPointerType & transform, StringType filen
     }
 
   return;
-}
-
-////////////////////////////////////////////////////////////////////////
-// Stripped from ANTS_affine_registration2.h
-template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
-inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
-                                   AffineTransformPointerType & transform)
-{
-  typedef typename RunningAffineTransformPointerType::ObjectType RunningAffineTransformType;
-  typedef typename AffineTransformPointerType::ObjectType        AffineTransformType;
-
-  transform->SetCenter(*(reinterpret_cast<typename AffineTransformType::InputPointType *>
-                         (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
-                                                                                              GetCenter() ) ) ) ) );
-  transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>
-                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running->
-                                                                                                     GetTranslation() ) ) ) ) );
-  transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
-                         (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
-
-  // std::cout << "transform_running" << transform_running << std::endl;
-  // std::cout << "transform" << transform << std::endl;
 }
 
 template <class TransformAPointer, class StringType>

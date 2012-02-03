@@ -293,6 +293,25 @@ template <class ImagePointerType, class TransformPointerType, class OptAffineTyp
 void ComputeSingleAffineTransform2D3D(ImagePointerType I_fixed, ImagePointerType I_moving, OptAffineType & opt,
                                       TransformPointerType & transform);
 
+template <class ImageTypePointer, class AffineTransformPointer>
+void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPointer & aff)
+{
+  typedef typename ImageTypePointer::ObjectType                        ImageType;
+  typedef typename ImageType::DirectionType                            DirectionType;
+  typedef typename ImageType::PointType                                PointType;
+  typedef typename ImageType::SpacingType                              SpacingType;
+  typedef typename AffineTransformPointer::ObjectType::TranslationType VectorType;
+
+  DirectionType direction = img->GetDirection();
+  PointType     pt = img->GetOrigin();
+  SpacingType   spacing = img->GetSpacing();
+  VectorType    translation;
+  translation.Fill(0);
+  aff->SetMatrix(direction);
+  aff->SetCenter(pt);
+  aff->SetTranslation(translation);
+}
+
 ////////////////////////////////////////////////////////////////////////
 template <class ImagePointerType, class RunningImagePointerType, class OptAffineType, class RunningOptAffineType>
 inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePointerType& R_fixedImage,
@@ -688,68 +707,6 @@ double TestCostValueMMI(ImagePointerType fixedImage, ImagePointerType movingImag
   return rval;
 }
 
-template <class ImagePointerType, class OptAffineType, class RunningAffineCacheType>
-void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType & opt,
-                                  RunningAffineCacheType & running_cache)
-{
-  typedef typename ImagePointerType::ObjectType ImageType;
-  // typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
-  typedef typename RunningAffineCacheType::InterpolatorType InterpolatorType;
-  typedef typename RunningAffineCacheType::MetricType       MetricType;
-  // typedef itk::MattesMutualInformationImageToImageMetric<ImageType, ImageType> MetricType;
-
-  BuildImagePyramid(fixed_image, opt.number_of_levels, running_cache.fixed_image_pyramid);
-  BuildImagePyramid(moving_image, opt.number_of_levels, running_cache.moving_image_pyramid);
-  InitialzeImageMask(opt.mask_fixed, running_cache.mask_fixed_object);
-
-  running_cache.interpolator = InterpolatorType::New();
-  running_cache.metric = MetricType::New();
-  running_cache.invmetric = MetricType::New();
-}
-
-template <class ImageTypePointer, class AffineTransformPointer>
-void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPointer & aff)
-{
-  typedef typename ImageTypePointer::ObjectType                        ImageType;
-  typedef typename ImageType::DirectionType                            DirectionType;
-  typedef typename ImageType::PointType                                PointType;
-  typedef typename ImageType::SpacingType                              SpacingType;
-  typedef typename AffineTransformPointer::ObjectType::TranslationType VectorType;
-
-  DirectionType direction = img->GetDirection();
-  PointType     pt = img->GetOrigin();
-  SpacingType   spacing = img->GetSpacing();
-  VectorType    translation;
-  translation.Fill(0);
-  aff->SetMatrix(direction);
-  aff->SetCenter(pt);
-  aff->SetTranslation(translation);
-}
-
-template <class ImagePointerType, class OptAffineType>
-void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType& opt)
-{
-  typedef typename OptAffineType::AffineTransformType TransformType;
-  typedef typename TransformType::ParametersType      ParaType;
-  typedef typename TransformType::InputPointType      PointType;
-  typedef typename TransformType::OutputVectorType    VectorType;
-
-  std::cout << "opt.transform_initial.IsNull(): " << opt.transform_initial.IsNull() << std::endl;
-  std::cout << " opt.use_rotation_header: " << opt.use_rotation_header << std::endl;
-  std::cout << " opt.ignore_void_orgin: " << opt.ignore_void_orgin << std::endl;
-
-  if( opt.transform_initial.IsNull() )
-    {
-    PointType  center;
-    VectorType translation_vec;
-    // std::cout << "GS: debug: fake a all zero translation_vec" << std::endl;
-    // ComputeInitialPosition_tmp(fixed_image, moving_image, center, translation_vec);
-    ComputeInitialPosition(fixed_image, moving_image, center, translation_vec);
-    opt.transform_initial = TransformType::New();
-    InjectInitialPara(center, translation_vec, opt.transform_initial);
-    }
-}
-
 template <class ImagePointer>
 ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
 {
@@ -823,6 +780,49 @@ void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, Ima
   //    for(int i=0; i < number_of_levels; i++)
   //      std::cout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() <<
   // std::endl;
+}
+
+template <class ImagePointerType, class OptAffineType, class RunningAffineCacheType>
+void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType & opt,
+                                  RunningAffineCacheType & running_cache)
+{
+  typedef typename ImagePointerType::ObjectType ImageType;
+  // typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
+  typedef typename RunningAffineCacheType::InterpolatorType InterpolatorType;
+  typedef typename RunningAffineCacheType::MetricType       MetricType;
+  // typedef itk::MattesMutualInformationImageToImageMetric<ImageType, ImageType> MetricType;
+
+  BuildImagePyramid(fixed_image, opt.number_of_levels, running_cache.fixed_image_pyramid);
+  BuildImagePyramid(moving_image, opt.number_of_levels, running_cache.moving_image_pyramid);
+  InitialzeImageMask(opt.mask_fixed, running_cache.mask_fixed_object);
+
+  running_cache.interpolator = InterpolatorType::New();
+  running_cache.metric = MetricType::New();
+  running_cache.invmetric = MetricType::New();
+}
+
+template <class ImagePointerType, class OptAffineType>
+void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType& opt)
+{
+  typedef typename OptAffineType::AffineTransformType TransformType;
+  typedef typename TransformType::ParametersType      ParaType;
+  typedef typename TransformType::InputPointType      PointType;
+  typedef typename TransformType::OutputVectorType    VectorType;
+
+  std::cout << "opt.transform_initial.IsNull(): " << opt.transform_initial.IsNull() << std::endl;
+  std::cout << " opt.use_rotation_header: " << opt.use_rotation_header << std::endl;
+  std::cout << " opt.ignore_void_orgin: " << opt.ignore_void_orgin << std::endl;
+
+  if( opt.transform_initial.IsNull() )
+    {
+    PointType  center;
+    VectorType translation_vec;
+    // std::cout << "GS: debug: fake a all zero translation_vec" << std::endl;
+    // ComputeInitialPosition_tmp(fixed_image, moving_image, center, translation_vec);
+    ComputeInitialPosition(fixed_image, moving_image, center, translation_vec);
+    opt.transform_initial = TransformType::New();
+    InjectInitialPara(center, translation_vec, opt.transform_initial);
+    }
 }
 
 template <class ParaType>
