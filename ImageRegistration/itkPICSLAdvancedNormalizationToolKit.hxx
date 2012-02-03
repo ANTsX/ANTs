@@ -312,7 +312,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 typename PICSLAdvancedNormalizationToolKit<TDimension, TReal>::ImagePointer
 PICSLAdvancedNormalizationToolKit<TDimension, TReal>
-::ReplaceProblematicPixelValues( ImagePointer image, PixelType value = 0 )
+::ReplaceProblematicPixelValues( ImagePointer image, PixelType value)
 {
   ImageRegionIterator<ImageType> It( image, image->GetRequestedRegion() );
   for( It.GoToBegin(); !It.IsAtEnd(); ++It )
