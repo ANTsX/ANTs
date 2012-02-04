@@ -1873,7 +1873,7 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
       typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
         DisplacementFieldRegistrationType::New();
-      displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( false );
+      displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
       displacementFieldRegistration->SetAverageMidPointGradients( false );
       displacementFieldRegistration->SetFixedImage( fixedImage );
       displacementFieldRegistration->SetMovingImage( movingImage );
