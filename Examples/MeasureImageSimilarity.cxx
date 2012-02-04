@@ -166,12 +166,62 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
     }
   else if( whichmetric == 1 ) // imagedifference
     {
+    double ccval = 0;
     hradius = ccradius;
     metricname = "CC ";
+    typedef itk::ConstNeighborhoodIterator<FixedImageType> ScanIteratorType;
+    typename FixedImageType::RegionType region = image1->GetLargestPossibleRegion();
+    ScanIteratorType   asamIt( hradius, image1, region);
+    unsigned long      ct = 0;
+    const unsigned int hoodlen = asamIt.Size();
+    double             totval = 0;
+    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
+      {
+      IndexType index = iter.GetIndex();
+      double    val = 0;
+      double    fmip = 0, mmip = 0, ffip = 0;
+      asamIt.SetLocation(index);
+      for( unsigned int i = 0; i < asamIt.Size(); i++ )
+        {
+        IndexType locind = asamIt.GetIndex(i);
+        if( region.IsInside( locind ) )
+          {
+          double f = image1->GetPixel(locind);
+          double m = image2->GetPixel(locind);
+          fmip += (f * m);  mmip += (m * m);  ffip += (f * f);
+          }
+        }
+      double denom = mmip * ffip;
+      if( denom == 0 )
+        {
+        val = 1;
+        }
+      else
+        {
+        val = fmip / sqrt(denom);
+        }
+      metricimg->SetPixel(index, val);
+      // if (ct % 10000 == 0)
+      //        std::cout << val << " index " << index << std::endl;
+      //      asamIt.SetLocation(index);
+      //      totval+=met->localProbabilistic;
+      ccval += val;
+      ct++;
+      }
+    if( ct >  0 )
+      {
+      metricvalue = ccval / ct;
+      }
+    else
+      {
+      metricvalue = 0;
+      }
+    /*
     std::cout << metricname << std::endl;
     ccmet->InitializeIteration();
-    metricimg = ccmet->MakeImage();
-    metricvalue = ccmet->ComputeCrossCorrelation() * (1.0);
+    metricimg=ccmet->MakeImage();
+    metricvalue=ccmet->ComputeCrossCorrelation()*(1.0);
+    */
     }
   else if( whichmetric == 2 )
     {
