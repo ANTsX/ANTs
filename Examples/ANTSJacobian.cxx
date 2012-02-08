@@ -1,4 +1,9 @@
 // #include "DoSomethingToImage.cxx"
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <iterator>
 #include "itkVectorIndexSelectionCastImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "vnl/algo/vnl_determinant.h"
@@ -127,17 +132,73 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
 }
 
 template <class TImage, class TDisplacementField>
+typename TDisplacementField::PixelType
+ProjectVector(typename TDisplacementField::PixelType invec, typename TDisplacementField::PixelType projvec )
+{
+  enum { ImageDimension = TImage::ImageDimension };
+  typename TDisplacementField::PixelType newvec;
+  double ip = 0;
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    ip += invec[i] * projvec[i];
+    }
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    newvec[i] = ip * projvec[i];
+    }
+  return newvec;
+}
+
+void antsjacobiansplit(const std::string& s, char c,
+                       std::vector<std::string>& v)
+{
+  std::string::size_type i = 0;
+  std::string::size_type j = s.find(c);
+
+  while( j != std::string::npos )
+    {
+    v.push_back(s.substr(i, j - i) );
+    i = ++j;
+    j = s.find(c, j);
+    if( j == std::string::npos )
+      {
+      v.push_back(s.substr(i, s.length() ) );
+      }
+    }
+}
+
+template <class TImage, class TDisplacementField>
 void
 ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog = false, bool norm = false,
-                bool use2ndorder = false)
+                std::string projvec = "")
 {
+  std::vector<std::string> v;
+
+  if( projvec.length() > 2 )
+    {
+    antsjacobiansplit(projvec, 'x', v);
+    for( int i = 0; i < v.size(); ++i )
+      {
+      std::cout << v[i] << '\n';
+      }
+    }
+
   typedef TImage             ImageType;
   typedef TDisplacementField FieldType;
   enum { ImageDimension = TImage::ImageDimension };
   typedef itk::Image<float, ImageDimension> FloatImageType;
   typename FloatImageType::RegionType m_JacobianRegion;
   typename FloatImageType::Pointer mask = NULL;
-
+  typename FieldType::PixelType pvec;
+  if( v.size() > 0 )
+    {
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      pvec[i] = atof(v[i].c_str() );
+      }
+    pvec = pvec / pvec.GetNorm();
+    std::cout << " using projection vector " << pvec << std::endl;
+    }
   mask = ReadAnImage<FloatImageType>(maskfn);
 
   if( !field )
@@ -157,14 +218,14 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   m_FloatImage->Allocate();
   m_FloatImage->FillBuffer(0);
 
-  typename ImageType::Pointer grid = GenerateGridImage<ImageType>(m_FloatImage, 7);
+  //  typename ImageType::Pointer grid = GenerateGridImage<ImageType>(m_FloatImage,20);
 
-  if( grid )
+  if( false )
     {
     typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension>             TransformType;
     typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, FieldType, TransformType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
-    warper->SetInput(grid);
+    warper->SetInput(NULL);
     warper->SetEdgePaddingValue( 0);
     warper->SetSmoothScale(1);
     warper->PushBackDisplacementFieldTransform(field);
@@ -173,12 +234,12 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     warper->SetOutputSpacing(field->GetSpacing() );
     warper->SetOutputDirection(field->GetDirection() );
     warper->Update();
-    grid = warper->GetOutput();
+    //    grid=warper->GetOutput();
     typedef  itk::ImageFileWriter<ImageType> writertype;
     typename writertype::Pointer writer = writertype::New();
     std::string fng = std::string(fnm) + "grid.nii.gz";
     writer->SetFileName(fng.c_str() );
-    writer->SetInput(grid);
+    writer->SetInput(NULL);
     writer->Write();
     std::cout << " Grid done ";
     }
@@ -272,6 +333,10 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
       ct++;
       typename TImage::IndexType temp = rindex;
       cpix = TransformVector<ImageType, FieldType>(field, rindex);
+      if( v.size() > 0 )
+        {
+        cpix = ProjectVector<ImageType, FieldType>(cpix, pvec);
+        }
       for( unsigned int row = 0; row < ImageDimension; row++ )
         {
         difIndex[row][0] = rindex;
@@ -293,21 +358,26 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
         space = 1.0; // should use image spacing here?
 
         rpix = TransformVector<ImageType, FieldType>(field, difIndex[row][1]);
+        if( v.size() > 0 )
+          {
+          rpix = ProjectVector<ImageType, FieldType>(rpix, pvec);
+          }
         rpix = rpix * h + cpix * (1. - h);
         lpix = TransformVector<ImageType, FieldType>(field, difIndex[row][0]);
+        if( v.size() > 0 )
+          {
+          lpix = ProjectVector<ImageType, FieldType>(lpix, pvec);
+          }
         lpix = lpix * h + cpix * (1. - h);
         //    dPix = ( rpix - lpix)*(1.0)/(2.0);
 
-        rrpix = TransformVector<ImageType, FieldType>(field, ddrindex);
-        rrpix = rrpix * h + rpix * (1. - h);
-        llpix = TransformVector<ImageType, FieldType>(field, ddlindex);
-        llpix = llpix * h + lpix * (1. - h);
-        dPix = ( rrpix * (-1.0) + rpix * 8.0 - lpix * 8.0 + lpix ) * (-1.0) * space / (12.0 * h); // 4th order centered
-                                                                                                  // difference
-        if( use2ndorder )
-          {
-          dPix = ( lpix - rpix ) * (1.0) * space / (2.0 * h);     // 4th order centered difference
-          }
+        //    rrpix = TransformVector<ImageType,FieldType>(field,ddrindex);
+        // rrpix = rrpix*h+rpix*(1.-h);
+        // llpix = TransformVector<ImageType,FieldType>(field,ddlindex);
+        // llpix = llpix*h+lpix*(1.-h);
+        //      dPix=( rrpix*(-1.0) + rpix*8.0 - lpix*8.0 + lpix )*(-1.0)*space/(12.0*h); //4th order centered
+        // difference
+        dPix = ( lpix - rpix ) * (1.0) * space / (2.0 * h); // 4th order centered difference
         for( unsigned int col = 0; col < ImageDimension; col++ )
           {
           float val;
@@ -437,7 +507,10 @@ int Jacobian(int argc, char *argv[])
   //  std::cout << " enter " << ImageDimension << std::endl;
   if( argc < 3 )
     {
-    std::cout << "Usage:   Jacobian gWarp outfile uselog maskfn normbytotalbool  " << std::endl;
+    std::cout << "Usage:   Jacobian gWarp outfile uselog maskfn normbytotalbool VectorToProjectWarpAgainst "
+              << std::endl;
+    std::cout << " VectorToProjectWarpAgainst should be in the form 1.0x0.0x0.0 where x separates vector components "
+              << std::endl;
     return 1;
     }
   typedef float                                                  PixelType;
@@ -477,13 +550,13 @@ int Jacobian(int argc, char *argv[])
     {
     norm = (bool)atoi(argv[5]);
     }
-  bool use2ndorder = true;
+  std::string projvec;
   if( argc > 6 )
     {
-    use2ndorder = (bool)atoi(argv[6]);
+    projvec = std::string(argv[6]);
     }
   //  std::cout << " name "<< argv[2] <<  " mask " << argv[4] << " norm " << norm << " Log " << uselog << std::endl;
-  ComputeJacobian<ImageType, FieldType>(gWarp, argv[2], argv[4], uselog, norm, use2ndorder);
+  ComputeJacobian<ImageType, FieldType>(gWarp, argv[2], argv[4], uselog, norm, projvec);
 //  DiffeomorphicJacobian<ImageType,ImageType,FieldType>(gWarp,1,argv[2]);
 //  if (argc > 3) DiffeomorphicMetric<ImageType,ImageType,FieldType>(gWarp,argv[2]);
 
@@ -494,13 +567,14 @@ int main(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    std::cout << "Usage: " << argv[0]
-              << " ImageDim gWarp outfile uselog maskfn normbytotalbool use-2nd-order-central-difference-boolean "
+    std::cout << "Usage: " << argv[0] << " ImageDim gWarp outfile uselog maskfn normbytotalbool projectionvector "
               << std::endl;
     std::cout << " for example " << std::endl
-              << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1  " << std::endl;
-    std::cout << " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size.  "
-              << std::endl;
+              << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1 1x0 " << std::endl;
+    std::cout
+      <<
+    " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size. 1x0 will project the warp along direction 1,0 --- don't add this option if you dont want to do this "
+      << std::endl;
     return 1;
     }
 
