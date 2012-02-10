@@ -1161,7 +1161,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     RealType vex = this->ComputeSPCAEigenvalues(n_vecs, trace);
     vexlist.push_back(   vex    );
     this->SortResults(n_vecs);
-    convcrit = ( this->ComputeEnergySlope(vexlist, 5) );
+    convcrit = ( this->ComputeEnergySlope(vexlist, 10) );
     std::cout << "Iteration: " << loop << " Eigenvals: " << this->m_CanonicalCorrelations << " Sparseness: " << fnp
               << " convergence-criterion: " << convcrit <<  " vex " << vex << std::endl;
     loop++;
