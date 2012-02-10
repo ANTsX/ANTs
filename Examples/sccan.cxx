@@ -1038,6 +1038,25 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                     sccanobj->GetVariatesP(), mask1, sccanobj->GetMatrixP(),
                                                     have_p_mask );
+
+    /** write the eigevalues to the csv file */
+    std::string              fnmp = filepre + std::string("_eigenvalues.csv");
+    std::vector<std::string> ColumnHeaders;
+    std::string              colname = std::string("Eigenvalue");
+    ColumnHeaders.push_back( colname );
+    typedef itk::CSVNumericObjectFileWriter<double> CWriterType;
+    CWriterType::Pointer cwriter = CWriterType::New();
+    cwriter->SetFileName( fnmp.c_str() );
+    cwriter->SetColumnHeaders(ColumnHeaders);
+    vnl_matrix<double> evals;
+    evals.set_size(sccanobj->GetCanonicalCorrelations().size(), 1);
+    for( unsigned int i = 0; i < sccanobj->GetCanonicalCorrelations().size(); i++ )
+      {
+      double evil = sccanobj->GetCanonicalCorrelations() (i);
+      evals(i, 0) = evil;
+      }
+    cwriter->SetInput( &evals );
+    cwriter->Write();
     }
 
   return EXIT_SUCCESS;
