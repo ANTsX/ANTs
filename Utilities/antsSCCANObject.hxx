@@ -986,8 +986,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     trace += inner_product(this->m_MatrixP.get_column(i), this->m_MatrixP.get_column(i) );
     }
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
+  VariateType myGradients;
   this->m_SparseVariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_SparseVariatesP.fill(0);
+  myGradients.set_size(this->m_MatrixP.cols(), n_vecs);
+  myGradients.fill(0);
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
     this->m_VariatesP.set_column(kk, this->InitializeV(this->m_MatrixP) );
@@ -1124,35 +1127,42 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         RealType hjk = inner_product(qj, pveck) / ip;
         pveck = pveck - qj * hjk;
         }
+      VectorType pvecknew(pveck);
       //  x_i is sparse
       if( fnp < 1 )
         {
         if( this->m_KeepPositiveP )
           {
-          this->ConstantProbabilityThreshold( pveck, fnp, this->m_KeepPositiveP );
+          this->ConstantProbabilityThreshold( pvecknew, fnp, this->m_KeepPositiveP );
           }
         else
           {
-          this->ReSoftThreshold( pveck, fnp, !this->m_KeepPositiveP );
+          this->ReSoftThreshold( pvecknew, fnp, !this->m_KeepPositiveP );
           }
-        VectorType pveck_temp(pveck);
-        this->ClusterThresholdVariate( pveck_temp, this->m_MaskImageP, this->m_MinClusterSizeP );
-        if( pveck_temp.two_norm() > 0 )
-          {
-          pveck = pveck_temp / pveck_temp.two_norm();
-          }
+        this->ClusterThresholdVariate( pvecknew, this->m_MaskImageP, this->m_MinClusterSizeP );
+        pvecknew = pvecknew / pvecknew.two_norm();
+        }
+      if( loop == 0 )
+        {
+        this->m_VariatesP.set_column(k, pvecknew);
         }
       if( doind && condition2 && this->m_KeepPositiveP )
         {
         pveck = indicator * pveck;
         }
       this->m_ClusterSizes[k] = this->m_KeptClusterSize;
-      double     recuravg = 0.5; // 1/(double)(loop+1);
-      double     recuravg2 = 1 - recuravg;
+      myGradients.set_column(k, pvecknew - pveck);
+      //    myGradients.set_column(k,pvecknew);
+      } // kloop
+    double recuravg = 0.1; // 1/(double)(loop+1);
+    double recuravg2 = 1 - recuravg;
+    for( unsigned int k = 0; k < n_vecs; k++ )
+      {
+      VectorType pveck  = myGradients.get_column(k);
       VectorType newsol = this->m_SparseVariatesP.get_column(k) * recuravg2 + pveck * recuravg;
       this->m_SparseVariatesP.set_column(k, newsol);
-      this->m_VariatesP.set_column(k, pveck);
-      } // kloop
+      }
+
     this->m_VariatesQ = this->m_VariatesP;
     if( debug )
       {
@@ -1161,7 +1171,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     RealType vex = this->ComputeSPCAEigenvalues(n_vecs, trace);
     vexlist.push_back(   vex    );
     this->SortResults(n_vecs);
-    convcrit = ( this->ComputeEnergySlope(vexlist, 10) );
+    convcrit = ( this->ComputeEnergySlope(vexlist, 5) );
     std::cout << "Iteration: " << loop << " Eigenvals: " << this->m_CanonicalCorrelations << " Sparseness: " << fnp
               << " convergence-criterion: " << convcrit <<  " vex " << vex << std::endl;
     loop++;
@@ -1218,41 +1228,26 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     eigenvalue_i = oeig;
     // factor out the % of the eigenvector that is not orthogonal to higher ranked eigenvectors
-    bool nspace = true;
     for( unsigned int j = 0; j < i; j++ )
       {
       VectorType v;
-      if( nspace )
-        {
-        v = this->m_MatrixP * this->m_VariatesP.get_column(j);
-        }
-      else
-        {
-        v = this->m_VariatesP.get_column(j);
-        }
+      v = this->m_MatrixP * this->m_VariatesP.get_column(j);
       double vn = v.two_norm();
       double ip = 1;
       double p2n = proj.two_norm();
-      if( nspace )
+      if( vn > 0 && p2n > 0 )
         {
-        if( vn > 0 && p2n > 0 )
-          {
-          ip = 1 - inner_product( proj / p2n,  v / vn );
-          }
-        else
-        if( vn > 0 && unorm >  0  )
-          {
-          ip = 1 - inner_product( u / unorm,  v / vn );
-          }
+        ip = 1 - inner_product( proj / p2n,  v / vn );
         }
       eigenvalue_i *= ip;
       }
-    evalsum += oeig;
+    evalsum += oeig; // eigenvalue_i;
     this->m_CanonicalCorrelations[i] = eigenvalue_i;
     }
+  evalsum /= trace;
   double vex = this->m_CanonicalCorrelations.sum() / trace;
-  std::cout << " raw variance explained " << evalsum / trace << std::endl;
   std::cout << " adjusted variance explained " << vex << std::endl;
+  std::cout << " raw variance explained " <<  evalsum << std::endl;
   return vex;
   /*****************************************/
   MatrixType ptemp(this->m_MatrixP);
