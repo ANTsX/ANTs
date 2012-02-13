@@ -920,18 +920,25 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
 
 template <unsigned int ImageDimension, class PixelType>
 int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec = 2,
-                  unsigned int robustify = 0, unsigned int p_cluster_thresh = 100, unsigned int iterct = 20 )
+                  unsigned int robustify = 0, unsigned int p_cluster_thresh = 100, unsigned int iterct = 20,
+                  unsigned int svd_option = 0 )
 {
-  std::cout << " sparse-svd " << std::endl; // note: 2 (in options) is for svd implementation
+  if( svd_option == 1 )
+    {
+    std::cout << " basic-svd " << std::endl;
+    }
+  else
+    {
+    std::cout << " sparse-svd " << std::endl;   // note: 2 (in options) is for svd implementation
+    }
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
-
   if( !outputOption || outputOption->GetNumberOfValues() == 0 )
     {
     std::cerr << "Warning:  no output option set." << std::endl;
     }
   itk::ants::CommandLineParser::OptionType::Pointer option =
-    parser->GetOption( "sparse-svd" );
+    parser->GetOption( "svd" );
   typedef itk::Image<PixelType, ImageDimension>         ImageType;
   typedef double                                        Scalar;
   typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
@@ -1017,7 +1024,22 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   sccanobj->SetMatrixR( r );
   sccanobj->SetMaskImageP( mask1 );
   double truecorr = 0;
-  truecorr = sccanobj->SparseArnoldiSVD(n_evec);
+  if( svd_option == 1 )
+    {
+    truecorr = sccanobj->BasicSVD(n_evec);                    // classic
+    }
+  else if( svd_option == 2 )
+    {
+    truecorr = sccanobj->SparseArnoldiSVD(n_evec);                         // cgsparse
+    }
+  else if( svd_option == 3 )
+    {
+    truecorr = sccanobj->rSVD(n_evec);                         // cgpca
+    }
+  else
+    {
+    truecorr = sccanobj->SparseArnoldiSVDGreedy(n_evec);  // sparse (default)
+    }
   vVector w_p = sccanobj->GetVariateP(0);
   std::cout << " true-corr " << sccanobj->GetCanonicalCorrelations() << std::endl;
 
@@ -1704,10 +1726,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     {
     iterct = parser->Convert<unsigned int>( permoption->GetValue() );
     }
-  if( iterct < 20 )
-    {
-    iterct = 20;
-    }
+  //  if (iterct < 20 ) iterct=20;
 
   unsigned int                                      evec_ct = 1;
   itk::ants::CommandLineParser::OptionType::Pointer evec_option =
@@ -1836,10 +1855,36 @@ int sccan( itk::ants::CommandLineParser *parser )
     return EXIT_SUCCESS;
     }
 
-  itk::ants::CommandLineParser::OptionType::Pointer svdOption = parser->GetOption( "sparse-svd" );
+  itk::ants::CommandLineParser::OptionType::Pointer svdOption = parser->GetOption( "svd" );
   if( svdOption && svdOption->GetNumberOfValues() > 0 )
     {
-    SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct);
+    std::string initializationStrategy = svdOption->GetValue();
+    if(  !initializationStrategy.compare( std::string( "sparse" ) )  )
+      {
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct);
+      return EXIT_SUCCESS;
+      }
+    if(  !initializationStrategy.compare( std::string( "cgsparse" ) )  )
+      {
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2);
+      return EXIT_SUCCESS;
+      }
+    if(  !initializationStrategy.compare( std::string( "cgpca" ) )  )
+      {
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 3);
+      return EXIT_SUCCESS;
+      }
+    if(  !initializationStrategy.compare( std::string( "classic" ) )  )
+      {
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4);
+      return EXIT_SUCCESS;
+      }
+    if(  !initializationStrategy.compare( std::string( "prior" ) )  )
+      {
+      std::cout << " not implemented yet " << std::endl;
+      return EXIT_SUCCESS;
+      }
+    SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1 );
     return EXIT_SUCCESS;
     }
 
@@ -2075,9 +2120,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       std::string(
         "a sparse svd implementation --- will report correlation of eigenvector with original data columns averaged over columns with non-zero weights." );
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "sparse-svd" );
+    option->SetLongName( "svd" );
     option->SetUsageOption( 0,
-                            "[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+                            "sparse[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption( 1,
+                            "cgsparse[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption( 2,
+                            "classic[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption( 3,
+                            "cgpca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption( 4, "prior[....]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
