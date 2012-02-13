@@ -484,10 +484,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       dwiOption->GetNumberOfParameters() > 1 )
     {
     typedef itk::ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName( dwiOption->GetParameter( 0 ) );
-    reader->Update();
-    b0Image = reader->GetOutput();
+    typename ReaderType::Pointer reader2 = ReaderType::New();
+    reader2->SetFileName( dwiOption->GetParameter( 0 ) );
+    reader2->Update();
+    b0Image = reader2->GetOutput();
     b0Image->DisconnectPipeline();
 
     std::string  directionsFileName = dwiOption->GetParameter( 1 );
@@ -598,9 +598,6 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     // projection.
     vnl_vector<RealType> eigenISVProjection( 1 );
     if( applyISV )
-      {
-      ;
-      }
       {
       vnl_vector<RealType> R( ISV.cols() );
       for( unsigned int d = 0; d < R.size(); d++ )
