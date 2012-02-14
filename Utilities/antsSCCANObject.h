@@ -343,9 +343,28 @@ public:
 
   MatrixType ProjectionMatrix(MatrixType b)
   {
-    b = this->NormalizeMatrix(b);
-    b = this->WhitenMatrix(b);
-    return b * b.transpose();
+    double     pinvTolerance = this->m_PinvTolerance;
+    MatrixType dd = this->NormalizeMatrix(b);
+    MatrixType cov = dd * dd.transpose();
+
+    cov.set_identity();
+    TRealType regularization = 1.e-3;
+    cov = cov * regularization + dd * dd.transpose();
+    vnl_svd<RealType>          eig(cov, pinvTolerance);
+    vnl_diag_matrix<TRealType> indicator(cov.cols(), 0);
+    for( unsigned int i = 0; i < cov.rows(); i++ )
+      {
+      double eval = eig.W(i, i);
+      if( eval > 1.e-9 )
+        {
+        indicator(i, i) = 1 / eval;
+        }
+      }
+    return eig.V() * (indicator * eig.V() );
+
+    //    b=this->NormalizeMatrix(b);
+    //    b=this->WhitenMatrix(b);
+    // return //b*b.transpose();
   }
 
   VectorType TrueCCAPowerUpdate(RealType penaltyP, MatrixType p, VectorType w_q, MatrixType q, bool keep_pos,
