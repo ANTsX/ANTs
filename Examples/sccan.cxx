@@ -1026,15 +1026,15 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   double truecorr = 0;
   if( svd_option == 1 )
     {
-    truecorr = sccanobj->BasicSVD(n_evec);                    // classic
-    }
-  else if( svd_option == 2 )
-    {
-    truecorr = sccanobj->SparseArnoldiSVD(n_evec);                         // cgsparse
+    truecorr = sccanobj->BasicSVD(n_evec);                     // classic
     }
   else if( svd_option == 3 )
     {
-    truecorr = sccanobj->rSVD(n_evec);                         // cgpca
+    truecorr = sccanobj->SparseArnoldiSVD(n_evec);                         // cgsparse
+    }
+  else if( svd_option == 2 )
+    {
+    truecorr = sccanobj->CGSPCA(n_evec);                         // cgspca
     }
   else
     {
@@ -1273,7 +1273,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     std::cout << " p-vox " <<  (double)psigct / w_p.size() << " ct " << permct << std::endl;
     std::cout << " q-vox " <<  (double)qsigct / w_q.size() << " ct " << permct << std::endl;
 
-    if( outputOption )
+    if( outputOption  )
       {
       std::string filename =  outputOption->GetValue( 0 );
       std::cout << " write " << filename << std::endl;
@@ -1287,9 +1287,15 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
         filepre = std::string( filepre, 0, pos );
         }
       std::string post = std::string("View1pval");
-      WriteVectorToSpatialImage<ImageType, Scalar>( filename, post, w_p_signif_ct, mask1);
+      if( have_p_mask )
+        {
+        WriteVectorToSpatialImage<ImageType, Scalar>( filename, post, w_p_signif_ct, mask1);
+        }
       post = std::string("View2pval");
-      WriteVectorToSpatialImage<ImageType, Scalar>( filename, post, w_q_signif_ct, mask2);
+      if( have_q_mask )
+        {
+        WriteVectorToSpatialImage<ImageType, Scalar>( filename, post, w_q_signif_ct, mask2);
+        }
       }
     }
   return EXIT_SUCCESS;
@@ -1864,23 +1870,19 @@ int sccan( itk::ants::CommandLineParser *parser )
       SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct);
       return EXIT_SUCCESS;
       }
-    if(  !initializationStrategy.compare( std::string( "cgsparse" ) )  )
+    if(  !initializationStrategy.compare( std::string( "cgspca" ) )  )
       {
       SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2);
       return EXIT_SUCCESS;
       }
-    if(  !initializationStrategy.compare( std::string( "cgpca" ) )  )
-      {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 3);
-      return EXIT_SUCCESS;
-      }
     if(  !initializationStrategy.compare( std::string( "classic" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4);
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1);
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
+      // this will be option 3
       std::cout << " not implemented yet " << std::endl;
       return EXIT_SUCCESS;
       }
@@ -2124,12 +2126,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 0,
                             "sparse[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
     option->SetUsageOption( 1,
-                            "cgsparse[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
-    option->SetUsageOption( 2,
                             "classic[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
-    option->SetUsageOption( 3,
-                            "cgpca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
-    option->SetUsageOption( 4, "prior[....]" );
+    option->SetUsageOption( 2,
+                            "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption( 3, "prior[....]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

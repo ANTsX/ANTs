@@ -271,7 +271,7 @@ public:
 
   RealType RunSCCAN3();
 
-  RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
+  RealType SparseConjGrad( VectorType &, VectorType, RealType  );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -461,7 +461,7 @@ public:
   RealType ComputeSPCAEigenvalues(unsigned int, RealType);
   RealType BasicSVD(unsigned int nvecs);
 
-  RealType rSVD(unsigned int nvecs);
+  RealType CGSPCA(unsigned int nvecs);
 
   MatrixType GetCovMatEigenvectors( MatrixType p );
 
@@ -472,17 +472,17 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
-  void SparsifyP( VectorType& x_k1  )
+  void SparsifyP( VectorType& x_k1, bool keeppos )
   {
     RealType fnp = this->m_FractionNonZeroP;
 
     if( this->m_KeepPositiveP )
       {
-      this->ConstantProbabilityThreshold( x_k1, fnp, this->m_KeepPositiveP );
+      this->ConstantProbabilityThreshold( x_k1, fnp, keeppos );
       }
     else
       {
-      this->ReSoftThreshold( x_k1, fnp, !this->m_KeepPositiveP );
+      this->ReSoftThreshold( x_k1, fnp, keeppos );
       }
     this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
   }
