@@ -477,8 +477,8 @@ public:
 
   RealType SparseArnoldiSVD_z(unsigned int nvecs);
 
-  RealType ComputeSPCAEigenvalues(unsigned int, RealType);
-  RealType BasicSVD(unsigned int nvecs);
+  RealType ComputeSPCAEigenvalues(unsigned int, RealType, bool );
+  RealType BasicSVD();
 
   RealType CGSPCA(unsigned int nvecs);
 

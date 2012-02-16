@@ -1026,7 +1026,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   double truecorr = 0;
   if( svd_option == 1 )
     {
-    truecorr = sccanobj->BasicSVD(n_evec);                     // classic
+    truecorr = sccanobj->BasicSVD();                      // classic
     }
   else if( svd_option == 3 )
     {
