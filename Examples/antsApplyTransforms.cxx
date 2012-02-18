@@ -133,11 +133,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
    */
   // Register the matrix offset transform base class to the
   // transform factory for compatibility with the current ANTs.
-  typedef itk::MatrixOffsetTransformBase
-    <PixelType, Dimension, Dimension> MatrixOffsetTransformType;
+  typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
-  typedef itk::AffineTransform<PixelType, Dimension> AffineTransformType;
-  itk::TransformFactory<AffineTransformType>::RegisterTransform();
+  typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
+  itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
 
   /**
    * Load an identity transform in case no transforms are loaded.
