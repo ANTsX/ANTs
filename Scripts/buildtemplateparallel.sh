@@ -603,6 +603,11 @@ control_c()
 {
   echo -en "\n*** User pressed CTRL + C ***\n"
   cleanup
+
+  if [ $DOQSUB -eq 1 ] ; then
+     qdel $jobIDs
+  fi
+
   exit $?
   echo -en "\n*** Script cancelled by user ***\n"
 }
@@ -943,12 +948,12 @@ if [ "$RIGID" -eq 1 ] ;
       echo "$exe2" >> $qscript
 
       if [ $DOQSUB -eq 1 ] ; then
-		id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
+		id=`qsub -cwd -S /bin/bash -N antsBuildTemplate_rigid -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,ANTSPATH=$ANTSPATH $QSUBOPTS $qscript | awk '{print $3}'`
 		jobIDs="$jobIDs $id"
 		    sleep 0.5
 		  elif [ $DOQSUB -eq 4 ]; then
         echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
-		id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
+		id=`qsub -N antsrigid -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
 		jobIDs="$jobIDs $id"
 		    sleep 0.5
       elif  [ $DOQSUB -eq 2 ] ; then
@@ -1143,7 +1148,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 
     # 6 submit to SGE (DOQSUB=1), PBS (DOQSUB=4), PEXEC (DOQSUB=2), XGrid (DOQSUB=3) or else run locally (DOQSUB=0)
     if [ $DOQSUB -eq 1 ]; then
-	id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
+	id=`qsub -cwd -N antsBuildTemplate_deformable_${i} -S /bin/bash -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,ANTSPATH=$ANTSPATH $QSUBOPTS $exe | awk '{print $3}'`
 	     jobIDs="$jobIDs $id"
 	     sleep 0.5
     elif [ $DOQSUB -eq 4 ]; then
@@ -1151,7 +1156,7 @@ while [  $i -lt ${ITERATIONLIMIT} ]
 	    echo "$SCRIPTPREPEND" > $qscript
 	     echo "$exe" >> $qscript
       echo "cp -R /jobtmp/pbstmp.\$PBS_JOBID/* ${currentdir}" >> $qscript;
-	     id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
+	     id=`qsub -N antsdef${i} -v ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=1,ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
 	     jobIDs="$jobIDs $id"
 	sleep 0.5
     elif [ $DOQSUB -eq 2 ] ; then
