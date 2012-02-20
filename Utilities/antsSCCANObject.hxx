@@ -1569,7 +1569,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       std::cout << " iprk " << iprk << std::endl;
       }
-    RealType alpha_k = iprk / alpha_denom * 10;
+    RealType alpha_k = iprk / alpha_denom;
     if( debug )
       {
       std::cout << " alpha_k " << alpha_k << std::endl;
@@ -1630,6 +1630,111 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
+::EvaluateEnergy( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
+                  typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
+                  typename antsSCCANObject<TInputImage, TRealType>::VectorType&  p_k,
+                  typename antsSCCANObject<TInputImage, TRealType>::VectorType&  b,
+                  TRealType minalph, bool keeppos )
+{
+  VectorType x_k1  = x_k + minalph * p_k;
+
+  this->SparsifyP( x_k1, keeppos );
+  VectorType r_k1 = ( b - this->m_MatrixP.transpose() * (A * x_k1 )  );
+  RealType   e = r_k1.two_norm();
+  return e;
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::GoldenSection( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
+                 typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
+                 typename antsSCCANObject<TInputImage, TRealType>::VectorType&  p_k,
+                 typename antsSCCANObject<TInputImage, TRealType>::VectorType&  bsol,
+                 TRealType minalph, TRealType maxalph, bool keeppos,
+                 TRealType a, TRealType b, TRealType c, TRealType tau )
+{
+  this->m_GoldenSectionCounter++;
+  if( this->m_GoldenSectionCounter > 100 )
+    {
+    return (c + a) / 2;
+    }
+  double phi = (1 + sqrt(5) ) / 2;
+  double resphi = 2 - phi;
+  double x;
+  if( c - b > b - a )
+    {
+    x = b + resphi * (c - b);
+    }
+  else
+    {
+    x = b - resphi * (b - a);
+    }
+  if( fabs(c - a) < tau * ( fabs(b) + fabs(x) ) )
+    {
+    return (c + a) / 2;
+    }
+  if( this->EvaluateEnergy( A, x_k, p_k, bsol, x, keeppos ) < this->EvaluateEnergy( A, x_k, p_k, bsol, b, keeppos ) )
+    {
+    if( c - b > b - a )
+      {
+      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, b, x, c, tau);
+      }
+    else
+      {
+      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, a, x, b, tau);
+      }
+    }
+  else
+    {
+    if( c - b > b - a )
+      {
+      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, a, b, x, tau);
+      }
+    else
+      {
+      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, x, b, c, tau);
+      }
+    }
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::LineSearch( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
+              typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
+              typename antsSCCANObject<TInputImage, TRealType>::VectorType&  p_k,
+              typename antsSCCANObject<TInputImage, TRealType>::VectorType&  b,
+              TRealType minalph, TRealType maxalph, bool keeppos )
+{
+  bool dogs = true;
+
+  if( dogs )
+    {
+    RealType big = maxalph;
+    this->m_GoldenSectionCounter = 0;
+    return this->GoldenSection( A, x_k, p_k, b, minalph, maxalph, keeppos, 0, big / 2, big, 0.1 );
+    }
+
+  // otherwise just search across a line ...
+  RealType      minerr = 1.e99;
+  bool          converged = false;
+  unsigned long ct = 0;
+  RealType      bestalph = 0;
+  RealType      step;
+  RealType      ebracket = 0;
+  step =  ( maxalph - minalph ) / 10;
+  for( RealType eb = minalph; eb <= maxalph; eb = eb + step )
+    {
+    RealType e = this->EvaluateEnergy( A, x_k, p_k, b, eb, keeppos );
+    if( e < minerr )
+      {
+      minerr = e; ebracket = eb; bestalph = eb;
+      }
+    }
+  return bestalph;
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseNLConjGrad( typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
                     typename antsSCCANObject<TInputImage, TRealType>::VectorType  b, TRealType convcrit = 1.e-3,
                     unsigned int maxits = 5 )
@@ -1665,7 +1770,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType   bestsol = x_k;
   RealType     starterr = r_k.two_norm();
   RealType     minerr = starterr, deltaminerr = 1, lasterr = minerr;
-  while(  deltaminerr > 0 && minerr > convcrit && ct < maxits )
+  while(  deltaminerr > 1.e-4 && minerr > convcrit && ct < maxits )
     {
     RealType alpha_denom = inner_product( p_k,  this->m_MatrixP.transpose() * ( A * p_k ) );
     RealType iprk = inner_product( r_k, r_k );
@@ -1678,37 +1783,32 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       std::cout << " alpha_k " << alpha_k << std::endl;
       }
-
-    RealType best_alph = 0;
-    RealType stepsize = alpha_k / 10;
+    RealType stepsize = alpha_k / 100;
+    RealType minalph = stepsize;
+    RealType maxalph = alpha_k * 2;
+    RealType midalph = ( minalph + maxalph ) * 0.5;
     RealType preverr = 1.e99;
     /** FIXME --- need better line search */
-    RealType newminerr = 1.e99;
-    for( RealType alph =  stepsize; alph <= (alpha_k * 2); alph = alph + stepsize )
+    RealType best_alph = this->LineSearch( A, x_k, p_k, b, minalph, maxalph, keeppos );
+    if( best_alph == maxalph )
       {
-      VectorType x_k1  = x_k + alph * p_k; // this adds the scaled residual to the current solution
-      /** Probably the most important step if you want an interpretable map */
-      this->SparsifyP( x_k1, keeppos );  /*******sparse******/
-      VectorType r_k1 = ( b - this->m_MatrixP.transpose() * (A * x_k1 )  );
-      approxerr = r_k1.two_norm();
-      if( alph > stepsize && approxerr > preverr )
-        {
-        alph = 1.e99;
-        }
-      preverr = approxerr;
-      if( approxerr < newminerr )
-        {
-        newminerr = approxerr; bestsol = ( x_k1 ); best_alph = alph;
-        }
+      best_alph = this->LineSearch( A, x_k, p_k, b, maxalph, maxalph * 2, keeppos );
+      }
+    VectorType x_k1  = x_k + best_alph * p_k; // this adds the scaled residual to the current solution
+    /** Probably the most important step if you want an interpretable map */
+    this->SparsifyP( x_k1, keeppos );  /*******sparse******/
+    VectorType r_k1 = ( b - this->m_MatrixP.transpose() * (A * x_k1 )  );
+    approxerr = r_k1.two_norm();
+    RealType newminerr = minerr;
+    if( approxerr < newminerr )
+      {
+      newminerr = approxerr; bestsol = ( x_k1 );
       }
     deltaminerr = ( minerr - newminerr  );
     if( newminerr < minerr )
       {
       minerr = newminerr;
       }
-    VectorType x_k1  = x_k +  best_alph * p_k;
-    this->SparsifyP( x_k1, keeppos );
-    VectorType r_k1 = ( b - this->m_MatrixP.transpose() * (A * x_k1 )  );
     if( true )
       {
       std::cout << " r_k1 " << minerr <<  " derr " << deltaminerr << " ba " << best_alph / alpha_k << std::endl;
@@ -1774,22 +1874,21 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     evct++;
     }
   for(  unsigned int colind = 0; colind < n_vecs; colind++ )
-  // for (  unsigned int colind = 28; colind < 31; colind++ )
+  //  for (  unsigned int colind = 28; colind < 31; colind++ )
     {
     RealType   fnp = this->m_FractionNonZeroP;
     VectorType x_k = this->m_VariatesP.get_column( colind );
     VectorType b =  this->m_Eigenvectors.get_column( colind ) * evalInit( colind );
     // variatesInit.get_column( bcolind ) * evalInit( bcolind );
     /********************************/
-    VectorType randv = this->InitializeV( this->m_MatrixP, true );
-    x_k = randv;
-    this->SparseNLConjGrad( x_k, b, 1.e-1, 5 );
+    VectorType randv = this->InitializeV( this->m_MatrixP, false );
+    x_k = this->m_Eigenvectors.get_column( colind ); // randv;
+    this->SparseNLConjGrad( x_k, b, 1.e-1, 50 );
     /********************************/
     this->m_VariatesP.set_column( colind, x_k );
     std::cout << " col " << colind << " of  " <<  n_vecs << std::endl;
     }
   this->m_Eigenvalues = this->m_CanonicalCorrelations = evalInit;
-  RealType vex = this->ComputeSPCAEigenvalues(n_vecs, this->m_Eigenvalues.sum() );
   return this->m_CanonicalCorrelations[0];
 }
 

@@ -271,6 +271,11 @@ public:
 
   RealType RunSCCAN3();
 
+  RealType LineSearch( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, TRealType minalph,
+                       TRealType maxalph, bool );
+
+  RealType EvaluateEnergy( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, TRealType minalph, bool );
+
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
   RealType SparseNLConjGrad( VectorType &, VectorType, RealType, unsigned int );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
@@ -578,6 +583,9 @@ protected:
     return numer / denom;
   }
 
+  RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, TRealType minalph,
+                          TRealType maxalph, bool, TRealType a, TRealType b, TRealType c, TRealType tau );
+
   //  VectorType vEtoV( eVector v ) {
   //   VectorType v_out( v.data() , v.size() );
   //  return v_out;
@@ -697,6 +705,7 @@ private:
   unsigned int m_MinClusterSizeP;
   unsigned int m_MinClusterSizeQ;
   unsigned int m_KeptClusterSize;
+  unsigned int m_GoldenSectionCounter;
   VectorType   m_ClusterSizes;
 };
 } // namespace ants
