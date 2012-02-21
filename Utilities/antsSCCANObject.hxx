@@ -1882,7 +1882,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // variatesInit.get_column( bcolind ) * evalInit( bcolind );
     /********************************/
     VectorType randv = this->InitializeV( this->m_MatrixP, false );
-    x_k = this->m_Eigenvectors.get_column( colind ); // randv;
+    x_k = randv; // this->m_Eigenvectors.get_column( colind ); // randv;
     this->SparseNLConjGrad( x_k, b, 1.e-1, 50 );
     /********************************/
     this->m_VariatesP.set_column( colind, x_k );
