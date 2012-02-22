@@ -1949,14 +1949,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
     /********************************/
     VectorType randv = this->InitializeV( this->m_MatrixP, false );
-    for( unsigned its = 0; its < 5; its++ )
+    for( unsigned its = 0; its < 2; its++ )
       {
       std::cout << its << " : ";
       this->SparseNLConjGrad( pmod, randv, ( b * pmod ), 1.e-1, 20, true );
-      if( randv.min_value() < 0 )
-        {
-        randv = randv * ( -1.0 );
-        }
+      }
+    if( randv.min_value() < 0 )
+      {
+      randv = randv * ( -1.0 );
       }
     /********************************/
     this->m_VariatesP.set_column( colind, randv );
