@@ -1471,106 +1471,31 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   return fabs(this->m_CanonicalCorrelations[0]);
 }
 
-/*
-
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::SparseConjGrad( typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k ,
-      typename antsSCCANObject<TInputImage, TRealType>::VectorType  b , TRealType convcrit = 1.e-3, unsigned int its = 5 )
+::ConjGrad( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A, typename antsSCCANObject<TInputImage,
+                                                                                                      TRealType>::VectorType& x_k,
+            typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType convcrit = 1.e-3,
+            unsigned int maxits = 5 )
 {
-  VectorType xkin( x_k );
-  bool keeppos = false;
+  /** This will use the normal equations */
+  /** Based on Golub CONJUGATE  G R A D I E N T   A N D  LANCZOS  HISTORY
+   *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
+   */
   bool debug = false;
-  bool make_r_sparse = false;
-  bool make_p_sparse = false;
-  bool make_x_sparse = true;
-  RealType fnp = this->m_FractionNonZeroP;
-  MatrixType A = this->m_MatrixP;
-  // minimize the following error :    \| A^T*A * sparse_vec_i -    pca_vec_i * \lambda_i  \|  +  sparseness_penalty
-  VectorType pussy =  A.transpose() * ( A * x_k );
-  VectorType r_k = b - pussy;
-  //  r_k = b - x_k;
-  if ( make_r_sparse ) this->SparsifyP( r_k , keeppos );
-  VectorType p_k = r_k ;
-  unsigned int ct = 0;
-  VectorType bestsol = x_k;
-  RealType starterr = r_k.two_norm();
-  RealType alpha_k = 1.e20;
-  RealType minerr = starterr, deltaminerr = 1 , lasterr = minerr;
-  double approxerr = starterr;
-  while (  deltaminerr > 0 && approxerr > convcrit && ct < its )
-    {
-    RealType alpha_denom = inner_product( p_k ,  A.transpose() * ( A * p_k ) );
-    RealType iprk = inner_product( r_k , r_k );
-    if ( debug ) std::cout << " iprk " << iprk << std::endl;
-    alpha_k = iprk / alpha_denom;
-    if ( debug ) std::cout << " alpha_k " << alpha_k << std::endl;
-    VectorType x_k1 ;
-    RealType best = 0;
-    alpha_k *= 5;
-    for ( RealType alph = (alpha_k)*(0) ; alph <= alpha_k*2 ; alph = alph + alpha_k/10 )
-      //RealType alph = alpha_k;
-      {
-      x_k1  = x_k + alph * p_k; // this adds the scaled residual to the current solution
-      if ( make_x_sparse ) this->SparsifyP( x_k1 , keeppos );
-      pussy =  A.transpose() * ( A * x_k );
-      // Probably the most important step if you want an interpretable map
-      RealType err =  ( b  - pussy ).two_norm() ;
-      if ( err < minerr ) { minerr = err;  best = alph; bestsol = x_k1  ;}
-      std::cout <<" best " << best << " err " << minerr << " starterr " << lasterr << " alph " << alpha_k << std::endl;
-      }
-    lasterr = approxerr;
-    approxerr = minerr;
-    deltaminerr = ( lasterr - approxerr );
 
-    if ( debug ) std::cout <<" x_k1 " << x_k1.two_norm() << std::endl;
-    VectorType r_k1;
-// a 2nd alternative , useful for sparse case
-    if (  true  ) r_k1 = ( b - A.transpose() * (A * x_k1 )  ) ;
-// Below update works cleanly and smoothly , if not sparse \
-    else r_k1 = r_k - ( A.transpose() * ( A * p_k ) ) * alpha_k ;
-    if ( make_r_sparse ) this->SparsifyP( r_k1 , keeppos );
-    if ( false ) std::cout << " r_k1 " << approxerr <<  " derr " << deltaminerr << std::endl;
-
-    // measures the change in the residual
-    RealType   beta_k = inner_product( r_k1 , r_k1 ) /  inner_product( r_k , r_k );
-    if ( debug ) std::cout <<" beta_k " << beta_k << std::endl;
-    VectorType p_k1  = r_k1 + beta_k * p_k;
-    if (  make_p_sparse  )  this->SparsifyP( p_k1 , keeppos );
-
-    if ( debug ) std::cout <<" p_k1 " << p_k1.two_norm() << std::endl;
-    r_k = r_k1;
-    p_k = p_k1;
-    x_k = x_k1;
-    ct++;
-    }
-  x_k = bestsol;
-  x_k = x_k / x_k.two_norm();
-  std::cout <<" diff in out " <<  ( x_k - xkin / xkin.two_norm() ).two_norm() << std::endl;
-  return minerr;
-}
-*/
-
-template <class TInputImage, class TRealType>
-TRealType antsSCCANObject<TInputImage, TRealType>
-::SparseConjGrad( typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
-                  typename antsSCCANObject<TInputImage, TRealType>::VectorType  b, TRealType convcrit = 1.e-3,
-                  unsigned int maxits = 5 )
-{
-  bool       keeppos = false;
-  bool       debug = false;
-  RealType   fnp = this->m_FractionNonZeroP;
-  MatrixType A = this->m_MatrixP;
-  // minimize the following error :    \| A^T*A * sparse_vec_i -    pca_vec_i * \lambda_i  \|  +  sparseness_penalty
+  // minimize the following error :    \| A^T*A * vec_i -    b \|  +  sparseness_penalty
+  b_in = ( b_in - b_in.sum() / b_in.size() );
+  b_in = b_in / b_in.two_norm();
+  VectorType b = A.transpose() * b_in;
   VectorType r_k = A.transpose() * ( A * x_k );
-
   r_k = b - r_k;
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
   unsigned int ct = 0;
   VectorType   bestsol = x_k;
   RealType     starterr = r_k.two_norm();
-  RealType     minerr = starterr, deltaminerr = 1, lasterr = minerr;
+  RealType     minerr = starterr, deltaminerr = 1, lasterr = starterr * 2;
   while(  deltaminerr > 0 && approxerr > convcrit && ct < maxits )
     {
     RealType alpha_denom = inner_product( p_k,  A.transpose() * ( A * p_k ) );
@@ -1579,47 +1504,38 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       std::cout << " iprk " << iprk << std::endl;
       }
+    if( alpha_denom < 1.e-12 )
+      {
+      alpha_denom = 1;
+      }
     RealType alpha_k = iprk / alpha_denom;
     if( debug )
       {
       std::cout << " alpha_k " << alpha_k << std::endl;
       }
-
-    RealType best_alph = 0;
-    // for ( RealType alph = (alpha_k)*(-2) ; alph <= alpha_k*2 ; alph = alph + alpha_k/10 )
-    RealType alph = (alpha_k);
-      {
-      VectorType x_k1  = x_k + alph * p_k; // this adds the scaled residual to the current solution
-      /** Probably the most important step if you want an interpretable map */
-      this->SparsifyP( x_k1, keeppos ); /*******sparse******/
-      VectorType r_k1 = ( b - A.transpose() * (A * x_k1 )  );
-      approxerr = r_k1.two_norm();
-      if( approxerr < minerr )
-        {
-        minerr = approxerr; bestsol = ( x_k1 ); best_alph = alph;
-        }
-      }
-    VectorType x_k1  = x_k +  best_alph * p_k;
-    this->SparsifyP( x_k1, keeppos );
-    VectorType r_k1 = ( b - A.transpose() * (A * x_k1 )  );
-    lasterr = approxerr;
+    VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
+    VectorType r_k1 = ( b - A.transpose() * (A * x_k1 ) );
     approxerr = r_k1.two_norm();
-    if( true )
+    if( approxerr < minerr )
       {
-      std::cout << " r_k1 " << approxerr <<  " derr " << deltaminerr << std::endl;
+      minerr = approxerr; bestsol = ( x_k1 );
       }
     deltaminerr = ( lasterr - approxerr );
-    // measures the change in the residual
-    RealType beta_k = inner_product( r_k1, r_k1 ) /  inner_product( r_k, r_k );
-    if( debug )
-      {
-      std::cout << " beta_k " << beta_k << std::endl;
-      }
-    VectorType p_k1  = r_k1 + beta_k * p_k;
     if( false )
       {
-      this->SparsifyP( p_k1, x_k1 );             /*******sparse******/
+      std::cout << " ConjGrad " << approxerr <<  " minerr " << minerr << std::endl;
       }
+    lasterr = approxerr;
+    // measures the change in the residual --- this is the Fletcher-Reeves form for nonlinear CG
+    // see Table 1.1 \Beta^FR in A SURVEY OF NONLINEAR CONJUGATE GRADIENT METHODS
+    // in this paper's notation d => p,  g => r , alpha, beta, x the same , so y = rk1 - rk
+    //    RealType   beta_k = inner_product( r_k1 , r_k1 ) /  inner_product( r_k , r_k ); // classic cg
+    // measures the change in the residual
+    VectorType yk = r_k1 - r_k;
+    RealType   bknd =  inner_product( p_k, yk );
+    RealType   beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ), r_k1 / bknd ); // Hager and Zhang
+    // RealType beta_k = inner_product( r_k1 , r_k1 ) /  inner_product( r_k , r_k ); // classic cg
+    VectorType p_k1  = r_k1 + beta_k * p_k;
     if( debug )
       {
       std::cout << " p_k1 " << p_k1.two_norm() << std::endl;
@@ -1627,15 +1543,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     r_k = r_k1;
     p_k = p_k1;
     x_k = x_k1;
-    //      if ( approxerr < 1.e-2 )
-    //      x_k = x_k +  this->InitializeV( this->m_MatrixP , true );
     ct++;
     }
 
   x_k = bestsol;
-  RealType Ferr = ( A.transpose() * (A * x_k) - b ).two_norm();
-  std::cout << "FinalErr " << Ferr << " start  " << starterr << std::endl;
-  return approxerr;
+  RealType solerr = ( b_in - (A * x_k ) ).two_norm();
+  // std::cout << " b " << std::endl;
+  // std::cout << b_in << std::endl;
+  // std::cout << " sol " << std::endl;
+  // std::cout << A * x_k << std::endl;
+  return solerr;
 }
 
 template <class TInputImage, class TRealType>
@@ -1810,10 +1727,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       minerr = newminerr;
       }
-    if( true )
-      {
-      std::cout << " r_k1 " << minerr <<  " derr " << deltaminerr << " ba " << best_alph / alpha_k << std::endl;
-      }
+    //    if ( true ) std::cout << " r_k1 " << minerr <<  " derr " << deltaminerr << " ba " << best_alph / alpha_k <<
+    // std::endl;
     // measures the change in the residual --- this is the Fletcher-Reeves form for nonlinear CG
     // see Table 1.1 \Beta^FR in A SURVEY OF NONLINEAR CONJUGATE GRADIENT METHODS
     // in this paper's notation d => p,  g => r , alpha, beta, x the same , so y = rk1 - rk
@@ -1916,11 +1831,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     exit(1);
     }
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs  );
+  this->m_VariatesP.fill(0);
+  VectorType b =  this->m_MatrixR.get_column( 0 );
   for(  unsigned int colind = 0; colind < n_vecs; colind++ )
     {
+    b =  this->m_MatrixR.get_column( 0 );
     RealType   fnp = this->m_FractionNonZeroP;
     VectorType x_k = this->m_VariatesP.get_column( colind );
-    VectorType b =  this->m_MatrixR.get_column( 0 );
     MatrixType pmod = this->m_MatrixP;
     this->m_Indicator.set_size(this->m_MatrixP.cols() );
     this->m_Indicator.fill(1);
@@ -1938,30 +1855,35 @@ TRealType antsSCCANObject<TInputImage, TRealType>
             }
           }
         }
-      pmod = pmod * this->m_Indicator;
-      /*
-      MatrixType m; m.set_size( this->m_MatrixP.rows() , colind );
-      for ( unsigned int mm = 0; mm < colind; mm++ )
-        m.set_row( mm , this->m_MatrixP * this->m_VariatesP.get_column( mm ) );
-      pmod = pmod - this->ProjectionMatrix(m,1.e-2) * pmod;
-      */
       }
 
     /********************************/
     VectorType randv = this->InitializeV( this->m_MatrixP, false );
     for( unsigned its = 0; its < 2; its++ )
       {
-      std::cout << its << " : ";
-      this->SparseNLConjGrad( pmod, randv, ( b * pmod ), 1.e-1, 20, true );
+      std::cout << " col : " << colind << " its : " << its << " : ";
+      for( unsigned int mm = 0; mm < colind; mm++ )
+        {
+        b = this->Orthogonalize( b, this->m_MatrixP * this->m_VariatesP.get_column(mm) );
+        }
+      VectorType bp = b * pmod;
+      this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 20, true );
       }
-    if( randv.min_value() < 0 )
-      {
-      randv = randv * ( -1.0 );
-      }
-    /********************************/
     this->m_VariatesP.set_column( colind, randv );
-    std::cout << " col " << colind << " of  " <<  n_vecs << std::endl;
+    VectorType lmsol( n_vecs, 1 );
+    lmsol = lmsol / lmsol.two_norm();
+    MatrixType A = this->m_MatrixP * this->m_VariatesP;
+    RealType   lmerror = this->ConjGrad(  A,  lmsol, b, 0, 100 );
+    std::cout << "err: " << lmerror << " col " << colind << std::endl;
     }
+  /***************************************/
+  /* Now get the LSQ regression solution */
+  /***************************************/
+  VectorType lmsol( n_vecs, 1 );
+  lmsol = lmsol / lmsol.two_norm();
+  MatrixType A = this->m_MatrixP * this->m_VariatesP;
+  RealType   lmerror = this->ConjGrad(  A,  lmsol, b, 0, 100 );
+  std::cout << "Error-Norm: " << lmerror << std::endl;
   return 0;
 }
 
