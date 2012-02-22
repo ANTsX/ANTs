@@ -277,7 +277,7 @@ public:
   RealType EvaluateEnergy( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, TRealType minalph, bool );
 
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
-  RealType SparseNLConjGrad( VectorType &, VectorType, RealType, unsigned int );
+  RealType SparseNLConjGrad( MatrixType &, VectorType &, VectorType, RealType, unsigned int, bool );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -347,21 +347,20 @@ public:
       }
   }
 
-  MatrixType ProjectionMatrix(MatrixType b)
+  MatrixType ProjectionMatrix(MatrixType b, double regularization = 0.001)
   {
     double     pinvTolerance = this->m_PinvTolerance;
     MatrixType dd = this->NormalizeMatrix(b);
     MatrixType cov = dd * dd.transpose();
 
     cov.set_identity();
-    TRealType regularization = 1.e-3;
     cov = cov * regularization + dd * dd.transpose();
     vnl_svd<RealType>          eig(cov, pinvTolerance);
     vnl_diag_matrix<TRealType> indicator(cov.cols(), 0);
     for( unsigned int i = 0; i < cov.rows(); i++ )
       {
       double eval = eig.W(i, i);
-      if( eval > 1.e-9 )
+      if( eval > 1.e-6 )
         {
         indicator(i, i) = 1 / eval;
         }
@@ -487,6 +486,8 @@ public:
   RealType BasicSVD();
 
   RealType CGSPCA(unsigned int nvecs);
+
+  RealType NetworkDecomposition(unsigned int nvecs);
 
   MatrixType GetCovMatEigenvectors( MatrixType p );
 
@@ -702,11 +703,12 @@ private:
   bool     m_SpecializationForHBM2011;
   RealType m_CorrelationForSignificanceTest;
 
-  unsigned int m_MinClusterSizeP;
-  unsigned int m_MinClusterSizeQ;
-  unsigned int m_KeptClusterSize;
-  unsigned int m_GoldenSectionCounter;
-  VectorType   m_ClusterSizes;
+  unsigned int              m_MinClusterSizeP;
+  unsigned int              m_MinClusterSizeQ;
+  unsigned int              m_KeptClusterSize;
+  unsigned int              m_GoldenSectionCounter;
+  VectorType                m_ClusterSizes;
+  vnl_diag_matrix<RealType> m_Indicator;
 };
 } // namespace ants
 } // namespace itk
