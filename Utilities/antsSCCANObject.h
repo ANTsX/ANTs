@@ -499,18 +499,16 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
+  void StandardizeV( VectorType& v )
+  {
+    // v =  v - v.sum() / v.size() ; v = v/v.two_norm();
+  }
+
   void SparsifyP( VectorType& x_k1, bool keeppos )
   {
     RealType fnp = this->m_FractionNonZeroP;
 
-    if( this->m_KeepPositiveP )
-      {
-      this->ConstantProbabilityThreshold( x_k1, fnp, keeppos );
-      }
-    else
-      {
-      this->ReSoftThreshold( x_k1, fnp, keeppos );
-      }
+    this->ReSoftThreshold( x_k1, fnp, keeppos );
     this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
   }
 
