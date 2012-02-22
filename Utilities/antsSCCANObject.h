@@ -271,14 +271,20 @@ public:
 
   RealType RunSCCAN3();
 
-  RealType LineSearch( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, TRealType minalph,
-                       TRealType maxalph, bool );
+  RealType LineSearch( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, RealType minalph,
+                       RealType maxalph, bool );
 
-  RealType EvaluateEnergy( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, TRealType minalph, bool );
+  RealType EvaluateEnergy( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, RealType minalph,  bool );
 
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
-  RealType ConjGrad( MatrixType &, VectorType &, VectorType, RealType, unsigned int  );
-  RealType SparseNLConjGrad( MatrixType &, VectorType &, VectorType, RealType, unsigned int, bool );
+  RealType ConjGrad( typename antsSCCANObject<TInputImage, RealType>::MatrixType & A,
+                     typename antsSCCANObject<TInputImage, RealType>::VectorType & x_k,
+                     typename antsSCCANObject<TInputImage, RealType>::VectorType  b_in, RealType convcrit = 1.e-3,
+                     unsigned int maxits = 5 );
+  RealType SparseNLConjGrad( typename antsSCCANObject<TInputImage, TRealType>::MatrixType & A,
+                             typename antsSCCANObject<TInputImage, TRealType>::VectorType & x_k,
+                             typename antsSCCANObject<TInputImage, TRealType>::VectorType  b,
+                             TRealType convcrit = 1.e-3, unsigned int maxits = 5, bool keeppos = false );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -356,8 +362,8 @@ public:
 
     cov.set_identity();
     cov = cov * regularization + dd * dd.transpose();
-    vnl_svd<RealType>          eig(cov, pinvTolerance);
-    vnl_diag_matrix<TRealType> indicator(cov.cols(), 0);
+    vnl_svd<RealType>         eig(cov, pinvTolerance);
+    vnl_diag_matrix<RealType> indicator(cov.cols(), 0);
     for( unsigned int i = 0; i < cov.rows(); i++ )
       {
       double eval = eig.W(i, i);
@@ -376,8 +382,9 @@ public:
   VectorType TrueCCAPowerUpdate(RealType penaltyP, MatrixType p, VectorType w_q, MatrixType q, bool keep_pos,
                                 bool factorOutR);
 
-  MatrixType PartialOutZ( MatrixType X, MatrixType Y, MatrixType Z )
+  MatrixType PartialOutZ( MatrixType /*X*/, MatrixType /*Y*/, MatrixType /*Z*/ )
   {
+    std::cout << "ERROR:  This function not yet implemented." << std::endl;
     /** compute the effect of Z and store it for later use */
   }
 
@@ -440,12 +447,12 @@ public:
     double s2 =  0;
     double t0 =  0;
     double t1 =  0;
-    for( int i = loline; i < N; ++i )
+    for( unsigned int i = loline; i < N; ++i )
       {
-      double t = (i - loline);
+      const double t = (i - loline);
       s1 += t;
       s2 += (t * t);
-      double e = vexlist[i] - vexlist[loline];
+      const double e = vexlist[i] - vexlist[loline];
       t0 += e;
       t1 += (e * e);
       }
@@ -499,7 +506,7 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
-  void StandardizeV( VectorType& v )
+  void StandardizeV( VectorType & /*v*/ )
   {
     // v =  v - v.sum() / v.size() ; v = v/v.two_norm();
   }
@@ -583,8 +590,8 @@ protected:
     return numer / denom;
   }
 
-  RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, TRealType minalph,
-                          TRealType maxalph, bool, TRealType a, TRealType b, TRealType c, TRealType tau );
+  RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType minalph,
+                          RealType maxalph, bool keeppos, RealType a, RealType b, RealType c, RealType tau );
 
   //  VectorType vEtoV( eVector v ) {
   //   VectorType v_out( v.data() , v.size() );
