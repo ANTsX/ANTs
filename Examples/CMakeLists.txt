@@ -212,6 +212,8 @@ add_executable(antsMotionCorr antsMotionCorr.cxx ${UI_SOURCES})
  target_link_libraries(antsMotionCorr ${ITK_LIBRARIES})
 add_executable(sccan sccan.cxx ${UI_SOURCES})
 target_link_libraries(sccan ${ITK_LIBRARIES} )
+add_executable(CreateDisplacementField CreateDisplacementField.cxx ${UI_SOURCES})
+target_link_libraries(CreateDisplacementField ${ITK_LIBRARIES} )
 if(USE_VTK)
 include(${CMAKE_ROOT}/Modules/FindVTK.cmake)
 if(USE_VTK_FILE)
@@ -313,6 +315,7 @@ install(TARGETS ANTS
   ANTSIntegrateVectorField
   ANTSIntegrateVelocityField
   Atropos
+  CreateDisplacementField
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
