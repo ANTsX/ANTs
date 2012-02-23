@@ -277,14 +277,9 @@ public:
   RealType EvaluateEnergy( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, RealType minalph,  bool );
 
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
-  RealType ConjGrad( typename antsSCCANObject<TInputImage, RealType>::MatrixType & A,
-                     typename antsSCCANObject<TInputImage, RealType>::VectorType & x_k,
-                     typename antsSCCANObject<TInputImage, RealType>::VectorType  b_in, RealType convcrit = 1.e-3,
-                     unsigned int maxits = 5 );
-  RealType SparseNLConjGrad( typename antsSCCANObject<TInputImage, TRealType>::MatrixType & A,
-                             typename antsSCCANObject<TInputImage, TRealType>::VectorType & x_k,
-                             typename antsSCCANObject<TInputImage, TRealType>::VectorType  b,
-                             TRealType convcrit = 1.e-3, unsigned int maxits = 5, bool keeppos = false );
+  RealType ConjGrad( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int  );
+
+  RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -506,17 +501,25 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
-  void StandardizeV( VectorType & /*v*/ )
-  {
-    // v =  v - v.sum() / v.size() ; v = v/v.two_norm();
-  }
-
   void SparsifyP( VectorType& x_k1, bool keeppos )
   {
-    RealType fnp = this->m_FractionNonZeroP;
+    bool negate = false;
 
+    if( x_k1.max_value() <= 0 )
+      {
+      negate = true;
+      }
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
+    RealType fnp = this->m_FractionNonZeroP;
     this->ReSoftThreshold( x_k1, fnp, keeppos );
     this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
   }
 
   void SparsifyP( VectorType& x_k1, VectorType& refvec  )

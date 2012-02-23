@@ -1084,7 +1084,26 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     cwriter->SetInput( &evals );
     cwriter->Write();
     }
-
+  // permutation test
+  if( svd_option == 4 && permct > 0 )
+    {
+    std::cout << "Begin" << permct << " permutations " << std::endl;
+    unsigned long perm_exceed_ct = 0;
+    for( unsigned long pct = 0; pct <= permct; pct++ )
+      {
+      // 0. compute permutation for q ( switch around rows )
+      vMatrix p_perm = PermuteMatrix<Scalar>( sccanobj->GetMatrixP() );
+      sccanobj->SetMatrixP( p_perm );
+      double permcorr = sccanobj->NetworkDecomposition(n_evec); // cgsparse
+      if( permcorr < truecorr )
+        {
+        perm_exceed_ct++;
+        }
+      // end solve cca permutation
+      std::cout << permcorr << " p-value " <<  (double)perm_exceed_ct
+        / (pct + 1) << " ct " << pct << " true " << truecorr << " vs " << permcorr << std::endl;
+      }
+    }
   return EXIT_SUCCESS;
 }
 

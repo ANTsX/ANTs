@@ -1481,12 +1481,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
    *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
    */
   bool debug = false;
-
   // minimize the following error :    \| A^T*A * vec_i -    b \|  +  sparseness_penalty
-  b_in = ( b_in - b_in.sum() / b_in.size() );
-  b_in = b_in / b_in.two_norm();
   VectorType b = A.transpose() * b_in;
   VectorType r_k = A.transpose() * ( A * x_k );
+
   r_k = b - r_k;
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
@@ -1545,11 +1543,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   x_k = bestsol;
-  RealType solerr = ( b_in - (A * x_k ) ).two_norm();
-  // std::cout << " b " << std::endl;
-  // std::cout << b_in << std::endl;
-  // std::cout << " sol " << std::endl;
-  // std::cout << A * x_k << std::endl;
+  VectorType soln = A * x_k;
+  soln = ( soln - soln.mean() + b_in.mean() );
+  soln = soln / soln.two_norm() * b_in.two_norm();
+  RealType solerr = 0;
+  RealType solerrsize = ( RealType ) 1.0 / soln.size();
+  for( unsigned int i = 0; i < soln.size(); i++ )
+    {
+    solerr += vnl_math_abs( soln(i) - b_in(i) ) * solerrsize;
+    }
+  //  std::cout << " b " << soln.two_norm() << " bvar " << b_in.two_norm() << std::endl;
+  //  std::cout << b_in << std::endl;
+  //  std::cout << " sol " << std::endl;
+  //  std::cout << soln << std::endl;
   return solerr;
 }
 
@@ -1668,8 +1674,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 {
   bool negate = false;
 
-  keeppos = true;
-  //  if ( b.min_value() < 0 ) negate = true ;
+  if( b.max_value() <= 0 )
+    {
+    negate = true;
+    }
   if( negate )
     {
     x_k = x_k * ( -1 );
@@ -1677,7 +1685,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   bool         debug = false;
   RealType     fnp = this->m_FractionNonZeroP;
-  VectorType   r_k = (b - x_k);
+  VectorType   r_k = ( b -  A.transpose() * ( A * x_k ) );
   VectorType   p_k = r_k;
   double       approxerr = 1.e22;
   unsigned int ct = 0;
@@ -1688,14 +1696,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     RealType alpha_denom = inner_product( p_k,  A.transpose() * ( A * p_k ) );
     RealType iprk = inner_product( r_k, r_k );
-    if( debug )
-      {
-      std::cout << " iprk " << iprk << std::endl;
-      }
     RealType alpha_k = iprk / alpha_denom;
     if( debug )
       {
-      std::cout << " alpha_k " << alpha_k << std::endl;
+      std::cout << " alpha_k " << alpha_k << " iprk " << iprk <<  " alpha_denom " << alpha_denom << std::endl;
       }
     RealType stepsize = alpha_k / 100;
     RealType minalph = stepsize;
@@ -1703,15 +1707,22 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     RealType midalph = ( minalph + maxalph ) * 0.5;
     RealType preverr = 1.e99;
     /** FIXME --- need better line search */
-    RealType best_alph = this->LineSearch( A, x_k, p_k, b, minalph, maxalph, keeppos );
-    if( best_alph == maxalph )
+    RealType   best_alph = this->LineSearch( A, x_k, p_k, b, minalph, maxalph, keeppos );
+    VectorType x_k1  = x_k + best_alph * p_k;
+    // this adds the scaled residual to the current solution
+    if( debug )
       {
-      best_alph = this->LineSearch( A, x_k, p_k, b, maxalph, maxalph * 2, keeppos );
+      std::cout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm()
+                << " xk1-min " << x_k1.min_value() << std::endl;
       }
-    VectorType x_k1  = x_k + best_alph * p_k; // this adds the scaled residual to the current solution
     /** Probably the most important step if you want an interpretable map */
     this->SparsifyP( x_k1, keeppos );  /*******sparse******/
-    VectorType r_k1 = ( b - A.transpose() * (A * x_k1 )  );
+    if( debug )
+      {
+      std::cout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm() << std::endl;
+      }
+    VectorType proj = A.transpose() * (A * x_k1 );
+    VectorType r_k1 = ( b -  proj  );
     approxerr = r_k1.two_norm();
     RealType newminerr = minerr;
     if( approxerr < newminerr )
@@ -1723,10 +1734,17 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       minerr = newminerr;
       }
-    if( false )
+    if( debug )
       {
-      std::cout << " r_k1 " << minerr <<  " derr " << deltaminerr << " ba " << best_alph / alpha_k << " xk1-min "
-                << x_k1.min_value() << std::endl;
+      std::cout << " r_k12n " << r_k1.two_norm() << " r_k2n " << r_k.two_norm() << std::endl;
+      }
+    if( debug )
+      {
+      std::cout << " x_k2n " << x_k.two_norm() << " x_k12n " << x_k1.two_norm() << std::endl;
+      }
+    if( debug )
+      {
+      std::cout << " r_k1 " << minerr <<  " derr " << deltaminerr << " ba " << best_alph / alpha_k << std::endl;
       }
     // measures the change in the residual --- this is the Fletcher-Reeves form for nonlinear CG
     // see Table 1.1 \Beta^FR in A SURVEY OF NONLINEAR CONJUGATE GRADIENT METHODS
@@ -1819,7 +1837,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
    */
   bool debug = false;
   std::cout << " network decomposition using nlcg & normal equations " << std::endl;
-  std::vector<RealType> vexlist;
 
   this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
   this->m_MatrixQ = this->m_MatrixP;
@@ -1831,68 +1848,69 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs  );
   this->m_VariatesP.fill(0);
-  VectorType b =  this->m_MatrixR.get_column( 0 );
-  for(  unsigned int colind = 0; colind < n_vecs; colind++ )
+  VectorType intercept( this->m_MatrixP.cols(), 1);
+  this->m_VariatesP.set_column( 0, intercept );
+  RealType   lmerror;
+  VectorType original_b =  this->m_MatrixR.get_column( 0 );
+//  original_b = original_b - original_b.mean();  original_b = original_b / original_b.two_norm();
+  for(  unsigned int colind = 1; colind < n_vecs; colind++ )
     {
-    b =  this->m_MatrixR.get_column( 0 );
+    VectorType b =  original_b;
     RealType   fnp = this->m_FractionNonZeroP;
     VectorType x_k = this->m_VariatesP.get_column( colind );
     MatrixType pmod = this->m_MatrixP;
-    this->m_Indicator.set_size(this->m_MatrixP.cols() );
-    this->m_Indicator.fill(1);
-    if( colind > 0 )
-      {
-      /** zero out already used parts of matrix */
-      for( unsigned int mm = 0; mm < colind; mm++ )
-        {
-        VectorType u =  this->m_VariatesP.get_column( mm );
-        for( unsigned int j = 0; j < u.size(); j++ )
-          {
-          if( fabs(u(j) ) >= this->m_Epsilon )
-            {
-            this->m_Indicator( j, j ) = 0;
-            }
-          }
-        }
-      }
-
     /********************************/
-    VectorType randv = this->InitializeV( this->m_MatrixP, false );
+    VectorType randv = this->InitializeV( this->m_MatrixP, true );
     for( unsigned its = 0; its < 2; its++ )
       {
       std::cout << " col : " << colind << " its : " << its << " : ";
-      for( unsigned int mm = 0; mm < colind; mm++ )
+      for( unsigned int mm = 1; mm < colind; mm++ )
         {
         b = this->Orthogonalize( b, this->m_MatrixP * this->m_VariatesP.get_column(mm) );
         }
       VectorType bp = b * pmod;
-      this->StandardizeV( bp );
-      this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 20, true );
+      this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 30, false );
       }
     this->m_VariatesP.set_column( colind, randv );
+    /***************************************/
+    /* Now get the LSQ regression solution */
+    /***************************************/
     VectorType lmsol( n_vecs, 1 );
-    lmsol = lmsol / lmsol.two_norm();
     MatrixType A = this->m_MatrixP * this->m_VariatesP;
-    RealType   lmerror = this->ConjGrad(  A,  lmsol, b, 0, 100 );
-    std::cout << "err: " << lmerror << " col " << colind << std::endl;
+    lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 100 );
+    //    vnl_svd<RealType> xxx( A );
+    // VectorType soln = xxx.solve( original_b );
+    std::cout << "predictionerr," << lmerror << ",col," << colind << std::endl;
     }
-  /***************************************/
-  /* Now get the LSQ regression solution */
-  /***************************************/
-  VectorType lmsol( n_vecs, 1 );
-  lmsol = lmsol / lmsol.two_norm();
-  MatrixType A = this->m_MatrixP * this->m_VariatesP;
-  b =  this->m_MatrixR.get_column( 0 );
-  this->StandardizeV( b );
-  this->StandardizeV( lmsol );
-  RealType lmerror = this->ConjGrad(  A,  lmsol, b, 0, 100 );
-  //  vnl_svd<double> svd(A, 1.0e-12); // 1e-12 = zero-tolerance for singular values
-  // VectorType x = svd.solve(b);
-  std::cout << "Error-Norm: " << lmerror <<  std::endl;
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
-  return 0;
+  for( unsigned int mm = 0; mm < n_vecs; mm++ )
+    {
+    VectorType v = this->m_VariatesP.get_column( mm );
+    if( v.max_value() <= 0 )
+      {
+      this->m_VariatesP.set_column( mm, v * (-1.0) );
+      }
+    this->m_CanonicalCorrelations[mm] = this->PearsonCorr( original_b, this->m_MatrixP * v );
+    }
+  return lmerror;
 }
+
+/*
+    this->m_Indicator.set_size(this->m_MatrixP.cols());
+    this->m_Indicator.fill(1);
+    if ( colind > 0)
+      {
+      // zero out already used parts of matrix
+      for ( unsigned int mm = 0; mm < colind; mm++ )
+  {
+  VectorType u =  this->m_VariatesP.get_column( mm );
+  for ( unsigned int j=0; j< u.size(); j++)
+    if ( fabs(u(j)) >= this->m_Epsilon ) this->m_Indicator( j , j ) = 0;
+  }
+      //      pmod = pmod * this->m_Indicator;
+      }
+*/
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
