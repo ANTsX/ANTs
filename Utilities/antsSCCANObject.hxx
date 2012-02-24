@@ -131,7 +131,6 @@ antsSCCANObject<TInputImage, TRealType>
 // we assume w_p has been thresholded by another function
   bool threshold_at_zero = true;
   typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( w_p, mask, threshold_at_zero );
-
   typename FilterType::Pointer filter = FilterType::New();
   typename RelabelType::Pointer relabel = RelabelType::New();
   filter->SetInput( image );
@@ -1180,21 +1179,21 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_MatrixP = this->m_MatrixP - (this->m_MatrixRRt * this->m_MatrixP);
     }
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
-
-  MatrixType bmatrix = this->GetCovMatEigenvectors( this->m_MatrixP );
+  /*
+  MatrixType bmatrix = this->GetCovMatEigenvectors( this->m_MatrixP ) ;
   MatrixType bmatrix_big;
   bmatrix_big.set_size( this->m_MatrixP.cols(), n_vecs );
-
+  */
   double trace = vnl_trace<double>(   this->m_MatrixP * this->m_MatrixP.transpose()  );
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
-    this->m_VariatesP.set_column( kk, this->InitializeV( this->m_MatrixP ) );
-    if( kk < bmatrix.columns() && false )
+    this->m_VariatesP.set_column( kk, this->InitializeV( this->m_MatrixP )  );
+    /*    if ( kk < bmatrix.columns() && false )
       {
       VectorType initv = bmatrix.get_column( kk ) * this->m_MatrixP;
-      this->SparsifyP( initv, true );
+      this->SparsifyP( initv , true );
       this->m_VariatesP.set_column( kk, initv );
-      }
+      }*/
     }
   unsigned int maxloop = this->m_MaximumNumberOfIterations;
 // Arnoldi Iteration SVD/SPCA
@@ -1211,7 +1210,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType pveck = this->m_VariatesP.get_column(k);
       MatrixType pmod = this->m_MatrixP;
-      if( k > 0  )
+      if( k > 0  && false )
         {
         MatrixType m; m.set_size( this->m_MatrixP.rows(), k );
         for( unsigned int mm = 0; mm < k; mm++ )
@@ -1277,12 +1276,75 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       /** Update the solution */
       this->m_VariatesP.set_column(k, pveck);
       } // kloop
+        // compute the reconstruction error for each voxel
+        /* Now get the LSQ regression solution
+    X - n \times p matrix of  subjects by voxels thickness measures
+
+    B - k \times p  matrix of roi measures --- some row has p voxels and that row is binary i.e. non-zero in the voxels where that label is non-zero ( out of e.g. the whole cortex)
+
+    \beta - 1 \times k vector of beta values computed from the regression solution
+
+    X_i  --- 1 \times n some voxel for each subject
+
+    then solve , for each voxel ,
+
+    \| X_i - \beta B X \|
+      1xn      1xk kxp pxn
+
+    \| X   - \Beta B X \|
+      pxn    pxk  kxp pxn
+
+
+      voxels  -
+
+    requires you to have  n > k --- which you should have .... and easily done in R b.c you precomputed    B X =>  a   k \times n matrix
+
+    this means that you can reconstruct all voxels for a subject given the measures of his ROI values --- so it's basically a regression across all voxels given the ROI ( or PCA ) values from that subject.   the reconstruction error is very descriptive about the information gained by the dimensionality reduction used for that data.
+
+    */
+    RealType   totalerr = 0;
+    MatrixType A = ( this->m_MatrixP * this->m_VariatesP );
+    MatrixType reconmat( this->m_MatrixP.rows(),  this->m_MatrixP.cols(), 0 );
+    for( unsigned int vox = 0; vox < this->m_MatrixP.cols(); vox++ )
+      {
+      VectorType lmsol( n_vecs, 0);
+      VectorType voxels = this->m_MatrixP.get_column( vox );
+      RealType   lmerror = this->ConjGrad(  A,  lmsol, voxels, 0, 100 );
+      VectorType proj =   A * lmsol;
+      if( vnl_math_isnan( lmerror ) )
+        {
+        lmerror = 0; proj.fill(0);
+        }
+      reconmat.set_column( vox, proj );
+      totalerr += lmerror;
+      }
+    /*
+   {
+    VectorType vvv = reconmat.get_row( 10 );
+    typename TInputImage::Pointer image=this->ConvertVariateToSpatialImage( vvv , this->m_MaskImageP , false );
+    typedef itk::ImageFileWriter<TInputImage> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( "temp.nii.gz" );
+    writer->SetInput( image );
+    writer->Update();
+    }
+    {
+    VectorType vvv = this->m_MatrixP.get_row( 10 );
+    typename TInputImage::Pointer image=this->ConvertVariateToSpatialImage( vvv , this->m_MaskImageP , false );
+    typedef itk::ImageFileWriter<TInputImage> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( "temp2.nii.gz" );
+    writer->SetInput( image );
+    writer->Update();
+    }*/
+    totalerr /= this->m_MatrixP.cols();
+    std::cout << " totalerr " << totalerr << std::endl;
     this->m_VariatesQ = this->m_VariatesP;
     /** Estimate eigenvalues , then sort */
     RealType vex = this->ComputeSPCAEigenvalues(n_vecs, trace, true);
-    vexlist.push_back(   vex    );
+    vexlist.push_back(   exp( -1.0 * totalerr    ) );
     this->SortResults(n_vecs);
-    convcrit = ( this->ComputeEnergySlope(vexlist, 6) );
+    convcrit = ( this->ComputeEnergySlope(vexlist, 10) );
     std::cout << "Iteration: " << loop << " Eval_0: " << this->m_CanonicalCorrelations[0] << " Eval_N: "
               << this->m_CanonicalCorrelations[n_vecs
                                      - 1] << " Sp: " << fnp  << " conv-crit: " << convcrit <<  " vex " << vex
@@ -1481,10 +1543,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
    *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
    */
   bool debug = false;
+
+  if( debug )
+    {
+    std::cout << " DEBUG " << std::endl;
+    }
   // minimize the following error :    \| A^T*A * vec_i -    b \|  +  sparseness_penalty
   VectorType b = A.transpose() * b_in;
   VectorType r_k = A.transpose() * ( A * x_k );
-
   r_k = b - r_k;
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
@@ -1517,7 +1583,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       minerr = approxerr; bestsol = ( x_k1 );
       }
     deltaminerr = ( lasterr - approxerr );
-    if( false )
+    if( debug )
       {
       std::cout << " ConjGrad " << approxerr <<  " minerr " << minerr << std::endl;
       }
@@ -1529,8 +1595,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // measures the change in the residual
     VectorType yk = r_k1 - r_k;
     RealType   bknd =  inner_product( p_k, yk );
-    RealType   beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ), r_k1 / bknd ); // Hager and Zhang
-    // RealType beta_k = inner_product( r_k1 , r_k1 ) /  inner_product( r_k , r_k ); // classic cg
+    // RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
+    RealType   beta_k = inner_product( r_k1, r_k1 ) /  inner_product( r_k, r_k ); // classic cg
     VectorType p_k1  = r_k1 + beta_k * p_k;
     if( debug )
       {
@@ -1552,10 +1618,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     solerr += vnl_math_abs( soln(i) - b_in(i) ) * solerrsize;
     }
-  //  std::cout << " b " << soln.two_norm() << " bvar " << b_in.two_norm() << std::endl;
-  //  std::cout << b_in << std::endl;
-  //  std::cout << " sol " << std::endl;
-  //  std::cout << soln << std::endl;
+  //   std::cout << " b " << soln.two_norm() << " bvar " << b_in.two_norm() << std::endl;
+  // std::cout << b_in << std::endl;
+  // std::cout << " sol " << std::endl;
+  // std::cout << soln << std::endl;
   return solerr;
 }
 
