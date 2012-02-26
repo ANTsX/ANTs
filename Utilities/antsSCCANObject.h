@@ -23,7 +23,7 @@
 // #include <Eigen/Dense>
 // #include <Eigen/Sparse>
 // #include <Eigen/SVD>
-
+// #include "armadillo"
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_cholesky.h>
 #include "itkImageToImageFilter.h"
@@ -351,27 +351,39 @@ public:
 
   MatrixType ProjectionMatrix(MatrixType b, double regularization = 0.001)
   {
-    double     pinvTolerance = this->m_PinvTolerance;
-    MatrixType dd = this->NormalizeMatrix(b);
-    MatrixType cov = dd * dd.transpose();
+    bool armadillo = false;
 
-    cov.set_identity();
-    cov = cov * regularization + dd * dd.transpose();
-    vnl_svd<RealType>         eig(cov, pinvTolerance);
-    vnl_diag_matrix<RealType> indicator(cov.cols(), 0);
-    for( unsigned int i = 0; i < cov.rows(); i++ )
+    b = this->NormalizeMatrix( b );
+    MatrixType mat = b * b.transpose();
+    if( !armadillo )
       {
-      double eval = eig.W(i, i);
-      if( eval > 1.e-6 )
+      MatrixType cov( mat.rows(), mat.cols(), 0);
+      cov.set_identity();
+      mat = cov * regularization + mat;
+      unsigned int mc = b.rows();
+      if( b.cols() < b.rows() )
         {
-        indicator(i, i) = 1 / eval;
+        mc = b.cols();
         }
+      return vnl_svd<double>( mat ).inverse();
+      //      return vnl_svd<double>( mat ).pinverse( mc );
       }
-    return eig.V() * (indicator * eig.V() );
+    else
+      {   /*
+      arma::mat amat( b.rows(), b.rows());
+      for ( unsigned int i = 0 ; i < b.rows(); i++ )
+  for ( unsigned int j = 0 ; j < b.rows(); j++ )
+    {
+    amat( i , j ) = mat( i , j );
+    if ( i == j ) amat( i , j ) += regularization;
+    }
+      arma::mat invamat = arma::inv( amat , 1.e-2 );
 
-    //    b=this->NormalizeMatrix(b);
-    //    b=this->WhitenMatrix(b);
-    // return //b*b.transpose();
+      for ( unsigned int i = 0 ; i < b.rows(); i++ )
+  for ( unsigned int j = 0 ; j < b.rows(); j++ ) mat( i , j ) = invamat( i , j );
+       */
+      return mat;
+      }
   }
 
   VectorType TrueCCAPowerUpdate(RealType penaltyP, MatrixType p, VectorType w_q, MatrixType q, bool keep_pos,
