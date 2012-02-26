@@ -1262,10 +1262,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       unsigned int bcolind = 0;
       RealType maxcorr = 0;
       for ( unsigned int cc = 0 ; cc < bmatrix_big.cols(); cc ++ )
-  {
-  RealType corr = fabs( this->PearsonCorr( this->m_MatrixP * pveck , bmatrix.get_column( cc ) ) );
-  if (  corr > maxcorr ) bcolind = cc;
-  }
+        {
+        RealType corr = fabs( this->PearsonCorr( this->m_MatrixP * pveck , bmatrix.get_column( cc ) ) );
+        if (  corr > maxcorr ) bcolind = cc;
+        }
       VectorType b = bmatrix_big.get_column( bcolind ) ;
       RealType cgerr = this->SparseConjGrad( pveck , b , 1.e-3 );
       ********************************/
@@ -1998,11 +1998,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       // zero out already used parts of matrix
       for ( unsigned int mm = 0; mm < colind; mm++ )
-  {
-  VectorType u =  this->m_VariatesP.get_column( mm );
-  for ( unsigned int j=0; j< u.size(); j++)
-    if ( fabs(u(j)) >= this->m_Epsilon ) this->m_Indicator( j , j ) = 0;
-  }
+        {
+        VectorType u =  this->m_VariatesP.get_column( mm );
+        for ( unsigned int j=0; j< u.size(); j++)
+          if ( fabs(u(j)) >= this->m_Epsilon ) this->m_Indicator( j , j ) = 0;
+        }
       //      pmod = pmod * this->m_Indicator;
       }
 */
