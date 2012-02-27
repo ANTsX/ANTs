@@ -15,8 +15,8 @@ enable_testing()
 #  Perform testing
 ###
 set(DATA_DIR ${CMAKE_SOURCE_DIR}/Examples/Data)
-set(R16_IMAGE ${DATA_DIR}/r16slice.nii)
-set(R64_IMAGE ${DATA_DIR}/r64slice.nii)
+set(R16_IMAGE ${DATA_DIR}/r16slice.nii.gz)
+set(R64_IMAGE ${DATA_DIR}/r64slice.nii.gz)
 set(OUTPUT_PREFIX ${CMAKE_BINARY_DIR}/TEST)
 set(WARP ${OUTPUT_PREFIX}Warp.nii.gz ${OUTPUT_PREFIX}Affine.txt )
 set(INVERSEWARP -i ${OUTPUT_PREFIX}Affine.txt ${OUTPUT_PREFIX}InverseWarp.nii.gz )
