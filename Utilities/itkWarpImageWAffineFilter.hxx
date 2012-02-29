@@ -409,7 +409,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform
           point2[j] = point1[j] + displacement[j];
           }
         point3 = aff->TransformPoint(point2);
-        isinside = true;     // affine transform is always valid
+        isinside = true;       // affine transform is always valid
         }
         break;
       case AffineLast:
