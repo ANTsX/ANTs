@@ -375,7 +375,7 @@ DecomposeTensorFunction2<TInput, TRealType, TOutput>
 template <typename TInput, typename TRealType, typename TOutput>
 void
 DecomposeTensorFunction2<TInput, TRealType, TOutput>
-::PrintSelf( std::ostream& os, Indent indent ) const
+::PrintSelf( std::ostream & /* os */, Indent /* indent */ ) const
 {
 }
 } // end namespace itk

@@ -146,7 +146,7 @@ public:
                                                               typename TDisplacementField::PixelType vec );
 
   /** This class uses a constant timestep of 1. */
-  virtual TimeStepType ComputeGlobalTimeStep(void *GlobalData) const
+  virtual TimeStepType ComputeGlobalTimeStep(void * /* GlobalData */) const
   {
     return m_TimeStep;
   }
@@ -250,10 +250,10 @@ public:
       }
     double denominator = vnl_math_sqr( speedValue ) / m_Normalizer
       + fixedGradientSquaredMagnitude;
-    double m_DenominatorThreshold = 1e-9;
-    double m_IntensityDifferenceThreshold = 0.001;
-    if( vnl_math_abs(speedValue) < m_IntensityDifferenceThreshold ||
-        denominator < m_DenominatorThreshold )
+    double DenominatorThreshold = 1e-9;
+    double IntensityDifferenceThreshold = 0.001;
+    if( vnl_math_abs(speedValue) < IntensityDifferenceThreshold ||
+        denominator < DenominatorThreshold )
       {
       for( j = 0; j < ImageDimension; j++ )
         {
@@ -274,8 +274,8 @@ public:
   }
 
   virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
-                                   void *globalData,
-                                   const FloatOffsetType & offset = FloatOffsetType(0.0) )
+                                   void * /* globalData */,
+                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) )
   {
     VectorType update;
 
@@ -292,8 +292,8 @@ public:
   }
 
   virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
-                                      void *globalData,
-                                      const FloatOffsetType & offset = FloatOffsetType(0.0) )
+                                      void * /* globalData */,
+                                      const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) )
   {
     VectorType update;
 
@@ -323,7 +323,6 @@ public:
     typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
     typedef ImageRegionIteratorWithIndex<BinaryImageType> ittype2;
     FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
-    typename FixedImageType::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
 
     this->m_MetricImage = MetricImageType::New();
     this->m_MetricImage->SetLargestPossibleRegion(img->GetLargestPossibleRegion()  );

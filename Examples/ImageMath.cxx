@@ -2611,11 +2611,13 @@ int CompCorr(int argc, char *argv[])
         for( unsigned int t = 0; t < timedims; t++ )
           {
           int offset = 25;
-          int lo = t - offset; if( lo < 0 )
+          int lo = t - offset;
+          if( lo < 0 )
             {
             lo = 0;
             }
-          int hi = t + offset; if( hi > timedims - 1 )
+          int hi = t + offset;
+          if( hi > static_cast<int>(timedims) - 1 )
             {
             hi = timedims - 1;
             }

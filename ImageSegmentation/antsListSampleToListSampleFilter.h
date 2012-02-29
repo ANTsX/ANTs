@@ -56,7 +56,7 @@ public:
   typedef TOutputListSample OutputListSampleType;
 
   /** Set the list sample input of this object.  */
-  void SetInput( const InputListSampleType *input );
+  virtual void SetInput( const InputListSampleType *input );
 
   /** Get the list sample input of this object.  */
   InputListSampleType * GetInput();

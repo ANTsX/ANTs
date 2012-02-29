@@ -47,9 +47,6 @@ void
 PassThroughListSampleFilter<TListSample>
 ::GenerateData()
 {
-  const unsigned int measurementVectorSize =
-    this->GetOutput()->GetMeasurementVectorSize();
-
   /**
    * Simply pass the input to the output.
    */

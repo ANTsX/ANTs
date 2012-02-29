@@ -38,6 +38,11 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   typedef itk::ImageFileWriter<OutImageType>         writertype;
 
   typename readertype::Pointer reader = readertype::New();
+  if( argc < 2 )
+    {
+    std::cerr << "Missing input filename" << std::endl;
+    throw;
+    }
   reader->SetFileName(argv[1]);
   reader->Update();
   std::cout << " Updated reader " << std::endl;
@@ -68,6 +73,11 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   std::cout << " Dire in " << reader->GetOutput()->GetDirection() << std::endl;
   std::cout << " Dire out " << outim->GetDirection() << std::endl;
   typename   writertype::Pointer writer = writertype::New();
+  if( argc < 3 )
+    {
+    std::cerr << "Missing output filename" << std::endl;
+    throw;
+    }
   writer->SetFileName(argv[2]);
   writer->SetInput(outim);
   writer->Update();

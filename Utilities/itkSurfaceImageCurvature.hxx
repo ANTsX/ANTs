@@ -345,10 +345,10 @@ void  SurfaceImageCurvature<TSurface>::FindGeodesicNeighborhood()
 //          if (!nodes[longindex].connected ) //&& !nodes[g.neighborhoodindex].connected)
           if( !nodes[longindex].connected &&  (dist + lastdist) <= m_NeighborhoodRadius )
             {
-            GeodesicNode<ImageType> gnode(longindex, dist + lastdist, true, index);
-//            GeodesicNode<ImageType> gnode(longindex,dist,true,index);
-            nodes[longindex] = gnode;
-            nodeq.push(gnode);
+            GeodesicNode<ImageType> _gnode(longindex, dist + lastdist, true, index);
+//            GeodesicNode<ImageType> _gnode(longindex,dist,true,index);
+            nodes[longindex] = _gnode;
+            nodeq.push(_gnode);
 // if ( this->m_Origin[1]==146 && this->m_Origin[0] == 168 && this->m_Origin[2]==215)
 ///{
 // std::cout << " inserting point " << index << std::endl;
@@ -790,8 +790,7 @@ void  SurfaceImageCurvature<TSurface>
     this->EstimateNormalsFromGradient();
     }
 
-  IndexType     index;
-  const double* spacing = image->GetSpacing();
+  IndexType index;
 
   typename ImageType::RegionType requestedRegion;
   this->m_ImageSize = image->GetLargestPossibleRegion().GetSize();
@@ -1053,8 +1052,7 @@ void  SurfaceImageCurvature<TSurface>
       this->SetOrigin(p);
       this->FindNeighborhood();
       int    npts = this->m_PointList.size() - 1;
-      int    dim = SurfaceDimension;
-      double curvature = 0.0, tw = 0.0;
+      double curvature = 0.0;
       for( int pp = 0; pp < npts; pp++ )
         {
         IndexType localindex;

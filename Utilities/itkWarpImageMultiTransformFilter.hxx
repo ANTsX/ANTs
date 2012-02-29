@@ -227,7 +227,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
 template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 void
 WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
-::SetSmoothScale(double scale)
+::SetSmoothScale(double /* scale */)
 {
 /*
     if (m_SmoothScale != scale){
@@ -325,10 +325,10 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
     PointType point1, point2;
 
     // get the output image index
-    IndexType index = outputIt.GetIndex();
-    outputPtr->TransformIndexToPhysicalPoint( index, point1 );
+    IndexType _index = outputIt.GetIndex();
+    outputPtr->TransformIndexToPhysicalPoint( _index, point1 );
 
-    bool isinside = MultiTransformPoint(point1, point2, m_bFirstDeformNoInterp, index);
+    bool isinside = MultiTransformPoint(point1, point2, m_bFirstDeformNoInterp, _index);
 
     // std::cout << "point1:" << point1 << "  point2:" << point2 << " index:" << index << std::endl;
     // exit(-1);
@@ -618,7 +618,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
   m_bFirstDeformNoInterp = false;
   if( m_TransformList.size() > 0 )
     {
-    if( (m_TransformList.front().first == EnumDisplacementFieldType) )
+    if( m_TransformList.front().first == EnumDisplacementFieldType )
       {
       DisplacementFieldPointer field = m_TransformList.front().second.dex.field;
 

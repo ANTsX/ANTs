@@ -117,7 +117,7 @@ public:
     return Superclass::m_DisplacementField;
   }
 
-  void SetEnergy( double e)
+  void SetEnergy( double /* e */)
   {
     this->m_Energy = 0.0;
   }
@@ -189,15 +189,15 @@ public:
     return;
   }
 
-  virtual double ComputeMetricAtPair(IndexType fixedindex,
-                                     typename TDisplacementField::PixelType vec)
+  virtual double ComputeMetricAtPair(IndexType /* fixedindex */,
+                                     typename TDisplacementField::PixelType /* vec */)
   {
     return 0.0;
   }
 
   virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
-                                      void *globalData,
-                                      const FloatOffsetType & offset = FloatOffsetType(0.0) )
+                                      void * /* globalData */,
+                                      const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) )
   {
     bool       m_Use1SidedDiff = false;
     VectorType update;
@@ -237,8 +237,8 @@ public:
   }
 
   virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
-                                   void *globalData,
-                                   const FloatOffsetType & offset = FloatOffsetType(0.0) )
+                                   void * /* globalData */,
+                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) )
   {
     bool       m_Use1SidedDiff = false;
     VectorType update;

@@ -147,7 +147,7 @@ public:
 
   void PrintFrame();
 
-  virtual void    ComputeFrameOverDomain(unsigned int which = 3)
+  virtual void    ComputeFrameOverDomain(unsigned int /* which */ = 3)
   {
   };
 
@@ -180,7 +180,7 @@ public:
   /** We estimate the integral as a sum, assuming the local
       area (from compute local area) scales the value of the
       function at the pixel.  See http://mathworld.wolfram.com/SurfaceIntegral.html*/
-  virtual RealType IntegrateFunctionOverNeighborhood(bool norm = false)
+  virtual RealType IntegrateFunctionOverNeighborhood(bool /* norm */ = false)
   {
     return 0;
   }

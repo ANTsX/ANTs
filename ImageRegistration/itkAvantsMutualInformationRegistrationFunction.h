@@ -327,7 +327,7 @@ public:
     jointPDFpoint[1] = b;
   }
 
-  inline double ComputeFixedImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint, unsigned int threadID )
+  inline double ComputeFixedImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint, unsigned int /* threadID */)
   {
     double               offset = 0.25 * this->m_JointPDFSpacing[0], eps = this->m_JointPDFSpacing[0]; // offset in
                                                                                                        // voxels
@@ -359,7 +359,8 @@ public:
       }
   }
 
-  inline double ComputeMovingImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint, unsigned int threadID )
+  inline double ComputeMovingImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint,
+                                                         unsigned int /* threadID */ )
   {
     double               offset = 0.5 * this->m_JointPDFSpacing[0];
     double               eps = this->m_JointPDFSpacing[0]; // offset in voxels
@@ -397,7 +398,8 @@ public:
       }
   }
 
-  inline double ComputeJointPDFDerivative( JointPDFPointType jointPDFpoint, unsigned int threadID, unsigned int ind  )
+  inline double ComputeJointPDFDerivative( JointPDFPointType jointPDFpoint, unsigned int /* threadID */,
+                                           unsigned int ind  )
   {
     double            offset = 0.5 * this->m_JointPDFSpacing[ind];
     double            eps = this->m_JointPDFSpacing[ind]; // offset in voxels
@@ -495,8 +497,8 @@ public:
   }
 
   virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood,
-                                      void *globalData,
-                                      const FloatOffsetType & offset = FloatOffsetType(0.0) )
+                                      void * /* globalData */,
+                                      const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) )
   {
     VectorType update;
 
@@ -582,8 +584,8 @@ public:
   }
 
   virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood,
-                                   void *globalData,
-                                   const FloatOffsetType & offset = FloatOffsetType(0.0) )
+                                   void * /* globalData */,
+                                   const FloatOffsetType & /* offset */ = FloatOffsetType(0.0) )
   {
     VectorType update;
 

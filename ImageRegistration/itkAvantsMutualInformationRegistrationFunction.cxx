@@ -140,8 +140,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
 //  this->ComputeMetricImage();
 
   typedef ImageRegionIteratorWithIndex<TFixedImage> ittype;
-  TFixedImage* img = const_cast<TFixedImage *>(this->m_FixedImage.GetPointer() );
-  typename TFixedImage::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
   /*
   bool makenewimage=false;
   if (!this->m_MetricImage ) makenewimage=true;
@@ -373,7 +371,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
       {
       // Get sampled index
       FixedImageIndexType index = iter.GetIndex();
-      typename FixedImageType::SizeType imagesize = this->m_FixedImage->GetLargestPossibleRegion().GetSize();
 /*    bool inimage=true;
     for (unsigned int dd=0; dd<ImageDimension; dd++)
       {
@@ -490,8 +487,8 @@ template <class TFixedImage, class TMovingImage, class TDisplacementField>
 double
 AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::GetValueAndDerivative(IndexType oindex,
-                        MeasureType& valuei,
-                        DerivativeType& derivative1, DerivativeType& derivative2)
+                        MeasureType & /* valuei */,
+                        DerivativeType & /* derivative1 */, DerivativeType & /* derivative2 */)
 {
   double         value = 0;
   DerivativeType zero(ImageDimension);
@@ -532,8 +529,8 @@ template <class TFixedImage, class TMovingImage, class TDisplacementField>
 double
 AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::GetValueAndDerivativeInv(IndexType oindex,
-                           MeasureType& valuei,
-                           DerivativeType& derivative1, DerivativeType& derivative2)
+                           MeasureType & /* valuei */,
+                           DerivativeType & /* derivative1 */, DerivativeType & /* derivative2 */)
 {
   double         value = 0;
   DerivativeType zero(ImageDimension);

@@ -189,7 +189,6 @@ CopyImage(TDisplacementField* field )
   typedef itk::Image<PixelType, ImageDimension> RealImageType;
   typename RealImageType::RegionType m_JacobianRegion;
 
-  typename TImage::SizeType s = field->GetLargestPossibleRegion().GetSize();
   typename TImage::SpacingType sp = field->GetSpacing();
 
   typename RealImageType::Pointer m_RealImage = NULL;
@@ -506,7 +505,7 @@ template <class TImage, class TField>
 void
 InvertField( typename TField::Pointer field,
              typename TField::Pointer inverseFieldIN, double weight = 1.0,
-             double toler = 0.1, int maxiter = 20, bool print = false)
+             double toler = 0.1, int maxiter = 20, bool /* print */ = false)
 {
   enum { ImageDimension = TImage::ImageDimension };
   typedef TField                     DisplacementFieldType;
@@ -851,8 +850,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //  WriteImage<ImageType>(gmsurf,"surfdefgm.nii.gz");
   //  WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
 
-  typename ImageType::SizeType s = wm->GetLargestPossibleRegion().GetSize();
-  typename DisplacementFieldType::IndexType velind;  velind.Fill(0);
   typedef   DisplacementFieldType                                                           TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType>                          FieldIterator;
   typedef typename DisplacementFieldType::IndexType                                         DIndexType;
@@ -874,7 +871,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typename DefaultInterpolatorType::ContinuousIndexType  vcontind;
   DPointType pointIn3;
 
-  typename ImageType::Pointer surfdef;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>             IteratorType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> VIteratorType;
   VIteratorType VIterator( lapgrad, lapgrad->GetLargestPossibleRegion().GetSize() );
@@ -1094,7 +1090,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
       Iterator.GoToBegin();
       while(  !Iterator.IsAtEnd()  )
         {
-        velind = Iterator.GetIndex();
+        typename DisplacementFieldType::IndexType velind = Iterator.GetIndex();
         VectorType wgradval = lapgrad2->GetPixel(velind); // *5.0/(maxlapgrad2mag*(RealType)numtimepoints);
         disp = wgradval * speed_image->GetPixel(velind);
         incrfield->SetPixel(velind, incrfield->GetPixel(velind) + disp);
@@ -1179,7 +1175,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     RealType maxth = 0;
     while(  !Iterator.IsAtEnd()  )
       {
-      velind = Iterator.GetIndex();
+      typename DisplacementFieldType::IndexType velind = Iterator.GetIndex();
       // increment velocity field at every voxel v = v + u, step 4
       velofield->SetPixel(Iterator.GetIndex(), velofield->GetPixel(Iterator.GetIndex() )
                           + incrfield->GetPixel(Iterator.GetIndex() ) );

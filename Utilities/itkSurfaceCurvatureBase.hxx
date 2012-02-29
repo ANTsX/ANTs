@@ -236,7 +236,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::WeightedEstimateTangentPlane(P
 }
 
 template <typename TSurface, unsigned int TDimension>
-void  SurfaceCurvatureBase<TSurface, TDimension>::ComputeFrame(PointType origin)
+void  SurfaceCurvatureBase<TSurface, TDimension>::ComputeFrame(PointType /* origin */)
 {
   // Build cov matrix D
   unsigned int npts = m_PointList.size() - 1;
@@ -283,7 +283,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::ComputeFrame(PointType origin)
 }
 
 template <typename TSurface, unsigned int TDimension>
-void  SurfaceCurvatureBase<TSurface, TDimension>::ComputeFrameAndKappa(PointType origin)
+void  SurfaceCurvatureBase<TSurface, TDimension>::ComputeFrameAndKappa(PointType /* origin */)
 {
   // Build cov matrix D
   unsigned int npts = m_PointList.size() - 1;
@@ -731,9 +731,9 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
   RealType  count = 0.0;
   PointType avgpt;
   avgpt.fill(0);
-  for( unsigned int i = 0; i < npts; i++ )
+  for( int i = 0; i < npts; i++ )
     {
-    for( unsigned int j = 0; j < dim; j++ )
+    for( int j = 0; j < dim; j++ )
       {
       avgpt(j) += pts(i, j);
       count += 1.0;
@@ -747,9 +747,9 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
     }
 
   origin = avgpt;
-  for( unsigned int i = 0; i < npts; i++ )
+  for( int i = 0; i < npts; i++ )
     {
-    for( unsigned int j = 0; j < dim; j++ )
+    for( int j = 0; j < dim; j++ )
       {
       D(i, j) = (pts(i, j) - origin(j) ) * (pts(i, j) - origin(j) );
       }
@@ -779,7 +779,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
 }
 
 template <typename TSurface, unsigned int TDimension>
-void  SurfaceCurvatureBase<TSurface, TDimension>::FindNeighborhood(unsigned int temp)
+void  SurfaceCurvatureBase<TSurface, TDimension>::FindNeighborhood(unsigned int /* temp */)
 {
   // Read points from stdin
   MatrixType pts;
@@ -1227,7 +1227,6 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
 
 // Build cov matrix D
   int npts = m_PointList.size();
-  int dim = SurfaceDimension;
 
   if( npts < 4 )
     {
@@ -1250,9 +1249,7 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
   float wt = 0.0;
   float meanu1 = 0;
   float meanu2 = 0;
-
-  unsigned int i = 0;
-  for( i = 0; i < npts; i++ )
+  for( int i = 0; i < npts; i++ )
     {
     PointType Q = m_PointList[i];
     PointType Dif = Q - m_Origin;
@@ -1313,8 +1310,7 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
   vnl_vector<double> a = svd.solve(surfx);
   vnl_vector<double> b = svd.solve(surfy);
   vnl_vector<double> c = svd.solve(surfz);
-  double             fu = a(0);
-  double             fv = a(1);
+
   aa = a(0) * a(0) + b(0) * b(0) + c(0) * c(0);
   bb = a(1) * a(0) + b(1) * b(0) + c(1) * c(0);
   cc = a(1) * a(1) + b(1) * b(1) + c(1) * c(1);

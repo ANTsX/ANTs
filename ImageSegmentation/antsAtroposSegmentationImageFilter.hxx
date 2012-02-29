@@ -2052,8 +2052,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         std::vector<RealImagePointer> smoothImages;
 
         if( this->m_InitializationStrategy == PriorProbabilityImages ||
-            this->m_InitializationStrategy == PriorLabelImage &&
-            c < this->m_NumberOfTissueClasses )
+            (this->m_InitializationStrategy == PriorLabelImage &&
+             c < this->m_NumberOfTissueClasses) )
           {
           for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
             {

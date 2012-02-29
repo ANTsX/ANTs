@@ -143,9 +143,9 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 }
 
 template <class TImage, class TField, class TInterp, class TInterp2>
-float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer thickimage,
+float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
-                       float starttime, float finishtime, bool timedone, float deltaTime,
+                       float starttime, float /* finishtime */, bool timedone, float deltaTime,
                        typename TInterp::Pointer vinterp, typename TImage::SpacingType spacing, float vecsign,
                        float timesign, float gradsign )
 {
@@ -168,10 +168,8 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
   enum { ImageDimension = TImage::ImageDimension };
   typedef typename TImage::IndexType IndexType;
   unsigned int m_NumberOfTimePoints = 2;
-  IndexType    index;
   for( unsigned int jj = 0; jj < ImageDimension; jj++ )
     {
-    index[jj] = velind[jj];
     pointIn1[jj] = velind[jj] * lapgrad->GetSpacing()[jj];
     }
   itime = starttime;
@@ -199,12 +197,9 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       {
       itimetn1 = m_NumberOfTimePoints - 1;
       }
-
     // first get current position of particle
-    IndexType index;
     for( unsigned int jj = 0; jj < ImageDimension; jj++ )
       {
-      index[jj] = velind[jj];
       pointIn1[jj] = velind[jj] * lapgrad->GetSpacing()[jj];
       }
     //      std::cout << " ind " << index  << std::endl;
@@ -369,8 +364,7 @@ int IntegrateVectorField(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
   IteratorType Iterator( ROIimage, ROIimage->GetLargestPossibleRegion().GetSize() );
 
-  double timezero = 0; // 1
-  typename ImageType::SizeType s = ROIimage->GetLargestPossibleRegion().GetSize();
+  double timezero = 0;         // 1
   double timeone = 1;          // (s[ImageDimension]-1-timezero);
   float  starttime = timezero; // timezero;
   float  finishtime = timeone; // s[ImageDimension]-1;//timeone;

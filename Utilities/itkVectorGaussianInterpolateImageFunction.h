@@ -108,14 +108,14 @@ public:
     this->ComputeBoundingBox();
   }
 
-  void SetParameters(double *sigma, double alpha)
+  void SetParameters(double * /* sigma */, double Alpha)
   {
     // Set the parameters
     for( size_t d = 0; d < VDim; d++ )
       {
       this->sigma[d] = 1.0; // sigma[d];
       }
-    this->alpha = alpha;
+    this->alpha = Alpha;
 
     // If the image already set, recompute
     this->ComputeBoundingBox();
@@ -263,15 +263,15 @@ private:
     int & k0, int & k1,           // The range of integration 0 <= k0 < k1 <= n
     double b,                     // Lower bound of the bounding box
     int n,                        // Size of the bounding box in steps
-    double cut,                   // The distance at which to cut off
+    double Cut,                   // The distance at which to cut off
     double p,                     // the value p
     double sfac,                  // scaling factor 1 / (Sqrt[2] sigma)
     double *gx_erf = NULL         // Output derivative/erf array (optional)
     ) const
   {
     // Determine the range of voxels along the line where to evaluate erf
-    k0 = (int) floor(p - b - cut);
-    k1 = (int) ceil(p - b + cut);
+    k0 = (int) floor(p - b - Cut);
+    k1 = (int) ceil(p - b + Cut);
     if( k0 < 0 )
       {
       k0 = 0;
