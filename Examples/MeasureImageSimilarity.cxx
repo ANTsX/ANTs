@@ -307,12 +307,12 @@ int main(int argc, char *argv[])
     std::cout << "Basic useage ex: " << std::endl;
     std::cout << argv[0]
               <<
-    " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}"
+      " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}"
               << std::endl;
     std::cout << "  outimage (Not Implemented for MI yet)  and logfile are optional  " << std::endl;
     std::cout
       <<
-    " target-value and epsilon-tolerance set goals for the metric value -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds "
+      " target-value and epsilon-tolerance set goals for the metric value -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds "
       << std::endl;
     std::cout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information , 3-SMI " << std::endl;
     return 1;

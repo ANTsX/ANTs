@@ -34,16 +34,14 @@ public:
   itkTypeMacro( VectorImageFileWriterException, ExceptionObject );
 
   /** Constructor. */
-  VectorImageFileWriterException(const char *file, unsigned int line,
-                                 const char* message = "Error in IO",
+  VectorImageFileWriterException(const char *file, unsigned int line, const char* message = "Error in IO",
                                  const char* loc = "Unknown" ) :
     ExceptionObject(file, line, message, loc)
   {
   }
 
   /** Constructor. */
-  VectorImageFileWriterException(const std::string & file, unsigned int line,
-                                 const char* message = "Error in IO",
+  VectorImageFileWriterException(const std::string & file, unsigned int line, const char* message = "Error in IO",
                                  const char* loc = "Unknown" ) :
     ExceptionObject(file, line, message, loc)
   {

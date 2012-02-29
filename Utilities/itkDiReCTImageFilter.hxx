@@ -109,8 +109,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     ProbablilityImageImporterType::New();
   grayMatterProbabilityImageImporter->SetImportPointer( const_cast<RealType *>(
                                                           this->GetGrayMatterProbabilityImage()->GetBufferPointer() ),
-                                                        ( this->GetGrayMatterProbabilityImage()->GetBufferedRegion() ).GetNumberOfPixels(),
-                                                        filterHandlesMemory );
+                                                        ( this->GetGrayMatterProbabilityImage()->GetBufferedRegion() ).
+                                                        GetNumberOfPixels(), filterHandlesMemory );
   grayMatterProbabilityImageImporter->SetRegion( this->GetGrayMatterProbabilityImage()->GetBufferedRegion() );
   grayMatterProbabilityImageImporter->SetOrigin( this->GetGrayMatterProbabilityImage()->GetOrigin() );
   grayMatterProbabilityImageImporter->SetSpacing( this->GetGrayMatterProbabilityImage()->GetSpacing() );
@@ -121,8 +121,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     ProbablilityImageImporterType::New();
   whiteMatterProbabilityImageImporter->SetImportPointer( const_cast<RealType *>(
                                                            this->GetWhiteMatterProbabilityImage()->GetBufferPointer() ),
-                                                         ( this->GetWhiteMatterProbabilityImage()->GetBufferedRegion() ).GetNumberOfPixels(),
-                                                         filterHandlesMemory );
+                                                         ( this->GetWhiteMatterProbabilityImage()->GetBufferedRegion() )
+                                                         .GetNumberOfPixels(), filterHandlesMemory );
   whiteMatterProbabilityImageImporter->SetRegion( this->GetWhiteMatterProbabilityImage()->GetBufferedRegion() );
   whiteMatterProbabilityImageImporter->SetOrigin( this->GetWhiteMatterProbabilityImage()->GetOrigin() );
   whiteMatterProbabilityImageImporter->SetSpacing( this->GetWhiteMatterProbabilityImage()->GetSpacing() );

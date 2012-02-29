@@ -145,9 +145,11 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 template <class TImage, class TField, class TInterp, class TInterp2>
 float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
-                       float starttime, float /* finishtime */, bool timedone, float deltaTime,
-                       typename TInterp::Pointer vinterp, typename TImage::SpacingType spacing, float vecsign,
-                       float timesign, float gradsign )
+                       float starttime, float /* finishtime */,
+                       bool timedone, float deltaTime, typename TInterp::Pointer vinterp,
+                       typename TImage::SpacingType spacing, float vecsign,
+                       float timesign,
+                       float gradsign )
 {
   typedef   TField                                                 TimeVaryingVelocityFieldType;
   typedef typename TField::PixelType                               VectorType;
@@ -429,12 +431,14 @@ int IntegrateVectorField(int argc, char *argv[])
       gradsign = -1.0; vecsign = -1.0;
       float len1 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
           (ROIimage, thickimage, velind, VECimage,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
-          spacing, vecsign, gradsign, timesign);
+          spacing, vecsign, gradsign,
+          timesign);
 
       gradsign = 1.0;  vecsign = 1;
       float len2 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
           (ROIimage, thickimage, velind, VECimage,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
-          spacing, vecsign, gradsign, timesign );
+          spacing, vecsign, gradsign,
+          timesign );
 
       float totalength = len1 + len2;
       thickimage->SetPixel(velind, totalength);
@@ -459,7 +463,7 @@ int main(int argc, char *argv[])
               << "  VecImageIN.nii.gz ROIMaskIN.nii.gz FibersOUT.vtk  LengthImageOUT.nii.gz   " << std::endl;
     std::cout
       <<
-    " The vector field should have vectors as voxels , the ROI is an integer image, fibers out will be vtk text files .... "
+      " The vector field should have vectors as voxels , the ROI is an integer image, fibers out will be vtk text files .... "
       << std::endl;
     std::cout << "  ROI-Mask controls where the integration is performed and the start point region ... " << std::endl;
     std::cout << " e.g. the brain will have value 1 , the ROI has value 2 , then all starting seed points "

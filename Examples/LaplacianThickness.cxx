@@ -448,7 +448,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
     meanvalue /= (float)ct;
     }
 
-  ///  WriteImage<ImageType>(laplacian, "laplacian.hdr");
+  // /  WriteImage<ImageType>(laplacian, "laplacian.hdr");
 
   GradientImageFilterPointer filter = GradientImageFilterType::New();
   filter->SetInput(  laplacian );
@@ -460,12 +460,15 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
 template <class TImage, class TField, class TInterp, class TInterp2>
 float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
-                       float starttime, float /* finishtime */, bool timedone, float deltaTime,
-                       typename TInterp::Pointer vinterp, typename TInterp2::Pointer sinterp, unsigned int task,
+                       float starttime, float /* finishtime */,
+                       bool timedone, float deltaTime, typename TInterp::Pointer vinterp,
+                       typename TInterp2::Pointer sinterp, unsigned int task,
                        bool propagate, bool domeasure,   unsigned int m_NumberOfTimePoints,
-                       typename TImage::SpacingType spacing, float vecsign, float timesign, float gradsign,
-                       unsigned int ct, typename TImage::Pointer wm, typename TImage::Pointer gm, float priorthickval,
-                       typename TImage::Pointer smooththick, bool printprobability,  typename TImage::Pointer sulci )
+                       typename TImage::SpacingType spacing, float vecsign,
+                       float timesign, float gradsign, unsigned int ct, typename TImage::Pointer wm,
+                       typename TImage::Pointer gm,
+                       float priorthickval,  typename TImage::Pointer smooththick, bool printprobability,
+                       typename TImage::Pointer sulci )
 {
   typedef   TField                                                 TimeVaryingVelocityFieldType;
   typedef typename TField::PixelType                               VectorType;
@@ -942,14 +945,16 @@ int LaplacianThickness(int argc, char *argv[])
         gradsign = -1.0; vecsign = -1.0;
         float len1 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
             (gmsurf, thickimage, velind, lapgrad,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
-            sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
-            gm, priorthickval, smooththick, printprobability, sulci );
+            sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm, gm,
+            priorthickval, smooththick, printprobability,
+            sulci );
 
         gradsign = 1.0;  vecsign = 1;
         float len2 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
             (gmsurf, thickimage, velind, lapgrad,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
-            sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
-            gm, priorthickval - len1, smooththick, printprobability, sulci );
+            sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm, gm,
+            priorthickval - len1, smooththick, printprobability,
+            sulci );
 
         float len3 = 1.e9, len4 = 1.e9;
         if( lapgrad2 )
@@ -959,13 +964,17 @@ int LaplacianThickness(int argc, char *argv[])
           len3 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
               (gmsurf, thickimage, velind, lapgrad2,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
               sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
-              gm, priorthickval, smooththick, printprobability, sulci );
+              gm,
+              priorthickval, smooththick, printprobability,
+              sulci );
 
           gradsign = 1.0;  vecsign = 1;
           len4 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
               (gmsurf, thickimage, velind, lapgrad2,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
               sinterp, task, propagate, domeasure, m_NumberOfTimePoints, spacing, vecsign, gradsign, timesign, ct, wm,
-              gm, priorthickval - len3, smooththick, printprobability, sulci );
+              gm,
+              priorthickval - len3, smooththick, printprobability,
+              sulci );
           }
         float totalength = len1 + len2;
 //    if (totalength > 5 && totalength <  8) std::cout<< " t1 " << len3+len4 << " t2 " << len1+len2 << std::endl;
@@ -1026,11 +1035,11 @@ int main(int argc, char *argv[])
     {
     std::cout << "Usage:   " << argv[0]
               <<
-    " WM.nii GM.nii   Out.nii  {smoothparam=3} {priorthickval=5}  {dT=0.01}  use-sulcus-prior optional-laplacian-tolerance=0.001"
+      " WM.nii GM.nii   Out.nii  {smoothparam=3} {priorthickval=5}  {dT=0.01}  use-sulcus-prior optional-laplacian-tolerance=0.001"
               << std::endl;
     std::cout
       <<
-    " a good value for use sulcus prior is 0.15 -- in a function :  1/(1.+exp(-0.1*(laplacian-img-value-sulcprob)/0.01)) "
+      " a good value for use sulcus prior is 0.15 -- in a function :  1/(1.+exp(-0.1*(laplacian-img-value-sulcprob)/0.01)) "
       << std::endl;
     return 1;
     }

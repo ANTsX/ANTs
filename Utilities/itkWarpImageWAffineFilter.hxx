@@ -169,7 +169,7 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform
   m_Interpolator->SetInputImage( NULL );
 }
 
-///**
+// /**
 // * Compute the output for the region specified by outputRegionForThread.
 // */
 // template <class TInputImage,class TOutputImage,class TDisplacementField, class TTransform>

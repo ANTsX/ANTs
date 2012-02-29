@@ -22,8 +22,8 @@ ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform() :
 
 // Constructor with default arguments
 template <class TScalarType>
-ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(
-  unsigned int outputSpaceDimension, unsigned int parametersDimension) :
+ANTSAffine3DTransform<TScalarType>::ANTSAffine3DTransform(unsigned int outputSpaceDimension,
+                                                          unsigned int parametersDimension) :
   Superclass(outputSpaceDimension, parametersDimension)
 {
   m_Rotation = VnlQuaternionType(0, 0, 0, 1);   // axis * vcl_sin(t/2), vcl_cos(t/2)
@@ -229,7 +229,7 @@ const typename ANTSAffine3DTransform<TScalarType>::ParametersType
   return this->m_Parameters;
   }
 
-//// Get parameters
+// // Get parameters
 // template<class TScalarType>
 // const typename ANTSAffine3DTransform<TScalarType>::JacobianType &
 // ANTSAffine3DTransform<TScalarType>::GetJacobian(

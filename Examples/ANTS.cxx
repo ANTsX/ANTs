@@ -55,7 +55,7 @@ int main(int argc, char *argv[] )
     std::cout <<  "Example usage: \n " << std::endl;
     std::cout << argv[0]
               <<
-    " ImageDimension -m MI[fixedimage.nii.gz,movingimage.nii.gz,1,32] -o Outputfname.nii.gz -i 30x20x0 -r Gauss[3,1] -t Elast[3] \n \n "
+      " ImageDimension -m MI[fixedimage.nii.gz,movingimage.nii.gz,1,32] -o Outputfname.nii.gz -i 30x20x0 -r Gauss[3,1] -t Elast[3] \n \n "
               << std::endl;
     std::cout << " Compulsory arguments:\n " << std::endl;
     std::cout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
@@ -76,7 +76,7 @@ int main(int argc, char *argv[] )
     std::cout << "        K = middle resolution iterations (here,reduce by power of 2) " << std::endl;
     std::cout
       <<
-    "        L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
+      "        L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
       << std::endl;
     std::cout
       << "        Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another iteration level.\n "
@@ -88,11 +88,11 @@ int main(int argc, char *argv[] )
     std::cout << "    For diffeomorphic image registration, use: " << std::endl;
     std::cout
       <<
-    "        Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
+      "        Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
       << std::endl;
     std::cout
       <<
-    "        SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
+      "        SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
       << std::endl;
     std::cout << "        SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  " << std::endl;
     std::cout << "        Exp[GradStep,TimePoints] = Exponential " << std::endl;
@@ -100,7 +100,7 @@ int main(int argc, char *argv[] )
     std::cout << " \n " << std::endl;
     std::cout
       <<
-    " Please use the `ANTS -h ` call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
+      " Please use the `ANTS -h ` call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
       << std::endl;
     return 1;
     }

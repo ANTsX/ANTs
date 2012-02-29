@@ -57,7 +57,8 @@ JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
 template <class TPointSet>
 void
 JensenHavrdaCharvatTsallisLabeledPointSetMetric<TPointSet>
-::Initialize( void ) throw ( ExceptionObject )
+::Initialize( void )
+throw ( ExceptionObject )
 {
   Superclass::Initialize();
 

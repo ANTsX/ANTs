@@ -846,12 +846,12 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
           for( unsigned int n = 0; n < this->m_DiscBoundaryList[rootind]->m_NumberOfNeighbors; n++ )
             {
             if(  this->m_DiscBoundaryList[myi] == this->m_DiscBoundaryList[rootind]->m_Neighbors[n] &&
-                 !alreadyfound[myi] )                                                                                        //
-                                                                                                                             // its
-                                                                                                                             // in
-                                                                                                                             // the
-                                                                                                                             // bndry
-              { // check that it's not an isolated bastard
+                 !alreadyfound[myi] ) //
+                                      // its
+                                      // in
+                                      // the
+                                      // bndry
+              {                       // check that it's not an isolated bastard
               bool oknode = true;
               if( oknode )
                 {
@@ -860,8 +860,8 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
                 this->m_DiscBoundarySorter[myi] = boundcount;
                 n = this->m_DiscBoundaryList[rootind]->m_NumberOfNeighbors + 1;
                 std::cout << " cur " <<  this->m_DiscBoundaryList[rootind]->GetLocation() << " next "
-                          <<  this->m_DiscBoundaryList[myi]->GetLocation() << " boundcount "  << boundcount << " of "
-                          << bsz
+                          <<  this->m_DiscBoundaryList[myi]->GetLocation() << " boundcount "  << boundcount
+                          << " of " << bsz
                           << "  curroot " << rootind << std::endl;
                 lastroot = rootind;
                 rootind = myi;

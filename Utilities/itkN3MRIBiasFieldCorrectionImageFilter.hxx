@@ -321,7 +321,8 @@ N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
 template <class TInputImage, class TMaskImage, class TOutputImage>
 typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
-::SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
+::SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage,
+                                                             TOutputImage>::RealImageType::Pointer
                 unsharpenedImage )
 {
   /**
@@ -554,7 +555,8 @@ template <class TInputImage, class TMaskImage, class TOutputImage>
 typename N3MRIBiasFieldCorrectionImageFilter
 <TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
 N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>
-::SmoothField( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
+::SmoothField( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage,
+                                                            TOutputImage>::RealImageType::Pointer
                fieldEstimate )
 {
   /**

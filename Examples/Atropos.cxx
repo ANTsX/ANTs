@@ -1249,10 +1249,11 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'i' );
     option->SetUsageOption( 0, "Random[numberOfClasses]" );
     option->SetUsageOption( 1, "Otsu[numberOfTissueClasses]" );
-    option->SetUsageOption( 2,
-                            "KMeans[numberOfTissueClasses,<clusterCenters(in ascending order and for first intensity image only)>]" );
-    option->SetUsageOption( 3,
-                            "PriorProbabilityImages[numberOfTissueClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting,<priorProbabilityThreshold>]" );
+    option->SetUsageOption(
+      2, "KMeans[numberOfTissueClasses,<clusterCenters(in ascending order and for first intensity image only)>]" );
+    option->SetUsageOption(
+      3,
+      "PriorProbabilityImages[numberOfTissueClasses,fileSeriesFormat(index=1 to numberOfClasses) or vectorImage,priorWeighting,<priorProbabilityThreshold>]" );
     option->SetUsageOption( 4, "PriorLabelImage[numberOfTissueClasses,labelImage,priorWeighting]" );
     option->SetDescription( description );
     parser->AddOption( option );
@@ -1326,12 +1327,15 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "posterior-formulation" );
     option->SetShortName( 'p' );
-    option->SetUsageOption( 0,
-                            "Socrates[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
-    option->SetUsageOption( 1,
-                            "Plato[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
-    option->SetUsageOption( 2,
-                            "Aristotle[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
+    option->SetUsageOption(
+      0,
+      "Socrates[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
+    option->SetUsageOption(
+      1,
+      "Plato[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
+    option->SetUsageOption(
+      2,
+      "Aristotle[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
 //  option->SetUsageOption( 3, "Zeno[<useMixtureModelProportions=1>]" );
 //  option->SetUsageOption( 4, "Diogenes[<useMixtureModelProportions=1>]" );
 //  option->SetUsageOption( 5, "Thales[<useMixtureModelProportions=1>]" );
@@ -1386,8 +1390,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'k' );
     option->SetUsageOption( 0, "Gaussian" );
     option->SetUsageOption( 1, "HistogramParzenWindows[<sigma=1.0>,<numberOfBins=32>]" );
-    option->SetUsageOption( 2,
-                            "ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
+    option->SetUsageOption(
+      2,
+      "ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
     option->SetUsageOption( 3, "JointShapeAndOrientationProbability[<sigma=1.0>,<numberOfBins=32>]" );
     option->SetUsageOption( 4, "LogEuclideanGaussian" );
     option->SetDescription( description );

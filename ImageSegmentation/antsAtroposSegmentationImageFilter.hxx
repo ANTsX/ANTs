@@ -521,18 +521,18 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     case KMeans:  default:
       {
       this->GenerateInitialClassLabelingWithKMeansClustering();
-      break;
       }
+      break;
     case Otsu:
       {
       this->GenerateInitialClassLabelingWithOtsuThresholding();
-      break;
       }
+      break;
     case PriorProbabilityImages:
       {
       this->GenerateInitialClassLabelingWithPriorProbabilityImages();
-      break;
       }
+      break;
     case PriorLabelImage:
       {
       if( this->GetMaskImage() )
@@ -565,9 +565,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 
         this->SetNthOutput( 0, duplicator->GetOutput() );
         }
-
-      break;
       }
+      break;
     }
 
   //
@@ -1792,8 +1791,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                  static_cast<double>( this->m_PriorProbabilityWeight ) )
         * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
                    static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
-      break;
       }
+      break;
     case Plato:
       {
       if( this->m_InitializationStrategy == PriorLabelImage &&
@@ -1816,8 +1815,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                  static_cast<double>( this->m_PriorProbabilityWeight ) )
         * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
                    static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
-      break;
       }
+      break;
     case Aristotle:
       {
       posteriorProbability =
@@ -1826,8 +1825,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                  static_cast<double>( this->m_PriorProbabilityWeight ) )
         * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
                    static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
-      break;
       }
+      break;
     }
 
   if( this->m_InitialAnnealingTemperature != 1.0 )
@@ -3256,18 +3255,18 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     case Random:
       {
       os << "Random" << std::endl;
-      break;
       }
+      break;
     case KMeans:
       {
       os << "K means clustering" << std::endl;
-      break;
       }
+      break;
     case Otsu:
       {
       os << "Otsu thresholding" << std::endl;
-      break;
       }
+      break;
     case PriorProbabilityImages:
       {
       os << "Prior probability images" << std::endl;
@@ -3295,8 +3294,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
              << ", boundary probability = " << boundaryProbability << std::endl;
           }
         }
-      break;
       }
+      break;
     case PriorLabelImage:
       {
       os << "Prior label image" << std::endl;
@@ -3321,8 +3320,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
            << ": lambda = " << lambda
            << ", boundary probability = " << boundaryProbability << std::endl;
         }
-      break;
       }
+      break;
     }
   os << indent << "Posterior probability formulation: ";
 
@@ -3331,18 +3330,18 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     case Socrates:
       {
       os << "Socrates" << std::endl;
-      break;
       }
+      break;
     case Plato:
       {
       os << "Plato" << std::endl;
-      break;
       }
+      break;
     case Aristotle:
       {
       os << "Aristotle" << std::endl;
-      break;
       }
+      break;
     }
   os << indent << "  initial annealing temperature = "
      << this->m_InitialAnnealingTemperature << std::endl;

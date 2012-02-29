@@ -392,7 +392,7 @@ int main(int argc, char *argv[])
     std::cout << "Usage:" << argv[0] << "  image.nii  {g0image.nii}  {threshold}" << std::endl;
     std::cout
       <<
-    " If you put an arg for g0image then image will be smoothed and thresholded \n until it has genus zero or the smoothing kernel gets too large "
+      " If you put an arg for g0image then image will be smoothed and thresholded \n until it has genus zero or the smoothing kernel gets too large "
       << std::endl;
     return 1;
     }

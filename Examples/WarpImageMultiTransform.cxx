@@ -666,7 +666,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   typedef itk::Vector<RealType,
                       ImageDimension>                                                                VectorType;
   typedef itk::Image<VectorType,
-                     ImageDimension>                                                               DisplacementFieldType;
+                     ImageDimension>
+    DisplacementFieldType;
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
                                          ImageDimension>                               AffineTransformType;
   typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
@@ -871,7 +872,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         {
         std::cout
           <<
-        " Your 1st parameter should be an inverse affine map and the 2nd an InverseWarp  --- exiting without applying warp.  Check that , if using an inverse affine map, you pass the -i option before the Affine.txt."
+          " Your 1st parameter should be an inverse affine map and the 2nd an InverseWarp  --- exiting without applying warp.  Check that , if using an inverse affine map, you pass the -i option before the Affine.txt."
           << std::endl;
         return;
         }
@@ -879,7 +880,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         {
         std::cout
           <<
-        " Your 2nd  parameter should be an InverseWarp when your 1st parameter is an inverse affine map  --- exiting without applying warp.  "
+          " Your 2nd  parameter should be an InverseWarp when your 1st parameter is an inverse affine map  --- exiting without applying warp.  "
           << std::endl;
         return;
         }
@@ -891,7 +892,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         {
         std::cout
           <<
-        " Your 1st parameter should be a Warp (not Inverse) when your 2nd parameter is an affine map --- exiting without applying warp.  "
+          " Your 1st parameter should be a Warp (not Inverse) when your 2nd parameter is an affine map --- exiting without applying warp.  "
           << std::endl;
         return;
         }
@@ -899,7 +900,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         {
         std::cout
           <<
-        " Your 2nd parameter should be a regular affine map (not inverted) if the 1st is a Warp --- exiting without applying warp. "
+          " Your 2nd parameter should be a regular affine map (not inverted) if the 1st is a Warp --- exiting without applying warp. "
           << std::endl;
         return;
         }
@@ -994,13 +995,13 @@ int main(int argc, char * *argv)
     // << std::endl;
     std::cout << argv[0]
               <<
-    " ImageDimension moving_image output_image  -R reference_image --use-NN   SeriesOfTransformations--(See Below) "
+      " ImageDimension moving_image output_image  -R reference_image --use-NN   SeriesOfTransformations--(See Below) "
               << std::endl;
     std::cout << " SeriesOfTransformations --- " << argv[0]
               <<  " can apply, via concatenation, an unlimited number of transformations to your data ." << std::endl;
     std::cout
       <<
-    " Thus, SeriesOfTransformations may be  an Affine transform followed by a warp  another affine and then another warp. "
+      " Thus, SeriesOfTransformations may be  an Affine transform followed by a warp  another affine and then another warp. "
       << std::endl;
     std::cout << "  Inverse affine transformations are invoked by calling   -i MyAffine.txt " << std::endl;
     std::cout
@@ -1009,7 +1010,7 @@ int main(int argc, char * *argv)
     std::cout << std::endl;
     std::cout
       <<
-    " Example 1: Mapping a warped image into the reference_image domain by applying abcdWarp.nii.gz and then abcdAffine.txt\n"
+      " Example 1: Mapping a warped image into the reference_image domain by applying abcdWarp.nii.gz and then abcdAffine.txt\n"
       << std::endl;
 
     std::cout << argv[0] <<  " 3 moving_image output_image -R reference_image abcdWarp.nii.gz abcdAffine.txt\n"
@@ -1017,7 +1018,7 @@ int main(int argc, char * *argv)
 
     std::cout
       <<
-    " Example 2: To map the fixed/reference_image warped into the moving_image domain by applying the inversion of abcdAffine.txt and then abcdInverseWarp.nii.gz .\n"
+      " Example 2: To map the fixed/reference_image warped into the moving_image domain by applying the inversion of abcdAffine.txt and then abcdInverseWarp.nii.gz .\n"
       << std::endl;
 
     std::cout << argv[0]
@@ -1025,7 +1026,7 @@ int main(int argc, char * *argv)
               << std::endl;
     std::cout
       <<
-    "  Note that the inverse maps (Ex. 2) are passed to this program in the reverse order of the forward maps (Ex. 1). "
+      "  Note that the inverse maps (Ex. 2) are passed to this program in the reverse order of the forward maps (Ex. 1). "
       << std::endl;
     std::cout << " This makes sense, geometrically ... see ANTS.pdf for visualization of this syntax." << std::endl;
     std::cout << std::endl;
@@ -1042,11 +1043,11 @@ int main(int argc, char * *argv)
     std::cout << " -R: reference_image space that you wish to warp INTO." << std::endl;
     std::cout
       <<
-    "       --tightest-bounding-box: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R reference_image if given."
+      "       --tightest-bounding-box: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R reference_image if given."
       << std::endl;
     std::cout
       <<
-    "       --reslice-by-header: equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
+      "       --reslice-by-header: equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
       << std::endl;
     std::cout
       << "       It can be used together with -R. This is typically not used together with any other transforms.\n "
@@ -1056,11 +1057,11 @@ int main(int argc, char * *argv)
     std::cout << " --use-BSpline: Use 3rd order B-Spline Interpolation. \n " << std::endl;
     std::cout
       <<
-    " --use-ML sigma: Use anti-aliasing interpolation for multi-label images, with Gaussian smoothing with standard deviation sigma. \n "
+      " --use-ML sigma: Use anti-aliasing interpolation for multi-label images, with Gaussian smoothing with standard deviation sigma. \n "
       << std::endl;
     std::cout
       <<
-    "                 Sigma can be specified in physical or voxel units, as in Convert3D. It can be a scalar or a vector. \n "
+      "                 Sigma can be specified in physical or voxel units, as in Convert3D. It can be a scalar or a vector. \n "
       << std::endl;
     std::cout << "                 Examples:  --use-ML 0.4mm    -use-ML 0.8x0.8x0.8vox    " << std::endl;
 
@@ -1084,18 +1085,18 @@ int main(int argc, char * *argv)
     std::cout << " Other Example Usages:" << std::endl;
     std::cout
       <<
-    " Reslice the image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz --tightest-bounding-box --reslice-by-header"
+      " Reslice the image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz --tightest-bounding-box --reslice-by-header"
       << std::endl;
     std::cout
       <<
-    " Reslice the image to a reference image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz -R Iref.nii.gz --tightest-bounding-box --reslice-by-header\n"
+      " Reslice the image to a reference image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz -R Iref.nii.gz --tightest-bounding-box --reslice-by-header\n"
       << std::endl;
 
     std::cout << " Important Notes: " << std::endl;
     std::cout << " Prefixname \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
     std::cout
       <<
-    " The abcdWarp and abcdInverseWarp do not exist. They are formed on the basis of abcd(Inverse)Warp.nii.gz when calling "
+      " The abcdWarp and abcdInverseWarp do not exist. They are formed on the basis of abcd(Inverse)Warp.nii.gz when calling "
       << argv[0] << ", yet you have to use them as if they exist." << std::endl;
     exit(0);
     }

@@ -133,7 +133,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   /** parse the command line and get input objects */
   this->ReadImagesAndMetrics();
 //    exit(0);
-  /** initializes the transformation model and the optimizer */
+/** initializes the transformation model and the optimizer */
   this->InitializeTransformAndOptimizer();
 
 /** Get the mask if there is one */
@@ -167,8 +167,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     std::cout << "Use identity affine transform as initial affine para." << std::endl;
     std::cout << "aff_init.IsNull()==" << aff_init.IsNull() << std::endl;
     }
-  typename OptionType::ValueType fixed_initial_affine_filename =
-    this->m_Parser->GetOption( "fixed-image-initial-affine" )->GetValue();
+  typename OptionType::ValueType fixed_initial_affine_filename = this->m_Parser->GetOption(
+      "fixed-image-initial-affine" )->GetValue();
   if( fixed_initial_affine_filename != "" )
     {
     std::cout << "Loading affine registration from: " << fixed_initial_affine_filename << std::endl;
@@ -752,7 +752,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           metric->SetRobustnessParameter( extraparam );
           //        metric->SetRobust( true );
           //        metric->SetSymmetric( false );
-          ///        metric->SetNormalizeGradient( false );
+          // /        metric->SetNormalizeGradient( false );
           metric->SetRadius( radius );
 
           similarityMetric->SetMetric( metric );

@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
     {
     std::cout << "Usage:  " << argv[0]
               <<
-    " refimage.ext imagetocopyrefimageinfoto.ext imageout.ext   boolcopydirection  boolcopyorigin boolcopyspacing  {bool-Image2-IsTensor}"
+      " refimage.ext imagetocopyrefimageinfoto.ext imageout.ext   boolcopydirection  boolcopyorigin boolcopyspacing  {bool-Image2-IsTensor}"
               << std::endl;
     return 1;
     }

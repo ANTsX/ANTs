@@ -45,7 +45,7 @@ void AverageAffineTransformFunction<TTransform>::PrintTransformList()
     }
 }
 
-///**
+// /**
 // * Standard PrintSelf method.
 // */
 // template <class TInputImage,class TOutputImage,class TDisplacementField, class TTransform>

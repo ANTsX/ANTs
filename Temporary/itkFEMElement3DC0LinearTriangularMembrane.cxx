@@ -33,11 +33,8 @@ Element3DC0LinearTriangularMembrane
 }
 
 Element3DC0LinearTriangularMembrane
-::Element3DC0LinearTriangularMembrane(
-  NodeIDType n1_,
-  NodeIDType n2_,
-  NodeIDType n3_,
-  Material::ConstPointer m_) : Superclass()
+::Element3DC0LinearTriangularMembrane(NodeIDType n1_, NodeIDType n2_, NodeIDType n3_,
+                                      Material::ConstPointer m_) : Superclass()
 {
   // Set the geometrical points
   this->SetNode( 0, n1_ );

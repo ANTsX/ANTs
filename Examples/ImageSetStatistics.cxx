@@ -137,8 +137,11 @@ template <class TInputImage>
 void
 HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage) //
                                                                                                                    //
+                                                                                                                   //
                                                                                                                    // typename
+                                                                                                                   //
                                                                                                                    // TInputImage::Pointer
+                                                                                                                   //
                                                                                                                    // m_OutputMovingImage
                                                                                                                    // )
 {
@@ -759,7 +762,7 @@ int ImageSetStatistics(int argc, char *argv[])
       {
       std::cout
         <<
-      " the number of similarity images does not match the number of label images --- thus, we have to get out of here !! i.e. something's wrong. "
+        " the number of similarity images does not match the number of label images --- thus, we have to get out of here !! i.e. something's wrong. "
         << std::endl;
       return 1;
       }
@@ -991,16 +994,16 @@ int main( int argc, char * argv[] )
     std::cout << "Usage:  " << std::endl;
     std::cout << argv[0]
               <<
-    " ImageDimension controlslist.txt outimage.nii whichstat {roi.nii} {imagelist2forsimilarityweightedstats.txt}"
+      " ImageDimension controlslist.txt outimage.nii whichstat {roi.nii} {imagelist2forsimilarityweightedstats.txt}"
               << std::endl;
     std::cout
       <<
-    " whichstat = 0:  median,  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed mean , 4 : max value , option 5 : similarity-weighted (must pass imagelist2 as well) else median , option 6 : same as similarity-weighted option 5 but the label corresponds to the image that provides the best local match ... useful if you want to MRF smooth these indices  , option 7 : similar to 5 but expects the max-value to be stored in the ROI image and uses it to get the intensity ... "
+      " whichstat = 0:  median,  1:  max prob appearance  , 2: weighted mean appearance ,  3: trimmed mean , 4 : max value , option 5 : similarity-weighted (must pass imagelist2 as well) else median , option 6 : same as similarity-weighted option 5 but the label corresponds to the image that provides the best local match ... useful if you want to MRF smooth these indices  , option 7 : similar to 5 but expects the max-value to be stored in the ROI image and uses it to get the intensity ... "
       << std::endl;
     std::cout << " example:   ImageSetStatistics  3   imagelist.txt  maxvalueimage.nii.gz 4 " << std::endl;
     std::cout
       <<
-    " similarity weighted --- pass in a list of similarity images here which will be used to select the best label --- thus, number of similarity images must match the number of label images . "
+      " similarity weighted --- pass in a list of similarity images here which will be used to select the best label --- thus, number of similarity images must match the number of label images . "
       << std::endl;
     return 1;
     }

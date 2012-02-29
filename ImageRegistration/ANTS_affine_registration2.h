@@ -312,7 +312,7 @@ void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPoi
   aff->SetTranslation(translation);
 }
 
-////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////
 template <class ImagePointerType, class RunningImagePointerType, class OptAffineType, class RunningOptAffineType>
 inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePointerType& R_fixedImage,
                                   ImagePointerType & movingImage, RunningImagePointerType& R_movingImage,
@@ -376,8 +376,9 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
                                                                                                        transform_initial
                                                                                                        ->GetCenter() ) ) ) ) );
     R_opt.transform_initial->SetMatrix(*(reinterpret_cast<typename RunningAffineTransformType::MatrixType *>
-                                         (const_cast<typename AffineTransformType::MatrixType *>(&(opt.transform_initial
-                                                                                                   ->GetMatrix() ) ) ) ) );
+                                         (const_cast<typename AffineTransformType::MatrixType *>(&(opt.
+                                                                                                   transform_initial->
+                                                                                                   GetMatrix() ) ) ) ) );
     R_opt.transform_initial->SetTranslation(*(reinterpret_cast<typename RunningAffineTransformType::OutputVectorType *>
                                               (const_cast<typename AffineTransformType::OutputVectorType *>(&(opt.
                                                                                                               transform_initial
@@ -417,7 +418,7 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
   R_opt.ignore_void_orgin = opt.ignore_void_orgin;
 }
 
-////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////
 template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
 inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
                                    AffineTransformPointerType & transform)
@@ -429,8 +430,8 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
                          (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
                                                                                               GetCenter() ) ) ) ) );
   transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>
-                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running->
-                                                                                                     GetTranslation() ) ) ) ) );
+                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running
+                                                                                                     ->GetTranslation() ) ) ) ) );
   transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
                          (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
 
@@ -438,7 +439,7 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   // std::cout << "transform" << transform << std::endl;
 }
 
-///////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////
 // the initial transform maybe any derivative class type from MatrixOffsetTransformBase,
 // it will be automatically converted to the my 2D/3D affine type
 template <class ImagePointerType, class TransformPointerType, class OptAffineType>
@@ -493,7 +494,7 @@ void ComputeSingleAffineTransform(ImagePointerType fixedImage, ImagePointerType 
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 template <class MaskImagePointerType, class ImageMaskSpatialObjectPointerType>
 void InitialzeImageMask(MaskImagePointerType & mask_fixed, ImageMaskSpatialObjectPointerType & mask_fixed_object)
 {
@@ -517,7 +518,7 @@ void InitialzeImageMask(MaskImagePointerType & mask_fixed, ImageMaskSpatialObjec
   mask_fixed_object->SetImage(mask_fixed_char);
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 template <class ImagePointerType>
 ImagePointerType
 AddRandomNoise(ImagePointerType & I)
@@ -547,7 +548,7 @@ AddRandomNoise(ImagePointerType & I)
   return addFilter->GetOutput();
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 template <class ImagePointerType, class PointType, class VectorType>
 void ComputeInitialPosition(ImagePointerType & I_fixed, ImagePointerType & I_moving, PointType & center,
                             VectorType & translation_vec)
@@ -624,7 +625,7 @@ void ComputeInitialPosition_tmp(ImagePointerType & I_fixed, ImagePointerType & I
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 template <class PointType, class VectorType, class TransformPointerType>
 void InjectInitialPara(PointType & center, VectorType & translation_vec, TransformPointerType & transform)
 {
@@ -661,7 +662,7 @@ void InjectInitialPara(PointType & center, VectorType & translation_vec, Transfo
     }
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
+// ////////////////////////////////////////////////////////////////////////////////////////
 template <class ImagePointerType, class ParaType, class PointType, class TransformTypePointer>
 double TestCostValueMMI(ImagePointerType fixedImage, ImagePointerType movingImage, ParaType para, PointType center,
                         TransformTypePointer /* null_transform */)
@@ -850,7 +851,7 @@ ParaType NormalizeGradientForRigidTransform(ParaType & original_gradient, int kI
   return new_gradient;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // template<class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
 template <class RunningAffineCacheType, class OptAffine, class ParaType>
 bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
@@ -1070,7 +1071,7 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
   return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 // template<class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
 template <class RunningAffineCacheType, class OptAffine, class ParaType>
 bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType & running_cache, OptAffine & opt,
@@ -1412,7 +1413,7 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
   return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
+// /////////////////////////////////////////////////////////////////////////////
 template <class ImagePointerType, class TransformPointerType, class OptAffineType>
 void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointerType moving_image, OptAffineType & opt,
                                       TransformPointerType & transform)
@@ -1447,7 +1448,7 @@ void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointer
       typedef itk::MeanSquaresImageToImageMetric<ImageType,
                                                  ImageType> MetricType;
       typedef typename MetricType::Pointer
-                                                            MetricPointerType;
+        MetricPointerType;
       typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
                                  InterpolatorPointerType>   RunningAffineCacheType;
 
@@ -1461,7 +1462,7 @@ void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointer
       typedef itk::CorrelationCoefficientHistogramImageToImageMetric<ImageType,
                                                                      ImageType> MetricType;
       typedef typename MetricType::Pointer
-                                                                                MetricPointerType;
+        MetricPointerType;
       typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
                                  InterpolatorPointerType>                       RunningAffineCacheType;
 
@@ -1481,7 +1482,7 @@ void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointer
       typedef itk::NormalizedCorrelationImageToImageMetric<ImageType,
                                                            ImageType> MetricType;
       typedef typename MetricType::Pointer
-                                                                      MetricPointerType;
+        MetricPointerType;
       typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
                                  InterpolatorPointerType>             RunningAffineCacheType;
 
@@ -1495,7 +1496,7 @@ void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointer
       typedef itk::GradientDifferenceImageToImageMetric<ImageType,
                                                         ImageType> MetricType;
       typedef typename MetricType::Pointer
-                                                                   MetricPointerType;
+        MetricPointerType;
       typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
                                  InterpolatorPointerType>          RunningAffineCacheType;
 
@@ -1509,7 +1510,7 @@ void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointer
       typedef itk::MattesMutualInformationImageToImageMetric<ImageType,
                                                              ImageType> MetricType;
       typedef typename MetricType::Pointer
-                                                                        MetricPointerType;
+        MetricPointerType;
       typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
                                  InterpolatorPointerType>               RunningAffineCacheType;
 

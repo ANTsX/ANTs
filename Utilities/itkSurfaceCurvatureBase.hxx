@@ -548,7 +548,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
       }
 
     PointType temp = Q - tanproj;
-    dists[i] = temp.magnitude(); ///sqdif;//*exp(-1.*sqdif/2);//sqrt(dists[i]);
+    dists[i] = temp.magnitude(); // /sqdif;//*exp(-1.*sqdif/2);//sqrt(dists[i]);
 
     D(i, 0) = u1 * u1;
     D(i, 1) = 2. * u1 * u2;
@@ -718,6 +718,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
 {
   // Read points from stdin
   MatrixType pts;
+
   std::cout << " input points " << std::endl;
 
   vcl_cin >> pts;

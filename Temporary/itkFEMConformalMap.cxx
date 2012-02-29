@@ -1006,7 +1006,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     coord[0] = c1;
     coord[1] = c2;
     coord[2] = c3;
-    ///      (*n)->SetCoordinates(coord);
+    // /      (*n)->SetCoordinates(coord);
     }
   std::cout << " coords on unit sphere done " << std::endl;
 }

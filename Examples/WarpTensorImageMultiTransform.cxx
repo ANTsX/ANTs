@@ -645,7 +645,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     if( misc_opt.use_NN_interpolator )
       {
       typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
-                                                                    typename WarperType::CoordRepType> NNInterpolateType;
+                                                                    typename WarperType::CoordRepType>
+        NNInterpolateType;
       typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
       std::cout << "Haha" << std::endl;
       warper->SetInterpolator(interpolator_NN);
@@ -808,34 +809,34 @@ int main(int argc, char * *argv)
   if( argc <= 3 )
     {
     std::cout
-              <<
-    "WarpImageMultiTransform ImageDimension moving_image output_image [-R reference_image | --tightest-bounding-box] (--reslice-by-header) [--use-NN (use Nearest Neighbor Interpolator)]"
-              <<
+      <<
+      "WarpImageMultiTransform ImageDimension moving_image output_image [-R reference_image | --tightest-bounding-box] (--reslice-by-header) [--use-NN (use Nearest Neighbor Interpolator)]"
+      <<
       "[--ANTS-prefix prefix-name | --ANTS-prefix-invert prefix-name] {[deformation_field | [-i] affine_transform_txt | --Id | [-i] --moving-image-header / -mh  | [-i] --reference-image-header / -rh]}"
-              << std::endl
-              << "Example:" << std::endl
-              <<
+      << std::endl
+      << "Example:" << std::endl
+      <<
       "Reslice the image: WarpImageMultiTransform 3 Imov.nii Iout.nii --tightest-bounding-box --reslice-by-header"
-              << std::endl
-              <<
+      << std::endl
+      <<
       "Reslice the image to a reference image: WarpImageMultiTransform 3 Imov.nii Iout.nii -R Iref.nii --tightest-bounding-box --reslice-by-header"
-              << std::endl
-              << "Note:" << std::endl
-              << "-i will use the inversion of the following affine transform." << std::endl
-              <<
+      << std::endl
+      << "Note:" << std::endl
+      << "-i will use the inversion of the following affine transform." << std::endl
+      <<
       "--tightest-bounding-box will be overrided by -R reference_image if given. It computes the tightest bounding box using all the affine transformations."
-              << std::endl
-              << "--Id uses the identity transform." << std::endl
-              <<
+      << std::endl
+      << "--Id uses the identity transform." << std::endl
+      <<
       "--moving-image-header or -mh in short will use the orientation header of the moving image file. This is typically not used with --reslice-by-header."
-              << std::endl
-              <<
+      << std::endl
+      <<
       "--reference-image-header or -rh in short will use the orientation header of the fixed image file. This is typically not used with --reslice-by-header."
-              << std::endl
-              <<
+      << std::endl
+      <<
       "--reslice-by-header uses the orientation matrix and origin encoded in the image file header. It can be used together with -R. "
-              << "This is typically not used together with any other transforms. "
-              << "--reslice-by-header is equvalient to -i -mh, or -fh -i -mh if used together with -R. " << std::endl;
+      << "This is typically not used together with any other transforms. "
+      << "--reslice-by-header is equvalient to -i -mh, or -fh -i -mh if used together with -R. " << std::endl;
     std::cout << std::endl
               << "For ANTS users:" << std::endl
               << "To use with the deformation field and the affine transform files generated from ANTS:" << std::endl

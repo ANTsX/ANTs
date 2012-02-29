@@ -350,7 +350,7 @@ void  SurfaceImageCurvature<TSurface>::FindGeodesicNeighborhood()
             nodes[longindex] = _gnode;
             nodeq.push(_gnode);
 // if ( this->m_Origin[1]==146 && this->m_Origin[0] == 168 && this->m_Origin[2]==215)
-///{
+// /{
 // std::cout << " inserting point " << index << std::endl;
 // }
             this->m_PointList.insert(this->m_PointList.begin(), q);
@@ -617,7 +617,7 @@ void  SurfaceImageCurvature<TSurface>
 
     float u1 = 0.0;
     float u2 = 0.0;
-    wt = 1.0; ///difmag;
+    wt = 1.0; // /difmag;
     totwt += wt;
 
     IndexType index;
@@ -705,9 +705,9 @@ void  SurfaceImageCurvature<TSurface>
 //  W=W/totwt;
 
   vnl_svd<double>    svd(D);
-  vnl_vector<double> ax = svd.solve(xdists); ///totwt);
-  vnl_vector<double> ay = svd.solve(ydists); ///totwt);
-  vnl_vector<double> az = svd.solve(zdists); ///totwt);
+  vnl_vector<double> ax = svd.solve(xdists); // /totwt);
+  vnl_vector<double> ay = svd.solve(ydists); // /totwt);
+  vnl_vector<double> az = svd.solve(zdists); // /totwt);
 
 // now get the first partials of each of these terms w.r.t. u and v
 
@@ -973,6 +973,7 @@ SurfaceImageCurvature<TSurface>
 {
   unsigned int npts = this->m_PointList.size();
   double       curvature = 0.0, tw = 0;
+
   std::cout << " npts " << npts;
 
   for( unsigned int pp = 0; pp < npts; pp++ )

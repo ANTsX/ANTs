@@ -118,25 +118,25 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
                               JointHistogramImageType::IndexType::IndexValueType>( vcl_floor( shapeCidx[0] ) );
     shapeIdx[1] = static_cast<typename
                               JointHistogramImageType::IndexType::IndexValueType>( vcl_floor( shapeCidx[1] ) );
-    RealType dist1 = sqrt(
-        (shapeCidx[0]
-         - shapeIdx[0])
-        * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
+    RealType dist1 =
+      sqrt( (shapeCidx[0]
+             - shapeIdx[0])
+            * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
     shapeIdx[0]++;
-    RealType dist2 = sqrt(
-        (shapeCidx[0]
-         - shapeIdx[0])
-        * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
+    RealType dist2 =
+      sqrt( (shapeCidx[0]
+             - shapeIdx[0])
+            * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
     shapeIdx[1]++;
-    RealType dist3 = sqrt(
-        (shapeCidx[0]
-         - shapeIdx[0])
-        * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
+    RealType dist3 =
+      sqrt( (shapeCidx[0]
+             - shapeIdx[0])
+            * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
     shapeIdx[0]--;
-    RealType dist4 = sqrt(
-        (shapeCidx[0]
-         - shapeIdx[0])
-        * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
+    RealType dist4 =
+      sqrt( (shapeCidx[0]
+             - shapeIdx[0])
+            * (shapeCidx[0] - shapeIdx[0]) + (shapeCidx[1] - shapeIdx[1]) * (shapeCidx[1] - shapeIdx[1]) );
     RealType distsum = dist1 + dist2 + dist3 + dist4;
     dist1 /= distsum;
     dist2 /= distsum;

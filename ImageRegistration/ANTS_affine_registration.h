@@ -165,14 +165,18 @@ bool register_image_cxyz(ImagePointerType fixed_image, ImagePointerType moving_i
 template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
 bool register_image_affine3d_mres_mask(ImagePointerType fixed_image, ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object, ParaType para0,
-                                       itk::Point<double, 3> center, int number_of_iteration, int MI_bins,
-                                       int MI_samples, ParaType & para1, double & rval);
+                                       itk::Point<double,
+                                                  3> center, int number_of_iteration, int MI_bins, int MI_samples,
+                                       ParaType & para1,
+                                       double & rval);
 
 template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
 bool register_image_affine2d_mres_mask(ImagePointerType fixed_image, ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object, ParaType para0,
-                                       itk::Point<double, 2> center, int number_of_iteration, int MI_bins,
-                                       int MI_samples, ParaType & para1, double & rval);
+                                       itk::Point<double,
+                                                  2> center, int number_of_iteration, int MI_bins, int MI_samples,
+                                       ParaType & para1,
+                                       double & rval);
 
 template <class ImagePointerType, class ParaType, class PointType, class TransformTypePointer>
 double get_cost_value_mmi(ImagePointerType fixedImage, ImagePointerType movingImage, ParaType para, PointType center,
@@ -187,7 +191,8 @@ bool compare_search_point(const SEARCH_POINT& lhs, const SEARCH_POINT& rhs)
 template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
 void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerType I_moving,
                                         MaskImagePointerType mask_fixed,
-                                        TransformPointerType & transform, TransformPointerType & transform_initial)
+                                        TransformPointerType & transform,
+                                        TransformPointerType & transform_initial)
 {
   typedef typename ImagePointerType::ObjectType ImageType;
   const int ImageDimension = ImageType::ImageDimension;
@@ -301,8 +306,11 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
       }
 
     // main registration using affine transform
-    is_ok = register_image_affine3d_mres_mask(I_fixed, I_moving, mask_fixed_object, para0, center, number_of_iteration,
-                                              MI_bins, MI_samples, para1, rval);
+    is_ok =
+      register_image_affine3d_mres_mask(I_fixed, I_moving, mask_fixed_object, para0, center, number_of_iteration,
+                                        MI_bins,
+                                        MI_samples, para1,
+                                        rval);
     if( !is_ok )
       {
       std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
@@ -974,7 +982,8 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
 template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
 void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerType I_moving,
                                         MaskImagePointerType mask_fixed,
-                                        TransformPointerType & transform, TransformPointerType & transform_initial)
+                                        TransformPointerType & transform,
+                                        TransformPointerType & transform_initial)
 {
   typedef typename ImagePointerType::ObjectType ImageType;
   const int ImageDimension = ImageType::ImageDimension;
@@ -1147,7 +1156,8 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
 template <class ImagePointerType, class MaskImagePointerType, class TransformPointerType>
 void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerType movingImage,
                                      MaskImagePointerType maskImage,
-                                     TransformPointerType & transform, TransformPointerType & transform_initial)
+                                     TransformPointerType & transform,
+                                     TransformPointerType & transform_initial)
 {
   typedef typename ImagePointerType::ObjectType ImageType;
   const int ImageDimension = ImageType::ImageDimension;
@@ -1169,13 +1179,13 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
     if( transform_initial.IsNotNull() )
       {
       transform_running_initial->SetCenter(*(reinterpret_cast<typename RunningAffineTransformType::InputPointType *>
-                                             (const_cast<typename TransformType::InputPointType *>(&(transform_initial->
-                                                                                                     GetCenter() ) ) ) ) );
+                                             (const_cast<typename TransformType::InputPointType *>(&(transform_initial
+                                                                                                     ->GetCenter() ) ) ) ) );
       transform_running_initial->SetMatrix(*(reinterpret_cast<typename RunningAffineTransformType::MatrixType *>
                                              (const_cast<typename TransformType::MatrixType *>(&(transform_initial->
                                                                                                  GetMatrix() ) ) ) ) );
-      transform_running_initial->SetTranslation(*(reinterpret_cast<typename RunningAffineTransformType::OutputVectorType
-                                                                   *>
+      transform_running_initial->SetTranslation(*(reinterpret_cast<typename RunningAffineTransformType::
+                                                                   OutputVectorType *>
                                                   (const_cast<typename TransformType::OutputVectorType *>(&(
                                                                                                             transform_initial
                                                                                                             ->
@@ -1198,10 +1208,12 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
                            (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
                                                                                                 GetCenter() ) ) ) ) );
     transform->SetTranslation(*(reinterpret_cast<typename TransformType::OutputVectorType *>
-                                (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running
+                                (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(
+                                                                                                       transform_running
                                                                                                        ->GetTranslation() ) ) ) ) );
     transform->SetMatrix(*(reinterpret_cast<typename TransformType::MatrixType *>
-                           (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
+                           (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->
+                                                                                            GetMatrix() ) ) ) ) );
 
     // transform->SetFixedParameters(transform_running->GetFixedParameters());
     // transform->SetParameters(transform_running->GetParameters());
@@ -1216,13 +1228,13 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
     if( transform_initial.IsNotNull() )
       {
       transform_running_initial->SetCenter(*(reinterpret_cast<typename RunningAffineTransformType::InputPointType *>
-                                             (const_cast<typename TransformType::InputPointType *>(&(transform_initial->
-                                                                                                     GetCenter() ) ) ) ) );
+                                             (const_cast<typename TransformType::InputPointType *>(&(transform_initial
+                                                                                                     ->GetCenter() ) ) ) ) );
       transform_running_initial->SetMatrix(*(reinterpret_cast<typename RunningAffineTransformType::MatrixType *>
                                              (const_cast<typename TransformType::MatrixType *>(&(transform_initial->
                                                                                                  GetMatrix() ) ) ) ) );
-      transform_running_initial->SetTranslation(*(reinterpret_cast<typename RunningAffineTransformType::OutputVectorType
-                                                                   *>
+      transform_running_initial->SetTranslation(*(reinterpret_cast<typename RunningAffineTransformType::
+                                                                   OutputVectorType *>
                                                   (const_cast<typename TransformType::OutputVectorType *>(&(
                                                                                                             transform_initial
                                                                                                             ->
@@ -1243,10 +1255,12 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
                            (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
                                                                                                 GetCenter() ) ) ) ) );
     transform->SetTranslation(*(reinterpret_cast<typename TransformType::OutputVectorType *>
-                                (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running
+                                (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(
+                                                                                                       transform_running
                                                                                                        ->GetTranslation() ) ) ) ) );
     transform->SetMatrix(*(reinterpret_cast<typename TransformType::MatrixType *>
-                           (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
+                           (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->
+                                                                                            GetMatrix() ) ) ) ) );
 
     //        transform->SetFixedParameters(transform_running->GetFixedParameters());
     //        transform->SetParameters(transform_running->GetParameters());
@@ -1353,7 +1367,8 @@ void warp_image_field(const ImagePointerType & img_input, const DisplacementFiel
 
 template <class ImageTypePointer, class RefImageTypePointer, class TransformPointerType>
 void affine_image(const ImageTypePointer & input_image,  const TransformPointerType & transform,
-                  const RefImageTypePointer & ref_image, ImageTypePointer & img_aff )
+                  const RefImageTypePointer & ref_image,
+                  ImageTypePointer & img_aff )
 {
   typedef typename ImageTypePointer::ObjectType     ImageType;
   typedef typename TransformPointerType::ObjectType TransformType;
@@ -1378,7 +1393,8 @@ void affine_image(const ImageTypePointer & input_image,  const TransformPointerT
 
 template <class ImagePointerType, class TransformPointerType, class DisplacementFieldPointerType>
 void warp_image_field_waffine(const ImagePointerType & img_input, const TransformPointerType & aff,
-                              const DisplacementFieldPointerType & field, ImagePointerType & img_output)
+                              const DisplacementFieldPointerType & field,
+                              ImagePointerType & img_output)
 {
   // TODO: add a new WarpImageFilter to support affine as an input
   // temporary solution:

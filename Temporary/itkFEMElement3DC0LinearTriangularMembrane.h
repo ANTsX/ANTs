@@ -48,11 +48,7 @@ public:
    * Construct an element by specifying pointers to
    * 3 points and a material.
    */
-  Element3DC0LinearTriangularMembrane(
-    NodeIDType n1_,
-    NodeIDType n2_,
-    NodeIDType n3_,
-    Material::ConstPointer p_ );
+  Element3DC0LinearTriangularMembrane(NodeIDType n1_, NodeIDType n2_, NodeIDType n3_, Material::ConstPointer p_ );
 
 //  virtual unsigned int GetNumberOfDegreesOfFreedomPerNode( void ) const
 //  { return 1; }

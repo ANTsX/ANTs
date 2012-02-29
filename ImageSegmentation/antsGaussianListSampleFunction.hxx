@@ -72,7 +72,8 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 
       typename GaussianType::MeanVectorType mean;
       NumericTraits<typename GaussianType::MeanVectorType>::SetLength( mean,
-                                                                       this->GetInputListSample()->GetMeasurementVectorSize() );
+                                                                       this->GetInputListSample()->
+                                                                       GetMeasurementVectorSize() );
       for( unsigned int d = 0; d < this->GetInputListSample()->
            GetMeasurementVectorSize(); d++ )
         {
@@ -92,7 +93,8 @@ GaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 
       typename GaussianType::MeanVectorType mean;
       NumericTraits<typename GaussianType::MeanVectorType>::SetLength( mean,
-                                                                       this->GetInputListSample()->GetMeasurementVectorSize() );
+                                                                       this->GetInputListSample()->
+                                                                       GetMeasurementVectorSize() );
       for( unsigned int d = 0; d < this->GetInputListSample()->
            GetMeasurementVectorSize(); d++ )
         {

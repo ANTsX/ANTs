@@ -186,11 +186,11 @@ public:
 
   /** This method is called by a finite difference solver image filter at
    * each pixel that does not lie on a data set boundary */
-  virtual PixelType  ComputeUpdate(const NeighborhoodType & neighborhood, void *globalData,
-                                   const FloatOffsetType & offset = FloatOffsetType(0.0) );
+  virtual PixelType  ComputeUpdate(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+                                       0.0) );
 
-  virtual PixelType  ComputeUpdateInv(const NeighborhoodType & neighborhood, void *globalData,
-                                      const FloatOffsetType & offset = FloatOffsetType(0.0) );
+  virtual PixelType  ComputeUpdateInv(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+                                          0.0) );
 
   /** Get the metric value. The metric value is the mean square difference
    * in intensity between the fixed image and transforming moving image

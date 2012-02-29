@@ -647,7 +647,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
     if( !m_CurrentNode->GetDelivered() )
       {
       m_QS->IncrementTimer();
-      ///std::cout << " searching " << m_CurrentNode->GetLocation()   << " \n";
+      // /std::cout << " searching " << m_CurrentNode->GetLocation()   << " \n";
       this->SearchEdgeSet();
       // if ( (m_CurrentNode->GetTimer() % 1.e5 ) == 0)
       // std::cout << " searched  " << m_CurrentNode->GetTimer()   << " \n";

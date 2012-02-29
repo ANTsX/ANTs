@@ -280,7 +280,8 @@ private:
   void operator=( const Self & );                      // purposely not implemented
 
   typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
-    SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
+    SharpenImage( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage,
+                                                               TOutputImage>::RealImageType::Pointer
                   );
   typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage, TOutputImage>::RealImageType::Pointer
     SmoothField( typename N3MRIBiasFieldCorrectionImageFilter<TInputImage, TMaskImage,

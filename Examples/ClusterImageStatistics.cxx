@@ -298,16 +298,16 @@ int main(int argc, char *argv[])
     {
     std::cout
       <<
-    " Given an ROI and Label Image, find the max and average value   \n in a value image  where the value > some user-defined threshold \n and the cluster size  is larger than some min size. \n "
+      " Given an ROI and Label Image, find the max and average value   \n in a value image  where the value > some user-defined threshold \n and the cluster size  is larger than some min size. \n "
       << std::endl;
     std::cout << "Usage: \n  " << std::endl;
     std::cout << argv[0]
               <<
-    "  ImageDimension ROIMask.ext LabelImage.ext  OutPrefix   MinimumClusterSize  ValueImageThreshold  Image1WithValuesOfInterest.ext ...  ImageNWithValuesOfInterest.ext  \n \n "
+      "  ImageDimension ROIMask.ext LabelImage.ext  OutPrefix   MinimumClusterSize  ValueImageThreshold  Image1WithValuesOfInterest.ext ...  ImageNWithValuesOfInterest.ext  \n \n "
               << std::endl;
     std::cout
       <<
-    " ROIMask.ext -- overall region of interest \n  \n LabelImage.ext -- labels for the sub-regions, e.g. Brodmann or just unique labels (see  LabelClustersUniquely ) \n \n  OutputPrefix -- all output  has this prefix  \n \n  MinimumClusterSize -- the minimum size of clusters of interest  \n  \n ValueImageThreshold -- minimum value of interest \n \n   Image*WithValuesOfInterest.ext  ---  image(s) that define the values you want to measure \n ";
+      " ROIMask.ext -- overall region of interest \n  \n LabelImage.ext -- labels for the sub-regions, e.g. Brodmann or just unique labels (see  LabelClustersUniquely ) \n \n  OutputPrefix -- all output  has this prefix  \n \n  MinimumClusterSize -- the minimum size of clusters of interest  \n  \n ValueImageThreshold -- minimum value of interest \n \n   Image*WithValuesOfInterest.ext  ---  image(s) that define the values you want to measure \n ";
     return 1;
     }
 

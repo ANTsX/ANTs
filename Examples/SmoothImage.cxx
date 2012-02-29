@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
     std::cout << "Usage:  " << std::endl;
     std::cout << argv[0]
               <<
-    " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1}"
+      " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1}"
               << std::endl;
     std::cout << " if median, then sigma means radius of filtering " << std::endl;
     return 1;

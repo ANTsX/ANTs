@@ -640,16 +640,16 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
     // Get the number of iterations and use that information to specify the number of levels
 
-    std::vector<unsigned int> iterations = parser->ConvertVector<unsigned int>( iterationsOption->GetValue(
-                                                                                  currentStage ) );
+    std::vector<unsigned int> iterations =
+      parser->ConvertVector<unsigned int>( iterationsOption->GetValue( currentStage ) );
     std::cout << "  iterations = " << iterationsOption->GetValue( currentStage ) << std::endl;
     unsigned int numberOfLevels = iterations.size();
     std::cout << "  number of levels = " << numberOfLevels << std::endl;
 
     // Get shrink factors
 
-    std::vector<unsigned int> factors = parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetValue(
-                                                                               currentStage ) );
+    std::vector<unsigned int> factors =
+      parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetValue( currentStage ) );
     typename AffineRegistrationType::ShrinkFactorsArrayType shrinkFactorsPerLevel;
     shrinkFactorsPerLevel.SetSize( factors.size() );
 
@@ -1203,12 +1203,10 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
       // Extract parameters
 
-      std::vector<unsigned int> meshSizeForTheUpdateField = parser->ConvertVector<unsigned int>( transformOption->GetParameter(
-                                                                                                   currentStage,
-                                                                                                   1 ) );
-      std::vector<unsigned int> meshSizeForTheTotalField = parser->ConvertVector<unsigned int>( transformOption->GetParameter(
-                                                                                                  currentStage,
-                                                                                                  2 ) );
+      std::vector<unsigned int> meshSizeForTheUpdateField = parser->ConvertVector<unsigned int>(
+          transformOption->GetParameter( currentStage, 1 ) );
+      std::vector<unsigned int> meshSizeForTheTotalField = parser->ConvertVector<unsigned int>(
+          transformOption->GetParameter( currentStage, 2 ) );
 
       if( meshSizeForTheUpdateField.size() != ImageDimension || meshSizeForTheTotalField.size() != ImageDimension )
         {
@@ -1493,7 +1491,8 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
         static_cast<typename VelocityFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
       velocityFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
       velocityFieldRegistration->SetLearningRate( learningRate );
-      velocityFieldRegistration->GetTransform()->SetGaussianSpatialSmoothingVarianceForTheTotalField( sigmaForTotalField );
+      velocityFieldRegistration->GetTransform()->SetGaussianSpatialSmoothingVarianceForTheTotalField(
+        sigmaForTotalField );
       velocityFieldRegistration->GetTransform()->SetGaussianSpatialSmoothingVarianceForTheUpdateField(
         sigmaForUpdateField );
       velocityFieldRegistration->GetTransform()->SetGaussianTemporalSmoothingVarianceForTheTotalField(
@@ -1592,8 +1591,9 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
       typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>( velocityFieldRegistration->
-                                                                                             GetOutput()->Get() )->GetDisplacementField() );
+      writer->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>( velocityFieldRegistration
+                                                                                             ->GetOutput()->Get() )->
+                        GetDisplacementField() );
       writer->SetFileName( filename.c_str() );
       writer->Update();
 
@@ -1789,8 +1789,9 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
 
       typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>( velocityFieldRegistration->
-                                                                                             GetOutput()->Get() )->GetDisplacementField() );
+      writer->SetInput( const_cast<typename VelocityFieldRegistrationType::TransformType *>( velocityFieldRegistration
+                                                                                             ->GetOutput()->Get() )->
+                        GetDisplacementField() );
       writer->SetFileName( filename.c_str() );
       writer->Update();
 
@@ -2084,16 +2085,21 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "metric" );
     option->SetShortName( 'm' );
-    option->SetUsageOption( 0,
-                            "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 1,
-                            "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 2,
-                            "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 3,
-                            "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 4,
-                            "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      0,
+      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      1,
+      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      2,
+      "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      3,
+      "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      4,
+      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -2113,14 +2119,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 3, "Similarity[gradientStep]" );
     option->SetUsageOption( 4, "Translation[gradientStep]" );
     option->SetUsageOption( 5, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption( 6,
-                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
-    option->SetUsageOption( 7,
-                            "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption( 8,
-                            "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
-    option->SetUsageOption( 9,
-                            "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
+    option->SetUsageOption(
+      6, "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
+    option->SetUsageOption(
+      7,
+      "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption(
+      8,
+      "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldSigmaInPhysicalSpace,updateFieldTimeSigma,totalFieldSigmaInPhysicalSpace,totalFieldTimeSigma]" );
+    option->SetUsageOption(
+      9,
+      "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
     option->SetUsageOption( 10, "SyN[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetDescription( description );
     parser->AddOption( option );

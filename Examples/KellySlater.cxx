@@ -696,8 +696,9 @@ InvertField( typename TField::Pointer field,
 template <unsigned int ImageDimension>
 int LaplacianThicknessExpDiff2(int argc, char *argv[])
 {
-  int          argct = 2;
-  std::string  segfn = std::string(argv[argct]); argct++;
+  int         argct = 2;
+  std::string segfn = std::string(argv[argct]); argct++;
+
   std::string  wfn = std::string(argv[argct]); argct++;
   std::string  gfn = std::string(argv[argct]); argct++;
   std::string  outname = std::string(argv[argct]); argct++;
@@ -850,7 +851,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //  WriteImage<ImageType>(gmsurf,"surfdefgm.nii.gz");
   //  WriteImage<ImageType>(bsurf,"surfdefwm.nii.gz");
 
-  typedef   DisplacementFieldType                                                           TimeVaryingVelocityFieldType;
+  typedef   DisplacementFieldType
+    TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType>                          FieldIterator;
   typedef typename DisplacementFieldType::IndexType                                         DIndexType;
   typedef typename DisplacementFieldType::PointType                                         DPointType;
@@ -1281,7 +1283,7 @@ int main(int argc, char *argv[])
     {
     std::cout << "Usage:   " << argv[0]
               <<
-    " ImageDimension Segmentation.nii.gz WMProb.nii.gz GMProb.nii.gz   Out.nii {GradStep-1-2D,2-3D}   {#Its-~50}  {ThickPriorValue-6} {Bool-use-curvature-prior} {smoothing} {BoolUseEuclidean?}"
+      " ImageDimension Segmentation.nii.gz WMProb.nii.gz GMProb.nii.gz   Out.nii {GradStep-1-2D,2-3D}   {#Its-~50}  {ThickPriorValue-6} {Bool-use-curvature-prior} {smoothing} {BoolUseEuclidean?}"
               << std::endl;
     std::cout << " this is a kind of binary image registration thing with diffeomorphisms " << std::endl;
     std::cout

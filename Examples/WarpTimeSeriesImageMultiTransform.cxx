@@ -628,7 +628,8 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
     if( misc_opt.use_NN_interpolator )
       {
       typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
-                                                                    typename WarperType::CoordRepType> NNInterpolateType;
+                                                                    typename WarperType::CoordRepType>
+        NNInterpolateType;
       typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
       std::cout <<  " Use Nearest Neighbor interpolation " << std::endl;
       warper->SetInterpolator(interpolator_NN);
@@ -766,7 +767,9 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
     if( timedim % vnl_math_max(timedims / 10, static_cast<unsigned int>(1) ) == 0 )
       {
       std::cout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;                                                                           //
+                                                                                                                                                                      //
                                                                                                                                                                       // <<
+                                                                                                                                                                      //
                                                                                                                                                                       // std::endl;
       }
     typename VectorImageType::RegionType extractRegion = img_mov->GetLargestPossibleRegion();
@@ -905,7 +908,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     if( misc_opt.use_NN_interpolator )
       {
       typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
-                                                                    typename WarperType::CoordRepType> NNInterpolateType;
+                                                                    typename WarperType::CoordRepType>
+        NNInterpolateType;
       typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
       std::cout << "Haha" << std::endl;
       warper->SetInterpolator(interpolator_NN);
@@ -1061,27 +1065,27 @@ int main(int argc, char * *argv)
     {
     std::cout << "\nUsage 1 (Forward warp): " << argv[0]
               <<
-    " ImageDimension <moving_image.ext> <output_image.ext> -R <fixed_image.ext> <MyWarp.ext> <MyAffine.txt> [interpolation]"
+      " ImageDimension <moving_image.ext> <output_image.ext> -R <fixed_image.ext> <MyWarp.ext> <MyAffine.txt> [interpolation]"
               << std::endl;
 
     std::cout << "\nUsage 2 (Inverse warp): " << argv[0]
               <<
-    " ImageDimension <fixed_image.ext> <output_image.ext> -R <moving_image.ext> -i <MyAffine.txt> <MyInverseWarp.ext> [interpolation]"
+      " ImageDimension <fixed_image.ext> <output_image.ext> -R <moving_image.ext> -i <MyAffine.txt> <MyInverseWarp.ext> [interpolation]"
               << std::endl;
 
     std::cout << "\nUsage Information " << std::endl;
     std::cout << " ImageDimension            : 3 or 4 (required argument)." << std::endl;
     std::cout
       <<
-    " <moving_image.ext>        : The image to apply the transformation to. The moving_image will be either a 3-D image with vector voxels or a 4D image with scalar voxels."
+      " <moving_image.ext>        : The image to apply the transformation to. The moving_image will be either a 3-D image with vector voxels or a 4D image with scalar voxels."
       << std::endl;
     std::cout
       <<
-    " <output_image.ext>        : The resulting image. Output will be of the same type as input, but will be resampled to the domain size defined by the -R image."
+      " <output_image.ext>        : The resulting image. Output will be of the same type as input, but will be resampled to the domain size defined by the -R image."
       << std::endl;
     std::cout
       <<
-    " <MyWarp.ext> <MyAffine.txt>    : Mappings can be stringed together, e.g.: MyAffine.txt MySecondAffine.txt MyWarp.nii.gz MySecondWarp.nii.gz -i MyInverseAffine.txt"
+      " <MyWarp.ext> <MyAffine.txt>    : Mappings can be stringed together, e.g.: MyAffine.txt MySecondAffine.txt MyWarp.nii.gz MySecondWarp.nii.gz -i MyInverseAffine.txt"
       << std::endl;
 
     std::cout << "\nOptions:" << std::endl;
@@ -1089,11 +1093,11 @@ int main(int argc, char * *argv)
     std::cout << " \n -R                : Reference image space that you wish to warp into." << std::endl;
     std::cout
       <<
-    " --reslice-by-header        : Equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
+      " --reslice-by-header        : Equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
       << std::endl;
     std::cout
       <<
-    " --tightest-bounding-box    : Computes the tightest bounding box using all the affine transformations. It will be overrided by -R <reference_image.ext> if given."
+      " --tightest-bounding-box    : Computes the tightest bounding box using all the affine transformations. It will be overrided by -R <reference_image.ext> if given."
       << std::endl;
     std::cout
       << " These options can be used together with -R and are typically not used together with any other transforms."

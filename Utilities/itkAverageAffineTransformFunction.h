@@ -62,7 +62,7 @@ template <class T>
 class HelperType;
 
 // {
-//// purposely not include any types
+// // purposely not include any types
 // };
 
 // explicit specialization for 2D affine transform
@@ -73,9 +73,9 @@ public:
   typedef ANTSCenteredAffine2DTransform<double> InternalAffineTransformType;
 
   typedef HelperCommonType<InternalAffineTransformType>::InternalAffineTransformPointerType
-                                                                                   InternalAffineTransformPointerType;
+    InternalAffineTransformPointerType;
   typedef HelperCommonType<InternalAffineTransformType>::SingleInternalTransformItemType
-                                                                                   SingleInternalTransformItemType;
+    SingleInternalTransformItemType;
   typedef HelperCommonType<InternalAffineTransformType>::InternalTransformListType InternalTransformListType;
   typedef HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
 
@@ -100,9 +100,9 @@ public:
   typedef ANTSAffine3DTransform<double> InternalAffineTransformType;
 
   typedef HelperCommonType<InternalAffineTransformType>::InternalAffineTransformPointerType
-                                                                                   InternalAffineTransformPointerType;
+    InternalAffineTransformPointerType;
   typedef HelperCommonType<InternalAffineTransformType>::SingleInternalTransformItemType
-                                                                                   SingleInternalTransformItemType;
+    SingleInternalTransformItemType;
   typedef HelperCommonType<InternalAffineTransformType>::InternalTransformListType InternalTransformListType;
   typedef HelperCommonType<InternalAffineTransformType>::ParametersType            ParametersType;
 

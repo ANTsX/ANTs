@@ -437,15 +437,15 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     // Get the number of iterations and use that information to specify the number of levels
 
-    std::vector<unsigned int> iterations = parser->ConvertVector<unsigned int>( iterationsOption->GetValue(
-                                                                                  currentStage ) );
+    std::vector<unsigned int> iterations =
+      parser->ConvertVector<unsigned int>( iterationsOption->GetValue( currentStage ) );
     unsigned int numberOfLevels = iterations.size();
     std::cout << "  number of levels = " << numberOfLevels << std::endl;
 
     // Get shrink factors
 
-    std::vector<unsigned int> factors = parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetValue(
-                                                                               currentStage ) );
+    std::vector<unsigned int> factors =
+      parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetValue( currentStage ) );
     typename AffineRegistrationType::ShrinkFactorsArrayType shrinkFactorsPerLevel;
     shrinkFactorsPerLevel.SetSize( factors.size() );
 
@@ -1070,14 +1070,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "metric" );
     option->SetShortName( 'm' );
-    option->SetUsageOption( 0,
-                            "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 1,
-                            "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 2,
-                            "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
-    option->SetUsageOption( 3,
-                            "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      0,
+      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      1,
+      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      2,
+      "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      3,
+      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -1112,8 +1116,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 't' );
     option->SetUsageOption( 0, "Affine[gradientStep]" );
     option->SetUsageOption( 1, "Rigid[gradientStep]" );
-    option->SetUsageOption( 2,
-                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
+    option->SetUsageOption(
+      2, "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

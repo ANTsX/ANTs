@@ -173,14 +173,15 @@ std::string ANTSGetFilePrefix(const char *str)
 //        else return DEFORMATION_FILE;
     }
 //    else{
-  //      return INVALID_FILE;
-  // }
+//      return INVALID_FILE;
+// }
   return filepre;
 }
 
 template <class TImage>
 typename TImage::Pointer BinaryThreshold(typename TImage::PixelType low, typename TImage::PixelType high,
-                                         typename TImage::PixelType replaceval, typename TImage::Pointer input)
+                                         typename TImage::PixelType replaceval,
+                                         typename TImage::Pointer input)
 {
   // std::cout << " Binary Thresh " << std::endl;
 
@@ -7057,23 +7058,23 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   LabelSetType myLabelSet2;
   unsigned int labct = 0;
-            { Iterator It( image2, image2->GetLargestPossibleRegion() );
-            for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-              {
-              PixelType label = It.Get();
-              if( fabs(label) > 0 )
+              { Iterator It( image2, image2->GetLargestPossibleRegion() );
+              for( It.GoToBegin(); !It.IsAtEnd(); ++It )
                 {
-                if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
-                    == myLabelSet2.end()   &&
-                    find( myLabelSet1.begin(), myLabelSet1.end(), label )
-                    != myLabelSet1.end() )
+                PixelType label = It.Get();
+                if( fabs(label) > 0 )
                   {
-                  myLabelSet2.push_back( label );
-                  labct++;
+                  if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
+                      == myLabelSet2.end()   &&
+                      find( myLabelSet1.begin(), myLabelSet1.end(), label )
+                      != myLabelSet1.end() )
+                    {
+                    myLabelSet2.push_back( label );
+                    labct++;
+                    }
                   }
                 }
               }
-            }
 
   vnl_vector<double> distances(labct, 0.0);
   vnl_vector<double> dicevals(labct, 0.0);
@@ -7702,8 +7703,9 @@ int LabelStats(      int argc, char *argv[])
 // int is the key, string the return value
 std::map<unsigned int, std::string> RoiList(std::string file)
 {
-  unsigned int                        wordindex = 0;
-  std::string                         tempstring = "";
+  unsigned int wordindex = 0;
+  std::string  tempstring = "";
+
   std::map<unsigned int, std::string> RoiList;
   //  RoiList[0]=std::string("Background");
   char         str[2000];
@@ -9044,8 +9046,9 @@ int main(int argc, char *argv[])
     std::cout << "  overadd        : replace image-a pixel with image-b pixel if image-b pixel is non-zero"
               << std::endl;
     std::cout << "  abs            : absolute value " << std::endl;
-    std::cout << "  total            : Sums up values in an image or in image1*image2 (img2 is the probability mask)"
-              << std::endl;
+    std::cout
+      << "  total            : Sums up values in an image or in image1*image2 (img2 is the probability mask)"
+      << std::endl;
     std::cout << "  Decision        : Computes result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))" << std::endl;
     std::cout << "  Neg            : Produce image negative" << std::endl;
 
@@ -9115,7 +9118,7 @@ int main(int argc, char *argv[])
     std::cout << "    Usage        : TensorMeanDiffusion DTImage.ext" << std::endl;
     std::cout
       <<
-    "  TensorToVector    : Produces vector field identifying one of the principal directions, 2 = largest eigenvalue"
+      "  TensorToVector    : Produces vector field identifying one of the principal directions, 2 = largest eigenvalue"
       << std::endl;
     std::cout << "    Usage        : TensorToVector DTImage.ext WhichVec" << std::endl;
     std::cout
@@ -9192,11 +9195,13 @@ int main(int argc, char *argv[])
               << std::endl;
 
     std::cout << "\n  EnumerateLabelInterfaces: " << std::endl;
-    std::cout << "      Usage        : EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore"
-              << std::endl;
+    std::cout
+      << "      Usage        : EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore"
+      << std::endl;
 
-    std::cout << "\n  ExtractSlice        : Extracts slice number from last dimension of volume (2,3,4) dimensions "
-              << std::endl;
+    std::cout
+      << "\n  ExtractSlice        : Extracts slice number from last dimension of volume (2,3,4) dimensions "
+      << std::endl;
     std::cout << "      Usage        : ExtractSlice volume.nii.gz slicetoextract" << std::endl;
 
     std::cout
@@ -9243,8 +9248,9 @@ int main(int argc, char *argv[])
               << std::endl;
     std::cout << "      Usage        : LabelStats labelimage.ext valueimage.nii" << std::endl;
 
-    std::cout << "\n  Laplacian        : Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
-              << std::endl;
+    std::cout
+      << "\n  Laplacian        : Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
+      << std::endl;
     std::cout << "      Usage        : Laplacian Image.ext s normalize?" << std::endl;
 
     std::cout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;

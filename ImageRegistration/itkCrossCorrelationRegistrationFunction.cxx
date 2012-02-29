@@ -505,7 +505,7 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
     smm = 1.0;
     }
 
-  ///gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
+  // /gradI = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
   gradJ = m_MovingImageGradientCalculator->EvaluateAtIndex( index );
 
   float Ji = finitediffimages[1]->GetPixel(index);

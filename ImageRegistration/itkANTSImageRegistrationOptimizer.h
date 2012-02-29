@@ -344,9 +344,8 @@ public:
 
   DisplacementFieldPointer ComputeUpdateFieldAlternatingMin(DisplacementFieldPointer fixedwarp,
                                                             DisplacementFieldPointer movingwarp,
-                                                            PointSetPointer  fpoints = NULL,
-                                                            PointSetPointer wpoints = NULL,
-                                                            DisplacementFieldPointer updateFieldInv = NULL,
+                                                            PointSetPointer  fpoints = NULL,  PointSetPointer wpoints =
+                                                              NULL, DisplacementFieldPointer updateFieldInv = NULL,
                                                             bool updateenergy = true);
 
   DisplacementFieldPointer ComputeUpdateField(DisplacementFieldPointer fixedwarp, DisplacementFieldPointer movingwarp,
@@ -447,7 +446,8 @@ public:
   }
 
   ImagePointer SubsampleImage( ImagePointer, RealType, typename ImageType::PointType outputOrigin,
-                               typename ImageType::DirectionType outputDirection,   AffineTransformPointer aff = NULL);
+                               typename ImageType::DirectionType outputDirection,
+                               AffineTransformPointer aff = NULL);
 
   DisplacementFieldPointer SubsampleField( DisplacementFieldPointer field, typename ImageType::SizeType
                                            targetSize, typename ImageType::SpacingType targetSpacing )
@@ -739,7 +739,7 @@ public:
       smoother->SetInputImage( image );
       smoother->SetDirection( d );
       smoother->SetNormalizeAcrossScale( false );
-      TReal sig = (outputSpacing[d] / inputSpacing[d] - 1.0) * 0.2; ///(TReal)ImageDimension;
+      TReal sig = (outputSpacing[d] / inputSpacing[d] - 1.0) * 0.2; // /(TReal)ImageDimension;
       smoother->SetSigma(sig );
 
       if( smoother->GetSigma() > 0.0 )
@@ -854,7 +854,9 @@ public:
       {
       this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
       }                                                                                                                                      //
+                                                                                                                                             //
                                                                                                                                              // asymm
+                                                                                                                                             //
                                                                                                                                              // forces
     else if(  thicknessOption->GetValue() == "2" )
       {
@@ -1226,8 +1228,8 @@ public:
         this->m_SimilarityMetrics[0]->GetFixedImage()->GetOrigin() );
       this->m_SimilarityMetrics[metricCount]->GetFixedImage()->SetDirection(
         this->m_SimilarityMetrics[0]->GetFixedImage()->GetDirection() );
-      this->m_SimilarityMetrics[metricCount]->GetMovingImage()->SetOrigin(
-        this->m_SimilarityMetrics[0]->GetMovingImage()->GetOrigin() );
+      this->m_SimilarityMetrics[metricCount]->GetMovingImage()->SetOrigin( this->m_SimilarityMetrics[0]->GetMovingImage(
+                                                                             )->GetOrigin() );
       this->m_SimilarityMetrics[metricCount]->GetMovingImage()->SetDirection(
         this->m_SimilarityMetrics[0]->GetMovingImage()->GetDirection() );
       }
@@ -1629,12 +1631,17 @@ public:
       }
     else if( this->GetTransformationModel() == std::string("Exp") )
       {
-      DisplacementFieldPointer diffmap =  this->IntegrateConstantVelocity( this->m_DisplacementField,
-                                                                           (unsigned int)this->m_NTimeSteps, 1 );                           //
+      DisplacementFieldPointer diffmap =
+        this->IntegrateConstantVelocity( this->m_DisplacementField, (unsigned int)this->m_NTimeSteps,
+                                         1 );                                                                                               //
+                                                                                                                                            //
                                                                                                                                             // 1.0/
+                                                                                                                                            //
                                                                                                                                             // (TReal)this->m_NTimeSteps);
-      DisplacementFieldPointer invdiffmap = this->IntegrateConstantVelocity(this->m_DisplacementField,
-                                                                            (unsigned int) this->m_NTimeSteps, -1 );                         //
+      DisplacementFieldPointer invdiffmap =
+        this->IntegrateConstantVelocity(this->m_DisplacementField, (unsigned int) this->m_NTimeSteps,
+                                        -1 );                                                                                                //
+                                                                                                                                             //
                                                                                                                                              // -1.0/(TReal)this->m_NTimeSteps);
       this->m_InverseDisplacementField = invdiffmap;
       this->m_DisplacementField = diffmap;
@@ -1684,8 +1691,8 @@ public:
 
     if( this->m_TimeVaryingVelocity  )
       {
-      std::string outname = localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() )
-        + std::string("velocity.mhd");
+      std::string outname = localANTSGetFilePrefix(this->m_OutputNamingConvention.c_str() ) + std::string(
+          "velocity.mhd");
       typename itk::ImageFileWriter<TimeVaryingVelocityFieldType>::Pointer writer =
         itk::ImageFileWriter<TimeVaryingVelocityFieldType>::New();
       writer->SetFileName(outname.c_str() );
@@ -1697,8 +1704,8 @@ public:
       }
   }
 
-  void DiffeomorphicExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage,
-                                          PointSetPointer fpoints = NULL, PointSetPointer mpoints = NULL);
+  void DiffeomorphicExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints =
+                                            NULL, PointSetPointer mpoints = NULL);
 
   void GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints = NULL,
                                    PointSetPointer mpoints = NULL);

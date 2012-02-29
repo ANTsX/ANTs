@@ -57,8 +57,8 @@ TensorType Matrix2Vector( MatrixType dtm )
 template <class TensorType, class MatrixType>
 void EigenAnalysis(TensorType dtv,  MatrixType & evals, MatrixType & evecs)
 {
-  MatrixType dtm =
-    Vector2Matrix<TensorType, MatrixType>(dtv);
+  MatrixType dtm = Vector2Matrix<TensorType, MatrixType>(dtv);
+
   itk::DecomposeTensorFunction2<MatrixType, typename MatrixType::ValueType, MatrixType> decomposer;
 
   decomposer.EvaluateSymmetricEigenDecomposition( dtm, evals, evecs );
@@ -313,7 +313,7 @@ float  GetMetricTensorCost(  TVectorType dpath,  TTensorType dtv, unsigned int m
     }
 
   MatrixType sol = vec.transpose() * inv * vec;
-  float      cost = sol(0, 0); ///etot;
+  float      cost = sol(0, 0); // /etot;
 
   return sqrt(cost);
 }

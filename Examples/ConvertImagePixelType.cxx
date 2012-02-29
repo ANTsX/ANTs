@@ -102,11 +102,12 @@ int main(int argc, char *argv[])
     std::cout
       << " Note that some pixel types are not supported by some image formats. e.g.  int is not supported by jpg. "
       << std::endl;
-    std::cout << " You can easily extend this for other pixel types with a few lines of code and adding usage info. "
-              << std::endl;
+    std::cout
+      << " You can easily extend this for other pixel types with a few lines of code and adding usage info. "
+      << std::endl;
     std::cout
       <<
-    " The image intensity will be scaled to the dynamic range of the pixel type.  E.g. uchar => 0  (min), 255 (max). "
+      " The image intensity will be scaled to the dynamic range of the pixel type.  E.g. uchar => 0  (min), 255 (max). "
       << std::endl;
     return 1;
     }

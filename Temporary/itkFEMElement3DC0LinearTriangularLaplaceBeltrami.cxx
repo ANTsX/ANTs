@@ -33,11 +33,8 @@ Element3DC0LinearTriangularLaplaceBeltrami
 }
 
 Element3DC0LinearTriangularLaplaceBeltrami
-::Element3DC0LinearTriangularLaplaceBeltrami(
-  NodeIDType n1_,
-  NodeIDType n2_,
-  NodeIDType n3_,
-  Material::ConstPointer m_) : Superclass()
+::Element3DC0LinearTriangularLaplaceBeltrami(NodeIDType n1_, NodeIDType n2_, NodeIDType n3_,
+                                             Material::ConstPointer m_) : Superclass()
 {
   // Set the geometrical points
   this->SetNode( 0, n1_ );
@@ -51,8 +48,9 @@ Element3DC0LinearTriangularLaplaceBeltrami
    */
   if( (m_mat = dynamic_cast<const MaterialLinearElasticity *>(&*m_) ) == 0 )
     {
-    throw FEMExceptionWrongClass(__FILE__, __LINE__,
-                                 "Element3DC0LinearTriangularLaplaceBeltrami::Element3DC0LinearTriangularLaplaceBeltrami()");
+    throw FEMExceptionWrongClass(
+            __FILE__, __LINE__,
+            "Element3DC0LinearTriangularLaplaceBeltrami::Element3DC0LinearTriangularLaplaceBeltrami()");
     }
 }
 

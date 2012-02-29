@@ -362,15 +362,15 @@ int ants_moco( itk::ants::CommandLineParser *parser )
 
     // Get the number of iterations and use that information to specify the number of levels
 
-    std::vector<unsigned int> iterations = parser->ConvertVector<unsigned int>( iterationsOption->GetValue(
-                                                                                  currentStage ) );
+    std::vector<unsigned int> iterations =
+      parser->ConvertVector<unsigned int>( iterationsOption->GetValue( currentStage ) );
     unsigned int numberOfLevels = iterations.size();
     std::cout << "  number of levels = " << numberOfLevels << std::endl;
 
     // Get shrink factors
 
-    std::vector<unsigned int> factors = parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetValue(
-                                                                               currentStage ) );
+    std::vector<unsigned int> factors =
+      parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetValue( currentStage ) );
     typename AffineRegistrationType::ShrinkFactorsArrayType shrinkFactorsPerLevel;
     shrinkFactorsPerLevel.SetSize( factors.size() );
 
@@ -1001,8 +1001,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 't' );
     option->SetUsageOption( 0, "Affine[gradientStep]" );
     option->SetUsageOption( 1, "Rigid[gradientStep]" );
-    option->SetUsageOption( 2,
-                            "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
+    option->SetUsageOption(
+      2, "GaussianDisplacementField[gradientStep,updateFieldSigmaInPhysicalSpace,totalFieldSigmaInPhysicalSpace]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

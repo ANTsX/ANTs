@@ -131,8 +131,7 @@ public:
 protected:
 /*   ANTSAffine3DTransform(const MatrixType &matrix, */
 /*                            const OutputVectorType &offset); */
-  ANTSAffine3DTransform(unsigned int outputDims,
-                        unsigned int paramDims);
+  ANTSAffine3DTransform(unsigned int outputDims, unsigned int paramDims);
   ANTSAffine3DTransform();
   ~ANTSAffine3DTransform()
   {

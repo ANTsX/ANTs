@@ -33,7 +33,8 @@ template <class StringType, class PointContainerType>
 void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_field_file_name, float load_ratio,
                                                PointContainerType & fixedLandmarks,
                                                PointContainerType & movingLandmarks, itk::Image<float,
-                                                                                                3>::Pointer maskimg);
+                                                                                                3>
+                                               ::Pointer maskimg);
 
 //
 // The test specifies a bunch of fixed and moving landmarks and test if the
@@ -113,7 +114,7 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   //    return EXIT_SUCCESS;
 }
 
-////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
 template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
 inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
@@ -126,8 +127,8 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
                          (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
                                                                                               GetCenter() ) ) ) ) );
   transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>
-                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running->
-                                                                                                     GetTranslation() ) ) ) ) );
+                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running
+                                                                                                     ->GetTranslation() ) ) ) ) );
   transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
                          (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
 
@@ -167,7 +168,7 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
   PostConversionInAffine(transform, aff);
 }
 
-//////////
+// ////////
 // x: fixedLandmarks
 // y: movingLandmarks
 // (A,t,c) : affine transform, A:3*3, t: 3*1 c: 3*1 (c is the center of all points in x)
@@ -269,7 +270,7 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   return;
 }
 
-////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
 template <class TransformPointerType, class StringType>
 void WriteAffineTransformFile(TransformPointerType & transform, StringType filename)
@@ -344,7 +345,8 @@ template <class StringType, class PointContainerType>
 void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_field_file_name, float load_ratio,
                                                PointContainerType & fixedLandmarks,
                                                PointContainerType & movingLandmarks, itk::Image<float,
-                                                                                                3>::Pointer maskimg)
+                                                                                                3>
+                                               ::Pointer maskimg)
 {
   const unsigned int ImageDimension = 3;
 

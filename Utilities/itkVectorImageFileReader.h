@@ -35,16 +35,14 @@ public:
   itkTypeMacro( VectorImageFileReaderException, ExceptionObject );
 
   /** Constructor. */
-  VectorImageFileReaderException(const char *file, unsigned int line,
-                                 const char* message = "Error in IO",
+  VectorImageFileReaderException(const char *file, unsigned int line, const char* message = "Error in IO",
                                  const char* loc = "Unknown") :
     ExceptionObject(file, line, message, loc)
   {
   }
 
   /** Constructor. */
-  VectorImageFileReaderException(const std::string & file, unsigned int line,
-                                 const char* message = "Error in IO",
+  VectorImageFileReaderException(const std::string & file, unsigned int line, const char* message = "Error in IO",
                                  const char* loc = "Unknown") :
     ExceptionObject(file, line, message, loc)
   {

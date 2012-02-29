@@ -207,7 +207,7 @@ public:
     GlobalDataStruct *global = new GlobalDataStruct();
 
     //    global->m_SumOfSquaredDifference  = 0.0;
-    /// global->m_NumberOfPixelsProcessed = 0L;
+    // / global->m_NumberOfPixelsProcessed = 0L;
     // global->m_SumOfSquaredChange      = 0;
     return global;
   }

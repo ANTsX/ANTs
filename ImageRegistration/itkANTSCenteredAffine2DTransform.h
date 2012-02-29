@@ -43,25 +43,25 @@ public:
   /** Jacobian type. */
   typedef typename Superclass::JacobianType JacobianType;
 
-  /// Standard matrix type for this class
+  // / Standard matrix type for this class
   typedef typename Superclass::MatrixType MatrixType;
 
-  /// Standard vector type for this class
+  // / Standard vector type for this class
   typedef typename Superclass::OffsetType OffsetType;
 
-  /// Standard vector type for this class
+  // / Standard vector type for this class
   typedef typename Superclass::InputVectorType  InputVectorType;
   typedef typename Superclass::OutputVectorType OutputVectorType;
 
-  /// Standard covariant vector type for this class
+  // / Standard covariant vector type for this class
   typedef typename Superclass::InputCovariantVectorType  InputCovariantVectorType;
   typedef typename Superclass::OutputCovariantVectorType OutputCovariantVectorType;
 
-  /// Standard vnl_vector type for this class
+  // / Standard vnl_vector type for this class
   typedef typename Superclass::InputVnlVectorType  InputVnlVectorType;
   typedef typename Superclass::OutputVnlVectorType OutputVnlVectorType;
 
-  /// Standard coordinate point type for this class
+  // / Standard coordinate point type for this class
   typedef typename Superclass::InputPointType  InputPointType;
   typedef typename Superclass::OutputPointType OutputPointType;
 
@@ -197,8 +197,7 @@ protected:
 
   //  Rigid2DTransform( unsigned int outputSpaceDimension,
   //                    unsigned int parametersDimension);
-  ANTSCenteredAffine2DTransform( unsigned int outputSpaceDimension,
-                                 unsigned int parametersDimension);
+  ANTSCenteredAffine2DTransform( unsigned int outputSpaceDimension, unsigned int parametersDimension);
 
   //  ~Rigid2DTransform();
   ~ANTSCenteredAffine2DTransform();

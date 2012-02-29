@@ -357,7 +357,7 @@ GetParameters( void ) const
   return this->m_Parameters;
   }
 
-//// Compute transformation Jacobian
+// // Compute transformation Jacobian
 // template<class TScalarType>
 // const typename ANTSCenteredAffine2DTransform<TScalarType>::JacobianType &
 // ANTSCenteredAffine2DTransform<TScalarType>::
@@ -475,7 +475,8 @@ typename ANTSCenteredAffine2DTransform<TScalarType>::InputPointType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputPointType & point) const
 {
   itkWarningMacro(
-      << "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
+    <<
+    "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
   return this->GetInverseMatrix() * (point - this->GetOffset() );
 }
 
@@ -485,7 +486,8 @@ typename ANTSCenteredAffine2DTransform<TScalarType>::InputVectorType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputVectorType & vect ) const
 {
   itkWarningMacro(
-      << "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
+    <<
+    "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
   return this->GetInverseMatrix() * vect;
 }
 
@@ -495,7 +497,8 @@ typename ANTSCenteredAffine2DTransform<TScalarType>::InputVnlVectorType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputVnlVectorType & vect ) const
 {
   itkWarningMacro(
-      << "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
+    <<
+    "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
   return this->GetInverseMatrix() * vect;
 }
 
@@ -505,7 +508,8 @@ typename ANTSCenteredAffine2DTransform<TScalarType>::InputCovariantVectorType
 ANTSCenteredAffine2DTransform<TScalarType>::BackTransform(const OutputCovariantVectorType & vect) const
 {
   itkWarningMacro(
-      << "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
+    <<
+    "BackTransform(): This method is slated to be removed from ITK.  Instead, please use GetInverse() to generate an inverse transform and then perform the transform using that inverted transform.");
   return this->GetMatrix() * vect;
 }
 } // namespace

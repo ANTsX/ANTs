@@ -29,6 +29,7 @@ int IntegrateVelocityField(int argc, char *argv[])
 {
   int         argct = 1;
   std::string imgfn = std::string(argv[argct]); argct++;
+
   std::string vectorfn = std::string(argv[argct]); argct++;
   std::string outname = std::string(argv[argct]); argct++;
 
@@ -140,8 +141,8 @@ int main(int argc, char *argv[])
 {
   if( argc < 4 )
     {
-    std::cout << "Usage:   " << argv[0] << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  "
-              << std::endl;
+    std::cout << "Usage:   " << argv[0]
+              << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  " << std::endl;
     return 1;
     }
   std::cout << " start " << std::endl;

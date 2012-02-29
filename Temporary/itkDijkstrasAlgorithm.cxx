@@ -201,7 +201,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
     // std::cout << " ET " << m_EdgeTemplate[i]  <<  " RAD " << m_Radius << " ind " << GHood.GetIndex(m_EdgeTemplate[i])
     // << std::endl;
     if( !GHood.GetPixel(m_EdgeTemplate[i]) ) // std::cout << " OK " << std::endl;
-    ///else
+    // /else
       {
       //    std::cout << " NOT OK  " <<std::endl;
       GraphNeighborhoodIndexType ind = GHood.GetIndex(m_EdgeTemplate[i]);

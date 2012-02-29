@@ -211,7 +211,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
   return EXIT_SUCCESS;
 }
 
-//////////
+// ////////
 // x: fixedLandmarks
 // y: movingLandmarks
 // (A,t,c) : affine transform, A:3*3, t: 3*1 c: 3*1 (c is the center of all points in x)
@@ -313,7 +313,7 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   return;
 }
 
-////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
 template <class TransformPointerType, class StringType>
 void WriteAffineTransformFile(TransformPointerType & transform, StringType filename)
@@ -339,7 +339,7 @@ void WriteAffineTransformFile(TransformPointerType & transform, StringType filen
   return;
 }
 
-////////////////////////////////////////////////////////////////////////
+// //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
 template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
 inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
@@ -352,8 +352,8 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
                          (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
                                                                                               GetCenter() ) ) ) ) );
   transform->SetTranslation(*(reinterpret_cast<typename AffineTransformType::OutputVectorType *>
-                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running->
-                                                                                                     GetTranslation() ) ) ) ) );
+                              (const_cast<typename RunningAffineTransformType::OutputVectorType *>(&(transform_running
+                                                                                                     ->GetTranslation() ) ) ) ) );
   transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
                          (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
 
@@ -412,7 +412,7 @@ int main(int argc, char *argv[])
     {
     std::cout << "Usage:   " << argv[0]
               <<
-    " FixedImageWithLabeledLandmarks.nii.gz  MovingImageWithLabeledLandmarks.nii.gz [rigid | affine] OutAffine.txt "
+      " FixedImageWithLabeledLandmarks.nii.gz  MovingImageWithLabeledLandmarks.nii.gz [rigid | affine] OutAffine.txt "
               << std::endl;
     std::cout
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "

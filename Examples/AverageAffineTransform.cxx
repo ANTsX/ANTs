@@ -240,7 +240,7 @@ void AverageAffineTransform(char *output_affine_txt, char *reference_affine_txt,
   // warper->SetEdgePaddingValue( 0);
 //    VectorType pad;
 //    pad.Fill(0);
-  // warper->SetEdgePaddingValue(pad);
+// warper->SetEdgePaddingValue(pad);
 
   typedef itk::TransformFileReader TranReaderType;
 
@@ -278,8 +278,8 @@ void AverageAffineTransform(char *output_affine_txt, char *reference_affine_txt,
         {
         std::cout << "Average affine only files: ignore " << opt.filename
                   << std::endl;
-        break;
         }
+        break;
       default:
         std::cout << "Unknown file type!" << std::endl;
       }
@@ -400,14 +400,14 @@ int main(int argc, char * *argv)
         {
         AverageAffineTransform<2>(output_transform_filename,
                                   reference_transform_filename, opt_queue);
-        break;
         }
+        break;
       case 3:
         {
         AverageAffineTransform<3>(output_transform_filename,
                                   reference_transform_filename, opt_queue);
-        break;
         }
+        break;
       }
     }
 

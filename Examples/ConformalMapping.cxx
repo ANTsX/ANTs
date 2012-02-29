@@ -527,7 +527,7 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
 //  for (float tt = 0.0; tt<=maxt; tt=tt+step)
     {
     //      std::cout <<" Building at : " << tt << std::endl;
-    ///  Parameterizer->BuildOutputMeshes(tt);
+    // /  Parameterizer->BuildOutputMeshes(tt);
 
     //      if (tt == 0.)
       {
@@ -940,7 +940,7 @@ int main(int argc, char *argv[])
   std::cout << "to convert flattened mesh to image : ConformalMapping   mesh.vtk 1 2 3 6 outname " << std::endl;
   std::cout
     <<
-  "to interpolate data in flattened image domain to original mesh: ConformalMapping   image.nii 1 2 3 7 outname originalflatmesh.vtk"
+    "to interpolate data in flattened image domain to original mesh: ConformalMapping   image.nii 1 2 3 7 outname originalflatmesh.vtk"
     << std::endl;
   std::cout << " to smooth a mesh --- ConformalMapping mesh.vtk 1 2 NumSmoothIts 8 outname " << std::endl;
   if( argc >= 2 )

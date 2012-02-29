@@ -297,11 +297,11 @@ public:
   /** Set the object's state before each iteration. */
   virtual void InitializeIteration();
 
-  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood, void *globalData,
-                                   const FloatOffsetType & offset = FloatOffsetType( 0.0 ) );
+  virtual VectorType ComputeUpdate(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+                                       0.0 ) );
 
-  virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood, void *globalData,
-                                      const FloatOffsetType & offset = FloatOffsetType( 0.0 ) );
+  virtual VectorType ComputeUpdateInv(const NeighborhoodType & neighborhood, void *globalData, const FloatOffsetType & offset = FloatOffsetType(
+                                          0.0 ) );
 
 protected:
   JensenTsallisBSplineRegistrationFunction();

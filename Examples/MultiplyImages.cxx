@@ -72,7 +72,7 @@ int MultiplyImages(int argc, char *argv[])
     {
     std::cout << " Rather than opening " << fn2
               <<
-    " as an image file, this program has decided, in its great wisdom, to consider it to be a floating point numerical value, and has acted accordingly -- i.e. read this as a number. "
+      " as an image file, this program has decided, in its great wisdom, to consider it to be a floating point numerical value, and has acted accordingly -- i.e. read this as a number. "
               << std::endl;
     isfloat = true;
     }

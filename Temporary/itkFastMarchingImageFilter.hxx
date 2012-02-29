@@ -98,9 +98,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
       os << "No handles" << std::endl;
       }
     case Strict:
-      {
       os << "Strict" << std::endl;
-      }
     }
   os << indent << "Collect points: " << this->m_CollectPoints << std::endl;
   os << indent << "OverrideOutputInformation: ";

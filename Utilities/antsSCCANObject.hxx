@@ -61,8 +61,10 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
 template <class TInputImage, class TRealType>
 typename TInputImage::Pointer
 antsSCCANObject<TInputImage, TRealType>
-::ConvertVariateToSpatialImage(  typename antsSCCANObject<TInputImage, TRealType>::VectorType w_p,
-                                 typename TInputImage::Pointer mask, bool threshold_at_zero  )
+::ConvertVariateToSpatialImage(  typename antsSCCANObject<TInputImage,
+                                                          TRealType>::VectorType w_p,
+                                 typename TInputImage::Pointer mask,
+                                 bool threshold_at_zero  )
 {
   typename TInputImage::Pointer weights = TInputImage::New();
   weights->SetOrigin( mask->GetOrigin() );
@@ -113,8 +115,9 @@ antsSCCANObject<TInputImage, TRealType>
 template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
-::ClusterThresholdVariate(  typename antsSCCANObject<TInputImage, TRealType>::VectorType& w_p,
-                            typename TInputImage::Pointer mask, unsigned int minclust )
+::ClusterThresholdVariate(  typename antsSCCANObject<TInputImage,
+                                                     TRealType>::VectorType& w_p, typename TInputImage::Pointer mask,
+                            unsigned int minclust )
 {
   if( minclust <= 1 )
     {
@@ -546,9 +549,13 @@ antsSCCANObject<TInputImage, TRealType>
 template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
-::TrueCCAPowerUpdate( TRealType penalty1,  typename antsSCCANObject<TInputImage, TRealType>::MatrixType p,
-                      typename antsSCCANObject<TInputImage, TRealType>::VectorType  w_q,
-                      typename antsSCCANObject<TInputImage, TRealType>::MatrixType q, bool keep_pos, bool factorOutR )
+::TrueCCAPowerUpdate( TRealType penalty1,
+                      typename antsSCCANObject<TInputImage,
+                                               TRealType>::MatrixType p,
+                      typename antsSCCANObject<TInputImage,
+                                               TRealType>::VectorType  w_q,
+                      typename antsSCCANObject<TInputImage, TRealType>::MatrixType q, bool keep_pos,
+                      bool factorOutR )
 {
   RealType norm = 0;
   // recall that the matrices below have already be whitened ....
@@ -586,31 +593,31 @@ antsSCCANObject<TInputImage, TRealType>
     case PQ:
       {
 // do nothing
-      break;
       }
+      break;
     case PminusRQ:
       {
       this->m_MatrixP = (this->m_MatrixP - this->m_MatrixRRt * this->m_MatrixP);
-      break;
       }
+      break;
     case PQminusR:
       {
       this->m_MatrixQ = (this->m_MatrixQ - this->m_MatrixRRt * this->m_MatrixQ);
-      break;
       }
+      break;
     case PminusRQminusR:
       {
 /** P_R =   P - R_w R_w^T P */
 /** Q_R =   Q - R_w R_w^T Q */
       this->m_MatrixP = (this->m_MatrixP - this->m_MatrixRRt * this->m_MatrixP);
       this->m_MatrixQ = (this->m_MatrixQ - this->m_MatrixRRt * this->m_MatrixQ);
-      break;
-      case PQR:
-        {
-        std::cout << " You should call mscca not pscca " << std::endl;
-        }
-        break;
       }
+      break;
+    case PQR:
+      {
+      std::cout << " You should call mscca not pscca " << std::endl;
+      }
+      break;
     }
 }
 
@@ -669,8 +676,8 @@ void antsSCCANObject<TInputImage, TRealType>
       std::cout << "Pvec " << wv << " Pvec " << yv << " : " << a << std::endl;
       if( doq )
         {
-        RealType b = this->PearsonCorr(omatQ * this->m_VariatesQ.get_column(wv), omatQ * this->m_VariatesQ.get_column(
-                                         yv) );
+        RealType b =
+          this->PearsonCorr(omatQ * this->m_VariatesQ.get_column(wv), omatQ * this->m_VariatesQ.get_column(yv) );
         if( fabs(b) > corrthresh )
           {
           std::cout << " not orthogonal q " <<  a << std::endl;
@@ -1158,7 +1165,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << "wloopdone" << std::endl;
       }
     } // opt-loop
-     //  std::cout << " cluster-sizes " << this->m_ClusterSizes << std::endl;
+      //  std::cout << " cluster-sizes " << this->m_ClusterSizes << std::endl;
   for( unsigned int i = 0; i < vexlist.size(); i++ )
     {
     std::cout << vexlist[i] << ",";
@@ -1492,7 +1499,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       } // kloop
 
     /** Update the full solution space */
-    double recuravg = .9; ///sqrt(sqrt((double)(loop+1)));
+    double recuravg = .9; // /sqrt(sqrt((double)(loop+1)));
     double recuravg2 = 1 - recuravg;
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
@@ -1566,9 +1573,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::ConjGrad( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A, typename antsSCCANObject<TInputImage,
-                                                                                                      TRealType>::VectorType& x_k,
-            typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType convcrit, unsigned int maxits)
+::ConjGrad( typename antsSCCANObject<TInputImage,
+                                     TRealType>::MatrixType& A,
+            typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
+            typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType convcrit,
+            unsigned int maxits)
 {
   /** This will use the normal equations */
   /** Based on Golub CONJUGATE  G R A D I E N T   A N D  LANCZOS  HISTORY
@@ -1762,10 +1771,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::SparseNLConjGrad( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
+::SparseNLConjGrad( typename antsSCCANObject<TInputImage,
+                                             TRealType>::MatrixType& A,
                     typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
-                    typename antsSCCANObject<TInputImage, TRealType>::VectorType  b, TRealType convcrit,
-                    unsigned int maxits, bool keeppos)
+                    typename antsSCCANObject<TInputImage,
+                                             TRealType>::VectorType  b, TRealType convcrit, unsigned int maxits,
+                    bool keeppos)
 {
   bool negate = false;
 
@@ -2195,7 +2206,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << "wloopdone" << std::endl;
       }
     } // opt-loop
-     //  std::cout << " cluster-sizes " << this->m_ClusterSizes << std::endl;
+      //  std::cout << " cluster-sizes " << this->m_ClusterSizes << std::endl;
   for( unsigned int i = 0; i < vexlist.size(); i++ )
     {
     std::cout << vexlist[i] << ",";
@@ -2835,8 +2846,10 @@ antsSCCANObject<TInputImage, TRealType>
             }
           if( which_e_vec > 0   && this->m_Debug   )
             {
-            std::cout << " p orth-b " << this->PearsonCorr( this->m_MatrixP * this->m_WeightsP, this->m_MatrixP * this->m_VariatesP.get_column(
-                                                              0) ) << std::endl;
+            std::cout << " p orth-b "
+                      << this->PearsonCorr( this->m_MatrixP * this->m_WeightsP, this->m_MatrixP
+                                  * this->m_VariatesP.get_column(
+                                    0) ) << std::endl;
             }
           }
         VectorType projp = this->m_MatrixQ * this->m_WeightsQ;
@@ -2864,8 +2877,10 @@ antsSCCANObject<TInputImage, TRealType>
           this->m_WeightsQ = this->SoftThreshold( this->m_WeightsQ, this->m_FractionNonZeroQ, !this->m_KeepPositiveQ );
           if( which_e_vec > 0 && this->m_Debug )
             {
-            std::cout << " q orth-b " << this->PearsonCorr( this->m_MatrixQ * this->m_WeightsQ, this->m_MatrixQ * this->m_VariatesQ.get_column(
-                                                              0) ) << std::endl;
+            std::cout << " q orth-b "
+                      << this->PearsonCorr( this->m_MatrixQ * this->m_WeightsQ, this->m_MatrixQ
+                                  * this->m_VariatesQ.get_column(
+                                    0) ) << std::endl;
             }
           }
         this->m_WeightsP = this->m_MatrixP.transpose() * (projp);
@@ -3041,10 +3056,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     unsigned long its = 0;
     while( its<this->m_MaximumNumberOfIterations && deltacorr> this->m_ConvergenceThreshold  )
       {
-      this->m_WeightsP = this->TrueCCAPowerUpdate(this->m_FractionNonZeroP, this->m_MatrixP, this->m_WeightsQ,
-                                                  this->m_MatrixQ, this->m_KeepPositiveP, false);
-      this->m_WeightsQ = this->TrueCCAPowerUpdate(this->m_FractionNonZeroQ, this->m_MatrixQ, this->m_WeightsP,
-                                                  this->m_MatrixP, this->m_KeepPositiveQ, false);
+      this->m_WeightsP =
+        this->TrueCCAPowerUpdate(this->m_FractionNonZeroP, this->m_MatrixP, this->m_WeightsQ, this->m_MatrixQ,
+                                 this->m_KeepPositiveP,
+                                 false);
+      this->m_WeightsQ =
+        this->TrueCCAPowerUpdate(this->m_FractionNonZeroQ, this->m_MatrixQ, this->m_WeightsP, this->m_MatrixP,
+                                 this->m_KeepPositiveQ,
+                                 false);
       truecorr = this->PearsonCorr( this->m_MatrixP * this->m_WeightsP, this->m_MatrixQ * this->m_WeightsQ );
       deltacorr = fabs(truecorr - lastcorr);
       lastcorr = truecorr;

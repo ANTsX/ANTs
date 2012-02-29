@@ -96,7 +96,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "SegmentationCost --- 3 params : \n 1. Float-Max-Cost : controls the size of the output region.  \n " )
+      std::string(
+        "SegmentationCost --- 3 params : \n 1. Float-Max-Cost : controls the size of the output region.  \n " )
       + std::string( "2. Float-Weight for distance cost =  edge_length*W_d \n " )
       + std::string(
         "3. Float-Weight for label cost = H(fabs( desiredLabel - localLabel ))*W_l*MaxCost \n where H is the heaviside function." );

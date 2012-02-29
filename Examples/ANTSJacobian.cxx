@@ -291,7 +291,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     }
   //   double totaljac=0.0;
 
-  ///the finite difference equations
+  // /the finite difference equations
   float wC, wLL, wL, wR, wRR;
   // 3rd deriv - 4th order
   wC = 0.0;
@@ -503,8 +503,9 @@ int Jacobian(int argc, char *argv[])
     {
     std::cout << "Usage:   Jacobian gWarp outfile uselog maskfn normbytotalbool VectorToProjectWarpAgainst "
               << std::endl;
-    std::cout << " VectorToProjectWarpAgainst should be in the form 1.0x0.0x0.0 where x separates vector components "
-              << std::endl;
+    std::cout
+      << " VectorToProjectWarpAgainst should be in the form 1.0x0.0x0.0 where x separates vector components "
+      << std::endl;
     return 1;
     }
   typedef float                                                  PixelType;
@@ -567,7 +568,7 @@ int main(int argc, char *argv[])
               << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1 1x0 " << std::endl;
     std::cout
       <<
-    " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size. 1x0 will project the warp along direction 1,0 --- don't add this option if you dont want to do this "
+      " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size. 1x0 will project the warp along direction 1,0 --- don't add this option if you dont want to do this "
       << std::endl;
     return 1;
     }

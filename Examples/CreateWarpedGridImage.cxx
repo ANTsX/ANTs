@@ -153,7 +153,8 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   grid->SetSpacing(reader->GetOutput()->GetSpacing() );
 
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>                                                   TransformType;
+                                         ImageDimension>
+    TransformType;
   typedef itk::WarpImageMultiTransformFilter<RealImageType, RealImageType, VectorImageType, TransformType> WarperType;
   typename WarperType::Pointer  warper = WarperType::New();
   warper->SetInput(grid);

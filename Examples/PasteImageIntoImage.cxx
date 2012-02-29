@@ -136,7 +136,7 @@ int main( int argc, char *argv[] )
               << std::endl;
     std::cout
       <<
-    "   If the current painting image voxel is nonbackground and corresponds to a background voxel in the canvas image "
+      "   If the current painting image voxel is nonbackground and corresponds to a background voxel in the canvas image "
       << std::endl;
     std::cout << "     paintOverNonBackgroundVoxels = 0 -> leave the canvas voxel as is." << std::endl;
     std::cout

@@ -168,7 +168,8 @@ inline std::string sccan_to_string(const T& t)
 
 template <class TImage, class TComp>
 void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
-                                  typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat, bool have_mask )
+                                  typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat,
+                                  bool have_mask )
 {
   vnl_matrix<TComp>      projections = data_mat * varmat;
   std::string::size_type pos = filename.rfind( "." );
@@ -1063,8 +1064,8 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
       }
     std::string post = std::string("View1vec");
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
-                                                    sccanobj->GetVariatesP(), mask1, sccanobj->GetMatrixP(),
-                                                    have_p_mask );
+                                                    sccanobj->GetVariatesP(), mask1,
+                                                    sccanobj->GetMatrixP(), have_p_mask );
 
     /** write the eigevalues to the csv file */
     std::string              fnmp = filepre + std::string("_eigenvalues.csv");
@@ -1109,9 +1110,9 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
 }
 
 template <unsigned int ImageDimension, class PixelType>
-int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec = 2,
-              unsigned int newimp = 0, unsigned int robustify = 0, unsigned int p_cluster_thresh = 100,
-              unsigned int q_cluster_thresh = 1, unsigned int iterct = 20 )
+int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec = 2, unsigned int newimp =
+                0, unsigned int robustify = 0, unsigned int p_cluster_thresh = 100, unsigned int q_cluster_thresh = 1,
+              unsigned int iterct = 20 )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -1208,12 +1209,12 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     std::string post = std::string("View1vec");
     std::cout << " have_p_mask " << have_p_mask << std::endl;
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
-                                                    sccanobj->GetVariatesP(), mask1, sccanobj->GetMatrixP(),
-                                                    have_p_mask );
+                                                    sccanobj->GetVariatesP(), mask1,
+                                                    sccanobj->GetMatrixP(), have_p_mask );
     post = std::string("View2vec");
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
-                                                    sccanobj->GetVariatesQ(), mask2, sccanobj->GetMatrixQ(),
-                                                    have_q_mask );
+                                                    sccanobj->GetVariatesQ(), mask2,
+                                                    sccanobj->GetMatrixQ(), have_q_mask );
     }
 
   /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
@@ -1501,12 +1502,12 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
           }
         std::string post = std::string("View1vec");
         WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
-                                                        sccanobjCovar->GetVariatesP(), mask1,
-                                                        sccanobjCovar->GetMatrixP(), have_p_mask );
+                                                        sccanobjCovar->GetVariatesP(), mask1, sccanobjCovar->GetMatrixP(
+                                                          ), have_p_mask );
         post = std::string("View2vec");
         WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
-                                                        sccanobjCovar->GetVariatesQ(), mask2,
-                                                        sccanobjCovar->GetMatrixQ(), have_q_mask );
+                                                        sccanobjCovar->GetVariatesQ(), mask2, sccanobjCovar->GetMatrixQ(
+                                                          ), have_q_mask );
         }
 
       /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
@@ -1936,19 +1937,22 @@ int sccan( itk::ants::CommandLineParser *parser )
       {
       std::cout << " scca 2-view " << std::endl;
       SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
-                                        q_cluster_thresh, iterct);
+                                        q_cluster_thresh,
+                                        iterct);
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
       std::cout << " mscca 3-view " << std::endl;
       mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
-                                         q_cluster_thresh, iterct);
+                                         q_cluster_thresh,
+                                         iterct);
       }
     else if( !initializationStrategy.compare( std::string("partial") )   )
       {
       std::cout << " pscca " << std::endl;
       mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
-                                         q_cluster_thresh, iterct);
+                                         q_cluster_thresh,
+                                         iterct);
       }
     else
       {
@@ -2100,8 +2104,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "and converts it to a 2D matrix csv format as output." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "timeseriesimage-to-matrix" );
-    option->SetUsageOption( 0,
-                            "[four_d_image.nii.gz,three_d_mask.nii.gz, optional-spatial-smoothing-param-in-spacing-units-default-zero, optional-temporal-smoothing-param-in-time-series-units-default-zero  ]" );
+    option->SetUsageOption(
+      0,
+      "[four_d_image.nii.gz,three_d_mask.nii.gz, optional-spatial-smoothing-param-in-spacing-units-default-zero, optional-temporal-smoothing-param-in-time-series-units-default-zero  ]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -2137,10 +2142,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "scca" );
     option->SetUsageOption( 0, "two-view[matrix-view1.mhd,matrix-view2.mhd,mask1,mask2,FracNonZero1,FracNonZero2] ");
-    option->SetUsageOption( 1,
-                            "three-view[matrix-view1.mhd,matrix-view2.mhd,matrix-view3.mhd,mask1,mask2,mask3,FracNonZero1,FracNonZero2,FracNonZero3]" );
-    option->SetUsageOption( 2,
-                            "partial[matrix-view1.mhd,matrix-view2.mhd,matrix-view3.mhd,mask1,mask2,mask3,FracNonZero1,FracNonZero2,FracNonZero3]" );
+    option->SetUsageOption(
+      1,
+      "three-view[matrix-view1.mhd,matrix-view2.mhd,matrix-view3.mhd,mask1,mask2,mask3,FracNonZero1,FracNonZero2,FracNonZero3]" );
+    option->SetUsageOption(
+      2,
+      "partial[matrix-view1.mhd,matrix-view2.mhd,matrix-view3.mhd,mask1,mask2,mask3,FracNonZero1,FracNonZero2,FracNonZero3]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -2151,12 +2158,15 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
         "a sparse svd implementation --- will report correlation of eigenvector with original data columns averaged over columns with non-zero weights." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "svd" );
-    option->SetUsageOption( 0,
-                            "sparse[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
-    option->SetUsageOption( 1,
-                            "classic[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
-    option->SetUsageOption( 2,
-                            "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption(
+      0,
+      "sparse[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption(
+      1,
+      "classic[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+    option->SetUsageOption(
+      2,
+      "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
     option->SetUsageOption( 3, "prior[....]" );
     option->SetUsageOption( 4, "network[matrix-view1.mhd,mask1,FracNonZero1,guidance-matrix]" );
     option->SetDescription( description );

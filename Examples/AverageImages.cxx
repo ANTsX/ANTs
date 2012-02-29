@@ -255,7 +255,7 @@ int main(int argc, char * argv[])
     std::cout << " Outputfname.nii.gz: the name of the resulting image.\n" << std::endl;
     std::cout
       <<
-    " Normalize: 0 (false) or 1 (true); if true, the 2nd image is divided by its mean. This will select the largest image to average into.\n"
+      " Normalize: 0 (false) or 1 (true); if true, the 2nd image is divided by its mean. This will select the largest image to average into.\n"
       << std::endl;
     std::cout << " Example Usage:\n" << std::endl;
     std::cout << argv[0] << " 3 average.nii.gz  1  *.nii.gz \n" << std::endl;

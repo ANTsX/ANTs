@@ -87,7 +87,8 @@ public:
    * execution model.
    *
    * \sa ImageToImageFilter::GenerateInputRequestedRegion()  */
-  virtual void GenerateInputRequestedRegion() throw (InvalidRequestedRegionError);
+  virtual void GenerateInputRequestedRegion()
+  throw (InvalidRequestedRegionError);
 
   void SetSValue(float s)
   {

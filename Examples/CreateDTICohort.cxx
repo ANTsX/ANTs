@@ -972,8 +972,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "pathology" );
-    option->SetUsageOption( 0,
-                            "label[<percentageChangeEig1=-0.05>,<percentageChangeAvgEig2andEig3=0.05>,<numberOfVoxels=all or percentageOfvoxels>]" );
+    option->SetUsageOption(
+      0,
+      "label[<percentageChangeEig1=-0.05>,<percentageChangeAvgEig2andEig3=0.05>,<numberOfVoxels=all or percentageOfvoxels>]" );
     option->SetShortName( 'p' );
     option->SetDescription( description );
     parser->AddOption( option );

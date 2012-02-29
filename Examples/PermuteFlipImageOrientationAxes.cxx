@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
     std::cerr << "Usage: " << std::endl;
     std::cerr << argv[0]
               <<
-    " ImageDimension  inputImageFile  outputImageFile xperm yperm {zperm}  xflip yflip {zflip}  {FlipAboutOrigin}"
+      " ImageDimension  inputImageFile  outputImageFile xperm yperm {zperm}  xflip yflip {zflip}  {FlipAboutOrigin}"
               << std::endl;
     std::cout << " for 3D:  " << argv[0]
               << " 3  in.nii out.nii   2 0 1  1 1 1  \n would map z=>x, x=>y, y=>z and flip each " << std::endl;

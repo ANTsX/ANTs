@@ -309,8 +309,8 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
       reo->SetAffineTransform( aff );
 
       std::cout << "Affine transform" << std::endl;
-      break;
       }
+      break;
 
     case DEFORMATION_FILE:
       {
@@ -320,8 +320,8 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
       // field = field_reader->GetOutput();
       reo->SetDisplacementField( field_reader->GetOutput() );
       std::cout << "Warp transform" << std::endl;
-      break;
       }
+      break;
     default:
       std::cout << "Unknown file type!" << std::endl;
     }

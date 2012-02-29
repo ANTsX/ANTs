@@ -208,7 +208,7 @@ public:
     GlobalDataStruct *global = new GlobalDataStruct();
 
     //    global->m_SumOfSquaredDifference  = 0.0;
-    /// global->m_NumberOfPixelsProcessed = 0L;
+    // / global->m_NumberOfPixelsProcessed = 0L;
     // global->m_SumOfSquaredChange      = 0;
     return global;
   }
@@ -329,7 +329,7 @@ public:
 
   inline double ComputeFixedImageMarginalPDFDerivative( MarginalPDFPointType margPDFpoint, unsigned int /* threadID */)
   {
-    double               offset = 0.25 * this->m_JointPDFSpacing[0], eps = this->m_JointPDFSpacing[0]; // offset in
+    double offset = 0.25 * this->m_JointPDFSpacing[0], eps = this->m_JointPDFSpacing[0];               // offset in
                                                                                                        // voxels
     MarginalPDFPointType leftpoint = margPDFpoint;
 
