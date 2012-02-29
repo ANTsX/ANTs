@@ -815,7 +815,7 @@ int ImageSetStatistics(int argc, char *argv[])
   ct = 0;
   if( simimagelist.length() > 2 && ( whichstat == 5 || whichstat == 6 ) )
     {
-    std::ifstream inputStreamA( simimagelist.c_str(), std::ios::in );
+    inputStreamA.open( simimagelist.c_str() );
     if( !inputStreamA.is_open() )
       {
       std::cout << "Can't open parameter file: " << fn1 << std::endl;

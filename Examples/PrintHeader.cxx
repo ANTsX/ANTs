@@ -118,6 +118,11 @@ int PrintHeader(int argc, char *argv[])
   typedef itk::ImageFileWriter<OutImageType>         writertype;
 
   typename readertype::Pointer reader = readertype::New();
+  if( argc < 2 )
+    {
+    std::cerr << "missing input image name" << std::endl;
+    throw;
+    }
   reader->SetFileName(argv[1]);
   reader->Update();
   std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;

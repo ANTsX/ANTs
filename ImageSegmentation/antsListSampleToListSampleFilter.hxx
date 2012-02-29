@@ -42,7 +42,7 @@ ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
 template <class TInputListSample, class TOutputListSample>
 void
 ListSampleToListSampleFilter<TInputListSample, TOutputListSample>
-::SetInput( const TInputListSample *input )
+::SetInputListSample( const TInputListSample *input )
 {
 //   this->m_InputListSample = const_cast<InputListSampleType *>( input );
   this->ProcessObject::SetNthInput( 0,

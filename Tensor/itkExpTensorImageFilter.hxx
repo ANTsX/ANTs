@@ -48,7 +48,6 @@ ExpTensorImageFilter<TInputImage, TOutputImage>
 
   ImageRegionConstIterator<InputImageType> inputIt( input, input->GetLargestPossibleRegion() );
 
-  InputSizeType inputSize = input->GetLargestPossibleRegion().GetSize();
   output->SetRegions( input->GetLargestPossibleRegion() );
   output->Allocate();
 

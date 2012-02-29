@@ -83,10 +83,10 @@ int AverageImages1(unsigned int argc, char *argv[])
   for( unsigned int j = 4; j < argc; j++ )
     {
     std::cout << " reading " << std::string(argv[j]) << std::endl;
-    typename ImageFileReader::Pointer reader = ImageFileReader::New();
-    reader->SetFileName(argv[j]);
-    reader->Update();
-    image2 = reader->GetOutput();
+    typename ImageFileReader::Pointer rdr = ImageFileReader::New();
+    rdr->SetFileName(argv[j]);
+    rdr->Update();
+    image2 = rdr->GetOutput();
     Iterator      vfIter2( image2,  image2->GetLargestPossibleRegion() );
     unsigned long ct = 0;
     if( normalizei )
@@ -193,10 +193,10 @@ int AverageImages(unsigned int argc, char *argv[])
   for( unsigned int j = 4; j < argc; j++ )
     {
     std::cout << " reading " << std::string(argv[j]) << std::endl;
-    typename ImageFileReader::Pointer reader = ImageFileReader::New();
-    reader->SetFileName(argv[j]);
-    reader->Update();
-    image2 = reader->GetOutput();
+    typename ImageFileReader::Pointer rdr = ImageFileReader::New();
+    rdr->SetFileName(argv[j]);
+    rdr->Update();
+    image2 = rdr->GetOutput();
     Iterator      vfIter2( image2,  image2->GetLargestPossibleRegion() );
     unsigned long ct = 0;
     if( normalizei )

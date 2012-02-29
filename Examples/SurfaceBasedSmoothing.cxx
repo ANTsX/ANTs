@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
   ImageType::Pointer surflabel;
   ReadImage<ImageType>(surflabel, argv[3]);
 
-  Parameterizer->SetInput(surflabel);
+  Parameterizer->SetInputImage(surflabel);
   Parameterizer->SetFunctionImage(input);
   Parameterizer->SetNeighborhoodRadius( sig );
   if( sig <= 0 )

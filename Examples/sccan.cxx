@@ -220,16 +220,15 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     }
   else
     {
-    std::vector<std::string> ColumnHeaders;
+    ColumnHeaders.clear();
     // write out the array2D object
-    std::string fnmp = filepre + std::string("ViewVecs") + std::string(".csv");
+    fnmp = filepre + std::string("ViewVecs") + std::string(".csv");
     for( unsigned int nv = 0; nv < varmat.cols(); nv++ )
       {
       std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
       ColumnHeaders.push_back( colname );
       }
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
-    WriterType::Pointer writer = WriterType::New();
+    writer = WriterType::New();
     writer->SetFileName( fnmp.c_str() );
     writer->SetColumnHeaders(ColumnHeaders);
     writer->SetInput( &varmat );
@@ -332,7 +331,7 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
 
 template <unsigned int ImageDimension, class PixelType>
 int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
-                     itk::ants::CommandLineParser::OptionType *outputOption = NULL )
+                     itk::ants::CommandLineParser::OptionType * /* outputOption */ = NULL )
 {
   std::string funcName = std::string("matrixOperation");
 
@@ -728,6 +727,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     return EXIT_FAILURE;
     }
   std::cout << " done writing " << std::endl;
+  return EXIT_SUCCESS;
 }
 
 template <class PixelType>
@@ -808,6 +808,7 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
   writer->SetFileName( outname );
   writer->SetInput( outimage );
   writer->Update();
+  return EXIT_SUCCESS;
 }
 
 // p.d.
@@ -891,7 +892,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
       reader2->Update();
       Iterator mIter( reader1->GetOutput(), reader1->GetOutput()->GetLargestPossibleRegion() );
       Iterator mIter2( reader2->GetOutput(), reader2->GetOutput()->GetLargestPossibleRegion() );
-      for(  mIter.GoToBegin(), mIter2.GoToBegin(); !mIter.IsAtEnd(), !mIter2.IsAtEnd(); ++mIter, ++mIter2 )
+      for(  mIter.GoToBegin(), mIter2.GoToBegin(); !mIter.IsAtEnd() && !mIter2.IsAtEnd(); ++mIter, ++mIter2 )
         {
         proj = mIter.Get() * mIter2.Get();
         dotSum += proj;
@@ -1379,7 +1380,6 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
   typename ImageType::Pointer mask2 = NULL;
   bool have_q_mask = SCCANReadImage<ImageType>(mask2, option->GetParameter( 4 ).c_str() );
   typename ImageType::Pointer mask3 = NULL;
-  bool have_r_mask = SCCANReadImage<ImageType>(mask3, option->GetParameter( 5 ).c_str() );
 
   /** the penalties define the fraction of non-zero values for each view */
   double FracNonZero1 = parser->Convert<double>( option->GetParameter( 6 ) );

@@ -35,6 +35,22 @@ int MultiplyImages(int argc, char *argv[])
   typedef itk::ImageFileReader<ImageType>              readertype;
   typedef itk::ImageFileWriter<ImageType>              writertype;
 
+  if( argc < 3 )
+    {
+    std::cerr << "missing 1st filename" << std::endl;
+    throw;
+    }
+  if( argc < 4 )
+    {
+    std::cerr << "missing 2nd filename" << std::endl;
+    throw;
+    }
+  if( argc < 5 )
+    {
+    std::cerr << "missing output filename" << std::endl;
+    throw;
+    }
+
   std::string fn1 = std::string(argv[2]);
   std::string fn2 = std::string(argv[3]);
   std::string outname = std::string(argv[4]);

@@ -198,10 +198,6 @@ int N4( itk::ants::CommandLineParser *parser )
     inputImage->GetLargestPossibleRegion().GetIndex();
   typename ImageType::SizeType inputImageSize =
     inputImage->GetLargestPossibleRegion().GetSize();
-  typename ImageType::IndexType maskImageIndex =
-    maskImage->GetLargestPossibleRegion().GetIndex();
-  typename ImageType::SizeType maskImageSize =
-    maskImage->GetLargestPossibleRegion().GetSize();
 
   typename ImageType::PointType newOrigin = inputImage->GetOrigin();
 

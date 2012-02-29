@@ -649,7 +649,7 @@ protected:
   {
   }
 
-  void PrintSelf( std::ostream& os, Indent indent ) const
+  void PrintSelf( std::ostream &, /* os */ Indent /* indent */) const
   {
     if( this->m_MaskImageP && this->m_MaskImageQ && this->m_MaskImageR )
       {

@@ -74,7 +74,6 @@ int MemoryTest(unsigned int argc, char *argv[])
     VIterator vfIter2( field,  field->GetLargestPossibleRegion() );
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
-      IndexType index = vfIter2.GetIndex();
       vfIter2.Set(zero);
       }
     fieldvec.push_back(field);

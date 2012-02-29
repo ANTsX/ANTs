@@ -343,15 +343,19 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
       ItSegmentationImage.GoToBegin();
       ItWarpedWhiteMatterProbabilityMap.GoToBegin();
 
+      const typename InputImageType::PixelType grayMatterPixel =
+        static_cast<typename InputImageType::PixelType>(this->m_GrayMatterLabel),
+      whiteMatterPixel =
+        static_cast<typename InputImageType::PixelType>(this->m_WhiteMatterLabel);
       unsigned long mattersCount = 0;
       while( !ItSegmentationImage.IsAtEnd() )
         {
         InputPixelType label = ItSegmentationImage.Get();
-        if( label == this->m_GrayMatterLabel || label == this->m_WhiteMatterLabel )
+        if( label == grayMatterPixel || label == whiteMatterPixel )
           {
           RealType   speedValue = 0.0;
           VectorType gradientVector = zeroVector;
-          if( label == this->m_GrayMatterLabel )
+          if( label == grayMatterPixel )
             {
             gradientField->GetPointData( mattersCount, &gradientVector );
             RealType norm = gradientVector.GetNorm();
@@ -496,16 +500,14 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
       ItSegmentationImage.GoToBegin();
 
       mattersCount = 0;
+
       while( !ItSegmentationImage.IsAtEnd() )
         {
         InputPixelType label = ItSegmentationImage.Get();
-        typename InputImageType::IndexType index =
-          ItSegmentationImage.GetIndex();
 
         RealType   speedValue = 0.0;
         VectorType gradientVector( 0.0 );
-        if( label == this->m_GrayMatterLabel ||
-            label == this->m_WhiteMatterLabel )
+        if( label == grayMatterPixel || label == whiteMatterPixel )
           {
           speedImage->GetPointData( mattersCount, &speedValue );
           gradientField->GetPointData( mattersCount, &gradientVector );
@@ -513,8 +515,7 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
         ItForwardIncremental.Set( ItForwardIncremental.Get() + gradientVector
                                   * speedValue );
 
-        if( label == this->m_GrayMatterLabel ||
-            label == this->m_WhiteMatterLabel )
+        if( label == grayMatterPixel || label == whiteMatterPixel )
           {
           if( integrationPoint == 1 )
             {
@@ -529,7 +530,7 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
             thicknessField->SetPointData( mattersCount, weightedNorm );
             totalImage->SetPointData( mattersCount, weightedNorm );
             }
-          else if( label == this->m_GrayMatterLabel )
+          else if( label == grayMatterPixel )
             {
             RealType hitValue = 0.0;
             hitImage->GetPointData( mattersCount, &hitValue );
@@ -636,13 +637,18 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
     ItForwardIncremental.GoToBegin();
     ItVelocity.GoToBegin();
     unsigned mattersCount = 0;
+    const typename InputImageType::PixelType grayMatterPixel =
+      static_cast<typename InputImageType::PixelType>(this->m_GrayMatterLabel),
+    whiteMatterPixel =
+      static_cast<typename InputImageType::PixelType>(this->m_WhiteMatterLabel);
+
     while( !ItSegmentationImage.IsAtEnd() )
       {
       InputPixelType label = ItSegmentationImage.Get();
 
       ItVelocity.Set( ItVelocity.Get() + ItForwardIncremental.Get() );
 
-      if( label == this->m_GrayMatterLabel )
+      if( label == grayMatterPixel )
         {
         RealType thicknessValue = 0.0;
         RealType hitValue = 0.0;
@@ -663,7 +669,7 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
           }
         corticalThicknessField->SetPointData( mattersCount, thicknessValue );
         }
-      if( label == this->m_GrayMatterLabel || label == this->m_WhiteMatterLabel )
+      if( label == grayMatterPixel || label == whiteMatterPixel )
         {
         mattersCount++;
         }
@@ -692,11 +698,11 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
       {
       typename CurveType::PointType    origin;
       typename CurveType::SizeType     size;
-      typename CurveType::SpacingType  spacing;
+      typename CurveType::SpacingType  curveSpacing;
 
       origin[0] = this->m_ElapsedIterations - this->m_ConvergenceWindowSize;
       size[0] = this->m_ConvergenceWindowSize;
-      spacing[0] = 1.0;
+      curveSpacing[0] = 1.0;
 
       typedef BSplineScatteredDataPointSetToImageFilter<EnergyProfileType,
                                                         CurveType> BSplinerType;
@@ -738,7 +744,7 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
 
       bspliner->SetInput( energyProfileWindow );
       bspliner->SetOrigin( origin );
-      bspliner->SetSpacing( spacing );
+      bspliner->SetSpacing( curveSpacing );
       bspliner->SetSize( size );
       bspliner->SetNumberOfLevels( 1 );
       bspliner->SetSplineOrder( 1 );
@@ -751,7 +757,7 @@ DiReCTImageFilter953<TInputImage, TOutputImage>
       typename BSplinerFunctionType::Pointer bsplinerFunction =
         BSplinerFunctionType::New();
       bsplinerFunction->SetOrigin( origin );
-      bsplinerFunction->SetSpacing( spacing );
+      bsplinerFunction->SetSpacing( curveSpacing );
       bsplinerFunction->SetSize( size );
       bsplinerFunction->SetSplineOrder( bspliner->GetSplineOrder() );
       bsplinerFunction->SetInputImage( bspliner->GetPhiLattice() );

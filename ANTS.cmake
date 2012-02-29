@@ -31,10 +31,10 @@ set(TEST_BINARY_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 #  ANTS metric testing
 ###
 
-option(KW_NEWBASELINE
-  "Use reported metrics from tests, just to keep KW from changing results while fixing warngings"
-  OFF )
-if(KW_NEWBASELINE)
+option(OLD_BASELINE_TESTS  "Use reported metrics from tests" OFF )
+
+if(NOT OLD_BASELINE_TESTS)
+  message(STATUS "New Baselines Values")
   # CC1 Testing
   add_test(ANTS_CC_1 ${TEST_BINARY_DIR}/ANTS 2 -m
     CC[ ${R16_IMAGE}, ${R64_IMAGE},  1 ,2  ] -r Gauss[ 3 , 0 ] -t SyN[ 0.5   ]
@@ -439,7 +439,8 @@ if(KW_NEWBASELINE)
     -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE_VTK},${ANGEL_IMAGE_VTK},1,0.33,11,1,25]
     --continue-affine 0 --number-of-affine-iterations 0
     -o ${OUTPUT_PREFIX}.nii.gz)
-else(KW_NEWBASELINE)
+else(NOT OLD_BASELINE_TESTS)
+  message(STATUS "Old Baselines Values")
   ###
   #  ANTS metric testing
   ###
@@ -564,7 +565,7 @@ else(KW_NEWBASELINE)
     -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE_VTK},${ANGEL_IMAGE_VTK},1,0.33,11,1,25]
     --continue-affine 0 --number-of-affine-iterations 0
     -o ${OUTPUT_PREFIX}.nii.gz)
-endif(KW_NEWBASELINE)
+endif(NOT OLD_BASELINE_TESTS)
 ###
 #  ANTS labeled data testing
 ###

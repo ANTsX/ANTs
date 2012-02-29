@@ -248,7 +248,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
       if( strchr(s, 'x') )
         {
         char *tok = strtok(s, "x");
-        for( size_t i = 0; i < NDimensions; i++ )
+        for( int i = 0; i < NDimensions; i++ )
           {
           if( tok == NULL )
             {

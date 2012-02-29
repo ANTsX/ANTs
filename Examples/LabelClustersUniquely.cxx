@@ -67,6 +67,21 @@ int  LabelUniquely(int argc, char *argv[])
 
   // want the average value in each cluster as defined by the mask and the value thresh and the clust thresh
 
+  if( argc < 2 )
+    {
+    std::cerr << "missing 1st filename" << std::endl;
+    throw;
+    }
+  if( argc < 3 )
+    {
+    std::cerr << "missing 2nd filename" << std::endl;
+    throw;
+    }
+  if( argc < 4 )
+    {
+    std::cerr << "missing cluster thresholod" << std::endl;
+    throw;
+    }
   std::string fn1 = std::string(argv[1]);
   std::string fn2 = std::string(argv[2]);
   float       clusterthresh = atof(argv[3]);

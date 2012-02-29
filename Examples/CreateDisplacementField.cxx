@@ -34,7 +34,10 @@ void CreateDisplacementField( int argc, char *argv[] )
   vectorImage->Allocate();
 
   itk::ImageRegionIteratorWithIndex<ComponentImageType> comIt( componentImage, regionOfFirstComponent );
-  itk::ImageRegionIteratorWithIndex<VectorImageType>    vecIt( vectorImage, regionOfFirstComponent );
+  typedef typename itk::ImageRegionIteratorWithIndex<VectorImageType> VecItType;
+  typedef typename VecItType::IndexValueType                          VecItIndexValueType;
+
+  VecItType vecIt( vectorImage, regionOfFirstComponent );
   for( itk::SizeValueType n = 0; n < NumberOfComponents; n++ )
     {
     reader->SetFileName( argv[3 + n] );
@@ -67,7 +70,9 @@ void CreateDisplacementField( int argc, char *argv[] )
       bool isBoundary = false;
       for( itk::SizeValueType dim = 0; dim < ImageDimension; dim++ )
         {
-        if( vecIt.GetIndex()[dim] == 0 || vecIt.GetIndex()[dim] == regionOfFirstComponent.GetSize()[dim] - 1 )
+        if( vecIt.GetIndex()[dim] == 0 ||
+            vecIt.GetIndex()[dim] ==
+            static_cast<VecItIndexValueType>(regionOfFirstComponent.GetSize()[dim] - 1) )
           {
           isBoundary = true;
           break;

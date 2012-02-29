@@ -188,7 +188,8 @@ int main( int argc, char *argv[] )
     extract->Update();
 
     SliceIt it(extract->GetOutput(), extract->GetOutput()->GetLargestPossibleRegion() );
-    float   mean = 0.0, ct = 1;
+    mean = 0.0;
+    ct = 1;
     while( !it.IsAtEnd() )
       {
       mean += it.Value();

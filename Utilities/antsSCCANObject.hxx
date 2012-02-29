@@ -410,8 +410,6 @@ antsSCCANObject<TInputImage, TRealType>
       //    v_in(i)=v_in(i)-minthresh;
       }
     }
-  double tminv = v_in.min_value();
-  double tmaxv = v_in.max_value();
   //  std::cout << " post minv " << tminv << " post maxv " << tmaxv <<  std::endl;
   frac = (float)(v_in.size() - ct) / (float)v_in.size();
   // std::cout << " frac non-zero " << frac << " wanted " << fractional_goal << std::endl;
@@ -694,7 +692,7 @@ struct my_sccan_sort_class
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::SparseCCA(unsigned int nvecs)
+::SparseCCA(unsigned int /* nvecs */)
 {
   std::cout << " ed sparse cca " << std::endl;
   unsigned int nsubj = this->m_MatrixP.rows();
@@ -812,7 +810,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::SparsePartialCCA(unsigned int nvecs)
+::SparsePartialCCA(unsigned int /* nvecs */)
 {
   /*
   std::cout <<" ed sparse partial cca " << std::endl;
@@ -1021,7 +1019,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 // Arnoldi Iteration SVD/SPCA
   unsigned int loop = 0;
   bool         debug = false;
-  bool         condition2 = false;
   double       convcrit = 1;
   RealType     fnp = 1;
   while( loop<maxloop && convcrit> 1.e-8 )
@@ -1086,7 +1083,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         denom = 1.e9;
         }
-      double     alphak = inner_product( myGradients.get_column(k), myGradients.get_column(k) ) / denom;
       VectorType pveck  = myGradients.get_column(k);
       VectorType newsol = this->m_SparseVariatesP.get_column(k) * recuravg2 + pveck * recuravg;
       //    VectorType newsol = this->m_SparseVariatesP.get_column(k) - pveck * alphak;
@@ -1630,7 +1626,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     //    RealType   beta_k = inner_product( r_k1 , r_k1 ) /  inner_product( r_k , r_k ); // classic cg
     // measures the change in the residual
     VectorType yk = r_k1 - r_k;
-    RealType   bknd =  inner_product( p_k, yk );
     // RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
     RealType   beta_k = inner_product( r_k1, r_k1 ) /  inner_product( r_k, r_k ); // classic cg
     VectorType p_k1  = r_k1 + beta_k * p_k;
@@ -1749,12 +1744,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   // otherwise just search across a line ...
-  RealType      minerr = 1.e99;
-  bool          converged = false;
-  unsigned long ct = 0;
-  RealType      bestalph = 0;
-  RealType      step;
-  RealType      ebracket = 0;
+  RealType minerr = 1.e99;
+  RealType bestalph = 0;
+  RealType step;
+  RealType ebracket = 0;
   step =  ( maxalph - minalph ) / 10;
   for( RealType eb = minalph; eb <= maxalph; eb = eb + step )
     {
@@ -1786,14 +1779,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     b = b * ( -1 );
     }
   bool         debug = false;
-  RealType     fnp = this->m_FractionNonZeroP;
   VectorType   r_k = ( b -  A.transpose() * ( A * x_k ) );
   VectorType   p_k = r_k;
   double       approxerr = 1.e22;
   unsigned int ct = 0;
   VectorType   bestsol = x_k;
   RealType     starterr = r_k.two_norm();
-  RealType     minerr = starterr, deltaminerr = 1, lasterr = minerr;
+  RealType     minerr = starterr, deltaminerr = 1;
   while(  deltaminerr > 1.e-4 && minerr > convcrit && ct < maxits )
     {
     RealType alpha_denom = inner_product( p_k,  A.transpose() * ( A * p_k ) );
@@ -1806,8 +1798,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     RealType stepsize = alpha_k / 100;
     RealType minalph = stepsize;
     RealType maxalph = alpha_k * 2;
-    RealType midalph = ( minalph + maxalph ) * 0.5;
-    RealType preverr = 1.e99;
     /** FIXME --- need better line search */
     RealType   best_alph = this->LineSearch( A, x_k, p_k, b, minalph, maxalph, keeppos );
     VectorType x_k1  = x_k + best_alph * p_k;
@@ -1879,7 +1869,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   /** Based on Golub CONJUGATE  G R A D I E N T   A N D  LANCZOS  HISTORY
    *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
    */
-  bool debug = false;
   std::cout << " conjugate gradient sparse-pca approx to pca " << std::endl;
   std::vector<RealType> vexlist;
 
@@ -1911,7 +1900,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   for(  unsigned int colind = 0; colind < n_vecs; colind++ )
   //  for (  unsigned int colind = 28; colind < 31; colind++ )
     {
-    RealType   fnp = this->m_FractionNonZeroP;
     VectorType x_k = this->m_VariatesP.get_column( colind );
     VectorType b =  this->m_Eigenvectors.get_column( colind ) * evalInit( colind );
     // variatesInit.get_column( bcolind ) * evalInit( bcolind );
@@ -1937,7 +1925,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   /** Based on Golub CONJUGATE  G R A D I E N T   A N D  LANCZOS  HISTORY
    *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
    */
-  bool debug = false;
   std::cout << " network decomposition using nlcg & normal equations " << std::endl;
 
   this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
@@ -1958,7 +1945,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   for(  unsigned int colind = 1; colind < n_vecs; colind++ )
     {
     VectorType b =  original_b;
-    RealType   fnp = this->m_FractionNonZeroP;
     VectorType x_k = this->m_VariatesP.get_column( colind );
     MatrixType pmod = this->m_MatrixP;
     /********************************/
@@ -2149,10 +2135,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 // Arnoldi Iteration SVD/SPCA
   unsigned int loop = 0;
   bool         debug = false;
-  bool         condition2 = false;
   double       convcrit = 1;
   RealType     fnp = 1;
-  bool         explain_lots_of_var = false;
   while( loop<maxloop && convcrit> 1.e-8 )
     {
     fnp = this->m_FractionNonZeroP;
@@ -2328,7 +2312,6 @@ antsSCCANObject<TInputImage, TRealType>
   vnl_svd<RealType> eig(cov, pinvTolerance);
   VectorType        vec1 = eig.U().get_column(0);
   VectorType        vec2 = eig.V().get_column(0);
-  double            trace = vnl_trace<double>(cov);
   double            evalsum = 0;
   this->m_Eigenvalues.set_size(cov.rows() );
   this->m_Eigenvalues.fill(0);
@@ -2818,7 +2801,8 @@ antsSCCANObject<TInputImage, TRealType>
         {
         std::cout << " Begin " << std::endl;
         }
-      while( its<this->m_MaximumNumberOfIterations && deltacorr> this->m_ConvergenceThreshold  || its < min_its )
+      while( (its<this->m_MaximumNumberOfIterations && deltacorr> this->m_ConvergenceThreshold)
+             || its < min_its )
         {
         if( its == 0 )
           {

@@ -1639,7 +1639,6 @@ int antsRegistration( itk::ants::CommandLineParser *parser )
       typename TimeVaryingVelocityFieldControlPointLatticeType::Pointer velocityFieldLattice =
         TimeVaryingVelocityFieldControlPointLatticeType::New();
 
-      typename ImageType::IndexType fixedImageIndex = fixedImage->GetBufferedRegion().GetIndex();
       typename ImageType::SizeType fixedImageSize = fixedImage->GetBufferedRegion().GetSize();
       typename ImageType::PointType fixedImageOrigin = fixedImage->GetOrigin();
       typename ImageType::SpacingType fixedImageSpacing = fixedImage->GetSpacing();

@@ -402,7 +402,9 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
 
       while( !ItSegmentationImage.IsAtEnd() )
         {
-        if( ItSegmentationImage.Get() == this->m_GrayMatterLabel )
+        typename InputImageType::PixelType grayMatterPixel =
+          static_cast<typename InputImageType::PixelType>(this->m_GrayMatterLabel);
+        if( ItSegmentationImage.Get() == grayMatterPixel )
           {
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
           if( norm > 1e-3 && !vnl_math_isnan( norm ) && !vnl_math_isinf( norm ) )
@@ -447,6 +449,11 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
       ItVelocityField.GoToBegin();
       ItWhiteMatterContours.GoToBegin();
 
+      const typename InputImageType::PixelType grayMatterPixel =
+        static_cast<typename InputImageType::PixelType>(this->m_GrayMatterLabel),
+      whiteMatterPixel =
+        static_cast<typename InputImageType::PixelType>(this->m_WhiteMatterLabel);
+
       while( !ItSegmentationImage.IsAtEnd() )
         {
         typename InputImageType::IndexType index =
@@ -464,8 +471,8 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
         ItForwardIncrementalField.Set( ItForwardIncrementalField.Get()
                                        + ItGradientImage.Get() * ItSpeedImage.Get() );
 
-        if( segmentationValue == this->m_GrayMatterLabel ||
-            segmentationValue == this->m_WhiteMatterLabel )
+        if( segmentationValue == grayMatterPixel ||
+            segmentationValue == whiteMatterPixel )
           {
           if( integrationPoint == 1 )
             {
@@ -479,7 +486,7 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
             thicknessImage->SetPixel( index, weightedNorm );
             totalImage->SetPixel( index, weightedNorm );
             }
-          else if( segmentationValue == this->m_GrayMatterLabel )
+          else if( segmentationValue == grayMatterPixel )
             {
             hitImage->SetPixel( index, hitImage->GetPixel( index )
                                 + warpedWhiteMatterContours->GetPixel( index ) );
@@ -545,11 +552,14 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
     ItTotalImage.GoToBegin();
     ItVelocityField.GoToBegin();
 
+    const typename InputImageType::PixelType grayMatterPixel =
+      static_cast<typename InputImageType::PixelType>(this->m_GrayMatterLabel);
+
     while( !ItSegmentationImage.IsAtEnd() )
       {
       ItVelocityField.Set( ItVelocityField.Get()
                            + ItForwardIncrementalField.Get() );
-      if( ItSegmentationImage.Get() == this->m_GrayMatterLabel )
+      if( ItSegmentationImage.Get() == grayMatterPixel )
         {
         RealType thicknessValue = 0.0;
         if( ItHitImage.Get() > 0.001 )
@@ -594,11 +604,11 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
       {
       typename CurveType::PointType    origin;
       typename CurveType::SizeType     size;
-      typename CurveType::SpacingType  spacing;
+      typename CurveType::SpacingType  curveSpacing;
 
       origin[0] = this->m_ElapsedIterations - this->m_ConvergenceWindowSize;
       size[0] = this->m_ConvergenceWindowSize;
-      spacing[0] = 1.0;
+      curveSpacing[0] = 1.0;
 
       typedef BSplineScatteredDataPointSetToImageFilter<EnergyProfileType,
                                                         CurveType> BSplinerType;
@@ -639,7 +649,7 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
 
       bspliner->SetInput( energyProfileWindow );
       bspliner->SetOrigin( origin );
-      bspliner->SetSpacing( spacing );
+      bspliner->SetSpacing( curveSpacing );
       bspliner->SetSize( size );
       bspliner->SetNumberOfLevels( 1 );
       bspliner->SetSplineOrder( 1 );
@@ -652,7 +662,7 @@ DiReCTImageFilter926<TInputImage, TOutputImage>
       typename BSplinerFunctionType::Pointer bsplinerFunction =
         BSplinerFunctionType::New();
       bsplinerFunction->SetOrigin( origin );
-      bsplinerFunction->SetSpacing( spacing );
+      bsplinerFunction->SetSpacing( curveSpacing );
       bsplinerFunction->SetSize( size );
       bsplinerFunction->SetSplineOrder( bspliner->GetSplineOrder() );
       bsplinerFunction->SetInputImage( bspliner->GetPhiLattice() );

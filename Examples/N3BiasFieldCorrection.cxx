@@ -55,6 +55,11 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   typedef itk::ImageFileReader<ImageType> ReaderType;
   typename ReaderType::Pointer reader = ReaderType::New();
+  if( argc < 3 )
+    {
+    std::cerr << "missing 1st filename" << std::endl;
+    throw;
+    }
   reader->SetFileName( argv[2] );
   reader->Update();
 
@@ -188,14 +193,18 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   typedef itk::ImageFileWriter<ImageType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
+  if( argc < 4 )
+    {
+    std::cerr << "missing divider image filename" << std::endl;
+    throw;
+    }
   writer->SetFileName( argv[3] );
   writer->SetInput( divider->GetOutput() );
   writer->Update();
 
   if( argc > 8 )
     {
-    typedef itk::ImageFileWriter<ImageType> WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
+    writer = WriterType::New();
     writer->SetFileName( argv[8] );
     writer->SetInput( expFilter->GetOutput() );
     writer->Update();

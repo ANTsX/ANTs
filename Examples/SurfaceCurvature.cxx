@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
   // if (argc >= 6) ballradius = (float) atof(argv[5]);
   // if (ballradius > 0 && thresh > 0) input = SegmentImage<ImageType>(input, thresh, ballradius);
 
-  Parameterizer->SetInput(input);
+  Parameterizer->SetInputImage(input);
 
   //  Parameterizer->ProcessLabelImage();
   Parameterizer->SetNeighborhoodRadius( 1. );

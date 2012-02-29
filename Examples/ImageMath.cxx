@@ -2165,7 +2165,6 @@ int CompCorrAuto(int argc, char *argv[])
   std::cout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    OutIndexType ind = vfIter2.GetIndex();
     if( vfIter2.Get() == 1 )      // in brain
       {
       ct_vox++;
@@ -2467,7 +2466,6 @@ int CompCorr(int argc, char *argv[])
   std::cout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    OutIndexType ind = vfIter2.GetIndex();
     if( vfIter2.Get() == 3 )      // nuisance
       {
       ct_nuis++;
@@ -2622,7 +2620,7 @@ int CompCorr(int argc, char *argv[])
             hi = timedims - 1;
             }
           float total = 0;
-          for( unsigned int s = lo; s < hi; s++ )
+          for( int s = lo; s < hi; s++ )
             {
             float diff = (float)s - (float)t;
             float wt = exp(-1.0 * diff * diff / (2.0 * compcorr_sigma * compcorr_sigma) );
@@ -6125,7 +6123,6 @@ int FillHoles(int argc, char *argv[])
       while( !GHood.IsAtEnd() )
         {
         typename ImageType::PixelType p = GHood.GetCenterPixel();
-        typename ImageType::IndexType ind = GHood.GetIndex();
         typename ImageType::IndexType ind2;
         if( p == lab )
           {
@@ -8697,8 +8694,8 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
   ReadImage<ImageType>(mask, maskfn.c_str() );
   /** 1. compute max value in mask */
   unsigned long maxval = 0;
-  Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
-  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+  for( Iterator mIter( mask, mask->GetLargestPossibleRegion() );
+       !mIter.IsAtEnd(); ++mIter )
     {
     if( mIter.Get() > maxval )
       {
@@ -8743,8 +8740,8 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     {
     /** 2. count the voxels in this label */
     unsigned long voxct = 0;
-    Iterator      mIter( mask, mask->GetLargestPossibleRegion() );
-    for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    for( Iterator mIter( mask, mask->GetLargestPossibleRegion() );
+         !mIter.IsAtEnd(); ++mIter )
       {
       if( mIter.Get() == mv )
         {
@@ -8783,7 +8780,8 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
           {
           xx = imagecount;
           }
-        for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+        for( Iterator mIter( mask, mask->GetLargestPossibleRegion() );
+             !mIter.IsAtEnd(); ++mIter )
           {
           if( mIter.Get() == mv )
             {

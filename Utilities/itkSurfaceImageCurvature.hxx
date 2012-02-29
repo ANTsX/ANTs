@@ -1304,11 +1304,9 @@ typename SurfaceImageCurvature<TSurface>::OutputImageType
 template <typename TSurface>
 void
 SurfaceImageCurvature<TSurface>
-::SetInput(typename  ImageType::Pointer input)
+::SetInputImage(typename  ImageType::Pointer & input)
 {
-  // Process object is not const-correct so the const_cast is required here
   this->ProcessObject::SetNthInput(0,  input);
-//          const_cast< ImageType * >( input ) );
 
   this->m_ImageSize = input->GetLargestPossibleRegion().GetSize();
 

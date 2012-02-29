@@ -12,6 +12,16 @@
 template <unsigned int ImageDimension>
 int LabelOverlapMeasures( int argc, char * argv[] )
 {
+  if( argc < 2 )
+    {
+    std::cerr << "missing 1st filename" << std::endl;
+    throw;
+    }
+  if( argc < 3 )
+    {
+    std::cerr << "missing 2nd filename" << std::endl;
+    throw;
+    }
   typedef unsigned int                          PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
