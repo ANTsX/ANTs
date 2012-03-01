@@ -72,8 +72,12 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DUSE_WRAP_ITK:BOOL=OFF ## HACK:  QUICK CHANGE
     )
   ### --- End Project specific additions
-  set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git CACHE STRING "" FORCE)
-  set(${proj}_GIT_TAG 7665889d81db6446b42588439b283e9db8897a9e CACHE STRING "" FORCE)
+  ## set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git CACHE STRING "" FORCE)
+  ## set(${proj}_GIT_TAG 7665889d81db6446b42588439b283e9db8897a9e CACHE STRING "" FORCE)
+
+  ## HACK--TEMPORARY HACK to include Registration pipeline changes by Nick Tustison
+  set(${proj}_REPOSITORY ${git_protocol}://github.com/hjmjohnson/ITK.git CACHE STRING "" FORCE)
+  set(${proj}_GIT_TAG 219d612314db6ba638cda3854edd98e92a51913e CACHE STRING "" FORCE)
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
