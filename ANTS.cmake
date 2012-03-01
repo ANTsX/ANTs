@@ -1,4 +1,6 @@
-project(ANTS)
+enable_testing()
+include(CTest)
+
 cmake_minimum_required(VERSION 2.8.2)
 # set(CMAKE_BUILD_TYPE "Release")
 set(ANTS_TEST_BIN_DIR ${CMAKE_BINARY_DIR}/Examples)

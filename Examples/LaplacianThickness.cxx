@@ -462,7 +462,7 @@ float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
                        float starttime, float /* finishtime */,
                        bool timedone, float deltaTime, typename TInterp::Pointer vinterp,
-                       typename TInterp2::Pointer sinterp, unsigned int task,
+                       typename TInterp2::Pointer sinterp, unsigned int /* task */,
                        bool /* propagate */, bool domeasure,   unsigned int m_NumberOfTimePoints,
                        typename TImage::SpacingType spacing, float vecsign,
                        float timesign, float gradsign, unsigned int ct, typename TImage::Pointer wm,
