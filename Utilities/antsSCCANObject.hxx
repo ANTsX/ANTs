@@ -1672,7 +1672,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType x_k1  = x_k + minalph * p_k;
 
   this->SparsifyP( x_k1, keeppos );
-  VectorType r_k1 = ( b - A.transpose() * (A * x_k1 )  );
+  VectorType r_k1 = ( b -  x_k1  );
   RealType   e = r_k1.two_norm();
   return e;
 }
@@ -1771,7 +1771,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                     typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
                     typename antsSCCANObject<TInputImage,
                                              TRealType>::VectorType  b, TRealType convcrit, unsigned int maxits,
-                    bool keeppos)
+                    bool keeppos,  bool makeprojsparse = false)
 {
   bool negate = false;
 
@@ -1805,7 +1805,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     RealType minalph = stepsize;
     RealType maxalph = alpha_k * 2;
     /** FIXME --- need better line search */
-    RealType   best_alph = this->LineSearch( A, x_k, p_k, b, minalph, maxalph, keeppos );
+    RealType best_alph = alpha_k;
+    //    RealType   best_alph = this->LineSearch( A, x_k, p_k, b, minalph, maxalph, keeppos );
     VectorType x_k1  = x_k + best_alph * p_k;
     // this adds the scaled residual to the current solution
     if( debug )
@@ -1821,6 +1822,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     VectorType proj = A.transpose() * (A * x_k1 );
     VectorType r_k1 = ( b -  proj  );
+    if( makeprojsparse )
+      {
+      this->SparsifyP( r_k1, keeppos );
+      }
     approxerr = r_k1.two_norm();
     RealType newminerr = minerr;
     if( approxerr < newminerr )
@@ -1840,7 +1845,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       std::cout << " x_k2n " << x_k.two_norm() << " x_k12n " << x_k1.two_norm() << std::endl;
       }
-    if( debug )
+    if( debug || true )
       {
       std::cout << " r_k1 " << minerr <<  " derr " << deltaminerr << " ba " << best_alph / alpha_k << std::endl;
       }
@@ -1885,6 +1890,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_MatrixRRt = this->ProjectionMatrix( this->m_OriginalMatrixR );
     this->m_MatrixP = this->m_MatrixP - ( this->m_MatrixRRt * this->m_MatrixP );
     }
+  MatrixType nspaceevecs = this->GetCovMatEigenvectors( this->m_MatrixP );
+  VectorType nspaceevals = this->m_Eigenvalues;
   this->BasicSVD();
   MatrixType variatesInit = this->m_VariatesP;
   n_vecs = variatesInit.cols();
@@ -1903,22 +1910,95 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     evct++;
     }
-  for(  unsigned int colind = 0; colind < n_vecs; colind++ )
-  //  for (  unsigned int colind = 28; colind < 31; colind++ )
+  for(  unsigned int colind = 0; colind < n_vecs; colind++ )  //
+  // for (  unsigned int colind = 28; colind < 31; colind++ )
     {
+    /******key part of algorithm******/
     VectorType x_k = this->m_VariatesP.get_column( colind );
-    VectorType b =  this->m_Eigenvectors.get_column( colind ) * evalInit( colind );
-    // variatesInit.get_column( bcolind ) * evalInit( bcolind );
-    /********************************/
-    VectorType randv = this->InitializeV( this->m_MatrixP, false );
-    x_k = randv; // this->m_Eigenvectors.get_column( colind ); // randv;
-    for( unsigned its = 0; its < 3; its++ )
+    VectorType b = this->m_Eigenvectors.get_column( colind );
+    x_k = this->InitializeV( this->m_MatrixP, false );
+    if( colind % 2 == 0 )
       {
-      this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 50, false );
+      x_k = x_k * (-1.0);
       }
-    /********************************/
-    this->m_VariatesP.set_column( colind, x_k );
-    std::cout << " col " << colind << " of  " <<  n_vecs << std::endl;
+    //    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 1, false , false );
+    // this produces good results
+    //    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 50, false , true  );
+    // but this does too i.e. calling the function twice
+    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 50, false, true  );
+    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 50, false, true  );
+    this->m_VariatesP.set_column( colind, x_k  );
+    VectorType bnspace = this->m_MatrixP * this->m_Eigenvectors.get_column( colind );  // nspaceevecs.get_column( colind
+                                                                                       // / 2 );
+    std::cout << " vecerr-a "
+              << this->PearsonCorr( this->m_MatrixP * x_k,
+                          bnspace ) << " norm " << ( this->m_MatrixP * x_k - bnspace ).two_norm() << std::endl;
+    //    std::cout << " vecerr-b " <<  this->PearsonCorr(  x_k , bnspace * this->m_MatrixP  ) << std::endl;
+    std::cout << " vecerr-a-init "
+              <<  this->PearsonCorr( this->m_MatrixP * variatesInit.get_column( colind ),
+                           bnspace ) << " norm "
+              <<  ( this->m_MatrixP * variatesInit.get_column( colind ) - bnspace ).two_norm() << std::endl;
+    //    std::cout << " vecerr-b-init " <<  this->PearsonCorr(  variatesInit.get_column( colind ) , bnspace *
+    // this->m_MatrixP  ) << std::endl;
+    std::cout << " col " << colind << " of  " <<  n_vecs << " nspaceevecssz " << nspaceevecs.cols() << std::endl;
+
+    /*********************************/
+    RealType   reconstruction_error = 0;
+    RealType   reconstruction_error_svd = 0;
+    MatrixType approxmat( this->m_MatrixP.rows(), this->m_MatrixP.cols(), 0 );
+    MatrixType approxmat_svd( this->m_MatrixP.rows(), this->m_MatrixP.cols(), 0 );
+    for(  unsigned int a = 0; a < colind; a++ )
+      {
+      VectorType nvec = this->m_MatrixP * this->m_Eigenvectors.get_column( a );
+      VectorType pvecapprox = this->m_VariatesP.get_column( a );
+      MatrixType locmat = ( outer_product( nvec, pvecapprox ) ) * evalInit( a );
+      approxmat = approxmat + locmat;
+      pvecapprox = variatesInit.get_column( a );
+      locmat = ( outer_product( nvec, pvecapprox ) ) * evalInit( a );
+      approxmat_svd = approxmat_svd + locmat;
+      }
+    if( colind > 0 )
+      {
+      approxmat = approxmat  / approxmat.frobenius_norm();
+      }
+    reconstruction_error = ( approxmat - this->m_MatrixP / this->m_MatrixP.frobenius_norm() ).frobenius_norm();
+    reconstruction_error_svd =
+      ( approxmat_svd / approxmat_svd.frobenius_norm() - this->m_MatrixP
+          / this->m_MatrixP.frobenius_norm() ).frobenius_norm();
+      {
+      VectorType vvv = approxmat.get_row( 10 );
+      typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
+      typedef itk::ImageFileWriter<TInputImage> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( "temp.nii.gz" );
+      writer->SetInput( image );
+      writer->Update();
+      }
+      {
+      VectorType vvv = approxmat_svd.get_row( 10 );
+      typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
+      typedef itk::ImageFileWriter<TInputImage> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( "temp2.nii.gz" );
+      writer->SetInput( image );
+      writer->Update();
+      }
+      {
+      VectorType vvv = this->m_MatrixP.get_row( 10 );
+      typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
+      typedef itk::ImageFileWriter<TInputImage> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( "temp3.nii.gz" );
+      writer->SetInput( image );
+      writer->Update();
+      }
+    std::cout << " col " << colind << " of  " <<  n_vecs << " reconstruction_error " << reconstruction_error
+              << " svderr " <<  reconstruction_error_svd << std::endl;
+    }
+  for( unsigned int k = 0; k < this->m_VariatesP.cols(); k++ )
+    {
+    VectorType v = this->m_VariatesP.get_column( k );
+    this->m_VariatesP.set_column( k, v / v.sum() );
     }
   this->m_Eigenvalues = this->m_CanonicalCorrelations = evalInit;
   return this->m_CanonicalCorrelations[0];
@@ -2313,7 +2393,7 @@ antsSCCANObject<TInputImage, TRealType>
   MatrixType cov = dd * dd.transpose();
 
   cov.set_identity();
-  TRealType regularization = 1.e-3;
+  TRealType regularization = 0;
   cov = cov * regularization + rin * rin.transpose();
   vnl_svd<RealType> eig(cov, pinvTolerance);
   VectorType        vec1 = eig.U().get_column(0);

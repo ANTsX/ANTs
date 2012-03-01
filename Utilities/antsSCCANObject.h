@@ -279,7 +279,8 @@ public:
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
   RealType ConjGrad( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int  );
 
-  RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos );
+  RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
+                             bool );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
