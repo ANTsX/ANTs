@@ -92,7 +92,7 @@ float DiffusionCoefficient( TensorType dtv, VectorType direction, bool normalize
 }
 
 template <class TensorType>
-TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool success = true)
+TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
 {
   float eps = 1.e-12, mag = 0;
 
@@ -700,14 +700,11 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
   float zz = dtv[5];
   float isp = ( xx * xx + yy * yy + zz * zz + 2.0 * (xy * xy + xz * xz + yz * yz) );
 
-  float fa = 0.0;
   if( isp > 0.0 )
     {
     float trace = dtv[0];
     trace += dtv[3];
     trace += dtv[5];
-    float anisotropy = 3.0 * isp - trace * trace;
-    fa = ( vcl_sqrt(anisotropy / ( 2.0 * isp ) ) );
     }
 
   rgb[0] = eig.V(0, whichvec); // +eig.V(1,0)*e2;

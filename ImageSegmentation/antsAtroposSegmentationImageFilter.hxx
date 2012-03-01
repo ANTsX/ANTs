@@ -1091,8 +1091,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       this->m_NumberOfIntensityImages, this->m_NumberOfTissueClasses );
     for( unsigned int i = 0; i < this->m_NumberOfIntensityImages; i++ )
       {
-      typedef LabelStatisticsImageFilter<ImageType, ClassifiedImageType> StatsType;
-      typename StatsType::Pointer stats2 = StatsType::New();
+      typedef LabelStatisticsImageFilter<ImageType, ClassifiedImageType> ClassStatsType;
+      typename ClassStatsType::Pointer stats2 = StatsType::New();
       stats2->SetInput( this->GetIntensityImage( i ) );
       stats2->SetLabelInput( this->GetOutput() );
       stats2->UseHistogramsOff();
@@ -1102,11 +1102,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         classMeanValues( i, j ) = stats->GetMean( j + 1 );
         }
       }
-
-    typedef itk::Statistics::WeightedCentroidKdTreeGenerator<SampleType>
-      TreeGeneratorType;
-    typedef typename TreeGeneratorType::KdTreeType                TreeType;
-    typedef itk::Statistics::KdTreeBasedKmeansEstimator<TreeType> EstimatorType;
 
     typename EstimatorType::Pointer estimator2 = EstimatorType::New();
     typename EstimatorType::ParametersType initialMeans2(
@@ -1152,10 +1147,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     //
     // Classify the samples
     //
-    typedef itk::Statistics::MinimumDecisionRule DecisionRuleType;
     typename DecisionRuleType::Pointer decisionRule2 = DecisionRuleType::New();
 
-    typedef itk::Statistics::SampleClassifierFilter<SampleType> ClassifierType;
     typename ClassifierType::Pointer classifier2 = ClassifierType::New();
     classifier2->SetDecisionRule( decisionRule2 );
     classifier2->SetInput( sample2 );

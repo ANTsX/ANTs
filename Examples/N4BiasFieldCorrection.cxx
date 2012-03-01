@@ -105,8 +105,8 @@ int N4( itk::ants::CommandLineParser *parser )
   if( maskImageOption && maskImageOption->GetNumberOfValues() )
     {
     std::string inputFile = maskImageOption->GetValue();
-    typedef itk::ImageFileReader<MaskImageType> ReaderType;
-    typename ReaderType::Pointer maskreader = ReaderType::New();
+    typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
+    typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
     maskreader->SetFileName( inputFile.c_str() );
     try
       {
@@ -141,8 +141,8 @@ int N4( itk::ants::CommandLineParser *parser )
   if( weightImageOption  && weightImageOption->GetNumberOfValues() )
     {
     std::string inputFile = weightImageOption->GetValue();
-    typedef itk::ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer weightreader = ReaderType::New();
+    typedef itk::ImageFileReader<ImageType> WeightReaderType;
+    typename WeightReaderType::Pointer weightreader = WeightReaderType::New();
     weightreader->SetFileName( inputFile.c_str() );
     weightImage = weightreader->GetOutput();
     weightImage->Update();
@@ -193,7 +193,6 @@ int N4( itk::ants::CommandLineParser *parser )
    * the user wants to specify things in terms of the spline distance.
    */
 
-  bool useSplineDistance = false;
   typename ImageType::IndexType inputImageIndex =
     inputImage->GetLargestPossibleRegion().GetIndex();
   typename ImageType::SizeType inputImageSize =
@@ -220,7 +219,6 @@ int N4( itk::ants::CommandLineParser *parser )
         // the user wants to specify things in terms of spline distance.
         //  1. need to pad the images to get as close to possible to the
         //     requested domain size.
-        useSplineDistance = true;
         float splineDistance = array[0];
 
         unsigned long lowerBound[ImageDimension];

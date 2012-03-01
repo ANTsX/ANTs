@@ -337,13 +337,11 @@ antsSCCANObject<TInputImage, TRealType>
     {
     return;
     }
-  RealType minv = v_in.min_value();
   RealType maxv = v_in.max_value();
   if( fabs(v_in.min_value() ) > maxv )
     {
     maxv = fabs(v_in.min_value() );
     }
-  minv = 0;
   RealType     lambg = this->m_Epsilon;
   RealType     frac = 0;
   unsigned int its = 0, ct = 0;
@@ -431,13 +429,11 @@ antsSCCANObject<TInputImage, TRealType>
 
   v_in = v_in / v_in.two_norm();
   VectorType v_out(v_in);
-  RealType   minv = v_in.min_value();
   RealType   maxv = v_in.max_value();
   if( fabs(v_in.min_value() ) > maxv )
     {
     maxv = fabs(v_in.min_value() );
     }
-  minv = 0;
   RealType     lambg = this->m_Epsilon;
   RealType     frac = 0;
   unsigned int its = 0;
@@ -1756,14 +1752,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType minerr = 1.e99;
   RealType bestalph = 0;
   RealType step;
-  RealType ebracket = 0;
   step =  ( maxalph - minalph ) / 10;
   for( RealType eb = minalph; eb <= maxalph; eb = eb + step )
     {
     RealType e = this->EvaluateEnergy( A, x_k, p_k, b, eb, keeppos );
     if( e < minerr )
       {
-      minerr = e; ebracket = eb; bestalph = eb;
+      minerr = e; bestalph = eb;
       }
     }
   return bestalph;
@@ -1950,7 +1945,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_VariatesP.fill(0);
   VectorType intercept( this->m_MatrixP.cols(), 1);
   this->m_VariatesP.set_column( 0, intercept );
-  RealType   lmerror;
+  RealType   lmerror = 0.0;
   VectorType original_b =  this->m_MatrixR.get_column( 0 );
 //  original_b = original_b - original_b.mean();  original_b = original_b / original_b.two_norm();
   for(  unsigned int colind = 1; colind < n_vecs; colind++ )

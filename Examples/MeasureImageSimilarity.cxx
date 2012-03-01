@@ -254,7 +254,6 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
   if( imgfilename.length() > 3 )
     {
     std::cout << "Only Implemented for MSQ and CC " << std::endl;
-    typedef itk::ImageFileWriter<ImageType> writertype;
     typename writertype::Pointer w = writertype::New();
     w->SetInput(metricimg);
     w->SetFileName(imgfilename.c_str() );

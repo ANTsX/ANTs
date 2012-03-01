@@ -1850,13 +1850,12 @@ public:
     SizeType size = field->GetLargestPossibleRegion().GetSize();
 
     typename ImageType::SpacingType spacing = field->GetSpacing();
-    TReal         subpix = 0.0;
+
     unsigned long npix = 1;
     for( int j = 0; j < ImageDimension; j++ ) // only use in-plane spacing
       {
       npix *= field->GetLargestPossibleRegion().GetSize()[j];
       }
-    subpix = pow( (TReal)ImageDimension, (TReal)ImageDimension) * 0.5;
 
     TReal    max = 0;
     Iterator iter( field, field->GetLargestPossibleRegion() );
@@ -1892,15 +1891,12 @@ public:
 //  for (int its=0; its<num; its++)
     TReal        difmag = 10.0;
     unsigned int ct = 0;
-    TReal        denergy = 10;
-    TReal        denergy2 = 10;
-    TReal        laste = 1.e9;
-    TReal        meandif = 1.e8;
+
+    TReal meandif = 1.e8;
 //    int badct=0;
 //  while (difmag > subpix && meandif > subpix*0.1 && badct < 2 )//&& ct < 20 && denergy > 0)
 //    TReal length=0.0;
     TReal stepl = 2.;
-    TReal lastdifmag = 0;
 
     TReal epsilon = (TReal)size[0] / 256;
     if( epsilon > 1 )
@@ -1910,9 +1906,6 @@ public:
 
     while( difmag > mytoler && ct<mymaxiter && meandif> 0.001 )
       {
-      denergy = laste - difmag; // meandif;
-      denergy2 = laste - meandif;
-      laste = difmag; // meandif;
       meandif = 0.0;
 
       // this field says what position the eulerian field should contain in the E domain
@@ -1961,7 +1954,6 @@ public:
         vfIter.Set(upd);
         }
       ct++;
-      lastdifmag = difmag;
       }
 
     // std::cout <<" difmag " << difmag << ": its " << ct <<  std::endl;

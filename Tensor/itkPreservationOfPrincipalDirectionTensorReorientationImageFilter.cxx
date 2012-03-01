@@ -160,15 +160,10 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   typename DisplacementFieldType::IndexType difIndex[ImageDimension][2];
 
   unsigned int posoff = 1;
-  RealType     difspace = 1.0;
   RealType     space = 1.0;
-  if( posoff == 0 )
-    {
-    difspace = 1.0;
-    }
-  RealType mindist = 1.0;
-  RealType dist = 100.0;
-  bool     oktosample = true;
+  RealType     mindist = 1.0;
+  RealType     dist = 100.0;
+  bool         oktosample = true;
   for( unsigned int row = 0; row < ImageDimension; row++ )
     {
     dist = fabs( (RealType)index[row]);

@@ -411,9 +411,9 @@ itk::RGBPixel< float >   GetTensorPrincipalEigenvector( TTensorType dtv )
 }
 
 template <class TTensorType>
-TTensorType TensorLogAndExp( TTensorType dtv, bool takelog , bool success=true)
+TTensorType TensorLogAndExp( TTensorType dtv, bool takelog , bool &success)
 {
-
+  success = true;
   float eps=1.e-9,mag=0;
   for (unsigned int jj=0; jj<6; jj++)
   {
@@ -428,7 +428,10 @@ TTensorType TensorLogAndExp( TTensorType dtv, bool takelog , bool success=true)
   mag=sqrt(mag);
 
   if (  dtv[1]==0 && dtv[2] == 0 && dtv[4]==0) return dtv;
-  if (mag < eps) { success = false; return dtv; }
+  if (mag < eps)
+    {
+    success = false; return dtv;
+    }
 
 
   //  typedef itk::Vector<float, 6> TensorTypeIn;
@@ -477,7 +480,11 @@ TTensorType TensorLogAndExp( TTensorType dtv, bool takelog , bool success=true)
   float peigeps=1.e-2;
   float eigeps=1.e-6;
   float eigmx=10000;
-  if ( e3 < peigeps ) {  success=false; return dtv; }
+  if ( e3 < peigeps )
+    {
+    success=false;
+    return dtv;
+    }
 
   MatrixType eigmat(3,3);
   eigmat.fill(0);

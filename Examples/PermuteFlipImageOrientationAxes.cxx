@@ -40,8 +40,6 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
   typename InputImageType::Pointer inputImage = NULL;
   ReadImage<InputImageType>(inputImage, argv[1]);
 
-  typename InputImageType::SpacingType inputSpacing = inputImage->GetSpacing();
-
   // Create a filter
   typedef OutputImageType ShortImage;
   typename itk::PermuteAxesImageFilter<ShortImage>::Pointer permute;

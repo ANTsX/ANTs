@@ -419,8 +419,7 @@ void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPoi
 
   DirectionType direction = img->GetDirection();
 
-  SpacingType spacing = img->GetSpacing();
-  VectorType  translation;
+  VectorType translation;
   // translation.Fill(0);
   for( unsigned int i = 0; i < ImageType::GetImageDimension(); i++ )
     {

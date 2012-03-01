@@ -857,7 +857,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   m_ThetaVector.set_size(sz);
   m_ThetaVector.fill(0.0);
 
-  RealType theta = 0, w1 = 0, w2 = 0, totalWeight = 0.0;
+  RealType w1 = 0, w2 = 0, totalWeight = 0.0;
   RealType difMag = 0, sqdifMag = 0;
 
   m_TotalDKap = 0.0;
@@ -867,7 +867,6 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   m_C = 0.0;
   for( unsigned int ii = 0; ii < sz; ii++ )
     {
-    theta = 0.0;
     PointType Q = m_PointList[ii];
 
     PointType Dif = Q - origin;

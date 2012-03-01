@@ -86,8 +86,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                   typename ImageType::DirectionType outputDirection,
                   AffineTransformPointer aff )
 {
-  typename ImageType::SpacingType inputSpacing = image->GetSpacing();
-
   typename ImageType::SpacingType outputSpacing = this->m_CurrentDomainSpacing;
   typename ImageType::RegionType::SizeType outputSize = this->m_CurrentDomainSize;
 
@@ -206,8 +204,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   // graft the output field onto the mini-pipeline
   smoother->GraftOutput( tempField );
-
-  typename ImageType::SpacingType spacing = field->GetSpacing();
   for( unsigned int j = 0; j < lodim; j++ )
     {
     // smooth along this dimension
@@ -507,14 +503,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   typedef itk::WarpImageFilter<ImageType, ImageType, DisplacementFieldType> WarperType;
   typedef DisplacementFieldType                                             FieldType;
-  enum { ImageDimension = FieldType::ImageDimension };
+
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef ImageType                                                TRealImageType;
 
   typedef itk::ImageFileWriter<ImageType> writertype;
-
-  typename ImageType::SpacingType oldspace = field->GetSpacing();
-  typename ImageType::SpacingType newspace = fieldtowarpby->GetSpacing();
 
   typedef typename DisplacementFieldType::IndexType IndexType;
   typedef typename DisplacementFieldType::PointType PointType;
@@ -1605,7 +1598,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::DiffeomorphicExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
+::DiffeomorphicExpRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer movingImage, PointSetPointer fpoints,
                                      PointSetPointer mpoints)
 {
   //  this function computes a velocity field that --- when composed with itself --- optimizes the registration
@@ -1617,8 +1610,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   /** FIXME really should pass an image list and then warp each one in
     turn  then expand the update field to fit size of total
     deformation */
-  typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
+
   VectorType zero;
+
   zero.Fill(0);
   DisplacementFieldPointer totalUpdateField = NULL;
   DisplacementFieldPointer totalField = this->m_DisplacementField;
@@ -1672,12 +1666,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::GreedyExpRegistrationUpdate(ImagePointer fixedImage, ImagePointer /* movingImage */, PointSetPointer fpoints,
+::GreedyExpRegistrationUpdate(ImagePointer /* fixedImage */, ImagePointer /* movingImage */, PointSetPointer fpoints,
                               PointSetPointer /* mpoints */)
 {
   //  similar approach to christensen 96 and diffeomorphic demons
-  typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
+
   VectorType zero;
+
   zero.Fill(0);
   DisplacementFieldPointer totalUpdateField = NULL;
 
@@ -1754,8 +1749,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SyNRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
                         PointSetPointer mpoints)
 {
-  typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
   VectorType zero;
+
   zero.Fill(0);
   DisplacementFieldPointer totalUpdateField, totalUpdateInvField = DisplacementFieldType::New();
   totalUpdateInvField->SetSpacing( this->m_DisplacementField->GetSpacing() );
@@ -2109,8 +2104,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::SyNTVRegistrationUpdate(ImagePointer fixedImage, ImagePointer movingImage, PointSetPointer fpoints,
                           PointSetPointer mpoints)
 {
-  typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
   VectorType zero;
+
   zero.Fill(0);
   DisplacementFieldPointer totalUpdateField, totalUpdateInvField = DisplacementFieldType::New();
   totalUpdateInvField->SetSpacing( this->m_DisplacementField->GetSpacing() );
@@ -2218,7 +2213,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 {
   typedef TimeVaryingVelocityFieldType tvt;
   TimeVaryingVelocityFieldPointer velocityUpdate = NULL;
-  typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
+
   VectorType zero;
   zero.Fill(0);
   DisplacementFieldPointer totalUpdateField, totalUpdateInvField = DisplacementFieldType::New();
@@ -2616,11 +2611,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     finishtimein = 1;
     }
 
-  TReal timesign = 1.0;
-  if( starttimein  >  finishtimein )
-    {
-    timesign = -1.0;
-    }
   FieldIterator m_FieldIter(this->GetDisplacementField(), this->GetDisplacementField()->GetLargestPossibleRegion() );
 //  std::cout << " Start Int " << starttimein <<  std::endl;
   if( mask  && !this->m_ComputeThickness )
@@ -2725,12 +2715,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     finishtimein = 1;
     }
 
-  TReal timesign = 1.0;
-  if( starttimein  >  finishtimein )
-    {
-    timesign = -1.0;
-    }
-
   unsigned long sz1 = mypoints->GetNumberOfPoints();
   for( unsigned long ii = 0; ii < sz1; ii++ )
     {
@@ -2829,13 +2813,11 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   TReal         itime = starttimein;
   unsigned long ct = 0;
-  TReal         inverr = 0;
   TReal         thislength = 0, euclideandist = 0;
   bool          timedone = false;
-  inverr = 1110;
-  VectorType  disp;
-  TReal       deltaTime = dT, vecsign = 1.0;
-  SpacingType spacing = this->m_DisplacementField->GetSpacing();
+  VectorType    disp;
+  TReal         deltaTime = dT, vecsign = 1.0;
+  SpacingType   spacing = this->m_DisplacementField->GetSpacing();
   if( starttimein  > finishtimein )
     {
     vecsign = -1.0;
@@ -2850,7 +2832,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   this->m_TimeVaryingVelocity->TransformIndexToPhysicalPoint( vind, pointIn1);
 // time is in [0,1]
   pointIn1[TDimension] = starttimein * (m_NumberOfTimePoints - 1);
-  bool       isinside = true;
   xPointType Y1x;
   xPointType Y2x;
   xPointType Y3x;
@@ -2917,10 +2898,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         {
         Y2x[jj] += f1[jj] * deltaTime * 0.5;
         }
-      }
-    else
-      {
-      isinside = false;
       }
     if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y2x) )
       {
@@ -3062,10 +3039,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
           {
           Y2x[jj] += f1[jj] * deltaTime * 0.5;
           }
-        }
-      else
-        {
-        isinside = false;
         }
       if( this->m_VelocityFieldInterpolator->IsInsideBuffer(Y2x) )
         {

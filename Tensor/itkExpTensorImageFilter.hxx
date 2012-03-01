@@ -55,7 +55,8 @@ ExpTensorImageFilter<TInputImage, TOutputImage>
   for( inputIt.GoToBegin(), outputIt.GoToBegin();
        !inputIt.IsAtEnd() && !outputIt.IsAtEnd(); ++inputIt, ++outputIt )
     {
-    InputPixelType result = TensorLogAndExp<InputPixelType>(inputIt.Value(), false);
+    bool           success; // TODO -- actually check the result?
+    InputPixelType result = TensorLogAndExp<InputPixelType>(inputIt.Value(), false, success);
     outputIt.Set( result );
     }
 }

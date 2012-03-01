@@ -189,8 +189,6 @@ CopyImage(TDisplacementField* field )
   typedef itk::Image<PixelType, ImageDimension> RealImageType;
   typename RealImageType::RegionType m_JacobianRegion;
 
-  typename TImage::SpacingType sp = field->GetSpacing();
-
   typename RealImageType::Pointer m_RealImage = NULL;
   m_RealImage = RealImageType::New();
   m_RealImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
@@ -566,13 +564,11 @@ InvertField( typename TField::Pointer field,
   SizeType size = field->GetLargestPossibleRegion().GetSize();
 
   typename ImageType::SpacingType spacing = field->GetSpacing();
-  double        subpix = 0.0;
   unsigned long npix = 1;
   for( int j = 0; j < ImageDimension; j++ )  // only use in-plane spacing
     {
     npix *= field->GetLargestPossibleRegion().GetSize()[j];
     }
-  subpix = pow( (double)ImageDimension, (double)ImageDimension) * 0.5;
 
   double   max = 0;
   Iterator iter( field, field->GetLargestPossibleRegion() );
@@ -610,15 +606,11 @@ InvertField( typename TField::Pointer field,
 //  for (int its=0; its<num; its++)
   double       difmag = 10.0;
   unsigned int ct = 0;
-  double       denergy = 10;
-  double       denergy2 = 10;
-  double       laste = 1.e9;
   double       meandif = 1.e8;
 //    int badct=0;
 //  while (difmag > subpix && meandif > subpix*0.1 && badct < 2 )//&& ct < 20 && denergy > 0)
 //    double length=0.0;
   double stepl = 2.;
-  double lastdifmag = 0;
 
   double epsilon = (double)size[0] / 256;
   if( epsilon > 1 )
@@ -628,9 +620,6 @@ InvertField( typename TField::Pointer field,
 
   while( difmag > mytoler && ct<mymaxiter && meandif> 0.001 )
     {
-    denergy = laste - difmag; // meandif;
-    denergy2 = laste - meandif;
-    laste = difmag; // meandif;
     meandif = 0.0;
 
     // this field says what position the eulerian field should contain in the E domain
@@ -679,7 +668,6 @@ InvertField( typename TField::Pointer field,
       vfIter.Set(upd);
       }
     ct++;
-    lastdifmag = difmag;
     }
   for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
     {
@@ -723,11 +711,11 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     thickprior = atof(argv[argct]);
     }
   argct++;
-  bool useCurvaturePrior = false;
-  if( argc > argct )
-    {
-    useCurvaturePrior = atoi(argv[argct]);
-    }
+  // bool useCurvaturePrior = false;
+  // if( argc > argct )
+  //   {
+  //   useCurvaturePrior = atoi(argv[argct]);
+  //   }
   argct++;
   RealType smoothingsigma = 1.5;
   if( argc > argct )
@@ -735,11 +723,11 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     smoothingsigma = atof(argv[argct]);
     }
   argct++;
-  bool useEuclidean = true;
-  if( argc > argct )
-    {
-    useEuclidean = atoi(argv[argct]);
-    }
+  // bool useEuclidean = true;
+  // if( argc > argct )
+  //   {
+  //   useEuclidean = atoi(argv[argct]);
+  //   }
   argct++;
   std::cout << " smooth " << smoothingsigma << " thp " << thickprior << " gs " << gradstep << std::endl;
   typedef RealType                                                      PixelType;
@@ -775,7 +763,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   gm->SetDirection(fmat);
   wm->SetDirection(fmat);
   segmentationimage->SetDirection(fmat);
-  SpacingType spacing = wm->GetSpacing();
+
   typename DisplacementFieldType::Pointer lapgrad;
   typename ImageType::Pointer gmb = BinaryThreshold<ImageType>(2, 2, 1, segmentationimage);  // fixme
   typename ImageType::Pointer wmb = BinaryThreshold<ImageType>(3, 3, 1, segmentationimage);  // fixme
@@ -895,19 +883,14 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   //  m_MFR->SmoothDisplacementFieldGauss(lapgrad,1.7);
   std::cout << " Scaling done " << std::endl;
 
-  //  RealType thislength=0;
-  unsigned long ct = 1;
-  bool          timedone = false;
-
   typename ImageType::Pointer thickimage = laplacian;
   VectorType disp;
   VectorType incdisp;
   disp.Fill(0.0);
   incdisp.Fill(0.0);
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
-  timedone = false;
-  RealType totalerr = 1.e8, lasterr = 1.e10;
-  unsigned its = 0;
+  RealType     totalerr = 1.e8, lasterr = 1.e10;
+  unsigned     its = 0;
   wmgrow->FillBuffer(0);
   RealType      dmag = 0;
   RealType      thicknesserror = 0;
@@ -930,7 +913,6 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
     lasterr = totalerr;
     // Optimization Error initialized for this iteration
     totalerr = 0;
-    ct = 0;
     incrfield->FillBuffer(zero);
     incrfield->FillBuffer(zero);
     incrinvfield->FillBuffer(zero);

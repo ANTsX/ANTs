@@ -360,11 +360,6 @@ public:
       MatrixType cov( mat.rows(), mat.cols(), 0);
       cov.set_identity();
       mat = cov * regularization + mat;
-      unsigned int mc = b.rows();
-      if( b.cols() < b.rows() )
-        {
-        mc = b.cols();
-        }
       return vnl_svd<double>( mat ).inverse();
       //      return vnl_svd<double>( mat ).pinverse( mc );
       }

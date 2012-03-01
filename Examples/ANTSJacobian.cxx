@@ -268,12 +268,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
 
   double       det = 0.0;
   unsigned int posoff = 1;
-  float        difspace = 1.0;
   float        space = 1.0;
-  if( posoff == 0 )
-    {
-    difspace = 1.0;
-    }
 
   typedef itk::Vector<float, ImageDimension> VectorType;
 
@@ -292,16 +287,16 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   //   double totaljac=0.0;
 
   // /the finite difference equations
-  float wC, wLL, wL, wR, wRR;
+  // float wC, wLL, wL, wR, wRR;
   // 3rd deriv - 4th order
-  wC = 0.0;
-  wLL = 1.; wL = -2.0; wR =  2.0; wRR = -1.0;
+  // wC = 0.0;
+  // wLL = 1.; wL = -2.0; wR =  2.0; wRR = -1.0;
   // 4th deriv - 4th order
-  wC = -6.0;
-  wLL = 1.; wL = -4.0; wR = -4.0; wRR = 1.0;
+  // wC = -6.0;
+  // wLL = 1.; wL = -4.0; wR = -4.0; wRR = 1.0;
   // 2nd deriv - 4th order
-  wC = 30.0;
-  wLL = -1.0; wL = 16.0; wR = 16.0; wRR = -1.0;
+  // wC = 30.0;
+  // wLL = -1.0; wL = 16.0; wR = 16.0; wRR = -1.0;
 
   unsigned long ct = 0;
   for(  m_FieldIter.GoToBegin(); !m_FieldIter.IsAtEnd(); ++m_FieldIter )

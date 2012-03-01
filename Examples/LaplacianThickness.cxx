@@ -458,17 +458,17 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
 }
 
 template <class TImage, class TField, class TInterp, class TInterp2>
-float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,
+float IntegrateLength( typename TImage::Pointer /* gmsurf */,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
                        float starttime, float /* finishtime */,
                        bool timedone, float deltaTime, typename TInterp::Pointer vinterp,
                        typename TInterp2::Pointer sinterp, unsigned int task,
-                       bool propagate, bool domeasure,   unsigned int m_NumberOfTimePoints,
+                       bool /* propagate */, bool domeasure,   unsigned int m_NumberOfTimePoints,
                        typename TImage::SpacingType spacing, float vecsign,
                        float timesign, float gradsign, unsigned int ct, typename TImage::Pointer wm,
                        typename TImage::Pointer gm,
                        float priorthickval,  typename TImage::Pointer smooththick, bool printprobability,
-                       typename TImage::Pointer sulci )
+                       typename TImage::Pointer /* sulci */ )
 {
   typedef   TField                                                 TimeVaryingVelocityFieldType;
   typedef typename TField::PixelType                               VectorType;
@@ -488,31 +488,20 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
   DPointType pointIn3;
   enum { ImageDimension = TImage::ImageDimension };
   typedef typename TImage::IndexType IndexType;
-
-  float startprob = gm->GetPixel(velind);
-  if( sulci )
-    {
-    startprob = sulci->GetPixel(velind);
-    }
-  bool printout = false;
-  if( gmsurf->GetPixel(velind) > 0 )
-    {
-    printout = true;
-    }
   for( unsigned int jj = 0; jj < ImageDimension; jj++ )
     {
     IndexType index;
     index[jj] = velind[jj];
     pointIn1[jj] = velind[jj] * lapgrad->GetSpacing()[jj];
     }
-  if( task == 0 )
-    {
-    propagate = false;
-    }
-  else
-    {
-    propagate = true;
-    }
+  // if( task == 0 )
+  //   {
+  //   propagate = false;
+  //   }
+  // else
+  //   {
+  //   propagate = true;
+  //   }
   itime = starttime;
   timedone = false;
   float totalmag = 0;
@@ -921,12 +910,9 @@ int LaplacianThickness(int argc, char *argv[])
       for( unsigned int task = 0; task < 1; task++ )
         {
         float itime = starttime;
-        float inverr = 0;
 
         unsigned long ct = 0;
         bool          timedone = false;
-
-        inverr = 1110;
 
         VectorType disp;
         disp.Fill(0.0);
