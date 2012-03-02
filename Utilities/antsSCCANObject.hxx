@@ -1781,7 +1781,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   if( negate )
     {
-    x_k = x_k * ( -1 );
     b = b * ( -1 );
     }
   bool         debug = false;
@@ -1858,6 +1857,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     RealType   beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ), r_k1 / bknd ); // Hager and Zhang
     // RealType beta_k = inner_product( r_k1 , r_k1 ) /  inner_product( r_k , r_k ); // classic cg
     VectorType p_k1  = r_k1 + beta_k * p_k;
+    // if ( makeprojsparse ) this->SparsifyP( p_k1, keeppos );
     r_k = r_k1;
     p_k = p_k1;
     x_k = x_k1;
@@ -1917,30 +1917,31 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType x_k = this->m_VariatesP.get_column( colind );
     VectorType b = this->m_Eigenvectors.get_column( colind );
     x_k = this->InitializeV( this->m_MatrixP, false );
-    if( colind % 2 == 0 )
+    RealType minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 10, true, true  );
+    bool     keepgoing = true;
+    while( keepgoing )
       {
-      x_k = x_k * (-1.0);
+      VectorType x_k2 = x_k;
+      RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, b, 1.e-1, 10, true, true  );
+      keepgoing = false;
+      if( minerr2 < minerr1 )
+        {
+        x_k = x_k2; keepgoing = true; minerr1 = minerr2;
+        }
       }
-    //    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 1, false , false );
-    // this produces good results
-    //    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 50, false , true  );
-    // but this does too i.e. calling the function twice
-    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 50, false, true  );
-    this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 50, false, true  );
+
     this->m_VariatesP.set_column( colind, x_k  );
     VectorType bnspace = this->m_MatrixP * this->m_Eigenvectors.get_column( colind );  // nspaceevecs.get_column( colind
                                                                                        // / 2 );
     std::cout << " vecerr-a "
               << this->PearsonCorr( this->m_MatrixP * x_k,
                           bnspace ) << " norm " << ( this->m_MatrixP * x_k - bnspace ).two_norm() << std::endl;
-    //    std::cout << " vecerr-b " <<  this->PearsonCorr(  x_k , bnspace * this->m_MatrixP  ) << std::endl;
     std::cout << " vecerr-a-init "
               <<  this->PearsonCorr( this->m_MatrixP * variatesInit.get_column( colind ),
                            bnspace ) << " norm "
               <<  ( this->m_MatrixP * variatesInit.get_column( colind ) - bnspace ).two_norm() << std::endl;
-    //    std::cout << " vecerr-b-init " <<  this->PearsonCorr(  variatesInit.get_column( colind ) , bnspace *
-    // this->m_MatrixP  ) << std::endl;
-    std::cout << " col " << colind << " of  " <<  n_vecs << " nspaceevecssz " << nspaceevecs.cols() << std::endl;
+    std::cout << " col " << colind << " of  " <<  n_vecs << " nspaceevecssz " << nspaceevecs.cols() << " mnv "
+              << x_k.min_value() << " mxv " << x_k.max_value() << std::endl;
 
     /*********************************/
     RealType   reconstruction_error = 0;
@@ -1965,32 +1966,36 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     reconstruction_error_svd =
       ( approxmat_svd / approxmat_svd.frobenius_norm() - this->m_MatrixP
           / this->m_MatrixP.frobenius_norm() ).frobenius_norm();
+    bool writeimage = false;
+    if( writeimage )
       {
-      VectorType vvv = approxmat.get_row( 10 );
-      typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
-      typedef itk::ImageFileWriter<TInputImage> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "temp.nii.gz" );
-      writer->SetInput( image );
-      writer->Update();
-      }
-      {
-      VectorType vvv = approxmat_svd.get_row( 10 );
-      typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
-      typedef itk::ImageFileWriter<TInputImage> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "temp2.nii.gz" );
-      writer->SetInput( image );
-      writer->Update();
-      }
-      {
-      VectorType vvv = this->m_MatrixP.get_row( 10 );
-      typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
-      typedef itk::ImageFileWriter<TInputImage> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "temp3.nii.gz" );
-      writer->SetInput( image );
-      writer->Update();
+        {
+        VectorType vvv = approxmat.get_row( 10 );
+        typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
+        typedef itk::ImageFileWriter<TInputImage> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( "temp.nii.gz" );
+        writer->SetInput( image );
+        writer->Update();
+        }
+        {
+        VectorType vvv = approxmat_svd.get_row( 10 );
+        typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
+        typedef itk::ImageFileWriter<TInputImage> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( "temp2.nii.gz" );
+        writer->SetInput( image );
+        writer->Update();
+        }
+        {
+        VectorType vvv = this->m_MatrixP.get_row( 10 );
+        typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
+        typedef itk::ImageFileWriter<TInputImage> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( "temp3.nii.gz" );
+        writer->SetInput( image );
+        writer->Update();
+        }
       }
     std::cout << " col " << colind << " of  " <<  n_vecs << " reconstruction_error " << reconstruction_error
               << " svderr " <<  reconstruction_error_svd << std::endl;
