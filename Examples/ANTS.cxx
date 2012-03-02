@@ -25,7 +25,7 @@
 template <unsigned int ImageDimension>
 int ANTSex(int argc, char *argv[])
 {
-  typedef itk::PICSLAdvancedNormalizationToolKit<ImageDimension> RegistrationType;
+  typedef itk::PICSLAdvancedNormalizationToolKit<ImageDimension, float> RegistrationType;
   typename RegistrationType::Pointer registration = RegistrationType::New();
   registration->ParseCommandLine( argc, argv );
   std::cout << " Run Reg " << std::endl;

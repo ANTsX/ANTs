@@ -354,13 +354,13 @@ public:
 
   TimeVaryingVelocityFieldPointer ExpandVelocity()
   {
-    TReal expandFactors[ImageDimension + 1];
+    float expandFactors[ImageDimension + 1];
 
     expandFactors[ImageDimension] = 1;
     m_Debug = false;
     for( int idim = 0; idim < ImageDimension; idim++ )
       {
-      expandFactors[idim] = (TReal) this->m_CurrentDomainSize[idim]
+      expandFactors[idim] = (float) this->m_CurrentDomainSize[idim]
         / (TReal) this->m_TimeVaryingVelocity->GetLargestPossibleRegion().GetSize()[idim];
       if( expandFactors[idim] < 1 )
         {
@@ -384,7 +384,7 @@ public:
   DisplacementFieldPointer ExpandField(DisplacementFieldPointer field,  typename ImageType::SpacingType targetSpacing)
   {
 //      this->m_Debug=true;
-    TReal expandFactors[ImageDimension];
+    float expandFactors[ImageDimension];
 
     for( int idim = 0; idim < ImageDimension; idim++ )
       {

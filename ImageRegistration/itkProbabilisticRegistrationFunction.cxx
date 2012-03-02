@@ -181,7 +181,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     r[j] = this->GetRadius()[j];
     }
 
-  typedef itk::ImageRegionIteratorWithIndex<MetricImageType> Iterator;
+  typedef itk::ImageRegionIteratorWithIndex<TFixedImage> Iterator;
   Iterator tIter(this->GetFixedImage(), this->GetFixedImage()->GetLargestPossibleRegion() );
 
   // compute local means
