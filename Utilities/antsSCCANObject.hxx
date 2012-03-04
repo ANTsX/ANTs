@@ -1663,7 +1663,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::EvaluateEnergy( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
+::EvaluateEnergy( typename antsSCCANObject<TInputImage, TRealType>::MatrixType & /* NOT USED A*/,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  p_k,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  b,
@@ -1771,7 +1771,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                     typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
                     typename antsSCCANObject<TInputImage,
                                              TRealType>::VectorType  b, TRealType convcrit, unsigned int maxits,
-                    bool keeppos,  bool makeprojsparse = false)
+                    bool keeppos,  bool makeprojsparse)
 {
   bool negate = false;
 
@@ -1800,9 +1800,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       std::cout << " alpha_k " << alpha_k << " iprk " << iprk <<  " alpha_denom " << alpha_denom << std::endl;
       }
-    RealType stepsize = alpha_k / 100;
-    RealType minalph = stepsize;
-    RealType maxalph = alpha_k * 2;
+    // HACK NOT USED RealType stepsize = alpha_k / 100;
+    // HACK NOT USED RealType minalph = stepsize;
+    // HACK NOT USED RealType maxalph = alpha_k * 2;
     /** FIXME --- need better line search */
     RealType best_alph = alpha_k;
     //    RealType   best_alph = this->LineSearch( A, x_k, p_k, b, minalph, maxalph, keeppos );
