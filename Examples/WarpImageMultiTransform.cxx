@@ -74,6 +74,12 @@ typedef struct
   MLINTERP_OPT opt_ML;
   } MISC_OPT;
 
+static std::string GetPreferredTransformFileType(void)
+{
+  // return ".mat";
+  return ".txt";
+}
+
 void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue);
 
 void DisplayOpt(const TRAN_OPT & opt);
@@ -92,7 +98,7 @@ TRAN_FILE_TYPE CheckFileType(const char *str)
       pos = filepre.rfind( "." );
       extension = std::string( filepre, pos, filepre.length() - 1 );
       }
-    if( extension == ".txt" )
+    if( extension == ".txt" || extension == ".mat" )
       {
       return AFFINE_FILE;
       }
@@ -360,7 +366,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         }
 
       std::string affine_file_name;
-      affine_file_name = path + name + std::string("Affine.txt");
+      affine_file_name = path + name + std::string("Affine") + GetPreferredTransformFileType();
       if( CheckFileExistence(affine_file_name.c_str() ) )
         {
         TRAN_OPT opt;
@@ -384,7 +390,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         }
 
       std::string affine_file_name;
-      affine_file_name = path + name + std::string("Affine.txt");
+      affine_file_name = path + name + std::string("Affine") + GetPreferredTransformFileType();
       if( CheckFileExistence(affine_file_name.c_str() ) )
         {
         TRAN_OPT opt;
@@ -1134,57 +1140,66 @@ int main(int argc, char * *argv)
       }
     DisplayOptQueue(opt_queue);
 
-    switch( kImageDim )
+    try
       {
-      case 2:
+      switch( kImageDim )
+        {
+        case 2:
 
-        switch( ncomponents )
-          {
-          case 2:
-            WarpImageMultiTransform<2, 2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-            break;
-          default:
-            WarpImageMultiTransform<2, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-            break;
-          }
-        break;
-      case 3:
+          switch( ncomponents )
+            {
+            case 2:
+              WarpImageMultiTransform<2, 2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            default:
+              WarpImageMultiTransform<2, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            }
+          break;
+        case 3:
 
-        switch( ncomponents )
-          {
-          case 3:
-            WarpImageMultiTransform<3, 3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-            break;
-          case 6:
-            WarpImageMultiTransform<3, 6>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-            break;
-          default:
-            WarpImageMultiTransform<3, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-            break;
-          }
-        break;
-      case 4:
+          switch( ncomponents )
+            {
+            case 3:
+              WarpImageMultiTransform<3, 3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            case 6:
+              WarpImageMultiTransform<3, 6>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            default:
+              WarpImageMultiTransform<3, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            }
+          break;
+        case 4:
 
-        switch( ncomponents )
-          {
-          case 4:
-            WarpImageMultiTransform<4, 4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-            break;
-          default:
-            WarpImageMultiTransform<4, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-            break;
-          }
-        break;
-      default:
-        std::cerr << " not supported " << kImageDim  << std::endl;
-        exit( EXIT_FAILURE );
+          switch( ncomponents )
+            {
+            case 4:
+              WarpImageMultiTransform<4, 4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            default:
+              WarpImageMultiTransform<4, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              break;
+            }
+          break;
+        default:
+          std::cerr << " not supported " << kImageDim  << std::endl;
+          exit( EXIT_FAILURE );
+        }
+      }
+    catch( itk::ExceptionObject & e )
+      {
+      std::cout << "Exception caught during WarpImageMultiTransform." << std::endl;
+      std::cout << e << std::endl;
+      return EXIT_FAILURE;
       }
     //      WarpImageMultiTransform<2,2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
     }
   else
     {
     std::cout << "Input error!" << std::endl;
+    return EXIT_FAILURE;
     }
-
-  exit(0);
+  return EXIT_SUCCESS;
 }
