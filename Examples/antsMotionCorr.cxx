@@ -601,8 +601,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typename CorrelationMetricType::RadiusType radius;
         radius.Fill( radiusOption );
         correlationMetric->SetRadius( radius );
-        correlationMetric->SetDoFixedImagePreWarp( false );
-        correlationMetric->SetDoMovingImagePreWarp( false );
         correlationMetric->SetUseMovingImageGradientFilter( false );
         correlationMetric->SetUseFixedImageGradientFilter( false );
 
@@ -617,8 +615,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
-        mutualInformationMetric->SetDoFixedImagePreWarp( false );
-        mutualInformationMetric->SetDoMovingImagePreWarp( false );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedImageGradientFilter( false );
         typedef typename MutualInformationMetricType::FixedSampledPointSetType PointSetType;
@@ -649,8 +645,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::DemonsImageToImageMetricv4<FixedImageType, FixedImageType> DemonsMetricType;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
         demonsMetric = demonsMetric;
-        demonsMetric->SetDoFixedImagePreWarp( false );
-        demonsMetric->SetDoMovingImagePreWarp( false );
         metric = demonsMetric;
         }
       else if( std::strcmp( whichMetric.c_str(), "gc" ) == 0 )
@@ -658,8 +652,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         std::cout << "  using the global correlation metric." << std::endl;
         typedef itk::CorrelationImageToImageMetricv4<FixedImageType, FixedImageType> corrMetricType;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
-        corrMetric->SetDoFixedImagePreWarp( false );
-        corrMetric->SetDoMovingImagePreWarp( false );
         //      metric = corrMetric;
         std::cout << " global corr Error " << std::endl;
         exit(1);
