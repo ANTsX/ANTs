@@ -1814,7 +1814,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm()
                 << " xk1-min " << x_k1.min_value() << std::endl;
       }
-    if( loorth > 0 && hiorth > 0   )
+    if( hiorth > loorth   )
       {
       for(  unsigned int wv = loorth; wv < hiorth; wv++ )
         {
