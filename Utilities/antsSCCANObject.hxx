@@ -1772,7 +1772,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                     typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
                     typename antsSCCANObject<TInputImage,
                                              TRealType>::VectorType  b, TRealType convcrit, unsigned int maxits,
-                    bool keeppos,  bool makeprojsparse, unsigned int doorth )
+                    bool keeppos,  bool makeprojsparse,  unsigned int loorth, unsigned int hiorth )
 {
   bool negate = false;
 
@@ -1814,9 +1814,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm()
                 << " xk1-min " << x_k1.min_value() << std::endl;
       }
-    if( doorth > 0 )
+    if( loorth > 0 && hiorth > 0   )
       {
-      for(  unsigned int wv = 0; wv < doorth; wv++ )
+      for(  unsigned int wv = loorth; wv < hiorth; wv++ )
         {
         x_k1 = this->Orthogonalize( x_k1, this->m_VariatesP.get_column( wv ) );
         }
@@ -1932,12 +1932,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       unsigned int baseind = colind * repspervec;
       unsigned int locind = baseind + whichevec;
       VectorType   x_k = this->InitializeV( this->m_MatrixP, false );
-      RealType     minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, bp, 1.e-1, 10, true, true, locind );
+      RealType     minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, bp, 1.e-1, 10, true, true, baseind, locind );
       bool         keepgoing = true;
       while( keepgoing )
         {
         VectorType x_k2 = x_k;
-        RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, bp, 1.e-1, 10, true, true, locind  );
+        RealType   minerr2 =
+          this->SparseNLConjGrad( this->m_MatrixP, x_k2, bp, 1.e-1, 10, true, true, baseind, locind  );
         keepgoing = false;
         // if ( fabs( minerr2 - minerr1 ) < 1.e-9 ) { x_k = x_k2; keepgoing = true; minerr1 = minerr2 ; }
         if( minerr2 < minerr1  )
