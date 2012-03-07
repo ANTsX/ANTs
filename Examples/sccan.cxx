@@ -1095,8 +1095,12 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
       {
       // 0. compute permutation for q ( switch around rows )
       vMatrix p_perm = PermuteMatrix<Scalar>( sccanobj->GetMatrixP() );
+      vMatrix r_perm = PermuteMatrix<Scalar>( sccanobj->GetMatrixR() );
       sccanobj->SetMatrixP( p_perm );
-      double permcorr = sccanobj->NetworkDecomposition(n_evec); // cgsparse
+      sccanobj->SetMatrixR( r_perm );
+      double permcorr = 1.e9;
+      // if ( pct > 76 && pct < 79 )
+      permcorr = sccanobj->NetworkDecomposition(n_evec); // cgsparse
       if( permcorr < truecorr )
         {
         perm_exceed_ct++;
@@ -2166,7 +2170,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       "classic[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
     option->SetUsageOption(
       2,
-      "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified." );
+      "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified, -i controls the number of sparse approximations per eigenvector, -n controls the number of eigenvectors.  total output will then be  i*n sparse eigenvectors." );
     option->SetUsageOption( 3, "prior[....]" );
     option->SetUsageOption( 4, "network[matrix-view1.mhd,mask1,FracNonZero1,guidance-matrix]" );
     option->SetDescription( description );
