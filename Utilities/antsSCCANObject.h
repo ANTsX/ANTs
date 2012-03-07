@@ -120,7 +120,12 @@ public:
   {
     if( !projecterM && !projecterV )
       {
-      double     ratio = inner_product(Mvec, V) / inner_product(V, V);
+      double ipv   = inner_product(V, V);
+      if( ipv == 0 )
+        {
+        return Mvec;
+        }
+      double     ratio = inner_product(Mvec, V) / ipv;
       VectorType ortho = Mvec - V * ratio;
       return ortho;
       }
@@ -280,7 +285,7 @@ public:
   RealType ConjGrad( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int  );
 
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
-                             bool makeprojsparse = false );
+                             bool makeprojsparse = false, unsigned int doorth = 0 );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );

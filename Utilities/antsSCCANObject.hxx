@@ -1772,7 +1772,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                     typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
                     typename antsSCCANObject<TInputImage,
                                              TRealType>::VectorType  b, TRealType convcrit, unsigned int maxits,
-                    bool keeppos,  bool makeprojsparse)
+                    bool keeppos,  bool makeprojsparse, unsigned int doorth )
 {
   bool negate = false;
 
@@ -1814,6 +1814,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm()
                 << " xk1-min " << x_k1.min_value() << std::endl;
       }
+    if( doorth > 0 )
+      {
+      for(  unsigned int wv = 0; wv < doorth; wv++ )
+        {
+        x_k1 = this->Orthogonalize( x_k1, this->m_VariatesP.get_column( wv ) );
+        }
+      }
+
     /** Probably the most important step if you want an interpretable map */
     this->SparsifyP( x_k1, keeppos );  /*******sparse******/
     if( debug )
@@ -1922,17 +1930,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType   b = this->m_Eigenvectors.get_column( colind );
       VectorType   bp = b;
       unsigned int baseind = colind * repspervec;
+      unsigned int locind = baseind + whichevec;
       VectorType   x_k = this->InitializeV( this->m_MatrixP, false );
-      for(  unsigned int wv = baseind; wv < ( baseind + whichevec ); wv++ )
-        {
-        bp = this->Orthogonalize( bp, this->m_VariatesP.get_column( wv ) );
-        }
-      RealType minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, bp, 1.e-1, 10, true, true  );
-      bool     keepgoing = true;
+      RealType     minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, bp, 1.e-1, 10, true, true, locind );
+      bool         keepgoing = true;
       while( keepgoing )
         {
         VectorType x_k2 = x_k;
-        RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, bp, 1.e-1, 10, true, true  );
+        RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, bp, 1.e-1, 10, true, true, locind  );
         keepgoing = false;
         // if ( fabs( minerr2 - minerr1 ) < 1.e-9 ) { x_k = x_k2; keepgoing = true; minerr1 = minerr2 ; }
         if( minerr2 < minerr1  )
