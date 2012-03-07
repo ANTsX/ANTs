@@ -1673,7 +1673,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->SparsifyP( x_k1, keeppos );
   VectorType r_k1 = ( b -  x_k1  );
-  RealType   e = r_k1.two_norm();
+  this->SparsifyP( r_k1, keeppos );
+  RealType e = r_k1.two_norm();
   return e;
 }
 
@@ -1844,7 +1845,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       std::cout << " x_k2n " << x_k.two_norm() << " x_k12n " << x_k1.two_norm() << std::endl;
       }
-    if( debug || true )
+    if( debug )
       {
       std::cout << " r_k1 " << minerr <<  " derr " << deltaminerr << " ba " << best_alph / alpha_k << std::endl;
       }
@@ -1875,7 +1876,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::CGSPCA(unsigned int n_vecs )
+::CGSPCA(unsigned int repspervec )
 {
   /** Based on Golub CONJUGATE  G R A D I E N T   A N D  LANCZOS  HISTORY
    *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
@@ -1893,8 +1894,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   MatrixType nspaceevecs = this->GetCovMatEigenvectors( this->m_MatrixP );
   VectorType nspaceevals = this->m_Eigenvalues;
   this->BasicSVD();
-  MatrixType variatesInit = this->m_VariatesP;
-  n_vecs = variatesInit.cols();
+  MatrixType   variatesInit = this->m_VariatesP;
+  unsigned int n_vecs = this->m_VariatesP.cols();
   VectorType   evalInit( n_vecs );
   unsigned int evct = 0;
   for( unsigned int i = 0; i <  this->m_Eigenvalues.size();  i++ )
@@ -1910,62 +1911,63 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     evct++;
     }
-  for(  unsigned int colind = 0; colind < n_vecs; colind++ )  //
-  // for (  unsigned int colind = 28; colind < 31; colind++ )
+  this->m_VariatesP.set_size( this->m_MatrixP.cols(), repspervec * n_vecs );
+  this->m_VariatesP.fill( 0 );
+  for(  unsigned int colind = 0; colind < n_vecs; colind++ )
     {
     /******key part of algorithm******/
-    VectorType x_k = this->m_VariatesP.get_column( colind );
-    VectorType b = this->m_Eigenvectors.get_column( colind );
-    x_k = this->InitializeV( this->m_MatrixP, false );
-    RealType minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 10, true, true  );
-    bool     keepgoing = true;
-    while( keepgoing )
+    for(  unsigned int whichevec = 0; whichevec < repspervec; whichevec++ )
       {
-      VectorType x_k2 = x_k;
-      RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, b, 1.e-1, 10, true, true  );
-      keepgoing = false;
-      if( minerr2 < minerr1 )
+      VectorType   b = this->m_Eigenvectors.get_column( colind );
+      unsigned int baseind = colind * repspervec;
+      for(  unsigned int wv = baseind; wv < (baseind + whichevec); wv++ )
         {
-        x_k = x_k2; keepgoing = true; minerr1 = minerr2;
+        b = this->Orthogonalize( b, this->m_VariatesP.get_column( wv ) );
         }
-      }
+      VectorType x_k = this->InitializeV( this->m_MatrixP, false );
+      RealType   minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 10, true, true  );
+      bool       keepgoing = true;
+      while( keepgoing )
+        {
+        VectorType x_k2 = x_k;
+        RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, b, 1.e-1, 10, true, true  );
+        keepgoing = false;
+        // if ( fabs( minerr2 - minerr1 ) < 1.e-9 ) { x_k = x_k2; keepgoing = true; minerr1 = minerr2 ; }
+        if( minerr2 < minerr1  )
+          {
+          x_k = x_k2; keepgoing = true; minerr1 = minerr2;
+          }
+        }
 
-    this->m_VariatesP.set_column( colind, x_k  );
-    VectorType bnspace = this->m_MatrixP * this->m_Eigenvectors.get_column( colind );  // nspaceevecs.get_column( colind
-                                                                                       // / 2 );
-    std::cout << " vecerr-a "
-              << this->PearsonCorr( this->m_MatrixP * x_k,
-                          bnspace ) << " norm " << ( this->m_MatrixP * x_k - bnspace ).two_norm() << std::endl;
-    std::cout << " vecerr-a-init "
-              <<  this->PearsonCorr( this->m_MatrixP * variatesInit.get_column( colind ),
-                           bnspace ) << " norm "
-              <<  ( this->m_MatrixP * variatesInit.get_column( colind ) - bnspace ).two_norm() << std::endl;
-    std::cout << " col " << colind << " of  " <<  n_vecs << " nspaceevecssz " << nspaceevecs.cols() << " mnv "
-              << x_k.min_value() << " mxv " << x_k.max_value() << std::endl;
-
-    /*********************************/
+      this->m_VariatesP.set_column( baseind + whichevec, x_k  );
+      } // repspervec
+       /*********************************/
     RealType   reconstruction_error = 0;
     RealType   reconstruction_error_svd = 0;
     MatrixType approxmat( this->m_MatrixP.rows(), this->m_MatrixP.cols(), 0 );
-    MatrixType approxmat_svd( this->m_MatrixP.rows(), this->m_MatrixP.cols(), 0 );
-    for(  unsigned int a = 0; a < colind; a++ )
+    //    MatrixType approxmat_svd( this->m_MatrixP.rows() , this->m_MatrixP.cols(), 0 );
+    for(  unsigned int a = 0; a <= colind; a++ )
       {
       VectorType nvec = this->m_MatrixP * this->m_Eigenvectors.get_column( a );
-      VectorType pvecapprox = this->m_VariatesP.get_column( a );
+      VectorType pvecapprox( this->m_MatrixP.cols(), 0 );
+      for(  unsigned int whichevec = 0; whichevec < repspervec; whichevec++ )
+        {
+        unsigned int baseind = a * repspervec;
+        pvecapprox = pvecapprox + this->m_VariatesP.get_column( baseind + whichevec );
+        }
       MatrixType locmat = ( outer_product( nvec, pvecapprox ) ) * evalInit( a );
       approxmat = approxmat + locmat;
       pvecapprox = variatesInit.get_column( a );
-      locmat = ( outer_product( nvec, pvecapprox ) ) * evalInit( a );
-      approxmat_svd = approxmat_svd + locmat;
+      //      locmat = ( outer_product( nvec , pvecapprox ) ) * evalInit( a );
+      //      approxmat_svd = approxmat_svd + locmat;
       }
     if( colind > 0 )
       {
       approxmat = approxmat  / approxmat.frobenius_norm();
       }
     reconstruction_error = ( approxmat - this->m_MatrixP / this->m_MatrixP.frobenius_norm() ).frobenius_norm();
-    reconstruction_error_svd =
-      ( approxmat_svd / approxmat_svd.frobenius_norm() - this->m_MatrixP
-          / this->m_MatrixP.frobenius_norm() ).frobenius_norm();
+    // reconstruction_error_svd = ( approxmat_svd / approxmat_svd.frobenius_norm() - this->m_MatrixP /
+    // this->m_MatrixP.frobenius_norm() ).frobenius_norm() ;
     bool writeimage = false;
     if( writeimage )
       {
@@ -1979,7 +1981,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         writer->Update();
         }
         {
-        VectorType vvv = approxmat_svd.get_row( 10 );
+        VectorType vvv = approxmat.get_row( 10 );
         typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
         typedef itk::ImageFileWriter<TInputImage> WriterType;
         typename WriterType::Pointer writer = WriterType::New();
@@ -1998,7 +2000,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       }
     std::cout << " col " << colind << " of  " <<  n_vecs << " reconstruction_error " << reconstruction_error
-              << " svderr " <<  reconstruction_error_svd << std::endl;
+              << " svderr " <<  reconstruction_error << std::endl;
     }
   for( unsigned int k = 0; k < this->m_VariatesP.cols(); k++ )
     {
@@ -2019,47 +2021,61 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   std::cout << " network decomposition using nlcg & normal equations " << std::endl;
 
   this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
-  this->m_MatrixQ = this->m_MatrixP;
-
   if( this->m_OriginalMatrixR.size() <=  0 )
     {
     std::cout << " You need to define a reference matrix " << std::endl;
     exit(1);
     }
-  this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs  );
-  this->m_VariatesP.fill(0);
-  VectorType intercept( this->m_MatrixP.cols(), 1);
-  this->m_VariatesP.set_column( 0, intercept );
+  MatrixType A;
+  MatrixType rmat = this->m_OriginalMatrixR.extract(
+      this->m_OriginalMatrixR.rows(), this->m_OriginalMatrixR.cols() - 1, 0, 1 );
+  rmat = this->NormalizeMatrix( rmat );
+  unsigned int extra_cols = 1;
+  this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs + extra_cols );
+  this->m_VariatesP.fill( 0 );
+  VectorType intercept( this->m_MatrixP.cols(), 1 );
+  if( extra_cols > 0 )
+    {
+    this->m_VariatesP.set_column( 0, intercept );
+    }
   RealType   lmerror = 0.0;
   VectorType original_b =  this->m_MatrixR.get_column( 0 );
-//  original_b = original_b - original_b.mean();  original_b = original_b / original_b.two_norm();
-  for(  unsigned int colind = 1; colind < n_vecs; colind++ )
+  for(  unsigned int colind = extra_cols; colind < this->m_VariatesP.cols(); colind++ )
     {
     VectorType b =  original_b;
     VectorType x_k = this->m_VariatesP.get_column( colind );
     MatrixType pmod = this->m_MatrixP;
-    /********************************/
-    VectorType randv = this->InitializeV( this->m_MatrixP, true );
-    for( unsigned its = 0; its < 2; its++ )
+    /***************************************/
+    VectorType randv = this->InitializeV( this->m_MatrixP, false );
+    std::cout << " col : " << colind << " : ";
+    A = this->m_MatrixP * this->m_VariatesP;
+    VectorType lmsolv( A.cols(), 1 );
+    this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
+    b = original_b - A * lmsolv;
+    VectorType bp = b * pmod;
+    RealType   minerr1 = this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 30, false, true );
+    bool       keepgoing = true;
+    while( keepgoing )
       {
-      std::cout << " col : " << colind << " its : " << its << " : ";
-      for( unsigned int mm = 1; mm < colind; mm++ )
+      VectorType randv2 = randv;
+      RealType   minerr2 = this->SparseNLConjGrad( pmod, randv2, bp, 1.e-1, 30, false, true );
+      keepgoing = false;
+      if( minerr2 < minerr1 )
         {
-        b = this->Orthogonalize( b, this->m_MatrixP * this->m_VariatesP.get_column(mm) );
+        randv = randv2; keepgoing = true; minerr1 = minerr2;
         }
-      VectorType bp = b * pmod;
-      this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 30, false );
       }
+
     this->m_VariatesP.set_column( colind, randv );
     /***************************************/
     /* Now get the LSQ regression solution */
     /***************************************/
-    VectorType lmsol( n_vecs, 1 );
-    MatrixType A = this->m_MatrixP * this->m_VariatesP;
-    lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 100 );
-    //    vnl_svd<RealType> xxx( A );
-    // VectorType soln = xxx.solve( original_b );
-    std::cout << "predictionerr," << lmerror << ",col," << colind << std::endl;
+    A = this->m_MatrixP * this->m_VariatesP;
+    VectorType lmsol( A.cols(), 1 );
+    //    MatrixType Aext( A.rows() , A.cols() + rmat.cols() , 0 );    Aext.set_columns( 0 , A );    Aext.set_columns(
+    // A.cols() , rmat );
+    lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 10000 );
+    std::cout << "predictionerr," << lmerror << ",col," << colind  << std::endl;
     }
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
@@ -2076,6 +2092,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 }
 
 /*
+    VectorType bnspace = this->m_MatrixP * this->m_Eigenvectors.get_column( colind );
+    std::cout << " vecerr-a " << this->PearsonCorr( this->m_MatrixP * x_k , bnspace )<< " norm " << ( this->m_MatrixP * x_k - bnspace ).two_norm() << std::endl;
+    std::cout << " vecerr-a-init " <<  this->PearsonCorr( this->m_MatrixP * variatesInit.get_column( colind ) , bnspace ) << " norm " <<  ( this->m_MatrixP * variatesInit.get_column( colind ) - bnspace ).two_norm() << std::endl;
+    std::cout << " col " << colind << " of  " <<  n_vecs << " nspaceevecssz " << nspaceevecs.cols() << " mnv " << x_k.min_value() << " mxv " << x_k.max_value() << " colind " << colind << std::endl;
+
     this->m_Indicator.set_size(this->m_MatrixP.cols());
     this->m_Indicator.fill(1);
     if ( colind > 0)
