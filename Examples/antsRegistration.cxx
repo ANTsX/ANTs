@@ -227,6 +227,8 @@ int
 DoRegistration(typename ParserType::Pointer & parser)
 {
   typedef typename itk::ants::RegistrationHelper<VDimension> RegistrationHelperType;
+  typedef typename RegistrationHelperType::ImageType         ImageType;
+
   typename RegistrationHelperType::Pointer regHelper =
     RegistrationHelperType::New();
 
@@ -309,6 +311,44 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     std::string fixedImageFileName = metricOption->GetParameter( currentStage, 0 );
     std::string movingImageFileName = metricOption->GetParameter( currentStage, 1 );
+    std::cout << "  fixed image: " << fixedImageFileName << std::endl;
+    std::cout << "  moving image: " << movingImageFileName << std::endl;
+
+    typename ImageType::Pointer fixedImage;
+    typename ImageType::Pointer movingImage;
+
+    typedef itk::ImageFileReader<ImageType> ImageReaderType;
+    typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+
+    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
+    fixedImageReader->Update();
+    fixedImage = fixedImageReader->GetOutput();
+    try
+      {
+      fixedImage->Update();
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+      }
+    fixedImage->DisconnectPipeline();
+
+    typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+    movingImageReader->SetFileName( movingImageFileName.c_str() );
+    movingImageReader->Update();
+    movingImage = movingImageReader->GetOutput();
+    try
+      {
+      movingImage->Update();
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      std::cerr << excp << std::endl;
+      return EXIT_FAILURE;
+      }
+    movingImage->DisconnectPipeline();
+
     std::string whichMetric = metricOption->GetValue( currentStage );
     ConvertToLowerCase( whichMetric );
 
@@ -393,8 +433,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
         regHelper->AddMetric(curMetric,
-                             fixedImageFileName,
-                             movingImageFileName,
+                             fixedImage,
+                             movingImage,
                              1.0,
                              samplingStrategy,
                              1,
@@ -406,8 +446,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       case RegistrationHelperType::MeanSquares:
         {
         regHelper->AddMetric(curMetric,
-                             fixedImageFileName,
-                             movingImageFileName,
+                             fixedImage,
+                             movingImage,
                              1.0,
                              samplingStrategy,
                              1,
@@ -420,8 +460,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
         regHelper->AddMetric(curMetric,
-                             fixedImageFileName,
-                             movingImageFileName,
+                             fixedImage,
+                             movingImage,
                              1.0,
                              samplingStrategy,
                              binOption,

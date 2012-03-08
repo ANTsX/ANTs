@@ -391,8 +391,8 @@ template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
 ::AddMetric(MetricEnumeration metricType,
-            const std::string fixedImage,
-            const std::string movingImage,
+            typename ImageType::Pointer & fixedImage,
+            typename ImageType::Pointer & movingImage,
             double weighting,
             SamplingStrategy samplingStrategy,
             int numberOfBins,
@@ -641,10 +641,8 @@ RegistrationHelper<VImageDimension>
     }
   for( unsigned int i = 0; i < this->m_NumberOfStages; i++ )
     {
-    if( (this->m_Metrics[i].m_FixedImageFileName == "" &&
-         this->m_Metrics[i].m_FixedImage.IsNull() ) ||
-        (this->m_Metrics[i].m_FixedImageFileName == "" &&
-         this->m_Metrics[i].m_FixedImage.IsNull() ) )
+    if( this->m_Metrics[i].m_FixedImage.IsNull() ||
+        this->m_Metrics[i].m_MovingImage.IsNull() )
       {
       std::cerr << "Must either add Metrics with filenames, or pointers to images" << std::endl;
       return EXIT_FAILURE;
@@ -823,54 +821,8 @@ RegistrationHelper<VImageDimension>
     currentStageString << ( stageNumber );
 
     // Get the fixed and moving images
-    typename ImageType::Pointer fixedImage;
-    typename ImageType::Pointer movingImage;
-    if( this->m_Metrics[currentStage].m_FixedImage.IsNull() &&
-        this->m_Metrics[currentStage].m_MovingImage.IsNull() )
-      {
-      std::string fixedImageFileName = this->m_Metrics[currentStage].m_FixedImageFileName;
-      std::string movingImageFileName = this->m_Metrics[currentStage].m_MovingImageFileName;
-
-      this->Logger() << "  fixed image: " << fixedImageFileName << std::endl;
-      this->Logger() << "  moving image: " << movingImageFileName << std::endl;
-
-      typedef itk::ImageFileReader<ImageType> ImageReaderType;
-      typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
-      fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-      fixedImageReader->Update();
-      fixedImage = fixedImageReader->GetOutput();
-      try
-        {
-        fixedImage->Update();
-        }
-      catch( itk::ExceptionObject & excp )
-        {
-        std::cerr << excp << std::endl;
-        return EXIT_FAILURE;
-        }
-      fixedImage->DisconnectPipeline();
-
-      typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
-      movingImageReader->SetFileName( movingImageFileName.c_str() );
-      movingImageReader->Update();
-      movingImage = movingImageReader->GetOutput();
-      try
-        {
-        movingImage->Update();
-        }
-      catch( itk::ExceptionObject & excp )
-        {
-        std::cerr << excp << std::endl;
-        return EXIT_FAILURE;
-        }
-      movingImage->DisconnectPipeline();
-      }
-    else
-      {
-      // fixed & moving images passed in
-      fixedImage = this->m_Metrics[currentStage].m_FixedImage;
-      movingImage = this->m_Metrics[currentStage].m_MovingImage;
-      }
+    typename ImageType::Pointer fixedImage = this->m_Metrics[currentStage].m_FixedImage;
+    typename ImageType::Pointer movingImage = this->m_Metrics[currentStage].m_MovingImage;
     // Preprocess images
 
     std::string outputPreprocessingString = "";
@@ -2287,23 +2239,10 @@ RegistrationHelper<VImageDimension>
   // inverse images for retrieval via member functions
   if( this->m_OutputWarpedImageName != "" || !this->m_WriteOutputs )
     {
-    std::string fixedImageFileName = this->m_Metrics[0].m_FixedImageFileName;
-    std::string movingImageFileName = this->m_Metrics[0].m_MovingImageFileName;
+    this->Logger() << "Warping moving image to fixed image space" << std::endl;
 
-    this->Logger() << "Warping " << movingImageFileName << " to " << fixedImageFileName << std::endl;
-
-    typedef itk::ImageFileReader<ImageType> ImageReaderType;
-    typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
-    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-    fixedImageReader->Update();
-    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-    fixedImage->DisconnectPipeline();
-
-    typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
-    movingImageReader->SetFileName( movingImageFileName.c_str() );
-    movingImageReader->Update();
-    typename ImageType::Pointer movingImage = movingImageReader->GetOutput();
-    movingImage->DisconnectPipeline();
+    typename ImageType::Pointer fixedImage = this->m_Metrics[0].m_FixedImage;
+    typename ImageType::Pointer movingImage = this->m_Metrics[0].m_MovingImage;
 
     typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
     typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
@@ -2328,12 +2267,13 @@ RegistrationHelper<VImageDimension>
       writer->SetInput( resampler->GetOutput() );
       writer->Update();
       }
+
     // if writing outputs is turned off, still want to save warped &
     // inverse images for retrieval via member functions
     if( (this->m_OutputInverseWarpedImageName != "" || !this->m_WriteOutputs) &&
         this->m_CompositeTransform->GetInverseTransform().IsNotNull() )
       {
-      this->Logger() << "Warping " << fixedImageFileName << " to " << movingImageFileName << std::endl;
+      this->Logger() << "Warping fixed image to movingImage space" << std::endl;
 
       typedef itk::ResampleImageFilter<ImageType, ImageType> InverseResampleFilterType;
       typename InverseResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
@@ -2388,8 +2328,8 @@ RegistrationHelper<VImageDimension>
     const Metric &          curMetric = this->m_Metrics[i];
     const TransformMethod & curTransform = this->m_TransformMethods[i];
     this->Logger() << "   Metric = " << curMetric.GetMetricAsString() << std::endl
-                   << "     Fixed Image = " << curMetric.m_FixedImageFileName << std::endl
-                   << "     Moving Image = " << curMetric.m_MovingImageFileName << std::endl
+                   << "     Fixed Image = " << curMetric.m_FixedImage << std::endl
+                   << "     Moving Image = " << curMetric.m_MovingImage << std::endl
                    << "     Weighting = " << curMetric.m_Weighting << std::endl
                    << "     Sampling Strategy = "
                    << (curMetric.m_SamplingStrategy == random ? "random" : "regular")
