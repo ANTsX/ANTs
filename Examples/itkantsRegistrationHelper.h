@@ -68,8 +68,9 @@ public:
     };
   enum SamplingStrategy
     {
-    random = 0,
-    regular = 1
+    none = 0,
+    regular = 1,
+    random = 2
     };
   class Metric
   {
