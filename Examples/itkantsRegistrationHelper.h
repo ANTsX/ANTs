@@ -138,7 +138,7 @@ public:
     BSplineDisplacementField = 7,
     TimeVaryingVelocityField = 8,
     TimeVaryingBSplineVelocityField = 9,
-    Syn = 10,
+    SyN = 10,
     UnknownXfrm = 11
     };
 
@@ -240,7 +240,7 @@ public:
   void AddTimeVaryingBSplineVelocityFieldTransform(double GradientStep, std::vector<unsigned int> VelocityFieldMeshSize,
                                                    unsigned int NumberOfTimePointSamples, unsigned int SplineOrder);
 
-  void AddSynTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
+  void AddSyNTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
                        double TotalFieldSigmaInPhysicalSpace);
 
   void SetIterations(const std::vector<std::vector<unsigned int> > & Iterations);

@@ -468,8 +468,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       case RegistrationHelperType::GaussianDisplacementField:
         {
-        float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
-        float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
+        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
         regHelper->AddGaussianDisplacementFieldTransform(learningRate, varianceForUpdateField, varianceForTotalField);
         }
       case RegistrationHelperType::BSplineDisplacementField:
@@ -494,10 +494,12 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         unsigned int numberOfTimeIndices = parser->Convert<unsigned int>( transformOption->GetParameter( 0, 1 ) );
 
-        float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
-        float varianceForUpdateFieldTime = parser->Convert<float>( transformOption->GetParameter( currentStage, 3 ) );
-        float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 4 ) );
-        float varianceForTotalFieldTime = parser->Convert<float>( transformOption->GetParameter( currentStage, 5 ) );
+        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+        const float varianceForUpdateFieldTime = parser->Convert<float>( transformOption->GetParameter( currentStage,
+                                                                                                        3 ) );
+        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 4 ) );
+        const float varianceForTotalFieldTime =
+          parser->Convert<float>( transformOption->GetParameter( currentStage, 5 ) );
         regHelper->AddTimeVaryingVelocityFieldTransform(learningRate,
                                                         numberOfTimeIndices,
                                                         varianceForUpdateField,
@@ -525,11 +527,11 @@ DoRegistration(typename ParserType::Pointer & parser)
                                                                numberOfTimePointSamples,
                                                                splineOrder);
         }
-      case RegistrationHelperType::Syn:
+      case RegistrationHelperType::SyN:
         {
-        float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
-        float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
-        regHelper->AddSynTransform(learningRate, varianceForUpdateField, varianceForTotalField);
+        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
+        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+        regHelper->AddSyNTransform(learningRate, varianceForUpdateField, varianceForTotalField);
         }
         break;
       default:
