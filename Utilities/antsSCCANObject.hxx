@@ -2035,10 +2035,18 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     std::cout << " You need to define a reference matrix " << std::endl;
     exit(1);
     }
-  this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs  );
-  this->m_VariatesP.fill(0);
-  VectorType intercept( this->m_MatrixP.cols(), 1);
-  this->m_VariatesP.set_column( 0, intercept );
+  MatrixType A;
+  MatrixType rmat = this->m_OriginalMatrixR.extract(
+      this->m_OriginalMatrixR.rows(), this->m_OriginalMatrixR.cols() - 1, 0, 1 );
+  rmat = this->NormalizeMatrix( rmat );
+  unsigned int extra_cols = 0;
+  this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs + extra_cols );
+  this->m_VariatesP.fill( 0 );
+  VectorType intercept( this->m_MatrixP.cols(), 1 );
+  if( extra_cols > 0 )
+    {
+    this->m_VariatesP.set_column( 0, intercept );
+    }
   RealType   lmerror = 0.0;
   VectorType original_b =  this->m_MatrixR.get_column( 0 );
   for(  unsigned int colind = extra_cols; colind < this->m_VariatesP.cols(); colind++ )
