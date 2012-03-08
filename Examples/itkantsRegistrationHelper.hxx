@@ -2099,6 +2099,7 @@ RegistrationHelper<VImageDimension>
                     << varianceForUpdateField << ", varianceForTotalField = " << varianceForTotalField << ") ***"
                     << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
+          std::cout << "HACK" << displacementFieldRegistration << std::endl;
           displacementFieldRegistration->StartRegistration();
           }
         catch( itk::ExceptionObject & e )
