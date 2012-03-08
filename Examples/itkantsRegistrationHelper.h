@@ -75,11 +75,8 @@ public:
   class Metric
   {
 public:
-    Metric(MetricEnumeration metricType,
-           typename ImageType::Pointer & fixedImage,
-           typename ImageType::Pointer & movingImage,
-           double weighting,
-           SamplingStrategy samplingStrategy,
+    Metric(MetricEnumeration metricType, typename ImageType::Pointer & fixedImage,
+           typename ImageType::Pointer & movingImage, double weighting, SamplingStrategy samplingStrategy,
            int numberOfBins,
            unsigned int radius,
            double samplingPercentage) :
