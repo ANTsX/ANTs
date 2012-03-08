@@ -21,11 +21,13 @@
 #include "itkObject.h"
 #include "itkWeakPointer.h"
 #include "itkCompositeTransform.h"
+#include "itkImage.h"
 
 namespace itk
 {
 namespace ants
 {
+template <unsigned VImageDimension>
 class RegistrationHelper : public Object
 {
 public:
@@ -35,6 +37,12 @@ public:
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
   typedef WeakPointer<const Self>  ConstWeakPointer;
+
+  typedef double                                        RealType;
+  typedef float                                         PixelType;
+  typedef Image<PixelType, VImageDimension>             ImageType;
+  typedef CompositeTransform<RealType, VImageDimension> CompositeTransformType;
+
   class InitialTransform
   {
 public:
@@ -177,8 +185,11 @@ public:
   /** Run-time type information (and related methods). */
   itkTypeMacro(RegistrationHelper, Object);
 
-  itkSetMacro(ImageDimension, unsigned int);
-  itkGetMacro(ImageDimension, unsigned int);
+  /** Dimension of the image.  This constant is used by functions that are
+   * templated over image type (as opposed to being templated over pixel type
+   * and dimension) when they need compile time access to the dimension of
+   * the image. */
+  itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
 
   itkSetStringMacro(OutputTransformPrefix);
   itkGetStringMacro(OutputTransformPrefix);
@@ -243,16 +254,11 @@ public:
 
 private:
 
-  template <unsigned VDimension>
-  int DoRegistrationInternal();
-
   int ValidateParameters();
 
-  template <unsigned VDimension, class TCompositeTransform>
-  int SetupInitialTransform(typename TCompositeTransform::Pointer & compositeTransform);
+  int SetupInitialTransform(typename CompositeTransformType::Pointer & compositeTransform);
 
   unsigned int                            m_NumberOfStages;
-  unsigned int                            m_ImageDimension;
   std::string                             m_OutputTransformPrefix;
   std::string                             m_OutputWarpedImageName;
   std::string                             m_OutputInverseWarpedImageName;

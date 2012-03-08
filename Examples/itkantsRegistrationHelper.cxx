@@ -247,8 +247,9 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   return outputImage;
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddInitialTransform(const std::string & filename, bool useInverse)
 {
   InitialTransform init(filename, useInverse);
@@ -256,8 +257,9 @@ RegistrationHelper
   this->m_InitialTransforms.push_back(init);
 }
 
-RegistrationHelper::MetricType
-RegistrationHelper
+template <unsigned VImageDimension>
+typename RegistrationHelper<VImageDimension>::MetricType
+RegistrationHelper<VImageDimension>
 ::StringToMetricType(const std::string & str) const
 {
   if( str == "cc" )
@@ -283,8 +285,9 @@ RegistrationHelper
   return IllegalMetric;
 }
 
-RegistrationHelper::XfrmMethod
-RegistrationHelper
+template <unsigned VImageDimension>
+typename RegistrationHelper<VImageDimension>::XfrmMethod
+RegistrationHelper<VImageDimension>
 ::StringToXfrmMethod(const std::string & str) const
 {
   if( str == "rigid" )
@@ -340,8 +343,9 @@ RegistrationHelper
   return UnknownXfrm;
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddMetric(MetricType metricType,
             const std::string fixedImage,
             const std::string movingImage,
@@ -359,8 +363,9 @@ RegistrationHelper
   this->m_Metrics.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddRigidTransform(double GradientStep)
 {
   TransformMethod init;
@@ -370,8 +375,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddAffineTransform(double GradientStep)
 {
   TransformMethod init;
@@ -381,8 +387,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddCompositeAffineTransform(double GradientStep)
 {
   TransformMethod init;
@@ -392,8 +399,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddSimilarityTransform(double GradientStep)
 {
   TransformMethod init;
@@ -403,8 +411,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddTranslationTransform(double GradientStep)
 {
   TransformMethod init;
@@ -414,8 +423,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddBSplineTransform(double GradientStep, std::vector<unsigned int> & MeshSizeAtBaseLevel)
 {
   TransformMethod init;
@@ -426,8 +436,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
                                         double TotalFieldSigmaInPhysicalSpace)
 {
@@ -440,8 +451,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddBSplineDisplacementFieldTransform(double GradientStep,
                                        std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
                                        std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
@@ -457,8 +469,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddTimeVaryingVelocityFieldTransform(double GradientStep,
                                        unsigned int NumberOfTimeIndices,
                                        double UpdateFieldSigmaInPhysicalSpace,
@@ -478,8 +491,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddTimeVaryingBSplineVelocityFieldTransform(double GradientStep, std::vector<unsigned int> VelocityFieldMeshSize,
                                               unsigned int NumberOfTimePointSamples, unsigned int SplineOrder)
 {
@@ -493,8 +507,9 @@ RegistrationHelper
   this->m_TransformMethods.push_back(init);
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::AddSynTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace, double TotalFieldSigmaInPhysicalSpace)
 {
   TransformMethod init;
@@ -506,29 +521,33 @@ RegistrationHelper
   init.m_TotalFieldSigmaInPhysicalSpace = TotalFieldSigmaInPhysicalSpace;
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::SetIterations(const std::vector<std::vector<unsigned int> > & Iterations)
 {
   this->m_Iterations = Iterations;
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::SetSmoothingSigmas(const std::vector<std::vector<float> > & SmoothingSigmas)
 {
   this->m_SmoothingSigmas = SmoothingSigmas;
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::SetShrinkFactors(const std::vector<std::vector<unsigned int> > & ShrinkFactors)
 {
   this->m_ShrinkFactors = ShrinkFactors;
 }
 
+template <unsigned VImageDimension>
 void
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::SetWinsorizeImageIntensities(bool Winsorize, float LowerQuantile, float UpperQuantile)
 {
   this->m_WinsorizeImageIntensities = Winsorize;
@@ -536,8 +555,9 @@ RegistrationHelper
   this->m_UpperQuantile = UpperQuantile;
 }
 
+template <unsigned VImageDimension>
 int
-RegistrationHelper
+RegistrationHelper<VImageDimension>
 ::ValidateParameters()
 {
   this->m_NumberOfStages = this->m_TransformMethods.size();
@@ -575,10 +595,10 @@ RegistrationHelper
   return EXIT_SUCCESS;
 }
 
-template <unsigned VImageDimension, class TCompositeTransform>
+template <unsigned VImageDimension>
 int
-RegistrationHelper
-::SetupInitialTransform(typename TCompositeTransform::Pointer & compositeTransform)
+RegistrationHelper<VImageDimension>
+::SetupInitialTransform(typename CompositeTransformType::Pointer & compositeTransform)
 {
   typedef double RealType;
 
@@ -686,23 +706,18 @@ RegistrationHelper
 
 template <unsigned VImageDimension>
 int
-RegistrationHelper
-::DoRegistrationInternal()
+RegistrationHelper<VImageDimension>
+::DoRegistration()
 {
   if( this->ValidateParameters() != EXIT_SUCCESS )
     {
     return EXIT_FAILURE;
     }
-
-  typedef double                                             RealType;
-  typedef float                                              PixelType;
-  typedef itk::Image<PixelType, VImageDimension>             ImageType;
-  typedef itk::CompositeTransform<RealType, VImageDimension> CompositeTransformType;
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
   // Load an initial initialTransform if requested
 
-  if( this->SetupInitialTransform<VImageDimension, CompositeTransformType>(compositeTransform) != EXIT_SUCCESS )
+  if( this->SetupInitialTransform(compositeTransform) != EXIT_SUCCESS )
     {
     return EXIT_FAILURE;
     }
@@ -2153,22 +2168,6 @@ RegistrationHelper
     }
 
   return EXIT_SUCCESS;
-}
-
-int
-RegistrationHelper
-::DoRegistration()
-{
-  switch( this->m_ImageDimension )
-    {
-    case 2:
-      return this->DoRegistrationInternal<2>();
-    case 3:
-      return this->DoRegistrationInternal<3>();
-    default:
-      break;
-    }
-  return EXIT_FAILURE;
 }
 } // namespace ants
 } // namespace itk
