@@ -346,6 +346,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         doHistogramMatch = true;
         }
       }
+    regHelper->SetUseHistogramMatching(doHistogramMatch);
 
     // Get the number of iterations and use that information to specify the number of levels
 

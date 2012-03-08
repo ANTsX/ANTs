@@ -17,6 +17,7 @@
 *=========================================================================*/
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
+#include <iostream>
 #include <deque>
 #include "itkObject.h"
 #include "itkWeakPointer.h"
@@ -294,10 +295,23 @@ public:
 
   void PrintState() const;
 
+  void SetLogStream(std::ostream & logStream)
+  {
+    this->m_LogStream = &logStream;
+  }
+
+protected:
+  RegistrationHelper();
+  virtual ~RegistrationHelper();
 private:
   int ValidateParameters();
 
   int SetupInitialTransform(typename CompositeTransformType::Pointer & compositeTransform);
+  std::ostream & Logger() const
+  {
+    return *m_LogStream;
+  }
+
   typename CompositeTransformType::Pointer m_CompositeTransform;
   typename ImageType::Pointer              m_WarpedImage;
   typename ImageType::Pointer              m_InverseWarpedImage;
@@ -316,6 +330,7 @@ private:
   bool                                    m_WinsorizeImageIntensities;
   double                                  m_LowerQuantile;
   double                                  m_UpperQuantile;
+  std::ostream *                          m_LogStream;
 };
 } // namespace ants
 } // namespace itk
