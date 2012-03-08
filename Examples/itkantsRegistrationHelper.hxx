@@ -516,9 +516,9 @@ RegistrationHelper<VImageDimension>
 
   init.m_XfrmMethod = SyN;
   init.m_GradientStep = GradientStep;
-  this->m_TransformMethods.push_back(init);
   init.m_UpdateFieldSigmaInPhysicalSpace = UpdateFieldSigmaInPhysicalSpace;
   init.m_TotalFieldSigmaInPhysicalSpace = TotalFieldSigmaInPhysicalSpace;
+  this->m_TransformMethods.push_back(init);
 }
 
 template <unsigned VImageDimension>
