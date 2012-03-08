@@ -258,24 +258,86 @@ RegistrationHelper
 
 RegistrationHelper::MetricType
 RegistrationHelper
-::StringToMetricType(const std::string & str)
+::StringToMetricType(const std::string & str) const
 {
   if( str == "cc" )
     {
     return CC;
     }
-  else if( str == "mi" )
+  else if( str == "mi2" )
     {
     return MI;
     }
-  // else if(str = "mi2")
-  //   {
-  //   return MI2;
-  //   }
-  else if( str == "msq" )
+  else if( str == "mattes" || str == "mi" )
+    {
+    return Mattes;
+    }
+  else if( str == "meansquares" || str == "msq" )
     {
     return MeanSquares;
     }
+  else if( str == "gc" )
+    {
+    return GC;
+    }
+  return IllegalMetric;
+}
+
+RegistrationHelper::XfrmMethod
+RegistrationHelper
+::StringToXfrmMethod(const std::string & str) const
+{
+  if( str == "rigid" )
+    {
+    return Rigid;
+    }
+  else if( str == "affine" )
+    {
+    return Affine;
+    }
+  if( str == "compositeaffine" || str == "compaff" )
+    {
+    return CompositeAffine;
+    }
+  if( str == "similarity" )
+    {
+    return Similarity;
+    }
+  if( str == "translation" )
+    {
+    return Translation;
+    }
+  if( str == "bspline" ||
+      str == "ffd" )
+    {
+    return BSpline;
+    }
+  if( str == "gaussiandisplacementfield" ||
+      str == "gdf" )
+    {
+    return GaussianDisplacementField;
+    }
+  if( str == "bsplinedisplacementfield" ||
+      str == "dmffd" )
+    {
+    return BSplineDisplacementField;
+    }
+  if( str == "timevaryingvelocityfield" ||
+      str == "tvf" )
+    {
+    return TimeVaryingVelocityField;
+    }
+  if( str == "timevaryingbsplinevelocityfield" ||
+      str == "tvdmffd" )
+    {
+    return TimeVaryingBSplineVelocityField;
+    }
+  if( str == "syn" ||
+      str == "symmetricnormalization" )
+    {
+    return Syn;
+    }
+  return UnknownXfrm;
 }
 
 void
@@ -286,7 +348,7 @@ RegistrationHelper
             double weighting,
             SamplingStrategy samplingStrategy,
             int numberOfBins,
-            double radius,
+            unsigned int  radius,
             double samplingPercentage)
 {
   Metric init(metricType, fixedImage, movingImage,
@@ -366,13 +428,15 @@ RegistrationHelper
 
 void
 RegistrationHelper
-::AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace)
+::AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
+                                        double TotalFieldSigmaInPhysicalSpace)
 {
   TransformMethod init;
 
   init.m_XfrmMethod = GaussianDisplacementField;
   init.m_GradientStep = GradientStep;
   init.m_UpdateFieldSigmaInPhysicalSpace = UpdateFieldSigmaInPhysicalSpace;
+  init.m_TotalFieldSigmaInPhysicalSpace = TotalFieldSigmaInPhysicalSpace;
   this->m_TransformMethods.push_back(init);
 }
 
@@ -431,7 +495,7 @@ RegistrationHelper
 
 void
 RegistrationHelper
-::AddSyNTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace, double TotalFieldSigmaInPhysicalSpace)
+::AddSynTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace, double TotalFieldSigmaInPhysicalSpace)
 {
   TransformMethod init;
 
@@ -819,7 +883,7 @@ RegistrationHelper
         metric = correlationMetric;
         }
         break;
-      case MI:
+      case Mattes:
         {
         unsigned int binOption = this->m_Metrics[currentStage].m_NumberOfBins;
         std::cout << "  using the Mattes MI metric (number of bins = " << binOption << ")" << std::endl;
@@ -833,10 +897,9 @@ RegistrationHelper
         metric = mutualInformationMetric;
         }
         break;
-#if 0     // apparently this isn't actually implemented?
-      case MI2:
+      case MI:
         {
-        unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+        unsigned int binOption = this->m_Metrics[currentStage].m_NumberOfBins;
 
         std::cout << "  using the MI metric (number of bins = " << binOption << ")" << std::endl;
         typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType,
@@ -851,7 +914,6 @@ RegistrationHelper
         metric = mutualInformationMetric;
         }
         break;
-#endif
       case MeanSquares:
         {
         std::cout << "  using the MeanSquares metric." << std::endl;
@@ -2024,6 +2086,70 @@ RegistrationHelper
     std::cout << "  Elapsed time (stage "
               << ( this->m_NumberOfStages - currentStage
          - 1 ) << "): " << timer.GetMeanTime() << std::endl << std::endl;
+    }
+
+  if( this->m_OutputWarpedImageName != "" )
+    {
+    std::string fixedImageFileName = this->m_Metrics[0].m_FixedImage;
+    std::string movingImageFileName = this->m_Metrics[0].m_MovingImage;
+
+    std::cout << "Warping " << movingImageFileName << " to " << fixedImageFileName << std::endl;
+
+    typedef itk::ImageFileReader<ImageType> ImageReaderType;
+    typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
+    fixedImageReader->Update();
+    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+    fixedImage->DisconnectPipeline();
+
+    typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+    movingImageReader->SetFileName( movingImageFileName.c_str() );
+    movingImageReader->Update();
+    typename ImageType::Pointer movingImage = movingImageReader->GetOutput();
+    movingImage->DisconnectPipeline();
+
+    typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
+    typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+    resampler->SetTransform( compositeTransform );
+    resampler->SetInput( movingImage );
+    resampler->SetSize( fixedImage->GetLargestPossibleRegion().GetSize() );
+    resampler->SetOutputOrigin(  fixedImage->GetOrigin() );
+    resampler->SetOutputSpacing( fixedImage->GetSpacing() );
+    resampler->SetOutputDirection( fixedImage->GetDirection() );
+    resampler->SetDefaultPixelValue( 0 );
+    resampler->Update();
+
+    std::string fileName = this->m_OutputWarpedImageName;
+
+    typedef itk::ImageFileWriter<ImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( fileName.c_str() );
+    writer->SetInput( resampler->GetOutput() );
+    writer->Update();
+
+    if( this->m_OutputInverseWarpedImageName != "" && compositeTransform->GetInverseTransform() )
+      {
+      std::cout << "Warping " << fixedImageFileName << " to " << movingImageFileName << std::endl;
+
+      typedef itk::ResampleImageFilter<ImageType, ImageType> InverseResampleFilterType;
+      typename InverseResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
+      inverseResampler->SetTransform( compositeTransform->GetInverseTransform() );
+      inverseResampler->SetInput( fixedImage );
+      inverseResampler->SetSize( movingImage->GetBufferedRegion().GetSize() );
+      inverseResampler->SetOutputOrigin( movingImage->GetOrigin() );
+      inverseResampler->SetOutputSpacing( movingImage->GetSpacing() );
+      inverseResampler->SetOutputDirection( movingImage->GetDirection() );
+      inverseResampler->SetDefaultPixelValue( 0 );
+      inverseResampler->Update();
+
+      std::string inverseFileName = this->m_OutputInverseWarpedImageName;
+
+      typedef itk::ImageFileWriter<ImageType> InverseWriterType;
+      typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+      inverseWriter->SetFileName( inverseFileName.c_str() );
+      inverseWriter->SetInput( inverseResampler->GetOutput() );
+      inverseWriter->Update();
+      }
     }
 
   return EXIT_SUCCESS;
