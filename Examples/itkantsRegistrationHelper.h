@@ -184,6 +184,8 @@ public:
   void  AddMetric(MetricType metricType, const std::string fixedImage, const std::string movingImage, double weighting,
                   SamplingStrategy samplingStrategy, int numberOfBins, double radius, double samplingPercentage);
 
+  MetricType StringToMetricType(const std::string & str);
+
   void AddInitialTransform(const std::string & filename, bool useInverse);
 
   void AddRigidTransform(double GradientStep);

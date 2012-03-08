@@ -256,6 +256,28 @@ RegistrationHelper
   this->m_InitialTransforms.push_back(init);
 }
 
+RegistrationHelper::MetricType
+RegistrationHelper
+::StringToMetricType(const std::string & str)
+{
+  if( str == "cc" )
+    {
+    return CC;
+    }
+  else if( str == "mi" )
+    {
+    return MI;
+    }
+  // else if(str = "mi2")
+  //   {
+  //   return MI2;
+  //   }
+  else if( str == "msq" )
+    {
+    return MeanSquares;
+    }
+}
+
 void
 RegistrationHelper
 ::AddMetric(MetricType metricType,
