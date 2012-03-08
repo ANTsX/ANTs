@@ -813,8 +813,6 @@ RegistrationHelper
         typename CorrelationMetricType::RadiusType radius;
         radius.Fill( radiusOption );
         correlationMetric->SetRadius( radius );
-        correlationMetric->SetDoFixedImagePreWarp( false );
-        correlationMetric->SetDoMovingImagePreWarp( false );
         correlationMetric->SetUseMovingImageGradientFilter( false );
         correlationMetric->SetUseFixedImageGradientFilter( false );
 
@@ -829,8 +827,6 @@ RegistrationHelper
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
-        mutualInformationMetric->SetDoFixedImagePreWarp( false );
-        mutualInformationMetric->SetDoMovingImagePreWarp( false );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedSampledPointSet( false );
@@ -848,8 +844,6 @@ RegistrationHelper
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
-        mutualInformationMetric->SetDoFixedImagePreWarp( false );
-        mutualInformationMetric->SetDoMovingImagePreWarp( false );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedSampledPointSet( false );
@@ -865,8 +859,6 @@ RegistrationHelper
         typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType> MeanSquaresMetricType;
         typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
         meanSquaresMetric = meanSquaresMetric;
-        meanSquaresMetric->SetDoFixedImagePreWarp( false );
-        meanSquaresMetric->SetDoMovingImagePreWarp( false );
 
         metric = meanSquaresMetric;
         }
@@ -876,8 +868,6 @@ RegistrationHelper
         std::cout << "  using the global correlation metric." << std::endl;
         typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType> corrMetricType;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
-        corrMetric->SetDoFixedImagePreWarp( false );
-        corrMetric->SetDoMovingImagePreWarp( false );
         metric = corrMetric;
         }
         break;
@@ -1169,8 +1159,6 @@ RegistrationHelper
         }
       case GaussianDisplacementField:
         {
-        metric->SetDoFixedImagePreWarp( true );
-        metric->SetDoMovingImagePreWarp( true );
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
@@ -1518,8 +1506,6 @@ RegistrationHelper
         break;
       case TimeVaryingVelocityField:
         {
-//      metric->SetDoFixedImagePreWarp( true );
-//      metric->SetDoMovingImagePreWarp( true );
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
 
@@ -1902,8 +1888,6 @@ RegistrationHelper
         break;
       case Syn:
         {
-//      metric->SetDoFixedImagePreWarp( true );
-//      metric->SetDoMovingImagePreWarp( true );
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
