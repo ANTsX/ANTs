@@ -56,7 +56,7 @@ public:
   };
   typedef std::deque<InitialTransform> InitialTransformListType;
 
-  enum MetricType
+  enum MetricEnumeration
     {
     CC = 0,
     MI = 1,
@@ -73,7 +73,7 @@ public:
   class Metric
   {
 public:
-    Metric(MetricType metricType,
+    Metric(MetricEnumeration metricType,
            const std::string fixedImage,
            const std::string movingImage,
            double weighting,
@@ -114,7 +114,7 @@ public:
       return "";
     }
 
-    MetricType        m_MetricType;
+    MetricEnumeration m_MetricType;
     const std::string m_FixedImage;
     const std::string m_MovingImage;
     double            m_Weighting;
@@ -203,10 +203,11 @@ public:
   itkSetStringMacro(OutputInverseWarpedImageName);
   itkGetStringMacro(OutputInverseWarpedImageName);
 
-  void  AddMetric(MetricType metricType, const std::string fixedImage, const std::string movingImage, double weighting,
-                  SamplingStrategy samplingStrategy, int numberOfBins, unsigned int radius, double samplingPercentage);
+  void  AddMetric(MetricEnumeration metricType, const std::string fixedImage, const std::string movingImage,
+                  double weighting, SamplingStrategy samplingStrategy, int numberOfBins, unsigned int radius,
+                  double samplingPercentage);
 
-  MetricType StringToMetricType(const std::string & str) const;
+  MetricEnumeration StringToMetricType(const std::string & str) const;
 
   XfrmMethod StringToXfrmMethod(const std::string & str) const;
 

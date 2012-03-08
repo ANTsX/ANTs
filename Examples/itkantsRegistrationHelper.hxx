@@ -258,7 +258,7 @@ RegistrationHelper<VImageDimension>
 }
 
 template <unsigned VImageDimension>
-typename RegistrationHelper<VImageDimension>::MetricType
+typename RegistrationHelper<VImageDimension>::MetricEnumeration
 RegistrationHelper<VImageDimension>
 ::StringToMetricType(const std::string & str) const
 {
@@ -346,7 +346,7 @@ RegistrationHelper<VImageDimension>
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::AddMetric(MetricType metricType,
+::AddMetric(MetricEnumeration metricType,
             const std::string fixedImage,
             const std::string movingImage,
             double weighting,
@@ -600,8 +600,6 @@ int
 RegistrationHelper<VImageDimension>
 ::SetupInitialTransform(typename CompositeTransformType::Pointer & compositeTransform)
 {
-  typedef double RealType;
-
   // Register the matrix offset transform base class to the
   // transform factory for compatibility with the current ANTs.
   typedef itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension> MatrixOffsetTransformType;

@@ -254,8 +254,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   if( outputOption->GetNumberOfParameters( 0 ) > 0 )
     {
     outputPrefix = outputOption->GetParameter( 0, 0 );
-    regHelper->SetOutputTransformPrefix(outputPrefix);
     }
+  regHelper->SetOutputTransformPrefix(outputPrefix);
   if( outputOption->GetNumberOfParameters(0) > 1 )
     {
     std::string outputWarpedImageName = outputOption->GetParameter( 0, 1 );
@@ -312,7 +312,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     std::string whichMetric = metricOption->GetValue( currentStage );
     ConvertToLowerCase( whichMetric );
 
-    typename RegistrationHelperType::MetricType curMetric =
+    typename RegistrationHelperType::MetricEnumeration curMetric =
       regHelper->StringToMetricType(whichMetric);
 
     float lowerQuantile = 0.0;
