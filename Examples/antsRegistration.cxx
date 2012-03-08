@@ -17,6 +17,7 @@
 *=========================================================================*/
 
 #include "antsCommandLineParser.h"
+#include "itkantsRegistrationHelper.h"
 #include "itkImageRegistrationMethodv4.h"
 #include "itkSyNImageRegistrationMethod.h"
 #include "itkTimeVaryingVelocityFieldImageRegistrationMethodv4.h"
