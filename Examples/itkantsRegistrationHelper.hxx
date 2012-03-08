@@ -590,7 +590,11 @@ RegistrationHelper<VImageDimension>
     std::cerr << "Output option not specified." << std::endl;
     return EXIT_FAILURE;
     }
-
+  if( this->m_WriteOutputs && this->m_OutputTransformPrefix == "" )
+    {
+    std::cerr << "Output option not specified." << std::endl;
+    return EXIT_FAILURE;
+    }
   return EXIT_SUCCESS;
 }
 
@@ -601,18 +605,23 @@ RegistrationHelper<VImageDimension>
 {
   // Register the matrix offset transform base class to the
   // transform factory for compatibility with the current ANTs.
-  typedef itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+  typedef itk::MatrixOffsetTransformBase<double, VImageDimension,
+                                         VImageDimension> MatrixOffsetTransformType;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
 
   // Load an identity transform in case no transforms are loaded.
   typedef itk::IdentityTransform<RealType, VImageDimension> IdentityTransformType;
   typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+
   compositeTransform->AddTransform( identityTransform );
   compositeTransform->SetAllTransformsToOptimize( false );
+
   if( this->m_InitialTransforms.size() == 0 )
     {
     return EXIT_SUCCESS;
     }
+  std::deque<std::string> initialTransformNames;
+  std::deque<std::string> initialTransformTypes;
   // loop through list
   for( unsigned int n = 0; n < m_InitialTransforms.size(); n++ )
     {
@@ -625,7 +634,8 @@ RegistrationHelper<VImageDimension>
     bool hasTransformBeenRead = false;
     initialTransformName = this->m_InitialTransforms[n].m_Filename;
 
-    typedef itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
+    typedef itk::DisplacementFieldTransform<double,
+                                            VImageDimension> DisplacementFieldTransformType;
 
     typedef typename DisplacementFieldTransformType::DisplacementFieldType DisplacementFieldType;
 
@@ -687,7 +697,8 @@ RegistrationHelper<VImageDimension>
 
       if( this->m_InitialTransforms[n].m_UseInverse )
         {
-        initialTransform = dynamic_cast<TransformType *>(initialTransform->GetInverseTransform().GetPointer() );
+        initialTransform =
+          dynamic_cast<TransformType *>(initialTransform->GetInverseTransform().GetPointer() );
         if( initialTransform.IsNull() )
           {
           std::cerr << "Inverse does not exist for " << initialTransformName
@@ -695,8 +706,16 @@ RegistrationHelper<VImageDimension>
           return EXIT_FAILURE;
           }
         }
-      compositeTransform->AddTransform( initialTransform );
       }
+    compositeTransform->AddTransform( initialTransform );
+    initialTransformNames.push_back( initialTransformName );
+    initialTransformTypes.push_back( initialTransform->GetNameOfClass() );
+    }
+  std::cout << "Initializing with the following transforms " << "(in order): " << std::endl;
+  for( unsigned int n = 0; n < initialTransformNames.size(); n++ )
+    {
+    std::cout << "  " << n + 1 << ". " << initialTransformNames[n] << " (type = "
+              << initialTransformTypes[n] << ")" << std::endl;
     }
   return EXIT_SUCCESS;
 }
@@ -706,12 +725,18 @@ int
 RegistrationHelper<VImageDimension>
 ::DoRegistration()
 {
+  itk::TimeProbe totalTimer;
+
+  totalTimer.Start();
+
   this->m_NumberOfStages = this->m_TransformMethods.size();
-  this->PrintState();
+
   if( this->ValidateParameters() != EXIT_SUCCESS )
     {
     return EXIT_FAILURE;
     }
+  std::cout << "Registration using " << this->m_NumberOfStages << " total stages." << std::endl;
+
   this->m_CompositeTransform = CompositeTransformType::New();
 
   // Load an initial initialTransform if requested
@@ -779,14 +804,21 @@ RegistrationHelper<VImageDimension>
     PixelType lowerScaleValue = 0.0;
     PixelType upperScaleValue = 1.0;
 
+    if( this->m_WinsorizeImageIntensities )
+      {
+      outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
+      }
+
     typename ImageType::Pointer preprocessFixedImage =
-      PreprocessImage<ImageType>( fixedImage, lowerScaleValue, upperScaleValue, this->m_LowerQuantile,
-                                  this->m_UpperQuantile,
+      PreprocessImage<ImageType>( fixedImage, lowerScaleValue,
+                                  upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
                                   NULL );
 
     typename ImageType::Pointer preprocessMovingImage;
+
     if( this->m_UseHistogramMatching )
       {
+      outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
       preprocessMovingImage =
         PreprocessImage<ImageType>( movingImage,
                                     lowerScaleValue, upperScaleValue,
@@ -801,6 +833,8 @@ RegistrationHelper<VImageDimension>
                                     this->m_LowerQuantile, this->m_UpperQuantile,
                                     NULL );
       }
+
+    std::cout << outputPreprocessingString << std::flush;
 
     // Get the number of iterations and use that information to specify the number of levels
 
@@ -826,17 +860,15 @@ RegistrationHelper<VImageDimension>
 
     if( factors.size() != numberOfLevels )
       {
-      std::cerr << "ERROR:  The number of shrink factors does not match the number of levels." << std::endl;
+      std::cerr << "ERROR:  The number of shrink factors"
+                << " does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
-    else
+    for( unsigned int n = 0; n < shrinkFactorsPerLevel.Size(); n++ )
       {
-      for( unsigned int n = 0; n < shrinkFactorsPerLevel.Size(); n++ )
-        {
-        shrinkFactorsPerLevel[n] = factors[n];
-        }
-      std::cout << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
+      shrinkFactorsPerLevel[n] = factors[n];
       }
+    std::cout << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
 
     // Get smoothing sigmas
 
@@ -846,17 +878,15 @@ RegistrationHelper<VImageDimension>
 
     if( sigmas.size() != numberOfLevels )
       {
-      std::cerr << "ERROR:  The number of smoothing sigmas does not match the number of levels." << std::endl;
+      std::cerr << "ERROR:  The number of smoothing sigmas "
+                << "does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
-    else
+    for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
       {
-      for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
-        {
-        smoothingSigmasPerLevel[n] = sigmas[n];
-        }
-      std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
+      smoothingSigmasPerLevel[n] = sigmas[n];
       }
+    std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
 
     // Set up the image metric and scales estimator
 
@@ -865,8 +895,8 @@ RegistrationHelper<VImageDimension>
 
     float            samplingPercentage = this->m_Metrics[currentStage].m_SamplingPercentage;
     SamplingStrategy samplingStrategy = this->m_Metrics[currentStage].m_SamplingStrategy;
-    typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy = AffineRegistrationType::NONE;
-
+    typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy
+      = AffineRegistrationType::NONE;
     if( samplingStrategy == random )
       {
       std::cout << "  random sampling (percentage = " << samplingPercentage << ")" << std::endl;
@@ -884,7 +914,8 @@ RegistrationHelper<VImageDimension>
         {
         unsigned int radiusOption = this->m_Metrics[currentStage].m_Radius;
 
-        std::cout << "  using the CC metric (radius = " << radiusOption << ")" << std::endl;
+        std::cout << "  using the CC metric (radius = "
+                  << radiusOption << ")" << std::endl;
         typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType> CorrelationMetricType;
         typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
         typename CorrelationMetricType::RadiusType radius;
@@ -899,9 +930,12 @@ RegistrationHelper<VImageDimension>
       case Mattes:
         {
         unsigned int binOption = this->m_Metrics[currentStage].m_NumberOfBins;
-        std::cout << "  using the Mattes MI metric (number of bins = " << binOption << ")" << std::endl;
-        typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType> MutualInformationMetricType;
-        typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
+        std::cout << "  using the Mattes MI metric (number of bins = "
+                  << binOption << ")" << std::endl;
+        typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType>
+          MutualInformationMetricType;
+        typename MutualInformationMetricType::Pointer mutualInformationMetric =
+          MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
@@ -917,7 +951,8 @@ RegistrationHelper<VImageDimension>
         std::cout << "  using the MI metric (number of bins = " << binOption << ")" << std::endl;
         typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType,
                                                                          ImageType> MutualInformationMetricType;
-        typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
+        typename MutualInformationMetricType::Pointer mutualInformationMetric =
+          MutualInformationMetricType::New();
         mutualInformationMetric = mutualInformationMetric;
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
@@ -958,6 +993,7 @@ RegistrationHelper<VImageDimension>
     // on the command observer.
 
     float learningRate = this->m_TransformMethods[currentStage].m_GradientStep;
+
     typedef itk::RegistrationParameterScalesFromShift<MetricType> ScalesEstimatorType;
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( metric );
@@ -1019,7 +1055,9 @@ RegistrationHelper<VImageDimension>
         // Write out the affine transform
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str() + std::string( "Affine.mat" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Affine.mat";
 
           typedef itk::TransformFileWriter TransformWriterType;
           typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
@@ -1072,7 +1110,9 @@ RegistrationHelper<VImageDimension>
         if( this->m_WriteOutputs )
           {
           // Write out the rigid transform
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str() + std::string( "Rigid.mat" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Rigid.mat";
 
           typedef itk::TransformFileWriter TransformWriterType;
           typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
@@ -1128,7 +1168,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str() + std::string( "Affine.mat" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Affine.mat";
 
           typedef itk::TransformFileWriter TransformWriterType;
           typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
@@ -1183,8 +1225,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str() + std::string(
-              "Similarity.mat" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Similarity.mat";
 
           typedef itk::TransformFileWriter TransformWriterType;
           typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
@@ -1240,8 +1283,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str() + std::string(
-              "Translation.mat" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Translation.mat";
 
           typedef itk::TransformFileWriter TransformWriterType;
           typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
@@ -1355,8 +1399,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str()
-            + std::string( "Warp.nii.gz" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Warp.nii.gz";
 
           typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
           typename WriterType::Pointer writer = WriterType::New();
@@ -1493,8 +1538,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str()
-            + std::string( "Warp.nii.gz" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Warp.nii.gz";
 
           typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
           typename WriterType::Pointer writer = WriterType::New();
@@ -1598,8 +1644,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str()
-            + std::string( "BSpline.txt" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "BSpline.txt";
 
           typedef itk::TransformFileWriter TransformWriterType;
           typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
@@ -1780,8 +1827,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str()
-            + std::string( "Warp.nii.gz" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Warp.nii.gz";
 
           typedef typename OutputTransformType::DisplacementFieldType DisplacementFieldType;
 
@@ -1920,7 +1968,6 @@ RegistrationHelper<VImageDimension>
         outputTransform->SetVelocityFieldDirection( sampledVelocityFieldDirection );
         outputTransform->SetVelocityFieldSpacing( sampledVelocityFieldSpacing );
         outputTransform->SetVelocityFieldSize( sampledVelocityFieldSize );
-//      velocityFieldRegistration->GetOutput()->Get()->IntegrateVelocityField();
 
         typename VelocityFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
         numberOfIterationsPerLevel.SetSize( numberOfLevels );
@@ -1977,8 +2024,9 @@ RegistrationHelper<VImageDimension>
 
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str()
-            + std::string( "Warp.nii.gz" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Warp.nii.gz";
 
           typedef typename OutputTransformType::DisplacementFieldType DisplacementFieldType;
 
@@ -2115,8 +2163,9 @@ RegistrationHelper<VImageDimension>
         // Write out the displacement field and its inverse
         if( this->m_WriteOutputs )
           {
-          std::string filename = this->m_OutputTransformPrefix + currentStageString.str()
-            + std::string( "Warp.nii.gz" );
+          std::string filename = this->m_OutputTransformPrefix;
+          filename += currentStageString.str();
+          filename += "Warp.nii.gz";
 
           typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
           typename WriterType::Pointer writer = WriterType::New();
@@ -2220,6 +2269,8 @@ RegistrationHelper<VImageDimension>
         }
       }
     }
+  totalTimer.Stop();
+  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMeanTime() << std::endl;
   return EXIT_SUCCESS;
 }
 
