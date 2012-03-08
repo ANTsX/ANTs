@@ -84,6 +84,25 @@ public:
            unsigned int radius,
            double samplingPercentage) :
       m_MetricType(metricType),
+      m_FixedImageFileName(fixedImage),
+      m_MovingImageFileName(movingImage),
+      m_Weighting(weighting),
+      m_SamplingStrategy(samplingStrategy),
+      m_NumberOfBins(numberOfBins),
+      m_Radius(radius),
+      m_SamplingPercentage(samplingPercentage)
+    {
+    }
+
+    Metric(MetricEnumeration metricType,
+           typename ImageType::Pointer & fixedImage,
+           typename ImageType::Pointer & movingImage,
+           double weighting,
+           SamplingStrategy samplingStrategy,
+           int numberOfBins,
+           unsigned int radius,
+           double samplingPercentage) :
+      m_MetricType(metricType),
       m_FixedImage(fixedImage),
       m_MovingImage(movingImage),
       m_Weighting(weighting),
@@ -117,13 +136,15 @@ public:
     }
 
     MetricEnumeration m_MetricType;
-    const std::string m_FixedImage;
-    const std::string m_MovingImage;
-    double            m_Weighting;
-    SamplingStrategy  m_SamplingStrategy;
-    int               m_NumberOfBins;
-    unsigned int      m_Radius;
-    double            m_SamplingPercentage;
+    const std::string m_FixedImageFileName;
+    const std::string m_MovingImageFileName;
+    typename ImageType::Pointer m_FixedImage;
+    typename ImageType::Pointer m_MovingImage;
+    double           m_Weighting;
+    SamplingStrategy m_SamplingStrategy;
+    int              m_NumberOfBins;
+    unsigned int     m_Radius;
+    double           m_SamplingPercentage;
   };
 
   typedef std::deque<Metric> MetricListType;
