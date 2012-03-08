@@ -191,6 +191,9 @@ public:
    * the image. */
   itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
 
+  itkSetMacro(WriteOutputs, bool);
+  itkGetMacro(WriteOutputs, bool);
+
   itkSetStringMacro(OutputTransformPrefix);
   itkGetStringMacro(OutputTransformPrefix);
 
@@ -250,14 +253,21 @@ public:
 
   void SetWinsorizeImageIntensities(bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0);
 
+  itkGetObjectMacro(CompositeTransform, CompositeTransformType);
+
+  itkGetObjectMacro(WarpedImage, ImageType);
+  itkGetObjectMacro(InverseWarpedImage, ImageType);
+
   int DoRegistration();
 
 private:
-
   int ValidateParameters();
 
   int SetupInitialTransform(typename CompositeTransformType::Pointer & compositeTransform);
-
+  typename CompositeTransformType::Pointer m_CompositeTransform;
+  typename ImageType::Pointer              m_WarpedImage;
+  typename ImageType::Pointer              m_InverseWarpedImage;
+  bool                                    m_WriteOutputs;
   unsigned int                            m_NumberOfStages;
   std::string                             m_OutputTransformPrefix;
   std::string                             m_OutputWarpedImageName;
@@ -275,5 +285,7 @@ private:
 };
 } // namespace ants
 } // namespace itk
+
+#include "itkantsRegistrationHelper.hxx"
 
 #endif

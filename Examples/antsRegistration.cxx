@@ -230,6 +230,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   typename RegistrationHelperType::Pointer regHelper =
     RegistrationHelperType::New();
 
+  regHelper->SetWriteOutputs(true);
+
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
   OptionType::Pointer metricOption = parser->GetOption( "metric" );
@@ -252,6 +254,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   if( outputOption->GetNumberOfParameters( 0 ) > 0 )
     {
     outputPrefix = outputOption->GetParameter( 0, 0 );
+    regHelper->SetOutputTransformPrefix(outputPrefix);
     }
   if( outputOption->GetNumberOfParameters(0) > 1 )
     {

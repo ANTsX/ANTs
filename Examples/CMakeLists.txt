@@ -204,7 +204,7 @@ add_executable(CreateDTICohort CreateDTICohort.cxx  ${UI_SOURCES})
 target_link_libraries(CreateDTICohort ${ITK_LIBRARIES})
 add_executable(AverageAffineTransform AverageAffineTransform.cxx)
  target_link_libraries(AverageAffineTransform ${ITK_LIBRARIES})
-add_executable(antsRegistration antsRegistration.cxx itkantsRegistrationHelper.cxx ${UI_SOURCES})
+add_executable(antsRegistration antsRegistration.cxx ${UI_SOURCES})
  target_link_libraries(antsRegistration ${ITK_LIBRARIES})
 add_executable(antsApplyTransforms antsApplyTransforms.cxx ${UI_SOURCES})
  target_link_libraries(antsApplyTransforms ${ITK_LIBRARIES})
@@ -334,6 +334,24 @@ install(PROGRAMS ../Scripts/ants.sh  ../Scripts/basic_ants_example.sh
 set(Libraries
 ${ITK_LIBRARIES}
 )
+
+set(TEST_BINARY_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+add_test(antsRegistrationTest1 ${TEST_BINARY_DIR}/antsRegistration -d 2
+  -m mi[  ${R16_IMAGE}, ${R64_IMAGE} , 1 , 20, Regular , 0.05 ]
+  -t affine[ 1.0 ]
+  -i 2100x1200x1200x0
+  -s 3x2x1x0
+  -f 4x3x2x1
+  -m cc[  ${R16_IMAGE}, ${R64_IMAGE} , 1, 4 ]
+  -t syn[ 5.0, 3, 0.0 ]
+  -i 100x100x50
+  -s 2x1x0
+  -f 3x2x1
+  -u 1
+  -o [xtest_CC,xtest_CC.nii.gz,xtest_CC_inv.nii.gz] )
+
+
 #set(CurrentExe "GlamorousGlue")
 #add_executable(${CurrentExe} GlamorousGlue.cxx)
 #target_link_libraries(${CurrentExe} ${Libraries})
