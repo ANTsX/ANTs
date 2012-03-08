@@ -334,8 +334,10 @@ install(PROGRAMS ../Scripts/ants.sh  ../Scripts/basic_ants_example.sh
 set(Libraries
 ${ITK_LIBRARIES}
 )
-
 set(TEST_BINARY_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set(DATA_DIR ${CMAKE_CURRENT_LIST_DIR}/Data)
+set(R16_IMAGE ${DATA_DIR}/r16slice.nii.gz)
+set(R64_IMAGE ${DATA_DIR}/r64slice.nii.gz)
 
 add_test(antsRegistrationTest1 ${TEST_BINARY_DIR}/antsRegistration -d 2
   -m mi[  ${R16_IMAGE}, ${R64_IMAGE} , 1 , 20, Regular , 0.05 ]

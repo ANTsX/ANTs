@@ -560,7 +560,6 @@ int
 RegistrationHelper<VImageDimension>
 ::ValidateParameters()
 {
-  this->m_NumberOfStages = this->m_TransformMethods.size();
   if( this->m_NumberOfStages == 0 )
     {
     std::cerr << "No transformations are specified." << std::endl;
@@ -707,6 +706,8 @@ int
 RegistrationHelper<VImageDimension>
 ::DoRegistration()
 {
+  this->m_NumberOfStages = this->m_TransformMethods.size();
+  this->PrintState();
   if( this->ValidateParameters() != EXIT_SUCCESS )
     {
     return EXIT_FAILURE;
@@ -2220,6 +2221,48 @@ RegistrationHelper<VImageDimension>
       }
     }
   return EXIT_SUCCESS;
+}
+
+template <unsigned VImageDimension>
+void
+RegistrationHelper<VImageDimension>
+::PrintState() const
+{
+  std::cout << "Dimension = " << Self::ImageDimension << std::endl
+            << "WriteOutputs = " << this->m_WriteOutputs << std::endl
+            << "Number of stages = " << this->m_NumberOfStages << std::endl
+            << "Output transform prefix = " << this->m_OutputTransformPrefix << std::endl
+            << "Output Transform Prefix = " << this->m_OutputTransformPrefix << std::endl
+            << "Output Warped Image Name = " << this->m_OutputWarpedImageName << std::endl
+            << "Output Inverse Warped ImageName = " << this->m_OutputInverseWarpedImageName << std::endl
+            << "Initial Transforms Size = " << this->m_InitialTransforms.size() << std::endl;
+
+  for( unsigned i = 0; i < this->m_NumberOfStages; i++ )
+    {
+    std::cout << "Stage " << i << std::endl;
+    const Metric &          curMetric = this->m_Metrics[i];
+    const TransformMethod & curTransform = this->m_TransformMethods[i];
+    std::cout << "   Metric = " << curMetric.GetMetricAsString() << std::endl
+              << "     Fixed Image = " << curMetric.m_FixedImage << std::endl
+              << "     Moving Image = " << curMetric.m_MovingImage << std::endl
+              << "     Weighting = " << curMetric.m_Weighting << std::endl
+              << "     Sampling Strategy = "
+              << (curMetric.m_SamplingStrategy == random ? "random" : "regular")
+              << std::endl
+              << "     NumberOfBins = " << curMetric.m_NumberOfBins << std::endl
+              << "     Radius = " << curMetric.m_Radius << std::endl
+              << "     Sampling percentage  = " << curMetric.m_SamplingPercentage << std::endl
+              << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
+              << "     Gradient Step = " << curTransform.m_GradientStep << std::endl
+              << "     Update Field Sigma (physical space) = " << curTransform.m_UpdateFieldSigmaInPhysicalSpace
+              << std::endl
+              << "     Total Field Sigma (physical space) = " << curTransform.m_TotalFieldSigmaInPhysicalSpace
+              << std::endl
+              << "     Update Field Time Sigma = " << curTransform.m_UpdateFieldTimeSigma << std::endl
+              << "     Total Field Time Sigma  = " << curTransform.m_TotalFieldTimeSigma << std::endl
+              << "     Number of Time Indices = " << curTransform.m_NumberOfTimeIndices << std::endl
+              << "     Number of Time Point Samples = " << curTransform.m_NumberOfTimeIndices << std::endl;
+    }
 }
 } // namespace ants
 } // namespace itk
