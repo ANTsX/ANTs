@@ -219,6 +219,60 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 }
 
+static
+const char *
+RegTypeToFileName(const std::string & type, bool & writeInverse)
+{
+  std::string str(type);
+
+  ConvertToLowerCase(str);
+  if( str == "syn" ||
+      str == "symmetricnormalization" ||
+      str == "timevaryingbsplinevelocityfield" ||
+      str == "tvdmffd" ||
+      str == "timevaryingvelocityfield" ||
+      str == "tvf" )
+    {
+    writeInverse = true;
+    }
+  if( str == "rigid" )
+    {
+    return "Rigid.mat";
+    }
+  else if( str == "affine" ||
+           str == "compositeaffine" || str == "compaff" )
+    {
+    return "Affine.mat";
+    }
+  else if( str == "similarity" )
+    {
+    return "Similarity.mat";
+    }
+  else if( str == "translation" )
+    {
+    return "Translation.mat";
+    }
+  else if( str == "bspline" ||
+           str == "ffd" )
+    {
+    return "BSpline.txt";
+    }
+  else if( str == "gaussiandisplacementfield" ||
+           str == "gdf" ||
+           str == "bsplinedisplacementfield" ||
+           str == "dmffd" ||
+           str == "timevaryingvelocityfield" ||
+           str == "tvf" ||
+           str == "timevaryingbsplinevelocityfield" ||
+           str == "tvdmffd" ||
+           str == "syn" ||
+           str == "symmetricnormalization" )
+    {
+    return "Warp.nii.gz";
+    }
+  return "BOGUS.XXXX";
+}
+
 typedef itk::ants::CommandLineParser ParserType;
 typedef ParserType::OptionType       OptionType;
 
@@ -231,8 +285,6 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   typename RegistrationHelperType::Pointer regHelper =
     RegistrationHelperType::New();
-
-  regHelper->SetWriteOutputs(true);
 
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
@@ -257,16 +309,16 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     outputPrefix = outputOption->GetParameter( 0, 0 );
     }
-  regHelper->SetOutputTransformPrefix(outputPrefix);
+  std::string outputWarpedImageName;
   if( outputOption->GetNumberOfParameters(0) > 1 )
     {
-    std::string outputWarpedImageName = outputOption->GetParameter( 0, 1 );
-    regHelper->SetOutputWarpedImageName(outputWarpedImageName);
+    outputWarpedImageName = outputOption->GetParameter( 0, 1 );
     }
+
+  std::string outputInverseWarpedImageName;
   if( outputOption->GetNumberOfParameters(0) > 2 )
     {
-    std::string outputInverseWarpedImageName = outputOption->GetParameter( 0, 2 );
-    regHelper->SetOutputInverseWarpedImageName(outputInverseWarpedImageName);
+    outputInverseWarpedImageName = outputOption->GetParameter( 0, 2 );
     }
 
   ParserType::OptionType::Pointer initialTransformOption = parser->GetOption( "initial-transform" );
@@ -375,7 +427,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     regHelper->SetWinsorizeImageIntensities(doWinsorize, lowerQuantile, upperQuantile);
 
-    bool                doHistogramMatch = false;
+    bool                doHistogramMatch(false);
     OptionType::Pointer histOption = parser->GetOption( "use-histogram-matching" );
     if( histOption && histOption->GetNumberOfValues() > 0 )
       {
@@ -518,10 +570,10 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       case RegistrationHelperType::BSplineDisplacementField:
         {
-        std::vector<unsigned int> meshSizeForTheUpdateField = parser->ConvertVector<unsigned int>(
-            transformOption->GetParameter( currentStage, 1 ) );
-        std::vector<unsigned int> meshSizeForTheTotalField = parser->ConvertVector<unsigned int>(
-            transformOption->GetParameter( currentStage, 2 ) );
+        std::vector<unsigned int> meshSizeForTheUpdateField =
+          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+        std::vector<unsigned int> meshSizeForTheTotalField =
+          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
 
         unsigned int splineOrder = 3;
         if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
@@ -595,6 +647,128 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     return EXIT_FAILURE;
     }
+  //
+  // write out transforms stored in the composite
+  typename RegistrationHelperType::CompositeTransformType::Pointer resultTransform =
+    regHelper->GetCompositeTransform();
+  unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
+  //
+  // the last shall be first and the first shall be last:
+  // the transforms are added to the composite transform
+  // in the reverse order that they are specified on the command line.
+  unsigned xfrmIndex = (numTransforms - 1);
+  for( unsigned i = 0; i < numTransforms; i++, xfrmIndex-- )
+    {
+    bool writeInverse;
+
+    std::string transformTemplateName =
+      RegTypeToFileName(transformOption->GetParameter(xfrmIndex), writeInverse);
+
+    std::stringstream curFileName;
+    curFileName << outputPrefix << xfrmIndex << transformTemplateName;
+
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
+      resultTransform->GetNthTransform(i);
+
+    // write transform file
+    if( transformTemplateName != "Warp.nii.gz" )
+      {
+      typedef itk::TransformFileWriter TransformWriterType;
+      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+      transformWriter->SetInput(curTransform);
+      transformWriter->SetFileName(curFileName.str().c_str() );
+      try
+        {
+        transformWriter->Update();
+        }
+      catch( ... )
+        {
+        std::cerr << "Failed to write transform file " << curFileName.str().c_str();
+        }
+      }
+    else
+    // write displacement field
+      {
+      typedef typename RegistrationHelperType::DisplacementFieldTransformType
+        DisplacementFieldTransformType;
+
+      typedef itk::Image<itk::Vector<double, VDimension>, VDimension> DisplacementFieldType;
+      typename DisplacementFieldTransformType::Pointer dispTransform =
+        dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );
+      if( dispTransform.IsNull() )
+        {
+        std::cerr << "Cast failed on transform of type "
+                  << curTransform->GetNameOfClass()
+                  << " to write " << curFileName.str().c_str()
+                  << std::endl;
+        continue;
+        }
+      typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetInput( dispTransform->GetDisplacementField() );
+      writer->SetFileName( curFileName.str().c_str() );
+      try
+        {
+        writer->Update();
+        }
+      catch( ... )
+        {
+        std::cerr << "Failed to write transform file " << curFileName.str().c_str();
+        }
+
+      if( writeInverse )
+        {
+        std::stringstream curInverseFileName;
+        curInverseFileName << outputPrefix << xfrmIndex
+                           << "InverseWarp.nii.gz";
+        typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
+        typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+        inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
+        inverseWriter->SetFileName( curInverseFileName.str().c_str() );
+        try
+          {
+          inverseWriter->Update();
+          }
+        catch( ... )
+          {
+          std::cerr << "Failed to write transform file " << curInverseFileName.str().c_str();
+          }
+        }
+      }
+    }
+  typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
+
+  typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
+  typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
+  writer->SetFileName( outputWarpedImageName.c_str() );
+  writer->SetInput( warpedImage );
+  try
+    {
+    writer->Update();
+    }
+  catch( ... )
+    {
+    std::cerr << "Failed to write warped image " << outputWarpedImageName << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
+  if( inverseWarpedImage.IsNotNull() )
+    {
+    typename WarpedImageWriterType::Pointer inverseWriter = WarpedImageWriterType::New();
+    inverseWriter->SetFileName( outputInverseWarpedImageName.c_str() );
+    inverseWriter->SetInput( inverseWarpedImage );
+    try
+      {
+      inverseWriter->Update();
+      }
+    catch( ... )
+      {
+      std::cerr << "Failed to write inverse warped image " << outputInverseWarpedImageName << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
   return EXIT_SUCCESS;
 
   // Write out warped image(s), if requested.

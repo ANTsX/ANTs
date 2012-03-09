@@ -21,6 +21,7 @@
 #include <deque>
 #include "itkObject.h"
 #include "itkWeakPointer.h"
+#include "itkDisplacementFieldTransform.h"
 #include "itkCompositeTransform.h"
 #include "itkImage.h"
 
@@ -39,10 +40,11 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
   typedef WeakPointer<const Self>  ConstWeakPointer;
 
-  typedef double                                        RealType;
-  typedef float                                         PixelType;
-  typedef Image<PixelType, VImageDimension>             ImageType;
-  typedef CompositeTransform<RealType, VImageDimension> CompositeTransformType;
+  typedef double                                                RealType;
+  typedef float                                                 PixelType;
+  typedef Image<PixelType, VImageDimension>                     ImageType;
+  typedef CompositeTransform<RealType, VImageDimension>         CompositeTransformType;
+  typedef DisplacementFieldTransform<RealType, VImageDimension> DisplacementFieldTransformType;
 
   class InitialTransform
   {
@@ -221,18 +223,6 @@ public:
    * the image. */
   itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
 
-  itkSetMacro(WriteOutputs, bool);
-  itkGetMacro(WriteOutputs, bool);
-
-  itkSetStringMacro(OutputTransformPrefix);
-  itkGetStringMacro(OutputTransformPrefix);
-
-  itkSetStringMacro(OutputWarpedImageName);
-  itkGetStringMacro(OutputWarpedImageName);
-
-  itkSetStringMacro(OutputInverseWarpedImageName);
-  itkGetStringMacro(OutputInverseWarpedImageName);
-
   void AddMetric(MetricEnumeration metricType,
                  typename ImageType::Pointer & fixedImage,
                  typename ImageType::Pointer & movingImage,
@@ -291,8 +281,9 @@ public:
 
   itkGetObjectMacro(CompositeTransform, CompositeTransformType);
 
-  itkGetObjectMacro(WarpedImage, ImageType);
-  itkGetObjectMacro(InverseWarpedImage, ImageType);
+  ImageType * GetWarpedImage();
+
+  ImageType * GetInverseWarpedImage();
 
   int DoRegistration();
 
@@ -318,11 +309,7 @@ private:
   typename CompositeTransformType::Pointer m_CompositeTransform;
   typename ImageType::Pointer              m_WarpedImage;
   typename ImageType::Pointer              m_InverseWarpedImage;
-  bool                                    m_WriteOutputs;
   unsigned int                            m_NumberOfStages;
-  std::string                             m_OutputTransformPrefix;
-  std::string                             m_OutputWarpedImageName;
-  std::string                             m_OutputInverseWarpedImageName;
   InitialTransformListType                m_InitialTransforms;
   MetricListType                          m_Metrics;
   TransformMethodListType                 m_TransformMethods;

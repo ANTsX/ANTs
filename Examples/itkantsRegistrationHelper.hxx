@@ -202,11 +202,7 @@ RegistrationHelper<VImageDimension>
   m_CompositeTransform(NULL),
   m_WarpedImage(NULL),
   m_InverseWarpedImage(NULL),
-  m_WriteOutputs(false),
   m_NumberOfStages(0),
-  m_OutputTransformPrefix(""),
-  m_OutputWarpedImageName(""),
-  m_OutputInverseWarpedImageName(""),
   m_InitialTransforms(),
   m_Metrics(),
   m_TransformMethods(),
@@ -629,16 +625,6 @@ RegistrationHelper<VImageDimension>
     std::cerr << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
-  if( this->m_OutputTransformPrefix == "" )
-    {
-    std::cerr << "Output option not specified." << std::endl;
-    return EXIT_FAILURE;
-    }
-  if( this->m_WriteOutputs && this->m_OutputTransformPrefix == "" )
-    {
-    std::cerr << "Output option not specified." << std::endl;
-    return EXIT_FAILURE;
-    }
   for( unsigned int i = 0; i < this->m_NumberOfStages; i++ )
     {
     if( this->m_Metrics[i].m_FixedImage.IsNull() ||
@@ -772,6 +758,56 @@ RegistrationHelper<VImageDimension>
     }
   return EXIT_SUCCESS;
 }
+
+template <unsigned VImageDimension>
+typename RegistrationHelper<VImageDimension>::ImageType
+* RegistrationHelper<VImageDimension>
+::GetWarpedImage()
+  {
+  typename ImageType::Pointer fixedImage = this->m_Metrics[0].m_FixedImage;
+  typename ImageType::Pointer movingImage = this->m_Metrics[0].m_MovingImage;
+
+  typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
+  typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+  resampler->SetTransform( this->m_CompositeTransform );
+  resampler->SetInput( movingImage );
+  resampler->SetSize( fixedImage->GetLargestPossibleRegion().GetSize() );
+  resampler->SetOutputOrigin(  fixedImage->GetOrigin() );
+  resampler->SetOutputSpacing( fixedImage->GetSpacing() );
+  resampler->SetOutputDirection( fixedImage->GetDirection() );
+  resampler->SetDefaultPixelValue( 0 );
+  resampler->Update();
+
+  this->m_WarpedImage = resampler->GetOutput();
+  return this->m_WarpedImage.GetPointer();
+  }
+
+template <unsigned VImageDimension>
+typename RegistrationHelper<VImageDimension>::ImageType
+* RegistrationHelper<VImageDimension>
+::GetInverseWarpedImage()
+  {
+  typename ImageType::Pointer fixedImage = this->m_Metrics[0].m_FixedImage;
+  typename ImageType::Pointer movingImage = this->m_Metrics[0].m_MovingImage;
+
+  if( this->m_CompositeTransform->GetInverseTransform().IsNull() )
+    {
+    return 0;
+    }
+  typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
+  typename ResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
+  inverseResampler->SetTransform( this->m_CompositeTransform->GetInverseTransform() );
+  inverseResampler->SetInput( fixedImage );
+  inverseResampler->SetSize( movingImage->GetBufferedRegion().GetSize() );
+  inverseResampler->SetOutputOrigin( movingImage->GetOrigin() );
+  inverseResampler->SetOutputSpacing( movingImage->GetSpacing() );
+  inverseResampler->SetOutputDirection( movingImage->GetDirection() );
+  inverseResampler->SetDefaultPixelValue( 0 );
+  inverseResampler->Update();
+
+  this->m_InverseWarpedImage = inverseResampler->GetOutput();
+  return this->m_InverseWarpedImage.GetPointer();
+  }
 
 template <unsigned VImageDimension>
 int
@@ -1081,20 +1117,6 @@ RegistrationHelper<VImageDimension>
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( const_cast<AffineTransformType *>( affineRegistration->GetOutput()->
                                                                                      Get() ) );
-
-        // Write out the affine transform
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Affine.mat";
-
-          typedef itk::TransformFileWriter TransformWriterType;
-          typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-          transformWriter->SetInput( affineRegistration->GetOutput()->Get() );
-          transformWriter->SetFileName( filename.c_str() );
-          transformWriter->Update();
-          }
         }
         break;
       case Rigid:
@@ -1137,20 +1159,6 @@ RegistrationHelper<VImageDimension>
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform(
           const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->Get() ) );
-
-        if( this->m_WriteOutputs )
-          {
-          // Write out the rigid transform
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Rigid.mat";
-
-          typedef itk::TransformFileWriter TransformWriterType;
-          typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-          transformWriter->SetInput( rigidRegistration->GetOutput()->Get() );
-          transformWriter->SetFileName( filename.c_str() );
-          transformWriter->Update();
-          }
         }
         break;
       case CompositeAffine:
@@ -1195,21 +1203,6 @@ RegistrationHelper<VImageDimension>
         this->m_CompositeTransform->AddTransform( const_cast<CompositeAffineTransformType *>( affineRegistration->
                                                                                               GetOutput()->
                                                                                               Get() ) );
-
-        // Write out the affine transform
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Affine.mat";
-
-          typedef itk::TransformFileWriter TransformWriterType;
-          typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-          transformWriter->SetInput( affineRegistration->GetOutput()->Get() );
-          transformWriter->SetFileName( filename.c_str() );
-          transformWriter->Update();
-          }
         }
         break;
       case Similarity:
@@ -1253,21 +1246,6 @@ RegistrationHelper<VImageDimension>
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( const_cast<SimilarityTransformType *>( similarityRegistration->
                                                                                          GetOutput()->Get() ) );
-
-        // Write out the similarity transform
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Similarity.mat";
-
-          typedef itk::TransformFileWriter TransformWriterType;
-          typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-          transformWriter->SetInput( similarityRegistration->GetOutput()->Get() );
-          transformWriter->SetFileName( filename.c_str() );
-          transformWriter->Update();
-          }
         }
         break;
       case Translation:
@@ -1312,21 +1290,6 @@ RegistrationHelper<VImageDimension>
         this->m_CompositeTransform->AddTransform( const_cast<TranslationTransformType *>( translationRegistration->
                                                                                           GetOutput()->
                                                                                           Get() ) );
-
-        // Write out the translation transform
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Translation.mat";
-
-          typedef itk::TransformFileWriter TransformWriterType;
-          typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-          transformWriter->SetInput( translationRegistration->GetOutput()->Get() );
-          transformWriter->SetFileName( filename.c_str() );
-          transformWriter->Update();
-          }
         }
       case GaussianDisplacementField:
         {
@@ -1430,21 +1393,6 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
-
-        // Write out the displacement field
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Warp.nii.gz";
-
-          typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
-          typename WriterType::Pointer writer = WriterType::New();
-          writer->SetInput( outputDisplacementFieldTransform->GetDisplacementField() );
-          writer->SetFileName( filename.c_str() );
-          writer->Update();
-          }
         }
       case BSplineDisplacementField:
         {
@@ -1571,21 +1519,6 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
-
-        // Write out the displacement field
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Warp.nii.gz";
-
-          typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
-          typename WriterType::Pointer writer = WriterType::New();
-          writer->SetInput( outputDisplacementFieldTransform->GetDisplacementField() );
-          writer->SetFileName( filename.c_str() );
-          writer->Update();
-          }
         }
         break;
       case BSpline:
@@ -1679,21 +1612,6 @@ RegistrationHelper<VImageDimension>
           }
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputBSplineTransform );
-
-        // Write out B-spline transform
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "BSpline.txt";
-
-          typedef itk::TransformFileWriter TransformWriterType;
-          typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-          transformWriter->SetInput( outputBSplineTransform );
-          transformWriter->SetFileName( filename.c_str() );
-          transformWriter->Update();
-          }
         }
         break;
       case TimeVaryingVelocityField:
@@ -1755,8 +1673,8 @@ RegistrationHelper<VImageDimension>
         RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldSigmaInPhysicalSpace;
         RealType varianceForTotalFieldTime = this->m_TransformMethods[currentStage].m_TotalFieldTimeSigma;
 
-        typedef itk::TimeVaryingVelocityFieldImageRegistrationMethodv4<ImageType,
-                                                                       ImageType> VelocityFieldRegistrationType;
+        typedef itk::TimeVaryingVelocityFieldImageRegistrationMethodv4<ImageType, ImageType>
+          VelocityFieldRegistrationType;
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
 
@@ -1864,32 +1782,6 @@ RegistrationHelper<VImageDimension>
           }
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputTransform );
-
-        // Write out the displacement fields
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Warp.nii.gz";
-
-          typedef typename OutputTransformType::DisplacementFieldType DisplacementFieldType;
-
-          typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
-          typename WriterType::Pointer writer = WriterType::New();
-          writer->SetInput( outputTransform->GetDisplacementField() );
-          writer->SetFileName( filename.c_str() );
-          writer->Update();
-
-          std::string inverseFilename = this->m_OutputTransformPrefix + currentStageString.str() + std::string(
-              "InverseWarp.nii.gz" );
-
-          typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
-          typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-          inverseWriter->SetInput( outputTransform->GetInverseDisplacementField() );
-          inverseWriter->SetFileName( inverseFilename.c_str() );
-          inverseWriter->Update();
-          }
         }
         break;
       case TimeVaryingBSplineVelocityField:
@@ -1945,8 +1837,8 @@ RegistrationHelper<VImageDimension>
         typename TimeVaryingVelocityFieldControlPointLatticeType::SizeType initialTransformDomainMeshSize =
           transformDomainMeshSize;
 
-        typedef itk::TimeVaryingBSplineVelocityFieldImageRegistrationMethod<ImageType,
-                                                                            ImageType> VelocityFieldRegistrationType;
+        typedef itk::TimeVaryingBSplineVelocityFieldImageRegistrationMethod<ImageType, ImageType>
+          VelocityFieldRegistrationType;
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
 
@@ -2062,32 +1954,6 @@ RegistrationHelper<VImageDimension>
           }
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputTransform );
-
-        // Write out the displacement fields
-
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Warp.nii.gz";
-
-          typedef typename OutputTransformType::DisplacementFieldType DisplacementFieldType;
-
-          typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
-          typename WriterType::Pointer writer = WriterType::New();
-          writer->SetInput( outputTransform->GetDisplacementField() );
-          writer->SetFileName( filename.c_str() );
-          writer->Update();
-
-          std::string inverseFilename = this->m_OutputTransformPrefix
-            + currentStageString.str() + std::string( "InverseWarp.nii.gz" );
-
-          typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
-          typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-          inverseWriter->SetInput( outputTransform->GetInverseDisplacementField() );
-          inverseWriter->SetFileName( inverseFilename.c_str() );
-          inverseWriter->Update();
-          }
         }
         break;
       case SyN:
@@ -2202,27 +2068,6 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
-
-        // Write out the displacement field and its inverse
-        if( this->m_WriteOutputs )
-          {
-          std::string filename = this->m_OutputTransformPrefix;
-          filename += currentStageString.str();
-          filename += "Warp.nii.gz";
-
-          typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
-          typename WriterType::Pointer writer = WriterType::New();
-          writer->SetInput( outputDisplacementFieldTransform->GetDisplacementField() );
-          writer->SetFileName( filename.c_str() );
-          writer->Update();
-
-          filename = this->m_OutputTransformPrefix + currentStageString.str() + std::string( "InverseWarp.nii.gz" );
-
-          typename WriterType::Pointer inverseWriter = WriterType::New();
-          inverseWriter->SetInput( outputDisplacementFieldTransform->GetInverseDisplacementField() );
-          inverseWriter->SetFileName( filename.c_str() );
-          inverseWriter->Update();
-          }
         }
         break;
       default:
@@ -2231,75 +2076,10 @@ RegistrationHelper<VImageDimension>
       }
     timer.Stop();
     this->Logger() << "  Elapsed time (stage "
-                   << ( this->m_NumberOfStages - currentStage
-         - 1 ) << "): " << timer.GetMeanTime() << std::endl << std::endl;
+                   << ( this->m_NumberOfStages - currentStage - 1 ) << "): "
+                   << timer.GetMeanTime() << std::endl << std::endl;
     }
 
-  // if writing outputs is turned off, still want to save warped &
-  // inverse images for retrieval via member functions
-  if( this->m_OutputWarpedImageName != "" || !this->m_WriteOutputs )
-    {
-    this->Logger() << "Warping moving image to fixed image space" << std::endl;
-
-    typename ImageType::Pointer fixedImage = this->m_Metrics[0].m_FixedImage;
-    typename ImageType::Pointer movingImage = this->m_Metrics[0].m_MovingImage;
-
-    typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
-    typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
-    resampler->SetTransform( this->m_CompositeTransform );
-    resampler->SetInput( movingImage );
-    resampler->SetSize( fixedImage->GetLargestPossibleRegion().GetSize() );
-    resampler->SetOutputOrigin(  fixedImage->GetOrigin() );
-    resampler->SetOutputSpacing( fixedImage->GetSpacing() );
-    resampler->SetOutputDirection( fixedImage->GetDirection() );
-    resampler->SetDefaultPixelValue( 0 );
-    resampler->Update();
-
-    this->m_WarpedImage = resampler->GetOutput();
-
-    if( this->m_WriteOutputs )
-      {
-      std::string fileName = this->m_OutputWarpedImageName;
-
-      typedef itk::ImageFileWriter<ImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( fileName.c_str() );
-      writer->SetInput( resampler->GetOutput() );
-      writer->Update();
-      }
-
-    // if writing outputs is turned off, still want to save warped &
-    // inverse images for retrieval via member functions
-    if( (this->m_OutputInverseWarpedImageName != "" || !this->m_WriteOutputs) &&
-        this->m_CompositeTransform->GetInverseTransform().IsNotNull() )
-      {
-      this->Logger() << "Warping fixed image to movingImage space" << std::endl;
-
-      typedef itk::ResampleImageFilter<ImageType, ImageType> InverseResampleFilterType;
-      typename InverseResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
-      inverseResampler->SetTransform( this->m_CompositeTransform->GetInverseTransform() );
-      inverseResampler->SetInput( fixedImage );
-      inverseResampler->SetSize( movingImage->GetBufferedRegion().GetSize() );
-      inverseResampler->SetOutputOrigin( movingImage->GetOrigin() );
-      inverseResampler->SetOutputSpacing( movingImage->GetSpacing() );
-      inverseResampler->SetOutputDirection( movingImage->GetDirection() );
-      inverseResampler->SetDefaultPixelValue( 0 );
-      inverseResampler->Update();
-
-      this->m_InverseWarpedImage = inverseResampler->GetOutput();
-
-      if( this->m_WriteOutputs )
-        {
-        std::string inverseFileName = this->m_OutputInverseWarpedImageName;
-
-        typedef itk::ImageFileWriter<ImageType> InverseWriterType;
-        typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-        inverseWriter->SetFileName( inverseFileName.c_str() );
-        inverseWriter->SetInput( inverseResampler->GetOutput() );
-        inverseWriter->Update();
-        }
-      }
-    }
   totalTimer.Stop();
   this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMeanTime() << std::endl;
   return EXIT_SUCCESS;
@@ -2311,17 +2091,14 @@ RegistrationHelper<VImageDimension>
 ::PrintState() const
 {
   this->Logger() << "Dimension = " << Self::ImageDimension << std::endl
-                 << "WriteOutputs = " << this->m_WriteOutputs << std::endl
                  << "Number of stages = " << this->m_NumberOfStages << std::endl
-                 << "Output transform prefix = " << this->m_OutputTransformPrefix << std::endl
-                 << "Output Transform Prefix = " << this->m_OutputTransformPrefix << std::endl
-                 << "Output Warped Image Name = " << this->m_OutputWarpedImageName << std::endl
-                 << "Output Inverse Warped ImageName = " << this->m_OutputInverseWarpedImageName << std::endl
                  << "Initial Transforms Size = " << this->m_InitialTransforms.size() << std::endl
                  << "Use Histogram Matching " << (this->m_UseHistogramMatching ? "true" : "false")
                  << std::endl
                  << "Winsorize Image Intensities "
-                 << (this->m_WinsorizeImageIntensities ? "true" : "false") << std::endl;
+                 << (this->m_WinsorizeImageIntensities ? "true" : "false") << std::endl
+                 << "Lower Quantile = " << this->m_LowerQuantile << std::endl
+                 << "Upper Quantile = " << this->m_UpperQuantile << std::endl;;
   for( unsigned i = 0; i < this->m_NumberOfStages; i++ )
     {
     this->Logger() << "Stage " << i + 1 << " State" << std::endl; // NOTE: + 1 for consistency.
@@ -2341,8 +2118,8 @@ RegistrationHelper<VImageDimension>
                    << "     Gradient Step = " << curTransform.m_GradientStep << std::endl
                    << "     Update Field Sigma (physical space) = "
                    << curTransform.m_UpdateFieldSigmaInPhysicalSpace << std::endl
-                   << "     Total Field Sigma (physical space) = " << curTransform.m_TotalFieldSigmaInPhysicalSpace
-                   << std::endl
+                   << "     Total Field Sigma (physical space) = "
+                   << curTransform.m_TotalFieldSigmaInPhysicalSpace << std::endl
                    << "     Update Field Time Sigma = " << curTransform.m_UpdateFieldTimeSigma << std::endl
                    << "     Total Field Time Sigma  = " << curTransform.m_TotalFieldTimeSigma << std::endl
                    << "     Number of Time Indices = " << curTransform.m_NumberOfTimeIndices << std::endl
