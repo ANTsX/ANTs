@@ -221,7 +221,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 static
 const char *
-RegTypeToFileName(const std::string & type, bool & writeInverse)
+RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVelocityField)
 {
   std::string str(type);
 
@@ -235,6 +235,23 @@ RegTypeToFileName(const std::string & type, bool & writeInverse)
     {
     writeInverse = true;
     }
+  else
+    {
+    writeInverse = false;
+    }
+
+  if( str == "timevaryingbsplinevelocityfield" ||
+      str == "tvdmffd" ||
+      str == "timevaryingvelocityfield" ||
+      str == "tvf" )
+    {
+    writeVelocityField = true;
+    }
+  else
+    {
+    writeVelocityField = false;
+    }
+
   if( str == "rigid" )
     {
     return "Rigid.mat";
@@ -261,12 +278,12 @@ RegTypeToFileName(const std::string & type, bool & writeInverse)
            str == "gdf" ||
            str == "bsplinedisplacementfield" ||
            str == "dmffd" ||
+           str == "syn" ||
+           str == "symmetricnormalization" ||
            str == "timevaryingvelocityfield" ||
            str == "tvf" ||
            str == "timevaryingbsplinevelocityfield" ||
-           str == "tvdmffd" ||
-           str == "syn" ||
-           str == "symmetricnormalization" )
+           str == "tvdmffd" )
     {
     return "Warp.nii.gz";
     }
@@ -310,7 +327,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     outputPrefix = outputOption->GetParameter( 0, 0 );
     }
   std::string outputWarpedImageName;
-  if( outputOption->GetNumberOfParameters(0) > 1 )
+  if( outputOption->GetNumberOfParameters( 0 ) > 1 )
     {
     outputWarpedImageName = outputOption->GetParameter( 0, 1 );
     }
@@ -534,6 +551,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     std::string whichTransform = transformOption->GetValue( currentStage );
     ConvertToLowerCase( whichTransform );
 
+    std::cout << whichTransform << std::endl;
+
     typename RegistrationHelperType::XfrmMethod xfrmMethod = regHelper->StringToXfrmMethod(whichTransform);
 
     switch( xfrmMethod )
@@ -568,6 +587,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
         regHelper->AddGaussianDisplacementFieldTransform(learningRate, varianceForUpdateField, varianceForTotalField);
         }
+        break;
       case RegistrationHelperType::BSplineDisplacementField:
         {
         std::vector<unsigned int> meshSizeForTheUpdateField =
@@ -623,6 +643,7 @@ DoRegistration(typename ParserType::Pointer & parser)
                                                                numberOfTimePointSamples,
                                                                splineOrder);
         }
+        break;
       case RegistrationHelperType::SyN:
         {
         const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
@@ -659,20 +680,29 @@ DoRegistration(typename ParserType::Pointer & parser)
   unsigned xfrmIndex = (numTransforms - 1);
   for( unsigned i = 0; i < numTransforms; i++, xfrmIndex-- )
     {
-    bool writeInverse;
-
-    std::string transformTemplateName =
-      RegTypeToFileName(transformOption->GetParameter(xfrmIndex), writeInverse);
-
-    std::stringstream curFileName;
-    curFileName << outputPrefix << xfrmIndex << transformTemplateName;
-
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
       resultTransform->GetNthTransform(i);
+
+    typedef itk::IdentityTransform<double, VDimension> IdentityTransformType;
+    typename IdentityTransformType::Pointer identityTransform =
+      dynamic_cast<IdentityTransformType *>(curTransform.GetPointer() );
+    if( !identityTransform.IsNull() )
+      {
+      continue;
+      }
+
+    bool writeInverse;
+    bool writeVelocityField;
+
+    std::string transformTemplateName =
+      RegTypeToFileName(transformOption->GetValue(xfrmIndex), writeInverse, writeVelocityField);
 
     // write transform file
     if( transformTemplateName != "Warp.nii.gz" )
       {
+      std::stringstream curFileName;
+      curFileName << outputPrefix << xfrmIndex << transformTemplateName;
+
       typedef itk::TransformFileWriter TransformWriterType;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
       transformWriter->SetInput(curTransform);
@@ -689,6 +719,9 @@ DoRegistration(typename ParserType::Pointer & parser)
     else
     // write displacement field
       {
+      std::stringstream curFileName;
+      curFileName << outputPrefix << xfrmIndex << "Warp.nii.gz";
+
       typedef typename RegistrationHelperType::DisplacementFieldTransformType
         DisplacementFieldTransformType;
 
@@ -703,6 +736,7 @@ DoRegistration(typename ParserType::Pointer & parser)
                   << std::endl;
         continue;
         }
+
       typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetInput( dispTransform->GetDisplacementField() );
@@ -731,7 +765,34 @@ DoRegistration(typename ParserType::Pointer & parser)
           }
         catch( ... )
           {
-          std::cerr << "Failed to write transform file " << curInverseFileName.str().c_str();
+          std::cerr << "Failed to write displacement field transform file " << curInverseFileName.str().c_str();
+          }
+        }
+
+      // write velocity field (if applicable)
+      typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
+        VelocityFieldTransformType;
+
+      typedef itk::Image<itk::Vector<double, VDimension>, VDimension + 1> VelocityFieldType;
+      typename VelocityFieldTransformType::Pointer velocityFieldTransform =
+        dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
+      if( !velocityFieldTransform.IsNull() )
+        {
+        std::stringstream curVelocityFieldFileName;
+        curVelocityFieldFileName << outputPrefix << xfrmIndex
+                                 << "VelocityField.nii.gz";
+
+        typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
+        typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
+        velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
+        velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
+        try
+          {
+          velocityFieldWriter->Update();
+          }
+        catch( ... )
+          {
+          std::cerr << "Failed to write velocity field transform file " << curFileName.str().c_str();
           }
         }
       }
@@ -739,33 +800,40 @@ DoRegistration(typename ParserType::Pointer & parser)
   typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
 
   typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
-  typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
-  writer->SetFileName( outputWarpedImageName.c_str() );
-  writer->SetInput( warpedImage );
-  try
-    {
-    writer->Update();
-    }
-  catch( ... )
-    {
-    std::cerr << "Failed to write warped image " << outputWarpedImageName << std::endl;
-    return EXIT_FAILURE;
-    }
 
-  typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
-  if( inverseWarpedImage.IsNotNull() )
+  if( !outputWarpedImageName.empty() )
     {
-    typename WarpedImageWriterType::Pointer inverseWriter = WarpedImageWriterType::New();
-    inverseWriter->SetFileName( outputInverseWarpedImageName.c_str() );
-    inverseWriter->SetInput( inverseWarpedImage );
+    typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
+    writer->SetFileName( outputWarpedImageName.c_str() );
+    writer->SetInput( warpedImage );
     try
       {
-      inverseWriter->Update();
+      writer->Update();
       }
     catch( ... )
       {
-      std::cerr << "Failed to write inverse warped image " << outputInverseWarpedImageName << std::endl;
+      std::cerr << "Failed to write warped image " << outputWarpedImageName << std::endl;
       return EXIT_FAILURE;
+      }
+    }
+
+  if( !outputInverseWarpedImageName.empty() )
+    {
+    typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
+    if( inverseWarpedImage.IsNotNull() )
+      {
+      typename WarpedImageWriterType::Pointer inverseWriter = WarpedImageWriterType::New();
+      inverseWriter->SetFileName( outputInverseWarpedImageName.c_str() );
+      inverseWriter->SetInput( inverseWarpedImage );
+      try
+        {
+        inverseWriter->Update();
+        }
+      catch( ... )
+        {
+        std::cerr << "Failed to write inverse warped image " << outputInverseWarpedImageName << std::endl;
+        return EXIT_FAILURE;
+        }
       }
     }
 

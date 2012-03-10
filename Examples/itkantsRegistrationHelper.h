@@ -22,6 +22,7 @@
 #include "itkObject.h"
 #include "itkWeakPointer.h"
 #include "itkDisplacementFieldTransform.h"
+#include "itkTimeVaryingVelocityFieldTransform.h"
 #include "itkCompositeTransform.h"
 #include "itkImage.h"
 
@@ -40,11 +41,13 @@ public:
   typedef SmartPointer<const Self> ConstPointer;
   typedef WeakPointer<const Self>  ConstWeakPointer;
 
-  typedef double                                                RealType;
-  typedef float                                                 PixelType;
-  typedef Image<PixelType, VImageDimension>                     ImageType;
-  typedef CompositeTransform<RealType, VImageDimension>         CompositeTransformType;
-  typedef DisplacementFieldTransform<RealType, VImageDimension> DisplacementFieldTransformType;
+  typedef double                            RealType;
+  typedef float                             PixelType;
+  typedef Image<PixelType, VImageDimension> ImageType;
+
+  typedef CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
+  typedef DisplacementFieldTransform<RealType, VImageDimension>        DisplacementFieldTransformType;
+  typedef TimeVaryingVelocityFieldTransform<RealType, VImageDimension> TimeVaryingVelocityFieldTransformType;
 
   class InitialTransform
   {
