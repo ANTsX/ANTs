@@ -115,6 +115,17 @@ public:
 
   MatrixType VNLPseudoInverse( MatrixType,  bool take_sqrt = false );
 
+  void ZeroProduct( VectorType& v1, VectorType& v2 )
+  {
+    for( unsigned int i = 0; i < v1.size(); i++ )
+      {
+      if( fabs( v2( i ) ) > 0 )
+        {
+        v1( i ) = 0;
+        }
+      }
+  }
+
   VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = NULL,  MatrixType* projecterV =
                              NULL )
   {
