@@ -2059,35 +2059,52 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     this->m_VariatesP.set_column( 0, intercept );
     }
-  RealType   lmerror = 0.0;
-  VectorType original_b =  this->m_MatrixR.get_column( 0 );
-  for(  unsigned int colind = extra_cols; colind < this->m_VariatesP.cols(); colind++ )
+  RealType     lmerror = 0.0;
+  VectorType   original_b =  this->m_MatrixR.get_column( 0 );
+  unsigned int colind = extra_cols;
+  while(  colind < this->m_VariatesP.cols()  )
     {
     VectorType b =  original_b;
     VectorType x_k = this->m_VariatesP.get_column( colind );
     MatrixType pmod = this->m_MatrixP;
     /***************************************/
-    VectorType randv = this->InitializeV( this->m_MatrixP, false );
     std::cout << " col : " << colind << " : ";
     A = this->m_MatrixP * this->m_VariatesP;
     VectorType lmsolv( A.cols(), 1 );
     this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
     b = original_b - A * lmsolv;
-    VectorType bp = b * pmod;
-    RealType   minerr1 = this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 30, false, true );
-    bool       keepgoing = true;
-    while( keepgoing )
+    for( unsigned int cl = colind; cl < colind + 2; cl++ )
       {
-      VectorType randv2 = randv;
-      RealType   minerr2 = this->SparseNLConjGrad( pmod, randv2, bp, 1.e-1, 30, false, true );
-      keepgoing = false;
-      if( minerr2 < minerr1 )
+      VectorType randv = this->InitializeV( this->m_MatrixP, false );
+      VectorType bp = b * pmod;
+      if( cl % 2 == 0 )
         {
-        randv = randv2; keepgoing = true; minerr1 = minerr2;
+        this->PosNegVector( bp, false );
+        }
+      else
+        {
+        this->PosNegVector( bp, true );
+        }
+      RealType minerr1 = this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 30, true, true );
+      bool     keepgoing = true;
+      while( keepgoing )
+        {
+        VectorType randv2 = randv;
+        RealType   minerr2 = this->SparseNLConjGrad( pmod, randv2, bp, 1.e-1, 30, true, true );
+        keepgoing = false;
+        if( minerr2 < minerr1 )
+          {
+          randv = randv2; keepgoing = true; minerr1 = minerr2;
+          }
+        }
+
+      //      std::cout <<" colind  " << cl <<" min-val " << bp.min_value() << " minerr " << minerr1 << std::endl;
+      if( cl < this->m_VariatesP.cols() - 1 )
+        {
+        this->m_VariatesP.set_column( cl, randv );
         }
       }
-
-    this->m_VariatesP.set_column( colind, randv );
+    colind = colind + 2;
     /***************************************/
     /* Now get the LSQ regression solution */
     /***************************************/
@@ -2098,6 +2115,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 10000 );
     std::cout << "predictionerr," << lmerror << ",col," << colind  << std::endl;
     }
+
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
   for( unsigned int mm = 0; mm < n_vecs; mm++ )

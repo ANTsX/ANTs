@@ -126,6 +126,21 @@ public:
       }
   }
 
+  void PosNegVector( VectorType& v1, bool pos  )
+  {
+    for( unsigned int i = 0; i < v1.size(); i++ )
+      {
+      if( v1( i ) < 0 && pos )
+        {
+        v1( i ) = 0;
+        }
+      else if( v1( i ) > 0 && !pos )
+        {
+        v1( i ) = 0;
+        }
+      }
+  }
+
   VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = NULL,  MatrixType* projecterV =
                              NULL )
   {
