@@ -1,19 +1,6 @@
-##
-## After downloading the git repository, issuing the following
-## 3 commands will set and rebase the current git repository
-## with the master SVN repository.
 
 git svn init https://advants.svn.sourceforge.net/svnroot/advants
 git update-ref refs/remotes/git-svn refs/remotes/origin/master
 git svn rebase
 
 
-## Then one can use this as they would a normal git repository
-## using the following commands to acheive syncronization with
-## the master SVN
-
-## 1) rebase current branch on top of master svn:
-##   git svn rebase
-
-## 2) Once you are happy with the git based topic, push each of the current patch sets to the svn master as separate commits:
-##  git svn dcommit
