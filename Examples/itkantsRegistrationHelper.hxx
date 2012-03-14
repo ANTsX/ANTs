@@ -607,7 +607,8 @@ RegistrationHelper<VImageDimension>
     }
   if( this->m_Metrics.size() != this->m_NumberOfStages )
     {
-    std::cerr << "The number of metrics specified does not match the number of stages." << std::endl;
+    std::cerr << "The number of metrics specified does not match the number of stages. ["
+              << this->m_Metrics.size()  << " != " << this->m_NumberOfStages << "]" << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_Iterations.size() != this->m_NumberOfStages )

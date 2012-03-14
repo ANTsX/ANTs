@@ -581,11 +581,19 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         regHelper->AddTranslationTransform(learningRate);
         }
+        break;
       case RegistrationHelperType::GaussianDisplacementField:
         {
         const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
         const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
         regHelper->AddGaussianDisplacementFieldTransform(learningRate, varianceForUpdateField, varianceForTotalField);
+        }
+        break;
+      case RegistrationHelperType::BSpline:
+        {
+        std::vector<unsigned int> MeshSizeAtBaseLevel =
+          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+        regHelper->AddBSplineTransform(learningRate, MeshSizeAtBaseLevel);
         }
         break;
       case RegistrationHelperType::BSplineDisplacementField:
