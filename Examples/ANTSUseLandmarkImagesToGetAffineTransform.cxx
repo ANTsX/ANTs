@@ -401,9 +401,9 @@ ReadImage<ImageType>(movingimage,argv[2]);
 
 // Set the transform type..
 typedef itk::Rigid2DTransform< double > TransformType;
-   */
 
   return EXIT_SUCCESS;
+   */
 }
 
 int main(int argc, char *argv[])
