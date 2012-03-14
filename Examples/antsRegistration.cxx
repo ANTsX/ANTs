@@ -199,6 +199,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string         description = "masks to limit voxels considered in registration";
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "masks" );
+    option->SetShortName( 'm' );
+    option->SetUsageOption( 0, "[fixedImageMask,movingImageMask]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -315,6 +325,8 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer outputOption = parser->GetOption( "output" );
 
+  OptionType::Pointer maskOption = parser->GetOption( "masks" );
+
   if( !outputOption )
     {
     std::cerr << "Output option not specified." << std::endl;
@@ -364,6 +376,41 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
+  if( maskOption.IsNotNull() )
+    {
+    typedef typename RegistrationHelperType::MaskImageType MaskImageType;
+    typedef itk::ImageFileReader<MaskImageType>            ImageReaderType;
+    for( unsigned m = 0; m < maskOption->GetNumberOfParameters(); m++ )
+      {
+      std::string fname = maskOption->GetParameter(0, m);
+
+      typename MaskImageType::Pointer maskImage;
+      typename ImageReaderType::Pointer reader = ImageReaderType::New();
+
+      reader->SetFileName(fname.c_str() );
+      try
+        {
+        reader->Update();
+        maskImage = reader->GetOutput();
+        }
+      catch( itk::ExceptionObject & err )
+        {
+        std::cerr << "Can't read specified mask image " << fname.c_str() << std::endl;
+        std::cerr << "Exception Object caught: " << std::endl;
+        std::cerr << err << std::endl;
+        return EXIT_FAILURE;
+        }
+      if( m == 0 )
+        {
+        regHelper->SetFixedImageMask(maskImage);
+        }
+      else if( m == 1 )
+        {
+        regHelper->SetMovingImageMask(maskImage);
+        }
+      }
+    }
+
   unsigned int numberOfStages;
 
   if( transformOption.IsNull() || ( numberOfStages = transformOption->GetNumberOfValues() ) == 0 )
@@ -374,7 +421,9 @@ DoRegistration(typename ParserType::Pointer & parser)
   std::vector<std::vector<unsigned int> > iterationList;
   std::vector<std::vector<unsigned int> > shrinkFactorsList;
   std::vector<std::vector<float> >        smoothingSigmasList;
-  for( unsigned int currentStage = 0; currentStage < numberOfStages; currentStage++ )
+  std::deque<std::string>                 TransformTypeNames;
+  // We iterate backwards because the command line options are stored as a stack (first in last out)
+  for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
     // Get the fixed and moving images
 
@@ -495,6 +544,10 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       samplingStrategy = RegistrationHelperType::random;
       }
+    else if( Strategy == "regular" )
+      {
+      samplingStrategy = RegistrationHelperType::regular;
+      }
 
     switch( curMetric )
       {
@@ -552,6 +605,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     ConvertToLowerCase( whichTransform );
 
     std::cout << whichTransform << std::endl;
+
+    TransformTypeNames.push_back(whichTransform);
 
     typename RegistrationHelperType::XfrmMethod xfrmMethod = regHelper->StringToXfrmMethod(whichTransform);
 
@@ -681,36 +736,31 @@ DoRegistration(typename ParserType::Pointer & parser)
   typename RegistrationHelperType::CompositeTransformType::Pointer resultTransform =
     regHelper->GetCompositeTransform();
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
-  //
-  // the last shall be first and the first shall be last:
-  // the transforms are added to the composite transform
-  // in the reverse order that they are specified on the command line.
-  unsigned xfrmIndex = (numTransforms - 1);
-  for( unsigned i = 0; i < numTransforms; i++, xfrmIndex-- )
+  // write out transforms actually computed, so skip the identity
+  // transform pushed onto the initial transform, and any initial transforms.
+  for( unsigned int i = initialTransformOption->GetNumberOfValues() + 1; i < numTransforms; ++i )
     {
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
       resultTransform->GetNthTransform(i);
 
-    typedef itk::IdentityTransform<double, VDimension> IdentityTransformType;
-    typename IdentityTransformType::Pointer identityTransform =
-      dynamic_cast<IdentityTransformType *>(curTransform.GetPointer() );
-    if( !identityTransform.IsNull() )
-      {
-      continue;
-      }
+    //
+    // only registrations not part of the initial transforms in the
+    // TransformTypeNames list.
+    std::string curTransformType = TransformTypeNames.front();
+    TransformTypeNames.pop_front();
 
     bool writeInverse;
     bool writeVelocityField;
 
     std::string transformTemplateName =
-      RegTypeToFileName(transformOption->GetValue(xfrmIndex), writeInverse, writeVelocityField);
+      RegTypeToFileName(curTransformType, writeInverse, writeVelocityField);
+
+    std::stringstream curFileName;
+    curFileName << outputPrefix << i << transformTemplateName;
 
     // write transform file
     if( transformTemplateName != "Warp.nii.gz" )
       {
-      std::stringstream curFileName;
-      curFileName << outputPrefix << xfrmIndex << transformTemplateName;
-
       typedef itk::TransformFileWriter TransformWriterType;
       typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
       transformWriter->SetInput(curTransform);
@@ -719,17 +769,17 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         transformWriter->Update();
         }
-      catch( ... )
+      catch( itk::ExceptionObject & err )
         {
-        std::cerr << "Failed to write transform file " << curFileName.str().c_str();
+        std::cerr << "Can't write transform file " << curFileName.str().c_str() << std::endl;
+        std::cerr << "Exception Object caught: " << std::endl;
+        std::cerr << err << std::endl;
+        return EXIT_FAILURE;
         }
       }
     else
     // write displacement field
       {
-      std::stringstream curFileName;
-      curFileName << outputPrefix << xfrmIndex << "Warp.nii.gz";
-
       typedef typename RegistrationHelperType::DisplacementFieldTransformType
         DisplacementFieldTransformType;
 
@@ -753,54 +803,66 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         writer->Update();
         }
-      catch( ... )
+      catch( itk::ExceptionObject & err )
         {
-        std::cerr << "Failed to write transform file " << curFileName.str().c_str();
+        std::cerr << "Can't write transform file " << curFileName.str().c_str() << std::endl;
+        std::cerr << "Exception Object caught: " << std::endl;
+        std::cerr << err << std::endl;
         }
 
       if( writeInverse )
         {
-        std::stringstream curInverseFileName;
-        curInverseFileName << outputPrefix << xfrmIndex
-                           << "InverseWarp.nii.gz";
-        typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
-        typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-        inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
-        inverseWriter->SetFileName( curInverseFileName.str().c_str() );
-        try
+        typename DisplacementFieldType::Pointer inverseDispField =
+          dispTransform->GetInverseDisplacementField();
+        if( inverseDispField.IsNotNull() )
           {
-          inverseWriter->Update();
-          }
-        catch( ... )
-          {
-          std::cerr << "Failed to write displacement field transform file " << curInverseFileName.str().c_str();
+          std::stringstream curInverseFileName;
+          curInverseFileName << outputPrefix << i << "InverseWarp.nii.gz";
+          typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
+          typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+          inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
+          inverseWriter->SetFileName( curInverseFileName.str().c_str() );
+          try
+            {
+            inverseWriter->Update();
+            }
+          catch( itk::ExceptionObject & err )
+            {
+            std::cerr << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
+            std::cerr << "Exception Object caught: " << std::endl;
+            std::cerr << err << std::endl;
+            }
           }
         }
-
-      // write velocity field (if applicable)
-      typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
-        VelocityFieldTransformType;
-
-      typedef itk::Image<itk::Vector<double, VDimension>, VDimension + 1> VelocityFieldType;
-      typename VelocityFieldTransformType::Pointer velocityFieldTransform =
-        dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
-      if( !velocityFieldTransform.IsNull() )
+      if( writeVelocityField )
         {
-        std::stringstream curVelocityFieldFileName;
-        curVelocityFieldFileName << outputPrefix << xfrmIndex
-                                 << "VelocityField.nii.gz";
+        // write velocity field (if applicable)
+        typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
+          VelocityFieldTransformType;
 
-        typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
-        typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
-        velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
-        velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
-        try
+        typedef itk::Image<itk::Vector<double, VDimension>, VDimension + 1> VelocityFieldType;
+        typename VelocityFieldTransformType::Pointer velocityFieldTransform =
+          dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
+        if( !velocityFieldTransform.IsNull() )
           {
-          velocityFieldWriter->Update();
-          }
-        catch( ... )
-          {
-          std::cerr << "Failed to write velocity field transform file " << curFileName.str().c_str();
+          std::stringstream curVelocityFieldFileName;
+          curVelocityFieldFileName << outputPrefix << i << "VelocityField.nii.gz";
+
+          typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
+          typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
+          velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
+          velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
+          try
+            {
+            velocityFieldWriter->Update();
+            }
+          catch( itk::ExceptionObject & err )
+            {
+            std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
+                      << std::endl;
+            std::cerr << "Exception Object caught: " << std::endl;
+            std::cerr << err << std::endl;
+            }
           }
         }
       }
@@ -818,10 +880,11 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       writer->Update();
       }
-    catch( ... )
+    catch( itk::ExceptionObject & err )
       {
-      std::cerr << "Failed to write warped image " << outputWarpedImageName << std::endl;
-      return EXIT_FAILURE;
+      std::cerr << "Can't write warped image " << outputWarpedImageName << std::endl;
+      std::cerr << "Exception Object caught: " << std::endl;
+      std::cerr << err << std::endl;
       }
     }
 
@@ -837,17 +900,16 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         inverseWriter->Update();
         }
-      catch( ... )
+      catch( itk::ExceptionObject & err )
         {
-        std::cerr << "Failed to write inverse warped image " << outputInverseWarpedImageName << std::endl;
-        return EXIT_FAILURE;
+        std::cerr << "Can't write inverse warped image " << outputInverseWarpedImageName << std::endl;
+        std::cerr << "Exception Object caught: " << std::endl;
+        std::cerr << err << std::endl;
         }
       }
     }
 
   return EXIT_SUCCESS;
-
-  // Write out warped image(s), if requested.
 }
 
 int main( int argc, char *argv[] )

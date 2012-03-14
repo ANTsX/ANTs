@@ -600,7 +600,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     }
   else
     {
-    std::cout << " cannot read image " << imagefn << std::endl; return 1;
+    std::cout << " cannot read image " << imagefn << std::endl;
+    return 1;
     }
 
   if( space_smoother > 0 )
@@ -648,7 +649,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     }
   else
     {
-    std::cout << " cannot read mask " << maskfn << std::endl; return 1;
+    std::cout << " cannot read mask " << maskfn << std::endl;
+    return 1;
     }
   unsigned int  timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   unsigned long voxct = 0;

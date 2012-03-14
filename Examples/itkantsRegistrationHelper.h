@@ -24,6 +24,8 @@
 #include "itkDisplacementFieldTransform.h"
 #include "itkTimeVaryingVelocityFieldTransform.h"
 #include "itkCompositeTransform.h"
+#include "itkImageToImageMetricv4.h"
+#include "itkImageMaskSpatialObject.h"
 #include "itkImage.h"
 
 namespace itk
@@ -48,6 +50,9 @@ public:
   typedef CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
   typedef DisplacementFieldTransform<RealType, VImageDimension>        DisplacementFieldTransformType;
   typedef TimeVaryingVelocityFieldTransform<RealType, VImageDimension> TimeVaryingVelocityFieldTransformType;
+  typedef ImageToImageMetricv4<ImageType, ImageType>                   MetricType;
+  typedef ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
+  typedef typename ImageMaskSpatialObjectType::ImageType               MaskImageType;
 
   class InitialTransform
   {
@@ -288,6 +293,19 @@ public:
 
   ImageType * GetInverseWarpedImage();
 
+  void SetFixedImageMask(typename ImageMaskSpatialObjectType::Pointer & fixedImageMask)
+  {
+    this->m_FixedImageMask = fixedImageMask;
+  }
+
+  void SetMovingImageMask(typename ImageMaskSpatialObjectType::Pointer & movingImageMask)
+  {
+    this->m_MovingImageMask = movingImageMask;
+  }
+
+  void SetFixedImageMask(typename MaskImageType::Pointer & fixedImageMask);
+  void SetMovingImageMask(typename MaskImageType::Pointer & movingImageMask);
+
   int DoRegistration();
 
   void PrintState() const;
@@ -312,6 +330,8 @@ private:
   typename CompositeTransformType::Pointer m_CompositeTransform;
   typename ImageType::Pointer              m_WarpedImage;
   typename ImageType::Pointer              m_InverseWarpedImage;
+  typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
+  typename ImageMaskSpatialObjectType::Pointer     m_MovingImageMask;
   unsigned int                            m_NumberOfStages;
   InitialTransformListType                m_InitialTransforms;
   MetricListType                          m_Metrics;

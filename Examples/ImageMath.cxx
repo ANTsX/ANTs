@@ -380,7 +380,8 @@ int ExtractSlice(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -1722,7 +1723,8 @@ int TimeSeriesSubset(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
 
   typedef float                                        PixelType;
@@ -1804,7 +1806,8 @@ int ComputeTimeSeriesLeverage(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -1944,7 +1947,8 @@ int TimeSeriesToMatrix(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2078,7 +2082,8 @@ int CompCorrAuto(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2378,7 +2383,8 @@ int CompCorr(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2760,7 +2766,8 @@ int StackImage(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -2989,7 +2996,8 @@ int FitSphere(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::string(argv[1]) << std::endl; return 1;
+    std::cout << " too few options " << std::string(argv[1]) << std::endl;
+    return 1;
     }
   /*
   typedef float  PixelType;
@@ -7394,7 +7402,8 @@ int ExtractVectorComponent( int argc, char *argv[] )
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    std::cout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                       PixelType;
   typedef itk::VectorImage<PixelType, ImageDimension> ImageType;
@@ -8954,7 +8963,8 @@ int CorrelationUpdate(      int argc, char *argv[])
     }
   else
     {
-    std::cout << " Not enough inputs " << std::endl;  return 1;
+    std::cout << " Not enough inputs " << std::endl;
+    return 1;
     }
   unsigned int radius = 2;
   if( argc > argct )

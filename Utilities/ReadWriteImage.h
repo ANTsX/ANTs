@@ -54,13 +54,19 @@ bool ANTSFileExists(std::string strFilename)
 // currently, nifti io does nothing to deal with this. if this changes
 // the function below should be modified/eliminated.
 
+#if 1                           // currrently unimplemented
+template <class TImageType>
+void NiftiDTICheck(itk::SmartPointer<TImageType> &, const char *, bool )
+{
+}
+
+#else
 template <class TImageType>
 void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, bool makeLower)
 {
   typedef typename TImageType::PixelType PixType;
 
   return;
-
   // typedef itk::ImageFileWriter<TImageType> Writer;
   // typename Writer::Pointer writer = Writer::New();
   // writer->SetInput( target );
@@ -156,6 +162,8 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
       }
     }
 }
+
+#endif
 
 template <class TImageType>
 void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, bool takelog = true)

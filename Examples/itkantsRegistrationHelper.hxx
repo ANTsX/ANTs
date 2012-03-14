@@ -808,6 +808,28 @@ typename RegistrationHelper<VImageDimension>::ImageType
   }
 
 template <unsigned VImageDimension>
+void
+RegistrationHelper<VImageDimension>
+::SetFixedImageMask(typename MaskImageType::Pointer & fixedImageMask)
+{
+  typename ImageMaskSpatialObjectType::Pointer so =
+    ImageMaskSpatialObjectType::New();
+  so->SetImage(fixedImageMask.GetPointer() );
+  this->SetFixedImageMask(so);
+}
+
+template <unsigned VImageDimension>
+void
+RegistrationHelper<VImageDimension>
+::SetMovingImageMask(typename MaskImageType::Pointer & movingImageMask)
+{
+  typename ImageMaskSpatialObjectType::Pointer so =
+    ImageMaskSpatialObjectType::New();
+  so->SetImage(movingImageMask.GetPointer() );
+  this->SetMovingImageMask(so);
+}
+
+template <unsigned VImageDimension>
 int
 RegistrationHelper<VImageDimension>
 ::DoRegistration()
@@ -834,14 +856,9 @@ RegistrationHelper<VImageDimension>
     return EXIT_FAILURE;
     }
 
-  const size_t numberOfInitialTransforms = this->m_CompositeTransform->GetNumberOfTransforms() - 1; // NOTE:  the -1 is
-                                                                                                    // to ignore the
-                                                                                                    // initial identity
-                                                                                                    // transform that is
-                                                                                                    // part of the
-                                                                                                    // composit
-                                                                                                    // transform.
-  for( int currentStage = this->m_NumberOfStages - 1; currentStage >= 0; currentStage-- )
+  // NOTE:  the -1 is to ignore the initial identity identity transform
+  const size_t numberOfInitialTransforms = this->m_CompositeTransform->GetNumberOfTransforms() - 1;
+  for( unsigned int currentStage = 0; currentStage < this->m_NumberOfStages; currentStage++ )
     {
     itk::TimeProbe timer;
     timer.Start();
@@ -950,7 +967,6 @@ RegistrationHelper<VImageDimension>
 
     // Set up the image metric and scales estimator
 
-    typedef itk::ImageToImageMetricv4<ImageType, ImageType> MetricType;
     typename MetricType::Pointer metric;
 
     float            samplingPercentage = this->m_Metrics[currentStage].m_SamplingPercentage;
@@ -1051,7 +1067,14 @@ RegistrationHelper<VImageDimension>
     bool gaussian = false;
     metric->SetUseMovingImageGradientFilter( gaussian );
     metric->SetUseFixedImageGradientFilter( gaussian );
-
+    if( this->m_FixedImageMask.IsNotNull() )
+      {
+      metric->SetFixedImageMask(this->m_FixedImageMask);
+      }
+    if( this->m_MovingImageMask.IsNotNull() )
+      {
+      metric->SetMovingImageMask(this->m_MovingImageMask);
+      }
     // Set up the optimizer.  To change the iteration number for each level we rely
     // on the command observer.
 
