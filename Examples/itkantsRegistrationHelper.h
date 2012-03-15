@@ -47,25 +47,13 @@ public:
   typedef float                             PixelType;
   typedef Image<PixelType, VImageDimension> ImageType;
 
+  typedef itk::Transform<double, VImageDimension, VImageDimension>     TransformType;
   typedef CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
   typedef DisplacementFieldTransform<RealType, VImageDimension>        DisplacementFieldTransformType;
   typedef TimeVaryingVelocityFieldTransform<RealType, VImageDimension> TimeVaryingVelocityFieldTransformType;
   typedef ImageToImageMetricv4<ImageType, ImageType>                   MetricType;
   typedef ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType               MaskImageType;
-
-  class InitialTransform
-  {
-public:
-    InitialTransform(const std::string & filename, bool useInverse) :
-      m_Filename(filename), m_UseInverse(useInverse)
-    {
-    }
-
-    std::string m_Filename;
-    bool        m_UseInverse;
-  };
-  typedef std::deque<InitialTransform> InitialTransformListType;
 
   enum MetricEnumeration
     {
@@ -231,6 +219,9 @@ public:
    * the image. */
   itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
 
+  /**
+   * add a metric, corresponding to the registration stage
+   */
   void AddMetric(MetricEnumeration metricType,
                  typename ImageType::Pointer & fixedImage,
                  typename ImageType::Pointer & movingImage,
@@ -240,59 +231,122 @@ public:
                  unsigned int radius,
                  double samplingPercentage);
 
+  /**
+   * return the enumerated Metric type based on a string representation
+   */
   MetricEnumeration StringToMetricType(const std::string & str) const;
 
+  /**
+   * return the enumerated transform method specified by str
+   */
   XfrmMethod StringToXfrmMethod(const std::string & str) const;
 
-  void AddInitialTransform(const std::string & filename, bool useInverse);
+  /**
+   * set the initial transform.
+   */
+  void SetInitialTransform(const TransformType *initialTransform);
 
+  /**
+   * add a rigid transform
+   */
   void AddRigidTransform(double GradientStep);
 
+  /**
+   * add an affine transform
+   */
   void AddAffineTransform(double GradientStep);
 
+  /**
+   * add a composite affine transform
+   */
   void AddCompositeAffineTransform(double GradientStep);
 
+  /**
+   * add a similarity transform
+   */
   void AddSimilarityTransform(double GradientStep);
 
+  /**
+   * add a translation transform
+   */
   void AddTranslationTransform(double GradientStep);
 
+  /**
+   * add a spline transform
+   */
   void AddBSplineTransform(double GradientStep, std::vector<unsigned int> & MeshSizeAtBaseLevel);
 
+  /**
+   * add gaussian displacement transform
+   */
   void AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
                                              double TotalFieldSigmaInPhysicalSpace);
 
+  /**
+   * add bspline displacement transform
+   */
   void AddBSplineDisplacementFieldTransform(double GradientStep,
                                             std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
                                             std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
                                             unsigned int SplineOrder);
 
+  /**
+   * add a time varying velocity field transform
+   */
   void AddTimeVaryingVelocityFieldTransform(double GradientStep, unsigned int NumberOfTimeIndices,
                                             double UpdateFieldSigmaInPhysicalSpace, double UpdateFieldTimeSigma,
                                             double TotalFieldSigmaInPhysicalSpace, double TotalFieldTimeSigma);
 
+  /**
+   * add a time varying b spline velocity field transform
+   */
   void AddTimeVaryingBSplineVelocityFieldTransform(double GradientStep, std::vector<unsigned int> VelocityFieldMeshSize,
                                                    unsigned int NumberOfTimePointSamples, unsigned int SplineOrder);
 
+  /**
+   * add a SyN transform
+   */
   void AddSyNTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
                        double TotalFieldSigmaInPhysicalSpace);
 
+  /**
+   * Add the collected iterations list
+   */
   void SetIterations(const std::vector<std::vector<unsigned int> > & Iterations);
 
+  /**
+   * Add the collected smoothing sigmas list
+   */
   void SetSmoothingSigmas(const std::vector<std::vector<float> > & SmoothingSigmas);
 
+  /**
+   * Add the collected shrink factors list
+   */
   void SetShrinkFactors(const std::vector<std::vector<unsigned int> > & ShrinkFactors);
 
+  /**
+   * turn on histogram matching of the input images
+   */
   itkSetMacro(UseHistogramMatching, bool);
   itkGetMacro(UseHistogramMatching, bool);
 
+  /**
+   * turn on winsorize image intensity normalization
+   */
   void SetWinsorizeImageIntensities(bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0);
 
   itkGetObjectMacro(CompositeTransform, CompositeTransformType);
 
+  /**
+   *  Get the Warped Image & Inverse Warped Images
+   */
   ImageType * GetWarpedImage();
 
   ImageType * GetInverseWarpedImage();
 
+  /**
+   * Set the fixed/moving image masks with a spatial object
+   */
   void SetFixedImageMask(typename ImageMaskSpatialObjectType::Pointer & fixedImageMask)
   {
     this->m_FixedImageMask = fixedImageMask;
@@ -303,11 +357,22 @@ public:
     this->m_MovingImageMask = movingImageMask;
   }
 
+  /**
+   * Set the fixed/moving mask image. this will be used to instantiate
+   * ImageMaskSpatialObject masks.
+   */
   void SetFixedImageMask(typename MaskImageType::Pointer & fixedImageMask);
   void SetMovingImageMask(typename MaskImageType::Pointer & movingImageMask);
 
+  /**
+   * Do the registration. Will return EXIT_FAILURE if there is any
+   * problem completing the registration.
+   */
   int DoRegistration();
 
+  /**
+   * print out the internal registration helper state
+   */
   void PrintState() const;
 
   void SetLogStream(std::ostream & logStream)
@@ -321,7 +386,6 @@ protected:
 private:
   int ValidateParameters();
 
-  int SetupInitialTransform(typename CompositeTransformType::Pointer & compositeTransform);
   std::ostream & Logger() const
   {
     return *m_LogStream;
@@ -333,7 +397,6 @@ private:
   typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
   typename ImageMaskSpatialObjectType::Pointer     m_MovingImageMask;
   unsigned int                            m_NumberOfStages;
-  InitialTransformListType                m_InitialTransforms;
   MetricListType                          m_Metrics;
   TransformMethodListType                 m_TransformMethods;
   std::vector<std::vector<unsigned int> > m_Iterations;

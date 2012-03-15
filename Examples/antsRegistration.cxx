@@ -18,6 +18,13 @@
 
 #include "antsCommandLineParser.h"
 #include "itkantsRegistrationHelper.h"
+#include "itkTransformFileReader.h"
+#include "itkTransformFileWriter.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+
+typedef itk::ants::CommandLineParser ParserType;
+typedef ParserType::OptionType       OptionType;
 
 void ConvertToLowerCase( std::string& str )
 {
@@ -300,15 +307,116 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
   return "BOGUS.XXXX";
 }
 
-typedef itk::ants::CommandLineParser ParserType;
-typedef ParserType::OptionType       OptionType;
+namespace
+{
+bool MatOffRegistered(false);
+}
+
+template <unsigned VImageDimension>
+int
+AddInitialTransform(
+  typename itk::ants::RegistrationHelper<VImageDimension>::CompositeTransformType::Pointer & compositeTransform,
+  const std::string & filename,
+  bool useInverse)
+{
+  typedef itk::ants::RegistrationHelper<VImageDimension>                  RegistrationHelperType;
+  typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+
+  if( !MatOffRegistered )
+    {
+    MatOffRegistered = true;
+    // Register the matrix offset transform base class to the
+    // transform factory for compatibility with the current ANTs.
+    typedef itk::MatrixOffsetTransformBase<double, VImageDimension,
+                                           VImageDimension> MatrixOffsetTransformType;
+    itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+    }
+
+  typedef typename RegistrationHelperType::TransformType TransformType;
+  typename TransformType::Pointer initialTransform;
+
+  bool hasTransformBeenRead = false;
+
+  typedef typename DisplacementFieldTransformType::DisplacementFieldType DisplacementFieldType;
+
+  typedef itk::ImageFileReader<DisplacementFieldType> DisplacementFieldReaderType;
+  typename DisplacementFieldReaderType::Pointer fieldReader =
+    DisplacementFieldReaderType::New();
+  try
+    {
+    fieldReader->SetFileName( filename.c_str() );
+    fieldReader->Update();
+    hasTransformBeenRead = true;
+    }
+  catch( ... )
+    {
+    hasTransformBeenRead = false;
+    }
+
+  if( hasTransformBeenRead )
+    {
+    typename DisplacementFieldTransformType::Pointer displacementFieldTransform =
+      DisplacementFieldTransformType::New();
+    displacementFieldTransform->SetDisplacementField( fieldReader->GetOutput() );
+    initialTransform = dynamic_cast<TransformType *>( displacementFieldTransform.GetPointer() );
+    }
+  else
+    {
+    typename itk::TransformFileReader::Pointer initialTransformReader
+      = itk::TransformFileReader::New();
+
+    initialTransformReader->SetFileName( filename.c_str() );
+    try
+      {
+      initialTransformReader->Update();
+      }
+    catch( const itk::ExceptionObject & e )
+      {
+      std::cerr << "Transform reader for "
+                << filename << " caught an ITK exception:\n";
+      e.Print( std::cerr );
+      return EXIT_FAILURE;
+      }
+    catch( const std::exception & e )
+      {
+      std::cerr << "Transform reader for "
+                << filename << " caught an exception:\n";
+      std::cerr << e.what() << std::endl;
+      return EXIT_FAILURE;
+      }
+    catch( ... )
+      {
+      std::cerr << "Transform reader for "
+                << filename << " caught an unknown exception!!!\n";
+      return EXIT_FAILURE;
+      }
+
+    initialTransform =
+      dynamic_cast<TransformType *>( ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
+
+    if( useInverse )
+      {
+      initialTransform =
+        dynamic_cast<TransformType *>(initialTransform->GetInverseTransform().GetPointer() );
+      if( initialTransform.IsNull() )
+        {
+        std::cerr << "Inverse does not exist for " << filename
+                  << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    }
+  compositeTransform->AddTransform( initialTransform );
+  return EXIT_SUCCESS;
+}
 
 template <unsigned VDimension>
 int
 DoRegistration(typename ParserType::Pointer & parser)
 {
-  typedef typename itk::ants::RegistrationHelper<VDimension> RegistrationHelperType;
-  typedef typename RegistrationHelperType::ImageType         ImageType;
+  typedef typename itk::ants::RegistrationHelper<VDimension>      RegistrationHelperType;
+  typedef typename RegistrationHelperType::ImageType              ImageType;
+  typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
 
   typename RegistrationHelperType::Pointer regHelper =
     RegistrationHelperType::New();
@@ -354,6 +462,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( initialTransformOption && initialTransformOption->GetNumberOfValues() > 0 )
     {
+    typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
     for( unsigned int n = 0; n < initialTransformOption->GetNumberOfValues(); n++ )
       {
       std::string initialTransformName;
@@ -372,8 +481,14 @@ DoRegistration(typename ParserType::Pointer & parser)
           useInverse = parser->Convert<bool>( initialTransformOption->GetParameter( n, 1  ) );
           }
         }
-      regHelper->AddInitialTransform(initialTransformName, useInverse);
+
+      if( AddInitialTransform<VDimension>(compositeTransform, initialTransformName, useInverse) != EXIT_SUCCESS )
+        {
+        std::cerr << "Can't read initialTransform " << initialTransformName << std::endl;
+        return EXIT_FAILURE;
+        }
       }
+    regHelper->SetInitialTransform(compositeTransform);
     }
 
   if( maskOption.IsNotNull() )
@@ -733,12 +848,11 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
   //
   // write out transforms stored in the composite
-  typename RegistrationHelperType::CompositeTransformType::Pointer resultTransform =
+  typename CompositeTransformType::Pointer resultTransform =
     regHelper->GetCompositeTransform();
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
-  // write out transforms actually computed, so skip the identity
-  // transform pushed onto the initial transform, and any initial transforms.
-  for( unsigned int i = initialTransformOption->GetNumberOfValues() + 1; i < numTransforms; ++i )
+  // write out transforms actually computed, so skip any initial transforms.
+  for( unsigned int i = initialTransformOption->GetNumberOfValues(); i < numTransforms; ++i )
     {
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
       resultTransform->GetNthTransform(i);
