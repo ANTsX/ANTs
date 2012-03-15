@@ -136,7 +136,8 @@ public:
     TimeVaryingVelocityField = 8,
     TimeVaryingBSplineVelocityField = 9,
     SyN = 10,
-    UnknownXfrm = 11
+    BSplineSyN = 11,
+    UnknownXfrm = 12
     };
 
   class TransformMethod
@@ -180,6 +181,8 @@ public:
       { return std::string("TimeVaryingBSplineVelocityField"); }
         case SyN:
       { return std::string("SyN"); }
+        case BSplineSyN:
+      { return std::string("BSplineSyN"); }
         case UnknownXfrm: return std::string("UnknownXfrm");
         }
       return std::string("Impossible");
@@ -310,8 +313,15 @@ public:
                        double TotalFieldSigmaInPhysicalSpace);
 
   /**
+   * add a B-spline SyN transform
+   */
+  void AddBSplineSyNTransform(double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+                              std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel, unsigned int SplineOrder);
+
+  /**
    * Add the collected iterations list
    */
+
   void SetIterations(const std::vector<std::vector<unsigned int> > & Iterations);
 
   /**
