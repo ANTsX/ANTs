@@ -7223,21 +7223,94 @@ int DiceAndMinDistSum(      int argc, char *argv[])
   squareimage2->Allocate();
   squareimage2->FillBuffer( 0 );
 
-  labelcount = 0;
-  for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
+  std::vector<std::string> ColumnHeaders;
+  std::vector<std::string> RowHeaders;
+  unsigned int             NumberOfLabels = labelcount;
+
+  if( outdist )
     {
-    if( logfile.good()  )
+    vnl_matrix<double> OutputValues(NumberOfLabels, 2);
+
+    ColumnHeaders.push_back("Label Name");
+    ColumnHeaders.push_back("Min_Distance");
+    ColumnHeaders.push_back("Dice");
+    for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
       {
-      if( outdist )
-        {
-        logfile << " Label " << *it << " MD " << distances[labct] << " DICE " << dicevals[labct] << std::endl;
-        }
-      else
-        {
-        logfile << " Label " << *it << " DICE " << dicevals[labct] << "  RO " << rovals[labct] << " TP1 "
-                << tpvals[labct] << " TP2 " << tpvals2[labct] << std::endl;
-        }
+      OutputValues(labct, 0) = distances[labct];
+      OutputValues(labct, 1) = dicevals[labct];
+      std::string LabelName = "Label_";
+      int         LabelNumber;
+      LabelNumber = *it;
+      char LabelNumberAsString[50];
+      sprintf(LabelNumberAsString, "%.2d", LabelNumber);
+      LabelName = LabelName + LabelNumberAsString;
+      RowHeaders.push_back(LabelName);
+      labct++;
       }
+    typedef  itk::CSVNumericObjectFileWriter<double> CSVType;
+    CSVType::Pointer OutputCSV = CSVType::New();
+    OutputCSV->SetInput(&OutputValues);
+    OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
+    OutputCSV->SetColumnHeaders(ColumnHeaders);
+    OutputCSV->SetRowHeaders(RowHeaders);
+    try
+      {
+      OutputCSV->Write();
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
+      }
+    }
+  else
+    {
+    vnl_matrix<double> OutputValues(NumberOfLabels, 4);
+    ColumnHeaders.push_back("Label Name");
+    ColumnHeaders.push_back("Dice");
+    ColumnHeaders.push_back("RO");
+    ColumnHeaders.push_back("Percent_of_Region_1_In_Overlap");
+    ColumnHeaders.push_back("Percent_of_Region_2_In_Overlap");
+    for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
+      {
+      OutputValues(labct, 0) = dicevals[labct];
+      OutputValues(labct, 1) = rovals[labct];
+      OutputValues(labct, 2) = tpvals[labct];
+      OutputValues(labct, 3) = tpvals2[labct];
+
+      std::string LabelName = "Label_";
+      int         LabelNumber;
+      LabelNumber = *it;
+      char LabelNumberAsString[50];
+      sprintf(LabelNumberAsString, "%.2d", LabelNumber);
+      LabelName = LabelName + LabelNumberAsString;
+      RowHeaders.push_back(LabelName);
+      labct++;
+      }
+
+    typedef  itk::CSVNumericObjectFileWriter<double> CSVType;
+    CSVType::Pointer OutputCSV = CSVType::New();
+    OutputCSV->SetInput(&OutputValues);
+    OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
+    OutputCSV->SetColumnHeaders(ColumnHeaders);
+    OutputCSV->SetRowHeaders(RowHeaders);
+    try
+      {
+      OutputCSV->Write();
+      std::cout << "Output written to " << outname.c_str() << ".csv." << std::endl;
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
+      }
+    }
+
+  labelcount = 0;
+  labct = 0;
+  for( it = myLabelSet2.begin(); it != myLabelSet2.end(); ++it )
+
+    {
     sum += distances[labct];
     sumdice += dicevals[labct];
     sumro += rovals[labct];
