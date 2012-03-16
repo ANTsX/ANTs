@@ -126,6 +126,8 @@ public:
       }
   }
 
+  void DeleteRow( MatrixType &, unsigned int );
+
   void PosNegVector( VectorType& v1, bool pos  )
   {
     for( unsigned int i = 0; i < v1.size(); i++ )

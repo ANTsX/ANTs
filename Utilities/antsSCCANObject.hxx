@@ -1647,14 +1647,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   x_k = bestsol;
   VectorType soln = A * x_k;
   soln = ( soln - soln.mean() + b_in.mean() );
-  soln = soln / soln.two_norm() * b_in.two_norm();
+  //  soln = soln / soln.two_norm() * b_in.two_norm();
   RealType solerr = 0;
   RealType solerrsize = ( RealType ) 1.0 / soln.size();
   for( unsigned int i = 0; i < soln.size(); i++ )
     {
     solerr += vnl_math_abs( soln(i) - b_in(i) ) * solerrsize;
     }
-  //   std::cout << " b " << soln.two_norm() << " bvar " << b_in.two_norm() << std::endl;
+  //  std::cout << " b " << soln.two_norm() << " bvar " << b_in.two_norm() << " solerr " << solerr << std::endl;
   // std::cout << b_in << std::endl;
   // std::cout << " sol " << std::endl;
   // std::cout << soln << std::endl;
@@ -2033,101 +2033,185 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 }
 
 template <class TInputImage, class TRealType>
+void antsSCCANObject<TInputImage, TRealType>
+::DeleteRow( typename antsSCCANObject<TInputImage,
+                                      TRealType>::MatrixType& p_in,  unsigned int row )
+{
+  unsigned int nrows = p_in.rows() - 1;
+
+  if( row >= nrows )
+    {
+    nrows = p_in.rows();
+    }
+  MatrixType   p( nrows, p_in.columns() );
+  unsigned int rowct = 0;
+  for( long i = 0; i < p.rows(); ++i )   // loop over rows
+    {
+    if( i != row )
+      {
+      p.set_row( rowct, p_in.get_row( i ) );
+      rowct++;
+      }
+    }
+  p_in = p;
+  return;
+}
+
+template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::NetworkDecomposition(unsigned int n_vecs )
 {
+  //  MatrixType rmat = this->m_OriginalMatrixR.extract(
+  //  this->m_OriginalMatrixR.rows() , this->m_OriginalMatrixR.cols() - 1 , 0 , 1 );
+  // rmat = this->NormalizeMatrix( rmat );
   /** Based on Golub CONJUGATE  G R A D I E N T   A N D  LANCZOS  HISTORY
    *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
    */
   std::cout << " network decomposition using nlcg & normal equations " << std::endl;
 
-  this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
+  this->m_CanonicalCorrelations.set_size( this->m_OriginalMatrixP.rows() );
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
   if( this->m_OriginalMatrixR.size() <=  0 )
     {
     std::cout << " You need to define a reference matrix " << std::endl;
     exit(1);
     }
-  MatrixType A;
-  MatrixType rmat = this->m_OriginalMatrixR.extract(
-      this->m_OriginalMatrixR.rows(), this->m_OriginalMatrixR.cols() - 1, 0, 1 );
-  rmat = this->NormalizeMatrix( rmat );
-  unsigned int extra_cols = 0;
-  this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs + extra_cols );
-  this->m_VariatesP.fill( 0 );
-  VectorType intercept( this->m_MatrixP.cols(), 1 );
-  if( extra_cols > 0 )
+
+  unsigned int foldnum = this->m_MaximumNumberOfIterations;
+  if( foldnum < 1 )
     {
-    this->m_VariatesP.set_column( 0, intercept );
+    foldnum = 1;
     }
-  RealType     lmerror = 0.0;
-  VectorType   original_b =  this->m_MatrixR.get_column( 0 );
-  unsigned int colind = extra_cols;
-  while(  colind < this->m_VariatesP.cols()  )
+  VectorType folds( this->m_MatrixP.rows(), 0 );
+  for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
     {
-    VectorType b =  original_b;
-    VectorType x_k = this->m_VariatesP.get_column( colind );
-    MatrixType pmod = this->m_MatrixP;
-    /***************************************/
-    std::cout << " col : " << colind << " : ";
-    A = this->m_MatrixP * this->m_VariatesP;
-    VectorType lmsolv( A.cols(), 1 );
-    this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
-    b = original_b - A * lmsolv;
-    for( unsigned int cl = colind; cl < colind + 2; cl++ )
+    folds( f ) = f % foldnum;
+    }
+
+  RealType avgprederr = 0.0;
+  for( unsigned int fold = 0; fold < foldnum;  fold++ )
+    {
+    unsigned int foldct = 0;
+    for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
       {
-      VectorType randv = this->InitializeV( this->m_MatrixP, false );
-      VectorType bp = b * pmod;
-      if( cl % 2 == 0 )
+      if( folds( f ) == fold )
         {
-        this->PosNegVector( bp, false );
+        foldct++;
+        }
+      }
+    std::cout << " Fold " << fold << " foldct " << foldct << std::endl;
+    MatrixType   p_leave_out( foldct, this->m_MatrixP.cols() );
+    VectorType   r_leave_out( foldct, 0 );
+    unsigned int leftoutsize = this->m_MatrixP.rows() - foldct;
+    MatrixType   matrixP( leftoutsize, this->m_MatrixP.cols() );
+    VectorType   matrixR( leftoutsize );
+    unsigned int leave_out = 0;
+    unsigned int dont_leave_out = 0;
+    for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+      {
+      if( folds( f ) == fold )
+        {
+        p_leave_out.set_row( leave_out, this->m_MatrixP.get_row( f ) );
+        r_leave_out( leave_out ) = this->m_MatrixR.get_column( 0 ) ( f );
+        leave_out++;
         }
       else
         {
-        this->PosNegVector( bp, true );
+        matrixP.set_row( dont_leave_out, this->m_MatrixP.get_row( f ) );
+        matrixR( dont_leave_out ) = this->m_MatrixR.get_column( 0 ) ( f );
+        dont_leave_out++;
         }
-      RealType minerr1 = this->SparseNLConjGrad( pmod, randv, bp, 1.e-1, 30, true, true );
-      bool     keepgoing = true;
-      while( keepgoing )
+      }
+    if( foldnum == 1 )
+      {
+      p_leave_out = matrixP;
+      r_leave_out = matrixR;
+      }
+
+    MatrixType   A;
+    unsigned int extra_cols = 0;
+    this->m_VariatesP.set_size( matrixP.cols(), n_vecs + extra_cols );
+    this->m_VariatesP.fill( 0 );
+    VectorType intercept( matrixP.cols(), 1 );
+    if( extra_cols > 0 )
+      {
+      this->m_VariatesP.set_column( 0, intercept );
+      }
+    VectorType original_b =  matrixR;
+    original_b = original_b - original_b.mean();
+    unsigned int colind = extra_cols;
+    while(  colind < this->m_VariatesP.cols()  )
+      {
+      VectorType b =  original_b;
+      VectorType x_k = this->m_VariatesP.get_column( colind );
+      /***************************************/
+      std::cout << " col : " << colind << " : ";
+      A = matrixP * this->m_VariatesP;
+      VectorType lmsolv( A.cols(), 1 );
+      this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
+      b = original_b - A * lmsolv;
+      unsigned int adder = 0;
+      for( unsigned int cl = colind; cl < colind + 2; cl++ )
         {
-        VectorType randv2 = randv;
-        RealType   minerr2 = this->SparseNLConjGrad( pmod, randv2, bp, 1.e-1, 30, true, true );
-        keepgoing = false;
-        if( minerr2 < minerr1 )
+        VectorType randv = this->InitializeV( matrixP, false );
+        VectorType bp = b * matrixP;
+        if( cl % 2 == 0 )
           {
-          randv = randv2; keepgoing = true; minerr1 = minerr2;
+          this->PosNegVector( bp, true );
+          }
+        else
+          {
+          this->PosNegVector( bp, false );
+          }
+        RealType     minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-1, 30, true, true );
+        bool         keepgoing = true;
+        unsigned int cter = 0;
+        while( keepgoing && cter < 200 )
+          {
+          VectorType randv2 = randv;
+          RealType   minerr2 = this->SparseNLConjGrad( matrixP, randv2, bp, 1.e-1, 30, true, true );
+          keepgoing = false;
+          if( minerr2 < minerr1 )
+            {
+            randv = randv2; keepgoing = true; minerr1 = minerr2;
+            }
+          cter++;
+          }
+
+        if( cl < this->m_VariatesP.cols() - 1 )
+          {
+          this->m_VariatesP.set_column( cl, randv );
+          }
+        adder++;
+        }
+      colind = colind + adder;
+      /***************************************/
+      /* Now get the LSQ regression solution */
+      /***************************************/
+      A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
+      VectorType lmsol( colind, 1 );
+      RealType   lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 10000 );
+      A = p_leave_out * this->m_VariatesP;
+      VectorType   soln = A * lmsol;
+      RealType     loerror = ( soln - r_leave_out ).two_norm() / ( RealType ) foldct;
+      unsigned int fleave_out = 0;
+      for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+        {
+        if( folds( f ) == fold )
+          {
+          this->m_CanonicalCorrelations( f ) = soln( fleave_out );
+          fleave_out++;
           }
         }
-
-      //      std::cout <<" colind  " << cl <<" min-val " << bp.min_value() << " minerr " << minerr1 << std::endl;
-      if( cl < this->m_VariatesP.cols() - 1 )
-        {
-        this->m_VariatesP.set_column( cl, randv );
-        }
+      avgprederr += loerror;
+      std::cout << "predictionerr," << lmerror << ",col," << colind  << " prediction " << soln << " true "
+                << r_leave_out << " err " << loerror << std::endl;
       }
-    colind = colind + 2;
-    /***************************************/
-    /* Now get the LSQ regression solution */
-    /***************************************/
-    A = this->m_MatrixP * this->m_VariatesP;
-    VectorType lmsol( A.cols(), 1 );
-    //    MatrixType Aext( A.rows() , A.cols() + rmat.cols() , 0 );    Aext.set_columns( 0 , A );    Aext.set_columns(
-    // A.cols() , rmat );
-    lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 10000 );
-    std::cout << "predictionerr," << lmerror << ",col," << colind  << std::endl;
     }
-
-  this->m_CanonicalCorrelations.set_size(n_vecs);
-  this->m_CanonicalCorrelations.fill(0);
-  for( unsigned int mm = 0; mm < n_vecs; mm++ )
-    {
-    VectorType v = this->m_VariatesP.get_column( mm );
-    if( v.max_value() <= 0 )
-      {
-      this->m_VariatesP.set_column( mm, v * (-1.0) );
-      }
-    this->m_CanonicalCorrelations[mm] = this->PearsonCorr( original_b, this->m_MatrixP * v );
-    }
-  return lmerror;
+  std::cout << " correlation "
+            << this->PearsonCorr( this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 ) ) << std::endl;
+  return avgprederr / ( RealType ) foldnum;
 }
 
 /*
