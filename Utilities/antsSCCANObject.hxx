@@ -1589,6 +1589,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType b = A.transpose() * b_in;
   VectorType r_k = A.transpose() * ( A * x_k );
   r_k = b - r_k;
+  this->m_Intercept = itk::NumericTraits<RealType>::Zero;
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
   unsigned int ct = 0;
@@ -1613,7 +1614,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " alpha_k " << alpha_k << std::endl;
       }
     VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
-    VectorType r_k1 = ( b - A.transpose() * (A * x_k1 ) );
+    VectorType r_k1 = ( b - A.transpose() * (A * x_k1 ) ) - this->m_Intercept;
+    this->m_Intercept = r_k1.mean();
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
       {
@@ -1646,7 +1648,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   x_k = bestsol;
   VectorType soln = A * x_k;
-  soln = ( soln - soln.mean() + b_in.mean() );
+  this->m_Intercept = ( b_in - soln  ).mean();
   //  soln = soln / soln.two_norm() * b_in.two_norm();
   RealType solerr = 0;
   RealType solerrsize = ( RealType ) 1.0 / soln.size();
@@ -2072,6 +2074,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_CanonicalCorrelations.set_size( this->m_OriginalMatrixP.rows() );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
   this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
+  this->m_MatrixR = this->m_OriginalMatrixR;
   if( this->m_OriginalMatrixR.size() <=  0 )
     {
     std::cout << " You need to define a reference matrix " << std::endl;
@@ -2079,7 +2082,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   unsigned int foldnum = this->m_MaximumNumberOfIterations;
-  if( foldnum < 1 )
+  if( foldnum <= 1 )
     {
     foldnum = 1;
     }
@@ -2088,7 +2091,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     folds( f ) = f % foldnum;
     }
-
   RealType avgprederr = 0.0;
   for( unsigned int fold = 0; fold < foldnum;  fold++ )
     {
@@ -2123,12 +2125,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         dont_leave_out++;
         }
       }
-    if( foldnum == 1 )
+    if( foldnum <= 1 )
       {
-      p_leave_out = matrixP;
-      r_leave_out = matrixR;
+      matrixP = p_leave_out;
+      matrixR = r_leave_out;
       }
-
     MatrixType   A;
     unsigned int extra_cols = 0;
     this->m_VariatesP.set_size( matrixP.cols(), n_vecs + extra_cols );
@@ -2193,25 +2194,37 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType lmsol( colind, 1 );
       RealType   lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 10000 );
       A = p_leave_out * this->m_VariatesP;
-      VectorType   soln = A * lmsol;
+      VectorType   soln = A * lmsol + this->m_Intercept;
       RealType     loerror = ( soln - r_leave_out ).two_norm() / ( RealType ) foldct;
       unsigned int fleave_out = 0;
-      for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+      RealType     locerror = 0;
+      if( foldnum == 1 )
         {
-        if( folds( f ) == fold )
+        this->m_CanonicalCorrelations = soln;
+        }
+      else
+        {
+        for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
           {
-          this->m_CanonicalCorrelations( f ) = soln( fleave_out );
-          fleave_out++;
+          if( folds( f ) == fold )
+            {
+            this->m_CanonicalCorrelations( f ) = soln( fleave_out );
+            RealType temp = fabs( soln( fleave_out ) - r_leave_out( fleave_out ) );
+            locerror += temp;
+            if( colind == this->m_VariatesP.cols() )
+              {
+              avgprederr += temp;
+              }
+            fleave_out++;
+            }
           }
         }
-      avgprederr += loerror;
-      std::cout << "predictionerr," << lmerror << ",col," << colind  << " prediction " << soln << " true "
-                << r_leave_out << " err " << loerror << std::endl;
+      std::cout << "locerror," << locerror << ",col," << colind  << " totalpredictionerr " << avgprederr << std::endl;
       }
     }
-  std::cout << " correlation "
-            << this->PearsonCorr( this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 ) ) << std::endl;
-  return avgprederr / ( RealType ) foldnum;
+  RealType corr = fabs( this->PearsonCorr( this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 ) ) );
+  std::cout << " correlation " <<  corr << std::endl;
+  return avgprederr / this->m_MatrixP.rows();
 }
 
 /*

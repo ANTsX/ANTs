@@ -752,6 +752,7 @@ private:
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;
   RealType m_CorrelationForSignificanceTest;
+  RealType m_Intercept;
 
   unsigned int              m_MinClusterSizeP;
   unsigned int              m_MinClusterSizeQ;
