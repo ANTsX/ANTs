@@ -921,7 +921,7 @@ if [ "$RIGID" -eq 1 ];
         BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
         RIGID="${outdir}/rigid${i}_0_${IMGbase}"
 
-        exe="$ANTS $DIM $IMAGEMETRICSET -o $RIGID -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
+        exe="$ANTS $DIM $IMAGEMETRICSET -o $RIGID -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x1000 $RIGIDTYPE"
 
         echo "$exe" > $qscript
 
