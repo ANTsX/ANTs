@@ -1265,7 +1265,7 @@ while [ $i -lt ${ITERATIONLIMIT} ]
         OUTWARPFN=${POO%.*.*}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
-        LINEARTRANSFORMPARAMS="--number-of-affine-iterations 10000x10000x1000x1000x1000 --MI-option 32x16000"
+        LINEARTRANSFORMPARAMS="--number-of-affine-iterations 10000x10000x1000 --MI-option 32x16000"
 
         exe="$exe $ANTS ${DIM} $IMAGEMETRICSET -i ${MAXITERATIONS} -t ${TRANSFORMATION} -r $REGULARIZATION -o ${outdir}/${OUTWARPFN} --use-Histogram-Matching  $LINEARTRANSFORMPARAMS\n"
         exe="$exe $warpexe"
