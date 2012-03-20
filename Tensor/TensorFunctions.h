@@ -461,16 +461,35 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
   double                            e1 = (eig.D(0, 0) );
   double                            e2 = (eig.D(1, 1) );
   double                            e3 = (eig.D(2, 2) );
+
+  /*
+
+  opt	return
+  1	ADC
+  2   radial diffusion
+  3	e1
+  4	e2
+  5	e3
+
+  */
+
   if( opt <= 1 )
     {
     return (e1 + e1 + e3) / 3.0;
     }
-  //  else if (opt == 4 ) return e2;
-  else if( opt == 3 )
-    {
-    return (e2 + e1) / 2.0;
-    }
   else if( opt == 2 )
+    {
+    return (e2 + e1) / 2.0; // radial diffusion
+    }
+  else if( opt == 3 ) // e1
+    {
+    return e1;
+    }
+  else if( opt == 4 ) // e2
+    {
+    return e2;
+    }
+  else if( opt == 5 ) // e3
     {
     return e3;
     }

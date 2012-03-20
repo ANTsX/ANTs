@@ -3816,6 +3816,24 @@ int TensorFunctions(int argc, char *argv[])
         }
       vimage->SetPixel(ind, result);
       }
+    else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
+      {
+      result = GetTensorADC<TensorType>(tIter.Value(), 2);
+      if( vnl_math_isnan(result) )
+        {
+        result = 0;
+        }
+      vimage->SetPixel(ind, result);
+      }
+    else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
+      {
+      result = GetTensorADC<TensorType>(tIter.Value(), 3 + whichvec);
+      if( vnl_math_isnan(result) )
+        {
+        result = 0;
+        }
+      vimage->SetPixel(ind, result);
+      }
     else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
       {
       result = GetTensorFANumerator<TensorType>(tIter.Value() );
@@ -9196,6 +9214,10 @@ int main(int argc, char *argv[])
     std::cout << "    Usage        : TensorIOTest DTImage.ext" << std::endl;
     std::cout << "  TensorMeanDiffusion    : " << std::endl;
     std::cout << "    Usage        : TensorMeanDiffusion DTImage.ext" << std::endl;
+    std::cout << "  TensorRadialDiffusion    : Mean of the two smallest eigenvalues" << std::endl;
+    std::cout << "    Usage        : TensorRadialDiffusion DTImage.ext" << std::endl;
+    std::cout << "  TensorEigenvalue    : gets single eigenvalue 0-2, where 0 = smallest, 2 = largest" << std::endl;
+    std::cout << "    Usage        : TensorEigenvalue DTImage.ext WhichInd" << std::endl;
     std::cout
       <<
       "  TensorToVector    : Produces vector field identifying one of the principal directions, 2 = largest eigenvalue"
@@ -9864,6 +9886,14 @@ int main(int argc, char *argv[])
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
