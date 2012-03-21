@@ -921,7 +921,7 @@ if [ "$RIGID" -eq 1 ];
         BASENAME=` echo ${IMGbase} | cut -d '.' -f 1 `
         RIGID="${outdir}/rigid${i}_0_${IMGbase}"
 
-        exe="$ANTS $DIM $IMAGEMETRICSET -o $RIGID -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
+        exe="$ANTS $DIM $IMAGEMETRICSET -o $RIGID -i 0 --use-Histogram-Matching $LINEARTRANSFORMPARAMS $RIGIDTYPE"
 
         echo "$exe" > $qscript
 
@@ -1264,7 +1264,7 @@ while [ $i -lt ${ITERATIONLIMIT} ]
         OUTWARPFN=${POO%.*.*}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
-        LINEARTRANSFORMPARAMS="--number-of-affine-iterations 10000x10000x1000x1000x1000 --MI-option 32x16000"
+        LINEARTRANSFORMPARAMS="--number-of-affine-iterations 10000x10000x1000 --MI-option 32x16000"
 
         exe="$exe $ANTS ${DIM} $IMAGEMETRICSET -i ${MAXITERATIONS} -t ${TRANSFORMATION} -r $REGULARIZATION -o ${outdir}/${OUTWARPFN} --use-Histogram-Matching  $LINEARTRANSFORMPARAMS\n"
         exe="$exe $warpexe"
