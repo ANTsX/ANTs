@@ -208,8 +208,8 @@ add_executable(antsRegistration antsRegistration.cxx ${UI_SOURCES})
  target_link_libraries(antsRegistration ${ITK_LIBRARIES})
 add_executable(antsApplyTransforms antsApplyTransforms.cxx ${UI_SOURCES})
  target_link_libraries(antsApplyTransforms ${ITK_LIBRARIES})
- #add_executable(antsMotionCorr antsMotionCorr.cxx ${UI_SOURCES})
- # target_link_libraries(antsMotionCorr ${ITK_LIBRARIES})
+add_executable(antsMotionCorr antsMotionCorr.cxx ${UI_SOURCES})
+target_link_libraries(antsMotionCorr ${ITK_LIBRARIES})
 add_executable(sccan sccan.cxx ${UI_SOURCES})
 target_link_libraries(sccan ${ITK_LIBRARIES} )
 add_executable(CreateDisplacementField CreateDisplacementField.cxx ${UI_SOURCES})
@@ -303,7 +303,7 @@ install(TARGETS ANTS
   N4BiasFieldCorrection
   KellySlater
   KellyKapowski
-  #  antsMotionCorr
+  antsMotionCorr
   antsRegistration
   antsApplyTransforms
   sccan

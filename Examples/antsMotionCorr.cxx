@@ -21,7 +21,7 @@
 #include "itkImageRegistrationMethodv4.h"
 
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
-#include "itkDemonsImageToImageMetricv4.h"
+#include "itkMeanSquaresImageToImageMetricv4.h"
 #include "itkCorrelationImageToImageMetricv4.h"
 #include "itkImageToImageMetricv4.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
@@ -215,7 +215,6 @@ class CompositeAffineTransformTraits<3>
 public:
   typedef itk::ANTSAffine3DTransform<double> TransformType;
 };
-
 void ConvertToLowerCase( std::string& str )
 {
   std::transform( str.begin(), str.end(), str.begin(), tolower );
@@ -642,7 +641,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
         {
         std::cout << "  using the Demons metric." << std::endl;
-        typedef itk::DemonsImageToImageMetricv4<FixedImageType, FixedImageType> DemonsMetricType;
+        typedef itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType> DemonsMetricType;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
         demonsMetric = demonsMetric;
         metric = demonsMetric;
@@ -728,7 +727,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         affineRegistration->SetMetricSamplingPercentage( samplingPercentage );
         affineRegistration->SetMetric( metric );
         affineRegistration->SetOptimizer( optimizer );
-        affineRegistration->SetTransform( affineTransform );
+        //        affineRegistration->SetTransform( affineTransform );
         affineRegistration->SetMovingInitialTransform( compositeTransform );
 
         typedef CommandIterationUpdate<AffineRegistrationType> AffineCommandType;
@@ -783,7 +782,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
         rigidRegistration->SetOptimizer( optimizer );
-        rigidRegistration->SetTransform( rigidTransform );
+        //        rigidRegistration->SetTransform( rigidTransform );
         rigidRegistration->SetMovingInitialTransform( compositeTransform );
         typedef CommandIterationUpdate<RigidRegistrationType> RigidCommandType;
         typename RigidCommandType::Pointer rigidObserver = RigidCommandType::New();
@@ -878,7 +877,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         displacementFieldRegistration->SetMovingImage( moving_time_slice );
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
         displacementFieldRegistration->SetMovingInitialTransform( compositeTransform );
-        displacementFieldRegistration->SetTransform( gaussianFieldTransform );
+        //        displacementFieldRegistration->SetTransform( gaussianFieldTransform );
         displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetMetricSamplingStrategy(
@@ -1070,6 +1069,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       2,
+
       "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       3,
