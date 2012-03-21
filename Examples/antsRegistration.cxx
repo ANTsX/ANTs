@@ -208,10 +208,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string         description = "masks to limit voxels considered in registration";
+    std::string         description = "Image masks to limit voxels considered by the metric.";
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "masks" );
-    option->SetShortName( 'm' );
+    option->SetShortName( 'x' );
     option->SetUsageOption( 0, "[fixedImageMask,movingImageMask]" );
     option->SetDescription( description );
     parser->AddOption( option );
