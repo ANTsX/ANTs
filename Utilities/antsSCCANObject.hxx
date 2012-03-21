@@ -1589,7 +1589,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType b = A.transpose() * b_in;
   VectorType r_k = A.transpose() * ( A * x_k );
   r_k = b - r_k;
-  this->m_Intercept = ( b - A.transpose() * ( A * x_k ) ).mean();
+  RealType     intercept = 0;
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
   unsigned int ct = 0;
@@ -1614,12 +1614,17 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " alpha_k " << alpha_k << std::endl;
       }
     VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
-    VectorType r_k1 =  b - ( A.transpose() * (A * x_k1 )  + this->m_Intercept );
-    this->m_Intercept = ( b - A.transpose() * ( A * x_k ) ).mean();
+    VectorType r_k1 =  b - ( A.transpose() * (A * x_k1 )  + intercept );
+    RealType   othermeans = 0;
+    for( unsigned int icept = 0; icept < x_k.size(); icept++ )
+      {
+      othermeans += ( x_k1( icept ) * A.get_column( icept ).mean() );
+      }
+    intercept = b_in.mean() - othermeans;
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
       {
-      minerr = approxerr; bestsol = ( x_k1 );
+      minerr = approxerr; bestsol = ( x_k1 ); this->m_Intercept = intercept;
       }
     deltaminerr = ( lasterr - approxerr );
     if( debug )
@@ -1647,7 +1652,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   x_k = bestsol;
-  this->m_Intercept = ( b_in - ( A * x_k ) ).mean();
   VectorType soln = A * x_k + this->m_Intercept;
   RealType   solerr = 0;
   RealType   solerrsize = ( RealType ) 1.0 / soln.size();
@@ -2169,11 +2173,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType x_k = this->m_VariatesP.get_column( colind );
       /***************************************/
       std::cout << " col : " << colind << " : ";
-      A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind + 1, 0, 0);
-      this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
-      VectorType lmsolv( A.cols(), 1.0 );
-      this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
-      b = original_b - ( A * lmsolv + this->m_Intercept );
+      if( colind > 0 )
+        {
+        A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind + 1, 0, 0);
+        this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
+        VectorType lmsolv( A.cols(), 1 );
+        RealType   lmerror = this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
+        b = original_b - ( A * lmsolv + this->m_Intercept );
+        }
       unsigned int adder = 0;
       for( unsigned int cl = colind; cl < colind + 2; cl++ )
         {
@@ -2214,13 +2221,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       /***************************************/
       A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
       this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
-      VectorType lmsol( A.cols(), 1 );
-      RealType   lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 10000 );
-      std::cout << " lmsol " << lmsol << std::endl;
+      VectorType lmsolv( A.cols(), 0.5 );
+      RealType   lmerror = this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
+      //    vnl_svd< double > eig( A );
+      // VectorType lmsolv = eig.solve( original_b );
+      std::cout << " lmsolv " << lmsolv << std::endl;
       A = p_leave_out * this->m_VariatesP;
       this->AddColumnsToMatrix( A, r_leave_out, 1, this->m_MatrixR.cols() - 1 );
-      VectorType   soln = A * lmsol + this->m_Intercept;
-      RealType     loerror = ( soln - r_leave_out.get_column( 0 ) ).two_norm() / foldct;
+      VectorType   soln = A * lmsolv + this->m_Intercept;
+      RealType     loerror = ( soln - r_leave_out.get_column( 0 ) ).two_norm() / ( foldct + 1);
       unsigned int fleave_out = 0;
       if( foldnum == 1 )
         {
