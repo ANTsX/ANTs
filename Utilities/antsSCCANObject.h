@@ -696,6 +696,24 @@ protected:
 
   void RunDiagnostics(unsigned int);
 
+  void AddColumnsToMatrix( MatrixType& mat_to_add_to, MatrixType& mat_to_take_from, unsigned int col0,
+                           unsigned int coln )
+  {
+    MatrixType outmat( mat_to_add_to.rows(),  mat_to_add_to.cols() +  ( coln - col0 ) + 1, 0 );
+
+    for( unsigned int i = 0; i < mat_to_add_to.cols(); i++ )
+      {
+      outmat.set_column( i,  mat_to_add_to.get_column( i ) );
+      }
+    unsigned int ct = mat_to_add_to.cols();
+    for( unsigned int i = col0; i <= coln; i++ )
+      {
+      outmat.set_column( ct,   mat_to_take_from.get_column( i ) );
+      ct++;
+      }
+    mat_to_add_to = outmat;
+  }
+
 private:
 
   ImagePointer ConvertVariateToSpatialImage( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );

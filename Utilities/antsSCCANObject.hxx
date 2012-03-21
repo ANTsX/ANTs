@@ -1589,7 +1589,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType b = A.transpose() * b_in;
   VectorType r_k = A.transpose() * ( A * x_k );
   r_k = b - r_k;
-  this->m_Intercept = itk::NumericTraits<RealType>::Zero;
+  this->m_Intercept = ( b - A.transpose() * ( A * x_k ) ).mean();
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
   unsigned int ct = 0;
@@ -1614,8 +1614,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " alpha_k " << alpha_k << std::endl;
       }
     VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
-    VectorType r_k1 = ( b - A.transpose() * (A * x_k1 ) ) - this->m_Intercept;
-    this->m_Intercept = r_k1.mean();
+    VectorType r_k1 =  b - ( A.transpose() * (A * x_k1 )  + this->m_Intercept );
+    this->m_Intercept = ( b - A.transpose() * ( A * x_k ) ).mean();
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
       {
@@ -1647,11 +1647,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   x_k = bestsol;
-  VectorType soln = A * x_k;
-  this->m_Intercept = ( b_in - soln  ).mean();
-  //  soln = soln / soln.two_norm() * b_in.two_norm();
-  RealType solerr = 0;
-  RealType solerrsize = ( RealType ) 1.0 / soln.size();
+  this->m_Intercept = ( b_in - ( A * x_k ) ).mean();
+  VectorType soln = A * x_k + this->m_Intercept;
+  RealType   solerr = 0;
+  RealType   solerrsize = ( RealType ) 1.0 / soln.size();
   for( unsigned int i = 0; i < soln.size(); i++ )
     {
     solerr += vnl_math_abs( soln(i) - b_in(i) ) * solerrsize;
@@ -2091,7 +2090,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     folds( f ) = f % foldnum;
     }
-  RealType avgprederr = 0.0;
+  RealType     avgprederr = 0.0;
+  unsigned int extra_cols = 0;
+  // VariatesQ holds the average over all folds
+  this->m_VariatesQ.set_size( this->m_MatrixP.cols(), n_vecs + extra_cols );
+  this->m_VariatesQ.fill( 0 );
+  unsigned int predct = 0;
   for( unsigned int fold = 0; fold < foldnum;  fold++ )
     {
     unsigned int foldct = 0;
@@ -2102,12 +2106,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         foldct++;
         }
       }
-    std::cout << " Fold " << fold << " foldct " << foldct << std::endl;
-    MatrixType   p_leave_out( foldct, this->m_MatrixP.cols() );
-    VectorType   r_leave_out( foldct, 0 );
+    MatrixType   p_leave_out( foldct, this->m_MatrixP.cols(), 0 );
+    MatrixType   r_leave_out( foldct, this->m_MatrixR.cols(), 0 );
     unsigned int leftoutsize = this->m_MatrixP.rows() - foldct;
     MatrixType   matrixP( leftoutsize, this->m_MatrixP.cols() );
-    VectorType   matrixR( leftoutsize );
+    MatrixType   matrixR( leftoutsize, this->m_MatrixR.cols() );
     unsigned int leave_out = 0;
     unsigned int dont_leave_out = 0;
     for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
@@ -2115,13 +2118,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       if( folds( f ) == fold )
         {
         p_leave_out.set_row( leave_out, this->m_MatrixP.get_row( f ) );
-        r_leave_out( leave_out ) = this->m_MatrixR.get_column( 0 ) ( f );
+        r_leave_out.set_row( leave_out, this->m_MatrixR.get_row( f ) );
         leave_out++;
         }
       else
         {
         matrixP.set_row( dont_leave_out, this->m_MatrixP.get_row( f ) );
-        matrixR( dont_leave_out ) = this->m_MatrixR.get_column( 0 ) ( f );
+        matrixR.set_row( dont_leave_out, this->m_MatrixR.get_row( f ) );
         dont_leave_out++;
         }
       }
@@ -2130,8 +2133,27 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       matrixP = p_leave_out;
       matrixR = r_leave_out;
       }
-    MatrixType   A;
-    unsigned int extra_cols = 0;
+
+    if( matrixR.cols() > 1 && false )
+      {
+      MatrixType m( matrixR.rows(), matrixR.cols() - 1, 0 );
+      for( unsigned int mm = 1; mm < matrixR.cols(); mm++ )
+        {
+        m.set_row( mm, matrixR.get_column( mm ) );
+        }
+      MatrixType projmat = this->ProjectionMatrix( m, 1.e-2 );
+      matrixP = matrixP - projmat * matrixP;
+
+      MatrixType m2( r_leave_out.rows(), r_leave_out.cols() - 1, 0 );
+      for( unsigned int mm = 1; mm < r_leave_out.cols(); mm++ )
+        {
+        m2.set_row( mm, r_leave_out.get_column( mm ) );
+        }
+      projmat = this->ProjectionMatrix( m2, 1.e-2 );
+      p_leave_out = p_leave_out - projmat * p_leave_out;
+      }
+
+    MatrixType A;
     this->m_VariatesP.set_size( matrixP.cols(), n_vecs + extra_cols );
     this->m_VariatesP.fill( 0 );
     VectorType intercept( matrixP.cols(), 1 );
@@ -2139,8 +2161,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       this->m_VariatesP.set_column( 0, intercept );
       }
-    VectorType original_b =  matrixR;
-    original_b = original_b - original_b.mean();
+    VectorType   original_b =  matrixR.get_column( 0 );
     unsigned int colind = extra_cols;
     while(  colind < this->m_VariatesP.cols()  )
       {
@@ -2148,10 +2169,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType x_k = this->m_VariatesP.get_column( colind );
       /***************************************/
       std::cout << " col : " << colind << " : ";
-      A = matrixP * this->m_VariatesP;
-      VectorType lmsolv( A.cols(), 1 );
+      A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind + 1, 0, 0);
+      this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
+      VectorType lmsolv( A.cols(), 1.0 );
       this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
-      b = original_b - A * lmsolv;
+      b = original_b - ( A * lmsolv + this->m_Intercept );
       unsigned int adder = 0;
       for( unsigned int cl = colind; cl < colind + 2; cl++ )
         {
@@ -2191,13 +2213,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       /* Now get the LSQ regression solution */
       /***************************************/
       A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
-      VectorType lmsol( colind, 1 );
+      this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
+      VectorType lmsol( A.cols(), 1 );
       RealType   lmerror = this->ConjGrad(  A,  lmsol, original_b, 0, 10000 );
+      std::cout << " lmsol " << lmsol << std::endl;
       A = p_leave_out * this->m_VariatesP;
+      this->AddColumnsToMatrix( A, r_leave_out, 1, this->m_MatrixR.cols() - 1 );
       VectorType   soln = A * lmsol + this->m_Intercept;
-      RealType     loerror = ( soln - r_leave_out ).two_norm() / ( RealType ) foldct;
+      RealType     loerror = ( soln - r_leave_out.get_column( 0 ) ).two_norm() / foldct;
       unsigned int fleave_out = 0;
-      RealType     locerror = 0;
       if( foldnum == 1 )
         {
         this->m_CanonicalCorrelations = soln;
@@ -2209,22 +2233,32 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           if( folds( f ) == fold )
             {
             this->m_CanonicalCorrelations( f ) = soln( fleave_out );
-            RealType temp = fabs( soln( fleave_out ) - r_leave_out( fleave_out ) );
-            locerror += temp;
+            RealType temp = fabs( soln( fleave_out ) - r_leave_out.get_column( 0 ) ( fleave_out ) );
             if( colind == this->m_VariatesP.cols() )
               {
-              avgprederr += temp;
+              avgprederr += temp; predct++;
               }
             fleave_out++;
             }
           }
         }
-      std::cout << "locerror," << locerror << ",col," << colind  << " totalpredictionerr " << avgprederr << std::endl;
+      if( predct > 0 )
+        {
+        std::cout << "Fold: " << fold << " minerr," << loerror << ",col," << colind  << " totalpredictionerr "
+                  << avgprederr / predct << std::endl;
+        }
+      else
+        {
+        std::cout << "Fold: " << fold << " minerr," << loerror << ",col," << colind  << std::endl;
+        }
       }
+
+    this->m_VariatesQ = this->m_VariatesQ + this->m_VariatesP * ( 1.0 / ( RealType ) foldnum );
     }
   RealType corr = fabs( this->PearsonCorr( this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 ) ) );
   std::cout << " correlation " <<  corr << std::endl;
-  return avgprederr / this->m_MatrixP.rows();
+  this->m_VariatesP = this->m_VariatesQ;
+  return avgprederr / predct;
 }
 
 /*
