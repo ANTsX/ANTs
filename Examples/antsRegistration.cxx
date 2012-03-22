@@ -16,11 +16,10 @@
 *
 *=========================================================================*/
 
+#include <iostream>
 #include "antsCommandLineParser.h"
 #include "itkantsRegistrationHelper.h"
-#include "itkTransformFileReader.h"
-#include "itkTransformFileWriter.h"
-#include "itkImageFileReader.h"
+#include "itkantsReadWriteTransform.h"
 #include "itkImageFileWriter.h"
 
 typedef itk::ants::CommandLineParser ParserType;
@@ -335,88 +334,31 @@ AddInitialTransform(
     }
 
   typedef typename RegistrationHelperType::TransformType TransformType;
-  typename TransformType::Pointer initialTransform;
-
-  bool hasTransformBeenRead = false;
-
-  typedef typename DisplacementFieldTransformType::DisplacementFieldType DisplacementFieldType;
-
-  typedef itk::ImageFileReader<DisplacementFieldType> DisplacementFieldReaderType;
-  typename DisplacementFieldReaderType::Pointer fieldReader =
-    DisplacementFieldReaderType::New();
-  try
+  typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<VImageDimension>(filename);
+  if( initialTransform.IsNull() )
     {
-    fieldReader->SetFileName( filename.c_str() );
-    fieldReader->Update();
-    hasTransformBeenRead = true;
+    return EXIT_FAILURE;
     }
-  catch( ... )
+  if( useInverse )
     {
-    hasTransformBeenRead = false;
-    }
-
-  if( hasTransformBeenRead )
-    {
-    typename DisplacementFieldTransformType::Pointer displacementFieldTransform =
-      DisplacementFieldTransformType::New();
-    displacementFieldTransform->SetDisplacementField( fieldReader->GetOutput() );
-    initialTransform = dynamic_cast<TransformType *>( displacementFieldTransform.GetPointer() );
-    }
-  else
-    {
-    typename itk::TransformFileReader::Pointer initialTransformReader
-      = itk::TransformFileReader::New();
-
-    initialTransformReader->SetFileName( filename.c_str() );
-    try
-      {
-      initialTransformReader->Update();
-      }
-    catch( const itk::ExceptionObject & e )
-      {
-      std::cerr << "Transform reader for "
-                << filename << " caught an ITK exception:\n";
-      e.Print( std::cerr );
-      return EXIT_FAILURE;
-      }
-    catch( const std::exception & e )
-      {
-      std::cerr << "Transform reader for "
-                << filename << " caught an exception:\n";
-      std::cerr << e.what() << std::endl;
-      return EXIT_FAILURE;
-      }
-    catch( ... )
-      {
-      std::cerr << "Transform reader for "
-                << filename << " caught an unknown exception!!!\n";
-      return EXIT_FAILURE;
-      }
-
     initialTransform =
-      dynamic_cast<TransformType *>( ( ( initialTransformReader->GetTransformList() )->front() ).GetPointer() );
-
-    if( useInverse )
+      dynamic_cast<TransformType *>(initialTransform->GetInverseTransform().GetPointer() );
+    if( initialTransform.IsNull() )
       {
-      initialTransform =
-        dynamic_cast<TransformType *>(initialTransform->GetInverseTransform().GetPointer() );
-      if( initialTransform.IsNull() )
-        {
-        std::cerr << "Inverse does not exist for " << filename
-                  << std::endl;
-        return EXIT_FAILURE;
-        }
+      std::cerr << "Inverse does not exist for " << filename
+                << std::endl;
+      return EXIT_FAILURE;
       }
     }
   compositeTransform->AddTransform( initialTransform );
   return EXIT_SUCCESS;
 }
 
-template <unsigned VDimension>
+template <unsigned VImageDimension>
 int
 DoRegistration(typename ParserType::Pointer & parser)
 {
-  typedef typename itk::ants::RegistrationHelper<VDimension>      RegistrationHelperType;
+  typedef typename itk::ants::RegistrationHelper<VImageDimension> RegistrationHelperType;
   typedef typename RegistrationHelperType::ImageType              ImageType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
 
@@ -484,7 +426,7 @@ DoRegistration(typename ParserType::Pointer & parser)
           }
         }
 
-      if( AddInitialTransform<VDimension>(compositeTransform, initialTransformName, useInverse) != EXIT_SUCCESS )
+      if( AddInitialTransform<VImageDimension>(compositeTransform, initialTransformName, useInverse) != EXIT_SUCCESS )
         {
         std::cerr << "Can't read initialTransform " << initialTransformName << std::endl;
         return EXIT_FAILURE;
@@ -889,112 +831,68 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     std::stringstream curFileName;
     curFileName << outputPrefix << i << transformTemplateName;
+    // WriteTransform will spit all sorts of error messages if it
+    // fails, and we want to keep going even if it does so ignore its
+    // return value.
+    itk::ants::WriteTransform<VImageDimension>(curTransform, curFileName.str() );
 
-    // write transform file
-    if( transformTemplateName != "Warp.nii.gz" )
+    typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+    typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
+    typename DisplacementFieldTransformType::Pointer dispTransform =
+      dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );
+    // write inverse transform file
+    if( writeInverse && dispTransform.IsNotNull() )
       {
-      typedef itk::TransformFileWriter TransformWriterType;
-      typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-      transformWriter->SetInput(curTransform);
-      transformWriter->SetFileName(curFileName.str().c_str() );
-      try
+      typename DisplacementFieldType::Pointer inverseDispField =
+        dispTransform->GetInverseDisplacementField();
+      if( inverseDispField.IsNotNull() )
         {
-        transformWriter->Update();
-        }
-      catch( itk::ExceptionObject & err )
-        {
-        std::cerr << "Can't write transform file " << curFileName.str().c_str() << std::endl;
-        std::cerr << "Exception Object caught: " << std::endl;
-        std::cerr << err << std::endl;
-        return EXIT_FAILURE;
-        }
-      }
-    else
-    // write displacement field
-      {
-      typedef typename RegistrationHelperType::DisplacementFieldTransformType
-        DisplacementFieldTransformType;
-
-      typedef itk::Image<itk::Vector<double, VDimension>, VDimension> DisplacementFieldType;
-      typename DisplacementFieldTransformType::Pointer dispTransform =
-        dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );
-      if( dispTransform.IsNull() )
-        {
-        std::cerr << "Cast failed on transform of type "
-                  << curTransform->GetNameOfClass()
-                  << " to write " << curFileName.str().c_str()
-                  << std::endl;
-        continue;
-        }
-
-      typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( dispTransform->GetDisplacementField() );
-      writer->SetFileName( curFileName.str().c_str() );
-      try
-        {
-        writer->Update();
-        }
-      catch( itk::ExceptionObject & err )
-        {
-        std::cerr << "Can't write transform file " << curFileName.str().c_str() << std::endl;
-        std::cerr << "Exception Object caught: " << std::endl;
-        std::cerr << err << std::endl;
-        }
-
-      if( writeInverse )
-        {
-        typename DisplacementFieldType::Pointer inverseDispField =
-          dispTransform->GetInverseDisplacementField();
-        if( inverseDispField.IsNotNull() )
+        std::stringstream curInverseFileName;
+        curInverseFileName << outputPrefix << i << "InverseWarp.nii.gz";
+        typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
+        typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
+        inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
+        inverseWriter->SetFileName( curInverseFileName.str().c_str() );
+        try
           {
-          std::stringstream curInverseFileName;
-          curInverseFileName << outputPrefix << i << "InverseWarp.nii.gz";
-          typedef itk::ImageFileWriter<DisplacementFieldType> InverseWriterType;
-          typename InverseWriterType::Pointer inverseWriter = InverseWriterType::New();
-          inverseWriter->SetInput( dispTransform->GetInverseDisplacementField() );
-          inverseWriter->SetFileName( curInverseFileName.str().c_str() );
-          try
-            {
-            inverseWriter->Update();
-            }
-          catch( itk::ExceptionObject & err )
-            {
-            std::cerr << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
-            std::cerr << "Exception Object caught: " << std::endl;
-            std::cerr << err << std::endl;
-            }
+          inverseWriter->Update();
+          }
+        catch( itk::ExceptionObject & err )
+          {
+          std::cerr << "Can't write transform file " << curInverseFileName.str().c_str() << std::endl;
+          std::cerr << "Exception Object caught: " << std::endl;
+          std::cerr << err << std::endl;
           }
         }
-      if( writeVelocityField )
+      }
+    if( writeVelocityField )
+      {
+      // write velocity field (if applicable)
+      typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
+        VelocityFieldTransformType;
+
+      typedef itk::Image<itk::Vector<double, VImageDimension>, VImageDimension + 1> VelocityFieldType;
+      typename VelocityFieldTransformType::Pointer velocityFieldTransform =
+        dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
+      if( !velocityFieldTransform.IsNull() )
         {
-        // write velocity field (if applicable)
-        typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
-          VelocityFieldTransformType;
+        std::stringstream curVelocityFieldFileName;
+        curVelocityFieldFileName << outputPrefix << i << "VelocityField.nii.gz";
 
-        typedef itk::Image<itk::Vector<double, VDimension>, VDimension + 1> VelocityFieldType;
-        typename VelocityFieldTransformType::Pointer velocityFieldTransform =
-          dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
-        if( !velocityFieldTransform.IsNull() )
+        typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
+        typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
+        velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
+        velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
+        try
           {
-          std::stringstream curVelocityFieldFileName;
-          curVelocityFieldFileName << outputPrefix << i << "VelocityField.nii.gz";
-
-          typedef itk::ImageFileWriter<VelocityFieldType> VelocityFieldWriterType;
-          typename VelocityFieldWriterType::Pointer velocityFieldWriter = VelocityFieldWriterType::New();
-          velocityFieldWriter->SetInput( velocityFieldTransform->GetTimeVaryingVelocityField() );
-          velocityFieldWriter->SetFileName( curVelocityFieldFileName.str().c_str() );
-          try
-            {
-            velocityFieldWriter->Update();
-            }
-          catch( itk::ExceptionObject & err )
-            {
-            std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
-                      << std::endl;
-            std::cerr << "Exception Object caught: " << std::endl;
-            std::cerr << err << std::endl;
-            }
+          velocityFieldWriter->Update();
+          }
+        catch( itk::ExceptionObject & err )
+          {
+          std::cerr << "Can't write velocity field transform file " << curVelocityFieldFileName.str().c_str()
+                    << std::endl;
+          std::cerr << "Exception Object caught: " << std::endl;
+          std::cerr << err << std::endl;
           }
         }
       }

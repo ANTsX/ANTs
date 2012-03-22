@@ -757,7 +757,7 @@ RegistrationHelper<VImageDimension>
 
     const int stageNumber = numberOfInitialTransforms + this->m_NumberOfStages - currentStage - 1;
     this->Logger() << std::endl << "Stage "
-                   << ( currentStage ) << std::endl;
+                   << ( stageNumber ) << std::endl;
     std::stringstream currentStageString;
     currentStageString << ( stageNumber );
 
