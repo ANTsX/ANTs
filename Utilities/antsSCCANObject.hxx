@@ -1220,7 +1220,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType pveck = this->m_VariatesP.get_column(k);
       MatrixType pmod = this->NormalizeMatrix( this->m_OriginalMatrixP );
-      if( k > 1  && loop > 1  )
+      if( k > 1  && loop > 1 & k < this->m_MatrixP.rows() - 1  )
         {
         MatrixType m( this->m_MatrixP.rows(), k, 0 );
         for( unsigned int mm = 0; mm < k; mm++ )
