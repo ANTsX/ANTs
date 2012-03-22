@@ -1793,6 +1793,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     b = b * ( -1 );
     }
   bool         debug = false;
+  RealType     intercept = 0;
   VectorType   r_k = ( b -  A.transpose() * ( A * x_k ) );
   VectorType   p_k = r_k;
   double       approxerr = 1.e22;
@@ -1837,7 +1838,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm() << std::endl;
       }
     VectorType proj = A.transpose() * (A * x_k1 );
-    VectorType r_k1 = ( b -  proj  );
+    //    RealType othermeans = 0;
+    //    for ( unsigned int icept = 0; icept < x_k.size(); icept++ ) othermeans += ( x_k1( icept ) * ( A.transpose() *
+    // A.get_column( icept ) ).mean() );
+    //    intercept = b.mean() - othermeans;
+    VectorType r_k1 = ( b -  proj - intercept );
     if( makeprojsparse )
       {
       this->SparsifyP( r_k1, keeppos );
@@ -1846,7 +1851,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     RealType newminerr = minerr;
     if( approxerr < newminerr )
       {
-      newminerr = approxerr; bestsol = ( x_k1 );
+      newminerr = approxerr; bestsol = ( x_k1 );  this->m_Intercept = intercept;
       }
     deltaminerr = ( minerr - newminerr  );
     if( newminerr < minerr )
@@ -2171,19 +2176,23 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType   original_b =  matrixR.get_column( 0 );
     unsigned int colind = extra_cols;
     RealType     minerr1;
+    bool         addcol = true;
     while(  colind < this->m_VariatesP.cols()  )
       {
       VectorType b =  original_b;
       VectorType x_k = this->m_VariatesP.get_column( colind );
       /***************************************/
-      //    std::cout << " col : " << colind << " : ";
       if( colind > 0 )
         {
-        A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind + 1, 0, 0);
-        this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
+        A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
+        if( addcol )
+          {
+          this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
+          }
         VectorType lmsolv( A.cols(), 1 );
         RealType   lmerror = this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
-        b = original_b - ( A * lmsolv + this->m_Intercept );
+        VectorType v = ( A * lmsolv + this->m_Intercept );
+        b = this->Orthogonalize( b, v );
         }
       unsigned int adder = 0;
       for( unsigned int cl = colind; cl < colind + 2; cl++ )
@@ -2224,14 +2233,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       /* Now get the LSQ regression solution */
       /***************************************/
       A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
-      this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
-      VectorType lmsolv( A.cols(), 0.5 );
+      if( addcol )
+        {
+        this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
+        }
+      VectorType lmsolv( A.cols(), 1 );
       RealType   lmerror = this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
       //    vnl_svd< double > eig( A );
       // VectorType lmsolv = eig.solve( original_b );
       // std::cout << " lmsolv " << lmsolv << std::endl;
       A = p_leave_out * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
-      this->AddColumnsToMatrix( A, r_leave_out, 1, this->m_MatrixR.cols() - 1 );
+      if( addcol )
+        {
+        this->AddColumnsToMatrix( A, r_leave_out, 1, this->m_MatrixR.cols() - 1 );
+        }
       /*    std::cout << " A  " << std::endl;
       typedef itk::CSVNumericObjectFileWriter<double> CWriterType;
       CWriterType::Pointer cwriter = CWriterType::New();
@@ -2266,12 +2281,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       if( predct > 0 )
         {
-        std::cout << "Fold: " << fold << ",col," << colind  << " minerr," << minerr1 << " local-error " << loerror
+        std::cout << "Fold: " << fold << ",col," << colind  << " minerr," << lmerror << " local-error " << loerror
                   << " totalpredictionerr " << avgprederr / predct << std::endl;
         }
       else
         {
-        std::cout << "Fold: " << fold << " minerr," << minerr1 << ",col," << colind  << std::endl;
+        std::cout << "Fold: " << fold << " minerr," << lmerror << ",col," << colind  << std::endl;
         }
       }
 
@@ -2280,6 +2295,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType corr = fabs( this->PearsonCorr( this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 ) ) );
   std::cout << " correlation " <<  corr << std::endl;
   this->m_VariatesP = this->m_VariatesQ;
+  for( unsigned int i = 0; i < this->m_VariatesP.cols(); i++ )
+    {
+    VectorType col = this->m_VariatesP.get_column( i );
+    this->SparsifyP( col, false );
+    this->m_VariatesP.set_column( i, col );
+    }
+
   return avgprederr / predct;
 }
 
