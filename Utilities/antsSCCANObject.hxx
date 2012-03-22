@@ -1838,11 +1838,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       std::cout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm() << std::endl;
       }
     VectorType proj = A.transpose() * (A * x_k1 );
-    //    RealType othermeans = 0;
-    //    for ( unsigned int icept = 0; icept < x_k.size(); icept++ ) othermeans += ( x_k1( icept ) * ( A.transpose() *
-    // A.get_column( icept ) ).mean() );
-    //    intercept = b.mean() - othermeans;
-    VectorType r_k1 = ( b -  proj - intercept );
+    VectorType r_k1 = ( b -  proj );
     if( makeprojsparse )
       {
       this->SparsifyP( r_k1, keeppos );
