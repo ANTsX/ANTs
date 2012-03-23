@@ -192,6 +192,8 @@ add_executable(WarpTensorImageMultiTransform WarpTensorImageMultiTransform.cxx)
 target_link_libraries(WarpTensorImageMultiTransform ${ITK_LIBRARIES})
 add_executable(ReorientTensorImage ReorientTensorImage.cxx)
 target_link_libraries(ReorientTensorImage ${ITK_LIBRARIES})
+add_executable(RebaseTensorImage RebaseTensorImage.cxx)
+target_link_libraries(RebaseTensorImage ${ITK_LIBRARIES})
 add_executable(N3BiasFieldCorrection N3BiasFieldCorrection.cxx)
 target_link_libraries(N3BiasFieldCorrection ${ITK_LIBRARIES})
 add_executable(N4BiasFieldCorrection N4BiasFieldCorrection.cxx  ${UI_SOURCES})
@@ -302,6 +304,7 @@ install(TARGETS ANTS
   CreateImage
   WarpTensorImageMultiTransform
   ReorientTensorImage
+  RebaseTensorImage
   N3BiasFieldCorrection
   N4BiasFieldCorrection
   KellySlater
