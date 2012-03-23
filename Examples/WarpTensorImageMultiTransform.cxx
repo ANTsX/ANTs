@@ -537,38 +537,42 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
   std::cout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
 }
 
-template <typename TensorImageType>
+template <typename TensorImageType, typename ImageType>
 void
-DirectionCorrect( typename TensorImageType::Pointer img_out, typename TensorImageType::Pointer img_mov )
+DirectionCorrect( typename TensorImageType::Pointer img_mov, typename ImageType::Pointer img_ref )
 {
-  itk::ImageRegionIteratorWithIndex<TensorImageType> it(img_out, img_out->GetLargestPossibleRegion() );
+  itk::ImageRegionIteratorWithIndex<TensorImageType> it(img_mov, img_mov->GetLargestPossibleRegion() );
 
-  typename TensorImageType::DirectionType directionSwap = img_out->GetDirection() * img_mov->GetDirection();
+  typename TensorImageType::DirectionType::InternalMatrixType direction = img_mov->GetDirection().GetTranspose()
+    * img_ref->GetDirection().GetVnlMatrix();
 
-  while( !it.IsAtEnd() )
+  if( !direction.is_identity( 0.00001 ) )
     {
-    typename TensorImageType::DirectionType::InternalMatrixType  dt;
-    dt(0, 0) = it.Value()[0];
-    dt(0, 1) = dt(1, 0) = it.Value()[1];
-    dt(0, 2) = dt(2, 0) = it.Value()[2];
-    dt(1, 1) = it.Value()[3];
-    dt(1, 2) = dt(2, 1) = it.Value()[4];
-    dt(2, 2) = it.Value()[5];
+    while( !it.IsAtEnd() )
+      {
+      typename TensorImageType::DirectionType::InternalMatrixType  dt;
+      dt(0, 0) = it.Value()[0];
+      dt(0, 1) = dt(1, 0) = it.Value()[1];
+      dt(0, 2) = dt(2, 0) = it.Value()[2];
+      dt(1, 1) = it.Value()[3];
+      dt(1, 2) = dt(2, 1) = it.Value()[4];
+      dt(2, 2) = it.Value()[5];
 
-    dt = directionSwap * dt * directionSwap.GetTranspose();
+      dt = direction * dt * direction.transpose();
 
-    typename TensorImageType::PixelType outDt;
+      typename TensorImageType::PixelType outDt;
 
-    outDt[0] = dt(0, 0);
-    outDt[1] = dt(0, 1);
-    outDt[2] = dt(0, 2);
-    outDt[3] = dt(1, 1);
-    outDt[4] = dt(1, 2);
-    outDt[5] = dt(2, 2);
+      outDt[0] = dt(0, 0);
+      outDt[1] = dt(0, 1);
+      outDt[2] = dt(0, 2);
+      outDt[3] = dt(1, 1);
+      outDt[4] = dt(1, 2);
+      outDt[5] = dt(2, 2);
 
-    it.Set( outDt );
+      it.Set( outDt );
 
-    ++it;
+      ++it;
+      }
     }
 }
 
@@ -612,6 +616,9 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     reader_img_ref->Update();
     img_ref = reader_img_ref->GetOutput();
     }
+
+  // Convert to reference image tensor basis
+  DirectionCorrect<TensorImageType, ImageType>(img_mov, img_ref);
 
   typename TensorImageType::Pointer img_output = TensorImageType::New();
   img_output->SetLargestPossibleRegion( img_ref->GetLargestPossibleRegion() );
@@ -798,7 +805,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       }
     }
 
-  DirectionCorrect<TensorImageType>(img_output, img_mov);
+  // DirectionCorrect<TensorImageType>(img_output, img_mov);
 
   WriteTensorImage<TensorImageType>(img_output, output_image_filename, true);
 }
