@@ -50,7 +50,7 @@ TRAN_FILE_TYPE CheckFileType(char *str)
       pos = filepre.rfind(".");
       extension = std::string(filepre, pos, filepre.length() - 1);
       }
-    if( extension == ".txt" )
+    if( extension == ".txt" || extension == ".mat" )
       {
       return AFFINE_FILE;
       }
