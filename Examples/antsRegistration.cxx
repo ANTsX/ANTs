@@ -66,14 +66,30 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Specify the initial transform(s) which get immediately " )
+    std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
       + std::string( "incorporated into the composite transform.  The order of the " )
       + std::string( "transforms is stack-esque in that the last transform specified on " )
       + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
       + std::string( "for additional information." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initial-transform" );
+    option->SetLongName( "initial-fixed-transform" );
+    option->SetShortName( 'q' );
+    option->SetUsageOption( 0, "initialTransform" );
+    option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Specify the initial moving transform(s) which get immediately " )
+      + std::string( "incorporated into the composite transform.  The order of the " )
+      + std::string( "transforms is stack-esque in that the last transform specified on " )
+      + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
+      + std::string( "for additional information." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initial-moving-transform" );
     option->SetShortName( 'r' );
     option->SetUsageOption( 0, "initialTransform" );
     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
@@ -152,12 +168,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Specify the number of iterations at each level." );
+    std::string description =
+      std::string( "Convergence is determined from the number of iterations per level" )
+      + std::string( "and is determined by fitting a line to the normalized energy " )
+      + std::string( "profile of the last N iterations (where N is specified by " )
+      + std::string( "the window size) and determining the slope which is then " )
+      + std::string( "compared with the convergence threshold." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "iterations" );
-    option->SetShortName( 'i' );
-    option->SetUsageOption( 0, "MxNx0..." );
+    option->SetLongName( "convergence" );
+    option->SetShortName( 'c' );
+    option->SetUsageOption( 0, "MxNxO" );
+    option->SetUsageOption( 1, "[MxNxO,<convergenceThreshold=1e-6>,<convergenceWindowSize=10>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -168,7 +190,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "smoothing-sigmas" );
     option->SetShortName( 's' );
-    option->SetUsageOption( 0, "MxNx0..." );
+    option->SetUsageOption( 0, "MxNxO..." );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -180,7 +202,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "shrink-factors" );
     option->SetShortName( 'f' );
-    option->SetUsageOption( 0, "MxNx0..." );
+    option->SetUsageOption( 0, "MxNxO..." );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -369,7 +391,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer metricOption = parser->GetOption( "metric" );
 
-  OptionType::Pointer iterationsOption = parser->GetOption( "iterations" );
+  OptionType::Pointer convergenceOption = parser->GetOption( "convergence" );
 
   OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrink-factors" );
 
@@ -402,37 +424,72 @@ DoRegistration(typename ParserType::Pointer & parser)
     outputInverseWarpedImageName = outputOption->GetParameter( 0, 2 );
     }
 
-  ParserType::OptionType::Pointer initialTransformOption = parser->GetOption( "initial-transform" );
+  ParserType::OptionType::Pointer initialMovingTransformOption = parser->GetOption( "initial-moving-transform" );
 
-  if( initialTransformOption && initialTransformOption->GetNumberOfValues() > 0 )
+  if( initialMovingTransformOption && initialMovingTransformOption->GetNumberOfValues() > 0 )
     {
     typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
-    for( unsigned int n = 0; n < initialTransformOption->GetNumberOfValues(); n++ )
+    for( unsigned int n = 0; n < initialMovingTransformOption->GetNumberOfValues(); n++ )
       {
-      std::string initialTransformName;
+      std::string initialMovingTransformName;
 
       bool useInverse(false);
 
-      if( initialTransformOption->GetNumberOfParameters(n) == 0 )
+      if( initialMovingTransformOption->GetNumberOfParameters(n) == 0 )
         {
-        initialTransformName = initialTransformOption->GetValue( n );
+        initialMovingTransformName = initialMovingTransformOption->GetValue( n );
         }
       else
         {
-        initialTransformName = initialTransformOption->GetParameter( n, 0 );
-        if( initialTransformOption->GetNumberOfParameters( n ) > 1 )
+        initialMovingTransformName = initialMovingTransformOption->GetParameter( n, 0 );
+        if( initialMovingTransformOption->GetNumberOfParameters( n ) > 1 )
           {
-          useInverse = parser->Convert<bool>( initialTransformOption->GetParameter( n, 1  ) );
+          useInverse = parser->Convert<bool>( initialMovingTransformOption->GetParameter( n, 1  ) );
           }
         }
 
-      if( AddInitialTransform<VImageDimension>(compositeTransform, initialTransformName, useInverse) != EXIT_SUCCESS )
+      if( AddInitialTransform<VImageDimension>(compositeTransform, initialMovingTransformName,
+                                               useInverse) != EXIT_SUCCESS )
         {
-        std::cerr << "Can't read initialTransform " << initialTransformName << std::endl;
+        std::cerr << "Can't read initial moving transform " << initialMovingTransformName << std::endl;
         return EXIT_FAILURE;
         }
       }
-    regHelper->SetInitialTransform(compositeTransform);
+    regHelper->SetMovingInitialTransform(compositeTransform);
+    }
+
+  ParserType::OptionType::Pointer initialFixedTransformOption = parser->GetOption( "initial-fixed-transform" );
+
+  if( initialFixedTransformOption && initialFixedTransformOption->GetNumberOfValues() > 0 )
+    {
+    typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
+    for( unsigned int n = 0; n < initialFixedTransformOption->GetNumberOfValues(); n++ )
+      {
+      std::string initialFixedTransformName;
+
+      bool useInverse(false);
+
+      if( initialFixedTransformOption->GetNumberOfParameters(n) == 0 )
+        {
+        initialFixedTransformName = initialFixedTransformOption->GetValue( n );
+        }
+      else
+        {
+        initialFixedTransformName = initialFixedTransformOption->GetParameter( n, 0 );
+        if( initialFixedTransformOption->GetNumberOfParameters( n ) > 1 )
+          {
+          useInverse = parser->Convert<bool>( initialFixedTransformOption->GetParameter( n, 1  ) );
+          }
+        }
+
+      if( AddInitialTransform<VImageDimension>(compositeTransform, initialFixedTransformName,
+                                               useInverse) != EXIT_SUCCESS )
+        {
+        std::cerr << "Can't read initial moving transform " << initialFixedTransformName << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    regHelper->SetFixedInitialTransform(compositeTransform);
     }
 
   if( maskOption.IsNotNull() )
@@ -478,6 +535,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
   std::vector<std::vector<unsigned int> > iterationList;
+  std::vector<double>                     convergenceThresholdList;
+  std::vector<unsigned int>               convergenceWindowSizeList;
   std::vector<std::vector<unsigned int> > shrinkFactorsList;
   std::vector<std::vector<float> >        smoothingSigmasList;
   std::deque<std::string>                 TransformTypeNames;
@@ -567,10 +626,29 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     // Get the number of iterations and use that information to specify the number of levels
 
-    std::vector<unsigned int> iterations =
-      parser->ConvertVector<unsigned int>( iterationsOption->GetValue( currentStage ) );
+    std::vector<unsigned int> iterations;
+    double                    convergenceThreshold = 1e-6;
+    unsigned int              convergenceWindowSize = 10;
+    if( convergenceOption->GetNumberOfParameters( currentStage ) == 0 )
+      {
+      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetValue( currentStage ) );
+      }
+    else if( convergenceOption->GetNumberOfParameters( currentStage ) > 0 )
+      {
+      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetParameter( currentStage, 0 ) );
+      }
+    if( convergenceOption->GetNumberOfParameters( currentStage ) > 1 )
+      {
+      convergenceThreshold = parser->Convert<double>( convergenceOption->GetParameter( currentStage, 1 ) );
+      }
+    if( convergenceOption->GetNumberOfParameters( currentStage ) > 2 )
+      {
+      convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetParameter( currentStage, 2 ) );
+      }
 
     iterationList.push_back(iterations);
+    convergenceThresholdList.push_back(convergenceThreshold);
+    convergenceWindowSizeList.push_back(convergenceWindowSize);
 
     unsigned int numberOfLevels = iterations.size();
     std::cout << "  number of levels = " << numberOfLevels << std::endl;
@@ -799,6 +877,8 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   // set the vector-vector parameters accumulated
   regHelper->SetIterations(iterationList);
+  regHelper->SetConvergenceWindowSizes(convergenceWindowSizeList);
+  regHelper->SetConvergenceThresholds(convergenceThresholdList);
   regHelper->SetSmoothingSigmas(smoothingSigmasList);
   regHelper->SetShrinkFactors(shrinkFactorsList);
 
@@ -812,7 +892,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     regHelper->GetCompositeTransform();
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
   // write out transforms actually computed, so skip any initial transforms.
-  for( unsigned int i = initialTransformOption->GetNumberOfValues(); i < numTransforms; ++i )
+  for( unsigned int i = initialMovingTransformOption->GetNumberOfValues(); i < numTransforms; ++i )
     {
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
       resultTransform->GetNthTransform(i);

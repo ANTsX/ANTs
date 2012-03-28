@@ -245,9 +245,14 @@ public:
   XfrmMethod StringToXfrmMethod(const std::string & str) const;
 
   /**
-   * set the initial transform.
+   * set the fixed initial transform.
    */
-  void SetInitialTransform(const TransformType *initialTransform);
+  void SetFixedInitialTransform(const TransformType *initialTransform);
+
+  /**
+   * set the moving initial transform.
+   */
+  void SetMovingInitialTransform(const TransformType *initialTransform);
 
   /**
    * add a rigid transform
@@ -321,8 +326,17 @@ public:
   /**
    * Add the collected iterations list
    */
-
   void SetIterations(const std::vector<std::vector<unsigned int> > & Iterations);
+
+  /**
+   * Add the collected convergence thresholds
+   */
+  void SetConvergenceThresholds(const std::vector<double> & thresholds);
+
+  /**
+   * Add the collected convergence window sizes
+   */
+  void SetConvergenceWindowSizes(const std::vector<unsigned int> & windowSizes);
 
   /**
    * Add the collected smoothing sigmas list
@@ -402,6 +416,7 @@ private:
   }
 
   typename CompositeTransformType::Pointer m_CompositeTransform;
+  typename CompositeTransformType::Pointer m_FixedInitialTransform;
   typename ImageType::Pointer              m_WarpedImage;
   typename ImageType::Pointer              m_InverseWarpedImage;
   typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
@@ -410,6 +425,8 @@ private:
   MetricListType                          m_Metrics;
   TransformMethodListType                 m_TransformMethods;
   std::vector<std::vector<unsigned int> > m_Iterations;
+  std::vector<double>                     m_ConvergenceThresholds;
+  std::vector<unsigned int>               m_ConvergenceWindowSizes;
   std::vector<std::vector<float> >        m_SmoothingSigmas;
   std::vector<std::vector<unsigned int> > m_ShrinkFactors;
   bool                                    m_UseHistogramMatching;
