@@ -416,8 +416,8 @@ WarpImageWAffineFilter<TInputImage, TOutputImage, TDisplacementField, TTransform
         {
         point2 = aff->TransformPoint(point1);
 
-        typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, float> DefaultInterpolatorType;
-        typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
+        typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, float> VecLinInterpolatorType;
+        typename VecLinInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
         vinterp->SetInputImage(fieldPtr);
 
         typename DefaultInterpolatorType::ContinuousIndexType  contind;

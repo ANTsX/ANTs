@@ -475,9 +475,9 @@ public:
         }
 
       typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
-      typedef typename DisplacementFieldType::PixelType                VectorType;
-      VectorType v1;
-      VectorType zero;
+      typedef typename DisplacementFieldType::PixelType                DispVectorType;
+      DispVectorType v1;
+      DispVectorType zero;
       zero.Fill(0.0);
       Iterator vfIter( sfield, sfield->GetLargestPossibleRegion() );
       for( vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
@@ -1824,9 +1824,9 @@ public:
     TRealImage->SetDirection(field->GetDirection() );
     TRealImage->Allocate();
 
-    typedef typename DisplacementFieldType::PixelType           VectorType;
-    typedef typename DisplacementFieldType::IndexType           IndexType;
-    typedef typename VectorType::ValueType                      ScalarType;
+    typedef typename DisplacementFieldType::PixelType           DispVectorType;
+    typedef typename DisplacementFieldType::IndexType           DispIndexType;
+    typedef typename DispVectorType::ValueType                  ScalarType;
     typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
 
     DisplacementFieldPointer lagrangianInitCond = DisplacementFieldType::New();
@@ -1861,9 +1861,9 @@ public:
     Iterator iter( field, field->GetLargestPossibleRegion() );
     for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
-      IndexType  index = iter.GetIndex();
-      VectorType vec1 = iter.Get();
-      VectorType newvec = vec1 * weight;
+      DispIndexType  index = iter.GetIndex();
+      DispVectorType vec1 = iter.Get();
+      DispVectorType newvec = vec1 * weight;
       lagrangianInitCond->SetPixel(index, newvec);
       TReal mag = 0;
       for( unsigned int jj = 0; jj < ImageDimension; jj++ )
@@ -1913,9 +1913,9 @@ public:
       difmag = 0.0;
       for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
         {
-        IndexType  index = vfIter.GetIndex();
-        VectorType update = eulerianInitCond->GetPixel(index);
-        TReal      mag = 0;
+        DispIndexType  index = vfIter.GetIndex();
+        DispVectorType update = eulerianInitCond->GetPixel(index);
+        TReal          mag = 0;
         for( int j = 0; j < ImageDimension; j++ )
           {
           update[j] *= (-1.0);
@@ -1944,13 +1944,13 @@ public:
       stepl = difmag * epsilon;
       for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
         {
-        TReal      val = TRealImage->GetPixel(vfIter.GetIndex() );
-        VectorType update = eulerianInitCond->GetPixel(vfIter.GetIndex() );
+        TReal          val = TRealImage->GetPixel(vfIter.GetIndex() );
+        DispVectorType update = eulerianInitCond->GetPixel(vfIter.GetIndex() );
         if( val > stepl )
           {
           update = update * (stepl / val);
           }
-        VectorType upd = vfIter.Get() + update * (epsilon);
+        DispVectorType upd = vfIter.Get() + update * (epsilon);
         vfIter.Set(upd);
         }
       ct++;
@@ -2037,10 +2037,10 @@ protected:
 
   TReal MeasureDeformation(DisplacementFieldPointer field, int /* option */ = 0)
   {
-    typedef typename DisplacementFieldType::PixelType           VectorType;
-    typedef typename DisplacementFieldType::IndexType           IndexType;
+    typedef typename DisplacementFieldType::PixelType           DispVectorType;
+    typedef typename DisplacementFieldType::IndexType           DispIndexType;
     typedef typename DisplacementFieldType::SizeType            SizeType;
-    typedef typename VectorType::ValueType                      ScalarType;
+    typedef typename DispVectorType::ValueType                  ScalarType;
     typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
     // all we have to do here is add the local field to the global field.
     Iterator      vfIter( field,  field->GetLargestPossibleRegion() );
@@ -2053,12 +2053,12 @@ protected:
     typename ImageType::SpacingType myspacing = field->GetSpacing();
     for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
       {
-      IndexType  index = vfIter.GetIndex();
-      IndexType  rindex = vfIter.GetIndex();
-      IndexType  lindex = vfIter.GetIndex();
-      VectorType update = vfIter.Get();
-      TReal      mag = 0.0;
-      TReal      stepl = 0.0;
+      DispIndexType  index = vfIter.GetIndex();
+      DispIndexType  rindex = vfIter.GetIndex();
+      DispIndexType  lindex = vfIter.GetIndex();
+      DispVectorType update = vfIter.Get();
+      TReal          mag = 0.0;
+      TReal          stepl = 0.0;
       for( int i = 0; i < ImageDimension; i++ )
         {
         rindex = index;
@@ -2071,9 +2071,9 @@ protected:
           {
           lindex[i] = lindex[i] - 1;
           }
-        VectorType rupdate = field->GetPixel(rindex);
-        VectorType lupdate = field->GetPixel(lindex);
-        VectorType dif = rupdate - lupdate;
+        DispVectorType rupdate = field->GetPixel(rindex);
+        DispVectorType lupdate = field->GetPixel(lindex);
+        DispVectorType dif = rupdate - lupdate;
         for( int tt = 0; tt < ImageDimension; tt++ )
           {
           stepl += update[tt] * update[tt] / (myspacing[tt] * myspacing[tt]);

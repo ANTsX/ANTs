@@ -98,8 +98,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
   interpolator->SetInputImage( image );
   resampler->SetInterpolator( interpolator );
-  typedef itk::IdentityTransform<TComp, TDimension> TransformType;
-  typename TransformType::Pointer transform = TransformType::New();
+  typedef itk::IdentityTransform<TComp, TDimension> IdentityTransformType;
+  typename IdentityTransformType::Pointer transform = IdentityTransformType::New();
   transform->SetIdentity();
   resampler->SetTransform( transform );
   if( aff )
@@ -187,8 +187,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   tempField->SetBufferedRegion( field->GetBufferedRegion() );
   tempField->Allocate();
 
-  typedef typename DisplacementFieldType::PixelType    VectorType;
-  typedef typename VectorType::ValueType               ScalarType;
+  typedef typename DisplacementFieldType::PixelType    DispVectorType;
+  typedef typename DispVectorType::ValueType           ScalarType;
   typedef GaussianOperator<ScalarType, ImageDimension> OperatorType;
   // typedef VectorNeighborhoodOperatorImageFilter< DisplacementFieldType,    DisplacementFieldType> SmootherType;
   typedef VectorParameterizedNeighborhoodOperatorImageFilter<
@@ -255,14 +255,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
     if( onboundary )
       {
-      VectorType vec;
+      DispVectorType vec;
       vec.Fill(0.0);
       outIter.Set(vec);
       }
     else
       {
       // field=this->CopyDisplacementField(
-      VectorType svec = smoother->GetOutput()->GetPixel(index);
+      DispVectorType svec = smoother->GetOutput()->GetPixel(index);
       outIter.Set( svec * weight + outIter.Get() * weight2);
       }
     }
@@ -299,8 +299,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   tempField->SetBufferedRegion( field->GetBufferedRegion() );
   tempField->Allocate();
 
-  typedef typename TimeVaryingVelocityFieldType::PixelType VectorType;
-  typedef typename VectorType::ValueType                   ScalarType;
+  typedef typename TimeVaryingVelocityFieldType::PixelType TVVFVectorType;
+  typedef typename TVVFVectorType::ValueType               ScalarType;
   typedef GaussianOperator<ScalarType, ImageDimension + 1> OperatorType;
   typedef VectorNeighborhoodOperatorImageFilter<TimeVaryingVelocityFieldType,
                                                 TimeVaryingVelocityFieldType> SmootherType;
@@ -364,14 +364,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
     if( onboundary )
       {
-      VectorType vec;
+      TVVFVectorType vec;
       vec.Fill(0.0);
       outIter.Set(vec);
       }
     else
       {
       // field=this->CopyDisplacementField(
-      VectorType svec = smoother->GetOutput()->GetPixel(index);
+      TVVFVectorType svec = smoother->GetOutput()->GetPixel(index);
       outIter.Set( svec * weight + outIter.Get() * weight2);
       }
     }
@@ -499,7 +499,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     VectorType zero;  zero.Fill(0);
     fieldout->FillBuffer(zero);
     }
-  typedef typename DisplacementFieldType::PixelType VectorType;
+  typedef typename DisplacementFieldType::PixelType DispVectorType;
 
   typedef itk::WarpImageFilter<ImageType, ImageType, DisplacementFieldType> WarperType;
   typedef DisplacementFieldType                                             FieldType;
@@ -509,8 +509,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   typedef itk::ImageFileWriter<ImageType> writertype;
 
-  typedef typename DisplacementFieldType::IndexType IndexType;
-  typedef typename DisplacementFieldType::PointType PointType;
+  typedef typename DisplacementFieldType::IndexType DispIndexType;
 
   typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, TReal>   DefaultInterpolatorType;
   typedef itk::VectorGaussianInterpolateImageFunction<DisplacementFieldType, TReal> DefaultInterpolatorType2;
@@ -529,13 +528,13 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   FieldIterator m_FieldIter( fieldtowarpby, fieldtowarpby->GetLargestPossibleRegion() );
   for(  m_FieldIter.GoToBegin(); !m_FieldIter.IsAtEnd(); ++m_FieldIter )
     {
-    IndexType index = m_FieldIter.GetIndex();
-    bool      dosample = true;
+    DispIndexType index = m_FieldIter.GetIndex();
+    bool          dosample = true;
     //      if (sub && m_TRealImage->GetPixel(index) < 0.5) dosample=false;
     if( dosample )
       {
       fieldtowarpby->TransformIndexToPhysicalPoint( index, pointIn1 );
-      VectorType disp = m_FieldIter.Get();
+      DispVectorType disp = m_FieldIter.Get();
       for( int jj = 0; jj < ImageDimension; jj++ )
         {
         pointIn2[jj] = disp[jj] + pointIn1[jj];
@@ -554,7 +553,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         pointIn3[jj] = disp2[jj] * timesign + pointIn2[jj];
         }
 
-      VectorType out;
+      DispVectorType out;
       for( int jj = 0; jj < ImageDimension; jj++ )
         {
         out[jj] = pointIn3[jj] - pointIn1[jj];
@@ -677,7 +676,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
     /** get the update */
-    typedef DisplacementFieldType DisplacementFieldType;
     typedef typename FiniteDifferenceFunctionType::NeighborhoodType
       NeighborhoodIteratorType;
     typedef ImageRegionIterator<DisplacementFieldType> UpdateIteratorType;
@@ -1225,7 +1223,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
 
     /** get the update */
-    typedef DisplacementFieldType DisplacementFieldType;
     typedef typename FiniteDifferenceFunctionType::NeighborhoodType
       NeighborhoodIteratorType;
     typedef ImageRegionIterator<DisplacementFieldType> UpdateIteratorType;
@@ -1939,14 +1936,7 @@ void
 ANTSImageRegistrationOptimizer<TDimension, TReal>
 ::UpdateTimeVaryingVelocityFieldWithSyNFandSyNM()
 {
-  typedef TReal                              PixelType;
-  typedef itk::Vector<TReal, TDimension>     VectorType;
-  typedef itk::Image<VectorType, TDimension> DisplacementFieldType;
-  typedef itk::Image<PixelType, TDimension>  ImageType;
-  typedef typename  ImageType::IndexType     IndexType;
-  typedef typename  ImageType::SizeType      SizeType;
-  typedef typename  ImageType::SpacingType   SpacingType;
-  typedef TimeVaryingVelocityFieldType       tvt;
+  typedef TimeVaryingVelocityFieldType tvt;
 
   bool generatetvfield = false;
   if( !this->m_TimeVaryingVelocity )
@@ -2010,7 +2000,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     this->m_TimeVaryingVelocity->FillBuffer(zero);
     }
 
-  typedef  tvt                                                     TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
   typedef typename DisplacementFieldType::IndexType                DIndexType;
@@ -2049,17 +2038,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                             DisplacementFieldPointer update2,
                             TReal timept)
 {
-  typedef TReal                              PixelType;
-  typedef itk::Vector<TReal, TDimension>     VectorType;
-  typedef itk::Image<VectorType, TDimension> DisplacementFieldType;
-  typedef itk::Image<PixelType, TDimension>  ImageType;
-  typedef typename  ImageType::IndexType     IndexType;
-  typedef typename  ImageType::SizeType      SizeType;
-  typedef typename  ImageType::SpacingType   SpacingType;
-  typedef TimeVaryingVelocityFieldType       tvt;
-
+  typedef TimeVaryingVelocityFieldType tvt;
   VectorType zero;
-  typedef  tvt                                                     TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
   typedef typename DisplacementFieldType::IndexType                DIndexType;
@@ -2073,7 +2053,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   for(  m_FieldIter.GoToBegin(); !m_FieldIter.IsAtEnd(); ++m_FieldIter )
     {
     typename tvt::IndexType velind = m_FieldIter.GetIndex();
-    IndexType ind;
+    typename ImageType::IndexType ind;
     for( unsigned int j = 0; j < ImageDimension; j++ )
       {
       ind[j] = velind[j];
@@ -2525,14 +2505,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
 
 //  std::cout << " st " << starttimein << " ft " << finishtimein << std::endl;
-  typedef TReal                              PixelType;
-  typedef itk::Vector<TReal, TDimension>     VectorType;
-  typedef itk::Image<VectorType, TDimension> DisplacementFieldType;
-  typedef itk::Image<PixelType, TDimension>  ImageType;
-  typedef typename  ImageType::IndexType     IndexType;
-  typedef typename  ImageType::SizeType      SizeType;
-  typedef typename  ImageType::SpacingType   SpacingType;
-  typedef TimeVaryingVelocityFieldType       tvt;
+  typedef TimeVaryingVelocityFieldType tvt;
 
   bool dothick = false;
   if(  finishtimein > starttimein  && this->m_ComputeThickness )
@@ -2586,7 +2559,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
   this->m_VelocityFieldInterpolator->SetInputImage(this->m_TimeVaryingVelocity);
 
-  typedef  tvt                                                     TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
   typedef typename DisplacementFieldType::IndexType                DIndexType;
@@ -2660,14 +2632,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
                                                                        TReal>
                                ::ImagePointer /* refimage */ )
 {
-  typedef TReal                              PixelType;
-  typedef itk::Vector<TReal, TDimension>     VectorType;
-  typedef itk::Image<VectorType, TDimension> DisplacementFieldType;
-  typedef itk::Image<PixelType, TDimension>  ImageType;
-  typedef typename  ImageType::IndexType     IndexType;
-  typedef typename  ImageType::SizeType      SizeType;
-  typedef typename  ImageType::SpacingType   SpacingType;
-  typedef TimeVaryingVelocityFieldType       tvt;
+  typedef TimeVaryingVelocityFieldType tvt;
 
   DisplacementFieldPointer intfield = DisplacementFieldType::New();
   intfield->SetSpacing( this->m_CurrentDomainSpacing );
@@ -2690,7 +2655,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
   this->m_VelocityFieldInterpolator->SetInputImage(this->m_TimeVaryingVelocity);
 
-  typedef  tvt                                                     TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
   typedef typename DisplacementFieldType::IndexType                DIndexType;
@@ -2753,14 +2717,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 //  std::cout <<"Enter IP "<< std::endl;
   typedef typename VelocityFieldInterpolatorType::OutputType InterpPointType;
 
-  typedef TReal                              PixelType;
-  typedef itk::Vector<TReal, TDimension>     VectorType;
-  typedef itk::Image<VectorType, TDimension> DisplacementFieldType;
-  typedef itk::Image<PixelType, TDimension>  ImageType;
-  typedef typename  ImageType::IndexType     IndexType;
-  typedef typename  ImageType::SizeType      SizeType;
-  typedef typename  ImageType::SpacingType   SpacingType;
-  typedef TimeVaryingVelocityFieldType       tvt;
+  typedef TimeVaryingVelocityFieldType tvt;
 
   VectorType zero;
   zero.Fill(0);
@@ -2769,7 +2726,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     return zero;
     }
 
-  typedef  tvt                                                     TimeVaryingVelocityFieldType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
   typedef typename DisplacementFieldType::IndexType                DIndexType;
@@ -2817,7 +2773,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   bool          timedone = false;
   VectorType    disp;
   TReal         deltaTime = dT, vecsign = 1.0;
-  SpacingType   spacing = this->m_DisplacementField->GetSpacing();
+  typename ImageType::SpacingType spacing = this->m_DisplacementField->GetSpacing();
   if( starttimein  > finishtimein )
     {
     vecsign = -1.0;
