@@ -485,7 +485,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       if( AddInitialTransform<VImageDimension>(compositeTransform, initialFixedTransformName,
                                                useInverse) != EXIT_SUCCESS )
         {
-        std::cerr << "Can't read initial moving transform " << initialFixedTransformName << std::endl;
+        std::cerr << "Can't read initial fixed transform " << initialFixedTransformName << std::endl;
         return EXIT_FAILURE;
         }
       }
