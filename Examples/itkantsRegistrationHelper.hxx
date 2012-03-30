@@ -756,14 +756,24 @@ RegistrationHelper<VImageDimension>
   this->Logger() << "Registration using " << this->m_NumberOfStages << " total stages." << std::endl;
 
   // NOTE:  the -1 is to ignore the initial identity identity transform
-  const size_t numberOfInitialTransforms =
+  const size_t numberOfInitialMovingTransforms =
     (this->m_CompositeTransform.IsNull() ?
      0 :
      this->m_CompositeTransform->GetNumberOfTransforms() );
 
-  if( numberOfInitialTransforms == 0 )
+  if( numberOfInitialMovingTransforms == 0 )
     {
     this->m_CompositeTransform = CompositeTransformType::New();
+    }
+
+  const size_t numberOfInitialFixedTransforms =
+    (this->m_FixedInitialTransform.IsNull() ?
+     0 :
+     this->m_FixedInitialTransform->GetNumberOfTransforms() );
+
+  if( numberOfInitialFixedTransforms == 0 )
+    {
+    this->m_FixedInitialTransform = CompositeTransformType::New();
     }
   for( unsigned int currentStage = 0; currentStage < this->m_NumberOfStages; currentStage++ )
     {
@@ -772,7 +782,7 @@ RegistrationHelper<VImageDimension>
 
     typedef itk::ImageRegistrationMethodv4<ImageType, ImageType> AffineRegistrationType;
 
-    const int stageNumber = numberOfInitialTransforms + this->m_NumberOfStages - currentStage - 1;
+    const int stageNumber = numberOfInitialMovingTransforms + this->m_NumberOfStages - currentStage - 1;
     this->Logger() << std::endl << "Stage "
                    << ( stageNumber ) << std::endl;
     std::stringstream currentStageString;
