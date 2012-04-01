@@ -211,6 +211,7 @@ RegistrationHelper<VImageDimension>
   m_ShrinkFactors(),
   m_UseHistogramMatching(true),
   m_WinsorizeImageIntensities(false),
+  m_DoEstimateLearningRateOnce(false),
   m_LowerQuantile(0.0),
   m_UpperQuantile(1.0),
   m_LogStream(&std::cout)
@@ -1016,7 +1017,7 @@ RegistrationHelper<VImageDimension>
     optimizer->SetScalesEstimator( scalesEstimator );
     optimizer->SetMinimumConvergenceValue( convergenceThreshold );
     optimizer->SetConvergenceWindowSize( convergenceWindowSize );
-
+    optimizer->SetDoEstimateLearningRateOnce(true);
     // Set up the image registration methods along with the transforms
     XfrmMethod whichTransform = this->m_TransformMethods[currentStage].m_XfrmMethod;
 
@@ -2044,7 +2045,7 @@ RegistrationHelper<VImageDimension>
         RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldSigmaInPhysicalSpace;
         RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldSigmaInPhysicalSpace;
 
-        displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
+        displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( false );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
         displacementFieldRegistration->SetFixedImage( preprocessFixedImage );
         displacementFieldRegistration->SetMovingImage( preprocessMovingImage );

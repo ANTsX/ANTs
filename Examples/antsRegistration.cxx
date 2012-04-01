@@ -218,6 +218,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string(
+        "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "use-estimate-learning-rate-once" );
+    option->SetShortName( 'l' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Winsorize data based on specified quantiles." );
 
     OptionType::Pointer option = OptionType::New();
@@ -623,6 +634,19 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       }
     regHelper->SetUseHistogramMatching(doHistogramMatch);
+
+    bool                doEstimateLearningRateOnce(false);
+    OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
+    if( rateOption && rateOption->GetNumberOfValues() > 0 )
+      {
+      std::string rateValue = rateOption->GetValue( 0 );
+      ConvertToLowerCase( rateValue );
+      if( rateValue.compare( "1" ) == 0 || rateValue.compare( "true" ) == 0 )
+        {
+        doEstimateLearningRateOnce = true;
+        }
+      }
+    regHelper->SetDoEstimateLearningRateOnce(doEstimateLearningRateOnce);
 
     // Get the number of iterations and use that information to specify the number of levels
 

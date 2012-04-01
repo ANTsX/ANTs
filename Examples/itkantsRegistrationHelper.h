@@ -355,6 +355,13 @@ public:
   itkGetMacro(UseHistogramMatching, bool);
 
   /**
+   * turn on the option that lets you estimate the learning rate step size only at the beginning of each level.
+   * useful as a second stage of fine-scale registration.
+   */
+  itkSetMacro(DoEstimateLearningRateOnce, bool);
+  itkGetMacro(DoEstimateLearningRateOnce, bool);
+
+  /**
    * turn on winsorize image intensity normalization
    */
   void SetWinsorizeImageIntensities(bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0);
@@ -431,6 +438,7 @@ private:
   std::vector<std::vector<unsigned int> > m_ShrinkFactors;
   bool                                    m_UseHistogramMatching;
   bool                                    m_WinsorizeImageIntensities;
+  bool                                    m_DoEstimateLearningRateOnce;
   double                                  m_LowerQuantile;
   double                                  m_UpperQuantile;
   std::ostream *                          m_LogStream;
