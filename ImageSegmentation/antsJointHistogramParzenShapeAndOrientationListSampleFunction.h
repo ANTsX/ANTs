@@ -79,11 +79,15 @@ public:
 
   virtual void SetInputListSample( const InputListSampleType * ptr );
 
-  itkSetMacro( Sigma, RealType );
-  itkGetConstMacro( Sigma, RealType );
+  itkSetMacro( ShapeSigma, RealType );
+  itkGetConstMacro( ShapeSigma, RealType );
+  itkSetMacro( OrientationSigma, RealType );
+  itkGetConstMacro( OrientationSigma, RealType );
 
-  itkSetMacro( NumberOfJointHistogramBins, unsigned int );
-  itkGetConstMacro( NumberOfJointHistogramBins, unsigned int );
+  itkSetMacro( NumberOfShapeJointHistogramBins, unsigned int );
+  itkGetConstMacro( NumberOfShapeJointHistogramBins, unsigned int );
+  itkSetMacro( NumberOfOrientationJointHistogramBins, unsigned int );
+  itkGetConstMacro( NumberOfOrientationJointHistogramBins, unsigned int );
 
   virtual TOutput Evaluate( const InputMeasurementVectorType & ) const;
 
@@ -102,8 +106,10 @@ private:
   JointHistogramParzenShapeAndOrientationListSampleFunction( const Self & );
   void operator=( const Self & );
 
-  unsigned int               m_NumberOfJointHistogramBins;
-  RealType                   m_Sigma;
+  unsigned int               m_NumberOfShapeJointHistogramBins;
+  unsigned int               m_NumberOfOrientationJointHistogramBins;
+  RealType                   m_ShapeSigma;
+  RealType                   m_OrientationSigma;
   RealType                   m_MaximumEigenvalue1;
   RealType                   m_MaximumEigenvalue2;
   RealType                   m_MinimumEigenvalue1;

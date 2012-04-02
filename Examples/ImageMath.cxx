@@ -380,8 +380,7 @@ int ExtractSlice(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -1723,8 +1722,7 @@ int TimeSeriesSubset(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
 
   typedef float                                        PixelType;
@@ -1806,8 +1804,7 @@ int ComputeTimeSeriesLeverage(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -1947,8 +1944,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2082,8 +2078,7 @@ int CompCorrAuto(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2383,8 +2378,7 @@ int CompCorr(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2766,8 +2760,7 @@ int StackImage(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -2996,8 +2989,7 @@ int FitSphere(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::string(argv[1]) << std::endl;
-    return 1;
+    std::cout << " too few options " << std::string(argv[1]) << std::endl; return 1;
     }
   /*
   typedef float  PixelType;
@@ -3810,24 +3802,6 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 0);
-      if( vnl_math_isnan(result) )
-        {
-        result = 0;
-        }
-      vimage->SetPixel(ind, result);
-      }
-    else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
-      {
-      result = GetTensorADC<TensorType>(tIter.Value(), 2);
-      if( vnl_math_isnan(result) )
-        {
-        result = 0;
-        }
-      vimage->SetPixel(ind, result);
-      }
-    else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
-      {
-      result = GetTensorADC<TensorType>(tIter.Value(), 3 + whichvec);
       if( vnl_math_isnan(result) )
         {
         result = 0;
@@ -7265,7 +7239,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       RowHeaders.push_back(LabelName);
       labct++;
       }
-    typedef  itk::CSVNumericObjectFileWriter<double, 1, 1> CSVType;
+    typedef  itk::CSVNumericObjectFileWriter<double> CSVType;
     CSVType::Pointer OutputCSV = CSVType::New();
     OutputCSV->SetInput(&OutputValues);
     OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
@@ -7306,7 +7280,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       labct++;
       }
 
-    typedef  itk::CSVNumericObjectFileWriter<double, 1, 1> CSVType;
+    typedef  itk::CSVNumericObjectFileWriter<double> CSVType;
     CSVType::Pointer OutputCSV = CSVType::New();
     OutputCSV->SetInput(&OutputValues);
     OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
@@ -7493,8 +7467,7 @@ int ExtractVectorComponent( int argc, char *argv[] )
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl;
-    return 1;
+    std::cout << " too few options " << std::endl; return 1;
     }
   typedef float                                       PixelType;
   typedef itk::VectorImage<PixelType, ImageDimension> ImageType;
@@ -9054,8 +9027,7 @@ int CorrelationUpdate(      int argc, char *argv[])
     }
   else
     {
-    std::cout << " Not enough inputs " << std::endl;
-    return 1;
+    std::cout << " Not enough inputs " << std::endl;  return 1;
     }
   unsigned int radius = 2;
   if( argc > argct )
@@ -9214,10 +9186,6 @@ int main(int argc, char *argv[])
     std::cout << "    Usage        : TensorIOTest DTImage.ext" << std::endl;
     std::cout << "  TensorMeanDiffusion    : " << std::endl;
     std::cout << "    Usage        : TensorMeanDiffusion DTImage.ext" << std::endl;
-    std::cout << "  TensorRadialDiffusion    : Mean of the two smallest eigenvalues" << std::endl;
-    std::cout << "    Usage        : TensorRadialDiffusion DTImage.ext" << std::endl;
-    std::cout << "  TensorEigenvalue    : gets single eigenvalue 0-2, where 0 = smallest, 2 = largest" << std::endl;
-    std::cout << "    Usage        : TensorEigenvalue DTImage.ext WhichInd" << std::endl;
     std::cout
       <<
       "  TensorToVector    : Produces vector field identifying one of the principal directions, 2 = largest eigenvalue"
@@ -9886,14 +9854,6 @@ int main(int argc, char *argv[])
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }

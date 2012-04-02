@@ -126,24 +126,38 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
         JointHistogramParzenShapeAndOrientationListSampleFunction
         <SampleType, float, float> LikelihoodType;
 
-      float sigma = 1.0;
+      float shapeSigma = 1.0;
       if( likelihoodOption->GetNumberOfParameters() > 0 )
         {
-        sigma = parser->Convert<float>(
+        shapeSigma = parser->Convert<float>(
             likelihoodOption->GetParameter( 0 ) );
         }
-      unsigned int numberOfBins = 32;
+      unsigned int numberOfShapeBins = 32;
       if( likelihoodOption->GetNumberOfParameters() > 1 )
         {
-        numberOfBins = parser->Convert<unsigned int>(
+        numberOfShapeBins = parser->Convert<unsigned int>(
             likelihoodOption->GetParameter( 1 ) );
+        }
+      float orientationSigma = 2.0;
+      if( likelihoodOption->GetNumberOfParameters() > 2 )
+        {
+        orientationSigma = parser->Convert<float>(
+            likelihoodOption->GetParameter( 2 ) );
+        }
+      unsigned int numberOfOrientationBins = 64;
+      if( likelihoodOption->GetNumberOfParameters() > 3 )
+        {
+        numberOfOrientationBins = parser->Convert<unsigned int>(
+            likelihoodOption->GetParameter(3) );
         }
       for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
         {
         typename LikelihoodType::Pointer hpwLikelihood =
           LikelihoodType::New();
-        hpwLikelihood->SetSigma( sigma );
-        hpwLikelihood->SetNumberOfJointHistogramBins( numberOfBins );
+        hpwLikelihood->SetShapeSigma( shapeSigma );
+        hpwLikelihood->SetOrientationSigma( orientationSigma);
+        hpwLikelihood->SetNumberOfShapeJointHistogramBins( numberOfShapeBins );
+        hpwLikelihood->SetNumberOfOrientationJointHistogramBins( numberOfOrientationBins);
         segmenter->SetLikelihoodFunction( n, hpwLikelihood );
         }
       }

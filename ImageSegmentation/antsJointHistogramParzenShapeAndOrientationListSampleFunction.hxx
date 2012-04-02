@@ -38,8 +38,10 @@ template <class TListSample, class TOutput, class TCoordRep>
 JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, TCoordRep>
 ::JointHistogramParzenShapeAndOrientationListSampleFunction()
 {
-  this->m_NumberOfJointHistogramBins = 64;
-  this->m_Sigma = 1.0;
+  this->m_NumberOfShapeJointHistogramBins = 32;
+  this->m_NumberOfOrientationJointHistogramBins = 64;
+  this->m_ShapeSigma = 1.0;
+  this->m_OrientationSigma = 2.0;
   this->m_UseNearestNeighborIncrements = true;
   this->m_MaximumEigenvalue1 = 0;
   this->m_MaximumEigenvalue2 = 0;
@@ -75,7 +77,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     typename JointHistogramImageType::PointType origin;
     origin.Fill( 0 );
     typename JointHistogramImageType::SizeType size;
-    size.Fill( this->m_NumberOfJointHistogramBins );
+    size.Fill( this->m_NumberOfShapeJointHistogramBins );
     this->m_JointHistogramImages[0]->SetOrigin( origin );
     this->m_JointHistogramImages[0]->SetSpacing( spacing );
     this->m_JointHistogramImages[0]->SetRegions( size );
@@ -101,8 +103,8 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     eigenvalue2 = 0.0;
     }
 
-  shapePoint[0] = eigenvalue1 * ( this->m_NumberOfJointHistogramBins - 1 );
-  shapePoint[1] = eigenvalue2 * ( this->m_NumberOfJointHistogramBins - 1 );
+  shapePoint[0] = eigenvalue1 * ( this->m_NumberOfShapeJointHistogramBins - 1 );
+  shapePoint[1] = eigenvalue2 * ( this->m_NumberOfShapeJointHistogramBins - 1 );
 
   ContinuousIndex<double, 2> shapeCidx;
   this->m_JointHistogramImages[0]->TransformPhysicalPointToContinuousIndex(
@@ -206,7 +208,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     typename JointHistogramImageType::PointType origin2;
     origin2.Fill(0);
     typename JointHistogramImageType::SizeType size2;
-    size2.Fill( this->m_NumberOfJointHistogramBins );
+    size2.Fill( this->m_NumberOfOrientationJointHistogramBins );
     size2[0] = size2[0] + 2;
     this->m_JointHistogramImages[whichHistogram]->SetOrigin( origin2 );
     this->m_JointHistogramImages[whichHistogram]->SetSpacing( spacing2 );
@@ -289,9 +291,9 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
 // note, if a point maps to 0 or 2*pi then it should contribute to both bins -- pretty much only difference between this
 // function and matlab code is the next 15 or so lines, as far as we see
   orientPoint[0] = psi / (vnl_math::pi ) *
-    ( this->m_NumberOfJointHistogramBins - 1) + 1;
+    ( this->m_NumberOfOrientationJointHistogramBins - 1) + 1;
   orientPoint[1] = ( theta + vnl_math::pi_over_2 ) / vnl_math::pi
-    * ( this->m_NumberOfJointHistogramBins - 1 );
+    * ( this->m_NumberOfOrientationJointHistogramBins - 1 );
 
   ContinuousIndex<double, 2> orientCidx;
   this->m_JointHistogramImages[whichHistogram]->
@@ -388,12 +390,12 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     IndexType index2 = tIter.GetIndex();
     if( index[0] == 0 )
       {
-      index2[0] = this->m_NumberOfJointHistogramBins;
+      index2[0] = this->m_NumberOfOrientationJointHistogramBins;
       index2[1] = index[1];
       tIter.Set(
         this->m_JointHistogramImages[whichHistogram]->GetPixel( index2 ) );
       }
-    if( index[0] == this->m_NumberOfJointHistogramBins + 1 )
+    if( index[0] == this->m_NumberOfOrientationJointHistogramBins + 1 )
       {
       index2[0] = 1;
       index2[1] = index[1];
@@ -569,7 +571,18 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
                                         JointHistogramImageType> GaussianFilterType;
     typename GaussianFilterType::Pointer gaussian = GaussianFilterType::New();
     gaussian->SetInput( this->m_JointHistogramImages[d] );
-    gaussian->SetVariance( this->m_Sigma * this->m_Sigma );
+    if( d == 0 )   // Shape
+      {
+      gaussian->SetVariance( this->m_ShapeSigma * this->m_ShapeSigma );
+      }
+    else if( d == 1 )   // Orientation of 1st eigenvector
+      {
+      gaussian->SetVariance(this->m_OrientationSigma * this->m_OrientationSigma );
+      }
+    else if( d == 2 )   // Orientation of 2nd eigenvector
+      {
+      gaussian->SetVariance( this->m_ShapeSigma * this->m_OrientationSigma );
+      }
     gaussian->SetMaximumError( 0.01 );
     gaussian->SetUseImageSpacing( false );
     gaussian->Update();
@@ -587,6 +600,25 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     divider->Update();
     this->m_JointHistogramImages[d] = divider->GetOutput();
     }
+  static int which_class = 0;
+  which_class++;
+  std::string       string;
+  std::stringstream outstring;
+  outstring << which_class;
+  string = outstring.str();
+  typedef ImageFileWriter<JointHistogramImageType> WriterType;
+  typename WriterType::Pointer      writer = WriterType::New();
+  std::string output( "output_shape" + string + ".nii.gz" );
+  writer->SetFileName( output.c_str() );
+  writer->SetInput(this->m_JointHistogramImages[0] );
+  writer->Update();
+  typedef ImageFileWriter<JointHistogramImageType> WriterType2;
+  typename WriterType2::Pointer      writer2 = WriterType::New();
+  std::string output2( "output_orientation" + string + ".nii.gz" );
+  writer2->SetFileName( output2.c_str() );
+  writer2->SetInput(this->m_JointHistogramImages[1] );
+  writer2->Update();
+  std::cout << "Writing output of histograms." << std::endl;
 }
 
 template <class TListSample, class TOutput, class TCoordRep>
@@ -630,9 +662,12 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   std::ostream& os,
   Indent indent) const
 {
-  os << indent << "Sigma: " << this->m_Sigma << std::endl;
-  os << indent << "Number of histogram bins: "
-     << this->m_NumberOfJointHistogramBins << std::endl;
+  os << indent << "Shape Sigma: " << this->m_ShapeSigma << std::endl;
+  os << indent << "Number of shape histogram bins: "
+     << this->m_NumberOfShapeJointHistogramBins << std::endl;
+  os << indent << "Orientation Sigma: " << this->m_OrientationSigma << std::endl;
+  os << indent << "Number of orientation histogram bins: "
+     << this->m_NumberOfOrientationJointHistogramBins << std::endl;
   os << indent << "Minimum eigenvalue 1: "
      << this->m_MinimumEigenvalue1;
   os << indent << "Minimum eigenvalue 2: "
