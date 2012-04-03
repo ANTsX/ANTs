@@ -98,7 +98,7 @@ TRAN_FILE_TYPE CheckFileType(const char *str)
       pos = filepre.rfind( "." );
       extension = std::string( filepre, pos, filepre.length() - 1 );
       }
-    if( extension == ".txt" || extension == ".mat" )
+    if( extension == ".txt" || extension == ".mat"  || extension == ".hdf5" || extension == ".hdf" )
       {
       return AFFINE_FILE;
       }
