@@ -600,25 +600,27 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     divider->Update();
     this->m_JointHistogramImages[d] = divider->GetOutput();
     }
-  static int which_class = 0;
-  which_class++;
-  std::string       string;
-  std::stringstream outstring;
-  outstring << which_class;
-  string = outstring.str();
-  typedef ImageFileWriter<JointHistogramImageType> WriterType;
-  typename WriterType::Pointer      writer = WriterType::New();
-  std::string output( "output_shape" + string + ".nii.gz" );
-  writer->SetFileName( output.c_str() );
-  writer->SetInput(this->m_JointHistogramImages[0] );
-  writer->Update();
-  typedef ImageFileWriter<JointHistogramImageType> WriterType2;
-  typename WriterType2::Pointer      writer2 = WriterType::New();
-  std::string output2( "output_orientation" + string + ".nii.gz" );
-  writer2->SetFileName( output2.c_str() );
-  writer2->SetInput(this->m_JointHistogramImages[1] );
-  writer2->Update();
-  std::cout << "Writing output of histograms." << std::endl;
+/*  write out histograms--for debugging
+    static int which_class=0;
+    which_class++;
+    std::string string;
+    std::stringstream outstring;
+    outstring<<which_class;
+    string=outstring.str();
+    typedef ImageFileWriter< JointHistogramImageType >  WriterType;
+    typename WriterType::Pointer      writer = WriterType::New();
+    std::string output( "output_shape"+string+".nii.gz" );
+    writer->SetFileName( output.c_str() );
+    writer->SetInput(this->m_JointHistogramImages[0] );
+    writer->Update();
+    typedef ImageFileWriter< JointHistogramImageType >  WriterType2;
+    typename WriterType2::Pointer      writer2 = WriterType::New();
+    std::string output2( "output_orientation"+string+".nii.gz" );
+    writer2->SetFileName( output2.c_str() );
+    writer2->SetInput(this->m_JointHistogramImages[1] );
+    writer2->Update();
+    std::cout << "Writing output of histograms." << std::endl;
+*/
 }
 
 template <class TListSample, class TOutput, class TCoordRep>
