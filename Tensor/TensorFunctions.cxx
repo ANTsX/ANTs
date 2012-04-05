@@ -198,8 +198,8 @@ float  GetTensorADC(  TensorType dtv,  unsigned int opt = 0)
   DT(1,0)=DT(0,1)=dtv[1];
   DT(2,0)=DT(0,2)=dtv[2];
   DT(2,1)=DT(1,2)=dtv[4];
-  //  if (takelog ) std::cout << " TAKING LOG " << std::endl;  else std::cout << "TAKING EXP " << std::endl;
-  //  std::cout << " dtv " << dtv << std::endl;
+  //  if (takelog )::ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
+  // ::ants::antscout << " dtv " << dtv << std::endl;
   vnl_symmetric_eigensystem< double > eig(DT);
   double e1 = (eig.D(0,0));
   double e2 = (eig.D(1,1));
@@ -265,8 +265,8 @@ itk::RGBPixel< unsigned char >   GetTensorRGB( TTensorType dtv )
   DT(1,0)=DT(0,1)=dtv[1];
   DT(2,0)=DT(0,2)=dtv[2];
   DT(2,1)=DT(1,2)=dtv[4];
-  //  if (takelog ) std::cout << " TAKING LOG " << std::endl;  else std::cout << "TAKING EXP " << std::endl;
-  //  std::cout << " dtv " << dtv << std::endl;
+  //  if (takelog )::ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
+  // ::ants::antscout << " dtv " << dtv << std::endl;
   vnl_symmetric_eigensystem< double > eig(DT);
 
 
@@ -359,8 +359,8 @@ itk::RGBPixel< float >   GetTensorPrincipalEigenvector( TTensorType dtv )
   DT(1,0)=DT(0,1)=dtv[1];
   DT(2,0)=DT(0,2)=dtv[2];
   DT(2,1)=DT(1,2)=dtv[4];
-  //  if (takelog ) std::cout << " TAKING LOG " << std::endl;  else std::cout << "TAKING EXP " << std::endl;
-  //  std::cout << " dtv " << dtv << std::endl;
+  //  if (takelog )::ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
+  // ::ants::antscout << " dtv " << dtv << std::endl;
   vnl_symmetric_eigensystem< double > eig(DT);
 
 
@@ -466,12 +466,12 @@ TTensorType TensorLogAndExp( TTensorType dtv, bool takelog , bool &success)
   DT(1,0)=DT(0,1)=dtv[1];
   DT(2,0)=DT(0,2)=dtv[3];
   DT(2,1)=DT(1,2)=dtv[4];
-  //  if (takelog ) std::cout << " TAKING LOG " << std::endl;  else std::cout << "TAKING EXP " << std::endl;
-  //  std::cout << " dtv " << dtv << std::endl;
+  //  if (takelog )::ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
+  // ::ants::antscout << " dtv " << dtv << std::endl;
   vnl_symmetric_eigensystem< double > eig(DT);
 
-  //  std::cout << " eig.D " << eig.D << std::endl;
-  //  std::cout << " eig V " << eig.V << std::endl;
+  // ::ants::antscout << " eig.D " << eig.D << std::endl;
+  // ::ants::antscout << " eig V " << eig.V << std::endl;
 
   double e1 = (eig.D(0,0));
   double e2 = (eig.D(1,1));
@@ -500,7 +500,7 @@ TTensorType TensorLogAndExp( TTensorType dtv, bool takelog , bool &success)
       eigmat(1,1)=exp(e2);
       eigmat(2,2)=exp(e3);
     }
-      //      std::cout << " e1 " << e1 <<  " e2 " << e2 << " e3 " << std::endl;
+      //     ::ants::antscout << " e1 " << e1 <<  " e2 " << e2 << " e3 " << std::endl;
 
       MatrixType DTrec=eig.V*eigmat*eig.V.transpose();
 

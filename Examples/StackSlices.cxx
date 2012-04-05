@@ -14,6 +14,10 @@
   PURPOSE.
 
 =========================================================================*/
+
+#include "antscout.hxx"
+#include <algorithm>
+
 #include <stdio.h>
 
 #include "itkImage.h"
@@ -22,12 +26,61 @@
 #include "itkExtractImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "ReadWriteImage.h"
+
+namespace ants
+{
 /* FlipScalarVolume
  * This program takes a volume and flips it along the
  * indicated axes
  */
-int main( int argc, char *argv[] )
+
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int StackSlices( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "StackSlices" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   // Pixel and Image typedefs
   typedef float PixelType;
 
@@ -45,7 +98,7 @@ int main( int argc, char *argv[] )
   // Check for valid input paramters
   if( argc < 5 )
     {
-    std::cout << "Usage: " << argv[0] << " outputvolume x y z inputvolumes" << std::endl;
+    antscout << "Usage: " << argv[0] << " outputvolume x y z inputvolumes" << std::endl;
     return 1;
     }
 
@@ -64,7 +117,7 @@ int main( int argc, char *argv[] )
       {
       if( (dim > -1) || (slice > -1) )
         {
-        std::cerr << "Can only choose slice from 1 dimension" << std::endl;
+        antscout << "Can only choose slice from 1 dimension" << std::endl;
         return EXIT_FAILURE;
         }
       dim = i;
@@ -73,12 +126,12 @@ int main( int argc, char *argv[] )
     }
 
   unsigned long nSlices = argc - 5;
-  // std::cout << nSlices << std::endl;
+  // antscout << nSlices << std::endl;
 
   ReaderType::Pointer firstReader = ReaderType::New();
   firstReader->SetFileName( argv[5] );
   firstReader->Update();
-  std::cout << " Slice 0 :: " << std::string(argv[5]) << std::endl;
+  antscout << " Slice 0 :: " << std::string(argv[5]) << std::endl;
 
   ImageType::Pointer    stack = ImageType::New();
   ImageType::RegionType region = firstReader->GetOutput()->GetLargestPossibleRegion();
@@ -109,7 +162,7 @@ int main( int argc, char *argv[] )
   region2.SetSize(size);
   stack2->SetRegions(region2);
   stack2->Allocate();
-  //  std::cout << region << std::endl;
+  //  antscout << region << std::endl;
 
   ImageType::RegionType extractRegion = stack->GetLargestPossibleRegion();
   extractRegion.SetSize(dim, 0);
@@ -134,7 +187,7 @@ int main( int argc, char *argv[] )
     ++it1;
     }
 
-  mean /= ct;    std::cout << " Mean " << mean << std::endl;
+  mean /= ct;    antscout << " Mean " << mean << std::endl;
   mean = 1;
   it1.GoToBegin();
   while( !it1.IsAtEnd() )
@@ -168,19 +221,19 @@ int main( int argc, char *argv[] )
 
   if( nSlices == 1 )
     {
-    std::cout << " write slice " << std::endl;
+    antscout << " write slice " << std::endl;
     WriteImage<SliceType>(stack2, stackName);
     return 0;
     }
-  // std::cout << "Stacking." << std::flush;
+  // antscout << "Stacking." << std::flush;
   for( unsigned int i = 1; i < nSlices; i++ )
     {
     ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( argv[5 + i] );
     reader->Update();
 
-    std::cout << " Slice " << i << " :: " << std::string(argv[5 + i]) << std::endl;
-    //    std::cout << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+    antscout << " Slice " << i << " :: " << std::string(argv[5 + i]) << std::endl;
+    //    antscout << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
     ExtractFilterType::Pointer extract = ExtractFilterType::New();
     extract->SetInput( reader->GetOutput() );
     extract->SetDirectionCollapseToIdentity();
@@ -198,7 +251,7 @@ int main( int argc, char *argv[] )
       }
 
     mean /= ct;
-    std::cout << " Mean " << mean << std::endl;
+    antscout << " Mean " << mean << std::endl;
     mean = 1;
     it.GoToBegin();
     while( !it.IsAtEnd() )
@@ -227,9 +280,9 @@ int main( int argc, char *argv[] )
       ++it;
       }
 
-    // std::cout << i << "." << std::flush;
+    // antscout << i << "." << std::flush;
     }
-  // std::cout << "Done" << std::endl;
+  // antscout << "Done" << std::endl;
 
   WriterType::Pointer writer = WriterType::New();
   writer->SetFileName( stackName );
@@ -265,3 +318,4 @@ int main( int argc, char *argv[] )
 
   return 0;
 }
+} // namespace ants

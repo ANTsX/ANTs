@@ -82,9 +82,9 @@ bool FEMConformalMap<TSurface, TImage, TDimension>
 {
   if( !m_VtkSurfaceMesh )
     {
-    std::cout << " NO MESH"; return false;
+    ::::ants::antscout << " NO MESH"; return false;
     }
-  std::cout << " Generate system from surface mesh " << std::endl;
+  ::::ants::antscout << " Generate system from surface mesh " << std::endl;
 
   vtkTriangleFilter* fltTriangle = vtkTriangleFilter::New();
   fltTriangle->SetInput(m_VtkSurfaceMesh);
@@ -139,7 +139,7 @@ bool FEMConformalMap<TSurface, TImage, TDimension>
     foundnum++;
     }
 
-  std::cout << " foundnum " << foundnum << std::endl;
+  ::::ants::antscout << " foundnum " << foundnum << std::endl;
 
   typename NodeType::Pointer * narr = new NodeType::Pointer[numPoints];
   for( int i = 0; i < numPoints; i++ )
@@ -154,8 +154,8 @@ bool FEMConformalMap<TSurface, TImage, TDimension>
   unsigned long i = 0;
   unsigned long toti = vtkcells->GetNumberOfCells();
   unsigned long rate = toti / 50;
-  //  std::cout << " progress ";
-  std::cout << " DONE: NUMBER OF CELLS start " << toti << std::endl;
+  //  ::::ants::antscout << " progress ";
+  ::::ants::antscout << " DONE: NUMBER OF CELLS start " << toti << std::endl;
   for( vtkcells->InitTraversal(); vtkcells->GetNextCell(npts, pts); )
     {
     bool                 eltok = true;
@@ -171,7 +171,7 @@ bool FEMConformalMap<TSurface, TImage, TDimension>
     i++;
     }
 
-  std::cout << " DONE: NUMBER OF CELLS " << i << std::endl;
+  ::::ants::antscout << " DONE: NUMBER OF CELLS " << i << std::endl;
 
   return true;
 }
@@ -197,7 +197,7 @@ bool  FEMConformalMap<TSurface, TImage, TDimension>
   m->nu = 0.;     // .0;    // poissons -- DONT CHOOSE 1.0!!///
   m->RhoC = 0.0;
   // 3.e-4 prolly good
-//  std::cout << " input E ";  std::cin >> m->E;
+//  ::::ants::antscout << " input E ";  std::cin >> m->E;
 
   // Create the element type
   ElementType::Pointer e1 = ElementType::New();
@@ -211,7 +211,7 @@ bool  FEMConformalMap<TSurface, TImage, TDimension>
     m_SurfaceMesh->GetPoint(i, pt_ptr);
     if( m_Debug )
       {
-      std::cout << "Point: "  << i << " coords " << pt[0] << ", " << pt[1] << ", " << pt[2] << std::endl;
+      ::::ants::antscout << "Point: "  << i << " coords " << pt[0] << ", " << pt[1] << ", " << pt[2] << std::endl;
       }
 
     // turn the point into a node
@@ -233,7 +233,7 @@ bool  FEMConformalMap<TSurface, TImage, TDimension>
     tp = cellPtr->GetPointIds();
     if( m_Debug )
       {
-      std::cout << " pt 1 id " << tp[0] << " pt 2 id " << tp[1] << " pt 3 id " << tp[2] << std::endl;
+      ::::ants::antscout << " pt 1 id " << tp[0] << " pt 2 id " << tp[1] << " pt 3 id " << tp[2] << std::endl;
       }
     cells++;
 
@@ -410,7 +410,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 
   typename ImageType::SpacingType spacing = m_Image->GetSpacing();
   typename ImageType::SizeType imageSize = m_Image->GetLargestPossibleRegion().GetSize();
-  std::cout << " size " << imageSize << std::endl;
+  ::::ants::antscout << " size " << imageSize << std::endl;
   VectorType disp;
   disp.set_size(3);
   disp.fill(0.0);
@@ -605,14 +605,14 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
         float x = ( (*elt)->GetNode(nd)->GetCoordinates()[dd]);
         if( x <= minx[dd] )
           {
-//      std::cout << " x " << x << " minx " << minx << std::endl;
+//      ::::ants::antscout << " x " << x << " minx " << minx << std::endl;
           m_PoleElementsGN[dd * 2] = (*elt)->GN;
           minv = (*elt)->GetNode(nd)->GetCoordinates();
           minx[dd] = x;
           }
         else if( x >= maxx[dd] )
           {
-//      std::cout << " x " << x << " maxx " << maxx << std::endl;
+//      ::::ants::antscout << " x " << x << " maxx " << maxx << std::endl;
           m_PoleElementsGN[dd * 2 + 1] = (*elt)->GN;
           maxv = (*elt)->GetNode(nd)->GetCoordinates();
           maxx[dd] = x;
@@ -622,8 +622,8 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     }
   for( int jj = 0; jj < 3; jj++ )
     {
-    std::cout << " Element " <<  m_PoleElementsGN[jj * 2] << " is north " << jj << std::endl;
-    std::cout << " Element " <<  m_PoleElementsGN[jj * 2 + 1] << " is south " << jj << std::endl;
+    ::::ants::antscout << " Element " <<  m_PoleElementsGN[jj * 2] << " is north " << jj << std::endl;
+    ::::ants::antscout << " Element " <<  m_PoleElementsGN[jj * 2 + 1] << " is south " << jj << std::endl;
     }
 }
 
@@ -656,7 +656,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 
     int   absdim = abs(dim);
     float oc = 2.0;
-    std::cout << " Fixing BC  " << absdim << std::endl;
+    ::::ants::antscout << " Fixing BC  " << absdim << std::endl;
 
     switch( absdim )
       {
@@ -826,7 +826,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     float theta = (CA[0] * BA[0] + CA[1] * BA[1] + CA[2] * BA[2]) / bamag * bamag;
     if( theta > 1 )
       {
-      std::cout << " theta " << theta << std::endl;
+      ::::ants::antscout << " theta " << theta << std::endl;
       }
 
     VectorType E = A + BA * theta;
@@ -886,7 +886,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     float bamag=BA.magnitude();
 
     float theta=(CA[0]*BA[0]+CA[1]*BA[1]+CA[2]*BA[2])/bamag*bamag;
-    if (theta > 1) std::cout << " theta " << theta << std::endl;
+    if (theta > 1) ::::ants::antscout << " theta " << theta << std::endl;
 
     VectorType E = A+BA*theta;
     VectorType CE =C-E;
@@ -935,7 +935,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     float theta = (CA[0] * BA[0] + CA[1] * BA[1] + CA[2] * BA[2]) / bamag * bamag;
     if( theta > 1 || theta < 0 )
       {
-      //      std::cout << " ERROR : theta from non-acute angle  " << theta << std::endl;
+      //      ::::ants::antscout << " ERROR : theta from non-acute angle  " << theta << std::endl;
       //      throw;
       //      return;
       }
@@ -984,7 +984,7 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMConformalMap<TSurface, TImage, TDimension>
 ::ComputeStereographicCoordinates()
 {
-  std::cout << " coords on unit sphere : " << std::endl;
+  ::::ants::antscout << " coords on unit sphere : " << std::endl;
   float radsq;      // radius squared
   float c1, c2, c3; // stereographic coordinates
 
@@ -1000,7 +1000,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     c1 = 2.0 * x / (1.0 + radsq);
     c2 = 2.0 * y / (1.0 + radsq);
     c3 = 2.0 * radsq / (1.0 + radsq) - 1.0;
-    //      std::cout << c1 << "   " << c2 << "   " << c3 << " mag " << sqrt(c1*c1+c2*c2+c3*c3) << std::endl;
+    //      ::::ants::antscout << c1 << "   " << c2 << "   " << c3 << " mag " << sqrt(c1*c1+c2*c2+c3*c3) << std::endl;
 
     VectorType coord = (*n)->GetCoordinates();
     coord[0] = c1;
@@ -1008,7 +1008,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     coord[2] = c3;
     // /      (*n)->SetCoordinates(coord);
     }
-  std::cout << " coords on unit sphere done " << std::endl;
+  ::::ants::antscout << " coords on unit sphere done " << std::endl;
 }
 
 template <typename TSurface, typename TImage, unsigned int TDimension>
@@ -1025,12 +1025,12 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   if( m_ReadFromFile )
     {
     const char* filename = m_ParameterFileName.c_str();
-    std::cout << "Reading FEM problem from file: " << std::string(filename) << "\n";
+    ::::ants::antscout << "Reading FEM problem from file: " << std::string(filename) << "\n";
     std::ifstream f;
     f.open(filename);
     if( !f )
       {
-      std::cout << "File " << filename << " not found!\n";
+      ::::ants::antscout << "File " << filename << " not found!\n";
       return;
       }
 
@@ -1040,8 +1040,8 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
       }
     catch( ::itk::fem::FEMException e )
       {
-      std::cout << "Error reading FEM problem: " << filename << "!\n";
-      e.Print(std::cout);
+      ::::ants::antscout << "Error reading FEM problem: " << filename << "!\n";
+      e.Print(::::ants::antscout);
       return;
       }
 
@@ -1054,7 +1054,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   //   else this->GenerateSystemFromSurfaceMesh();
 
   int dir = m_NorthPole;
-//  std::cout << " input dir to fix "; std::cin >> dir;
+//  ::::ants::antscout << " input dir to fix "; std::cin >> dir;
   this->FindPoles(dir);
   if( m_NorthPole != m_SouthPole )
     {
@@ -1077,22 +1077,22 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     {
     for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
       {
-      std::cout << "Node#: " << (*n)->GN << ": ";
-      std::cout << " coord " << (*n)->GetCoordinates() << std::endl;
+      ::::ants::antscout << "Node#: " << (*n)->GN << ": ";
+      ::::ants::antscout << " coord " << (*n)->GetCoordinates() << std::endl;
       }
     for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
       {
-      std::cout << "Elt#: " << (*n)->GN << ": has " << (*n)->GetNumberOfNodes() << " nodes ";
+      ::::ants::antscout << "Elt#: " << (*n)->GN << ": has " << (*n)->GetNumberOfNodes() << " nodes ";
       for( int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
         {
-        std::cout << " coord " << (*n)->GetNode(i)->GetCoordinates() << std::endl;
+        ::::ants::antscout << " coord " << (*n)->GetNode(i)->GetCoordinates() << std::endl;
         }
       }
     }
 
   unsigned int maxits = m_Solver.GetNumberOfDegreesOfFreedom();   // should be > twice ndofs
   // if (m_Debug)
-  std::cout << " ndof " << maxits << std::endl;
+  ::::ants::antscout << " ndof " << maxits << std::endl;
   itpackWrapper.SetMaximumNumberIterations(maxits * 4);
   itpackWrapper.SetTolerance(1.e-5);
   itpackWrapper.JacobianConjugateGradient();
@@ -1103,10 +1103,10 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
    * Assemble the master stiffness matrix. In order to do this
    * the GFN's should already be assigned to every DOF.
    */
-  std::cout << " assemble k " << std::endl;
+  ::::ants::antscout << " assemble k " << std::endl;
   m_Solver.AssembleK();
 
-  std::cout << " assemble k done " << std::endl;
+  ::::ants::antscout << " assemble k done " << std::endl;
   if( m_Debug )
     {
     for( int i = 0; i < m_Solver.GetNumberOfDegreesOfFreedom(); i++ )
@@ -1119,10 +1119,10 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
           {
           sum += val;
           }
-//    if (val != 0) std::cout << " entry i,j " << i << " , " << j << "  =  " <<
+//    if (val != 0) ::::ants::antscout << " entry i,j " << i << " , " << j << "  =  " <<
 // m_Solver.GetLinearSystemWrapper()->GetMatrixValue(i,j)<<std::endl;
         }
-      std::cout << " sum #" << i << " = " << sum << std::endl;
+      ::::ants::antscout << " sum #" << i << " = " << sum << std::endl;
       }
     }
   /**
@@ -1156,25 +1156,25 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
       this->ApplyImaginaryForces(m_NorthPole);
       }
     m_Solver.AssembleF();
-    std::cout << " force done " << std::endl;
+    ::::ants::antscout << " force done " << std::endl;
     m_Solver.Solve();
-    std::cout << " solve done " << std::endl;
+    ::::ants::antscout << " solve done " << std::endl;
     m_Solver.UpdateDisplacements(); // copies solution to nodes
     m_Debug = true;
     if( m_Debug )
       {
-      std::cout << "\nNodal displacements:\n";
+      ::::ants::antscout << "\nNodal displacements:\n";
       }
     unsigned int ct = 0;
     for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
       {
       if( m_Debug )
         {
-        std::cout << "Node#: " << (*n)->GN << ": ";
+        ::::ants::antscout << "Node#: " << (*n)->GN << ": ";
         }
       if( m_Debug )
         {
-        std::cout << " coord " << (*n)->GetCoordinates() << std::endl;
+        ::::ants::antscout << " coord " << (*n)->GetCoordinates() << std::endl;
         }
       // For each DOF in the node... */
       for( unsigned int d = 0, dof;
@@ -1182,11 +1182,11 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
         {
         if( m_Debug )
           {
-          std::cout << m_Solver.GetSolution(dof);
+          ::::ants::antscout << m_Solver.GetSolution(dof);
           }
         if( m_Debug )
           {
-          std::cout << ",  ";
+          ::::ants::antscout << ",  ";
           }
 //         if (d==0 && im == 0) {m_RealSolution[ct]=m_Solver.GetSolution(dof); ct++;}
 //         if (d==0 && im == 1) {m_ImagSolution[ct]=m_Solver.GetSolution(dof); ct++;}
@@ -1198,11 +1198,11 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
           {
           m_ImagSolution[dof] = m_Solver.GetSolution(dof); ct++;
           }
-//         std::cout << " dof " << dof << " ct " << ct << std::endl;
+//         ::::ants::antscout << " dof " << dof << " ct " << ct << std::endl;
         }
       if( m_Debug )
         {
-        std::cout << "\b\b\b \b\n";
+        ::::ants::antscout << "\b\b\b \b\n";
         }
       m_Debug = false;
       }
@@ -1231,7 +1231,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 
   vtkFloatArray* param = vtkFloatArray::New();
   param->SetName("angle");
-  std::cout << " start pts ";
+  ::::ants::antscout << " start pts ";
   int idx = 0;
 
   vtkDataArray* scs = NULL;
@@ -1256,7 +1256,8 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     float        c3 = 2.0 * radsq / (1.0 + radsq) - 1.0;
     if( idx % 1000 == 0 )
       {
-      std::cout << c1 << "   " << c2 << "   " << c3 << " mag " << sqrt(c1 * c1 + c2 * c2 + c3 * c3) << std::endl;
+      ::::ants::antscout << c1 << "   " << c2 << "   " << c3 << " mag "
+                         << sqrt(c1 * c1 + c2 * c2 + c3 * c3) << std::endl;
       }
 
     //
@@ -1291,11 +1292,11 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     idx++;
     }
 
-  std::cout << " done with pts " << std::endl;
+  ::::ants::antscout << " done with pts " << std::endl;
   vtkCellArray* tris1 = vtkCellArray::New();
   vtkCellArray* tris2 = vtkCellArray::New();
 
-  std::cout << " start with tris " << std::endl;
+  ::::ants::antscout << " start with tris " << std::endl;
   for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
     {
     tris1->InsertNextCell(3);
@@ -1306,7 +1307,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
       tris2->InsertCellPoint( (*n)->GetNode(i)->GN);
       }
     }
-  std::cout << " done with tris " << std::endl;
+  ::::ants::antscout << " done with tris " << std::endl;
   // Assign points and cells
   polydata1->SetPoints(vpoints1);
   polydata2->SetPoints(vpoints2);

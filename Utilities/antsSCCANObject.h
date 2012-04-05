@@ -354,9 +354,9 @@ public:
     bool       debug = false;
     if( debug )
       {
-      std::cout << " cov " << std::endl;    std::cout << cov << std::endl;
-      std::cout << " invcov " << std::endl;    std::cout << invcov << std::endl;
-      std::cout << " id? " << std::endl;    std::cout << cov * invcov << std::endl;
+      ::ants::antscout << " cov " << std::endl;   ::ants::antscout << cov << std::endl;
+      ::ants::antscout << " invcov " << std::endl;   ::ants::antscout << invcov << std::endl;
+      ::ants::antscout << " id? " << std::endl;   ::ants::antscout << cov * invcov << std::endl;
       }
     if( p.rows() < p.columns() )
       {
@@ -420,7 +420,7 @@ public:
 
   MatrixType PartialOutZ( MatrixType /*X*/, MatrixType /*Y*/, MatrixType /*Z*/ )
   {
-    std::cout << "ERROR:  This function not yet implemented." << std::endl;
+    ::ants::antscout << "ERROR:  This function not yet implemented." << std::endl;
     /** compute the effect of Z and store it for later use */
   }
 
@@ -567,7 +567,7 @@ protected:
   {
     if( x_k1.size() != refvec.size() )
       {
-      std::cout << " sizes dont match " << std::endl; exit(1);
+      ::ants::antscout << " sizes dont match " << std::endl; std::exception();
       }
     for( unsigned int i = 0; i < x_k1.size(); i++ )
       {
@@ -651,10 +651,10 @@ protected:
   MatrixType mEtoV( eMatrix m , unsigned int ncols = 0) {
     MatrixType m_out( m.data() , m.rows() , m.cols() );
     if (  m(0,1) != m_out(0,1) ) {
-      std::cout << " WARNING!! in eigen to vnl coversion for matrices " << std::endl;
-      std::cout <<" eigen " << m(0,1) << " vnl " << m_out(0,1) << std::endl;
+      ::ants::antscout << " WARNING!! in eigen to vnl coversion for matrices " << std::endl;
+      ::ants::antscout <<" eigen " << m(0,1) << " vnl " << m_out(0,1) << std::endl;
     }
-    //    std::cout <<" eigen at (0,1) " << m(0,1) << " vnl at (0,1) " << m_out(0,1) <<  " vnl at (1,0) " << m_out(1,0)  << std::endl;
+    //    ::ants::antscout <<" eigen at (0,1) " << m(0,1) << " vnl at (0,1) " << m_out(0,1) <<  " vnl at (1,0) " << m_out(1,0)  << std::endl;
     if ( ncols == 0 )
       return m_out;
     else return (m_out).get_n_columns(0,ncols);
@@ -682,15 +682,15 @@ protected:
   {
     if( this->m_MaskImageP && this->m_MaskImageQ && this->m_MaskImageR )
       {
-      std::cout << " 3 matrices " << std::endl;
+      ::ants::antscout << " 3 matrices " << std::endl;
       }
     else if( this->m_MaskImageP && this->m_MaskImageQ  )
       {
-      std::cout << " 2 matrices " << std::endl;
+      ::ants::antscout << " 2 matrices " << std::endl;
       }
     else
       {
-      std::cout << " fewer than 2 matrices " << std::endl;
+      ::ants::antscout << " fewer than 2 matrices " << std::endl;
       }
   }
 

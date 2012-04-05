@@ -14,6 +14,10 @@
   PURPOSE.
 
 =========================================================================*/
+
+#include "antscout.hxx"
+#include <algorithm>
+
 #include <stdio.h>
 
 #include "itkImage.h"
@@ -28,8 +32,55 @@
 #include "ReadWriteImage.h"
 #include "itkRGBPixel.h"
 
-int main( int argc, char *argv[] )
+namespace ants
 {
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int TensorDerivedImage( std::vector<std::string> args, std::ostream* out_stream = NULL )
+{
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "TensorDerivedImage" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   // Pixel and Image typedefs
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, 3>              ScalarImageType;
@@ -46,7 +97,7 @@ int main( int argc, char *argv[] )
   // Check for valid input paramters
   if( argc < 3 )
     {
-    std::cout << "Usage: " << argv[0] << " tensorvolume outputvolume outputtype" << std::endl;
+    antscout << "Usage: " << argv[0] << " tensorvolume outputvolume outputtype" << std::endl;
     return 1;
     }
 
@@ -58,8 +109,8 @@ int main( int argc, char *argv[] )
   TensorImageType::Pointer dtimg;
   ReadTensorImage<TensorImageType>(dtimg, inputName, false);
 
-  std::cout << "tensor_image: " << inputName << std::endl;
-  std::cout << "output_image: " << outputName << std::endl;
+  antscout << "tensor_image: " << inputName << std::endl;
+  antscout << "output_image: " << outputName << std::endl;
 
   ScalarImageType::Pointer outImage;
   ColorImageType::Pointer  colorImage;
@@ -111,7 +162,7 @@ int main( int argc, char *argv[] )
     outType = "5";
     }
 
-  std::cout << "Calculating output..." << std::flush;
+  antscout << "Calculating output..." << std::flush;
 
   while( !inputIt.IsAtEnd() )
     {
@@ -153,7 +204,7 @@ int main( int argc, char *argv[] )
         current = 0;
         }
       outImage->SetPixel(inputIt.GetIndex(), current);
-      // std::cout << "Found " << invalids << " invalid tensors" << std::endl;
+      // antscout << "Found " << invalids << " invalid tensors" << std::endl;
       }
     else if( outType == "FA" )
       {
@@ -168,21 +219,21 @@ int main( int argc, char *argv[] )
       }
     }
 
-  std::cout << "Done. " << std::endl;
+  antscout << "Done. " << std::endl;
 
   if( outType == "DEC" )
     {
-    std::cout << "output origin: " << colorImage->GetOrigin() << std::endl;
-    std::cout << "output size: " << colorImage->GetLargestPossibleRegion().GetSize() << std::endl;
-    std::cout << "output spacing: " << colorImage->GetSpacing() << std::endl;
-    std::cout << "output direction: " << colorImage->GetDirection() << std::endl;
+    antscout << "output origin: " << colorImage->GetOrigin() << std::endl;
+    antscout << "output size: " << colorImage->GetLargestPossibleRegion().GetSize() << std::endl;
+    antscout << "output spacing: " << colorImage->GetSpacing() << std::endl;
+    antscout << "output direction: " << colorImage->GetDirection() << std::endl;
     }
   else
     {
-    std::cout << "output origin: " << outImage->GetOrigin() << std::endl;
-    std::cout << "output size: " << outImage->GetLargestPossibleRegion().GetSize() << std::endl;
-    std::cout << "output spacing: " << outImage->GetSpacing() << std::endl;
-    std::cout << "output direction: " << outImage->GetDirection() << std::endl;
+    antscout << "output origin: " << outImage->GetOrigin() << std::endl;
+    antscout << "output size: " << outImage->GetLargestPossibleRegion().GetSize() << std::endl;
+    antscout << "output spacing: " << outImage->GetSpacing() << std::endl;
+    antscout << "output direction: " << outImage->GetDirection() << std::endl;
     }
 
   if( outType == "DEC" )
@@ -202,3 +253,4 @@ int main( int argc, char *argv[] )
 
   return 0;
 }
+} // namespace ants

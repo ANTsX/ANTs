@@ -444,7 +444,7 @@ protected:
       fltSmoothMesh->Update();
       // m_Result =
       fltSmoothMesh->GetOutput();
-      std::cout << " Done " << std::endl;
+      ::ants::antscout << " Done " << std::endl;
       }
   }
 

@@ -51,7 +51,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
     ++GraphIterator;
     /*
     m_GraphIndex = GraphIterator.GetIndex();
-    //std::cout << " allocating "  << m_GraphIndex << std::endl;
+    //::::ants::antscout << " allocating "  << m_GraphIndex << std::endl;
     ///GraphSearchNode<PixelType,CoordRep,GraphDimension>::Pointer G=
     G=TGraphSearchNode::New();
     G->SetUnVisited();
@@ -172,19 +172,19 @@ bool DijkstrasAlgorithm<TGraphSearchNode>::TerminationCondition()
 template <class TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
 {
-  // std::cout << " SES 0 " << std::endl;
+  // ::::ants::antscout << " SES 0 " << std::endl;
   int                           i = 0, j = 0;
   GraphNeighborhoodIteratorType GHood(m_Radius, m_Graph, m_Graph->GetRequestedRegion() );
   GraphNeighborhoodIndexType    GNI;
 
-  // std::cout << " SES 1 " << std::endl;
+  // ::::ants::antscout << " SES 1 " << std::endl;
   for( i = 0; i < GraphDimension; i++ )
     {
-    // std::cout << " SES 2 " << std::endl;
+    // ::::ants::antscout << " SES 2 " << std::endl;
     GNI[i] = (long)(m_CurrentNode->GetLocation()[i] + 0.5);
     }
 
-  // std::cout << " SES 3 " << std::endl;
+  // ::::ants::antscout << " SES 3 " << std::endl;
   GHood.SetLocation(GNI);
 
   bool inimage = true;
@@ -197,13 +197,14 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
     }
   for( i = 0; i < m_EdgeTemplate.size(); i++ )
     {
-    // std::cout << " SES 4 " << std::endl;
-    // std::cout << " ET " << m_EdgeTemplate[i]  <<  " RAD " << m_Radius << " ind " << GHood.GetIndex(m_EdgeTemplate[i])
+    // ::::ants::antscout << " SES 4 " << std::endl;
+    // ::::ants::antscout << " ET " << m_EdgeTemplate[i]  <<  " RAD " << m_Radius << " ind " <<
+    // GHood.GetIndex(m_EdgeTemplate[i])
     // << std::endl;
-    if( !GHood.GetPixel(m_EdgeTemplate[i]) ) // std::cout << " OK " << std::endl;
+    if( !GHood.GetPixel(m_EdgeTemplate[i]) ) // ::::ants::antscout << " OK " << std::endl;
     // /else
       {
-      //    std::cout << " NOT OK  " <<std::endl;
+      //    ::::ants::antscout << " NOT OK  " <<std::endl;
       GraphNeighborhoodIndexType ind = GHood.GetIndex(m_EdgeTemplate[i]);
       typename TGraphSearchNode::Pointer G = TGraphSearchNode::New();
       G->SetUnVisited();
@@ -218,7 +219,7 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
       m_Graph->SetPixel(ind, G);
       }
     m_NeighborNode = GHood.GetPixel(m_EdgeTemplate[i]);
-    // std::cout << "DA  i " << i << " position " << m_NeighborNode->GetLocation() << endl;
+    // ::::ants::antscout << "DA  i " << i << " position " << m_NeighborNode->GetLocation() << endl;
     this->TerminationCondition();
     if( !m_SearchFinished && m_CurrentNode != m_NeighborNode &&
         !m_NeighborNode->GetDelivered() )
@@ -254,11 +255,11 @@ void DijkstrasAlgorithm<TGraphSearchNode>::FindPath()
 {
   if( m_QS->m_SourceNodes.empty() )
     {
-    std::cout << "ERROR !! DID NOT SET SOURCE!!\n";
+    ::::ants::antscout << "ERROR !! DID NOT SET SOURCE!!\n";
     return;
     }
 
-  // std::cout << "DA start find path " << " Q size " << m_QS->m_Q.size() << " \n";
+  // ::::ants::antscout << "DA start find path " << " Q size " << m_QS->m_Q.size() << " \n";
 
   while( !m_SearchFinished && !m_QS->m_Q.empty()  )
     {
@@ -268,18 +269,18 @@ void DijkstrasAlgorithm<TGraphSearchNode>::FindPath()
     if( !m_CurrentNode->GetDelivered() )
       {
       m_QS->IncrementTimer();
-      // std::cout << " searching " << m_CurrentNode->GetLocation()   << " \n";
+      // ::::ants::antscout << " searching " << m_CurrentNode->GetLocation()   << " \n";
       this->SearchEdgeSet();
       this->m_TotalCost += m_CurrentNode->GetTotalCost();
       // if ( (m_CurrentNode->GetTimer() % 1.e5 ) == 0)
-      // std::cout << " searched  " << m_CurrentNode->GetTimer()   << " \n";
+      // ::::ants::antscout << " searched  " << m_CurrentNode->GetTimer()   << " \n";
       }
     m_CurrentNode->SetDelivered();
     }  // end of while
 
   m_NumberSearched = (unsigned long) m_QS->GetTimer();
-  std::cout << "Done with find path " << " Q size " << m_QS->m_Q.size() << " num searched " << m_NumberSearched
-            << " \n";
+  ::::ants::antscout << "Done with find path " << " Q size " << m_QS->m_Q.size() << " num searched " << m_NumberSearched
+                     << " \n";
 
   return;
 }

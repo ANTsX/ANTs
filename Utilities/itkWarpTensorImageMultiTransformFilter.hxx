@@ -65,7 +65,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
 // ::SetInterpolator1(InterpolatorPointer interp)
 // {
 //    m_Interpolator = static_cast<InterpolatorType*> (interp.GetPointer());
-//    std::cout << "set interpolator in WarpImage:" << interp << std::endl;
+//    ::ants::antscout << "set interpolator in WarpImage:" << interp << std::endl;
 // }
 
 template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
@@ -73,7 +73,7 @@ void
 WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::PrintTransformList()
 {
-  std::cout << "transform list: " << std::endl;
+  ::ants::antscout << "transform list: " << std::endl;
 
   typename TransformListType::iterator it = (m_TransformList.begin() );
   for( int ii = 0; it != m_TransformList.end(); it++, ii++ )
@@ -82,13 +82,13 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
       {
       case EnumAffineType:
         {
-        std::cout << '[' << ii << "]: EnumAffineType" << std::endl;
-        std::cout << it->second.aex.aff << std::endl;
+        ::ants::antscout << '[' << ii << "]: EnumAffineType" << std::endl;
+        ::ants::antscout << it->second.aex.aff << std::endl;
         }
         break;
       case EnumDisplacementFieldType:
-        std::cout << '[' << ii << "]: EnumDisplacementFieldType: size"
-                  << it->second.dex.field->GetLargestPossibleRegion().GetSize() << std::endl;
+        ::ants::antscout << '[' << ii << "]: EnumDisplacementFieldType: size"
+                         << it->second.dex.field->GetLargestPossibleRegion().GetSize() << std::endl;
       }
     }
 }
@@ -236,7 +236,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
     if (m_SmoothScale != scale){
         // compute the new cached
 
-//        std::cout << "change smooth scale: " << m_SmoothScale << " ---> " << scale << std::endl;
+//        ::ants::antscout << "change smooth scale: " << m_SmoothScale << " ---> " << scale << std::endl;
 
         m_SmoothScale = scale;
 
@@ -271,7 +271,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
             smoother->SetDirection( d );
             smoother->SetNormalizeAcrossScale( false );
 
-//            std::cout << "scale = " << scale << " => " << "sigma of dim " << d << ": " << sigma << " out size " << outputSize <<  " spc1 " << outputSpacing << " in " << inputSpacing << std::endl;
+//            ::ants::antscout << "scale = " << scale << " => " << "sigma of dim " << d << ": " << sigma << " out size " << outputSize <<  " spc1 " << outputSpacing << " in " << inputSpacing << std::endl;
 
             smoother->SetSigma( sigma );
             if ( smoother->GetSigma() > 0.0 )
@@ -307,10 +307,10 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
   InputImageConstPointer inputPtr = this->GetInput();
   OutputImagePointer     outputPtr = this->GetOutput();
 
-  // std::cout << "inputPtr->GetOrigin():" << inputPtr->GetOrigin() << std::endl;
-  // std::cout << "outputPtr->GetOrigin():" << outputPtr->GetOrigin() << std::endl;
+  // ::ants::antscout << "inputPtr->GetOrigin():" << inputPtr->GetOrigin() << std::endl;
+  // ::ants::antscout << "outputPtr->GetOrigin():" << outputPtr->GetOrigin() << std::endl;
 
-  // exit(-1);
+  // std::exception();
 
   IndexType index;
 
@@ -333,8 +333,8 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
 
     bool isinside = MultiTransformPoint(point1, point2, m_bFirstDeformNoInterp, index);
 
-    // std::cout << "point1:" << point1 << "  point2:" << point2 << " index:" << index << std::endl;
-    // exit(-1);
+    // ::ants::antscout << "point1:" << point1 << "  point2:" << point2 << " index:" << index << std::endl;
+    // std::exception();
 
     // warp the image
     // get the interpolated value
@@ -345,7 +345,7 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
       }
     else
       {
-      // std::cout << "OUTSIDE" << " isinside:" << isinside << " m_Interpolator->IsInsideBuffer( point2 ):" <<
+      // ::ants::antscout << "OUTSIDE" << " isinside:" << isinside << " m_Interpolator->IsInsideBuffer( point2 ):" <<
       // m_Interpolator->IsInsideBuffer( point2 ) <<  std::endl;
       outputIt.Set( m_EdgePaddingValue );
       }
@@ -442,12 +442,12 @@ void
 WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::ComposeAffineOnlySequence(const PointType & center_output, TransformTypePointer & affine_output)
 {
-//    std::cout << "test " ;
+//    ::ants::antscout << "test " ;
 //    TransformTypePointer affine_output = TransformType::New();
   affine_output->SetIdentity();
   affine_output->SetCenter(center_output);
 
-//    std::cout << affine_output;
+//    ::ants::antscout << affine_output;
 
   typename TransformListType::iterator it = m_TransformList.begin();
   for( ; it != m_TransformList.end(); it++ )
@@ -462,14 +462,14 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
 
         affine_output->Compose(aff, 0);
 
-//            std::cout << affine_output;
+//            ::ants::antscout << affine_output;
 
         break;
         }
 
       case EnumDisplacementFieldType:
         {
-        std::cout << " Ignore deformation type ... " << std::endl;
+        ::ants::antscout << " Ignore deformation type ... " << std::endl;
         }
         break;
       default:
@@ -499,12 +499,12 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
         TransformTypePointer aff = it->second.aex.aff;
         TransformTypePointer aff_inv = TransformTypePointer::ObjectType::New();
 
-        // std::cout << "aff before:" << aff << std::endl;
+        // ::ants::antscout << "aff before:" << aff << std::endl;
 
         aff->GetInverse(aff_inv);
         // aff->GetInverse(aff);
-        // std::cout << "aff after:" << aff << std::endl;
-        // std::cout << "aff_inv after:" << aff_inv << std::endl;
+        // ::ants::antscout << "aff after:" << aff << std::endl;
+        // ::ants::antscout << "aff_inv after:" << aff_inv << std::endl;
 
         point2 = aff_inv->TransformPoint(point1);
         point1 = point2;
@@ -629,10 +629,10 @@ WarpTensorImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementFiel
         & (this->GetOutputSpacing() == field->GetSpacing() )
         & (this->GetOutputOrigin() == field->GetOrigin() );
 
-//            std::cout << "in set: field size: " << field->GetLargestPossibleRegion().GetSize()
+//            ::ants::antscout << "in set: field size: " << field->GetLargestPossibleRegion().GetSize()
 //            << "output spacing: " << this->GetOutputSize() << std::endl;
-//            std::cout << field->GetSpacing() << " | " << this->GetOutputSpacing() << std::endl;
-//            std::cout << field->GetOrigin() << " | " << this->GetOutputOrigin() << std::endl;
+//            ::ants::antscout << field->GetSpacing() << " | " << this->GetOutputSpacing() << std::endl;
+//            ::ants::antscout << field->GetOrigin() << " | " << this->GetOutputOrigin() << std::endl;
       }
     }
 }

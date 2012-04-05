@@ -1,3 +1,7 @@
+
+#include "antscout.hxx"
+#include <algorithm>
+
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
@@ -10,6 +14,8 @@
 #include <algorithm>
 #include <vector>
 
+namespace ants
+{
 void ConvertToLowerCase( std::string& str )
 {
   std::transform( str.begin(), str.end(), str.begin(), tolower );
@@ -55,8 +61,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cerr << "An image mask is required.  Specify a mask image"
-              << " with the -x option." << std::endl;
+    antscout << "An image mask is required.  Specify a mask image"
+             << " with the -x option." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -97,8 +103,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cerr << "No input images were specified.  Specify an input image"
-              << " with the -a option." << std::endl;
+    antscout << "No input images were specified.  Specify an input image"
+             << " with the -a option." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -116,9 +122,9 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       if( segmenter->GetNumberOfIntensityImages() !=
           static_cast<unsigned int>( ImageDimension * ( ImageDimension + 1 ) / 2 ) )
         {
-        std::cerr << " Expect images in upper triangular order " << std::endl;
-        std::cerr << " xx xy xz yy yz zz " << std::endl;
-        std::cerr << "Incorrect number of intensity images specified." << std::endl;
+        antscout << " Expect images in upper triangular order " << std::endl;
+        antscout << " xx xy xz yy yz zz " << std::endl;
+        antscout << "Incorrect number of intensity images specified." << std::endl;
         return EXIT_FAILURE;
         }
       typedef typename SegmentationFilterType::SampleType SampleType;
@@ -163,12 +169,12 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      std::cerr << "Unrecognized likelihood model request." << std::endl;
+      antscout << "Unrecognized likelihood model request." << std::endl;
       return EXIT_FAILURE;
       }
     }
 
-//  std::cout << std::endl << "Writing output:" << std::endl;
+//  antscout << std::endl << "Writing output:" << std::endl;
 //  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
 //    parser->GetOption( "output" );
 //  if( outputOption && outputOption->GetNumberOfValues() > 0 )
@@ -180,8 +186,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 //    writer->Update();
 //    }
 
-  std::cout << std::endl;
-  segmenter->Print( std::cout, 2 );
+  antscout << std::endl;
+  segmenter->Print( antscout, 2 );
 
   return EXIT_SUCCESS;
 }
@@ -300,8 +306,53 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 }
 
-int main( int argc, char *argv[] )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int AtroposMin( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "AtroposMin" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
 
@@ -324,14 +375,14 @@ int main( int argc, char *argv[] )
   if( argc < 2 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetValue() ) )
     {
-    parser->PrintMenu( std::cout, 5, false );
-    exit( EXIT_FAILURE );
+    parser->PrintMenu( antscout, 5, false );
+    return EXIT_FAILURE;
     }
   else if( parser->GetOption( 'h' ) &&
            parser->Convert<bool>( parser->GetOption( 'h' )->GetValue() ) )
     {
-    parser->PrintMenu( std::cout, 5, true );
-    exit( EXIT_FAILURE );
+    parser->PrintMenu( antscout, 5, true );
+    return EXIT_FAILURE;
     }
 
   // Get dimensionality
@@ -363,8 +414,8 @@ int main( int argc, char *argv[] )
       }
     else
       {
-      std::cerr << "No input images were specified.  Specify an input image"
-                << " with the -a option" << std::endl;
+      antscout << "No input images were specified.  Specify an input image"
+               << " with the -a option" << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
@@ -372,22 +423,30 @@ int main( int argc, char *argv[] )
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  std::cout << std::endl << "Running Atropos for "
-            << dimension << "-dimensional images." << std::endl;
+  antscout << std::endl << "Running Atropos for "
+           << dimension << "-dimensional images." << std::endl;
 
   switch( dimension )
     {
     case 2:
+      {
       AtroposSegmentation<2>( parser );
+      }
       break;
     case 3:
+      {
       AtroposSegmentation<3>( parser );
+      }
       break;
     case 4:
+      {
       AtroposSegmentation<4>( parser );
+      }
       break;
     default:
-      std::cerr << "Unsupported dimension" << std::endl;
-      exit( EXIT_FAILURE );
+      antscout << "Unsupported dimension" << std::endl;
+      return EXIT_FAILURE;
     }
+  return EXIT_SUCCESS;
 }
+} // namespace ants

@@ -87,7 +87,7 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
     return;
     }
 
-  std::cout << "Performing lower/upper triangular format check for Nifti DTI" << std::endl;
+  ::ants::antscout << "Performing lower/upper triangular format check for Nifti DTI" << std::endl;
 
   // swap elements 2 and 3 for lower<->upper conversion
   itk::ImageRegionIteratorWithIndex<TImageType>
@@ -141,13 +141,13 @@ void NiftiDTICheck(itk::SmartPointer<TImageType> & target, const char *file, boo
     ++iter;
     }
 
-  // std::cout << "Invalid: " << nBadVoxels << "/" << count << std::endl;
-  // std::cout << "Lower: " << looksLikeLower << ", Upper: " << looksLikeUpper << std::endl;
-  // std::cout << "el2Neg: " << el2Neg << ", el3Neg: " << el3Neg << std::endl;
+  // ::ants::antscout << "Invalid: " << nBadVoxels << "/" << count << std::endl;
+  // ::ants::antscout << "Lower: " << looksLikeLower << ", Upper: " << looksLikeUpper << std::endl;
+  // ::ants::antscout << "el2Neg: " << el2Neg << ", el3Neg: " << el3Neg << std::endl;
 
   if( ( (looksLikeUpper > looksLikeLower) && makeLower) || ( (looksLikeLower > looksLikeUpper) && !makeLower) )
     {
-    std::cout << "Performing lower/upper triangular format swap for Nifti DTI" << std::endl;
+    ::ants::antscout << "Performing lower/upper triangular format swap for Nifti DTI" << std::endl;
 
     iter.GoToBegin();
     while( !iter.IsAtEnd() )
@@ -170,7 +170,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
 {
   if( !ANTSFileExists(std::string(file) ) )
     {
-    std::cout << " file " << std::string(file) << " does not exist . " << std::endl;  return;
+    ::ants::antscout << " file " << std::string(file) << " does not exist . " << std::endl;  return;
     }
 
   // Read the image files begin
@@ -188,8 +188,8 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cout << "Exception caught during reference file reading " << std::endl;
-    std::cout << e << " file " << file << std::endl;
+    ::ants::antscout << "Exception caught during reference file reading " << std::endl;
+    ::ants::antscout << e << " file " << file << std::endl;
     target = NULL;
     return;
     }
@@ -204,7 +204,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
     logFilter->SetInput( reffilter->GetOutput() );
     logFilter->Update();
     target = logFilter->GetOutput();
-    std::cout << "Returning Log(D) for log-euclidean math ops" << std::endl;
+    ::ants::antscout << "Returning Log(D) for log-euclidean math ops" << std::endl;
     }
 }
 
@@ -214,21 +214,21 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
 {
   if( std::string(file).length() < 3 )
     {
-    std::cout << " bad file name " << std::string(file) << std::endl;    target = NULL;  return;
+    ::ants::antscout << " bad file name " << std::string(file) << std::endl;    target = NULL;  return;
     }
   if( !ANTSFileExists(std::string(file) ) )
     {
-    std::cout << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL; return;
+    ::ants::antscout << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL; return;
     }
 
-  /*//  std::cout << " reading b " << std::string(file) << std::endl;
+  /*//  ::ants::antscout << " reading b " << std::string(file) << std::endl;
   typedef itk::ImageFileReader<TImageType> readertype;
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(file);
   reader->Update();
   target=(reader->GetOutput());
 */
-  //  std::cout << " Entering Read " << file << std::endl;
+  //  ::ants::antscout << " Entering Read " << file << std::endl;
 
   // Read the image files begin
   typedef TImageType                      ImageType;
@@ -243,10 +243,10 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cout << "Exception caught during reference file reading " << std::endl;
-    std::cout << e << " file " << file << std::endl;
+    ::ants::antscout << "Exception caught during reference file reading " << std::endl;
+    ::ants::antscout << e << " file " << file << std::endl;
     target = NULL;
-    exit(1);
+    std::exception();
     return;
     }
 
@@ -254,10 +254,10 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
   // dir.SetIdentity();
   //  reffilter->GetOutput()->SetDirection(dir);
 
-  // std::cout << " setting pointer " << std::endl;
+  // ::ants::antscout << " setting pointer " << std::endl;
   target = reffilter->GetOutput();
-  //   reffilter->GetOutput()->Print( std::cout );
-  //   std::cout << " read direction " <<  << std::endl;
+  //   reffilter->GetOutput()->Print( ::ants::antscout );
+  //   ::ants::antscout << " read direction " <<  << std::endl;
 
   // if (reffilter->GetImageIO()->GetNumberOfComponents() ==  6)
   // NiftiDTICheck<ImageType>(target,file);
@@ -278,8 +278,8 @@ typename ImageType::Pointer ReadImage(char* fn )
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cerr << "Exception caught during reference file reading " << std::endl;
-    std::cerr << e << std::endl;
+    ::ants::antscout << "Exception caught during reference file reading " << std::endl;
+    ::ants::antscout << e << std::endl;
     return NULL;
     }
 
@@ -310,8 +310,8 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cerr << "Exception caught during reference file reading " << std::endl;
-    std::cerr << e << std::endl;
+    ::ants::antscout << "Exception caught during reference file reading " << std::endl;
+    ::ants::antscout << e << std::endl;
     return NULL;
     }
 
@@ -343,13 +343,13 @@ void WriteImage(itk::SmartPointer<TImageType> image, const char *file)
   writer->SetFileName(file);
   if( !image )
     {
-    std::cout << " file " << file << " does not exist " << std::endl;
-    exit(1);
+    ::ants::antscout << " file " << file << " does not exist " << std::endl;
+    std::exception();
     }
   //  typename TImageType::DirectionType dir;
   // dir.SetIdentity();
   // image->SetDirection(dir);
-  //  std::cout << " now Write direction " << image->GetOrigin() << std::endl;
+  //  ::ants::antscout << " now Write direction " << image->GetOrigin() << std::endl;
 
   // if (writer->GetImageIO->GetNumberOfComponents() == 6)
   // NiftiDTICheck<TImageType>(image,file);
@@ -375,7 +375,7 @@ void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, boo
     expFilter->SetInput( image );
     expFilter->Update();
     writeImage = expFilter->GetOutput();
-    std::cout << "Taking Exp(D) before writing" << std::endl;
+    ::ants::antscout << "Taking Exp(D) before writing" << std::endl;
     }
 
   // convert from upper tri to lower tri
@@ -398,7 +398,7 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
 
 //  typedef itk::Vector<float,itkGetStaticConstMacro(ImageDimension)>         VectorType;
 //  typedef itk::Image<VectorType,itkGetStaticConstMacro(ImageDimension)>     FieldType;
-// std::cout << " warp file name " << warpfn + ext << std::endl;
+// ::ants::antscout << " warp file name " << warpfn + ext << std::endl;
 
   std::string fn = "";
 
@@ -407,13 +407,13 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
 // FROM INPUT2 TO INPUT1
   fn = warpfn + "x" + ext;
   typename RealImageType::Pointer xvec = ReadImage<ImageType>( (char *)fn.c_str() );
-  //  std::cout << " done reading " << fn << std::endl;
+  //  ::ants::antscout << " done reading " << fn << std::endl;
   fn = warpfn + "y" + ext;
   typename RealImageType::Pointer yvec = ReadImage<ImageType>( (char *)fn.c_str() );
-  // std::cout << " done reading " << fn << std::endl;
+  // ::ants::antscout << " done reading " << fn << std::endl;
   fn = warpfn + "z" + ext;
   typename RealImageType::Pointer zvec = NULL;
-  // std::cout << " done reading " << fn << std::endl;
+  // ::ants::antscout << " done reading " << fn << std::endl;
   if( ImageDimension == 3 )
     {
     zvec = ReadImage<ImageType>( (char *)fn.c_str() );
@@ -431,7 +431,7 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
   itk::ImageRegionIteratorWithIndex<RealImageType>
   it( xvec, xvec->GetLargestPossibleRegion() );
 
-  //  std::cout << " spacing xv " << xvec->GetSpacing()[0]
+  //  ::ants::antscout << " spacing xv " << xvec->GetSpacing()[0]
   // << " field " << field->GetSpacing()[0] << std::endl;
 
   field->SetSpacing(xvec->GetSpacing() );
@@ -453,7 +453,7 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
 
     field->SetPixel(index, disp);
 
-    //    if (ct == 10000) std::cout << " 10000th pix " << disp << std::endl;
+    //    if (ct == 10000) ::ants::antscout << " 10000th pix " << disp << std::endl;
     }
 
   return field;
@@ -510,8 +510,8 @@ WriteDisplacementField(TField* field, std::string filename)
 
     // Set up the output filename
     std::string outfile = filename + static_cast<char>('x' + dim) + std::string("vec.nii.gz");
-    std::cout << "Writing displacements to " << outfile << " spacing "
-              << field->GetSpacing()[0] << std::endl;
+    ::ants::antscout << "Writing displacements to " << outfile << " spacing "
+                     << field->GetSpacing()[0] << std::endl;
     typename RealImageType::Pointer fieldcomponent = fieldCaster->GetOutput();
     fieldcomponent->SetSpacing(field->GetSpacing() );
     fieldcomponent->SetOrigin(field->GetOrigin() );
@@ -519,7 +519,7 @@ WriteDisplacementField(TField* field, std::string filename)
 
     WriteImage<RealImageType>(fieldcomponent, outfile.c_str() );
     }
-  std::cout << "...done" << std::endl;
+  ::ants::antscout << "...done" << std::endl;
   return;
 }
 
@@ -545,15 +545,15 @@ WriteDisplacementField2(TField* field, std::string filename, std::string app)
 
     // Set up the output filename
     std::string outfile = filename + static_cast<char>('x' + dim) + std::string(app);
-    std::cout << "Writing displacements to " << outfile << " spacing "
-              << field->GetSpacing()[0] << std::endl;
+    ::ants::antscout << "Writing displacements to " << outfile << " spacing "
+                     << field->GetSpacing()[0] << std::endl;
     typename RealImageType::Pointer fieldcomponent = fieldCaster->GetOutput();
     fieldcomponent->SetSpacing(field->GetSpacing() );
     fieldcomponent->SetOrigin(field->GetOrigin() );
 
     WriteImage<RealImageType>(fieldcomponent, outfile.c_str() );
     }
-  std::cout << "...done" << std::endl;
+  ::ants::antscout << "...done" << std::endl;
   return;
 }
 

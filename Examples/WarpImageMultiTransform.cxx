@@ -1,3 +1,7 @@
+
+#include "antscout.hxx"
+#include <algorithm>
+
 #include <vector>
 #include <string>
 #include "itkImageFileReader.h"
@@ -13,6 +17,9 @@
 #include "itkLinearInterpolateImageFunction.h"
 
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
+
+namespace ants
+{
 // Needed for the LabelImageGaussianInterpolateImageFunction to work on
 // vector images
 
@@ -98,7 +105,7 @@ TRAN_FILE_TYPE CheckFileType(const char *str)
       pos = filepre.rfind( "." );
       extension = std::string( filepre, pos, filepre.length() - 1 );
       }
-    if( extension == ".txt" || extension == ".mat"  || extension == ".hdf5" || extension == ".hdf" )
+    if( extension == ".txt" || extension == ".mat" )
       {
       return AFFINE_FILE;
       }
@@ -168,7 +175,7 @@ void FilePartsWithgz(const std::string & filename, std::string & path, std::stri
     name = filepre;
     }
 
-//    std::cout << "filename: " << filename << std::endl
+//    antscout << "filename: " << filename << std::endl
 //    << "path: " << path << std::endl
 //    << "name: " << name << std::endl
 //    << "ext: " << ext << std::endl;
@@ -246,7 +253,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         }
       else
         {
-        std::cerr << "Wrong specification of sigma in --use-ML. Must end with 'mm' or 'vox'" << std::endl;
+        antscout << "Wrong specification of sigma in --use-ML. Must end with 'mm' or 'vox'" << std::endl;
         return false;
         }
 
@@ -258,12 +265,12 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
           {
           if( tok == NULL )
             {
-            std::cerr << "Invalid sigma specification:" << s << std::endl;
+            antscout << "Invalid sigma specification:" << s << std::endl;
             }
           double x = atof(tok);
           if( x < 0 )
             {
-            std::cerr << "Negative sigma specification:" << s << std::endl;
+            antscout << "Negative sigma specification:" << s << std::endl;
             }
           misc_opt.opt_ML.sigma[i] = x;
           tok = strtok(NULL, "x");
@@ -274,7 +281,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         double x = atof(s);
         if( x < 0 )
           {
-          std::cerr << "Negative sigma specification:" << s << std::endl;
+          antscout << "Negative sigma specification:" << s << std::endl;
           }
         misc_opt.opt_ML.sigma.resize(NDimensions);
         std::fill(misc_opt.opt_ML.sigma.begin(), misc_opt.opt_ML.sigma.end(), x);
@@ -322,7 +329,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
       {
       if( misc_opt.reference_image_filename == NULL )
         {
-        std::cout
+        antscout
           << "reference image filename is not given yet. Specify it with -R before --reference-image-header / -rh."
           << std::endl;
         return false;
@@ -361,7 +368,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         opt.file_type = CheckFileType(opt.filename.c_str() );
         opt.do_affine_inv = false;
         opt_queue.push_back(opt);
-        std::cout << "found deformation file: " << opt.filename << std::endl;
+        antscout << "found deformation file: " << opt.filename << std::endl;
         DisplayOpt(opt);
         }
 
@@ -374,7 +381,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         opt.file_type = CheckFileType(opt.filename.c_str() );
         opt.do_affine_inv = false;
         opt_queue.push_back(opt);
-        std::cout << "found affine file: " << opt.filename << std::endl;
+        antscout << "found affine file: " << opt.filename << std::endl;
         DisplayOpt(opt);
         }
       }
@@ -398,7 +405,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         opt.file_type = CheckFileType(opt.filename.c_str() );
         opt.do_affine_inv = true;
         opt_queue.push_back(opt);
-        std::cout << "found affine file: " << opt.filename << std::endl;
+        antscout << "found affine file: " << opt.filename << std::endl;
         DisplayOpt(opt);
         }
 
@@ -412,7 +419,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         opt.file_type = CheckFileType(opt.filename.c_str() );
         opt.do_affine_inv = false;
         opt_queue.push_back(opt);
-        std::cout << "found deformation file: " << opt.filename << std::endl;
+        antscout << "found deformation file: " << opt.filename << std::endl;
         DisplayOpt(opt);
         }
       }
@@ -428,8 +435,8 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
         }
       else if( opt.file_type == DEFORMATION_FILE && set_current_affine_inv )
         {
-        std::cout << "Ignore inversion of non-affine file type! " << std::endl;
-        std::cout << "opt.do_affine_inv:" << opt.do_affine_inv << std::endl;
+        antscout << "Ignore inversion of non-affine file type! " << std::endl;
+        antscout << "opt.do_affine_inv:" << opt.do_affine_inv << std::endl;
         }
 
       opt_queue.push_back(opt);
@@ -454,7 +461,7 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
     //               opt.do_affine_inv = true;
     //               opt_queue.push_back(opt);
     //
-    //               std::cout << "Use Rotation Header!" << std::endl;
+    //               antscout << "Use Rotation Header!" << std::endl;
     }
 
   return true;
@@ -466,31 +473,41 @@ void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
 
   for( int i = 0; i < kQueueSize; i++ )
     {
-    std::cout << "[" << i << "/" << kQueueSize << "]: ";
+    antscout << "[" << i << "/" << kQueueSize << "]: ";
 
     switch( opt_queue[i].file_type )
       {
       case AFFINE_FILE:
-        std::cout << "AFFINE";
+        {
+        antscout << "AFFINE";
+        }
         break;
       case DEFORMATION_FILE:
-        std::cout << "FIELD";
+        {
+        antscout << "FIELD";
+        }
         break;
       case IDENTITY_TRANSFORM:
-        std::cout << "IDENTITY";
+        {
+        antscout << "IDENTITY";
+        }
         break;
       case IMAGE_AFFINE_HEADER:
-        std::cout << "HEADER";
+        {
+        antscout << "HEADER";
+        }
         break;
       default:
-        std::cout << "Invalid Format!!!";
+        {
+        antscout << "Invalid Format!!!";
+        }
         break;
       }
     if( opt_queue[i].do_affine_inv )
       {
-      std::cout << "-INV";
+      antscout << "-INV";
       }
-    std::cout << ": " << opt_queue[i].filename << std::endl;
+    antscout << ": " << opt_queue[i].filename << std::endl;
     }
 }
 
@@ -499,26 +516,36 @@ void DisplayOpt(const TRAN_OPT & opt)
   switch( opt.file_type )
     {
     case AFFINE_FILE:
-      std::cout << "AFFINE";
+      {
+      antscout << "AFFINE";
+      }
       break;
     case DEFORMATION_FILE:
-      std::cout << "FIELD";
+      {
+      antscout << "FIELD";
+      }
       break;
     case IDENTITY_TRANSFORM:
-      std::cout << "IDENTITY";
+      {
+      antscout << "IDENTITY";
+      }
       break;
     case IMAGE_AFFINE_HEADER:
-      std::cout << "HEADER";
+      {
+      antscout << "HEADER";
+      }
       break;
     default:
-      std::cout << "Invalid Format!!!";
+      {
+      antscout << "Invalid Format!!!";
+      }
       break;
     }
   if( opt.do_affine_inv )
     {
-    std::cout << "-INV";
+    antscout << "-INV";
     }
-  std::cout << ": " << opt.filename << std::endl;
+  antscout << ": " << opt.filename << std::endl;
 }
 
 template <class AffineTransformPointer>
@@ -554,7 +581,7 @@ void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPoi
   aff->SetOffset(translation);
   aff->SetCenter(pt);
 
-  std::cout << "aff from image:" << aff << std::endl;
+  antscout << "aff from image:" << aff << std::endl;
 }
 
 template <class WarperPointerType, class ImagePointerType, class SizeType, class PointType>
@@ -587,24 +614,40 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
 
       switch( i )
         {
-        case 0: ind[0] = 0; ind[1] = 0; ind[2] = 0; break;
-        case 1: ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; break;
-        case 2: ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; break;
-        case 3: ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; break;
-        case 4: ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; break;
-        case 5: ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; break;
-        case 6: ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; break;
-        case 7: ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; break;
+        case 0:
+  { ind[0] = 0; ind[1] = 0; ind[2] = 0; }
+                                        break;
+        case 1:
+  { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; }
+                                                   break;
+        case 2:
+  { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; }
+                                                   break;
+        case 3:
+  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; }
+                                                              break;
+        case 4:
+  { ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; }
+                                                   break;
+        case 5:
+  { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; }
+                                                              break;
+        case 6:
+  { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
+                                                              break;
+        case 7:
+  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
+                                                                         break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
       if( warper->MultiInverseAffineOnlySinglePoint(pt_orig, pt_warped) == false )
         {
-        std::cout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
-        exit(-1);
+        antscout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
+        throw std::exception();
         }
       pts_warped.push_back(pt_warped);
-      std::cout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
+      antscout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
       }
     }
   else if( ImageDimension == 2 )
@@ -615,26 +658,34 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
 
       switch( i )
         {
-        case 0: ind[0] = 0; ind[1] = 0;  break;
-        case 1: ind[0] = imgsz[0] - 1; ind[1] = 0;  break;
-        case 2: ind[0] = 0; ind[1] = imgsz[1] - 1;  break;
-        case 3: ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1;  break;
+        case 0:
+  { ind[0] = 0; ind[1] = 0; }
+                            break;
+        case 1:
+  { ind[0] = imgsz[0] - 1; ind[1] = 0; }
+                                       break;
+        case 2:
+  { ind[0] = 0; ind[1] = imgsz[1] - 1; }
+                                       break;
+        case 3:
+  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; }
+                                                  break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
       if( warper->MultiInverseAffineOnlySinglePoint(pt_orig, pt_warped) == false )
         {
-        std::cout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
-        exit(-1);
+        antscout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
+        throw std::exception();
         }
       pts_warped.push_back(pt_warped);
-      std::cout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
+      antscout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
       }
     }
   else
     {
-    std::cout << "could not determine the dimension after warping for non 2D/3D volumes" << std::endl;
-    exit(-1);
+    antscout << "could not determine the dimension after warping for non 2D/3D volumes" << std::endl;
+    throw std::exception();
     }
 
   PointType pt_min, pt_max;
@@ -654,8 +705,8 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
     }
 
   origin_warped = pt_min;
-  std::cout << "origin_warped: " << origin_warped << std::endl;
-  std::cout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
+  antscout << "origin_warped: " << origin_warped << std::endl;
+  antscout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
 }
 
 template <int ImageDimension, unsigned int NVectorComponents>
@@ -712,12 +763,12 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     typedef typename itk::NearestNeighborInterpolateImageFunction<ImageType,
                                                                   typename WarperType::CoordRepType> NNInterpolateType;
     typename NNInterpolateType::Pointer interpolator_NN = NNInterpolateType::New();
-    std::cout << "User nearest neighbor interpolation (was Haha) " << std::endl;
+    antscout << "User nearest neighbor interpolation (was Haha) " << std::endl;
     warper->SetInterpolator(interpolator_NN);
     }
   else if( misc_opt.use_MultiLabel_interpolator )
     {
-    std::cout << " Need to fix in main itk repository " << std::endl;
+    antscout << " Need to fix in main itk repository " << std::endl;
 //      typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
 //      typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType,
 //                                                                       typename WarperType::CoordRepType,
@@ -725,7 +776,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 //      typename MLInterpolateType::Pointer interpolator_ML = MLInterpolateType::New();
 //
 //
-//      std::cout << "Using multi-label anti-aliasing interpolation " << std::endl;
+//      antscout << "Using multi-label anti-aliasing interpolation " << std::endl;
 //      vnl_vector_fixed<double, ImageDimension> sigma;
 //      for(size_t i = 0; i < ImageDimension; i++)
 //        {
@@ -735,7 +786,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 //          sigma[i] = misc_opt.opt_ML.sigma[i];
 //        }
 //
-//      std::cout << "  Sigma = " << sigma << " (voxel units)" << std::endl;
+//      antscout << "  Sigma = " << sigma << " (voxel units)" << std::endl;
 //
 //      interpolator_ML->SetParameters(sigma.data_block(), 4.0);
 //
@@ -744,12 +795,12 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   else if( misc_opt.use_BSpline_interpolator )
     {
-    std::cout << " Not currently supported because of a lack of vector support " << std::endl;
+    antscout << " Not currently supported because of a lack of vector support " << std::endl;
     /*
       typedef typename itk::BSplineInterpolateImageFunction<ImageType, typename WarperType::CoordRepType> BSInterpolateType;
       typename BSInterpolateType::Pointer interpolator_BS = BSInterpolateType::New();
       interpolator_BS->SetSplineOrder(3);
-      std::cout << "User B-spline interpolation " << std::endl;
+      antscout << "User B-spline interpolation " << std::endl;
       warper->SetInterpolator(interpolator_BS);
     */
     }
@@ -758,7 +809,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     typedef typename itk::LinearInterpolateImageFunction<ImageType,
                                                          typename WarperType::CoordRepType> LinInterpolateType;
     typename LinInterpolateType::Pointer interpolator_LN = LinInterpolateType::New();
-    std::cout << "User Linear interpolation " << std::endl;
+    antscout << "User Linear interpolation " << std::endl;
     warper->SetInterpolator(interpolator_LN);
     }
 
@@ -787,7 +838,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           aff = aff_inv;
           takeaffinv = true;
           }
-        // std::cout <<" aff " << transcount <<  std::endl;
+        // antscout <<" aff " << transcount <<  std::endl;
         warper->PushBackAffineTransform(aff);
         if( transcount == 0 )
           {
@@ -804,7 +855,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         {
         typename AffineTransformType::Pointer aff;
         GetIdentityTransform(aff);
-        // std::cout << " aff id" << transcount << std::endl;
+        // antscout << " aff id" << transcount << std::endl;
         warper->PushBackAffineTransform(aff);
         transcount++;
         break;
@@ -829,7 +880,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           takeaffinv = true;
           }
 
-        // std::cout <<" aff from image header " << transcount <<  std::endl;
+        // antscout <<" aff from image header " << transcount <<  std::endl;
         warper->PushBackAffineTransform(aff);
 
         //            if (transcount==0){
@@ -860,14 +911,14 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         break;
         }
       default:
-        std::cout << "Unknown file type!" << std::endl;
+        antscout << "Unknown file type!" << std::endl;
       }
     }
 
-  // std::cout << " transcount " << transcount << std::endl; warper->PrintTransformList();
+  // antscout << " transcount " << transcount << std::endl; warper->PrintTransformList();
   if( transcount == 2 )
     {
-    std::cout << "  We check the syntax of your call .... " << std::endl;
+    antscout << "  We check the syntax of your call .... " << std::endl;
     const TRAN_OPT & opt1 = opt_queue[0];
     const TRAN_OPT & opt2 = opt_queue[1];
 
@@ -876,7 +927,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       bool defisinv = IsInverseDeformation(opt2.filename.c_str() );
       if( !takeaffinv )
         {
-        std::cout
+        antscout
           <<
           " Your 1st parameter should be an inverse affine map and the 2nd an InverseWarp  --- exiting without applying warp.  Check that , if using an inverse affine map, you pass the -i option before the Affine.txt."
           << std::endl;
@@ -884,7 +935,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         }
       if( !defisinv )
         {
-        std::cout
+        antscout
           <<
           " Your 2nd  parameter should be an InverseWarp when your 1st parameter is an inverse affine map  --- exiting without applying warp.  "
           << std::endl;
@@ -896,7 +947,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       bool defisinv = IsInverseDeformation(opt1.filename.c_str() );
       if(  defisinv )
         {
-        std::cout
+        antscout
           <<
           " Your 1st parameter should be a Warp (not Inverse) when your 2nd parameter is an affine map --- exiting without applying warp.  "
           << std::endl;
@@ -904,18 +955,18 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         }
       if(  takeaffinv )
         {
-        std::cout
+        antscout
           <<
           " Your 2nd parameter should be a regular affine map (not inverted) if the 1st is a Warp --- exiting without applying warp. "
           << std::endl;
         return;
         }
       }
-    std::cout << " syntax probably ok. " << std::endl;
+    antscout << " syntax probably ok. " << std::endl;
     }
   else
     {
-    std::cout << " You are doing something more complex -- we wont check syntax in this case " << std::endl;
+    antscout << " You are doing something more complex -- we wont check syntax in this case " << std::endl;
     }
 
   if( img_ref.IsNotNull() )
@@ -944,10 +995,10 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       }
     }
 
-  std::cout << "output origin: " << warper->GetOutputOrigin() << std::endl;
-  std::cout << "output size: " << warper->GetOutputSize() << std::endl;
-  std::cout << "output spacing: " << warper->GetOutputSpacing() << std::endl;
-  std::cout << "output direction: " << warper->GetOutputDirection() << std::endl;
+  antscout << "output origin: " << warper->GetOutputOrigin() << std::endl;
+  antscout << "output size: " << warper->GetOutputSize() << std::endl;
+  antscout << "output spacing: " << warper->GetOutputSpacing() << std::endl;
+  antscout << "output direction: " << warper->GetOutputDirection() << std::endl;
 
   // warper->PrintTransformList();
   warper->DetermineFirstDeformNoInterp();
@@ -962,7 +1013,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   //        warper->GetOutput()->TransformIndexToPhysicalPoint(ind_orig, pt_orig);
   //        warper->MultiTransformSinglePoint(pt_orig, pt_warped);
   //        img_mov->TransformPhysicalPointToIndex(pt_warped, ind_warped);
-  //        std::cout << "Transform output index " << ind_orig << "("<<pt_orig<<")"
+  //        antscout << "Transform output index " << ind_orig << "("<<pt_orig<<")"
   //        << " from moving image index " << ind_warped << "("<<pt_warped<<")" << std::endl;
   //    }
 
@@ -971,7 +1022,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   //        pt_in[i] = warper->GetOutputSize()[i] * 0.5;
   //    }
   //    warper->MultiTransformSinglePoint(pt_in, pt_out);
-  //    std::cout << "pt_in=" << pt_in << " pt_out=" <<pt_out << std::endl;
+  //    antscout << "pt_in=" << pt_in << " pt_out=" <<pt_out << std::endl;
 
   typename ImageType::Pointer img_output = ImageType::New();
   img_output = warper->GetOutput();
@@ -987,124 +1038,169 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   writer_img->Update();
 }
 
-int main(int argc, char * *argv)
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int WarpImageMultiTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "WarpImageMultiTransform" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   if( argc <= 3 )
     {
-    std::cout <<  " \n " << std::endl;
-    std::cout <<  "Usage: \n " << std::endl;
+    antscout <<  " \n " << std::endl;
+    antscout <<  "Usage: \n " << std::endl;
 
-    //    std::cout << argv[0] <<  " ImageDimension moving_image output_image [-R reference_image |
+    //    antscout << argv[0] <<  " ImageDimension moving_image output_image [-R reference_image |
     // --tightest-bounding-box] (--reslice-by-header) [--use-NN]"
     // << "[--ANTS-prefix prefix-name | --ANTS-prefix-invert prefix-name] {[deformation_field | [-i]
     // InverseAffineTransform.txt | --Id | [-i] --moving-image-header / -mh  | [-i] --reference-image-header / -rh]} \n"
     // << std::endl;
-    std::cout << argv[0]
-              <<
+    antscout << argv[0]
+             <<
       " ImageDimension moving_image output_image  -R reference_image --use-NN   SeriesOfTransformations--(See Below) "
-              << std::endl;
-    std::cout << " SeriesOfTransformations --- " << argv[0]
-              <<  " can apply, via concatenation, an unlimited number of transformations to your data ." << std::endl;
-    std::cout
+             << std::endl;
+    antscout << " SeriesOfTransformations --- " << argv[0]
+             <<  " can apply, via concatenation, an unlimited number of transformations to your data ." << std::endl;
+    antscout
       <<
       " Thus, SeriesOfTransformations may be  an Affine transform followed by a warp  another affine and then another warp. "
       << std::endl;
-    std::cout << "  Inverse affine transformations are invoked by calling   -i MyAffine.txt " << std::endl;
-    std::cout
+    antscout << "  Inverse affine transformations are invoked by calling   -i MyAffine.txt " << std::endl;
+    antscout
       << " InverseWarps are invoked by passing the InverseWarp.nii.gz  filename (see below for a note about this).  "
       << std::endl;
-    std::cout << std::endl;
-    std::cout
+    antscout << std::endl;
+    antscout
       <<
       " Example 1: Mapping a warped image into the reference_image domain by applying abcdWarp.nii.gz and then abcdAffine.txt\n"
       << std::endl;
 
-    std::cout << argv[0] <<  " 3 moving_image output_image -R reference_image abcdWarp.nii.gz abcdAffine.txt\n"
-              << std::endl;
+    antscout << argv[0] <<  " 3 moving_image output_image -R reference_image abcdWarp.nii.gz abcdAffine.txt\n"
+             << std::endl;
 
-    std::cout
+    antscout
       <<
       " Example 2: To map the fixed/reference_image warped into the moving_image domain by applying the inversion of abcdAffine.txt and then abcdInverseWarp.nii.gz .\n"
       << std::endl;
 
-    std::cout << argv[0]
-              << " 3 reference_image output_image -R moving_image -i  abcdAffine.txt abcdInverseWarp.nii.gz \n \n"
-              << std::endl;
-    std::cout
+    antscout << argv[0]
+             << " 3 reference_image output_image -R moving_image -i  abcdAffine.txt abcdInverseWarp.nii.gz \n \n"
+             << std::endl;
+    antscout
       <<
       "  Note that the inverse maps (Ex. 2) are passed to this program in the reverse order of the forward maps (Ex. 1). "
       << std::endl;
-    std::cout << " This makes sense, geometrically ... see ANTS.pdf for visualization of this syntax." << std::endl;
-    std::cout << std::endl;
-    std::cout << " Compulsory arguments:\n " << std::endl;
+    antscout << " This makes sense, geometrically ... see ANTS.pdf for visualization of this syntax." << std::endl;
+    antscout << std::endl;
+    antscout << " Compulsory arguments:\n " << std::endl;
 
-    std::cout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
+    antscout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
 
-    std::cout << " moving_image: the image to apply the transformation to\n " << std::endl;
+    antscout << " moving_image: the image to apply the transformation to\n " << std::endl;
 
-    std::cout << " output_image: the resulting image\n \n " << std::endl;
+    antscout << " output_image: the resulting image\n \n " << std::endl;
 
-    std::cout << " Optional arguments:\n " << std::endl;
+    antscout << " Optional arguments:\n " << std::endl;
 
-    std::cout << " -R: reference_image space that you wish to warp INTO." << std::endl;
-    std::cout
+    antscout << " -R: reference_image space that you wish to warp INTO." << std::endl;
+    antscout
       <<
       "       --tightest-bounding-box: Computes the tightest bounding box using all the affine transformations. It will be overrided by -R reference_image if given."
       << std::endl;
-    std::cout
+    antscout
       <<
       "       --reslice-by-header: equivalient to -i -mh, or -fh -i -mh if used together with -R. It uses the orientation matrix and origin encoded in the image file header. "
       << std::endl;
-    std::cout
+    antscout
       << "       It can be used together with -R. This is typically not used together with any other transforms.\n "
       << std::endl;
 
-    std::cout << " --use-NN: Use Nearest Neighbor Interpolation. \n " << std::endl;
-    std::cout << " --use-BSpline: Use 3rd order B-Spline Interpolation. \n " << std::endl;
-    std::cout
+    antscout << " --use-NN: Use Nearest Neighbor Interpolation. \n " << std::endl;
+    antscout << " --use-BSpline: Use 3rd order B-Spline Interpolation. \n " << std::endl;
+    antscout
       <<
       " --use-ML sigma: Use anti-aliasing interpolation for multi-label images, with Gaussian smoothing with standard deviation sigma. \n "
       << std::endl;
-    std::cout
+    antscout
       <<
       "                 Sigma can be specified in physical or voxel units, as in Convert3D. It can be a scalar or a vector. \n "
       << std::endl;
-    std::cout << "                 Examples:  --use-ML 0.4mm    -use-ML 0.8x0.8x0.8vox    " << std::endl;
+    antscout << "                 Examples:  --use-ML 0.4mm    -use-ML 0.8x0.8x0.8vox    " << std::endl;
 
-    //    std::cout << " --ANTS-prefix prefix-name: followed by a deformation field filename. \n " << std::endl;
+    //    antscout << " --ANTS-prefix prefix-name: followed by a deformation field filename. \n " << std::endl;
 
-    //    std::cout << " --ANTS-prefix-invert: . \n" << std::endl;
+    //    antscout << " --ANTS-prefix-invert: . \n" << std::endl;
 
-    std::cout << " -i: will use the inversion of the following affine transform. \n " << std::endl;
+    antscout << " -i: will use the inversion of the following affine transform. \n " << std::endl;
 
-    //    std::cout << " --Id: use an identity transform. \n " << std::endl;
+    //    antscout << " --Id: use an identity transform. \n " << std::endl;
 
-    // std::cout << " --moving-image-header or -mh: will use the orientation header of the moving image file. This is
+    // antscout << " --moving-image-header or -mh: will use the orientation header of the moving image file. This is
     // typically not used with --reslice-by-header.\n " << std::endl;
 
-    //    std::cout << " --reference-image-header or -rh: use the orientation matrix and origin encoded in the image
+    //    antscout << " --reference-image-header or -rh: use the orientation matrix and origin encoded in the image
     // file header. It can be used together with -R.\n " << std::endl;
-    std::cout <<  " \n " << std::endl;
+    antscout <<  " \n " << std::endl;
 
-    //        std::cout << " For ANTS users:" << std::endl;
+    //        antscout << " For ANTS users:" << std::endl;
 
-    std::cout << " Other Example Usages:" << std::endl;
-    std::cout
+    antscout << " Other Example Usages:" << std::endl;
+    antscout
       <<
       " Reslice the image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz --tightest-bounding-box --reslice-by-header"
       << std::endl;
-    std::cout
+    antscout
       <<
       " Reslice the image to a reference image: WarpImageMultiTransform 3 Imov.nii.gz Iout.nii.gz -R Iref.nii.gz --tightest-bounding-box --reslice-by-header\n"
       << std::endl;
 
-    std::cout << " Important Notes: " << std::endl;
-    std::cout << " Prefixname \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
-    std::cout
+    antscout << " Important Notes: " << std::endl;
+    antscout << " Prefixname \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
+    antscout
       <<
       " The abcdWarp and abcdInverseWarp do not exist. They are formed on the basis of abcd(Inverse)Warp.nii.gz when calling "
       << argv[0] << ", yet you have to use them as if they exist." << std::endl;
-    exit(0);
+    return EXIT_FAILURE;
     }
 
   TRAN_OPT_QUEUE opt_queue;
@@ -1127,16 +1223,16 @@ int main(int argc, char * *argv)
     imageIO->ReadImageInformation();
     unsigned int ncomponents = imageIO->GetNumberOfComponents();
 
-    std::cout << "moving_image_filename: " << moving_image_filename << " components " << ncomponents << std::endl;
-    std::cout << "output_image_filename: " << output_image_filename << std::endl;
-    std::cout << "reference_image_filename: ";
+    antscout << "moving_image_filename: " << moving_image_filename << " components " << ncomponents << std::endl;
+    antscout << "output_image_filename: " << output_image_filename << std::endl;
+    antscout << "reference_image_filename: ";
     if( misc_opt.reference_image_filename )
       {
-      std::cout << misc_opt.reference_image_filename << std::endl;
+      antscout << misc_opt.reference_image_filename << std::endl;
       }
     else
       {
-      std::cout << "NULL" << std::endl;
+      antscout << "NULL" << std::endl;
       }
     DisplayOptQueue(opt_queue);
 
@@ -1145,61 +1241,79 @@ int main(int argc, char * *argv)
       switch( kImageDim )
         {
         case 2:
-
+          {
           switch( ncomponents )
             {
             case 2:
+              {
               WarpImageMultiTransform<2, 2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              }
               break;
             default:
+              {
               WarpImageMultiTransform<2, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              }
               break;
             }
+          }
           break;
         case 3:
-
+          {
           switch( ncomponents )
             {
             case 3:
+              {
               WarpImageMultiTransform<3, 3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              }
               break;
             case 6:
+              {
               WarpImageMultiTransform<3, 6>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              }
               break;
             default:
+              {
               WarpImageMultiTransform<3, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              }
               break;
             }
+          }
           break;
         case 4:
-
+          {
           switch( ncomponents )
             {
             case 4:
+              {
               WarpImageMultiTransform<4, 4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              }
               break;
             default:
+              {
               WarpImageMultiTransform<4, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
+              }
               break;
             }
+          }
           break;
         default:
-          std::cerr << " not supported " << kImageDim  << std::endl;
-          exit( EXIT_FAILURE );
+          antscout << " not supported " << kImageDim  << std::endl;
+          return EXIT_FAILURE;
         }
       }
     catch( itk::ExceptionObject & e )
       {
-      std::cout << "Exception caught during WarpImageMultiTransform." << std::endl;
-      std::cout << e << std::endl;
+      antscout << "Exception caught during WarpImageMultiTransform." << std::endl;
+      antscout << e << std::endl;
       return EXIT_FAILURE;
       }
     //      WarpImageMultiTransform<2,2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
     }
   else
     {
-    std::cout << "Input error!" << std::endl;
+    antscout << "Input error!" << std::endl;
     return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
 }
+} // namespace ants

@@ -16,6 +16,9 @@
 
 =========================================================================*/
 
+#include "antscout.hxx"
+#include <algorithm>
+
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -28,6 +31,8 @@
 
 #include "itkDiscreteGaussianImageFilter.h"
 
+namespace ants
+{
 template <class TImage>
 typename TImage::Pointer
 SmoothImage(typename TImage::Pointer image, float sig)
@@ -42,18 +47,63 @@ SmoothImage(typename TImage::Pointer image, float sig)
   return filter->GetOutput();
 }
 
-int main( int argc, char * argv[] )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ResampleImageBySpacing( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "ResampleImageBySpacing" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   if( argc < 5 )
     {
-    std::cerr << "Usage: " << std::endl;
-    std::cerr << argv[0]
-              <<
+    antscout << "Usage: " << std::endl;
+    antscout << argv[0]
+             <<
       "  ImageDimension inputImageFile  outputImageFile outxspc outyspc {outzspacing}  {dosmooth?}  {addvox} {nn-interp?}"
-              << std::endl;
-    std::cout << " addvox pads each dimension by addvox " << std::endl;
-    std::cerr << "  " << std::endl;
-//    std::cout << " interp 0 = linear, 1 = nn " << std::endl;
+             << std::endl;
+    antscout << " addvox pads each dimension by addvox " << std::endl;
+    antscout << "  " << std::endl;
+//    antscout << " interp 0 = linear, 1 = nn " << std::endl;
     return 1;
     }
 
@@ -84,8 +134,8 @@ int main( int argc, char * argv[] )
       }
     catch( itk::ExceptionObject & excep )
       {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << excep << std::endl;
+      antscout << "Exception caught!" << std::endl;
+      antscout << excep << std::endl;
       }
 
     InputImageType::ConstPointer inputImage = reader->GetOutput();
@@ -98,7 +148,7 @@ int main( int argc, char * argv[] )
       spacing[i] = inputSpacing[i];
       }
 
-    std::cout <<  " spacing " << spacing << " dim " << 2 << std::endl;
+    antscout <<  " spacing " << spacing << " dim " << 2 << std::endl;
 
     bool dosmooth = 1;
     if( argc > 4 )
@@ -124,7 +174,7 @@ int main( int argc, char * argv[] )
       nn = atoi(argv[7]);
       }
 
-    std::cout <<  " spacing2 " << spacing << std::endl;
+    antscout <<  " spacing2 " << spacing << std::endl;
 
     InternalImageType::ConstPointer smoothedImage = reader->GetOutput();
     if( dosmooth )
@@ -139,7 +189,7 @@ int main( int argc, char * argv[] )
         smootherX->SetInput( smoothedImage );
         float sig = 0;
         sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
-        std::cout << " smoothing by : " << sig << " dir " << sm << std::endl;
+        antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );
         smootherX->SetNormalizeAcrossScale( false );
@@ -151,8 +201,8 @@ int main( int argc, char * argv[] )
             }
           catch( itk::ExceptionObject & excep )
             {
-            std::cerr << "Exception catched !" << std::endl;
-            std::cerr << excep << std::endl;
+            antscout << "Exception catched !" << std::endl;
+            antscout << excep << std::endl;
             }
           smoothedImage = smootherX->GetOutput();
           }
@@ -189,7 +239,7 @@ int main( int argc, char * argv[] )
     ind.Fill(1);
     resampler->SetDefaultPixelValue( inputImage->GetPixel(ind) ); // zero regions without source
 
-    std::cout << " out space " << spacing << std::endl;
+    antscout << " out space " << spacing << std::endl;
     resampler->SetOutputSpacing( spacing );
     // Use the same origin
     resampler->SetOutputOrigin( inputImage->GetOrigin() );
@@ -204,7 +254,7 @@ int main( int argc, char * argv[] )
       size[i] = static_cast<SizeValueType>(inputSize[i] * inputSpacing[i] / spacing[i] + addvox);
       }
 
-    std::cout << " output size " << size << " spc " << spacing << std::endl;
+    antscout << " output size " << size << " spc " << spacing << std::endl;
     resampler->SetSize( size );
 
     resampler->SetInput( smoothedImage );
@@ -223,8 +273,8 @@ int main( int argc, char * argv[] )
       }
     catch( itk::ExceptionObject & excep )
       {
-      std::cerr << "Exception catched !" << std::endl;
-      std::cerr << excep << std::endl;
+      antscout << "Exception catched !" << std::endl;
+      antscout << excep << std::endl;
       }
     }
 
@@ -253,8 +303,8 @@ int main( int argc, char * argv[] )
       }
     catch( itk::ExceptionObject & excep )
       {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << excep << std::endl;
+      antscout << "Exception caught!" << std::endl;
+      antscout << excep << std::endl;
       }
 
     InputImageType::ConstPointer inputImage = reader->GetOutput();
@@ -267,7 +317,7 @@ int main( int argc, char * argv[] )
       spacing[i] = inputSpacing[i];
       }
 
-    std::cout <<  " spacing " << spacing << " dim " << 3 << std::endl;
+    antscout <<  " spacing " << spacing << " dim " << 3 << std::endl;
 
     bool dosmooth = 1;
     if( argc > 4 )
@@ -297,7 +347,7 @@ int main( int argc, char * argv[] )
       nn = atoi(argv[9]);
       }
 
-    std::cout <<  " spacing2 " << spacing << std::endl;
+    antscout <<  " spacing2 " << spacing << std::endl;
 
     InternalImageType::ConstPointer smoothedImage = reader->GetOutput();
     if( dosmooth )
@@ -312,7 +362,7 @@ int main( int argc, char * argv[] )
         smootherX->SetInput( smoothedImage );
         float sig = 0;
         sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
-        std::cout << " smoothing by : " << sig << " dir " << sm << std::endl;
+        antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );
         smootherX->SetNormalizeAcrossScale( false );
@@ -324,8 +374,8 @@ int main( int argc, char * argv[] )
             }
           catch( itk::ExceptionObject & excep )
             {
-            std::cerr << "Exception catched !" << std::endl;
-            std::cerr << excep << std::endl;
+            antscout << "Exception catched !" << std::endl;
+            antscout << excep << std::endl;
             }
           smoothedImage = smootherX->GetOutput();
           }
@@ -362,7 +412,7 @@ int main( int argc, char * argv[] )
     ind.Fill(1);
     resampler->SetDefaultPixelValue( inputImage->GetPixel(ind) ); // zero regions without source
 
-    std::cout << " out space " << spacing << std::endl;
+    antscout << " out space " << spacing << std::endl;
     resampler->SetOutputSpacing( spacing );
     // Use the same origin
     resampler->SetOutputOrigin( inputImage->GetOrigin() );
@@ -377,7 +427,7 @@ int main( int argc, char * argv[] )
       size[i] = static_cast<SizeValueType>(inputSize[i] * inputSpacing[i] / spacing[i] + addvox);
       }
 
-    std::cout << " output size " << size << " spc " << spacing << std::endl;
+    antscout << " output size " << size << " spc " << spacing << std::endl;
     resampler->SetSize( size );
 
     resampler->SetInput( smoothedImage );
@@ -396,10 +446,11 @@ int main( int argc, char * argv[] )
       }
     catch( itk::ExceptionObject & excep )
       {
-      std::cerr << "Exception catched !" << std::endl;
-      std::cerr << excep << std::endl;
+      antscout << "Exception catched !" << std::endl;
+      antscout << excep << std::endl;
       }
     }
 
   return 0;
 }
+} // namespace ants

@@ -15,6 +15,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
+
+#include "antscout.hxx"
+#include <algorithm>
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -25,6 +29,8 @@
 #include "itkCastImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 
+namespace ants
+{
 template <unsigned int ImageDimension, class TPIXELTYPE>
 int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
 {
@@ -40,12 +46,12 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   typename readertype::Pointer reader = readertype::New();
   if( argc < 2 )
     {
-    std::cerr << "Missing input filename" << std::endl;
+    antscout << "Missing input filename" << std::endl;
     throw;
     }
   reader->SetFileName(argv[1]);
   reader->Update();
-  std::cout << " Updated reader " << std::endl;
+  antscout << " Updated reader " << std::endl;
 
   typedef itk::CastImageFilter<ImageType, IntermediateType> castertype;
   typename   castertype::Pointer caster = castertype::New();
@@ -70,12 +76,12 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   typename   OutImageType::Pointer outim = caster2->GetOutput();
   typename   OutImageType::SpacingType spc = outim->GetSpacing();
   outim->SetSpacing(spc);
-  std::cout << " Dire in " << reader->GetOutput()->GetDirection() << std::endl;
-  std::cout << " Dire out " << outim->GetDirection() << std::endl;
+  antscout << " Dire in " << reader->GetOutput()->GetDirection() << std::endl;
+  antscout << " Dire out " << outim->GetDirection() << std::endl;
   typename   writertype::Pointer writer = writertype::New();
   if( argc < 3 )
     {
-    std::cerr << "Missing output filename" << std::endl;
+    antscout << "Missing output filename" << std::endl;
     throw;
     }
   writer->SetFileName(argv[2]);
@@ -86,26 +92,71 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   return 0;
 }
 
-int main(int argc, char *argv[])
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ConvertImagePixelType( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "ConvertImagePixelType" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   if( argc < 3 )
     {
-    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
-    std::cout << " ext is the extension you want, e.g. tif.  " << std::endl;
-    std::cout << " TYPE-OPTION  :  TYPE " << std::endl;
-    std::cout << "  0  :  char   " << std::endl;
-    std::cout << "  1  :  unsigned char   " << std::endl;
-    std::cout << "  2  :  short   " << std::endl;
-    std::cout << "  3  :  unsigned short   " << std::endl;
-    std::cout << "  4  :  int   " << std::endl;
-    std::cout << "  5  :  unsigned int   " << std::endl;
-    std::cout
+    antscout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
+    antscout << " ext is the extension you want, e.g. tif.  " << std::endl;
+    antscout << " TYPE-OPTION  :  TYPE " << std::endl;
+    antscout << "  0  :  char   " << std::endl;
+    antscout << "  1  :  unsigned char   " << std::endl;
+    antscout << "  2  :  short   " << std::endl;
+    antscout << "  3  :  unsigned short   " << std::endl;
+    antscout << "  4  :  int   " << std::endl;
+    antscout << "  5  :  unsigned int   " << std::endl;
+    antscout
       << " Note that some pixel types are not supported by some image formats. e.g.  int is not supported by jpg. "
       << std::endl;
-    std::cout
+    antscout
       << " You can easily extend this for other pixel types with a few lines of code and adding usage info. "
       << std::endl;
-    std::cout
+    antscout
       <<
       " The image intensity will be scaled to the dynamic range of the pixel type.  E.g. uchar => 0  (min), 255 (max). "
       << std::endl;
@@ -139,8 +190,8 @@ int main(int argc, char *argv[])
         }
         break;
       default:
-        std::cerr << "Unsupported dimension" << std::endl;
-        exit( EXIT_FAILURE );
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
     }
   else if( typeoption == 1 )
@@ -158,8 +209,8 @@ int main(int argc, char *argv[])
         }
         break;
       default:
-        std::cerr << "Unsupported dimension" << std::endl;
-        exit( EXIT_FAILURE );
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
     }
   else if( typeoption == 2 )
@@ -177,8 +228,8 @@ int main(int argc, char *argv[])
         }
         break;
       default:
-        std::cerr << "Unsupported dimension" << std::endl;
-        exit( EXIT_FAILURE );
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
     }
   else if( typeoption == 3 )
@@ -196,8 +247,8 @@ int main(int argc, char *argv[])
         }
         break;
       default:
-        std::cerr << "Unsupported dimension" << std::endl;
-        exit( EXIT_FAILURE );
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
     }
   else if( typeoption == 4 )
@@ -215,8 +266,8 @@ int main(int argc, char *argv[])
         }
         break;
       default:
-        std::cerr << "Unsupported dimension" << std::endl;
-        exit( EXIT_FAILURE );
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
     }
   else if( typeoption == 5 )
@@ -234,10 +285,11 @@ int main(int argc, char *argv[])
         }
         break;
       default:
-        std::cerr << "Unsupported dimension" << std::endl;
-        exit( EXIT_FAILURE );
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
       }
     }
 
   return 0;
 }
+} // namespace ants

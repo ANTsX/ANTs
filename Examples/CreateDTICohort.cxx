@@ -1,3 +1,7 @@
+
+#include "antscout.hxx"
+#include <algorithm>
+
 #include "antsCommandLineParser.h"
 
 #include "itkArray2D.h"
@@ -28,6 +32,8 @@
 #include <vector>
 #include <fstream>
 
+namespace ants
+{
 template <class TensorType>
 double CalculateFractionalAnisotropy( TensorType tensor )
 {
@@ -127,7 +133,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cerr << "ERROR:  Input DTI atlas not specified." << std::endl;
+    antscout << "ERROR:  Input DTI atlas not specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -165,7 +171,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cerr << "ERROR:  No output specified." << std::endl;
+    antscout << "ERROR:  No output specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -194,9 +200,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     }
   if( !maskImage->GetBufferPointer() )
     {
-    std::cout << "Mask not read.  Creating mask by thresholding "
-              << "the FA of the DTI atlas at >= " << lowerThresholdValue
-              << "." << std::endl << std::endl;
+    antscout << "Mask not read.  Creating mask by thresholding "
+             << "the FA of the DTI atlas at >= " << lowerThresholdValue
+             << "." << std::endl << std::endl;
 
     typename ImageType::Pointer faImage = ImageType::New();
     faImage->CopyInformation( inputAtlas );
@@ -363,8 +369,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     parser->GetOption( "registered-population" );
   if( populationOption && populationOption->GetNumberOfValues() > 0 )
     {
-    std::cout << "--- Modeling intersubject variability ---" << std::endl
-              << std::endl;
+    antscout << "--- Modeling intersubject variability ---" << std::endl
+             << std::endl;
 
     std::vector<std::string> imageNames;
 
@@ -388,8 +394,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     M.Fill( 0 );
     for( unsigned int k = 0; k < imageNames.size(); k++ )
       {
-      std::cout << "Processing " << imageNames[k] << " (" << k + 1 << " of "
-                << imageNames.size() << ")." << std::endl;
+      antscout << "Processing " << imageNames[k] << " (" << k + 1 << " of "
+               << imageNames.size() << ")." << std::endl;
       typename TensorReaderType::Pointer tensorReader = TensorReaderType::New();
       tensorReader->SetFileName( imageNames[k].c_str() );
       tensorReader->Update();
@@ -435,7 +441,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         }
       }
 
-    std::cout << std::endl;
+    antscout << std::endl;
     // Now that the matrix M has been calculated, we need to subtract out
     // the longitudinal mean before performing PCA
     for( unsigned int i = 0; i < M.Cols(); i++ )
@@ -525,14 +531,14 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
     if( numberOfDirections != directions.size() - 1 )
       {
-      std::cerr << "ERROR:  Number of directions does not match the data file."
-                << std::endl;
+      antscout << "ERROR:  Number of directions does not match the data file."
+               << std::endl;
       return EXIT_FAILURE;
       }
     }
   else
     {
-    std::cerr << "ERROR:  No DWI parameters specified." << std::endl;
+    antscout << "ERROR:  No DWI parameters specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -567,22 +573,22 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     {
     if( n == 0 )
       {
-      std::cout << "--- Calculating regional average FA and MD values (original and "
-                << "pathology) ---" << std::endl << std::endl;
+      antscout << "--- Calculating regional average FA and MD values (original and "
+               << "pathology) ---" << std::endl << std::endl;
       }
     else if( n <= numberOfControls )
       {
       if( n == 1 )
         {
-        std::cout << std::endl << "--- Writing images ---" << std::endl << std::endl;
+        antscout << std::endl << "--- Writing images ---" << std::endl << std::endl;
         }
-      std::cout << "Writing control " << n
-                << " (of " << numberOfControls << ") DWI images." << std::endl;
+      antscout << "Writing control " << n
+               << " (of " << numberOfControls << ") DWI images." << std::endl;
       }
     else
       {
-      std::cout << "Writing experimental " << n - numberOfControls
-                << " (of " << numberOfExperimentals << ") DWI images." << std::endl;
+      antscout << "Writing experimental " << n - numberOfControls
+               << " (of " << numberOfExperimentals << ") DWI images." << std::endl;
       }
 
     // copy atlas
@@ -638,7 +644,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
                                                              labels.end(), label );
       if( it == labels.end() )
         {
-        std::cerr << "ERROR:  unknown label." << std::endl;
+        antscout << "ERROR:  unknown label." << std::endl;
         }
       unsigned int labelIndex = it - labels.begin();
 
@@ -758,26 +764,26 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
     if( n == 0 )
       {
-      std::cout << "   " << std::left << std::setw( 7 ) << "Region"
-                << std::left << std::setw( 15 ) << "FA (original)"
-                << std::left << std::setw( 15 ) << "FA (pathology)"
-                << std::left << std::setw( 15 ) << "FA (% change)"
-                << std::left << std::setw( 15 ) << "MD (original)"
-                << std::left << std::setw( 15 ) << "MD (pathology)"
-                << std::left << std::setw( 15 ) << "MD (% change)"
-                << std::endl;
+      antscout << "   " << std::left << std::setw( 7 ) << "Region"
+               << std::left << std::setw( 15 ) << "FA (original)"
+               << std::left << std::setw( 15 ) << "FA (pathology)"
+               << std::left << std::setw( 15 ) << "FA (% change)"
+               << std::left << std::setw( 15 ) << "MD (original)"
+               << std::left << std::setw( 15 ) << "MD (pathology)"
+               << std::left << std::setw( 15 ) << "MD (% change)"
+               << std::endl;
       for( unsigned int l = 1; l < labels.size(); l++ )
         {
-        std::cout << "   " << std::left << std::setw( 7 ) << labels[l]
-                  << std::left << std::setw( 15 ) << meanFAandMD(l, 0) / meanFAandMD(l, 4)
-                  << std::left << std::setw( 15 ) << meanFAandMD(l, 2) / meanFAandMD(l, 4)
-                  << std::left << std::setw( 15 )
-                  << ( meanFAandMD(l, 2) - meanFAandMD(l, 0) ) / meanFAandMD(l, 0)
-                  << std::left << std::setw( 15 ) << meanFAandMD(l, 1) / meanFAandMD(l, 4)
-                  << std::left << std::setw( 15 ) << meanFAandMD(l, 3) / meanFAandMD(l, 4)
-                  << std::left << std::setw( 15 )
-                  << ( meanFAandMD(l, 3) - meanFAandMD(l, 1) ) / meanFAandMD(l, 1)
-                  << std::endl;
+        antscout << "   " << std::left << std::setw( 7 ) << labels[l]
+                 << std::left << std::setw( 15 ) << meanFAandMD(l, 0) / meanFAandMD(l, 4)
+                 << std::left << std::setw( 15 ) << meanFAandMD(l, 2) / meanFAandMD(l, 4)
+                 << std::left << std::setw( 15 )
+                 << ( meanFAandMD(l, 2) - meanFAandMD(l, 0) ) / meanFAandMD(l, 0)
+                 << std::left << std::setw( 15 ) << meanFAandMD(l, 1) / meanFAandMD(l, 4)
+                 << std::left << std::setw( 15 ) << meanFAandMD(l, 3) / meanFAandMD(l, 4)
+                 << std::left << std::setw( 15 )
+                 << ( meanFAandMD(l, 3) - meanFAandMD(l, 1) ) / meanFAandMD(l, 1)
+                 << std::endl;
         }
       }
     else
@@ -815,9 +821,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         vnl_vector<RealType> bk = directions[d];
         RealType             bvalue = bvalues[d];
 
-        std::cout << "  Applying direction " << d << " (of "
-                  << directions.size() - 1 << "): [" << bk << "]"
-                  << ", bvalue = " << bvalue << std::endl;
+        antscout << "  Applying direction " << d << " (of "
+                 << directions.size() - 1 << "): [" << bk << "]"
+                 << ", bvalue = " << bvalue << std::endl;
 
         typename ImageType::Pointer dwi = ImageType::New();
         dwi->CopyInformation( dti );
@@ -1061,8 +1067,53 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 }
 
-int main( int argc, char *argv[] )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int CreateDTICohort( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "CreateDTICohort" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
 
@@ -1086,14 +1137,14 @@ int main( int argc, char *argv[] )
   if( argc < 2 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetValue() ) )
     {
-    parser->PrintMenu( std::cout, 5, false );
-    exit( EXIT_FAILURE );
+    parser->PrintMenu( antscout, 5, false );
+    return EXIT_FAILURE;
     }
   else if( parser->Convert<bool>(
              parser->GetOption( 'h' )->GetValue() ) )
     {
-    parser->PrintMenu( std::cout, 5, true );
-    exit( EXIT_FAILURE );
+    parser->PrintMenu( antscout, 5, true );
+    return EXIT_FAILURE;
     }
 
   // Get dimensionality
@@ -1125,8 +1176,8 @@ int main( int argc, char *argv[] )
       }
     else
       {
-      std::cerr << "No input atlas was specified.  Specify a dti atlas"
-                << " with the -a option" << std::endl;
+      antscout << "No input atlas was specified.  Specify a dti atlas"
+               << " with the -a option" << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
@@ -1134,19 +1185,25 @@ int main( int argc, char *argv[] )
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  std::cout << std::endl << "Creating DTI cohort for "
-            << dimension << "-dimensional images." << std::endl << std::endl;
+  antscout << std::endl << "Creating DTI cohort for "
+           << dimension << "-dimensional images." << std::endl << std::endl;
 
   switch( dimension )
     {
     case 2:
+      {
       CreateDTICohort<2>( parser );
+      }
       break;
     case 3:
+      {
       CreateDTICohort<3>( parser );
+      }
       break;
     default:
-      std::cerr << "Unsupported dimension" << std::endl;
-      exit( EXIT_FAILURE );
+      antscout << "Unsupported dimension" << std::endl;
+      return EXIT_FAILURE;
     }
+  return EXIT_SUCCESS;
 }
+} // namespace ants

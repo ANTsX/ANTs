@@ -368,7 +368,8 @@ public:
         }
       if( this->m_Debug )
         {
-        std::cout << " ExpFac " << expandFactors[idim] << " curdsz " << this->m_CurrentDomainSize[idim] << std::endl;
+        ::ants::antscout << " ExpFac " << expandFactors[idim] << " curdsz " << this->m_CurrentDomainSize[idim]
+                         << std::endl;
         }
       }
     VectorType pad;  pad.Fill(0);
@@ -394,7 +395,7 @@ public:
         {
         expandFactors[idim] = 1;
         }
-      //             if (this->m_Debug)  std::cout << " ExpFac " << expandFactors[idim] << " curdsz " <<
+      //             if (this->m_Debug)  ::ants::antscout << " ExpFac " << expandFactors[idim] << " curdsz " <<
       // this->m_CurrentDomainSize[idim] << std::endl;
       }
 
@@ -413,7 +414,7 @@ public:
     fieldout->SetOrigin(field->GetOrigin() );
     if( this->m_Debug )
       {
-      std::cout << " Field size " << fieldout->GetLargestPossibleRegion().GetSize() << std::endl;
+      ::ants::antscout << " Field size " << fieldout->GetLargestPossibleRegion().GetSize() << std::endl;
       }
     // this->m_Debug=false;
 
@@ -452,11 +453,11 @@ public:
   DisplacementFieldPointer SubsampleField( DisplacementFieldPointer field, typename ImageType::SizeType
                                            targetSize, typename ImageType::SpacingType targetSpacing )
   {
-    std::cout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
-    std::cout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
-    std::cout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
-    std::cout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
-    std::cout << " SUBSAM FIELD SUBSAM FIELD SUBSAM FIELD " << std::endl;
+    ::ants::antscout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
+    ::ants::antscout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
+    ::ants::antscout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
+    ::ants::antscout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
+    ::ants::antscout << " SUBSAM FIELD SUBSAM FIELD SUBSAM FIELD " << std::endl;
 
     typename DisplacementFieldType::Pointer sfield = DisplacementFieldType::New();
     for( unsigned int i = 0; i < ImageDimension; i++ )
@@ -498,7 +499,7 @@ public:
   {
     if( !movingpoints )
       {
-      std::cout << " NULL POINTS " << std::endl;  return NULL;
+      ::ants::antscout << " NULL POINTS " << std::endl;  return NULL;
       }
 
     AffineTransformPointer affinverse = NULL;
@@ -568,13 +569,13 @@ public:
     totalField->SetDirection(referenceimage->GetDirection() );
 
     // warper->Update();
-//      std::cout << " updated in point warp " << std::endl;
+//      ::ants::antscout << " updated in point warp " << std::endl;
     PointSetPointer outputMesh = PointSetType::New();
     unsigned long   count = 0;
     unsigned long   sz1 = movingpoints->GetNumberOfPoints();
     if( this->m_Debug )
       {
-      std::cout << " BEFORE #points " << sz1 << std::endl;
+      ::ants::antscout << " BEFORE #points " << sz1 << std::endl;
       }
     for( unsigned long ii = 0; ii < sz1; ii++ )
       {
@@ -597,15 +598,15 @@ public:
           }
         outputMesh->SetPointData( count, label );
         outputMesh->SetPoint( count, wpoint );
-//      if (ii % 100 == 0) std::cout << " pt " << pt << " wpt " << wpt << std::endl;
+//      if (ii % 100 == 0) ::ants::antscout << " pt " << pt << " wpt " << wpt << std::endl;
         count++;
         }
       }
     if( this->m_Debug )
       {
-      std::cout << " AFTER #points " << count << std::endl;
+      ::ants::antscout << " AFTER #points " << count << std::endl;
       }
-//      if (count != sz1 ) std::cout << " WARNING:  POINTS ARE MAPPING OUT OF IMAGE DOMAIN " << 1.0 - (TReal)
+//      if (count != sz1 ) ::ants::antscout << " WARNING:  POINTS ARE MAPPING OUT OF IMAGE DOMAIN " << 1.0 - (TReal)
 // count/(TReal)(sz1+1) << std::endl;
     return outputMesh;
   }
@@ -706,9 +707,9 @@ public:
     warper->Update();
     if( this->m_Debug )
       {
-      std::cout << " updated ok -- warped image output size "
-                << warper->GetOutput()->GetLargestPossibleRegion().GetSize() << " requested size "
-                <<  totalField->GetLargestPossibleRegion().GetSize() <<  std::endl;
+      ::ants::antscout << " updated ok -- warped image output size "
+                       << warper->GetOutput()->GetLargestPossibleRegion().GetSize() << " requested size "
+                       <<  totalField->GetLargestPossibleRegion().GetSize() <<  std::endl;
       }
 
     typename ImageType::Pointer outimg = warper->GetOutput();
@@ -787,25 +788,25 @@ public:
   void SetTransformationModel( std::string  s)
   {
     this->m_TransformationModel = s;
-    std::cout << " Requested Transformation Model:  " << this->m_TransformationModel << " : Using " << std::endl;
+    ::ants::antscout << " Requested Transformation Model:  " << this->m_TransformationModel << " : Using " << std::endl;
     if( this->m_TransformationModel  == std::string("Elast") )
       {
-      std::cout << "Elastic model for transformation. " << std::endl;
+      ::ants::antscout << "Elastic model for transformation. " << std::endl;
       }
     else if( this->m_TransformationModel  == std::string("SyN") )
       {
-      std::cout << "SyN diffeomorphic model for transformation. " << std::endl;
+      ::ants::antscout << "SyN diffeomorphic model for transformation. " << std::endl;
       }
     else if( this->m_TransformationModel  == std::string("GreedyExp") )
       {
-      std::cout
+      ::ants::antscout
         << "Greedy Exp Diff model for transformation.   Similar to Diffeomorphic Demons.  Params same as Exp model. "
         << std::endl;
       this->m_TransformationModel = std::string("GreedyExp");
       }
     else
       {
-      std::cout << "Exp Diff model for transformation. " << std::endl;
+      ::ants::antscout << "Exp Diff model for transformation. " << std::endl;
       this->m_TransformationModel = std::string("Exp");
       }
   }
@@ -820,9 +821,10 @@ public:
     this->m_RestrictDeformation = this->m_Parser->template ConvertVector<TReal>(temp);
     if( this->m_RestrictDeformation.size() != ImageDimension )
       {
-      std::cout << " You input a vector of size :  "  << this->m_RestrictDeformation.size()
-                << " for --Restrict-Deformation.  The vector length does not match the image dimension.  Ignoring.  "
-                << std::endl;
+      ::ants::antscout << " You input a vector of size :  "  << this->m_RestrictDeformation.size()
+                       <<
+        " for --Restrict-Deformation.  The vector length does not match the image dimension.  Ignoring.  "
+                       << std::endl;
       for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
         {
         this->m_RestrictDeformation[jj] = 0;
@@ -906,7 +908,7 @@ public:
         {
         this->m_DeltaTime = 0.001;
         }
-      std::cout << " set DT " << this->m_DeltaTime << std::endl;
+      ::ants::antscout << " set DT " << this->m_DeltaTime << std::endl;
       this->m_SyNType = 1;
       }
     else
@@ -959,8 +961,8 @@ public:
         {
         this->m_GaussianTruncation = 256;
         }
-      std::cout << "  Grad Step " << this->m_Gradstep << " total-smoothing " << this->m_TotalSmoothingparam
-                << " gradient-smoothing " << this->m_GradSmoothingparam << std::endl;
+      ::ants::antscout << "  Grad Step " << this->m_Gradstep << " total-smoothing " << this->m_TotalSmoothingparam
+                       << " gradient-smoothing " << this->m_GradSmoothingparam << std::endl;
       }
     else if( ( regularizationOption->GetValue() ).find( "DMFFD" )
              != std::string::npos )
@@ -1019,18 +1021,19 @@ public:
         {
         this->m_BSplineFieldOrder = 3;
         }
-      std::cout << "  Grad Step " << this->m_Gradstep
-                << " total-smoothing " << this->m_TotalSmoothingparam
-                << " gradient-smoothing " << this->m_GradSmoothingparam
-                << " bspline-field-order " << this->m_BSplineFieldOrder
-                << std::endl;
+      ::ants::antscout << "  Grad Step " << this->m_Gradstep
+                       << " total-smoothing " << this->m_TotalSmoothingparam
+                       << " gradient-smoothing " << this->m_GradSmoothingparam
+                       << " bspline-field-order " << this->m_BSplineFieldOrder
+                       << std::endl;
       }
     else
       {
       this->m_GradSmoothingparam = 3;
       this->m_TotalSmoothingparam = 0.5;
-      std::cout << " Default Regularization is Gaussian smoothing with : " << this->m_GradSmoothingparam  << " & "
-                << this->m_TotalSmoothingparam << std::endl;
+      ::ants::antscout << " Default Regularization is Gaussian smoothing with : " << this->m_GradSmoothingparam
+                       << " & "
+                       << this->m_TotalSmoothingparam << std::endl;
 //      itkExceptionMacro( "Invalid regularization: " << regularizationOption->GetValue() );
       }
   }
@@ -1057,7 +1060,8 @@ public:
           (typename ImageType::SizeType::SizeValueType) this->m_RoiNumbers[ii + ImageDimension];
         this->m_FullDomainOrigin[ii] = this->m_RoiNumbers[ii];
         }
-      std::cout << " ROI #s : size " << this->m_FullDomainSize << " orig " <<   this->m_FullDomainOrigin  << std::endl;
+      ::ants::antscout << " ROI #s : size " << this->m_FullDomainSize << " orig " <<   this->m_FullDomainOrigin
+                       << std::endl;
       }
 
     RealType minimumSpacing = this->m_FullDomainSpacing.GetVnlVector().min_value();
@@ -1092,8 +1096,9 @@ public:
 //            this->m_Debug=true;
     if( this->m_Debug )
       {
-      std::cout << " outsize " << this->m_CurrentDomainSize <<  " curspc " << this->m_CurrentDomainSpacing
-                << " fullspc " << this->m_FullDomainSpacing << " fullsz " <<  this->m_FullDomainSize   << std::endl;
+      ::ants::antscout << " outsize " << this->m_CurrentDomainSize <<  " curspc " << this->m_CurrentDomainSpacing
+                       << " fullspc " << this->m_FullDomainSpacing << " fullsz " <<  this->m_FullDomainSize
+                       << std::endl;
       }
 //            this->m_Debug=false;
 
@@ -1110,8 +1115,8 @@ public:
       this->m_DisplacementField->SetBufferedRegion(region);
       this->m_DisplacementField->Allocate();
       this->m_DisplacementField->FillBuffer(zero);
-      std::cout <<  " allocated def field " << this->m_DisplacementField->GetDirection() << std::endl;
-      // exit(0);
+      ::ants::antscout <<  " allocated def field " << this->m_DisplacementField->GetDirection() << std::endl;
+      // std::exception();
       }
     else
       {
@@ -1156,8 +1161,8 @@ public:
     typename ImageType::SpacingType spacing;
     VectorType zero;
     zero.Fill(0);
-    std::cout << " setting N-TimeSteps = "
-              << this->m_NTimeSteps << " trunc " << this->m_GaussianTruncation << std::endl;
+    ::ants::antscout << " setting N-TimeSteps = "
+                     << this->m_NTimeSteps << " trunc " << this->m_GaussianTruncation << std::endl;
 
     // Get subsample factors and gaussian smoothing sigmas if specified
     // by the user.
@@ -1281,12 +1286,12 @@ public:
         {
         this->m_ScaleFactor = this->m_SubsamplingFactors[currentLevel];
         }
-      std::cout << " ScaleFactor " << this->m_ScaleFactor;
+      ::ants::antscout << " ScaleFactor " << this->m_ScaleFactor;
       if( this->m_GaussianSmoothingSigmas.size() > 0 )
         {
-        std::cout << " smoothing sigma " << this->m_GaussianSmoothingSigmas[currentLevel];
+        ::ants::antscout << " smoothing sigma " << this->m_GaussianSmoothingSigmas[currentLevel];
         }
-      std::cout << " nlev " << this->m_NumberOfLevels << " curl " << currentLevel << std::endl;
+      ::ants::antscout << " nlev " << this->m_NumberOfLevels << " curl " << currentLevel << std::endl;
 
       /** FIXME -- here we assume the metrics all have the same image */
       fixedImage = this->m_SimilarityMetrics[0]->GetFixedImage();
@@ -1296,7 +1301,7 @@ public:
         this->m_ReferenceSpaceImage = fixedImage;
         }
       this->ComputeMultiResolutionParameters(this->m_ReferenceSpaceImage);
-      std::cout << " Its at this level " << this->m_Iterations[currentLevel] << std::endl;
+      ::ants::antscout << " Its at this level " << this->m_Iterations[currentLevel] << std::endl;
       /*  generate smoothed images for all metrics */
       for( unsigned int metricCount = 0;  metricCount < numberOfMetrics;  metricCount++ )
         {
@@ -1484,7 +1489,7 @@ public:
             energyProfileWindow->SetPoint( qq - windowBegin, point );
             energyProfileWindow->SetPointData( qq - windowBegin, energy );
             }
-//      std::cout <<" totale " << totale << std::endl;
+//      ::ants::antscout <<" totale " << totale << std::endl;
           if( totale > 0 )
             {
             totale *= (-1.0);
@@ -1541,16 +1546,17 @@ public:
             {
             converged = true;
             }
-          std::cout << " E-Slope " <<  this->m_ESlope; // << std::endl;
+          ::ants::antscout << " E-Slope " <<  this->m_ESlope; // << std::endl;
           }
         for( unsigned int qq = 0; qq < this->m_Energy.size(); qq++ )
           {
           if( qq == 0 )
             {
-            std::cout << " iteration " << this->m_CurrentIteration;
+            ::ants::antscout << " iteration " << this->m_CurrentIteration;
             }
 
-          std::cout << " energy " << qq << " : " << this->m_Energy[qq]; //  << " Last " << this->m_LastEnergy[qq];
+          ::ants::antscout << " energy " << qq << " : " << this->m_Energy[qq]; //  << " Last " <<
+                                                                               // this->m_LastEnergy[qq];
           if( this->m_LastEnergy[qq] < this->m_Energy[qq] )
             {
             this->m_EnergyBad[qq]++;
@@ -1572,10 +1578,10 @@ public:
         // if ( this->m_EnergyBad[0] > 2)
         //         {
         //          this->m_GradstepAltered*=0.8;
-        //        std::cout <<" reducing gradstep " <<  this->m_GradstepAltered;
+        //        ::ants::antscout <<" reducing gradstep " <<  this->m_GradstepAltered;
         // this->m_EnergyBad[this->m_Energy.size()-1]=0;
         // }
-        std::cout << std::endl;
+        ::ants::antscout << std::endl;
 
         if( this->m_CurrentIteration >= this->m_Iterations[currentLevel] )
           {
@@ -1585,16 +1591,16 @@ public:
         //
         if( converged && this->m_CurrentIteration >= this->m_Iterations[currentLevel] )
           {
-          std::cout << " tired convergence: reached max iterations " << std::endl;
+          ::ants::antscout << " tired convergence: reached max iterations " << std::endl;
           }
         else if( converged )
           {
-          std::cout << " Converged due to oscillation in optimization ";
+          ::ants::antscout << " Converged due to oscillation in optimization ";
           for( unsigned int qq = 0; qq < this->m_Energy.size(); qq++ )
             {
-            std::cout << " metric " << qq << " bad " << this->m_EnergyBad[qq] << "  ";
+            ::ants::antscout << " metric " << qq << " bad " << this->m_EnergyBad[qq] << "  ";
             }
-          std::cout << std::endl;
+          ::ants::antscout << std::endl;
           }
         }
       }
@@ -1652,11 +1658,11 @@ public:
         this->m_AffineTransform->GetInverse(invaff);
         if( this->m_Debug )
           {
-          std::cout << " ??????invaff " << this->m_AffineTransform << std::endl << std::endl;
+          ::ants::antscout << " ??????invaff " << this->m_AffineTransform << std::endl << std::endl;
           }
         if( this->m_Debug )
           {
-          std::cout << " invaff?????? " << invaff << std::endl << std::endl;
+          ::ants::antscout << " invaff?????? " << invaff << std::endl << std::endl;
           }
         }
       }
@@ -1672,11 +1678,11 @@ public:
         this->m_AffineTransform->GetInverse(invaff);
         if( this->m_Debug )
           {
-          std::cout << " ??????invaff " << this->m_AffineTransform << std::endl << std::endl;
+          ::ants::antscout << " ??????invaff " << this->m_AffineTransform << std::endl << std::endl;
           }
         if( this->m_Debug )
           {
-          std::cout << " invaff?????? " << invaff << std::endl << std::endl;
+          ::ants::antscout << " invaff?????? " << invaff << std::endl << std::endl;
           }
         }
       }
@@ -1699,7 +1705,7 @@ public:
       writer->SetInput( this->m_TimeVaryingVelocity);
       writer->UpdateLargestPossibleRegion();
       //    writer->Write();
-      std::cout << " write tv field " << outname << std::endl;
+      ::ants::antscout << " write tv field " << outname << std::endl;
       //        WriteImage<TimeVaryingVelocityFieldType>( this->m_TimeVaryingVelocity , outname.c_str());
       }
   }
@@ -1753,8 +1759,8 @@ public:
 
     if( this->m_Debug )
       {
-      std::cout << " updated elast " << " up-sz " << updateField->GetLargestPossibleRegion() <<  std::endl;
-      std::cout <<  " t-sz " << this->m_DisplacementField->GetLargestPossibleRegion() <<  std::endl;
+      ::ants::antscout << " updated elast " << " up-sz " << updateField->GetLargestPossibleRegion() <<  std::endl;
+      ::ants::antscout <<  " t-sz " << this->m_DisplacementField->GetLargestPossibleRegion() <<  std::endl;
       }
     this->SmoothDisplacementField(this->m_DisplacementField, false);
 
@@ -1956,7 +1962,7 @@ public:
       ct++;
       }
 
-    // std::cout <<" difmag " << difmag << ": its " << ct <<  std::endl;
+    // ::ants::antscout <<" difmag " << difmag << ": its " << ct <<  std::endl;
 
     return difmag;
   }
@@ -2007,7 +2013,7 @@ protected:
         }
       cornerind[ii] = (unsigned long) diff;
       }
-    //  std::cout << " corner index " << cornerind << std::endl;
+    //  ::ants::antscout << " corner index " << cornerind << std::endl;
     Iterator vfIter2( bigimage,  bigimage->GetLargestPossibleRegion() );
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
@@ -2026,11 +2032,12 @@ protected:
         }
       if( oktosample )
         {
-        //      std::cout << " index " << index <<  " origindex " << origindex << " ok? " << oktosample << std::endl;
+        //      ::ants::antscout << " index " << index <<  " origindex " << origindex << " ok? " << oktosample <<
+        // std::endl;
         varimage->SetPixel(_index, bigimage->GetPixel(origindex) );
         }
       }
-    // std::cout << " sizes " << varimage->GetLargestPossibleRegion().GetSize() << " bigimage " <<
+    // ::ants::antscout << " sizes " << varimage->GetLargestPossibleRegion().GetSize() << " bigimage " <<
     // bigimage->GetLargestPossibleRegion().GetSize() << std::endl;
     return varimage;
   }
@@ -2093,7 +2100,7 @@ protected:
     // this->m_EuclideanNorm/=ct;
     // this->m_ElasticPathLength = totalmag/ct;
     // this->m_LinftyNorm = maxstep;
-//  std::cout << " Elast path length " << this->m_ElasticPathLength <<  " L inf norm " << this->m_LinftyNorm <<
+//  ::ants::antscout << " Elast path length " << this->m_ElasticPathLength <<  " L inf norm " << this->m_LinftyNorm <<
 // std::endl;
 // if (this->m_ElasticPathLength >= this->m_ArcLengthGoal)
 //  if (maxstep >= this->m_ArcLengthGoal)

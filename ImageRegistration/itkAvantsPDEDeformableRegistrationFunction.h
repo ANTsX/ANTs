@@ -277,7 +277,7 @@ public:
 //    float mag=0;
 //    for (int imd=0; imd<ImageDimension; imd++) mag+=update[imd]*update[imd];
 //    if (mag > 1) update.Fill(0.0);
-//      //std::cout << " update " << update << " ind " << oindex << std::endl;
+//      //::ants::antscout << " update " << update << " ind " << oindex << std::endl;
     return update * this->m_GradientStep;
   }
 

@@ -15,6 +15,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
+
+#include "antscout.hxx"
+#include <algorithm>
+
 #include <iostream>
 #include <sys/stat.h>
 
@@ -30,6 +34,8 @@
 #include "itkMetaDataObject.h"
 #include "itkSpatialOrientation.h"
 
+namespace ants
+{
 using namespace std;
 /** below code from Paul Yushkevich's c3d */
 template <class AnyType>
@@ -120,34 +126,34 @@ int PrintHeader(int argc, char *argv[])
   typename readertype::Pointer reader = readertype::New();
   if( argc < 2 )
     {
-    std::cerr << "missing input image name" << std::endl;
+    antscout << "missing input image name" << std::endl;
     throw;
     }
   reader->SetFileName(argv[1]);
   reader->Update();
-  std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
-  std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
-  std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
+  antscout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
+  antscout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
+  antscout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
   if( ImageDimension == 1 )
     {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " " <<   std::endl;
+    antscout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " " <<   std::endl;
     }
   else if( ImageDimension == 2 )
     {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " "
-              << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[1] << " " << std::endl;
+    antscout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " "
+             << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[1] << " " << std::endl;
     }
   else if( ImageDimension == 3 )
     {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " "
-              << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[1] << " " <<  " "
-              << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[2] << std::endl;
+    antscout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0] << " "
+             << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[1] << " " <<  " "
+             << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[2] << std::endl;
     }
   else
     {
-    std::cout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+    antscout << " Size : " << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
     }
-//  std::cout << " Orientation " << reader->GetOutput()->GetOrientation() << std::endl;
+//  antscout << " Orientation " << reader->GetOutput()->GetOrientation() << std::endl;
 
   unsigned int VDim = ImageDimension;
   // Get the input image
@@ -196,11 +202,11 @@ int PrintHeader(int argc, char *argv[])
     cout << "  Intensity Range    : [" << iMin << ", " << iMax << "]" << endl;
     cout << "  Mean Intensity     : " << iMean << endl;
     cout << "  Direction Cos Mtx. : " << endl;
-    std::cout << image->GetDirection().GetVnlMatrix() << std::endl;
+    antscout << image->GetDirection().GetVnlMatrix() << std::endl;
     // Print NIFTI s-form matrix (check against freesurfer's MRIinfo)
     cout << "  Voxel->RAS x-form  : " << endl;
     //    image->GetVoxelSpaceToRASPhysicalSpaceMatrix().GetVnlMatrix();
-    //    std::cout << image->GetVoxelSpaceToRASPhysicalSpaceMatrix().GetVnlMatrix() << std::endl;
+    //    antscout << image->GetVoxelSpaceToRASPhysicalSpaceMatrix().GetVnlMatrix() << std::endl;
 
     //
     // Print metadata
@@ -320,18 +326,63 @@ bool FileExists(string strFilename)
   return blnReturn;
 }
 
-int main(int argc, char *argv[])
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int PrintHeader( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "PrintHeader" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   if( argc < 2  || ( (argc == 2) && strcmp(argv[1], "--help") == 0) )
     {
-    std::cout << "Usage:  " << argv[0] << " image.ext " << std::endl;
+    antscout << "Usage:  " << argv[0] << " image.ext " << std::endl;
     return 1;
     }
   // Get the image dimension
   std::string fn = std::string(argv[1]);
   if( !FileExists(fn) )
     {
-    std::cout << " file " << fn << " does not exist . " << std::endl;
+    antscout << " file " << fn << " does not exist . " << std::endl;
     return 1;
     }
   itk::ImageIOBase::Pointer imageIO =
@@ -344,7 +395,7 @@ int main(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " cant read " << fn << std::endl;
+    antscout << " cant read " << fn << std::endl;
     return 1;
     }
 
@@ -371,9 +422,10 @@ int main(int argc, char *argv[])
       }
       break;
     default:
-      std::cerr << "Unsupported dimension " <<  imageIO->GetNumberOfDimensions() << std::endl;
-      exit( EXIT_FAILURE );
+      antscout << "Unsupported dimension " <<  imageIO->GetNumberOfDimensions() << std::endl;
+      return EXIT_FAILURE;
     }
 
   return 0;
 }
+} // namespace ants

@@ -70,20 +70,20 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     this->m_Parser->GetUnknownOptions();
   if( unknownOptions.size() )
     {
-    std::cout << std::endl << "WARNING:  Unknown options" << std::endl;
+    ::ants::antscout << std::endl << "WARNING:  Unknown options" << std::endl;
     typename ParserType::OptionListType::const_iterator its;
     for( its = unknownOptions.begin(); its != unknownOptions.end(); its++ )
       {
       if( (*its)->GetShortName() != '\0' )
         {
-        std::cout << "   " << '-' << (*its)->GetShortName() << std::endl;
+        ::ants::antscout << "   " << '-' << (*its)->GetShortName() << std::endl;
         }
       else
         {
-        std::cout << "   " << "--" << (*its)->GetLongName() << std::endl;
+        ::ants::antscout << "   " << "--" << (*its)->GetLongName() << std::endl;
         }
       }
-    std::cout << std::endl;
+    ::ants::antscout << std::endl;
     }
 
   std::string  printhelp_long = this->m_Parser->GetOption( "help" )->GetValue();
@@ -91,8 +91,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     this->m_Parser->template Convert<unsigned int>( printhelp_long );
   if( help_long )
     {
-    this->m_Parser->PrintMenu( std::cout, 7, false );
-    exit( 0 );
+    this->m_Parser->PrintMenu( ::ants::antscout, 7, false );
+    std::exception();
     }
 
   std::string  printhelp_short = this->m_Parser->GetOption( 'h' )->GetValue();
@@ -100,8 +100,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     this->m_Parser->template Convert<unsigned int>( printhelp_short );
   if( help_short )
     {
-    this->m_Parser->PrintMenu( std::cout, 7, true );
-    exit( 0 );
+    this->m_Parser->PrintMenu( ::ants::antscout, 7, true );
+    std::exception();
     }
 }
 
@@ -132,7 +132,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 {
   /** parse the command line and get input objects */
   this->ReadImagesAndMetrics();
-//    exit(0);
+//    std::exception();
 /** initializes the transformation model and the optimizer */
   this->InitializeTransformAndOptimizer();
 
@@ -158,30 +158,30 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   typename OptionType::ValueType initial_affine_filename = this->m_Parser->GetOption( "initial-affine" )->GetValue();
   if( initial_affine_filename != "" )
     {
-    std::cout << "Loading affine registration from: " << initial_affine_filename << std::endl;
+    ::ants::antscout << "Loading affine registration from: " << initial_affine_filename << std::endl;
     aff_init = TransformationModelType::AffineTransformType::New();
     ReadAffineTransformFile(initial_affine_filename, aff_init);
     }
   else
     {
-    std::cout << "Use identity affine transform as initial affine para." << std::endl;
-    std::cout << "aff_init.IsNull()==" << aff_init.IsNull() << std::endl;
+    ::ants::antscout << "Use identity affine transform as initial affine para." << std::endl;
+    ::ants::antscout << "aff_init.IsNull()==" << aff_init.IsNull() << std::endl;
     }
   typename OptionType::ValueType fixed_initial_affine_filename = this->m_Parser->GetOption(
       "fixed-image-initial-affine" )->GetValue();
   if( fixed_initial_affine_filename != "" )
     {
-    std::cout << "Loading affine registration from: " << fixed_initial_affine_filename << std::endl;
+    ::ants::antscout << "Loading affine registration from: " << fixed_initial_affine_filename << std::endl;
     fixed_aff_init = TransformationModelType::AffineTransformType::New();
     ReadAffineTransformFile(fixed_initial_affine_filename, fixed_aff_init);
-    std::cout
+    ::ants::antscout
       <<
       " FIXME!  currently, if one passes a fixed initial affine mapping, then NO affine mapping will be performed subsequently! "
       << std::endl;
     std::string refheader = this->m_Parser->GetOption( "fixed-image-initial-affine-ref-image" )->GetValue();
     if( refheader != "" )
       {
-      std::cout << " Setting reference deformation space by " << refheader << std::endl;
+      ::ants::antscout << " Setting reference deformation space by " << refheader << std::endl;
       typedef ImageFileReader<ImageType> ReaderType;
       typename ReaderType::Pointer fixedImageFileReader = ReaderType::New();
       fixedImageFileReader->SetFileName( refheader.c_str() );
@@ -192,8 +192,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     }
   else
     {
-    std::cout << "Use identity affine transform as initial fixed affine para." << std::endl;
-    std::cout << "fixed_aff_init.IsNull()==" << fixed_aff_init.IsNull() << std::endl;
+    ::ants::antscout << "Use identity affine transform as initial fixed affine para." << std::endl;
+    ::ants::antscout << "fixed_aff_init.IsNull()==" << fixed_aff_init.IsNull() << std::endl;
     }
 
   bool useNN = this->m_Parser->template Convert<bool>( this->m_Parser->GetOption( "use-NN" )->GetValue() );
@@ -213,7 +213,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     }
   if( continue_affine == "true" )
     {
-    std::cout << "Continue affine registration from the input" << std::endl;     // << aff_init << std::endl;
+    ::ants::antscout << "Continue affine registration from the input" << std::endl;     // << aff_init << std::endl;
 
     OptAffineType affine_opt;
     // InitializeAffineOption()
@@ -258,21 +258,21 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       affine_opt.relaxation_factor = gradient_option[1];
       affine_opt.minimum_step_length = gradient_option[2];
       affine_opt.translation_scales = gradient_option[3];
-      // std::cout << affine_opt;
+      // ::ants::antscout << affine_opt;
       temp = this->m_Parser->GetOption( "use-rotation-header" )->GetValue();
       affine_opt.use_rotation_header = (temp == "true");
-      std::cout << "affine_opt.use_rotation_header = " << affine_opt.use_rotation_header  << std::endl;
+      ::ants::antscout << "affine_opt.use_rotation_header = " << affine_opt.use_rotation_header  << std::endl;
 
       temp = this->m_Parser->GetOption( "ignore-void-origin")->GetValue();
       affine_opt.ignore_void_orgin = (temp == "true");
-      std::cout << "affine_opt.ignore_void_orgin = " << affine_opt.ignore_void_orgin  << std::endl;
+      ::ants::antscout << "affine_opt.ignore_void_orgin = " << affine_opt.ignore_void_orgin  << std::endl;
       }
 
     aff = this->m_RegistrationOptimizer->AffineOptimization(affine_opt);
     }
   else
     {
-    std::cout << "Use fixed initial affine para." << std::endl;
+    ::ants::antscout << "Use fixed initial affine para." << std::endl;
     if( aff_init.IsNull() )
       {
       aff_init = TransformationModelType::AffineTransformType::New();
@@ -285,7 +285,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       }
     aff = aff_init;
     }
-  // std::cout << aff << std::endl;
+  // ::ants::antscout << aff << std::endl;
 
   this->m_TransformationModel->SetAffineTransform(aff);
   this->m_TransformationModel->SetFixedImageAffineTransform(fixed_aff_init);
@@ -295,7 +295,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
   /** Second, optimize Diff */
   this->m_RegistrationOptimizer->DeformableOptimization();
-  std::cout << " Registration Done " << std::endl;
+  ::ants::antscout << " Registration Done " << std::endl;
   this->m_TransformationModel->SetDisplacementField(this->m_RegistrationOptimizer->GetDisplacementField() );
   this->m_TransformationModel->SetInverseDisplacementField(this->m_RegistrationOptimizer->GetInverseDisplacementField() );
 }
@@ -391,7 +391,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
    */
   if( typename OptionType::Pointer option = this->m_Parser->GetOption( "image-metric" ) )
     {
-    std::cout << " values " <<  option->GetNumberOfValues() << std::endl;
+    ::ants::antscout << " values " <<  option->GetNumberOfValues() << std::endl;
     for( unsigned int i = 0; i < option->GetNumberOfValues(); i++ )
       {
       SimilarityMetricPointer similarityMetric = SimilarityMetricType::New();
@@ -408,8 +408,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       similarityMetric->SetFixedImage( fixedImage );
       parameterCount++;
 
-      std::cout << "  Fixed image file: "
-                << fixedImageFileReader->GetFileName() << std::endl;
+      ::ants::antscout << "  Fixed image file: "
+                       << fixedImageFileReader->GetFileName() << std::endl;
 
       typename ReaderType::Pointer movingImageFileReader = ReaderType::New();
       movingImageFileReader->SetFileName( option->GetParameter( i, parameterCount ) );
@@ -421,8 +421,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       radius.Fill( 0 );
       parameterCount++;
 
-      std::cout << "  Moving image file: "
-                << movingImageFileReader->GetFileName() << std::endl;
+      ::ants::antscout << "  Moving image file: "
+                       << movingImageFileReader->GetFileName() << std::endl;
 
       /**
        * Check if similarity metric is image based or point-set based.
@@ -455,8 +455,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
       if( isMetricPointSetBased )
         {
-        std::cout << "Metric " << i << ": " << " Point-set " << whichMetric <<  " n-params "
-                  <<  option->GetNumberOfParameters( i )  << std::endl;
+        ::ants::antscout << "Metric " << i << ": " << " Point-set " << whichMetric <<  " n-params "
+                         <<  option->GetNumberOfParameters( i )  << std::endl;
         /**
          * Read in the point-set metric parameters
          */
@@ -482,8 +482,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           parameterCount++;
           }
         similarityMetric->SetWeightScalar( similarityMetricScalarWeight );
-        std::cout << "  similarity metric weight: "
-                  << similarityMetricScalarWeight << std::endl;
+        ::ants::antscout << "  similarity metric weight: "
+                         << similarityMetricScalarWeight << std::endl;
 
         TReal        pointSetPercent = 0.5;
         TReal        pointSetSigma = 5.0;
@@ -513,28 +513,28 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             Convert<unsigned int>( option->GetParameter( i, parameterCount ) );
           parameterCount++;
           }
-        std::cout << " point-set sigma = " << pointSetSigma << std::endl;
-        std::cout << " percentage of points = " << pointSetPercent << std::endl;
-        std::cout << " k-neighborhood = " << kNeighborhood << std::endl;
+        ::ants::antscout << " point-set sigma = " << pointSetSigma << std::endl;
+        ::ants::antscout << " percentage of points = " << pointSetPercent << std::endl;
+        ::ants::antscout << " k-neighborhood = " << kNeighborhood << std::endl;
         if( extractBoundaryPointsOnly )
           {
-          std::cout << " use only boundary points. " << pointSetPercent << std::endl;
+          ::ants::antscout << " use only boundary points. " << pointSetPercent << std::endl;
           }
 
         fixedPointSetReader->SetRandomPercentage( pointSetPercent );
         fixedPointSetReader->SetExtractBoundaryPoints( extractBoundaryPointsOnly );
         fixedPointSetReader->Update();
-        std::cout << "  Fixed point-set file: "
-                  << fixedPointSetReader->GetFileName() << std::endl;
-        std::cout << "    Number of fixed labels: "
-                  << fixedPointSetReader->GetLabelSet()->size() << std::endl;
-        std::cout << "    Distinct fixed labels: ";
+        ::ants::antscout << "  Fixed point-set file: "
+                         << fixedPointSetReader->GetFileName() << std::endl;
+        ::ants::antscout << "    Number of fixed labels: "
+                         << fixedPointSetReader->GetLabelSet()->size() << std::endl;
+        ::ants::antscout << "    Distinct fixed labels: ";
         for( unsigned int n = 0;
              n < fixedPointSetReader->GetLabelSet()->size(); n++ )
           {
-          std::cout << fixedPointSetReader->GetLabelSet()->operator[]( n ) << " ";
+          ::ants::antscout << fixedPointSetReader->GetLabelSet()->operator[]( n ) << " ";
           }
-        std::cout << std::endl;
+        ::ants::antscout << std::endl;
 
         movingPointSetReader->SetRandomPercentage( pointSetPercent );
         movingPointSetReader->SetExtractBoundaryPoints( extractBoundaryPointsOnly );
@@ -543,17 +543,17 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         movingPointSetReader->SetRandomPercentage( pointSetPercent );
         movingPointSetReader->SetExtractBoundaryPoints( extractBoundaryPointsOnly );
         movingPointSetReader->Update();
-        std::cout << "  Moving point-set file: "
-                  << movingPointSetReader->GetFileName() << std::endl;
-        std::cout << "    Number of moving labels: "
-                  << movingPointSetReader->GetLabelSet()->size() << std::endl;
-        std::cout << "    Distinct moving labels: ";
+        ::ants::antscout << "  Moving point-set file: "
+                         << movingPointSetReader->GetFileName() << std::endl;
+        ::ants::antscout << "    Number of moving labels: "
+                         << movingPointSetReader->GetLabelSet()->size() << std::endl;
+        ::ants::antscout << "    Distinct moving labels: ";
         for( unsigned int n = 0;
              n < movingPointSetReader->GetLabelSet()->size(); n++ )
           {
-          std::cout << movingPointSetReader->GetLabelSet()->operator[]( n ) << " ";
+          ::ants::antscout << movingPointSetReader->GetLabelSet()->operator[]( n ) << " ";
           }
-        std::cout << std::endl;
+        ::ants::antscout << std::endl;
 
         if( whichMetric == "point-set-expectation" ||
             whichMetric == "PointSetExpectation" ||
@@ -574,7 +574,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             unsigned int pm =
               this->m_Parser->template  Convert<unsigned int>( option->GetParameter( i, parameterCount ) );
             metric->SetUseSymmetricMatching( pm );
-            std::cout << " Symmetric match iterations -- going Asymmeric for the rest " << pm << std::endl;
+            ::ants::antscout << " Symmetric match iterations -- going Asymmeric for the rest " << pm << std::endl;
             parameterCount++;
             }
 
@@ -642,14 +642,14 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //                  }
 //
 //
-//                std::cout << "  B-spline parameters " << std::endl;
-//                std::cout << "    mesh resolution: " << metric->GetMeshResolution() << std::endl;
-//                std::cout << "    spline order: " << metric->GetSplineOrder() << std::endl;
-//                std::cout << "    number of levels: " << metric->GetNumberOfLevels() << std::endl;
-//                std::cout << "  Alpha: " << metric->GetAlpha() << std::endl;
+//                ::ants::antscout << "  B-spline parameters " << std::endl;
+//                ::ants::antscout << "    mesh resolution: " << metric->GetMeshResolution() << std::endl;
+//                ::ants::antscout << "    spline order: " << metric->GetSplineOrder() << std::endl;
+//                ::ants::antscout << "    number of levels: " << metric->GetNumberOfLevels() << std::endl;
+//                ::ants::antscout << "  Alpha: " << metric->GetAlpha() << std::endl;
 //                if ( metric->GetUseAnisotropicCovariances() )
 //                  {
-//                  std::cout << "  using anisotropic covariances." << std::endl;
+//                  ::ants::antscout << "  using anisotropic covariances." << std::endl;
 //                  }
 //
 //                similarityMetric->SetMetric( metric );
@@ -661,11 +661,11 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         }
       else       // similarity metric is image-based
         {
-        std::cout << "Metric " << i << ": " << " Not a Point-set" << std::endl;
-        std::cout << "  Fixed image file: "
-                  << fixedImageFileReader->GetFileName() << std::endl;
-        std::cout << "  Moving image file: "
-                  << movingImageFileReader->GetFileName() << std::endl;
+        ::ants::antscout << "Metric " << i << ": " << " Not a Point-set" << std::endl;
+        ::ants::antscout << "  Fixed image file: "
+                         << fixedImageFileReader->GetFileName() << std::endl;
+        ::ants::antscout << "  Moving image file: "
+                         << movingImageFileReader->GetFileName() << std::endl;
 
         similarityMetric->SetFixedPointSet( NULL);
         similarityMetric->SetMovingPointSet( NULL );
@@ -677,8 +677,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           parameterCount++;
           }
         similarityMetric->SetWeightScalar( similarityMetricScalarWeight );
-        std::cout << "  similarity metric weight: "
-                  << similarityMetricScalarWeight << std::endl;
+        ::ants::antscout << "  similarity metric weight: "
+                         << similarityMetricScalarWeight << std::endl;
 
         radius.Fill( 0 );
         if( option->GetNumberOfParameters( i ) > parameterCount )
@@ -700,22 +700,22 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             }
           else
             {
-            std::cerr << "Badly formed radius specification" << std::endl;
-            exit( 0 );
+            ::ants::antscout << "Badly formed radius specification" << std::endl;
+            std::exception();
             }
           parameterCount++;
           }
-        std::cout << "  Radius: " << radius << std::endl;
+        ::ants::antscout << "  Radius: " << radius << std::endl;
 
         TReal extraparam = -1.e12;
         if( option->GetNumberOfParameters( i ) > parameterCount )
           {
           extraparam = this->m_Parser->template Convert<TReal>( option->GetParameter( i, parameterCount ) );
-          std::cout << " Setting Extra Param to :  " << extraparam
-                    << " often used as a robustness parameter for longitudinal studies " << std::endl;
+          ::ants::antscout << " Setting Extra Param to :  " << extraparam
+                           << " often used as a robustness parameter for longitudinal studies " << std::endl;
           parameterCount++;
           }
-        std::cout << "  radius: " << radius << std::endl;
+        ::ants::antscout << "  radius: " << radius << std::endl;
 
         unsigned int numberOfHistogramBins = 64;
         if( Dimension == 2 )
@@ -736,7 +736,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //  filter->ThresholdAtMeanIntensityOff();
           if( useHistMatch )
             {
-            filter->Update();   std::cout <<  " use Histogram Matching " << std::endl;
+            filter->Update();   ::ants::antscout <<  " use Histogram Matching " << std::endl;
             movingImage = filter->GetOutput();
             movingImage = this->PreprocessImage(movingImage);
             similarityMetric->SetMovingImage( movingImage );
@@ -771,7 +771,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
             filter->SetNumberOfHistogramLevels( 256 );
             filter->SetNumberOfMatchPoints( 12 );
             filter->ThresholdAtMeanIntensityOn();
-            filter->Update();   std::cout <<  " use Histogram Matching " << std::endl;
+            filter->Update();   ::ants::antscout <<  " use Histogram Matching " << std::endl;
             movingImage = filter->GetOutput();
             }
           similarityMetric->SetMovingImage( movingImage );
@@ -848,12 +848,12 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //  filter->ThresholdAtMeanIntensityOff();
           if( useHistMatch )
             {
-            std::cout <<  " use Histogram Matching " << std::endl;
+            ::ants::antscout <<  " use Histogram Matching " << std::endl;
             filter->Update();
             movingImage = filter->GetOutput();
-            std::cout <<  " prepro " << std::endl;
+            ::ants::antscout <<  " prepro " << std::endl;
             movingImage = this->PreprocessImage(movingImage);
-            std::cout <<  " set " << std::endl;
+            ::ants::antscout <<  " set " << std::endl;
             similarityMetric->SetMovingImage( movingImage );
             }
 
@@ -881,7 +881,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //  filter->ThresholdAtMeanIntensityOff();
           if( useHistMatch )
             {
-            filter->Update();   std::cout <<  " use Histogram Matching " << std::endl;
+            filter->Update();   ::ants::antscout <<  " use Histogram Matching " << std::endl;
             movingImage = filter->GetOutput();
             movingImage = this->PreprocessImage(movingImage);
             similarityMetric->SetMovingImage( movingImage );

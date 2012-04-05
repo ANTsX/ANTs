@@ -114,7 +114,7 @@ public:
     typename TGraphSearchNode::Pointer P = SinkNode->GetPredecessor();
     if( !P )
       {
-      std::cout << " ERROR NO PRED TO SINK " << std::endl; return 1.;
+      ::::ants::antscout << " ERROR NO PRED TO SINK " << std::endl; return 1.;
       }
     m_QS->m_Path.push_back(G);
 //    if (P->GetAncestor() && G)
@@ -128,7 +128,7 @@ public:
 
     while( P && G != P )
       {
-//        std::cout << " Backtrack " << G->GetValue(0) << std::endl;
+//        ::::ants::antscout << " Backtrack " << G->GetValue(0) << std::endl;
       G = P;
       P = G->GetPredecessor();
       //    if (P->GetValue(1) < G->GetValue(1) ) P->SetValue(G->GetValue(1),1);
@@ -140,7 +140,7 @@ public:
       }
 
 //    m_QS->m_Path.push_back(P);
-//    std::cout << " final cost " << P->GetTotalCost() << " high " << highcost << std::endl;
+//    ::::ants::antscout << " final cost " << P->GetTotalCost() << " high " << highcost << std::endl;
     if( !P )
       {
       cout << " null pred ";       // else cout << " pred == self \n";
@@ -166,7 +166,7 @@ public:
       P = G->GetPredecessor();
       }
 
-//    std::cout << " intval " << intval << " at " << G->GetLocation() << std::endl;
+//    ::::ants::antscout << " intval " << intval << " at " << G->GetLocation() << std::endl;
     if( !P )
       {
       cout << " null pred ";       // else cout << " pred == self \n";
@@ -192,7 +192,7 @@ public:
       P = G->GetAncestor();
       }
 
-//    std::cout << " intval " << intval << " at " << G->GetLocation() << std::endl;
+//    ::::ants::antscout << " intval " << intval << " at " << G->GetLocation() << std::endl;
     if( !P )
       {
       cout << " null pred ";       // else cout << " pred == self \n";
@@ -302,7 +302,8 @@ public:
 
   inline void PrintWeights()
   {
-    std::cout << this->m_MaxCost << " " << this->m_DistanceCostWeight << " " << this->m_LabelCostWeight << std::endl;
+    ::::ants::antscout << this->m_MaxCost << " " << this->m_DistanceCostWeight << " " << this->m_LabelCostWeight
+                       << std::endl;
   }
 
   void SetSearchFinished(bool m)

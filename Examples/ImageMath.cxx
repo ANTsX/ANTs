@@ -15,6 +15,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
+
+#include "antscout.hxx"
+#include <algorithm>
+
 #include <map>
 // Here I'm using a map but you could choose even other containers
 #include <fstream>
@@ -128,6 +132,8 @@
 #include "TensorFunctions.h"
 #include "antsMatrixUtilities.h"
 
+namespace ants
+{
 template <class T>
 bool from_string(T& t,
                  const std::string& s,
@@ -183,7 +189,7 @@ typename TImage::Pointer BinaryThreshold(typename TImage::PixelType low, typenam
                                          typename TImage::PixelType replaceval,
                                          typename TImage::Pointer input)
 {
-  // std::cout << " Binary Thresh " << std::endl;
+  // antscout << " Binary Thresh " << std::endl;
 
   typedef typename TImage::PixelType PixelType;
   // Begin Threshold Image
@@ -249,7 +255,7 @@ int GetLargestComponent(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " read 1 error ";
+    antscout << " read 1 error ";
     }
   // compute the voxel volume
   typename ImageType::SpacingType spacing = image1->GetSpacing();
@@ -295,8 +301,8 @@ int GetLargestComponent(int argc, char *argv[])
     }
   catch( itk::ExceptionObject & excep )
     {
-    std::cerr << "Relabel: exception caught !" << std::endl;
-    std::cerr << excep << std::endl;
+    antscout << "Relabel: exception caught !" << std::endl;
+    antscout << excep << std::endl;
     }
 
   //  WriteImage<ImageType>(relabel->GetOutput(),outname.c_str());
@@ -307,7 +313,7 @@ int GetLargestComponent(int argc, char *argv[])
   Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
 
   float maximum = relabel->GetNumberOfObjects();
-  std::cout << " #ob " << maximum << std::endl;
+  antscout << " #ob " << maximum << std::endl;
   float                     maxtstat = 0;
   std::vector<unsigned int> histogram( (int)maximum + 1);
   std::vector<float>        clustersum( (int)maximum + 1);
@@ -352,8 +358,8 @@ int GetLargestComponent(int argc, char *argv[])
       }
     }
 
-  std::cout << " max float size "
-            <<  (maximgval
+  antscout << " max float size "
+           <<  (maximgval
        * volumeelement) << " long-size: " << (unsigned long) (maximgval * volumeelement)  << std::endl;
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
@@ -380,7 +386,8 @@ int ExtractSlice(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -402,7 +409,7 @@ int ExtractSlice(int argc, char *argv[])
   std::string  operation = std::string(argv[argct]);  argct++;
   std::string  fn1 = std::string(argv[argct]);   argct++;
   unsigned int slice = atoi(argv[argct]);   argct++;
-  std::cout << " Extract slice " << slice << " from dimension" << ImageDimension << std::endl;
+  antscout << " Extract slice " << slice << " from dimension" << ImageDimension << std::endl;
   typename ImageType::Pointer image1 = NULL;
   typename OutImageType::Pointer outimage = NULL;
 
@@ -422,7 +429,7 @@ int ExtractSlice(int argc, char *argv[])
   unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   if( slice >= timedims )
     {
-    std::cout << " max slice number is " << timedims << std::endl;
+    antscout << " max slice number is " << timedims << std::endl;
     return 1;
     }
   typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
@@ -501,7 +508,7 @@ int ThresholdAtMean(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " read 1 error ";
+    antscout << " read 1 error ";
     }
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
@@ -577,7 +584,7 @@ int FlattenImage(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " read 1 error ";
+    antscout << " read 1 error ";
     }
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
@@ -615,7 +622,7 @@ int FlattenImage(int argc, char *argv[])
     ct++;
     }
 
-  std::cout << " Flattening to :  " << percentofmax << std::endl;
+  antscout << " Flattening to :  " << percentofmax << std::endl;
   WriteImage<ImageType>(out, outname.c_str() );
   return 0;
 }
@@ -630,10 +637,10 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   // Bins Mask
   if( argc < 4 )
     {
-    std::cout << " need more args -- see usage   " << std::endl
-              <<
+    antscout << " need more args -- see usage   " << std::endl
+             <<
       " ImageMath 3 outimage.nii.gz  TruncateImageIntensity inputImage  {lowerQuantile=0.025} {upperQuantile=0.975}  {numberOfBins=65}  {binary-maskImage} "
-              << std::endl;  exit(0);
+             << std::endl;  throw std::exception();
     }
 
   unsigned int argct = 2;
@@ -662,7 +669,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
     }
   argct++;
 
-  //  std::cout << " bin " << numberOfBins << " lo " << lo << " Hi " << hi << std::endl;
+  //  antscout << " bin " << numberOfBins << " lo " << lo << " Hi " << hi << std::endl;
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<RealType, ImageDimension>  RealImageType;
@@ -686,12 +693,12 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
       }
     catch( ... )
       {
-      std::cout << " can't read mask " << std::endl;
+      antscout << " can't read mask " << std::endl;
       mask = NULL;
       }
     ;
     }
-  //  std::cout << " Mask " << std::endl;
+  //  antscout << " Mask " << std::endl;
   if( !mask )
     {
     mask = ImageType::New();
@@ -703,7 +710,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
     mask->FillBuffer( itk::NumericTraits<PixelType>::One );
     }
 
-  //  std::cout << " iterate " << std::endl;
+  //  antscout << " iterate " << std::endl;
 
   itk::ImageRegionIterator<RealImageType> ItI( imageReader->GetOutput(),
                                                imageReader->GetOutput()->GetLargestPossibleRegion() );
@@ -715,7 +722,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   ItM.GoToBegin();
   for( ItI.GoToBegin(); !ItI.IsAtEnd();  ++ItI )
     {
-    //  std::cout << " ind " << ItI.GetIndex() << std::endl;
+    //  antscout << " ind " << ItI.GetIndex() << std::endl;
     if( ItI.Get() >  0 && ItM.Get() >= 0.5 )
       {
       if( ItI.Get() < minValue )
@@ -738,7 +745,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
       }
     ++ItM;
     }
-  //  std::cout << " label " << std::endl;
+  //  antscout << " label " << std::endl;
   typedef itk::LabelStatisticsImageFilter<RealImageType, ImageType> HistogramGeneratorType;
   typename HistogramGeneratorType::Pointer stats = HistogramGeneratorType::New();
   stats->SetInput( imageReader->GetOutput() );
@@ -746,15 +753,15 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   stats->SetUseHistograms( true );
   stats->SetHistogramParameters( numberOfBins, minValue, maxValue );
   stats->Update();
-  //  std::cout << " labeld " << std::endl;
+  //  antscout << " labeld " << std::endl;
   typedef typename HistogramGeneratorType::HistogramType HistogramType;
   const HistogramType *histogram = stats->GetHistogram( 1 );
 
   double lowerQuantile = histogram->Quantile( 0, lo );
   double upperQuantile = histogram->Quantile( 0, hi );
 
-  std::cout << "Lower quantile: " << lowerQuantile << std::endl;
-  std::cout << "Upper quantile: " << upperQuantile << std::endl;
+  antscout << "Lower quantile: " << lowerQuantile << std::endl;
+  antscout << "Upper quantile: " << upperQuantile << std::endl;
   for( ItI.GoToBegin(); !ItI.IsAtEnd(); ++ItI )
     {
     if( ItI.Get() <  lowerQuantile )
@@ -820,14 +827,14 @@ int TileImages(unsigned int argc, char *argv[])
         {
         size[i] = imageIO->GetDimensions(i);
         bigimage = j;
-        std::cout << " bigimage " << j << " size " << size << std::endl;
+        antscout << " bigimage " << j << " size " << size << std::endl;
         }
       }
     }
 
   ReadImage<ImageType>(image2, argv[bigimage]);
 
-  std::cout << " largest image " << size << std::endl;
+  antscout << " largest image " << size << std::endl;
 
 /** declare the tiled image */
   unsigned int xsize = size[0];
@@ -838,7 +845,7 @@ int TileImages(unsigned int argc, char *argv[])
     {
     ny++;
     }
-  std::cout << " nx " << nx << " ny " << ny << std::endl;
+  antscout << " nx " << nx << " ny " << ny << std::endl;
   tilesize[0] = xsize * nx;
   tilesize[1] = ysize * ny;
   typename ImageType::RegionType region;
@@ -882,7 +889,7 @@ int TileImages(unsigned int argc, char *argv[])
 
     imagexct = imagecount % nx;
     imageyct = imagecount / nx;
-    std::cout << "doing " << fn << "  " << imagecount << " x " << imagexct <<  " y " << imageyct << std::endl;
+    antscout << "doing " << fn << "  " << imagecount << " x " << imagexct <<  " y " << imageyct << std::endl;
     imagecount++;
     Iterator vfIter( image2,  image2->GetLargestPossibleRegion() );
     for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
@@ -905,7 +912,7 @@ int TileImages(unsigned int argc, char *argv[])
   rescaler->SetOutputMaximum( 255 );
   rescaler->SetInput( tiledimage );
 
-  std::cout << " writing output ";
+  antscout << " writing output ";
   typedef itk::ImageFileWriter<ByteImageType> writertype;
   typename writertype::Pointer writer = writertype::New();
   writer->SetFileName(outname.c_str() );
@@ -922,7 +929,7 @@ int ConvertLandmarkFile(unsigned int argc, char *argv[])
 
   if( argc < 5 )
     {
-    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    antscout << " need more args -- see usage   " << std::endl;  throw std::exception();
     }
   std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
@@ -940,13 +947,13 @@ int ConvertLandmarkFile(unsigned int argc, char *argv[])
     }
   reader->Update();
 
-  std::cout << "Number of labels: " << reader->GetNumberOfLabels() << std::endl;
-  std::cout << "Labels: ";
+  antscout << "Number of labels: " << reader->GetNumberOfLabels() << std::endl;
+  antscout << "Labels: ";
   for( unsigned int i = 0; i < reader->GetNumberOfLabels(); i++ )
     {
-    std::cout << reader->GetLabelSet()->operator[](i) << " ";
+    antscout << reader->GetLabelSet()->operator[](i) << " ";
     }
-  std::cout << std::endl;
+  antscout << std::endl;
 
   typedef itk::LabeledPointSetFileWriter<PointSetType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
@@ -977,12 +984,12 @@ int TriPlanarView(unsigned int argc, char *argv[])
   unsigned int argct = 2;
   if( argc < 5 )
     {
-    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    antscout << " need more args -- see usage   " << std::endl;  throw std::exception();
     }
   std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string maskfn = std::string(argv[argct]); argct++;
-  std::cout << " file name " << maskfn << std::endl;
+  antscout << " file name " << maskfn << std::endl;
   typename ImageType::Pointer mask = NULL;
   typename readertype::Pointer reader2 = readertype::New();
   reader2->SetFileName(maskfn.c_str() );
@@ -992,7 +999,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " Error reading " << maskfn << std::endl;
+    antscout << " Error reading " << maskfn << std::endl;
     }
   mask = reader2->GetOutput();
   // ReadImage<ImageType>(mask,maskfn.c_str());
@@ -1074,7 +1081,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
     {
     tilesize[1] = ztilesize[1];
     }
-  std::cout << " allocate matrix " << tilesize << std::endl;
+  antscout << " allocate matrix " << tilesize << std::endl;
   typename MatrixImageType::RegionType region;
   region.SetSize( tilesize );
 
@@ -1090,7 +1097,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
   matimage->Allocate();
   unsigned int lowgetridof = (unsigned int) (clamppercent1 * 256);
   unsigned int higetridof = (unsigned int) (256 - clamppercent2 * 256);
-  //  std::cout << " get rid of " << getridof << std::endl;
+  //  antscout << " get rid of " << getridof << std::endl;
   matimage->FillBuffer(lowgetridof);
   // now loop over each slice and put the pixels in the right place in matimage
   typename MatrixImageType::IndexType index2d;
@@ -1144,7 +1151,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
   rescaler2->SetOutputMaximum( 255 );
   rescaler2->SetInput( matimage );
   rescaler2->Update();
-  std::cout << " writing output ";
+  antscout << " writing output ";
   typedef itk::ImageFileWriter<ByteImageType> writertype;
   typename writertype::Pointer writer = writertype::New();
   writer->SetFileName(outname.c_str() );
@@ -1175,7 +1182,7 @@ int ConvertVectorToImage(unsigned int argc, char *argv[])
   int argct = 2;
   if( argc < 5 )
     {
-    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    antscout << " need more args -- see usage   " << std::endl;  throw std::exception();
     }
   std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
@@ -1200,7 +1207,7 @@ int ConvertVectorToImage(unsigned int argc, char *argv[])
     voxct++;
     }
 
-  std::cout << " vct " << voxct << " mct " << mct << std::endl;
+  antscout << " vct " << voxct << " mct " << mct << std::endl;
 
   typename ImageType::Pointer outimage = NULL;
   ReadImage<ImageType>(outimage, maskfn.c_str() );
@@ -1263,7 +1270,7 @@ int CorruptImage(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " read 1 error ";
+    antscout << " read 1 error ";
     }
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
@@ -1344,17 +1351,17 @@ int Where(int argc, char *argv[])
       {
       if( fabs(iter.Get() - value) < tol )
         {
-        std::cout << iter.GetIndex() << std::endl;
+        antscout << iter.GetIndex() << std::endl;
         ct++;
         }
       }
     else if( image2->GetPixel(iter.GetIndex() ) > 0 &&  fabs(iter.Get() - value) < tol )
       {
-      std::cout << iter.GetIndex() << std::endl;
+      antscout << iter.GetIndex() << std::endl;
       ct++;
       }
     }
-  std::cout << ct <<  " voxels have the value " << value << std::endl;
+  antscout << ct <<  " voxels have the value " << value << std::endl;
   return 0;
 }
 
@@ -1411,7 +1418,7 @@ int SetOrGetPixel(int argc, char *argv[])
     }
   if( !image1 )
     {
-    std::cout << " no image ! " << std::endl; exit(0);
+    antscout << " no image ! " << std::endl; throw std::exception();
     }
 
   typename ImageType::IndexType index;
@@ -1436,8 +1443,8 @@ int SetOrGetPixel(int argc, char *argv[])
       }
     image1->TransformPhysicalPointToIndex(porig, index);
     }
-  std::cout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
-  std::cout << " Ind " << index << std::endl;
+  antscout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
+  antscout << " Ind " << index << std::endl;
   bool isinside = true;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
@@ -1452,19 +1459,19 @@ int SetOrGetPixel(int argc, char *argv[])
     {
     if( get )
       {
-      std::cout << " GetValue at " << index << " is " << image1->GetPixel(index) << std::endl;
+      antscout << " GetValue at " << index << " is " << image1->GetPixel(index) << std::endl;
       }
     else
       {
-      std::cout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
-                << std::endl;
+      antscout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
+               << std::endl;
       image2->SetPixel(index, value);
       WriteImage<ImageType>(image2, outname.c_str() );
       }
     }
   else
     {
-    std::cout << " not in image " << index << std::endl;
+    antscout << " not in image " << index << std::endl;
     }
 
   return 0;
@@ -1558,7 +1565,7 @@ int PadImage(int argc, char *argv[])
     float dimsz = (float)size[i];
     newsize[i] = (unsigned int)(dimsz + padvalue * 2);
     }
-  std::cout << " oldsize " << size <<  " newsize " << newsize << std::endl;
+  antscout << " oldsize " << size <<  " newsize " << newsize << std::endl;
   newregion.SetSize(newsize);
   newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
 
@@ -1587,7 +1594,7 @@ int PadImage(int argc, char *argv[])
   image1->TransformIndexToPhysicalPoint(index, point1);
   padimage->TransformIndexToPhysicalPoint(index2, pointpad);
 
-  std::cout << " pre " << point1 << " pad " << pointpad << std::endl;
+  antscout << " pre " << point1 << " pad " << pointpad << std::endl;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     origin2[i] += (point1[i] - pointpad[i]);
@@ -1722,7 +1729,8 @@ int TimeSeriesSubset(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
 
   typedef float                                        PixelType;
@@ -1742,7 +1750,7 @@ int TimeSeriesSubset(int argc, char *argv[])
   std::string  operation = std::string(argv[argct]);  argct++;
   std::string  fn1 = std::string(argv[argct]);   argct++;
   unsigned int n_sub_vols = atoi(argv[argct]);   argct++;
-  std::cout << " Extract " << n_sub_vols << " subvolumes " << std::endl;
+  antscout << " Extract " << n_sub_vols << " subvolumes " << std::endl;
   std::string::size_type idx;
   idx = outname.find_first_of('.');
   std::string tempname = outname.substr(0, idx);
@@ -1804,7 +1812,8 @@ int ComputeTimeSeriesLeverage(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -1927,11 +1936,11 @@ int ComputeTimeSeriesLeverage(int argc, char *argv[])
   logfile.open(outname.c_str() );
   if( logfile.good() )
     {
-    std::cout << "Raw_Leverage,K_Neighbors_Distance" <<  std::endl;
+    antscout << "Raw_Leverage,K_Neighbors_Distance" <<  std::endl;
     logfile << "Raw_Leverage,K_Neighbors_Distance" <<  std::endl;
     for( unsigned int t = 0; t < timedims; t++ )
       {
-      std::cout <<  mLeverage(t) << "," << kDistance(t) << std::endl;
+      antscout <<  mLeverage(t) << "," << kDistance(t) << std::endl;
       logfile <<  mLeverage(t) << "," << kDistance(t) << std::endl;
       }
     }
@@ -1944,7 +1953,8 @@ int TimeSeriesToMatrix(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -1968,7 +1978,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   std::string ext = itksys::SystemTools::GetFilenameExtension( outname );
   if( strcmp(ext.c_str(), ".csv") != 0 )
     {
-    std::cout << " must use .csv as output file extension " << std::endl;
+    antscout << " must use .csv as output file extension " << std::endl;
     return EXIT_FAILURE;
     }
   std::string operation = std::string(argv[argct]);  argct++;
@@ -2065,8 +2075,8 @@ int TimeSeriesToMatrix(int argc, char *argv[])
     }
   catch( itk::ExceptionObject& exp )
     {
-    std::cerr << "Exception caught!" << std::endl;
-    std::cerr << exp << std::endl;
+    antscout << "Exception caught!" << std::endl;
+    antscout << exp << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -2078,7 +2088,8 @@ int CompCorrAuto(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2153,16 +2164,16 @@ int CompCorrAuto(int argc, char *argv[])
   var_image->FillBuffer(0);
   outimage->FillBuffer(0);
   outimage2->FillBuffer(0);
-  std::cout << " read images " << std::endl;
+  antscout << " read images " << std::endl;
   unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  std::cout << "timedims " << timedims << " size " << image1->GetLargestPossibleRegion().GetSize() << std::endl;
+  antscout << "timedims " << timedims << " size " << image1->GetLargestPossibleRegion().GetSize() << std::endl;
 
   // first, count the label numbers
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
   labIterator   vfIter2( label_image,  label_image->GetLargestPossibleRegion() );
   unsigned long ct_nuis = 0;
   unsigned long ct_vox = 0;
-  std::cout << " verify input " << std::endl;
+  antscout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     if( vfIter2.Get() == 1 )      // in brain
@@ -2170,10 +2181,10 @@ int CompCorrAuto(int argc, char *argv[])
       ct_vox++;
       }
     }
-  std::cout << " counted " << ct_vox << " voxels " <<  std::endl;
+  antscout << " counted " << ct_vox << " voxels " <<  std::endl;
   if( ct_vox == 0 )
     {
-    std::cout << ct_vox << " not enough voxels labeled as gm (or brain) " << std::endl;
+    antscout << ct_vox << " not enough voxels labeled as gm (or brain) " << std::endl;
     return 1;
     }
   // step 1.  compute , in label 3 ( the nuisance region ), the representative value of the time series over the region.
@@ -2220,7 +2231,7 @@ int CompCorrAuto(int argc, char *argv[])
       var_image->SetPixel(ind, var);
       }
     }
-  std::cout << " got var " << std::endl;
+  antscout << " got var " << std::endl;
   // now build the histogram
   unsigned int   histsize = 50;
   float          binsize = maxvar / histsize;
@@ -2242,21 +2253,21 @@ int CompCorrAuto(int argc, char *argv[])
       }
     }
   varhist = varhist / varhistsum;
-  std::cout << " got var hist " << std::endl;
+  antscout << " got var hist " << std::endl;
   float temp = 0;
   float varval_csf = 0;
   for( unsigned int j = 0; j < histsize; j++ )
     {
     temp += varhist(j);
     float varth = (float)j / (float)histsize * maxvar;
-    std::cout << " j " << j << " temp " << temp << " varth " << varth << std::endl;
+    antscout << " j " << j << " temp " << temp << " varth " << varth << std::endl;
     if( temp >= 0.95 && varval_csf <=  0 )
       {
       varval_csf = (float)j * binsize;
       }
     }
 
-  std::cout << " maxvar " << maxvar << " varval_csf " << varval_csf << std::endl;
+  antscout << " maxvar " << maxvar << " varval_csf " << varval_csf << std::endl;
   ct_nuis = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
@@ -2337,8 +2348,8 @@ int CompCorrAuto(int argc, char *argv[])
     }
   catch( itk::ExceptionObject& exp )
     {
-    std::cerr << "Exception caught!" << std::endl;
-    std::cerr << exp << std::endl;
+    antscout << "Exception caught!" << std::endl;
+    antscout << exp << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -2378,7 +2389,8 @@ int CompCorr(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
@@ -2453,9 +2465,9 @@ int CompCorr(int argc, char *argv[])
   var_image->FillBuffer(0);
   outimage->FillBuffer(0);
   outimage2->FillBuffer(0);
-  std::cout << " read images " << std::endl;
+  antscout << " read images " << std::endl;
   unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  std::cout << "timedims " << timedims << " size " << image1->GetLargestPossibleRegion().GetSize() << std::endl;
+  antscout << "timedims " << timedims << " size " << image1->GetLargestPossibleRegion().GetSize() << std::endl;
 
   // first, count the label numbers
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
@@ -2463,7 +2475,7 @@ int CompCorr(int argc, char *argv[])
   unsigned long ct_nuis = 0;
   unsigned long ct_ref = 0;
   unsigned long ct_gm = 0;
-  std::cout << " verify input " << std::endl;
+  antscout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     if( vfIter2.Get() == 3 )      // nuisance
@@ -2479,15 +2491,15 @@ int CompCorr(int argc, char *argv[])
       ct_gm++;
       }
     }
-  std::cout << " counted " << ct_gm << " gm voxels " << ct_ref << " reference region voxels " << std::endl;
+  antscout << " counted " << ct_gm << " gm voxels " << ct_ref << " reference region voxels " << std::endl;
   if( ct_gm == 0 )
     {
-    std::cout << ct_gm << " not enough voxels labeled as gm (or brain) " << ct_gm << std::endl;
+    antscout << ct_gm << " not enough voxels labeled as gm (or brain) " << ct_gm << std::endl;
     return 1;
     }
   if( ct_ref == 0 )
     {
-    std::cout << ct_ref << " not enough voxels labeled as reference region " << std::endl;
+    antscout << ct_ref << " not enough voxels labeled as reference region " << std::endl;
     return 1;
     }
   // step 1.  compute , in label 3 ( the nuisance region ), the representative value of the time series over the region.
@@ -2538,7 +2550,7 @@ int CompCorr(int argc, char *argv[])
       var_image->SetPixel(ind, var);
       }
     }
-  std::cout << " got var " << std::endl;
+  antscout << " got var " << std::endl;
   // now build the histogram
   unsigned int   histsize = 50;
   float          binsize = maxvar / histsize;
@@ -2560,21 +2572,21 @@ int CompCorr(int argc, char *argv[])
       }
     }
   varhist = varhist / varhistsum;
-  std::cout << " got var hist " << std::endl;
+  antscout << " got var hist " << std::endl;
   float temp = 0;
   float varval_csf = 0;
   for( unsigned int j = 0; j < histsize; j++ )
     {
     temp += varhist(j);
     float varth = (float)j / (float)histsize * maxvar;
-    std::cout << " j " << j << " temp " << temp << " varth " << varth << std::endl;
+    antscout << " j " << j << " temp " << temp << " varth " << varth << std::endl;
     if( temp >= 0.95 && varval_csf <=  0 )
       {
       varval_csf = (float)j * binsize;
       }
     }
 
-  std::cout << " maxvar " << maxvar << " varval_csf " << varval_csf << std::endl;
+  antscout << " maxvar " << maxvar << " varval_csf " << varval_csf << std::endl;
   //  WriteImage<OutImageType>(var_image,"varimage.nii.gz");
   //
   ct_nuis = 0;
@@ -2587,7 +2599,7 @@ int CompCorr(int argc, char *argv[])
       }
     }
   timeMatrixType mNuisance(timedims, ct_nuis, 0);
-  std::cout << " begin smoothing " << std::endl;
+  antscout << " begin smoothing " << std::endl;
   if( compcorr_sigma > 1.e-5 )
     {
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -2632,7 +2644,7 @@ int CompCorr(int argc, char *argv[])
         }
       }
     }
-  std::cout << " smooth done " << std::endl;
+  antscout << " smooth done " << std::endl;
   ref_vox = 0; nuis_vox = 0; gm_vox = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
@@ -2713,7 +2725,7 @@ int CompCorr(int argc, char *argv[])
     }
   if( vReference.size() != timedims )
     {
-    std::cout << " CompCorr Error exiting " << std::endl; exit(1);
+    antscout << " CompCorr Error exiting " << std::endl; throw std::exception();
     }
   gm_vox = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -2742,7 +2754,7 @@ int CompCorr(int argc, char *argv[])
       gm_vox++;
       }
     }
-  std::cout << "write results" << std::endl;
+  antscout << "write results" << std::endl;
   std::string kname = tempname + std::string("first_evec") + extension;
   WriteImage<OutImageType>(outimage, kname.c_str() );
   //  kname=tempname+std::string("second_evec")+extension;
@@ -2760,7 +2772,8 @@ int StackImage(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -2808,7 +2821,7 @@ int StackImage(int argc, char *argv[])
   newsize[ImageDimension
           - 1] =
     (unsigned int)newsize[ImageDimension - 1] + image2->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  std::cout << " oldsize " << size <<  " newsize " << newsize << std::endl;
+  antscout << " oldsize " << size <<  " newsize " << newsize << std::endl;
   newregion.SetSize(newsize);
   newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
 
@@ -2824,7 +2837,7 @@ int StackImage(int argc, char *argv[])
   typename ImageType::PointType point1, pointpad;
   image1->TransformIndexToPhysicalPoint(index, point1);
   padimage->TransformIndexToPhysicalPoint(index2, pointpad);
-  //  std::cout << " pre " << point1 << " pad " << pointpad << std::endl;
+  //  antscout << " pre " << point1 << " pad " << pointpad << std::endl;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     origin2[i] += (point1[i] - pointpad[i]);
@@ -2898,7 +2911,7 @@ int MakeImage(int argc, char *argv[])
     size[2] = sizevalz;
     }
   typename ImageType::RegionType newregion;
-  std::cout << " size " << size << std::endl;
+  antscout << " size " << size << std::endl;
   newregion.SetSize(size);
 
   typename ImageType::Pointer padimage = ImageType::New();
@@ -2921,8 +2934,7 @@ template <class TImage>
 typename TImage::Pointer
 LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
 {
-  std::cout << " Label Surf " << std::endl;
-
+  antscout << " Label Surf " << std::endl;
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
   typename   ImageType::Pointer     Image = ImageType::New();
@@ -2989,7 +3001,8 @@ int FitSphere(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::string(argv[1]) << std::endl; return 1;
+    antscout << " too few options " << std::string(argv[1]) << std::endl;
+    return 1;
     }
   /*
   typedef float  PixelType;
@@ -3021,7 +3034,7 @@ int FitSphere(int argc, char *argv[])
   typename ImageType::Pointer priorimage = NULL;
   typename ImageType::Pointer wmimage = NULL;
   if (fn2.length() > 3)   ReadImage<ImageType>(wmimage, fn2.c_str());
-  std::cout <<"  read " << fn1 << " MXR " << MaxRad << std::endl;
+  antscout <<"  read " << fn1 << " MXR " << MaxRad << std::endl;
   ReadImage<ImageType>(image1, fn1.c_str());
   ReadImage<ImageType>(radimage, fn1.c_str());
   ReadImage<ImageType>(radimage2, fn1.c_str());
@@ -3055,7 +3068,7 @@ int FitSphere(int argc, char *argv[])
   ind2.Fill(0);
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   Iterator iter( image1,  image1->GetLargestPossibleRegion() );
-  std::cout <<"  Begin " << std::endl;
+  antscout <<"  Begin " << std::endl;
   unsigned long npx=0;
 //  float pi=3.141;
  unsigned long numpx=image1->GetBufferedRegion().GetNumberOfPixels();
@@ -3143,7 +3156,7 @@ int FitSphere(int argc, char *argv[])
           cmdist+=(GMx[dd]-WMx[dd])*(GMx[dd]-WMx[dd]);
         }
       cmdist=sqrt(cmdist);
-      //          std::cout << " GMT " << gmtotal << " WMT " << wmtotal << " dist " << cmdist << std::endl;
+      //          antscout << " GMT " << gmtotal << " WMT " << wmtotal << " dist " << cmdist << std::endl;
   float gmrad=pow( 3.*gvol/(4.*pi) , 1./3.);
   float gwrat=0,gvrat=0;
   if (warea > 0) gwrat=garea/warea;
@@ -3186,7 +3199,7 @@ int FitSphere(int argc, char *argv[])
               possct++;
             }
               else if ( dist <= tardist ) possct++;
-              //          std::cout << " Ind " <<  ind << " : " <<  bestrad << " tardist " << tardist << " gct " << goodct <<" pos " << possct << " dist " << dist << " ind2 " << ind2 << std::endl;
+              //          antscout << " Ind " <<  ind << " : " <<  bestrad << " tardist " << tardist << " gct " << goodct <<" pos " << possct << " dist " << dist << " ind2 " << ind2 << std::endl;
             }
           if (goodct==possct)
             {
@@ -3204,7 +3217,7 @@ int FitSphere(int argc, char *argv[])
 
       if (npx % 10000 == 0)
         {
-          std::cout <<" prog " << (float)npx/(float)numpx << std::endl;
+          antscout <<" prog " << (float)npx/(float)numpx << std::endl;
           //          WriteImage<ImageType>(radimage,outname.c_str());
           //          WriteImage<ImageType>(radimage2,(std::string("Sphere")+outname).c_str());
           //WriteImage<ImageType>(priorimage,(std::string("Prior")+outname).c_str());
@@ -3247,7 +3260,7 @@ int FitSphere(int argc, char *argv[])
 
 
   // now, make rad image
-  std::cout << " Best " << bestind << " gbr " << globalbestrad << std::endl;
+  antscout << " Best " << bestind << " gbr " << globalbestrad << std::endl;
   typedef itk::NeighborhoodIterator<ImageType>  iteratorType;
   typename iteratorType::RadiusType rad;
   for (unsigned int j=0; j<ImageDimension; j++) rad[j]= (long unsigned int)globalbestrad;
@@ -3331,7 +3344,7 @@ int ImageMath(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " read 1 error ";
+    antscout << " read 1 error ";
     }
 
   varimage = ImageType::New();
@@ -3359,7 +3372,7 @@ int ImageMath(int argc, char *argv[])
     image2->SetOrigin(image1->GetOrigin() );
     image2->SetDirection(image1->GetDirection() );
     m_Transform0->SetParameters(trans);
-    std::cout << " trans " << m_Transform0->GetParameters() << " Nspc " << image2->GetSpacing() << std::endl;
+    antscout << " trans " << m_Transform0->GetParameters() << " Nspc " << image2->GetSpacing() << std::endl;
     typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
     typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
     resample->SetTransform( m_Transform0 );
@@ -3458,11 +3471,11 @@ int ImageMath(int argc, char *argv[])
     }
   if( strcmp(operation.c_str(), "total") == 0 )
     {
-    std::cout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
+    antscout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
     }
   else
     {
-    std::cout << "operation " << operation << std::endl;
+    antscout << "operation " << operation << std::endl;
     }
   if( outname.length() > 3 )
     {
@@ -3508,7 +3521,7 @@ int TensorFunctions(int argc, char *argv[])
 
   if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
     {
-    std::cout
+    antscout
       <<
       " Convert a 4D tensor to a 3D tensor --- if there are 7 components to the tensor, we throw away the first component b/c its probably b0 "
       << std::endl;
@@ -3524,12 +3537,12 @@ int TensorFunctions(int argc, char *argv[])
       unsigned int d4size = d4img->GetLargestPossibleRegion().GetSize()[3];
       if( d4size != 6 && d4size != 7 )
         {
-        std::cout << " you should not be using this function if the input data is not a tensor. " << std::endl;
-        std::cout
+        antscout << " you should not be using this function if the input data is not a tensor. " << std::endl;
+        antscout
           <<
           " there is no way for us to really check if your use of this function is correct right now except checking the size of the 4th dimension which should be 6 or 7 (the latter if you store b0 in the first component) --- you should really store tensors not as 4D images but as 3D images with tensor voxel types. "
           << std::endl;
-        exit(0);
+        throw std::exception();
         }
       typename TensorImageType::SizeType size;
       typename TensorImageType::RegionType tensorregion;
@@ -3601,7 +3614,7 @@ int TensorFunctions(int argc, char *argv[])
       WriteTensorImage<TensorImageType>(timage, outname.c_str(), false);
       return 0;
       }
-    std::cout << " cannot convert --- input image not 4D --- " << fn1 << std::endl;
+    antscout << " cannot convert --- input image not 4D --- " << fn1 << std::endl;
     return 0;
     }
 
@@ -3687,14 +3700,14 @@ int TensorFunctions(int argc, char *argv[])
         }
       else
         {
-        std::cerr << "Unrecognized component.  Need to specify "
-                  << "xx, xy, xz, yy, yz, or zz";
+        antscout << "Unrecognized component.  Need to specify "
+                 << "xx, xy, xz, yy, yz, or zz";
         return EXIT_FAILURE;
         }
       }
     else
       {
-      std::cerr << "Error:  need to specify component (xx, xy, xz, yy, yz, zz)";
+      antscout << "Error:  need to specify component (xx, xy, xz, yy, yz, zz)";
       return EXIT_FAILURE;
       }
 
@@ -3727,11 +3740,11 @@ int TensorFunctions(int argc, char *argv[])
 
   if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
     {
-    std::cout << " test function for tensor I/O " << std::endl;
+    antscout << " test function for tensor I/O " << std::endl;
     WriteTensorImage<TensorImageType>(timage, outname.c_str(), false);
     return 0;
     }
-  std::cout << " imagedir " << timage->GetDirection() << std::endl;
+  antscout << " imagedir " << timage->GetDirection() << std::endl;
 
   if( strcmp(operation.c_str(), "TensorColor") == 0 )
     {
@@ -3802,6 +3815,24 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
       {
       result = GetTensorADC<TensorType>(tIter.Value(), 0);
+      if( vnl_math_isnan(result) )
+        {
+        result = 0;
+        }
+      vimage->SetPixel(ind, result);
+      }
+    else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
+      {
+      result = GetTensorADC<TensorType>(tIter.Value(), 2);
+      if( vnl_math_isnan(result) )
+        {
+        result = 0;
+        }
+      vimage->SetPixel(ind, result);
+      }
+    else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
+      {
+      result = GetTensorADC<TensorType>(tIter.Value(), 3 + whichvec);
       if( vnl_math_isnan(result) )
         {
         result = 0;
@@ -3934,7 +3965,7 @@ int TensorFunctions(int argc, char *argv[])
     }
   else
     {
-    std::cout << "Writing scalar image" << std::endl;
+    antscout << "Writing scalar image" << std::endl;
     WriteImage<ImageType>(vimage, outname.c_str() );
     }
 
@@ -3983,7 +4014,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " Error reading " << fn2 << std::endl;
+    antscout << " Error reading " << fn2 << std::endl;
     isfloat = true;
     }
 
@@ -4005,7 +4036,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " read 1 error ";
+    antscout << " read 1 error ";
     }
 
   // compute error in spacing, in orientation and in offset
@@ -4020,7 +4051,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
     float temp = sp1[i] - sp2[i];
     sperr += temp * temp;
     }
-  std::cout << " SpacingError: " << sqrt(sperr) << std::endl;
+  antscout << " SpacingError: " << sqrt(sperr) << std::endl;
 
   typename ImageType::PointType op1, op2;
   op1 = image1->GetOrigin();
@@ -4038,8 +4069,8 @@ int CompareHeadersAndImages(int argc, char *argv[])
       orsignerr += 1;
       }
     }
-  std::cout << " OriginError: " << sqrt(operr) << std::endl;
-  std::cout << " OriginSignError: " << orsignerr << std::endl;
+  antscout << " OriginError: " << sqrt(operr) << std::endl;
+  antscout << " OriginSignError: " << orsignerr << std::endl;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     for( unsigned int j = 0; j < ImageDimension; j++ )
@@ -4048,7 +4079,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
       merr += temp * temp;
       }
     }
-  std::cout << " OrientError: " << sqrt(merr) << std::endl;
+  antscout << " OrientError: " << sqrt(merr) << std::endl;
 
   bool samesize = true;
   for( unsigned int i = 0; i < ImageDimension; i++ )
@@ -4084,13 +4115,13 @@ int CompareHeadersAndImages(int argc, char *argv[])
           }
         catch( ... )
           {
-          std::cout << " zero image2 error ";
+          antscout << " zero image2 error ";
           fixed_center.Fill(0);
           }
         }
       catch( ... )
         {
-        std::cout << " zero image1 error ";
+        antscout << " zero image1 error ";
         }
 
       typedef itk::TranslationTransform<double, ImageDimension> TransformType0;
@@ -4101,7 +4132,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
         trans[i] = moving_center[i] - fixed_center[i];
         }
       m_Transform0->SetParameters(trans);
-      std::cout << " trans " << m_Transform0->GetParameters() << std::endl;
+      antscout << " trans " << m_Transform0->GetParameters() << std::endl;
       typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
       typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
       resample->SetTransform( m_Transform0 );
@@ -4183,8 +4214,8 @@ int CompareHeadersAndImages(int argc, char *argv[])
       }
     float idice0 = 1.0 - 2.0 * i1i2norm / ct12 /  (  i1norm / ct1 + i2norm / ct2 );
     //  float idice1 = 1.0 - 2.0*i1i3norm/ct13 /  (  i1norm/ct1 + i3norm / ct3 );
-    std::cout << " DiceImageDifference: " << idice0 << " IntensityDifference: " << i1i2norm << std::endl;
-    // std::cout << " CenterOfMassTransImageDifference: " << idice1 << " and " << i1i3norm << std::endl;
+    antscout << " DiceImageDifference: " << idice0 << " IntensityDifference: " << i1i2norm << std::endl;
+    // antscout << " CenterOfMassTransImageDifference: " << idice1 << " and " << i1i3norm << std::endl;
     }
 
   typename ImageType::PointType fixedorig = image2->GetOrigin();
@@ -4223,7 +4254,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
   writer->SetFileName(outname.c_str() );
   writer->SetInput( image2 );
   writer->Write();
-  std::cout << "  FailureState: " << failure << " for " << fn2  << std::endl;
+  antscout << "  FailureState: " << failure << " for " << fn2  << std::endl;
   return failure;
 }
 
@@ -4278,9 +4309,9 @@ int CompareHeadersAndImages(int argc, char *argv[])
 //   for (unsigned int i=0;  i<nclasses; i++)
 //     {
 //     initialMeans[i]=mn+(0+i*bins)*range;
-//     std::cout << " Initial Means " << initialMeans[i] << " ";
+//     antscout << " Initial Means " << initialMeans[i] << " ";
 //     }
-//   std::cout << std::endl;
+//   antscout << std::endl;
 //   estimator->SetParameters( initialMeans );
 //
 //   estimator->SetKdTree( treeGenerator->GetOutput() );
@@ -4331,35 +4362,35 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 
   if( option == 0 )
     {
-    std::cout << " binary eroding the image " << std::endl;
+    antscout << " binary eroding the image " << std::endl;
     }
   else if( option == 1 )
     {
-    std::cout << " binary dilating the image " << std::endl;
+    antscout << " binary dilating the image " << std::endl;
     }
   else if( option == 2 )
     {
-    std::cout << " binary opening the image " << std::endl;
+    antscout << " binary opening the image " << std::endl;
     }
   else if( option == 3 )
     {
-    std::cout << " binary closing the image " << std::endl;
+    antscout << " binary closing the image " << std::endl;
     }
   else if( option == 4 )
     {
-    std::cout << " grayscale eroding the image " << std::endl;
+    antscout << " grayscale eroding the image " << std::endl;
     }
   else if( option == 5 )
     {
-    std::cout << " grayscale dilating the image " << std::endl;
+    antscout << " grayscale dilating the image " << std::endl;
     }
   else if( option == 6 )
     {
-    std::cout << " grayscale opening the image " << std::endl;
+    antscout << " grayscale opening the image " << std::endl;
     }
   else if( option == 7 )
     {
-    std::cout << " grayscale closing the image " << std::endl;
+    antscout << " grayscale closing the image " << std::endl;
     }
 
   typedef itk::BinaryBallStructuringElement<
@@ -4427,14 +4458,14 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   typename TImage::Pointer temp;
   if( option == 1 )
     {
-    std::cout << " Dilate " << rad << std::endl;
+    antscout << " Dilate " << rad << std::endl;
     binaryDilate->SetInput( input );
     binaryDilate->Update();
     temp = binaryDilate->GetOutput();
     }
   else if( option == 0 )
     {
-    std::cout << " Erode " << rad << std::endl;
+    antscout << " Erode " << rad << std::endl;
     binaryErode->SetInput( input );  // binaryDilate->GetOutput() );
     binaryErode->Update();
     temp = binaryErode->GetOutput();
@@ -4442,7 +4473,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   else if( option == 2 )
     {
     // dilate(erode(img))
-    std::cout << " Binary Open " << rad << std::endl;
+    antscout << " Binary Open " << rad << std::endl;
     // binaryOpen->SetInput( input );//binaryDilate->GetOutput() );
     // binaryOpen->Update();
     binaryErode->SetInput( input );
@@ -4452,7 +4483,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     }
   else if( option == 3 )
     {
-    std::cout << " Binary Close " << rad << std::endl;
+    antscout << " Binary Close " << rad << std::endl;
     // binaryClose->SetInput( input );//binaryDilate->GetOutput() );
     // binaryClose->Update();
     binaryDilate->SetInput( input );
@@ -4462,21 +4493,21 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     }
   else if( option == 4 )
     {
-    std::cout << " Grayscale Erode " << rad << std::endl;
+    antscout << " Grayscale Erode " << rad << std::endl;
     grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleErode->Update();
     temp = binaryErode->GetOutput();
     }
   else if( option == 5 )
     {
-    std::cout << " Grayscale Dilate " << rad << std::endl;
+    antscout << " Grayscale Dilate " << rad << std::endl;
     grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleDilate->Update();
     temp = binaryDilate->GetOutput();
     }
   else if( option == 6 )
     {
-    std::cout << " Grayscale Open " << rad << std::endl;
+    antscout << " Grayscale Open " << rad << std::endl;
     grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleErode->Update();
     grayscaleDilate->SetInput( grayscaleErode->GetOutput() );
@@ -4485,7 +4516,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     }
   else if( option == 7 )
     {
-    std::cout << " Grayscale Close " << rad << std::endl;
+    antscout << " Grayscale Close " << rad << std::endl;
     grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleDilate->Update();
     grayscaleErode->SetInput( grayscaleDilate->GetOutput() );
@@ -4620,7 +4651,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 //     float   ct= estimatedCounts[i];
 //     if (ct > 0) estimatedVar[i]=(estimatedVar[i])/ct;
 //     else estimatedVar[i]=0;
-//     std::cout << " Sample SD Ests " << sqrt(estimatedVar[i]) << " Mean " << estimatedMeans[i] <<  std::endl;
+//     antscout << " Sample SD Ests " << sqrt(estimatedVar[i]) << " Mean " << estimatedMeans[i] <<  std::endl;
 //     }
 //
 //   typedef float InputPixelType;
@@ -4668,12 +4699,12 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 //
 //   if (priorfn.length()  > 3 )
 //     {
-//     std::cout << " Setting Priors " << priorfn << std::endl;
+//     antscout << " Setting Priors " << priorfn << std::endl;
 //     bool geometric=false;
 //     if ( strcmp(priorfn.c_str(),"Geometric") == 0) geometric=true;
 //     if (geometric)
 //       {
-//       std::cout <<" Using a geometric thickness prior to aid cortical segmentation " << std::endl;
+//       antscout <<" Using a geometric thickness prior to aid cortical segmentation " << std::endl;
 //       typename ImageType::Pointer outbrainmask = BinaryThreshold<TImage>(0,nclasses-3,1,varimage);
 //       typename ImageType::Pointer inwmask = BinaryThreshold<TImage>(nclasses-1,nclasses,1,varimage);
 //       typename ImageType::Pointer outwmask = BinaryThreshold<TImage>(0,nclasses-2,1,varimage);
@@ -4714,11 +4745,11 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 //       priors->SetRegions( image->GetLargestPossibleRegion() );
 //       priors->SetVectorLength(nclasses);
 //       priors->Allocate();
-//       std::cout <<" Allocated " << std::endl;
+//       antscout <<" Allocated " << std::endl;
 //
 //       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
 //     {
-// //    std::cout <<" ind " <<vfIter2.GetIndex() << std::endl;
+// //    antscout <<" ind " <<vfIter2.GetIndex() << std::endl;
 // //    float outbrain = outbrainmask->GetPixel( vfIter2.GetIndex());
 // //    float inw = inwmask->GetPixel( vfIter2.GetIndex());
 //     float distance = distcortex->GetPixel( vfIter2.GetIndex());
@@ -4747,7 +4778,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 //     if (sdiff > 0) sdiff=0;
 //     sdiff*=sdiff;
 //     sulcprob=exp(-1.0*sdiff/0.5);
-// //    std::cout << " Sulc " << sulcprob << std::endl;
+// //    antscout << " Sulc " << sulcprob << std::endl;
 // //    bool test = (outbrain < 1 && inw > 1);
 //     if (  true  )
 //       {
@@ -4778,7 +4809,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 //       priors->SetPixel( vfIter2.GetIndex(), probs);
 //       vecImage->SetPixel( vfIter2.GetIndex(), posteriors);
 //       }
-//       std::cout << " ok " << std::endl;
+//       antscout << " ok " << std::endl;
 //
 //
 //       }
@@ -4808,14 +4839,14 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 //       }
 // //    if (priors) filter->SetInput( 1,  priors ); // Bug --
 // //    classification filter does not actually use priors
-//     } else std::cout << " No Priors " << std::endl;
+//     } else antscout << " No Priors " << std::endl;
 //
 //   filter->SetInput(  vecImage );
 //
 //
 //   if( nsmooth >= 1  )
 //     {
-//     std::cout << " Smoothing Iterations:  " << nsmooth << std::endl;
+//     antscout << " Smoothing Iterations:  " << nsmooth << std::endl;
 //     filter->SetNumberOfSmoothingIterations( nsmooth );
 //     typedef typename ClassifierFilterType::ExtractedComponentImageType ExtractedComponentImageType;
 //     typedef itk::DiscreteGaussianImageFilter<
@@ -4881,7 +4912,7 @@ int NegativeImage(int argc, char *argv[])
     }
   catch( ... )
     {
-    std::cout << " read 1 error ";
+    antscout << " read 1 error ";
     }
 
   Iterator vfIter2( image1,  image1->GetLargestPossibleRegion() );
@@ -4990,7 +5021,7 @@ int NegativeImage(int argc, char *argv[])
 //
 //   //Run the gaussian classifier algorithm
 //   applyEstimateModel->Update();
-//   applyEstimateModel->Print(std::cout);
+//   applyEstimateModel->Print(antscout);
 //
 //   MembershipFunctionPointerVector membershipFunctions =
 //     applyEstimateModel->GetMembershipFunctions();
@@ -5035,7 +5066,7 @@ int NegativeImage(int argc, char *argv[])
 //     meanDistance+=membershipFunctions[i]->GetMean()[0];
 //     }
 //   meanDistance/=(float)nclasses;
-//   std::cout << " mean dist " << meanDistance << std::endl;
+//   antscout << " mean dist " << meanDistance << std::endl;
 //
 //
 //   //----------------------------------------------------------------------
@@ -5070,7 +5101,7 @@ int NegativeImage(int argc, char *argv[])
 //       wIt != weights.end(); wIt++ )
 //     {
 //      testNewNeighborhoodWeight[jj] = static_cast< double > ( (*wIt) * meanDistance / (2 * totalWeight));
-//      //   std::cout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
+//      //   antscout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
 //     jj++;
 //     }
 //
@@ -5080,24 +5111,24 @@ int NegativeImage(int argc, char *argv[])
 //   //Kick off the MRF labeller function
 //   applyMRFImageFilter->Update();
 //
-//   applyMRFImageFilter->Print(std::cout);
-//   std::cout << "Number of Iterations : " << applyMRFImageFilter->GetNumberOfIterations()
+//   applyMRFImageFilter->Print(antscout);
+//   antscout << "Number of Iterations : " << applyMRFImageFilter->GetNumberOfIterations()
 //     << std::endl;
-//   std::cout << "Stop condition: (1) Maximum number of iterations (2) Error tolerance:  "
+//   antscout << "Stop condition: (1) Maximum number of iterations (2) Error tolerance:  "
 //     << applyMRFImageFilter->GetStopCondition() << std::endl;
 //
 //   typename ClassImageType::Pointer  outClassImage = applyMRFImageFilter->GetOutput();
 //
 //   //Testing of different parameter access functions in the filter
-//   std::cout << "The number of classes labelled was: " <<
+//   antscout << "The number of classes labelled was: " <<
 //     applyMRFImageFilter->GetNumberOfClasses() << std::endl;
-//   std::cout << "The maximum number of iterations were: " <<
+//   antscout << "The maximum number of iterations were: " <<
 //     applyMRFImageFilter->GetMaximumNumberOfIterations() << std::endl;
-//   std::cout << "The error tolerace threshold was: " <<
+//   antscout << "The error tolerace threshold was: " <<
 //     applyMRFImageFilter->GetErrorTolerance() << std::endl;
-//   std::cout << "The smoothing MRF parameter used was: " <<
+//   antscout << "The smoothing MRF parameter used was: " <<
 //     applyMRFImageFilter->GetSmoothingFactor() << std::endl;
-//   std::cout << "The MRF neighborhood weights are: " << std::endl;
+//   antscout << "The MRF neighborhood weights are: " << std::endl;
 //
 //
 //   return  outClassImage;
@@ -5110,8 +5141,7 @@ typename TImage::Pointer
 itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
                                 typename TImage::Pointer labelimage, unsigned int sd = 2)
 {
-  std::cout << "doing Bias corr " << std::endl;
-
+  antscout << "doing Bias corr " << std::endl;
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
   typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
@@ -5181,7 +5211,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
   for( unsigned int k = 0; k < numclasses; k++ )
     {
     classSigmas[k] = sqrt(classSigmas[k]);
-    std::cout << " Initial Means pre-bias " << classMeans[k] << " sig " <<  classSigmas[k] << std::endl;
+    antscout << " Initial Means pre-bias " << classMeans[k] << " sig " <<  classSigmas[k] << std::endl;
     }
 
   // creats a normal random variate generator
@@ -5191,9 +5221,9 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
   // creates a bias correction filter and run it.
   typedef itk::MRIBiasFieldCorrectionFilter<ImageType, ImageType, ImageType> FilterType;
 
-  std::cout << "before new filter" << std::endl;
+  antscout << "before new filter" << std::endl;
   typename FilterType::Pointer filter = FilterType::New();
-  std::cout << "after new filter" << std::endl;
+  antscout << "after new filter" << std::endl;
 
   //  typename FilterType::BiasFieldType::CoefficientArrayType
 
@@ -5256,7 +5286,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
   long int t1 = time(NULL);
   filter->Update();
   long int t2 = time(NULL);
-  std::cout << "Run time (in s)" << t2 - t1  << std::endl;
+  antscout << "Run time (in s)" << t2 - t1  << std::endl;
 
   return filter->GetOutput();
 }
@@ -5334,7 +5364,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 //   //Set the parameters of the clusterer
 //   //----------------------------------------------------------------------
 //
-//   std::cout << "Starting to build the K-means model ....." << std::endl;
+//   antscout << "Starting to build the K-means model ....." << std::endl;
 //
 //   applyKmeansModelEstimator->SetInputImage( vecImage );
 //   applyKmeansModelEstimator->SetNumberOfModels(nclasses);
@@ -5351,7 +5381,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 //   std::vector<double> kmeansResultForClass(membershipFunctions.size());
 //
 //
-//   std::cout << "Result of K-Means clustering" << std::endl;
+//   antscout << "Result of K-Means clustering" << std::endl;
 //
 //   double meanDistance=0;
 //   for(unsigned int classIndex=0; classIndex < membershipFunctions.size();
@@ -5362,7 +5392,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 //     meanDistance+=kmeansResultForClass[classIndex];//membershipFunctions[i]->GetMean()[0];
 //     }
 //   meanDistance/=(float)nclasses;
-//   std::cout << " mean dist " << meanDistance << std::endl;
+//   antscout << " mean dist " << meanDistance << std::endl;
 //
 //
 //   start = kmeansResultForClass.begin();
@@ -5381,7 +5411,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 //   for(unsigned int classIndex=0; classIndex < membershipFunctions.size();
 //     classIndex++ )
 //     {
-//     std::cout <<  (membershipFunctions[classIndex]->GetCentroid())[0] << std::endl;
+//     antscout <<  (membershipFunctions[classIndex]->GetCentroid())[0] << std::endl;
 //     }
 //
 //   //----------------------------------------------------------------------
@@ -5498,7 +5528,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 //       wIt != weights.end(); wIt++ )
 //     {
 //      testNewNeighborhoodWeight[jj] = static_cast< double > ( (*wIt) * meanDistance / (2 * totalWeight));
-//      //std::cout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
+//      //antscout << " ow " << weights[jj] << " nw " <<  testNewNeighborhoodWeight[jj] << std::endl;
 //     jj++;
 //     }
 //
@@ -5510,7 +5540,7 @@ itkMRIBiasFieldCorrectionFilter(typename TImage::Pointer image,
 //   //Kick off the MRF labeller function
 //   applyMRFFilter->Update();
 //
-//   applyMRFFilter->Print(std::cout);
+//   applyMRFFilter->Print(antscout);
 //   outClassImage = applyMRFFilter->GetOutput();
 //
 //   //------------------------------------------------------
@@ -5692,7 +5722,7 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
     }
   else
     {
-    std::cout << " not enough parameters -- need label image " << std::endl;  return 0;
+    antscout << " not enough parameters -- need label image " << std::endl;  return 0;
     }
   float stoppingValue = 100.0;
   if(  argc > argct )
@@ -5778,12 +5808,12 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   filter->SetTopologyCheck( FilterType::None );
   if( topocheck == 1 )  // Strict
     {
-    std::cout << " strict " << std::endl;
+    antscout << " strict " << std::endl;
     filter->SetTopologyCheck( FilterType::Strict );
     }
   if( topocheck == 2 )  // No handles
     {
-    std::cout << " no handles " << std::endl;
+    antscout << " no handles " << std::endl;
     filter->SetTopologyCheck( FilterType::NoHandles );
     }
 
@@ -5793,8 +5823,8 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
     }
   catch( itk::ExceptionObject & excep )
     {
-    std::cerr << "Exception caught !" << std::endl;
-    std::cerr << excep << std::endl;
+    antscout << "Exception caught !" << std::endl;
+    antscout << excep << std::endl;
     }
 
   itk::ImageRegionIteratorWithIndex<ImageType> ItF(
@@ -5849,7 +5879,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     }
   else
     {
-    std::cout << " not enough parameters -- need label image " << std::endl;  return 0;
+    antscout << " not enough parameters -- need label image " << std::endl;  return 0;
     }
   if(  argc > argct )
     {
@@ -5974,7 +6004,7 @@ int DistanceMap(int argc, char *argv[])
   int argct = 2;
   if( argc < 5 )
     {
-    std::cerr << "Missing required arguments ( output name, operation & fn1)" << std::endl;
+    antscout << "Missing required arguments ( output name, operation & fn1)" << std::endl;
     throw;
     }
   std::string outname = std::string(argv[argct]); argct++;
@@ -6073,15 +6103,15 @@ int FillHoles(int argc, char *argv[])
     }
   catch( itk::ExceptionObject & excep )
     {
-    std::cerr << "Relabel: exception caught !" << std::endl;
-    std::cerr << excep << std::endl;
+    antscout << "Relabel: exception caught !" << std::endl;
+    antscout << excep << std::endl;
     }
 
   // WriteImage<ImageType>(relabel->GetOutput(),"test.nii");
 
   if( holeparam == 2 )
     {
-    std::cout << " Filling all holes " <<  std::endl;
+    antscout << " Filling all holes " <<  std::endl;
     typedef itk::ImageRegionIteratorWithIndex<ImageType> RelabelIterator;
     RelabelIterator vfIter( relabel->GetOutput(),
                             relabel->GetOutput()->GetLargestPossibleRegion() );
@@ -6148,12 +6178,12 @@ int FillHoles(int argc, char *argv[])
 
       float vrat = (float)totaledge / (float)volume;
       erat = (float)objectedge / (float)totaledge;
-      std::cout << " Lab " << lab << " volume " << volume << " v-rat " << vrat << " edge " << erat << std::endl;
+      antscout << " Lab " << lab << " volume " << volume << " v-rat " << vrat << " edge " << erat << std::endl;
       }
 
     if( erat > holeparam ) // fill the hole
       {
-      std::cout << " Filling " << lab << " of " << maximum <<  std::endl;
+      antscout << " Filling " << lab << " of " << maximum <<  std::endl;
       typedef itk::ImageRegionIteratorWithIndex<ImageType> RelabelIterator;
       RelabelIterator vfIter( relabel->GetOutput(),
                               relabel->GetOutput()->GetLargestPossibleRegion() );
@@ -6264,17 +6294,17 @@ int PrintHeader(int argc, char *argv[])
   std::string fn1 = std::string(argv[argct]);   argct++;
   if( argc > 20 )
     {
-    std::cout << " k " << std::endl;
+    antscout << " k " << std::endl;
     }
   //  std::string opt = std::string(argv[argct]);   argct++;
 
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(fn1.c_str() );
   reader->Update();
-  std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
-  std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
-  std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
-  std::cout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+  antscout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
+  antscout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
+  antscout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
+  antscout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
 
   //  if (strcmp(operation.c_str(),"n_last_dim") == 0){
   // unsigned int lastdim=reader->GetOutput()->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
@@ -6284,7 +6314,7 @@ int PrintHeader(int argc, char *argv[])
   // {
   //  logfile << lastdim << std::endl;
   // }
-  // cd std::cout << lastdim << std::endl;
+  // cd antscout << lastdim << std::endl;
   // }
   return 1;
 }
@@ -6418,9 +6448,9 @@ int PoissonDiffusion( int argc, char *argv[])
 {
   if( argc < 6 )
     {
-    std::cerr << "Usage error---not enough arguments.   See help menu."
-              << std::endl;
-    exit( 1 );
+    antscout << "Usage error---not enough arguments.   See help menu."
+             << std::endl;
+    throw std::exception();
     }
 
   typedef float                                 PixelType;
@@ -6490,7 +6520,7 @@ int PoissonDiffusion( int argc, char *argv[])
   unsigned int iterations = 0;
   while( iterations++ < maximumNumberOfIterations && convergence >= convergenceThreshold )
     {
-    std::cout << "  Iteration " << iterations << ": " << convergence << std::endl;
+    antscout << "  Iteration " << iterations << ": " << convergence << std::endl;
     typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> SmootherType;
     typename SmootherType::Pointer smoother = SmootherType::New();
     smoother->SetVariance( vnl_math_sqr( sigma ) );
@@ -6572,7 +6602,7 @@ RemoveLabelInterfaces(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return;
+    antscout << " too few options " << std::endl; return;
     }
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -6606,7 +6636,7 @@ RemoveLabelInterfaces(int argc, char *argv[])
 
   GHood.GoToBegin();
 
-//  std::cout << " foreg " << (int) foreground;
+//  antscout << " foreg " << (int) foreground;
   while( !GHood.IsAtEnd() )
     {
     typename ImageType::PixelType p = GHood.GetCenterPixel();
@@ -6693,7 +6723,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
     ++o_iter;
     }
 
-  std::cout << " Max Label " << max << std::endl;
+  antscout << " Max Label " << max << std::endl;
   typedef itk::Image<float, 2> myInterfaceImageType;
   typename myInterfaceImageType::SizeType size;
   size[0] = max + 1;
@@ -6731,7 +6761,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
 
   GHood.GoToBegin();
 
-//  std::cout << " foreg " << (int) foreground;
+//  antscout << " foreg " << (int) foreground;
   while( !GHood.IsAtEnd() )
     {
     typename ImageType::PixelType p = GHood.GetCenterPixel();
@@ -6786,9 +6816,9 @@ EnumerateLabelInterfaces(int argc, char *argv[])
       find[1] = i;
       total += faceimage->GetPixel(find);
 //      if ( faceimage->GetPixel(find) > 50 )
-      // std::cout << i <<"  :: " << faceimage->GetPixel(find)  << std::endl;
+      // antscout << i <<"  :: " << faceimage->GetPixel(find)  << std::endl;
       }
-    std::cout << " total interfaces for label :  " << j << " are " << total << std::endl;
+    antscout << " total interfaces for label :  " << j << " are " << total << std::endl;
     for( unsigned int i = 0; i <= max; i++ )
       {
       find[1] = i;
@@ -6798,7 +6828,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
         }
       if( faceimage->GetPixel(find) >  0.01 )
         {
-        std::cout << i << "  :: " << faceimage->GetPixel(find)  << std::endl;
+        antscout << i << "  :: " << faceimage->GetPixel(find)  << std::endl;
         }
       }
     }
@@ -6879,7 +6909,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
       }
 
     colorimage->SetPixel(find, okcolor);
-    std::cout << " Label " << j << " color " << okcolor << std::endl;
+    antscout << " Label " << j << " color " << okcolor << std::endl;
     }
 
   o_iter.GoToBegin();
@@ -7104,7 +7134,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       {
       surf = LabelSurface<ImageType>(mask1, mask1);
       //    WriteImage<ImageType>(surf,outdistfn.c_str());
-      // exit(0);
+      // throw std::exception();
       typedef itk::DanielssonDistanceMapImageFilter<ImageType, ImageType> FilterType;
       typename  FilterType::Pointer dfilter1 = FilterType::New();
       dfilter1->InputIsBinaryOn();
@@ -7165,7 +7195,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
           }
         }
       }
-    //    std::cout << " sdist " << surfdist << " sct " << surfct << std::endl
+    //    antscout << " sdist " << surfdist << " sct " << surfct << std::endl
 
     if( outdist )
       {
@@ -7251,8 +7281,8 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << exp << std::endl;
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
       }
     }
   else
@@ -7289,12 +7319,12 @@ int DiceAndMinDistSum(      int argc, char *argv[])
     try
       {
       OutputCSV->Write();
-      std::cout << "Output written to " << outname.c_str() << ".csv." << std::endl;
+      antscout << "Output written to " << outname.c_str() << ".csv." << std::endl;
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << exp << std::endl;
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
       }
     }
 
@@ -7340,9 +7370,9 @@ int Lipschitz( int argc, char *argv[] )
 {
   if( argc > 20 )
     {
-    std::cout << " k " << std::endl;
+    antscout << " k " << std::endl;
     }
-  std::cout << " Compute Lipschitz continuity of the mapping " << std::endl;
+  antscout << " Compute Lipschitz continuity of the mapping " << std::endl;
 
   typedef float                                              RealType;
   typedef itk::Image<RealType, ImageDimension>               RealImageType;
@@ -7443,15 +7473,15 @@ int Lipschitz( int argc, char *argv[] )
       globalmaxval = localmaxval;
       }
     lipcon->SetPixel(It1.GetIndex(), localmaxval);
-//      if (ct1 % 1000 == 0) std::cout << " Progress : " << (float ) ct1 / (float) numpx *100.0 << " val " <<
+//      if (ct1 % 1000 == 0) antscout << " Progress : " << (float ) ct1 / (float) numpx *100.0 << " val " <<
 // localmaxval << std::endl;
     }
 
-  std::cout << " Lipschitz continuity related to: " << globalmaxval << std::endl;
-  std::cout << " Tx :  " << gxt << "  Ty: " << gyt << std::endl;
-  std::cout << " x :  " << gx << "  y: " << gy << std::endl;
+  antscout << " Lipschitz continuity related to: " << globalmaxval << std::endl;
+  antscout << " Tx :  " << gxt << "  Ty: " << gyt << std::endl;
+  antscout << " x :  " << gx << "  y: " << gy << std::endl;
   timer.Stop();
-//    std::cout << "Elapsed time: " << timer.GetMeanTime()  << std::endl;
+//    antscout << "Elapsed time: " << timer.GetMeanTime()  << std::endl;
 
   typedef itk::ImageFileWriter<RealImageType> RealImageWriterType;
   typename RealImageWriterType::Pointer realwriter = RealImageWriterType::New();
@@ -7467,7 +7497,8 @@ int ExtractVectorComponent( int argc, char *argv[] )
 {
   if( argc <= 2 )
     {
-    std::cout << " too few options " << std::endl; return 1;
+    antscout << " too few options " << std::endl;
+    return 1;
     }
   typedef float                                       PixelType;
   typedef itk::VectorImage<PixelType, ImageDimension> ImageType;
@@ -7484,8 +7515,8 @@ int ExtractVectorComponent( int argc, char *argv[] )
   typename ImageType::Pointer vecimage = reader1->GetOutput();
   if( whichvec >= vecimage->GetVectorLength() )
     {
-    std::cout << " input image " << inname << " only has " << vecimage->GetVectorLength() << " components "
-              << std::endl;
+    antscout << " input image " << inname << " only has " << vecimage->GetVectorLength() << " components "
+             << std::endl;
     return EXIT_FAILURE;
     }
   else
@@ -7517,7 +7548,7 @@ int InvId( int argc, char *argv[] )
 {
   if( argc > 2 )
     {
-    std::cout << " Compute  phi(  phi^{-1}(x)) " << std::endl;
+    antscout << " Compute  phi(  phi^{-1}(x)) " << std::endl;
     }
   else
     {
@@ -7608,9 +7639,9 @@ int InvId( int argc, char *argv[] )
       }
     invid->SetPixel(It1.GetIndex(), error);
     }
-  std::cout << " Max error " << globalmaxval << " at " << gx << std::endl;
+  antscout << " Max error " << globalmaxval << " at " << gx << std::endl;
   timer.Stop();
-//    std::cout << "Elapsed time: " << timer.GetMeanTime()  << std::endl;
+//    antscout << "Elapsed time: " << timer.GetMeanTime()  << std::endl;
 
   typedef itk::ImageFileWriter<RealImageType> RealImageWriterType;
   typename RealImageWriterType::Pointer realwriter = RealImageWriterType::New();
@@ -7751,14 +7782,14 @@ int LabelStats(      int argc, char *argv[])
 
     if( !valimage )
       {
-      std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
-                << std::endl;
+      antscout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
+               << std::endl;
       }
     else // if ( totalvolume > 500 &&  totalmass/totalct > 1/500 )  {
       {
-      std::cout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
-                << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
-      //      std::cout << *it << "  " <<  totalvolume <<  " & " <<  totalmass/totalct   << " \ " << std::endl;
+      antscout << " Volume Of Label " << *it << " is " << totalvolume <<   "  Avg-Location " << myCenterOfMass
+               << " mass is " << totalmass << " average-val is " << totalmass / totalct << std::endl;
+      //      antscout << *it << "  " <<  totalvolume <<  " & " <<  totalmass/totalct   << " \ " << std::endl;
       }
 
 // square image
@@ -7881,16 +7912,16 @@ int ROIStatistics(      int argc, char *argv[])
   wmroimap[11] = std::string("Anterior corpus callosum");
   wmroimap[12] = std::string("Posterior corpus callosum");
   wmroimap[13] = std::string("Mid-body corpus callosum");
-  //  if(grade_list.find("Tim") == grade_list.end()) {  std::cout<<"Tim is not in the map!"<<endl; }
+  //  if(grade_list.find("Tim") == grade_list.end()) {  antscout<<"Tim is not in the map!"<<endl; }
   // mymap.find('a')->second
   int argct = 2;
   if( argc < 6 )
     {
-    std::cout << " not enough parameters --- usage example 1 :" << "" << std::endl;
-    std::cout << argv[0]
-              << " ImageMath  3 output.csv ROIStatistics roinames.txt LabelImage.nii.gz ValueImage.nii.gz  "
-              << std::endl;
-    exit(1);
+    antscout << " not enough parameters --- usage example 1 :" << "" << std::endl;
+    antscout << argv[0]
+             << " ImageMath  3 output.csv ROIStatistics roinames.txt LabelImage.nii.gz ValueImage.nii.gz  "
+             << std::endl;
+    throw std::exception();
     }
   std::string outname = std::string(argv[argct]); argct++;
   std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string(".nii.gz");
@@ -7898,7 +7929,7 @@ int ROIStatistics(      int argc, char *argv[])
   typedef vnl_matrix<double> MatrixType;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn0 = std::string(argv[argct]);   argct++;
-  std::cout << "  fn0 " << fn0 << std::endl;
+  antscout << "  fn0 " << fn0 << std::endl;
   std::map<unsigned int, std::string> roimap = RoiList(fn0);
   std::string                         fn1 = std::string(argv[argct]);   argct++;
   std::string                         fn2 = "";
@@ -8032,7 +8063,7 @@ int ROIStatistics(      int argc, char *argv[])
     it = myLabelSet.begin();
     while (  (*it) != mylabel && it != myLabelSet.end() )
   {
-    std::cout << " it " << *it << " roi " << roi << " mylabel " << mylabel << std::endl;
+    antscout << " it " << *it << " roi " << roi << " mylabel " << mylabel << std::endl;
     roi++;
     ++it;
     }*/
@@ -8250,13 +8281,13 @@ int ROIStatistics(      int argc, char *argv[])
     //    myCenterOfMass=mycomlist[roi];
     if( roimap.find(roi) != roimap.end()  )
       {
-      std::cout << roimap.find(roi)->second << " & " << clusters[roi] << " , "  << pvals[roi] << "  & "
-                <<  pvals3[roi]  << " &  " << pvals4[roi]   << " &  "
-                << (float)( (int)(myCenterOfMass[0]
+      antscout << roimap.find(roi)->second << " & " << clusters[roi] << " , "  << pvals[roi] << "  & "
+               <<  pvals3[roi]  << " &  " << pvals4[roi]   << " &  "
+               << (float)( (int)(myCenterOfMass[0]
                         * 10) ) / 10. << " "
-                << (float)( (int)(myCenterOfMass[1]
+               << (float)( (int)(myCenterOfMass[1]
                         * 10) ) / 10.  << " "
-                <<  (float)( (int)(myCenterOfMass[2] * 10) ) / 10.  << "   \\ " << std::endl;
+               <<  (float)( (int)(myCenterOfMass[2] * 10) ) / 10.  << "   \\ " << std::endl;
       }
 
     mCSVMatrix(roi, 0) = clusters[roi];
@@ -8301,8 +8332,8 @@ int ROIStatistics(      int argc, char *argv[])
     }
   catch( itk::ExceptionObject& exp )
     {
-    std::cerr << "Exception caught!" << std::endl;
-    std::cerr << exp << std::endl;
+    antscout << "Exception caught!" << std::endl;
+    antscout << exp << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -8391,7 +8422,7 @@ int PValueImage(      int argc, char *argv[])
   typename ImageType::Pointer image = NULL;
   ReadImage<ImageType>(image, fn1.c_str() );
 
-  std::cout << " read Image" << fn1 << " dof " << dof << std::endl;
+  antscout << " read Image" << fn1 << " dof " << dof << std::endl;
   typedef itk::Statistics::TDistribution DistributionType;
   typename DistributionType::Pointer distributionFunction = DistributionType::New();
   distributionFunction->SetDegreesOfFreedom(  dof );
@@ -8447,7 +8478,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
   int argct = 2;
   if( argc < 5 )
     {
-    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    antscout << " need more args -- see usage   " << std::endl;  throw std::exception();
     }
   std::string  outname = std::string(argv[argct]); argct++;
   std::string  ext = itksys::SystemTools::GetFilenameExtension( outname );
@@ -8484,20 +8515,20 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       if( imageIO->GetDimensions(i) > size[i] )
         {
         size[i] = imageIO->GetDimensions(i);
-        std::cout << " bigimage " << j << " size " << size << std::endl;
+        antscout << " bigimage " << j << " size " << size << std::endl;
         }
       }
     }
 
-  std::cout << " largest image " << size << " num images " << numberofimages << " voxct " << voxct << std::endl;
+  antscout << " largest image " << size << " num images " << numberofimages << " voxct " << voxct << std::endl;
   unsigned long xx1 = 0, yy1 = 0;
   if( rowcoloption == 0 )
     {
-    std::cout << " row option " << std::endl;  xx1 = voxct;  yy1 = numberofimages;
+    antscout << " row option " << std::endl;  xx1 = voxct;  yy1 = numberofimages;
     }
   if( rowcoloption == 1 )
     {
-    std::cout << " col option " << std::endl;  yy1 = voxct;  xx1 = numberofimages;
+    antscout << " col option " << std::endl;  yy1 = voxct;  xx1 = numberofimages;
     }
   unsigned long xsize = xx1;
   unsigned long ysize = yy1;
@@ -8513,7 +8544,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       {
       std::string fn = std::string(argv[j]);
       ReadImage<ImageType>(image2, fn.c_str() );
-      std::cout << " image " << j << " is "  << fn << std::endl;
+      antscout << " image " << j << " is "  << fn << std::endl;
       unsigned long xx = 0, yy = 0, tvoxct = 0;
       if( rowcoloption == 0 )
         {
@@ -8559,8 +8590,8 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << exp << std::endl;
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -8570,7 +8601,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
     typename MatrixImageType::SizeType tilesize;
     tilesize[0] = xsize;
     tilesize[1] = ysize;
-    std::cout << " allocate matrix " << tilesize << std::endl;
+    antscout << " allocate matrix " << tilesize << std::endl;
     typename MatrixImageType::RegionType region;
     region.SetSize( tilesize );
 
@@ -8590,7 +8621,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       {
       std::string fn = std::string(argv[j]);
       ReadImage<ImageType>(image2, fn.c_str() );
-      std::cout << " image " << j << " is "  << fn << std::endl;
+      antscout << " image " << j << " is "  << fn << std::endl;
       unsigned long xx = 0, yy = 0, tvoxct = 0;
       if( rowcoloption == 0 )
         {
@@ -8615,7 +8646,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
             }
           mind[0] = xx;
           mind[1] = yy;
-          //          std::cout << " Mind " << mind << std::endl;
+          //          antscout << " Mind " << mind << std::endl;
           matimage->SetPixel(mind, image2->GetPixel(mIter.GetIndex() ) );
           tvoxct++;
           }
@@ -8623,7 +8654,7 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
       imagecount++;
       }
 
-    std::cout << " mat size " << matimage->GetLargestPossibleRegion().GetSize() << std::endl;
+    antscout << " mat size " << matimage->GetLargestPossibleRegion().GetSize() << std::endl;
     WriteImage<MatrixImageType>(matimage, outname.c_str() );
     }
   return 0;
@@ -8649,7 +8680,7 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
   int argct = 2;
   if( argc < 5 )
     {
-    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    antscout << " need more args -- see usage   " << std::endl;  throw std::exception();
     }
   std::string  outname = std::string(argv[argct]); argct++;
   std::string  ext = itksys::SystemTools::GetFilenameExtension( outname );
@@ -8686,7 +8717,7 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
       ReadImage<ImageType>(image2, fn.c_str() );
       Iterator mIter( image2, image2->GetLargestPossibleRegion() );
       mIter.SetNumberOfSamples(n_samples);
-      std::cout << " image " << j << " is "  << fn << std::endl;
+      antscout << " image " << j << " is "  << fn << std::endl;
       voxct = 0;
       for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
         {
@@ -8713,14 +8744,14 @@ int RandomlySampleImageSetToCSV(unsigned int argc, char *argv[])
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << exp << std::endl;
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
       return EXIT_FAILURE;
       }
     }
   else
     {
-    std::cout << " need a csv file as output type , you tried " << outname << std::endl;
+    antscout << " need a csv file as output type , you tried " << outname << std::endl;
     }
   return 0;
 }
@@ -8754,7 +8785,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
   int argct = 2;
   if( argc < 5 )
     {
-    std::cout << " need more args -- see usage   " << std::endl;  exit(0);
+    antscout << " need more args -- see usage   " << std::endl;  throw std::exception();
     }
   std::string  outname = std::string(argv[argct]); argct++;
   std::string  ext = std::string(".csv"); // itksys::SystemTools::GetFilenameExtension( outname );
@@ -8777,8 +8808,8 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     }
   if( maxval == 0 )
     {
-    std::cout << " Max value in mask is <= 0, aborting. " << maxval << std::endl;
-    exit(1);
+    antscout << " Max value in mask is <= 0, aborting. " << maxval << std::endl;
+    throw std::exception();
     }
 
   typedef itk::Array2D<double> MatrixType;
@@ -8800,12 +8831,12 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
         {
         size[i] = imageIO->GetDimensions(i);
 
-        std::cout << " bigimage " << j << " size " << size << std::endl;
+        antscout << " bigimage " << j << " size " << size << std::endl;
         }
       }
     }
 
-  std::cout << " largest image " << size << " num images " << numberofimages << std::endl;
+  antscout << " largest image " << size << " num images " << numberofimages << std::endl;
   MatrixType avg_matrix(numberofimages, maxval);
   avg_matrix.Fill(0);
   for( unsigned long mv = 1; mv <= maxval; mv++ )
@@ -8824,11 +8855,11 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
     unsigned long xx1 = 0, yy1 = 0;
     if( rowcoloption == 0 )
       {
-      std::cout << " row option " << std::endl;  xx1 = voxct;  yy1 = numberofimages;
+      antscout << " row option " << std::endl;  xx1 = voxct;  yy1 = numberofimages;
       }
     if( rowcoloption == 1 )
       {
-      std::cout << " col option " << std::endl;  yy1 = voxct;  xx1 = numberofimages;
+      antscout << " col option " << std::endl;  yy1 = voxct;  xx1 = numberofimages;
       }
     unsigned long xsize = xx1;
     unsigned long ysize = yy1;
@@ -8842,7 +8873,7 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
         {
         std::string fn = std::string(argv[j]);
         ReadImage<ImageType>(image2, fn.c_str() );
-        std::cout << " image " << j << " is "  << fn << std::endl;
+        antscout << " image " << j << " is "  << fn << std::endl;
         unsigned long xx = 0, yy = 0, tvoxct = 0;
         if( rowcoloption == 0 )
           {
@@ -8902,14 +8933,14 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
         }
       catch( itk::ExceptionObject& exp )
         {
-        std::cerr << "Exception caught!" << std::endl;
-        std::cerr << exp << std::endl;
+        antscout << "Exception caught!" << std::endl;
+        antscout << exp << std::endl;
         return EXIT_FAILURE;
         }
       }
     else
       {
-      std::cout << " can only write out csv files " << std::endl;
+      antscout << " can only write out csv files " << std::endl;
       }
     } // end loop over mv variable
 
@@ -8927,8 +8958,8 @@ int ConvertImageSetToEigenvectors(unsigned int argc, char *argv[])
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cerr << "Exception caught!" << std::endl;
-      std::cerr << exp << std::endl;
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -8972,7 +9003,7 @@ int ConvertImageToFile(      int argc, char *argv[])
     ReadImage<ImageType>(mask, fn2.c_str() );
     }
 
-  std::cout << " read Image" << fn1 << " mask? " << fn2 << std::endl;
+  antscout << " read Image" << fn1 << " mask? " << fn2 << std::endl;
   std::ofstream logfile;
   logfile.open(outname.c_str() );
   if( logfile.good() )
@@ -9027,7 +9058,8 @@ int CorrelationUpdate(      int argc, char *argv[])
     }
   else
     {
-    std::cout << " Not enough inputs " << std::endl;  return 1;
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
     }
   unsigned int radius = 2;
   if( argc > argct )
@@ -9090,328 +9122,377 @@ int CorrelationUpdate(      int argc, char *argv[])
   return 0;
 }
 
-int main(int argc, char *argv[])
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "ImageMath" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   if( argc < 5 )
     {
-    std::cout << "\nUsage: " << argv[0]
-              << " ImageDimension <OutputImage.ext> [operations and inputs] <Image1.ext> <Image2.ext>" << std::endl;
+    antscout << "\nUsage: " << argv[0]
+             << " ImageDimension <OutputImage.ext> [operations and inputs] <Image1.ext> <Image2.ext>" << std::endl;
 
-    std::cout << "\nUsage Information " << std::endl;
-    std::cout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional operations)." << std::endl;
-    std::cout << " ImageDimension: 4 (for operations on 4D file, e.g. time-series data)." << std::endl;
-    std::cout << " Operator: See list of valid operators below." << std::endl;
-    std::cout << " The last two arguments can be an image or float value " << std::endl;
-    std::cout << " NB: Some options output text files" << std::endl;
+    antscout << "\nUsage Information " << std::endl;
+    antscout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional operations)." << std::endl;
+    antscout << " ImageDimension: 4 (for operations on 4D file, e.g. time-series data)." << std::endl;
+    antscout << " Operator: See list of valid operators below." << std::endl;
+    antscout << " The last two arguments can be an image or float value " << std::endl;
+    antscout << " NB: Some options output text files" << std::endl;
 
-    std::cout << "\nMathematical Operations:" << std::endl;
-    std::cout << "  m            : Multiply" << std::endl;
-    std::cout << "  +             : Add" << std::endl;
-    std::cout << "  -             : Subtract" << std::endl;
-    std::cout << "  /             : Divide" << std::endl;
-    std::cout << "  ^            : Power" << std::endl;
-    std::cout << "  exp            : Take exponent exp(imagevalue*value)" << std::endl;
-    std::cout << "  addtozero        : add image-b to image-a only over points where image-a has zero values"
-              << std::endl;
-    std::cout << "  overadd        : replace image-a pixel with image-b pixel if image-b pixel is non-zero"
-              << std::endl;
-    std::cout << "  abs            : absolute value " << std::endl;
-    std::cout
+    antscout << "\nMathematical Operations:" << std::endl;
+    antscout << "  m            : Multiply" << std::endl;
+    antscout << "  +             : Add" << std::endl;
+    antscout << "  -             : Subtract" << std::endl;
+    antscout << "  /             : Divide" << std::endl;
+    antscout << "  ^            : Power" << std::endl;
+    antscout << "  exp            : Take exponent exp(imagevalue*value)" << std::endl;
+    antscout << "  addtozero        : add image-b to image-a only over points where image-a has zero values"
+             << std::endl;
+    antscout << "  overadd        : replace image-a pixel with image-b pixel if image-b pixel is non-zero"
+             << std::endl;
+    antscout << "  abs            : absolute value " << std::endl;
+    antscout
       << "  total            : Sums up values in an image or in image1*image2 (img2 is the probability mask)"
       << std::endl;
-    std::cout << "  Decision        : Computes result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))" << std::endl;
-    std::cout << "  Neg            : Produce image negative" << std::endl;
+    antscout << "  Decision        : Computes result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))" << std::endl;
+    antscout << "  Neg            : Produce image negative" << std::endl;
 
-    std::cout << "\nSpatial Filtering:" << std::endl;
-    std::cout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s" << std::endl;
-    std::cout << "  MD Image1.ext s    : Morphological Dilation with radius s" << std::endl;
-    std::cout << "  ME Image1.ext s    : Morphological Erosion with radius s" << std::endl;
-    std::cout << "  MO Image1.ext s    : Morphological Opening with radius s" << std::endl;
-    std::cout << "  MC Image1.ext s    : Morphological Closing with radius s" << std::endl;
-    std::cout << "  GD Image1.ext s    : Grayscale Dilation with radius s" << std::endl;
-    std::cout << "  GE Image1.ext s    : Grayscale Erosion with radius s" << std::endl;
-    std::cout << "  GO Image1.ext s    : Grayscale Opening with radius s" << std::endl;
-    std::cout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
+    antscout << "\nSpatial Filtering:" << std::endl;
+    antscout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s" << std::endl;
+    antscout << "  MD Image1.ext s    : Morphological Dilation with radius s" << std::endl;
+    antscout << "  ME Image1.ext s    : Morphological Erosion with radius s" << std::endl;
+    antscout << "  MO Image1.ext s    : Morphological Opening with radius s" << std::endl;
+    antscout << "  MC Image1.ext s    : Morphological Closing with radius s" << std::endl;
+    antscout << "  GD Image1.ext s    : Grayscale Dilation with radius s" << std::endl;
+    antscout << "  GE Image1.ext s    : Grayscale Erosion with radius s" << std::endl;
+    antscout << "  GO Image1.ext s    : Grayscale Opening with radius s" << std::endl;
+    antscout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
 
-    std::cout << "\nTime Series Operations:" << std::endl;
-    std::cout
+    antscout << "\nTime Series Operations:" << std::endl;
+    antscout
       <<
       " CompCorrAuto : Outputs a csv file containing global signal vector and N comp-corr eigenvectors determined from PCA of the high-variance voxels.  Also outputs a comp-corr + global signal corrected 4D image as well as a 3D image measuring the time series variance.  Requires a label image with label 1 identifying voxels in the brain."
       << std::endl;
-    std::cout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  N-comp-corr-eigenvectors "
-              << std::endl;
-    std::cout
+    antscout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  N-comp-corr-eigenvectors "
+             << std::endl;
+    antscout
       <<
       " CompCorr : Outputs a comp-corr corrected 4D image as well as a 3D image measuring the correlation of a time series voxel/region with a reference voxel/region factored out.  Requires a label image with 1=overall region of interest,  2=reference voxel, 3=region to factor out.  If there is no 3rd label, then only the global signal is factored out."
       << std::endl;
-    std::cout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  Sigma-for-temporal-smoothing "
-              << std::endl;
-    std::cout
+    antscout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  Sigma-for-temporal-smoothing "
+             << std::endl;
+    antscout
       << " TimeSeriesSubset : Outputs n 3D image sub-volumes extracted uniformly from the input time-series 4D image."
       << std::endl;
-    std::cout << "    Usage        : TimeSeriesSubset 4D_TimeSeries.nii.gz n " << std::endl;
-    std::cout
+    antscout << "    Usage        : TimeSeriesSubset 4D_TimeSeries.nii.gz n " << std::endl;
+    antscout
       <<
       " TimeSeriesToMatrix : Converts a 4D image + mask to matrix (stored as csv file) where rows are time and columns are space ."
       << std::endl;
-    std::cout << "    Usage        : TimeSeriesToMatrix 4D_TimeSeries.nii.gz mask " << std::endl;
+    antscout << "    Usage        : TimeSeriesToMatrix 4D_TimeSeries.nii.gz mask " << std::endl;
 
-    std::cout
+    antscout
       <<
       " ComputeTimeSeriesLeverage : Outputs a csv file that identifies the raw leverage and normalized leverage for each time point in the 4D image.  leverage, here, is the difference of the time-point image from the average of the n images.  the normalized leverage is =  average( sum_k abs(Leverage(t)-Leverage(k)) )/Leverage(t). "
       << std::endl;
-    std::cout << "    Usage        : ComputeTimeSeriesLeverage 4D_TimeSeries.nii.gz k_neighbors " << std::endl;
+    antscout << "    Usage        : ComputeTimeSeriesLeverage 4D_TimeSeries.nii.gz k_neighbors " << std::endl;
 
-    std::cout << "\nTensor Operations:" << std::endl;
-    std::cout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
-    std::cout << "    Usage        : 4DTensorTo3DTensor 4D_DTImage.ext" << std::endl;
-    std::cout << "  ComponentTo3DTensor    : Outputs a 3D_DT_Image with the same information as component images. "
-              << std::endl;
-    std::cout << "    Usage        : ComponentTo3DTensor component_image_prefix[xx,xy,xz,yy,yz,zz] extension"
-              << std::endl;
-    std::cout << "  ExtractComponentFrom3DTensor    : Outputs a component images. " << std::endl;
-    std::cout << "    Usage        : ExtractComponentFrom3DTensor dtImage.ext which={xx,xy,xz,yy,yz,zz}" << std::endl;
-    std::cout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
-    std::cout << "    Usage        : ExtractVectorComponent VecImage WhichVec" << std::endl;
-    std::cout << "  TensorColor        : Produces RGB values identifying principal directions " << std::endl;
-    std::cout << "    Usage        : TensorColor DTImage.ext" << std::endl;
-    std::cout << "  TensorFA        : " << std::endl;
-    std::cout << "    Usage        : TensorFA DTImage.ext" << std::endl;
-    std::cout << "  TensorFADenominator    : " << std::endl;
-    std::cout << "    Usage        : TensorFADenominator DTImage.ext" << std::endl;
-    std::cout << "  TensorFANumerator    : " << std::endl;
-    std::cout << "    Usage        : TensorFANumerator DTImage.ext" << std::endl;
-    std::cout << "  TensorIOTest    : Will write the DT image back out ... tests I/O processes for consistency. "
-              << std::endl;
-    std::cout << "    Usage        : TensorIOTest DTImage.ext" << std::endl;
-    std::cout << "  TensorMeanDiffusion    : " << std::endl;
-    std::cout << "    Usage        : TensorMeanDiffusion DTImage.ext" << std::endl;
-    std::cout
+    antscout << "\nTensor Operations:" << std::endl;
+    antscout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
+    antscout << "    Usage        : 4DTensorTo3DTensor 4D_DTImage.ext" << std::endl;
+    antscout << "  ComponentTo3DTensor    : Outputs a 3D_DT_Image with the same information as component images. "
+             << std::endl;
+    antscout << "    Usage        : ComponentTo3DTensor component_image_prefix[xx,xy,xz,yy,yz,zz] extension"
+             << std::endl;
+    antscout << "  ExtractComponentFrom3DTensor    : Outputs a component images. " << std::endl;
+    antscout << "    Usage        : ExtractComponentFrom3DTensor dtImage.ext which={xx,xy,xz,yy,yz,zz}" << std::endl;
+    antscout << "  ExtractVectorComponent: Produces the WhichVec component of the vector " << std::endl;
+    antscout << "    Usage        : ExtractVectorComponent VecImage WhichVec" << std::endl;
+    antscout << "  TensorColor        : Produces RGB values identifying principal directions " << std::endl;
+    antscout << "    Usage        : TensorColor DTImage.ext" << std::endl;
+    antscout << "  TensorFA        : " << std::endl;
+    antscout << "    Usage        : TensorFA DTImage.ext" << std::endl;
+    antscout << "  TensorFADenominator    : " << std::endl;
+    antscout << "    Usage        : TensorFADenominator DTImage.ext" << std::endl;
+    antscout << "  TensorFANumerator    : " << std::endl;
+    antscout << "    Usage        : TensorFANumerator DTImage.ext" << std::endl;
+    antscout << "  TensorIOTest    : Will write the DT image back out ... tests I/O processes for consistency. "
+             << std::endl;
+    antscout << "    Usage        : TensorIOTest DTImage.ext" << std::endl;
+    antscout << "  TensorMeanDiffusion    : " << std::endl;
+    antscout << "    Usage        : TensorMeanDiffusion DTImage.ext" << std::endl;
+    antscout << "  TensorRadialDiffusion    : Mean of the two smallest eigenvalues" << std::endl;
+    antscout << "    Usage        : TensorRadialDiffusion DTImage.ext" << std::endl;
+    antscout << "  TensorEigenvalue    : gets single eigenvalue 0-2, where 0 = smallest, 2 = largest" << std::endl;
+    antscout << "    Usage        : TensorEigenvalue DTImage.ext WhichInd" << std::endl;
+    antscout
       <<
       "  TensorToVector    : Produces vector field identifying one of the principal directions, 2 = largest eigenvalue"
       << std::endl;
-    std::cout << "    Usage        : TensorToVector DTImage.ext WhichVec" << std::endl;
-    std::cout
+    antscout << "    Usage        : TensorToVector DTImage.ext WhichVec" << std::endl;
+    antscout
       <<
       "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest eigenvalue). 3 = 8 => gets values from the tensor "
       << std::endl;
-    std::cout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
+    antscout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
 
-    std::cout << "\nUnclassified Operators:" << std::endl;
+    antscout << "\nUnclassified Operators:" << std::endl;
 
-    std::cout << "  Byte            : Convert to Byte image in [0,255]" << std::endl;
+    antscout << "  Byte            : Convert to Byte image in [0,255]" << std::endl;
 
-    std::cout
+    antscout
       << "\n  CompareHeadersAndImages: Tries to find and fix header errors. Outputs a repaired image with new header. "
       << std::endl;
-    std::cout << "                Never use this if you trust your header information. " << std::endl;
-    std::cout << "      Usage        : CompareHeadersAndImages Image1 Image2" << std::endl;
+    antscout << "                Never use this if you trust your header information. " << std::endl;
+    antscout << "      Usage        : CompareHeadersAndImages Image1 Image2" << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  ConvertImageSetToMatrix: Each row/column contains image content extracted from mask applied to images in *img.nii "
       << std::endl;
-    std::cout << "      Usage        : ConvertImageSetToMatrix rowcoloption Mask.nii *images.nii" << std::endl;
-    std::cout << " ConvertImageSetToMatrix output can be an image type or csv file type." << std::endl;
+    antscout << "      Usage        : ConvertImageSetToMatrix rowcoloption Mask.nii *images.nii" << std::endl;
+    antscout << " ConvertImageSetToMatrix output can be an image type or csv file type." << std::endl;
 
-    std::cout << "\n  RandomlySampleImageSetToCSV: N random samples are selected from each image in a list "
-              << std::endl;
-    std::cout << "      Usage        : RandomlySampleImageSetToCSV N_samples *images.nii" << std::endl;
-    std::cout << " RandomlySampleImageSetToCSV outputs a csv file type." << std::endl;
+    antscout << "\n  RandomlySampleImageSetToCSV: N random samples are selected from each image in a list "
+             << std::endl;
+    antscout << "      Usage        : RandomlySampleImageSetToCSV N_samples *images.nii" << std::endl;
+    antscout << " RandomlySampleImageSetToCSV outputs a csv file type." << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  ConvertImageSetToEigenvectors: Each row/column contains image content extracted from mask applied to images in *img.nii "
       << std::endl;
-    std::cout << "      Usage        : ConvertImageSetToEigenvectors N_Evecs Mask.nii *images.nii" << std::endl;
-    std::cout << " ConvertImageSetToEigenvectors output will be a csv file for each label value > 0 in the mask."
-              << std::endl;
+    antscout << "      Usage        : ConvertImageSetToEigenvectors N_Evecs Mask.nii *images.nii" << std::endl;
+    antscout << " ConvertImageSetToEigenvectors output will be a csv file for each label value > 0 in the mask."
+             << std::endl;
 
-    std::cout << "\n  ConvertImageToFile    : Writes voxel values to a file  " << std::endl;
-    std::cout << "      Usage        : ConvertImageToFile imagevalues.nii {Optional-ImageMask.nii}" << std::endl;
+    antscout << "\n  ConvertImageToFile    : Writes voxel values to a file  " << std::endl;
+    antscout << "      Usage        : ConvertImageToFile imagevalues.nii {Optional-ImageMask.nii}" << std::endl;
 
-    std::cout
+    antscout
       << "\n  ConvertLandmarkFile    : Converts landmark file between formats. See ANTS.pdf for description of formats."
       << std::endl;
-    std::cout << "      Usage        : ConvertLandmarkFile InFile.txt" << std::endl;
-    std::cout << "      Example 1        : ImageMath 3  outfile.vtk  ConvertLandmarkFile  infile.txt" << std::endl;
+    antscout << "      Usage        : ConvertLandmarkFile InFile.txt" << std::endl;
+    antscout << "      Example 1        : ImageMath 3  outfile.vtk  ConvertLandmarkFile  infile.txt" << std::endl;
 
-    std::cout << "\n  ConvertToGaussian    : " << std::endl;
-    std::cout << "      Usage        : ConvertToGaussian  TValueImage  sigma-float" << std::endl;
+    antscout << "\n  ConvertToGaussian    : " << std::endl;
+    antscout << "      Usage        : ConvertToGaussian  TValueImage  sigma-float" << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  ConvertVectorToImage    : The vector contains image content extracted from a mask. Here the vector is returned to its spatial origins as image content "
       << std::endl;
-    std::cout << "      Usage        : ConvertVectorToImage Mask.nii vector.nii" << std::endl;
+    antscout << "      Usage        : ConvertVectorToImage Mask.nii vector.nii" << std::endl;
 
-    std::cout << "\n  CorrelationUpdate    : In voxels, compute update that makes Image2 more like Image1."
-              << std::endl;
-    std::cout << "      Usage        : CorrelationUpdate Image1.ext Image2.ext RegionRadius" << std::endl;
+    antscout << "\n  CorrelationUpdate    : In voxels, compute update that makes Image2 more like Image1."
+             << std::endl;
+    antscout << "      Usage        : CorrelationUpdate Image1.ext Image2.ext RegionRadius" << std::endl;
 
-    std::cout << "\n  CountVoxelDifference    : The where function from IDL " << std::endl;
-    std::cout << "      Usage        : CountVoxelDifference Image1 Image2 Mask" << std::endl;
+    antscout << "\n  CountVoxelDifference    : The where function from IDL " << std::endl;
+    antscout << "      Usage        : CountVoxelDifference Image1 Image2 Mask" << std::endl;
 
-    std::cout << "\n  CorruptImage        : " << std::endl;
-    std::cout << "      Usage        : CorruptImage Image NoiseLevel Smoothing" << std::endl;
+    antscout << "\n  CorruptImage        : " << std::endl;
+    antscout << "      Usage        : CorruptImage Image NoiseLevel Smoothing" << std::endl;
 
-    std::cout << "\n  D            : DistanceTransform" << std::endl;
+    antscout << "\n  D            : DistanceTransform" << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  DiceAndMinDistSum    : Outputs DiceAndMinDistSum and Dice Overlap to text log file + optional distance image"
       << std::endl;
-    std::cout << "      Usage        : DiceAndMinDistSum LabelImage1.ext LabelImage2.ext OptionalDistImage"
-              << std::endl;
+    antscout << "      Usage        : DiceAndMinDistSum LabelImage1.ext LabelImage2.ext OptionalDistImage"
+             << std::endl;
 
-    std::cout << "\n  EnumerateLabelInterfaces: " << std::endl;
-    std::cout
+    antscout << "\n  EnumerateLabelInterfaces: " << std::endl;
+    antscout
       << "      Usage        : EnumerateLabelInterfaces ImageIn ColoredImageOutname NeighborFractionToIgnore"
       << std::endl;
 
-    std::cout
+    antscout
       << "\n  ExtractSlice        : Extracts slice number from last dimension of volume (2,3,4) dimensions "
       << std::endl;
-    std::cout << "      Usage        : ExtractSlice volume.nii.gz slicetoextract" << std::endl;
+    antscout << "      Usage        : ExtractSlice volume.nii.gz slicetoextract" << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  FastMarchingSegmentation: final output is the propagated label image. Optional stopping value: higher values allow more distant propagation "
       << std::endl;
-    std::cout
+    antscout
       <<
       "      Usage        : FastMarchingSegmentation speed/binaryimagemask.ext initiallabelimage.ext Optional-Stopping-Value"
       << std::endl;
 
-    std::cout << "\n  FillHoles        : Parameter = ratio of edge at object to edge at background;  --  " << std::endl;
-    std::cout << "                Parameter = 1 is a definite hole bounded by object only, 0.99 is close" << std::endl;
-    std::cout << "                Default of parameter > 1 will fill all holes" << std::endl;
-    std::cout << "      Usage        : FillHoles Image.ext parameter" << std::endl;
+    antscout << "\n  FillHoles        : Parameter = ratio of edge at object to edge at background;  --  " << std::endl;
+    antscout << "                Parameter = 1 is a definite hole bounded by object only, 0.99 is close" << std::endl;
+    antscout << "                Default of parameter > 1 will fill all holes" << std::endl;
+    antscout << "      Usage        : FillHoles Image.ext parameter" << std::endl;
 
-    std::cout << "\n  FitSphere        : " << std::endl;
-    std::cout << "      Usage        : FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}" << std::endl;
+    antscout << "\n  FitSphere        : " << std::endl;
+    antscout << "      Usage        : FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}" << std::endl;
 
-    std::cout << "\n  FlattenImage        : Replaces values greater than %ofMax*Max to the value %ofMax*Max "
-              << std::endl;
-    std::cout << "      Usage        : FlattenImage Image %ofMax" << std::endl;
+    antscout << "\n  FlattenImage        : Replaces values greater than %ofMax*Max to the value %ofMax*Max "
+             << std::endl;
+    antscout << "      Usage        : FlattenImage Image %ofMax" << std::endl;
 
-    std::cout << "\n  GetLargestComponent    : Get the largest object in an image" << std::endl;
-    std::cout << "      Usage        : GetLargestComponent InputImage {MinObjectSize}" << std::endl;
+    antscout << "\n  GetLargestComponent    : Get the largest object in an image" << std::endl;
+    antscout << "      Usage        : GetLargestComponent InputImage {MinObjectSize}" << std::endl;
 
-    std::cout << "\n  Grad            : Gradient magnitude with sigma s (if normalize, then output in range [0, 1])"
-              << std::endl;
-    std::cout << "      Usage        : Grad Image.ext s normalize?" << std::endl;
+    antscout << "\n  Grad            : Gradient magnitude with sigma s (if normalize, then output in range [0, 1])"
+             << std::endl;
+    antscout << "      Usage        : Grad Image.ext s normalize?" << std::endl;
 
-    std::cout << "\n  HistogramMatch    : " << std::endl;
-    std::cout
+    antscout << "\n  HistogramMatch    : " << std::endl;
+    antscout
       <<
       "      Usage        : HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} {NumberPoints-Default=64}"
       << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  InvId            : computes the inverse-consistency of two deformations and write the inverse consistency error image "
       << std::endl;
-    std::cout << "      Usage        : InvId VectorFieldName VectorFieldName" << std::endl;
+    antscout << "      Usage        : InvId VectorFieldName VectorFieldName" << std::endl;
 
-    std::cout << "\n  LabelStats        : Compute volumes / masses of objects in a label image. Writes to text file"
-              << std::endl;
-    std::cout << "      Usage        : LabelStats labelimage.ext valueimage.nii" << std::endl;
+    antscout << "\n  LabelStats        : Compute volumes / masses of objects in a label image. Writes to text file"
+             << std::endl;
+    antscout << "      Usage        : LabelStats labelimage.ext valueimage.nii" << std::endl;
 
-    std::cout
+    antscout
       << "\n  Laplacian        : Laplacian computed with sigma s (if normalize, then output in range [0, 1])"
       << std::endl;
-    std::cout << "      Usage        : Laplacian Image.ext s normalize?" << std::endl;
+    antscout << "      Usage        : Laplacian Image.ext s normalize?" << std::endl;
 
-    std::cout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;
-    std::cout << "      Usage        : Lipschitz VectorFieldName" << std::endl;
+    antscout << "\n  Lipschitz        : Computes the Lipschitz norm of a vector field " << std::endl;
+    antscout << "      Usage        : Lipschitz VectorFieldName" << std::endl;
 
-    std::cout << "\n  MakeImage        : " << std::endl;
-    std::cout << "      Usage        : MakeImage SizeX  SizeY {SizeZ};" << std::endl;
+    antscout << "\n  MakeImage        : " << std::endl;
+    antscout << "      Usage        : MakeImage SizeX  SizeY {SizeZ};" << std::endl;
 
-    std::cout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
-    std::cout << "      Usage        : Normalize Image.ext opt" << std::endl;
+    antscout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
+    antscout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
-    std::cout << "\n  PadImage        : If Pad-Number is negative, de-Padding occurs" << std::endl;
-    std::cout << "      Usage        : PadImage ImageIn Pad-Number" << std::endl;
+    antscout << "\n  PadImage        : If Pad-Number is negative, de-Padding occurs" << std::endl;
+    antscout << "      Usage        : PadImage ImageIn Pad-Number" << std::endl;
 
-    std::cout << "\n  CenterImage2inImage1        : " << std::endl;
-    std::cout << "      Usage        : ReferenceImageSpace ImageToCenter " << std::endl;
+    antscout << "\n  CenterImage2inImage1        : " << std::endl;
+    antscout << "      Usage        : ReferenceImageSpace ImageToCenter " << std::endl;
 
-    std::cout << "\n  PH            : Print Header" << std::endl;
+    antscout << "\n  PH            : Print Header" << std::endl;
 
-    std::cout
+    antscout
       << "\n  PoissonDiffusion        : Solves Poisson's equation in a designated region using non-zero sources"
       << std::endl;
-    std::cout
+    antscout
       <<
       "      Usage        : PoissonDiffusion inputImage labelImage [sigma=1.0] [regionLabel=1] [numberOfIterations=500] [convergenceThreshold=1e-10]"
       << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  PropagateLabelsThroughMask: Final output is the propagated label image. Optional stopping value: higher values allow more distant propagation"
       << std::endl;
-    std::cout
+    antscout
       <<
       "      Usage        : PropagateLabelsThroughMask speed/binaryimagemask.nii.gz initiallabelimage.nii.gz Optional-Stopping-Value"
       << std::endl;
 
-    std::cout << "\n  PValueImage        : " << std::endl;
-    std::cout << "      Usage        : PValueImage TValueImage dof" << std::endl;
+    antscout << "\n  PValueImage        : " << std::endl;
+    antscout << "      Usage        : PValueImage TValueImage dof" << std::endl;
 
-    std::cout << "\n  RemoveLabelInterfaces: " << std::endl;
-    std::cout << "      Usage        : RemoveLabelInterfaces ImageIn" << std::endl;
+    antscout << "\n  RemoveLabelInterfaces: " << std::endl;
+    antscout << "      Usage        : RemoveLabelInterfaces ImageIn" << std::endl;
 
-    std::cout
+    antscout
       <<
       "\n  ROIStatistics        : computes anatomical locations, cluster size and mass of a stat image which should be in the same physical space (but not nec same resolution) as the label image."
       << std::endl;
-    std::cout << "      Usage        : ROIStatistics LabelNames.txt labelimage.ext valueimage.nii" << std::endl;
+    antscout << "      Usage        : ROIStatistics LabelNames.txt labelimage.ext valueimage.nii" << std::endl;
 
-    std::cout << "\n  SetOrGetPixel    : "  << std::endl;
-    std::cout << "      Usage        : SetOrGetPixel ImageIn Get/Set-Value IndexX IndexY {IndexZ}" << std::endl;
-    std::cout
+    antscout << "\n  SetOrGetPixel    : "  << std::endl;
+    antscout << "      Usage        : SetOrGetPixel ImageIn Get/Set-Value IndexX IndexY {IndexZ}" << std::endl;
+    antscout
       << "      Example 1        : ImageMath 2 outimage.nii SetOrGetPixel Image Get 24 34; Gets the value at 24, 34"
       << std::endl;
-    std::cout
+    antscout
       <<
       "      Example 2        : ImageMath 2 outimage.nii SetOrGetPixel Image 1.e9 24 34; This sets 1.e9 as the value at 23 34"
       << std::endl;
-    std::cout << "                You can also pass a boolean at the end to force the physical space to be used"
-              << std::endl;
+    antscout << "                You can also pass a boolean at the end to force the physical space to be used"
+             << std::endl;
 
-    std::cout
+    antscout
       << "\n  Segment        : Segment an Image  with option of Priors, weight 1 => maximally local/prior-based )"
       << std::endl;
-    std::cout
+    antscout
       <<
       "      Usage        : Segment Image1.ext N-Classes LocalityVsGlobalityWeight-In-ZeroToOneRange OptionalPriorImages"
       << std::endl;
 
-    std::cout << "\n  stack            : Will put 2 images in the same volume" << std::endl;
-    std::cout << "      Usage        : Stack Image1.ext Image2.ext" << std::endl;
+    antscout << "\n  stack            : Will put 2 images in the same volume" << std::endl;
+    antscout << "      Usage        : Stack Image1.ext Image2.ext" << std::endl;
 
-    std::cout << "\n  ThresholdAtMean    : See the code" << std::endl;
-    std::cout << "      Usage        : ThresholdAtMean Image %ofMean" << std::endl;
+    antscout << "\n  ThresholdAtMean    : See the code" << std::endl;
+    antscout << "      Usage        : ThresholdAtMean Image %ofMean" << std::endl;
 
-    std::cout << "\n  TileImages    : " << std::endl;
-    std::cout << "      Usage        : TileImages NumColumns ImageList*" << std::endl;
+    antscout << "\n  TileImages    : " << std::endl;
+    antscout << "      Usage        : TileImages NumColumns ImageList*" << std::endl;
 
-    std::cout << "\n  TriPlanarView    : " << std::endl;
-    std::cout
+    antscout << "\n  TriPlanarView    : " << std::endl;
+    antscout
       <<
       "      Usage        : TriPlanarView  ImageIn.nii.gz PercentageToClampLowIntensity PercentageToClampHiIntensity x-slice y-slice z-slice"
       << std::endl;
 
-    std::cout << "\n  TruncateImageIntensity: " << std::endl;
-    std::cout
+    antscout << "\n  TruncateImageIntensity: " << std::endl;
+    antscout
       <<
       "      Usage        : TruncateImageIntensity InputImage.ext {lowerQuantile=0.05} {upperQuantile=0.95} {numberOfBins=65} {binary-maskImage}"
       << std::endl;
 
-    std::cout << "\n  Where            : The where function from IDL" << std::endl;
-    std::cout << "      Usage        : Where Image ValueToLookFor maskImage-option tolerance" << std::endl;
+    antscout << "\n  Where            : The where function from IDL" << std::endl;
+    antscout << "      Usage        : Where Image ValueToLookFor maskImage-option tolerance" << std::endl;
 
     return 1;
     }
@@ -9662,7 +9743,7 @@ int main(int argc, char *argv[])
       //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
         {
-        std::cout << " cannot find operation : " << operation << std::endl;
+        antscout << " cannot find operation : " << operation << std::endl;
         }
       }
       break;
@@ -9967,7 +10048,7 @@ int main(int argc, char *argv[])
         }
       else
         {
-        std::cout << " cannot find operation : " << operation << std::endl;
+        antscout << " cannot find operation : " << operation << std::endl;
         }
       }
       break;
@@ -10246,14 +10327,15 @@ int main(int argc, char *argv[])
         }
       else
         {
-        std::cout << " cannot find operation : " << operation << std::endl;
+        antscout << " cannot find operation : " << operation << std::endl;
         }
       }
       break;
 
     default:
-      std::cerr << " Dimension Not supported " << atoi(argv[1]) << std::endl;
-      exit( 1 );
+      antscout << " Dimension Not supported " << atoi(argv[1]) << std::endl;
+      return EXIT_FAILURE;
     }
   return 0;
 }
+} // namespace ants
