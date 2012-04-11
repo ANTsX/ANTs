@@ -70,7 +70,7 @@ public:
   typedef TOutput RealType;
   typedef TOutput OutputType;
 
-  virtual void SetInputListSample(unsigned int d, const InputListSampleType * ptr );
+  virtual void SetIndexedInputListSample(unsigned int d, const InputListSampleType * ptr );
 
   virtual TOutput Evaluate( const InputMeasurementVectorType& measurement ) const;
 

@@ -672,7 +672,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         {
         this->m_MixtureModelComponents[n]->SetListSampleWeights(
           d, &weights[labelSet[d] - 1] );
-        this->m_MixtureModelComponents[n]->SetInputListSample(
+        this->m_MixtureModelComponents[n]->SetIndexedInputListSample(
           d, samples[labelSet[d] - 1] );
         this->m_MixtureModelComponents[n]->ClearInputListSample( d );
         }
@@ -1385,7 +1385,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         if( n == labelSet[d] - 1 )
           {
           this->m_MixtureModelComponents[n]->SetListSampleWeights( d, &weights );
-          this->m_MixtureModelComponents[n]->SetInputListSample( d, sample );
+          this->m_MixtureModelComponents[n]->SetIndexedInputListSample( d, sample );
           this->m_MixtureModelComponents[n]->ClearInputListSample( d );
           }
         }

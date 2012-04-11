@@ -49,9 +49,9 @@ PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
 template <class TListSample, class TOutput, class TCoordRep>
 void
 PartialVolumeGaussianListSampleFunction<TListSample, TOutput, TCoordRep>
-::SetInputListSample( const unsigned int d, const InputListSampleType * ptr )
+::SetIndexedInputListSample( const unsigned int d, const InputListSampleType * ptr )
 {
-  Superclass::SetInputListSample( d, ptr );
+  Superclass::SetIndexedInputListSample( d, ptr );
 
   if( d > 1 )
     {

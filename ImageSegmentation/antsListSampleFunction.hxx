@@ -91,7 +91,7 @@ typename ListSampleFunction<TInputListSample, TOutput, TCoordRep>::ListSampleWei
 template <class TInputListSample, class TOutput, class TCoordRep>
 void
 ListSampleFunction<TInputListSample, TOutput, TCoordRep>
-::SetInputListSample( const unsigned int idx, const InputListSampleType * ptr )
+::SetIndexedInputListSample( const unsigned int idx, const InputListSampleType * ptr )
 {
   if( idx >= this->m_ListSamples.size() )
     {

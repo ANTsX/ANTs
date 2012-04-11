@@ -80,10 +80,10 @@ public:
    * SetInputListSample again to update cached values. */
   virtual void SetInputListSample( const InputListSampleType * ptr )
   {
-    this->SetInputListSample( 0, ptr );
+    this->SetIndexedInputListSample( 0, ptr );
   }
 
-  virtual void SetInputListSample( unsigned int d, const InputListSampleType * ptr );
+  virtual void SetIndexedInputListSample( unsigned int d, const InputListSampleType * ptr );
 
   /** Sets the weights using an array */
   virtual void SetListSampleWeights( ListSampleWeightArrayType *array )
@@ -99,7 +99,7 @@ public:
   /** Clear the input list sample to free memory */
   virtual void ClearInputListSample( unsigned int idx = 0 )
   {
-    this->SetInputListSample( idx, NULL );
+    this->SetIndexedInputListSample( idx, NULL );
   }
 
   /** Gets the weights array */
