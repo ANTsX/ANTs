@@ -290,5 +290,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
+  return EXIT_SUCCESS;
 }
 } // namespace ants
