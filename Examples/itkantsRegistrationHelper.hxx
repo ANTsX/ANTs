@@ -784,11 +784,10 @@ RegistrationHelper<VImageDimension>
 
     typedef itk::ImageRegistrationMethodv4<ImageType, ImageType> AffineRegistrationType;
 
-    const int stageNumber = numberOfInitialMovingTransforms + this->m_NumberOfStages - currentStage - 1;
-    this->Logger() << std::endl << "Stage "
-                   << ( stageNumber ) << std::endl;
+    const int stageNumber = currentStage;
+    this->Logger() << std::endl << "Stage " << stageNumber << std::endl;
     std::stringstream currentStageString;
-    currentStageString << ( stageNumber );
+    currentStageString << stageNumber;
 
     // Get the fixed and moving images
     typename ImageType::Pointer fixedImage = this->m_Metrics[currentStage].m_FixedImage;
@@ -2263,9 +2262,7 @@ RegistrationHelper<VImageDimension>
         return EXIT_FAILURE;
       }
     timer.Stop();
-    this->Logger() << "  Elapsed time (stage "
-                   << ( this->m_NumberOfStages - currentStage - 1 ) << "): "
-                   << timer.GetMeanTime() << std::endl << std::endl;
+    this->Logger() << "  Elapsed time (stage " << stageNumber << "): " << timer.GetMeanTime() << std::endl << std::endl;
     }
 
   totalTimer.Stop();
