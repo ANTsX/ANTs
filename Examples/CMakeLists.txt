@@ -136,6 +136,13 @@ configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
 add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
 target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} )
 
+add_library(l_ANTSUseLandmarkImagesToGetBSplineDisplacementField ANTSUseLandmarkImagesToGetBSplineDisplacementField.cxx ${UI_SOURCES})
+target_link_libraries(l_ANTSUseLandmarkImagesToGetBSplineDisplacementField ${ITK_LIBRARIES} )
+set( ANTS_FUNCTION_NAME ANTSUseLandmarkImagesToGetBSplineDisplacementField )
+configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
+add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
+target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} )
+
 add_library(l_ANTSUseDeformationFieldToGetAffineTransform ANTSUseDeformationFieldToGetAffineTransform ${UI_SOURCES})
 target_link_libraries(l_ANTSUseDeformationFieldToGetAffineTransform ${ITK_LIBRARIES} )
 set( ANTS_FUNCTION_NAME ANTSUseDeformationFieldToGetAffineTransform )
@@ -684,6 +691,8 @@ install(TARGETS ANTS
   l_ResetDirection
   ANTSUseLandmarkImagesToGetAffineTransform
   l_ANTSUseLandmarkImagesToGetAffineTransform
+  ANTSUseLandmarkImagesToGetBSplineDisplacementField
+  l_ANTSUseLandmarkImagesToGetBSplineDisplacementField
   ANTSUseDeformationFieldToGetAffineTransform
   l_ANTSUseDeformationFieldToGetAffineTransform
   AverageAffineTransform

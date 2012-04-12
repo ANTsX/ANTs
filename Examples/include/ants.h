@@ -23,6 +23,8 @@
 
 #include "ANTSUseLandmarkImagesToGetAffineTransform.h"
 
+#include "ANTSUseLandmarkImagesToGetBSplineDisplacementField.h"
+
 #include "Atropos.h"
 
 #include "AtroposMin.h"
