@@ -5,6 +5,7 @@
 #include "itkantsRegistrationHelper.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkMeanSquaresImageToImageMetricv4.h"
+#include "itkDemonsImageToImageMetricv4.h"
 #include "itkCorrelationImageToImageMetricv4.h"
 
 #include "itkAffineTransform.h"
@@ -305,9 +306,13 @@ RegistrationHelper<VImageDimension>
     {
     return Mattes;
     }
-  else if( str == "meansquares" || str == "msq" )
+  else if( str == "meansquares" || str == "msq" || str == "ssd" )
     {
     return MeanSquares;
+    }
+  else if( str == "demons" )
+    {
+    return Demons;
     }
   else if( str == "gc" )
     {
@@ -978,6 +983,17 @@ RegistrationHelper<VImageDimension>
         meanSquaresMetric = meanSquaresMetric;
 
         metric = meanSquaresMetric;
+        }
+        break;
+      case Demons:
+        {
+        this->Logger() << "  using the Demons metric." << std::endl;
+
+        typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType> DemonsMetricType;
+        typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
+        demonsMetric = demonsMetric;
+
+        metric = demonsMetric;
         }
         break;
       case GC:

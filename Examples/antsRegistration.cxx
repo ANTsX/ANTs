@@ -105,9 +105,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description = std::string( "These image metrics are available--- " )
-      + std::string( "CC:  ANTS neighborhood cross correlation, MI:  Mutual information, and " )
-      + std::string( "MeanSquares:  Thirion's MeanSquares (modified mean-squares). " )
-      + std::string( "GC, Global Correlation. " )
+      + std::string( "CC:  ANTS neighborhood cross correlation, MI:  Mutual information, " )
+      + std::string( "Demons: (Thirion), MeanSquares, and " )
+      + std::string( "GC: Global Correlation. " )
       + std::string( "Note that the metricWeight is currently not used.  " )
       + std::string( "Rather, it is a temporary place holder until multivariate metrics " )
       + std::string( "are available for a single stage. " )
@@ -135,6 +135,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       "MeanSquares[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       4,
+      "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      5,
       "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
@@ -733,6 +736,18 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       case RegistrationHelperType::GC:
       case RegistrationHelperType::MeanSquares:
+        {
+        regHelper->AddMetric(curMetric,
+                             fixedImage,
+                             movingImage,
+                             1.0,
+                             samplingStrategy,
+                             1,
+                             1,
+                             samplingPercentage);
+        }
+        break;
+      case RegistrationHelperType::Demons:
         {
         regHelper->AddMetric(curMetric,
                              fixedImage,

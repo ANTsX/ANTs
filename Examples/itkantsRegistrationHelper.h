@@ -61,8 +61,9 @@ public:
     MI = 1,
     Mattes = 2,
     MeanSquares = 3,
-    GC = 4,
-    IllegalMetric = 5
+    Demons = 4,
+    GC = 5,
+    IllegalMetric = 6
     };
   enum SamplingStrategy
     {
@@ -101,6 +102,8 @@ public:
       { return "Mattes";; }
         case MeanSquares:
       { return "MeanSquares"; }
+        case Demons:
+      { return "Demons"; }
         case GC:
       { return "GC"; }
         default:
