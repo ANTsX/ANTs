@@ -874,7 +874,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
     else
         echo
         echo "--------------------------------------------------------------------------------------"
-        echo " Initial template $i found.  This will be used for guiding the registration. use : $REGTEMPLATES[$i] and $TEMPLATES[$i] "
+        echo " Initial template $i found.  This will be used for guiding the registration. use : ${REGTEMPLATES[$i]} and ${TEMPLATES[$i]} "
         echo "--------------------------------------------------------------------------------------"
      # now move the initial registration template to OUTPUTNAME, otherwise this input gets overwritten.
         cp ${REGTEMPLATES[$i]} ${TEMPLATES[$i]}
