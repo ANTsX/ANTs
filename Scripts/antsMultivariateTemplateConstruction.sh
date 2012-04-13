@@ -863,7 +863,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
     do
     setCurrentImageSet $i
 
-    if [ ! -s $REGTEMPLATES[$i] ]
+    if [ ! -s ${REGTEMPLATES[$i]} ]
         then
         echo
         echo "--------------------------------------------------------------------------------------"
