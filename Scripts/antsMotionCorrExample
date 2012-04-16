@@ -1,0 +1,20 @@
+#! /bin/bash
+
+in=$1
+if [[ ! -s $in ]] || [[ ${#in} -lt 3 ]] ; then
+  echo open this example file and take a look to see what is done
+  exit
+fi
+out=motcorr
+
+# average the time series
+antsMotionCorr  -d 3 -a $in -o ${out}_avg.nii.gz
+
+# do affine motion correction
+antsMotionCorr  -d 3 -o [${out},${out}.nii.gz,${out}_avg.nii.gz] -m gc[ ${out}_avg.nii.gz , $in , 1 , 1 , Random, 0.05  ] -t Affine[ 0.005 ] -i 20 -u 1 -e 1 -s 0 -f 1 -n 10
+
+# do affine and deformable correction
+antsMotionCorr  -d 3 -o [${out},${out}.nii.gz,${out}_avg.nii.gz] -m gc[ ${out}_avg.nii.gz , $in , 1 , 1 , Random, 0.05  ] -t Affine[ 0.005 ] -i 20 -u 1 -e 1 -s 0 -f 1  -m CC[  ${out}_avg.nii.gz , $in , 1 , 2 ] -t GaussianDisplacementField[0.15,3,0.5] -i 20 -u 1 -e 1 -s 0 -f 1 -n 10
+
+# check a result by taking a 3d slice from 4d
+ExtractSliceFromImage 4 ${out}.nii.gz temp.nii.gz 0 32
