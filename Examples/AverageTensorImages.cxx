@@ -134,12 +134,7 @@ private:
 
   try
     {
-    int dim = atoi(argv[1]);
-    // char * outputName = argv[2];
-    // int mathtype = atoi(argv[3]);
-    int numberofimages = argc - 4;
-
-    if( numberofimages < 1 )
+    if( argc - 4 < 1 )
       {
       antscout << "Basic useage ex: " << std::endl;
       antscout << argv[0] << " ImageDimension  average.nii mathtype list-of-files-via-wildcard " << std::endl;
@@ -147,6 +142,11 @@ private:
       antscout << " mathtype=[0=log-euclidean, 1=euclidean] " << std::endl;
       return EXIT_FAILURE;
       }
+
+    int dim = atoi(argv[1]);
+    // char * outputName = argv[2];
+    // int mathtype = atoi(argv[3]);
+    int numberofimages = argc - 4;
 
     // Get the image dimension
     switch( dim )

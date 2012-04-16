@@ -92,15 +92,17 @@ Optional arguments:
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost),  3 == Apple XGrid, 4 == PBS qsub
 
-     -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
+     -g:  Gradient step size (default 0.25) for template update. Does not affect the step size of individual registrations. The
+          default of 0.25 should not be increased, smaller numbers result in more cautious template update steps.
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
      -j:  Number of cpu cores to use (default: 2; -- requires "-c 2")
 
-     -m:  Max-iterations in each registration
+     -m:  Max-iterations in each registration, eg 30x90x30
 
-     -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
+     -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on. If 1, will run N4 before each registration. It is
+          more efficient to run N4BiasFieldCorrection on the input images once, then build a template from the corrected images.
 
      -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
 
@@ -115,6 +117,10 @@ Optional arguments:
 
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
+
+	  If you do not have an initial template, it is advisible to run a few iterations with affine
+          normalization only (-m 1x0x0) to get a sensible initial template, then pass this with -z
+          to run full deformable registration.
 
 Example:
 
@@ -195,7 +201,9 @@ Optional arguments:
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
 	  2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS Grid
 
-     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
+     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25). This does not affect the step size
+          of individual registrations; it lets you update the template more cautiously after each iteration by reducing the template
+          update step size from 0.25 to a smaller positive number.
 
      -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
 
@@ -225,6 +233,7 @@ Optional arguments:
 
           In case a template is specified (-z option), all inputs are registered to that template. If
           no template is specified, the inputs will be registered to the averaged input.
+
 
      -s:  Type of similarity metric used for registration.
 
@@ -259,6 +268,11 @@ Optional arguments:
 
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
+
+          If you do not have an initial template, it is advisible to run a few iterations with affine
+          normalization only (-m 1x0x0) to get a sensible initial template, then pass this with -z
+          to run full deformable registration.
+
 
 Requirements:
 
