@@ -1573,6 +1573,12 @@ RegistrationHelper<VImageDimension>
         // Create the transform adaptors specific to B-splines
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
+          typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkFilterType;
+          typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetInput( fixedImage );
+          shrinkFilter->Update();
+
           // A good heuristic is to double the b-spline mesh resolution at each level
 
           typename BSplineTransformType::MeshSizeType requiredMeshSize;
@@ -1585,10 +1591,9 @@ RegistrationHelper<VImageDimension>
           typename BSplineAdaptorType::Pointer bsplineAdaptor = BSplineAdaptorType::New();
           bsplineAdaptor->SetTransform( outputBSplineTransform );
           bsplineAdaptor->SetRequiredTransformDomainMeshSize( requiredMeshSize );
-          bsplineAdaptor->SetRequiredTransformDomainOrigin( outputBSplineTransform->GetTransformDomainOrigin() );
-          bsplineAdaptor->SetRequiredTransformDomainDirection( outputBSplineTransform->GetTransformDomainDirection() );
-          bsplineAdaptor->SetRequiredTransformDomainPhysicalDimensions(
-            outputBSplineTransform->GetTransformDomainPhysicalDimensions() );
+          bsplineAdaptor->SetRequiredTransformDomainOrigin( shrinkFilter->GetOutput()->GetOrigin() );
+          bsplineAdaptor->SetRequiredTransformDomainDirection( shrinkFilter->GetOutput()->GetDirection() );
+          bsplineAdaptor->SetRequiredTransformDomainPhysicalDimensions( physicalDimensions );
 
           adaptors.push_back( bsplineAdaptor.GetPointer() );
           }

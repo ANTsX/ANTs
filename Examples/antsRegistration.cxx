@@ -835,8 +835,20 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         std::vector<unsigned int> meshSizeForTheUpdateField =
           parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
-        std::vector<unsigned int> meshSizeForTheTotalField =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+
+        std::vector<unsigned int> meshSizeForTheTotalField;
+        if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+          {
+          meshSizeForTheTotalField =
+            parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+          }
+        else
+          {
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            meshSizeForTheTotalField.push_back( 0 );
+            }
+          }
 
         unsigned int splineOrder = 3;
         if( transformOption->GetNumberOfParameters( currentStage ) > 3 )

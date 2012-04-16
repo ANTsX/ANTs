@@ -444,7 +444,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Gradient step size for the optimization.  Default = 0.5." );
+      std::string( "Gradient step size for the optimization.  Default = 0.025." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "gradient-step" );
@@ -456,7 +456,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "smoothing-sigma" );
+      std::string( "smoothing-sigma.  Default = 1.5." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "smoothing-sigma" );
