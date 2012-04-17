@@ -371,7 +371,9 @@ CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
     antscout << " The number of rows must match !!" << std::endl;
     antscout << " matrix-1 has " << p.rows() << " rows " << std::endl;
     antscout << " matrix-2 has " << q.rows() << " rows " << std::endl;
-    throw std::exception();
+    antscout << " returning " << EXIT_FAILURE << std::endl;
+    //    throw std::exception();
+    return EXIT_FAILURE;
     }
   return 0;
 }
@@ -988,7 +990,10 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
       {
       antscout << " nuis_img " << nuis_img << std::endl;
       ReadMatrixFromCSVorImageSet<Scalar>(nuis_img, r);
-      CompareMatrixSizes<Scalar>( p, r );
+      if( CompareMatrixSizes<Scalar>( p, r ) == EXIT_FAILURE )
+        {
+        return EXIT_FAILURE;
+        }
       itk::ants::CommandLineParser::OptionType::Pointer partialccaOpt =
         parser->GetOption( "partial-scca-option" );
       std::string partialccaoption = std::string("PQ");
@@ -1156,7 +1161,10 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   vMatrix     q;
   // antscout <<" read-q "<< std::endl;
   ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
-  CompareMatrixSizes<Scalar>( p, q );
+  if( CompareMatrixSizes<Scalar>( p, q ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   typename ImageType::Pointer mask1 = NULL;
   bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetParameter( 2 ).c_str() );
@@ -1383,9 +1391,18 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
   std::string rmatname = std::string(option->GetParameter( 2 ) );
   vMatrix     rin;
   ReadMatrixFromCSVorImageSet<Scalar>(rmatname, rin);
-  CompareMatrixSizes<Scalar>( pin, qin );
-  CompareMatrixSizes<Scalar>( qin, rin );
-  CompareMatrixSizes<Scalar>( pin, rin );
+  if( CompareMatrixSizes<Scalar>( pin, qin ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
+  if( CompareMatrixSizes<Scalar>( qin, rin ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
+  if( CompareMatrixSizes<Scalar>( pin, rin ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   typename ImageType::Pointer mask1 = NULL;
   bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetParameter( 3 ).c_str() );
@@ -1631,8 +1648,8 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
                  << std::endl;
         }
 
-      throw std::exception();
-      }
+      return EXIT_SUCCESS;
+      } // run_partial_scca
     antscout << " VNL mSCCA " << std::endl;
     sccanobj->SetMatrixP( p );
     sccanobj->SetMatrixQ( q );
@@ -1944,33 +1961,37 @@ int sccan( itk::ants::CommandLineParser *parser )
       }
     std::string initializationStrategy = matrixPairOption->GetValue();
     // call RCCA_eigen or RCCA_vnl
+    unsigned int exitvalue = EXIT_FAILURE;
     if(  !initializationStrategy.compare( std::string( "two-view" ) )  )
       {
       antscout << " scca 2-view " << std::endl;
-      SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
-                                        q_cluster_thresh,
-                                        iterct);
+      exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
+                                                    q_cluster_thresh,
+                                                    iterct);
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
       antscout << " mscca 3-view " << std::endl;
-      mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
-                                         q_cluster_thresh,
-                                         iterct);
+      exitvalue = mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,
+                                                     p_cluster_thresh,
+                                                     q_cluster_thresh,
+                                                     iterct);
       }
     else if( !initializationStrategy.compare( std::string("partial") )   )
       {
       antscout << " pscca " << std::endl;
-      mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
-                                         q_cluster_thresh,
-                                         iterct);
+      exitvalue = mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,
+                                                     p_cluster_thresh,
+                                                     q_cluster_thresh,
+                                                     iterct);
       }
     else
       {
       antscout << " unrecognized option in matrixPairOperation " << std::endl;
-      return EXIT_FAILURE;
+      return exitvalue;
       }
-    return EXIT_SUCCESS;
+    antscout << " exit value " << exitvalue << std::endl;
+    return exitvalue;
     }
   else
     {
@@ -2290,9 +2311,7 @@ private:
     }
 
   // Call main routine
-  sccan( parser );
-
-  return EXIT_SUCCESS;
+  return sccan( parser );
 }
 
 // now compute covariance matrices
