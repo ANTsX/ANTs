@@ -7,6 +7,8 @@ set(ANTS_TEST_BIN_DIR ${CMAKE_BINARY_DIR}/Examples)
 
 add_subdirectory(Examples)
 
+configure_file(${CMAKE_CURRENT_LIST_DIR}/CTestCustom.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 ###
 #  Perform testing
 ###
