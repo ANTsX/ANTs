@@ -262,7 +262,7 @@ CopyImageToVnlMatrix( typename TImage::Pointer   p_img )
   vMatrix p(pMatSize[0], pMatSize[1]);       // a (size)x(size+1)-matrix of int's
   for( long j = 0; j < p.columns(); ++j )    // loop over columns
     {
-    for( long i = 0; i < p.rows(); ++i )   // loop over rows
+    for( long i = 0; i < static_cast<long>(p.rows() ); ++i )   // loop over rows
       {
       typename TImage::IndexType ind;
       ind[0] = i;
@@ -286,9 +286,9 @@ DeleteRow(vnl_matrix<TComp> p_in, unsigned int row)
     }
   vMatrix      p(nrows, p_in.columns() );
   unsigned int rowct = 0;
-  for( long i = 0; i < p.rows(); ++i )   // loop over rows
+  for( long i = 0; i < static_cast<long>(p.rows() ); ++i )   // loop over rows
     {
-    if( i != row )
+    if( i != static_cast<long>(row) )
       {
       p.set_row(rowct, p_in.get_row(i) );
       rowct++;

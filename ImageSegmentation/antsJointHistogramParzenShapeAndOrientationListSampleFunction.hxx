@@ -395,7 +395,9 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
       tIter.Set(
         this->m_JointHistogramImages[whichHistogram]->GetPixel( index2 ) );
       }
-    if( index[0] == this->m_NumberOfOrientationJointHistogramBins + 1 )
+    if( index[0] ==
+        static_cast<typename IndexType::IndexValueType>
+        (this->m_NumberOfOrientationJointHistogramBins + 1) )
       {
       index2[0] = 1;
       index2[1] = index[1];

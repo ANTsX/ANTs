@@ -262,7 +262,7 @@ antsSCCANObject<TInputImage, TRealType>
     VectorType wpcol2 = wpcol - wpcol.mean();
     double     sd = wpcol2.squared_magnitude();
     sd = sqrt( sd / (p.rows() - 1) );
-    if( sd <= 0 && i == 0 )
+    if( sd <= 0.0 && i == static_cast<unsigned long>(0) )
       {
       ::ants::antscout << " row " << i << " has zero variance --- exiting " << std::endl;
       std::exception();
@@ -1222,7 +1222,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType pveck = this->m_VariatesP.get_column(k);
       MatrixType pmod = this->NormalizeMatrix( this->m_OriginalMatrixP );
-      if( k > 1  && loop > 1 & k < this->m_MatrixP.rows() - 1  )
+      if( k > 1  && loop > 1 && k < this->m_MatrixP.rows() - 1  )
         {
         MatrixType m( this->m_MatrixP.rows(), k, 0 );
         for( unsigned int mm = 0; mm < k; mm++ )
