@@ -3,4 +3,9 @@ git svn init https://advants.svn.sourceforge.net/svnroot/advants
 git update-ref refs/remotes/git-svn refs/remotes/origin/master
 git svn rebase
 
-
+## Ensure that the following is represented in your .git/config file
+#[svn-remote "svn"]
+#	url = https://advants.svn.sourceforge.net/svnroot/advants
+#	fetch = trunk:refs/remotes/trunk
+#	branches = branches/*:refs/remotes/*
+#	tags = tags/*:refs/remotes/tags/*
