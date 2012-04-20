@@ -148,8 +148,8 @@ public:
 public:
     TransformMethod() : m_XfrmMethod(Rigid),
       m_GradientStep(0),
-      m_UpdateFieldSigmaInPhysicalSpace(0.0),
-      m_TotalFieldSigmaInPhysicalSpace(0.0),
+      m_UpdateFieldVarianceInVarianceSpace(0.0),
+      m_TotalFieldVarianceInVarianceSpace(0.0),
       m_SplineOrder(3),
       m_UpdateFieldTimeSigma(0.0),
       m_TotalFieldTimeSigma(0.0),
@@ -197,8 +197,8 @@ public:
     // BSPline
     std::vector<unsigned int> m_MeshSizeAtBaseLevel;
     // GaussianDisplacementField
-    double m_UpdateFieldSigmaInPhysicalSpace;
-    double m_TotalFieldSigmaInPhysicalSpace;
+    double m_UpdateFieldVarianceInVarianceSpace;
+    double m_TotalFieldVarianceInVarianceSpace;
     // BSplineDisplacementField
     std::vector<unsigned int> m_TotalFieldMeshSizeAtBaseLevel;
     std::vector<unsigned int> m_UpdateFieldMeshSizeAtBaseLevel;
@@ -290,8 +290,8 @@ public:
   /**
    * add gaussian displacement transform
    */
-  void AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
-                                             double TotalFieldSigmaInPhysicalSpace);
+  void AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                                             double TotalFieldVarianceInVarianceSpace);
 
   /**
    * add bspline displacement transform
@@ -305,8 +305,8 @@ public:
    * add a time varying velocity field transform
    */
   void AddTimeVaryingVelocityFieldTransform(double GradientStep, unsigned int NumberOfTimeIndices,
-                                            double UpdateFieldSigmaInPhysicalSpace, double UpdateFieldTimeSigma,
-                                            double TotalFieldSigmaInPhysicalSpace, double TotalFieldTimeSigma);
+                                            double UpdateFieldVarianceInVarianceSpace, double UpdateFieldTimeSigma,
+                                            double TotalFieldVarianceInVarianceSpace, double TotalFieldTimeSigma);
 
   /**
    * add a time varying b spline velocity field transform
@@ -317,8 +317,8 @@ public:
   /**
    * add a SyN transform
    */
-  void AddSyNTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
-                       double TotalFieldSigmaInPhysicalSpace);
+  void AddSyNTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                       double TotalFieldVarianceInVarianceSpace);
 
   /**
    * add a B-spline SyN transform

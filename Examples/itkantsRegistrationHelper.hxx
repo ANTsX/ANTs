@@ -479,15 +479,15 @@ RegistrationHelper<VImageDimension>
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace,
-                                        double TotalFieldSigmaInPhysicalSpace)
+::AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                                        double TotalFieldVarianceInVarianceSpace)
 {
   TransformMethod init;
 
   init.m_XfrmMethod = GaussianDisplacementField;
   init.m_GradientStep = GradientStep;
-  init.m_UpdateFieldSigmaInPhysicalSpace = UpdateFieldSigmaInPhysicalSpace;
-  init.m_TotalFieldSigmaInPhysicalSpace = TotalFieldSigmaInPhysicalSpace;
+  init.m_UpdateFieldVarianceInVarianceSpace = UpdateFieldVarianceInVarianceSpace;
+  init.m_TotalFieldVarianceInVarianceSpace = TotalFieldVarianceInVarianceSpace;
   this->m_TransformMethods.push_back(init);
 }
 
@@ -514,9 +514,9 @@ void
 RegistrationHelper<VImageDimension>
 ::AddTimeVaryingVelocityFieldTransform(double GradientStep,
                                        unsigned int NumberOfTimeIndices,
-                                       double UpdateFieldSigmaInPhysicalSpace,
+                                       double UpdateFieldVarianceInVarianceSpace,
                                        double UpdateFieldTimeSigma,
-                                       double TotalFieldSigmaInPhysicalSpace,
+                                       double TotalFieldVarianceInVarianceSpace,
                                        double TotalFieldTimeSigma)
 {
   TransformMethod init;
@@ -524,9 +524,9 @@ RegistrationHelper<VImageDimension>
   init.m_XfrmMethod = TimeVaryingVelocityField;
   init.m_GradientStep = GradientStep;
   init.m_NumberOfTimeIndices = NumberOfTimeIndices;
-  init.m_UpdateFieldSigmaInPhysicalSpace = UpdateFieldSigmaInPhysicalSpace;
+  init.m_UpdateFieldVarianceInVarianceSpace = UpdateFieldVarianceInVarianceSpace;
   init.m_UpdateFieldTimeSigma = UpdateFieldTimeSigma;
-  init.m_TotalFieldSigmaInPhysicalSpace = TotalFieldSigmaInPhysicalSpace;
+  init.m_TotalFieldVarianceInVarianceSpace = TotalFieldVarianceInVarianceSpace;
   init.m_TotalFieldTimeSigma = TotalFieldTimeSigma;
   this->m_TransformMethods.push_back(init);
 }
@@ -550,14 +550,15 @@ RegistrationHelper<VImageDimension>
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::AddSyNTransform(double GradientStep, double UpdateFieldSigmaInPhysicalSpace, double TotalFieldSigmaInPhysicalSpace)
+::AddSyNTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                  double TotalFieldVarianceInVarianceSpace)
 {
   TransformMethod init;
 
   init.m_XfrmMethod = SyN;
   init.m_GradientStep = GradientStep;
-  init.m_UpdateFieldSigmaInPhysicalSpace = UpdateFieldSigmaInPhysicalSpace;
-  init.m_TotalFieldSigmaInPhysicalSpace = TotalFieldSigmaInPhysicalSpace;
+  init.m_UpdateFieldVarianceInVarianceSpace = UpdateFieldVarianceInVarianceSpace;
+  init.m_TotalFieldVarianceInVarianceSpace = TotalFieldVarianceInVarianceSpace;
   this->m_TransformMethods.push_back(init);
 }
 
@@ -1324,8 +1325,8 @@ RegistrationHelper<VImageDimension>
 
         // Extract parameters
 
-        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldSigmaInPhysicalSpace;
-        RealType varianceForTotalField  = this->m_TransformMethods[currentStage].m_TotalFieldSigmaInPhysicalSpace;
+        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
+        RealType varianceForTotalField  = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
 
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheTotalField( varianceForTotalField );
@@ -1598,7 +1599,7 @@ RegistrationHelper<VImageDimension>
           adaptors.push_back( bsplineAdaptor.GetPointer() );
           }
 
-        optimizer->SetScalesEstimator( NULL );
+//         optimizer->SetScalesEstimator( NULL );
 
         bsplineRegistration->SetFixedImage( preprocessFixedImage );
         bsplineRegistration->SetMovingImage( preprocessMovingImage );
@@ -1695,9 +1696,9 @@ RegistrationHelper<VImageDimension>
 
         // Extract parameters
 
-        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldSigmaInPhysicalSpace;
+        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
         RealType varianceForUpdateFieldTime = this->m_TransformMethods[currentStage].m_UpdateFieldTimeSigma;
-        RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldSigmaInPhysicalSpace;
+        RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
         RealType varianceForTotalFieldTime = this->m_TransformMethods[currentStage].m_TotalFieldTimeSigma;
 
         typedef itk::TimeVaryingVelocityFieldImageRegistrationMethodv4<ImageType, ImageType>
@@ -2067,8 +2068,8 @@ RegistrationHelper<VImageDimension>
           numberOfIterationsPerLevel[d] = currentStageIterations[d];
           }
 
-        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldSigmaInPhysicalSpace;
-        RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldSigmaInPhysicalSpace;
+        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
+        RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
 
         displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( false );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
@@ -2366,9 +2367,9 @@ RegistrationHelper<VImageDimension>
                    << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
                    << "     Gradient Step = " << curTransform.m_GradientStep << std::endl
                    << "     Update Field Sigma (physical space) = "
-                   << curTransform.m_UpdateFieldSigmaInPhysicalSpace << std::endl
+                   << curTransform.m_UpdateFieldVarianceInVarianceSpace << std::endl
                    << "     Total Field Sigma (physical space) = "
-                   << curTransform.m_TotalFieldSigmaInPhysicalSpace << std::endl
+                   << curTransform.m_TotalFieldVarianceInVarianceSpace << std::endl
                    << "     Update Field Time Sigma = " << curTransform.m_UpdateFieldTimeSigma << std::endl
                    << "     Total Field Time Sigma  = " << curTransform.m_TotalFieldTimeSigma << std::endl
                    << "     Number of Time Indices = " << curTransform.m_NumberOfTimeIndices << std::endl
