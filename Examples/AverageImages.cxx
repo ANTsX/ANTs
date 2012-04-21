@@ -156,22 +156,22 @@ int AverageImages(unsigned int argc, char *argv[])
   typedef itk::ImageFileReader<ImageType>              ImageFileReader;
   typedef itk::ImageFileWriter<ImageType>              writertype;
 
-  bool  normalizei = atoi(argv[3]);
+  //  bool  normalizei = atoi(argv[3]);
   float numberofimages = (float)argc - 4.;
   typename ImageType::Pointer averageimage = NULL;
   typename ImageType::Pointer image2 = NULL;
 
   typename ImageType::SizeType size;
   size.Fill(0);
-  unsigned int bigimage = 0;
+  unsigned int bigimage = 4;
   for( unsigned int j = 4; j < argc; j++ )
     {
     // Get the image dimension
     std::string fn = std::string(argv[j]);
-    antscout << " fn " << fn << std::endl;
+    antscout << " fn " << fn << " " << ImageDimension << " " << NVectorComponents << std::endl;
     typename itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
-    imageIO->SetFileName(fn.c_str() );
+    imageIO->SetFileName( fn.c_str() );
     imageIO->ReadImageInformation();
     for( unsigned int i = 0; i < imageIO->GetNumberOfDimensions(); i++ )
       {
@@ -198,44 +198,22 @@ int AverageImages(unsigned int argc, char *argv[])
   averageimage->FillBuffer(meanval);
   for( unsigned int j = 4; j < argc; j++ )
     {
-    antscout << " reading " << std::string(argv[j]) << std::endl;
+    antscout << " reading " << std::string(argv[j]) << " for average " << std::endl;
     typename ImageFileReader::Pointer rdr = ImageFileReader::New();
     rdr->SetFileName(argv[j]);
     rdr->Update();
     image2 = rdr->GetOutput();
-    Iterator      vfIter2( image2,  image2->GetLargestPossibleRegion() );
-    unsigned long ct = 0;
-    if( normalizei )
-      {
-      meanval.Fill(0);
-      for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-        {
-        PixelType localp = image2->GetPixel( vfIter2.GetIndex() );
-        meanval = meanval + localp;
-        ct++;
-        }
-      if( ct > 0 )
-        {
-        meanval = meanval / (float)ct;
-        }
-      if( meanval.GetNorm() <= 0 )
-        {
-        meanval.Fill(1);
-        }
-      }
+    Iterator vfIter2( image2,  image2->GetLargestPossibleRegion() );
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
       PixelType val = vfIter2.Get();
-      if( normalizei )
+      double    valnorm = val.GetNorm();
+      if( !vnl_math_isnan( valnorm  ) &&  !vnl_math_isinf( valnorm  )   )
         {
-        for( unsigned int k = 0; k < vectorlength; k++ )
-          {
-          val[k] /= meanval[k];
-          }
+        val = val / (float)numberofimages;
+        PixelType oldval = averageimage->GetPixel( vfIter2.GetIndex() );
+        averageimage->SetPixel(vfIter2.GetIndex(), val + oldval );
         }
-      val = val / (float)numberofimages;
-      PixelType oldval = averageimage->GetPixel(vfIter2.GetIndex() );
-      averageimage->SetPixel(vfIter2.GetIndex(), val + oldval );
       }
     }
 
