@@ -7,7 +7,8 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "itkLabeledPointSetFileReader.h"
+#include "itkPointSet.h"
+#include "itkVector.h"
 
 #include <string>
 #include <vector>
@@ -68,50 +69,101 @@ std::vector<TValue> ConvertVector( std::string optionString )
 }
 
 template <unsigned int ImageDimension>
-int LandmarkBasedDisplacementFieldTransformInitializer( int itkNotUsed( argc ), char *argv[] )
+int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 {
   typedef float                                RealType;
   typedef itk::Image<RealType, ImageDimension> RealImageType;
 
   typedef itk::ImageFileReader<RealImageType> ImageReaderType;
-  typename ImageReaderType::Pointer reader = ImageReaderType::New();
-  reader->SetFileName( argv[1] );
-  reader->Update();
+  typename ImageReaderType::Pointer fixedReader = ImageReaderType::New();
+  fixedReader->SetFileName( argv[1] );
+  fixedReader->Update();
+
+  typename RealImageType::Pointer fixedImage = fixedReader->GetOutput();
+  typename RealImageType::DirectionType fixedDirection = fixedImage->GetDirection();
+  typename RealImageType::DirectionType fixedDirectionInverse( fixedDirection.GetInverse() );
+  typename RealImageType::PointType fixedOrigin = fixedImage->GetOrigin();
+
+  typename RealImageType::DirectionType identityDirection;
+  identityDirection.SetIdentity();
+
+  typename RealImageType::PointType zeroOrigin;
+  zeroOrigin.Fill( 0.0 );
+
+  fixedImage->SetDirection( identityDirection );
+  fixedImage->SetOrigin( zeroOrigin );
+
+  typename ImageReaderType::Pointer movingReader = ImageReaderType::New();
+  movingReader->SetFileName( argv[2] );
+  movingReader->Update();
+  typename RealImageType::Pointer movingImage = movingReader->GetOutput();
 
   typedef itk::Vector<RealType, ImageDimension>  VectorType;
   typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
 
   typedef itk::PointSet<long, ImageDimension> PointSetType;
 
-  typedef itk::LabeledPointSetFileReader<PointSetType> ReaderType;
-  typename ReaderType::Pointer fixedPoints = ReaderType::New();
-  fixedPoints->SetFileName( argv[1] );
-  fixedPoints->Update();
+  typename PointSetType::Pointer fixedPoints = PointSetType::New();
+  fixedPoints->Initialize();
 
-  typename ReaderType::Pointer movingPoints = ReaderType::New();
-  movingPoints->SetFileName( argv[2] );
-  movingPoints->Update();
+  std::vector<RealType> fixedLabels;
 
-  if( fixedPoints->GetNumberOfLabels() != movingPoints->GetNumberOfLabels() )
+  itk::ImageRegionIteratorWithIndex<RealImageType> ItF( fixedImage, fixedImage->GetLargestPossibleRegion() );
+
+  unsigned int fixedCount = 0;
+  for( ItF.GoToBegin(); !ItF.IsAtEnd(); ++ItF )
     {
-    std::cerr << "The number of fixed and moving labels must be the same." << std::endl;
-    return EXIT_FAILURE;
+    if( ItF.Get() != 0 )
+      {
+      if( std::find( fixedLabels.begin(), fixedLabels.end(), ItF.Get() ) == fixedLabels.end() )
+        {
+        fixedLabels.push_back( ItF.Get() );
+        }
+      typename PointSetType::PointType fixedPoint;
+      fixedImage->TransformIndexToPhysicalPoint( ItF.GetIndex(), fixedPoint );
+      fixedPoints->SetPointData( fixedCount, ItF.Get() );
+      fixedPoints->SetPoint( fixedCount++, fixedPoint );
+      }
+    }
+
+  typename PointSetType::Pointer movingPoints = PointSetType::New();
+  movingPoints->Initialize();
+
+  std::vector<RealType> movingLabels;
+
+  itk::ImageRegionIteratorWithIndex<RealImageType> ItM( movingImage, movingImage->GetLargestPossibleRegion() );
+  unsigned int                                     movingCount = 0;
+  for( ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM )
+    {
+    if( ItM.Get() != 0 )
+      {
+      if( std::find( movingLabels.begin(), movingLabels.end(), ItM.Get() ) == movingLabels.end() )
+        {
+        movingLabels.push_back( ItM.Get() );
+        }
+      typename PointSetType::PointType movingPoint;
+      movingImage->TransformIndexToPhysicalPoint( ItM.GetIndex(), movingPoint );
+      movingPoint -= ( fixedOrigin.GetVectorFromOrigin() );
+      movingPoint = fixedDirectionInverse * movingPoint;
+      movingPoints->SetPointData( movingCount, ItM.Get() );
+      movingPoints->SetPoint( movingCount++, movingPoint );
+      }
     }
 
   // Get moving center points
   typename PointSetType::Pointer movingCenters = PointSetType::New();
   movingCenters->Initialize();
-  for( unsigned int n = 0; n < movingPoints->GetNumberOfLabels(); n++ )
+  for( unsigned int n = 0; n < movingLabels.size(); n++ )
     {
-    int currentLabel = movingPoints->GetLabelSet()->operator[](n);
+    int currentLabel = movingLabels[n];
     typename PointSetType::PointType center;
     center.Fill( 0 );
     float N = 0;
     typename PointSetType::PointsContainerConstIterator ItP =
-      movingPoints->GetOutput()->GetPoints()->Begin();
+      movingPoints->GetPoints()->Begin();
     typename PointSetType::PointDataContainerIterator ItD =
-      movingPoints->GetOutput()->GetPointData()->Begin();
-    while( ItP != movingPoints->GetOutput()->GetPoints()->End() )
+      movingPoints->GetPointData()->Begin();
+    while( ItP != movingPoints->GetPoints()->End() )
       {
       if( ItD.Value() == currentLabel )
         {
@@ -136,17 +188,17 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int itkNotUsed( argc ), 
   // Get fixed center points
   typename PointSetType::Pointer fixedCenters = PointSetType::New();
   fixedCenters->Initialize();
-  for( unsigned int n = 0; n < fixedPoints->GetNumberOfLabels(); n++ )
+  for( unsigned int n = 0; n < fixedLabels.size(); n++ )
     {
-    int currentLabel = fixedPoints->GetLabelSet()->operator[](n);
+    int currentLabel = fixedLabels[n];
     typename PointSetType::PointType center;
     center.Fill( 0 );
     float N = 0;
     typename PointSetType::PointsContainerConstIterator ItP =
-      fixedPoints->GetOutput()->GetPoints()->Begin();
+      fixedPoints->GetPoints()->Begin();
     typename PointSetType::PointDataContainerIterator ItD =
-      fixedPoints->GetOutput()->GetPointData()->Begin();
-    while( ItP != fixedPoints->GetOutput()->GetPoints()->End() )
+      fixedPoints->GetPointData()->Begin();
+    while( ItP != fixedPoints->GetPoints()->End() )
       {
       if( ItD.Value() == currentLabel )
         {
@@ -177,6 +229,15 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int itkNotUsed( argc ), 
   // Now match up the center points
 
   typedef itk::PointSet<VectorType, ImageDimension> DisplacementFieldPointSetType;
+  typedef itk::BSplineScatteredDataPointSetToImageFilter
+    <DisplacementFieldPointSetType, DisplacementFieldType> BSplineFilterType;
+  typedef typename BSplineFilterType::WeightsContainerType WeightsContainerType;
+
+  typename WeightsContainerType::Pointer weights = WeightsContainerType::New();
+  weights->Initialize();
+  const typename WeightsContainerType::Element boundaryWeight = 1.0e10;
+  const typename WeightsContainerType::Element weight = 1.0;
+
   typename DisplacementFieldPointSetType::Pointer fieldPoints = DisplacementFieldPointSetType::New();
   fieldPoints->Initialize();
   unsigned long count = 0;
@@ -188,8 +249,6 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int itkNotUsed( argc ), 
 
   while( mItD != movingCenters->GetPointData()->End() )
     {
-    std::cout << mItD.Value() << std::endl;
-
     typename PointSetType::PointsContainerConstIterator fIt =
       fixedCenters->GetPoints()->Begin();
     typename PointSetType::PointDataContainerIterator fItD =
@@ -210,8 +269,11 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int itkNotUsed( argc ), 
           fieldPoint[i] = mpoint[i];
           vector[i] = fpoint[i] - mpoint[i];
           }
+
         fieldPoints->SetPoint( count, fieldPoint );
         fieldPoints->SetPointData( count, vector );
+
+        weights->InsertElement( count, weight );
         count++;
 
         break;
@@ -224,14 +286,58 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int itkNotUsed( argc ), 
     ++mIt;
     }
 
-  typedef itk::BSplineScatteredDataPointSetToImageFilter
-    <DisplacementFieldPointSetType, DisplacementFieldType> BSplineFilterType;
+  bool enforceStationaryBoundary = true;
+  if( argc > 7 )
+    {
+    enforceStationaryBoundary = static_cast<bool>( atoi( argv[7] ) );
+    }
+  if( enforceStationaryBoundary )
+    {
+    typename RealImageType::IndexType startIndex = fixedImage->GetLargestPossibleRegion().GetIndex();
+
+    typename RealImageType::SizeType inputSize = fixedImage->GetLargestPossibleRegion().GetSize();
+    for( ItF.GoToBegin(); !ItF.IsAtEnd(); ++ItF )
+      {
+      typename RealImageType::IndexType index = ItF.GetIndex();
+
+      bool isOnStationaryBoundary = false;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        if( index[d] == startIndex[d] || index[d] == startIndex[d] + static_cast<int>( inputSize[d] ) - 1 )
+          {
+          isOnStationaryBoundary = true;
+          break;
+          }
+        }
+
+      if( isOnStationaryBoundary )
+        {
+        VectorType vector;
+
+        vector.Fill( 0.0 );
+
+        typename PointSetType::PointType fixedPoint;
+        fixedImage->TransformIndexToPhysicalPoint( index, fixedPoint );
+
+        fieldPoints->SetPoint( count, fixedPoint );
+        fieldPoints->SetPointData( count, vector );
+        weights->InsertElement( count, boundaryWeight );
+        count++;
+        }
+      }
+    }
+
   typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
 
-  unsigned int numberOfLevels = atoi( argv[4] );
-  unsigned int splineOrder = atoi( argv[5] );
+  unsigned int numberOfLevels = atoi( argv[5] );
 
-  std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[6] ) );
+  unsigned int splineOrder = 3;
+  if( argc > 6 )
+    {
+    atoi( argv[6] );
+    }
+
+  std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[4] ) );
   typename BSplineFilterType::ArrayType ncps;
 
   if( meshSize.size() == 1 )
@@ -250,18 +356,22 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int itkNotUsed( argc ), 
     std::cerr << "Invalid meshSize format." << std::endl;
     }
 
-  std::cout << ncps << std::endl;
-
-  // bspliner->DebugOn();
-  bspliner->SetOrigin( reader->GetOutput()->GetOrigin() );
-  bspliner->SetSpacing( reader->GetOutput()->GetSpacing() );
-  bspliner->SetSize( reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
+//   std::cout << ncps << std::endl;
+//
+//   bspliner->DebugOn();
+  bspliner->SetOrigin( fixedReader->GetOutput()->GetOrigin() );
+  bspliner->SetSpacing( fixedReader->GetOutput()->GetSpacing() );
+  bspliner->SetSize( fixedReader->GetOutput()->GetLargestPossibleRegion().GetSize() );
   bspliner->SetGenerateOutputImage( true );
   bspliner->SetNumberOfLevels( numberOfLevels );
   bspliner->SetSplineOrder( splineOrder );
   bspliner->SetNumberOfControlPoints( ncps );
   bspliner->SetInput( fieldPoints );
+  bspliner->SetPointWeights( weights );
   bspliner->Update();
+
+  bspliner->SetOrigin( fixedOrigin );
+  bspliner->SetDirection( fixedDirection );
 
   typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
@@ -322,7 +432,7 @@ private:
     {
     antscout << "Usage:   " << argv[0]
              << " fixedImageWithLabeledLandmarks  movingImageWithLabeledLandmarks outputDisplacementField "
-             << "order numberOfLevels meshSize[0]xmeshSize[1]x..."
+             << "meshSize[0]xmeshSize[1]x... numberOfLevels [order=3] [enforceStationaryBoundaries=1]"
              << std::endl;
     antscout
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "
