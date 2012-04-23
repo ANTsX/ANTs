@@ -1,6 +1,6 @@
 /** ANTS Landmarks used to initialize an b-spline displacement field ... */
 
-#include "antscout.hxx"
+#include "antsUtilities.h"
 
 #include "itkBSplineScatteredDataPointSetToImageFilter.h"
 #include "itkImage.h"

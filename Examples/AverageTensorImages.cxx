@@ -1,5 +1,5 @@
 
-#include "antscout.hxx"
+#include "antsUtilities.h"
 #include <algorithm>
 #include <algorithm>
 #include "stdio.h"
@@ -146,7 +146,7 @@ private:
     int dim = atoi(argv[1]);
     // char * outputName = argv[2];
     // int mathtype = atoi(argv[3]);
-    int numberofimages = argc - 4;
+    // int numberofimages = argc - 4;
 
     // Get the image dimension
     switch( dim )

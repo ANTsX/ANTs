@@ -1,5 +1,8 @@
 /** ANTS Landmarks used to initialize an affine transform ... */
-#include "antscout.hxx"
+
+#include "antsUtilities.h"
+#include <algorithm>
+
 #include "itkLandmarkBasedTransformInitializer.h"
 #include "itkImage.h"
 #include "itkImageIOBase.h"

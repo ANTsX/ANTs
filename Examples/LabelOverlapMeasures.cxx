@@ -1,5 +1,5 @@
 
-#include "antscout.hxx"
+#include "antsUtilities.h"
 #include <algorithm>
 
 #include "itkBinaryThresholdImageFilter.h"

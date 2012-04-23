@@ -1,6 +1,6 @@
 /** ANTS Landmarks used to initialize an affine transform ... */
 
-#include "antscout.hxx"
+#include "antsUtilities.h"
 #include <algorithm>
 
 #include <stdio.h>

@@ -1,13 +1,9 @@
 
-#include "antscout.hxx"
-#include <algorithm>
-
-#include <vector>
-#include <string>
+#include "antsUtilities.h"
+#include "antsUtilities.h"
 #include "itkImageFileReader.h"
 #include "itkVector.h"
 #include "itkVariableLengthVector.h"
-// #include "itkVectorImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
@@ -19,129 +15,6 @@
 
 namespace ants
 {
-typedef enum { INVALID_FILE = 1, AFFINE_FILE, DEFORMATION_FILE, IMAGE_AFFINE_HEADER,
-               IDENTITY_TRANSFORM } TRAN_FILE_TYPE;
-typedef struct
-  {
-  //    char *filename;
-  std::string filename;
-  TRAN_FILE_TYPE file_type;
-  bool do_affine_inv;
-
-  //    void SetValue(char *filename, TRAN_FILE_TYPE file_type, bool do_affine_inv){
-  //        this.filename = filename;
-  //        this.file_type = file_type;
-  //        this.do_affine_inv = do_affine_inv;
-  //    };
-  } TRAN_OPT;
-
-typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
-
-typedef struct
-  {
-  bool use_NN_interpolator;
-  bool use_TightestBoundingBox;
-  char * reference_image_filename;
-  bool use_RotationHeader;
-  } MISC_OPT;
-
-void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue);
-
-void DisplayOpt(const TRAN_OPT & opt);
-
-TRAN_FILE_TYPE CheckFileType(const char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind( "." );
-  std::string            filepre = std::string( filename, 0, pos );
-
-  if( pos != std::string::npos )
-    {
-    std::string extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      extension = std::string( filepre, pos, filepre.length() - 1 );
-      }
-    if( extension == ".txt" )
-      {
-      return AFFINE_FILE;
-      }
-    else
-      {
-      return DEFORMATION_FILE;
-      }
-    }
-  else
-    {
-    return INVALID_FILE;
-    }
-  return AFFINE_FILE;
-}
-
-void FilePartsWithgz(const std::string & filename, std::string & path, std::string & name, std::string & ext)
-{
-  std::string            extension;
-  std::string::size_type pos = filename.rfind( "." );
-  std::string            filepre = std::string( filename, 0, pos );
-
-  if( pos != std::string::npos )
-    {
-    extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      if( pos != std::string::npos )
-        {
-        extension = std::string( filepre, pos, filepre.length() - 1 ) + ".gz";
-        filepre = std::string(filepre, 0, pos);
-        }
-      }
-    }
-  else
-    {
-    extension = std::string("");
-    }
-
-  ext = extension;
-
-  pos = filepre.rfind('/');
-
-  if( pos != std::string::npos )
-    {
-    path = std::string(filepre, 0, pos + 1);
-    name = std::string(filepre, pos + 1, filepre.length() - 1);
-    }
-  else
-    {
-    path = std::string("");
-    name = filepre;
-    }
-
-//    antscout << "filename: " << filename << std::endl
-//    << "path: " << path << std::endl
-//    << "name: " << name << std::endl
-//    << "ext: " << ext << std::endl;
-}
-
-bool CheckFileExistence(const char *str)
-{
-  std::ifstream myfile(str);
-  bool          b = myfile.is_open();
-
-  myfile.close();
-  return b;
-}
-
-void SetAffineInvFlag(TRAN_OPT & opt, bool & set_current_affine_inv)
-{
-  opt.do_affine_inv = set_current_affine_inv;
-  if( set_current_affine_inv )
-    {
-    set_current_affine_inv = false;
-    }
-}
-
 bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
                 char *& output_image_filename,
                 TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
@@ -343,87 +216,6 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
     }
 
   return true;
-}
-
-void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
-{
-  const int kQueueSize = opt_queue.size();
-
-  for( int i = 0; i < kQueueSize; i++ )
-    {
-    antscout << "[" << i << "/" << kQueueSize << "]: ";
-
-    switch( opt_queue[i].file_type )
-      {
-      case AFFINE_FILE:
-        {
-        antscout << "AFFINE";
-        }
-        break;
-      case DEFORMATION_FILE:
-        {
-        antscout << "FIELD";
-        }
-        break;
-      case IDENTITY_TRANSFORM:
-        {
-        antscout << "IDENTITY";
-        }
-        break;
-      case IMAGE_AFFINE_HEADER:
-        {
-        antscout << "HEADER";
-        }
-        break;
-      default:
-        {
-        antscout << "Invalid Format!!!";
-        }
-        break;
-      }
-    if( opt_queue[i].do_affine_inv )
-      {
-      antscout << "-INV";
-      }
-    antscout << ": " << opt_queue[i].filename << std::endl;
-    }
-}
-
-void DisplayOpt(const TRAN_OPT & opt)
-{
-  switch( opt.file_type )
-    {
-    case AFFINE_FILE:
-      {
-      antscout << "AFFINE";
-      }
-      break;
-    case DEFORMATION_FILE:
-      {
-      antscout << "FIELD";
-      }
-      break;
-    case IDENTITY_TRANSFORM:
-      {
-      antscout << "IDENTITY";
-      }
-      break;
-    case IMAGE_AFFINE_HEADER:
-      {
-      antscout << "HEADER";
-      }
-      break;
-    default:
-      {
-      antscout << "Invalid Format!!!";
-      }
-      break;
-    }
-  if( opt.do_affine_inv )
-    {
-    antscout << "-INV";
-    }
-  antscout << ": " << opt.filename << std::endl;
 }
 
 template <class AffineTransformPointer>

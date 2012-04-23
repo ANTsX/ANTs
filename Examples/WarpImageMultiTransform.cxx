@@ -1,12 +1,7 @@
+#include "antsUtilities.h"
 
-#include "antscout.hxx"
-#include <algorithm>
-
-#include <vector>
-#include <string>
 #include "itkImageFileReader.h"
 #include "itkVector.h"
-// #include "itkVectorImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
@@ -17,6 +12,7 @@
 #include "itkLinearInterpolateImageFunction.h"
 
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
+#include "antsUtilities.h"
 
 namespace ants
 {
@@ -45,80 +41,10 @@ public:
   }
 };
 
-typedef enum { INVALID_FILE = 1, AFFINE_FILE, DEFORMATION_FILE, IMAGE_AFFINE_HEADER,
-               IDENTITY_TRANSFORM } TRAN_FILE_TYPE;
-typedef struct
-  {
-  //    char *filename;
-  std::string filename;
-  TRAN_FILE_TYPE file_type;
-  bool do_affine_inv;
-
-  //    void SetValue(char *filename, TRAN_FILE_TYPE file_type, bool do_affine_inv){
-  //        this.filename = filename;
-  //        this.file_type = file_type;
-  //        this.do_affine_inv = do_affine_inv;
-  //    };
-  } TRAN_OPT;
-
-typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
-
-typedef struct
-  {
-  bool physical_units;
-  std::vector<double> sigma;
-  } MLINTERP_OPT;
-
-typedef struct
-  {
-  bool use_NN_interpolator;
-  bool use_MultiLabel_interpolator;
-  bool use_BSpline_interpolator;
-  bool use_TightestBoundingBox;
-  char * reference_image_filename;
-  bool use_RotationHeader;
-
-  MLINTERP_OPT opt_ML;
-  } MISC_OPT;
-
 static std::string GetPreferredTransformFileType(void)
 {
   // return ".mat";
   return ".txt";
-}
-
-void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue);
-
-void DisplayOpt(const TRAN_OPT & opt);
-
-TRAN_FILE_TYPE CheckFileType(const char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind( "." );
-  std::string            filepre = std::string( filename, 0, pos );
-
-  if( pos != std::string::npos )
-    {
-    std::string extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      extension = std::string( filepre, pos, filepre.length() - 1 );
-      }
-    if( extension == ".txt" || extension == ".mat" )
-      {
-      return AFFINE_FILE;
-      }
-    else
-      {
-      return DEFORMATION_FILE;
-      }
-    }
-  else
-    {
-    return INVALID_FILE;
-    }
-  return AFFINE_FILE;
 }
 
 bool IsInverseDeformation(const char *str)
@@ -133,69 +59,6 @@ bool IsInverseDeformation(const char *str)
   else
     {
     return true;
-    }
-}
-
-void FilePartsWithgz(const std::string & filename, std::string & path, std::string & name, std::string & ext)
-{
-  std::string            extension;
-  std::string::size_type pos = filename.rfind( "." );
-  std::string            filepre = std::string( filename, 0, pos );
-
-  if( pos != std::string::npos )
-    {
-    extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      if( pos != std::string::npos )
-        {
-        extension = std::string( filepre, pos, filepre.length() - 1 ) + ".gz";
-        filepre = std::string(filepre, 0, pos);
-        }
-      }
-    }
-  else
-    {
-    extension = std::string("");
-    }
-
-  ext = extension;
-
-  pos = filepre.rfind('/');
-
-  if( pos != std::string::npos )
-    {
-    path = std::string(filepre, 0, pos + 1);
-    name = std::string(filepre, pos + 1, filepre.length() - 1);
-    }
-  else
-    {
-    path = std::string("");
-    name = filepre;
-    }
-
-//    antscout << "filename: " << filename << std::endl
-//    << "path: " << path << std::endl
-//    << "name: " << name << std::endl
-//    << "ext: " << ext << std::endl;
-}
-
-bool CheckFileExistence(const char *str)
-{
-  std::ifstream myfile(str);
-  bool          b = myfile.is_open();
-
-  myfile.close();
-  return b;
-}
-
-void SetAffineInvFlag(TRAN_OPT & opt, bool & set_current_affine_inv)
-{
-  opt.do_affine_inv = set_current_affine_inv;
-  if( set_current_affine_inv )
-    {
-    set_current_affine_inv = false;
     }
 }
 
@@ -467,87 +330,6 @@ bool ParseInput(int argc, char * *argv, char *& moving_image_filename,
   return true;
 }
 
-void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
-{
-  const int kQueueSize = opt_queue.size();
-
-  for( int i = 0; i < kQueueSize; i++ )
-    {
-    antscout << "[" << i << "/" << kQueueSize << "]: ";
-
-    switch( opt_queue[i].file_type )
-      {
-      case AFFINE_FILE:
-        {
-        antscout << "AFFINE";
-        }
-        break;
-      case DEFORMATION_FILE:
-        {
-        antscout << "FIELD";
-        }
-        break;
-      case IDENTITY_TRANSFORM:
-        {
-        antscout << "IDENTITY";
-        }
-        break;
-      case IMAGE_AFFINE_HEADER:
-        {
-        antscout << "HEADER";
-        }
-        break;
-      default:
-        {
-        antscout << "Invalid Format!!!";
-        }
-        break;
-      }
-    if( opt_queue[i].do_affine_inv )
-      {
-      antscout << "-INV";
-      }
-    antscout << ": " << opt_queue[i].filename << std::endl;
-    }
-}
-
-void DisplayOpt(const TRAN_OPT & opt)
-{
-  switch( opt.file_type )
-    {
-    case AFFINE_FILE:
-      {
-      antscout << "AFFINE";
-      }
-      break;
-    case DEFORMATION_FILE:
-      {
-      antscout << "FIELD";
-      }
-      break;
-    case IDENTITY_TRANSFORM:
-      {
-      antscout << "IDENTITY";
-      }
-      break;
-    case IMAGE_AFFINE_HEADER:
-      {
-      antscout << "HEADER";
-      }
-      break;
-    default:
-      {
-      antscout << "Invalid Format!!!";
-      }
-      break;
-    }
-  if( opt.do_affine_inv )
-    {
-    antscout << "-INV";
-    }
-  antscout << ": " << opt.filename << std::endl;
-}
-
 template <class AffineTransformPointer>
 void GetIdentityTransform(AffineTransformPointer & aff)
 {
@@ -614,30 +396,14 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
 
       switch( i )
         {
-        case 0:
-  { ind[0] = 0; ind[1] = 0; ind[2] = 0; }
-                                        break;
-        case 1:
-  { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; }
-                                                   break;
-        case 2:
-  { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                   break;
-        case 3:
-  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                              break;
-        case 4:
-  { ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                   break;
-        case 5:
-  { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                              break;
-        case 6:
-  { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                              break;
-        case 7:
-  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                                         break;
+        case 0: ind[0] = 0; ind[1] = 0; ind[2] = 0; break;
+        case 1: ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; break;
+        case 2: ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; break;
+        case 3: ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; break;
+        case 4: ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; break;
+        case 5: ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; break;
+        case 6: ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; break;
+        case 7: ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
@@ -658,18 +424,10 @@ void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img,
 
       switch( i )
         {
-        case 0:
-  { ind[0] = 0; ind[1] = 0; }
-                            break;
-        case 1:
-  { ind[0] = imgsz[0] - 1; ind[1] = 0; }
-                                       break;
-        case 2:
-  { ind[0] = 0; ind[1] = imgsz[1] - 1; }
-                                       break;
-        case 3:
-  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; }
-                                                  break;
+        case 0: ind[0] = 0; ind[1] = 0;  break;
+        case 1: ind[0] = imgsz[0] - 1; ind[1] = 0;  break;
+        case 2: ind[0] = 0; ind[1] = imgsz[1] - 1;  break;
+        case 3: ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1;  break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
@@ -1241,60 +999,43 @@ private:
       switch( kImageDim )
         {
         case 2:
-          {
+
           switch( ncomponents )
             {
             case 2:
-              {
               WarpImageMultiTransform<2, 2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-              }
               break;
             default:
-              {
               WarpImageMultiTransform<2, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-              }
               break;
             }
-          }
           break;
         case 3:
-          {
+
           switch( ncomponents )
             {
             case 3:
-              {
               WarpImageMultiTransform<3, 3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-              }
               break;
             case 6:
-              {
               WarpImageMultiTransform<3, 6>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-              }
               break;
             default:
-              {
               WarpImageMultiTransform<3, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-              }
               break;
             }
-          }
           break;
         case 4:
-          {
+
           switch( ncomponents )
             {
             case 4:
-              {
               WarpImageMultiTransform<4, 4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-              }
               break;
             default:
-              {
               WarpImageMultiTransform<4, 1>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-              }
               break;
             }
-          }
           break;
         default:
           antscout << " not supported " << kImageDim  << std::endl;

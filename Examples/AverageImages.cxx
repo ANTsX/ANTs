@@ -23,7 +23,7 @@
 // Note: could easily add variance computation
 // http://people.revoledu.com/kardi/tutorial/RecursiveStatistic/Time-Variance.htm
 
-#include "antscout.hxx"
+#include "antsUtilities.h"
 #include <algorithm>
 
 #include "itkArray.h"

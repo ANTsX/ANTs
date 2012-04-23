@@ -16,7 +16,7 @@
 *
 *=========================================================================*/
 
-#include "antscout.hxx"
+#include "antsUtilities.h"
 #include "antsCommandLineParser.h"
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkImageRegistrationMethodv4.h"

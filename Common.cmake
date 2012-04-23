@@ -4,6 +4,10 @@ include(CMakeDependentOption)
 #-----------------------------------------------------------------------------
 # Build option(s)
 #-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
+set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+
 set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build BRAINS (3 or 4).")
 # Set the possible values of ITK major version for cmake-gui
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "3" "4")

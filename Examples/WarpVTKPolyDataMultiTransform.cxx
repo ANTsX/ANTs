@@ -1,20 +1,13 @@
-
-#include "antscout.hxx"
-#include <algorithm>
-
-#include <vector>
-#include <string>
+#include "antsUtilities.h"
+#include "antsUtilities.h"
 #include <vnl/vnl_inverse.h>
 
 #include "itkImageFileReader.h"
 #include "itkVector.h"
-// #include "itkVectorImageFileReader.h"
-// #include "itkVectorImageFileWriter.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 #include "vtkPolyDataReader.h"
-// #include "itkWarpImageMultiTransformFilter.h"
 #include "itkDisplacementFieldFromMultiTransformFilter.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
@@ -32,37 +25,6 @@
 
 namespace ants
 {
-typedef enum
-  {
-  INVALID_FILE = 1, AFFINE_FILE, DEFORMATION_FILE
-  } TRAN_FILE_TYPE;
-typedef struct
-  {
-  char * filename;
-  TRAN_FILE_TYPE file_type;
-  bool do_affine_inv;
-  } TRAN_OPT;
-
-typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
-
-template <class TImage, class TDisplacementField>
-typename TImage::PointType
-TransformPoint(TDisplacementField* field, typename TImage::PointType point )
-{
-  enum { ImageDimension = TImage::ImageDimension };
-  typename TImage::PointType newpoint;
-  newpoint.Fill(0);
-  for( unsigned int row = 0; row < ImageDimension; row++ )
-    {
-    for( unsigned int col = 0; col < ImageDimension; col++ )
-      {
-      newpoint[row] += point[col] * field->GetDirection()[row][col];
-      }
-    }
-
-  return newpoint;
-}
-
 vnl_matrix_fixed<double, 4, 4> ConstructNiftiSform(
   vnl_matrix<double> m_dir,
   vnl_vector<double> v_origin,
@@ -108,37 +70,6 @@ vnl_matrix_fixed<double, 4, 4> ConstructVTKtoNiftiTransform(
     vtk2vox(i, 3) = -v_origin[i] / v_spacing[i];
     }
   return vox2nii * vtk2vox;
-}
-
-TRAN_FILE_TYPE CheckFileType(char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind(".");
-  std::string            filepre = std::string(filename, 0, pos);
-
-  if( pos != std::string::npos )
-    {
-    std::string extension = std::string(filename, pos, filename.length()
-                                        - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind(".");
-      extension = std::string(filepre, pos, filepre.length() - 1);
-      }
-    if( extension == ".txt" )
-      {
-      return AFFINE_FILE;
-      }
-    else
-      {
-      return DEFORMATION_FILE;
-      }
-    }
-  else
-    {
-    return INVALID_FILE;
-    }
-  return AFFINE_FILE;
 }
 
 bool ParseInput(int argc, char * *argv, char *& input_vtk_filename,
@@ -203,40 +134,6 @@ bool ParseInput(int argc, char * *argv, char *& input_vtk_filename,
 //    }
 
   return true;
-}
-
-void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
-{
-  const int kQueueSize = opt_queue.size();
-
-  for( int i = 0; i < kQueueSize; i++ )
-    {
-    antscout << "[" << i << "/" << kQueueSize << "]: ";
-
-    switch( opt_queue[i].file_type )
-      {
-      case AFFINE_FILE:
-        {
-        antscout << "AFFINE";
-        if( opt_queue[i].do_affine_inv )
-          {
-          antscout << "-INV";
-          }
-        }
-        break;
-      case DEFORMATION_FILE:
-        {
-        antscout << "FIELD";
-        }
-        break;
-      default:
-        {
-        antscout << "Invalid Format!!!";
-        }
-        break;
-      }
-    antscout << ": " << opt_queue[i].filename << std::endl;
-    }
 }
 
 template <int ImageDimension>
@@ -742,9 +639,7 @@ private:
         }
 
       default:
-        {
         antscout << "Unknow output file format: " << output_vtk_filename << std::endl;
-        }
         break;
       }
     }

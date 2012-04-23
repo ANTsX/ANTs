@@ -1,9 +1,6 @@
 
-#include "antscout.hxx"
-#include <algorithm>
-#include <algorithm>
-#include <vector>
-#include <string>
+#include "antsUtilities.h"
+#include "antsUtilities.h"
 #include "itkImageFileReader.h"
 #include "itkVector.h"
 // #include "itkVectorImageFileReader.h"
@@ -18,50 +15,6 @@
 
 namespace ants
 {
-typedef enum
-  {
-  INVALID_FILE = 1, AFFINE_FILE, DEFORMATION_FILE
-  } TRAN_FILE_TYPE;
-typedef struct
-  {
-  char * filename;
-  TRAN_FILE_TYPE file_type;
-  bool do_affine_inv;
-  } TRAN_OPT;
-
-typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
-
-TRAN_FILE_TYPE CheckFileType(char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind(".");
-  std::string            filepre = std::string(filename, 0, pos);
-
-  if( pos != std::string::npos )
-    {
-    std::string extension = std::string(filename, pos, filename.length()
-                                        - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind(".");
-      extension = std::string(filepre, pos, filepre.length() - 1);
-      }
-    if( extension == ".txt" )
-      {
-      return AFFINE_FILE;
-      }
-    else
-      {
-      return DEFORMATION_FILE;
-      }
-    }
-  else
-    {
-    return INVALID_FILE;
-    }
-  return AFFINE_FILE;
-}
-
 bool ParseInput(int argc, char * *argv, char *& output_image_filename,
                 char *& reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
@@ -122,40 +75,6 @@ bool ParseInput(int argc, char * *argv, char *& output_image_filename,
 //    }
 
   return true;
-}
-
-void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
-{
-  const int kQueueSize = opt_queue.size();
-
-  for( int i = 0; i < kQueueSize; i++ )
-    {
-    antscout << "[" << i << "/" << kQueueSize << "]: ";
-
-    switch( opt_queue[i].file_type )
-      {
-      case AFFINE_FILE:
-        {
-        antscout << "AFFINE";
-        if( opt_queue[i].do_affine_inv )
-          {
-          antscout << "-INV";
-          }
-        }
-        break;
-      case DEFORMATION_FILE:
-        {
-        antscout << "FIELD";
-        }
-        break;
-      default:
-        {
-        antscout << "Invalid Format!!!";
-        }
-        break;
-      }
-    antscout << ": " << opt_queue[i].filename << std::endl;
-    }
 }
 
 template <int ImageDimension>

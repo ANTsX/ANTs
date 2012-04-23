@@ -35,7 +35,6 @@ private:
   // user provided output stream; defaults to NULL
   std::ostream* os_;
 };
-boost::iostreams::stream<ants_Sink> antscout( ( ants_Sink() ) );
 } // namespace ants
 
 #endif // ANTSCOUT_HXX

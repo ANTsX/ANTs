@@ -1,95 +1,18 @@
 // compute the average of a list of affine transform
 
-#include <vector>
-#include <string>
+#include "antsUtilities.h"
 #include "itkImageFileReader.h"
 #include "itkVector.h"
-// #include "itkVectorImageFileReader.h"
-// #include "itkVectorImageFileWriter.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
-// #include "itkWarpImageMultiTransformFilter.h"
-// #include "itkDisplacementFieldFromMultiTransformFilter.h"
 
 #include "itkAverageAffineTransformNoRigidFunction.h"
-
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
-#include <stdlib.h>
-#include <string>
-#include <errno.h>
 
-typedef enum
-  {
-  INVALID_FILE = 1, AFFINE_FILE, DEFORMATION_FILE
-  } TRAN_FILE_TYPE;
-typedef struct
-  {
-  char * filename;
-  TRAN_FILE_TYPE file_type;
-  bool do_affine_inv;
-
-  double weight;   // for average
-  } TRAN_OPT;
-
-typedef std::vector<TRAN_OPT> TRAN_OPT_QUEUE;
-
-TRAN_FILE_TYPE CheckFileType(char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind(".");
-  std::string            filepre = std::string(filename, 0, pos);
-
-  if( pos != std::string::npos )
-    {
-    std::string extension = std::string(filename, pos,
-                                        filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind(".");
-      extension = std::string(filepre, pos, filepre.length() - 1);
-      }
-    if( extension == ".txt" )
-      {
-      return AFFINE_FILE;
-      }
-    else
-      {
-      return DEFORMATION_FILE;
-      }
-    }
-  else
-    {
-    return INVALID_FILE;
-    }
-  return AFFINE_FILE;
-}
-
-// adapted from http://stackoverflow.com/questions/194465/how-to-parse-a-string-to-an-int-in-c
-bool get_a_double_number(const char *str, double & v)
-{
-  char *end;
-
-  errno = 0;
-  v = strtod(str, &end);
-  if( (errno == ERANGE && v == HUGE_VAL) )
-    {
-    return false;     // OVERFLOW
-    }
-  if( (errno == ERANGE && v == 0.0) )
-    {
-    return false;     // UNDERFLOW
-    }
-  if( *str == '\0' || *end != '\0' )
-    {
-    return false;     // INCONVERTIBLE;
-    }
-  return true;
-}
-
-bool ParseInput(int argc, char * *argv, char *& output_transform_filename,
-                char *& reference_transform_filename, TRAN_OPT_QUEUE & opt_queue)
+static bool ParseInput(int argc, char * *argv, char *& output_transform_filename,
+                       char *& reference_transform_filename, TRAN_OPT_QUEUE & opt_queue)
 {
   opt_queue.clear();
   opt_queue.reserve(argc);
@@ -177,39 +100,6 @@ bool ParseInput(int argc, char * *argv, char *& output_transform_filename,
 //    }
 
   return true;
-}
-
-void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
-{
-  const int kQueueSize = opt_queue.size();
-
-  for( int i = 0; i < kQueueSize; i++ )
-    {
-    std::cout << "[" << i << "/" << kQueueSize << "]: ";
-
-    switch( opt_queue[i].file_type )
-      {
-      case AFFINE_FILE:
-        {
-        std::cout << "AFFINE";
-        if( opt_queue[i].do_affine_inv )
-          {
-          std::cout << "-INV";
-          }
-        std::cout << " (" << opt_queue[i].weight << ") ";
-        }
-        break;
-//        case DEFORMATION_FILE:
-//            std::cout << "FIELD";
-//            break;
-      default:
-        {
-        std::cout << "Invalid Format!!!";
-        }
-        break;
-      }
-    std::cout << ": " << opt_queue[i].filename << std::endl;
-    }
 }
 
 template <int ImageDimension>

@@ -82,7 +82,12 @@ CMAKE_DEPENDENT_OPTION(
 
 option(USE_SYSTEM_ITK "Build using an externally defined version of ITK" OFF)
 option(USE_SYSTEM_SlicerExecutionModel "Build using an externally defined version of SlicerExecutionModel"  OFF)
-option(USE_SYSTEM_VTK "Build using an externally defined version of VTK" OFF)
+
+option(USE_VTK "Build tools that depend on VTK" OFF)
+CMAKE_DEPENDENT_OPTION(
+     USE_SYSTEM_VTK "Build using an externally defined version of VTK" OFF
+     "USE_ITK" OFF
+     )
 
 #------------------------------------------------------------------------------
 # ${LOCAL_PROJECT_NAME} dependency list
@@ -190,6 +195,12 @@ set(${LOCAL_PROJECT_NAME}_CLI_INSTALL_ARCHIVE_DESTINATION  lib)
 #-----------------------------------------------------------------------------
 # Add external project CMake args
 #-----------------------------------------------------------------------------
+if(USE_VTK)
+  list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
+    USE_VTK:BOOL
+    VTK_DIR:PATH
+    )
+endif()
 list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
   BUILD_EXAMPLES:BOOL
   BUILD_TESTING:BOOL

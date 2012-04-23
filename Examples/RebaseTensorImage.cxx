@@ -15,7 +15,7 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#include "antscout.hxx"
+#include "antsUtilities.h"
 #include <algorithm>
 
 #include "ReadWriteImage.h"
