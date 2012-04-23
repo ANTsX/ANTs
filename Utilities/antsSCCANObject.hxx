@@ -1227,7 +1227,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         MatrixType m( this->m_MatrixP.rows(), k, 0 );
         for( unsigned int mm = 0; mm < k; mm++ )
           {
-          m.set_row( mm, this->m_MatrixP * this->m_VariatesP.get_column( mm ) );
+          m.set_column( mm, this->m_MatrixP * this->m_VariatesP.get_column( mm ) );
           }
         MatrixType projmat = this->ProjectionMatrix( m, 1.e-8 );
         pmod = pmod - projmat * pmod;
