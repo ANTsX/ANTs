@@ -370,8 +370,8 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   bspliner->SetPointWeights( weights );
   bspliner->Update();
 
-  bspliner->SetOrigin( fixedOrigin );
-  bspliner->SetDirection( fixedDirection );
+  bspliner->GetOutput()->SetOrigin( fixedOrigin );
+  bspliner->GetOutput()->SetDirection( fixedDirection );
 
   typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
   typename WriterType::Pointer writer = WriterType::New();
