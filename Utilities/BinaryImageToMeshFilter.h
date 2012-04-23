@@ -120,7 +120,7 @@ public:
   itkGetMacro(SmoothingIterations, int);
 
   /** Set the input */
-  void SetInput(TImage *image)
+  virtual void SetInput(TImage *image)
   {
     this->SetNthInput(0, image);
   }

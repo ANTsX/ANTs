@@ -208,3 +208,9 @@ void DisplayOpt(const TRAN_OPT & opt)
     }
   ants::antscout << ": " << opt.filename << std::endl;
 }
+
+std::string GetPreferredTransformFileType(void)
+{
+  // return ".mat";
+  return ".txt";
+}

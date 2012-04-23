@@ -233,8 +233,6 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
 
   antscout << " Genus " << vtkComputeTopology(vtkmesh) << std::endl;
 
-  typename itype::SpacingType spacing = image->GetSpacing();
-
   vtkPoints* vtkpoints = vtkmesh->GetPoints();
   int        numPoints = vtkpoints->GetNumberOfPoints();
   float      mx = 0, mn = 9.e9, meank = 0;
