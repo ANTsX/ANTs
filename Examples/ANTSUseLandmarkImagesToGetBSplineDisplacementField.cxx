@@ -7,6 +7,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkPointSet.h"
 #include "itkVector.h"
 
@@ -369,6 +370,51 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   bspliner->SetInput( fieldPoints );
   bspliner->SetPointWeights( weights );
   bspliner->Update();
+
+  typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, RealType> InterpolatorType;
+  typename InterpolatorType::Pointer interpolator = InterpolatorType::New();
+  interpolator->SetInputImage( bspliner->GetOutput() );
+
+  std::cout << "Distance errors:" << std::endl;
+
+  mIt = movingCenters->GetPoints()->Begin();
+  mItD = movingCenters->GetPointData()->Begin();
+
+  while( mItD != movingCenters->GetPointData()->End() )
+    {
+    typename PointSetType::PointsContainerConstIterator fIt =
+      fixedCenters->GetPoints()->Begin();
+    typename PointSetType::PointDataContainerIterator fItD =
+      fixedCenters->GetPointData()->Begin();
+
+    while( fItD != fixedCenters->GetPointData()->End() )
+      {
+      if( fItD.Value() == mItD.Value() )
+        {
+        typename PointSetType::PointType fpoint = fIt.Value();
+        typename PointSetType::PointType mpoint = mIt.Value();
+
+        VectorType displacement = ( fpoint - mpoint );
+
+        typename InterpolatorType::PointType point;
+        for( unsigned int i = 0; i < ImageDimension; i++ )
+          {
+          point[i] = mpoint[i];
+          }
+        VectorType vector = interpolator->Evaluate( point );
+
+        RealType error = ( vector - displacement ).GetNorm();
+        std::cout << "  " << fItD.Value() << ": " << error << std::endl;
+
+        break;
+        }
+      ++fItD;
+      ++fIt;
+      }
+
+    ++mItD;
+    ++mIt;
+    }
 
   bspliner->GetOutput()->SetOrigin( fixedOrigin );
   bspliner->GetOutput()->SetDirection( fixedDirection );
