@@ -220,13 +220,6 @@ public:
   typedef itk::ANTSAffine3DTransform<double> TransformType;
 };
 */
-void ConvertToLowerCase( std::string& str )
-{
-  std::transform( str.begin(), str.end(), str.begin(), tolower );
-// You may need to cast the above line to (int(*)(int))
-// tolower - this works as is on VC 7.1 but may not work on
-// other compilers
-}
 
 template <class TImageIn, class TImageOut>
 void

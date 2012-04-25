@@ -19,28 +19,6 @@ namespace ants
 // Needed for the LabelImageGaussianInterpolateImageFunction to work on
 // vector images
 
-template <class TPixel, unsigned int VDim>
-class VectorPixelCompare
-{
-public:
-  bool operator()(const itk::Vector<TPixel, VDim> & v1, const itk::Vector<TPixel, VDim> & v2)
-  {
-    // Ordering of vectors based on 1st component, then second, etc.
-    for( size_t i = 0; i < VDim; i++ )
-      {
-      if( v1[i] < v2[i] )
-        {
-        return true;
-        }
-      else if( v1[i] > v2[i] )
-        {
-        return false;
-        }
-      }
-    return false;
-  }
-};
-
 bool IsInverseDeformation(const char *str)
 {
   std::string            filename = str;

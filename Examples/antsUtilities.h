@@ -17,6 +17,8 @@
 #include <errno.h>
 #include <cmath>
 
+#include "itkVector.h"
+
 // We need to ensure that only one of these exists!
 namespace ants
 {
@@ -30,6 +32,30 @@ extern boost::iostreams::stream<ants_Sink> antscout;
 // ##########################################################################
 // ##########################################################################
 // Templates
+
+template <class TPixel, unsigned int VDim>
+class VectorPixelCompare
+{
+public:
+  bool operator()( const itk::Vector<TPixel, VDim> & v1,
+                   const itk::Vector<TPixel, VDim> & v2 )
+  {
+    // Ordering of vectors based on 1st component, then second, etc.
+    for( size_t i = 0; i < VDim; i++ )
+      {
+      if( v1[i] < v2[i] )
+        {
+        return true;
+        }
+      else if( v1[i] > v2[i] )
+        {
+        return false;
+        }
+      }
+    return false;
+  }
+};
+
 template <class ImageTypePointer, class AffineTransformPointer>
 void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPointer & aff)
 {
@@ -251,5 +277,7 @@ extern void FilePartsWithgz(const std::string & filename, std::string & path, st
 extern bool CheckFileExistence(const char * const str);
 
 extern std::string GetPreferredTransformFileType(void);
+
+extern void ConvertToLowerCase( std::string& str );
 
 #endif // __antsUtilities_h__

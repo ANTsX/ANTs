@@ -1,8 +1,5 @@
 
-
 #include "antsUtilities.h"
-#include <algorithm>
-
 #include "antsCommandLineParser.h"
 
 #include "itkAffineTransform.h"
@@ -16,7 +13,6 @@
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformToDisplacementFieldSource.h"
-#include "itkVector.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
@@ -25,44 +21,8 @@
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
 
-#include <deque>
-#include <string>
-#include <vector>
-#include <algorithm>
-
 namespace ants
 {
-void ConvertToLowerCase( std::string& str )
-{
-  std::transform( str.begin(), str.end(), str.begin(), tolower );
-// You may need to cast the above line to (int(*)(int))
-// tolower - this works as is on VC 7.1 but may not work on
-// other compilers
-}
-
-template <class TPixel, unsigned int VDim>
-class VectorPixelCompare
-{
-public:
-  bool operator()( const itk::Vector<TPixel, VDim> & v1,
-                   const itk::Vector<TPixel, VDim> & v2 )
-  {
-    // Ordering of vectors based on 1st component, then second, etc.
-    for( size_t i = 0; i < VDim; i++ )
-      {
-      if( v1[i] < v2[i] )
-        {
-        return true;
-        }
-      else if( v1[i] > v2[i] )
-        {
-        return false;
-        }
-      }
-    return false;
-  }
-};
-
 template <unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser *parser )
 {
@@ -540,7 +500,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
