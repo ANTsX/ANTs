@@ -375,7 +375,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
 }
 
 template <int ImageDimension>
-void ComposeMultiAffine(char *input_affine_txt, char *output_affine_txt,
+void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
                         char *reference_affine_txt, TRAN_OPT_QUEUE & opt_queue)
 {
   typedef itk::Image<float,

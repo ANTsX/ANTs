@@ -120,6 +120,7 @@ public:
   itkGetMacro(SmoothingIterations, int);
 
   /** Set the input */
+  using Superclass::SetInput;
   virtual void SetInput(TImage *image)
   {
     this->SetNthInput(0, image);
@@ -498,7 +499,7 @@ private:
 
   vtkPolyData *m_Result;
 
-  void ProgressCommand(itk::Object *source, const itk::EventObject & evt)
+  void ProgressCommand(itk::Object *source, const itk::EventObject & /*evt*/)
   {
     // Get the elapsed progress
     itk::ProcessObject *po = reinterpret_cast<ProcessObject *>(source);
