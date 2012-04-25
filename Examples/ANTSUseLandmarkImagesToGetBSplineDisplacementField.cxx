@@ -335,7 +335,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   unsigned int splineOrder = 3;
   if( argc > 6 )
     {
-    atoi( argv[6] );
+    splineOrder = atoi( argv[6] );
     }
 
   std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[4] ) );
