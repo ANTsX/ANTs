@@ -15,8 +15,8 @@
 
 namespace ants
 {
-bool ParseInput(int argc, char * *argv, char *& output_image_filename,
-                char *& reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
+static bool ComposeMultiTransform_ParseInput(int argc, char * *argv, char *& output_image_filename,
+                                             char *& reference_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
   opt_queue.clear();
   opt_queue.reserve(argc - 2);
@@ -408,8 +408,8 @@ private:
   bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = ParseInput(argc - 2, argv + 2, output_image_filename,
-                             reference_image_filename, opt_queue);
+  is_parsing_ok = ComposeMultiTransform_ParseInput(argc - 2, argv + 2, output_image_filename,
+                                                   reference_image_filename, opt_queue);
 
   if( is_parsing_ok )
     {
