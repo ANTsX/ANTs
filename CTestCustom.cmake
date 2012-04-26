@@ -22,7 +22,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
 #-- #The following are brains2 warnings that just need to be suppressed because they are caused
 #-- #by third parties, and will never be fixed.
 set(CTEST_CUSTOM_WARNING_EXCEPTION
-  "Point.*may be used uninitialized"
+  "itkPoint.hxx.*may be used uninitialized"
   ".*was declared here.*"
     )
 ##Intel compiler does not like itkLegacyMacro warning #1170
