@@ -86,7 +86,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "composite-transform-file" );
     option->SetShortName( 'a' );
     option->SetUsageOption( 0, "compositeFile" );
-    option->SetUsageOption( 1, "<name of file to write>" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -425,7 +424,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer maskOption = parser->GetOption( "masks" );
 
-  OptionType::Pointer compositeOutputOption = parser->GetOption("composite-transform");
+  OptionType::Pointer compositeOutputOption = parser->GetOption("composite-transform-file");
 
   if( !outputOption )
     {
