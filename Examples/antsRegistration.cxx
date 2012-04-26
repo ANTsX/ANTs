@@ -80,6 +80,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string( "Specify name of a composite transform " )
+      + std::string( "file to write out after registration " );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "composite-transform-file" );
+    option->SetShortName( 'a' );
+    option->SetUsageOption( 0, "compositeFile" );
+    option->SetUsageOption( 1, "<name of file to write>" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Specify the initial moving transform(s) which get immediately " )
       + std::string( "incorporated into the composite transform.  The order of the " )
       + std::string( "transforms is stack-esque in that the last transform specified on " )
@@ -412,6 +424,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   OptionType::Pointer outputOption = parser->GetOption( "output" );
 
   OptionType::Pointer maskOption = parser->GetOption( "masks" );
+
+  OptionType::Pointer compositeOutputOption = parser->GetOption("composite-transform");
 
   if( !outputOption )
     {
@@ -939,6 +953,13 @@ DoRegistration(typename ParserType::Pointer & parser)
   // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform =
     regHelper->GetCompositeTransform();
+  if( compositeOutputOption->GetNumberOfValues() > 0 )
+    {
+    std::string compositeTransform = compositeOutputOption->GetParameter(0, 0);
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
+      resultTransform.GetPointer();
+    itk::ants::WriteTransform<VImageDimension>(curTransform, compositeTransform.c_str() );
+    }
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
   // write out transforms actually computed, so skip any initial transforms.
   for( unsigned int i = initialMovingTransformOption->GetNumberOfValues(); i < numTransforms; ++i )
