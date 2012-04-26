@@ -53,6 +53,11 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
 
   unsigned int upperFactors[Dimension];
   unsigned int lowerFactors[Dimension];
+  for( unsigned int q = 0; q < Dimension; ++q )
+    {
+    upperFactors[q] = 0;
+    lowerFactors[q] = 0;
+    }
 
   bool flipaboutorigin = false;
   if( Dimension == 2 )
