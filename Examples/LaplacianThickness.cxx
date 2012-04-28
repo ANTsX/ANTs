@@ -3,9 +3,6 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include "itkBinaryBallStructuringElement.h"
-#include "itkBinaryDilateImageFilter.h"
-#include "itkBinaryErodeImageFilter.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkFastMarchingUpwindGradientImageFilter.h"

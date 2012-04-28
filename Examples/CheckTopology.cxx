@@ -32,9 +32,7 @@ $Revision: 1.8 $
 #include "itkShapedNeighborhoodIterator.h"
 #include "BinaryImageToMeshFilter.h"
 
-#include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
-#include "itkBinaryBallStructuringElement.h"
 
 #include "vtkCallbackCommand.h"
 #include "vtkPointPicker.h"
@@ -270,87 +268,6 @@ GetLargestComponent(typename TImage::Pointer image)
   //  antscout << " label " << i << " ct is: " << histogram[i] << std::endl;
 
   return Clusters;
-}
-
-template <class TImage>
-typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, bool option)
-{
-  typedef TImage ImageType;
-  enum { ImageDimension = TImage::ImageDimension };
-  typedef typename TImage::PixelType PixelType;
-
-  if( !option )
-    {
-    antscout << " eroding the image " << std::endl;
-    }
-  else
-    {
-    antscout << " dilating the image " << std::endl;
-    }
-  typedef itk::BinaryBallStructuringElement<
-      PixelType,
-      ImageDimension>             StructuringElementType;
-
-  typedef itk::BinaryErodeImageFilter<
-      TImage,
-      TImage,
-      StructuringElementType>  ErodeFilterType;
-
-  typedef itk::BinaryDilateImageFilter<
-      TImage,
-      TImage,
-      StructuringElementType>  DilateFilterType;
-
-  typename ErodeFilterType::Pointer  binaryErode  = ErodeFilterType::New();
-  typename DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
-
-  StructuringElementType structuringElement;
-
-  structuringElement.SetRadius( (unsigned long) rad );  // 3x3x3 structuring element
-
-  structuringElement.CreateStructuringElement();
-
-  binaryErode->SetKernel(  structuringElement );
-  binaryDilate->SetKernel( structuringElement );
-
-  //  It is necessary to define what could be considered objects on the binary
-  //  images. This is specified with the methods \code{SetErodeValue()} and
-  //  \code{SetDilateValue()}. The value passed to these methods will be
-  //  considered the value over which the dilation and erosion rules will apply
-  binaryErode->SetErodeValue( 1 );
-  binaryDilate->SetDilateValue( 1 );
-
-  typename TImage::Pointer temp;
-  if( option )
-    {
-    binaryDilate->SetInput( input );
-    binaryDilate->Update();
-    temp = binaryDilate->GetOutput();
-    }
-  else
-    {
-    binaryErode->SetInput( input );  // binaryDilate->GetOutput() );
-    binaryErode->Update();
-    temp = binaryErode->GetOutput();
-
-    typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
-    ImageIteratorType o_iter( temp, temp->GetLargestPossibleRegion() );
-    o_iter.GoToBegin();
-    while( !o_iter.IsAtEnd() )
-      {
-      if( o_iter.Get() > 0.5 && input->GetPixel(o_iter.GetIndex() ) > 0.5 )
-        {
-        o_iter.Set(1);
-        }
-      else
-        {
-        o_iter.Set(0);
-        }
-      ++o_iter;
-      }
-    }
-
-  return temp;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to

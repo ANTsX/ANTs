@@ -3,9 +3,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
-#include "itkBinaryBallStructuringElement.h"
 #include "ReadWriteImage.h"
 #include "itkSurfaceImageCurvature.h"
 

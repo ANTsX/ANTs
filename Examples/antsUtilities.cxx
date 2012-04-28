@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <stdio.h>
-#include <errno.h>
 #include <math.h>
 #include <iostream>
 #include <fstream>

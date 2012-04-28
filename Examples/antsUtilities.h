@@ -19,6 +19,11 @@
 
 #include "itkVector.h"
 #include "itkBinaryThresholdImageFilter.h"
+#include "itkBinaryBallStructuringElement.h"
+#include "itkBinaryDilateImageFilter.h"
+#include "itkBinaryErodeImageFilter.h"
+#include "itkGrayscaleDilateImageFilter.h"
+#include "itkGrayscaleErodeImageFilter.h"
 
 // We need to ensure that only one of these exists!
 namespace ants
@@ -33,6 +38,276 @@ extern boost::iostreams::stream<ants_Sink> antscout;
 // ##########################################################################
 // ##########################################################################
 // Templates
+template <class TImage>
+typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, unsigned int option,
+                                         float dilateval)
+{
+  typedef TImage ImageType;
+  enum { ImageDimension = TImage::ImageDimension };
+  typedef typename TImage::PixelType PixelType;
+
+  if( option == 0 )
+    {
+    antscout << " binary eroding the image " << std::endl;
+    }
+  else if( option == 1 )
+    {
+    antscout << " binary dilating the image " << std::endl;
+    }
+  else if( option == 2 )
+    {
+    antscout << " binary opening the image " << std::endl;
+    }
+  else if( option == 3 )
+    {
+    antscout << " binary closing the image " << std::endl;
+    }
+  else if( option == 4 )
+    {
+    antscout << " grayscale eroding the image " << std::endl;
+    }
+  else if( option == 5 )
+    {
+    antscout << " grayscale dilating the image " << std::endl;
+    }
+  else if( option == 6 )
+    {
+    antscout << " grayscale opening the image " << std::endl;
+    }
+  else if( option == 7 )
+    {
+    antscout << " grayscale closing the image " << std::endl;
+    }
+
+  typedef itk::BinaryBallStructuringElement<
+      PixelType,
+      ImageDimension>             StructuringElementType;
+
+  typedef itk::BinaryErodeImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  ErodeFilterType;
+
+  typedef itk::BinaryDilateImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  DilateFilterType;
+  typename ErodeFilterType::Pointer  binaryErode  = ErodeFilterType::New();
+  typename DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
+
+  StructuringElementType structuringElement;
+
+  structuringElement.SetRadius( (unsigned long) rad );  // 3x3x3 structuring element
+
+  structuringElement.CreateStructuringElement();
+
+  binaryErode->SetKernel(  structuringElement );
+  binaryDilate->SetKernel( structuringElement );
+  // binaryOpen->SetKernal( structuringElement );
+  // binaryClose->SetKernel( structuringElement );
+  //
+  // typename OpeningFilterType::Pointer  binaryOpen  = OpeningFilterType::New();
+  // typename ClosingFilterType::Pointer binaryClose = ClosingFilterType::New();
+  typedef itk::GrayscaleErodeImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType> GrayscaleErodeFilterType;
+
+  typedef itk::GrayscaleDilateImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType> GrayscaleDilateFilterType;
+
+  typename GrayscaleErodeFilterType::Pointer grayscaleErode = GrayscaleErodeFilterType::New();
+  typename GrayscaleDilateFilterType::Pointer grayscaleDilate = GrayscaleDilateFilterType::New();
+  grayscaleErode->SetKernel( structuringElement );
+  grayscaleDilate->SetKernel( structuringElement );
+
+  //  It is necessary to define what could be considered objects on the binary
+  //  images. This is specified with the methods \code{SetErodeValue()} and
+  //  \code{SetDilateValue()}. The value passed to these methods will be
+  //  considered the value over which the dilation and erosion rules will apply
+  binaryErode->SetErodeValue( (unsigned int ) dilateval );
+  binaryDilate->SetDilateValue(  (unsigned int ) dilateval );
+
+  typename TImage::Pointer temp;
+  if( option == 1 )
+    {
+    antscout << " Dilate " << rad << std::endl;
+    binaryDilate->SetInput( input );
+    binaryDilate->Update();
+    temp = binaryDilate->GetOutput();
+    }
+  else if( option == 0 )
+    {
+    antscout << " Erode " << rad << std::endl;
+    binaryErode->SetInput( input );  // binaryDilate->GetOutput() );
+    binaryErode->Update();
+    temp = binaryErode->GetOutput();
+    }
+  else if( option == 2 )
+    {
+    // dilate(erode(img))
+    antscout << " Binary Open " << rad << std::endl;
+    // binaryOpen->SetInput( input );//binaryDilate->GetOutput() );
+    // binaryOpen->Update();
+    binaryErode->SetInput( input );
+    binaryDilate->SetInput( binaryErode->GetOutput() );
+    binaryDilate->Update();
+    temp = binaryDilate->GetOutput();
+    }
+  else if( option == 3 )
+    {
+    antscout << " Binary Close " << rad << std::endl;
+    // binaryClose->SetInput( input );//binaryDilate->GetOutput() );
+    // binaryClose->Update();
+    binaryDilate->SetInput( input );
+    binaryErode->SetInput( binaryDilate->GetOutput() );
+    binaryErode->Update();
+    temp = binaryErode->GetOutput();
+    }
+  else if( option == 4 )
+    {
+    antscout << " Grayscale Erode " << rad << std::endl;
+    grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
+    grayscaleErode->Update();
+    temp = binaryErode->GetOutput();
+    }
+  else if( option == 5 )
+    {
+    antscout << " Grayscale Dilate " << rad << std::endl;
+    grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
+    grayscaleDilate->Update();
+    temp = binaryDilate->GetOutput();
+    }
+  else if( option == 6 )
+    {
+    antscout << " Grayscale Open " << rad << std::endl;
+    grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
+    grayscaleErode->Update();
+    grayscaleDilate->SetInput( grayscaleErode->GetOutput() );
+    grayscaleDilate->Update();
+    temp = grayscaleDilate->GetOutput();
+    }
+  else if( option == 7 )
+    {
+    antscout << " Grayscale Close " << rad << std::endl;
+    grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
+    grayscaleDilate->Update();
+    grayscaleErode->SetInput( grayscaleDilate->GetOutput() );
+    grayscaleErode->Update();
+    temp = grayscaleErode->GetOutput();
+    }
+
+  if( option == 0 )
+    {
+    // FIXME - replace with threshold filter?
+    typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
+    ImageIteratorType o_iter( temp, temp->GetLargestPossibleRegion() );
+    o_iter.GoToBegin();
+    while( !o_iter.IsAtEnd() )
+      {
+      if( o_iter.Get() > 0.5 && input->GetPixel(o_iter.GetIndex() ) > 0.5 )
+        {
+        o_iter.Set(1);
+        }
+      else
+        {
+        o_iter.Set(0);
+        }
+      ++o_iter;
+      }
+    }
+
+  return temp;
+}
+
+#if 0
+// TODO:  I am pretty sure that this can be completely
+// replaced by the Morphological template above
+// with option = true, flase, and
+template <class TImage>
+typename TImage::Pointer  MorphologicalBinary( typename TImage::Pointer input, float rad, bool option)
+{
+  typedef TImage ImageType;
+  enum { ImageDimension = TImage::ImageDimension };
+  typedef typename TImage::PixelType PixelType;
+
+  if( !option )
+    {
+    antscout << " eroding the image " << std::endl;
+    }
+  else
+    {
+    antscout << " dilating the image " << std::endl;
+    }
+  typedef itk::BinaryBallStructuringElement<
+      PixelType,
+      ImageDimension>             StructuringElementType;
+
+  typedef itk::BinaryErodeImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  ErodeFilterType;
+
+  typedef itk::BinaryDilateImageFilter<
+      TImage,
+      TImage,
+      StructuringElementType>  DilateFilterType;
+
+  typename ErodeFilterType::Pointer  binaryErode  = ErodeFilterType::New();
+  typename DilateFilterType::Pointer binaryDilate = DilateFilterType::New();
+
+  StructuringElementType structuringElement;
+
+  structuringElement.SetRadius( (unsigned long) rad );  // 3x3x3 structuring element
+
+  structuringElement.CreateStructuringElement();
+
+  binaryErode->SetKernel(  structuringElement );
+  binaryDilate->SetKernel( structuringElement );
+
+  //  It is necessary to define what could be considered objects on the binary
+  //  images. This is specified with the methods \code{SetErodeValue()} and
+  //  \code{SetDilateValue()}. The value passed to these methods will be
+  //  considered the value over which the dilation and erosion rules will apply
+  binaryErode->SetErodeValue( 1 );
+  binaryDilate->SetDilateValue( 1 );
+
+  typename TImage::Pointer temp;
+  if( option )
+    {
+    binaryDilate->SetInput( input );
+    binaryDilate->Update();
+    temp = binaryDilate->GetOutput();
+    }
+  else
+    {
+    binaryErode->SetInput( input );  // binaryDilate->GetOutput() );
+    binaryErode->Update();
+    temp = binaryErode->GetOutput();
+
+    typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
+    ImageIteratorType o_iter( temp, temp->GetLargestPossibleRegion() );
+    o_iter.GoToBegin();
+    while( !o_iter.IsAtEnd() )
+      {
+      if( o_iter.Get() > 0.5 && input->GetPixel(o_iter.GetIndex() ) > 0.5 )
+        {
+        o_iter.Set(1);
+        }
+      else
+        {
+        o_iter.Set(0);
+        }
+      ++o_iter;
+      }
+    }
+
+  return temp;
+}
+
+#endif
 
 template <class TImage>
 typename TImage::Pointer BinaryThreshold(
