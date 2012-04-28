@@ -64,7 +64,7 @@ MultiplyImage(typename TImage::Pointer image1, typename TImage::Pointer image2)
 }
 
 template <class TImage>
-typename TImage::Pointer BinaryThreshold(
+typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   typename TImage::PixelType low,
   typename TImage::PixelType high,
   typename TImage::PixelType insideval, typename TImage::PixelType outsideval,
@@ -158,34 +158,6 @@ LabelSurface(typename TImage::PixelType foreground,
 }
 
 template <class TImage>
-typename TImage::Pointer
-DanielssonDistanceMap(
-  typename TImage::PixelType pixlo,
-  typename TImage::PixelType pixhi,
-  typename TImage::Pointer input)
-{
-  antscout << " DDMap " << std::endl;
-
-  typedef TImage ImageType;
-
-  typedef itk::DanielssonDistanceMapImageFilter<
-      ImageType, ImageType>  FilterType;
-
-  typename  FilterType::Pointer filter = FilterType::New();
-  filter->InputIsBinaryOn();
-  filter->SetUseImageSpacing(true);
-  filter->SetInput(BinaryThreshold<TImage>(pixlo, pixhi, pixhi, input) );
-  filter->Update();
-
-//  std::string fn="C:\\Data\\temp.img";
-//  WriteImage(filter->GetOutput(),fn.c_str());
-//  fn="C:\\Data\\temp2.img";
-//  WriteImage(filter->GetVoronoiMap(),fn.c_str());
-
-  return filter->GetOutput();
-}
-
-template <class TImage>
 typename TImage::Pointer OtsuThreshold(
   int NumberOfThresholds, typename TImage::Pointer input)
 {
@@ -255,8 +227,10 @@ int ThresholdImage( int argc, char * argv[] )
       {
       outsideValue = static_cast<PixelType>( atof( argv[7] ) );
       }
-    thresh = BinaryThreshold<FixedImageType>(atof(argv[4]), atof(argv[5]),
-                                             insideValue, outsideValue, fixedReader->GetOutput() );
+    thresh = BinaryThreshold_AltInsideOutside_threashold<FixedImageType>(atof(argv[4]), atof(
+                                                                           argv[5]),
+                                                                         insideValue, outsideValue,
+                                                                         fixedReader->GetOutput() );
     }
 
   movingWriter->SetInput(thresh);

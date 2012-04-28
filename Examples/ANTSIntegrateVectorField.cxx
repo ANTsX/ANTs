@@ -32,40 +32,6 @@
 
 namespace ants
 {
-template <class TImage>
-typename TImage::Pointer BinaryThreshold(
-  typename TImage::PixelType low,
-  typename TImage::PixelType high,
-  typename TImage::PixelType replaceval, typename TImage::Pointer input)
-{
-  // antscout << " Binary Thresh " << std::endl;
-
-  typedef typename TImage::PixelType PixelType;
-  // Begin Threshold Image
-  typedef itk::BinaryThresholdImageFilter<TImage, TImage> InputThresholderType;
-  typename InputThresholderType::Pointer inputThresholder =
-    InputThresholderType::New();
-
-  inputThresholder->SetInput( input );
-  inputThresholder->SetInsideValue(  replaceval );
-  int outval = 0;
-  if( (float) replaceval == (float) -1 )
-    {
-    outval = 1;
-    }
-  inputThresholder->SetOutsideValue( outval );
-
-  if( high < low )
-    {
-    high = 255;
-    }
-  inputThresholder->SetLowerThreshold( (PixelType) low );
-  inputThresholder->SetUpperThreshold( (PixelType) high);
-  inputThresholder->Update();
-
-  return inputThresholder->GetOutput();
-}
-
 template <class TField, class TImage>
 typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
