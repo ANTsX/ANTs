@@ -276,8 +276,6 @@ RegistrationHelper<VImageDimension>
 ::RegistrationHelper() :
   m_CompositeTransform(NULL),
   m_FixedInitialTransform(NULL),
-  m_WarpedImage(NULL),
-  m_InverseWarpedImage(NULL),
   m_NumberOfStages(0),
   m_Metrics(),
   m_TransformMethods(),
@@ -747,10 +745,10 @@ RegistrationHelper<VImageDimension>
 }
 
 template <unsigned VImageDimension>
-typename RegistrationHelper<VImageDimension>::ImageType
-* RegistrationHelper<VImageDimension>
-::GetWarpedImage()
-  {
+typename RegistrationHelper<VImageDimension>::ImageType::Pointer
+RegistrationHelper<VImageDimension>
+::GetWarpedImage() const
+{
   typename ImageType::Pointer fixedImage = this->m_Metrics[0].m_FixedImage;
   typename ImageType::Pointer movingImage = this->m_Metrics[0].m_MovingImage;
 
@@ -765,15 +763,16 @@ typename RegistrationHelper<VImageDimension>::ImageType
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
 
-  this->m_WarpedImage = resampler->GetOutput();
-  return this->m_WarpedImage.GetPointer();
-  }
+  typename ImageType::Pointer  WarpedImage;
+  WarpedImage = resampler->GetOutput();
+  return WarpedImage.GetPointer();
+}
 
 template <unsigned VImageDimension>
-typename RegistrationHelper<VImageDimension>::ImageType
-* RegistrationHelper<VImageDimension>
-::GetInverseWarpedImage()
-  {
+typename RegistrationHelper<VImageDimension>::ImageType::Pointer
+RegistrationHelper<VImageDimension>
+::GetInverseWarpedImage() const
+{
   typename ImageType::Pointer fixedImage = this->m_Metrics[0].m_FixedImage;
   typename ImageType::Pointer movingImage = this->m_Metrics[0].m_MovingImage;
 
@@ -785,16 +784,17 @@ typename RegistrationHelper<VImageDimension>::ImageType
   typename ResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
   inverseResampler->SetTransform( this->m_CompositeTransform->GetInverseTransform() );
   inverseResampler->SetInput( fixedImage );
-  inverseResampler->SetSize( movingImage->GetBufferedRegion().GetSize() );
+  inverseResampler->SetSize( movingImage->GetLargestPossibleRegion().GetSize() );
   inverseResampler->SetOutputOrigin( movingImage->GetOrigin() );
   inverseResampler->SetOutputSpacing( movingImage->GetSpacing() );
   inverseResampler->SetOutputDirection( movingImage->GetDirection() );
   inverseResampler->SetDefaultPixelValue( 0 );
   inverseResampler->Update();
 
-  this->m_InverseWarpedImage = inverseResampler->GetOutput();
-  return this->m_InverseWarpedImage.GetPointer();
-  }
+  typename ImageType::Pointer InverseWarpedImage;
+  InverseWarpedImage = inverseResampler->GetOutput();
+  return InverseWarpedImage.GetPointer();
+}
 
 template <unsigned VImageDimension>
 void
