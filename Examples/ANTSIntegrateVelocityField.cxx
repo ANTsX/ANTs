@@ -13,23 +13,19 @@
 
 #include "itkImageFileWriter.h"
 
-// #include "itkScalarImageToHistogramGenerator.h"
-// #include "itkImageToHistogramGenerator.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "vnl/algo/vnl_determinant.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
-#include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
 #include "itkBinaryErodeImageFilter.h"
 #include "itkBinaryDilateImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
-#include "ReadWriteImage.h"
-
 #include "itkGradientRecursiveGaussianImageFilter.h"
-#include <algorithm>
+
+#include "ReadWriteImage.h"
 
 namespace ants
 {

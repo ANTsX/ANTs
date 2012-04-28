@@ -22,23 +22,18 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-
-// Software Guide : BeginCodeSnippet
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
-#include "itkNeighborhoodIterator.h"
-#include "itkImage.h"
-#include "itkResampleImageFilter.h"
-#include "itkLinearInterpolateImageFunction.h"
+#include <fstream>
 
 #include "itkExtractImageFilter.h"
-
-#include "itkDanielssonDistanceMapImageFilter.h"
-#include "itkMultiplyImageFilter.h"
+#include "itkImage.h"
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkLinearInterpolateImageFunction.h"
+#include "itkMultiplyImageFilter.h"
+#include "itkNeighborhoodIterator.h"
 #include "itkOtsuMultipleThresholdsImageFilter.h"
-
-#include <fstream>
+#include "itkResampleImageFilter.h"
 
 namespace ants
 {

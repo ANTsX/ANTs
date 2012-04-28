@@ -3,29 +3,24 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include "itkVectorIndexSelectionCastImageFilter.h"
-#include "itkImageRegionIteratorWithIndex.h"
-#include "vnl/algo/vnl_determinant.h"
-
-#include "itkWarpImageFilter.h"
-
-#include "itkImageFileWriter.h"
-#include "itkFastMarchingUpwindGradientImageFilter.h"
-
-#include "itkRescaleIntensityImageFilter.h"
-#include "vnl/algo/vnl_determinant.h"
-#include "itkDiscreteGaussianImageFilter.h"
-#include "itkVectorLinearInterpolateImageFunction.h"
-#include "itkDanielssonDistanceMapImageFilter.h"
-#include "itkGradientRecursiveGaussianImageFilter.h"
-#include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
-#include "itkBinaryErodeImageFilter.h"
-#include "itkBinaryDilateImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
-#include "itkLaplacianRecursiveGaussianImageFilter.h"
-#include "ReadWriteImage.h"
-
+#include "itkBinaryDilateImageFilter.h"
+#include "itkBinaryErodeImageFilter.h"
+#include "itkDanielssonDistanceMapImageFilter.h"
+#include "itkDiscreteGaussianImageFilter.h"
+#include "itkFastMarchingUpwindGradientImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
+#include "itkImageFileWriter.h"
+#include "itkImageRegionIteratorWithIndex.h"
+#include "itkLaplacianRecursiveGaussianImageFilter.h"
+#include "itkRescaleIntensityImageFilter.h"
+#include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
+#include "itkVectorIndexSelectionCastImageFilter.h"
+#include "itkVectorLinearInterpolateImageFunction.h"
+#include "itkWarpImageFilter.h"
+#include "vnl/algo/vnl_determinant.h"
+
+#include "ReadWriteImage.h"
 
 namespace ants
 {
