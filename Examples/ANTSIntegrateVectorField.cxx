@@ -15,7 +15,6 @@
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
-#include "itkBinaryDilateImageFilter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 

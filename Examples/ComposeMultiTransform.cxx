@@ -2,12 +2,11 @@
 #include "antsUtilities.h"
 #include "antsUtilities.h"
 #include "itkImageFileReader.h"
-// #include "itkVectorImageFileReader.h"
-// #include "itkVectorImageFileWriter.h"
+
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
-// #include "itkWarpImageMultiTransformFilter.h"
+
 #include "itkDisplacementFieldFromMultiTransformFilter.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"

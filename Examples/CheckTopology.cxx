@@ -32,8 +32,6 @@ $Revision: 1.8 $
 #include "itkShapedNeighborhoodIterator.h"
 #include "BinaryImageToMeshFilter.h"
 
-#include "itkBinaryDilateImageFilter.h"
-
 #include "vtkCallbackCommand.h"
 #include "vtkPointPicker.h"
 #include "vtkCellPicker.h"

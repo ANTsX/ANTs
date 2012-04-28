@@ -27,8 +27,6 @@
 
 namespace ants
 {
-// #include "itkLandmarkCrossCorrelationRegistrationFunction.h"
-
 template <unsigned int ImageDimension>
 int ComputeSimilarityMetric(int argc, char *argv[])
 {

@@ -58,8 +58,7 @@
 #include "itkTransformFileWriter.h"
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
-// #include "itkANTSAffine3DTransform.h"
-// #include "itkANTSCenteredAffine2DTransform.h"
+
 #include <sstream>
 
 namespace ants

@@ -13,7 +13,6 @@
 #include <float.h>
 #include <assert.h>
 #include "ReadWriteImage.h"
-// #include "itkSampleFalseDiscoveryRateCorrectionFilter.h"
 
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
 

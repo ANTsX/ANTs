@@ -1,28 +1,35 @@
 /** ANTS Landmarks used to initialize an affine transform ... */
+"
 
-#include "antsUtilities.h"
+#include "antsUtilities.h
+"
 #include <algorithm>
 
 #include <stdio.h>
 #include <time.h>
 
-#include "itkLandmarkBasedTransformInitializer.h"
-#include "itkImage.h"
-#include "itkImageIOBase.h"
-#include "itkImageIOFactory.h"
+#include "itkLandmarkBasedTransformInitializer                                                              .h
+"
+#include "itkImage  .h "
+#include "itkImageIOBase.h "
+#include "itkImageIOFactory.h "
 #include <math.h>
 #include <iostream>
-#include "ReadWriteImage.h"
-#include "itkTransformFileWriter.h"
-// #include "itkVectorImageFileReader.h"
-// #include "ANTS_affine_registration2.h"
+#include "ReadWriteImage.h "
+#include "itkTransformFileWriter.h "
+
+
 #include <vnl/vnl_matrix.h>
-// #include <vnl/vnl_qr.h>
-#include "vnl/algo/vnl_qr.h"
+
+#include "vnl / algo
+/ vnl_qr.h
+"
 #include <algorithm>
 
 namespace ants
 {
+
+
 template <class TransformAPointer, class StringType>
 void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & ANTS_prefix);
 
@@ -48,6 +55,7 @@ void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_fi
 
 int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
 {
+
   const unsigned int Dim = 3;
 
   typedef itk::Point<double, Dim> PointType;
@@ -55,14 +63,17 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   typedef std::vector<PointType>  PointContainerType;
   const char *deformation_field_file_name = argv[1];
   float       load_ratio = atof(argv[2]);
-  bool        bRigid = (strcmp(argv[3], "rigid") == 0);
+  bool        bRigid = (strcmp(argv[3], "rigid
+") == 0);
   std::string ANTS_prefix(argv[4]);
-  std::string maskfn = std::string("");
+  std::string maskfn = std::string("
+");
   if( argc > 5 )
     {
     maskfn = std::string(argv[5]);
     }
-  antscout << " mask " << maskfn << std::endl;
+  antscout << "                                                                     mask
+" << maskfn << std::endl;
 
   // input
   PointContainerType fixedLandmarks, movingLandmarks;
@@ -88,7 +99,9 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
     GetAffineTransformFromTwoPointSets3D(fixedLandmarks, movingLandmarks, aff);
     }
 
-  antscout << "affine:" << aff;
+  antscout << "affine
+:
+" << aff;
   DumpTransformForANTS3D(aff, ANTS_prefix);
 
   return EXIT_SUCCESS;
@@ -107,7 +120,9 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   //    typedef itk::MatrixOffsetTransformBase< double, 3, 3> AffineTransformType;
   //    AffineTransformType::Pointer aff = AffineTransformType::New();
   //    GetAffineTransformFromTwoPointSets3D(fixedLandmarks, movingLandmarks, aff);
-  //    antscout << "affine:" << aff;
+  //    antscout << "affine
+:
+" << aff;
   //
   //
   //    if (bRigid)
@@ -117,6 +132,7 @@ int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
   //
   //
   //    return EXIT_SUCCESS;
+
 }
 
 // //////////////////////////////////////////////////////////////////////
@@ -125,6 +141,7 @@ template <class RunningAffineTransformPointerType, class AffineTransformPointerT
 inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
                                    AffineTransformPointerType & transform)
 {
+
   typedef typename RunningAffineTransformPointerType::ObjectType RunningAffineTransformType;
   typedef typename AffineTransformPointerType::ObjectType        AffineTransformType;
 
@@ -137,14 +154,17 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
                          (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
 
-  // antscout << "transform_running" << transform_running << std::endl;
-  // antscout << "transform" << transform << std::endl;
+  // antscout << "transform_running
+" << transform_running << std::endl;
+  // antscout << "transform
+" << transform << std::endl;
 }
 
 template <class PointContainerType, class TransformPointerType>
 void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                          TransformPointerType & aff)
 {
+
   // Set the transform type..
   typedef itk::VersorRigid3DTransform<double> TransformType;
   TransformType::Pointer transform = TransformType::New();
@@ -164,13 +184,16 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
   initializer->SetTransform( transform );
   initializer->InitializeTransform();
 
-  antscout << "rigid: " << transform << std::endl;
+  antscout << "rigid
+:
+" << transform << std::endl;
 
   // ANTS transform file type
   // typedef itk::MatrixOffsetTransformBase< double, Dimension, Dimension > AffineTransformType;
   // typename AffineTransformType::Pointer aff = AffineTransformType::New();
 
   PostConversionInAffine(transform, aff);
+
 }
 
 // ////////
@@ -193,6 +216,7 @@ template <class PointContainerType, class TransformPointerType>
 void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
                                           TransformPointerType & transform)
 {
+
   const int Dim = 3;
   int       n = fixedLandmarks.size();
 
@@ -239,12 +263,14 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   vnl_matrix<double> A(Dim, Dim);
   A = A11.extract(Dim, Dim, 0, 0);
 
-  //    antscout << "y=" << y << std::endl;
-  //    antscout << "x=" << x << std::endl;
+  //    antscout << "y
+  = " << y << std::endl;
+  //    antscout << "x = " << x << std::endl;
   //
-  //    antscout << "y1=" << y1 << std::endl;
-  //    antscout << "x11=" << x11 << std::endl;
-  antscout << "A11=" << A11 << std::endl;
+  //    antscout << "y1 = " << y1 << std::endl;
+  //    antscout << "x11 = " << x11 << std::endl;
+  antscout << "A11 =
+            " << A11 << std::endl;
 
   vnl_vector<double> t = A11.get_column(Dim);
 
@@ -280,6 +306,7 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
 template <class TransformPointerType, class StringType>
 void WriteAffineTransformFile(TransformPointerType & transform, StringType filename)
 {
+
   itk::TransformFileWriter::Pointer transform_writer;
 
   transform_writer = itk::TransformFileWriter::New();
@@ -292,9 +319,11 @@ void WriteAffineTransformFile(TransformPointerType & transform, StringType filen
     }
   catch( itk::ExceptionObject & err )
     {
-    antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
-             << "Exception in writing tranform file: " << std::endl
-             << filename << std::endl;
+    antscout << "
+            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+              << "Exception in writing tranform file :
+            " << std::endl
+              << filename << std::endl;
     return;
     }
 
@@ -312,19 +341,26 @@ void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & AN
 
   //    typedef TransformAPointer::ObjectType TransformA;
 
-  // antscout << " writing " << ANTS_prefix << " affine " << std::endl;
-  // std::string ANTS_affine_filename = ANTS_prefix + std::string( "Affine.txt" );
+  // antscout << "
+            writing " << ANTS_prefix << " affine
+            " << std::endl;
+  // std::string ANTS_affine_filename = ANTS_prefix + std::string( "Affine                            .txt
+            " );
 
   std::string ANTS_affine_filename = ANTS_prefix;
 
-  antscout << " writing ANTS affine file:" << ANTS_affine_filename << std::endl;
+  antscout << "                                                                      writing ANTS affine file :
+            " << ANTS_affine_filename << std::endl;
   PostConversionInAffine(transform, transform_ANTS);
   WriteAffineTransformFile(transform_ANTS, ANTS_affine_filename);
+
 }
 
 int DisplacementFieldBasedTransformInitializer2D(int, char * [])
 {
-  antscout << " not implemented " << std::endl;
+  antscout << "
+            not implemented
+            " << std::endl;
   return 1;
 
   /*
@@ -352,6 +388,7 @@ void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_fi
                                                                                                 3>
                                                ::Pointer maskimg)
 {
+
   const unsigned int ImageDimension = 3;
 
   typedef typename PointContainerType::value_type PointType;
@@ -379,7 +416,9 @@ void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_fi
   // float load_ratio = 0.01;
   unsigned int nb_try_to_load = (unsigned int) ( (float) nb_voxels * load_ratio);
 
-  antscout << "trying to load " << nb_try_to_load << " from " <<  nb_voxels << " points." << std::endl;
+  antscout << "trying
+            to load " << nb_try_to_load << " from " <<  nb_voxels << " points.
+            " << std::endl;
 
   fixedLandmarks.reserve(nb_try_to_load );
   movingLandmarks.reserve(nb_try_to_load );
@@ -394,6 +433,7 @@ void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_fi
   unsigned int cnt = 0;
   for( ; (!it.IsAtEnd() ) & (cnt < nb_try_to_load); ++it )
     {
+
     bool getpoint = true;
     if( maskimg )
       {
@@ -405,6 +445,7 @@ void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_fi
 
     if( getpoint )
       {
+
       if( rand() % 32767 > load_ratio * 32767 )
         {
         continue;
@@ -427,73 +468,86 @@ void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_fi
       }
     }
 
-  antscout << "total " << cnt << " points loaded from " << deformation_field_file_name << "." << std::endl;
+  antscout << "total
+            " << cnt << " points loaded from " << deformation_field_file_name << ".
+            " << std::endl;
   antscout << fixedLandmarks.size() << std::endl;
   antscout << movingLandmarks.size() << std::endl;
 
   return;
 }
 
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
-// 'main()'
-int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to 'main()'
+int ANTSUseDeformationFieldToGetAffineTransform( std::vector<std::string> args , std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "ANTSUseDeformationFieldToGetAffineTransform" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
+  args.insert( args.begin() , "ANTSUseDeformationFieldToGetAffineTransform
+            " ) ;
+  std::remove( args.begin() , args.end() , std::string( "
+            " ) ) ;
+  std::remove( args.begin() , args.end() , std::string( "
+            " ) ) ;
+  int argc = args.size() ;
+  char** argv = new char*[args.size()+1] ;
+  for( unsigned int i = 0 ; i < args.size() ; ++i )
     {
-    // allocate space for the string plus a null character
-    argv[i] = new char[args[i].length() + 1];
-    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
-    // place the null character in the end
-    argv[i][args[i].length()] = '\0';
+      // allocate space for the string plus a null character
+      argv[i] = new char[args[i].length()+1] ;
+      std::strncpy( argv[i] , args[i].c_str() , args[i].length() ) ;
+      // place the null character in the end
+      argv[i][args[i].length()] = '\0' ;
     }
-  argv[argc] = 0;
+  argv[argc] = 0 ;
   // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
-public:
-    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-    {
-    }
-
+  public:
+    Cleanup_argv( char** argv_ , int argc_plus_one_ ) : argv( argv_ ) , argc_plus_one( argc_plus_one_ )
+    {}
     ~Cleanup_argv()
     {
-      for( unsigned int i = 0; i < argc_plus_one; ++i )
-        {
-        delete[] argv[i];
-        }
-      delete[] argv;
+      for( unsigned int i = 0 ; i < argc_plus_one ; ++i )
+	{
+	  delete[] argv[i] ;
+	}
+      delete[] argv ;
     }
+  private:
+    char** argv ;
+    unsigned int argc_plus_one ;
+  } ;
+  Cleanup_argv cleanup_argv( argv , argc+1 ) ;
 
-private:
-    char* *      argv;
-    unsigned int argc_plus_one;
-  };
-  Cleanup_argv cleanup_argv( argv, argc + 1 );
-
-  antscout->set_stream( out_stream );
+  antscout->set_stream( out_stream ) ;
 
   if( argc < 3 )
     {
-    antscout << "Usage:   " << argv[0]
-             << " zzzWarp.nii.gz load_ratio(ex: 0.01) [rigid | affine] OutAffine.txt [mask.nii.gz]" << std::endl;
-    antscout << " we expect the input deformation field in the same physical space as the images you want to "
-             << std::endl;
-    antscout << "load_ratio: ratio of points to be loaded from deformation field (to save memory) " << std::endl;
-    antscout << " the mask gives the region from which points will be selected ... " << std::endl;
+    antscout << "Usage
+            : " << argv[0]
+              << " zzzWarp.nii.gz load_ratio(ex : 0.01)[rigid
+                                                        | affine] OutAffine.txt[mask.nii.gz]
+            " << std::endl;
+    antscout << "                             we expect the input deformation field in the same physical space as the
+            images you
+            want to
+            "
+              << std::endl;
+    antscout << "load_ratio                                           : ratio of points to be loaded from deformation
+            field(
+              to save memory) " << std::endl;
+    antscout << " the mask gives the region from which points will be selected ...
+            " << std::endl;
     return 1;
     }
 
   // Get the image dimension
-  // std::string fn = std::string(argv[1]) + "xvec.nii.gz";
+  // std::string fn = std::string(argv[1]) + "xvec
+            .nii
+            .gz
+            ";
   // itk::ImageIOBase::Pointer imageIO =
   //        itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
   // imageIO->SetFileName(fn.c_str());
@@ -505,20 +559,20 @@ private:
   switch( dim )
     {
     case 2:
-      {
       DisplacementFieldBasedTransformInitializer2D(argc, argv);
-      }
       break;
     case 3:
-      {
       DisplacementFieldBasedTransformInitializer3D(argc, argv);
-      }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      antscout << "Unsupported
+            dimension " << std::endl;
       return EXIT_FAILURE;
     }
 
   return 0;
 }
+
+
+
 } // namespace ants

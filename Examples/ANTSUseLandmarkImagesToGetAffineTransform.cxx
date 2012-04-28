@@ -11,9 +11,9 @@
 #include <iostream>
 #include "ReadWriteImage.h"
 #include "itkTransformFileWriter.h"
-// #include "ANTS_affine_registration2.h"
+
 #include <vnl/vnl_matrix.h>
-// #include <vnl/vnl_qr.h>
+
 #include "vnl/algo/vnl_qr.h"
 namespace ants
 {

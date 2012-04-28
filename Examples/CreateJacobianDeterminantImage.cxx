@@ -5,7 +5,7 @@
 #include "itkConstNeighborhoodIterator.h"
 #include "itkDecomposeTensorFunction.h"
 #include "itkImageRegionIteratorWithIndex.h"
-// #include "itkVectorFieldGradientImageFunction.h"
+
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkNeighborhoodAlgorithm.h"

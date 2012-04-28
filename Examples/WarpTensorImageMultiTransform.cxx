@@ -3,7 +3,7 @@
 #include "antsUtilities.h"
 #include "itkImageFileReader.h"
 #include "itkVariableLengthVector.h"
-// #include "itkVectorImageFileReader.h"
+
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"

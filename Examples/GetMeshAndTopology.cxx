@@ -24,9 +24,6 @@
 #include "vtkExtractEdges.h"
 #include "vtkPolyDataReader.h"
 
-// #include "itkFEMConformalMap.h"
-// #include "itkFEMDiscConformalMap.h"
-
 #include "BinaryImageToMeshFilter.h"
 #include "vtkCallbackCommand.h"
 #include "vtkPointPicker.h"
@@ -58,7 +55,7 @@
 #include "vtkDecimatePro.h"
 #include "vtkContourFilter.h"
 #include "vtkPolyDataConnectivityFilter.h"
-// #include "vtkKitwareContourFilter.h"
+
 #include "vtkSmoothPolyDataFilter.h"
 #include "vtkSTLWriter.h"
 #include "vtkUnstructuredGridToPolyDataFilter.h"
