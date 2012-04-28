@@ -5,7 +5,6 @@
 #include "antsCommandLineParser.h"
 
 #include "itkArray2D.h"
-#include "itkBinaryThresholdImageFilter.h"
 #include "itkDecomposeTensorFunction.h"
 #include "itkDiffusionTensor3D.h"
 #include "itkImageDuplicator.h"

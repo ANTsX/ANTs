@@ -56,7 +56,6 @@
 #include "itkTimeProbe.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
-#include "itkVector.h"
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
 // #include "itkANTSAffine3DTransform.h"

@@ -17,7 +17,6 @@
 #include "vnl/algo/vnl_determinant.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
-#include "itkBinaryThresholdImageFilter.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"

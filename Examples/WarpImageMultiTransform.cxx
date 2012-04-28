@@ -1,7 +1,6 @@
 #include "antsUtilities.h"
 
 #include "itkImageFileReader.h"
-#include "itkVector.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"

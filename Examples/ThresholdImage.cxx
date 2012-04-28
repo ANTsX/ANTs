@@ -33,7 +33,6 @@
 
 #include "itkExtractImageFilter.h"
 
-#include "itkBinaryThresholdImageFilter.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"

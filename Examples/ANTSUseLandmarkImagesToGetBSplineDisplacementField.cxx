@@ -9,7 +9,6 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkPointSet.h"
-#include "itkVector.h"
 
 #include <string>
 #include <vector>

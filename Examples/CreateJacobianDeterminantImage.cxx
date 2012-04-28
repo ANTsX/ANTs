@@ -12,7 +12,6 @@
 #include "itkTimeProbe.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorImageFileReader.h"
-#include "itkVector.h"
 #include "itkZeroFluxNeumannBoundaryCondition.h"
 #include "itkANTSImageRegistrationOptimizer.h"
 

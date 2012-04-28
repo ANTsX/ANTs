@@ -4,7 +4,6 @@
 
 #include "antsCommandLineParser.h"
 
-#include "itkBinaryThresholdImageFilter.h"
 #include "itkDiReCTImageFilter.h"
 #include "itkDiReCTImageFilter926.h"
 #include "itkDiReCTImageFilter949.h"

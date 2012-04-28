@@ -36,7 +36,6 @@
 #include "itkMinimumMaximumImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
-#include "itkBinaryThresholdImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 
 #include  "ReadWriteImage.h"

@@ -2,7 +2,6 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include "itkBinaryThresholdImageFilter.h"
 #include "itkHausdorffDistanceImageFilter.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"

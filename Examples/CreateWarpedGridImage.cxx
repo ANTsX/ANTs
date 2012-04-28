@@ -5,7 +5,6 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 // #include "itkVectorImageFileReader.h"
-#include "itkVector.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkWarpImageMultiTransformFilter.h"
 #include "itkGridImageSource.h"

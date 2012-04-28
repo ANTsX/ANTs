@@ -2,7 +2,6 @@
 
 #include "antsUtilities.h"
 #include "itkImageFileReader.h"
-#include "itkVector.h"
 // #include "itkVectorImageFileReader.h"
 // #include "itkVectorImageFileWriter.h"
 #include "itkImageFileWriter.h"

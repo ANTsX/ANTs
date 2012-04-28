@@ -9,7 +9,6 @@
 #include <cstdlib>
 #include <ctime>
 #include <string>
-#include <cmath>
 #include <math.h>
 #include <float.h>
 #include <assert.h>

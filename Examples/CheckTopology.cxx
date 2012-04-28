@@ -26,7 +26,6 @@ $Revision: 1.8 $
 #include "itkImage.h"
 #include "itkExceptionObject.h"
 #include "ReadWriteImage.h"
-#include "itkVector.h"
 #include "itkRandomImageSource.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageLinearIteratorWithIndex.h"

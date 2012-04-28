@@ -2,7 +2,6 @@
 #include "antsUtilities.h"
 #include "antsUtilities.h"
 #include "itkImageFileReader.h"
-#include "itkVector.h"
 #include "itkVariableLengthVector.h"
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
