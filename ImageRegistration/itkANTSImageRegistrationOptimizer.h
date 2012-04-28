@@ -39,7 +39,6 @@
 #include "itkFixedArray.h"
 #include "itkANTSSimilarityMetric.h"
 #include "itkVectorExpandImageFilter.h"
-// #include "itkNeighbohoodAlgorithm.h"
 #include "itkPDEDeformableRegistrationFilter.h"
 #include "itkWarpImageFilter.h"
 #include "itkWarpImageMultiTransformFilter.h"

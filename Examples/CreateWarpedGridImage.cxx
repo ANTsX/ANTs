@@ -166,10 +166,7 @@ int CreateWarpedGridImage( int argc, char *argv[] )
   warper->SetEdgePaddingValue( 0);
   warper->SetSmoothScale(1);
   warper->PushBackDisplacementFieldTransform(reader->GetOutput() );
-  warper->SetOutputOrigin(reader->GetOutput()->GetOrigin() );
-  warper->SetOutputSize(reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
-  warper->SetOutputSpacing(reader->GetOutput()->GetSpacing() );
-  warper->SetOutputDirection(reader->GetOutput()->GetDirection() );
+  warper->SetOutputParametersFromImage(  reader->GetOutput() );
   warper->Update();
 
   std::string file = std::string( argv[3] );

@@ -3310,9 +3310,7 @@ int ImageMath(int argc, char *argv[])
     typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
     resample->SetTransform( m_Transform0 );
     resample->SetInput( image2 );
-    resample->SetSize( image1->GetLargestPossibleRegion().GetSize() );
-    resample->SetOutputOrigin(  image1->GetOrigin() );
-    resample->SetOutputSpacing( image1->GetSpacing() );
+    resample->SetOutputParametersFromImage(  image1 );
     typename ImageType::IndexType zeroind;  zeroind.Fill(0);
     resample->SetDefaultPixelValue( image1->GetPixel(zeroind) );
     resample->UpdateLargestPossibleRegion();
@@ -4070,9 +4068,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
       typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
       resample->SetTransform( m_Transform0 );
       resample->SetInput( image2 );
-      resample->SetSize( image1->GetLargestPossibleRegion().GetSize() );
-      resample->SetOutputOrigin(  image1->GetOrigin() );
-      resample->SetOutputSpacing( image1->GetSpacing() );
+      resample->SetOutputParametersFromImage(  image1 );
       typename ImageType::IndexType zeroind;  zeroind.Fill(0);
       resample->SetDefaultPixelValue( image1->GetPixel(zeroind) );
       resample->UpdateLargestPossibleRegion();

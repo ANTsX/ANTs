@@ -225,10 +225,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
       }
     }
 
-  warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
-  warper->SetOutputSpacing(img_ref->GetSpacing() );
-  warper->SetOutputOrigin(img_ref->GetOrigin() );
-  warper->SetOutputDirection(img_ref->GetDirection() );
+  warper->SetOutputParametersFromImage( img_ref );
 
   antscout << "output size: " << warper->GetOutputSize() << std::endl;
   antscout << "output spacing: " << warper->GetOutputSpacing() << std::endl;

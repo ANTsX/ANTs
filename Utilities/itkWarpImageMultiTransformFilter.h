@@ -130,6 +130,9 @@ public:
   itkStaticConstMacro(DisplacementFieldDimension, unsigned int,
                       TDisplacementField::ImageDimension );
 
+  /** base type for images of the current ImageDimension */
+  typedef ImageBase<itkGetStaticConstMacro(ImageDimension)> ImageBaseType;
+
   /** Deformation field typedef support. */
   typedef TDisplacementField                        DisplacementFieldType;
   typedef typename DisplacementFieldType::Pointer   DisplacementFieldPointer;
@@ -178,6 +181,9 @@ public:
   /** Get a pointer to the interpolator function. */
   itkGetObjectMacro( Interpolator, InterpolatorType );
 
+  /** Convenience funciton to set all the necessary items */
+  virtual void SetOutputParametersFromImage(const ImageBaseType *image);
+
   /** Set the output image spacing. */
   itkSetMacro(OutputSpacing, SpacingType);
   virtual void SetOutputSpacing( const double* values);
@@ -203,6 +209,13 @@ public:
 
   // virtual void SetOutputSize( const double *values);
   itkGetConstReferenceMacro(OutputSize, SizeType);
+
+  /** Set the start index of the output largest possible region.
+  * The default is an index of all zeros. */
+  itkSetMacro(OutputStartIndex, IndexType);
+
+  /** Get the start index of the output largest possible region. */
+  itkGetConstReferenceMacro(OutputStartIndex, IndexType);
 
   /** Set the edge padding value */
   itkSetMacro( EdgePaddingValue, PixelType );
@@ -298,13 +311,15 @@ protected:
    * ThreadedGenerateData(). */
   void ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread, ThreadIdType threadId );
 
+  PointType     m_OutputOrigin;
+  SpacingType   m_OutputSpacing;
+  DirectionType m_OutputDirection;
+  SizeType      m_OutputSize;
+  IndexType     m_OutputStartIndex;              // output image start index
+
   InterpolatorPointer m_Interpolator;
 
   PixelType         m_EdgePaddingValue;
-  SpacingType       m_OutputSpacing;
-  PointType         m_OutputOrigin;
-  SizeType          m_OutputSize;
-  DirectionType     m_OutputDirection;
   TransformListType m_TransformList;
 
   double m_SmoothScale;

@@ -239,12 +239,11 @@ private:
     ind.Fill(1);
     resampler->SetDefaultPixelValue( inputImage->GetPixel(ind) ); // zero regions without source
 
+    // Use the inputImage as initial template
+    resampler->SetOutputParametersFromImage( inputImage );
+    // Reset spacing by explicit specification
     antscout << " out space " << spacing << std::endl;
     resampler->SetOutputSpacing( spacing );
-    // Use the same origin
-    resampler->SetOutputOrigin( inputImage->GetOrigin() );
-    // Use the same origin
-    resampler->SetOutputDirection( inputImage->GetDirection() );
 
     InputImageType::SizeType inputSize = inputImage->GetLargestPossibleRegion().GetSize();
     typedef InputImageType::SizeType::SizeValueType SizeValueType;
@@ -403,7 +402,7 @@ private:
     InterpolatorType2::Pointer interpolator2 = InterpolatorType2::New();
 
     resampler->SetInterpolator( interpolator );
-    if( nn  == 1 )
+    if( nn == 1 )
       {
       resampler->SetInterpolator( interpolator2 );
       }
@@ -412,12 +411,11 @@ private:
     ind.Fill(1);
     resampler->SetDefaultPixelValue( inputImage->GetPixel(ind) ); // zero regions without source
 
+    // Use the inputImage as initial template
+    resampler->SetOutputParametersFromImage( inputImage );
+    // Reset spacing by explicit specification
     antscout << " out space " << spacing << std::endl;
     resampler->SetOutputSpacing( spacing );
-    // Use the same origin
-    resampler->SetOutputOrigin( inputImage->GetOrigin() );
-    // Use the same origin
-    resampler->SetOutputDirection( inputImage->GetDirection() );
 
     InputImageType::SizeType inputSize = inputImage->GetLargestPossibleRegion().GetSize();
     typedef InputImageType::SizeType::SizeValueType SizeValueType;

@@ -756,10 +756,7 @@ RegistrationHelper<VImageDimension>
   typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
   resampler->SetTransform( this->m_CompositeTransform );
   resampler->SetInput( movingImage );
-  resampler->SetSize( fixedImage->GetLargestPossibleRegion().GetSize() );
-  resampler->SetOutputOrigin(  fixedImage->GetOrigin() );
-  resampler->SetOutputSpacing( fixedImage->GetSpacing() );
-  resampler->SetOutputDirection( fixedImage->GetDirection() );
+  resampler->SetOutputParametersFromImage( fixedImage );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
 
@@ -784,10 +781,7 @@ RegistrationHelper<VImageDimension>
   typename ResampleFilterType::Pointer inverseResampler = ResampleFilterType::New();
   inverseResampler->SetTransform( this->m_CompositeTransform->GetInverseTransform() );
   inverseResampler->SetInput( fixedImage );
-  inverseResampler->SetSize( movingImage->GetLargestPossibleRegion().GetSize() );
-  inverseResampler->SetOutputOrigin( movingImage->GetOrigin() );
-  inverseResampler->SetOutputSpacing( movingImage->GetSpacing() );
-  inverseResampler->SetOutputDirection( movingImage->GetDirection() );
+  inverseResampler->SetOutputParametersFromImage( movingImage );
   inverseResampler->SetDefaultPixelValue( 0 );
   inverseResampler->Update();
 

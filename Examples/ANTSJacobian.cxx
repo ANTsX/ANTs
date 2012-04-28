@@ -234,10 +234,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     warper->SetEdgePaddingValue( 0);
     warper->SetSmoothScale(1);
     warper->PushBackDisplacementFieldTransform(field);
-    warper->SetOutputOrigin(field->GetOrigin() );
-    warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
-    warper->SetOutputSpacing(field->GetSpacing() );
-    warper->SetOutputDirection(field->GetDirection() );
+    warper->SetOutputParametersFromImage(field );
     warper->Update();
     //    grid=warper->GetOutput();
     typedef  itk::ImageFileWriter<ImageType> writertype;

@@ -164,11 +164,7 @@ void ComposeMultiTransform(char *output_image_filename,
       }
     }
 
-  warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
-  warper->SetOutputSpacing(img_ref->GetSpacing() );
-  warper->SetOutputOrigin(img_ref->GetOrigin() );
-  warper->SetOutputDirection(img_ref->GetDirection() );
-
+  warper->SetOutputParametersFromImage( img_ref );
   antscout << "output size: " << warper->GetOutputSize() << std::endl;
   antscout << "output spacing: " << warper->GetOutputSpacing() << std::endl;
 

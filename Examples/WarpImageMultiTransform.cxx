@@ -442,10 +442,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         warper->PushBackAffineTransform(aff);
         if( transcount == 0 )
           {
-          warper->SetOutputSize(img_mov->GetLargestPossibleRegion().GetSize() );
-          warper->SetOutputSpacing(img_mov->GetSpacing() );
-          warper->SetOutputOrigin(img_mov->GetOrigin() );
-          warper->SetOutputDirection(img_mov->GetDirection() );
+          warper->SetOutputParametersFromImage( img_mov );
           }
         transcount++;
         break;
@@ -484,10 +481,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         warper->PushBackAffineTransform(aff);
 
         //            if (transcount==0){
-        //                warper->SetOutputSize(img_mov->GetLargestPossibleRegion().GetSize());
-        //                warper->SetOutputSpacing(img_mov->GetSpacing());
-        //                warper->SetOutputOrigin(img_mov->GetOrigin());
-        //                warper->SetOutputDirection(img_mov->GetDirection());
+        //                warper->SetOutputParametersFromImage( img_mov);
         //            }
 
         transcount++;
@@ -502,10 +496,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         typename DisplacementFieldType::Pointer field = field_reader->GetOutput();
 
         warper->PushBackDisplacementFieldTransform(field);
-        warper->SetOutputSize(field->GetLargestPossibleRegion().GetSize() );
-        warper->SetOutputOrigin(field->GetOrigin() );
-        warper->SetOutputSpacing(field->GetSpacing() );
-        warper->SetOutputDirection(field->GetDirection() );
+        warper->SetOutputParametersFromImage(field );
 
         transcount++;
         break;
@@ -571,10 +562,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   if( img_ref.IsNotNull() )
     {
-    warper->SetOutputSize(img_ref->GetLargestPossibleRegion().GetSize() );
-    warper->SetOutputSpacing(img_ref->GetSpacing() );
-    warper->SetOutputOrigin(img_ref->GetOrigin() );
-    warper->SetOutputDirection(img_ref->GetDirection() );
+    warper->SetOutputParametersFromImage( img_ref );
     }
   else
     {
@@ -585,13 +573,16 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       typename ImageType::SizeType largest_size;
       typename ImageType::PointType origin_warped;
       GetLaregstSizeAfterWarp(warper, img_mov, largest_size, origin_warped);
-      warper->SetOutputSize(largest_size);
-      warper->SetOutputSpacing(img_mov->GetSpacing() );
-      warper->SetOutputOrigin(origin_warped);
+      // Use img_mov as initial template space, then overwrite individual components as desired
+      warper->SetOutputParametersFromImage( img_mov );
 
-      typename ImageType::DirectionType d;
-      d.SetIdentity();
-      warper->SetOutputDirection(d);
+      warper->SetOutputSize(largest_size);
+      warper->SetOutputOrigin(origin_warped);
+        {
+        typename ImageType::DirectionType d;
+        d.SetIdentity();
+        warper->SetOutputDirection(d);
+        }
       }
     }
 

@@ -1008,10 +1008,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
       resampler->SetTransform( compositeTransform );
       resampler->SetInput( moving_time_slice );
-      resampler->SetSize(  moving_time_slice->GetLargestPossibleRegion().GetSize() );
-      resampler->SetOutputOrigin(   moving_time_slice->GetOrigin() );
-      resampler->SetOutputSpacing(  moving_time_slice->GetSpacing() );
-      resampler->SetOutputDirection(  moving_time_slice->GetDirection() );
+      resampler->SetOutputParametersFromImage( moving_time_slice );
       resampler->SetDefaultPixelValue( 0 );
       antscout << " resampling " << std::endl;
       resampler->Update();
