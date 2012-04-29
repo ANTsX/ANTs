@@ -71,23 +71,24 @@ std::vector<TValue> ConvertVector( std::string optionString )
 template <unsigned int ImageDimension>
 int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 {
-  typedef float                                RealType;
-  typedef itk::Image<RealType, ImageDimension> RealImageType;
+  typedef float                                 RealType;
+  typedef unsigned int                          LabelType;
+  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
 
-  typedef itk::ImageFileReader<RealImageType> ImageReaderType;
+  typedef itk::ImageFileReader<LabelImageType> ImageReaderType;
   typename ImageReaderType::Pointer fixedReader = ImageReaderType::New();
   fixedReader->SetFileName( argv[1] );
   fixedReader->Update();
 
-  typename RealImageType::Pointer fixedImage = fixedReader->GetOutput();
-  typename RealImageType::DirectionType fixedDirection = fixedImage->GetDirection();
-  typename RealImageType::DirectionType fixedDirectionInverse( fixedDirection.GetInverse() );
-  typename RealImageType::PointType fixedOrigin = fixedImage->GetOrigin();
+  typename LabelImageType::Pointer fixedImage = fixedReader->GetOutput();
+  typename LabelImageType::DirectionType fixedDirection = fixedImage->GetDirection();
+  typename LabelImageType::DirectionType fixedDirectionInverse( fixedDirection.GetInverse() );
+  typename LabelImageType::PointType fixedOrigin = fixedImage->GetOrigin();
 
-  typename RealImageType::DirectionType identityDirection;
+  typename LabelImageType::DirectionType identityDirection;
   identityDirection.SetIdentity();
 
-  typename RealImageType::PointType zeroOrigin;
+  typename LabelImageType::PointType zeroOrigin;
   zeroOrigin.Fill( 0.0 );
 
   fixedImage->SetDirection( identityDirection );
@@ -96,19 +97,19 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   typename ImageReaderType::Pointer movingReader = ImageReaderType::New();
   movingReader->SetFileName( argv[2] );
   movingReader->Update();
-  typename RealImageType::Pointer movingImage = movingReader->GetOutput();
+  typename LabelImageType::Pointer movingImage = movingReader->GetOutput();
 
   typedef itk::Vector<RealType, ImageDimension>  VectorType;
   typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
 
-  typedef itk::PointSet<long, ImageDimension> PointSetType;
+  typedef itk::PointSet<LabelType, ImageDimension> PointSetType;
 
   typename PointSetType::Pointer fixedPoints = PointSetType::New();
   fixedPoints->Initialize();
 
-  std::vector<RealType> fixedLabels;
+  std::vector<LabelType> fixedLabels;
 
-  itk::ImageRegionIteratorWithIndex<RealImageType> ItF( fixedImage, fixedImage->GetLargestPossibleRegion() );
+  itk::ImageRegionIteratorWithIndex<LabelImageType> ItF( fixedImage, fixedImage->GetLargestPossibleRegion() );
 
   unsigned int fixedCount = 0;
   for( ItF.GoToBegin(); !ItF.IsAtEnd(); ++ItF )
@@ -129,10 +130,10 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   typename PointSetType::Pointer movingPoints = PointSetType::New();
   movingPoints->Initialize();
 
-  std::vector<RealType> movingLabels;
+  std::vector<LabelType> movingLabels;
 
-  itk::ImageRegionIteratorWithIndex<RealImageType> ItM( movingImage, movingImage->GetLargestPossibleRegion() );
-  unsigned int                                     movingCount = 0;
+  itk::ImageRegionIteratorWithIndex<LabelImageType> ItM( movingImage, movingImage->GetLargestPossibleRegion() );
+  unsigned int                                      movingCount = 0;
   for( ItM.GoToBegin(); !ItM.IsAtEnd(); ++ItM )
     {
     if( ItM.Get() != 0 )
@@ -155,7 +156,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   movingCenters->Initialize();
   for( unsigned int n = 0; n < movingLabels.size(); n++ )
     {
-    int currentLabel = movingLabels[n];
+    LabelType currentLabel = movingLabels[n];
     typename PointSetType::PointType center;
     center.Fill( 0 );
     float N = 0;
@@ -190,7 +191,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   fixedCenters->Initialize();
   for( unsigned int n = 0; n < fixedLabels.size(); n++ )
     {
-    int currentLabel = fixedLabels[n];
+    LabelType currentLabel = fixedLabels[n];
     typename PointSetType::PointType center;
     center.Fill( 0 );
     float N = 0;
@@ -293,12 +294,12 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
     }
   if( enforceStationaryBoundary )
     {
-    typename RealImageType::IndexType startIndex = fixedImage->GetLargestPossibleRegion().GetIndex();
+    typename LabelImageType::IndexType startIndex = fixedImage->GetLargestPossibleRegion().GetIndex();
 
-    typename RealImageType::SizeType inputSize = fixedImage->GetLargestPossibleRegion().GetSize();
+    typename LabelImageType::SizeType inputSize = fixedImage->GetLargestPossibleRegion().GetSize();
     for( ItF.GoToBegin(); !ItF.IsAtEnd(); ++ItF )
       {
-      typename RealImageType::IndexType index = ItF.GetIndex();
+      typename LabelImageType::IndexType index = ItF.GetIndex();
 
       bool isOnStationaryBoundary = false;
       for( unsigned int d = 0; d < ImageDimension; d++ )
