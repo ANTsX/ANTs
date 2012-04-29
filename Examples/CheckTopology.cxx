@@ -370,7 +370,7 @@ private:
       {
       lasterr = err;
       err = 0;
-      ImageType::Pointer out = Morphological<ImageType>(simage, 3, 0);
+      ImageType::Pointer out = ants::Morphological<ImageType>(simage, 3, 0, 1);
       ImageType::Pointer bigimage = GetLargestComponent<ImageType>(out);
       G2 = GetImageTopology<ImageType>(bigimage);
       typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIteratorType;
