@@ -83,14 +83,15 @@ public:
       }
 
     if( filter->GetCurrentIteration() == 0 ||
-        filter->GetCurrentIteration() == this->m_NumberOfIterations[filter->GetCurrentLevel()] )
+        filter->GetCurrentIteration() == this->m_NumberOfIterations[filter->GetCurrentLevel()] ||
+        filter->GetIsConverged() )
       {
       unsigned int currentLevel = 0;
       if( typeid( event ) == typeid( itk::IterationEvent ) )
         {
         currentLevel = filter->GetCurrentLevel() + 1;
         }
-      if( currentLevel < this->m_NumberOfIterations.size() )
+      if( currentLevel < this->m_NumberOfIterations.size() || filter->GetIsConverged() )
         {
         typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
         typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
