@@ -2017,6 +2017,334 @@ int TimeSeriesToMatrix(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int PASL(int argc, char *argv[])
+{
+  if( argc <= 3 )
+    {
+    antscout << " too few options " << argv[0] << std::endl;
+    antscout << argv[0] << " NDImage  Bool_FirstImageIsControl " << std::endl;
+    return 1;
+    }
+
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename OutImageType::IndexType             OutIndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  typedef double                                       RealType;
+  typedef vnl_vector<RealType>                         timeVectorType;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  bool        firstiscontrol = atoi(argv[argct]);   argct++;
+  std::string m0fn = "";
+  if( argc > argct )
+    {
+    m0fn = std::string(argv[argct]);
+    }
+  argct++;
+  typename ImageType::Pointer image1 = NULL;
+  typename OutImageType::Pointer outimage = NULL;
+  typename OutImageType::Pointer M0image = NULL;
+
+  typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  if( firstiscontrol )
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 0 );
+    }
+  else
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 1 );
+    }
+
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( image1 );
+  //  extractFilter->SetDirectionCollapseToIdentity();
+  extractFilter->SetDirectionCollapseToSubmatrix();
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  M0image = extractFilter->GetOutput();
+
+  outimage  = OutImageType::New();
+  outimage->CopyInformation( M0image );
+  outimage->SetRegions( M0image->GetLargestPossibleRegion() );
+  outimage->Allocate();
+  outimage->FillBuffer( 0 );
+
+  bool haveM0 = true;
+  if( m0fn.length() > 3 )
+    {
+    ReadImage<OutImageType>( M0image, m0fn.c_str() );
+    }
+  else
+    {
+    haveM0 = false;
+    antscout
+      <<
+      "Warning: using 2800 as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' "
+      << std::endl;
+    M0image->FillBuffer( 2800 );
+    }
+
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
+  labIterator vfIter2( outimage,  outimage->GetLargestPossibleRegion() );
+
+  timeVectorType sample( timedims, 0 );
+  timeVectorType cbf( timedims, 0 );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    IndexType    tind;
+    for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+      {
+      tind[i] = ind[i];
+      }
+    RealType      total = 0;
+    unsigned long cbfct = 0;
+    RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
+                                                    // each tissue
+    bool          getCBF = true;
+    if( haveM0 && M_0 == 0 )
+      {
+      getCBF = false;
+      }
+    else if( haveM0 )
+      {
+      M_0 = 2800;
+      }
+    if( getCBF )
+      {
+      for( unsigned int t = 0; t < timedims; t++ )
+        {
+        tind[ImageDimension - 1] = t;
+        RealType pix = image1->GetPixel(tind);
+        sample( t ) = pix;
+        if( ( t % 2 ) == 1 )
+          {
+          // f =  \frac{      \lambda DeltaM        }  {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  }
+          // where f is CBF, ΔM is thfef difference signal between tag and control acquisitions, λ (=0.9g/ml) is the
+          // blood/tiue water partition coefficient, T1a (1390 and 1650ms at 1.5/3T) is the longitudinal relaxation time
+          // of blood, α is the inversion efficiency, TI1 is the duration between the inversion and saturation pulses, α
+          // = 0.95 is the labeling efficiency, TI2 (= TI1 + w) is the image acquisition time.
+          // w is the post-labeling delay time and should include the acquisition time for each slices
+          // (Wi=w+(i-1)*Tacq), Tacq is the image acquisition time for each slice (35ms with the protocol recommended),
+          // i is the slice number. Tacq can be calculated by (MinTR- τ-w)/(slice number)
+          // see https://gate.nmr.mgh.harvard.edu/wiki/whynhow/images/e/e2/ASL_whyNhow.pdf
+          RealType lambda = 0.9;                           //  grams / mL
+          RealType alpha = 0.95;                           // labeling efficiency
+          RealType deltaM = sample( t - 1 ) - sample( t ); // if 1st image is control
+          if( !firstiscontrol )
+            {
+            deltaM = sample( t ) - sample( t - 1 );                //  2nd image is control
+            }
+          bool     is1pt5T = false;
+          RealType T_1a = 1650; // 3T
+          if( is1pt5T )
+            {
+            T_1a = 1390;            // 1.5T
+            }
+          // see "Impact of equilibrium magnetization of blood on ASL quantification"
+          RealType TI_1  = 600;        // FIXME milliseconds
+          RealType slice_delay = 42.0; // FIXME milliseconds
+          RealType TI_2base = 1600;    // FIXME milliseconds
+          // TI2(slice) = TI2 + slice_number * slice_delay (slice_delay = the time taken to acquire each slice)
+          RealType TI_2  = TI_2base + t * slice_delay;
+          RealType scaling = 2 * alpha * M_0 * TI_1 * exp( -TI_2 / T_1a );
+          cbf( t ) = lambda * deltaM / scaling;
+          total += cbf( t );
+          cbfct++;
+          }
+        }
+      }
+    RealType mean = total / (RealType) cbfct;
+    vfIter2.Set( mean );
+    }
+
+  /** From Quantitative Imaging of Perhsion Using a Single Subtraction (QUIPSS and QUIPSS 11)
+  In  a proton density weighted, high-resolution, gradient-echo conventional image
+  (TE = 5 ms ,  TR  = 1000 ms ,  a  = l o o ) ,  the measured ratio R  of proton density of
+  blood in  the saggital sinus to  that  of white matter was 1.06.
+  In a single-shot EPI image (TR = \infty ),  the signal M_{0WM} from  white matter was  measured.
+  The fully T_1 relaxed signal from blood was then taken to be
+
+  M_OB  = R M_{0WM} exp [ ( 1 / T_{2WM} - 1 / T_{2B} ) TE ] ,
+  where T_{2WM} = 80ms  T_{2B} = 200 ms and TE = 5ms.
+  */
+  //  RealType M_0B = 1.06 * M0wm * exp( 5 / 80 - 5 / 200 );
+
+  /*
+RealType M0W = 1; // FIXME
+M_0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+The term, M_{0B} is calculated as follows (Wong1998),
+    M0b = A * M_{0WM} * exp(1/T2_{WM}^* - 1/T2_B^*) * TE
+    where:
+    A is the proton density ratio between blood and white matter (assumed to be 1.06)
+    T2^* (GRE echo-planar imaging)
+      T2_{WM} is 55 msec  (1.5T), 40 (3.0T), and 30 (4.0T)
+      T2_B    is 100 msec (1.5T), 80 (3.0T), and 60 (4.0T)
+    M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
+  */
+
+  WriteImage<OutImageType>(outimage, outname.c_str() );
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int pCASL(int argc, char *argv[])
+{
+  if( argc <= 2 )
+    {
+    antscout << " too few options " << argv[0] << std::endl;
+    return 1;
+    }
+
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename OutImageType::IndexType             OutIndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  typedef double                                       RealType;
+  typedef vnl_vector<RealType>                         timeVectorType;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
+  typename ImageType::Pointer image1 = NULL;
+  typename OutImageType::Pointer outimage = NULL;
+  typename OutImageType::Pointer M0image = NULL;
+
+  typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  extractRegion.SetIndex(ImageDimension - 1, 0 );
+
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( image1 );
+  //  extractFilter->SetDirectionCollapseToIdentity();
+  extractFilter->SetDirectionCollapseToSubmatrix();
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  M0image = extractFilter->GetOutput();
+
+  outimage  = OutImageType::New();
+  outimage->CopyInformation( M0image );
+  outimage->SetRegions( M0image->GetLargestPossibleRegion() );
+  outimage->Allocate();
+  outimage->FillBuffer( 0 );
+
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
+  labIterator vfIter2( outimage,  outimage->GetLargestPossibleRegion() );
+
+  timeVectorType sample( timedims, 0 );
+  timeVectorType cbf( timedims, 0 );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    OutIndexType ind = vfIter2.GetIndex();
+    IndexType    tind;
+    for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+      {
+      tind[i] = ind[i];
+      }
+    RealType      total = 0;
+    unsigned long cbfct = 0;
+    for( unsigned int t = 0; t < timedims; t++ )
+      {
+      tind[ImageDimension - 1] = t;
+      RealType pix = image1->GetPixel(tind);
+      sample( t ) = pix;
+      if( ( t % 2 ) == 1 )
+        {
+        // see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3049525/?tool=pubmed  Quantitative CBF section
+        // f =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) /
+        // T_1a )  ] }
+        RealType lambda = 0.9;                           //  grams / mL
+        RealType deltaM = sample( t ) - sample( t - 1 ); //  control - tagged if  control is odd
+        RealType alpha = 0.85;                           // labeling efficiency
+        bool     is1pt5T = false;
+        RealType T_1a = 1650; // 3T
+        if( is1pt5T )
+          {
+          T_1a = 1390;              // 1.5T
+          }
+        RealType M_0   = 2800; // FIXME can be taken from an input reference image or defined for each tissue
+        // see "Impact of equilibrium magnetization of blood on ASL quantification"
+        RealType tau  = 2100; // FIXME milliseconds
+        RealType w    = 700;
+        RealType scaling = 2 * alpha * M_0 * T_1a * (  exp( -1.0 * w / T_1a ) - exp( -1.0 * ( tau + w ) / T_1a ) );
+        cbf( t ) = lambda * deltaM / scaling;
+        total += cbf( t );
+        cbfct++;
+        }
+      }
+    RealType mean = total / (RealType) cbfct;
+    vfIter2.Set( mean );
+    }
+
+  // see "Impact of equilibrium magnetization of blood on ASL quantification"
+  /*
+RealType M0W = 1; // FIXME
+M_0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+The term, M_{0B} is calculated as follows (Wong1998),
+    M0b = A * M_{0WM} * exp(1/T2_{WM}^* - 1/T2_B^*) * TE
+    where:
+    A is the proton density ratio between blood and white matter (assumed to be 1.06)
+    T2^* (GRE echo-planar imaging)
+      T2_{WM} is 55 msec  (1.5T), 40 (3.0T), and 30 (4.0T)
+      T2_B    is 100 msec (1.5T), 80 (3.0T), and 60 (4.0T)
+    M_{0WM} is the mean value in an homogenous white matter region from a image acquired with short TE long TR.
+  */
+
+  WriteImage<OutImageType>(outimage, outname.c_str() );
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int CompCorrAuto(int argc, char *argv[])
 {
   if( argc <= 2 )
@@ -6822,23 +7150,23 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   LabelSetType myLabelSet2;
   unsigned int labct = 0;
-              { Iterator It( image2, image2->GetLargestPossibleRegion() );
-              for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-                {
-                PixelType label = It.Get();
-                if( fabs(label) > 0 )
-                  {
-                  if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
-                      == myLabelSet2.end()   &&
-                      find( myLabelSet1.begin(), myLabelSet1.end(), label )
-                      != myLabelSet1.end() )
+                  { Iterator It( image2, image2->GetLargestPossibleRegion() );
+                  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
                     {
-                    myLabelSet2.push_back( label );
-                    labct++;
+                    PixelType label = It.Get();
+                    if( fabs(label) > 0 )
+                      {
+                      if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
+                          == myLabelSet2.end()   &&
+                          find( myLabelSet1.begin(), myLabelSet1.end(), label )
+                          != myLabelSet1.end() )
+                        {
+                        myLabelSet2.push_back( label );
+                        labct++;
+                        }
+                      }
                     }
                   }
-                }
-              }
 
   vnl_vector<double> distances(labct, 0.0);
   vnl_vector<double> dicevals(labct, 0.0);
@@ -8973,6 +9301,21 @@ private:
       << std::endl;
     antscout << "    Usage        : ComputeTimeSeriesLeverage 4D_TimeSeries.nii.gz k_neighbors " << std::endl;
 
+    antscout
+      <<
+      " PASL : computes the PASL model of CBF  "     << std::endl <<  "f =  \frac{      lambda DeltaM        } "
+      << std::endl
+      << " {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
+    antscout << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt "
+             << std::endl;
+
+    antscout
+      <<
+      " pCASL : computes the pCASL model of CBF  "     << std::endl
+      << " f =  \frac{      lambda DeltaM R_{1a}        }  " << std::endl
+      << "  {     2 \alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
+    antscout << "    Usage        : pCASL 3D/4D_TimeSeries.nii.gz parameter_list.txt " << std::endl;
+
     antscout << "\nTensor Operations:" << std::endl;
     antscout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
     antscout << "    Usage        : 4DTensorTo3DTensor 4D_DTImage.ext" << std::endl;
@@ -9780,6 +10123,14 @@ private:
         {
         ConvertLandmarkFile<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "PASL") == 0 )
+        {
+        PASL<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "pCASL") == 0 )
+        {
+        pCASL<3>(argc, argv);
+        }
       else
         {
         antscout << " cannot find operation : " << operation << std::endl;
@@ -10058,6 +10409,14 @@ private:
       else if( strcmp(operation.c_str(), "ComputeTimeSeriesLeverage") == 0 )
         {
         ComputeTimeSeriesLeverage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PASL") == 0 )
+        {
+        PASL<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "pCASL") == 0 )
+        {
+        pCASL<4>(argc, argv);
         }
       else
         {
