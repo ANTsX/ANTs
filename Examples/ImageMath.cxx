@@ -2022,7 +2022,7 @@ int PASL(int argc, char *argv[])
   if( argc <= 3 )
     {
     antscout << " too few options " << argv[0] << std::endl;
-    antscout << argv[0] << " NDImage  Bool_FirstImageIsControl " << std::endl;
+    antscout << argv[0] << " NDImage  Bool_FirstImageIsControl optional-M0mask.nii.gz " << std::endl;
     return 1;
     }
 
@@ -2058,6 +2058,10 @@ int PASL(int argc, char *argv[])
   typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+
+  RealType M0W = 1300; // FIXME
+  RealType TE = 4000;
+  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
 
   if( fn1.length() > 3 )
     {
@@ -2104,9 +2108,9 @@ int PASL(int argc, char *argv[])
     haveM0 = false;
     antscout
       <<
-      "Warning: using 2800 as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' "
+      "Warning: using calculatedM0 as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' "
       << std::endl;
-    M0image->FillBuffer( 2800 );
+    M0image->FillBuffer( calculatedM0 );
     }
 
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
@@ -2133,7 +2137,7 @@ int PASL(int argc, char *argv[])
       }
     else if( haveM0 )
       {
-      M_0 = 2800;
+      M_0 = calculatedM0;
       }
     if( getCBF )
       {
@@ -2216,9 +2220,10 @@ The term, M_{0B} is calculated as follows (Wong1998),
 template <unsigned int ImageDimension>
 int pCASL(int argc, char *argv[])
 {
-  if( argc <= 2 )
+  if( argc <= 3 )
     {
     antscout << " too few options " << argv[0] << std::endl;
+    antscout << argv[0] << " NDImage  Bool_FirstImageIsControl optional-M0mask.nii.gz " << std::endl;
     return 1;
     }
 
@@ -2240,7 +2245,13 @@ int pCASL(int argc, char *argv[])
   std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
-
+  bool        firstiscontrol = atoi(argv[argct]);   argct++;
+  std::string m0fn = "";
+  if( argc > argct )
+    {
+    m0fn = std::string(argv[argct]);
+    }
+  argct++;
   typename ImageType::Pointer image1 = NULL;
   typename OutImageType::Pointer outimage = NULL;
   typename OutImageType::Pointer M0image = NULL;
@@ -2261,7 +2272,14 @@ int pCASL(int argc, char *argv[])
   unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
   extractRegion.SetSize(ImageDimension - 1, 0);
-  extractRegion.SetIndex(ImageDimension - 1, 0 );
+  if( firstiscontrol )
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 0 );
+    }
+  else
+    {
+    extractRegion.SetIndex(ImageDimension - 1, 1 );
+    }
 
   typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
   extractFilter->SetInput( image1 );
@@ -2276,6 +2294,24 @@ int pCASL(int argc, char *argv[])
   outimage->SetRegions( M0image->GetLargestPossibleRegion() );
   outimage->Allocate();
   outimage->FillBuffer( 0 );
+  RealType M0W = 1300; // FIXME
+  RealType TE = 4000;
+  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+
+  bool haveM0 = true;
+  if( m0fn.length() > 3 )
+    {
+    ReadImage<OutImageType>( M0image, m0fn.c_str() );
+    }
+  else
+    {
+    haveM0 = false;
+    antscout
+      <<
+      "Warning: using calculated value as reference M0 value --- see see 'Impact of equilibrium magnetization of blood on ASL quantification' "
+      << std::endl;
+    M0image->FillBuffer( calculatedM0 );
+    }
 
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
   labIterator vfIter2( outimage,  outimage->GetLargestPossibleRegion() );
@@ -2292,33 +2328,63 @@ int pCASL(int argc, char *argv[])
       }
     RealType      total = 0;
     unsigned long cbfct = 0;
-    for( unsigned int t = 0; t < timedims; t++ )
+    RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
+                                                    // each tissue
+    bool          getCBF = true;
+    if( haveM0 && M_0 == 0 )
       {
-      tind[ImageDimension - 1] = t;
-      RealType pix = image1->GetPixel(tind);
-      sample( t ) = pix;
-      if( ( t % 2 ) == 1 )
+      getCBF = false;
+      }
+    else if( haveM0 )
+      {
+      M_0 = calculatedM0;
+      }
+    if( getCBF )
+      {
+      for( unsigned int t = 0; t < timedims; t++ )
         {
-        // see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3049525/?tool=pubmed  Quantitative CBF section
-        // f =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) /
-        // T_1a )  ] }
-        RealType lambda = 0.9;                           //  grams / mL
-        RealType deltaM = sample( t ) - sample( t - 1 ); //  control - tagged if  control is odd
-        RealType alpha = 0.85;                           // labeling efficiency
-        bool     is1pt5T = false;
-        RealType T_1a = 1650; // 3T
-        if( is1pt5T )
+        tind[ImageDimension - 1] = t;
+        RealType pix = image1->GetPixel(tind);
+        sample( t ) = pix;
+        if( ( t % 2 ) == 1 )
           {
-          T_1a = 1390;              // 1.5T
+          // see http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3049525/?tool=pubmed  Quantitative CBF section
+          /**
+        Quantitative CBF
+
+        Cerebral blood flow in mL per 100g per minute was calculated pixel-by-pixel using equation (1), where the PLD was taken to be longer than ATT, reducing to (Wang et al, 2002),
+        CBF =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) / T_1a )  ] }
+        w of 0.7seconds was determined based on the results of experiment (1) for optimal contrast of the GM. Cerebral blood flow was calculated for a single PLD. Quantitative CBF for the whole brain, GM, and WM were tabulated. The bottom slice was excluded from this analysis because it covered only a small part of the cerebrum.
+           */
+          // f =  \frac{      \lambda DeltaM     }  {     2 \alpha M_0 T_1a [ exp( - w / T_1a ) - exp( - ( tau + w ) /
+          // T_1a )  ] }
+          RealType lambda = 0.9;                           //  grams / mL
+          RealType deltaM = sample( t ) - sample( t - 1 ); //  control - tagged if  control is odd
+          RealType alpha = 0.85;                           // labeling efficiency
+          // or Tagging efficiency: Magic parameter. Reference values: pCASL 0.85, CASL at 3T 0.68, PASL 0.95.
+          bool     is1pt5T = false;
+          RealType T_1a = 1650; // 3T  from ASL_whyNhow.pdf
+          if( is1pt5T )
+            {
+            T_1a = 1390;            // 1.5T
+            }
+          RealType T_1t = 1300; // 3T
+          if( is1pt5T )
+            {
+            T_1t = 900;            // 1.5T
+            }
+          // from "Impact of equilibrium magnetization of blood on ASL quantification"
+          RealType tau  = 2100; // FIXME milliseconds from PMC3049525
+          RealType w    = 700;  // FIXME milliseconds from PMC3049525
+          // Label width: Not in dicom, but sequence-specific -- magic parameter. Reference values: pCASL 1.5, CASL 1.6,
+          // PASL 0.7.
+          RealType scaling = 4 * alpha * M_0 * T_1t * ( exp( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  ); //
+                                                                                                                      // from
+                                                                                                                      // PMC3049525
+          cbf( t ) = lambda * deltaM * ( -1.0 )  / scaling;
+          total += cbf( t );
+          cbfct++;
           }
-        RealType M_0   = 2800; // FIXME can be taken from an input reference image or defined for each tissue
-        // see "Impact of equilibrium magnetization of blood on ASL quantification"
-        RealType tau  = 2100; // FIXME milliseconds
-        RealType w    = 700;
-        RealType scaling = 2 * alpha * M_0 * T_1a * (  exp( -1.0 * w / T_1a ) - exp( -1.0 * ( tau + w ) / T_1a ) );
-        cbf( t ) = lambda * deltaM / scaling;
-        total += cbf( t );
-        cbfct++;
         }
       }
     RealType mean = total / (RealType) cbfct;
@@ -2327,7 +2393,8 @@ int pCASL(int argc, char *argv[])
 
   // see "Impact of equilibrium magnetization of blood on ASL quantification"
   /*
-RealType M0W = 1; // FIXME
+RealType M0W = 1300; // FIXME
+RealType TE = 4000;
 M_0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
 The term, M_{0B} is calculated as follows (Wong1998),
     M0b = A * M_{0WM} * exp(1/T2_{WM}^* - 1/T2_B^*) * TE
