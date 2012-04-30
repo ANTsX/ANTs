@@ -136,7 +136,24 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
       bool hasTransformBeenRead = false;
       try
         {
-        transformName = transformOption->GetValue( n );
+        if( transformOption->GetNumberOfParameters( n ) == 0 )
+          {
+          transformName = transformOption->GetValue( n );
+          }
+        else if( transformOption->GetNumberOfParameters( n ) > 1 )
+          {
+          bool findInverse = parser->Convert<bool>( transformOption->GetParameter( n, 1 ) );
+          if( findInverse )
+            {
+            std::cerr << "Wrong specification of the inverse.  Set the inverse displacement field explicitly."
+                      << std::endl;
+            return EXIT_FAILURE;
+            }
+          else
+            {
+            transformName = transformOption->GetParameter( n, 0 );
+            }
+          }
 
         typedef itk::DisplacementFieldTransform<PixelType, Dimension>
           DisplacementFieldTransformType;
