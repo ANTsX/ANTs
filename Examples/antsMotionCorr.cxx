@@ -529,6 +529,18 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     antscout << " nimagestoavg " << nimagestoavg << std::endl;
     }
 
+  bool                doEstimateLearningRateOnce(false);
+  OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
+  if( rateOption && rateOption->GetNumberOfValues() > 0 )
+    {
+    std::string rateValue = rateOption->GetValue( 0 );
+    ConvertToLowerCase( rateValue );
+    if( rateValue.compare( "1" ) == 0 || rateValue.compare( "true" ) == 0 )
+      {
+      doEstimateLearningRateOnce = true;
+      }
+    }
+
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
@@ -852,6 +864,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         small_step += fixed_time_slice->GetSpacing()[i] * fixed_time_slice->GetSpacing()[i];
         }
       optimizer->SetMaximumStepSizeInPhysicalUnits(sqrt(small_step) * learningRate);
+      optimizer->SetDoEstimateLearningRateOnce( doEstimateLearningRateOnce );
       //    optimizer->SetMaximumNewtonStepSizeInPhysicalUnits(sqrt(small_step)*learningR);
 
       // Set up the image registration methods along with the transforms
@@ -1333,6 +1346,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "dimensionality" );
     option->SetShortName( 'd' );
     option->SetUsageOption( 0, "2/3" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string(
+        "turn on the option that lets you estimate the learning rate step size only at the beginning of each level.  * useful as a second stage of fine-scale registration." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "use-estimate-learning-rate-once" );
+    option->SetShortName( 'l' );
     option->SetDescription( description );
     parser->AddOption( option );
     }
