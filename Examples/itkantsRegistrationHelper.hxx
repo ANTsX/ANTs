@@ -1078,7 +1078,7 @@ RegistrationHelper<VImageDimension>
         ::ants::antscout << "ERROR: Unrecognized image metric: " << std::endl;
       }
     /** Can really impact performance */
-    bool gaussian = false;
+    bool gaussian = true;
     metric->SetUseMovingImageGradientFilter( gaussian );
     metric->SetUseFixedImageGradientFilter( gaussian );
     if( this->m_FixedImageMask.IsNotNull() )
@@ -1107,7 +1107,7 @@ RegistrationHelper<VImageDimension>
     optimizer->SetScalesEstimator( scalesEstimator );
     optimizer->SetMinimumConvergenceValue( convergenceThreshold );
     optimizer->SetConvergenceWindowSize( convergenceWindowSize );
-    optimizer->SetDoEstimateLearningRateOnce(true);
+    optimizer->SetDoEstimateLearningRateOnce( this->m_DoEstimateLearningRateOnce );
 
     typedef antsRegistrationOptimizerCommandIterationUpdate<GradientDescentOptimizerType> OptimizerCommandType;
     typename OptimizerCommandType::Pointer optimizerObserver = OptimizerCommandType::New();
