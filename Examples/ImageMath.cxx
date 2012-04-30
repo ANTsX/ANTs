@@ -2062,6 +2062,7 @@ int PASL(int argc, char *argv[])
   RealType M0W = 1300; // FIXME
   RealType TE = 4000;
   RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+  calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
 
   if( fn1.length() > 3 )
     {
@@ -2147,16 +2148,20 @@ int PASL(int argc, char *argv[])
         RealType pix = image1->GetPixel(tind);
         sample( t ) = pix;
         if( ( t % 2 ) == 1 )
-          {
-          // f =  \frac{      \lambda DeltaM        }  {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  }
-          // where f is CBF, ΔM is thfef difference signal between tag and control acquisitions, λ (=0.9g/ml) is the
-          // blood/tiue water partition coefficient, T1a (1390 and 1650ms at 1.5/3T) is the longitudinal relaxation time
-          // of blood, α is the inversion efficiency, TI1 is the duration between the inversion and saturation pulses, α
-          // = 0.95 is the labeling efficiency, TI2 (= TI1 + w) is the image acquisition time.
-          // w is the post-labeling delay time and should include the acquisition time for each slices
-          // (Wi=w+(i-1)*Tacq), Tacq is the image acquisition time for each slice (35ms with the protocol recommended),
-          // i is the slice number. Tacq can be calculated by (MinTR- τ-w)/(slice number)
-          // see https://gate.nmr.mgh.harvard.edu/wiki/whynhow/images/e/e2/ASL_whyNhow.pdf
+          {                                                /**  the best resource i've found so far equation 1 http://cfn.upenn.edu/perfusion/articles/perfmri_9.pdf
+            "Pediatric Perfusion Imaging Using Pulsed Arterial Spin Labeling"
+      CBF images calculated as:
+          f =  \frac{      \lambda DeltaM        }  {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  }
+                TI_2 = TI_1 + t * slice_delay
+             where t is the image index , DeltaM is the difference signal between tag and control acquisitions,
+             lambda = 0.9 ml/g is the blood/tissue water partition, T_{1a} = 1200 ms is the longitudinal relaxation time of blood,
+             alpha = 0.95 is the inversion (or labeling or tagging?) efﬁciency, TI_1 = 800 millisec is the duration
+             between the inversion and saturation pulses, TI_2 = TI_1 + w is the image acquisition time.  M_0 is
+             the acquired image.  These parameters were primarily based on experience in healthy adults; potential effects
+             of ignoring the difference between adults and children on CBF quantiﬁcation will be discussed below.
+             ...
+             also see https://gate.nmr.mgh.harvard.edu/wiki/whynhow/images/e/e2/ASL_whyNhow.pdf
+   */
           RealType lambda = 0.9;                           //  grams / mL
           RealType alpha = 0.95;                           // labeling efficiency
           RealType deltaM = sample( t - 1 ) - sample( t ); // if 1st image is control
@@ -2173,9 +2178,8 @@ int PASL(int argc, char *argv[])
           // see "Impact of equilibrium magnetization of blood on ASL quantification"
           RealType TI_1  = 600;        // FIXME milliseconds
           RealType slice_delay = 42.0; // FIXME milliseconds
-          RealType TI_2base = 1600;    // FIXME milliseconds
           // TI2(slice) = TI2 + slice_number * slice_delay (slice_delay = the time taken to acquire each slice)
-          RealType TI_2  = TI_2base + t * slice_delay;
+          RealType TI_2  = TI_1 + t * slice_delay;
           RealType scaling = 2 * alpha * M_0 * TI_1 * exp( -TI_2 / T_1a );
           cbf( t ) = lambda * deltaM / scaling;
           total += cbf( t );
@@ -2297,6 +2301,7 @@ int pCASL(int argc, char *argv[])
   RealType M0W = 1300; // FIXME
   RealType TE = 4000;
   RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+  calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
 
   bool haveM0 = true;
   if( m0fn.length() > 3 )
