@@ -127,34 +127,27 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
     std::deque<std::string> transformTypes;
     for( unsigned int n = 0; n < transformOption->GetNumberOfValues(); n++ )
       {
-      std::string transformName;
-      std::string transformType;
-
       typedef itk::Transform<double, Dimension, Dimension> TransformType;
       typename TransformType::Pointer transform;
+
+      std::string transformName;
+      bool        findInverse = false;
+      if( transformOption->GetNumberOfParameters( n ) == 0 )
+        {
+        transformName = transformOption->GetValue( n );
+        }
+      else
+        {
+        transformName = transformOption->GetParameter( n, 0 );
+        if( transformOption->GetNumberOfParameters( n ) > 1 )
+          {
+          findInverse = parser->Convert<bool>( transformOption->GetParameter( n, 1 ) );
+          }
+        }
 
       bool hasTransformBeenRead = false;
       try
         {
-        if( transformOption->GetNumberOfParameters( n ) == 0 )
-          {
-          transformName = transformOption->GetValue( n );
-          }
-        else if( transformOption->GetNumberOfParameters( n ) > 1 )
-          {
-          bool findInverse = parser->Convert<bool>( transformOption->GetParameter( n, 1 ) );
-          if( findInverse )
-            {
-            std::cerr << "Wrong specification of the inverse.  Set the inverse displacement field explicitly."
-                      << std::endl;
-            return EXIT_FAILURE;
-            }
-          else
-            {
-            transformName = transformOption->GetParameter( n, 0 );
-            }
-          }
-
         typedef itk::DisplacementFieldTransform<PixelType, Dimension>
           DisplacementFieldTransformType;
 
@@ -179,7 +172,16 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
         hasTransformBeenRead = false;
         }
 
-      if( !hasTransformBeenRead )
+      if( hasTransformBeenRead )
+        {
+        if( findInverse )
+          {
+          std::cerr << "Wrong specification of the inverse.  Set the inverse displacement field explicitly."
+                    << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      else
         {
         try
           {
