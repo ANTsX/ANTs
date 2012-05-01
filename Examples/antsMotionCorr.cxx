@@ -863,7 +863,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         small_step += fixed_time_slice->GetSpacing()[i] * fixed_time_slice->GetSpacing()[i];
         }
-      optimizer->SetMaximumStepSizeInPhysicalUnits(sqrt(small_step) * learningRate);
+      optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
       optimizer->SetDoEstimateLearningRateOnce( doEstimateLearningRateOnce );
       //    optimizer->SetMaximumNewtonStepSizeInPhysicalUnits(sqrt(small_step)*learningR);
 
