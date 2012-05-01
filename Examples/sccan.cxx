@@ -665,15 +665,36 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
   SliceIt mIter( mask, mask->GetLargestPossibleRegion() );
-  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+  typedef std::vector<unsigned int> LabelSetType;
+  unsigned int maxlabel = 0;
+  LabelSetType myLabelSet1;
     {
-    if( mIter.Get() >= 0.5 )
+    /** count the labels in the mask image */
+    for( mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
       {
-      voxct++;
+      unsigned int label = static_cast<unsigned int>( mIter.Get() + 0.5 );
+      if( label > 0 )
+        {
+        if( find( myLabelSet1.begin(), myLabelSet1.end(), label )
+            == myLabelSet1.end() )
+          {
+          myLabelSet1.push_back( label );
+          if( label > maxlabel )
+            {
+            maxlabel = label;
+            }
+          }
+        voxct++;
+        }
       }
     }
-  antscout << " timedims " << timedims << std::endl;
+  if( maxlabel == 0 )
+    {
+    antscout << "FAILURE: Max label in input mask " << maskfn << " is 0 " << std::endl;
+    return EXIT_FAILURE;
+    }
 
+  antscout << " timedims " << timedims << " n-Labels " << myLabelSet1.size() << std::endl;
   typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
   extractRegion.SetSize(ImageDimension - 1, 0);
   unsigned int sub_vol = 0;
@@ -694,7 +715,71 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   timeVectorType mSample(timedims, 0);
   typedef itk::Array2D<double> MatrixType;
   std::vector<std::string> ColumnHeaders;
-  MatrixType               matrix(timedims, voxct);
+  if( myLabelSet1.size() > 1 )
+    {
+    /** sort the labels */
+    std::sort(myLabelSet1.begin(), myLabelSet1.end() );
+    /** create a map between the roi and its matrix index */
+    std::map<unsigned int, unsigned int> vectorindexMap;
+    for( unsigned int i = 0; i < myLabelSet1.size(); i++ )
+      {
+      std::string colname = std::string("Label") + sccan_to_string<unsigned int>( myLabelSet1[i] );
+      ColumnHeaders.push_back( colname );
+      vectorindexMap[myLabelSet1[i]] = i;
+      }
+    typedef vnl_vector<unsigned int> countVectorType;
+    countVectorType countVector( myLabelSet1.size(), 0 );
+    antscout << "Will map the image to its ROIs" << std::endl;
+    MatrixType matrix(timedims, myLabelSet1.size() );
+    matrix.Fill(0);
+    SliceIt vfIter2( outimage, outimage->GetLargestPossibleRegion() );
+    voxct = 0;
+    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+      {
+      OutIndexType ind = vfIter2.GetIndex();
+      unsigned int label = static_cast<unsigned int>( mask->GetPixel( ind ) + 0.5 );
+      if( label > 0 )
+        {
+        unsigned int vind = vectorindexMap[label];
+        IndexType    tind;
+        // first collect all samples for that location
+        for( unsigned int i = 0; i < ImageDimension - 1; i++ )
+          {
+          tind[i] = ind[i];
+          }
+        for( unsigned int t = 0; t < timedims; t++ )
+          {
+          tind[ImageDimension - 1] = t;
+          Scalar pix = image1->GetPixel(tind);
+          mSample(t) = pix;
+          matrix[t][vind] += pix;
+          countVector[vind] += 1;
+          }
+        } // check mask
+      }
+    for( unsigned int i = 0; i <  myLabelSet1.size(); i++ )
+      {
+      matrix.set_column( i, matrix.get_column( i ) / ( double ) countVector[i]   );
+      }
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( outname );
+    writer->SetInput( &matrix );
+    writer->SetColumnHeaders( ColumnHeaders );
+    try
+      {
+      writer->Write();
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
+      return EXIT_FAILURE;
+      }
+    antscout << " done writing " << std::endl;
+    return EXIT_SUCCESS;
+    }
+  MatrixType matrix(timedims, voxct);
   matrix.Fill(0);
   SliceIt vfIter2( outimage, outimage->GetLargestPossibleRegion() );
   voxct = 0;
@@ -2133,7 +2218,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "takes a timeseries (4D) image " )
-      + std::string( "and converts it to a 2D matrix csv format as output." );
+      + std::string( "and converts it to a 2D matrix csv format as output." )
+      + std::string(
+        "If the mask has multiple labels ( more the one ) then the average time series in each label will be computed and put in the csv." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "timeseriesimage-to-matrix" );
     option->SetUsageOption(
