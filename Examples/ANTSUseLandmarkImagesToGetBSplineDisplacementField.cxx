@@ -144,7 +144,8 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
         }
       typename PointSetType::PointType movingPoint;
       movingImage->TransformIndexToPhysicalPoint( ItM.GetIndex(), movingPoint );
-      movingPoint -= ( fixedOrigin.GetVectorFromOrigin() );
+      const LabelImageType::PointType::VectorType tmpFixVector = fixedOrigin.GetVectorFromOrigin();
+      movingPoint -= tmpFixVector;
       movingPoint = fixedDirectionInverse * movingPoint;
       movingPoints->SetPointData( movingCount, ItM.Get() );
       movingPoints->SetPoint( movingCount++, movingPoint );

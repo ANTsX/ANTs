@@ -7403,7 +7403,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       RowHeaders.push_back(LabelName);
       labct++;
       }
-    typedef  itk::CSVNumericObjectFileWriter<double> CSVType;
+    typedef  itk::CSVNumericObjectFileWriter<double, 1, 1> CSVType;
     CSVType::Pointer OutputCSV = CSVType::New();
     OutputCSV->SetInput(&OutputValues);
     OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
@@ -7444,7 +7444,7 @@ int DiceAndMinDistSum(      int argc, char *argv[])
       labct++;
       }
 
-    typedef  itk::CSVNumericObjectFileWriter<double> CSVType;
+    typedef  itk::CSVNumericObjectFileWriter<double, 1, 1> CSVType;
     CSVType::Pointer OutputCSV = CSVType::New();
     OutputCSV->SetInput(&OutputValues);
     OutputCSV->SetFileName(std::string(outname.c_str() ) + ".csv");
