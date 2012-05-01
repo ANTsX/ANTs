@@ -17,43 +17,88 @@
 *=========================================================================*/
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
+
+#include <string>
 #include <iostream>
 #include <deque>
-#include "itkObject.h"
-#include "itkWeakPointer.h"
-#include "itkDisplacementFieldTransform.h"
-#include "itkTimeVaryingVelocityFieldTransform.h"
-#include "itkCompositeTransform.h"
-#include "itkImageToImageMetricv4.h"
-#include "itkImageMaskSpatialObject.h"
-#include "itkImage.h"
 
-namespace itk
-{
+#include "antsCommandLineParser.h"
+#include "itkANTSAffine3DTransform.h"
+#include "itkANTSCenteredAffine2DTransform.h"
+#include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
+#include "itkAffineTransform.h"
+#include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
+#include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
+#include "itkBSplineSyNImageRegistrationMethod.h"
+#include "itkBSplineTransform.h"
+#include "itkBSplineTransformParametersAdaptor.h"
+#include "itkCommand.h"
+#include "itkCompositeTransform.h"
+#include "itkCorrelationImageToImageMetricv4.h"
+#include "itkDemonsImageToImageMetricv4.h"
+#include "itkDisplacementFieldTransform.h"
+#include "itkEuler2DTransform.h"
+#include "itkEuler3DTransform.h"
+#include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
+#include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
+#include "itkHistogramMatchingImageFilter.h"
+#include "itkIdentityTransform.h"
+#include "itkImage.h"
+#include "itkImageFileWriter.h"
+#include "itkImageMaskSpatialObject.h"
+#include "itkImageRegistrationMethodv4.h"
+#include "itkImageToHistogramFilter.h"
+#include "itkImageToImageMetricv4.h"
+#include "itkIntensityWindowingImageFilter.h"
+#include "itkMatrixOffsetTransformBase.h"
+#include "itkMattesMutualInformationImageToImageMetricv4.h"
+#include "itkMeanSquaresImageToImageMetricv4.h"
+#include "itkObject.h"
+#include "itkQuaternionRigidTransform.h"
+#include "itkSimilarity2DTransform.h"
+#include "itkSimilarity3DTransform.h"
+#include "itkSyNImageRegistrationMethod.h"
+#include "itkTimeProbe.h"
+#include "itkTimeVaryingBSplineVelocityFieldImageRegistrationMethod.h"
+#include "itkTimeVaryingBSplineVelocityFieldTransformParametersAdaptor.h"
+#include "itkTimeVaryingVelocityFieldImageRegistrationMethodv4.h"
+#include "itkTimeVaryingVelocityFieldTransform.h"
+#include "itkTimeVaryingVelocityFieldTransformParametersAdaptor.h"
+#include "itkTransform.h"
+#include "itkTransformFactory.h"
+#include "itkTranslationTransform.h"
+#include "itkVersorRigid3DTransform.h"
+#include "itkWeakPointer.h"
+
+#include "itkantsReadWriteTransform.h"
+
 namespace ants
 {
+typedef itk::ants::CommandLineParser ParserType;
+typedef ParserType::OptionType       OptionType;
+
 template <unsigned VImageDimension>
-class RegistrationHelper : public Object
+class RegistrationHelper : public itk::Object
 {
 public:
   /** Standard class typedefs */
-  typedef RegistrationHelper       Self;
-  typedef Object                   Superclass;
-  typedef SmartPointer<Self>       Pointer;
-  typedef SmartPointer<const Self> ConstPointer;
-  typedef WeakPointer<const Self>  ConstWeakPointer;
+  typedef RegistrationHelper            Self;
+  typedef itk::Object                   Superclass;
+  typedef itk::SmartPointer<Self>       Pointer;
+  typedef itk::SmartPointer<const Self> ConstPointer;
+  typedef itk::WeakPointer<const Self>  ConstWeakPointer;
 
-  typedef double                            RealType;
-  typedef float                             PixelType;
-  typedef Image<PixelType, VImageDimension> ImageType;
+  typedef double                                 RealType;
+  typedef float                                  PixelType;
+  typedef itk::Image<PixelType, VImageDimension> ImageType;
 
-  typedef itk::Transform<double, VImageDimension, VImageDimension>     TransformType;
-  typedef CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
-  typedef DisplacementFieldTransform<RealType, VImageDimension>        DisplacementFieldTransformType;
-  typedef TimeVaryingVelocityFieldTransform<RealType, VImageDimension> TimeVaryingVelocityFieldTransformType;
-  typedef ImageToImageMetricv4<ImageType, ImageType>                   MetricType;
-  typedef ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
-  typedef typename ImageMaskSpatialObjectType::ImageType               MaskImageType;
+  typedef itk::Transform<double, VImageDimension, VImageDimension>          TransformType;
+  typedef itk::CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
+  typedef itk::DisplacementFieldTransform<RealType, VImageDimension>        DisplacementFieldTransformType;
+  typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension> TimeVaryingVelocityFieldTransformType;
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType>                   MetricType;
+  typedef itk::ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
+  typedef typename ImageMaskSpatialObjectType::ImageType                    MaskImageType;
 
   enum MetricEnumeration
     {
@@ -444,8 +489,89 @@ private:
   double                                  m_UpperQuantile;
   std::ostream *                          m_LogStream;
 };
+
+// ##########################################################################
+// ##########################################################################
+// ##########################################################################
+// ##########################################################################
+
+// Provide common way of reading transforms.
+template <unsigned VImageDimension>
+typename ants::RegistrationHelper<VImageDimension>::CompositeTransformType::Pointer
+GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser,
+                                      typename ParserType::OptionType::Pointer initialTransformOption)
+{
+  typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
+  typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
+  typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
+
+  std::deque<std::string> transformNames;
+  std::deque<std::string> transformTypes;
+  for( unsigned int n = 0; n < initialTransformOption->GetNumberOfValues(); n++ )
+    {
+    std::string initialTransformName;
+    bool        useInverse(false);
+
+    if( initialTransformOption->GetNumberOfParameters(n) == 0 )
+      {
+      initialTransformName = initialTransformOption->GetValue( n );
+      }
+    else
+      {
+      initialTransformName = initialTransformOption->GetParameter( n, 0 );
+      if( initialTransformOption->GetNumberOfParameters( n ) > 1 )
+        {
+        useInverse = parser->Convert<bool>( initialTransformOption->GetParameter( n, 1  ) );
+        }
+      }
+
+      {
+      typedef ants::RegistrationHelper<VImageDimension>                       RegistrationHelperType;
+      typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+
+      static bool MatOffRegistered(false); // Only register once for each template dimension.
+      if( !MatOffRegistered )
+        {
+        MatOffRegistered = true;
+        // Register the matrix offset transform base class to the
+        // transform factory for compatibility with the current ANTs.
+        typedef itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+        itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+        }
+      typedef typename RegistrationHelperType::TransformType TransformType;
+      typename TransformType::Pointer initialTransform =
+        itk::ants::ReadTransform<VImageDimension>(initialTransformName);
+      if( initialTransform.IsNull() )
+        {
+        ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;
+        return NULL;
+        }
+      if( useInverse )
+        {
+        initialTransform = dynamic_cast<TransformType *>(initialTransform->GetInverseTransform().GetPointer() );
+        if( initialTransform.IsNull() )
+          {
+          ::ants::antscout << "Inverse does not exist for " << initialTransformName << std::endl;
+          return NULL;
+          }
+        }
+      compositeTransform->AddTransform( initialTransform );
+      transformNames.push_back( initialTransformName );
+      transformTypes.push_back( initialTransform->GetNameOfClass() );
+      }
+    }
+  antscout << "=============================================================================" << std::endl;
+  antscout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
+  for( unsigned int n = 0; n < transformNames.size(); n++ )
+    {
+    antscout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
+    }
+  antscout << "=============================================================================" << std::endl;
+  return compositeTransform;
+}
+
+// ####################
 } // namespace ants
-} // namespace itk
 
 #include "itkantsRegistrationHelper.hxx"
 

@@ -1,6 +1,6 @@
 
 #include "antsUtilities.h"
-#include "antsCommandLineParser.h"
+#include "itkantsRegistrationHelper.h"
 
 #include "itkAffineTransform.h"
 #include "itkCompositeTransform.h"
@@ -24,7 +24,7 @@
 namespace ants
 {
 template <unsigned int Dimension>
-int antsApplyTransforms( itk::ants::CommandLineParser *parser )
+int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
 {
   typedef double                           RealType;
   typedef double                           PixelType;
@@ -39,10 +39,8 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
   /**
    * Input object option - for now, we're limiting this to images.
    */
-  typename itk::ants::CommandLineParser::OptionType::Pointer inputOption =
-    parser->GetOption( "input" );
-  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
-    parser->GetOption( "output" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( inputOption && inputOption->GetNumberOfValues() > 0 )
     {
     antscout << "Input object: " << inputOption->GetValue() << std::endl;
@@ -115,12 +113,12 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
   identityTransform->SetIdentity();
 
   typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
-  typename CompositeTransformType::Pointer compositeTransform =
-    CompositeTransformType::New();
+  typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
+
+#if 0
+  typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
   compositeTransform->AddTransform( identityTransform );
 
-  typename itk::ants::CommandLineParser::OptionType::Pointer transformOption =
-    parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfValues() > 0 )
     {
     std::deque<std::string> transformNames;
@@ -263,13 +261,19 @@ int antsApplyTransforms( itk::ants::CommandLineParser *parser )
       transformNames.push_back( transformName );
       transformTypes.push_back( transform->GetNameOfClass() );
       }
-    antscout << "The composite transform is comprised of the following transforms "
-             << "(in order): " << std::endl;
+    antscout << "The composite transform is comprised of the following transforms " << "(in order): " << std::endl;
     for( unsigned int n = 0; n < transformNames.size(); n++ )
       {
       antscout << "  " << n + 1 << ". " << transformNames[n] << " (type = "
                << transformTypes[n] << ")" << std::endl;
       }
+    }
+#endif
+  typename CompositeTransformType::Pointer compositeTransform =  GetCompositeTransformFromParserOption<Dimension>(
+      parser, transformOption );
+  if( compositeTransform.IsNull() )
+    {
+    return EXIT_FAILURE;
     }
   resampleFilter->SetTransform( compositeTransform );
 

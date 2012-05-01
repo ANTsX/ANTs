@@ -6,6 +6,7 @@
 #include "itkImageFileWriter.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
+
 namespace itk
 {
 namespace ants
@@ -14,6 +15,14 @@ template <unsigned VImageDimension>
 typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer
 ReadTransform(const std::string & filename)
 {
+  // We must explicitly check for file existance because failed reading is an acceptable
+  // state for non-displacment feilds.
+  if( !itksys::SystemTools::FileExists( filename.c_str() ) )
+    {
+    std::cerr << "Transform file does not exits: " << filename << std::endl;
+    return NULL;
+    }
+
   bool hasTransformBeenRead = false;
 
   typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;

@@ -16,6 +16,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <cmath>
+#include <iostream>
 
 #include "itkVector.h"
 #include "itkBinaryThresholdImageFilter.h"
