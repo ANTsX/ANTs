@@ -26,8 +26,10 @@ public:
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & event)
+  void Execute(const itk::Object * object, const itk::EventObject & /* event */)
   {
+    // HACK:  This would be much better:  TFilter const * const filter = dynamic_cast<const TFilter *>( object ) ;
+    // HACK:  Using const_cast here should not be needed.
     TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
 
     if( filter->GetCurrentIteration() > 0 )
@@ -41,19 +43,25 @@ public:
         filter->GetCurrentIteration() == this->m_NumberOfIterations[filter->GetCurrentLevel()] ||
         filter->GetIsConverged() )
       {
+#if 0
       unsigned int currentLevel = 0;
       if( typeid( event ) == typeid( itk::IterationEvent ) )
         {
         currentLevel = filter->GetCurrentLevel() + 1;
         }
-      if( currentLevel < this->m_NumberOfIterations.size() || filter->GetIsConverged() )
+      //  Can not print if current level is greater than this->m_NumberOfIterations.size()  || filter->GetIsConverged()
+      // )
+#endif
+      unsigned int currentLevel = filter->GetCurrentLevel();
+      if( currentLevel < this->m_NumberOfIterations.size() )
         {
         typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
         typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
         typename TFilter::TransformParametersAdaptorsContainerType adaptors =
           filter->GetTransformParametersAdaptorsPerLevel();
 
-        this->Logger() << "  Current level = " << currentLevel << std::endl;
+        this->Logger() << "  Current level = " << currentLevel + 1 << " of " << this->m_NumberOfIterations.size()
+                       << std::endl;
         this->Logger() << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
         this->Logger() << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
         this->Logger() << "    smoothing sigmas = " << smoothingSigmas[currentLevel] << std::endl;
