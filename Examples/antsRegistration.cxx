@@ -19,6 +19,13 @@
 #include "antsUtilities.h"
 #include "itkantsRegistrationHelper.h"
 
+#include "itkBSplineInterpolateImageFunction.h"
+#include "itkLinearInterpolateImageFunction.h"
+#include "itkGaussianInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkWindowedSincInterpolateImageFunction.h"
+#include "itkLabelImageGaussianInterpolateImageFunction.h"
+
 namespace ants
 {
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
@@ -42,13 +49,52 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description = std::string( "Specify the output transform prefix (output format is .nii.gz ). " )
       + std::string( "Optionally, one can choose to warp the moving image to the fixed space and, if the " )
-      + std::string( "inverse transform exists, one can also output the warped fixed image." );
+      + std::string( "inverse transform exists, one can also output the warped fixed image.  Note that " )
+      + std::string( "only the images specified in the first metric call are warped.  Use antsApplyTransforms " )
+      + std::string( "to warp other images using the resultant transform(s)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "outputTransformPrefix" );
     option->SetUsageOption( 1, "[outputTransformPrefix,<outputWarpedImage>,<outputInverseWarpedImage>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Boolean specifying whether or not the " )
+      + std::string( "composite transform (and its inverse, if it exists) should " )
+      + std::string( "be written to an hdf5 composite file.  This is false by default " )
+      + std::string( "so that only the transform for each stage is written to file." );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "write-composite-transform" );
+    option->SetShortName( 'a' );
+    option->SetUsageOption( 0, "1/(0)" );
+    option->SetDescription( description );
+    option->AddValue( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Several interpolation options are available in ITK. " )
+      + std::string( "These have all been made available.  Currently the interpolator " )
+      + std::string( "choice is only used to warp (and possibly inverse warp) the final " )
+      + std::string( "output image(s)." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "interpolation" );
+    option->SetShortName( 'n' );
+    option->SetUsageOption( 0, "Linear" );
+    option->SetUsageOption( 1, "NearestNeighbor" );
+    option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
+    option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
+    option->SetUsageOption( 4, "BSpline[<order=3>]" );
+    option->SetUsageOption( 5, "CosineWindowedSinc" );
+    option->SetUsageOption( 6, "WelchWindowedSinc" );
+    option->SetUsageOption( 7, "HammingWindowedSinc" );
+    option->SetUsageOption( 8, "LanczosWindowedSinc" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -65,17 +111,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'q' );
     option->SetUsageOption( 0, "initialTransform" );
     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description = std::string( "Specify name of a composite transform " )
-      + std::string( "file to write out after registration " );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "composite-transform-file" );
-    option->SetShortName( 'a' );
-    option->SetUsageOption( 0, "compositeFile" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -125,13 +160,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       3,
-      "MeanSquares[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       4,
-      "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       5,
-      "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -368,7 +403,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer maskOption = parser->GetOption( "masks" );
 
-  OptionType::Pointer compositeOutputOption = parser->GetOption("composite-transform-file");
+  OptionType::Pointer compositeOutputOption = parser->GetOption( "write-composite-transform" );
 
   if( !outputOption )
     {
@@ -840,11 +875,11 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   // set the vector-vector parameters accumulated
-  regHelper->SetIterations(iterationList);
-  regHelper->SetConvergenceWindowSizes(convergenceWindowSizeList);
-  regHelper->SetConvergenceThresholds(convergenceThresholdList);
-  regHelper->SetSmoothingSigmas(smoothingSigmasList);
-  regHelper->SetShrinkFactors(shrinkFactorsList);
+  regHelper->SetIterations( iterationList );
+  regHelper->SetConvergenceWindowSizes( convergenceWindowSizeList );
+  regHelper->SetConvergenceThresholds( convergenceThresholdList );
+  regHelper->SetSmoothingSigmas( smoothingSigmasList );
+  regHelper->SetShrinkFactors( shrinkFactorsList );
 
   if( regHelper->DoRegistration() == EXIT_FAILURE )
     {
@@ -852,21 +887,30 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
   //
   // write out transforms stored in the composite
-  typename CompositeTransformType::Pointer resultTransform =
-    regHelper->GetCompositeTransform();
-  if( compositeOutputOption->GetNumberOfValues() > 0 )
+  typename CompositeTransformType::Pointer resultTransform = regHelper->GetCompositeTransform();
+  if( parser->Convert<bool>( compositeOutputOption->GetValue() ) )
     {
-    std::string compositeTransform = compositeOutputOption->GetParameter(0, 0);
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
+    std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
+    std::string inverseCompositeTransformFileName = outputPrefix + std::string( "InverseComposite.h5" );
+
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
       resultTransform.GetPointer();
-    itk::ants::WriteTransform<VImageDimension>(curTransform, compositeTransform.c_str() );
+    itk::ants::WriteTransform<VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
+
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCompositeTransform =
+      compositeTransform->GetInverseTransform();
+    if( inverseCompositeTransform.IsNotNull() )
+      {
+      itk::ants::WriteTransform<VImageDimension>( inverseCompositeTransform,
+                                                  inverseCompositeTransformFileName.c_str() );
+      }
     }
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
   // write out transforms actually computed, so skip any initial transforms.
   for( unsigned int i = initialMovingTransformOption->GetNumberOfValues(); i < numTransforms; ++i )
     {
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
-      resultTransform->GetNthTransform(i);
+      resultTransform->GetNthTransform( i );
 
     //
     // only registrations not part of the initial transforms in the
@@ -948,6 +992,181 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       }
     }
+
+  /**
+   * Interpolation option
+   */
+  typedef itk::LinearInterpolateImageFunction<ImageType, double> LinearInterpolatorType;
+  typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
+
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> NearestNeighborInterpolatorType;
+  typename NearestNeighborInterpolatorType::Pointer nearestNeighborInterpolator =
+    NearestNeighborInterpolatorType::New();
+
+  typedef itk::BSplineInterpolateImageFunction<ImageType, double> BSplineInterpolatorType;
+  typename BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
+
+  typedef itk::GaussianInterpolateImageFunction<ImageType, double> GaussianInterpolatorType;
+  typename GaussianInterpolatorType::Pointer gaussianInterpolator = GaussianInterpolatorType::New();
+
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3> HammingInterpolatorType;
+  typename HammingInterpolatorType::Pointer hammingInterpolator = HammingInterpolatorType::New();
+
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::CosineWindowFunction<3> > CosineInterpolatorType;
+  typename CosineInterpolatorType::Pointer cosineInterpolator = CosineInterpolatorType::New();
+
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::WelchWindowFunction<3> > WelchInterpolatorType;
+  typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
+
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::LanczosWindowFunction<3> > LanczosInterpolatorType;
+  typename LanczosInterpolatorType::Pointer lanczosInterpolator = LanczosInterpolatorType::New();
+
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
+                                                    itk::Function::BlackmanWindowFunction<3> > BlackmanInterpolatorType;
+  typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
+
+  const unsigned int NVectorComponents = 1;
+  typedef VectorPixelCompare<double, NVectorComponents> CompareType;
+  typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, double,
+                                                                   CompareType> MultiLabelInterpolatorType;
+  typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
+
+  std::string whichInterpolator( "linear" );
+
+  typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
+  if( interpolationOption && interpolationOption->GetNumberOfValues() > 0 )
+    {
+    whichInterpolator = interpolationOption->GetValue();
+    ConvertToLowerCase( whichInterpolator );
+
+    if( !std::strcmp( whichInterpolator.c_str(), "linear" ) )
+      {
+      regHelper->SetInterpolator( linearInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "nearestneighbor" ) )
+      {
+      regHelper->SetInterpolator( nearestNeighborInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "bspline" ) )
+      {
+      if( interpolationOption->GetNumberOfParameters() > 0 )
+        {
+        unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetParameter( 0, 0 ) );
+        bSplineInterpolator->SetSplineOrder( bsplineOrder );
+        }
+      regHelper->SetInterpolator( bSplineInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "gaussian" ) )
+      {
+      std::string fixedImageFileName = metricOption->GetParameter( numberOfStages - 1, 0 );
+
+      typedef itk::ImageFileReader<ImageType> ImageReaderType;
+      typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+
+      fixedImageReader->SetFileName( fixedImageFileName.c_str() );
+      fixedImageReader->Update();
+      typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+
+      double sigma[VImageDimension];
+      for( unsigned int d = 0; d < VImageDimension; d++ )
+        {
+        sigma[d] = fixedImage->GetSpacing()[d];
+        }
+      double alpha = 1.0;
+
+      if( interpolationOption->GetNumberOfParameters() > 0 )
+        {
+        std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
+        if( s.size() == VImageDimension )
+          {
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            sigma[d] = s[d];
+            }
+          }
+        else
+          {
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            sigma[d] = s[0];
+            }
+          }
+        }
+      if( interpolationOption->GetNumberOfParameters() > 1 )
+        {
+        alpha = parser->Convert<double>( interpolationOption->GetParameter( 1 ) );
+        }
+      gaussianInterpolator->SetParameters( sigma, alpha );
+      regHelper->SetInterpolator( gaussianInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "cosinewindowedsinc" ) )
+      {
+      regHelper->SetInterpolator( cosineInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "hammingwindowedsinc" ) )
+      {
+      regHelper->SetInterpolator( hammingInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "lanczoswindowedsinc" ) )
+      {
+      regHelper->SetInterpolator( lanczosInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "blackmanwindowedsinc" ) )
+      {
+      regHelper->SetInterpolator( blackmanInterpolator );
+      }
+    else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
+      {
+      std::string fixedImageFileName = metricOption->GetParameter( numberOfStages - 1, 0 );
+
+      typedef itk::ImageFileReader<ImageType> ImageReaderType;
+      typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+
+      fixedImageReader->SetFileName( fixedImageFileName.c_str() );
+      fixedImageReader->Update();
+      typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+
+      double sigma[VImageDimension];
+      for( unsigned int d = 0; d < VImageDimension; d++ )
+        {
+        sigma[d] = fixedImage->GetSpacing()[d];
+        }
+      double alpha = 4.0;
+
+      if( interpolationOption->GetNumberOfParameters() > 0 )
+        {
+        std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
+        if( s.size() == VImageDimension )
+          {
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            sigma[d] = s[d];
+            }
+          }
+        else
+          {
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            sigma[d] = s[0];
+            }
+          }
+        }
+
+      multiLabelInterpolator->SetParameters( sigma, alpha );
+      regHelper->SetInterpolator( multiLabelInterpolator );
+      }
+    else
+      {
+      antscout << "Error:  Unrecognized interpolation option." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+  antscout << "Interpolation type: "
+           << regHelper->GetInterpolator()->GetNameOfClass() << std::endl;
+
   typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
 
   typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;

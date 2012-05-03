@@ -26,53 +26,38 @@ public:
     Execute( (const itk::Object *) caller, event);
   }
 
-  void Execute(const itk::Object * object, const itk::EventObject & /* event */)
+  void Execute(const itk::Object * object, const itk::EventObject & event )
   {
-    // HACK:  This would be much better:  TFilter const * const filter = dynamic_cast<const TFilter *>( object ) ;
-    // HACK:  Using const_cast here should not be needed.
-    TFilter * filter = const_cast<TFilter *>( dynamic_cast<const TFilter *>( object ) );
+    TFilter const * const filter = dynamic_cast<const TFilter *>( object );
 
-    if( filter->GetCurrentIteration() > 0 )
+    if( typeid( event ) == typeid( itk::InitializeEvent ) )
+      {
+      unsigned int currentLevel = filter->GetCurrentLevel();
+
+      typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
+      typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
+      typename TFilter::TransformParametersAdaptorsContainerType adaptors =
+        filter->GetTransformParametersAdaptorsPerLevel();
+
+      this->Logger() << "  Current level = " << currentLevel + 1 << " of " << this->m_NumberOfIterations.size()
+                     << std::endl;
+      this->Logger() << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
+      this->Logger() << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
+      this->Logger() << "    smoothing sigmas = " << smoothingSigmas[currentLevel] << std::endl;
+      this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
+                     << std::endl;
+
+      typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+      GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
+          const_cast<typename TFilter::OptimizerType *>( const_cast<TFilter *>( filter )->GetOptimizer() ) );
+
+      optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
+      }
+    else if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
       this->Logger() << "      Iteration " << filter->GetCurrentIteration() << ": "
                      << "metric value = " << filter->GetCurrentMetricValue() << ", "
                      << "convergence value = " << filter->GetCurrentConvergenceValue() << std::endl;
-      }
-
-    if( filter->GetCurrentIteration() == 0 ||
-        filter->GetCurrentIteration() == this->m_NumberOfIterations[filter->GetCurrentLevel()] ||
-        filter->GetIsConverged() )
-      {
-#if 0
-      unsigned int currentLevel = 0;
-      if( typeid( event ) == typeid( itk::IterationEvent ) )
-        {
-        currentLevel = filter->GetCurrentLevel() + 1;
-        }
-      //  Can not print if current level is greater than this->m_NumberOfIterations.size()  || filter->GetIsConverged()
-      // )
-#endif
-      unsigned int currentLevel = filter->GetCurrentLevel();
-      if( currentLevel < this->m_NumberOfIterations.size() )
-        {
-        typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
-        typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
-        typename TFilter::TransformParametersAdaptorsContainerType adaptors =
-          filter->GetTransformParametersAdaptorsPerLevel();
-
-        this->Logger() << "  Current level = " << currentLevel + 1 << " of " << this->m_NumberOfIterations.size()
-                       << std::endl;
-        this->Logger() << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
-        this->Logger() << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
-        this->Logger() << "    smoothing sigmas = " << smoothingSigmas[currentLevel] << std::endl;
-        this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-                       << std::endl;
-
-        typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
-        GradientDescentOptimizerType * optimizer2 = reinterpret_cast<GradientDescentOptimizerType *>(
-            const_cast<typename TFilter::OptimizerType *>( filter->GetOptimizer() ) );
-        optimizer2->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
-        }
       }
   }
 
@@ -253,6 +238,9 @@ RegistrationHelper<VImageDimension>
   m_UpperQuantile(1.0),
   m_LogStream(&::ants::antscout)
 {
+  typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
+  typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
+  this->m_Interpolator = linearInterpolator;
 }
 
 template <unsigned VImageDimension>
@@ -721,6 +709,7 @@ RegistrationHelper<VImageDimension>
   resampler->SetTransform( this->m_CompositeTransform );
   resampler->SetInput( movingImage );
   resampler->SetOutputParametersFromImage( fixedImage );
+  resampler->SetInterpolator( this->m_Interpolator );
   resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
 
@@ -746,6 +735,7 @@ RegistrationHelper<VImageDimension>
   inverseResampler->SetTransform( this->m_CompositeTransform->GetInverseTransform() );
   inverseResampler->SetInput( fixedImage );
   inverseResampler->SetOutputParametersFromImage( movingImage );
+  inverseResampler->SetInterpolator( this->m_Interpolator );
   inverseResampler->SetDefaultPixelValue( 0 );
   inverseResampler->Update();
 
@@ -1112,6 +1102,7 @@ RegistrationHelper<VImageDimension>
         affineObserver->SetNumberOfIterations( currentStageIterations );
 
         affineRegistration->AddObserver( itk::IterationEvent(), affineObserver );
+        affineRegistration->AddObserver( itk::InitializeEvent(), affineObserver );
 
         try
           {
@@ -1162,6 +1153,7 @@ RegistrationHelper<VImageDimension>
         rigidObserver->SetNumberOfIterations( currentStageIterations );
 
         rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
+        rigidRegistration->AddObserver( itk::InitializeEvent(), rigidObserver );
 
         try
           {
@@ -1212,6 +1204,7 @@ RegistrationHelper<VImageDimension>
         affineObserver->SetNumberOfIterations( currentStageIterations );
 
         affineRegistration->AddObserver( itk::IterationEvent(), affineObserver );
+        affineRegistration->AddObserver( itk::InitializeEvent(), affineObserver );
 
         try
           {
@@ -1263,6 +1256,7 @@ RegistrationHelper<VImageDimension>
         similarityObserver->SetNumberOfIterations( currentStageIterations );
 
         similarityRegistration->AddObserver( itk::IterationEvent(), similarityObserver );
+        similarityRegistration->AddObserver( itk::InitializeEvent(), similarityObserver );
 
         try
           {
@@ -1313,6 +1307,7 @@ RegistrationHelper<VImageDimension>
         translationObserver->SetNumberOfIterations( currentStageIterations );
 
         translationRegistration->AddObserver( itk::IterationEvent(), translationObserver );
+        translationRegistration->AddObserver( itk::InitializeEvent(), translationObserver );
 
         try
           {
@@ -1424,6 +1419,7 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
 
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
+        displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
 
         try
           {
@@ -1562,6 +1558,7 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
 
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
+        displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
 
         try
           {
@@ -1662,6 +1659,7 @@ RegistrationHelper<VImageDimension>
         bsplineObserver->SetNumberOfIterations( currentStageIterations );
 
         bsplineRegistration->AddObserver( itk::IterationEvent(), bsplineObserver );
+        bsplineRegistration->AddObserver( itk::InitializeEvent(), bsplineObserver );
 
         try
           {
@@ -1838,6 +1836,7 @@ RegistrationHelper<VImageDimension>
         velocityFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
 
         velocityFieldRegistration->AddObserver( itk::IterationEvent(), velocityFieldRegistrationObserver );
+        velocityFieldRegistration->AddObserver( itk::InitializeEvent(), velocityFieldRegistrationObserver );
 
         try
           {
@@ -2022,6 +2021,7 @@ RegistrationHelper<VImageDimension>
         velocityFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
 
         velocityFieldRegistration->AddObserver( itk::IterationEvent(), velocityFieldRegistrationObserver );
+        velocityFieldRegistration->AddObserver( itk::InitializeEvent(), velocityFieldRegistrationObserver );
 
         try
           {
@@ -2142,6 +2142,7 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
 
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
+        displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
 
         try
           {
@@ -2298,6 +2299,7 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
 
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
+        displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
 
         try
           {

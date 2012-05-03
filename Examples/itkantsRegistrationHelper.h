@@ -50,6 +50,7 @@
 #include "itkImageToHistogramFilter.h"
 #include "itkImageToImageMetricv4.h"
 #include "itkIntensityWindowingImageFilter.h"
+#include "itkLinearInterpolateImageFunction.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMeanSquaresImageToImageMetricv4.h"
@@ -99,6 +100,8 @@ public:
   typedef itk::ImageToImageMetricv4<ImageType, ImageType>                   MetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                    MaskImageType;
+
+  typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
 
   enum MetricEnumeration
     {
@@ -417,6 +420,12 @@ public:
   itkGetObjectMacro(CompositeTransform, CompositeTransformType);
 
   /**
+   * Set/Get the interpolator.  Linear is default.
+   */
+  itkSetObjectMacro( Interpolator, InterpolatorType );
+  itkGetObjectMacro( Interpolator, InterpolatorType );
+
+  /**
    *  Get the Warped Image & Inverse Warped Images
    */
   typename ImageType::Pointer GetWarpedImage() const;
@@ -474,6 +483,9 @@ private:
   typename CompositeTransformType::Pointer m_FixedInitialTransform;
   typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
   typename ImageMaskSpatialObjectType::Pointer     m_MovingImageMask;
+
+  typename InterpolatorType::Pointer               m_Interpolator;
+
   unsigned int                            m_NumberOfStages;
   MetricListType                          m_Metrics;
   TransformMethodListType                 m_TransformMethods;

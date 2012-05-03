@@ -280,57 +280,43 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
   /**
    * Interpolation option
    */
-  typedef itk::LinearInterpolateImageFunction<ImageType, RealType>
-    LinearInterpolatorType;
-  typename LinearInterpolatorType::Pointer linearInterpolator
-    = LinearInterpolatorType::New();
+  typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
+  typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
 
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, RealType>
-    NearestNeighborInterpolatorType;
-  typename NearestNeighborInterpolatorType::Pointer nearestNeighborInterpolator
-    = NearestNeighborInterpolatorType::New();
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, RealType> NearestNeighborInterpolatorType;
+  typename NearestNeighborInterpolatorType::Pointer nearestNeighborInterpolator =
+    NearestNeighborInterpolatorType::New();
 
-  typedef itk::BSplineInterpolateImageFunction<ImageType, RealType>
-    BSplineInterpolatorType;
-  typename BSplineInterpolatorType::Pointer bSplineInterpolator
-    = BSplineInterpolatorType::New();
+  typedef itk::BSplineInterpolateImageFunction<ImageType, RealType> BSplineInterpolatorType;
+  typename BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
 
-  typedef itk::GaussianInterpolateImageFunction<ImageType, RealType>
-    GaussianInterpolatorType;
-  typename GaussianInterpolatorType::Pointer gaussianInterpolator
-    = GaussianInterpolatorType::New();
+  typedef itk::GaussianInterpolateImageFunction<ImageType, RealType> GaussianInterpolatorType;
+  typename GaussianInterpolatorType::Pointer gaussianInterpolator = GaussianInterpolatorType::New();
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3>
-    HammingInterpolatorType;
-  typename HammingInterpolatorType::Pointer hammingInterpolator =
-    HammingInterpolatorType::New();
+  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3> HammingInterpolatorType;
+  typename HammingInterpolatorType::Pointer hammingInterpolator = HammingInterpolatorType::New();
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
                                                     itk::Function::CosineWindowFunction<3> > CosineInterpolatorType;
-  typename CosineInterpolatorType::Pointer cosineInterpolator =
-    CosineInterpolatorType::New();
+  typename CosineInterpolatorType::Pointer cosineInterpolator = CosineInterpolatorType::New();
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
                                                     itk::Function::WelchWindowFunction<3> > WelchInterpolatorType;
-  typename WelchInterpolatorType::Pointer welchInterpolator =
-    WelchInterpolatorType::New();
+  typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
                                                     itk::Function::LanczosWindowFunction<3> > LanczosInterpolatorType;
-  typename LanczosInterpolatorType::Pointer lanczosInterpolator =
-    LanczosInterpolatorType::New();
+  typename LanczosInterpolatorType::Pointer lanczosInterpolator = LanczosInterpolatorType::New();
 
   typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
                                                     itk::Function::BlackmanWindowFunction<3> > BlackmanInterpolatorType;
-  typename BlackmanInterpolatorType::Pointer blackmanInterpolator =
-    BlackmanInterpolatorType::New();
+  typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
 
   const unsigned int NVectorComponents = 1;
   typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
-  typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType,
-                                                                   RealType, CompareType> MultiLabelInterpolatorType;
-  typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator =
-    MultiLabelInterpolatorType::New();
+  typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType,
+                                                                   CompareType> MultiLabelInterpolatorType;
+  typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
 
   std::string whichInterpolator( "linear" );
 
@@ -356,8 +342,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
       bSplineInterpolator->SetInputImage( resampleFilter->GetInput() );
       if( interpolationOption->GetNumberOfParameters() > 0 )
         {
-        unsigned int bsplineOrder = parser->Convert<unsigned int>(
-            interpolationOption->GetParameter( 0, 0 ) );
+        unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetParameter( 0, 0 ) );
         bSplineInterpolator->SetSplineOrder( bsplineOrder );
         }
       resampleFilter->SetInterpolator( bSplineInterpolator );
@@ -374,8 +359,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
 
       if( interpolationOption->GetNumberOfParameters() > 0 )
         {
-        std::vector<double> s = parser->ConvertVector<double>(
-            interpolationOption->GetParameter( 0 ) );
+        std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
         if( s.size() == Dimension )
           {
           for( unsigned int d = 0; d < Dimension; d++ )
@@ -393,8 +377,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
         }
       if( interpolationOption->GetNumberOfParameters() > 1 )
         {
-        alpha = parser->Convert<double>(
-            interpolationOption->GetParameter( 1 ) );
+        alpha = parser->Convert<double>( interpolationOption->GetParameter( 1 ) );
         }
       gaussianInterpolator->SetParameters( sigma, alpha );
       resampleFilter->SetInterpolator( gaussianInterpolator );
@@ -432,8 +415,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
 
       if( interpolationOption->GetNumberOfParameters() > 0 )
         {
-        std::vector<double> s = parser->ConvertVector<double>(
-            interpolationOption->GetParameter( 0 ) );
+        std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
         if( s.size() == Dimension )
           {
           for( unsigned int d = 0; d < Dimension; d++ )
