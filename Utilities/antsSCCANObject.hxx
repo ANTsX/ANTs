@@ -1369,7 +1369,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           {
           bestvex = enew;  bestV = this->m_VariatesP;
           }
-        ::ants::antscout << " vex " << enew << " f " << f << std::endl;
+        //	::ants::antscout <<" vex " << enew << " f " << f << std::endl;
         f = f + delt;
         }
 
