@@ -2109,7 +2109,7 @@ RegistrationHelper<VImageDimension>
         RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
         RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
 
-        displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( false );
+        displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
         displacementFieldRegistration->SetFixedImage( preprocessFixedImage );
         displacementFieldRegistration->SetMovingImage( preprocessMovingImage );
