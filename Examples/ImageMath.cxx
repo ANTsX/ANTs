@@ -2738,19 +2738,25 @@ int CompCorr(int argc, char *argv[])
   typedef typename ImageType::SpacingType              SpacingType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  typedef float                                             Scalar;
+  typedef double                                            Scalar;
   typedef itk::ants::antsMatrixUtilities<ImageType, Scalar> matrixOpType;
   typename matrixOpType::Pointer matrixOps = matrixOpType::New();
 
-  int         argct = 2;
-  std::string outname = std::string(argv[argct]); argct++;
-  std::string operation = std::string(argv[argct]);  argct++;
-  std::string fn1 = std::string(argv[argct]);   argct++;
-  std::string fn_label = std::string(argv[argct]);   argct++;
-  float       compcorr_sigma = 0;
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  std::string  fn_label = std::string(argv[argct]);   argct++;
+  unsigned int wmlabel = 1;
+  unsigned int csflabel = 3;
   if( argc > argct )
     {
-    compcorr_sigma = atof(argv[argct]);
+    csflabel = atoi(argv[argct]);
+    }
+  argct++;
+  if( argc > argct )
+    {
+    wmlabel = atoi(argv[argct]);
     }
   argct++;
   std::string::size_type idx;
@@ -2811,11 +2817,11 @@ int CompCorr(int argc, char *argv[])
   antscout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    if( vfIter2.Get() == 3 )      // nuisance
+    if( vfIter2.Get() == csflabel )      // nuisance
       {
       ct_nuis++;
       }
-    if( vfIter2.Get() == 2 )      // reference
+    if( vfIter2.Get() == wmlabel )      // reference
       {
       ct_ref++;
       }
@@ -2926,64 +2932,20 @@ int CompCorr(int argc, char *argv[])
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     OutIndexType ind = vfIter2.GetIndex();
-    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
+    if( vfIter2.Get() == csflabel )      // reference
+    //    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
       {
       ct_nuis++;
       }
     }
   timeMatrixType mNuisance(timedims, ct_nuis, 0);
-  antscout << " begin smoothing " << std::endl;
-  if( compcorr_sigma > 1.e-5 )
-    {
-    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-      {
-      OutIndexType ind = vfIter2.GetIndex();
-      if( vfIter2.Get() > 0 )    // in-brain
-        {
-        IndexType tind;
-        for( unsigned int i = 0; i < ImageDimension - 1; i++ )
-          {
-          tind[i] = ind[i];
-          }
-        for( unsigned int t = 0; t < timedims; t++ )
-          {
-          tind[ImageDimension - 1] = t;
-          Scalar pix = image1->GetPixel(tind);
-          smoother(t) = pix;
-          }
-        for( unsigned int t = 0; t < timedims; t++ )
-          {
-          int offset = 25;
-          int lo = t - offset;
-          if( lo < 0 )
-            {
-            lo = 0;
-            }
-          int hi = t + offset;
-          if( hi > static_cast<int>(timedims) - 1 )
-            {
-            hi = timedims - 1;
-            }
-          float total = 0;
-          for( int s = lo; s < hi; s++ )
-            {
-            float diff = (float)s - (float)t;
-            float wt = exp(-1.0 * diff * diff / (2.0 * compcorr_sigma * compcorr_sigma) );
-            total += wt;
-            smoother_out(t) += wt * smoother(s);
-            }
-          smoother_out(t) /= total;
-          }
-        }
-      }
-    }
-  antscout << " smooth done " << std::endl;
   ref_vox = 0; nuis_vox = 0; gm_vox = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     OutIndexType ind = vfIter2.GetIndex();
     //      if ( vfIter2.Get() == 3 ) { // nuisance
-    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
+    //    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
+    if( vfIter2.Get() == csflabel )      // reference
       {
       IndexType tind;
       for( unsigned int i = 0; i < ImageDimension - 1; i++ )
@@ -2998,7 +2960,7 @@ int CompCorr(int argc, char *argv[])
         }
       nuis_vox++;
       }
-    if( vfIter2.Get() == 2 )      // reference
+    if( vfIter2.Get() == wmlabel )      // reference
       {
       IndexType tind;
       for( unsigned int i = 0; i < ImageDimension - 1; i++ )
@@ -3029,20 +2991,50 @@ int CompCorr(int argc, char *argv[])
       gm_vox++;
       }
     }
+
   // factor out the nuisance variables by OLS
-  unsigned int nnuis = 3; // number of eigenvectors to get from high variance voxels
+  unsigned int nnuis = 3; // global , csf , wm
   if( ct_nuis <= 0 )
     {
     nnuis = 1;
     }
   timeMatrixType reducedNuisance(timedims, nnuis);
-  for( unsigned int i = 0; i < nnuis; i++ )
+  timeVectorType vGlobal = matrixOps->AverageColumns( mSample );
+  reducedNuisance.set_column( 0, vGlobal);
+  vGlobal = matrixOps->AverageColumns( mNuisance ); // csf
+  reducedNuisance.set_column( 1, vGlobal);
+  vGlobal = matrixOps->AverageColumns( mReference ); // wm
+  reducedNuisance.set_column( 2, vGlobal);
+
+  std::vector<std::string> ColumnHeaders;
+  std::string              colname = std::string("GlobalSignal");
+  ColumnHeaders.push_back( colname );
+  colname = std::string("CSF");
+  ColumnHeaders.push_back( colname );
+  colname = std::string("WM");
+  ColumnHeaders.push_back( colname );
+
+  // write out these nuisance variables
+  // write out the array2D object
+  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  WriterType::Pointer writer = WriterType::New();
+  std::string         kname = tempname + std::string("_compcorr.csv");
+  writer->SetFileName( kname );
+  writer->SetInput( &reducedNuisance );
+  writer->SetColumnHeaders( ColumnHeaders );
+  try
     {
-    timeVectorType nuisi = matrixOps->GetCovMatEigenvector(mNuisance, i);
-    reducedNuisance.set_column(i, nuisi);
+    writer->Write();
     }
-  timeVectorType vGlobal = matrixOps->AverageColumns(mSample);
-  reducedNuisance.set_column(nnuis - 1, vGlobal);
+  catch( itk::ExceptionObject& exp )
+    {
+    antscout << "Exception caught!" << std::endl;
+    antscout << exp << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  return 0;
+
   timeMatrixType RRt = matrixOps->ProjectionMatrix(reducedNuisance);
   mReference = matrixOps->NormalizeMatrix(mReference);
   mReference = mReference - RRt * mReference;
@@ -3088,7 +3080,7 @@ int CompCorr(int argc, char *argv[])
       }
     }
   antscout << "write results" << std::endl;
-  std::string kname = tempname + std::string("first_evec") + extension;
+  kname = tempname + std::string("first_evec") + extension;
   WriteImage<OutImageType>(outimage, kname.c_str() );
   //  kname=tempname+std::string("second_evec")+extension;
   kname = tempname + std::string("power") + extension;
@@ -9353,9 +9345,9 @@ private:
              << std::endl;
     antscout
       <<
-      " CompCorr : Outputs a comp-corr corrected 4D image as well as a 3D image measuring the correlation of a time series voxel/region with a reference voxel/region factored out.  Requires a label image with 1=overall region of interest,  2=reference voxel, 3=region to factor out.  If there is no 3rd label, then only the global signal is factored out."
+      " CompCorr : Outputs average global, CSF and WM signals.  Requires a label image with 3 labels , csf, gm , wm ."
       << std::endl;
-    antscout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  Sigma-for-temporal-smoothing "
+    antscout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  csf-label wm-label "
              << std::endl;
     antscout
       << " TimeSeriesSubset : Outputs n 3D image sub-volumes extracted uniformly from the input time-series 4D image."
