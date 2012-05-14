@@ -38,11 +38,17 @@ int ANTSex(int argc, char *argv[])
     {
     registration->RunRegistration();
     }
-  catch( ... )
+  catch( std::exception const& e )
     {
-    antscout << "Exception thrown: ANTS" << std::endl;
+    antscout << "Exception caught in ANTS: " << std::endl << e.what() << std::endl;
     return EXIT_FAILURE;
     }
+  catch( ... )
+    {
+    antscout << "Non-standard exception caught in ANTS. No more information available." << std::endl;
+    return EXIT_FAILURE;
+    }
+
   registration->GetTransformationModel()->SetWriteComponentImages(true);
   registration->GetTransformationModel()->Write();
 
@@ -319,11 +325,11 @@ private:
       {
       case 3:
         {
-        ANTSex<3>( my_argc, my_argv );
+        return ANTSex<3>( my_argc, my_argv );
         }
         break;
       default:
-        ANTSex<2>( my_argc, my_argv );
+        return ANTSex<2>( my_argc, my_argv );
       }
     }
   else
@@ -332,14 +338,15 @@ private:
       {
       case 3:
         {
-        ANTSex<3>( argc, argv );
+        return ANTSex<3>( argc, argv );
         }
         break;
       default:
-        ANTSex<2>( argc, argv );
+        return ANTSex<2>( argc, argv );
       }
     }
 
-  return EXIT_SUCCESS;
+  antscout << "Shoudln't have gotten here." << std::endl;
+  return EXIT_FAILURE;
 }
 } // namespace ants
