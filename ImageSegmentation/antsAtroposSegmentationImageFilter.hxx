@@ -435,7 +435,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   // Assign Gaussian likelihood functions if mixture model components are absent
   //
   typedef ants::Statistics::GaussianListSampleFunction
-    <SampleType, float, float> LikelihoodType;
+    <SampleType, RealType, RealType> LikelihoodType;
   for( unsigned int n = 0; n < this->m_NumberOfTissueClasses; n++ )
     {
     if( !this->GetLikelihoodFunction( n ) )
