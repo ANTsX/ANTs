@@ -2074,6 +2074,128 @@ void antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
+::LASSO( unsigned int n_vecs )
+{
+  bool debug = false;
+  /** Based on Friedman's pathwise coordinate optimization */
+  RealType gamma = this->m_FractionNonZeroP;
+  ::ants::antscout << " Pathwise LASSO : penalty = " << gamma << " veclimit = " << n_vecs << std::endl;
+
+  this->m_CanonicalCorrelations.set_size( 1 );
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
+  if( this->m_OriginalMatrixR.size() <=  0 )
+    {
+    ::ants::antscout << " You need to define a reference matrix " << std::endl;
+    std::exception();
+    }
+
+  VectorType y = this->m_MatrixR.get_column( 0 );
+  RealType   n = 1.0 / static_cast<RealType>( y.size() );
+  VectorType beta_lasso( this->m_MatrixP.cols(), 0 );
+
+  VectorType   ypred;
+  VectorType   yresid;
+  RealType     besterr = 1.e20;
+  RealType     curerr = besterr;
+  unsigned int added = 0;
+  for( unsigned int its = 0; its < this->m_MaximumNumberOfIterations; its++ )
+    {
+    added = 0;
+    ypred = this->m_MatrixP * beta_lasso;
+    for( unsigned int j = 0; j < beta_lasso.size(); j++ )
+      {
+      VectorType xj = this->m_MatrixP.get_column( j );
+      ypred = ypred - xj * beta_lasso( j );
+
+      RealType regbeta = this->SimpleRegression( y, ypred );
+      RealType intercept = y.mean() - ypred.mean() * regbeta;
+      yresid = y - ( ypred * regbeta + intercept );
+
+      RealType beta = beta_lasso( j );
+      for( unsigned int i = 0; i < xj.size(); i++ )
+        {
+        beta += ( xj( i ) * yresid( i ) );
+        }
+      beta = this->LASSOSoft( beta, gamma );
+
+      ypred = ypred + xj * beta;
+      regbeta = this->SimpleRegression( y, ypred );
+      intercept = y.mean() - ypred.mean() * regbeta;
+      yresid = y - ( ypred * regbeta + intercept );
+
+      RealType sparseness = gamma * ( beta_lasso.one_norm() + fabs( beta ) - fabs( beta_lasso( j ) ) );
+      curerr = yresid.two_norm() * 0.5 + sparseness;  /** Eq 7 Friedman pathwise */
+      // ::ants::antscout << "Err: " << yresid.one_norm() * n  << " sp: " << sparseness << " cur " << curerr << " best "
+      // << besterr << std::endl;
+      if( curerr < besterr )
+        {
+        beta_lasso( j ) = beta;
+        besterr = curerr;
+        }
+      else
+        {
+        ypred = ypred - xj * beta;
+        ypred = ypred + xj * beta_lasso( j );
+        }
+      if( fabs( beta_lasso( j ) ) > 0 )
+        {
+        added++;
+        }
+      if( j % 1000 == 0 && debug )
+        {
+        ::ants::antscout << "progress: " << 100 * j / this->m_MatrixP.cols() <<  " lasso-loop " << its << " : "
+                         <<  besterr << " num_vars_added " << added << std::endl;
+        }
+      }
+    ::ants::antscout <<  " lasso-iteration: " << its << " minerr: " <<  besterr << " num_vars_added: " << added
+                     << std::endl;
+    } // iterations
+     /** post-process the result to select the largest n_vecs entries */
+  std::vector<TRealType> post( beta_lasso.size(), 0 );
+  long                   j;
+  for(  j = 0; j < beta_lasso.size(); ++j )
+    {
+    post[j] = fabs( beta_lasso( j ) );
+    }
+  // sort and reindex the values
+  sort( post.begin(), post.end(), my_sccan_sort_object);
+  RealType thresh = 0;
+  for(  j = 0; ( j < beta_lasso.size() & j < n_vecs ); ++j )
+    {
+    thresh = post[j];
+    }
+  if( thresh > 0 )
+    {
+    added = 0;
+    for(  j = 0; j < beta_lasso.size(); ++j )
+      {
+      if( fabs( beta_lasso( j ) ) < thresh )
+        {
+        beta_lasso( j ) = 0;
+        }
+      else
+        {
+        added++;
+        }
+      }
+    }
+
+  /** now get the original y value and result to find prediction error in true units */
+  y = this->m_OriginalMatrixR.get_column( 0 );
+  ypred = this->m_MatrixP * beta_lasso;
+  RealType regbeta = this->SimpleRegression( y, ypred );
+  RealType intercept = y.mean() - ypred.mean() * regbeta;
+  yresid = y - ( ypred * regbeta + intercept );
+  this->m_CanonicalCorrelations( 0 ) = yresid.one_norm() * n;
+  this->m_VariatesP.set_size( this->m_MatrixP.cols(), 1 );
+  this->m_VariatesP.set_column( 0,  beta_lasso  * regbeta );
+  ::ants::antscout << "final error " << this->m_CanonicalCorrelations( 0 ) << " num_vars_added " << added << std::endl;
+  return this->m_CanonicalCorrelations( 0 );
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
 ::NetworkDecomposition(unsigned int n_vecs )
 {
   //  MatrixType rmat = this->m_OriginalMatrixR.extract(
@@ -3520,6 +3642,215 @@ antsSCCANObject<TInputImage, TRealType>
 
   this->m_CorrelationForSignificanceTest = truecorr;
   return truecorr;
+}
+
+template <class TInputImage, class TRealType>
+void
+antsSCCANObject<TInputImage, TRealType>
+::MRFFilterVariateMatrix()
+{
+  // 1. compute the label for each voxel --- the label is the col + 1
+  // recall this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
+  VectorType   labels( this->m_MatrixP.cols(), 0 );
+  VectorType   maxweight(  this->m_MatrixP.cols(), 0 );
+  unsigned int n_vecs = this->m_VariatesP.cols();
+
+  for( unsigned int i = 0; i <  this->m_MatrixP.cols(); i++ )
+    {
+    RealType   maxval = 0;
+    VectorType pvec = this->m_VariatesP.get_row( i );
+    for( unsigned int j = 0; j < pvec.size(); j++ )
+      {   /** FIXME should this be fabs or not? */
+       //      RealType val = fabs( this->m_VariatesP( j , i ) );
+      RealType val = pvec( j );
+      if( val > maxval )
+        {
+        maxval = val;
+        labels( i ) = ( j + 1 );
+        maxweight( i ) = val;
+        }
+      }
+    }
+  typename TInputImage::Pointer flabelimage =
+    this->ConvertVariateToSpatialImage( labels,  this->m_MaskImageP, false );
+  typename TInputImage::Pointer maxweightimage =
+    this->ConvertVariateToSpatialImage( maxweight,  this->m_MaskImageP, false );
+
+  typedef unsigned int                          LabelType;
+  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  typename LabelImageType::Pointer labelimage = LabelImageType::New();
+  labelimage->SetRegions( flabelimage->GetRequestedRegion() );
+  labelimage->CopyInformation( flabelimage );
+  labelimage->Allocate();
+  labelimage->FillBuffer( 0 );
+  typename LabelImageType::Pointer maskimage = LabelImageType::New();
+  maskimage->SetRegions( flabelimage->GetRequestedRegion() );
+  maskimage->CopyInformation( flabelimage );
+  maskimage->Allocate();
+  maskimage->FillBuffer( 0 );
+  itk::ImageRegionConstIterator<TInputImage>
+  Itf( flabelimage, flabelimage->GetLargestPossibleRegion() );
+  for( Itf.GoToBegin(); !Itf.IsAtEnd(); ++Itf )
+    {
+    if( this->m_MaskImageP->GetPixel( Itf.GetIndex() ) > 0 )
+      {
+      labelimage->SetPixel( Itf.GetIndex(), static_cast<LabelType>( Itf.Get() + 0.5 ) );
+      maskimage->SetPixel( Itf.GetIndex(), 1 );
+      }
+    }
+  // simple MRF style update
+  for( unsigned int mrfct = 0; mrfct < 2; mrfct++ )
+    {
+    typedef itk::NeighborhoodIterator<LabelImageType> iteratorType;
+    typename iteratorType::RadiusType rad;
+    rad.Fill(1);
+    iteratorType GHood(rad, labelimage, labelimage->GetLargestPossibleRegion() );
+    GHood.GoToBegin();
+    while( !GHood.IsAtEnd() )
+      {
+      VectorType countlabels( n_vecs, 0 );
+      LabelType  p = GHood.GetCenterPixel();
+      if( p >= 0.5 && this->m_MaskImageP->GetPixel( GHood.GetIndex() )  > 0.5 )
+        {
+        for( unsigned int i = 0; i < GHood.Size(); i++ )
+          {
+          LabelType p2 = GHood.GetPixel(i);
+          if( p2 >  0 )
+            {
+            countlabels[p2 - 1] = countlabels[p2 - 1] + 1;
+            }
+          }
+        LabelType     jj = 0;
+        unsigned long maxlabcount = 0;
+        for( unsigned int i = 0; i < countlabels.size(); i++ )
+          {
+          if( countlabels[i] > maxlabcount )
+            {
+            jj = i + 1;
+            maxlabcount = countlabels[i];
+            }
+          }
+        GHood.SetCenterPixel( jj );
+        }
+      ++GHood;
+      }
+    } // mrfct
+
+  unsigned int vecind = 0;
+  for(  Itf.GoToBegin(); !Itf.IsAtEnd(); ++Itf )
+    {
+    if( this->m_MaskImageP->GetPixel( Itf.GetIndex() ) > 0.5 )
+      {
+      labels( vecind ) = labelimage->GetPixel( Itf.GetIndex() );
+      vecind++;
+      }
+    }
+
+    {
+    typedef  itk::ImageFileWriter<LabelImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetInput( labelimage );
+    writer->SetFileName( "label1.nii.gz" );
+    writer->Update();
+    }
+    {
+    typedef  itk::ImageFileWriter<TInputImage> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetInput( maxweightimage );
+    writer->SetFileName( "weight.nii.gz" );
+    writer->Update();
+    }
+  for( unsigned int i = 0; i <  this->m_MatrixP.cols(); i++ )
+    {
+    VectorType pvec = this->m_VariatesP.get_row( i );
+    LabelType  lab = static_cast<LabelType>( labels( i ) + 0.5 );
+    if( lab > 0 )
+      {
+      lab = lab - 1;
+      }
+    for( unsigned int j = 0; j < pvec.size(); j++ )
+      {
+      if( j != lab )
+        {
+        pvec( j ) = 0;
+        }
+      }
+    pvec = pvec / pvec.two_norm();
+    this->m_VariatesP.set_row( i, pvec );
+    }
+
+  /*
+
+ // 2. now do a simple MRF style update
+  typedef  itk::ants::AtroposSegmentationImageFilter
+    <TInputImage, LabelImageType> SegmentationFilterType;
+  typename SegmentationFilterType::Pointer segmenter
+    = SegmentationFilterType::New();
+  typename SegmentationFilterType::ArrayType radius;
+  radius.Fill( 1 );
+  segmenter->SetMinimizeMemoryUsage( false );
+  segmenter->SetNumberOfTissueClasses( this->m_VariatesP.cols() );
+  segmenter->SetInitializationStrategy(  SegmentationFilterType::PriorLabelImage );
+  segmenter->SetPriorProbabilityWeight( 0.5 );
+  segmenter->SetPriorLabelImage( labelimage );
+  segmenter->SetPosteriorProbabilityFormulation(
+     SegmentationFilterType::Socrates );
+  segmenter->SetMaximumNumberOfIterations( 5 );
+  segmenter->SetConvergenceThreshold( 0 );
+  segmenter->SetMaskImage( maskimage );
+
+      // Check to see that the labels in the prior label image or the non-zero
+      // probability voxels in the prior probability images encompass the entire
+      // mask region.
+
+  if( segmenter->GetInitializationStrategy() ==
+       SegmentationFilterType::PriorLabelImage )
+    {
+      itk::ImageRegionConstIterator<LabelImageType> ItM( segmenter->GetMaskImage(),
+               segmenter->GetMaskImage()->GetLargestPossibleRegion() );
+      itk::ImageRegionConstIterator<LabelImageType> ItP( segmenter->GetPriorLabelImage(),
+               segmenter->GetPriorLabelImage()->GetLargestPossibleRegion() );
+      for( ItM.GoToBegin(), ItP.GoToBegin(); !ItM.IsAtEnd(); ++ItM, ++ItP )
+  {
+          if( ItM.Get() == segmenter->GetMaskLabel() && ItP.Get() == 0 )
+            {
+      ::ants::antscout  << std::endl;
+            ::ants::antscout  << "Warning: the labels in the the prior label image do "
+                      << "not encompass the entire mask region.  As a result each unlabeled voxel will be "
+                      << "initially assigned a random label.  The user might want to consider "
+                      << "various alternative strategies like assigning an additional "
+                      << "\"background\" label to the unlabeled voxels or propagating "
+                      << "the labels within the mask region."
+                      << std::endl;
+            ::ants::antscout  << std::endl;
+            break;
+            }
+  }
+    }
+
+  segmenter->SetIntensityImage( 0 , maxweightimage );
+  segmenter->SetMRFSmoothingFactor( 0.2 );
+  segmenter->SetMRFRadius( radius );
+  typedef typename SegmentationFilterType::SampleType SampleType;
+  typedef itk::ants::Statistics::GaussianListSampleFunction
+    <SampleType, RealType, RealType> LikelihoodType;
+  for( unsigned int n = 0; n < segmenter->GetNumberOfTissueClasses(); n++ )
+    {
+    typename LikelihoodType::Pointer gaussianLikelihood =
+      LikelihoodType::New();
+    segmenter->SetLikelihoodFunction( n, gaussianLikelihood );
+    }
+  segmenter->SetUsePartialVolumeLikelihoods( false );
+  segmenter->Update();
+  typename LabelImageType::Pointer labelimage2 = segmenter->GetOutput();
+  {
+    typedef  itk::ImageFileWriter<LabelImageType> WriterType;
+    typename WriterType::Pointer writer = WriterType::New();
+    writer->SetInput( labelimage2 );
+    writer->SetFileName( "label2.nii.gz" );
+    writer->Update();
+  }
+  */
 }
 } // namespace ants
 } // namespace itk

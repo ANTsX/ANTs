@@ -1132,9 +1132,13 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     {
     truecorr = sccanobj->SparseArnoldiSVD(n_evec);                         // cgsparse
     }
-  else if( svd_option == 4 )
+  else if( svd_option == 4  )
     {
-    truecorr = sccanobj->NetworkDecomposition(n_evec);                         // cgsparse
+    truecorr = sccanobj->NetworkDecomposition( n_evec );
+    }
+  else if( svd_option == 5  )
+    {
+    truecorr = sccanobj->LASSO( n_evec );
     }
   else if( svd_option == 2 )
     {
@@ -1185,20 +1189,27 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     cwriter->Write();
     }
   // permutation test
-  if( svd_option == 4 && permct > 0 )
+  if(  ( svd_option == 4 || svd_option == 5 ) && permct > 0 )
     {
     antscout << "Begin" << permct << " permutations " << std::endl;
     unsigned long perm_exceed_ct = 0;
     for( unsigned long pct = 0; pct <= permct; pct++ )
       {
       // 0. compute permutation for q ( switch around rows )
-      vMatrix p_perm = PermuteMatrix<Scalar>( sccanobj->GetMatrixP() );
-      vMatrix r_perm = PermuteMatrix<Scalar>( sccanobj->GetMatrixR() );
+      vMatrix p_perm = PermuteMatrix<Scalar>( sccanobj->GetOriginalMatrixP() );
+      vMatrix r_perm = PermuteMatrix<Scalar>( sccanobj->GetOriginalMatrixR() );
       sccanobj->SetMatrixP( p_perm );
       sccanobj->SetMatrixR( r_perm );
       double permcorr = 1.e9;
       // if ( pct > 76 && pct < 79 )
-      permcorr = sccanobj->NetworkDecomposition(n_evec); // cgsparse
+      if( svd_option == 4 )
+        {
+        permcorr = sccanobj->NetworkDecomposition(n_evec);                      // cgsparse
+        }
+      if( svd_option == 5 )
+        {
+        permcorr = sccanobj->LASSO(n_evec);                      // cgsparse
+        }
       if( permcorr < truecorr )
         {
         perm_exceed_ct++;
@@ -2022,6 +2033,11 @@ int sccan( itk::ants::CommandLineParser *parser )
       SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4);
       return EXIT_SUCCESS;
       }
+    if(  !initializationStrategy.compare( std::string( "lasso" ) )  )
+      {
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 5);
+      return EXIT_SUCCESS;
+      }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
       // this will be option 3
@@ -2288,6 +2304,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified, -i controls the number of sparse approximations per eigenvector, -n controls the number of eigenvectors.  total output will then be  i*n sparse eigenvectors." );
     option->SetUsageOption( 3, "prior[....]" );
     option->SetUsageOption( 4, "network[matrix-view1.mhd,mask1,FracNonZero1,guidance-matrix]" );
+    option->SetUsageOption( 5, "lasso[matrix-view1.mhd,mask1,Lambda,guidance-matrix]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

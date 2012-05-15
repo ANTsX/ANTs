@@ -533,7 +533,41 @@ public:
 
   RealType NetworkDecomposition(unsigned int nvecs);
 
+  RealType LASSO( unsigned int nvecs );
+
+  inline RealType LASSOSoft( RealType beta, RealType gamma )
+  {
+    if( beta > 0 && gamma < beta )
+      {
+      return beta - gamma;
+      }
+    else if( beta > 0 && gamma > beta )
+      {
+      return 0;
+      }
+    else if( beta < 0 && gamma < ( beta * (-1) ) )
+      {
+      return beta + gamma;
+      }
+    return 0;
+  }
+
+  inline RealType SimpleRegression(  VectorType y, VectorType ypred  )
+  {
+    RealType corr = this->PearsonCorr( y, ypred );
+    double   sdy = sqrt(  ( y - y.mean() ).squared_magnitude() /  ( y.size() - 1) );
+    double   sdyp = sqrt(  ( ypred - ypred.mean() ).squared_magnitude() /  ( y.size() - 1) );
+
+    if( sdyp == 0 )
+      {
+      return 0;
+      }
+    return corr * sdy / sdyp;
+  }
+
   MatrixType GetCovMatEigenvectors( MatrixType p );
+
+  void MRFFilterVariateMatrix();
 
 protected:
 
