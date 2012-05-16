@@ -2406,9 +2406,9 @@ RegistrationHelper<VImageDimension>
                    << "     Sampling percentage  = " << curMetric.m_SamplingPercentage << std::endl
                    << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
                    << "     Gradient Step = " << curTransform.m_GradientStep << std::endl
-                   << "     Update Field Sigma (physical space) = "
+                   << "     Update Field Sigma (voxel space) = "
                    << curTransform.m_UpdateFieldVarianceInVarianceSpace << std::endl
-                   << "     Total Field Sigma (physical space) = "
+                   << "     Total Field Sigma (voxel space) = "
                    << curTransform.m_TotalFieldVarianceInVarianceSpace << std::endl
                    << "     Update Field Time Sigma = " << curTransform.m_UpdateFieldTimeSigma << std::endl
                    << "     Total Field Time Sigma  = " << curTransform.m_TotalFieldTimeSigma << std::endl
