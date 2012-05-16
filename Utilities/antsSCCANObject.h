@@ -533,7 +533,11 @@ public:
 
   RealType NetworkDecomposition(unsigned int nvecs);
 
+  RealType LASSO_Cross();
+
   RealType LASSO( unsigned int nvecs );
+
+  void LASSO_alg( MatrixType & X,  VectorType & y, VectorType & beta, RealType gamma, unsigned int its );
 
   inline RealType LASSOSoft( RealType beta, RealType gamma )
   {

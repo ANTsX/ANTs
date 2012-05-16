@@ -1596,8 +1596,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   // minimize the following error :    \| A^T*A * vec_i -    b \|  +  sparseness_penalty
   VectorType b = A.transpose() * b_in;
   VectorType r_k = A.transpose() * ( A * x_k );
+  RealType   regbeta;
+  RealType   intercept = 0;
   r_k = b - r_k;
-  RealType     intercept = 0;
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
   unsigned int ct = 0;
@@ -1622,13 +1623,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       ::ants::antscout << " alpha_k " << alpha_k << std::endl;
       }
     VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
-    VectorType r_k1 =  b - ( A.transpose() * (A * x_k1 )  + intercept );
-    RealType   othermeans = 0;
-    for( unsigned int icept = 0; icept < x_k.size(); icept++ )
-      {
-      othermeans += ( x_k1( icept ) * A.get_column( icept ).mean() );
-      }
-    intercept = b_in.mean() - othermeans;
+    VectorType r_k1 =  b - A.transpose() * (A * x_k1 );
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
       {
@@ -1660,18 +1655,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   x_k = bestsol;
-  VectorType soln = A * x_k + this->m_Intercept;
-  RealType   solerr = 0;
-  RealType   solerrsize = ( RealType ) 1.0 / soln.size();
-  for( unsigned int i = 0; i < soln.size(); i++ )
-    {
-    solerr += vnl_math_abs( soln(i) - b_in(i) ) * solerrsize;
-    }
-  //  ::ants::antscout << " b " << soln.two_norm() << " bvar " << b_in.two_norm() << " solerr " << solerr << std::endl;
-  // ::ants::antscout << b_in << std::endl;
-  // ::ants::antscout << " sol " << std::endl;
-  // ::ants::antscout << soln << std::endl;
-  return solerr;
+  VectorType predb = A * x_k;
+  regbeta = this->SimpleRegression( b_in, predb );
+  this->m_Intercept = b_in.mean() - predb.mean() * regbeta;
+  VectorType soln = predb * regbeta;
+  x_k = x_k * regbeta;
+  return ( soln - b_in).one_norm() / b_in.size();
 }
 
 template <class TInputImage, class TRealType>
@@ -2073,39 +2062,25 @@ void antsSCCANObject<TInputImage, TRealType>
 }
 
 template <class TInputImage, class TRealType>
-TRealType antsSCCANObject<TInputImage, TRealType>
-::LASSO( unsigned int n_vecs )
+void antsSCCANObject<TInputImage, TRealType>
+::LASSO_alg(  typename antsSCCANObject<TInputImage, TRealType>::MatrixType& X,
+              typename antsSCCANObject<TInputImage, TRealType>::VectorType& y,
+              typename antsSCCANObject<TInputImage, TRealType>::VectorType& beta_lasso, TRealType gamma,
+              unsigned int maxits )
 {
-  bool debug = false;
-  /** Based on Friedman's pathwise coordinate optimization */
-  RealType gamma = this->m_FractionNonZeroP;
-  ::ants::antscout << " Pathwise LASSO : penalty = " << gamma << " veclimit = " << n_vecs << std::endl;
-
-  this->m_CanonicalCorrelations.set_size( 1 );
-  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
-  this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
-  if( this->m_OriginalMatrixR.size() <=  0 )
-    {
-    ::ants::antscout << " You need to define a reference matrix " << std::endl;
-    std::exception();
-    }
-
-  VectorType y = this->m_MatrixR.get_column( 0 );
-  RealType   n = 1.0 / static_cast<RealType>( y.size() );
-  VectorType beta_lasso( this->m_MatrixP.cols(), 0 );
-
   VectorType   ypred;
   VectorType   yresid;
   RealType     besterr = 1.e20;
   RealType     curerr = besterr;
   unsigned int added = 0;
-  for( unsigned int its = 0; its < this->m_MaximumNumberOfIterations; its++ )
+
+  for( unsigned int its = 0; its < maxits; its++ )
     {
     added = 0;
-    ypred = this->m_MatrixP * beta_lasso;
+    ypred = X * beta_lasso;
     for( unsigned int j = 0; j < beta_lasso.size(); j++ )
       {
-      VectorType xj = this->m_MatrixP.get_column( j );
+      VectorType xj = X.get_column( j );
       ypred = ypred - xj * beta_lasso( j );
 
       RealType regbeta = this->SimpleRegression( y, ypred );
@@ -2142,16 +2117,157 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         added++;
         }
-      if( j % 1000 == 0 && debug )
+      if( j % 1000 == 0 && false )
         {
-        ::ants::antscout << "progress: " << 100 * j / this->m_MatrixP.cols() <<  " lasso-loop " << its << " : "
-                         <<  besterr << " num_vars_added " << added << std::endl;
+        ::ants::antscout << "progress: " << 100 * j / X.cols() <<  " lasso-loop " << its << " : " <<  besterr
+                         << " num_vars_added " << added << std::endl;
         }
       }
     ::ants::antscout <<  " lasso-iteration: " << its << " minerr: " <<  besterr << " num_vars_added: " << added
                      << std::endl;
     } // iterations
-     /** post-process the result to select the largest n_vecs entries */
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::LASSO_Cross()
+{
+  RealType gamma = this->m_FractionNonZeroP;
+  ::ants::antscout << " Cross-validation - LASSO " << std::endl;
+
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
+  if( this->m_OriginalMatrixR.size() <=  0 )
+    {
+    ::ants::antscout << " You need to define a reference matrix " << std::endl;
+    std::exception();
+    }
+  VectorType   predictions( this->m_MatrixR.rows(), 0 );
+  unsigned int foldnum = this->m_MaximumNumberOfIterations;
+  if( foldnum <= 1 )
+    {
+    foldnum = 1;
+    }
+  VectorType folds( this->m_MatrixP.rows(), 0 );
+  for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+    {
+    folds( f ) = f % foldnum;
+    }
+  // Variates holds the average over all folds
+  this->m_VariatesP( this->m_MatrixP.cols(), 1 );
+  this->m_VariatesP.fill( 0 );
+  this->m_VariatesQ = this->m_VariatesP;
+  for( unsigned int fold = 0; fold < foldnum;  fold++ )
+    {
+    unsigned int foldct = 0;
+    for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+      {
+      if( folds( f ) == fold )
+        {
+        foldct++;
+        }
+      }
+    MatrixType   p_leave_out( foldct, this->m_MatrixP.cols(), 0 );
+    MatrixType   r_leave_out( foldct, this->m_MatrixR.cols(), 0 );
+    unsigned int leftoutsize = this->m_MatrixP.rows() - foldct;
+    MatrixType   matrixP( leftoutsize, this->m_MatrixP.cols() );
+    MatrixType   matrixR( leftoutsize, this->m_MatrixR.cols() );
+    unsigned int leave_out = 0;
+    unsigned int dont_leave_out = 0;
+    for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+      {
+      if( folds( f ) == fold )
+        {
+        p_leave_out.set_row( leave_out, this->m_MatrixP.get_row( f ) );
+        r_leave_out.set_row( leave_out, this->m_OriginalMatrixR.get_row( f ) );
+        leave_out++;
+        }
+      else
+        {
+        matrixP.set_row( dont_leave_out, this->m_MatrixP.get_row( f ) );
+        matrixR.set_row( dont_leave_out, this->m_MatrixR.get_row( f ) );
+        dont_leave_out++;
+        }
+      }
+    if( foldnum <= 1 )
+      {
+      matrixP = p_leave_out;
+      matrixR = r_leave_out;
+      }
+
+    VectorType   rout = r_leave_out.get_column( 0 );
+    VectorType   y =  matrixR.get_column( 0 );
+    VectorType   yreal =  matrixR.get_column( 0 );
+    unsigned int fleave_out = 0;
+    for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+      {
+      if( folds( f ) != fold )
+        {
+        yreal( fleave_out ) = this->m_OriginalMatrixR( f, 0 );
+        fleave_out++;
+        }
+      }
+
+    /**  train the lasso + regression model */
+    VectorType beta_lasso(  matrixP.cols(), 0 );
+    this->LASSO_alg( matrixP, y, beta_lasso, gamma, 2 );
+    VectorType ypred = matrixP * beta_lasso;
+    RealType   regbeta = this->SimpleRegression( yreal, ypred );
+    RealType   intercept = yreal.mean() - ypred.mean() * regbeta;
+
+    /**  test the lasso + regression model */
+    VectorType localpredictions = p_leave_out * beta_lasso;
+    localpredictions = localpredictions * regbeta + intercept;
+
+    fleave_out = 0;
+    for( unsigned int f = 0; f < this->m_MatrixP.rows(); f++ )
+      {
+      if( folds( f ) == fold )
+        {
+        predictions( f ) = localpredictions( fleave_out );
+        fleave_out++;
+        }
+      }
+    this->m_VariatesP.set_column( 0, this->m_VariatesP.get_column( 0 ) + beta_lasso * regbeta );
+    ::ants::antscout << " fold " << fold << " mean-abs-error: "
+                     << ( localpredictions - rout ).one_norm() / foldct << std::endl;
+    }
+
+  RealType regbeta = this->SimpleRegression( predictions, this->m_OriginalMatrixR.get_column( 0 )  );
+  RealType intercept = this->m_OriginalMatrixR.get_column( 0 ).mean() - predictions.mean() * regbeta;
+  RealType predictionerror =
+    (  predictions * regbeta + intercept
+         - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
+  ::ants::antscout << " overall-mean-abs-prediction-error: " << predictionerror << std::endl;
+  this->m_Eigenvalues =  predictions * regbeta + intercept;
+  this->m_CanonicalCorrelations =  predictions * regbeta + intercept;
+  return predictionerror;
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::LASSO( unsigned int n_vecs )
+{
+  /** Based on Friedman's pathwise coordinate optimization */
+  RealType gamma = this->m_FractionNonZeroP;
+  ::ants::antscout << " Pathwise LASSO : penalty = " << gamma << " veclimit = " << n_vecs << std::endl;
+
+  this->m_CanonicalCorrelations.set_size( 1 );
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
+  if( this->m_OriginalMatrixR.size() <=  0 )
+    {
+    ::ants::antscout << " You need to define a reference matrix " << std::endl;
+    std::exception();
+    }
+
+  VectorType y = this->m_MatrixR.get_column( 0 );
+  RealType   n = 1.0 / static_cast<RealType>( y.size() );
+  VectorType beta_lasso( this->m_MatrixP.cols(), 0 );
+
+  this->LASSO_alg( this->m_MatrixP, y, beta_lasso, gamma, this->m_MaximumNumberOfIterations );
+
+  /** post-process the result to select the largest n_vecs entries */
   std::vector<TRealType> post( beta_lasso.size(), 0 );
   long                   j;
   for(  j = 0; j < beta_lasso.size(); ++j )
@@ -2165,6 +2281,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     thresh = post[j];
     }
+  unsigned int added = 0;
   if( thresh > 0 )
     {
     added = 0;
@@ -2183,10 +2300,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   /** now get the original y value and result to find prediction error in true units */
   y = this->m_OriginalMatrixR.get_column( 0 );
-  ypred = this->m_MatrixP * beta_lasso;
-  RealType regbeta = this->SimpleRegression( y, ypred );
-  RealType intercept = y.mean() - ypred.mean() * regbeta;
-  yresid = y - ( ypred * regbeta + intercept );
+  VectorType ypred = this->m_MatrixP * beta_lasso;
+  RealType   regbeta = this->SimpleRegression( y, ypred );
+  RealType   intercept = y.mean() - ypred.mean() * regbeta;
+  VectorType yresid = y - ( ypred * regbeta + intercept );
   this->m_CanonicalCorrelations( 0 ) = yresid.one_norm() * n;
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), 1 );
   this->m_VariatesP.set_column( 0,  beta_lasso  * regbeta );
@@ -2354,7 +2471,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       colind = colind + adder;
       /***************************************/
-      /* Now get the LSQ regression solution */
+      /* Training : Now get the LSQ regression solution */
       /***************************************/
       A = matrixP * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
       if( addcol )
@@ -2362,26 +2479,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         this->AddColumnsToMatrix( A, matrixR, 1, this->m_MatrixR.cols() - 1 );
         }
       VectorType lmsolv( A.cols(), 1 );
-//     RealType lmerror = this->ConjGrad(  A ,  lmsolv, original_b, 0, 10000 );
-      //    vnl_svd< double > eig( A );
-      // VectorType lmsolv = eig.solve( original_b );
-      // std::cout << " lmsolv " << lmsolv << std::endl;
+      ( void ) this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
+      VectorType soln = A * lmsolv;
+      RealType   regbeta = this->SimpleRegression( original_b, soln );
+      this->m_Intercept = original_b.mean() - soln.mean() * regbeta;
+      RealType fiterr = ( original_b - soln * regbeta - this->m_Intercept ).one_norm() / original_b.size();
+      /** Testing */
       A = p_leave_out * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
       if( addcol )
         {
         this->AddColumnsToMatrix( A, r_leave_out, 1, this->m_MatrixR.cols() - 1 );
         }
-      /*    std::cout << " A  " << std::endl;
-      typedef itk::CSVNumericObjectFileWriter<double> CWriterType;
-      CWriterType::Pointer cwriter = CWriterType::New();
-      cwriter->SetFileName( "temp.csv" );
-      cwriter->SetInput( &A );
-      cwriter->Write();
-      std::cout << " lmsovl " << lmsolv.two_norm() << " Int " << this->m_Intercept << " rlo " << r_leave_out.get_column( 0 ).two_norm() << " sz " << soln.size( ) <<   "  rlosz " << r_leave_out.get_column( 0 ).size( ) << " solnnorm " << soln.two_norm( ) << std::endl;
-  */
-
-      VectorType   soln = A * lmsolv + this->m_Intercept;
-      RealType     loerror = ( soln - r_leave_out.get_column( 0 ) ).two_norm();
+      soln = ( A * lmsolv ) * regbeta + this->m_Intercept;
+      RealType     loerror = ( soln - r_leave_out.get_column( 0 ) ).one_norm() / soln.size();
       unsigned int fleave_out = 0;
       if( foldnum == 1 )
         {
@@ -2406,18 +2516,24 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       if( predct > 0 )
         {
         ::ants::antscout << "Fold: " << fold << " minerr," << loerror << ",col," << colind  << " totalpredictionerr "
-                         << avgprederr / predct << std::endl;
+                         << avgprederr / predct <<  " ,fiterr, " << fiterr << std::endl;
         }
       else
         {
-        ::ants::antscout << "Fold: " << fold << " minerr," << loerror << ",col," << colind  << std::endl;
+        ::ants::antscout << "Fold: " << fold << " minerr," << loerror << ",col," << colind  << " ,fiterr, " << fiterr
+                         << std::endl;
         }
       }
 
     this->m_VariatesQ = this->m_VariatesQ + this->m_VariatesP * ( 1.0 / ( RealType ) foldnum );
     }
-  RealType corr = fabs( this->PearsonCorr( this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 ) ) );
-  ::ants::antscout << " correlation " <<  corr << std::endl;
+
+  RealType regbeta = this->SimpleRegression(  this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 )  );
+  RealType intercept = this->m_OriginalMatrixR.get_column( 0 ).mean() - this->m_CanonicalCorrelations.mean() * regbeta;
+  RealType predictionerror =
+    (  this->m_CanonicalCorrelations * regbeta + intercept
+         - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
+  ::ants::antscout << " overall-mean-abs-prediction-error: " << predictionerror << std::endl;
   this->m_VariatesP = this->m_VariatesQ;
   for( unsigned int i = 0; i < this->m_VariatesP.cols(); i++ )
     {
