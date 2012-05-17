@@ -65,11 +65,19 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
       DataFrameObjectType::Pointer dfo = reader->GetOutput();
       points_in = dfo->GetMatrix();
-      points_out.set_size( points_in.rows(), points_in.cols() );
+      points_out.set_size( points_in.rows(), Dimension );
       }
     else
       {
-      std::cout << " Need an input file in csv format " << std::endl;
+      antscout << "An input csv file is required." << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    if(  points_in.cols() < Dimension )
+      {
+      antscout << "The number of columns in the input point set is fewer than " << Dimension << " Exiting."
+               << std::endl;
+      return EXIT_FAILURE;
       }
 
     if( outputOption && outputOption->GetNumberOfValues() > 0 )
@@ -115,6 +123,8 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       }
     for( unsigned int pointct = 0; pointct < points_in.rows(); pointct++ )
       {
+      point_in.Fill( 0 );
+      point_out.Fill( 0 );
       for( unsigned int p = 0; p < Dimension; p++ )
         {
         point_in[p] = points_in( pointct, p );
@@ -149,7 +159,15 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       colname = std::string("y");
       ColumnHeaders.push_back( colname );
       colname = std::string("z");
-      ColumnHeaders.push_back( colname );
+      if( Dimension > 2 )
+        {
+        ColumnHeaders.push_back( colname );
+        }
+      colname = std::string("t");
+      if( Dimension > 3 )
+        {
+        ColumnHeaders.push_back( colname );
+        }
 
       typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
@@ -192,7 +210,8 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "Currently, the only input supported is a csv file with " )
-      + std::string( "columns including x,y,z ( 3D ) ... where entries are zero for z if you are using 2D." );
+      + std::string( "columns including x,y (2D), x,y,z (3D) or x,y,z,t (4D) column headers." )
+      + std::string( "The points should be defined in physical space." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "input" );
@@ -366,6 +385,11 @@ private:
   if( dimOption && dimOption->GetNumberOfValues() > 0 )
     {
     dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    }
+  else
+    {
+    antscout << "No -d ( dimensionality ) option is specified.  Exiting." << std::endl;
+    return EXIT_FAILURE;
     }
 
   switch( dimension )
