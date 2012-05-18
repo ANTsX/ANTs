@@ -544,6 +544,15 @@ configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
 add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
 target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} antsUtilities)
 
+
+add_library(l_antsApplyTransformsToPoints antsApplyTransformsToPoints.cxx ${UI_SOURCES})
+target_link_libraries(l_antsApplyTransformsToPoints antsUtilities ${ITK_LIBRARIES})
+set( ANTS_FUNCTION_NAME antsApplyTransformsToPoints )
+configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
+add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
+target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME} antsUtilities)
+
+
 add_library(l_CompositeTransformUtil CompositeTransformUtil.cxx)
 target_link_libraries(l_CompositeTransformUtil antsUtilities ${ITK_LIBRARIES})
 set( ANTS_FUNCTION_NAME CompositeTransformUtil )
@@ -778,6 +787,8 @@ install(TARGETS ANTS
   l_antsRegistration
   antsApplyTransforms
   l_antsApplyTransforms
+  antsApplyTransformsToPoints
+  l_antsApplyTransformsToPoints
   sccan
   l_sccan
   #  ConvertVectorFieldToVTK
