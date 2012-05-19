@@ -50,8 +50,8 @@ std::vector<TValue> ConvertVector( std::string optionString )
         {
         element = optionString.substr( crossposfrom + 1, crosspos );
         }
-      iss.str( element );
-      iss >> value;
+      std::istringstream iss2( element );
+      iss2 >> value;
       values.push_back( value );
       }
     }
