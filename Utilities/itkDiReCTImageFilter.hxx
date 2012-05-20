@@ -396,9 +396,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       ItWarpedWhiteMatterProbabilityMap.GoToBegin();
 
       const typename InputImageType::PixelType grayMatterPixel =
-        static_cast<typename InputImageType::PixelType>(this->m_GrayMatterLabel),
+        static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel ),
       whiteMatterPixel =
-        static_cast<typename InputImageType::PixelType>(this->m_WhiteMatterLabel);
+        static_cast<typename InputImageType::PixelType>( this->m_WhiteMatterLabel );
       while( !ItSegmentationImage.IsAtEnd() )
         {
         if( ItSegmentationImage.Get() == grayMatterPixel )
@@ -506,23 +506,24 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
       typename InverterType::Pointer inverter1 = InverterType::New();
       inverter1->SetInput( inverseField );
+      inverter1->SetInverseFieldInitialEstimate( integratedField );
       inverter1->SetMaximumNumberOfIterations( 20 );
       inverter1->SetMeanErrorToleranceThreshold( 0.001 );
       inverter1->SetMaxErrorToleranceThreshold( 0.1 );
       inverter1->Update();
 
       integratedField = inverter1->GetOutput();
-      integratedField->Update();
       integratedField->DisconnectPipeline();
 
       typename InverterType::Pointer inverter2 = InverterType::New();
       inverter2->SetInput( integratedField );
+      inverter2->SetInverseFieldInitialEstimate( inverseField );
       inverter2->SetMaximumNumberOfIterations( 20 );
       inverter2->SetMeanErrorToleranceThreshold( 0.001 );
       inverter2->SetMaxErrorToleranceThreshold( 0.1 );
+      inverter2->Update();
 
       inverseField = inverter2->GetOutput();
-      inverseField->Update();
       inverseField->DisconnectPipeline();
       }
 
@@ -572,7 +573,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       ItVelocityField.Set( ItVelocityField.Get()
                            + ItForwardIncrementalField.Get() );
       const typename InputImageType::PixelType grayMatterPixel =
-        static_cast<typename InputImageType::PixelType>(this->m_GrayMatterLabel);
+        static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
       if( ItSegmentationImage.Get() == grayMatterPixel )
         {
         RealType thicknessValue = 0.0;
