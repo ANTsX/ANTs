@@ -586,7 +586,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     regHelper->SetUseHistogramMatching(doHistogramMatch);
 
-    bool                doEstimateLearningRateOnce(false);
+    bool                doEstimateLearningRateAtEachIteration = false;
     OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
     if( rateOption && rateOption->GetNumberOfValues() > 0 )
       {
@@ -594,10 +594,10 @@ DoRegistration(typename ParserType::Pointer & parser)
       ConvertToLowerCase( rateValue );
       if( rateValue.compare( "1" ) == 0 || rateValue.compare( "true" ) == 0 )
         {
-        doEstimateLearningRateOnce = true;
+        doEstimateLearningRateAtEachIteration = false;
         }
       }
-    regHelper->SetDoEstimateLearningRateOnce(doEstimateLearningRateOnce);
+    regHelper->SetDoEstimateLearningRateAtEachIteration( doEstimateLearningRateAtEachIteration );
 
     // Get the number of iterations and use that information to specify the number of levels
 
