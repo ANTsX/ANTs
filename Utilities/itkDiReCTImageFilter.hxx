@@ -369,9 +369,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       ImageRegionIterator<DisplacementFieldType> ItGradientImage(
         gradientImage,
         gradientImage->GetRequestedRegion() );
-      ImageRegionIterator<RealImageType> ItWarpedThicknessImage(
-        warpedThicknessImage,
-        warpedThicknessImage->GetRequestedRegion() );
       ImageRegionIterator<RealImageType> ItWarpedWhiteMatterProbabilityMap(
         warpedWhiteMatterProbabilityMap,
         warpedWhiteMatterProbabilityMap->GetRequestedRegion() );
