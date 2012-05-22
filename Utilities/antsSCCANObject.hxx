@@ -38,6 +38,7 @@ namespace ants
 template <class TInputImage, class TRealType>
 antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
 {
+  this->m_Softer = false;
   this->m_MinClusterSizeP = 1;
   this->m_MinClusterSizeQ = 1;
   this->m_KeptClusterSize = 0;
@@ -412,7 +413,10 @@ antsSCCANObject<TInputImage, TRealType>
       }
     else
       {
-      //    v_in(i)=v_in(i)-minthresh;
+      if( this->m_Softer )
+        {
+        v_in(i) = v_in(i) - minthresh;
+        }
       }
     }
   //  ::ants::antscout << " post minv " << tminv << " post maxv " << tmaxv <<  std::endl;
@@ -1173,6 +1177,130 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   ::ants::antscout << std::endl;
   return fabs(this->m_CanonicalCorrelations[0]);
+}
+
+template <class TInputImage, class TRealType>
+TRealType
+antsSCCANObject<TInputImage, TRealType>
+::ReconstructionError( typename antsSCCANObject<TInputImage, TRealType>::MatrixType mymat,
+                       typename antsSCCANObject<TInputImage, TRealType>::MatrixType myvariate )
+{
+  RealType     reconerr = 0;
+  unsigned int n_vecs = myvariate.cols();
+
+  for(  unsigned int a = 0; a < mymat.rows(); a++ )
+    {
+    VectorType x_i = mymat.get_row( a );
+    VectorType lmsolv( n_vecs, 1 );  // row for B
+    (void) this->ConjGrad( myvariate, lmsolv, x_i, 0, 10000 );
+    VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
+    reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
+    }
+  ::ants::antscout << reconerr << std::endl;
+  return 1.0 / reconerr;
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::SparseRecon(unsigned int n_vecs)
+{
+  this->m_Softer = true;
+  RealType reconerr = 0;
+  RealType onenorm = 0;
+  this->m_CanonicalCorrelations.set_size( n_vecs );
+  this->m_CanonicalCorrelations.fill( 0 );
+  ::ants::antscout << " sparse recon " << this->m_MinClusterSizeP << std::endl;
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  MatrixType        cov = this->m_MatrixP * this->m_MatrixP.transpose();
+  vnl_svd<RealType> eig( cov, 1.e-6 );
+  this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
+  this->m_VariatesP.fill( 0 );
+  for( unsigned int i = 0; i < n_vecs; i++ )
+    {
+    if( i < this->m_MatrixP.rows() )
+      {
+      VectorType u = eig.U().get_column( i );
+      this->m_VariatesP.set_row( i, u * this->m_MatrixP );
+      }
+    else
+      {
+      this->m_VariatesP.set_row( i, this->InitializeV( this->m_MatrixP, true ) );
+      }
+    }
+  MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
+  matrixB.fill( 0 );
+  for( unsigned int overit = 0; overit < 10; overit++ )
+    {
+    // update B matrix
+    ::ants::antscout << " Get B " << reconerr << std::endl;
+    reconerr = onenorm = 0;
+    VectorType icept( this->m_MatrixP.rows(), 0 );
+    for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
+      {
+      VectorType x_i = this->m_MatrixP.get_row( a );
+      VectorType lmsolv( n_vecs, 1 );                                     // row for B
+      (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
+      VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
+      icept( a ) = this->m_Intercept;
+      onenorm += x_i.one_norm() / this->m_MatrixP.cols();
+      reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
+      matrixB.set_row( a, lmsolv );
+      }
+    ::ants::antscout << " Get VP : % err " << reconerr / onenorm << std::endl;
+    // update V matrix
+    VectorType zero( this->m_MatrixP.cols(), 0 );
+    //  MatrixType holder = this->m_VariatesP;
+    for(  unsigned int a = 0; a < n_vecs; a++ )
+      {
+      this->m_CanonicalCorrelations( a ) = matrixB.get_column( a ).one_norm();
+      MatrixType tempMatrix = this->m_VariatesP;
+      tempMatrix.set_column( a, zero );
+      MatrixType partialmatrix = matrixB * tempMatrix.transpose();
+      for(  unsigned int interc = 0; interc < this->m_MatrixP.rows(); interc++ )
+        {
+        partialmatrix.set_row( interc, partialmatrix.get_row( interc ) + icept( interc ) );
+        }
+      partialmatrix = this->m_MatrixP - partialmatrix;
+      VectorType evec = matrixB.get_column( a ) * this->m_MatrixP;
+      if( evec.two_norm()  > 0 )
+        {
+        evec = evec / evec.two_norm();
+        }
+      // get 1st eigenvector ... how should this be done?  how about svd?
+      for( unsigned int it = 0; it < 5; it++ )
+        {
+        evec = ( partialmatrix.transpose() ) * ( partialmatrix * evec );
+        for( unsigned int orth = 0; orth < a; orth++ )
+          {
+          if( orth != a )
+            {
+            evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
+            }
+          }
+        if( evec.two_norm()  > 0 )
+          {
+          evec = evec / evec.two_norm();
+          }
+        if( fabs( evec.min_value() )  > evec.max_value() )
+          {
+          evec = evec * ( -1 );
+          }
+        this->SparsifyP( evec, true );
+        if( evec.two_norm() > 0 )
+          {
+          evec = evec / evec.two_norm();
+          }
+        //     ::ants::antscout << " it " <<  it << " a " << a << " norm " << evec.one_norm( ) << std::endl;
+        }
+      // this could also be a lasso solution .... ?
+      this->m_VariatesP.set_column( a, evec );
+      // holder.set_column( a , evec );
+      }
+    // this->m_VariatesP = holder;
+    //  this->SortResults( n_vecs );
+    }
+  this->m_Softer = false;
+  return 1.0 / reconerr;
 }
 
 template <class TInputImage, class TRealType>
