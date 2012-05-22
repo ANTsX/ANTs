@@ -1290,7 +1290,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
       {
       VectorType x_i = this->m_MatrixP.get_row( a );
-      VectorType lmsolv( n_vecs, 1 );                                     // row for B
+      VectorType lmsolv = matrixB.get_row( a );                           // good initialization should increase
+                                                                          // convergence speed
       (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
       VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
       icept( a ) = this->m_Intercept;
@@ -1724,8 +1725,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     ::ants::antscout << " DEBUG " << std::endl;
     }
   // minimize the following error :    \| A^T*A * vec_i -    b \|  +  sparseness_penalty
-  VectorType b = A.transpose() * b_in;
-  VectorType r_k = A.transpose() * ( A * x_k );
+  MatrixType At = A.transpose();
+  VectorType b = At * b_in;
+  VectorType r_k = At * ( A * x_k );
   RealType   regbeta;
   RealType   intercept = 0;
   r_k = b - r_k;
@@ -1737,7 +1739,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType     minerr = starterr, deltaminerr = 1, lasterr = starterr * 2;
   while(  deltaminerr > 0 && approxerr > convcrit && ct < maxits )
     {
-    RealType alpha_denom = inner_product( p_k,  A.transpose() * ( A * p_k ) );
+    RealType alpha_denom = inner_product( p_k, At * ( A * p_k ) );
     RealType iprk = inner_product( r_k, r_k );
     if( debug )
       {
@@ -1753,7 +1755,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       ::ants::antscout << " alpha_k " << alpha_k << std::endl;
       }
     VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
-    VectorType r_k1 =  b - A.transpose() * (A * x_k1 );
+    VectorType r_k1 =  b - At * (A * x_k1 );
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
       {
