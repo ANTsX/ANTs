@@ -143,6 +143,8 @@ public:
       }
   }
 
+  RealType ReconstructionError( MatrixType, MatrixType );
+
   VectorType Orthogonalize(VectorType Mvec, VectorType V, MatrixType* projecterM = NULL,  MatrixType* projecterV =
                              NULL )
   {
@@ -517,6 +519,8 @@ public:
   RealType SparsePartialCCA(unsigned int nvecs);
 
   RealType SparsePartialArnoldiCCA(unsigned int nvecs);
+
+  RealType SparseRecon(unsigned int nvecs);
 
   RealType SparseArnoldiSVDGreedy(unsigned int nvecs);
 
