@@ -809,6 +809,9 @@ private:
   MatrixType m_MatrixRp;
   MatrixType m_MatrixRq;
 
+  /** softer = true will compute the update  : if ( beta > thresh )  beta <- beta - thresh
+   *     rather than the default update      : if ( beta > thresh )  beta <- beta  */
+  bool     m_Softer;
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;
   RealType m_CorrelationForSignificanceTest;
