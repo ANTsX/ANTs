@@ -1185,19 +1185,26 @@ antsSCCANObject<TInputImage, TRealType>
 ::ReconstructionError( typename antsSCCANObject<TInputImage, TRealType>::MatrixType mymat,
                        typename antsSCCANObject<TInputImage, TRealType>::MatrixType myvariate )
 {
+  this->m_CanonicalCorrelations.set_size( myvariate.cols() );
+  this->m_CanonicalCorrelations.fill( 0 );
   RealType     reconerr = 0;
+  RealType     onenorm = 0;
   unsigned int n_vecs = myvariate.cols();
-
+  RealType     clnum = ( RealType ) this->m_MatrixP.cols();
   for(  unsigned int a = 0; a < mymat.rows(); a++ )
     {
     VectorType x_i = mymat.get_row( a );
+    onenorm += x_i.one_norm() / clnum;
     VectorType lmsolv( n_vecs, 1 );  // row for B
     (void) this->ConjGrad( myvariate, lmsolv, x_i, 0, 10000 );
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
-    reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
+    reconerr += ( x_i - x_recon ).one_norm() / clnum;
+    for( unsigned int i = 0; i < n_vecs; i++ )
+      {
+      this->m_CanonicalCorrelations[i] = this->m_CanonicalCorrelations[i]  + fabs( lmsolv[i] );
+      }
     }
-  ::ants::antscout << reconerr << std::endl;
-  return 1.0 / reconerr;
+  return ( onenorm - reconerr ) / onenorm;
 }
 
 template <class TInputImage, class TRealType>
@@ -1213,6 +1220,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  // this->m_MatrixP = this->m_OriginalMatrixP ;
   MatrixType        cov = this->m_MatrixP * this->m_MatrixP.transpose();
   vnl_svd<RealType> eig( cov, 1.e-6 );
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
@@ -1231,14 +1239,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     }
   VectorType icept( this->m_MatrixP.rows(), 0 );
-  for( unsigned int overit = 0; overit < 10; overit++ )
+  for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
     {
+    //  this->m_VariatesP = this->m_MatrixP.transpose( ) * matrixB;
+    //  vnl_qr<double> qr( this->m_VariatesP );
+    //  this->m_VariatesP = qr.Q();
     // update V matrix
     VectorType zero( this->m_MatrixP.cols(), 0 );
     //  MatrixType holder = this->m_VariatesP;
     for(  unsigned int a = 0; a < n_vecs; a++ )
       {
-      this->m_CanonicalCorrelations( a ) = matrixB.get_column( a ).one_norm();
       MatrixType tempMatrix = this->m_VariatesP;
       tempMatrix.set_column( a, zero );
       MatrixType partialmatrix = matrixB * tempMatrix.transpose();
@@ -1248,13 +1258,23 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType evec = matrixB.get_column( a ) * this->m_MatrixP;
+      if( overit > 0 )
+        {
+        evec = this->m_VariatesP.get_column( a );
+        }
       if( evec.two_norm()  > 0 )
         {
         evec = evec / evec.two_norm();
         }
       // get 1st eigenvector ... how should this be done?  how about svd?
-      for( unsigned int it = 0; it < 5; it++ )
+      for( unsigned int it = 0; it < 1; it++ )
         {
+        //      for( unsigned int orth = 0; orth < a; orth++ )
+        //	if ( orth != a ) evec = this->Orthogonalize( evec , this->m_VariatesP.get_column( orth ) );
+        if( evec.two_norm() > 0 )
+          {
+          evec = evec / evec.two_norm();
+          }
         evec = ( partialmatrix.transpose() ) * ( partialmatrix * evec );
         for( unsigned int orth = 0; orth < a; orth++ )
           {
@@ -1263,20 +1283,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
             evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
             }
           }
-        if( evec.two_norm()  > 0 )
-          {
-          evec = evec / evec.two_norm();
-          }
-        if( fabs( evec.min_value() )  > evec.max_value() )
-          {
-          evec = evec * ( -1 );
-          }
         this->SparsifyP( evec, true );
         if( evec.two_norm() > 0 )
           {
           evec = evec / evec.two_norm();
           }
-        //     ::ants::antscout << " it " <<  it << " a " << a << " norm " << evec.one_norm( ) << std::endl;
         }
       // this could also be a lasso solution .... ?
       this->m_VariatesP.set_column( a, evec );
@@ -1284,7 +1295,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     // this->m_VariatesP = holder;
     // update B matrix
-    ::ants::antscout << " Get B " << std::endl;
+    ::ants::antscout << " Get B iteration: " << overit << std::endl;
     reconerr = onenorm = 0;
     icept.fill( 0 );
     for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
@@ -1299,8 +1310,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
       matrixB.set_row( a, lmsolv );
       }
-    ::ants::antscout << " Get VP : % err " << reconerr / onenorm << " raw-reconerr " << reconerr << std::endl;
+    for(  unsigned int a = 0; a < n_vecs; a++ )
+      {
+      this->m_CanonicalCorrelations( a ) = matrixB.get_column( a ).one_norm();
+      }
     //  this->SortResults( n_vecs );
+    RealType rr = ( onenorm - reconerr ) / onenorm;
+    ::ants::antscout << " Get VP : %var " << rr << " raw-reconerr " << reconerr << std::endl;
     }
   this->m_Softer = false;
   return 1.0 / reconerr;
@@ -1326,7 +1342,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   MatrixType bmatrix = this->GetCovMatEigenvectors( this->m_MatrixP );
   MatrixType bmatrix_big;
   bmatrix_big.set_size( this->m_MatrixP.cols(), n_vecs );
-  double trace = vnl_trace<double>(   this->m_MatrixP * this->m_MatrixP.transpose()  );
+  //  double trace = vnl_trace<double>(   this->m_MatrixP * this->m_MatrixP.transpose()  );
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
     this->m_VariatesP.set_column( kk, this->InitializeV( this->m_MatrixP )  );
@@ -1475,7 +1491,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_VariatesQ = this->m_VariatesP;
     /** Estimate eigenvalues , then sort */
 
-    RealType bestvex = this->ComputeSPCAEigenvalues( n_vecs, trace, false );
+    RealType bestvex = // this->ComputeSPCAEigenvalues( n_vecs, trace, false );
+      this->ReconstructionError( this->m_MatrixP, this->m_VariatesP );
     if( bestvex < vexlist[loop]  )
       {
       RealType f = -0.5, enew = 0, eold = -1, delt = 0.05;
@@ -1495,7 +1512,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           this->m_VariatesP.set_column( m, mm  );
           }
         eold = enew;
-        enew = this->ComputeSPCAEigenvalues(n_vecs, trace, false);
+        enew = this->ReconstructionError( this->m_MatrixP, this->m_VariatesP );
         if( enew > bestvex )
           {
           bestvex = enew;  bestV = this->m_VariatesP;
@@ -1521,7 +1538,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     ::ants::antscout << "Iteration: " << loop << " Eval_0: " << this->m_CanonicalCorrelations[0] << " Eval_N: "
                      << this->m_CanonicalCorrelations[n_vecs
-                                     - 1] << " Sp: " << fnp  << " conv-crit: " << convcrit <<  " vex " << vex
+                                     - 1] << " Sp: " << fnp  << " conv-crit: " << convcrit <<  " %var " << bestvex
                      << std::endl;
     loop++;
     if( debug )
@@ -2061,6 +2078,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType fnp = this->m_FractionNonZeroP;
   for(  unsigned int colind = 0; colind < n_vecs; colind++ )
     {
+    ::ants::antscout << " colind " << colind << std::endl;
     /******key part of algorithm******/
     for(  unsigned int whichevec = 0; whichevec < repspervec; whichevec++ )
       {
@@ -2098,67 +2116,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_VariatesP.set_column( locind, x_k  );
       } // repspervec
        /*********************************/
-    RealType   reconstruction_error = 0;
-    RealType   reconstruction_error_svd = 0;
-    MatrixType approxmat( this->m_MatrixP.rows(), this->m_MatrixP.cols(), 0 );
-    MatrixType approxmat_svd( this->m_MatrixP.rows(), this->m_MatrixP.cols(), 0 );
-    for(  unsigned int a = 0; a <= colind; a++ )
-      {
-      VectorType   ev = this->m_Eigenvectors.get_column( a );
-      VectorType   nvec = this->m_MatrixP * ev;
-      unsigned int baseind = a * repspervec;
-      VectorType   pvecapprox = this->m_VariatesP.get_column( baseind );
-      for(  unsigned int whichevec = 1; whichevec < repspervec; whichevec++ )
-        {
-        VectorType nextvec = this->m_VariatesP.get_column( baseind + whichevec );
-        pvecapprox = pvecapprox + nextvec;
-        }
-      MatrixType locmat = ( outer_product( nvec, pvecapprox ) );
-      approxmat = approxmat + locmat * evalInit( a );
-      pvecapprox = variatesInit.get_column( a );
-      locmat = ( outer_product( nvec, pvecapprox ) );
-      approxmat_svd = approxmat_svd + locmat * evalInit( a );
-      }
-    reconstruction_error =
-      ( approxmat  / approxmat.frobenius_norm() - this->m_MatrixP
-          / this->m_MatrixP.frobenius_norm() ).frobenius_norm();
-    reconstruction_error_svd =
-      ( approxmat_svd / approxmat_svd.frobenius_norm() - this->m_MatrixP
-          / this->m_MatrixP.frobenius_norm() ).frobenius_norm();
-    bool writeimage = true;
-    if( writeimage )
-      {
-        {
-        VectorType vvv = approxmat.get_row( 10 );
-        typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
-        typedef itk::ImageFileWriter<TInputImage> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( "temp.nii.gz" );
-        writer->SetInput( image );
-        writer->Update();
-        }
-        {
-        VectorType vvv = approxmat.get_row( 10 );
-        typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
-        typedef itk::ImageFileWriter<TInputImage> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( "temp2.nii.gz" );
-        writer->SetInput( image );
-        writer->Update();
-        }
-        {
-        VectorType vvv = this->m_MatrixP.get_row( 10 );
-        typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( vvv, this->m_MaskImageP, false );
-        typedef itk::ImageFileWriter<TInputImage> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( "temp3.nii.gz" );
-        writer->SetInput( image );
-        writer->Update();
-        }
-      }
-    ::ants::antscout << " col " << colind << " of  " <<  n_vecs << " reconstruction_error " << reconstruction_error
-                     << " svderr " <<  reconstruction_error_svd << std::endl;
-    }
+    } // colind
+  RealType reconstruction_error = this->ReconstructionError( this->m_MatrixP, this->m_VariatesP );
+  std::cout << "%Var " << reconstruction_error <<  std::endl;
   for( unsigned int k = 0; k < this->m_VariatesP.cols(); k++ )
     {
     VectorType v = this->m_VariatesP.get_column( k );
@@ -2369,7 +2329,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType intercept = this->m_OriginalMatrixR.get_column( 0 ).mean() - predictions.mean() * regbeta;
   RealType predictionerror =
     (  predictions * regbeta + intercept
-         - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
+       - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
   ::ants::antscout << " overall-mean-abs-prediction-error: " << predictionerror << std::endl;
   this->m_Eigenvalues =  predictions * regbeta + intercept;
   this->m_CanonicalCorrelations =  predictions * regbeta + intercept;
@@ -2664,7 +2624,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType intercept = this->m_OriginalMatrixR.get_column( 0 ).mean() - this->m_CanonicalCorrelations.mean() * regbeta;
   RealType predictionerror =
     (  this->m_CanonicalCorrelations * regbeta + intercept
-         - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
+       - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
   ::ants::antscout << " overall-mean-abs-prediction-error: " << predictionerror << std::endl;
   this->m_VariatesP = this->m_VariatesQ;
   for( unsigned int i = 0; i < this->m_VariatesP.cols(); i++ )

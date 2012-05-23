@@ -584,6 +584,17 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
+  void PositivePart( VectorType& x_k1 )
+  {
+    for( unsigned int i = 0; i < x_k1.size(); i++ )
+      {
+      if( x_k1[i] < 0 )
+        {
+        x_k1[i] = 0;
+        }
+      }
+  }
+
   void SparsifyP( VectorType& x_k1, bool keeppos )
   {
     bool negate = false;
