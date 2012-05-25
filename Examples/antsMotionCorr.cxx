@@ -48,6 +48,7 @@
 #include "itkTimeVaryingVelocityFieldTransformParametersAdaptor.h"
 
 #include "itkGradientDescentOptimizerv4.h"
+#include "itkGradientDescentLineSearchOptimizerv4.h"
 #include "itkQuasiNewtonOptimizerv4.h"
 
 #include "itkHistogramMatchingImageFilter.h"
@@ -115,10 +116,12 @@ public:
       this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
                      << std::endl;
 
-      typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+      typedef itk::GradientDescentLineSearchOptimizerv4 GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
           const_cast<typename TFilter::OptimizerType *>( filter->GetOptimizer() ) );
       optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
+      optimizer->SetMinimumConvergenceValue( 1.e-9 );
+      optimizer->SetConvergenceWindowSize( 10 );
       }
   }
 
@@ -271,12 +274,14 @@ public:
     antscout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
              << std::endl;
 
-    typedef itk::GradientDescentOptimizerv4 OptimizerType;
-    typedef itk::QuasiNewtonOptimizerv4     OptimizerType2;
+    typedef itk::GradientDescentLineSearchOptimizerv4 OptimizerType;
+    typedef itk::QuasiNewtonOptimizerv4               OptimizerType2;
 
     OptimizerType * optimizer = reinterpret_cast<OptimizerType *>(
         const_cast<typename TFilter::OptimizerType *>( filter->GetOptimizer() ) );
     optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
+    optimizer->SetMinimumConvergenceValue( 1.e-9 );
+    optimizer->SetConvergenceWindowSize( 10 );
   }
 
   void SetNumberOfIterations( std::vector<unsigned int> iterations )
@@ -838,11 +843,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
       float learningRate = parser->Convert<float>( transformOption->GetParameter( currentStage, 0 ) );
 
-      typedef itk::GradientDescentOptimizerv4 OptimizerType;
-      typedef itk::QuasiNewtonOptimizerv4     OptimizerType2;
+      typedef itk::GradientDescentLineSearchOptimizerv4 OptimizerType;
+      typedef itk::QuasiNewtonOptimizerv4               OptimizerType2;
       typename OptimizerType::Pointer optimizer = OptimizerType::New();
       optimizer->SetLearningRate( learningRate );
       optimizer->SetNumberOfIterations( iterations[0] );
+      optimizer->SetMinimumConvergenceValue( 1.e-9 );
+      optimizer->SetConvergenceWindowSize( 10 );
       typename OptionType::Pointer scalesOption = parser->GetOption( "useScalesEstimator" );
       if( scalesOption && scalesOption->GetNumberOfValues() > 0 )
         {
@@ -865,6 +872,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
       optimizer->SetDoEstimateLearningRateOnce( doEstimateLearningRateOnce );
+      optimizer->SetDoEstimateLearningRateAtEachIteration( !doEstimateLearningRateOnce );
       //    optimizer->SetMaximumNewtonStepSizeInPhysicalUnits(sqrt(small_step)*learningR);
 
       // Set up the image registration methods along with the transforms
