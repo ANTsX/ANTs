@@ -1,5 +1,8 @@
 #ifndef __itkantsRegistrationHelper_hxx
 #define __itkantsRegistrationHelper_hxx
+#include "itkRegistrationParameterScalesFromShift.h"
+#include "itkDemonsImageToImageMetricv4.h"
+#include "itkConjugateGradientLineSearchOptimizerv4.h"
 namespace ants
 {
 /** \class antsRegistrationCommandIterationUpdate
@@ -47,7 +50,7 @@ public:
       this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
                      << std::endl;
 
-      typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+      typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
           const_cast<typename TFilter::OptimizerType *>( const_cast<TFilter *>( filter )->GetOptimizer() ) );
 
@@ -1052,8 +1055,11 @@ RegistrationHelper<VImageDimension>
     scalesEstimator->SetMetric( metric );
     scalesEstimator->SetTransformForward( true );
 
-    typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+    typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
     typename GradientDescentOptimizerType::Pointer optimizer = GradientDescentOptimizerType::New();
+    optimizer->SetLowerLimit( 0 );
+    optimizer->SetUpperLimit( 5 );
+    optimizer->SetEpsilon( 0.2 );
     optimizer->SetLearningRate( learningRate );
     optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer->SetNumberOfIterations( currentStageIterations[0] );
