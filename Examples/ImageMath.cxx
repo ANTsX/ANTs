@@ -2718,7 +2718,7 @@ int CompCorrAuto(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
-int CompCorr(int argc, char *argv[])
+int ThreeTissueConfounds(int argc, char *argv[])
 {
   if( argc <= 2 )
     {
@@ -9341,13 +9341,12 @@ private:
       <<
       " CompCorrAuto : Outputs a csv file containing global signal vector and N comp-corr eigenvectors determined from PCA of the high-variance voxels.  Also outputs a comp-corr + global signal corrected 4D image as well as a 3D image measuring the time series variance.  Requires a label image with label 1 identifying voxels in the brain."
       << std::endl;
-    antscout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  N-comp-corr-eigenvectors "
-             << std::endl;
     antscout
       <<
-      " CompCorr : Outputs average global, CSF and WM signals.  Requires a label image with 3 labels , csf, gm , wm ."
+      "   ImageMath 4 ${out}compcorr.nii.gz ThreeTissueConfounds ${out}.nii.gz  ${out}seg.nii.gz 1 3  "
+      << " : Outputs average global, CSF and WM signals.  Requires a label image with 3 labels , csf, gm , wm ."
       << std::endl;
-    antscout << "    Usage        : CompCorr 4D_TimeSeries.nii.gz LabeLimage.nii.gz  csf-label wm-label "
+    antscout << "    Usage        : ThreeTissueConfounds 4D_TimeSeries.nii.gz LabeLimage.nii.gz  csf-label wm-label "
              << std::endl;
     antscout
       << " TimeSeriesSubset : Outputs n 3D image sub-volumes extracted uniformly from the input time-series 4D image."
@@ -10462,9 +10461,9 @@ private:
         {
         TimeSeriesToMatrix<4>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "CompCorr") == 0 )
+      else if( strcmp(operation.c_str(), "ThreeTissueConfounds") == 0 )
         {
-        CompCorr<4>(argc, argv);
+        ThreeTissueConfounds<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "CompCorrAuto") == 0 )
         {
