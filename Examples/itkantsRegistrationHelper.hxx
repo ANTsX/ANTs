@@ -1,6 +1,6 @@
 #ifndef __itkantsRegistrationHelper_hxx
 #define __itkantsRegistrationHelper_hxx
-#include "itkRegistrationParameterScalesFromShift.h"
+#include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkConjugateGradientLineSearchOptimizerv4.h"
 namespace ants
@@ -1050,7 +1050,7 @@ RegistrationHelper<VImageDimension>
 
     double learningRate = this->m_TransformMethods[currentStage].m_GradientStep;
 
-    typedef itk::RegistrationParameterScalesFromShift<MetricType> ScalesEstimatorType;
+    typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( metric );
     scalesEstimator->SetTransformForward( true );

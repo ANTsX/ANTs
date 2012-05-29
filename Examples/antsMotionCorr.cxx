@@ -55,7 +55,7 @@
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkMacro.h"
-#include "itkRegistrationParameterScalesFromShift.h"
+#include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkResampleImageFilter.h"
 #include "itkShrinkImageFilter.h"
 #include "itkTimeProbe.h"
@@ -838,12 +838,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         std::cerr << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
         }
-      metric->SetVirtualDomainImage(  fixed_time_slice );
+      metric->SetVirtualDomainFromImage(  fixed_time_slice );
       // Set up the optimizer.  To change the iteration number for each level we rely
       // on the command observer.
       //    typedef itk::JointHistogramMutualInformationImageToImageMetricv4<FixedImageType, FixedImageType>
       // MutualInformationMetricType;
-      typedef itk::RegistrationParameterScalesFromShift<MetricType> ScalesEstimatorType;
+      typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
       typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
       scalesEstimator->SetMetric( metric );
       scalesEstimator->SetTransformForward( true );
@@ -899,7 +899,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         nparams = affineTransform->GetNumberOfParameters() + 2;
         typename ScalesEstimatorType::ScalesType scales(affineTransform->GetNumberOfParameters() );
         metric->SetFixedImage( preprocessFixedImage );
-        metric->SetVirtualDomainImage( preprocessFixedImage );
+        metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
         scalesEstimator->SetMetric(metric);
         scalesEstimator->EstimateScales(scales);
