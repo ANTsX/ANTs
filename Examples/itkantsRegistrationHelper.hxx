@@ -1058,7 +1058,7 @@ RegistrationHelper<VImageDimension>
     typedef itk::ConjugateGradientLineSearchOptimizerv4 GradientDescentOptimizerType;
     typename GradientDescentOptimizerType::Pointer optimizer = GradientDescentOptimizerType::New();
     optimizer->SetLowerLimit( 0 );
-    optimizer->SetUpperLimit( 5 );
+    optimizer->SetUpperLimit( 2 );
     optimizer->SetEpsilon( 0.2 );
     optimizer->SetLearningRate( learningRate );
     optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
