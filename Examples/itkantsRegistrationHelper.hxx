@@ -1060,6 +1060,7 @@ RegistrationHelper<VImageDimension>
     optimizer->SetLowerLimit( 0 );
     optimizer->SetUpperLimit( 2 );
     optimizer->SetEpsilon( 0.2 );
+    optimizer->SetSearchMethod(  GradientDescentOptimizerType::SearchNearPreviousLearningRate );
     optimizer->SetLearningRate( learningRate );
     optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer->SetNumberOfIterations( currentStageIterations[0] );
