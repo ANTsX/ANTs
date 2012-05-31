@@ -2931,7 +2931,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
   ct_nuis = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
-    OutIndexType ind = vfIter2.GetIndex();
+    // OutIndexType ind = vfIter2.GetIndex();
     if( vfIter2.Get() == csflabel )      // reference
     //    if( var_image->GetPixel(ind) > varval_csf  )      // nuisance
       {
