@@ -125,7 +125,6 @@ public:
       optimizer->SetLowerLimit( 0 );
       optimizer->SetUpperLimit( 2 );
       optimizer->SetEpsilon( 0.1 );
-      optimizer->SetSearchMethod(  GradientDescentOptimizerType::SearchNearPreviousLearningRate );
       }
   }
 
@@ -287,7 +286,6 @@ public:
     optimizer->SetLowerLimit( 0 );
     optimizer->SetUpperLimit( 2 );
     optimizer->SetEpsilon( 0.1 );
-    optimizer->SetSearchMethod(  OptimizerType::SearchNearPreviousLearningRate );
   }
 
   void SetNumberOfIterations( std::vector<unsigned int> iterations )
@@ -857,7 +855,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       optimizer->SetLowerLimit( 0 );
       optimizer->SetUpperLimit( 2 );
       optimizer->SetEpsilon( 0.1 );
-      optimizer->SetSearchMethod(  OptimizerType::SearchNearPreviousLearningRate );
 
       typename OptionType::Pointer scalesOption = parser->GetOption( "useScalesEstimator" );
       if( scalesOption && scalesOption->GetNumberOfValues() > 0 )
