@@ -2416,6 +2416,75 @@ The term, M_{0B} is calculated as follows (Wong1998),
   return 0;
 }
 
+/* Calculate the Magnetization Transfer Ratio from a reference image
+* and an MT image. Truncate values to be in range [0,1]
+*/
+
+template <unsigned int ImageDimension>
+int MTR(int argc, char *argv[])
+{
+  if( argc <= 5 )
+    {
+    antscout << " too few options " << argv[0] << std::endl;
+    antscout << argv[0] << " M0Image.nii.gz M1Image.nii.gz [OptionalMask.nii.gz] " << std::endl;
+    return 1;
+    }
+
+  typedef itk::Image<float, ImageDimension> ImageType;
+
+  typename ImageType::Pointer M0 = ImageType::New();
+  typename ImageType::Pointer M1 = ImageType::New();
+  ReadImage<ImageType>(M0, argv[4] );
+  ReadImage<ImageType>(M1, argv[5] );
+
+  typename ImageType::Pointer MTR = ImageType::New();
+  MTR->CopyInformation( M0 );
+  MTR->SetRegions( M0->GetLargestPossibleRegion() );
+  MTR->Allocate();
+  MTR->FillBuffer( 0 );
+
+  typename ImageType::Pointer mask = ImageType::New();
+  if( argc > 3 )
+    {
+    std::cout << "Mask = " << argv[6] << std::endl;
+    ReadImage<ImageType>(mask, argv[6]);
+    }
+  else
+    {
+    mask->CopyInformation( M0 );
+    mask->SetRegions( M0->GetLargestPossibleRegion() );
+    mask->Allocate();
+    mask->FillBuffer( 1 );
+    }
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIt;
+  ImageIt it( mask, mask->GetLargestPossibleRegion() );
+
+  while( !it.IsAtEnd() )
+    {
+    if( it.Value() > 0 )
+      {
+      float m0 = M0->GetPixel( it.GetIndex() );
+      float m1 = M1->GetPixel( it.GetIndex() );
+      float mtr = ( m0 - m1 ) / m0;
+
+      if( mtr < 0 )
+        {
+        mtr = 0;
+        }
+      else if( mtr > 1 )
+        {
+        mtr = 1;
+        }
+      MTR->SetPixel( it.GetIndex(), mtr );
+      }
+    ++it;
+    }
+
+  WriteImage<ImageType>( MTR, argv[2] );
+  return 0;
+}
+
 template <unsigned int ImageDimension>
 int CompCorrAuto(int argc, char *argv[])
 {
@@ -2424,6 +2493,7 @@ int CompCorrAuto(int argc, char *argv[])
     antscout << " too few options " << std::endl;
     return 1;
     }
+
   typedef float                                        PixelType;
   typedef itk::Vector<float, ImageDimension>           VectorType;
   typedef itk::Image<VectorType, ImageDimension>       FieldType;
@@ -9550,6 +9620,11 @@ private:
     antscout << "\n  MakeImage        : " << std::endl;
     antscout << "      Usage        : MakeImage SizeX  SizeY {SizeZ};" << std::endl;
 
+    antscout
+      << "\n  MTR        : Computes the magnetization transfer ratio ( (M0-M1)/M0 ) and truncates values to [0,1]"
+      << std::endl;
+    antscout << "      Usage        : MTR M0Image M1Image [MaskImage];" << std::endl;
+
     antscout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
     antscout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
@@ -10078,6 +10153,10 @@ private:
         {
         TensorFunctions<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "TensorColor") == 0 )
         {
         TensorFunctions<3>(argc, argv);
@@ -10193,6 +10272,10 @@ private:
       else if( strcmp(operation.c_str(), "pCASL") == 0 )
         {
         pCASL<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MTR") == 0 )
+        {
+        MTR<3>(argc, argv);
         }
       else
         {
