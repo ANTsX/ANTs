@@ -533,7 +533,7 @@ public:
   RealType ComputeSPCAEigenvalues(unsigned int, RealType, bool );
   RealType BasicSVD();
 
-  RealType CGSPCA(unsigned int nvecs);
+  RealType CGSPCA( unsigned int );
 
   RealType NetworkDecomposition(unsigned int nvecs);
 
@@ -767,9 +767,13 @@ protected:
     mat_to_add_to = outmat;
   }
 
+  void CurvatureSparseness( VectorType& v1, RealType sparsenessgoal = 1 );
+
 private:
 
   ImagePointer ConvertVariateToSpatialImage( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );
+
+  VectorType ConvertImageToVariate(  ImagePointer image, ImagePointer mask );
 
   VectorType ClusterThresholdVariate( VectorType &, ImagePointer mask, unsigned int);
 
