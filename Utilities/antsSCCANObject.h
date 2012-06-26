@@ -316,6 +316,8 @@ public:
 
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
                              bool makeprojsparse = false, unsigned int loorth =  0, unsigned int hiorth = 0 );
+  RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int,
+                                unsigned int loorth =  0, unsigned int hiorth = 0 );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -832,12 +834,13 @@ private:
   RealType m_CorrelationForSignificanceTest;
   RealType m_Intercept;
 
-  unsigned int              m_MinClusterSizeP;
-  unsigned int              m_MinClusterSizeQ;
-  unsigned int              m_KeptClusterSize;
-  unsigned int              m_GoldenSectionCounter;
-  VectorType                m_ClusterSizes;
-  vnl_diag_matrix<RealType> m_Indicator;
+  unsigned int               m_MinClusterSizeP;
+  unsigned int               m_MinClusterSizeQ;
+  unsigned int               m_KeptClusterSize;
+  unsigned int               m_GoldenSectionCounter;
+  VectorType                 m_ClusterSizes;
+  vnl_diag_matrix<RealType>  m_Indicator;
+  vnl_diag_matrix<TRealType> m_PreC; // preconditioning
 };
 } // namespace ants
 } // namespace itk

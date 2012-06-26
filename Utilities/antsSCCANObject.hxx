@@ -22,6 +22,7 @@
 #include "itkRelabelComponentImageFilter.h"
 #include <vnl/vnl_random.h>
 #include <vnl/vnl_trace.h>
+#include <vnl/algo/vnl_ldl_cholesky.h>
 #include <vnl/algo/vnl_qr.h>
 #include <vnl/algo/vnl_matrix_inverse.h>
 #include <vnl/algo/vnl_generalized_eigensystem.h>
@@ -143,10 +144,11 @@ antsSCCANObject<TInputImage, TRealType>
     RealType spacingsize = 0;
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      spacingsize += this->m_MaskImageP->GetSpacing()[d];
+      RealType sp = this->m_MaskImageP->GetSpacing()[d];
+      spacingsize += sp * sp;
       }
     spacingsize = sqrt( spacingsize );
-    filter->SetSigma( 0.5 * spacingsize );
+    filter->SetSigma( 0.333 * spacingsize );
     filter->SetInput(image);
     filter->Update();
     image = filter->GetOutput();
@@ -154,7 +156,7 @@ antsSCCANObject<TInputImage, TRealType>
     unsigned int nzct = 0;
     for( unsigned int kk = 0; kk < pveck.size(); kk++ )
       {
-      RealType grad = ( gradvec[kk]  ) * 1;
+      RealType grad = ( gradvec[kk]  ) * 0.5;
       if( pveck[kk] > 0 && signvec[kk] < 0 ||
           pveck[kk] < 0 && signvec[kk] > 0  )
         {
@@ -188,11 +190,9 @@ antsSCCANObject<TInputImage, TRealType>
       notdone = true;
       }
     kkk++;
-    if( !notdone )
-      {
-      ::ants::antscout << " Kappa " << kappa << " " << kkk << " sparseness " << sp <<  " dkap " << dkappa << " nzct "
-                       << nzct << std::endl;
-      }
+    //    if ( ! notdone )
+    ::ants::antscout << " Kappa " << kappa << " " << kkk << " sparseness " << sp <<  " dkap " << dkappa << " nzct "
+                     << nzct << std::endl;
     }
 }
 
@@ -403,7 +403,7 @@ typename antsSCCANObject<TInputImage, TRealType>::MatrixType
 antsSCCANObject<TInputImage, TRealType>
 ::VNLPseudoInverse( typename antsSCCANObject<TInputImage, TRealType>::MatrixType rin, bool take_sqrt )
 {
-  double       pinvTolerance = 1.e-9; // this->m_PinvTolerance;
+  double       pinvTolerance = this->m_PinvTolerance;
   MatrixType   dd = rin;
   unsigned int ss = dd.rows();
 
@@ -1900,7 +1900,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // measures the change in the residual --- this is the Fletcher-Reeves form for nonlinear CG
     // see Table 1.1 \Beta^FR in A SURVEY OF NONLINEAR CONJUGATE GRADIENT METHODS
     // in this paper's notation d => p,  g => r , alpha, beta, x the same , so y = rk1 - rk
-    //    RealType   beta_k = inner_product( r_k1 , r_k1 ) /  inner_product( r_k , r_k ); // classic cg
     // measures the change in the residual
     VectorType yk = r_k1 - r_k;
     // RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
@@ -2048,8 +2047,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     b = b * ( -1 );
     }
-  bool         debug = false;
-  RealType     intercept = 0;
+  bool     debug = false;
+  RealType intercept = 0;
+
   VectorType   r_k = ( b -  A.transpose() * ( A * x_k ) );
   VectorType   p_k = r_k;
   double       approxerr = 1.e22;
@@ -2086,8 +2086,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       }
 
-    //    this->SparsifyP( x_k1, keeppos );
-    this->CurvatureSparseness( x_k1, 95 );
+    this->SparsifyP( x_k1, keeppos );
     if( debug )
       {
       ::ants::antscout << " xk12n " << x_k1.two_norm() << " alpha_k " << alpha_k << " pk2n " << p_k.two_norm()
@@ -2095,14 +2094,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     VectorType proj = A.transpose() * (A * x_k1 );
     VectorType r_k1 = ( b -  proj );
-    if( makeprojsparse && false && keeppos )
+    if( makeprojsparse  )
       {
-      this->CurvatureSparseness( r_k1, 95 );
+      this->SparsifyP( r_k1, keeppos );
       }
-    // this->SparsifyP( r_k1, keeppos );
     approxerr = r_k1.two_norm();
     RealType newminerr = minerr;
-    if( approxerr < newminerr )
+    if( approxerr < newminerr || ct == 0 )
       {
       newminerr = approxerr; bestsol = ( x_k1 );  this->m_Intercept = intercept;
       }
@@ -2146,6 +2144,107 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     b = b * ( -1 );
     }
   return minerr / A.rows();
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::SparseNLPreConjGrad( typename antsSCCANObject<TInputImage,
+                                                TRealType>::MatrixType& A,
+                       typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
+                       typename antsSCCANObject<TInputImage,
+                                                TRealType>::VectorType  b, TRealType convcrit, unsigned int maxits,
+                       unsigned int loorth, unsigned int hiorth )
+{
+  if( this->m_PreC.size() <= 0 )
+    {
+    vnl_diag_matrix<TRealType> prec( A.cols(), 0 );
+    this->m_PreC = prec;
+    for( unsigned int i = 0; i < A.cols(); i++ )
+      {
+      this->m_PreC( i, i ) = inner_product( A.get_column( i ),  A.get_column( i ) );
+      if( this->m_PreC( i, i ) >  1.e-6 )
+        {
+        this->m_PreC( i, i ) = 1 / this->m_PreC( i, i );
+        }
+      else
+        {
+        this->m_PreC( i, i ) = 0;
+        }
+      }
+    }
+  bool negate = false;
+
+  if( b.max_value() <= 0 )
+    {
+    negate = true;
+    }
+  if( negate )
+    {
+    b = b * ( -1 );
+    }
+  RealType     intercept = 0;
+  VectorType   r_k = ( b -  A.transpose() * ( A * x_k ) );
+  VectorType   z_k = this->m_PreC * r_k;
+  VectorType   p_k = z_k;
+  double       approxerr = 1.e22;
+  unsigned int ct = 0;
+  VectorType   bestsol = x_k;
+  RealType     starterr = r_k.two_norm();
+  RealType     minerr = starterr, deltaminerr = 1;
+  while(  deltaminerr > 1.e-4 && minerr > convcrit && ct < maxits )
+    {
+    RealType   alpha_denom = inner_product( p_k,  A.transpose() * ( A * p_k ) );
+    RealType   iprk = inner_product( r_k, z_k );
+    RealType   alpha_k = iprk / alpha_denom;
+    RealType   best_alph = alpha_k;
+    VectorType x_k1  = x_k + best_alph * p_k;
+    if( hiorth > loorth   )
+      {
+      for(  unsigned int wv = loorth; wv < hiorth; wv++ )
+        {
+        x_k1 = this->Orthogonalize( x_k1, this->m_VariatesP.get_column( wv ) );
+        }
+      }
+    RealType spgoal = 100.0 * ( 1 - vnl_math_abs( this->m_FractionNonZeroP ) );
+    this->CurvatureSparseness( x_k1, spgoal );
+    VectorType proj = A.transpose() * (A * x_k1 );
+    VectorType r_k1 = ( b -  proj );
+    // this->CurvatureSparseness( r_k1 , spgoal );
+    approxerr = r_k1.two_norm();
+    VectorType z_k1 = this->m_PreC * r_k1;
+    RealType   newminerr = minerr;
+    if( approxerr < newminerr || ct == 0 )
+      {
+      newminerr = approxerr; bestsol = ( x_k1 );  this->m_Intercept = intercept;
+      }
+    deltaminerr = ( minerr - newminerr  );
+    if( newminerr < minerr )
+      {
+      minerr = newminerr;
+      }
+    VectorType yk = r_k1 - r_k;
+    RealType   temp = inner_product( z_k, r_k );
+    if( vnl_math_abs( temp ) < 1.e-9 )
+      {
+      temp = 1;
+      }
+    RealType   beta_k = inner_product( z_k1, r_k1 ) / temp;
+    VectorType p_k1  = z_k1 + beta_k * p_k;
+    r_k = r_k1;
+    p_k = p_k1;
+    x_k = x_k1;
+    z_k = z_k1; // preconditioning
+    ct++;
+    }
+
+  x_k = bestsol;
+  if( negate )
+    {
+    x_k = x_k * ( -1 );
+    b = b * ( -1 );
+    }
+  RealType finalerr = minerr / A.rows();
+  return finalerr;
 }
 
 template <class TInputImage, class TRealType>
@@ -2201,13 +2300,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       unsigned int locind = baseind + whichevec;
       VectorType   x_k = this->InitializeV( this->m_MatrixP, false );
       this->m_FractionNonZeroP = fnp + fnp * whichevec;
-      RealType minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 10, true, true ); //  , baseind ,
-                                                                                                   // locind
+      RealType minerr1 = this->SparseNLConjGrad( this->m_MatrixP, x_k, b, 1.e-1, 10, true, true  ); // , 0 , colind );
+                                                                                                    // //  , baseind ,
+                                                                                                    // locind
       bool     keepgoing = true;  unsigned int kgct = 0;
       while( keepgoing && kgct < 100 )
         {
         VectorType x_k2 = x_k;
-        RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, b, 1.e-1, 10, true, true   );
+        RealType   minerr2 = this->SparseNLConjGrad( this->m_MatrixP, x_k2, b, 1.e-1, 10, true, true ); // , 0 , colind
+                                                                                                        // );
         keepgoing = false;
         // if ( fabs( minerr2 - minerr1 ) < 1.e-9 ) { x_k = x_k2; keepgoing = true; minerr1 = minerr2 ; }
         if( minerr2 < minerr1  )
@@ -2664,13 +2765,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           {
           this->PosNegVector( bp, false );
           }
-        minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-1, 30, true, true );
+        minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 30, true, true );
         bool         keepgoing = true;
         unsigned int cter = 0;
         while( keepgoing && cter < 200 )
           {
           VectorType randv2 = randv;
-          RealType   minerr2 = this->SparseNLConjGrad( matrixP, randv2, bp, 1.e-1, 30, true, true );
+          RealType   minerr2 = this->SparseNLPreConjGrad( matrixP, randv2, bp, 1.e-1, 30, true, true );
           keepgoing = false;
           if( minerr2 < minerr1 )
             {
@@ -4295,5 +4396,40 @@ antsSCCANObject<TInputImage, TRealType>
 //        this->m_MatrixQ=temp;
 
       }
+
+*/
+
+/*
+
+  bool precond = true;
+  MatrixType Cinv;
+  if ( precond )
+    {
+    // Preconditioned Conjugate Gradient Method
+    // Tuesday 25 July 2006, by Nadir SOUALEM
+    ::ants::antscout << " begin chol " << std::endl;
+    MatrixType AAt =  A * A.transpose() ;
+    MatrixType kcovmat=this->VNLPseudoInverse( this->m_VariatesP.transpose()*this->m_VariatesP
+    vnl_ldl_cholesky chol( AAt );
+    ::ants::antscout << " done chol " << std::endl;
+    MatrixType chollow = chol.lower_triangle();
+    vnl_diag_matrix<double> diag( chol.diagonal() );
+    vnl_diag_matrix<double> diaginv( chol.diagonal() );
+    for ( unsigned int i = 0; i < diag.cols(); i++ )
+      if ( diaginv(i,i) > 1.e-6 )
+  {
+  diaginv = 1.0 / diaginv( i , i );
+  chollow( i , i ) = chollow( i , i ) + diag( i, i );
+  }
+      else diaginv(i,i) = diag(i,i) = 0;
+    ::ants::antscout << " precon " << std::endl;
+    // preconditioner
+    MatrixType temp = ( chollow * diaginv ) * chollow.transpose();
+    Cinv = vnl_matrix_inverse<double>( temp );
+    ::ants::antscout << " precon done " << std::endl;
+    A = Cinv * A;
+    ::ants::antscout << " got A precond " << std::endl;
+    }
+
 
 */
