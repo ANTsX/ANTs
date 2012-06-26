@@ -86,6 +86,10 @@
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 #include "vnl/vnl_matrix_fixed.h"
+#include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
+#include "itkCorrelationImageToImageMetricv4.h"
+#include "itkDemonsImageToImageMetricv4.h"
+#include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
 
 #include <fstream>
 #include <iostream>
@@ -9317,6 +9321,436 @@ int CorrelationUpdate(      int argc, char *argv[])
   return 0;
 }
 
+template <unsigned int ImageDimension>
+int MajorityVoting( int argc, char *argv[] )
+{
+  typedef int                                           PixelType;
+  typedef itk::Image<PixelType, ImageDimension>         ImageType;
+  typedef itk::ImageFileReader<ImageType>               ImageReaderType;
+  typedef itk::ImageFileWriter<ImageType>               ImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>  IteratorType;
+
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  std::string outputName = std::string( argv[2] );
+
+  // Read input segmentations
+  const unsigned long nImages = argc - 4;
+  typename ImageType::Pointer images[argc - 4];
+  for( int i = 4; i < argc; i++ )
+    {
+    images[i - 4] = ImageType::New();
+    ReadImage<ImageType>( images[i - 4], argv[i] );
+    }
+
+  // Find maximum label
+  int maxLabel = 0;
+  for( unsigned int i = 0; i < nImages; i++ )
+    {
+    typename CalculatorType::Pointer calc = CalculatorType::New();
+    calc->SetImage( images[i] );
+    calc->ComputeMaximum();
+    if( calc->GetMaximum() > maxLabel )
+      {
+      maxLabel = calc->GetMaximum();
+      }
+    }
+  unsigned long nLabels = maxLabel + 1; // account for label=0
+
+  typename ImageType::Pointer output = ImageType::New();
+  // output->CopyInformation( images[0] );
+  output->SetRegions( images[0]->GetLargestPossibleRegion() );
+  output->SetSpacing( images[0]->GetSpacing() );
+  output->SetOrigin( images[0]->GetOrigin() );
+  output->SetDirection( images[0]->GetDirection() );
+  output->Allocate();
+  output->FillBuffer( 0 );
+
+  IteratorType              it( output, output->GetLargestPossibleRegion() );
+  itk::Array<unsigned long> votes;
+  votes.SetSize( nLabels );
+
+  while( !it.IsAtEnd() )
+    {
+    votes.Fill(0);
+    unsigned long maxVotes = 0;
+    unsigned long votedLabel = 0;
+    for( unsigned long i = 0; i < nImages; i++ )
+      {
+      unsigned long label = images[i]->GetPixel( it.GetIndex() );
+      votes.SetElement(label, votes.GetElement(label) + 1 );
+
+      if( votes.GetElement(label) > maxVotes )
+        {
+        maxVotes = votes.GetElement(label);
+        votedLabel = label;
+        }
+      }
+
+    it.Set( votedLabel );
+    ++it;
+    }
+
+  WriteImage<ImageType>( output, outputName.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int CorrelationVoting( int argc, char *argv[] )
+{
+  typedef float                                              PixelType;
+  typedef int                                                LabelType;
+  typedef itk::Image<PixelType, ImageDimension>              ImageType;
+  typedef itk::Image<LabelType, ImageDimension>              LabelImageType;
+  typedef itk::ImageFileReader<ImageType>                    ImageReaderType;
+  typedef itk::ImageFileReader<LabelImageType>               LabelImageReaderType;
+  typedef itk::ImageFileWriter<LabelImageType>               LabelImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<LabelImageType> CalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<LabelImageType>  IteratorType;
+  typedef itk::NeighborhoodIterator<ImageType>               NeighborhoodIteratorType;
+
+  if( argc < 6 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  std::string outputName = std::string( argv[2] );
+
+  int radius = 5;
+
+  // Read input images and segmentations
+  const int nImages = (argc - 4) / 2;
+
+  typename ImageType::Pointer target = ImageType::New();
+  ReadImage<ImageType>( target, argv[4] );
+
+  typename ImageType::Pointer images[nImages];
+  typename LabelImageType::Pointer labels[nImages];
+  for( int i = 5; i < (5 + nImages); i++ )
+    {
+    images[i - 5] = ImageType::New();
+    ReadImage<ImageType>( images[i - 5], argv[i] );
+    }
+  for( int i = 5 + nImages; i < (5 + 2 * nImages); i++ )
+    {
+    labels[i - 5 - nImages] = LabelImageType::New();
+    ReadImage<LabelImageType>( labels[i - 5 - nImages], argv[i] );
+    }
+
+  // Find maximum label
+  int maxLabel = 0;
+  for( int i = 0; i < nImages; i++ )
+    {
+    typename CalculatorType::Pointer calc = CalculatorType::New();
+    calc->SetImage( labels[i] );
+    calc->ComputeMaximum();
+    if( calc->GetMaximum() > maxLabel )
+      {
+      maxLabel = calc->GetMaximum();
+      }
+    }
+  unsigned long nLabels = maxLabel + 1; // account for label=0
+
+  typename LabelImageType::Pointer output = LabelImageType::New();
+  output->SetRegions( images[0]->GetLargestPossibleRegion() );
+  output->SetSpacing( images[0]->GetSpacing() );
+  output->SetOrigin( images[0]->GetOrigin() );
+  output->SetDirection( images[0]->GetDirection() );
+  output->Allocate();
+  output->FillBuffer( 0 );
+
+  IteratorType      it( output, output->GetLargestPossibleRegion() );
+  itk::Array<float> votes;
+  votes.SetSize( nLabels );
+
+  typename NeighborhoodIteratorType::RadiusType rad;
+  for( unsigned int j = 0; j < ImageDimension; j++ )
+    {
+    rad[j] = radius;
+    }
+  NeighborhoodIteratorType metricIt(rad, target, target->GetLargestPossibleRegion() );
+
+  while( !it.IsAtEnd() )
+    {
+    votes.Fill(0);
+    float maxVotes = 0;
+    int   votedLabel = 0;
+    for( int i = 0; i < nImages; i++ )
+      {
+      int label = labels[i]->GetPixel( it.GetIndex() );
+      votes.SetElement(label, votes.GetElement(label) + 1 );
+
+      if( votes.GetElement(label) > maxVotes )
+        {
+        maxVotes = votes.GetElement(label);
+        votedLabel = label;
+        }
+      }
+
+    // If all agree, assign label immediately
+    if( maxVotes == nImages )
+      {
+      it.Set( votedLabel );
+      }
+    else
+      {
+      votes.Fill( 0.0 );
+      maxVotes = 0.0;
+      votedLabel = 0;
+
+      itk::VariableLengthVector<float> weights( nImages );
+      for( int i = 0; i < nImages; i++ )
+        {
+        metricIt.SetLocation( it.GetIndex() );
+        float targetMean = 0.0;
+        float targetVar = 0.0;
+        float imageMean = 0.0;
+        float imageVar = 0.0;
+        float k = 0;
+        float product = 0.0;
+        for( unsigned int j = 0; j < metricIt.Size(); j++ )
+          {
+          typename NeighborhoodIteratorType::OffsetType internal;
+          typename NeighborhoodIteratorType::OffsetType offset;
+          if( metricIt.IndexInBounds( j, internal, offset ) )
+            {
+            k++;
+            typename ImageType::IndexType idx = metricIt.GetIndex( j );
+            if( k == 1 )
+              {
+              targetMean = target->GetPixel( idx );
+              imageMean = images[i]->GetPixel( idx );
+              targetVar = 0.0;
+              imageVar = 0.0;
+              }
+            else
+              {
+              float oldMean = targetMean;
+              float value = target->GetPixel( idx );
+              targetMean = targetMean + (value - targetMean) / k;
+              targetVar = targetVar + (value - oldMean) * ( value - targetMean );
+
+              oldMean = imageMean;
+              float iValue = images[i]->GetPixel( idx );
+              imageMean = imageMean + ( iValue - imageMean ) / k;
+              imageVar = imageVar + ( iValue - oldMean) * ( iValue - imageMean );
+
+              product += value * iValue;
+              }
+            } // metricIt.IndexInBounds()
+          }   // j >= metricIt.Size()
+
+        targetVar /= (k - 1);
+        imageVar /= (k - 1);
+        float pearson =
+          ( product - k * targetMean * imageMean ) / ( (k - 1) * vcl_sqrt(targetVar) * vcl_sqrt(imageVar) );
+        weights.SetElement( i, vcl_fabs(pearson) );
+        } // i >= nImages
+      for( int i = 0; i < nImages; i++ )
+        {
+        int label = labels[i]->GetPixel( it.GetIndex() );
+        votes.SetElement(label, votes.GetElement(label) + weights.GetElement(i) );
+
+        if( votes.GetElement(label) > maxVotes )
+          {
+          maxVotes = votes.GetElement(label);
+          votedLabel = label;
+          }
+        }
+
+      it.Set(votedLabel);
+      } // else find weighted vote winner
+
+    ++it;
+    } // iterate over output image
+
+  WriteImage<LabelImageType>( output, outputName.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int ImageMetrics( int argc, char *argv[] )
+{
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
+    <ImageType, ImageType, ImageType>                                          MetricType;
+
+  if( argc < 5 )
+    {
+    antscout << "ERROR: Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  typename ImageType::Pointer img1 = ImageType::New();
+  ReadImage<ImageType>( img1, argv[4] );
+
+  typename ImageType::Pointer img2 = ImageType::New();
+  ReadImage<ImageType>( img2, argv[5] );
+
+  float value = 0.0;
+
+  if( strcmp(argv[3], "NeighborhoodCorrelation") == 0 )
+    {
+    typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
+      <ImageType, ImageType, ImageType>                                          MetricType;
+
+    int r = 5;
+    if( argc > 6 )
+      {
+      r = atoi( argv[6] );
+      }
+
+    typename MetricType::RadiusType radius;
+    radius.Fill( r );
+
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetRadius( radius );
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+    metric->Initialize();
+    value = metric->GetValue();
+    }
+  else if( strcmp(argv[3], "NormalizedCorrelation") == 0 )
+    {
+    typedef itk::CorrelationImageToImageMetricv4
+      <ImageType, ImageType, ImageType> MetricType;
+
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+    metric->Initialize();
+    value = metric->GetValue();
+    }
+  else if( strcmp(argv[3], "Demons") == 0 )
+    {
+    typedef itk::DemonsImageToImageMetricv4
+      <ImageType, ImageType, ImageType> MetricType;
+
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+
+    // FIXME - Calling initialize on demons causes seg fault
+    antscout << "Demons is currently broken" << std::endl;
+    return 1;
+
+    metric->Initialize();
+    value = metric->GetValue();
+    }
+  else if( strcmp(argv[3], "Mattes") == 0 )
+    {
+    typedef itk::JointHistogramMutualInformationImageToImageMetricv4
+      <ImageType, ImageType, ImageType> MetricType;
+
+    int bins = 32;
+    if( argc > 6 )
+      {
+      bins = atoi( argv[6] );
+      }
+
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+    metric->SetNumberOfHistogramBins( bins );
+    metric->Initialize();
+    value = metric->GetValue();
+    }
+
+  antscout << value << std::endl;
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int PearsonCorrelation( int argc, char *argv[] )
+{
+  typedef float                                        PixelType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
+
+  if( argc < 5 )
+    {
+    antscout << "ERROR: Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  typename ImageType::Pointer img1 = ImageType::New();
+  ReadImage<ImageType>( img1, argv[4] );
+
+  typename ImageType::Pointer img2 = ImageType::New();
+  ReadImage<ImageType>( img2, argv[5] );
+
+  typename ImageType::Pointer mask = ImageType::New();
+
+  if( argc > 6 )
+    {
+    ReadImage<ImageType>( mask, argv[6] );
+    }
+  else
+    {
+    mask->SetRegions( img1->GetLargestPossibleRegion() );
+    mask->SetSpacing( img1->GetSpacing() );
+    mask->SetOrigin( img1->GetOrigin() );
+    mask->SetDirection( img1->GetDirection() );
+    mask->Allocate();
+    mask->FillBuffer( 1 );
+    }
+
+  float mean1 = 0.0;
+  float var1 = 0.0;
+  float mean2 = 0.0;
+  float var2 = 0.0;
+  float product = 0.0;
+  float k = 0;
+
+  IteratorType it( mask, mask->GetLargestPossibleRegion() );
+  while( !it.IsAtEnd() )
+    {
+    if( it.Value() > 0 )
+      {
+      k++;
+      typename ImageType::IndexType idx = it.GetIndex();
+      if( k == 1 )
+        {
+        mean1 = img1->GetPixel( idx );
+        mean2 = img2->GetPixel( idx );
+        var1 = 0.0;
+        var2 = 0.0;
+        }
+      else
+        {
+        float oldMean = mean1;
+        float value = img1->GetPixel( idx );
+        mean1 = mean1 + (value - mean1) / k;
+        var1 = var1 + (value - oldMean) * ( value - mean1 );
+
+        oldMean = mean2;
+        value = img2->GetPixel( idx );
+        mean2 = mean2 + ( value - mean2 ) / k;
+        var2 = var2 + ( value - oldMean) * ( value - mean2 );
+
+        product += img1->GetPixel( idx ) *  img2->GetPixel( idx );
+        }
+      }
+    ++it;
+    }
+
+  var1 /= (k - 1);
+  var2 /= (k - 1);
+
+  float pearson = ( product - k * mean1 * mean2 ) / ( (k - 1) * vcl_sqrt(var1) * vcl_sqrt(var2) );
+  antscout << pearson << std::endl;
+
+  return 0;
+}
+
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
@@ -9486,6 +9920,25 @@ private:
       "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest eigenvalue). 3 = 8 => gets values from the tensor "
       << std::endl;
     antscout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
+
+    antscout << "\nLabel Fusion:" << std::endl;
+    antscout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
+    antscout << "    Usage: MajorityVoting LabelImage1.nii.gz .. LabelImageN.nii.gz" << std::endl;
+    antscout << "  CorrelationVoting : Select label with local correlation weights" << std::endl;
+    antscout << "    Usage: CorrelationVoting Template.ext IntenistyImages* LabelImages* {Optional-Radius=5}"
+             << std::endl;
+
+    antscout << "\nImage Metrics & Info:" <<  std::endl;
+    antscout << "  PearsonsCorrelation: r-value from intesities of two images" << std::endl;
+    antscout << "    Usage: PearsonCorrelation image1.ext image2.ext {Optional-mask.ext}" << std::endl;
+    antscout << "  NeighborhoodCorrelation: local correlations" << std::endl;
+    antscout << "    Usage: NeighborhoodCorrelation image1.ext image2.ext {Optional-radius=5}" << std::endl;
+    antscout << "  NormalizedCorrelation: r-value from intesities of two images" << std::endl;
+    antscout << "    Usage: NormalizedCorrelation image1.ext image2.ext" << std::endl;
+    antscout << "  Demons: " << std::endl;
+    antscout << "    Usage: Demons image1.ext image2.ext" << std::endl;
+    antscout << "  PearsonsCorrelations: mutual information" << std::endl;
+    antscout << "    Usage: Mattes image1.ext image2.ext {Optional-number-bins=32}" << std::endl;
 
     antscout << "\nUnclassified Operators:" << std::endl;
 
@@ -9954,6 +10407,34 @@ private:
         {
         ExtractSlice<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
+        {
+        MajorityVoting<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
+        {
+        CorrelationVoting<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
+        {
+        PearsonCorrelation<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
+        {
+        ImageMetrics<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
+        {
+        ImageMetrics<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Demons") == 0 )
+        {
+        ImageMetrics<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Mattes") == 0 )
+        {
+        ImageMetrics<2>(argc, argv);
+        }
       //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
         {
@@ -10276,6 +10757,34 @@ private:
         {
         MTR<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
+        {
+        MajorityVoting<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
+        {
+        CorrelationVoting<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
+        {
+        PearsonCorrelation<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
+        {
+        ImageMetrics<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
+        {
+        ImageMetrics<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Demons") == 0 )
+        {
+        ImageMetrics<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Mattes") == 0 )
+        {
+        ImageMetrics<3>(argc, argv);
+        }
       else
         {
         antscout << " cannot find operation : " << operation << std::endl;
@@ -10364,6 +10873,7 @@ private:
         {
         NormalizeImage<4>(argc, argv);
         }
+
       else if( strcmp(operation.c_str(), "Grad") == 0 )
         {
         GradientImage<4>(argc, argv);
@@ -10562,6 +11072,34 @@ private:
       else if( strcmp(operation.c_str(), "pCASL") == 0 )
         {
         pCASL<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
+        {
+        MajorityVoting<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
+        {
+        CorrelationVoting<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
+        {
+        PearsonCorrelation<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
+        {
+        ImageMetrics<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
+        {
+        ImageMetrics<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Demons") == 0 )
+        {
+        ImageMetrics<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Mattes") == 0 )
+        {
+        ImageMetrics<4>(argc, argv);
         }
       else
         {
