@@ -9422,10 +9422,14 @@ int CorrelationVoting( int argc, char *argv[] )
 
   std::string outputName = std::string( argv[2] );
 
-  int radius = 5;
-
   // Read input images and segmentations
-  const int nImages = (argc - 4) / 2;
+  const int nImages = (argc - 5) / 2;
+
+  int radius = 5;
+  if( argc > ( 5 + 2 * nImages ) )
+    {
+    radius = atoi( argv[5 + 2 * nImages] );
+    }
 
   typename ImageType::Pointer target = ImageType::New();
   ReadImage<ImageType>( target, argv[4] );
