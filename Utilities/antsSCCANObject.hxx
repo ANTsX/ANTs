@@ -2244,6 +2244,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     b = b * ( -1 );
     }
   RealType finalerr = minerr / A.rows();
+  //  ::ants::antscout << " NZ1 " << this->CountNonZero( x_k ) << " err " << finalerr << std::endl;
   return finalerr;
 }
 
@@ -2765,13 +2766,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           {
           this->PosNegVector( bp, false );
           }
-        minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 30, true, true );
+        minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 30 );
         bool         keepgoing = true;
         unsigned int cter = 0;
         while( keepgoing && cter < 200 )
           {
           VectorType randv2 = randv;
-          RealType   minerr2 = this->SparseNLPreConjGrad( matrixP, randv2, bp, 1.e-1, 30, true, true );
+          RealType   minerr2 = this->SparseNLPreConjGrad( matrixP, randv2, bp, 1.e-1, 30 );
           keepgoing = false;
           if( minerr2 < minerr1 )
             {
