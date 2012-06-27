@@ -342,6 +342,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
 
   std::vector<unsigned int> meshSize = ConvertVector<unsigned int>( std::string( argv[4] ) );
   typename BSplineFilterType::ArrayType ncps;
+  ncps.Fill( 0 );
 
   if( meshSize.size() == 1 )
     {
