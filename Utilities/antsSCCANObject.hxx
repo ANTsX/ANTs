@@ -2587,15 +2587,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   }*/
   /** post-process the result to select the largest n_vecs entries  */
   std::vector<TRealType> post( beta_lasso.size(), 0 );
-  long                   j;
-  for(  j = 0; j < beta_lasso.size(); ++j )
+  for( unsigned long  j = 0; j < beta_lasso.size(); ++j )
     {
     post[j] = fabs( beta_lasso( j ) );
     }
   // sort and reindex the values
   sort( post.begin(), post.end(), my_sccan_sort_object);
   RealType thresh = 0;
-  for(  j = 0; ( ( j < beta_lasso.size() ) && ( j < n_vecs ) ); ++j )
+  for( unsigned long j = 0; ( ( j < beta_lasso.size() ) && ( j < n_vecs ) ); ++j )
     {
     thresh = post[j];
     }
@@ -2603,7 +2602,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   if( thresh > 0 )
     {
     added = 0;
-    for(  j = 0; j < beta_lasso.size(); ++j )
+    for(  unsigned long j = 0; j < beta_lasso.size(); ++j )
       {
       if( fabs( beta_lasso( j ) ) < thresh )
         {
@@ -3879,7 +3878,7 @@ antsSCCANObject<TInputImage, TRealType>
       }
     std::vector<TRealType> evals(n_vecs, 0);
     std::vector<TRealType> oevals(n_vecs, 0);
-    for( long j = 0; j < n_vecs; ++j )
+    for( unsigned long j = 0; j < n_vecs; ++j )
       {
       RealType val = fabs(this->m_CanonicalCorrelations[j]);
       evals[j] = val;

@@ -1172,7 +1172,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 
   antscout << std::endl;
   segmenter->Print( std::cout, 2 );
-  antscout << "Elapsed time: " << timer.GetMeanTime() << std::endl;
+  antscout << "Elapsed time: " << timer.GetMean() << std::endl;
 
   return EXIT_SUCCESS;
 }

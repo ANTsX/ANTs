@@ -259,10 +259,10 @@ CopyImageToVnlMatrix( typename TImage::Pointer   p_img )
   typedef vnl_matrix<TComp> vMatrix;
 
   typename TImage::SizeType  pMatSize = p_img->GetLargestPossibleRegion().GetSize();
-  vMatrix p(pMatSize[0], pMatSize[1]);       // a (size)x(size+1)-matrix of int's
-  for( long j = 0; j < p.columns(); ++j )    // loop over columns
+  vMatrix p(pMatSize[0], pMatSize[1]);             // a (size)x(size+1)-matrix of int's
+  for( unsigned long j = 0; j < p.columns(); ++j ) // loop over columns
     {
-    for( long i = 0; i < static_cast<long>(p.rows() ); ++i )   // loop over rows
+    for( unsigned long i = 0; i < p.rows(); ++i )   // loop over rows
       {
       typename TImage::IndexType ind;
       ind[0] = i;

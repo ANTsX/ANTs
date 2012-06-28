@@ -379,7 +379,7 @@ int N4( itk::ants::CommandLineParser *parser )
   correcter->Print( antscout, 3 );
 
   timer.Stop();
-  antscout << "Elapsed time: " << timer.GetMeanTime() << std::endl;
+  antscout << "Elapsed time: " << timer.GetMean() << std::endl;
 
   /**
    * output

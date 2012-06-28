@@ -2331,11 +2331,11 @@ RegistrationHelper<VImageDimension>
         return EXIT_FAILURE;
       }
     timer.Stop();
-    this->Logger() << "  Elapsed time (stage " << stageNumber << "): " << timer.GetMeanTime() << std::endl << std::endl;
+    this->Logger() << "  Elapsed time (stage " << stageNumber << "): " << timer.GetMean() << std::endl << std::endl;
     }
 
   totalTimer.Stop();
-  this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMeanTime() << std::endl;
+  this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
   return EXIT_SUCCESS;
 }
 

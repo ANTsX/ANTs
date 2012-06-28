@@ -325,7 +325,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
 
   direct->Print( antscout, 3 );
 
-  antscout << "DiReCT elapsed time: " << timer.GetMeanTime() << std::endl;
+  antscout << "DiReCT elapsed time: " << timer.GetMean() << std::endl;
 
   /**
    * output
