@@ -9340,8 +9340,8 @@ int MajorityVoting( int argc, char *argv[] )
   std::string outputName = std::string( argv[2] );
 
   // Read input segmentations
-  const unsigned long nImages = argc - 4;
-  typename ImageType::Pointer images[argc - 4];
+  const unsigned long                               nImages = argc - 4;
+  typename std::vector<typename ImageType::Pointer> images(argc - 4);
   for( int i = 4; i < argc; i++ )
     {
     images[i - 4] = ImageType::New();
@@ -9434,8 +9434,8 @@ int CorrelationVoting( int argc, char *argv[] )
   typename ImageType::Pointer target = ImageType::New();
   ReadImage<ImageType>( target, argv[4] );
 
-  typename ImageType::Pointer images[nImages];
-  typename LabelImageType::Pointer labels[nImages];
+  typename std::vector<typename ImageType::Pointer>      images(nImages);
+  typename std::vector<typename LabelImageType::Pointer> labels(nImages);
   for( int i = 5; i < (5 + nImages); i++ )
     {
     images[i - 5] = ImageType::New();
