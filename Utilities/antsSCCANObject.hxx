@@ -157,8 +157,8 @@ antsSCCANObject<TInputImage, TRealType>
     for( unsigned int kk = 0; kk < pveck.size(); kk++ )
       {
       RealType grad = ( gradvec[kk]  ) * 0.5;
-      if( pveck[kk] > 0 && signvec[kk] < 0 ||
-          pveck[kk] < 0 && signvec[kk] > 0  )
+      if( ( ( pveck[kk] > 0 ) && ( signvec[kk] < 0 ) )
+          || ( ( pveck[kk] < 0 ) && ( signvec[kk] > 0 ) ) )
         {
         pveck[kk] = 0;
         zct++;
