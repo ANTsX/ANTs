@@ -314,15 +314,21 @@ public:
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
   RealType ConjGrad( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int  );
 
+  RealType SparseConjGradRidgeRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit,
+                                          unsigned int, bool );
+
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
                              bool makeprojsparse = false, unsigned int loorth =  0, unsigned int hiorth = 0 );
-  RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int,
-                                unsigned int loorth =  0, unsigned int hiorth = 0 );
+  RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int );
+  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda );
+
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
 
   VectorType InitializeV( MatrixType p, bool random = false);
+
+  VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
 
   MatrixType NormalizeMatrix(MatrixType p);
 
@@ -769,8 +775,9 @@ protected:
     mat_to_add_to = outmat;
   }
 
-  void CurvatureSparseness( VectorType& v1, RealType sparsenessgoal = 1 );
+  RealType CurvatureSparseness( VectorType& x, RealType sparsenessgoal, unsigned int maxit );
 
+  // , MatrixType& A, VectorType& b );
 private:
 
   ImagePointer ConvertVariateToSpatialImage( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );
