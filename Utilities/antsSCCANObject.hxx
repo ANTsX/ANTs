@@ -144,8 +144,8 @@ antsSCCANObject<TInputImage, TRealType>
     for( unsigned int kk = 0; kk < x.size(); kk++ )
       {
       RealType grad = ( gradvec[kk]  ) * 0.5;
-      if( ( x[kk] > 0 ) && ( signvec[kk] < 0 ) ||
-          ( x[kk] < 0 ) && ( signvec[kk] > 0 ) )
+      if( ( ( x[kk] > 0 ) && ( signvec[kk] < 0 ) ) ||
+          ( ( x[kk] < 0 ) && ( signvec[kk] > 0 ) ) )
         {
         x[kk] = 0;
         zct++;
@@ -2060,7 +2060,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  p_k,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  b,
-                  TRealType minalph, bool keeppos )
+                  TRealType minalph, bool /* NOT USED keeppos */ )
 {
   VectorType x_k1  = x_k + minalph * p_k;
 
@@ -2314,7 +2314,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType   bestsol = x_k;
   RealType     starterr = 1.e99;
   RealType     minerr = starterr, deltaminerr = 1;
-  while(  deltaminerr > 1.e-10 && minerr > convcrit && ct < maxits || ct < 5 )
+  while( ( ct < 5 ) ||
+         ( ( deltaminerr > 1.e-10 ) && ( minerr > convcrit ) && ( ct < maxits ) )
+         )
     {
     //    RealType spgoal = 100.0 * ( 1 - vnl_math_abs( this->m_FractionNonZeroP ) );
     RealType alpha_denom = inner_product( p_k,  A.transpose() * ( A * p_k ) );
