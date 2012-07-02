@@ -134,13 +134,15 @@ antsSCCANObject<TInputImage, TRealType>
   unsigned int kkk = 0;
   unsigned int zct = 0;
   RealType     dkappa = 1;
+  RealType     sp = 0;
   bool         notdone = true;
+  unsigned int nzct = 0;
 
   while( notdone )
     {
     kappa = 0;
-    VectorType   gradvec = this->ComputeVectorLaplacian( x, this->m_MaskImageP );
-    unsigned int nzct = 0;
+    VectorType gradvec = this->ComputeVectorLaplacian( x, this->m_MaskImageP );
+    nzct = 0;
     for( unsigned int kk = 0; kk < x.size(); kk++ )
       {
       RealType grad = ( gradvec[kk]  ) * 0.5;
@@ -165,7 +167,7 @@ antsSCCANObject<TInputImage, TRealType>
       {
       kappa /= ( RealType ) nzct;
       }
-    RealType sp = ( RealType ) ( x.size() - nzct ) / x.size() * 100.0;
+    sp = ( RealType ) ( x.size() - nzct ) / x.size() * 100.0;
     //    VectorType pp = A.transpose() * ( A * x );
     //  RealType err = ( pp - b ).one_norm() / x.size();
     //    kappa = err  + this->m_FractionNonZeroP * ( 100 - sp);
@@ -182,14 +184,15 @@ antsSCCANObject<TInputImage, TRealType>
       notdone = true;
       }
     kkk++;
-    if( !notdone )
-      {
-      ::ants::antscout << " Kappa " << kappa << " " << kkk << " sparseness " << sp <<  " dkap " << dkappa << " nzct "
-                       << nzct << std::endl;
-      }
+    //    if ( ! notdone )
+    //  ::ants::antscout  << " Kappa " << kappa << " " << kkk << " sparseness " << sp <<  " dkap " << dkappa << " nzct "
+    // << nzct << std::endl;
     }
 
-  return kappa;
+  VectorType gradvec = this->ComputeVectorGradMag( x, this->m_MaskImageP );
+  ::ants::antscout << " Kappa " << kappa << " " << kkk << " sparseness " << sp <<  " dkap " << dkappa << " nzct "
+                   << nzct << " GradNorm " << gradvec.two_norm() << std::endl;
+  return gradvec.two_norm();
 }
 
 template <class TInputImage, class TRealType>
@@ -370,6 +373,31 @@ antsSCCANObject<TInputImage, TRealType>
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
 
   typedef itk::LaplacianRecursiveGaussianImageFilter<ImageType, ImageType> dgf;
+  typename dgf::Pointer filter = dgf::New();
+  RealType spacingsize = 0;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    RealType sp = mask->GetSpacing()[d];
+    spacingsize += sp * sp;
+    }
+  spacingsize = sqrt( spacingsize );
+  filter->SetSigma( 0.333 * spacingsize );
+  filter->SetInput(image);
+  filter->Update();
+  image = filter->GetOutput();
+  VectorType gradvec = this->ConvertImageToVariate( image,  this->m_MaskImageP );
+  return gradvec;
+}
+
+template <class TInputImage, class TRealType>
+typename antsSCCANObject<TInputImage, TRealType>::VectorType
+antsSCCANObject<TInputImage, TRealType>
+::ComputeVectorGradMag( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
+                        typename TInputImage::Pointer mask )
+{
+  ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
+
+  typedef itk::GradientMagnitudeRecursiveGaussianImageFilter<ImageType, ImageType> dgf;
   typename dgf::Pointer filter = dgf::New();
   RealType spacingsize = 0;
   for( unsigned int d = 0; d < ImageDimension; d++ )
@@ -1948,126 +1976,17 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
-::SparseConjGradRidgeRegression( typename antsSCCANObject<TInputImage,
-                                                          TRealType>::MatrixType& A,
-                                 typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
-                                 typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType convcrit,
-                                 unsigned int maxits, bool makesparse )
-{
-  this->m_Softer = false;
-  /** This will use the normal equations */
-  /** Based on Golub CONJUGATE  G R A D I E N T   A N D  LANCZOS  HISTORY
-   *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
-   */
-  RealType spgoal = 100.0 * ( 1 - vnl_math_abs( this->m_FractionNonZeroP ) );
-  RealType lambda = 1.e2;
-  std::cout << "SparseConjGradRidgeRegression: lambda " << lambda << " Soft? " <<   this->m_Softer << std::endl;
-  bool debug = false;
-  if( debug )
-    {
-    ::ants::antscout << " DEBUG " << std::endl;
-    }
-  // minimize the following error :    \| A^T*A * vec_i -    b \|  +  sparseness_penalty
-  MatrixType At = A.transpose();
-  VectorType b = b_in;
-  this->CurvatureSparseness( b, spgoal, 10 );
-  VectorType r_k = At * ( A * x_k );
-  RealType   regbeta;
-  RealType   intercept = 0;
-  r_k = b - r_k - x_k * lambda;
-  VectorType   p_k = r_k;
-  double       approxerr = 1.e9;
-  unsigned int ct = 0;
-  VectorType   bestsol = x_k;
-  RealType     starterr = 1.e99;
-  RealType     minerr = starterr, deltaminerr = 1, lasterr = starterr * 2;
-  if( makesparse )
-    {
-    this->SparsifyP( x_k, true );
-    }
-  while(  deltaminerr > 0.1 && approxerr > convcrit && ct < maxits )
-    {
-    RealType alpha_denom = inner_product( p_k, At * ( A * p_k ) );
-    RealType iprk = inner_product( r_k, r_k );
-    if( debug )
-      {
-      ::ants::antscout << " iprk " << iprk << std::endl;
-      }
-    if( alpha_denom < 1.e-12 )
-      {
-      alpha_denom = 1;
-      }
-    RealType alpha_k = iprk / alpha_denom;
-    if( debug )
-      {
-      ::ants::antscout << " alpha_k " << alpha_k << std::endl;
-      }
-    VectorType x_k1  = x_k + alpha_k * p_k * 0.25;  // this adds the scaled residual to the current solution
-    if( makesparse )
-      {
-      this->SparsifyP( x_k1, true );
-      }
-    // this->CurvatureSparseness( x_k1 , spgoal , 500 );
-    VectorType r_k1 =  b - At * (A * x_k1 ) - x_k1 * lambda;
-    approxerr =  (b - At * (A * x_k1 ) ).two_norm() + x_k1.two_norm() * lambda;
-    if( approxerr < minerr )
-      {
-      minerr = approxerr; bestsol = ( x_k1 ); this->m_Intercept = intercept;
-      }
-    deltaminerr = ( lasterr - approxerr );
-    // if( debug )
-      {
-      ::ants::antscout << " SparseRidgeConjGrad " << approxerr <<  " deltaminerr " << deltaminerr <<  " nz "
-                       << this->CountNonZero( x_k1 ) << std::endl;
-      }
-    lasterr = approxerr;
-    // measures the change in the residual --- this is the Fletcher-Reeves form for nonlinear CG
-    // see Table 1.1 \Beta^FR in A SURVEY OF NONLINEAR CONJUGATE GRADIENT METHODS
-    // in this paper's notation d => p,  g => r , alpha, beta, x the same , so y = rk1 - rk
-    // measures the change in the residual
-    VectorType yk = r_k1 - r_k;
-    // RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
-    RealType bkdenom = inner_product( r_k, r_k );
-    if( bkdenom < 1.e-12 )
-      {
-      bkdenom = 1;
-      }
-    RealType   beta_k = inner_product( r_k1, r_k1 ) / bkdenom; // classic cg
-    VectorType p_k1  = r_k1 + beta_k * p_k;
-    if( debug )
-      {
-      ::ants::antscout << " p_k1 " << p_k1.two_norm() << std::endl;
-      }
-    r_k = r_k1;
-    p_k = p_k1;
-    x_k = x_k1;
-    ct++;
-    }
-
-  x_k = bestsol;
-  std::cout << " NZ " << this->CountNonZero( x_k ) << std::endl;
-  VectorType predb = At * ( A * x_k );
-  regbeta = this->SimpleRegression( b_in, predb );
-  this->m_Intercept = b_in.mean() - predb.mean() * regbeta;
-  VectorType soln = predb * regbeta;
-  x_k = x_k * regbeta;
-  return ( soln - b_in).one_norm() / b_in.size();
-}
-
-template <class TInputImage, class TRealType>
-TRealType antsSCCANObject<TInputImage, TRealType>
 ::EvaluateEnergy( typename antsSCCANObject<TInputImage, TRealType>::MatrixType & /* NOT USED A*/,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  p_k,
                   typename antsSCCANObject<TInputImage, TRealType>::VectorType&  b,
-                  TRealType minalph, bool /* NOT USED keeppos */ )
+                  TRealType minalph, TRealType lambda )
 {
   VectorType x_k1  = x_k + minalph * p_k;
-
   // this->SparsifyP( x_k1, keeppos );
   VectorType r_k1 = ( b -  x_k1  );
   // this->SparsifyP( r_k1, keeppos );
-  RealType e = r_k1.two_norm();
+  RealType e = r_k1.two_norm() + x_k1.two_norm() * lambda;
 
   return e;
 }
@@ -2078,8 +1997,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                  typename antsSCCANObject<TInputImage, TRealType>::VectorType&  x_k,
                  typename antsSCCANObject<TInputImage, TRealType>::VectorType&  p_k,
                  typename antsSCCANObject<TInputImage, TRealType>::VectorType&  bsol,
-                 TRealType minalph, TRealType maxalph, bool keeppos,
-                 TRealType a, TRealType b, TRealType c, TRealType tau )
+                 TRealType a, TRealType b, TRealType c, TRealType tau, TRealType lambda )
 {
   this->m_GoldenSectionCounter++;
   if( this->m_GoldenSectionCounter > 300 )
@@ -2101,26 +2019,26 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     return (c + a) / 2;
     }
-  if( this->EvaluateEnergy( A, x_k, p_k, bsol, x, keeppos ) < this->EvaluateEnergy( A, x_k, p_k, bsol, b, keeppos ) )
+  if( this->EvaluateEnergy( A, x_k, p_k, bsol, x, lambda ) < this->EvaluateEnergy( A, x_k, p_k, bsol, b, lambda  ) )
     {
     if( c - b > b - a )
       {
-      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, b, x, c, tau);
+      return GoldenSection( A, x_k, p_k, bsol, b, x, c, tau, lambda );
       }
     else
       {
-      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, a, x, b, tau);
+      return GoldenSection( A, x_k, p_k, bsol, a, x, b, tau, lambda );
       }
     }
   else
     {
     if( c - b > b - a )
       {
-      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, a, b, x, tau);
+      return GoldenSection( A, x_k, p_k, bsol, a, b, x, tau, lambda );
       }
     else
       {
-      return GoldenSection( A, x_k, p_k, bsol, minalph, maxalph, keeppos, x, b, c, tau);
+      return GoldenSection( A, x_k, p_k, bsol, x, b, c, tau, lambda );
       }
     }
 }
@@ -2131,7 +2049,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
               typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
               typename antsSCCANObject<TInputImage, TRealType>::VectorType& p_k,
               typename antsSCCANObject<TInputImage, TRealType>::VectorType& b,
-              TRealType minalph, TRealType maxalph, bool keeppos )
+              TRealType minalph, TRealType maxalph, TRealType lambda )
 {
   bool dogs = true;
 
@@ -2139,8 +2057,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     RealType big = maxalph;
     this->m_GoldenSectionCounter = 0;
-    RealType tau = 0.001; // sets accuracy , lower => more accurate
-    return this->GoldenSection( A, x_k, p_k, b, minalph, maxalph, keeppos, 0, big / 2, big, tau );
+    RealType tau = 0.00001; // sets accuracy , lower => more accurate
+    return this->GoldenSection( A, x_k, p_k, b, 0, big / 2, big, tau, lambda);
     }
 
   // otherwise just search across a line ...
@@ -2150,7 +2068,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   step =  ( maxalph - minalph ) / 10;
   for( RealType eb = minalph; eb <= maxalph; eb = eb + step )
     {
-    RealType e = this->EvaluateEnergy( A, x_k, p_k, b, eb, keeppos );
+    RealType e = this->EvaluateEnergy( A, x_k, p_k, b, eb, lambda );
     if( e < minerr )
       {
       minerr = e; bestalph = eb;
@@ -2285,8 +2203,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                        typename antsSCCANObject<TInputImage,
                                                 TRealType>::VectorType  b, TRealType convcrit, unsigned int maxits )
 {
-  std::cout << " Begin " << std::endl;
-
   if( this->m_PreC.size() <= 0 )
     {
     vnl_diag_matrix<TRealType> prec( A.cols(), 0 );
@@ -2361,8 +2277,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     x_k = x_k1;
     z_k = z_k1; // preconditioning
     ct++;
-    std::cout << " approxerr " << approxerr << " ct " << ct << " nz " << this->CountNonZero( x_k ) << " deltaminerr "
-              << deltaminerr << std::endl;
+    ::ants::antscout << " approxerr " << approxerr << " ct " << ct << " nz " << this->CountNonZero( x_k )
+                     << " deltaminerr " << deltaminerr << std::endl;
     }
 
   x_k = bestsol;
@@ -2379,7 +2295,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                    typename antsSCCANObject<TInputImage,
                                             TRealType>::VectorType  b, TRealType lambda )
 {
-  std::cout << "RidgeRegression: lambda " << lambda << std::endl;
+  ::ants::antscout << "RidgeRegression: lambda " << lambda << std::endl;
   bool       debug = false;
   MatrixType At = A.transpose();
   VectorType r_k = At * ( A * x_k );
@@ -2525,9 +2441,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }   // colind
   RealType reconstruction_error = this->ReconstructionError( this->m_MatrixP, this->m_VariatesP );
   ::ants::antscout << "%Var " << reconstruction_error <<  std::endl;
-  //  reconstruction_error = this->ReconstructionError( this->m_MatrixP , variatesInit.extract( this->m_MatrixP.cols()
-  //  , n_vecs    , 0 , 0 ) );
-  //  std::cout << "%Var-soft " << reconstruction_error <<  std::endl;
   for( unsigned int k = 0; k < this->m_VariatesP.cols(); k++ )
     {
     VectorType v = this->m_VariatesP.get_column( k );
@@ -2764,11 +2677,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType y = this->m_MatrixR.get_column( 0 );
   RealType   n = 1.0 / static_cast<RealType>( y.size() );
   VectorType beta_lasso( this->m_MatrixP.cols(), 0 );
-  for( unsigned int i = 0; i < 5; i++ )
+  for( unsigned int i = 0; i < 1; i++ )
     {
+    ::ants::antscout << i << std::endl;
     this->LASSO_alg( this->m_MatrixP, y, beta_lasso, gamma, this->m_MaximumNumberOfIterations );
-    RealType spgoal =  ( RealType ) n_vecs;
-    this->CurvatureSparseness( beta_lasso, spgoal, 250 );
+    //    RealType spgoal =  ( RealType ) n_vecs ;
+    // this->CurvatureSparseness( beta_lasso , spgoal , 100 );
     }
   /** post-process the result to select the largest n_vecs entries
   std::vector<TRealType> post( beta_lasso.size() , 0 );
@@ -2802,6 +2716,90 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_VariatesP.set_column( 0,  beta_lasso  * regbeta );
   ::ants::antscout << "final error " << this->m_CanonicalCorrelations( 0 ) <<  std::endl;
   return this->m_CanonicalCorrelations( 0 );
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::SparseConjGradRidgeRegression( typename antsSCCANObject<TInputImage,
+                                                          TRealType>::MatrixType& A,
+                                 typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
+                                 typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType convcrit,
+                                 unsigned int maxits, bool makesparse )
+{
+  this->m_Softer = false;
+  RealType spgoal = 100.0 * ( 1 - vnl_math_abs( this->m_FractionNonZeroP ) );
+  RealType lambda = 1.e2;
+  ::ants::antscout << "SparseConjGradRidgeRegression: lambda " << lambda << " Soft? " <<   this->m_Softer << std::endl;
+  MatrixType At = A.transpose();
+  VectorType b = b_in;
+  this->CurvatureSparseness( b, spgoal, 10 );
+  VectorType r_k = At * ( A * x_k );
+  r_k = b - r_k - x_k * lambda;
+  VectorType   p_k = r_k;
+  double       approxerr = 1.e9;
+  unsigned int ct = 0;
+  VectorType   bestsol = x_k;
+  RealType     starterr = 1.e99;
+  RealType     minerr = starterr, deltaminerr = 1, lasterr = starterr * 2;
+  if( makesparse )
+    {
+    this->SparsifyP( x_k, true );
+    }
+  while(  deltaminerr > 0.1 && approxerr > convcrit && ct < maxits || ct < 4 )
+    {
+    RealType alpha_denom = inner_product( p_k, At * ( A * p_k ) );
+    RealType iprk = inner_product( r_k, r_k );
+    if( alpha_denom < 1.e-12 )
+      {
+      alpha_denom = 1;
+      }
+    RealType alpha_k = iprk / alpha_denom;
+    /*
+    this->m_GoldenSectionCounter = 0;
+    RealType tau = 0.00001; // sets accuracy , lower => more accurate
+    alpha_k = this->GoldenSection( A, x_k, p_k, b, alpha_k * 0.5 , alpha_k , alpha_k * 2 , tau, lambda);
+    */
+    VectorType x_k1  = x_k + alpha_k * p_k * 0.25;  // this adds the scaled residual to the current solution
+    for( unsigned int col = 0; col < this->m_VariatesP.cols(); col++ )
+      {
+      x_k1 = this->Orthogonalize( x_k1, this->m_VariatesP.get_column( col ) );
+      }
+    RealType kval = 0; // this->CurvatureSparseness( x_k1 , spgoal , 2 );
+    if( makesparse )
+      {
+      this->SparsifyP( x_k1, true );
+      }
+    //    VectorType gradvec = this->ComputeVectorLaplacian( x_k1 , this->m_MaskImageP );
+    VectorType r_k1 =  b - At * (A * x_k1 ) - x_k1 * lambda; // ridge
+    // VectorType r_k1 =  b - At * (A * x_k1 ) + gradvec * 1.e4;
+    RealType dataterm =  (b - At * (A * x_k1 ) ).two_norm();
+    approxerr = dataterm + x_k1.two_norm() * lambda + kval * 1.e9;
+    if( approxerr < minerr )
+      {
+      minerr = approxerr; bestsol = ( x_k1 );
+      }
+    deltaminerr = ( lasterr - approxerr );
+      {
+      ::ants::antscout << " SparseRidgeConjGrad " << approxerr <<  " deltaminerr " << deltaminerr <<  " ct " << ct
+                       << " dataterm " << dataterm << std::endl;
+      }
+    lasterr = approxerr;
+    VectorType yk = r_k1 - r_k;
+    // RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
+    RealType bkdenom = inner_product( r_k, r_k );
+    if( bkdenom < 1.e-12 )
+      {
+      bkdenom = 1;
+      }
+    RealType   beta_k = inner_product( r_k1, r_k1 ) / bkdenom; // classic cg
+    VectorType p_k1  = r_k1 + beta_k * p_k;
+    r_k = r_k1;
+    p_k = p_k1;
+    x_k = x_k1;
+    ct++;
+    }
+
+  return minerr;
 }
 
 template <class TInputImage, class TRealType>
@@ -2935,24 +2933,18 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         VectorType randv = this->InitializeV( matrixP, false );
         VectorType bp = b * matrixP;
-        if( cl % 2 == 0 )
+        VectorType bpneg( bp );
+        this->PosNegVector( bp, true );
+        this->PosNegVector( bpneg, false );
+        if( cl % 2 != 0 )
           {
-          this->PosNegVector( bp, true );
-          }
-        else
-          {
-          this->PosNegVector( bp, false );
-          }
-        unsigned int its = 20;
-        if( bp.two_norm() < 1.e-12 )
-          {
-          its = 1;
+          bp = bpneg;
           }
         minerr1 = this->ConjGrad(  matrixP,  randv, b, 0, 10000 );
         // minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 100 );
-        //      minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-1, 50, true , true  );
-        //      minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e1 );
-        minerr1 = this->SparseConjGradRidgeRegression(  matrixP,  randv, bp, 0, 250, true );
+        // minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-5, 500, true , true  );
+        // minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e4 );
+        minerr1 = this->SparseConjGradRidgeRegression(  matrixP,  randv, bp, 0, 90, true );
         if( cl < this->m_VariatesP.cols() )
           {
           this->m_VariatesP.set_column( cl, randv );

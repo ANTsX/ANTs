@@ -306,10 +306,12 @@ public:
 
   RealType RunSCCAN3();
 
-  RealType LineSearch( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, RealType minalph,
-                       RealType maxalph, bool );
+  RealType LineSearch( MatrixType & A, VectorType &  x_k, VectorType &  p_k, VectorType &  b, RealType minalph,
+                       RealType maxalph,
+                       RealType );
 
-  RealType EvaluateEnergy( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  b, RealType minalph,  bool );
+  RealType EvaluateEnergy( MatrixType & A, VectorType &  x_k, VectorType &  p_k, VectorType &  b, RealType minalph,
+                           RealType );
 
   RealType SparseConjGrad( VectorType &, VectorType, RealType, unsigned int );
   RealType ConjGrad( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int  );
@@ -329,6 +331,7 @@ public:
   VectorType InitializeV( MatrixType p, bool random = false);
 
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
+  VectorType ComputeVectorGradMag( VectorType, ImagePointer );
 
   MatrixType NormalizeMatrix(MatrixType p);
 
@@ -695,8 +698,8 @@ protected:
     return numer / denom;
   }
 
-  RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType minalph,
-                          RealType maxalph, bool keeppos, RealType a, RealType b, RealType c, RealType tau );
+  RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType a, RealType b,
+                          RealType c, RealType tau, RealType lambda);
 
   //  VectorType vEtoV( eVector v ) {
   //   VectorType v_out( v.data() , v.size() );
