@@ -159,8 +159,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   if( initial_affine_filename != "" )
     {
     ::ants::antscout << "Loading affine registration from: " << initial_affine_filename << std::endl;
-    aff_init = TransformationModelType::AffineTransformType::New();
-    ReadAffineTransformFile(initial_affine_filename, aff_init);
+    ReadAffineTransformFile<typename TransformationModelType::AffineTransformType>(initial_affine_filename, aff_init);
     }
   else
     {
@@ -173,7 +172,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     {
     ::ants::antscout << "Loading affine registration from: " << fixed_initial_affine_filename << std::endl;
     fixed_aff_init = TransformationModelType::AffineTransformType::New();
-    ReadAffineTransformFile(fixed_initial_affine_filename, fixed_aff_init);
+    ReadAffineTransformFile<typename TransformationModelType::AffineTransformType>(fixed_initial_affine_filename,
+                                                                                   fixed_aff_init);
     ::ants::antscout
       <<
       " FIXME!  currently, if one passes a fixed initial affine mapping, then NO affine mapping will be performed subsequently! "

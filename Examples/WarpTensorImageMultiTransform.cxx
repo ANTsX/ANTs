@@ -219,11 +219,10 @@ static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, cha
   return true;
 }
 
-template <class AffineTransformPointer>
-void GetIdentityTransform(AffineTransformPointer & aff)
+template <class TAffineTransform>
+void GetIdentityTransform(typename TAffineTransform::Pointer & aff)
 {
-  typedef typename AffineTransformPointer::ObjectType AffineTransform;
-  aff = AffineTransform::New();
+  aff = TAffineTransform::New();
   aff->SetIdentity();
 }
 
@@ -385,7 +384,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         case IDENTITY_TRANSFORM:
           {
           typename AffineTransformType::Pointer aff;
-          GetIdentityTransform(aff);
+          GetIdentityTransform<AffineTransformType>(aff);
           // antscout << " aff id" << transcount << std::endl;
           warper->PushBackAffineTransform(aff);
           transcount++;
@@ -395,13 +394,12 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
         case IMAGE_AFFINE_HEADER:
           {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
-          typename ImageType::Pointer img_affine = ImageType::New();
           typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
           reader_image_affine->SetFileName(opt.filename);
           reader_image_affine->Update();
-          img_affine = reader_image_affine->GetOutput();
+          typename ImageType::Pointer img_affine = reader_image_affine->GetOutput();
 
-          GetAffineTransformFromImage(img_affine, aff);
+          GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
 
           if( opt.do_affine_inv )
             {
@@ -453,7 +451,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
         typename ImageType::SizeType largest_size;
         typename ImageType::PointType origin_warped;
-        GetLaregstSizeAfterWarp(warper, img_mov, largest_size, origin_warped);
+        GetLargestSizeAfterWarp<WarperType, TensorImageType>(warper, img_mov, largest_size, origin_warped);
         warper->SetOutputParametersFromImage( img_mov );
         warper->SetOutputSize(largest_size);
         warper->SetOutputOrigin(origin_warped);

@@ -365,14 +365,14 @@ public:
   }
 };
 
-template <class ImageTypePointer, class AffineTransformPointer>
-void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPointer & aff)
+template <class ImageType, class AffineTransform>
+void GetAffineTransformFromImage(const typename ImageType::Pointer& img,
+                                 typename AffineTransform::Pointer & aff)
 {
-  typedef typename ImageTypePointer::ObjectType                        ImageType;
-  typedef typename ImageType::DirectionType                            DirectionType;
-  typedef typename ImageType::PointType                                PointType;
-  typedef typename ImageType::SpacingType                              SpacingType;
-  typedef typename AffineTransformPointer::ObjectType::TranslationType VectorType;
+  typedef typename ImageType::DirectionType         DirectionType;
+  typedef typename ImageType::PointType             PointType;
+  typedef typename ImageType::SpacingType           SpacingType;
+  typedef typename AffineTransform::TranslationType VectorType;
 
   DirectionType direction = img->GetDirection();
 
@@ -392,13 +392,16 @@ void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPoi
   antscout << "aff from image:" << aff << std::endl;
 }
 
-template <class WarperPointerType, class ImagePointerType, class SizeType, class PointType>
-void GetLaregstSizeAfterWarp(WarperPointerType & warper, ImagePointerType & img, SizeType & largest_size,
-                             PointType & origin_warped)
+template <class WarperType, class ImageType>
+void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
+                             typename ImageType::Pointer & img,
+                             typename ImageType::SizeType & largest_size,
+                             typename ImageType::PointType & origin_warped)
 {
-  typedef typename ImagePointerType::ObjectType ImageType;
-  const int ImageDimension = ImageType::GetImageDimension();
+  typedef typename ImageType::SizeType  SizeType;
+  typedef typename ImageType::PointType PointType;
 
+  const int ImageDimension = ImageType::GetImageDimension();
   // typedef typename ImageType::PointType PointType;
   typedef typename std::vector<PointType> PointList;
 

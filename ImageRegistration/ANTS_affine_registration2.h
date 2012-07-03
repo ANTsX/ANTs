@@ -41,14 +41,15 @@
 typedef enum { AffineWithMutualInformation = 1, AffineWithMeanSquareDifference, AffineWithHistogramCorrelation,
                AffineWithNormalizedCorrelation, AffineWithGradientDifference } AffineMetricType;
 
-template <class TAffineTransformPointer, class TMaskImagePointer>
+template <class TAffineTransform, class TMaskImage>
 class OptAffine
 {
 public:
-  typedef TAffineTransformPointer                         AffineTransformPointerType;
-  typedef TMaskImagePointer                               MaskImagePointerType;
-  typedef typename AffineTransformPointerType::ObjectType AffineTransformType;
-
+  typedef typename TAffineTransform::Pointer AffineTransformPointerType;
+  typedef typename TMaskImage::Pointer       MaskImagePointerType;
+  typedef TAffineTransform                   AffineTransformType;
+  typedef TMaskImage                         MaskImageType;
+  typedef typename MaskImageType::Pointer    MaskObjectPointerType;
   OptAffine()
   {
     MI_bins = 32;
@@ -56,18 +57,9 @@ public:
     number_of_seeds = 0;
     time_seed = (unsigned int) time(NULL);
     number_of_levels = 3;
-    number_of_iteration_list.resize(number_of_levels);
-    for( int i = 0; i < number_of_levels; i++ )
-      {
-      number_of_iteration_list[i] = 10000;
-      }
+    number_of_iteration_list.resize(number_of_levels, 10000);
     const int kParaDim = AffineTransformType::ParametersDimension;
-    gradient_scales.resize(kParaDim);
-    for( int i = 0; i < kParaDim; i++ )
-      {
-      gradient_scales[i] = 1.0;
-      }
-    metric_type = AffineWithMutualInformation;
+    gradient_scales.resize(kParaDim, 1.0);
     is_rigid = false;
 
     maximum_step_length = 0.1;
@@ -105,10 +97,10 @@ public:
   bool ignore_void_orgin;
 };
 
-template <class TAffineTransformPointer, class TMaskImagePointer>
-std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransformPointer, TMaskImagePointer>& p)
+template <class TAffineTransform, class TMaskImage>
+std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransform,  TMaskImage>& p)
 {
-  typedef OptAffine<TAffineTransformPointer, TMaskImagePointer> OptAffineType;
+  typedef OptAffine<TAffineTransform, TMaskImage> OptAffineType;
   os << "OptAffine: ";
   os << "metric_type=";
 
@@ -159,8 +151,9 @@ std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransformPoin
   return os;
 };
 
-template <class TransformPointerType, class StringType>
-void WriteAffineTransformFile(TransformPointerType & transform, StringType filename)
+template <class TransformType>
+void WriteAffineTransformFile(typename TransformType::Pointer & transform,
+                              const std::string & filename)
 {
   itk::TransformFileWriter::Pointer transform_writer;
 
@@ -183,10 +176,9 @@ void WriteAffineTransformFile(TransformPointerType & transform, StringType filen
   return;
 }
 
-template <class StringType, class CastTransformPointerType>
-void ReadAffineTransformFile(StringType filename, CastTransformPointerType & transform)
+template <class CastTransformType>
+void ReadAffineTransformFile(const std::string & filename, typename CastTransformType::Pointer & transform)
 {
-  typedef typename CastTransformPointerType::ObjectType CastTransformType;
   //    const unsigned int InputSpaceDimension = CastTransformType::InputSpaceDimension;
   //    const unsigned int OutputSpaceDimension = CastTransformType::OutputSpaceDimension;
 
@@ -217,7 +209,7 @@ void ReadAffineTransformFile(StringType filename, CastTransformPointerType & tra
 template <class OptAffine>
 void InitializeAffineOptmizationParameters(OptAffine & opt, double translationScale)
 {
-  const int kImageDim = OptAffine::MaskImagePointerType::ObjectType::ImageDimension;
+  const int kImageDim = OptAffine::MaskImageType::ImageDimension;
 
   switch( kImageDim )
     {
@@ -257,18 +249,19 @@ void InitializeAffineOptmizationParameters(OptAffine & opt, double translationSc
   ::ants::antscout << opt;
 }
 
-template <class TMaskObjectPointerType, class TImagePyramid, class TMetricPointerType, class TInterpolatorPointerType>
+template <class TMaskObjectType, class TImagePyramid, class TMetricType, class TInterpolatorType>
 class RunningAffineCache
 {
 public:
-  typedef TImagePyramid                                ImagePyramidType;
-  typedef typename ImagePyramidType::value_type        ImagePointerType;
-  typedef typename ImagePointerType::ObjectType        ImageType;
-  typedef TMetricPointerType                           MetricPointerType;
-  typedef typename MetricPointerType::ObjectType       MetricType;
-  typedef TInterpolatorPointerType                     InterpolatorPointerType;
-  typedef typename InterpolatorPointerType::ObjectType InterpolatorType;
-  typedef TMaskObjectPointerType                       MaskObjectPointerType;
+  typedef TImagePyramid                         ImagePyramidType;
+  typedef typename ImagePyramidType::value_type ImagePointerType;
+  typedef typename ImagePointerType::ObjectType ImageType;
+  typedef TMetricType                           MetricType;
+  typedef typename MetricType::Pointer          MetricPointerType;
+  typedef TInterpolatorType                     InterpolatorType;
+  typedef typename TInterpolatorType::Pointer   InterpolatorPointerType;
+  typedef TMaskObjectType                       MaskObjectType;
+  typedef typename MaskObjectType::Pointer      MaskObjectPointerType;
 
   RunningAffineCache()
   {
@@ -277,21 +270,13 @@ public:
   {
   };
 
-  TMaskObjectPointerType   mask_fixed_object;
-  TImagePyramid            fixed_image_pyramid;
-  TImagePyramid            moving_image_pyramid;
-  TMetricPointerType       metric;
-  TMetricPointerType       invmetric;
-  TInterpolatorPointerType interpolator;
+  MaskObjectPointerType   mask_fixed_object;
+  ImagePyramidType        fixed_image_pyramid;
+  ImagePyramidType        moving_image_pyramid;
+  MetricPointerType       metric;
+  MetricPointerType       invmetric;
+  InterpolatorPointerType interpolator;
 };
-
-template <class ImagePointerType, class TransformPointerType, class OptAffineType>
-void ComputeSingleAffineTransform(ImagePointerType fixedImage, ImagePointerType movingImage, OptAffineType & opt,
-                                  TransformPointerType & transform);
-
-template <class ImagePointerType, class TransformPointerType, class OptAffineType>
-void ComputeSingleAffineTransform2D3D(ImagePointerType I_fixed, ImagePointerType I_moving, OptAffineType & opt,
-                                      TransformPointerType & transform);
 
 template <class ImageTypePointer, class AffineTransformPointer>
 void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPointer & aff)
@@ -317,8 +302,8 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
                                   ImagePointerType & movingImage, RunningImagePointerType& R_movingImage,
                                   OptAffineType & opt, RunningOptAffineType & R_opt)
 {
-  typedef typename OptAffineType::AffineTransformPointerType::ObjectType        AffineTransformType;
-  typedef typename RunningOptAffineType::AffineTransformPointerType::ObjectType RunningAffineTransformType;
+  typedef typename OptAffineType::AffineTransformType        AffineTransformType;
+  typedef typename RunningOptAffineType::AffineTransformType RunningAffineTransformType;
 
   if( opt.use_rotation_header )
     {
@@ -389,12 +374,8 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
 
   if( opt.mask_fixed.IsNotNull() )
     {
-    //  R_opt.mask_fixed = RunningOptAffineType::MaskImagePointerType::ObjectType::New();
-    // R_opt.mask_fixed =
-    // reinterpret_cast<typename
-    // RunningOptAffineType::MaskImagePointerType &>(opt.mask_fixed);
     R_opt.mask_fixed =
-      dynamic_cast<typename RunningOptAffineType::MaskImagePointerType::ObjectType *>
+      dynamic_cast<typename RunningOptAffineType::MaskImageType *>
       (opt.mask_fixed.GetPointer() );
     if( R_opt.mask_fixed.IsNull() )
       {
@@ -447,43 +428,191 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   // ::ants::antscout << "transform" << transform << std::endl;
 }
 
+// /////////////////////////////////////////////////////////////////////////////
+template <class ImageType, class TransformType, class OptAffineType>
+void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
+                                      typename ImageType::Pointer & moving_image,
+                                      OptAffineType & opt,
+                                      typename TransformType::Pointer & transform)
+{
+  const int ImageDimension = ImageType::ImageDimension;
+
+  typedef std::vector<typename ImageType::Pointer>               ImagePyramidType;
+  typedef itk::ImageMaskSpatialObject<ImageDimension>            ImageMaskSpatialObjectType;
+  typedef typename ImageMaskSpatialObjectType::Pointer           MaskObjectPointerType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
+  typedef typename InterpolatorType::Pointer                     InterpolatorPointerType;
+
+  typedef typename TransformType::ParametersType ParaType;
+
+  InitializeAffineOptmizationParameters(opt, opt.translation_scales);
+
+  // ::ants::antscout << "DEBUG: opt.gradient_scales.size() = " << opt.gradient_scales.size() << std::endl;
+
+  InitializeAffineTransform(fixed_image, moving_image, opt);
+
+  ::ants::antscout << "input affine center: " << opt.transform_initial->GetCenter() << std::endl;
+  ::ants::antscout << "input affine para: " << opt.transform_initial->GetParameters() << std::endl;
+
+  transform = TransformType::New();
+  ParaType para_final(TransformType::ParametersDimension);
+
+  switch( opt.metric_type )
+    {
+    case AffineWithMeanSquareDifference:
+      {
+      typedef itk::MeanSquaresImageToImageMetric<ImageType,
+                                                 ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType,
+                                 ImagePyramidType, MetricType, InterpolatorType> RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+      break;
+    case AffineWithHistogramCorrelation:
+      {
+      typedef itk::CorrelationCoefficientHistogramImageToImageMetric<ImageType,
+                                                                     ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
+                                 InterpolatorType> RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+      unsigned int nBins = 32;
+      typename MetricType::HistogramType::SizeType histSize;
+      histSize[0] = nBins;
+      histSize[1] = nBins;
+      running_cache.metric->SetHistogramSize(histSize);
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+      break;
+    case AffineWithNormalizedCorrelation:
+      {
+      typedef itk::NormalizedCorrelationImageToImageMetric<ImageType,
+                                                           ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
+                                 InterpolatorType> RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+      break;
+    case AffineWithGradientDifference:
+      {
+      typedef itk::GradientDifferenceImageToImageMetric<ImageType,
+                                                        ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
+                                 InterpolatorType>          RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+      break;
+    case AffineWithMutualInformation:
+      {
+      typedef itk::MattesMutualInformationImageToImageMetric<ImageType,
+                                                             ImageType> MetricType;
+      typedef RunningAffineCache<ImageMaskSpatialObjectType, ImagePyramidType, MetricType,
+                                 InterpolatorType>               RunningAffineCacheType;
+
+      RunningAffineCacheType running_cache;
+      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
+
+      running_cache.metric->SetNumberOfHistogramBins( opt.MI_bins );
+      running_cache.metric->SetNumberOfSpatialSamples( opt.MI_samples );
+
+      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
+      }
+      break;
+    default:
+      break;
+    }
+
+  bool noaffine = true;
+  for( int i = 0; i < opt.number_of_levels; i++ )
+    {
+    if( opt.number_of_iteration_list[i] > 0 )
+      {
+      noaffine = false;
+      }
+    }
+  if( noaffine )
+    {
+    for( int i = TransformType::ParametersDimension - ImageDimension;  i < TransformType::ParametersDimension; i++ )
+      {
+      para_final[i] = 0;
+      }
+    }
+
+  transform->SetParameters(para_final);
+  transform->SetCenter(opt.transform_initial->GetCenter() );
+
+  double rval_init = TestCostValueMMI(fixed_image, moving_image,
+                                      opt.transform_initial->GetParameters(),
+                                      opt.transform_initial->GetCenter(), transform);
+
+  // ::ants::antscout << "ABCDABCD: " << transform << std::endl;
+
+  double rval_final = TestCostValueMMI(fixed_image, moving_image, para_final,
+                                       opt.transform_initial->GetCenter(), transform);
+
+  ::ants::antscout << "outputput affine center: " << transform->GetCenter() << std::endl;
+  ::ants::antscout << "output affine para: " << transform->GetParameters() << std::endl;
+  ::ants::antscout << "initial measure value (MMI): rval = " << rval_init << std::endl;
+  ::ants::antscout << "final measure value (MMI): rval = " << rval_final << std::endl;
+  ::ants::antscout << "finish affine registeration..."  <<  std::endl;
+}
+
 // /////////////////////////////////////////////////////////////////////////
 // the initial transform maybe any derivative class type from MatrixOffsetTransformBase,
 // it will be automatically converted to the my 2D/3D affine type
-template <class ImagePointerType, class TransformPointerType, class OptAffineType>
-void ComputeSingleAffineTransform(ImagePointerType fixedImage, ImagePointerType movingImage, OptAffineType & opt,
-                                  TransformPointerType & transform)
+template <class ImageType, class TransformType, class OptAffineType>
+void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
+                                  typename ImageType::Pointer & movingImage,
+                                  OptAffineType & opt,
+                                  typename TransformType::Pointer & transform)
 {
-  typedef typename ImagePointerType::ObjectType ImageType;
   const int ImageDimension = ImageType::ImageDimension;
+
   typedef typename ImageType::IOPixelType PixelType;
 
   ::ants::antscout << "transform_initial: IsNotNull():" << opt.transform_initial.IsNotNull() << std::endl;
 
   if( ImageDimension == 2 )
     {
-    typedef itk::ANTSCenteredAffine2DTransform<double>::Pointer RunningAffineTransformPointerType;
+    typedef itk::ANTSCenteredAffine2DTransform<double>   RunningAffineTransformType;
+    typedef typename RunningAffineTransformType::Pointer RunningAffineTransformPointerType;
     const unsigned int RunningImageDimension = 2;
 
-    typedef typename itk::Image<PixelType, RunningImageDimension>::Pointer        RunningImagePointerType;
-    typedef OptAffine<RunningAffineTransformPointerType, RunningImagePointerType> RunningOptAffineType;
+    typedef typename itk::Image<PixelType, RunningImageDimension>   RunningImageType;
+    typedef typename RunningImageType::Pointer                      RunningImagePointerType;
+    typedef OptAffine<RunningAffineTransformType, RunningImageType> RunningOptAffineType;
+
     RunningImagePointerType           R_fixedImage, R_movingImage;
     RunningOptAffineType              R_opt;
     RunningAffineTransformPointerType transform_running;
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
-    ComputeSingleAffineTransform2D3D(R_fixedImage, R_movingImage, R_opt, transform_running);
+    ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
+      (R_fixedImage, R_movingImage, R_opt, transform_running);
 
     PostConversionInAffine(transform_running, transform);
     }
   else if( ImageDimension == 3 )
     {
-    typedef itk::ANTSAffine3DTransform<double>::Pointer RunningAffineTransformPointerType;
+    typedef itk::ANTSAffine3DTransform<double>           RunningAffineTransformType;
+    typedef typename RunningAffineTransformType::Pointer RunningAffineTransformPointerType;
     const unsigned int RunningImageDimension = 3;
 
-    typedef typename itk::Image<PixelType, RunningImageDimension>::Pointer        RunningImagePointerType;
-    typedef OptAffine<RunningAffineTransformPointerType, RunningImagePointerType> RunningOptAffineType;
+    typedef typename itk::Image<PixelType, RunningImageDimension>   RunningImageType;
+    typedef typename RunningImageType::Pointer                      RunningImagePointerType;
+    typedef OptAffine<RunningAffineTransformType, RunningImageType> RunningOptAffineType;
 
     RunningImagePointerType           R_fixedImage, R_movingImage;
     RunningOptAffineType              R_opt;
@@ -491,7 +620,8 @@ void ComputeSingleAffineTransform(ImagePointerType fixedImage, ImagePointerType 
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
-    ComputeSingleAffineTransform2D3D(R_fixedImage, R_movingImage, R_opt, transform_running);
+    ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
+      (R_fixedImage, R_movingImage, R_opt, transform_running);
 
     PostConversionInAffine(transform_running, transform);
     }
@@ -866,8 +996,8 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
                                                              ParaType & para_final)
 {
   typedef typename RunningAffineCacheType::ImagePyramidType      ImagePyramidType;
+  typedef typename RunningAffineCacheType::ImageType             ImageType;
   typedef typename RunningAffineCacheType::ImagePointerType      ImagePointerType;
-  typedef typename ImagePointerType::ObjectType                  ImageType;
   typedef typename RunningAffineCacheType::MetricType            MetricType;
   typedef typename RunningAffineCacheType::InterpolatorType      InterpolatorType;
   typedef typename OptAffine::AffineTransformType                TransformType;
@@ -1087,7 +1217,7 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
 {
   typedef typename RunningAffineCacheType::ImagePyramidType      ImagePyramidType;
   typedef typename RunningAffineCacheType::ImagePointerType      ImagePointerType;
-  typedef typename ImagePointerType::ObjectType                  ImageType;
+  typedef typename RunningAffineCacheType::ImageType             ImageType;
   typedef typename RunningAffineCacheType::MetricType            MetricType;
   typedef typename RunningAffineCacheType::InterpolatorType      InterpolatorType;
   typedef typename OptAffine::AffineTransformType                TransformType;
@@ -1420,154 +1550,5 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
   ::ants::antscout << "final " << para_final << std::endl;
   return true;
 }
-
-// /////////////////////////////////////////////////////////////////////////////
-template <class ImagePointerType, class TransformPointerType, class OptAffineType>
-void ComputeSingleAffineTransform2D3D(ImagePointerType fixed_image, ImagePointerType moving_image, OptAffineType & opt,
-                                      TransformPointerType & transform)
-{
-  typedef typename ImagePointerType::ObjectType ImageType;
-  const int ImageDimension = ImageType::ImageDimension;
-  typedef std::vector<ImagePointerType>                          ImagePyramidType;
-  typedef itk::ImageMaskSpatialObject<ImageDimension>            ImageMaskSpatialObjectType;
-  typedef typename ImageMaskSpatialObjectType::Pointer           MaskObjectPointerType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
-  typedef typename InterpolatorType::Pointer                     InterpolatorPointerType;
-
-  typedef typename TransformPointerType::ObjectType TransformType;
-  typedef typename TransformType::ParametersType    ParaType;
-
-  InitializeAffineOptmizationParameters(opt, opt.translation_scales);
-
-  // ::ants::antscout << "DEBUG: opt.gradient_scales.size() = " << opt.gradient_scales.size() << std::endl;
-
-  InitializeAffineTransform(fixed_image, moving_image, opt);
-
-  ::ants::antscout << "input affine center: " << opt.transform_initial->GetCenter() << std::endl;
-  ::ants::antscout << "input affine para: " << opt.transform_initial->GetParameters() << std::endl;
-
-  transform = TransformType::New();
-  ParaType para_final(TransformType::ParametersDimension);
-
-  switch( opt.metric_type )
-    {
-    case AffineWithMeanSquareDifference:
-      {
-      typedef itk::MeanSquaresImageToImageMetric<ImageType,
-                                                 ImageType> MetricType;
-      typedef typename MetricType::Pointer
-        MetricPointerType;
-      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
-                                 InterpolatorPointerType>   RunningAffineCacheType;
-
-      RunningAffineCacheType running_cache;
-      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
-      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
-    case AffineWithHistogramCorrelation:
-      {
-      typedef itk::CorrelationCoefficientHistogramImageToImageMetric<ImageType,
-                                                                     ImageType> MetricType;
-      typedef typename MetricType::Pointer
-        MetricPointerType;
-      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
-                                 InterpolatorPointerType>                       RunningAffineCacheType;
-
-      RunningAffineCacheType running_cache;
-
-      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
-      unsigned int nBins = 32;
-      typename MetricType::HistogramType::SizeType histSize;
-      histSize[0] = nBins;
-      histSize[1] = nBins;
-      running_cache.metric->SetHistogramSize(histSize);
-      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
-    case AffineWithNormalizedCorrelation:
-      {
-      typedef itk::NormalizedCorrelationImageToImageMetric<ImageType,
-                                                           ImageType> MetricType;
-      typedef typename MetricType::Pointer
-        MetricPointerType;
-      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
-                                 InterpolatorPointerType>             RunningAffineCacheType;
-
-      RunningAffineCacheType running_cache;
-      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
-      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
-    case AffineWithGradientDifference:
-      {
-      typedef itk::GradientDifferenceImageToImageMetric<ImageType,
-                                                        ImageType> MetricType;
-      typedef typename MetricType::Pointer
-        MetricPointerType;
-      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
-                                 InterpolatorPointerType>          RunningAffineCacheType;
-
-      RunningAffineCacheType running_cache;
-      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
-      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
-    case AffineWithMutualInformation:
-      {
-      typedef itk::MattesMutualInformationImageToImageMetric<ImageType,
-                                                             ImageType> MetricType;
-      typedef typename MetricType::Pointer
-        MetricPointerType;
-      typedef RunningAffineCache<MaskObjectPointerType, ImagePyramidType, MetricPointerType,
-                                 InterpolatorPointerType>               RunningAffineCacheType;
-
-      RunningAffineCacheType running_cache;
-      InitializeRunningAffineCache(fixed_image, moving_image, opt, running_cache);
-
-      running_cache.metric->SetNumberOfHistogramBins( opt.MI_bins );
-      running_cache.metric->SetNumberOfSpatialSamples( opt.MI_samples );
-
-      RegisterImageAffineMutualInformationMultiResolution(running_cache, opt, para_final);
-      }
-      break;
-    default:
-      break;
-    }
-
-  bool noaffine = true;
-  for( int i = 0; i < opt.number_of_levels; i++ )
-    {
-    if( opt.number_of_iteration_list[i] > 0 )
-      {
-      noaffine = false;
-      }
-    }
-  if( noaffine )
-    {
-    for( int i = TransformType::ParametersDimension - ImageDimension;  i < TransformType::ParametersDimension; i++ )
-      {
-      para_final[i] = 0;
-      }
-    }
-
-  transform->SetParameters(para_final);
-  transform->SetCenter(opt.transform_initial->GetCenter() );
-
-  double rval_init = TestCostValueMMI(fixed_image, moving_image,
-                                      opt.transform_initial->GetParameters(),
-                                      opt.transform_initial->GetCenter(), transform);
-
-  // ::ants::antscout << "ABCDABCD: " << transform << std::endl;
-
-  double rval_final = TestCostValueMMI(fixed_image, moving_image, para_final,
-                                       opt.transform_initial->GetCenter(), transform);
-
-  ::ants::antscout << "outputput affine center: " << transform->GetCenter() << std::endl;
-  ::ants::antscout << "output affine para: " << transform->GetParameters() << std::endl;
-  ::ants::antscout << "initial measure value (MMI): rval = " << rval_init << std::endl;
-  ::ants::antscout << "final measure value (MMI): rval = " << rval_final << std::endl;
-  ::ants::antscout << "finish affine registeration..."  <<  std::endl;
-};
 
 #endif /*ANTS_AFFINE_REGISTRATION2_H_*/

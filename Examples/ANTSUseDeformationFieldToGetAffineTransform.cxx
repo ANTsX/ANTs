@@ -22,111 +22,37 @@
 
 namespace ants
 {
-template <class TransformAPointer, class StringType>
-void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & ANTS_prefix);
-
-template <class PointContainerType, class TransformPointerType>
-void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
-                                          TransformPointerType & transform);
-
-template <class PointContainerType, class TransformPointerType>
-void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
-                                         TransformPointerType & transform);
-
-template <class StringType, class PointContainerType>
-void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_field_file_name, float load_ratio,
-                                               PointContainerType & fixedLandmarks,
-                                               PointContainerType & movingLandmarks, itk::Image<float,
-                                                                                                3>
-                                               ::Pointer maskimg);
-
-//
-// The test specifies a bunch of fixed and moving landmarks and test if the
-// fixed landmarks after transform by the computed transform coincides
-// with the moving landmarks....
-
-int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
+template <class TransformType>
+void WriteAffineTransformFile(typename TransformType::Pointer & transform,
+                              const std::string & filename)
 {
-  const unsigned int Dim = 3;
+  itk::TransformFileWriter::Pointer transform_writer;
 
-  typedef itk::Point<double, Dim> PointType;
-  typedef itk::Image<float, Dim>  ImageType;
-  typedef std::vector<PointType>  PointContainerType;
-  const char *deformation_field_file_name = argv[1];
-  float       load_ratio = atof(argv[2]);
-  bool        bRigid = (strcmp(argv[3], "rigid") == 0);
-  std::string ANTS_prefix(argv[4]);
-  std::string maskfn = std::string("");
-  if( argc > 5 )
+  transform_writer = itk::TransformFileWriter::New();
+  transform_writer->SetFileName(filename);
+  transform_writer->SetInput(transform);
+
+  try
     {
-    maskfn = std::string(argv[5]);
+    transform_writer->Update();
     }
-  antscout << " mask " << maskfn << std::endl;
-
-  // input
-  PointContainerType fixedLandmarks, movingLandmarks;
-  // output
-  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransformType;
-  AffineTransformType::Pointer aff = AffineTransformType::New();
-
-  ImageType::Pointer maskimg = NULL;
-  if( maskfn.length() > 4 )
+  catch( itk::ExceptionObject & err )
     {
-    ReadImage<ImageType>(maskimg, maskfn.c_str() );
+    antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+             << "Exception in writing tranform file: " << std::endl
+             << filename << std::endl;
+    return;
     }
 
-  FetchLandmarkMappingFromDisplacementField(deformation_field_file_name, load_ratio, fixedLandmarks, movingLandmarks,
-                                            maskimg);
-
-  if( bRigid )
-    {
-    GetRigidTransformFromTwoPointSets3D(fixedLandmarks, movingLandmarks, aff);
-    }
-  else
-    {
-    GetAffineTransformFromTwoPointSets3D(fixedLandmarks, movingLandmarks, aff);
-    }
-
-  antscout << "affine:" << aff;
-  DumpTransformForANTS3D(aff, ANTS_prefix);
-
-  return EXIT_SUCCESS;
-
-  //    initializer->SetFixedLandmarks(fixedLandmarks);
-  //    initializer->SetMovingLandmarks(movingLandmarks);
-  //    initializer->SetTransform( transform );
-  //    initializer->InitializeTransform();
-  //
-  //    transform->Print(antscout);
-  //
-  //    // transform the transform to ANTS format
-  //    std::string ANTS_prefix(argv[4]);
-  //
-  //
-  //    typedef itk::MatrixOffsetTransformBase< double, 3, 3> AffineTransformType;
-  //    AffineTransformType::Pointer aff = AffineTransformType::New();
-  //    GetAffineTransformFromTwoPointSets3D(fixedLandmarks, movingLandmarks, aff);
-  //    antscout << "affine:" << aff;
-  //
-  //
-  //    if (bRigid)
-  //        DumpTransformForANTS3D(transform, ANTS_prefix);
-  //    else
-  //        DumpTransformForANTS3D(aff, ANTS_prefix);
-  //
-  //
-  //    return EXIT_SUCCESS;
+  return;
 }
 
 // //////////////////////////////////////////////////////////////////////
 // Stripped from ANTS_affine_registration2.h
-template <class RunningAffineTransformPointerType, class AffineTransformPointerType>
-inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_running,
-                                   AffineTransformPointerType & transform)
+template <class RunningAffineTransformType, class AffineTransformType>
+inline void PostConversionInAffine(const typename RunningAffineTransformType::Pointer & transform_running,
+                                   typename AffineTransformType::Pointer & transform)
 {
-  typedef typename RunningAffineTransformPointerType::ObjectType RunningAffineTransformType;
-  typedef typename AffineTransformPointerType::ObjectType        AffineTransformType;
-
   transform->SetCenter(*(reinterpret_cast<typename AffineTransformType::InputPointType *>
                          (const_cast<typename RunningAffineTransformType::InputPointType *>(&(transform_running->
                                                                                               GetCenter() ) ) ) ) );
@@ -140,36 +66,28 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   // antscout << "transform" << transform << std::endl;
 }
 
-template <class PointContainerType, class TransformPointerType>
-void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
-                                         TransformPointerType & aff)
+template <class TransformA>
+void DumpTransformForANTS3D(const typename TransformA::Pointer & transform, const std::string & ANTS_prefix)
 {
-  // Set the transform type..
-  typedef itk::VersorRigid3DTransform<double> TransformType;
-  TransformType::Pointer transform = TransformType::New();
-
-  typedef  float PixelType;
-  const unsigned int Dimension = 3;
-  typedef itk::Image<PixelType, Dimension> FixedImageType;
-  typedef itk::Image<PixelType, Dimension> MovingImageType;
-  typedef itk::Image<PixelType, Dimension> ImageType;
-
-  typedef itk::LandmarkBasedTransformInitializer<TransformType,
-                                                 FixedImageType, MovingImageType> TransformInitializerType;
-  TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-
-  initializer->SetFixedLandmarks(fixedLandmarks);
-  initializer->SetMovingLandmarks(movingLandmarks);
-  initializer->SetTransform( transform );
-  initializer->InitializeTransform();
-
-  antscout << "rigid: " << transform << std::endl;
+  const int ImageDimension = 3;
 
   // ANTS transform file type
-  // typedef itk::MatrixOffsetTransformBase< double, Dimension, Dimension > AffineTransformType;
-  // typename AffineTransformType::Pointer aff = AffineTransformType::New();
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
+  AffineTransformType::Pointer transform_ANTS = AffineTransformType::New();
 
-  PostConversionInAffine(transform, aff);
+  //    typedef TransformAPointer::ObjectType TransformA;
+
+  // antscout << " writing " << ANTS_prefix << " affine " << std::endl;
+  // std::string ANTS_affine_filename = ANTS_prefix + std::string( "Affine.txt" );
+
+  std::string ANTS_affine_filename = ANTS_prefix;
+
+  antscout << " writing ANTS affine file:" << ANTS_affine_filename << std::endl;
+
+  PostConversionInAffine<TransformA, AffineTransformType>(transform, transform_ANTS);
+
+  WriteAffineTransformFile<AffineTransformType>(transform_ANTS,
+                                                ANTS_affine_filename);
 }
 
 // ////////
@@ -188,9 +106,9 @@ void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, Po
 //   assume PointContainerType is std::vector
 //   assume TrnasformPointerType is MatrixOffsetTransformBase
 
-template <class PointContainerType, class TransformPointerType>
+template <class PointContainerType, class TransformType>
 void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
-                                          TransformPointerType & transform)
+                                          typename TransformType::Pointer & transform)
 {
   const int Dim = 3;
   int       n = fixedLandmarks.size();
@@ -247,8 +165,6 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
 
   vnl_vector<double> t = A11.get_column(Dim);
 
-  typedef typename TransformPointerType::ObjectType TransformType;
-
   typedef typename TransformType::InputPointType   PointType;
   typedef typename TransformType::OutputVectorType VectorType;
   typedef typename TransformType::MatrixType       MatrixType;
@@ -274,82 +190,44 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   return;
 }
 
-// //////////////////////////////////////////////////////////////////////
-// Stripped from ANTS_affine_registration2.h
-template <class TransformPointerType, class StringType>
-void WriteAffineTransformFile(TransformPointerType & transform, StringType filename)
+template <class PointContainerType, class TTransform>
+void GetRigidTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, PointContainerType & movingLandmarks,
+                                         typename TTransform::Pointer & aff)
 {
-  itk::TransformFileWriter::Pointer transform_writer;
+  // Set the transform type..
+  typedef itk::VersorRigid3DTransform<double> TransformType;
+  TransformType::Pointer transform = TransformType::New();
 
-  transform_writer = itk::TransformFileWriter::New();
-  transform_writer->SetFileName(filename);
-  transform_writer->SetInput(transform);
+  typedef  float PixelType;
+  const unsigned int Dimension = 3;
+  typedef itk::Image<PixelType, Dimension> FixedImageType;
+  typedef itk::Image<PixelType, Dimension> MovingImageType;
+  typedef itk::Image<PixelType, Dimension> ImageType;
 
-  try
-    {
-    transform_writer->Update();
-    }
-  catch( itk::ExceptionObject & err )
-    {
-    antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
-             << "Exception in writing tranform file: " << std::endl
-             << filename << std::endl;
-    return;
-    }
+  typedef itk::LandmarkBasedTransformInitializer<TransformType,
+                                                 FixedImageType, MovingImageType> TransformInitializerType;
+  TransformInitializerType::Pointer initializer = TransformInitializerType::New();
 
-  return;
-}
+  initializer->SetFixedLandmarks(fixedLandmarks);
+  initializer->SetMovingLandmarks(movingLandmarks);
+  initializer->SetTransform( transform );
+  initializer->InitializeTransform();
 
-template <class TransformAPointer, class StringType>
-void DumpTransformForANTS3D(const TransformAPointer & transform, StringType & ANTS_prefix)
-{
-  const int ImageDimension = 3;
+  antscout << "rigid: " << transform << std::endl;
 
   // ANTS transform file type
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
-  AffineTransformType::Pointer transform_ANTS = AffineTransformType::New();
+  // typedef itk::MatrixOffsetTransformBase< double, Dimension, Dimension > AffineTransformType;
+  // typename AffineTransformType::Pointer aff = AffineTransformType::New();
 
-  //    typedef TransformAPointer::ObjectType TransformA;
-
-  // antscout << " writing " << ANTS_prefix << " affine " << std::endl;
-  // std::string ANTS_affine_filename = ANTS_prefix + std::string( "Affine.txt" );
-
-  std::string ANTS_affine_filename = ANTS_prefix;
-
-  antscout << " writing ANTS affine file:" << ANTS_affine_filename << std::endl;
-  PostConversionInAffine(transform, transform_ANTS);
-  WriteAffineTransformFile(transform_ANTS, ANTS_affine_filename);
+  PostConversionInAffine<TransformType, TTransform>(transform, aff);
 }
 
-int DisplacementFieldBasedTransformInitializer2D(int, char * [])
-{
-  antscout << " not implemented " << std::endl;
-  return 1;
-
-  /*
-typedef  float PixelType;
-const unsigned int Dimension = 2;
-typedef itk::Image< PixelType, Dimension >  FixedImageType;
-typedef itk::Image< PixelType, Dimension >  MovingImageType;
-typedef itk::Image< PixelType, Dimension >  ImageType;
-typename FixedImageType::Pointer fixedimage;
-typename MovingImageType::Pointer movingimage;
-ReadImage<ImageType>(fixedimage,argv[1]);
-ReadImage<ImageType>(movingimage,argv[2]);
-
-// Set the transform type..
-typedef itk::Rigid2DTransform< double > TransformType;
-   */
-
-  return EXIT_SUCCESS;
-}
-
-template <class StringType, class PointContainerType>
-void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_field_file_name, float load_ratio,
+template <class PointContainerType>
+void FetchLandmarkMappingFromDisplacementField(const std::string& deformation_field_file_name,
+                                               float load_ratio,
                                                PointContainerType & fixedLandmarks,
-                                               PointContainerType & movingLandmarks, itk::Image<float,
-                                                                                                3>
-                                               ::Pointer maskimg)
+                                               PointContainerType & movingLandmarks,
+                                               typename itk::Image<float, 3>::Pointer maskimg)
 {
   const unsigned int ImageDimension = 3;
 
@@ -431,6 +309,110 @@ void FetchLandmarkMappingFromDisplacementField(const StringType & deformation_fi
   antscout << movingLandmarks.size() << std::endl;
 
   return;
+}
+
+//
+// The test specifies a bunch of fixed and moving landmarks and test if the
+// fixed landmarks after transform by the computed transform coincides
+// with the moving landmarks....
+
+int DisplacementFieldBasedTransformInitializer3D(int argc, char * argv[])
+{
+  const unsigned int Dim = 3;
+
+  typedef itk::Point<double, Dim> PointType;
+  typedef itk::Image<float, Dim>  ImageType;
+  typedef std::vector<PointType>  PointContainerType;
+  const char *deformation_field_file_name = argv[1];
+  float       load_ratio = atof(argv[2]);
+  bool        bRigid = (strcmp(argv[3], "rigid") == 0);
+  std::string ANTS_prefix(argv[4]);
+  std::string maskfn = std::string("");
+  if( argc > 5 )
+    {
+    maskfn = std::string(argv[5]);
+    }
+  antscout << " mask " << maskfn << std::endl;
+
+  // input
+  PointContainerType fixedLandmarks, movingLandmarks;
+  // output
+  typedef itk::MatrixOffsetTransformBase<double, 3, 3> AffineTransformType;
+  AffineTransformType::Pointer aff = AffineTransformType::New();
+
+  ImageType::Pointer maskimg = NULL;
+  if( maskfn.length() > 4 )
+    {
+    ReadImage<ImageType>(maskimg, maskfn.c_str() );
+    }
+
+  FetchLandmarkMappingFromDisplacementField(deformation_field_file_name, load_ratio, fixedLandmarks, movingLandmarks,
+                                            maskimg);
+
+  if( bRigid )
+    {
+    GetRigidTransformFromTwoPointSets3D<PointContainerType, AffineTransformType>(fixedLandmarks, movingLandmarks, aff);
+    }
+  else
+    {
+    GetAffineTransformFromTwoPointSets3D<PointContainerType, AffineTransformType>(fixedLandmarks, movingLandmarks, aff);
+    }
+
+  antscout << "affine:" << aff;
+  DumpTransformForANTS3D<AffineTransformType>(aff, ANTS_prefix);
+
+  return EXIT_SUCCESS;
+
+  //    initializer->SetFixedLandmarks(fixedLandmarks);
+  //    initializer->SetMovingLandmarks(movingLandmarks);
+  //    initializer->SetTransform( transform );
+  //    initializer->InitializeTransform();
+  //
+  //    transform->Print(antscout);
+  //
+  //    // transform the transform to ANTS format
+  //    std::string ANTS_prefix(argv[4]);
+  //
+  //
+  //    typedef itk::MatrixOffsetTransformBase< double, 3, 3> AffineTransformType;
+  //    AffineTransformType::Pointer aff = AffineTransformType::New();
+  //    GetAffineTransformFromTwoPointSets3D(fixedLandmarks, movingLandmarks, aff);
+  //    antscout << "affine:" << aff;
+  //
+  //
+  //    if (bRigid)
+  //        DumpTransformForANTS3D(transform, ANTS_prefix);
+  //    else
+  //        DumpTransformForANTS3D(aff, ANTS_prefix);
+  //
+  //
+  //    return EXIT_SUCCESS;
+}
+
+// //////////////////////////////////////////////////////////////////////
+// Stripped from ANTS_affine_registration2.h
+
+int DisplacementFieldBasedTransformInitializer2D(int, char * [])
+{
+  antscout << " not implemented " << std::endl;
+  return 1;
+
+  /*
+typedef  float PixelType;
+const unsigned int Dimension = 2;
+typedef itk::Image< PixelType, Dimension >  FixedImageType;
+typedef itk::Image< PixelType, Dimension >  MovingImageType;
+typedef itk::Image< PixelType, Dimension >  ImageType;
+typename FixedImageType::Pointer fixedimage;
+typename MovingImageType::Pointer movingimage;
+ReadImage<ImageType>(fixedimage,argv[1]);
+ReadImage<ImageType>(movingimage,argv[2]);
+
+// Set the transform type..
+typedef itk::Rigid2DTransform< double > TransformType;
+   */
+
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to

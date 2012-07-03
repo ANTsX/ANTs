@@ -134,8 +134,9 @@ ANTSImageTransformation<TDimension, TReal>
   if( this->m_AffineTransform )
     {
     ::ants::antscout << " writing " << filePrefix << " affine " << std::endl;
-    std::string filename = filePrefix + std::string( "Affine.txt" );
-    WriteAffineTransformFile(this->m_AffineTransform, filename);
+    const std::string filename = filePrefix + std::string( "Affine.txt" );
+    WriteAffineTransformFile<AffineTransformType>(this->m_AffineTransform,
+                                                  filename);
     }
 
   if( this->m_DisplacementField )

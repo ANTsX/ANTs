@@ -461,13 +461,12 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       case IMAGE_AFFINE_HEADER:
         {
         typename AffineTransformType::Pointer aff = AffineTransformType::New();
-        typename ImageType::Pointer img_affine = ImageType::New();
         typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
         reader_image_affine->SetFileName(opt.filename);
         reader_image_affine->Update();
-        img_affine = reader_image_affine->GetOutput();
+        typename ImageType::Pointer img_affine = reader_image_affine->GetOutput();
 
-        GetAffineTransformFromImage(img_affine, aff);
+        GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
 
         if( opt.do_affine_inv )
           {
@@ -572,7 +571,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
       typename ImageType::SizeType largest_size;
       typename ImageType::PointType origin_warped;
-      GetLaregstSizeAfterWarp(warper, img_mov, largest_size, origin_warped);
+      GetLargestSizeAfterWarp<WarperType, ImageType>(warper, img_mov, largest_size, origin_warped);
       // Use img_mov as initial template space, then overwrite individual components as desired
       warper->SetOutputParametersFromImage( img_mov );
 
