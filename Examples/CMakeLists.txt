@@ -18,11 +18,12 @@ set(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLin
 add_library(antsUtilities STATIC antsUtilities.cxx )
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 
-macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME)
+macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
 
   add_library(l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}.cxx ${UI_SOURCES})
-  target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${ITK_LIBRARIES} )
+  message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
+  target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${ITK_LIBRARIES} ${EXTRA_LIBS} )
   configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
   add_executable( ${ANTS_FUNCTION_NAME} cli_${ANTS_FUNCTION_NAME}.cxx )
   target_link_libraries( ${ANTS_FUNCTION_NAME} l_${ANTS_FUNCTION_NAME})
@@ -34,8 +35,6 @@ macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME)
   )
 
 endmacro()
-
-
 
 set(BASE_ANTS_APPS
   ANTS
@@ -116,6 +115,9 @@ set(BASE_ANTS_APPS
   AtroposMin
   Atropos
 )
+foreach(ANTS_APP ${BASE_ANTS_APPS})
+  STANDARD_ANTS_BUILD(${ANTS_APP} "")
+endforeach()
 
 if(USE_VTK)
 include(${CMAKE_ROOT}/Modules/FindVTK.cmake)
@@ -130,15 +132,11 @@ set(VTK_ANTS_APPS
     # ConformalMapping
     # ANTSConformalMapping
   )
+foreach(ANTS_APP ${VTK_ANTS_APPS})
+  STANDARD_ANTS_BUILD(${ANTS_APP} "${VTK_LIBRARIES}")
+endforeach()
 endif(USE_VTK_FILE)
 endif(USE_VTK)
-
-
-
-set(ALL_ANTS_APPS ${BASE_ANTS_APPS} ${VTK_ANTS_APPS})
-foreach(ANTS_APP ${ALL_ANTS_APPS})
-  STANDARD_ANTS_BUILD(${ANTS_APP})
-endforeach()
 
 install(PROGRAMS ../Scripts/ants.sh
                  ../Scripts/basic_ants_example.sh
