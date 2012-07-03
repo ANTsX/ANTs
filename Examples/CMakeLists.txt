@@ -156,6 +156,10 @@ install(PROGRAMS ../Scripts/ants.sh
         )
 
 
+## Build test option
+if(BUILD_TESTING)
+    add_subdirectory(TestSuite)
+endif(BUILD_TESTING)
 
 # Copy all the shell scripts in the Scripts/ directory to the bin directory
 ##

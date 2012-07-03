@@ -1,0 +1,12 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include "include/ants.h"
+
+int @ANTS_FUNCTION_NAME@Test(int argc, char* argv[])
+{
+  const char * const * const ptr = &argv[1] ;
+  const std::vector< std::string > command_line_args( ptr , ptr+argc-1 );
+  const bool return_value=ants::@ANTS_FUNCTION_NAME@( command_line_args , &std::cout ) ;
+  return return_value;
+}
