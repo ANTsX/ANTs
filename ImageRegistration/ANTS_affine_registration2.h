@@ -389,8 +389,17 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
 
   if( opt.mask_fixed.IsNotNull() )
     {
-    R_opt.mask_fixed = RunningOptAffineType::MaskImagePointerType::ObjectType::New();
-    R_opt.mask_fixed = reinterpret_cast<typename RunningOptAffineType::MaskImagePointerType &>(opt.mask_fixed);
+    //  R_opt.mask_fixed = RunningOptAffineType::MaskImagePointerType::ObjectType::New();
+    // R_opt.mask_fixed =
+    // reinterpret_cast<typename
+    // RunningOptAffineType::MaskImagePointerType &>(opt.mask_fixed);
+    R_opt.mask_fixed =
+      dynamic_cast<typename RunningOptAffineType::MaskImagePointerType::ObjectType *>
+      (opt.mask_fixed.GetPointer() );
+    if( R_opt.mask_fixed.IsNull() )
+      {
+      itkGenericExceptionMacro(<< "Can't convert optimizer mask to proper mask type.");
+      }
     // have to set " -fno-strict-aliasing " in gcc to remove the following compilation warning:
     //  warning: dereferencing type-punned pointer will break strict-aliasing rules
     }
