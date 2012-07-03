@@ -2745,7 +2745,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     this->SparsifyP( x_k, true );
     }
-  while(  deltaminerr > 0.1 && approxerr > convcrit && ct < maxits || ct < 4 )
+  while( ( ( deltaminerr > 0.1 ) && ( approxerr > convcrit ) && ( ct < maxits ) )
+         || ( ct < 4 ) )
     {
     RealType alpha_denom = inner_product( p_k, At * ( A * p_k ) );
     RealType iprk = inner_product( r_k, r_k );
