@@ -178,8 +178,8 @@ protected:
   BinaryImageToMeshFilter()
   {
     // Set the cardinality of the filter
-    this->SetNumberOfInputs(1);
-    this->SetNumberOfOutputs(1);
+    this->SetNumberOfIndexedInputs(1);
+    this->SetNumberOfIndexedOutputs(1);
 
     // Begin with the well-connectedness filter
     // fltTopology = TopologyFilter::New();
