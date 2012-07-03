@@ -9,7 +9,7 @@ set(CTEST_CUSTOM_MEMCHECK_IGNORE
 #-- #"{standard input}:[0-9][0-9]*: Warning: "
 #-- #)
 
-#-- #IF("@CMAKE_SYSTEM@" MATCHES "OSF")
+#-- #if("@CMAKE_SYSTEM@" MATCHES "OSF")
 set(CTEST_CUSTOM_WARNING_EXCEPTION
     $ {CTEST_CUSTOM_WARNING_EXCEPTION}
     "fltk"
@@ -17,7 +17,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
     "vtkKWApplication"
     "vtkKWObject"
     )
-#-- #ENDIF("@CMAKE_SYSTEM@" MATCHES "OSF")
+#-- #endif("@CMAKE_SYSTEM@" MATCHES "OSF")
 
 #-- #The following are brains2 warnings that just need to be suppressed because they are caused
 #-- #by third parties, and will never be fixed.
