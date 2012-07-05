@@ -132,12 +132,10 @@ void ComposeMultiTransform(char *output_image_filename,
       {
       case AFFINE_FILE:
         {
-        typename TranReaderType::Pointer tran_reader =
-          TranReaderType::New();
+        typename TranReaderType::Pointer tran_reader = TranReaderType::New();
         tran_reader->SetFileName(opt.filename);
         tran_reader->Update();
-        typename AffineTransformType::Pointer
-        aff =
+        typename AffineTransformType::Pointer aff =
           dynamic_cast<AffineTransformType *>( (tran_reader->GetTransformList() )->front().GetPointer() );
         if( opt_queue[i].do_affine_inv )
           {
@@ -145,20 +143,18 @@ void ComposeMultiTransform(char *output_image_filename,
           }
         // antscout << aff << std::endl;
         warper->PushBackAffineTransform(aff);
-        break;
         }
+        break;
       case DEFORMATION_FILE:
         {
-        typename FieldReaderType::Pointer field_reader =
-          FieldReaderType::New();
+        typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
         field_reader->SetFileName(opt.filename);
         field_reader->Update();
-        typename DisplacementFieldType::Pointer field =
-          field_reader->GetOutput();
+        typename DisplacementFieldType::Pointer field = field_reader->GetOutput();
         // antscout << field << std::endl;
         warper->PushBackDisplacementFieldTransform(field);
-        break;
         }
+        break;
       default:
         antscout << "Unknown file type!" << std::endl;
       }
@@ -264,16 +260,18 @@ void ComposeMultiAffine(char *output_affine_txt,
         // antscout << aff << std::endl;
         warper->PushBackAffineTransform(aff);
         cnt_affine++;
-        break;
         }
+        break;
       case DEFORMATION_FILE:
         {
         antscout << "Compose affine only files: ignore "
                  << opt.filename << std::endl;
-        break;
         }
+        break;
       default:
+        {
         antscout << "Unknown file type!" << std::endl;
+        }
       }
     }
 
@@ -437,18 +435,17 @@ private:
             {
             ComposeMultiTransform<2>(output_image_filename,
                                      reference_image_filename, opt_queue);
-            break;
             }
+            break;
           case 3:
             {
             ComposeMultiTransform<3>(output_image_filename,
                                      reference_image_filename, opt_queue);
-            break;
             }
+            break;
           }
-        break;
         }
-
+        break;
       case AFFINE_FILE:
         {
         antscout << "output_affine_txt: " << output_image_filename
@@ -470,18 +467,17 @@ private:
             {
             ComposeMultiAffine<2>(output_image_filename,
                                   reference_image_filename, opt_queue);
-            break;
             }
+            break;
           case 3:
             {
             ComposeMultiAffine<3>(output_image_filename,
                                   reference_image_filename, opt_queue);
-            break;
             }
+            break;
           }
-        break;
         }
-
+        break;
       default:
         {
         antscout << "Unknow output file format: " << output_image_filename << std::endl;
@@ -493,7 +489,6 @@ private:
     {
     antscout << "Input error!" << std::endl;
     }
-
   return EXIT_FAILURE;
 }
 } // namespace ants

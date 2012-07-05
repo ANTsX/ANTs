@@ -141,9 +141,12 @@ void
 HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage) //
                                                                                                                    //
                                                                                                                    //
+                                                                                                                   //
                                                                                                                    // typename
                                                                                                                    //
+                                                                                                                   //
                                                                                                                    // TInputImage::Pointer
+                                                                                                                   //
                                                                                                                    //
                                                                                                                    // m_OutputMovingImage
                                                                                                                    // )

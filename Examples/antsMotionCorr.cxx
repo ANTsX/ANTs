@@ -1020,7 +1020,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           GaussianDisplacementFieldTransformType;
 
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
-                                               GaussianDisplacementFieldTransformType> DisplacementFieldRegistrationType;
+                                               GaussianDisplacementFieldTransformType>
+          DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 

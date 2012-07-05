@@ -1405,8 +1405,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption(
       2,
       "ManifoldParzenWindows[<pointSetSigma=1.0>,<evaluationKNeighborhood=50>,<CovarianceKNeighborhood=0>,<kernelSigma=0>]" );
-    option->SetUsageOption( 3,
-                            "JointShapeAndOrientationProbability[<shapeSigma=1.0>,<numberOfShapeBins=64>, <orientationSigma=1.0>, <numberOfOrientationBins=32>]" );
+    option->SetUsageOption(
+      3,
+      "JointShapeAndOrientationProbability[<shapeSigma=1.0>,<numberOfShapeBins=64>, <orientationSigma=1.0>, <numberOfOrientationBins=32>]" );
     option->SetUsageOption( 4, "LogEuclideanGaussian" );
     option->SetDescription( description );
     parser->AddOption( option );

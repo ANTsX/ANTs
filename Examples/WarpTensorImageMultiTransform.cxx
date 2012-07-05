@@ -378,9 +378,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
             warper->SetOutputParametersFromImage( img_mov );
             }
           transcount++;
-          break;
           }
-
+          break;
         case IDENTITY_TRANSFORM:
           {
           typename AffineTransformType::Pointer aff;
@@ -388,9 +387,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           // antscout << " aff id" << transcount << std::endl;
           warper->PushBackAffineTransform(aff);
           transcount++;
-          break;
           }
-
+          break;
         case IMAGE_AFFINE_HEADER:
           {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
@@ -416,24 +414,23 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           //            }
 
           transcount++;
-          break;
           }
-
+          break;
         case DEFORMATION_FILE:
           {
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
           field_reader->SetFileName( opt.filename );
           field_reader->Update();
           typename DisplacementFieldType::Pointer field = field_reader->GetOutput();
-
           warper->PushBackDisplacementFieldTransform(field);
           warper->SetOutputParametersFromImage( field );
-
           transcount++;
-          break;
           }
+          break;
         default:
+          {
           antscout << "Unknown file type!" << std::endl;
+          }
         }
       }
 
@@ -595,8 +592,10 @@ private:
   bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = WarpTensorImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename,
-                                                           output_image_filename, opt_queue, misc_opt);
+  is_parsing_ok =
+    WarpTensorImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename,
+                                             opt_queue,
+                                             misc_opt);
 
   if( is_parsing_ok )
     {
@@ -618,13 +617,13 @@ private:
       case 2:
         {
         WarpImageMultiTransform<2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-        break;
         }
+        break;
       case 3:
         {
         WarpImageMultiTransform<3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-        break;
         }
+        break;
       }
     }
   else

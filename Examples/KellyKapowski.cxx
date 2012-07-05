@@ -613,23 +613,21 @@ private:
     case 2:
       {
       DiReCT<2>( parser );
-      break;
       }
+      break;
     case 3:
       {
       DiReCT<3>( parser );
-      break;
       }
+      break;
     case 4:
       {
       DiReCT<4>( parser );
-      break;
       }
+      break;
     default:
-      {
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
-      }
     }
   return EXIT_SUCCESS;
 }

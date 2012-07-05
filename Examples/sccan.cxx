@@ -2077,18 +2077,18 @@ int sccan( itk::ants::CommandLineParser *parser )
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
       antscout << " mscca 3-view " << std::endl;
-      exitvalue = mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,
-                                                     p_cluster_thresh,
-                                                     q_cluster_thresh,
-                                                     iterct);
+      exitvalue =
+        mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
+                                           q_cluster_thresh,
+                                           iterct);
       }
     else if( !initializationStrategy.compare( std::string("partial") )   )
       {
       antscout << " pscca " << std::endl;
-      exitvalue = mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,
-                                                     p_cluster_thresh,
-                                                     q_cluster_thresh,
-                                                     iterct);
+      exitvalue =
+        mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
+                                           q_cluster_thresh,
+                                           iterct);
       }
     else
       {

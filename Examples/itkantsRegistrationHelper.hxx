@@ -593,7 +593,8 @@ template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
 ::AddBSplineSyNTransform(double GradientStep, std::vector<unsigned int> &  UpdateFieldMeshSizeAtBaseLevel,
-                         std::vector<unsigned int> &  TotalFieldMeshSizeAtBaseLevel, unsigned int SplineOrder)
+                         std::vector<unsigned int> &  TotalFieldMeshSizeAtBaseLevel,
+                         unsigned int SplineOrder)
 {
   TransformMethod init;
 
@@ -1349,7 +1350,8 @@ RegistrationHelper<VImageDimension>
           GaussianDisplacementFieldTransformType;
 
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               GaussianDisplacementFieldTransformType> DisplacementFieldRegistrationType;
+                                               GaussianDisplacementFieldTransformType>
+          DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 

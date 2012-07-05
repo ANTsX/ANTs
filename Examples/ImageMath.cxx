@@ -2188,7 +2188,7 @@ int PASL(int argc, char *argv[])
     unsigned long cbfct = 0;
     RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
                                                     // each tissue
-    bool          getCBF = true;
+    bool getCBF = true;
     if( haveM0 && M_0 == 0 )
       {
       getCBF = false;
@@ -2212,10 +2212,10 @@ int PASL(int argc, char *argv[])
                 TI_2 = TI_1 + t * slice_delay
              where t is the image index , DeltaM is the difference signal between tag and control acquisitions,
              lambda = 0.9 ml/g is the blood/tissue water partition, T_{1a} = 1200 ms is the longitudinal relaxation time of blood,
-             alpha = 0.95 is the inversion (or labeling or tagging?) efﬁciency, TI_1 = 800 millisec is the duration
+             alpha = 0.95 is the inversion (or labeling or tagging?) efciency, TI_1 = 800 millisec is the duration
              between the inversion and saturation pulses, TI_2 = TI_1 + w is the image acquisition time.  M_0 is
              the acquired image.  These parameters were primarily based on experience in healthy adults; potential effects
-             of ignoring the difference between adults and children on CBF quantiﬁcation will be discussed below.
+             of ignoring the difference between adults and children on CBF quantication will be discussed below.
              ...
              also see https://gate.nmr.mgh.harvard.edu/wiki/whynhow/images/e/e2/ASL_whyNhow.pdf
    */
@@ -2392,7 +2392,7 @@ int pCASL(int argc, char *argv[])
     unsigned long cbfct = 0;
     RealType      M_0   = M0image->GetPixel( ind ); // FIXME can be taken from an input reference image or defined for
                                                     // each tissue
-    bool          getCBF = true;
+    bool getCBF = true;
     if( haveM0 && M_0 == 0 )
       {
       getCBF = false;
@@ -2441,7 +2441,9 @@ int pCASL(int argc, char *argv[])
           // Label width: Not in dicom, but sequence-specific -- magic parameter. Reference values: pCASL 1.5, CASL 1.6,
           // PASL 0.7.
           RealType scaling = 4 * alpha * M_0 * T_1t * ( exp( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  ); //
+                                                                                                                      //
                                                                                                                       // from
+                                                                                                                      //
                                                                                                                       // PMC3049525
           cbf( t ) = lambda * deltaM * ( -1.0 )  / scaling;
           total += cbf( t );
@@ -7340,23 +7342,23 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   LabelSetType myLabelSet2;
   unsigned int labct = 0;
-                  { Iterator It( image2, image2->GetLargestPossibleRegion() );
-                  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-                    {
-                    PixelType label = It.Get();
-                    if( fabs(label) > 0 )
-                      {
-                      if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
-                          == myLabelSet2.end()   &&
-                          find( myLabelSet1.begin(), myLabelSet1.end(), label )
-                          != myLabelSet1.end() )
-                        {
-                        myLabelSet2.push_back( label );
-                        labct++;
+                        { Iterator It( image2, image2->GetLargestPossibleRegion() );
+                        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+                          {
+                          PixelType label = It.Get();
+                          if( fabs(label) > 0 )
+                            {
+                            if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
+                                == myLabelSet2.end()   &&
+                                find( myLabelSet1.begin(), myLabelSet1.end(), label )
+                                != myLabelSet1.end() )
+                              {
+                              myLabelSet2.push_back( label );
+                              labct++;
+                              }
+                            }
+                          }
                         }
-                      }
-                    }
-                  }
 
   vnl_vector<double> distances(labct, 0.0);
   vnl_vector<double> dicevals(labct, 0.0);
@@ -9929,8 +9931,9 @@ private:
       " PASL : computes the PASL model of CBF  "     << std::endl <<  "f =  \frac{      lambda DeltaM        } "
       << std::endl
       << " {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
-    antscout << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt "
-             << std::endl;
+    antscout
+      << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt "
+      << std::endl;
 
     antscout
       <<
@@ -10020,9 +10023,9 @@ private:
     antscout << " RandomlySampleImageSetToCSV outputs a csv file type." << std::endl;
 
     antscout
-             <<
+      <<
       "\n  FrobeniusNormOfMatrixDifference: take the difference between two itk-transform matrices and then compute the frobenius norm"
-             << std::endl;
+      << std::endl;
     antscout << "      Usage        : FrobeniusNormOfMatrixDifference mat1 mat2 " << std::endl;
     antscout
       <<

@@ -346,18 +346,18 @@ private:
     case 1:
       {
       CreateZeroImage<1>( argc, argv );
-      break;
       }
+      break;
     case 2:
       {
       CreateZeroImage<2>( argc, argv );
-      break;
       }
+      break;
     case 3:
       {
       CreateZeroImage<3>( argc, argv );
-      break;
       }
+      break;
     default:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;

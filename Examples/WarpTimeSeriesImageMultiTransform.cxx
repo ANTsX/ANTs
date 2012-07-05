@@ -354,9 +354,8 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
             warper->SetOutputParametersFromImage( img_ref );
             }
           transcount++;
-          break;
           }
-
+          break;
         case IDENTITY_TRANSFORM:
           {
           typename AffineTransformType::Pointer aff;
@@ -364,9 +363,8 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
           // antscout << " aff id" << transcount << std::endl;
           warper->PushBackAffineTransform(aff);
           transcount++;
-          break;
           }
-
+          break;
         case IMAGE_AFFINE_HEADER:
           {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
@@ -392,9 +390,8 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
           //            }
 
           transcount++;
-          break;
           }
-
+          break;
         case DEFORMATION_FILE:
           {
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
@@ -406,15 +403,16 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
           warper->SetOutputParametersFromImage( field );
 
           transcount++;
-          break;
           }
+          break;
         default:
+          {
           antscout << "Unknown file type!" << std::endl;
+          }
         }
       }
 
     // warper->PrintTransformList();
-
     if( img_ref.IsNotNull() )
       {
       warper->SetOutputParametersFromImage( img_ref );
@@ -443,11 +441,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
 
     if( timedim % vnl_math_max(timedims / 10, static_cast<unsigned int>(1) ) == 0 )
       {
-      antscout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;                                                                           //
-                                                                                                                                                                     //
-                                                                                                                                                                     // <<
-                                                                                                                                                                     //
-                                                                                                                                                                     // std::endl;
+      antscout << (float) timedim / (float)timedims * 100 << " % done ... " << std::flush;
       }
     typename VectorImageType::RegionType extractRegion = img_mov->GetLargestPossibleRegion();
     extractRegion.SetSize(ImageDimension - 1, 0);
@@ -623,9 +617,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
             warper->SetOutputParametersFromImage( img_mov );
             }
           transcount++;
-          break;
           }
-
+          break;
         case IDENTITY_TRANSFORM:
           {
           typename AffineTransformType::Pointer aff;
@@ -633,9 +626,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           // antscout << " aff id" << transcount << std::endl;
           warper->PushBackAffineTransform(aff);
           transcount++;
-          break;
           }
-
+          break;
         case IMAGE_AFFINE_HEADER:
           {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
@@ -659,11 +651,9 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           //            if (transcount==0){
           //                warper->SetOutputParametersFromImage( img_mov );
           //            }
-
           transcount++;
-          break;
           }
-
+          break;
         case DEFORMATION_FILE:
           {
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
@@ -675,10 +665,12 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           warper->SetOutputParametersFromImage( field );
 
           transcount++;
-          break;
           }
+          break;
         default:
+          {
           antscout << "Unknown file type!" << std::endl;
+          }
         }
       }
 
@@ -720,7 +712,6 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
       vfIter2.Set(tens);
       }
     }
-
   WriteImage<VectorImageType>(img_output, output_image_filename);
 }
 
@@ -830,8 +821,10 @@ private:
   bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = WarpTimeSeriesImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename,
-                                                               output_image_filename, opt_queue, misc_opt);
+  is_parsing_ok =
+    WarpTimeSeriesImageMultiTransform_ParseInput(argc - 2, argv + 2, moving_image_filename, output_image_filename,
+                                                 opt_queue,
+                                                 misc_opt);
 
   if( is_parsing_ok )
     {
@@ -853,18 +846,18 @@ private:
       case 2:
         {
         WarpImageMultiTransform<2>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-        break;
         }
+        break;
       case 3:
         {
         WarpImageMultiTransform<3>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-        break;
         }
+        break;
       case 4:
         {
         WarpImageMultiTransformFourD<4>(moving_image_filename, output_image_filename, opt_queue, misc_opt);
-        break;
         }
+        break;
       }
     }
   else

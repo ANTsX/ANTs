@@ -198,8 +198,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       9,
       "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
     option->SetUsageOption( 10, "SyN[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption( 11,
-                            "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption(
+      11, "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -446,7 +446,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   if( initialFixedTransformOption && initialFixedTransformOption->GetNumberOfValues() > 0 )
     {
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<VImageDimension>( parser, initialFixedTransformOption );
+      GetCompositeTransformFromParserOption<VImageDimension>(
+        parser, initialFixedTransformOption );
     if( compositeTransform.IsNull() )
       {
       return EXIT_FAILURE;

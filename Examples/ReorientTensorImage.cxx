@@ -128,11 +128,9 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
       tran_reader->Update();
       aff = dynamic_cast<AffineTransformType *>( (tran_reader->GetTransformList() )->front().GetPointer() );
       reo->SetAffineTransform( aff );
-
       antscout << "Affine transform" << std::endl;
       }
       break;
-
     case DEFORMATION_FILE:
       {
       typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
@@ -144,13 +142,13 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
       }
       break;
     default:
+      {
       antscout << "Unknown file type!" << std::endl;
+      }
     }
-
   reo->Update();
 
   typename TensorImageType::Pointer img_output = reo->GetOutput();
-
   // No reason to use log-euclidean space here
   WriteTensorImage<TensorImageType>(img_output, output_image_filename, false);
 }

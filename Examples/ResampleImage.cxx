@@ -281,8 +281,8 @@ int ResampleImage( int argc, char *argv[] )
           bs_interpolator->SetSplineOrder( 3 );
           }
         resampler->SetInterpolator( bs_interpolator );
-        break;
         }
+        break;
       }
     }
   resampler->SetInput( reader->GetOutput() );
