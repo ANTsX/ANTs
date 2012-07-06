@@ -402,22 +402,32 @@ public:
   /**
    * turn on histogram matching of the input images
    */
-  itkSetMacro(UseHistogramMatching, bool);
-  itkGetMacro(UseHistogramMatching, bool);
+  itkSetMacro( UseHistogramMatching, bool );
+  itkGetConstMacro( UseHistogramMatching, bool );
+  itkBooleanMacro( UseHistogramMatching );
 
   /**
    * turn on the option that lets you estimate the learning rate step size only at the beginning of each level.
    * useful as a second stage of fine-scale registration.
    */
-  itkSetMacro(DoEstimateLearningRateAtEachIteration, bool);
-  itkGetMacro(DoEstimateLearningRateAtEachIteration, bool);
+  itkSetMacro( DoEstimateLearningRateAtEachIteration, bool );
+  itkGetConstMacro( DoEstimateLearningRateAtEachIteration, bool );
+  itkBooleanMacro( DoEstimateLearningRateAtEachIteration );
+
+  /**
+   * turn on the option that pushes initial linear transforms to the moving
+   * image header for faster processing
+   */
+  itkSetMacro( ApplyLinearTransformsToMovingImageHeader, bool );
+  itkGetConstMacro( ApplyLinearTransformsToMovingImageHeader, bool );
+  itkBooleanMacro( ApplyLinearTransformsToMovingImageHeader );
 
   /**
    * turn on winsorize image intensity normalization
    */
-  void SetWinsorizeImageIntensities(bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0);
+  void SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0 );
 
-  itkGetObjectMacro(CompositeTransform, CompositeTransformType);
+  itkGetObjectMacro( CompositeTransform, CompositeTransformType );
 
   /**
    * Set/Get the interpolator.  Linear is default.
@@ -435,12 +445,12 @@ public:
   /**
    * Set the fixed/moving image masks with a spatial object
    */
-  void SetFixedImageMask(typename ImageMaskSpatialObjectType::Pointer & fixedImageMask)
+  void SetFixedImageMask( typename ImageMaskSpatialObjectType::Pointer & fixedImageMask )
   {
     this->m_FixedImageMask = fixedImageMask;
   }
 
-  void SetMovingImageMask(typename ImageMaskSpatialObjectType::Pointer & movingImageMask)
+  void SetMovingImageMask( typename ImageMaskSpatialObjectType::Pointer & movingImageMask )
   {
     this->m_MovingImageMask = movingImageMask;
   }
@@ -500,6 +510,12 @@ private:
   double                                  m_LowerQuantile;
   double                                  m_UpperQuantile;
   std::ostream *                          m_LogStream;
+
+  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageType * );
+
+  bool m_ApplyLinearTransformsToMovingImageHeader;
+  bool m_AllPreviousTransformsAreLinear;
+  typename CompositeTransformType::Pointer m_CompositeLinearTransformForMovingImageHeader;
 };
 
 // ##########################################################################

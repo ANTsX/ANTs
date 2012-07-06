@@ -99,19 +99,34 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     parser->AddOption( option );
     }
 
-    {
-    std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
-      + std::string( "incorporated into the composite transform.  The order of the " )
-      + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
-      + std::string( "for additional information." );
+  // Although this option will eventually be used, it is not needed now.
 
+//     {
+//     std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
+//       + std::string( "incorporated into the composite transform.  The order of the " )
+//       + std::string( "transforms is stack-esque in that the last transform specified on " )
+//       + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
+//       + std::string( "for additional information." );
+//
+//     OptionType::Pointer option = OptionType::New();
+//     option->SetLongName( "initial-fixed-transform" );
+//     option->SetShortName( 'q' );
+//     option->SetUsageOption( 0, "initialTransform" );
+//     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+//     option->SetDescription( description );
+//     parser->AddOption( option );
+//     }
+
+    {
+    std::string description = std::string( "Collapse initial linear transforms " )
+      + std::string( "to the moving image header.  This should speed up subsequent " )
+      + std::string( "nonlinear transform optimizations." );
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initial-fixed-transform" );
-    option->SetShortName( 'q' );
-    option->SetUsageOption( 0, "initialTransform" );
-    option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+    option->SetLongName( "collapse-linear-transforms-to-moving-image-header" );
+    option->SetShortName( 'b' );
+    option->SetUsageOption( 0, "(1)/0" );
     option->SetDescription( description );
+    option->AddValue( std::string( "1" ) );
     parser->AddOption( option );
     }
 
@@ -411,6 +426,17 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
 
+  OptionType::Pointer collapseLinearTransforms =
+    parser->GetOption( "collapse-linear-transforms-to-moving-image-header" );
+  if( parser->Convert<bool>( collapseLinearTransforms->GetValue( 0 ) ) )
+    {
+    regHelper->SetApplyLinearTransformsToMovingImageHeader( true );
+    }
+  else
+    {
+    regHelper->SetApplyLinearTransformsToMovingImageHeader( false );
+    }
+
   std::string outputPrefix = outputOption->GetValue( 0 );
   if( outputOption->GetNumberOfParameters( 0 ) > 0 )
     {
@@ -423,7 +449,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   std::string outputInverseWarpedImageName;
-  if( outputOption->GetNumberOfParameters(0) > 2 )
+  if( outputOption->GetNumberOfParameters( 0 ) > 2 )
     {
     outputInverseWarpedImageName = outputOption->GetParameter( 0, 2 );
     }
@@ -929,15 +955,14 @@ DoRegistration(typename ParserType::Pointer & parser)
     bool writeInverse;
     bool writeVelocityField;
 
-    std::string transformTemplateName =
-      RegTypeToFileName(curTransformType, writeInverse, writeVelocityField);
+    std::string transformTemplateName = RegTypeToFileName( curTransformType, writeInverse, writeVelocityField );
 
     std::stringstream curFileName;
     curFileName << outputPrefix << i << transformTemplateName;
     // WriteTransform will spit all sorts of error messages if it
     // fails, and we want to keep going even if it does so ignore its
     // return value.
-    itk::ants::WriteTransform<VImageDimension>(curTransform, curFileName.str() );
+    itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
 
     typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
     typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
