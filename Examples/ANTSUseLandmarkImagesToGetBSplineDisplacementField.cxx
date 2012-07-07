@@ -126,6 +126,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
       fixedPoints->SetPoint( fixedCount++, fixedPoint );
       }
     }
+  std::sort( fixedLabels.begin(), fixedLabels.end() );
 
   typename PointSetType::Pointer movingPoints = PointSetType::New();
   movingPoints->Initialize();
@@ -152,6 +153,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
       movingPoints->SetPoint( movingCount++, movingPoint );
       }
     }
+  std::sort( movingLabels.begin(), movingLabels.end() );
 
   // Get moving center points
   typename PointSetType::Pointer movingCenters = PointSetType::New();
@@ -229,6 +231,63 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
     return EXIT_FAILURE;
     }
 
+  // Read in the optional label weights
+
+  std::vector<float>     labelWeights;
+  std::vector<LabelType> userLabels;
+
+  bool useWeights = false;
+
+  unsigned int labelCount = 0;
+  if( argc > 7 )
+    {
+    useWeights = true;
+
+    std::fstream labelStr( argv[7] );
+
+    if( labelStr.is_open() )
+      {
+      while( !labelStr.eof() )
+        {
+        char line[256];
+        labelStr.getline( line, 256 );
+
+        std::string lineString = std::string( line );
+        std::size_t pos = lineString.find( ',' );
+
+        RealType value;
+        if( pos == std::string::npos )
+          {
+          std::istringstream iss( lineString );
+          iss >> value;
+          labelWeights.push_back( value );
+          userLabels.push_back( movingLabels[labelCount++] );
+          }
+        else
+          {
+          unsigned int localLabel;
+
+          std::string        element = lineString.substr( 0, pos );
+          std::istringstream iss( element );
+          iss >> localLabel;
+          userLabels.push_back( localLabel );
+
+          element = lineString.substr( pos + 1, lineString.length() );
+          std::istringstream iss2( element );
+          iss2 >> value;
+          labelWeights.push_back( value );
+          }
+        }
+
+      labelStr.close();
+      }
+    else
+      {
+      std::cerr << "File " << argv[7] << " cannot be opened." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
   // Now match up the center points
 
   typedef itk::PointSet<VectorType, ImageDimension> DisplacementFieldPointSetType;
@@ -276,7 +335,24 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
         fieldPoints->SetPoint( count, fieldPoint );
         fieldPoints->SetPointData( count, vector );
 
-        weights->InsertElement( count, weight );
+        if( useWeights )
+          {
+          std::vector<LabelType>::const_iterator it = std::find( userLabels.begin(), userLabels.end(), mItD.Value() );
+          if( it != userLabels.end() )
+            {
+            weights->InsertElement( count, labelWeights[it - userLabels.begin()] );
+            }
+          else
+            {
+            std::cerr << "Unspecified label " << mItD.Value() << " in specified user label weights." << std::endl;
+            return EXIT_FAILURE;
+            }
+          }
+        else
+          {
+          weights->InsertElement( count, weight );
+          }
+
         count++;
 
         break;
@@ -481,7 +557,7 @@ private:
     {
     antscout << "Usage:   " << argv[0]
              << " fixedImageWithLabeledLandmarks  movingImageWithLabeledLandmarks outputDisplacementField "
-             << "meshSize[0]xmeshSize[1]x... numberOfLevels [order=3] [enforceStationaryBoundaries=1]"
+             << "meshSize[0]xmeshSize[1]x... numberOfLevels [order=3] [enforceStationaryBoundaries=1] [landmarkWeights]"
              << std::endl;
     antscout
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "
@@ -489,6 +565,13 @@ private:
     antscout << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
     antscout << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
     antscout << " You can use ITK-snap to generate the label images. " << std::endl;
+    antscout << " The optional landmarks weights are read from a text file where each row is either:" << std::endl;
+    antscout << " \"label,labelWeight\" or " << std::endl;
+    antscout << " \"labelWeight\" or " << std::endl;
+    antscout
+      << " If the latter format is used, the label weights are assumed to be arranged in ascending order by label."
+      << std::endl;
+
     return 1;
     }
 
