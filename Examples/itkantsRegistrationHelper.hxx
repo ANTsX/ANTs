@@ -2522,12 +2522,14 @@ RegistrationHelper<VImageDimension>
   imageTransform->SetMatrix( image->GetDirection() );
   imageTransform->SetOffset( origin.GetVectorFromOrigin() );
   typename MatrixOffsetTransformBaseType::Pointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
-  inverseImageTransform->SetMatrix( imageTransform->GetInverseMatrix() );
+  inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->GetInverseTransform()
+                                                                                   .GetPointer() )->GetMatrix() );
   inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
 
   totalTransform->Compose( inverseImageTransform, false );
 
-  typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix = totalTransform->GetInverseMatrix();
+  typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix =
+    dynamic_cast<MatrixOffsetTransformBaseType *>( totalTransform->GetInverseTransform().GetPointer() )->GetMatrix();
   typename MatrixOffsetTransformBaseType::OffsetType inverseOffset = -( inverseMatrix * totalTransform->GetOffset() );
   for( unsigned int d = 0; d < VImageDimension; d++ )
     {
