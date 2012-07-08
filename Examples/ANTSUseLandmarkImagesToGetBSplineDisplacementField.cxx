@@ -239,11 +239,11 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
   bool useWeights = false;
 
   unsigned int labelCount = 0;
-  if( argc > 7 )
+  if( argc > 8 )
     {
     useWeights = true;
 
-    std::fstream labelStr( argv[7] );
+    std::fstream labelStr( argv[8] );
 
     if( labelStr.is_open() )
       {
@@ -283,7 +283,7 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
       }
     else
       {
-      std::cerr << "File " << argv[7] << " cannot be opened." << std::endl;
+      std::cerr << "File " << argv[8] << " cannot be opened." << std::endl;
       return EXIT_FAILURE;
       }
     }
