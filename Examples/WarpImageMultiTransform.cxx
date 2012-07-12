@@ -337,11 +337,9 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   typename ImageFileReaderType::Pointer reader_img = ImageFileReaderType::New();
   reader_img->SetFileName(moving_image_filename);
   reader_img->Update();
-  typename ImageType::Pointer img_mov = ImageType::New();
+  typename ImageType::Pointer img_mov = reader_img->GetOutput();
 
-  img_mov = reader_img->GetOutput();
-
-  typename RefImageType::Pointer img_ref;   // = ImageType::New();
+  typename RefImageType::Pointer img_ref;
 
   typename VectorImageFileReaderType::Pointer reader_img_ref = VectorImageFileReaderType::New();
   if( misc_opt.reference_image_filename )
@@ -614,8 +612,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   //    warper->MultiTransformSinglePoint(pt_in, pt_out);
   //    antscout << "pt_in=" << pt_in << " pt_out=" <<pt_out << std::endl;
 
-  typename ImageType::Pointer img_output = ImageType::New();
-  img_output = warper->GetOutput();
+  typename ImageType::Pointer img_output = warper->GetOutput();
 
   typedef itk::ImageFileWriter<ImageType> ImageFileWriterType;
   typename ImageFileWriterType::Pointer writer_img = ImageFileWriterType::New();

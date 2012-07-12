@@ -40,8 +40,6 @@ VectorImageFileReader<TImage, TVectorImage, ConvertPixelTraits>
   m_FileName = "";
   m_UserSpecifiedImageIO = false;
   m_UseAvantsNamingConvention = true;
-
-  this->m_Image = TImage::New();
 }
 
 template <class TImage, class TVectorImage, class ConvertPixelTraits>

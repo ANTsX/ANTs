@@ -155,7 +155,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
   typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
   typename ImageFileReaderType::Pointer reader_img =
     ImageFileReaderType::New();
-  typename ImageType::Pointer img_ref = ImageType::New();
+  typename ImageType::Pointer img_ref;
 
   typename ImageFileReaderType::Pointer reader_img_ref =
     ImageFileReaderType::New();

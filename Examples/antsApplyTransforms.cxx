@@ -68,7 +68,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
 
   // read in the image as char since we only need the header information.
   typedef itk::Image<char, Dimension> ReferenceImageType;
-  typename ReferenceImageType::Pointer referenceImage = ReferenceImageType::New();
+  typename ReferenceImageType::Pointer referenceImage;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer referenceOption =
     parser->GetOption( "reference-image" );

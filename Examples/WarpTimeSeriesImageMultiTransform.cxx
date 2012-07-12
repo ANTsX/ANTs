@@ -254,7 +254,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
 
   ReadImage<VectorImageType>(img_mov, moving_image_filename);
   antscout << " Four-D image size: " << img_mov->GetLargestPossibleRegion().GetSize() << std::endl;
-  typename ImageType::Pointer img_ref;   // = ImageType::New();
+  typename ImageType::Pointer img_ref;
   typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
   if( misc_opt.reference_image_filename )
     {
@@ -534,7 +534,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   unsigned int veclength = imageIO->GetNumberOfComponents();
   antscout << " read veclength as:: " << veclength << std::endl;
   ReadImage<VectorImageType>(img_mov, moving_image_filename);
-  typename ImageType::Pointer img_ref;   // = ImageType::New();
+  typename ImageType::Pointer img_ref;
 
   typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
   if( misc_opt.reference_image_filename )

@@ -296,7 +296,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   typename TensorImageType::Pointer img_mov;
   ReadTensorImage<TensorImageType>(img_mov, moving_image_filename, true);
 
-  typename ImageType::Pointer img_ref;   // = ImageType::New();
+  typename ImageType::Pointer img_ref;
 
   typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
   if( misc_opt.reference_image_filename )

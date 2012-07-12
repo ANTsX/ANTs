@@ -51,7 +51,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   reader->Update();
 
   typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage = MaskImageType::New();
+  typename MaskImageType::Pointer maskImage;
   typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
   typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
   maskreader->SetFileName( argv[4] );
