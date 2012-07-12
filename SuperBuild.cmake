@@ -89,6 +89,10 @@ CMAKE_DEPENDENT_OPTION(
      "USE_ITK" OFF
      )
 
+option(RUN_SHORT_TESTS    "Run the quick unit tests."                                   ON  )
+option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" ON  )
+option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                         OFF )
+
 #------------------------------------------------------------------------------
 # ${LOCAL_PROJECT_NAME} dependency list
 #------------------------------------------------------------------------------
@@ -209,6 +213,9 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
   BUILD_TESTING:BOOL
   ITK_VERSION_MAJOR:STRING
   ITK_DIR:PATH
+  RUN_SHORT_TESTS:BOOL
+  RUN_LONG_TESTS:BOOL
+  OLD_BASELINE_TESTS:BOOL
 
   ${LOCAL_PROJECT_NAME}_CLI_LIBRARY_OUTPUT_DIRECTORY:PATH
   ${LOCAL_PROJECT_NAME}_CLI_ARCHIVE_OUTPUT_DIRECTORY:PATH

@@ -50,6 +50,11 @@ if (USE_FFTWD OR USE_FFTWF)
   endif(USE_SYSTEM_FFTW)
 endif(USE_FFTWD OR USE_FFTWF)
 
+# These are configure time options that specify which
+# subset of tests should be run
+option(RUN_SHORT_TESTS    "Run the quick unit tests."                                   ON  )
+option(RUN_LONG_TESTS     "Run the time consuming tests. i.e. real world registrations" OFF )
+option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                         OFF )
 #-----------------------------------------------------------------------------
 include(CTest)
 enable_testing()

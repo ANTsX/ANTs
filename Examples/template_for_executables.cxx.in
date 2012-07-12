@@ -3,9 +3,9 @@
 #include <string>
 #include "include/ants.h"
 
-int main( int argc, char* argv[] )
+int main( int argc , char * argv[] )
 {
-  char* * ptr = &argv[1];
-
-  return ants::@ANTS_FUNCTION_NAME@( std::vector<std::string>( ptr, ptr + argc - 1 ), &std::cout );
+  const char * const * const ptr = &argv[1] ;
+  const std::vector< std::string > command_line_args( ptr , ptr+argc-1 );
+  return ants::@ANTS_FUNCTION_NAME@( command_line_args , &std::cout ) ;
 }

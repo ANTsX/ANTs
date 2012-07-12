@@ -5,7 +5,7 @@ NUMPARAMS=$#
 MAXITERATIONS=30x90x20
 if [ ${#ANTSPATH} -le 3 ] ; then
   echo we guess at your ants path
-  export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+  export ANTSPATH=${ANTSPATH:="/ipldev/scratch/aghayoor/ANTS/release/bin"} # EDIT THIS
 fi
 if [ ! -s ${ANTSPATH}/ANTS ] ; then
   echo we cant find the ANTS program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.

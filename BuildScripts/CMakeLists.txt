@@ -4,6 +4,6 @@
 ### the ANTS tools
 
 project(ANTSBuildScripts)
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.5)
 
 #install( FILES License.txt DESTINATION ${CMAKE_INSTALL_PREFIX} )
