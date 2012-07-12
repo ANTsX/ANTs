@@ -92,6 +92,7 @@ public:
   typedef double                                 RealType;
   typedef float                                  PixelType;
   typedef itk::Image<PixelType, VImageDimension> ImageType;
+  typedef itk::ImageBase<VImageDimension>        ImageBaseType;
 
   typedef itk::Transform<double, VImageDimension, VImageDimension>          TransformType;
   typedef itk::CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
@@ -511,7 +512,7 @@ private:
   double                                  m_UpperQuantile;
   std::ostream *                          m_LogStream;
 
-  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageType * );
+  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * );
 
   bool m_ApplyLinearTransformsToMovingImageHeader;
   bool m_AllPreviousTransformsAreLinear;

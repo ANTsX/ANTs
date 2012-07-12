@@ -860,7 +860,15 @@ RegistrationHelper<VImageDimension>
     if( this->m_ApplyLinearTransformsToMovingImageHeader )
       {
       this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
-                                                        preprocessMovingImage );
+                                                        dynamic_cast<ImageBaseType *>( preprocessMovingImage.GetPointer() ) );
+
+      if( this->m_MovingImageMask.IsNotNull() )
+        {
+        this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
+                                                          dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
+                                                                                           this->m_MovingImageMask->
+                                                                                           GetImage() ) ) );
+        }
       }
 
     this->Logger() << outputPreprocessingString << std::flush;
@@ -2482,7 +2490,7 @@ RegistrationHelper<VImageDimension>
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform, ImageType * image )
+::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform, ImageBaseType * image )
 {
   if( !compositeTransform->IsLinear() )
     {
