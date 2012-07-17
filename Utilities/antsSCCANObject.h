@@ -324,10 +324,14 @@ public:
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
                              bool makeprojsparse = false, unsigned int loorth =  0, unsigned int hiorth = 0 );
   RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int );
-  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda, unsigned int);
+  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda, unsigned int, bool);
 
   /** Return Rayleigh quotient */
   RealType PowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, bool);
+
+  RealType HTPowerIteration( MatrixType & A,  VectorType & x_k, unsigned int );
+
+  RealType IHT( MatrixType & A,  VectorType & x_k, unsigned int );
 
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
@@ -621,7 +625,7 @@ protected:
       }
     bool negate = false;
 
-    if( x_k1.max_value() <= 0 )
+    if( x_k1.mean() <= 0 )
       {
       negate = true;
       }
