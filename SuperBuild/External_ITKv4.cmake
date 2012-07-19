@@ -67,13 +67,13 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DITK_LEGACY_REMOVE:BOOL=ON
       -DITK_BUILD_ALL_MODULES:BOOL=ON
       -DITK_USE_REVIEW:BOOL=ON
-      -DITKV3_COMPATIBILITY:BOOL=ON
+      -DITKV3_COMPATIBILITY:BOOL=OFF
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DUSE_WRAP_ITK:BOOL=OFF ## HACK:  QUICK CHANGE
     )
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git CACHE STRING "" FORCE)
-  set(${proj}_GIT_TAG d84d414d32e9607b520b809c6594d342622cc696 CACHE STRING "" FORCE) #2012-07-10 -- Includes test driver fix for missing files.
+  set(${proj}_GIT_TAG b35534e39a94d4b9edd44e871e97dd6400211615 CACHE STRING "" FORCE) #2012-07-19 -- Includes test driver fix for missing files.
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}

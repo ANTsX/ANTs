@@ -324,7 +324,8 @@ public:
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
                              bool makeprojsparse = false, unsigned int loorth =  0, unsigned int hiorth = 0 );
   RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int );
-  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda, unsigned int, bool);
+  RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda, unsigned int,
+                            bool makesparse = false );
 
   /** Return Rayleigh quotient */
   RealType PowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, bool);

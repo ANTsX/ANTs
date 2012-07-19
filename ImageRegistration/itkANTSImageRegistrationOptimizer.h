@@ -570,28 +570,30 @@ public:
 
     // warper->Update();
 //      ::ants::antscout << " updated in point warp " << std::endl;
-    PointSetPointer outputMesh = PointSetType::New();
-    unsigned long   count = 0;
-    unsigned long   sz1 = movingpoints->GetNumberOfPoints();
+    PointSetPointer     outputMesh = PointSetType::New();
+    unsigned long       count = 0;
+    const unsigned long sz1 = movingpoints->GetNumberOfPoints();
     if( this->m_Debug )
       {
       ::ants::antscout << " BEFORE #points " << sz1 << std::endl;
       }
     for( unsigned long ii = 0; ii < sz1; ii++ )
       {
-      PointType     point, wpoint;
-      PointDataType label = 0;
+      PointType point;
       movingpoints->GetPoint(ii, &point);
+      PointDataType label = 0;
       movingpoints->GetPointData(ii, &label);
 // convert pointtype to imagepointtype
-      ImagePointType pt, wpt;
+      ImagePointType pt;
       for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
         {
         pt[jj] = point[jj];
         }
-      bool bisinside = warper->MultiTransformSinglePoint(pt, wpt);
+      ImagePointType wpt;
+      const bool     bisinside = warper->MultiTransformSinglePoint(pt, wpt);
       if( bisinside )
         {
+        PointType wpoint;
         for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
           {
           wpoint[jj] = wpt[jj];

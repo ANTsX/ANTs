@@ -2414,7 +2414,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int powerits = 0;
   VectorType   proj = ( A * evec  );
 
-  while( rayquo > rayquold && powerits < maxits || powerits < 2 )
+  while( ( ( rayquo > rayquold ) && ( powerits < maxits ) ) || powerits < 2 )
     {
     if( evec.two_norm() ==  0 )
       {
@@ -2448,7 +2448,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                                             TRealType>::MatrixType& A,
                    typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
                    typename antsSCCANObject<TInputImage, TRealType>::VectorType  b,
-                   TRealType lambda, unsigned int maxits, bool makesparse = false )
+                   TRealType lambda, unsigned int maxits, bool makesparse )
 {
   MatrixType At = A.transpose();
   VectorType r_k = At * ( A * x_k );
