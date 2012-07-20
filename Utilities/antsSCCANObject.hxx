@@ -1093,18 +1093,25 @@ template <class TInputImage, class TRealType>
 void antsSCCANObject<TInputImage, TRealType>
 ::SortResults(unsigned int n_vecs)
 {
+  bool debug = false;
 // sort and reindex the eigenvectors/values
   std::vector<TRealType> evals(n_vecs, 0);
   std::vector<TRealType> oevals(n_vecs, 0);
 
-  // ::ants::antscout<<"sort-a"<<std::endl;
+  if( debug )
+    {
+    ::ants::antscout << "sort-a" << std::endl;
+    }
   for( unsigned long j = 0; j < n_vecs; ++j )
     {
     RealType val = fabs(this->m_CanonicalCorrelations[j]);
     evals[j] = val;
     oevals[j] = val;
     }
-  // ::ants::antscout<<"sort-b"<<std::endl;
+  if( debug )
+    {
+    ::ants::antscout << "sort-b" << std::endl;
+    }
   sort(evals.begin(), evals.end(), my_sccan_sort_object);
   std::vector<int> sorted_indices( n_vecs, n_vecs - 1 );
   for( unsigned int i = 0; i < evals.size(); i++ )
@@ -1119,14 +1126,25 @@ void antsSCCANObject<TInputImage, TRealType>
         }
       }
     }
-  //  for (unsigned int i=0; i<evals.size(); i++) {
-  //    ::ants::antscout << " sorted " << i << " is " << sorted_indices[i] << " ev " << evals[i] <<" oev "<<oevals[i]<<
-  // std::endl; }
-  // ::ants::antscout<<"sort-c"<<std::endl;
+  if( debug )
+    {
+    for( unsigned int i = 0; i < evals.size(); i++ )
+      {
+      ::ants::antscout << " sorted " << i << " is " << sorted_indices[i] << " ev " << evals[i] << " oev "
+                       << oevals[i] << std::endl;
+      }
+    }
+  if( debug )
+    {
+    ::ants::antscout << "sort-c" << std::endl;
+    }
   VectorType newcorrs(n_vecs, 0);
-  MatrixType varp(this->m_MatrixP.cols(), n_vecs, 0);
-  MatrixType varq(this->m_MatrixQ.cols(), n_vecs, 0);
-  // ::ants::antscout<<"sort-d"<<std::endl;
+  MatrixType varp( this->m_VariatesP.rows(), this->m_VariatesP.columns(), 0);
+  MatrixType varq( this->m_VariatesQ.rows(), this->m_VariatesQ.columns(), 0);
+  if( debug )
+    {
+    ::ants::antscout << "sort-d" << std::endl;
+    }
   for( unsigned int i = 0; i < n_vecs; i++ )
     {
     // if ( sorted_indices[i] > 0 ) {
@@ -1138,16 +1156,35 @@ void antsSCCANObject<TInputImage, TRealType>
     newcorrs[i] = (this->m_CanonicalCorrelations[sorted_indices[i]]);
     // }
     }
-  //  ::ants::antscout<<"sort-e"<<std::endl;
+  if( debug )
+    {
+    ::ants::antscout << "sort-e" << std::endl;
+    }
   for( unsigned int i = 0; i < n_vecs; i++ )
     {
+    if( debug )
+      {
+      ::ants::antscout << "sort-e-a" << std::endl;
+      }
     this->m_VariatesP.set_column(i, varp.get_column( i ) );
+    if( debug )
+      {
+      ::ants::antscout << "sort-e-b" << std::endl;
+      }
     if(  this->m_VariatesQ.columns() > i )
       {
-      this->m_VariatesQ.set_column(i, varq.get_column( i ) );
+      if( debug )
+        {
+        ::ants::antscout << "sort-e-c" << i << " varqcol " << varq.columns() << " VarQcol "
+                         << this->m_VariatesQ.columns()  <<  std::endl;
+        }
+      this->m_VariatesQ.set_column( i, varq.get_column( i ) );
       }
     }
-  //  ::ants::antscout<<"sort-f"<<std::endl;
+  if( debug )
+    {
+    ::ants::antscout << "sort-f" << std::endl;
+    }
   this->m_CanonicalCorrelations = newcorrs;
 }
 
@@ -1441,7 +1478,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
       // get 1st eigenvector ... how should this be done?  how about svd?
       ( void ) this->PowerIteration(  partialmatrix,  evec, 5, false );
-      ( void ) this->IHT(  partialmatrix,  evec, 50  );
+      this->m_CanonicalCorrelations[a] = this->IHT(  partialmatrix,  evec, 50  );
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
 
@@ -1495,12 +1532,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
       matrixB.set_row( a, lmsolv );
       }
-    for(  unsigned int a = 0; a < n_vecs; a++ )
-      {
-      this->m_CanonicalCorrelations( a ) = matrixB.get_column( a ).one_norm();
-      }
-    // this->SortResults( n_vecs );
     RealType rr = ( onenorm - reconerr ) / onenorm;
+    this->m_VariatesQ = matrixB;
+    this->SortResults( n_vecs );
+    matrixB = this->m_VariatesQ;
     ::ants::antscout << overit << ": %var " << rr << " raw-reconerr " << reconerr << std::endl;
     }
   this->m_Softer = false;
@@ -2426,7 +2461,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
       }
     evec = evec + nvec;
-    this->CurvatureSparseness( evec,  ( 1 - this->m_FractionNonZeroP ) * 100, 10 );
+    // this->CurvatureSparseness( evec ,  ( 1 - this->m_FractionNonZeroP ) * 100, 10 );
     this->SparsifyP( evec, true );
     if( evec.two_norm() > 0 )
       {
@@ -2434,7 +2469,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     proj = ( A * evec  );
     rayquold = rayquo;
-    rayquo = inner_product( proj, proj  ) / inner_product( evec, evec );
+    RealType denom = inner_product( evec, evec );
+    if( denom > 0 )
+      {
+      rayquo = inner_product( proj, proj  ) / denom;
+      }
     powerits++;
     }
 
@@ -2454,18 +2493,18 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
   this->m_MatrixQ = this->NormalizeMatrix( this->m_OriginalMatrixQ );
 
-  vnl_diag_matrix<double> regdiagp( this->m_MatrixP.rows(), taup );
-  vnl_diag_matrix<double> regdiagq( this->m_MatrixP.rows(), tauq );
-  MatrixType              inviewcovmatP = ( this->m_MatrixP * this->m_MatrixP.transpose() ) * ( 1 - taup )
-    + regdiagp;
-  MatrixType inviewcovmatQ = ( this->m_MatrixQ * this->m_MatrixQ.transpose() ) * ( 1 - tauq )
-    + regdiagq;
-
-  /** dual / ridge cca */
-  MatrixType CppInv = this->PseudoInverse( inviewcovmatP, true );
-  MatrixType CqqInv = this->PseudoInverse( inviewcovmatQ, true );
-  // this->m_MatrixP = CppInv * this->m_MatrixP ;
-  //  this->m_MatrixQ = CqqInv * this->m_MatrixQ ;
+  /** dual / ridge cca
+  vnl_diag_matrix<double> regdiagp( this->m_MatrixP.rows() , taup );
+  vnl_diag_matrix<double> regdiagq( this->m_MatrixP.rows() , tauq );
+  MatrixType inviewcovmatP = ( this->m_MatrixP * this->m_MatrixP.transpose() )
+                             + regdiagp ;
+  MatrixType inviewcovmatQ = ( this->m_MatrixQ * this->m_MatrixQ.transpose() )
+                             + regdiagq ;
+  MatrixType CppInv = this->PseudoInverse( inviewcovmatP , true );
+  MatrixType CqqInv = this->PseudoInverse( inviewcovmatQ , true );
+  if ( taup > 0 ) this->m_MatrixP = CppInv * this->m_MatrixP ;
+  if ( tauq > 0 ) this->m_MatrixQ = CqqInv * this->m_MatrixQ ;
+  */
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), nvecs );
   this->m_VariatesQ.set_size( this->m_MatrixQ.cols(), nvecs );
   ::ants::antscout << " begin " << std::endl;
@@ -2479,7 +2518,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     maxloop = 25;
     }
-  for( unsigned int loop = 0; loop < maxloop; loop++ )
+  //  for( unsigned int loop = 0; loop < maxloop; loop++ )
+  unsigned int loop = 0;
+  bool         energydecreases = true;
+  RealType     energy = 0, lastenergy = 0;
+  while( loop < maxloop && energydecreases )
     {
     for( unsigned int k = 0; k < nvecs; k++ )
       {
@@ -2515,6 +2558,18 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       RealType hkkm1 = pveck.two_norm();
       if( hkkm1 > 0 )
         {
+        pveck = pveck / hkkm1;
+        }
+      hkkm1 = qveck.two_norm();
+      if( hkkm1 > 0 )
+        {
+        qveck = qveck / hkkm1;
+        }
+      pveck = ptemp + pveck * 0.05;
+      qveck = qtemp + qveck * 0.05;
+      hkkm1 = pveck.two_norm();
+      if( hkkm1 > 0 )
+        {
         this->m_VariatesP.set_column( k, pveck / hkkm1 );
         }
       hkkm1 = qveck.two_norm();
@@ -2522,14 +2577,23 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         this->m_VariatesQ.set_column( k, qveck / hkkm1 );
         }
-      this->NormalizeWeightsByCovariance( k );
+      this->NormalizeWeightsByCovariance( k, taup, tauq );
       VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
       VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
       this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
       }
     this->SortResults( nvecs );
-    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << std::endl;
+    lastenergy = energy;
+    energy = this->m_CanonicalCorrelations.mean();
+    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
+                     << std::endl;
+    if( energy < lastenergy )
+      {
+      energydecreases = false;
+      }
+    loop++;
     } // outer loop
+
   double ccasum = 0;
   for( unsigned int i = 0; i < this->m_CanonicalCorrelations.size(); i++ )
     {
@@ -4049,36 +4113,44 @@ void antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 void antsSCCANObject<TInputImage, TRealType>
-::NormalizeWeightsByCovariance(unsigned int k)
+::NormalizeWeightsByCovariance(unsigned int k, TRealType taup = 0, TRealType tauq = 0)
 {
 //  for ( unsigned int k=0; k<this->m_VariatesP.cols(); k++)
     {
     this->m_WeightsP = this->m_VariatesP.get_column( k );
     this->m_WeightsQ = this->m_VariatesQ.get_column( k );
-    VectorType w = this->m_MatrixP * this->m_WeightsP;
-    RealType   normP = 0;
+    RealType normP = 0;
     if( this->m_MatrixRp.size() > 0 )
       {
+      VectorType w = this->m_MatrixP * this->m_WeightsP;
       normP = inner_product( w, (this->m_MatrixP - this->m_MatrixRp * this->m_MatrixP) * this->m_WeightsP );
       }
     else
       {
-      normP = inner_product( w, w );
+      //  v^t ( X^t X + k * Id ) v = v^t  ( X X^t v + k * Id * v )
+      //                           = v^t  ( X X^t v + k * Id * v )
+      vnl_diag_matrix<double> regdiagp( this->m_MatrixP.cols(), taup );
+      VectorType              w = this->m_MatrixP.transpose()
+        * ( this->m_MatrixP * this->m_WeightsP ) + regdiagp * this->m_WeightsP;
+      normP = inner_product( this->m_WeightsP, w );
       }
     if( normP > 0 )
       {
       this->m_WeightsP = this->m_WeightsP / sqrt(normP);
       }
 
-    w = this->m_MatrixQ * this->m_WeightsQ;
     RealType normQ = 0;
     if( this->m_MatrixRq.size() > 0 )
       {
+      VectorType w = this->m_MatrixQ * this->m_WeightsQ;
       normQ = inner_product( w, (this->m_MatrixQ - this->m_MatrixRq * this->m_MatrixQ) * this->m_WeightsQ );
       }
     else
       {
-      normQ = inner_product(w, w);
+      vnl_diag_matrix<double> regdiagq( this->m_MatrixQ.cols(), tauq );
+      VectorType              w = this->m_MatrixQ.transpose()
+        * ( this->m_MatrixQ * this->m_WeightsQ ) + regdiagq * this->m_WeightsQ;
+      normQ = inner_product( this->m_WeightsQ, w );
       }
     if( normQ > 0 )
       {

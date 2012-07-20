@@ -99,7 +99,7 @@ public:
   itkSetMacro( SCCANFormulation, SCCANFormulationType );
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
 
-  void NormalizeWeightsByCovariance(unsigned int);
+  void NormalizeWeightsByCovariance(unsigned int, RealType, RealType);
 
   void WhitenDataSetForRunSCCANMultiple(unsigned int nvecs = 0);
 
