@@ -72,7 +72,7 @@ MakeTestDriverFromANTSbinary(WarpImageMultiTransform WarpImageMultiTransformTest
 set(TestDataMD5_DIR ${CMAKE_SOURCE_DIR}/TestData)
 ## This is a hack to get some testing done quickly
 ##export TestData_DIR=/ipldev/scratch/aghayoor/ANTS/ANTS_TEMP_DATA
-set(TestDataReal_DIR $ENV{TestData_DIR})
+#set(TestDataReal_DIR $ENV{TestData_DIR})
 set(DATA_DIR ${CMAKE_SOURCE_DIR}/Examples/Data)
 set(R16_IMAGE ${DATA_DIR}/r16slice.nii.gz)
 set(R64_IMAGE ${DATA_DIR}/r64slice.nii.gz)
@@ -85,9 +85,6 @@ set(DEVIL_IMAGE ${DATA_DIR}/Frown.nii)
 set(ANGEL_IMAGE ${DATA_DIR}/Smile.nii)
 set(SEG_IMAGE ${DATA_DIR}/nslice.nii.gz)
 set(TEST_BINARY_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
-
-#set(RUN_SHORT_TESTS "OFF")
-#set(RUN_LONG_TESTS "ON")
 
 if(RUN_LONG_TESTS)
 
@@ -311,8 +308,29 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
 
+set(antsRegistrationTestName antsRegistrationTest_MSEAffineRotationMasks)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
+            ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
+  --compareIntensityTolerance 7
+  --compareRadiusTolerance 0
+  --compareNumberOfPixelsTolerance 250
+
+  antsRegistrationTest
+  --dimensionality 3
+  --convergence 25x20x5
+  --shrink-factors 1x1x1
+  --smoothing-sigmas 0.1x0.1x0.1
+  --metric MeanSquares[${test_image_VAR},${rotation_test_image_VAR},1,200,Regular,0.10]
+  --transform "Affine[0.001]"
+  --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_AffineRotationMasks.mat}
+  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
 ###############
-#TEST SHOULD BE CONTINUED FROM HERE
+#TEST Development SHOULD BE CONTINUED FROM HERE
 ###############
 
 ExternalData_add_target( ${PROJECT_NAME}FetchData )  # Name of data management target
