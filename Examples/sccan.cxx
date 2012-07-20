@@ -1299,11 +1299,10 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sccanobj->SetMatrixQ( q );
   sccanobj->SetMaskImageP( mask1 );
   sccanobj->SetMaskImageQ( mask2 );
-
   double truecorr = 0;
   if( newimp )
     {
-    truecorr = sccanobj->SparseCCA(n_evec );
+    truecorr = sccanobj->RidgeCCA(n_evec );
     }
   else
     {
@@ -1353,7 +1352,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       double permcorr = 0;
       if( newimp )
         {
-        permcorr = sccanobj->SparseCCA(n_evec );
+        permcorr = sccanobj->RidgeCCA(n_evec );
         }
       else
         {
@@ -1910,6 +1909,17 @@ int sccan( itk::ants::CommandLineParser *parser )
     robustify = parser->Convert<unsigned int>( robust_option->GetValue() );
     }
 
+  float                                             evecgradientpenalty = 1;
+  itk::ants::CommandLineParser::OptionType::Pointer evecg_option =
+    parser->GetOption( "EvecGradPenalty" );
+  if( !evecg_option || evecg_option->GetNumberOfValues() == 0 )
+    {
+    }
+  else
+    {
+    evecgradientpenalty = parser->Convert<float>( evecg_option->GetValue() );
+    }
+
   unsigned int                                      p_cluster_thresh = 1;
   itk::ants::CommandLineParser::OptionType::Pointer clust_option =
     parser->GetOption( "PClusterThresh" );
@@ -1935,7 +1945,7 @@ int sccan( itk::ants::CommandLineParser *parser )
 
   bool                                              eigen_imp = false;
   itk::ants::CommandLineParser::OptionType::Pointer eigen_option =
-    parser->GetOption( "eigen_cca" );
+    parser->GetOption( "ridge_cca" );
   if( !eigen_option || eigen_option->GetNumberOfValues() == 0 )
     {
     //    antscout << "Warning:  no permutation option set." << std::endl;
@@ -2206,7 +2216,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description =
       std::string( "Number of permutations to use in scca." );
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "eigen_cca" );
+    option->SetLongName( "ridge_cca" );
     option->SetShortName( 'e' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
