@@ -99,7 +99,7 @@ public:
   itkSetMacro( SCCANFormulation, SCCANFormulationType );
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
 
-  void NormalizeWeightsByCovariance(unsigned int, RealType, RealType);
+  void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
 
   void WhitenDataSetForRunSCCANMultiple(unsigned int nvecs = 0);
 
@@ -322,7 +322,8 @@ public:
   RealType MatchingPursuit( MatrixType& A, VectorType& x_k, RealType convcrit, unsigned int );
 
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
-                             bool makeprojsparse = false, unsigned int loorth =  0, unsigned int hiorth = 0 );
+                             bool makeprojsparse = false, unsigned int loorth =  0,
+                             unsigned int hiorth = 0 );
   RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int );
   RealType RidgeRegression( MatrixType & A,  VectorType & x_k, VectorType  b, RealType lambda, unsigned int,
                             bool makesparse = false );
