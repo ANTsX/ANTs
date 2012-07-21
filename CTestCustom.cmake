@@ -30,10 +30,7 @@
 #-- #Reset maximum number of warnings so that they all show up.
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
-#set(CTEST_CUSTOM_COVERAGE_EXCLUDE $ {CTEST_CUSTOM_COVERAGE_EXCLUDE}
-#    "./SlicerExecutionModel/"
-#    "./SlicerExecutionModel/.*"
-#    "./SlicerExecutionModel/.*/.*"
-#    ".*SlicerExecutionModel.*"
-#    "SlicerExecutionModel"
-#    )
+set(CTEST_CUSTOM_COVERAGE_EXCLUDE ${CTEST_CUSTOM_COVERAGE_EXCLUDE}
+  ".*Temporary/.*"
+  ".*boost.*"
+)
