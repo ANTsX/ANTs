@@ -166,7 +166,7 @@ int MemoryTest(unsigned int argc, char *argv[])
     metricname = "MI ";
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -222,7 +222,12 @@ private:
     antscout << argv[0] << " ImageDimension whichmetric image1.ext image2.ext NumberOfFieldsToAllocate " << std::endl;
     antscout << "  outimage and logfile are optional  " << std::endl;
     antscout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information  " << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension
@@ -242,7 +247,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

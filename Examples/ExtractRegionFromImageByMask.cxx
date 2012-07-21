@@ -152,7 +152,7 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
   writer->SetFileName(argv[3]);
   writer->Update();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -209,6 +209,11 @@ private:
              << std::endl << "Usage : " << argv[0] << " ImageDimension "
              << "inputImage outputImage labelMaskImage [label=1] [padRadius=0]"
              << std::endl;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 

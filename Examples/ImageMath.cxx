@@ -10224,7 +10224,12 @@ private:
     antscout << "\n  Where            : The where function from IDL" << std::endl;
     antscout << "      Usage        : Where Image ValueToLookFor maskImage-option tolerance" << std::endl;
 
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   std::string operation = std::string(argv[3]);
@@ -11179,6 +11184,6 @@ private:
       antscout << " Dimension Not supported " << atoi(argv[1]) << std::endl;
       return EXIT_FAILURE;
     }
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

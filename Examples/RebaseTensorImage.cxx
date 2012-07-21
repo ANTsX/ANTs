@@ -78,7 +78,12 @@ private:
     {
     antscout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <PHYSICAL/LOCAL/reference.nii.gz> "
              << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   int dim = atoi(argv[1]);
@@ -89,7 +94,7 @@ private:
   if( dim != 3 )
     {
     antscout << "RebaseTensorImage only supports 3D image volumes" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   typedef itk::DiffusionTensor3D<double> PixelType;
@@ -190,6 +195,6 @@ private:
   // No reason to use log-euclidean space here
   WriteTensorImage<TensorImageType>(img_mov, output_image_filename, false);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

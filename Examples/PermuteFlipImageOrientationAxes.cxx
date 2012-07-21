@@ -133,7 +133,7 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
   typename InputImageType::Pointer image = flipper->GetOutput();
   WriteImage<OutputImageType>(image, argv[2]);
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -200,7 +200,12 @@ private:
     antscout << " the flip values are boolean -  0 1 0 would flip the y-axis only " << std::endl;
     antscout <<  std::endl << " The FlipAboutOrigin boolean lets you flip about the coordinate set in the origin "
              << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension
@@ -220,7 +225,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

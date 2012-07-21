@@ -92,7 +92,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
     //      antscout<< " tim dir " << timage->GetDirection() << std::endl;
     WriteTensorImage<TensorFieldType>( timage, argv[3], false);
 
-    return 0;
+    return EXIT_SUCCESS;
     }
 
   typename readertype::Pointer reader2 = readertype::New();
@@ -126,7 +126,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
 
   WriteImage<ImageType>(newimage, argv[3]);
 
-  return 1;
+  return EXIT_FAILURE;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -182,7 +182,12 @@ private:
              <<
       " refimage.ext imagetocopyrefimageinfoto.ext imageout.ext   boolcopydirection  boolcopyorigin boolcopyspacing  {bool-Image2-IsTensor}"
              << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension
@@ -210,7 +215,6 @@ private:
       antscout << "Unsupported dimension : " << dim << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

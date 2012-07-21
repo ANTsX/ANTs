@@ -399,7 +399,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
   else
     {
     antscout << " that domain is not an option -- exiting. " << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   std::string boundaryparam = parser->GetOption( "boundary-param" )->GetValue();
@@ -516,14 +516,6 @@ private:
 
   antscout->set_stream( out_stream );
 
-  if( argc < 2 )
-    {
-    antscout << "Usage: " << argv[0]
-             << " args" << std::endl;
-    antscout << " try " << argv[0] << " --help or -h " << std::endl;
-    return EXIT_FAILURE;
-    }
-
   itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
   parser->SetCommand( argv[0] );
 
@@ -542,13 +534,17 @@ private:
         parser->GetOption( "help" )->GetValue() ) )
     {
     parser->PrintMenu( antscout, 5, false );
-    return EXIT_FAILURE;
+    if( argc < 2 )
+      {
+      return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
     }
   else if( parser->Convert<bool>(
              parser->GetOption( 'h' )->GetValue() ) )
     {
     parser->PrintMenu( antscout, 5, true );
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
     }
 
   ANTSConformalMapping<3>( parser );

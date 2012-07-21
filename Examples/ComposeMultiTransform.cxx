@@ -389,6 +389,11 @@ private:
              << "The default reference is the first given affine text file. "
              << "This ignores all non-txt files among the following parameters."
              << std::endl;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 

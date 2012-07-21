@@ -89,7 +89,7 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   writer->Update();
   writer->Write();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -160,7 +160,12 @@ private:
       <<
       " The image intensity will be scaled to the dynamic range of the pixel type.  E.g. uchar => 0  (min), 255 (max). "
       << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
   unsigned int typeoption = 0;
   if( argc > 3 )
@@ -289,7 +294,6 @@ private:
         return EXIT_FAILURE;
       }
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

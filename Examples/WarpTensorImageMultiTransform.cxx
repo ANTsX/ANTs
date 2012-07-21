@@ -579,7 +579,11 @@ private:
              << std::endl
              << "Note: " << std::endl
              << "prefix name \"abcd\" without any extension will use \".nii.gz\" by default" << std::endl;
-
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 
@@ -630,7 +634,6 @@ private:
     {
     antscout << "Input error!" << std::endl;
     }
-
   return EXIT_FAILURE;
 }
 } // namespace ants

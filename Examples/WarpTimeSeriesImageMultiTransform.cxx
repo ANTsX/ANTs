@@ -809,6 +809,11 @@ private:
     antscout << " --use-BSpline            : Use 3rd order B-Spline Interpolation." << std::endl;
 
     antscout << "\n " << std::endl;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 
@@ -864,7 +869,6 @@ private:
     {
     antscout << "Input error!" << std::endl;
     }
-
   return EXIT_FAILURE;
 }
 } // namespace ants

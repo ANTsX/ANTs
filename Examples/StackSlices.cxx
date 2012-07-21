@@ -99,7 +99,12 @@ private:
   if( argc < 5 )
     {
     antscout << "Usage: " << argv[0] << " outputvolume x y z inputvolumes" << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   char * stackName = argv[1];
@@ -223,7 +228,7 @@ private:
     {
     antscout << " write slice " << std::endl;
     WriteImage<SliceType>(stack2, stackName);
-    return 0;
+    return EXIT_SUCCESS;
     }
   // antscout << "Stacking." << std::flush;
   for( unsigned int i = 1; i < nSlices; i++ )
@@ -316,6 +321,6 @@ private:
 //   writer->SetFileName( outputName );
 //   writer->Update();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

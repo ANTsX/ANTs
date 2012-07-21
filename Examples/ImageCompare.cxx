@@ -74,7 +74,12 @@ private:
     cerr << "testImage, baselineImage1, [baselineImage2, baselineImage3, ...]" << endl;
     cerr << "Note that if you supply more than one baselineImage, this test will pass if any" << endl;
     cerr << "of them match the testImage" << endl;
-    return -1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
   int bestBaselineStatus = 2001;
   int bestBaseline = 2;
@@ -182,7 +187,7 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
              << " has size " << baselineSize << std::endl;
     antscout << "Test image:     " << testImageFilename
              << " has size " << testSize << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   // Now compare the two images
@@ -309,6 +314,6 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
     antscout << testName.str();
     antscout << "</DartMeasurementFile>" << std::endl;
     }
-  return (status != 0) ? 1 : 0;
+  return (status != EXIT_SUCCESS) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 } // namespace ants

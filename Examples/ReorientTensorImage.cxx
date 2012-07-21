@@ -197,13 +197,17 @@ private:
     unsigned int argc_plus_one;
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
-
   antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
     antscout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <warp.nii/affine.txt> " << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   TRAN_OPT_QUEUE opt_queue;
@@ -233,12 +237,10 @@ private:
   else
     {
     antscout << "Input error!" << std::endl;
+    return EXIT_FAILURE;
     }
-
-  return EXIT_FAILURE;
-
   // ReorientTensorImage<3>(argc,argv);
-//  WarpImageForward(argc,argv);
-  return 0;
+  // WarpImageForward(argc,argv);
+  return EXIT_SUCCESS;
 }
 } // namespace ants

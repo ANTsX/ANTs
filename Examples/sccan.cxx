@@ -37,7 +37,9 @@ bool SCCANReadImage(itk::SmartPointer<TImageType> & target, const char *file)
 {
   if( std::string(file).length() < 3 )
     {
-    antscout << " bad file name " << std::string(file) << std::endl;    target = NULL;  return false;
+    antscout << " bad file name " << std::string(file) << std::endl;
+    target = NULL;
+    return false;
     }
   // Read the image files begin
   typedef TImageType                      ImageType;
@@ -2388,23 +2390,24 @@ private:
   parser->Parse( argc, argv );
 
   // Print the entire help menu
-  itk::ants::CommandLineParser::OptionType::Pointer longHelpOption =
-    parser->GetOption( "help" );
-  if( argc == 1 ||
-      ( longHelpOption && parser->Convert<unsigned int>( longHelpOption->GetValue() ) == 1 )
-      )
-    {
-    parser->PrintMenu( antscout, 5, false );
-    return EXIT_FAILURE;
-    }
-
   itk::ants::CommandLineParser::OptionType::Pointer shortHelpOption =
     parser->GetOption( 'h' );
-  if( argc == 1 || ( shortHelpOption &&
-                     parser->Convert<unsigned int>( shortHelpOption->GetValue() ) == 1 ) )
+  itk::ants::CommandLineParser::OptionType::Pointer longHelpOption =
+    parser->GetOption( "help" );
+  if( argc < 2 || ( shortHelpOption &&
+                    parser->Convert<unsigned int>( shortHelpOption->GetValue() ) == 1 ) )
     {
     parser->PrintMenu( antscout, 5, true );
-    return EXIT_FAILURE;
+    if( argc < 2 )
+      {
+      return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
+    }
+  if( longHelpOption && parser->Convert<unsigned int>( longHelpOption->GetValue() ) == 1 )
+    {
+    parser->PrintMenu( antscout, 5, false );
+    return EXIT_SUCCESS;
     }
 
   // Print the long help menu for specific items

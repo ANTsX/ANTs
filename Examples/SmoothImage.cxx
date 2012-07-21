@@ -93,8 +93,7 @@ int SmoothImage(int argc, char *argv[])
   writer->SetFileName(argv[4]);
   writer->SetInput( varimage );
   writer->Write();
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -152,7 +151,12 @@ private:
       " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1}"
              << std::endl;
     antscout << " if median, then sigma means radius of filtering " << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   switch( atoi(argv[1]) )
@@ -171,7 +175,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

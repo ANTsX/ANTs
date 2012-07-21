@@ -104,7 +104,12 @@ private:
     antscout << " addvox pads each dimension by addvox " << std::endl;
     antscout << "  " << std::endl;
 //    antscout << " interp 0 = linear, 1 = nn " << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   unsigned int Dimension = atoi(argv[1]);
@@ -448,7 +453,6 @@ private:
       antscout << excep << std::endl;
       }
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

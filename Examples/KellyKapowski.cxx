@@ -554,18 +554,21 @@ private:
   InitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
-
   if( argc < 2 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetValue() ) )
     {
     parser->PrintMenu( antscout, 5, false );
-    return EXIT_FAILURE;
+    if( argc < 2 )
+      {
+      return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
     }
   else if( parser->Convert<bool>(
              parser->GetOption( 'h' )->GetValue() ) )
     {
     parser->PrintMenu( antscout, 5, true );
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
     }
 
   // Get dimensionality

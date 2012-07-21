@@ -295,7 +295,7 @@ int ResampleImage( int argc, char *argv[] )
   writer->SetInput( resampler->GetOutput() );
   writer->Update();
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -355,6 +355,11 @@ private:
     antscout << "    2. gaussian [sigma=imageSpacing] [alpha=1.0]" << std::endl;
     antscout << "    3. windowedSinc [type = 'c'osine, 'w'elch, 'b'lackman, 'l'anczos, 'h'amming]" << std::endl;
     antscout << "    4. B-Spline [order=3]" << std::endl;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 

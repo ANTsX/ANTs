@@ -140,6 +140,11 @@ private:
       antscout << argv[0] << " ImageDimension  average.nii mathtype list-of-files-via-wildcard " << std::endl;
       antscout << " e.g. \n   AverageTensorImages 3  average.nii  1  *registered.nii " << std::endl;
       antscout << " mathtype=[0=log-euclidean, 1=euclidean] " << std::endl;
+      if( argc >= 2 &&
+          ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+        {
+        return EXIT_SUCCESS;
+        }
       return EXIT_FAILURE;
       }
 
@@ -166,7 +171,7 @@ private:
         return EXIT_FAILURE;
       }
 
-    return 0;;
+    return EXIT_SUCCESS;
     }
   catch( itk::ExceptionObject & err )
     {

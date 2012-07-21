@@ -282,7 +282,7 @@ int CreateZeroImage( int argc, char *argv[] )
     writer->Update();
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -338,6 +338,11 @@ private:
     antscout << "Usage 2: " << argv[0] << " imageDimension outputImage origin spacing size constant [random?]"
              << std::endl;
     antscout << "Usage 3: " << argv[0] << " imageDimension outputImage origin spacing size pixelValues" << std::endl;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 

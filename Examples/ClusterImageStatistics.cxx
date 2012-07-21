@@ -294,7 +294,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     outf2.close();
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -358,7 +358,12 @@ private:
     antscout
       <<
       " ROIMask.ext -- overall region of interest \n  \n LabelImage.ext -- labels for the sub-regions, e.g. Brodmann or just unique labels (see  LabelClustersUniquely ) \n \n  OutputPrefix -- all output  has this prefix  \n \n  MinimumClusterSize -- the minimum size of clusters of interest  \n  \n ValueImageThreshold -- minimum value of interest \n \n   Image*WithValuesOfInterest.ext  ---  image(s) that define the values you want to measure \n ";
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   switch( atoi(argv[1]) )
@@ -377,7 +382,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

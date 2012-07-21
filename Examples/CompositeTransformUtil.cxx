@@ -33,14 +33,13 @@ void RegisterMatOff()
 /**
  * print the usage and exit
  */
-void UsageAndExit()
+void PrintGenericUsageStatement()
 {
   antscout << "Usage: CompositeTransformUtil --disassemble <CompositeTransform FileName>"
            << " <transform name prefix>" << std::endl
            << "or" << std::endl
            << "CompositeTransformUtil  --assemble <CompositeTransform> "
            << "<transform 1> <transform 2 > ... <transform N>" << std::endl;
-  throw std::exception();
 }
 
 /**
@@ -214,10 +213,16 @@ private:
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
   antscout->set_stream( out_stream );
+  if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+    {
+    PrintGenericUsageStatement();
+    return EXIT_SUCCESS;
+    }
 
   if( argc < 2 )
     {
-    UsageAndExit();
+    PrintGenericUsageStatement();
+    return EXIT_FAILURE;
     }
   ++argv; --argc;
   std::string action(*argv);
@@ -225,7 +230,8 @@ private:
   if( argc == 0 )
     {
     antscout << "Missing CompositeTransformName" << std::endl;
-    UsageAndExit();
+    PrintGenericUsageStatement();
+    return EXIT_FAILURE;
     }
 
   RegisterMatOff<2>();
@@ -238,7 +244,8 @@ private:
     if( argc == 0 )
       {
       antscout << "Missing output transforms prefix" << std::endl;
-      UsageAndExit();
+      PrintGenericUsageStatement();
+      return EXIT_FAILURE;
       }
     std::string Prefix(*argv);
     return Disassemble(CompositeName, Prefix);
@@ -246,7 +253,8 @@ private:
   else if( action != "--assemble" )
     {
     antscout << "Unknown action " << action << std::endl;
-    UsageAndExit();
+    PrintGenericUsageStatement();
+    return EXIT_FAILURE;
     }
   std::vector<std::string> transformNames;
   while( argc > 0 )
@@ -261,7 +269,8 @@ private:
     antscout << "Missing transform names to "
              << "assemble into a composite transform"
              << std::endl;
-    UsageAndExit();
+    PrintGenericUsageStatement();
+    return EXIT_FAILURE;
     }
   return Assemble(CompositeName, transformNames);
 }

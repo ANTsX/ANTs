@@ -184,7 +184,12 @@ private:
     {
     antscout << "Usage:  " << std::endl;
     antscout << argv[0] << " ImageDimension img1.nii img2.nii product.nii {smoothing}" << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   int                       dim = atoi( argv[1] );
@@ -310,6 +315,6 @@ private:
       return EXIT_FAILURE;
     }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

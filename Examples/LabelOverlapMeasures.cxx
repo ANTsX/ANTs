@@ -238,6 +238,11 @@ private:
     {
     antscout << "Usage: " << argv[0] << " imageDimension sourceImage "
              << "targetImage" << std::endl;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
     return EXIT_FAILURE;
     }
 

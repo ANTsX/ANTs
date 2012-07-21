@@ -27,6 +27,61 @@
 
 namespace ants
 {
+void PrintCommandLineHelp( const std::string progName )
+{
+  antscout <<  " \n " << std::endl;
+  antscout <<  "Example usage: \n " << std::endl;
+  antscout << progName
+           <<
+    " ImageDimension -m MI[fixedimage.nii.gz,movingimage.nii.gz,1,32] -o Outputfname.nii.gz -i 30x20x0 -r Gauss[3,1] -t Elast[3] \n \n "
+           << std::endl;
+  antscout << " Compulsory arguments:\n " << std::endl;
+  antscout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
+  antscout << " -m:    Type of similarity model used for registration. \n " << std::endl;
+  antscout << "    For intramodal image registration, use: " << std::endl;
+  antscout << "        CC = cross-correlation " << std::endl;
+  antscout << "        MI = mutual information " << std::endl;
+  antscout << "        PR = probability mapping " << std::endl;
+  antscout << "        MSQ = mean square difference " << std::endl;
+  antscout << " \n " << std::endl;
+  antscout << "    For intermodal image registration, use: " << std::endl;
+  antscout << "        MI = mutual information " << std::endl;
+  antscout << "        PR = probability mapping " << std::endl;
+  antscout << " \n " << std::endl;
+  antscout << " -o     Outputfname.nii.gz: the name of the resulting image.\n " << std::endl;
+  antscout << " -i     Max-iterations in format: JxKxL, where: " << std::endl;
+  antscout << "        J = max iterations at coarsest resolution (here, reduce by power of 2^2) " << std::endl;
+  antscout << "        K = middle resolution iterations (here,reduce by power of 2) " << std::endl;
+  antscout
+    <<
+    "        L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
+    << std::endl;
+  antscout
+    << "        Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another iteration level.\n "
+    << std::endl;
+  antscout << " -r     Regularization \n" << std::endl;
+  antscout << " -t     Type of transformation model used for registration \n" << std::endl;
+  antscout << "    For elastic image registration, use: " << std::endl;
+  antscout << "        Elast = elastic transformation model (less deformation possible)\n " << std::endl;
+  antscout << "    For diffeomorphic image registration, use: " << std::endl;
+  antscout
+    <<
+    "        Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
+    << std::endl;
+  antscout
+    <<
+    "        SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
+    << std::endl;
+  antscout << "        SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  " << std::endl;
+  antscout << "        Exp[GradStep,TimePoints] = Exponential " << std::endl;
+  antscout << "        GreedyExp = Diffeomorphic Demons style exponential mapping " << std::endl;
+  antscout << " \n " << std::endl;
+  antscout
+    <<
+    " Please use the `ANTS -h ` call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
+    << std::endl;
+}
+
 template <unsigned int ImageDimension>
 int ANTSex(int argc, char *argv[])
 {
@@ -51,7 +106,6 @@ int ANTSex(int argc, char *argv[])
 
   registration->GetTransformationModel()->SetWriteComponentImages(true);
   registration->GetTransformationModel()->Write();
-
   return EXIT_SUCCESS;
 }
 
@@ -102,75 +156,21 @@ private:
 
   antscout->set_stream( out_stream );
 
-  int dim = 2;
-
-//  while(argc--) printf("%s\n", *argv++);
-  if( argc < 2 || ( (argc == 2) && strcmp(argv[1], "--help") == 0) )
+  if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
     {
-    antscout <<  " \n " << std::endl;
-    antscout <<  "Example usage: \n " << std::endl;
-    antscout << argv[0]
-             <<
-      " ImageDimension -m MI[fixedimage.nii.gz,movingimage.nii.gz,1,32] -o Outputfname.nii.gz -i 30x20x0 -r Gauss[3,1] -t Elast[3] \n \n "
-             << std::endl;
-    antscout << " Compulsory arguments:\n " << std::endl;
-    antscout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
-    antscout << " -m:    Type of similarity model used for registration. \n " << std::endl;
-    antscout << "    For intramodal image registration, use: " << std::endl;
-    antscout << "        CC = cross-correlation " << std::endl;
-    antscout << "        MI = mutual information " << std::endl;
-    antscout << "        PR = probability mapping " << std::endl;
-    antscout << "        MSQ = mean square difference " << std::endl;
-    antscout << " \n " << std::endl;
-    antscout << "    For intermodal image registration, use: " << std::endl;
-    antscout << "        MI = mutual information " << std::endl;
-    antscout << "        PR = probability mapping " << std::endl;
-    antscout << " \n " << std::endl;
-    antscout << " -o     Outputfname.nii.gz: the name of the resulting image.\n " << std::endl;
-    antscout << " -i     Max-iterations in format: JxKxL, where: " << std::endl;
-    antscout << "        J = max iterations at coarsest resolution (here, reduce by power of 2^2) " << std::endl;
-    antscout << "        K = middle resolution iterations (here,reduce by power of 2) " << std::endl;
-    antscout
-      <<
-      "        L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
-      << std::endl;
-    antscout
-      << "        Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another iteration level.\n "
-      << std::endl;
-    antscout << " -r     Regularization \n" << std::endl;
-    antscout << " -t     Type of transformation model used for registration \n" << std::endl;
-    antscout << "    For elastic image registration, use: " << std::endl;
-    antscout << "        Elast = elastic transformation model (less deformation possible)\n " << std::endl;
-    antscout << "    For diffeomorphic image registration, use: " << std::endl;
-    antscout
-      <<
-      "        Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
-      << std::endl;
-    antscout
-      <<
-      "        SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
-      << std::endl;
-    antscout << "        SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  " << std::endl;
-    antscout << "        Exp[GradStep,TimePoints] = Exponential " << std::endl;
-    antscout << "        GreedyExp = Diffeomorphic Demons style exponential mapping " << std::endl;
-    antscout << " \n " << std::endl;
-    antscout
-      <<
-      " Please use the `ANTS -h ` call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
-      << std::endl;
-    return 1;
+    ants::PrintCommandLineHelp(argv[0]);
+    if( argc < 2 )
+      {
+      return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
     }
-  else
-    {
-    dim = atoi( argv[1] );
-    }
-
+  int dim = atoi( argv[1] );
   if( dim <= 1 || dim > 3 )
     {
     antscout << " You passed ImageDimension: " << dim
              << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
-    argv[1] = (char *)("--help");
-    ANTSex<2>( argc, argv );
+    ants::PrintCommandLineHelp(argv[0]);
     return EXIT_FAILURE;
     }
   /**
@@ -179,16 +179,14 @@ private:
   if( argc == 3 && ( atoi( argv[1] ) != 2 || atoi( argv[1] ) != 3 ) )
     {
     itk::ImageIOBase::Pointer fixedImageIO
-      = itk::ImageIOFactory::CreateImageIO(
-          argv[1], itk::ImageIOFactory::ReadMode );
+      = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );
     if( fixedImageIO.IsNull() )
       {
       antscout << "Invalid fixed image: " << argv[1] << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer movingImageIO
-      = itk::ImageIOFactory::CreateImageIO(
-          argv[2], itk::ImageIOFactory::ReadMode );
+      = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::ReadMode );
     if( movingImageIO.IsNull() )
       {
       antscout << "Invalid moving image: " << argv[2] << std::endl;
@@ -199,9 +197,8 @@ private:
     movingImageIO->SetFileName( argv[2] );
     movingImageIO->ReadImageInformation();
 
-    unsigned int fdim = fixedImageIO->GetNumberOfDimensions();
-    unsigned int mdim = movingImageIO->GetNumberOfDimensions();
-
+    const unsigned int fdim = fixedImageIO->GetNumberOfDimensions();
+    const unsigned int mdim = movingImageIO->GetNumberOfDimensions();
     if( fdim != mdim )
       {
       antscout << "Fixed image dimension does not equal "
@@ -218,7 +215,6 @@ private:
     /**
      * After the checking, we can add the default parameters;
      */
-    std::string arguments;
 
     std::string transformation( " -t SyN[1.0] ");
     std::string regularization( " -r Gauss[3,0.5] ");
@@ -252,6 +248,7 @@ private:
 
     std::ostringstream dimBuf;
     dimBuf << fdim;
+    std::string arguments;
     arguments.clear();
     arguments = std::string( " ANTS " ) + dimBuf.str() + iterations
       + transformation + regularization + metric + outputNaming;

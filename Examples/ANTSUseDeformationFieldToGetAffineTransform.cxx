@@ -470,7 +470,12 @@ private:
              << std::endl;
     antscout << "load_ratio: ratio of points to be loaded from deformation field (to save memory) " << std::endl;
     antscout << " the mask gives the region from which points will be selected ... " << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension
@@ -499,7 +504,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-
-  return 0;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

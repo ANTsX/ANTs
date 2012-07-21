@@ -287,7 +287,12 @@ private:
     antscout << "   ImageDimension ImageIn.ext outImage.ext  Otsu NumberofThresholds " << std::endl;
 
     antscout << " Inclusive thresholds " << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension

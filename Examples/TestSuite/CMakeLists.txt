@@ -106,6 +106,7 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANON0006_20_T1_sag_twiste
 
 message(STATUS "${test_mask_VAR} =========================================")
 
+
 set(antsRegistrationTestName antsRegistrationTest_AffineScaleMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
@@ -141,6 +142,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --convergence 25x20x5
   --shrink-factors 1x1x1
   --smoothing-sigmas 0.1x0.1x0.1
+  -u
   --metric Mattes[${test_image_VAR},${scale_test_image_VAR},1,200,Regular,0.10]
   --transform "Affine[0.001]" #transformType & minimumStepLength
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_AffineScaleMasks.mat}
@@ -505,9 +507,85 @@ if(RUN_SHORT_TESTS)
 #  ANTS metric testing
 ###
 
+set(AllANTSPrograms
+ ANTS
+ antsApplyTransforms
+ antsApplyTransformsToPoints
+ ANTSIntegrateVectorField
+ ANTSIntegrateVelocityField
+ ANTSJacobian
+ antsMotionCorr
+ antsRegistration
+ ANTSUseDeformationFieldToGetAffineTransform
+ ANTSUseLandmarkImagesToGetAffineTransform
+ ANTSUseLandmarkImagesToGetBSplineDisplacementField
+ Atropos
+ AtroposMin
+ AverageAffineTransform
+ AverageImages
+ AverageTensorImages
+ ClusterImageStatistics
+ ComposeMultiTransform
+ CompositeTransformUtil
+ ConvertImagePixelType
+ ConvertScalarImageToRGB
+ ConvertToJpg
+ CopyImageHeaderInformation
+ CreateDisplacementField
+ CreateDTICohort
+ CreateImage
+ CreateWarpedGridImage
+ ExtractRegionFromImage
+ ExtractRegionFromImageByMask
+ ExtractSliceFromImage
+ ImageCompare
+ ImageMath
+ ImageSetStatistics
+ KellyKapowski
+ KellySlater
+ LabelClustersUniquely
+ LabelGeometryMeasures
+ LabelOverlapMeasures
+ LaplacianThickness
+ MeasureImageSimilarity
+ MeasureMinMaxMean
+ MemoryTest
+ MultiplyImages
+ N3BiasFieldCorrection
+ N4BiasFieldCorrection
+ PasteImageIntoImage
+ PermuteFlipImageOrientationAxes
+ PrintHeader
+ RebaseTensorImage
+ ReorientTensorImage
+ ResampleImage
+ ResampleImageBySpacing
+ ResetDirection
+ sccan
+ SetDirectionByMatrix
+ SetOrigin
+ SetSpacing
+ SmoothImage
+ StackSlices
+ SurfaceBasedSmoothing
+ SurfaceCurvature
+ ThresholdImage
+ TileImages
+ WarpImageMultiTransform
+ WarpTensorImageMultiTransform
+ WarpTimeSeriesImageMultiTransform
+)
+
+foreach(CurrProg ${AllANTSPrograms})
+  set(HELP_FLAG "--help")
+  add_test(${CurrProg}_HELP_LONG  ${TEST_BINARY_DIR}/${CurrProg} ${HELP_FLAG} ) ## Just print the help screen
+  set(HELP_FLAG "-h" )
+  add_test(${CurrProg}_HELP_SHORT ${TEST_BINARY_DIR}/${CurrProg} ${HELP_FLAG} ) ## Just print the help screen
+endforeach()
 
 if(NOT OLD_BASELINE_TESTS)
   message(STATUS "New Baselines Values")
+
   # CC1 Testing
   add_test(ANTS_CC_1 ${TEST_BINARY_DIR}/ANTS 2 -m
     CC[ ${R16_IMAGE}, ${R64_IMAGE},  1 ,2  ] -r Gauss[ 3 , 0 ] -t SyN[ 0.5   ]

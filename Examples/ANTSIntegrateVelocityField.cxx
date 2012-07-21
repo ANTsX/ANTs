@@ -174,7 +174,12 @@ private:
     {
     antscout << "Usage:   " << argv[0]
              << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  " << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
   antscout << " start " << std::endl;
   std::string               ifn = std::string(argv[1]);

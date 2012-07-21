@@ -416,7 +416,7 @@ int IntegrateVectorField(int argc, char *argv[])
 
   WriteImage<ImageType>(thickimage, lenoutname.c_str() );
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -480,7 +480,12 @@ private:
     antscout
       << " for the integration will start in the region labeled 2 and be constrained to the region labeled 1. "
       << std::endl;
-    return 1;
+    if( argc >= 2 &&
+        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+      {
+      return EXIT_SUCCESS;
+      }
+    return EXIT_FAILURE;
     }
 
   std::string               ifn = std::string(argv[1]);
@@ -511,7 +516,6 @@ private:
       antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-
   return EXIT_SUCCESS;
 }
 } // namespace ants
