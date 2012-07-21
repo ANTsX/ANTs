@@ -126,7 +126,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'b' );
     option->SetUsageOption( 0, "(1)/0" );
     option->SetDescription( description );
-    option->AddValue( std::string( "1" ) );
+    option->AddValue( std::string( "0" ) );
     parser->AddOption( option );
     }
 
