@@ -3879,7 +3879,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int loop = 0;
   bool         energyincreases = true;
   RealType     energy = 0, lastenergy = 0;
-  while( loop < maxloop && energyincreases || loop < 20 )
+  while( ( ( loop < maxloop ) && energyincreases ) || loop < 20 )
     {
 // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
