@@ -2702,23 +2702,30 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     PointType point;
     // ::ants::antscout <<" get point " << std::endl;
-    mypoints->GetPoint(ii, &point);
-    // ::ants::antscout <<" get point index " << point << std::endl;
-
-    ImagePointType pt, wpt;
-    for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
+    const bool isValidPoint = mypoints->GetPoint(ii, &point);
+    if( !isValidPoint )
       {
-      pt[jj] = point[jj];
+      itkExceptionMacro( << "Invalid Point found at " << ii );
       }
-    IndexType velind;
-    bool      bisinside = intfield->TransformPhysicalPointToIndex( pt, velind );
-    // ::ants::antscout <<" inside? " << bisinside  << std::endl;
-    if( bisinside )
+    else
       {
+      // ::ants::antscout <<" get point index " << point << std::endl;
+
+      ImagePointType pt, wpt;
+      for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
+        {
+        pt[jj] = point[jj];
+        }
+      IndexType  velind;
+      const bool bisinside = intfield->TransformPhysicalPointToIndex( pt, velind );
+      // ::ants::antscout <<" inside? " << bisinside  << std::endl;
+      if( bisinside )
+        {
 //      ::ants::antscout <<  "integrate " << std::endl;
-      VectorType disp = this->IntegratePointVelocity(starttimein, finishtimein, velind);
+        VectorType disp = this->IntegratePointVelocity(starttimein, finishtimein, velind);
 //      ::ants::antscout <<  "put inside " << std::endl;
-      intfield->SetPixel(velind, disp);
+        intfield->SetPixel(velind, disp);
+        }
       }
     }
 
@@ -2780,9 +2787,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   VectorType velo;
   velo.Fill(0);
-  xPointType pointIn1;
-  xPointType pointIn2;
-  xPointType pointIn3;
   typename VelocityFieldInterpolatorType::ContinuousIndexType  vcontind;
 
   TReal         itime = starttimein;
@@ -2798,6 +2802,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
   VIndexType vind;
   vind.Fill(0);
+  xPointType pointIn1;
+  pointIn1[TDimension] = 0; // Note: Set the highest value to zero;
+  xPointType pointIn2;
+  pointIn2[TDimension] = 0; // Note: Set the highest value to zero;
+  xPointType pointIn3;
+  pointIn3[TDimension] = 0; // Note: Set the highest value to zero;
   for( unsigned int jj = 0; jj < TDimension; jj++ )
     {
     vind[jj] = velind[jj];

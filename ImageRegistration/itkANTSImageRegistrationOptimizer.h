@@ -579,29 +579,36 @@ public:
       }
     for( unsigned long ii = 0; ii < sz1; ii++ )
       {
-      PointType point;
-      movingpoints->GetPoint(ii, &point);
-      PointDataType label = 0;
-      movingpoints->GetPointData(ii, &label);
-// convert pointtype to imagepointtype
-      ImagePointType pt;
-      for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
+      PointType  point;
+      const bool isValid = movingpoints->GetPoint(ii, &point);
+      if( !isValid )
         {
-        pt[jj] = point[jj];
+        itkExceptionMacro( "Invalid moving point at : " << ii );
         }
-      ImagePointType wpt;
-      const bool     bisinside = warper->MultiTransformSinglePoint(pt, wpt);
-      if( bisinside )
+      else
         {
-        PointType wpoint;
+        PointDataType label = 0;
+        movingpoints->GetPointData(ii, &label);
+// convert pointtype to imagepointtype
+        ImagePointType pt;
         for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
           {
-          wpoint[jj] = wpt[jj];
+          pt[jj] = point[jj];
           }
-        outputMesh->SetPointData( count, label );
-        outputMesh->SetPoint( count, wpoint );
+        ImagePointType wpt;
+        const bool     bisinside = warper->MultiTransformSinglePoint(pt, wpt);
+        if( bisinside )
+          {
+          PointType wpoint;
+          for( unsigned int jj = 0;  jj < ImageDimension; jj++ )
+            {
+            wpoint[jj] = wpt[jj];
+            }
+          outputMesh->SetPointData( count, label );
+          outputMesh->SetPoint( count, wpoint );
 //      if (ii % 100 == 0) ::ants::antscout << " pt " << pt << " wpt " << wpt << std::endl;
-        count++;
+          count++;
+          }
         }
       }
     if( this->m_Debug )

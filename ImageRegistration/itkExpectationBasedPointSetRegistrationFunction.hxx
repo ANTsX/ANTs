@@ -560,18 +560,25 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 //  ::ants::antscout << " NP MOV " << npts << std::endl;
   for( unsigned int i = 0; i < npts; i++ )
     {
-    PointType fixedpoint;
-    this->m_FixedPointSet->GetPoint(i, &fixedpoint);
-    PointDataType fixedlabel = 0;
-    this->m_FixedPointSet->GetPointData(i, &fixedlabel);
-    for( unsigned int d = 0; d < ImageDimension; d++ )
+    PointType  fixedpoint;
+    const bool validFixedPoint = this->m_FixedPointSet->GetPoint(i, &fixedpoint);
+    if( !validFixedPoint )
       {
-      mv[d] = fixedpoint[d];
+      itkExceptionMacro( << "Invalid FixedPoint Requested at " << i );
       }
-    // mv[ImageDimension]=(float) fixedlabel*1.e6;
-    if( fixedlabel == whichlabel )
+    else
       {
-      this->m_FixedSamplePoints->PushBack( mv );
+      PointDataType fixedlabel = 0;
+      this->m_FixedPointSet->GetPointData(i, &fixedlabel);
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        mv[d] = fixedpoint[d];
+        }
+      // mv[ImageDimension]=(float) fixedlabel*1.e6;
+      if( fixedlabel == whichlabel )
+        {
+        this->m_FixedSamplePoints->PushBack( mv );
+        }
       }
     }
   this->m_FixedKdTreeGenerator = TreeGeneratorType::New();
@@ -585,18 +592,25 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 //  ::ants::antscout << " NP MOV " << npts << std::endl;
   for( unsigned int i = 0; i < npts; i++ )
     {
-    PointType movingpoint;
-    this->m_MovingPointSet->GetPoint(i, &movingpoint);
-    PointDataType movinglabel = 0;
-    this->m_MovingPointSet->GetPointData(i, &movinglabel);
-    for( unsigned int d = 0; d < ImageDimension; d++ )
+    PointType  movingpoint;
+    const bool validMovingPoint = this->m_MovingPointSet->GetPoint(i, &movingpoint);
+    if( !validMovingPoint )
       {
-      mv[d] = movingpoint[d];
+      itkExceptionMacro( << "Invalid MovingPoint Requested at " << i );
       }
-    // mv[ImageDimension]=(float) movinglabel*1.e6;
-    if( movinglabel == whichlabel )
+    else
       {
-      this->m_MovingSamplePoints->PushBack( mv );
+      PointDataType movinglabel = 0;
+      this->m_MovingPointSet->GetPointData(i, &movinglabel);
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        mv[d] = movingpoint[d];
+        }
+      // mv[ImageDimension]=(float) movinglabel*1.e6;
+      if( movinglabel == whichlabel )
+        {
+        this->m_MovingSamplePoints->PushBack( mv );
+        }
       }
     }
   this->m_MovingKdTreeGenerator = TreeGeneratorType::New();
