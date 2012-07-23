@@ -195,26 +195,27 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "transform" );
     option->SetShortName( 't' );
-    option->SetUsageOption( 0, "Rigid[gradientStep]" );
-    option->SetUsageOption( 1, "Affine[gradientStep]" );
-    option->SetUsageOption( 2, "CompositeAffine[gradientStep]" );
-    option->SetUsageOption( 3, "Similarity[gradientStep]" );
-    option->SetUsageOption( 4, "Translation[gradientStep]" );
-    option->SetUsageOption( 5, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption(
-      6, "GaussianDisplacementField[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption(
-      7,
-      "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption(
-      8,
-      "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldVarianceInVoxelSpace,updateFieldTimeVariance,totalFieldVarianceInVoxelSpace,totalFieldTimeVariance]" );
-    option->SetUsageOption(
-      9,
-      "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
+    option->SetUsageOption(  0, "Rigid[gradientStep]" );
+    option->SetUsageOption(  1, "Affine[gradientStep]" );
+    option->SetUsageOption(  2, "CompositeAffine[gradientStep]" );
+    option->SetUsageOption(  3, "Similarity[gradientStep]" );
+    option->SetUsageOption(  4, "Translation[gradientStep]" );
+    option->SetUsageOption(  5, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
+    option->SetUsageOption(  6,
+                             "GaussianDisplacementField[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
+    option->SetUsageOption(  7,
+                             "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption(  8,
+                             "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldVarianceInVoxelSpace,updateFieldTimeVariance,totalFieldVarianceInVoxelSpace,totalFieldTimeVariance]" );
+    option->SetUsageOption(  9,
+                             "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
     option->SetUsageOption( 10, "SyN[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption(
-      11, "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption( 11,
+                            "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption( 12,
+                            "Exponential[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
+    option->SetUsageOption( 13,
+                            "BSplineExponential[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -386,7 +387,10 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
            str == "timevaryingvelocityfield" ||
            str == "tvf" ||
            str == "timevaryingbsplinevelocityfield" ||
-           str == "tvdmffd" )
+           str == "tvdmffd" ||
+           str == "exp" ||
+           str == "exponential" ||
+           str == "bsplineexponential" )
     {
     return "Warp.nii.gz";
     }
@@ -800,13 +804,6 @@ DoRegistration(typename ParserType::Pointer & parser)
         regHelper->AddGaussianDisplacementFieldTransform(learningRate, varianceForUpdateField, varianceForTotalField);
         }
         break;
-      case RegistrationHelperType::BSpline:
-        {
-        std::vector<unsigned int> MeshSizeAtBaseLevel =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
-        regHelper->AddBSplineTransform(learningRate, MeshSizeAtBaseLevel);
-        }
-        break;
       case RegistrationHelperType::BSplineDisplacementField:
         {
         std::vector<unsigned int> meshSizeForTheUpdateField =
@@ -835,6 +832,13 @@ DoRegistration(typename ParserType::Pointer & parser)
         regHelper->AddBSplineDisplacementFieldTransform(learningRate, meshSizeForTheUpdateField,
                                                         meshSizeForTheTotalField,
                                                         splineOrder);
+        }
+        break;
+      case RegistrationHelperType::BSpline:
+        {
+        std::vector<unsigned int> MeshSizeAtBaseLevel =
+          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+        regHelper->AddBSplineTransform(learningRate, MeshSizeAtBaseLevel);
         }
         break;
       case RegistrationHelperType::TimeVaryingVelocityField:
@@ -900,9 +904,45 @@ DoRegistration(typename ParserType::Pointer & parser)
                                           splineOrder);
         }
         break;
+      case RegistrationHelperType::Exponential:
+        {
+        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
+        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+        regHelper->AddExponentialTransform( learningRate, varianceForUpdateField, varianceForTotalField );
+        }
+        break;
+      case RegistrationHelperType::BSplineExponential:
+        {
+        std::vector<unsigned int> meshSizeForTheUpdateField =
+          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+
+        std::vector<unsigned int> meshSizeForTheTotalField;
+        if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+          {
+          meshSizeForTheTotalField =
+            parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+          }
+        else
+          {
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            meshSizeForTheTotalField.push_back( 0 );
+            }
+          }
+
+        unsigned int splineOrder = 3;
+        if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+          {
+          splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          }
+
+        regHelper->AddBSplineExponentialTransform( learningRate, meshSizeForTheUpdateField,
+                                                   meshSizeForTheTotalField, splineOrder );
+        }
+        break;
       default:
         {
-        antscout << "Unknown registration method " << whichTransform << std::endl;
+        antscout << "Unknown registration method " << "\"" << whichTransform << "\"" << std::endl;
         }
         break;
       }
