@@ -1167,7 +1167,7 @@ RegistrationHelper<VImageDimension>
           {
           this->Logger() << std::endl << "*** Running affine registration ***" << std::endl << std::endl;
           affineObserver->Execute( affineRegistration, itk::StartEvent() );
-          affineRegistration->StartRegistration();
+          affineRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1227,7 +1227,7 @@ RegistrationHelper<VImageDimension>
           {
           this->Logger() << std::endl << "*** Running rigid registration ***" << std::endl << std::endl;
           rigidObserver->Execute( rigidRegistration, itk::StartEvent() );
-          rigidRegistration->StartRegistration();
+          rigidRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1288,7 +1288,7 @@ RegistrationHelper<VImageDimension>
           {
           this->Logger() << std::endl << "*** Running composite affine registration ***" << std::endl << std::endl;
           affineObserver->Execute( affineRegistration, itk::StartEvent() );
-          affineRegistration->StartRegistration();
+          affineRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1349,7 +1349,7 @@ RegistrationHelper<VImageDimension>
           {
           this->Logger() << std::endl << "*** Running similarity registration ***" << std::endl << std::endl;
           similarityObserver->Execute( similarityRegistration, itk::StartEvent() );
-          similarityRegistration->StartRegistration();
+          similarityRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1411,7 +1411,7 @@ RegistrationHelper<VImageDimension>
           {
           this->Logger() << std::endl << "*** Running translation registration ***" << std::endl << std::endl;
           translationObserver->Execute( translationRegistration, itk::StartEvent() );
-          translationRegistration->StartRegistration();
+          translationRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1537,7 +1537,7 @@ RegistrationHelper<VImageDimension>
                          << varianceForUpdateField << ", varianceForTotalField = " << varianceForTotalField << ") ***"
                          << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1678,7 +1678,7 @@ RegistrationHelper<VImageDimension>
                          << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
                          << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1780,7 +1780,7 @@ RegistrationHelper<VImageDimension>
                          << ") ***"
                          << std::endl << std::endl;
           bsplineObserver->Execute( bsplineRegistration, itk::StartEvent() );
-          bsplineRegistration->StartRegistration();
+          bsplineRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -1962,7 +1962,7 @@ RegistrationHelper<VImageDimension>
                          << varianceForUpdateFieldTime << ", varianceForTotalFieldTime = " << varianceForTotalFieldTime
                          << ") ***" << std::endl << std::endl;
           velocityFieldRegistrationObserver->Execute( velocityFieldRegistration, itk::StartEvent() );
-          velocityFieldRegistration->StartRegistration();
+          velocityFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -2146,7 +2146,7 @@ RegistrationHelper<VImageDimension>
                          << "*** Running time-varying b-spline velocity field registration (initial mesh size = "
                          << initialTransformDomainMeshSize << ") ***" << std::endl << std::endl;
           velocityFieldRegistrationObserver->Execute( velocityFieldRegistration, itk::StartEvent() );
-          velocityFieldRegistration->StartRegistration();
+          velocityFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -2269,7 +2269,7 @@ RegistrationHelper<VImageDimension>
                          << varianceForUpdateField << ", varianceForTotalField = " << varianceForTotalField << ") ***"
                          << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -2428,7 +2428,7 @@ RegistrationHelper<VImageDimension>
                          << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
                          << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -2544,7 +2544,7 @@ RegistrationHelper<VImageDimension>
                          << varianceForUpdateField << ", varianceForTotalField = " << varianceForTotalField << ") ***"
                          << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
@@ -2684,7 +2684,7 @@ RegistrationHelper<VImageDimension>
                          << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
                          << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
-          displacementFieldRegistration->StartRegistration();
+          displacementFieldRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
