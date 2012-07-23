@@ -72,8 +72,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DUSE_WRAP_ITK:BOOL=OFF ## HACK:  QUICK CHANGE
     )
   ### --- End Project specific additions
-  set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git CACHE STRING "" FORCE)
-  set(${proj}_GIT_TAG b35534e39a94d4b9edd44e871e97dd6400211615 CACHE STRING "" FORCE) #2012-07-19 -- Includes test driver fix for missing files.
+  set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
+  set(${proj}_GIT_TAG 949f14eb4d34d3a9e58427e67b5a7ccd5ea77d0f) #2012-07-23 -- Includes LaplacianRecursiveGaussian bug fix.
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
