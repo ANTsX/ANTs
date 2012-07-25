@@ -331,9 +331,7 @@ public:
   /** Return Rayleigh quotient */
   RealType PowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, bool);
 
-  RealType HTPowerIteration( MatrixType & A,  VectorType & x_k, unsigned int );
-
-  RealType IHT( MatrixType & A,  VectorType & x_k, unsigned int );
+  RealType IHTPowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, unsigned int );
 
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
@@ -343,6 +341,7 @@ public:
 
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
+  VectorType SpatiallySmoothVector( VectorType, ImagePointer, RealType );
 
   MatrixType NormalizeMatrix(MatrixType p);
 
