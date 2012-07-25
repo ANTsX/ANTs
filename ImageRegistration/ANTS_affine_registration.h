@@ -789,7 +789,7 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
   bool bsuc = 1;
   try
     {
-    registration->StartRegistration();
+    registration->Update();
     }
   catch( itk::ExceptionObject & err )
     {
@@ -936,7 +936,7 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
   bool bsuc = 1;
   try
     {
-    registration->StartRegistration();
+    registration->Update();
     }
   catch( itk::ExceptionObject & err )
     {
