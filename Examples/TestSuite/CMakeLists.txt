@@ -101,6 +101,7 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData rotation_test_image_VAR D
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData rotation_geom_test_image_VAR DATA{${TestDataMD5_DIR}/rotation.geom.test.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData translation_test_image_VAR DATA{${TestDataMD5_DIR}/translation.test.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData translation_rescale_test_image_VAR DATA{${TestDataMD5_DIR}/translation.rescale.test.nii.gz})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData rotation_rescale_test_image_VAR DATA{${TestDataMD5_DIR}/rotation.rescale.test.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANON0006_20_T1_dbg_splayed_image_VAR DATA{${TestDataMD5_DIR}/ANON0006_20_T1_dbg_splayed.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANON0006_20_T1_sag_twisted_image_VAR DATA{${TestDataMD5_DIR}/ANON0006_20_T1_sag_twisted.nii.gz})
 
@@ -489,6 +490,137 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
   --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_antsRegistrationTest_TranslationRescaleHeadMasks.mat}
   --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
 )
+
+set(antsRegistrationTestName antsRegistrationTest_CCMetricBrainToItself)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  --compare ${test_image_VAR}
+            ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
+  --compareIntensityTolerance 9
+  --compareRadiusTolerance 0
+  --compareNumberOfPixelsTolerance 1000
+
+  antsRegistrationTest
+  --dimensionality 3
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --metric CC[${test_image_VAR},${test_image_VAR},1,5]
+  --transform "Similarity[0.001]"
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
+set(antsRegistrationTestName antsRegistrationTest_CCSimilarityRotationMasks)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
+            ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
+  --compareIntensityTolerance 11
+  --compareRadiusTolerance 0
+  --compareNumberOfPixelsTolerance 1000
+
+  antsRegistrationTest
+  --dimensionality 3
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --metric CC[${test_image_VAR},${rotation_test_image_VAR},1,5]
+  --transform "Similarity[0.001]"
+  --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}
+  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
+set(antsRegistrationTestName antsRegistrationTest_MSEMetricBrainToItself)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  --compare ${test_image_VAR}
+            ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
+  --compareIntensityTolerance 9
+  --compareRadiusTolerance 0
+  --compareNumberOfPixelsTolerance 1000
+
+  antsRegistrationTest
+  --dimensionality 3
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --metric MeanSquares[${test_image_VAR},${test_image_VAR},1,NA]
+  --transform "Similarity[0.001]"
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
+set(antsRegistrationTestName antsRegistrationTest_MSESimilarityRotationMasks)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
+            ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
+  --compareIntensityTolerance 11
+  --compareRadiusTolerance 0
+  --compareNumberOfPixelsTolerance 1000
+
+  antsRegistrationTest
+  --dimensionality 3
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --metric MeanSquares[${test_image_VAR},${rotation_test_image_VAR},1,NA]
+  --transform "Similarity[0.001]"
+  --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_0.05_antsRegistrationTest_RigidRotationNoMasks.mat}
+  --masks[${test_mask_VAR},${rotation_test_mask_VAR}]
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
+set(antsRegistrationTestName antsRegistrationTest_ScaleTranslationRescaleHeadMasks)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
+            ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
+  --compareIntensityTolerance 7
+  --compareRadiusTolerance 1
+  --compareNumberOfPixelsTolerance 777
+
+  antsRegistrationTest
+  --dimensionality 3
+  --metric Mattes[${test_image_VAR},${translation_rescale_test_image_VAR},1,200]
+  --transform "Rigid[0.001]"
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --metric Mattes[${test_image_VAR},${translation_rescale_test_image_VAR},1,200]
+  --transform "Similarity[0.0001]"
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_antsRegistrationTest_TranslationRescaleHeadMasks.mat}
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
+set(antsRegistrationTestName antsRegistrationTest_ScaleRotationRescaleHeadMasks)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
+  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
+            ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
+  --compareIntensityTolerance 9
+  --compareRadiusTolerance 1
+  --compareNumberOfPixelsTolerance 1000
+
+  antsRegistrationTest
+  --dimensionality 3
+  --metric Mattes[${test_image_VAR},${rotation_rescale_test_image_VAR},1,200]
+  --transform "Rigid[0.01]"
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --metric Mattes[${test_image_VAR},${rotation_rescale_test_image_VAR},1,200]
+  --transform "Similarity[0.003]"
+  --convergence 25x20x5
+  --shrink-factors 3x2x1
+  --smoothing-sigmas 0x0x0
+  --initial-moving-transform DATA{${TestDataMD5_DIR}/Initializer_${antsRegistrationTestName}.mat}
+  --output [${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.mat,${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz]
+)
+
 
 
 ###############
