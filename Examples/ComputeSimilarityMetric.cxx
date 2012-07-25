@@ -86,19 +86,6 @@ int ComputeSimilarityMetric(int argc, char *argv[])
       vfIter2.Set(zero);
     }
 */
-  typename ImageType::Pointer metricimg = ImageType::New();
-  metricimg->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  metricimg->SetBufferedRegion( image1->GetLargestPossibleRegion() );
-  metricimg->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  metricimg->Allocate();
-  metricimg->SetSpacing(image1->GetSpacing() );
-  metricimg->SetOrigin(image1->GetOrigin() );
-  Iterator iter( metricimg,  metricimg->GetLargestPossibleRegion() );
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    iter.Set(0);
-    }
-
   typedef ImageType FixedImageType;
   typedef ImageType MovingImageType;
   typedef FieldType DisplacementFieldType;
@@ -138,10 +125,17 @@ int ComputeSimilarityMetric(int argc, char *argv[])
 
   double      metricvalue = 0;
   std::string metricname = "";
+
+  // ORIENTATION ALERT  -- the original code here
+  // set the region, spacing, and origin without setting directions.
+  typename ImageType::Pointer metricimg =
+    AllocImage<ImageType>(image1, 0);
+
   if( whichmetric  == 0 )
     {
     hradius = miradius;
     unsigned long ct = 0;
+    Iterator      iter( metricimg,  metricimg->GetLargestPossibleRegion() );
     for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
       IndexType index = iter.GetIndex();

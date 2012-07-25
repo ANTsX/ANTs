@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <algorithm>
@@ -490,22 +491,20 @@ int StudentsTestOnImages(int argc, char *argv[])
   antscout << " size " << size << std::endl;
   typename ImageType::RegionType region;
   region.SetSize(size );
-  typename ImageType::Pointer StatImage = ImageType::New();
-  StatImage->SetSpacing( spacing );
-  StatImage->SetOrigin( origin );
-  StatImage->SetLargestPossibleRegion(region );
-  StatImage->SetRequestedRegion( region );
-  StatImage->SetBufferedRegion( region );
-  StatImage->Allocate();
-  StatImage->FillBuffer(0);
-  typename ImageType::Pointer PImage = ImageType::New();
-  PImage->SetSpacing( spacing );
-  PImage->SetOrigin( origin );
-  PImage->SetLargestPossibleRegion(region );
-  PImage->SetRequestedRegion( region );
-  PImage->SetBufferedRegion( region );
-  PImage->Allocate();
-  PImage->FillBuffer(0);
+  // ORIENTATION ALERT. the code this replaced originally didn't
+  // bother setting the origins even though the directions were
+  // grabbed from the ImageIO.  I'm assuming that was supposed to
+  // happen, and was left out as an oversight.
+  typename ImageType::Pointer StatImage = AllocImage<ImageType>(region,
+                                                                spacing,
+                                                                origin,
+                                                                direction,
+                                                                0);
+  typename ImageType::Pointer PImage = AllocImage<ImageType>(region,
+                                                             spacing,
+                                                             origin,
+                                                             direction,
+                                                             0);
 
 //   unsigned int sizeofpixel=sizeof(PixelType);
 

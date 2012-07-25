@@ -18,6 +18,7 @@
 #ifndef __itkANTSImageRegistrationOptimizer_h
 #define __itkANTSImageRegistrationOptimizer_h
 
+#include "antsAllocImage.h"
 #include "itkObject.h"
 #include "itkObjectFactory.h"
 #include "itkVectorGaussianInterpolateImageFunction.h"
@@ -426,14 +427,7 @@ public:
     // Initialize the Moving to the displacement field
     typedef DisplacementFieldType FieldType;
 
-    typename ImageType::Pointer sfield = ImageType::New();
-    sfield->SetSpacing( field->GetSpacing() );
-    sfield->SetOrigin( field->GetOrigin() );
-    sfield->SetDirection( field->GetDirection() );
-    sfield->SetLargestPossibleRegion(field->GetLargestPossibleRegion() );
-    sfield->SetRequestedRegion(field->GetRequestedRegion() );
-    sfield->SetBufferedRegion( field->GetBufferedRegion() );
-    sfield->Allocate();
+    typename ImageType::Pointer sfield = AllocImage<ImageType>(field);
 
     typedef itk::ImageRegionIteratorWithIndex<FieldType> Iterator;
     Iterator vfIter( field, field->GetLargestPossibleRegion() );
@@ -459,20 +453,14 @@ public:
     ::ants::antscout << "FIXME -- NOT DONE CORRECTLY " << std::endl;
     ::ants::antscout << " SUBSAM FIELD SUBSAM FIELD SUBSAM FIELD " << std::endl;
 
-    typename DisplacementFieldType::Pointer sfield = DisplacementFieldType::New();
+    typename DisplacementFieldType::Pointer sfield;
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
       typename ImageType::Pointer precomp = this->GetVectorComponent(field, i);
       typename ImageType::Pointer comp = this->SubsampleImage(precomp, targetSize, targetSpacing);
       if( i == 0 )
         {
-        sfield->SetSpacing( comp->GetSpacing() );
-        sfield->SetOrigin( comp->GetOrigin() );
-        sfield->SetDirection( comp->GetDirection() );
-        sfield->SetLargestPossibleRegion(comp->GetLargestPossibleRegion() );
-        sfield->SetRequestedRegion(comp->GetRequestedRegion() );
-        sfield->SetBufferedRegion( comp->GetBufferedRegion() );
-        sfield->Allocate();
+        sfield = AllocImage<DisplacementFieldType>(comp);
         }
 
       typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
@@ -1113,17 +1101,14 @@ public:
 
     if( !this->m_DisplacementField )
       {      /*FIXME -- need initial deformation strategy */
-      this->m_DisplacementField = DisplacementFieldType::New();
-      this->m_DisplacementField->SetSpacing( this->m_CurrentDomainSpacing);
-      this->m_DisplacementField->SetOrigin( fixedImage->GetOrigin() );
-      this->m_DisplacementField->SetDirection( fixedImage->GetDirection() );
       typename ImageType::RegionType region;
       region.SetSize( this->m_CurrentDomainSize);
-      this->m_DisplacementField->SetLargestPossibleRegion(region);
-      this->m_DisplacementField->SetRequestedRegion(region);
-      this->m_DisplacementField->SetBufferedRegion(region);
-      this->m_DisplacementField->Allocate();
-      this->m_DisplacementField->FillBuffer(zero);
+      this->m_DisplacementField =
+        AllocImage<DisplacementFieldType>(region,
+                                          this->m_CurrentDomainSpacing,
+                                          fixedImage->GetOrigin(),
+                                          fixedImage->GetDirection(),
+                                          zero);
       ::ants::antscout <<  " allocated def field " << this->m_DisplacementField->GetDirection() << std::endl;
       // std::exception();
       }
@@ -1831,35 +1816,17 @@ public:
     VectorType zero; zero.Fill(0);
     //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
 
-    ImagePointer TRealImage = ImageType::New();
-    TRealImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-    TRealImage->SetBufferedRegion( field->GetLargestPossibleRegion().GetSize() );
-    TRealImage->SetSpacing(field->GetSpacing() );
-    TRealImage->SetOrigin(field->GetOrigin() );
-    TRealImage->SetDirection(field->GetDirection() );
-    TRealImage->Allocate();
+    ImagePointer TRealImage = AllocImage<ImageType>(field);
 
     typedef typename DisplacementFieldType::PixelType           DispVectorType;
     typedef typename DisplacementFieldType::IndexType           DispIndexType;
     typedef typename DispVectorType::ValueType                  ScalarType;
     typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
 
-    DisplacementFieldPointer lagrangianInitCond = DisplacementFieldType::New();
-    lagrangianInitCond->SetSpacing( field->GetSpacing() );
-    lagrangianInitCond->SetOrigin( field->GetOrigin() );
-    lagrangianInitCond->SetDirection( field->GetDirection() );
-    lagrangianInitCond->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-    lagrangianInitCond->SetRequestedRegion(field->GetRequestedRegion() );
-    lagrangianInitCond->SetBufferedRegion( field->GetLargestPossibleRegion() );
-    lagrangianInitCond->Allocate();
-    DisplacementFieldPointer eulerianInitCond = DisplacementFieldType::New();
-    eulerianInitCond->SetSpacing( field->GetSpacing() );
-    eulerianInitCond->SetOrigin( field->GetOrigin() );
-    eulerianInitCond->SetDirection( field->GetDirection() );
-    eulerianInitCond->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-    eulerianInitCond->SetRequestedRegion(field->GetRequestedRegion() );
-    eulerianInitCond->SetBufferedRegion( field->GetLargestPossibleRegion() );
-    eulerianInitCond->Allocate();
+    DisplacementFieldPointer lagrangianInitCond =
+      AllocImage<DisplacementFieldType>(field);
+    DisplacementFieldPointer eulerianInitCond =
+      AllocImage<DisplacementFieldType>(field);
 
     typedef typename DisplacementFieldType::SizeType SizeType;
     SizeType size = field->GetLargestPossibleRegion().GetSize();
@@ -1997,19 +1964,18 @@ protected:
   ImagePointer  MakeSubImage( ImagePointer bigimage)
   {
     typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-    ImagePointer varimage = ImageType::New();
 
     typename ImageType::RegionType region;
 
     region.SetSize( this->m_CurrentDomainSize);
     typename ImageType::IndexType index;  index.Fill(0);
     region.SetIndex(index);
-    varimage->SetRegions( region );
-    varimage->SetSpacing(this->m_CurrentDomainSpacing);
-    varimage->SetOrigin(bigimage->GetOrigin() );
-    varimage->SetDirection(bigimage->GetDirection() );
-    varimage->Allocate();
-    varimage->FillBuffer(0);
+    ImagePointer varimage =
+      AllocImage<ImageType>(region,
+                            this->m_CurrentDomainSpacing,
+                            bigimage->GetOrigin(),
+                            bigimage->GetDirection(),
+                            0);
 
     typename ImageType::IndexType cornerind;
     cornerind.Fill(0);

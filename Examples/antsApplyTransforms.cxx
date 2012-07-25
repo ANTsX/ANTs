@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
 
 #include "itkAffineTransform.h"

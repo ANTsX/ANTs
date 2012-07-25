@@ -115,21 +115,11 @@ private:
 
   if( outType == "DEC" )
     {
-    colorImage = ColorImageType::New();
-    colorImage->SetRegions(dtimg->GetLargestPossibleRegion() );
-    colorImage->SetSpacing(dtimg->GetSpacing() );
-    colorImage->SetOrigin(dtimg->GetOrigin() );
-    colorImage->SetDirection(dtimg->GetDirection() );
-    colorImage->Allocate();
+    colorImage = AllocImage<ColorImageType>(dtimage);
     }
   else
     {
-    outImage = ScalarImageType::New();
-    outImage->SetRegions(dtimg->GetLargestPossibleRegion() );
-    outImage->SetSpacing(dtimg->GetSpacing() );
-    outImage->SetOrigin(dtimg->GetOrigin() );
-    outImage->SetDirection(dtimg->GetDirection() );
-    outImage->Allocate();
+    outImage = AllocImage<ScalarImageType>(dtimg);
     }
 
   itk::ImageRegionIteratorWithIndex<TensorImageType> inputIt(dtimg,

@@ -18,6 +18,7 @@
 #ifndef _itkProbabilisticRegistrationFunction_h_
 #define _itkProbabilisticRegistrationFunction_h_
 
+#include "antsAllocImage.h"
 #include "itkAvantsPDEDeformableRegistrationFunction.h"
 #include "itkPoint.h"
 #include "itkCovariantVector.h"
@@ -340,29 +341,17 @@ protected:
     typedef ImageRegionIteratorWithIndex<BinaryImageType> ittype2;
     FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
 
-    this->m_MetricImage = MetricImageType::New();
-    this->m_MetricImage->SetLargestPossibleRegion(img->GetLargestPossibleRegion()  );
-    this->m_MetricImage->SetBufferedRegion(img->GetLargestPossibleRegion() );
+    this->m_MetricImage = AllocImage<MetricImageType>(img->GetLargestPossibleRegion(), 0);
     this->m_MetricImage->SetSpacing(img->GetSpacing() );
     this->m_MetricImage->SetOrigin(img->GetOrigin() );
-    this->m_MetricImage->Allocate();
-    this->m_MetricImage->FillBuffer(0);
 
     bool makebinimg = false;
     if( makebinimg )
       {
       m_Iteration = 0;
-      binaryimage = BinaryImageType::New();
-      binaryimage->SetLargestPossibleRegion(img->GetLargestPossibleRegion()  );
-      binaryimage->SetBufferedRegion(img->GetLargestPossibleRegion() );
+      binaryimage = AllocImage<BinaryImageType>(img->GetLargestPossibleRegion(), 1);
       binaryimage->SetSpacing(img->GetSpacing() );
       binaryimage->SetOrigin(img->GetOrigin() );
-      binaryimage->Allocate();
-      ittype2 it(binaryimage, binaryimage->GetLargestPossibleRegion().GetSize() );
-      for( it.GoToBegin(); !it.IsAtEnd(); ++it )
-        {
-        it.Set(1);
-        }
       }
     return this->m_MetricImage;
   }

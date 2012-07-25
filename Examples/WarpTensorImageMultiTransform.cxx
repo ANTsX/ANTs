@@ -1,6 +1,6 @@
 
 #include "antsUtilities.h"
-#include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include "itkImageFileReader.h"
 #include "itkVariableLengthVector.h"
 
@@ -309,16 +309,8 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   // Convert to reference image tensor basis
   DirectionCorrect<TensorImageType, ImageType>(img_mov, img_ref);
 
-  typename TensorImageType::Pointer img_output = TensorImageType::New();
-  img_output->SetLargestPossibleRegion( img_ref->GetLargestPossibleRegion() );
-  img_output->SetBufferedRegion( img_ref->GetLargestPossibleRegion() );
-  img_output->SetLargestPossibleRegion( img_ref->GetLargestPossibleRegion() );
-  img_output->Allocate();
-  img_output->SetSpacing(img_ref->GetSpacing() );
-  img_output->SetOrigin(img_ref->GetOrigin() );
-  img_output->SetDirection(img_ref->GetDirection() );
-  // else
-  //    img_ref = NULL;
+  typename TensorImageType::Pointer img_output =
+    AllocImage<TensorImageType>(img_ref);
   for( unsigned int tensdim = 0;  tensdim < 6;  tensdim++ )
     {
     typedef itk::VectorIndexSelectionCastImageFilter<TensorImageType, ImageType> IndexSelectCasterType;

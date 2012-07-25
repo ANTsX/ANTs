@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkBSplineControlPointImageFilter.h"
@@ -405,12 +406,8 @@ int N4( itk::ants::CommandLineParser *parser )
     bspliner->SetSpacing( inputImage->GetSpacing() );
     bspliner->Update();
 
-    typename ImageType::Pointer logField = ImageType::New();
-    logField->SetOrigin( inputImage->GetOrigin() );
-    logField->SetSpacing( inputImage->GetSpacing() );
-    logField->SetRegions( inputImage->GetLargestPossibleRegion() );
-    logField->SetDirection( inputImage->GetDirection() );
-    logField->Allocate();
+    typename ImageType::Pointer logField =
+      AllocImage<ImageType>(inputImage);
 
     itk::ImageRegionIterator<typename CorrecterType::ScalarImageType> ItB(
       bspliner->GetOutput(),

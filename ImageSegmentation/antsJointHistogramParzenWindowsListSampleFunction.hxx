@@ -60,18 +60,18 @@ JointHistogramParzenWindowsListSampleFunction<TListSample, TOutput, TCoordRep>
 // first, the shape histogram --- 0,0 origin and spacing of 1
   if( this->m_JointHistogramImages.size() == which_hist )
     {
-    this->m_JointHistogramImages.push_back( JointHistogramImageType::New() );
     typename JointHistogramImageType::SpacingType spacing;
     spacing.Fill(1);
     typename JointHistogramImageType::PointType origin;
     origin.Fill(0);
     typename JointHistogramImageType::SizeType size;
     size.Fill(this->m_NumberOfJointHistogramBins);
-    this->m_JointHistogramImages[which_hist]->SetOrigin( origin );
-    this->m_JointHistogramImages[which_hist]->SetSpacing( spacing );
-    this->m_JointHistogramImages[which_hist]->SetRegions( size );
-    this->m_JointHistogramImages[which_hist]->Allocate();
-    this->m_JointHistogramImages[which_hist]->FillBuffer( 0 );
+    typename JointHistogramImageType::DirectionType direction;
+    direction.SetIdentity();
+    typename JointHistogramImageType::Pointer curJHI =
+      AllocImage<JointHistogramImageType>(size, spacing, origin, regions, 0);
+
+    this->m_JointHistogramImages.push_back( curJHI);
     }
 
   typename JointHistogramImageType::PointType shapePoint;

@@ -17,7 +17,7 @@
 =========================================================================*/
 #ifndef _SurfaceImageCurvature_hxx
 #define _SurfaceImageCurvature_hxx
-
+#include "antsAllocImage.h"
 #include <vnl/algo/vnl_real_eigensystem.h>
 
 #include "itkSurfaceImageCurvature.h"
@@ -473,10 +473,8 @@ void  SurfaceImageCurvature<TSurface>
 
   if( wmgmcurv )
     {
-    typename OutputImageType::Pointer laplacian = OutputImageType::New();
-    laplacian->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-    laplacian->SetBufferedRegion( image->GetLargestPossibleRegion() );
-    laplacian->Allocate();
+    typename OutputImageType::Pointer laplacian =
+      AllocImage<OutputImageType>( image->GetLargestPossibleRegion() );
     laplacian->SetSpacing(image->GetSpacing() );
     Iterator.GoToBegin();
     while(  !Iterator.IsAtEnd()  )

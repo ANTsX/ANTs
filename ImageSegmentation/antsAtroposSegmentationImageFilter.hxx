@@ -21,7 +21,7 @@
 
 #include "antsAtroposSegmentationImageFilter.h"
 #include "antsGaussianListSampleFunction.h"
-
+#include "antsAllocImage.h"
 #include "itkAddImageFilter.h"
 #include "itkAddConstantToImageFilter.h"
 #include "itkBinaryContourImageFilter.h"
@@ -278,11 +278,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     region.SetIndex( index );
 
-    RealImagePointer priorImage = RealImageType::New();
-    priorImage->CopyInformation( this->GetIntensityImage( 0 ) );
-    priorImage->SetRegions( region );
-    priorImage->Allocate();
-    priorImage->FillBuffer( 0 );
+    RealImagePointer priorImage =
+      AllocImage<RealImageType>(this->GetIntensityImage( 0 ), 0 );
 
     typename SparseImageType::Pointer sparsePriorImage =
       this->m_PriorProbabilitySparseImages[whichClass - 1];
@@ -701,18 +698,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   //   2. the max prior probability value
   //   3. which prior probability image corresponds to the max prior value
 
-  RealImagePointer sumPriorProbabilityImage = RealImageType::New();
+  RealImagePointer sumPriorProbabilityImage =
+    AllocImage<RealImageType>(this->GetInput(), 0);
 
-  sumPriorProbabilityImage->CopyInformation( this->GetInput() );
-  sumPriorProbabilityImage->SetRegions( this->GetInput()->GetRequestedRegion() );
-  sumPriorProbabilityImage->Allocate();
-  sumPriorProbabilityImage->FillBuffer( 0 );
+  RealImagePointer maxPriorProbabilityImage =
+    AllocImage<RealImageType>(this->GetInput(), 0);
 
-  RealImagePointer maxPriorProbabilityImage = RealImageType::New();
-  maxPriorProbabilityImage->CopyInformation( this->GetInput() );
-  maxPriorProbabilityImage->SetRegions( this->GetInput()->GetRequestedRegion() );
-  maxPriorProbabilityImage->Allocate();
-  maxPriorProbabilityImage->FillBuffer( 0 );
   for( unsigned int n = 0; n < this->m_NumberOfTissueClasses; n++ )
     {
     RealImagePointer priorProbabilityImage =
@@ -856,11 +847,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   else
     {
-    typename MaskImageType::Pointer maskImage = MaskImageType::New();
-    maskImage->CopyInformation( this->GetOutput() );
-    maskImage->SetRegions( this->GetOutput()->GetRequestedRegion() );
-    maskImage->Allocate();
-    maskImage->FillBuffer( this->m_MaskLabel );
+    typename MaskImageType::Pointer maskImage =
+      AllocImage<MaskImageType>(this->GetOutput(), this->m_MaskLabel);
     stats->SetLabelInput( maskImage );
     }
   stats->UseHistogramsOn();
@@ -927,11 +915,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
   else
     {
-    typename MaskImageType::Pointer maskImage = MaskImageType::New();
-    maskImage->CopyInformation( this->GetOutput() );
-    maskImage->SetRegions( this->GetOutput()->GetRequestedRegion() );
-    maskImage->Allocate();
-    maskImage->FillBuffer( this->m_MaskLabel );
+    typename MaskImageType::Pointer maskImage =
+      AllocImage<MaskImageType>(this->GetOutput(), this->m_MaskLabel);
     stats->SetLabelInput( maskImage );
     }
   stats->UseHistogramsOff();
@@ -1290,19 +1275,12 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     }
 
-  RealImagePointer maxPosteriorProbabilityImage = RealImageType::New();
-  maxPosteriorProbabilityImage->CopyInformation( this->GetOutput() );
-  maxPosteriorProbabilityImage->SetRegions(
-    this->GetOutput()->GetRequestedRegion() );
-  maxPosteriorProbabilityImage->Allocate();
-  maxPosteriorProbabilityImage->FillBuffer( NumericTraits<RealType>::Zero );
+  RealImagePointer maxPosteriorProbabilityImage =
+    AllocImage<RealImageType>(this->GetOutput(), NumericTraits<RealType>::Zero );
 
   typename ClassifiedImageType::Pointer maxLabels =
-    ClassifiedImageType::New();
-  maxLabels->CopyInformation( this->GetOutput() );
-  maxLabels->SetRegions( this->GetOutput()->GetRequestedRegion() );
-  maxLabels->Allocate();
-  maxLabels->FillBuffer( NumericTraits<LabelType>::Zero );
+    AllocImage<ClassifiedImageType>(this->GetOutput(),
+                                    NumericTraits<LabelType>::Zero );
 
   unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses
     + this->m_NumberOfPartialVolumeClasses;
@@ -1972,12 +1950,8 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     // the sum of the posterior probability images needs to be calculated
     // for normalization purposes.  This sum is then saved for subsequent calls.
     //
-    RealImagePointer posteriorProbabilityImage = RealImageType::New();
-    posteriorProbabilityImage->CopyInformation( this->GetOutput() );
-    posteriorProbabilityImage->SetRegions(
-      this->GetOutput()->GetRequestedRegion() );
-    posteriorProbabilityImage->Allocate();
-    posteriorProbabilityImage->FillBuffer( 0 );
+    RealImagePointer posteriorProbabilityImage =
+      AllocImage<RealImageType>(this->GetOutput(), 0);
 
     //
     // Calculate the sum of the probability images.  Also, store the
@@ -1985,24 +1959,16 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     //
     if( whichClass == 1 )
       {
-      this->m_SumPosteriorProbabilityImage = RealImageType::New();
-      this->m_SumPosteriorProbabilityImage->CopyInformation( this->GetOutput() );
-      this->m_SumPosteriorProbabilityImage->SetRegions(
-        this->GetOutput()->GetRequestedRegion() );
-      this->m_SumPosteriorProbabilityImage->Allocate();
-      this->m_SumPosteriorProbabilityImage->FillBuffer( 0 );
+      this->m_SumPosteriorProbabilityImage =
+        AllocImage<RealImageType>(this->GetOutput(), 0);
 
       RealImagePointer sumPriorProbabilityImage = NULL;
 
       if( this->m_InitializationStrategy == PriorLabelImage ||
           this->m_InitializationStrategy == PriorProbabilityImages )
         {
-        sumPriorProbabilityImage = RealImageType::New();
-        sumPriorProbabilityImage->CopyInformation( this->GetOutput() );
-        sumPriorProbabilityImage->SetRegions(
-          this->GetOutput()->GetRequestedRegion() );
-        sumPriorProbabilityImage->Allocate();
-        sumPriorProbabilityImage->FillBuffer( 0 );
+        sumPriorProbabilityImage =
+          AllocImage<RealImageType>(this->GetOutput(), 0);
         for( unsigned int c = 0; c < totalNumberOfClasses; c++ )
           {
           RealImagePointer priorProbabilityImage =

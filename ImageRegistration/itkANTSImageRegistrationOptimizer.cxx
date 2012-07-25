@@ -22,6 +22,7 @@
 #ifdef _MSC_VER
 #pragma warning(disable: 4786)
 #endif
+#include "antsAllocImage.h"
 #include "itkVectorParameterizedNeighborhoodOperatorImageFilter.h"
 #include "itkANTSImageRegistrationOptimizer.h"
 #include "itkIdentityTransform.h"
@@ -129,19 +130,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 template <unsigned int TDimension, class TReal>
 typename ANTSImageRegistrationOptimizer<TDimension, TReal>::DisplacementFieldPointer
 ANTSImageRegistrationOptimizer<TDimension, TReal>
-::CopyDisplacementField(
-  DisplacementFieldPointer input
-  )
+::CopyDisplacementField(  DisplacementFieldPointer input  )
 {
-  DisplacementFieldPointer output = DisplacementFieldType::New();
-
-  output->SetSpacing( input->GetSpacing() );
-  output->SetOrigin( input->GetOrigin() );
-  output->SetDirection( input->GetDirection() );
-  output->SetLargestPossibleRegion(input->GetLargestPossibleRegion() );
-  output->SetRequestedRegion(input->GetLargestPossibleRegion() );
-  output->SetBufferedRegion( input->GetLargestPossibleRegion() );
-  output->Allocate();
+  DisplacementFieldPointer output =
+    AllocImage<DisplacementFieldType>(input);
 
   typedef ImageRegionIterator<DisplacementFieldType> Iterator;
   Iterator inIter( input, input->GetBufferedRegion() );
@@ -152,9 +144,6 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     outIter.Set( inIter.Get() );
     }
-
-  output->SetSpacing( input->GetSpacing() );
-  output->SetOrigin(input->GetOrigin() );
 
   return output;
 }
@@ -176,16 +165,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     ::ants::antscout << " No Field in gauss Smoother " << std::endl; return;
     }
-  DisplacementFieldPointer tempField = DisplacementFieldType::New();
-  tempField->SetSpacing( field->GetSpacing() );
-  tempField->SetOrigin( field->GetOrigin() );
-  tempField->SetDirection( field->GetDirection() );
-  tempField->SetLargestPossibleRegion(
-    field->GetLargestPossibleRegion() );
-  tempField->SetRequestedRegion(
-    field->GetRequestedRegion() );
-  tempField->SetBufferedRegion( field->GetBufferedRegion() );
-  tempField->Allocate();
+  DisplacementFieldPointer tempField =
+    AllocImage<DisplacementFieldType>(field);
 
   typedef typename DisplacementFieldType::PixelType    DispVectorType;
   typedef typename DispVectorType::ValueType           ScalarType;
@@ -288,16 +269,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     {
     ::ants::antscout << " No Field in gauss Smoother " << std::endl; return;
     }
-  TimeVaryingVelocityFieldPointer tempField = TimeVaryingVelocityFieldType::New();
-  tempField->SetSpacing( field->GetSpacing() );
-  tempField->SetOrigin( field->GetOrigin() );
-  tempField->SetDirection( field->GetDirection() );
-  tempField->SetLargestPossibleRegion(
-    field->GetLargestPossibleRegion() );
-  tempField->SetRequestedRegion(
-    field->GetRequestedRegion() );
-  tempField->SetBufferedRegion( field->GetBufferedRegion() );
-  tempField->Allocate();
+  TimeVaryingVelocityFieldPointer tempField =
+    AllocImage<TimeVaryingVelocityFieldType>(field);
 
   typedef typename TimeVaryingVelocityFieldType::PixelType TVVFVectorType;
   typedef typename TVVFVectorType::ValueType               ScalarType;
@@ -488,16 +461,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   if( !fieldout )
     {
-    fieldout = DisplacementFieldType::New();
-    fieldout->SetSpacing( fieldtowarpby->GetSpacing() );
-    fieldout->SetOrigin( fieldtowarpby->GetOrigin() );
-    fieldout->SetDirection( fieldtowarpby->GetDirection() );
-    fieldout->SetLargestPossibleRegion(fieldtowarpby->GetLargestPossibleRegion()  );
-    fieldout->SetRequestedRegion( fieldtowarpby->GetLargestPossibleRegion()   );
-    fieldout->SetBufferedRegion( fieldtowarpby->GetLargestPossibleRegion()  );
-    fieldout->Allocate();
     VectorType zero;  zero.Fill(0);
-    fieldout->FillBuffer(zero);
+    fieldout = AllocImage<DisplacementFieldType>(fieldtowarpby);
     }
   typedef typename DisplacementFieldType::PixelType DispVectorType;
 
@@ -573,15 +538,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   VectorType zero;
 
   zero.Fill(0);
-  DisplacementFieldPointer diffmap = DisplacementFieldType::New();
-  diffmap->SetSpacing( totalField->GetSpacing() );
-  diffmap->SetOrigin( totalField->GetOrigin() );
-  diffmap->SetDirection( totalField->GetDirection() );
-  diffmap->SetLargestPossibleRegion(totalField->GetLargestPossibleRegion()  );
-  diffmap->SetRequestedRegion( totalField->GetLargestPossibleRegion()   );
-  diffmap->SetBufferedRegion( totalField->GetLargestPossibleRegion()  );
-  diffmap->Allocate();
-  diffmap->FillBuffer(zero);
+  DisplacementFieldPointer diffmap =
+    AllocImage<DisplacementFieldType>(totalField, zero);
   for( unsigned int nts = 0; nts < ntimesteps; nts++ )
     {
     this->ComposeDiffs(diffmap, totalField, diffmap, timestep);
@@ -619,16 +577,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typename ImageType::SpacingType spacing = fixedwarp->GetSpacing();
   VectorType zero;
   zero.Fill(0);
-  DisplacementFieldPointer updateField = NULL, totalUpdateField = NULL, updateFieldInv = NULL;
-  totalUpdateField = DisplacementFieldType::New();
-  totalUpdateField->SetSpacing( fixedwarp->GetSpacing() );
-  totalUpdateField->SetOrigin( fixedwarp->GetOrigin() );
-  totalUpdateField->SetDirection( fixedwarp->GetDirection() );
-  totalUpdateField->SetLargestPossibleRegion(fixedwarp->GetLargestPossibleRegion()  );
-  totalUpdateField->SetRequestedRegion( fixedwarp->GetLargestPossibleRegion()   );
-  totalUpdateField->SetBufferedRegion( fixedwarp->GetLargestPossibleRegion()  );
-  totalUpdateField->Allocate();
-  totalUpdateField->FillBuffer(zero);
+  DisplacementFieldPointer updateField;
+  DisplacementFieldPointer updateFieldInv;
+
+  DisplacementFieldPointer totalUpdateField =
+    AllocImage<DisplacementFieldType>(fixedwarp, zero);
+
 //    bool hadpointsetmetric=false;
 
   RealType sumWeights = 0.0;
@@ -652,26 +606,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
     else
       {
-      updateField = DisplacementFieldType::New();
-      updateField->SetSpacing( fixedwarp->GetSpacing() );
-      updateField->SetOrigin( fixedwarp->GetOrigin() );
-      updateField->SetDirection( fixedwarp->GetDirection() );
-      updateField->SetLargestPossibleRegion(fixedwarp->GetLargestPossibleRegion()  );
-      updateField->SetRequestedRegion( fixedwarp->GetLargestPossibleRegion()   );
-      updateField->SetBufferedRegion( fixedwarp->GetLargestPossibleRegion()  );
-      updateField->Allocate();
-      updateField->FillBuffer(zero);
+      updateField = AllocImage<DisplacementFieldType>(fixedwarp, zero);
       if( totalUpdateInvField )
         {
-        updateFieldInv = DisplacementFieldType::New();
-        updateFieldInv->SetSpacing( fixedwarp->GetSpacing() );
-        updateFieldInv->SetOrigin( fixedwarp->GetOrigin() );
-        updateFieldInv->SetDirection( fixedwarp->GetDirection() );
-        updateFieldInv->SetLargestPossibleRegion(fixedwarp->GetLargestPossibleRegion()  );
-        updateFieldInv->SetRequestedRegion( fixedwarp->GetLargestPossibleRegion()   );
-        updateFieldInv->SetBufferedRegion( fixedwarp->GetLargestPossibleRegion()  );
-        updateFieldInv->Allocate();
-        updateFieldInv->FillBuffer(zero);
+        updateFieldInv = AllocImage<DisplacementFieldType>(fixedwarp, zero);
         }
       }
 
@@ -1161,17 +1099,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typename ImageType::SpacingType spacing = fixedwarp->GetSpacing();
   VectorType zero;
   zero.Fill(0);
-  DisplacementFieldPointer updateField = NULL, totalUpdateField = NULL, updateFieldInv = NULL;
-  totalUpdateField = DisplacementFieldType::New();
-  totalUpdateField->SetSpacing( fixedwarp->GetSpacing() );
-  totalUpdateField->SetOrigin( fixedwarp->GetOrigin() );
-  totalUpdateField->SetDirection( fixedwarp->GetDirection() );
-  totalUpdateField->SetLargestPossibleRegion(fixedwarp->GetLargestPossibleRegion()  );
-  totalUpdateField->SetRequestedRegion( fixedwarp->GetLargestPossibleRegion()   );
-  totalUpdateField->SetBufferedRegion( fixedwarp->GetLargestPossibleRegion()  );
-  totalUpdateField->Allocate();
-  totalUpdateField->FillBuffer(zero);
-  // bool hadpointsetmetric=false;
+  DisplacementFieldPointer updateField;
+  DisplacementFieldPointer updateFieldInv;
+  DisplacementFieldPointer totalUpdateField =
+    AllocImage<DisplacementFieldType>(fixedwarp, zero);
 
   RealType sumWeights = 0.0;
   for( unsigned int n = 0; n < this->m_SimilarityMetrics.size(); n++ )
@@ -1202,26 +1133,10 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       }
     else
       {
-      updateField = DisplacementFieldType::New();
-      updateField->SetSpacing( fixedwarp->GetSpacing() );
-      updateField->SetOrigin( fixedwarp->GetOrigin() );
-      updateField->SetDirection( fixedwarp->GetDirection() );
-      updateField->SetLargestPossibleRegion(fixedwarp->GetLargestPossibleRegion()  );
-      updateField->SetRequestedRegion( fixedwarp->GetLargestPossibleRegion()   );
-      updateField->SetBufferedRegion( fixedwarp->GetLargestPossibleRegion()  );
-      updateField->Allocate();
-      updateField->FillBuffer(zero);
+      updateField = AllocImage<DisplacementFieldType>(fixedwarp, zero);
       if( totalUpdateInvField )
         {
-        updateFieldInv = DisplacementFieldType::New();
-        updateFieldInv->SetSpacing( fixedwarp->GetSpacing() );
-        updateFieldInv->SetOrigin( fixedwarp->GetOrigin() );
-        updateFieldInv->SetDirection( fixedwarp->GetDirection() );
-        updateFieldInv->SetLargestPossibleRegion(fixedwarp->GetLargestPossibleRegion()  );
-        updateFieldInv->SetRequestedRegion( fixedwarp->GetLargestPossibleRegion()   );
-        updateFieldInv->SetBufferedRegion( fixedwarp->GetLargestPossibleRegion()  );
-        updateFieldInv->Allocate();
-        updateFieldInv->FillBuffer(zero);
+        updateFieldInv = AllocImage<DisplacementFieldType>(fixedwarp, zero);
         }
       }
 
@@ -1759,15 +1674,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   VectorType zero;
 
   zero.Fill(0);
-  DisplacementFieldPointer totalUpdateField, totalUpdateInvField = DisplacementFieldType::New();
-  totalUpdateInvField->SetSpacing( this->m_DisplacementField->GetSpacing() );
-  totalUpdateInvField->SetOrigin( this->m_DisplacementField->GetOrigin() );
-  totalUpdateInvField->SetDirection( this->m_DisplacementField->GetDirection() );
-  totalUpdateInvField->SetLargestPossibleRegion(this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->SetRequestedRegion( this->m_DisplacementField->GetLargestPossibleRegion()   );
-  totalUpdateInvField->SetBufferedRegion( this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->Allocate();
-  totalUpdateInvField->FillBuffer(zero);
+  DisplacementFieldPointer totalUpdateField, totalUpdateInvField =
+    AllocImage<DisplacementFieldType>(this->m_DisplacementField, zero);
+
   if( !this->m_SyNF )
     {
     ::ants::antscout << " Allocating " << std::endl;
@@ -1853,15 +1762,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   typename ImageType::SpacingType spacing = fixedImage->GetSpacing();
   VectorType zero;
   zero.Fill(0);
-  DisplacementFieldPointer totalUpdateField, totalUpdateInvField = DisplacementFieldType::New();
-  totalUpdateInvField->SetSpacing( this->m_DisplacementField->GetSpacing() );
-  totalUpdateInvField->SetOrigin( this->m_DisplacementField->GetOrigin() );
-  totalUpdateInvField->SetDirection( this->m_DisplacementField->GetDirection() );
-  totalUpdateInvField->SetLargestPossibleRegion(this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->SetRequestedRegion( this->m_DisplacementField->GetLargestPossibleRegion()   );
-  totalUpdateInvField->SetBufferedRegion( this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->Allocate();
-  totalUpdateInvField->FillBuffer(zero);
+  DisplacementFieldPointer totalUpdateField, totalUpdateInvField =
+    AllocImage<DisplacementFieldType>(this->m_DisplacementField, zero);
+
   if( !this->m_SyNF )
     {
     ::ants::antscout << " Allocating " << std::endl;
@@ -1999,15 +1902,12 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
         }
       }
 
-    this->m_TimeVaryingVelocity = tvt::New();
-    this->m_TimeVaryingVelocity->SetSpacing( gspace );
-    this->m_TimeVaryingVelocity->SetOrigin( gorigin );
-    this->m_TimeVaryingVelocity->SetDirection( iddir );
-    this->m_TimeVaryingVelocity->SetLargestPossibleRegion(gregion);
-    this->m_TimeVaryingVelocity->SetRequestedRegion( gregion);
-    this->m_TimeVaryingVelocity->SetBufferedRegion( gregion  );
-    this->m_TimeVaryingVelocity->Allocate();
-    this->m_TimeVaryingVelocity->FillBuffer(zero);
+    this->m_TimeVaryingVelocity =
+      AllocImage<tvt>(gregion,
+                      gspace,
+                      gorigin,
+                      iddir,
+                      zero);
     }
 
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
@@ -2097,15 +1997,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
   VectorType zero;
 
   zero.Fill(0);
-  DisplacementFieldPointer totalUpdateField, totalUpdateInvField = DisplacementFieldType::New();
-  totalUpdateInvField->SetSpacing( this->m_DisplacementField->GetSpacing() );
-  totalUpdateInvField->SetOrigin( this->m_DisplacementField->GetOrigin() );
-  totalUpdateInvField->SetDirection( this->m_DisplacementField->GetDirection() );
-  totalUpdateInvField->SetLargestPossibleRegion(this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->SetRequestedRegion( this->m_DisplacementField->GetLargestPossibleRegion()   );
-  totalUpdateInvField->SetBufferedRegion( this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->Allocate();
-  totalUpdateInvField->FillBuffer(zero);
+  DisplacementFieldPointer totalUpdateField;
+  DisplacementFieldPointer totalUpdateInvField =
+    AllocImage<DisplacementFieldType>(this->m_DisplacementField, zero);
   if( !this->m_SyNF )
     {
     ::ants::antscout << " Allocating " << std::endl;
@@ -2206,15 +2100,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 
   VectorType zero;
   zero.Fill(0);
-  DisplacementFieldPointer totalUpdateField, totalUpdateInvField = DisplacementFieldType::New();
-  totalUpdateInvField->SetSpacing( this->m_DisplacementField->GetSpacing() );
-  totalUpdateInvField->SetOrigin( this->m_DisplacementField->GetOrigin() );
-  totalUpdateInvField->SetDirection( this->m_DisplacementField->GetDirection() );
-  totalUpdateInvField->SetLargestPossibleRegion(this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->SetRequestedRegion( this->m_DisplacementField->GetLargestPossibleRegion()   );
-  totalUpdateInvField->SetBufferedRegion( this->m_DisplacementField->GetLargestPossibleRegion()  );
-  totalUpdateInvField->Allocate();
-  totalUpdateInvField->FillBuffer(zero);
+  DisplacementFieldPointer totalUpdateInvField
+    = AllocImage<DisplacementFieldType>(this->m_DisplacementField, zero);
+
   unsigned long numpx = this->m_DisplacementField->GetBufferedRegion().GetNumberOfPixels();
 
   bool generatetvfield = false;
@@ -2416,8 +2304,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       wfpoints = this->WarpMultiTransform(this->m_ReferenceSpaceImage, fixedImage, wfpoints,  NULL, fdiffmap, false,
                                           NULL );
       }
-    totalUpdateField =
-      this->ComputeUpdateField( this->m_SyNMInv, this->m_SyNFInv, wfpoints, wmpoints, totalUpdateInvField,
+    DisplacementFieldPointer totalUpdateField =
+      this->ComputeUpdateField( this->m_SyNMInv, this->m_SyNFInv,
+                                wfpoints, wmpoints, totalUpdateInvField,
                                 true);
     if( this->m_SyNFullTime == 2 )
       {
@@ -2532,41 +2421,25 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     }
   if( dothick && this->m_CurrentIteration  > 2 )
     {
-    this->m_ThickImage = ImageType::New();
-    this->m_ThickImage->SetSpacing( this->m_SyNF->GetSpacing() );
-    this->m_ThickImage->SetOrigin( this->m_SyNF->GetOrigin() );
-    this->m_ThickImage->SetDirection( this->m_SyNF->GetDirection() );
-    this->m_ThickImage->SetLargestPossibleRegion(this->m_SyNF->GetLargestPossibleRegion()  );
-    this->m_ThickImage->SetRequestedRegion( this->m_SyNF->GetLargestPossibleRegion()   );
-    this->m_ThickImage->SetBufferedRegion( this->m_SyNF->GetLargestPossibleRegion()  );
-    this->m_ThickImage->Allocate();
-    this->m_ThickImage->FillBuffer(0);
-    this->m_HitImage = ImageType::New();
-    this->m_HitImage->SetSpacing( this->m_SyNF->GetSpacing() );
-    this->m_HitImage->SetOrigin( this->m_SyNF->GetOrigin() );
-    this->m_HitImage->SetDirection( this->m_SyNF->GetDirection() );
-    this->m_HitImage->SetLargestPossibleRegion(this->m_SyNF->GetLargestPossibleRegion()  );
-    this->m_HitImage->SetRequestedRegion( this->m_SyNF->GetLargestPossibleRegion()   );
-    this->m_HitImage->SetBufferedRegion( this->m_SyNF->GetLargestPossibleRegion()  );
-    this->m_HitImage->Allocate();
-    this->m_HitImage->FillBuffer(0);
+    this->m_ThickImage =
+      AllocImage<ImageType>(this->m_SyNF, 0);
+
+    this->m_HitImage =
+      AllocImage<ImageType>(this->m_SyNF, 0);
     }
   else
     {
     this->m_HitImage = NULL;  this->m_ThickImage = NULL;
     }
 
-  DisplacementFieldPointer intfield = DisplacementFieldType::New();
+  VectorType zero;
+  zero.Fill(0);
+  DisplacementFieldPointer intfield =
+    AllocImage<DisplacementFieldType>
+      (this->m_DisplacementField->GetLargestPossibleRegion(), zero);
   intfield->SetSpacing( this->m_CurrentDomainSpacing );
   intfield->SetOrigin(  this->m_DisplacementField->GetOrigin() );
   intfield->SetDirection(  this->m_DisplacementField->GetDirection() );
-  intfield->SetLargestPossibleRegion( this->m_DisplacementField->GetLargestPossibleRegion() );
-  intfield->SetRequestedRegion(   this->m_DisplacementField->GetLargestPossibleRegion() );
-  intfield->SetBufferedRegion(  this->m_DisplacementField->GetLargestPossibleRegion() );
-  intfield->Allocate();
-  VectorType zero;
-  zero.Fill(0);
-  intfield->FillBuffer(zero);
   if( starttimein == finishtimein )
     {
     return intfield;
@@ -2652,17 +2525,14 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 {
   typedef TimeVaryingVelocityFieldType tvt;
 
-  DisplacementFieldPointer intfield = DisplacementFieldType::New();
+  VectorType zero;
+  zero.Fill(0);
+  DisplacementFieldPointer intfield = AllocImage<DisplacementFieldType>
+      (this->m_DisplacementField->GetLargestPossibleRegion(), zero);
   intfield->SetSpacing( this->m_CurrentDomainSpacing );
   intfield->SetOrigin(  this->m_DisplacementField->GetOrigin() );
   intfield->SetDirection(  this->m_DisplacementField->GetDirection() );
-  intfield->SetLargestPossibleRegion( this->m_DisplacementField->GetLargestPossibleRegion() );
-  intfield->SetRequestedRegion(   this->m_DisplacementField->GetLargestPossibleRegion() );
-  intfield->SetBufferedRegion(  this->m_DisplacementField->GetLargestPossibleRegion() );
-  intfield->Allocate();
-  VectorType zero;
-  zero.Fill(0);
-  intfield->FillBuffer(zero);
+
   if( starttimein == finishtimein )
     {
     return intfield;

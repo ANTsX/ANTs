@@ -29,6 +29,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include "antsAllocImage.h"
 #include "itkImage.h"
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
@@ -81,14 +82,8 @@ int ResetDirection(int argc, char *argv[])
     }
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typename ImageType::Pointer varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(outim->GetSpacing() );
-  varimage->SetOrigin(outim->GetOrigin() );
-  varimage->SetDirection( direction );
+  typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
+
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

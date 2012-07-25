@@ -15,6 +15,7 @@ $Revision: 1.8 $
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 #include <algorithm>
 #include <iostream>
@@ -192,14 +193,7 @@ GetLargestComponent(typename TImage::Pointer image)
     antscout << excep << std::endl;
     }
 
-  typename TImage::Pointer Clusters = TImage::New();  // typename TImage::Pointer Clusters=relabel->GetOutput();
-  Clusters->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
-  Clusters->SetBufferedRegion( image->GetLargestPossibleRegion().GetSize() );
-  Clusters->SetSpacing(image->GetSpacing() );
-  Clusters->SetDirection( image->GetDirection() );
-  Clusters->SetOrigin(image->GetOrigin() );
-  Clusters->Allocate();
-  Clusters->FillBuffer(0);
+  typename TImage::Pointer Clusters = AllocImage<TImage>(image, 0);
 
   typedef itk::ImageRegionIteratorWithIndex<InternalImageType> Iterator;
   Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );

@@ -417,22 +417,14 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 
   typename DisplacementFieldType::PixelType zero;
   zero.Fill(0);
-  this->m_DerivativeFixedField = DisplacementFieldType::New();
+  this->m_DerivativeFixedField
+    = AllocImage<DisplacementFieldType>(this->GetFixedImage()->GetLargestPossibleRegion(), zero);
   this->m_DerivativeFixedField->SetSpacing( this->GetFixedImage()->GetSpacing() );
   this->m_DerivativeFixedField->SetOrigin( this->GetFixedImage()->GetOrigin() );
-  this->m_DerivativeFixedField->SetLargestPossibleRegion(this->GetFixedImage()->GetLargestPossibleRegion() );
-  this->m_DerivativeFixedField->SetRequestedRegion(this->GetFixedImage()->GetLargestPossibleRegion() );
-  this->m_DerivativeFixedField->SetBufferedRegion( this->GetFixedImage()->GetLargestPossibleRegion() );
-  this->m_DerivativeFixedField->Allocate();
-  this->m_DerivativeMovingField = DisplacementFieldType::New();
+  this->m_DerivativeMovingField =
+    AllocImage<DisplacementFieldType>(this->GetMovingImage()->GetLargestPossibleRegion(), zero);
   this->m_DerivativeMovingField->SetSpacing( this->GetMovingImage()->GetSpacing() );
   this->m_DerivativeMovingField->SetOrigin( this->GetMovingImage()->GetOrigin() );
-  this->m_DerivativeMovingField->SetLargestPossibleRegion(this->GetMovingImage()->GetLargestPossibleRegion() );
-  this->m_DerivativeMovingField->SetRequestedRegion(this->GetMovingImage()->GetLargestPossibleRegion() );
-  this->m_DerivativeMovingField->SetBufferedRegion( this->GetMovingImage()->GetLargestPossibleRegion() );
-  this->m_DerivativeMovingField->Allocate();
-  this->m_DerivativeMovingField->FillBuffer(zero);
-  this->m_DerivativeFixedField->FillBuffer(zero);
 
 // acquire labels
   if( this->m_LabelSet.size() < 1 )

@@ -1,6 +1,7 @@
 
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkVectorIndexSelectionCastImageFilter.h"
@@ -41,14 +42,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   typedef TField FieldType;
   typedef TImage ImageType;
 
-  typename ImageType::Pointer sfield = ImageType::New();
-  sfield->SetSpacing( field->GetSpacing() );
-  sfield->SetOrigin( field->GetOrigin() );
-  sfield->SetDirection( field->GetDirection() );
-  sfield->SetLargestPossibleRegion(field->GetLargestPossibleRegion() );
-  sfield->SetRequestedRegion(field->GetRequestedRegion() );
-  sfield->SetBufferedRegion( field->GetBufferedRegion() );
-  sfield->Allocate();
+  typename ImageType::Pointer sfield = AllocImage<ImageType>(field);
 
   typedef itk::ImageRegionIteratorWithIndex<TField> Iterator;
   Iterator vfIter( field,  field->GetLargestPossibleRegion() );
@@ -145,6 +139,8 @@ SmoothDeformation(typename TImage::Pointer vectorimage, double sig)
   return;
 }
 
+// this has to have never been called because it doesn't actually
+// copy anything
 template <class TImage, class TDisplacementField>
 typename TImage::Pointer
 CopyImage(TDisplacementField* field )
@@ -158,14 +154,7 @@ CopyImage(TDisplacementField* field )
   typename RealImageType::RegionType m_JacobianRegion;
 
   typename RealImageType::Pointer m_RealImage = NULL;
-  m_RealImage = RealImageType::New();
-  m_RealImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-  m_RealImage->SetBufferedRegion( field->GetLargestPossibleRegion().GetSize() );
-  m_RealImage->SetSpacing(field->GetSpacing() );
-  m_RealImage->SetDirection( field->GetDirection() );
-  m_RealImage->SetOrigin(field->GetOrigin() );
-  m_RealImage->Allocate();
-  m_RealImage->FillBuffer(0);
+  m_RealImage = AllocImage<RealImageType>(field, 0);
 
   return m_RealImage;
 }
@@ -178,13 +167,10 @@ LabelSurface(typename TImage::PixelType foreground,
   antscout << " Label Surf " << std::endl;
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  typename   ImageType::Pointer     Image = ImageType::New();
-  Image->SetLargestPossibleRegion(input->GetLargestPossibleRegion()  );
-  Image->SetBufferedRegion(input->GetLargestPossibleRegion() );
-  Image->Allocate();
-  Image->FillBuffer( 0.0 );
-  Image->SetSpacing(input->GetSpacing() );
-  Image->SetOrigin(input->GetOrigin() );
+  // ORIENTATION ALERT: Original code set origin & spacing from
+  // examplar without also setting directions.
+  typename   ImageType::Pointer Image = AllocImage<ImageType>(input, 0.0);
+
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
 
   typename iteratorType::RadiusType rad;
@@ -246,14 +232,7 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double s
     GradientImageFilterType;
   typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
 
-  typename TField::Pointer sfield = TField::New();
-  sfield->SetSpacing( wm->GetSpacing() );
-  sfield->SetOrigin( wm->GetOrigin() );
-  sfield->SetDirection( wm->GetDirection() );
-  sfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  sfield->SetRequestedRegion(wm->GetRequestedRegion() );
-  sfield->SetBufferedRegion( wm->GetBufferedRegion() );
-  sfield->Allocate();
+  typename TField::Pointer sfield = AllocImage<TField>(wm);
 
   typename TImage::Pointer laplacian = SmoothImage<TImage>(wm, 3);
   laplacian->FillBuffer(0);
@@ -318,15 +297,8 @@ ExpDiffMap(typename TField::Pointer velofield,  typename TImage::Pointer wm,  do
   disp.Fill(0);
   zero.Fill(0);
 
-  typename DisplacementFieldType::Pointer incrfield = DisplacementFieldType::New();
-  incrfield->SetSpacing( velofield->GetSpacing() );
-  incrfield->SetOrigin( velofield->GetOrigin() );
-  incrfield->SetDirection( velofield->GetDirection() );
-  incrfield->SetLargestPossibleRegion(velofield->GetLargestPossibleRegion() );
-  incrfield->SetRequestedRegion(velofield->GetRequestedRegion() );
-  incrfield->SetBufferedRegion( velofield->GetBufferedRegion() );
-  incrfield->Allocate();
-  incrfield->FillBuffer(zero);
+  typename DisplacementFieldType::Pointer incrfield =
+    AllocImage<DisplacementFieldType>(velofield, zero);
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> IteratorType;
   IteratorType Iterator( wm, wm->GetLargestPossibleRegion().GetSize() );
@@ -396,13 +368,7 @@ InvertField( typename TField::Pointer field,
   VectorType zero; zero.Fill(0);
   //  if (this->GetElapsedIterations() < 2 ) maxiter=10;
 
-  ImagePointer realImage = ImageType::New();
-  realImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-  realImage->SetBufferedRegion( field->GetLargestPossibleRegion().GetSize() );
-  realImage->SetSpacing(field->GetSpacing() );
-  realImage->SetOrigin(field->GetOrigin() );
-  realImage->SetDirection(field->GetDirection() );
-  realImage->Allocate();
+  ImagePointer realImage = AllocImage<ImageType>(field);
 
   typedef typename DisplacementFieldType::PixelType                VectorType;
   typedef typename DisplacementFieldType::IndexType                IndexType;
@@ -412,32 +378,14 @@ InvertField( typename TField::Pointer field,
   typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, double> ROType;
   typename ROType::Pointer m_MFR = ROType::New();
 
-  DisplacementFieldPointer inverseField = DisplacementFieldType::New();
-  inverseField->SetSpacing( field->GetSpacing() );
-  inverseField->SetOrigin( field->GetOrigin() );
-  inverseField->SetDirection( field->GetDirection() );
-  inverseField->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-  inverseField->SetRequestedRegion(field->GetRequestedRegion() );
-  inverseField->SetBufferedRegion( field->GetLargestPossibleRegion() );
-  inverseField->Allocate();
-  inverseField->FillBuffer(zero);
+  DisplacementFieldPointer inverseField =
+    AllocImage<DisplacementFieldType>(field, zero);
 
-  DisplacementFieldPointer lagrangianInitCond = DisplacementFieldType::New();
-  lagrangianInitCond->SetSpacing( field->GetSpacing() );
-  lagrangianInitCond->SetOrigin( field->GetOrigin() );
-  lagrangianInitCond->SetDirection( field->GetDirection() );
-  lagrangianInitCond->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-  lagrangianInitCond->SetRequestedRegion(field->GetRequestedRegion() );
-  lagrangianInitCond->SetBufferedRegion( field->GetLargestPossibleRegion() );
-  lagrangianInitCond->Allocate();
-  DisplacementFieldPointer eulerianInitCond = DisplacementFieldType::New();
-  eulerianInitCond->SetSpacing( field->GetSpacing() );
-  eulerianInitCond->SetOrigin( field->GetOrigin() );
-  eulerianInitCond->SetDirection( field->GetDirection() );
-  eulerianInitCond->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-  eulerianInitCond->SetRequestedRegion(field->GetRequestedRegion() );
-  eulerianInitCond->SetBufferedRegion( field->GetLargestPossibleRegion() );
-  eulerianInitCond->Allocate();
+  DisplacementFieldPointer lagrangianInitCond =
+    AllocImage<DisplacementFieldType>(field);
+
+  DisplacementFieldPointer eulerianInitCond =
+    AllocImage<DisplacementFieldType>(field);
 
   typedef typename DisplacementFieldType::SizeType SizeType;
   SizeType size = field->GetLargestPossibleRegion().GetSize();
@@ -649,56 +597,22 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typename ImageType::Pointer laplacian = SmoothImage<ImageType>(wm, smoothingsigma);
   lapgrad = LaplacianGrad<ImageType, DisplacementFieldType>(wmb, gmb, 1);
 
-  typename DisplacementFieldType::Pointer corrfield = DisplacementFieldType::New();
-  corrfield->SetSpacing( wm->GetSpacing() );
-  corrfield->SetOrigin( wm->GetOrigin() );
-  corrfield->SetDirection( wm->GetDirection() );
-  corrfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  corrfield->SetRequestedRegion(wm->GetRequestedRegion() );
-  corrfield->SetBufferedRegion( wm->GetBufferedRegion() );
-  corrfield->Allocate();
   VectorType zero;
   zero.Fill(0);
-  corrfield->FillBuffer(zero);
-  typename DisplacementFieldType::Pointer incrfield = DisplacementFieldType::New();
-  incrfield->SetSpacing( wm->GetSpacing() );
-  incrfield->SetOrigin( wm->GetOrigin() );
-  incrfield->SetDirection( wm->GetDirection() );
-  incrfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  incrfield->SetRequestedRegion(wm->GetRequestedRegion() );
-  incrfield->SetBufferedRegion( wm->GetBufferedRegion() );
-  incrfield->Allocate();
-  incrfield->FillBuffer(zero);
+  typename DisplacementFieldType::Pointer corrfield =
+    AllocImage<DisplacementFieldType>(wm, zero);
 
-  typename DisplacementFieldType::Pointer invfield = DisplacementFieldType::New();
-  invfield->SetSpacing( wm->GetSpacing() );
-  invfield->SetOrigin( wm->GetOrigin() );
-  invfield->SetDirection( wm->GetDirection() );
-  invfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  invfield->SetRequestedRegion(wm->GetRequestedRegion() );
-  invfield->SetBufferedRegion( wm->GetBufferedRegion() );
-  invfield->Allocate();
-  invfield->FillBuffer(zero);
+  typename DisplacementFieldType::Pointer incrfield =
+    AllocImage<DisplacementFieldType>(wm, zero);
 
-  typename DisplacementFieldType::Pointer incrinvfield = DisplacementFieldType::New();
-  incrinvfield->SetSpacing( wm->GetSpacing() );
-  incrinvfield->SetOrigin( wm->GetOrigin() );
-  incrinvfield->SetDirection( wm->GetDirection() );
-  incrinvfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  incrinvfield->SetRequestedRegion(wm->GetRequestedRegion() );
-  incrinvfield->SetBufferedRegion( wm->GetBufferedRegion() );
-  incrinvfield->Allocate();
-  incrinvfield->FillBuffer(zero);
+  typename DisplacementFieldType::Pointer invfield =
+    AllocImage<DisplacementFieldType>(wm, zero);
 
-  typename DisplacementFieldType::Pointer velofield = DisplacementFieldType::New();
-  velofield->SetSpacing( wm->GetSpacing() );
-  velofield->SetOrigin( wm->GetOrigin() );
-  velofield->SetDirection( wm->GetDirection() );
-  velofield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  velofield->SetRequestedRegion(wm->GetRequestedRegion() );
-  velofield->SetBufferedRegion( wm->GetBufferedRegion() );
-  velofield->Allocate();
-  velofield->FillBuffer(zero);
+  typename DisplacementFieldType::Pointer incrinvfield =
+    AllocImage<DisplacementFieldType>(wm, zero);
+
+  typename DisplacementFieldType::Pointer velofield =
+    AllocImage<DisplacementFieldType>(wm, zero);
 
   //  LabelSurface(typename TImage::PixelType foreground,
   //       typename TImage::PixelType newval, typename TImage::Pointer input, RealType distthresh )

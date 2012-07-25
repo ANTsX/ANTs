@@ -17,6 +17,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "ReadWriteImage.h"
@@ -99,17 +100,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
       vfIter2.Set(zero);
     }
 */
-  typename ImageType::Pointer metricimg = ImageType::New();
-  metricimg->SetRegions( image1->GetLargestPossibleRegion() );
-  metricimg->Allocate();
-  metricimg->SetSpacing(image1->GetSpacing() );
-  metricimg->SetOrigin(image1->GetOrigin() );
-  metricimg->SetDirection(image1->GetDirection() );
-  Iterator iter( metricimg,  metricimg->GetLargestPossibleRegion() );
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    iter.Set(0);
-    }
+  typename ImageType::Pointer metricimg = AllocImage<ImageType>(image1, 0);
 
   typedef ImageType FixedImageType;
   typedef ImageType MovingImageType;
@@ -157,6 +148,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
     {
     hradius = miradius;
     unsigned long ct = 0;
+    Iterator      iter( metricimg,  metricimg->GetLargestPossibleRegion() );
     for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
       IndexType index = iter.GetIndex();
@@ -178,6 +170,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
     typename FixedImageType::RegionType region = image1->GetLargestPossibleRegion();
     ScanIteratorType asamIt( hradius, image1, region);
     unsigned long    ct = 0;
+    Iterator         iter( metricimg,  metricimg->GetLargestPossibleRegion() );
     for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
       IndexType index = iter.GetIndex();

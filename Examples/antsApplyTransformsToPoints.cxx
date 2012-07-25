@@ -1,6 +1,7 @@
 
 #include "itkCSVNumericObjectFileWriter.h"
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkAffineTransform.h"

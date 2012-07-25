@@ -18,7 +18,7 @@
 
 #include "antsUtilities.h"
 #include <algorithm>
-
+#include "antsAllocImage.h"
 #include "itkArray.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkBayesianClassifierImageFilter.h"
@@ -690,13 +690,8 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   //  antscout << " Mask " << std::endl;
   if( mask.IsNull() )
     {
-    mask = ImageType::New();
-    mask->SetOrigin( imageReader->GetOutput()->GetOrigin() );
-    mask->SetSpacing( imageReader->GetOutput()->GetSpacing() );
-    mask->SetRegions( imageReader->GetOutput()->GetLargestPossibleRegion() );
-    mask->SetDirection( imageReader->GetOutput()->GetDirection() );
-    mask->Allocate();
-    mask->FillBuffer( itk::NumericTraits<PixelType>::One );
+    mask = AllocImage<ImageType>(imageReader->GetOutput(),
+                                 itk::NumericTraits<PixelType>::One);
     }
 
   //  antscout << " iterate " << std::endl;
@@ -841,13 +836,11 @@ int TileImages(unsigned int argc, char *argv[])
   region.SetSize( tilesize );
 
   bool normalizei = false;
-  typename ImageType::Pointer tiledimage = ImageType::New();
-  tiledimage->SetLargestPossibleRegion( region );
-  tiledimage->SetBufferedRegion( region );
-  tiledimage->SetSpacing( image2->GetSpacing() );
-  tiledimage->SetDirection( image2->GetDirection() );
-  tiledimage->SetOrigin( image2->GetOrigin() );
-  tiledimage->Allocate();
+  typename ImageType::Pointer tiledimage =
+    AllocImage<ImageType>(region,
+                          image2->GetSpacing(),
+                          image2->GetOrigin(),
+                          image2->GetDirection() );
 
   unsigned int imagecount = 0, imagexct = 0, imageyct = 0;
   for( unsigned int j = argct; j < argc; j++ )
@@ -1074,16 +1067,9 @@ int TriPlanarView(unsigned int argc, char *argv[])
   typename MatrixImageType::RegionType region;
   region.SetSize( tilesize );
 
-  typename MatrixImageType::Pointer matimage = MatrixImageType::New();
-  matimage->SetLargestPossibleRegion( region );
-  matimage->SetBufferedRegion( region );
-  typename MatrixImageType::DirectionType mdir;  mdir.Fill(0); mdir[0][0] = 1; mdir[1][1] = 1;
-  typename MatrixImageType::SpacingType mspc;  mspc.Fill(1);
-  typename MatrixImageType::PointType morg;  morg.Fill(0);
-  matimage->SetSpacing( mspc );
-  matimage->SetDirection(mdir);
-  matimage->SetOrigin( morg );
-  matimage->Allocate();
+  typename MatrixImageType::Pointer matimage =
+    AllocImage<MatrixImageType>(region);
+
   unsigned int lowgetridof = (unsigned int) (clamppercent1 * 256);
   unsigned int higetridof = (unsigned int) (256 - clamppercent2 * 256);
   //  antscout << " get rid of " << getridof << std::endl;
@@ -1558,13 +1544,11 @@ int PadImage(int argc, char *argv[])
   newregion.SetSize(newsize);
   newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
 
-  typename ImageType::Pointer padimage = ImageType::New();
-  padimage->SetSpacing(image1->GetSpacing() );
-  padimage->SetOrigin(origin2);
-  padimage->SetDirection(image1->GetDirection() );
-  padimage->SetRegions(newregion );
-  padimage->Allocate();
-  padimage->FillBuffer( 0 );
+  typename ImageType::Pointer padimage =
+    AllocImage<ImageType>(newregion,
+                          image1->GetSpacing(),
+                          origin2,
+                          image1->GetDirection(), 0);
 
   typename ImageType::IndexType index;
   typename ImageType::IndexType index2;
@@ -2149,11 +2133,7 @@ int PASL(int argc, char *argv[])
   extractFilter->Update();
   M0image = extractFilter->GetOutput();
 
-  outimage  = OutImageType::New();
-  outimage->CopyInformation( M0image );
-  outimage->SetRegions( M0image->GetLargestPossibleRegion() );
-  outimage->Allocate();
-  outimage->FillBuffer( 0 );
+  outimage = AllocImage<OutImageType>(M0image, 0);
 
   bool haveM0 = true;
   if( m0fn.length() > 3 )
@@ -2312,9 +2292,9 @@ int pCASL(int argc, char *argv[])
     m0fn = std::string(argv[argct]);
     }
   argct++;
-  typename ImageType::Pointer image1 = NULL;
-  typename OutImageType::Pointer outimage = NULL;
-  typename OutImageType::Pointer M0image = NULL;
+  typename ImageType::Pointer image1;
+  typename OutImageType::Pointer outimage;
+  typename OutImageType::Pointer M0image;
 
   typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
@@ -2349,11 +2329,8 @@ int pCASL(int argc, char *argv[])
   extractFilter->Update();
   M0image = extractFilter->GetOutput();
 
-  outimage  = OutImageType::New();
-  outimage->CopyInformation( M0image );
-  outimage->SetRegions( M0image->GetLargestPossibleRegion() );
-  outimage->Allocate();
-  outimage->FillBuffer( 0 );
+  outimage = AllocImage<OutImageType>(M0image, 0);
+
   RealType M0W = 1300; // FIXME
   RealType TE = 4000;
   RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
@@ -2495,11 +2472,8 @@ int MTR(int argc, char *argv[])
   ReadImage<ImageType>(M0, argv[4] );
   ReadImage<ImageType>(M1, argv[5] );
 
-  typename ImageType::Pointer MTR = ImageType::New();
-  MTR->CopyInformation( M0 );
-  MTR->SetRegions( M0->GetLargestPossibleRegion() );
-  MTR->Allocate();
-  MTR->FillBuffer( 0 );
+  typename ImageType::Pointer MTR =
+    AllocImage<ImageType>(M0, 0);
 
   typename ImageType::Pointer mask;
   if( argc > 6 )
@@ -2508,11 +2482,7 @@ int MTR(int argc, char *argv[])
     }
   else
     {
-    mask = ImageType::New();
-    mask->CopyInformation( M0 );
-    mask->SetRegions( M0->GetLargestPossibleRegion() );
-    mask->Allocate();
-    mask->FillBuffer( 1 );
+    mask = AllocImage<ImageType>(M0, 1);
     }
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIt;
@@ -3278,13 +3248,13 @@ int StackImage(int argc, char *argv[])
   newregion.SetSize(newsize);
   newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
 
-  typename ImageType::Pointer padimage = ImageType::New();
-  padimage->SetSpacing(image1->GetSpacing() );
-  padimage->SetOrigin(origin2);
-  padimage->SetDirection(image1->GetDirection() );
-  padimage->SetRegions(newregion );
-  padimage->Allocate();
-  padimage->FillBuffer( 0 );
+  typename ImageType::Pointer padimage =
+    AllocImage<ImageType>(newregion,
+                          image1->GetSpacing(),
+                          origin2,
+                          image1->GetDirection(),
+                          0);
+
   typename ImageType::IndexType index; index.Fill(0);
   typename ImageType::IndexType index2; index2.Fill(0);
   typename ImageType::PointType point1, pointpad;
@@ -3367,17 +3337,7 @@ int MakeImage(int argc, char *argv[])
   antscout << " size " << size << std::endl;
   newregion.SetSize(size);
 
-  typename ImageType::Pointer padimage = ImageType::New();
-  typename ImageType::SpacingType spacing;
-  spacing.Fill(1);
-  typename ImageType::PointType origin;
-  origin.Fill(0);
-  padimage->SetSpacing(spacing);
-  padimage->SetOrigin(origin);
-  padimage->SetRegions(newregion );
-  padimage->Allocate();
-  padimage->FillBuffer( 0 );
-
+  typename ImageType::Pointer padimage = AllocImage<ImageType>(newregion, 0);
   WriteImage<ImageType>(padimage, outname.c_str() );
 
   return 0;
@@ -3390,12 +3350,11 @@ LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
   antscout << " Label Surf " << std::endl;
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  typename   ImageType::Pointer     Image = ImageType::New();
-  Image->SetLargestPossibleRegion(input->GetLargestPossibleRegion()  );
-  Image->SetBufferedRegion(input->GetLargestPossibleRegion() );
-  Image->Allocate();
-  Image->SetSpacing(input->GetSpacing() );
-  Image->SetOrigin(input->GetOrigin() );
+  // ORIENTATION ALERT -- original code set size,spacing,and origin
+  // without setting orientation
+  typename   ImageType::Pointer Image =
+    AllocImage<ImageType>(input);
+
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
   typename iteratorType::RadiusType rad;
   for( int j = 0; j < ImageDimension; j++ )
@@ -3800,14 +3759,7 @@ int ImageMath(int argc, char *argv[])
     antscout << " read 1 error ";
     }
 
-  varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( image1->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(image1->GetSpacing() );
-  varimage->SetOrigin(image1->GetOrigin() );
-  varimage->SetDirection(image1->GetDirection() );
+  varimage = AllocImage<ImageType>(image1);
 
   if( strcmp(operation.c_str(), "mresample") == 0 && !isfloat )
     {
@@ -4011,12 +3963,11 @@ int TensorFunctions(int argc, char *argv[])
           }
         }
       tensorregion.SetSize(size);
-      timage = TensorImageType::New();
-      timage->SetRegions( tensorregion );
-      timage->Allocate();
-      timage->SetSpacing(spacing);
-      timage->SetOrigin(origin);
-      timage->SetDirection(direction);
+      timage =
+        AllocImage<TensorImageType>(tensorregion,
+                                    spacing,
+                                    origin,
+                                    direction);
 
       // now iterate through & set the values of the tensors.
       Iterator tIter(timage, timage->GetLargestPossibleRegion() );
@@ -4093,10 +4044,7 @@ int TensorFunctions(int argc, char *argv[])
     ReadImage<ImageType>( yz, fn1yz.c_str() );
     ReadImage<ImageType>( zz, fn1zz.c_str() );
 
-    timage = TensorImageType::New();
-    timage->CopyInformation( xx );
-    timage->SetRegions( xx->GetLargestPossibleRegion() );
-    timage->Allocate();
+    timage = AllocImage<TensorImageType>(xx);
 
     Iterator tIter( timage, timage->GetLargestPossibleRegion() );
     for( tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
@@ -4162,11 +4110,8 @@ int TensorFunctions(int argc, char *argv[])
       return EXIT_FAILURE;
       }
 
-    typename ImageType::Pointer componentImage = ImageType::New();
-    componentImage->CopyInformation( timage );
-    componentImage->SetRegions( timage->GetLargestPossibleRegion() );
-    componentImage->Allocate();
-    componentImage->FillBuffer( 0.0 );
+    typename ImageType::Pointer componentImage =
+      AllocImage<ImageType>(timage, 0.0);
 
     Iterator tIter( timage, timage->GetLargestPossibleRegion() );
     for( tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
@@ -4199,53 +4144,24 @@ int TensorFunctions(int argc, char *argv[])
 
   if( strcmp(operation.c_str(), "TensorColor") == 0 )
     {
-    cimage = ColorImageType::New();
-    cimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    cimage->SetBufferedRegion( timage->GetLargestPossibleRegion() );
-    cimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    cimage->Allocate();
-    cimage->SetSpacing(timage->GetSpacing() );
-    cimage->SetOrigin(timage->GetOrigin() );
-    cimage->SetDirection(timage->GetDirection() );
+    cimage =
+      AllocImage<ColorImageType>(timage);
     }
   else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
     {
-    vecimage = VectorImageType::New();
-    vecimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    vecimage->SetBufferedRegion( timage->GetLargestPossibleRegion() );
-    vecimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    vecimage->Allocate();
-    vecimage->SetSpacing(timage->GetSpacing() );
-    vecimage->SetOrigin(timage->GetOrigin() );
-    vecimage->SetDirection(timage->GetDirection() );
     VectorType zero;  zero.Fill(0);
-    vecimage->FillBuffer(zero);
+    vecimage = AllocImage<VectorImageType>(timage, zero);
     }
   else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
            (strcmp(operation.c_str(), "TensorToLocalSpace") == 0) )
     {
-    toimage = TensorImageType::New();
-    toimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    toimage->SetBufferedRegion( timage->GetLargestPossibleRegion() );
-    toimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    toimage->Allocate();
-    toimage->SetSpacing(timage->GetSpacing() );
-    toimage->SetOrigin(timage->GetOrigin() );
-    toimage->SetDirection(timage->GetDirection() );
     typename TensorImageType::PixelType zero;
     zero.Fill(0);
-    toimage->FillBuffer(zero);
+    toimage = AllocImage<TensorImageType>(timage, zero);
     }
   else
     {
-    vimage = ImageType::New();
-    vimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    vimage->SetBufferedRegion( timage->GetLargestPossibleRegion() );
-    vimage->SetLargestPossibleRegion( timage->GetLargestPossibleRegion() );
-    vimage->Allocate();
-    vimage->SetSpacing(timage->GetSpacing() );
-    vimage->SetOrigin(timage->GetOrigin() );
-    vimage->SetDirection(timage->GetDirection() );
+    vimage = AllocImage<ImageType>(timage);
     }
 
   Iterator tIter(timage, timage->GetLargestPossibleRegion() );
@@ -6988,19 +6904,14 @@ EnumerateLabelInterfaces(int argc, char *argv[])
   typename myInterfaceImageType::PointType origin;
   origin.Fill(max / 2);
   region.SetSize(size);
-  typename myInterfaceImageType::Pointer faceimage = myInterfaceImageType::New();
-  faceimage->SetSpacing(spacing);
-  faceimage->SetOrigin(origin);
-  faceimage->SetRegions(region );
-  faceimage->Allocate();
-  faceimage->FillBuffer( 0 );
+  typename myInterfaceImageType::DirectionType direction;
+  direction.SetIdentity();
+  typename myInterfaceImageType::Pointer faceimage =
+    AllocImage<myInterfaceImageType>(region, spacing, origin, direction, 0);
 
-  typename myInterfaceImageType::Pointer colorimage = myInterfaceImageType::New();
-  colorimage->SetSpacing(spacing);
-  colorimage->SetOrigin(origin);
-  colorimage->SetRegions(region );
-  colorimage->Allocate();
-  colorimage->FillBuffer( 0 );
+  typename myInterfaceImageType::Pointer colorimage =
+    AllocImage<myInterfaceImageType>(region, spacing, origin, direction, 0);
+
   typedef itk::ImageRegionIteratorWithIndex<myInterfaceImageType> FIterator;
 
 // we can use this to compute a 4-coloring of the brain
@@ -7482,22 +7393,11 @@ int DiceAndMinDistSum(      int argc, char *argv[])
   typename TwoDImageType::SizeType size;
   size[0] = size[1] = squareimagesize;
   newregion.SetSize(size);
-  typename TwoDImageType::Pointer squareimage = TwoDImageType::New();
-  typename TwoDImageType::SpacingType spacingb;
-  spacingb.Fill(1);
-  typename TwoDImageType::PointType origin;
-  origin.Fill(0);
-  squareimage->SetSpacing(spacingb);
-  squareimage->SetOrigin(origin);
-  squareimage->SetRegions(newregion );
-  squareimage->Allocate();
-  squareimage->FillBuffer( 0 );
-  typename TwoDImageType::Pointer squareimage2 = TwoDImageType::New();
-  squareimage2->SetSpacing(spacingb);
-  squareimage2->SetOrigin(origin);
-  squareimage2->SetRegions(newregion );
-  squareimage2->Allocate();
-  squareimage2->FillBuffer( 0 );
+  typename TwoDImageType::Pointer squareimage =
+    AllocImage<TwoDImageType>(newregion, 0.0);
+
+  typename TwoDImageType::Pointer squareimage2 =
+    AllocImage<TwoDImageType>(newregion, 0.0);
 
   std::vector<std::string> ColumnHeaders;
   std::vector<std::string> RowHeaders;
@@ -7649,13 +7549,8 @@ int Lipschitz( int argc, char *argv[] )
   reader->Update();
   typename VectorImageType::Pointer vecimage = reader->GetOutput();
 
-  typename RealImageType::Pointer lipcon = RealImageType::New();
-  lipcon->SetOrigin( vecimage->GetOrigin() );
-  lipcon->SetSpacing( vecimage->GetSpacing() );
-  lipcon->SetRegions( vecimage->GetLargestPossibleRegion() );
-  lipcon->SetDirection(  vecimage->GetDirection() );
-  lipcon->Allocate();
-  lipcon->FillBuffer(0);
+  typename RealImageType::Pointer lipcon =
+    AllocImage<RealImageType>(vecimage, 0);
 
   itk::TimeProbe timer;
   timer.Start();
@@ -7775,13 +7670,8 @@ int ExtractVectorComponent( int argc, char *argv[] )
     }
   else
     {
-    typename RealImageType::Pointer component = RealImageType::New();
-    component->SetOrigin( vecimage->GetOrigin() );
-    component->SetSpacing( vecimage->GetSpacing() );
-    component->SetRegions( vecimage->GetLargestPossibleRegion() );
-    component->SetDirection(  vecimage->GetDirection() );
-    component->Allocate();
-    component->FillBuffer(0);
+    typename RealImageType::Pointer component
+      = AllocImage<RealImageType>(vecimage, 0);
     typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
     Iterator It1( vecimage, vecimage->GetLargestPossibleRegion() );
     for( It1.GoToBegin(); !It1.IsAtEnd(); ++It1 )
@@ -7835,13 +7725,8 @@ int InvId( int argc, char *argv[] )
   reader2->Update();
   typename VectorImageType::Pointer vecimage2 = reader2->GetOutput();
 
-  typename RealImageType::Pointer invid = RealImageType::New();
-  invid->SetOrigin( vecimage1->GetOrigin() );
-  invid->SetSpacing( vecimage1->GetSpacing() );
-  invid->SetRegions( vecimage1->GetLargestPossibleRegion() );
-  invid->SetDirection(  vecimage1->GetDirection() );
-  invid->Allocate();
-  invid->FillBuffer(0);
+  typename RealImageType::Pointer invid =
+    AllocImage<RealImageType>(vecimage1, 0);
 
   itk::TimeProbe timer;
   timer.Start();
@@ -7988,16 +7873,8 @@ int LabelStats(      int argc, char *argv[])
   typename TwoDImageType::SizeType size;
   size[0] = size[1] = squareimagesize;
   newregion.SetSize(size);
-  typename TwoDImageType::Pointer squareimage = TwoDImageType::New();
-  typename TwoDImageType::SpacingType spacingb;
-  spacingb.Fill(1);
-  typename TwoDImageType::PointType origin;
-  origin.Fill(0);
-  squareimage->SetSpacing(spacingb);
-  squareimage->SetOrigin(origin);
-  squareimage->SetRegions(newregion );
-  squareimage->Allocate();
-  squareimage->FillBuffer( 0 );
+  typename TwoDImageType::Pointer squareimage =
+    AllocImage<TwoDImageType>(newregion, 0);
 
   labelcount = 0;
   for( it = myLabelSet.begin(); it != myLabelSet.end(); ++it )
@@ -8385,16 +8262,8 @@ int ROIStatistics(      int argc, char *argv[])
   typename TwoDImageType::SizeType size;
   size[0] = size[1] = squareimagesize;
   newregion.SetSize(size);
-  typename TwoDImageType::Pointer squareimage = TwoDImageType::New();
-  typename TwoDImageType::SpacingType spacingb;
-  spacingb.Fill(1);
-  typename TwoDImageType::PointType origin;
-  origin.Fill(0);
-  squareimage->SetSpacing(spacingb);
-  squareimage->SetOrigin(origin);
-  squareimage->SetRegions(newregion );
-  squareimage->Allocate();
-  squareimage->FillBuffer( 0 );
+  typename TwoDImageType::Pointer squareimage =
+    AllocImage<TwoDImageType>(newregion, 0);
 
   labelcount = 0;
   typename ImageType::PointType myCenterOfMass;
@@ -8859,16 +8728,8 @@ int ConvertImageSetToMatrix(unsigned int argc, char *argv[])
     typename MatrixImageType::RegionType region;
     region.SetSize( tilesize );
 
-    typename MatrixImageType::Pointer matimage = MatrixImageType::New();
-    matimage->SetLargestPossibleRegion( region );
-    matimage->SetBufferedRegion( region );
-    typename MatrixImageType::DirectionType mdir;  mdir.Fill(0); mdir[0][0] = 1; mdir[1][1] = 1;
-    typename MatrixImageType::SpacingType mspc;  mspc.Fill(1);
-    typename MatrixImageType::PointType morg;  morg.Fill(0);
-    matimage->SetSpacing( mspc );
-    matimage->SetDirection(mdir);
-    matimage->SetOrigin( morg );
-    matimage->Allocate();
+    typename MatrixImageType::Pointer matimage =
+      AllocImage<MatrixImageType>(region);
 
     unsigned int imagecount = 0;
     for( unsigned int j = argct; j < argc; j++ )
@@ -9416,14 +9277,8 @@ int MajorityVoting( int argc, char *argv[] )
     }
   unsigned long nLabels = maxLabel + 1; // account for label=0
 
-  typename ImageType::Pointer output = ImageType::New();
-  // output->CopyInformation( images[0] );
-  output->SetRegions( images[0]->GetLargestPossibleRegion() );
-  output->SetSpacing( images[0]->GetSpacing() );
-  output->SetOrigin( images[0]->GetOrigin() );
-  output->SetDirection( images[0]->GetDirection() );
-  output->Allocate();
-  output->FillBuffer( 0 );
+  typename ImageType::Pointer output =
+    AllocImage<ImageType>(images[0], 0);
 
   IteratorType              it( output, output->GetLargestPossibleRegion() );
   itk::Array<unsigned long> votes;
@@ -9513,13 +9368,8 @@ int CorrelationVoting( int argc, char *argv[] )
     }
   unsigned long nLabels = maxLabel + 1; // account for label=0
 
-  typename LabelImageType::Pointer output = LabelImageType::New();
-  output->SetRegions( images[0]->GetLargestPossibleRegion() );
-  output->SetSpacing( images[0]->GetSpacing() );
-  output->SetOrigin( images[0]->GetOrigin() );
-  output->SetDirection( images[0]->GetDirection() );
-  output->Allocate();
-  output->FillBuffer( 0 );
+  typename LabelImageType::Pointer output =
+    AllocImage<LabelImageType>(images[0], 0);
 
   IteratorType      it( output, output->GetLargestPossibleRegion() );
   itk::Array<float> votes;
@@ -9751,13 +9601,7 @@ int PearsonCorrelation( int argc, char *argv[] )
     }
   else
     {
-    mask = ImageType::New();
-    mask->SetRegions( img1->GetLargestPossibleRegion() );
-    mask->SetSpacing( img1->GetSpacing() );
-    mask->SetOrigin( img1->GetOrigin() );
-    mask->SetDirection( img1->GetDirection() );
-    mask->Allocate();
-    mask->FillBuffer( 1 );
+    mask = AllocImage<ImageType>(img1, 1);
     }
 
   float mean1 = 0.0;

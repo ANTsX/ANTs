@@ -17,6 +17,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <cstdlib>
@@ -96,12 +97,10 @@ LabelSurface(typename TImage::PixelType foreground,
   antscout << " Label Surf " << std::endl;
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  typename   ImageType::Pointer     Image = ImageType::New();
-  Image->SetLargestPossibleRegion(input->GetLargestPossibleRegion()  );
-  Image->SetBufferedRegion(input->GetLargestPossibleRegion() );
-  Image->Allocate();
-  Image->SetSpacing(input->GetSpacing() );
-  Image->SetOrigin(input->GetOrigin() );
+  // ORIENTATION ALERT: Original code set spacing & origin without
+  // setting directions.
+  typename   ImageType::Pointer Image = AllocImage<ImageType>(input);
+
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
 
   typename iteratorType::RadiusType rad;

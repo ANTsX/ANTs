@@ -17,6 +17,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "ReadWriteImage.h"
@@ -67,35 +68,17 @@ int MemoryTest(unsigned int argc, char *argv[])
   for( unsigned int i = 0; i < numberoffields; i++ )
     {
     antscout << " NFields " << i << " of " << numberoffields << std::endl;
-    typename FieldType::Pointer field = FieldType::New();
-    field->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-    field->SetBufferedRegion( image1->GetLargestPossibleRegion() );
-    field->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-    field->Allocate();
-    field->SetSpacing(image1->GetSpacing() );
-    field->SetOrigin(image1->GetOrigin() );
     VectorType zero;
     zero.Fill(0);
-    VIterator vfIter2( field,  field->GetLargestPossibleRegion() );
-    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
-      {
-      vfIter2.Set(zero);
-      }
+    // ORIENTATION ALERT: Original code set spacing/origin without
+    // also setting directions.
+    typename FieldType::Pointer field = AllocImage<FieldType>(image1, zero);
     fieldvec.push_back(field);
     }
 
-  typename ImageType::Pointer metricimg = ImageType::New();
-  metricimg->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  metricimg->SetBufferedRegion( image1->GetLargestPossibleRegion() );
-  metricimg->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  metricimg->Allocate();
-  metricimg->SetSpacing(image1->GetSpacing() );
-  metricimg->SetOrigin(image1->GetOrigin() );
+  typename ImageType::Pointer metricimg =
+    AllocImage<ImageType>(image1, 0);
   Iterator iter( metricimg,  metricimg->GetLargestPossibleRegion() );
-  for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-    {
-    iter.Set(0);
-    }
 
   typedef ImageType FixedImageType;
   typedef ImageType MovingImageType;

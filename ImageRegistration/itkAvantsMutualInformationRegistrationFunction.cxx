@@ -18,6 +18,7 @@
 #ifndef _itkAvantsMutualInformationRegistrationFunction_hxx
 #define _itkAvantsMutualInformationRegistrationFunction_hxx
 
+#include "antsAllocImage.h"
 #include "itkAvantsMutualInformationRegistrationFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkCovariantVector.h"
@@ -250,9 +251,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   this->m_MovingImageTrueMin = movingImageMin;
   this->m_FixedImageTrueMin = fixedImageMin;
 
-  // Allocate memory for the joint PDF.
-  this->m_JointPDF = JointPDFType::New();
-
   // Instantiate a region, index, size
   JointPDFRegionType jointPDFRegion;
   JointPDFIndexType  jointPDFIndex;
@@ -263,9 +261,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   jointPDFIndex.Fill(0);
   jointPDFRegion.SetIndex(jointPDFIndex);
   jointPDFRegion.SetSize(jointPDFSize);
-
-  // Set the regions and allocate
-  this->m_JointPDF->SetRegions(jointPDFRegion);
+  this->m_JointPDF = AllocImage<JointPDFType>(jointPDFRegion);
 
   // By setting these values, the joint histogram physical locations will correspond to intensity values.
   JointPDFSpacingType spacing;
@@ -277,11 +273,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   origin[0] = this->m_JointPDFSpacing[0] * (double)this->m_Padding * (-1.0);
   origin[1] = origin[0];
   this->m_JointPDF->SetOrigin(origin);
-  this->m_JointPDF->Allocate();
-
-  // do the same thing for the marginal pdfs
-  this->m_FixedImageMarginalPDF = MarginalPDFType::New();
-  this->m_MovingImageMarginalPDF = MarginalPDFType::New();
 
   // Instantiate a region, index, size
   typedef typename MarginalPDFType::RegionType MarginalPDFRegionType;
@@ -295,10 +286,9 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   marginalPDFIndex.Fill(0);
   marginalPDFRegion.SetIndex(marginalPDFIndex);
   marginalPDFRegion.SetSize(marginalPDFSize);
-
-  // Set the regions and allocate
-  this->m_FixedImageMarginalPDF->SetRegions(marginalPDFRegion);
-  this->m_MovingImageMarginalPDF->SetRegions(marginalPDFRegion);
+  // do the same thing for the marginal pdfs
+  this->m_FixedImageMarginalPDF = AllocImage<MarginalPDFType>(marginalPDFRegion);
+  this->m_MovingImageMarginalPDF = AllocImage<MarginalPDFType>(marginalPDFRegion);
 
   // By setting these values, the marginal histogram physical locations will correspond to intensity values.
   typename MarginalPDFType::PointType fixedorigin;
@@ -312,8 +302,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   this->m_FixedImageMarginalPDF->SetSpacing(mspacing);
   mspacing[0] = spacing[1];
   this->m_MovingImageMarginalPDF->SetSpacing(mspacing);
-  this->m_FixedImageMarginalPDF->Allocate();
-  this->m_MovingImageMarginalPDF->Allocate();
+
   // For the derivatives of the joint PDF define a region starting from {0,0,0}
   // with size {m_NumberOfParameters,m_NumberOfHistogramBins,
   // m_NumberOfHistogramBins}. The dimension represents transform parameters,

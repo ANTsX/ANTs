@@ -63,12 +63,8 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
   typename VectorImageType::SpacingType spacing
     = vecimg->GetSpacing();
 
-  typename ImageType::Pointer jacobian = ImageType::New();
-  jacobian->SetOrigin( vecimg->GetOrigin() );
-  jacobian->SetSpacing( vecimg->GetSpacing() );
-  jacobian->SetRegions( vecimg->GetLargestPossibleRegion() );
-  jacobian->SetDirection(  vecimg->GetDirection() );
-  jacobian->Allocate();
+  typename ImageType::Pointer jacobian =
+    AllocImage<ImageType>(vecimg);
 
   itk::TimeProbe timer;
   timer.Start();

@@ -17,7 +17,7 @@
 =========================================================================*/
 #ifndef _itkPreservationOfPrincipalDirectionTensorReorientationImageFilter_cxx
 #define _itkPreservationOfPrincipalDirectionTensorReorientationImageFilter_cxx
-
+#include "antsAllocImage.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkNeighborhoodInnerProduct.h"
 #include "itkImageRegionIteratorWithIndex.h"

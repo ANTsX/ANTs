@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkBSplineControlPointImageFilter.h"
@@ -168,13 +169,8 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   bspliner->SetSpacing( reader->GetOutput()->GetSpacing() );
   bspliner->Update();
 
-  typename ImageType::Pointer logField = ImageType::New();
-  logField->SetOrigin( bspliner->GetOutput()->GetOrigin() );
-  logField->SetSpacing( bspliner->GetOutput()->GetSpacing() );
-  logField->SetRegions(
-    bspliner->GetOutput()->GetLargestPossibleRegion().GetSize() );
-  logField->SetDirection( bspliner->GetOutput()->GetDirection() );
-  logField->Allocate();
+  typename ImageType::Pointer logField =
+    AllocImage<ImageType>(bspliner->GetOutput() );
 
   itk::ImageRegionIterator<typename CorrecterType::ScalarImageType> ItB(
     bspliner->GetOutput(),

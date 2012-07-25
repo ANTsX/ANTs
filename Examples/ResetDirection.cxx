@@ -17,6 +17,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <iostream>
@@ -59,22 +60,12 @@ int ResetDirection(int argc, char *argv[])
 
   typename OutImageType::Pointer outim = reader->GetOutput();
   typename OutImageType::DirectionType direction = outim->GetDirection();
-  // direction->SetIdentity();
-  direction.Fill(0);
-  for( unsigned int i = 0; i < ImageDimension; i++ )
-    {
-    direction[i][i] = 1;
-    }
+  direction.SetIdentity();
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typename ImageType::Pointer varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(outim->GetSpacing() );
-  varimage->SetOrigin(outim->GetOrigin() );
+  typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
   varimage->SetDirection( direction );
+
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

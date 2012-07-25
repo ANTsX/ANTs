@@ -1,6 +1,7 @@
 
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <iostream>
@@ -213,17 +214,8 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   typename TImage::SizeType s = field->GetLargestPossibleRegion().GetSize();
   typename TImage::SpacingType sp = field->GetSpacing();
 
-  typename FloatImageType::Pointer m_FloatImage = NULL;
-  m_FloatImage = FloatImageType::New();
-  m_FloatImage->SetLargestPossibleRegion( field->GetLargestPossibleRegion() );
-  m_FloatImage->SetBufferedRegion( field->GetLargestPossibleRegion().GetSize() );
-  m_FloatImage->SetSpacing(field->GetSpacing() );
-  m_FloatImage->SetDirection( field->GetDirection() );
-  m_FloatImage->SetOrigin(field->GetOrigin() );
-  m_FloatImage->Allocate();
-  m_FloatImage->FillBuffer(0);
-
-  //  typename ImageType::Pointer grid = GenerateGridImage<ImageType>(m_FloatImage,20);
+  typename FloatImageType::Pointer m_FloatImage =
+    AllocImage<FloatImageType>(field, 0);
 
   if( false )
     {

@@ -113,12 +113,9 @@ private:
     }
   else
     {
-    mask = MaskImageType::New();
-    mask->SetOrigin( reader->GetOutput()->GetOrigin() );
-    mask->SetSpacing( reader->GetOutput()->GetSpacing() );
-    mask->SetRegions( reader->GetOutput()->GetLargestPossibleRegion() );
-    mask->Allocate();
-    mask->FillBuffer( 1 );
+    // ORIENTATION ALERT  -- the original code here
+    // set the region, spacing, and origin without setting directions.
+    mask = AllocImage<MaskImageType>(reader->GetOutput(), 1);
     }
 
   double origin[ImageDimension];

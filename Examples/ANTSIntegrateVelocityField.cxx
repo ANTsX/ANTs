@@ -1,6 +1,7 @@
 
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkVectorIndexSelectionCastImageFilter.h"
@@ -73,15 +74,11 @@ int IntegrateVelocityField(int argc, char *argv[])
   typename tvt::Pointer timeVaryingVelocity;
   ReadImage<tvt>(timeVaryingVelocity, vectorfn.c_str() );
 
-  typename DisplacementFieldType::Pointer deformation = DisplacementFieldType::New();
-  deformation->SetSpacing(    image->GetSpacing() );
-  deformation->SetOrigin(     image->GetOrigin() );
-  deformation->SetDirection(  image->GetDirection() );
-  deformation->SetRegions(    image->GetLargestPossibleRegion() );
-  deformation->Allocate();
   VectorType zero;
   zero.Fill(0);
-  deformation->FillBuffer(zero);
+  typename DisplacementFieldType::Pointer deformation =
+    AllocImage<DisplacementFieldType>(image, zero);
+
   if( !timeVaryingVelocity )
     {
     antscout << " No TV Field " << std::endl;  return EXIT_FAILURE;

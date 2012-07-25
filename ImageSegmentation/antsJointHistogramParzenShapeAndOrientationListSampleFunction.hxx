@@ -71,17 +71,16 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   // first, the shape histogram --- 0,0 origin and spacing of 1
   if( !this->m_JointHistogramImages[0] )
     {
-    this->m_JointHistogramImages[0] = JointHistogramImageType::New();
     typename JointHistogramImageType::SpacingType spacing;
     spacing.Fill( 1 );
     typename JointHistogramImageType::PointType origin;
     origin.Fill( 0 );
     typename JointHistogramImageType::SizeType size;
     size.Fill( this->m_NumberOfShapeJointHistogramBins );
+    this->m_JointHistogramImages[0] =
+      AllocImage<JointHistogramImageType>(size);
     this->m_JointHistogramImages[0]->SetOrigin( origin );
     this->m_JointHistogramImages[0]->SetSpacing( spacing );
-    this->m_JointHistogramImages[0]->SetRegions( size );
-    this->m_JointHistogramImages[0]->Allocate();
     this->m_JointHistogramImages[0]->FillBuffer( 0 );
     }
 
@@ -201,8 +200,6 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
   //  need to be careful for wrap around in the 0 to 2*pi case.
   if( !this->m_JointHistogramImages[whichHistogram] )
     {
-    this->m_JointHistogramImages[whichHistogram] =
-      JointHistogramImageType::New();
     typename JointHistogramImageType::SpacingType spacing2;
     spacing2.Fill(1);
     typename JointHistogramImageType::PointType origin2;
@@ -210,10 +207,11 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     typename JointHistogramImageType::SizeType size2;
     size2.Fill( this->m_NumberOfOrientationJointHistogramBins );
     size2[0] = size2[0] + 2;
+    this->m_JointHistogramImages[whichHistogram] =
+      AllocImage<JointHistogramImageType>(size2);
+
     this->m_JointHistogramImages[whichHistogram]->SetOrigin( origin2 );
     this->m_JointHistogramImages[whichHistogram]->SetSpacing( spacing2 );
-    this->m_JointHistogramImages[whichHistogram]->SetRegions( size2 );
-    this->m_JointHistogramImages[whichHistogram]->Allocate();
     this->m_JointHistogramImages[whichHistogram]->FillBuffer( 0 );
     }
 

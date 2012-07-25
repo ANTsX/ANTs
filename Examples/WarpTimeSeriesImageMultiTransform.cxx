@@ -1,6 +1,6 @@
 
 #include "antsUtilities.h"
-#include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include "itkImageFileReader.h"
 #include "itkVariableLengthVector.h"
 #include "itkImageFileWriter.h"
@@ -267,20 +267,22 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
   typedef itk::ImageRegionIteratorWithIndex<VectorImageType>  ImageIt;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>        SliceIt;
 
+  // ORIENTATION ALERT -- the way this code sets up
+  // transformedvecimage doesn't really make complete sense to me. In
+  // particular, the 'grab upper dim-1 x dim-1 of directions' method
+  // of setting lower-dimension dir cosines can lead to singular mattrices.
   // allocate output image
-  typename VectorImageType::Pointer transformedvecimage = VectorImageType::New();
   typename VectorImageType::RegionType region = img_mov->GetLargestPossibleRegion();
   for( unsigned int i = 0; i < ImageDimension - 1; i++ )
     {
     region.SetSize( i, img_ref->GetLargestPossibleRegion().GetSize()[i] );
     }
-  transformedvecimage->SetRegions(region);
-  //  transformedvecimage->SetDirection(
-  transformedvecimage->Allocate();
+  typename VectorImageType::Pointer transformedvecimage = AllocImage<VectorImageType>(region);
+
   typename VectorImageType::DirectionType direction = transformedvecimage->GetDirection();
   direction.Fill(0);
-  typename VectorImageType::PointType origin = transformedvecimage->GetOrigin();
-  typename VectorImageType::SpacingType spc = transformedvecimage->GetSpacing();
+  typename VectorImageType::PointType origin;
+  typename VectorImageType::SpacingType spc;
   for( unsigned int i = 0; i < ImageDimension - 1; i++ )
     {
     for( unsigned int j = 0; j < ImageDimension - 1; j++ )
@@ -544,15 +546,10 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     img_ref = reader_img_ref->GetOutput();
     }
 
-  typename VectorImageType::Pointer img_output = VectorImageType::New();
+  typename VectorImageType::Pointer img_output =
+    AllocImage<VectorImageType>(img_ref);
   img_output->SetNumberOfComponentsPerPixel(veclength);
-  img_output->SetLargestPossibleRegion( img_ref->GetLargestPossibleRegion() );
-  img_output->SetBufferedRegion( img_ref->GetLargestPossibleRegion() );
-  img_output->SetLargestPossibleRegion( img_ref->GetLargestPossibleRegion() );
-  img_output->Allocate();
-  img_output->SetSpacing(img_ref->GetSpacing() );
-  img_output->SetOrigin(img_ref->GetOrigin() );
-  img_output->SetDirection(img_ref->GetDirection() );
+
   typename ImageType::IndexType index;
   index.Fill(0);
   typename VectorImageType::PixelType vec = img_mov->GetPixel(index);

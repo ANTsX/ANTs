@@ -1,6 +1,7 @@
 
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkDanielssonDistanceMapImageFilter.h"
@@ -29,14 +30,8 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   typedef TField FieldType;
   typedef TImage ImageType;
 
-  typename ImageType::Pointer sfield = ImageType::New();
-  sfield->SetSpacing( field->GetSpacing() );
-  sfield->SetOrigin( field->GetOrigin() );
-  sfield->SetDirection( field->GetDirection() );
-  sfield->SetLargestPossibleRegion(field->GetLargestPossibleRegion() );
-  sfield->SetRequestedRegion(field->GetRequestedRegion() );
-  sfield->SetBufferedRegion( field->GetBufferedRegion() );
-  sfield->Allocate();
+  typename ImageType::Pointer sfield =
+    AllocImage<ImageType>(field);
 
   typedef itk::ImageRegionIteratorWithIndex<TField> Iterator;
   Iterator vfIter( field,  field->GetLargestPossibleRegion() );
@@ -113,12 +108,11 @@ LabelSurface(typename TImage::PixelType foreground,
   antscout << " Label Surf " << std::endl;
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  typename   ImageType::Pointer     Image = ImageType::New();
-  Image->SetLargestPossibleRegion(input->GetLargestPossibleRegion()  );
-  Image->SetBufferedRegion(input->GetLargestPossibleRegion() );
-  Image->Allocate();
-  Image->SetSpacing(input->GetSpacing() );
-  Image->SetOrigin(input->GetOrigin() );
+  // ORIENTATION ALERT -- original code set spacing & origin without
+  // also setting orientation.
+  typename   ImageType::Pointer     Image =
+    AllocImage<ImageType>(Image);
+
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
 
   typename iteratorType::RadiusType rad;
@@ -256,14 +250,8 @@ FMMGrad(typename TImage::Pointer wm, typename TImage::Pointer gm )
 {
   typedef TImage ImageType;
   enum { ImageDimension = TImage::ImageDimension };
-  typename TField::Pointer sfield = TField::New();
-  sfield->SetSpacing( wm->GetSpacing() );
-  sfield->SetOrigin( wm->GetOrigin() );
-  sfield->SetDirection( wm->GetDirection() );
-  sfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  sfield->SetRequestedRegion(wm->GetRequestedRegion() );
-  sfield->SetBufferedRegion( wm->GetBufferedRegion() );
-  sfield->Allocate();
+  typename TField::Pointer sfield = AllocImage<TField>(wm);
+
   typename ImageType::Pointer surf = LabelSurface<ImageType>(1, 1, wm, 1.9 );
 
   typedef itk::FastMarchingUpwindGradientImageFilter<ImageType, ImageType> FloatFMType;
@@ -344,14 +332,8 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
     GradientImageFilterType;
   typedef typename GradientImageFilterType::Pointer GradientImageFilterPointer;
 
-  typename TField::Pointer sfield = TField::New();
-  sfield->SetSpacing( wm->GetSpacing() );
-  sfield->SetOrigin( wm->GetOrigin() );
-  sfield->SetDirection( wm->GetDirection() );
-  sfield->SetLargestPossibleRegion(wm->GetLargestPossibleRegion() );
-  sfield->SetRequestedRegion(wm->GetRequestedRegion() );
-  sfield->SetBufferedRegion( wm->GetBufferedRegion() );
-  sfield->Allocate();
+  typename TField::Pointer sfield =
+    AllocImage<TField>(sfield);
 
   typename TImage::Pointer laplacian = SmoothImage<TImage>(wm, 1);
   laplacian->FillBuffer(0);

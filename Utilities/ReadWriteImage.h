@@ -1,6 +1,6 @@
 #ifndef __ReadWriteImage_h_
 #define __ReadWriteImage_h_
-
+#include <antsAllocImage.h>
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -419,23 +419,13 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
     zvec = ReadImage<ImageType>( (char *)fn.c_str() );
     }
 
-  typename FieldType::Pointer field = FieldType::New();
-
-  field->SetLargestPossibleRegion( xvec->GetLargestPossibleRegion() );
-  field->SetBufferedRegion( xvec->GetLargestPossibleRegion() );
-  field->SetLargestPossibleRegion( xvec->GetLargestPossibleRegion() );
-  field->SetOrigin(xvec->GetOrigin() );
-  field->SetDirection(xvec->GetDirection() );
-  field->Allocate();
+  typename FieldType::Pointer field = AllocImage<FieldType>(xvec);
 
   itk::ImageRegionIteratorWithIndex<RealImageType>
   it( xvec, xvec->GetLargestPossibleRegion() );
 
   //  ::ants::antscout << " spacing xv " << xvec->GetSpacing()[0]
   // << " field " << field->GetSpacing()[0] << std::endl;
-
-  field->SetSpacing(xvec->GetSpacing() );
-  field->SetOrigin(xvec->GetOrigin() );
 
   unsigned int ct = 0;
   for( it.GoToBegin(); !it.IsAtEnd(); ++it )
@@ -464,14 +454,7 @@ typename TImage::Pointer
 MakeNewImage(typename TImage::Pointer image1, typename TImage::PixelType initval )
 {
   typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
-  typename TImage::Pointer varimage = TImage::New();
-  varimage->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( image1->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(image1->GetSpacing() );
-  varimage->SetOrigin(image1->GetOrigin() );
-  varimage->SetDirection(image1->GetDirection() );
+  typename TImage::Pointer varimage = AllocImage<TImage>(image1);
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

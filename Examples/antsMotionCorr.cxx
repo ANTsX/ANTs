@@ -17,6 +17,7 @@
 *=========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include "antsCommandLineParser.h"
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkImageRegistrationMethodv4.h"
@@ -1009,11 +1010,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::Vector<RealType, ImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixedImage );
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>(fixedImage.GetPointer(),
+                                            zeroVector);
         displacementField->SetRegions( fixedImage->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
 
         typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType,
                                                                          ImageDimension>
@@ -1122,17 +1122,20 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::Vector<RealType, ImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
         typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
-        typename DisplacementFieldType::Pointer displacementField = DisplacementFieldType::New();
-        displacementField->CopyInformation( fixed_time_slice );
-        displacementField->SetRegions( fixed_time_slice->GetBufferedRegion() );
-        displacementField->Allocate();
-        displacementField->FillBuffer( zeroVector );
+        // ORIENTATION ALERT.  If fixed_time_slice Buffered Region !=
+        // Largest Possible Region, then setting the  origin might be wrong.
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>(fixed_time_slice->GetBufferedRegion(),
+                                            zeroVector);
+        displacementField->SetOrigin(fixed_time_slice->GetOrigin() );
+        displacementField->SetSpacing(fixed_time_slice->GetSpacing() );
+        displacementField->SetDirection(fixed_time_slice->GetDirection() );
 
-        typename DisplacementFieldType::Pointer inverseDisplacementField = DisplacementFieldType::New();
-        inverseDisplacementField->CopyInformation( fixed_time_slice );
+        typename DisplacementFieldType::Pointer inverseDisplacementField =
+          AllocImage<DisplacementFieldType>(fixed_time_slice.GetPointer(),
+                                            zeroVector);
         inverseDisplacementField->SetRegions( fixed_time_slice->GetBufferedRegion() );
-        inverseDisplacementField->Allocate();
-        inverseDisplacementField->FillBuffer( zeroVector );
+
         typedef itk::DisplacementFieldTransform<RealType, ImageDimension> DisplacementFieldTransformType;
         typedef itk::SyNImageRegistrationMethod<FixedImageType, FixedImageType,
                                                 DisplacementFieldTransformType> DisplacementFieldRegistrationType;

@@ -24,6 +24,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <iostream>
@@ -72,14 +73,9 @@ int SetSpacing(int argc, char *argv[])
   antscout << "  New Spacing " << spacing << std::endl;
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typename ImageType::Pointer varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(spacing);
-  varimage->SetOrigin(outim->GetOrigin() );
-  varimage->SetDirection( outim->GetDirection() );
+  typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
+  outim->SetSpacing(spacing);
+
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

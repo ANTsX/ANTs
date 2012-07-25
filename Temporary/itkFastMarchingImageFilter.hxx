@@ -17,7 +17,7 @@
 =========================================================================*/
 #ifndef __itkFastMarchingImageFilter_hxx
 #define __itkFastMarchingImageFilter_hxx
-
+#include "antsAllocImage.h"
 #include "itkFastMarchingImageFilter.h"
 
 #include "itkConnectedComponentImageFilter.h"
@@ -180,13 +180,11 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
   // connected components.
   if( this->m_TopologyCheck == NoHandles )
     {
-    this->m_ConnectedComponentImage = ConnectedComponentImageType::New();
+    this->m_ConnectedComponentImage =
+      AllocImage<ConnectedComponentImageType>(output->GetBufferedRegion(), 0);
     this->m_ConnectedComponentImage->SetOrigin( output->GetOrigin() );
     this->m_ConnectedComponentImage->SetSpacing( output->GetSpacing() );
-    this->m_ConnectedComponentImage->SetRegions( output->GetBufferedRegion() );
     this->m_ConnectedComponentImage->SetDirection( output->GetDirection() );
-    this->m_ConnectedComponentImage->Allocate();
-    this->m_ConnectedComponentImage->FillBuffer( 0 );
     }
 
   // set all output value to infinity

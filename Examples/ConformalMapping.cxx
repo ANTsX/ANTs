@@ -16,6 +16,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 #include <algorithm>
 #include <string>
@@ -650,11 +651,10 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
     bspliner->Update();
     antscout << "BSpline fitting done" << std::endl;
 
-    typename ImageType::Pointer outimage = ImageType::New();
-    outimage->SetSpacing( bspliner->GetOutput()->GetSpacing() );
-    outimage->SetOrigin( bspliner->GetOutput()->GetOrigin() );
-    outimage->SetRegions( bspliner->GetOutput()->GetLargestPossibleRegion() );
-    outimage->Allocate();
+    // ORIENTATION ALERT  -- the original code here
+    // set the region, spacing, and origin without setting directions.
+    typename ImageType::Pointer outimage =
+      AllocImage<ImageType>(bspliner->GetOutput());
 
     typename itk::ImageRegionIterator<ImageType>
         ItO( outimage, outimage->GetRequestedRegion() );

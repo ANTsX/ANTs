@@ -17,7 +17,7 @@
 =========================================================================*/
 #ifndef _itkAvantsPDEDeformableRegistrationFunction_h_
 #define _itkAvantsPDEDeformableRegistrationFunction_h_
-
+#include "antsAllocImage.h"
 #include "itkPDEDeformableRegistrationFunction.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkPointSet.h"
@@ -174,17 +174,10 @@ public:
 
     if( makenewimage )
       {
-      m_MetricImage = MetricImageType::New();
-      m_MetricImage->SetLargestPossibleRegion(img->GetLargestPossibleRegion()  );
-      m_MetricImage->SetBufferedRegion(img->GetLargestPossibleRegion() );
+      m_MetricImage =
+        AllocImage<MetricImageType>(img->GetLargestPossibleRegion(), 0);
       m_MetricImage->SetSpacing(img->GetSpacing() );
       m_MetricImage->SetOrigin(img->GetOrigin() );
-      m_MetricImage->Allocate();
-      ittype it(m_MetricImage, m_MetricImage->GetLargestPossibleRegion().GetSize() );
-      for( it.GoToBegin(); !it.IsAtEnd(); ++it )
-        {
-        it.Set(0);
-        }
       }
     return;
   }

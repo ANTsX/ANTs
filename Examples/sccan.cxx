@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "antsCommandLineOption.h"
@@ -104,13 +105,8 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
       }
     }
 
-  typename TImage::Pointer weights = TImage::New();
-  weights->SetOrigin( mask->GetOrigin() );
-  weights->SetSpacing( mask->GetSpacing() );
-  weights->SetRegions( mask->GetLargestPossibleRegion() );
-  weights->SetDirection( mask->GetDirection() );
-  weights->Allocate();
-  weights->FillBuffer( itk::NumericTraits<PixelType>::Zero );
+  typename TImage::Pointer weights =
+    AllocImage<TImage>(weights, itk::NumericTraits<PixelType>::Zero);
 
   // overwrite weights with vector values;
   unsigned long vecind = 0;
@@ -535,16 +531,8 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
     {
     typename MatrixImageType::RegionType region;
     region.SetSize( tilesize );
-    typename MatrixImageType::Pointer matimage = MatrixImageType::New();
-    matimage->SetLargestPossibleRegion( region );
-    matimage->SetBufferedRegion( region );
-    typename MatrixImageType::DirectionType mdir;  mdir.Fill(0); mdir[0][0] = 1; mdir[1][1] = 1;
-    typename MatrixImageType::SpacingType mspc;  mspc.Fill(1);
-    typename MatrixImageType::PointType morg;  morg.Fill(0);
-    matimage->SetSpacing( mspc );
-    matimage->SetDirection(mdir);
-    matimage->SetOrigin( morg );
-    matimage->Allocate();
+    typename MatrixImageType::Pointer matimage =
+      AllocImage<MatrixImageType>(region);
     for( unsigned int j = 0; j < image_fn_list.size(); j++ )
       {
       typename ReaderType::Pointer reader2 = ReaderType::New();

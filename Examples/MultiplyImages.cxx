@@ -17,6 +17,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkDiscreteGaussianImageFilter.h"
@@ -103,14 +104,8 @@ int MultiplyImages(int argc, char *argv[])
     antscout << " read 1 error ";
     }
 
-  varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( image1->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( image1->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(image1->GetSpacing() );
-  varimage->SetOrigin(image1->GetOrigin() );
-  varimage->SetDirection(image1->GetDirection() );
+  varimage = AllocImage<ImageType>(image1);
+
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

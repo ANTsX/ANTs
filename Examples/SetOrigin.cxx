@@ -17,6 +17,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <iostream>
@@ -67,14 +68,12 @@ int SetOrigin(int argc, char *argv[])
   outim->SetOrigin(orig);
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  typename ImageType::Pointer varimage = ImageType::New();
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetBufferedRegion( outim->GetLargestPossibleRegion() );
-  varimage->SetLargestPossibleRegion( outim->GetLargestPossibleRegion() );
-  varimage->Allocate();
-  varimage->SetSpacing(outim->GetSpacing() );
-  varimage->SetOrigin(orig);
-  varimage->SetDirection( outim->GetDirection() );
+  typename ImageType::Pointer varimage =
+    AllocImage<ImageType>(outim->GetLargestPossibleRegion(),
+                          outim->GetSpacing(),
+                          orig,
+                          outim->GetDirection() );
+
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

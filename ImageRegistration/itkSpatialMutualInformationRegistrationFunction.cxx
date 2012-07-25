@@ -17,6 +17,7 @@
 #ifndef _itkSpatialMutualInformationRegistrationFunction_hxx
 #define _itkSpatialMutualInformationRegistrationFunction_hxx
 
+#include "antsAllocImage.h"
 #include "itkSpatialMutualInformationRegistrationFunction.h"
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkCovariantVector.h"
@@ -269,8 +270,6 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_MovingImageNormalizedMin = movingImageMin / m_MovingImageBinSize
     - static_cast<double>( this->m_Padding );
 
-  m_FixedImageMarginalPDF = MarginalPDFType::New();
-  m_MovingImageMarginalPDF = MarginalPDFType::New();
   typename MarginalPDFType::RegionType            mPDFRegion;
   typename MarginalPDFType::SizeType              mPDFSize;
   typename MarginalPDFType::IndexType              mPDFIndex;
@@ -280,27 +279,11 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   mPDFSize.Fill( m_NumberOfHistogramBins );
   mPDFRegion.SetIndex( mPDFIndex );
   mPDFRegion.SetSize( mPDFSize );
-  m_FixedImageMarginalPDF->SetRegions( mPDFRegion );
-  m_FixedImageMarginalPDF->Allocate();
+  m_FixedImageMarginalPDF = AllocImage<MarginalPDFType>(mPDFRegion);
   m_FixedImageMarginalPDF->SetSpacing(mPDFspacing);
-  m_MovingImageMarginalPDF->SetRegions( mPDFRegion );
-  m_MovingImageMarginalPDF->Allocate();
+  m_MovingImageMarginalPDF = AllocImage<MarginalPDFType>( mPDFRegion );
   m_MovingImageMarginalPDF->SetSpacing(mPDFspacing);
   // ::ants::antscout << " C " << std::endl;
-
-  /**
-   * Allocate memory for the joint PDF and joint PDF derivatives.
-   * The joint PDF and joint PDF derivatives are store as itk::Image.
-   */
-  this->m_JointPDF = JointPDFType::New();
-  this->m_JointPDFXuY = JointPDFType::New();
-  this->m_JointPDFXYu = JointPDFType::New();
-  this->m_JointPDFXlY = JointPDFType::New();
-  this->m_JointPDFXYl = JointPDFType::New();
-  this->m_JointPDFXuYl = JointPDFType::New();
-  this->m_JointPDFXlYu = JointPDFType::New();
-  this->m_JointPDFXrYu = JointPDFType::New();
-  this->m_JointPDFXuYr = JointPDFType::New();
 
   // ::ants::antscout << " D " << std::endl;
 
@@ -319,47 +302,36 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   jointPDFRegion.SetIndex( jointPDFIndex );
   jointPDFRegion.SetSize( jointPDFSize );
 
-  m_JointHist = JointPDFType::New();
-  m_JointHist->SetRegions(jointPDFRegion );
-  m_JointHist->Allocate();
+  m_JointHist = AllocImage<JointPDFType>(jointPDFRegion);
   this->m_JointHist->SetSpacing(jspacing);
 
   // Set the regions and allocate
-  this->m_JointPDF->SetRegions( jointPDFRegion );
-  this->m_JointPDF->Allocate();
+  this->m_JointPDF = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDF->SetSpacing(jspacing);
 
-  this->m_JointPDFXYu->SetRegions( jointPDFRegion );
-  this->m_JointPDFXYu->Allocate();
+  this->m_JointPDFXYu = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXYu->SetSpacing(jspacing);
 
-  this->m_JointPDFXuY->SetRegions( jointPDFRegion );
-  this->m_JointPDFXuY->Allocate();
+  this->m_JointPDFXuY = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXuY->SetSpacing(jspacing);
 
-  this->m_JointPDFXlY->SetRegions( jointPDFRegion );
-  this->m_JointPDFXlY->Allocate();
+  this->m_JointPDFXlY = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXlY->SetSpacing(jspacing);
 
-  this->m_JointPDFXYl->SetRegions( jointPDFRegion );
-  this->m_JointPDFXYl->Allocate();
+  this->m_JointPDFXYl = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXYl->SetSpacing(jspacing);
 
   //
-  this->m_JointPDFXlYu->SetRegions( jointPDFRegion );
-  this->m_JointPDFXlYu->Allocate();
+  this->m_JointPDFXlYu = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXlYu->SetSpacing(jspacing);
 
-  this->m_JointPDFXuYl->SetRegions( jointPDFRegion );
-  this->m_JointPDFXuYl->Allocate();
+  this->m_JointPDFXuYl = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXuYl->SetSpacing(jspacing);
 
-  this->m_JointPDFXrYu->SetRegions( jointPDFRegion );
-  this->m_JointPDFXrYu->Allocate();
+  this->m_JointPDFXrYu = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXrYu->SetSpacing(jspacing);
 
-  this->m_JointPDFXuYr->SetRegions( jointPDFRegion );
-  this->m_JointPDFXuYr->Allocate();
+  this->m_JointPDFXuYr = AllocImage<JointPDFType>( jointPDFRegion );
   this->m_JointPDFXuYr->SetSpacing(jspacing);
 
 //    ::ants::antscout << " E " << std::endl;

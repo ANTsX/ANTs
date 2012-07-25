@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkImage.h"
@@ -34,10 +35,9 @@ void CreateDisplacementField( int argc, char *argv[] )
   RegionType regionOfFirstComponent = componentImage->GetLargestPossibleRegion();
 
   // Create output vector image
-  typename VectorImageType::Pointer vectorImage = VectorImageType::New();
-  vectorImage->CopyInformation( componentImage );
+  typename VectorImageType::Pointer vectorImage =
+    AllocImage<VectorImageType>(componentImage.GetPointer() );
   vectorImage->SetRegions( componentImage->GetLargestPossibleRegion() );
-  vectorImage->Allocate();
 
   itk::ImageRegionIteratorWithIndex<ComponentImageType> comIt( componentImage, regionOfFirstComponent );
   typedef typename itk::ImageRegionIteratorWithIndex<VectorImageType> VecItType;

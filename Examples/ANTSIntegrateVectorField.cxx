@@ -1,6 +1,7 @@
 
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include "itkVectorIndexSelectionCastImageFilter.h"
@@ -30,14 +31,7 @@ GetVectorComponent(typename TField::Pointer field, unsigned int index)
   typedef TField FieldType;
   typedef TImage ImageType;
 
-  typename ImageType::Pointer sfield = ImageType::New();
-  sfield->SetSpacing( field->GetSpacing() );
-  sfield->SetOrigin( field->GetOrigin() );
-  sfield->SetDirection( field->GetDirection() );
-  sfield->SetLargestPossibleRegion(field->GetLargestPossibleRegion() );
-  sfield->SetRequestedRegion(field->GetRequestedRegion() );
-  sfield->SetBufferedRegion( field->GetBufferedRegion() );
-  sfield->Allocate();
+  typename ImageType::Pointer sfield = AllocImage<ImageType>(field);
 
   typedef itk::ImageRegionIteratorWithIndex<TField> Iterator;
   Iterator vfIter( field,  field->GetLargestPossibleRegion() );

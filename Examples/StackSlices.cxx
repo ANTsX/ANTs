@@ -16,6 +16,7 @@
 =========================================================================*/
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <stdio.h>
@@ -138,11 +139,9 @@ private:
   firstReader->Update();
   antscout << " Slice 0 :: " << std::string(argv[5]) << std::endl;
 
-  ImageType::Pointer    stack = ImageType::New();
   ImageType::RegionType region = firstReader->GetOutput()->GetLargestPossibleRegion();
   region.SetSize(dim, nSlices);
-  stack->SetRegions(region);
-  stack->Allocate();
+  ImageType::Pointer stack = AllocImage<ImageType>(region);
 
   SliceType::SizeType size;
   size.Fill(0);
@@ -162,11 +161,10 @@ private:
     size[0] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[0];
     size[1] = firstReader->GetOutput()->GetLargestPossibleRegion().GetSize()[1];
     }
-  SliceType::Pointer    stack2 = SliceType::New();
   SliceType::RegionType region2;
   region2.SetSize(size);
-  stack2->SetRegions(region2);
-  stack2->Allocate();
+  SliceType::Pointer stack2 = AllocImage<SliceType>(region2);
+
   //  antscout << region << std::endl;
 
   ImageType::RegionType extractRegion = stack->GetLargestPossibleRegion();

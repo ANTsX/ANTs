@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "antsCommandLineParser.h"
-
+#include "antsAllocImage.h"
 #include "itkArray2D.h"
 #include "itkDecomposeTensorFunction.h"
 #include "itkDiffusionTensor3D.h"
@@ -203,11 +203,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
              << "the FA of the DTI atlas at >= " << lowerThresholdValue
              << "." << std::endl << std::endl;
 
-    typename ImageType::Pointer faImage = ImageType::New();
-    faImage->CopyInformation( inputAtlas );
-    faImage->SetRegions( inputAtlas->GetLargestPossibleRegion() );
-    faImage->Allocate();
-    faImage->FillBuffer( 0.0 );
+    typename ImageType::Pointer faImage =
+      AllocImage<ImageType>(inputAtlas, 0.0);
 
     itk::ImageRegionIterator<TensorImageType> ItA( inputAtlas,
                                                    inputAtlas->GetLargestPossibleRegion() );
@@ -824,11 +821,8 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
                  << directions.size() - 1 << "): [" << bk << "]"
                  << ", bvalue = " << bvalue << std::endl;
 
-        typename ImageType::Pointer dwi = ImageType::New();
-        dwi->CopyInformation( dti );
-        dwi->SetRegions( dti->GetLargestPossibleRegion() );
-        dwi->Allocate();
-        dwi->FillBuffer( 0 );
+        typename ImageType::Pointer dwi =
+          AllocImage<ImageType>(dti, 0);
 
         itk::ImageRegionConstIterator<ImageType> ItB( b0Image,
                                                       b0Image->GetLargestPossibleRegion() );

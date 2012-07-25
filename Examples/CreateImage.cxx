@@ -1,5 +1,6 @@
 
 #include "antsUtilities.h"
+#include "antsAllocImage.h"
 #include <algorithm>
 
 #include <stdio.h>
@@ -68,8 +69,6 @@ int CreateZeroImage( int argc, char *argv[] )
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
-  typename ImageType::Pointer image = ImageType::New();
-
   typedef typename
     itk::Statistics::MersenneTwisterRandomVariateGenerator GeneratorType;
   typename GeneratorType::Pointer generator = GeneratorType::New();
@@ -85,6 +84,7 @@ int CreateZeroImage( int argc, char *argv[] )
     std::string pixelValues = std::string( argv[6] );
     pos3 = pixelValues.find( "x" );
     }
+  typename ImageType::Pointer image;
   if( pos3 != std::string::npos )
     {
     std::vector<float> og = ConvertVector<float>( std::string( argv[3] ) );
@@ -129,11 +129,15 @@ int CreateZeroImage( int argc, char *argv[] )
       spacing[d] = sp[d];
       size[d] = sz[d];
       }
-    image->SetOrigin( origin );
-    image->SetSpacing( spacing );
-    image->SetRegions( size );
-    image->Allocate();
-    image->FillBuffer( 0.0 );
+    typename ImageType::RegionType region;
+    region.SetSize(size);
+    typename ImageType::DirectionType direction;
+    direction.SetIdentity();
+    image  = AllocImage<ImageType>(region,
+                                   spacing,
+                                   origin,
+                                   direction,
+                                   0.0);
 
     unsigned long                       count = 0;
     itk::ImageRegionIterator<ImageType> It( image, image->GetRequestedRegion() );
@@ -159,12 +163,9 @@ int CreateZeroImage( int argc, char *argv[] )
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( argv[2] );
     reader->Update();
-
-    image->SetOrigin( reader->GetOutput()->GetOrigin() );
-    image->SetSpacing( reader->GetOutput()->GetSpacing() );
-    image->SetRegions( reader->GetOutput()->GetLargestPossibleRegion() );
-    image->Allocate();
-    image->FillBuffer( atof( argv[4] ) );
+    // ORIENTATION ALERT  -- the original code here
+    // set the region, spacing, and origin without setting directions.
+    image = AllocImage<ImageType>(reader->GetOutput(), atof(argv[4]) );
 
     if( argc > 5  )
       {
@@ -229,18 +230,21 @@ int CreateZeroImage( int argc, char *argv[] )
     typename ImageType::PointType origin;
     typename ImageType::SpacingType spacing;
     typename ImageType::SizeType size;
+    typename ImageType::DirectionType direction;
+    direction.SetIdentity();
     for( unsigned int d = 0; d < ImageDimension; d++ )
       {
       origin[d] = og[d];
       spacing[d] = sp[d];
       size[d] = sz[d];
       }
-    image->SetOrigin( origin );
-    image->SetSpacing( spacing );
-    image->SetRegions( size );
-    image->Allocate();
-    image->FillBuffer( atof( argv[6] ) );
-
+    typename ImageType::RegionType region;
+    region.SetSize(size);
+    image = AllocImage<ImageType>(region,
+                                  spacing,
+                                  origin,
+                                  direction,
+                                  atof( argv[6] ) );
     if( argc > 7  )
       {
       switch( atoi( argv[7] ) )
