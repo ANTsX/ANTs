@@ -1514,7 +1514,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
 
       // get 1st eigenvector ... how should this be done?  how about svd?
-      if( a >= this->m_MatrixP.rows() && overit == 0 )
+      if( ( a >= this->m_MatrixP.rows() )  &&  ( overit == 0 ) )
         {
         ( void ) this->PowerIteration(  partialmatrix,  evec, 10, false );
         }
