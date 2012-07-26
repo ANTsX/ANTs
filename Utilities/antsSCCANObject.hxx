@@ -1439,9 +1439,6 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseRecon(unsigned int n_vecs)
 {
-  unsigned int clustp = this->m_MinClusterSizeP;
-
-  //  this->m_MinClusterSizeP = 0;
   this->m_Softer = false;
   RealType reconerr = 0;
   RealType onenorm = 0;
@@ -1460,7 +1457,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     if( i < this->m_MatrixP.rows() )
       {
       VectorType u = eig.U().get_column( i );
-      this->m_VariatesP.set_column( i, u * this->m_MatrixP );
+      VectorType up = u * this->m_MatrixP;
+      this->SparsifyP( up, true );
+      this->m_VariatesP.set_column( i, up );
       matrixB.set_column( i,  u );
       }
     else
@@ -1472,10 +1471,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType   matpfrobnorm = this->m_MatrixP.frobenius_norm();
   for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
     {
-    if( overit == ( this->m_MaximumNumberOfIterations - 1 ) )
-      {
-      this->m_MinClusterSizeP = clustp;
-      }
     //  cov = this->m_VariatesP.transpose() * this->m_VariatesP;
     //  vnl_svd<double> qr( cov );
     //  this->m_VariatesP = this->m_VariatesP * qr.U();
@@ -1516,7 +1511,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       // get 1st eigenvector ... how should this be done?  how about svd?
       if( ( a >= this->m_MatrixP.rows() )  &&  ( overit == 0 ) )
         {
-        ( void ) this->PowerIteration(  partialmatrix,  evec, 10, false );
+        ( void ) this->PowerIteration(  partialmatrix,  evec, 2, true );
         }
       this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 20, a );
       this->m_VariatesP.set_column( a, evec );
@@ -2453,26 +2448,30 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       d.dx ( x^t A^t A x  ) =   A^t A x  ,   x \leftarrow  x / \| x \|
       we use a conjugate gradient version of this optimization.
   */
-  VectorType   lastgrad = evec;
-  RealType     rayquo = 0, rayquold = -1;
+  if( evec.two_norm() ==  0 )
+    {
+    evec = this->InitializeV( this->m_MatrixP, true );
+    }
+  VectorType proj = ( A * evec  );
+  VectorType lastgrad = evec;
+  RealType   rayquo = 0, rayquold = -1;
+  RealType   denom = inner_product( evec, evec );
+  if( denom > 0 )
+    {
+    rayquo = inner_product( proj, proj  ) / denom;
+    }
   MatrixType   At = A.transpose();
   unsigned int powerits = 0;
-  VectorType   proj = ( A * evec  );
-  bool         conjgrad = false;
-  unsigned int nzct = 0;
-
-  while( ( ( rayquo > rayquold ) && ( powerits < maxits ) ) || powerits < 2 )
+  bool         conjgrad = true;
+  VectorType   bestevec = evec;
+  while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
     {
-    if( evec.two_norm() ==  0 )
-      {
-      evec = this->InitializeV( this->m_MatrixP, true );
-      }
     VectorType nvec = At * proj;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
       nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
       }
-    RealType gamma = 1;
+    RealType gamma = 0.1;
     nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
       {
@@ -2489,17 +2488,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     proj = ( A * evec  );
     rayquold = rayquo;
-    RealType denom = inner_product( evec, evec );
+    denom = inner_product( evec, evec );
     if( denom > 0 )
       {
       rayquo = inner_product( proj, proj  ) / denom; // - gradvec.two_norm() / gradvec.size() * 1.e2 ;
       }
     powerits++;
+    if( rayquo > rayquold )
+      {
+      bestevec = evec;
+      }
     }
 
-  RealType pct = ( RealType ) nzct / ( RealType ) evec.size();
-  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " %z " << pct << " num " << maxorth
-                   << std::endl;
+  evec = bestevec;
+  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth << std::endl;
   return rayquo;
   /*
   this->CurvatureSparseness( evec ,  ( 1 - this->m_FractionNonZeroP ) * 100, 2 );
