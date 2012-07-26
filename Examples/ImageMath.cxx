@@ -3114,7 +3114,7 @@ int ThreeTissueConfounds(int argc, char *argv[])
 
   // write out these nuisance variables
   // write out the array2D object
-  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
   WriterType::Pointer writer = WriterType::New();
   std::string         kname = tempname + std::string("_compcorr.csv");
   writer->SetFileName( kname );

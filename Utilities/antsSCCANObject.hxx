@@ -2124,7 +2124,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     return (c + a) / 2;
     }
-  double phi = (1 + sqrt(5) ) / 2;
+  double phi = (1 + sqrt(5.0) ) / 2;
   double resphi = 2 - phi;
   double x;
   if( c - b > b - a )
