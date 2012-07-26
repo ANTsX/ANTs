@@ -106,7 +106,7 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
     }
 
   typename TImage::Pointer weights =
-    AllocImage<TImage>(weights, itk::NumericTraits<PixelType>::Zero);
+    AllocImage<TImage>(mask, itk::NumericTraits<PixelType>::Zero);
 
   // overwrite weights with vector values;
   unsigned long vecind = 0;
