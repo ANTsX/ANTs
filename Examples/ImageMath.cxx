@@ -9499,8 +9499,8 @@ int MostLikely( int argc, char *argv[] )
   std::string outputName = std::string( argv[2] );
 
   // Read input segmentations
-  const unsigned long nImages = argc - 4;
-  typename ImageType::Pointer images[argc - 4];
+  const unsigned long                      nImages = argc - 4;
+  std::vector<typename ImageType::Pointer> images(argc - 4, NULL);
   for( int i = 4; i < argc; i++ )
     {
     images[i - 4] = ImageType::New();
@@ -9568,7 +9568,7 @@ int STAPLE( int argc, char *argv[] )
   float confidence = atof( argv[5] );
 
   // Read input segmentations
-  typename ImageType::Pointer images[argc - 6];
+  std::vector<typename ImageType::Pointer> images(argc - 6, NULL);
   for( int i = 6; i < argc; i++ )
     {
     images[i - 6] = ImageType::New();
