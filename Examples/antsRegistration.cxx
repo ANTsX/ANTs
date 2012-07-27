@@ -1102,7 +1102,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
 
   const unsigned int NVectorComponents = 1;
-  typedef VectorPixelCompare<double, NVectorComponents> CompareType;
+  typedef const VectorPixelCompare<double, NVectorComponents> CompareType;
   typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, double,
                                                                    CompareType> MultiLabelInterpolatorType;
   typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();

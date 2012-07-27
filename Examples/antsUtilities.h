@@ -347,7 +347,7 @@ class VectorPixelCompare
 {
 public:
   bool operator()( const itk::Vector<TPixel, VDim> & v1,
-                   const itk::Vector<TPixel, VDim> & v2 )
+                   const itk::Vector<TPixel, VDim> & v2 ) const
   {
     // Ordering of vectors based on 1st component, then second, etc.
     for( size_t i = 0; i < VDim; i++ )
