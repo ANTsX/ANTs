@@ -19,6 +19,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 #include "antsAllocImage.h"
+#include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkArray.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkBayesianClassifierImageFilter.h"
@@ -29,9 +30,11 @@
 #include "itkCompositeValleyFunction.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
+#include "itkCorrelationImageToImageMetricv4.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
+#include "itkDemonsImageToImageMetricv4.h"
 #include "itkExpImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkGaussianImageSource.h"
@@ -50,6 +53,7 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelContourImageFilter.h"
@@ -78,6 +82,7 @@
 #include "itkShrinkImageFilter.h"
 #include "itkSize.h"
 #include "itkSphereSpatialFunction.h"
+#include "itkSTAPLEImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
@@ -87,10 +92,6 @@
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
 #include "vnl/vnl_matrix_fixed.h"
-#include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
-#include "itkCorrelationImageToImageMetricv4.h"
-#include "itkDemonsImageToImageMetricv4.h"
-#include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
 #include "itkTransformFactory.h"
 
 #include <fstream>
@@ -1694,6 +1695,177 @@ int CenterImage2inImage1(int argc, char *argv[])
     }
 
   WriteImage<ImageType>(image1, outname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int TimeSeriesDisassemble(int argc, char *argv[])
+{
+  if( argc <= 4 )
+    {
+    antscout << " too few options " << std::endl;
+    return 1;
+    }
+
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
+  typename ImageType::Pointer image1 = NULL;
+  typename OutImageType::Pointer outimage = NULL;
+
+  typedef itk::ExtractImageFilter<ImageType, OutImageType> ExtractFilterType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
+
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  typename OutImageType::PointType outOrigin;
+  for( unsigned int i = 0; i < (ImageDimension - 1); i++ )
+    {
+    outOrigin[i] = image1->GetOrigin()[i];
+    }
+
+  unsigned int n_sub_vols = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+  antscout << " Extract " << n_sub_vols << " subvolumes " << std::endl;
+  std::string::size_type idx;
+  idx = outname.find_first_of('.');
+  std::string tempname = outname.substr(0, idx);
+  std::string extension = outname.substr(idx, outname.length() );
+  for( unsigned int i = 0; i < n_sub_vols; i++ )
+    {
+    std::string       s;
+    std::stringstream out;
+    out << (100 + i);
+    s = out.str();
+    std::string kname = tempname + s + extension;
+    typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
+    extractRegion.SetSize(ImageDimension - 1, 0);
+    extractRegion.SetIndex(ImageDimension - 1, i );
+
+    typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+    extractFilter->SetInput( image1 );
+    extractFilter->SetDirectionCollapseToSubmatrix();
+    extractFilter->SetExtractionRegion( extractRegion );
+    extractFilter->Update();
+    outimage = extractFilter->GetOutput();
+    outimage->SetOrigin( outOrigin );
+    WriteImage<OutImageType>(outimage, kname.c_str() );
+    }
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int TimeSeriesAssemble(int argc, char *argv[])
+{
+  if( argc <= 6 )
+    {
+    antscout << " too few options " << std::endl;
+    return 1;
+    }
+
+  typedef float                                        PixelType;
+  typedef itk::Image<PixelType, ImageDimension - 1>    ImageType;
+  typedef itk::Image<PixelType, ImageDimension>        OutImageType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]);   argct++;
+  std::string operation = std::string(argv[argct]); argct++;
+  float       time = atof( argv[argct] );           argct++;
+  float       origin = atof( argv[argct] );         argct++;
+
+  typename OutImageType::Pointer outimage = OutImageType::New();
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>    ImageIt;
+  typedef itk::ImageRegionIteratorWithIndex<OutImageType> SliceIt;
+
+  antscout << " Merging " << argc - 6 << " subvolumes " << std::endl;
+  std::cout << " time spacing: " << time << std::endl;
+  std::cout << " time origin: " << origin << std::endl;
+  for( int i = 6; i < argc; i++ )
+    {
+    typename ImageType::Pointer image1 = NULL;
+    ReadImage<ImageType>(image1, argv[i] );
+
+    if( i == 6 )
+      {
+      typename OutImageType::SizeType outSize;
+      typename OutImageType::SpacingType outSpacing;
+      typename OutImageType::PointType outOrigin;
+      typename OutImageType::DirectionType outDirection;
+      for( unsigned int d = 0; d < (ImageDimension - 1); d++ )
+        {
+        outSize[d] = image1->GetLargestPossibleRegion().GetSize()[d];
+        outSpacing[d] = image1->GetSpacing()[d];
+        outOrigin[d] = image1->GetOrigin()[d];
+        for( unsigned int e = 0; e < (ImageDimension - 1); e++ )
+          {
+          outDirection(e, d) = image1->GetDirection() (e, d);
+          }
+        }
+      for( unsigned int d = 0; d < (ImageDimension - 1); d++ )
+        {
+        outDirection(d, ImageDimension - 1) = 0;
+        outDirection(ImageDimension - 1, d) = 0;
+        }
+      outDirection(ImageDimension - 1, ImageDimension - 1) = 1.0;
+
+      outSize[ImageDimension - 1] = argc - 6;
+      outSpacing[ImageDimension - 1] = time;
+      outOrigin[ImageDimension - 1] = origin;
+
+      typename OutImageType::RegionType outRegion;
+      outRegion.SetSize( outSize );
+      outimage->SetRegions( outRegion );
+      outimage->SetSpacing( outSpacing );
+      outimage->SetOrigin( outOrigin );
+      outimage->SetDirection( outDirection );
+      outimage->Allocate();
+      }
+
+    ImageIt it( image1, image1->GetLargestPossibleRegion() );
+    while( !it.IsAtEnd() )
+      {
+      typename OutImageType::IndexType index;
+      for( unsigned int d = 0; d < (ImageDimension - 1); d++ )
+        {
+        index[d] = it.GetIndex()[d];
+        }
+      index[ImageDimension - 1] = i - 6;
+      outimage->SetPixel(index, it.Value() );
+      ++it;
+      }
+    }
+
+  WriteImage<OutImageType>( outimage, outname.c_str() );
+
   return 0;
 }
 
@@ -9310,6 +9482,107 @@ int MajorityVoting( int argc, char *argv[] )
 }
 
 template <unsigned int ImageDimension>
+int MostLikely( int argc, char *argv[] )
+{
+  typedef float                                               PixelType;
+  typedef itk::Image<PixelType, ImageDimension>               ImageType;
+  typedef itk::Image<int, ImageDimension>                     LabeledImageType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType>       CalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<LabeledImageType> IteratorType;
+
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  std::string outputName = std::string( argv[2] );
+
+  // Read input segmentations
+  const unsigned long nImages = argc - 4;
+  typename ImageType::Pointer images[argc - 4];
+  for( int i = 4; i < argc; i++ )
+    {
+    images[i - 4] = ImageType::New();
+    ReadImage<ImageType>( images[i - 4], argv[i] );
+    }
+
+  typename LabeledImageType::Pointer output = LabeledImageType::New();
+  output->SetRegions( images[0]->GetLargestPossibleRegion() );
+  output->SetSpacing( images[0]->GetSpacing() );
+  output->SetOrigin( images[0]->GetOrigin() );
+  output->SetDirection( images[0]->GetDirection() );
+  output->Allocate();
+  output->FillBuffer( 0 );
+
+  IteratorType              it( output, output->GetLargestPossibleRegion() );
+  itk::Array<unsigned long> votes;
+  votes.SetSize( nImages );
+
+  while( !it.IsAtEnd() )
+    {
+    votes.Fill(0);
+    float         maxVotes = 0.0;
+    unsigned long votedLabel = 0;
+    for( unsigned long i = 0; i < nImages; i++ )
+      {
+      unsigned long label = images[i]->GetPixel( it.GetIndex() );
+      votes.SetElement(label, votes.GetElement(label) + 1 );
+
+      if( votes.GetElement(label) > maxVotes )
+        {
+        maxVotes = votes.GetElement(label);
+        votedLabel = i;
+        }
+      }
+
+    it.Set( votedLabel );
+    ++it;
+    }
+
+  WriteImage<LabeledImageType>( output, outputName.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int STAPLE( int argc, char *argv[] )
+{
+  typedef int                                   PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::Image<float, ImageDimension>     OutputImageType;
+
+  typedef itk::MinimumMaximumImageCalculator<ImageType>      CalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>       IteratorType;
+  typedef itk::STAPLEImageFilter<ImageType, OutputImageType> StapleFilterType;
+
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  std::string outputName = std::string( argv[2] );
+  typename StapleFilterType::Pointer stapler = StapleFilterType::New();
+
+  int   foreground = atoi( argv[4] );
+  float confidence = atof( argv[5] );
+
+  // Read input segmentations
+  typename ImageType::Pointer images[argc - 6];
+  for( int i = 6; i < argc; i++ )
+    {
+    images[i - 6] = ImageType::New();
+    ReadImage<ImageType>( images[i - 6], argv[i] );
+    stapler->SetInput( i - 6, images[i - 6] );
+    stapler->SetForegroundValue( foreground );
+    stapler->SetConfidenceWeight( confidence );
+    }
+
+  WriteImage<OutputImageType>( stapler->GetOutput(), outputName.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int CorrelationVoting( int argc, char *argv[] )
 {
   typedef float                                              PixelType;
@@ -9652,6 +9925,46 @@ int PearsonCorrelation( int argc, char *argv[] )
   return 0;
 }
 
+template <unsigned int ImageDimension>
+int MinMaxMean( int argc, char *argv[] )
+{
+  typedef float                                         PixelType;
+  typedef itk::Image<PixelType, ImageDimension>         ImageType;
+  typedef itk::ImageFileReader<ImageType>               ImageReaderType;
+  typedef itk::ImageFileWriter<ImageType>               ImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
+  typedef itk::ImageMomentsCalculator<ImageType>        MomentsCalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>  IteratorType;
+
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  typename ImageType::Pointer image = ImageType::New();
+  ReadImage<ImageType>( image, argv[4] );
+
+  typename CalculatorType::Pointer calc = CalculatorType::New();
+  calc->SetImage( image );
+  calc->ComputeMaximum();
+  calc->ComputeMinimum();
+
+  typename MomentsCalculatorType::Pointer calc2 = MomentsCalculatorType::New();
+  calc2->SetImage( image );
+  calc2->Compute();
+
+  float mean = calc2->GetTotalMass();
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    mean /= image->GetLargestPossibleRegion().GetSize()[i];
+    }
+
+  antscout << calc->GetMinimum() << " " << calc->GetMaximum() << " " << mean << std::endl;
+
+  return 0;
+}
+
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
@@ -9757,6 +10070,13 @@ private:
       << std::endl;
     antscout << "    Usage        : TimeSeriesSubset 4D_TimeSeries.nii.gz n " << std::endl;
     antscout
+      << " TimeSeriesDisassemble : Outputs n 3D image volumes for each time-point in time-series 4D image."
+      << std::endl;
+    antscout
+      << " TimeSeriesAssemble : Outputs a 4D time-series image from a list of 3D volumes."
+      << std::endl;
+    antscout << "    Usage        : TimeSeriesSubset 4D_TimeSeries.nii.gz n " << std::endl;
+    antscout
       <<
       " TimeSeriesToMatrix : Converts a 4D image + mask to matrix (stored as csv file) where rows are time and columns are space ."
       << std::endl;
@@ -9829,6 +10149,11 @@ private:
     antscout << "  CorrelationVoting : Select label with local correlation weights" << std::endl;
     antscout << "    Usage: CorrelationVoting Template.ext IntenistyImages* LabelImages* {Optional-Radius=5}"
              << std::endl;
+    antscout << "  STAPLE : Select label using STAPLE method" << std::endl;
+    antscout << "    Usage: STAPLE foreground-value confidence-weighting LabelImages*" << std::endl;
+    antscout << "    Note:  Gives probabilistic output (float)" << std::endl;
+    antscout << "  MostLikely : Select label from from maximum probabilistic segmentations" << std::endl;
+    antscout << "    Usage: MostLikely ProbabilityImages*" << std::endl;
 
     antscout << "\nImage Metrics & Info:" <<  std::endl;
     antscout << "  PearsonsCorrelation: r-value from intesities of two images" << std::endl;
@@ -10323,6 +10648,10 @@ private:
         {
         MajorityVoting<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MostLikely") == 0 )
+        {
+        MostLikely<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
         {
         CorrelationVoting<2>(argc, argv);
@@ -10346,6 +10675,10 @@ private:
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
         ImageMetrics<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
+        {
+        MinMaxMean<2>(argc, argv);
         }
       //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
@@ -10673,9 +11006,17 @@ private:
         {
         MajorityVoting<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MostLikely") == 0 )
+        {
+        MostLikely<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
         {
         CorrelationVoting<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "STAPLE") == 0 )
+        {
+        STAPLE<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
         {
@@ -10697,9 +11038,9 @@ private:
         {
         ImageMetrics<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "FrobeniusNormOfMatrixDifference") == 0 )
+      else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
-        FrobeniusNormOfMatrixDifference<3>(argc, argv);
+        MinMaxMean<3>(argc, argv);
         }
       else
         {
@@ -10961,6 +11302,14 @@ private:
         {
         ConvertLandmarkFile<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "TimeSeriesDisassemble") == 0 )
+        {
+        TimeSeriesDisassemble<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TimeSeriesAssemble") == 0 )
+        {
+        TimeSeriesAssemble<4>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "TimeSeriesSubset") == 0 )
         {
         TimeSeriesSubset<4>(argc, argv);
@@ -10993,6 +11342,10 @@ private:
         {
         MajorityVoting<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MostLikely") == 0 )
+        {
+        MostLikely<4>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
         {
         CorrelationVoting<4>(argc, argv);
@@ -11016,6 +11369,10 @@ private:
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
         ImageMetrics<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
+        {
+        MinMaxMean<4>(argc, argv);
         }
       else
         {
