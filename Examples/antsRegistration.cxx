@@ -119,10 +119,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description = std::string( "Collapse initial linear transforms " )
-      + std::string( "to the moving image header.  This should speed up subsequent " )
+      + std::string( "to the fixed image header.  This should speed up subsequent " )
       + std::string( "nonlinear transform optimizations." );
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "collapse-linear-transforms-to-moving-image-header" );
+    option->SetLongName( "collapse-linear-transforms-to-fixed-image-header" );
     option->SetShortName( 'b' );
     option->SetUsageOption( 0, "(1)/0" );
     option->SetDescription( description );
@@ -431,14 +431,14 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   OptionType::Pointer collapseLinearTransforms =
-    parser->GetOption( "collapse-linear-transforms-to-moving-image-header" );
+    parser->GetOption( "collapse-linear-transforms-to-fixed-image-header" );
   if( parser->Convert<bool>( collapseLinearTransforms->GetValue( 0 ) ) )
     {
-    regHelper->SetApplyLinearTransformsToMovingImageHeader( true );
+    regHelper->SetApplyLinearTransformsToFixedImageHeader( true );
     }
   else
     {
-    regHelper->SetApplyLinearTransformsToMovingImageHeader( false );
+    regHelper->SetApplyLinearTransformsToFixedImageHeader( false );
     }
 
   std::string outputPrefix = outputOption->GetValue( 0 );

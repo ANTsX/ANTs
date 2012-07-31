@@ -242,9 +242,9 @@ RegistrationHelper<VImageDimension>
   m_LowerQuantile( 0.0 ),
   m_UpperQuantile( 1.0 ),
   m_LogStream( &::ants::antscout ),
-  m_ApplyLinearTransformsToMovingImageHeader( true ),
+  m_ApplyLinearTransformsToFixedImageHeader( true ),
   m_AllPreviousTransformsAreLinear( true ),
-  m_CompositeLinearTransformForMovingImageHeader( NULL )
+  m_CompositeLinearTransformForFixedImageHeader( NULL )
 {
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
   typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
@@ -840,9 +840,9 @@ RegistrationHelper<VImageDimension>
     {
     this->m_CompositeTransform = CompositeTransformType::New();
     }
-  if( this->m_CompositeLinearTransformForMovingImageHeader.IsNull() )
+  if( this->m_CompositeLinearTransformForFixedImageHeader.IsNull() )
     {
-    this->m_CompositeLinearTransformForMovingImageHeader = CompositeTransformType::New();
+    this->m_CompositeLinearTransformForFixedImageHeader = CompositeTransformType::New();
     }
   if( this->m_FixedInitialTransform.IsNull() )
     {
@@ -900,17 +900,18 @@ RegistrationHelper<VImageDimension>
                                     NULL );
       }
 
-    if( this->m_ApplyLinearTransformsToMovingImageHeader )
+    if( this->m_ApplyLinearTransformsToFixedImageHeader )
       {
-      this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
-                                                        dynamic_cast<ImageBaseType *>( preprocessMovingImage.GetPointer() ) );
+      this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
+                                                        dynamic_cast<ImageBaseType *>( preprocessFixedImage.GetPointer() ),
+                                                        false );
 
-      if( this->m_MovingImageMask.IsNotNull() )
+      if( this->m_FixedImageMask.IsNotNull() )
         {
-        this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
+        this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
                                                           dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
-                                                                                           this->m_MovingImageMask->
-                                                                                           GetImage() ) ) );
+                                                                                           this->m_FixedImageMask->
+                                                                                           GetImage() ) ), false );
         }
       }
 
@@ -1159,7 +1160,7 @@ RegistrationHelper<VImageDimension>
 
         typedef antsRegistrationCommandIterationUpdate<AffineRegistrationType> AffineCommandType;
         typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
-        affineObserver->SetLogStream(*this->m_LogStream);
+        affineObserver->SetLogStream( *this->m_LogStream );
         affineObserver->SetNumberOfIterations( currentStageIterations );
 
         affineRegistration->AddObserver( itk::IterationEvent(), affineObserver );
@@ -1178,11 +1179,11 @@ RegistrationHelper<VImageDimension>
           }
 
         // Add calculated transform to the composite transform or add it to the composite transform
-        // which is incorporated into the moving image header.
-        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+        // which is incorporated into the fixed image header.
+        if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<AffineTransformType *>(
-                                                                                affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<AffineTransformType *>(
+                                                                               affineRegistration->GetOutput()->Get() ) );
           }
         else
           {
@@ -1238,11 +1239,11 @@ RegistrationHelper<VImageDimension>
           }
 
         // Add calculated transform to the composite transform or add it to the composite transform
-        // which is incorporated into the moving image header.
-        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+        // which is incorporated into the fixed image header.
+        if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<RigidTransformType *>(
-                                                                                rigidRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<RigidTransformType *>(
+                                                                               rigidRegistration->GetOutput()->Get() ) );
           }
         else
           {
@@ -1299,11 +1300,11 @@ RegistrationHelper<VImageDimension>
           }
 
         // Add calculated transform to the composite transform or add it to the composite transform
-        // which is incorporated into the moving image header.
-        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+        // which is incorporated into the fixed image header.
+        if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<CompositeAffineTransformType *>(
-                                                                                affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<CompositeAffineTransformType *>(
+                                                                               affineRegistration->GetOutput()->Get() ) );
           }
         else
           {
@@ -1360,12 +1361,12 @@ RegistrationHelper<VImageDimension>
           }
 
         // Add calculated transform to the composite transform or add it to the composite transform
-        // which is incorporated into the moving image header.
-        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+        // which is incorporated into the fixed image header.
+        if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<SimilarityTransformType *>(
-                                                                                similarityRegistration->GetOutput()->
-                                                                                Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<SimilarityTransformType *>(
+                                                                               similarityRegistration->GetOutput()->
+                                                                               Get() ) );
           }
         else
           {
@@ -1422,12 +1423,12 @@ RegistrationHelper<VImageDimension>
           }
 
         // Add calculated transform to the composite transform or add it to the composite transform
-        // which is incorporated into the moving image header.
-        if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
+        // which is incorporated into the fixed image header.
+        if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<TranslationTransformType *>(
-                                                                                translationRegistration->GetOutput()->
-                                                                                Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<TranslationTransformType *>(
+                                                                               translationRegistration->GetOutput()->
+                                                                               Get() ) );
           }
         else
           {
@@ -2692,12 +2693,15 @@ RegistrationHelper<VImageDimension>
     this->Logger() << "  Elapsed time (stage " << stageNumber << "): " << timer.GetMean() << std::endl << std::endl;
     }
 
-  if( this->m_ApplyLinearTransformsToMovingImageHeader &&
-      this->m_CompositeLinearTransformForMovingImageHeader->GetNumberOfTransforms() > 0 )
+  if( this->m_ApplyLinearTransformsToFixedImageHeader &&
+      this->m_CompositeLinearTransformForFixedImageHeader->GetNumberOfTransforms() > 0 )
     {
-    this->m_CompositeTransform->PrependTransform( this->m_CompositeLinearTransformForMovingImageHeader );
+    this->m_CompositeTransform->PrependTransform( this->m_CompositeLinearTransformForFixedImageHeader );
     this->m_CompositeTransform->FlattenTransformQueue();
     }
+
+  std::cout << "Composite Transform:" << std::endl;
+  this->m_CompositeTransform->Print( std::cout, 10 );
 
   totalTimer.Stop();
   this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
@@ -2720,31 +2724,14 @@ RegistrationHelper<VImageDimension>
   if( compXfrm.IsNotNull() )
     {
     compToAdd = compXfrm->Clone();
-
-    if( this->m_ApplyLinearTransformsToMovingImageHeader && compXfrm->IsLinear() )
-      {
-      this->m_CompositeLinearTransformForMovingImageHeader = compToAdd;
-      }
-    else
-      {
-      this->m_CompositeTransform = compToAdd;
-      this->m_AllPreviousTransformsAreLinear = false;
-      }
+    this->m_CompositeTransform = compToAdd;
     }
   else
     {
     compToAdd = CompositeTransformType::New();
     typename TransformType::Pointer xfrm = initialTransform->Clone();
     compToAdd->AddTransform( xfrm );
-    if( this->m_ApplyLinearTransformsToMovingImageHeader && initialTransform->IsLinear() )
-      {
-      this->m_CompositeLinearTransformForMovingImageHeader = compToAdd;
-      }
-    else
-      {
-      this->m_CompositeTransform = compToAdd;
-      this->m_AllPreviousTransformsAreLinear = false;
-      }
+    this->m_CompositeTransform = compToAdd;
     }
 }
 
@@ -2760,20 +2747,39 @@ RegistrationHelper<VImageDimension>
   if( compXfrm.IsNotNull() )
     {
     compToAdd = compXfrm->Clone();
+
+    if( this->m_ApplyLinearTransformsToFixedImageHeader && compXfrm->IsLinear() )
+      {
+      this->m_CompositeLinearTransformForFixedImageHeader = compToAdd;
+      }
+    else
+      {
+      this->m_FixedInitialTransform = compToAdd;
+      this->m_AllPreviousTransformsAreLinear = false;
+      }
     }
   else
     {
     compToAdd = CompositeTransformType::New();
     typename TransformType::Pointer xfrm = initialTransform->Clone();
     compToAdd->AddTransform( xfrm );
+    if( this->m_ApplyLinearTransformsToFixedImageHeader && initialTransform->IsLinear() )
+      {
+      this->m_CompositeLinearTransformForFixedImageHeader = compToAdd;
+      }
+    else
+      {
+      this->m_FixedInitialTransform = compToAdd;
+      this->m_AllPreviousTransformsAreLinear = false;
+      }
     }
-  this->m_FixedInitialTransform = compToAdd;
 }
 
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform, ImageBaseType * image )
+::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform, ImageBaseType * image,
+                                              bool applyInverse )
 {
   if( !compositeTransform->IsLinear() )
     {
@@ -2808,26 +2814,44 @@ RegistrationHelper<VImageDimension>
     }
 
   typename ImageType::PointType origin = image->GetOrigin();
+  typename ImageType::DirectionType direction = image->GetDirection();
 
   typename MatrixOffsetTransformBaseType::Pointer imageTransform = MatrixOffsetTransformBaseType::New();
-  imageTransform->SetMatrix( image->GetDirection() );
+  imageTransform->SetMatrix( direction );
   imageTransform->SetOffset( origin.GetVectorFromOrigin() );
-  typename MatrixOffsetTransformBaseType::Pointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
-  inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->GetInverseTransform()
-                                                                                   .GetPointer() )->GetMatrix() );
-  inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
 
-  totalTransform->Compose( inverseImageTransform, false );
-
-  typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix =
-    dynamic_cast<MatrixOffsetTransformBaseType *>( totalTransform->GetInverseTransform().GetPointer() )->GetMatrix();
-  typename MatrixOffsetTransformBaseType::OffsetType inverseOffset = -( inverseMatrix * totalTransform->GetOffset() );
-  for( unsigned int d = 0; d < VImageDimension; d++ )
+  if( applyInverse )
     {
-    origin[d] = inverseOffset[d];
+    typename MatrixOffsetTransformBaseType::Pointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
+    inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->GetInverseTransform()
+                                                                                     .GetPointer() )->GetMatrix() );
+    inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
+
+    totalTransform->Compose( inverseImageTransform, false );
+
+    typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix =
+      dynamic_cast<MatrixOffsetTransformBaseType *>( totalTransform->GetInverseTransform().GetPointer() )->GetMatrix();
+    typename MatrixOffsetTransformBaseType::OffsetType inverseOffset = -( inverseMatrix * totalTransform->GetOffset() );
+    for( unsigned int d = 0; d < VImageDimension; d++ )
+      {
+      origin[d] = inverseOffset[d];
+      }
+    direction = inverseMatrix;
+    }
+  else
+    {
+    totalTransform->Compose( imageTransform, true );
+
+    typename MatrixOffsetTransformBaseType::MatrixType matrix = totalTransform->GetMatrix();
+    typename MatrixOffsetTransformBaseType::OffsetType offset = totalTransform->GetOffset();
+    for( unsigned int d = 0; d < VImageDimension; d++ )
+      {
+      origin[d] = offset[d];
+      }
+    direction = matrix;
     }
 
-  image->SetDirection( inverseMatrix );
+  image->SetDirection( direction );
   image->SetOrigin( origin );
 }
 

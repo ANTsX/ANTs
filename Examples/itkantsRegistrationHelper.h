@@ -437,12 +437,12 @@ public:
   itkBooleanMacro( DoEstimateLearningRateAtEachIteration );
 
   /**
-   * turn on the option that pushes initial linear transforms to the moving
+   * turn on the option that pushes initial linear transforms to the fixed
    * image header for faster processing
    */
-  itkSetMacro( ApplyLinearTransformsToMovingImageHeader, bool );
-  itkGetConstMacro( ApplyLinearTransformsToMovingImageHeader, bool );
-  itkBooleanMacro( ApplyLinearTransformsToMovingImageHeader );
+  itkSetMacro( ApplyLinearTransformsToFixedImageHeader, bool );
+  itkGetConstMacro( ApplyLinearTransformsToFixedImageHeader, bool );
+  itkBooleanMacro( ApplyLinearTransformsToFixedImageHeader );
 
   /**
    * turn on winsorize image intensity normalization
@@ -533,11 +533,11 @@ private:
   double                                  m_UpperQuantile;
   std::ostream *                          m_LogStream;
 
-  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * );
+  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType *, bool );
 
-  bool m_ApplyLinearTransformsToMovingImageHeader;
+  bool m_ApplyLinearTransformsToFixedImageHeader;
   bool m_AllPreviousTransformsAreLinear;
-  typename CompositeTransformType::Pointer m_CompositeLinearTransformForMovingImageHeader;
+  typename CompositeTransformType::Pointer m_CompositeLinearTransformForFixedImageHeader;
 };
 
 // ##########################################################################
