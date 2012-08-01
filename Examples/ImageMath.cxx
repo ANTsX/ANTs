@@ -463,6 +463,62 @@ int ExtractSlice(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int Finite(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
+  float replaceValue = 0.0;
+  if( argc > 4 )
+    {
+    replaceValue = atof( argv[4] );
+    }
+
+  typename ImageType::Pointer image1 = NULL;
+  typename readertype::Pointer reader1 = readertype::New();
+  reader1->SetFileName(fn1.c_str() );
+  reader1->UpdateLargestPossibleRegion();
+  try
+    {
+    image1 = reader1->GetOutput();
+    }
+  catch( ... )
+    {
+    antscout << " read 1 error ";
+    }
+
+  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  Iterator vfIter2( image1,  image1->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    float val = vfIter2.Get();
+    if( val != val )
+      {
+      vfIter2.Set( replaceValue );
+      }
+    }
+
+  WriteImage<ImageType>(image1, outname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int ThresholdAtMean(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
@@ -9497,47 +9553,46 @@ int MostLikely( int argc, char *argv[] )
     }
 
   std::string outputName = std::string( argv[2] );
-
-  // Read input segmentations
-  const unsigned long                      nImages = argc - 4;
-  std::vector<typename ImageType::Pointer> images(argc - 4, NULL);
-  for( int i = 4; i < argc; i++ )
-    {
-    images[i - 4] = ImageType::New();
-    ReadImage<ImageType>( images[i - 4], argv[i] );
-    }
+  float       sigma = atof( argv[4] );
 
   typename LabeledImageType::Pointer output = LabeledImageType::New();
-  output->SetRegions( images[0]->GetLargestPossibleRegion() );
-  output->SetSpacing( images[0]->GetSpacing() );
-  output->SetOrigin( images[0]->GetOrigin() );
-  output->SetDirection( images[0]->GetDirection() );
-  output->Allocate();
-  output->FillBuffer( 0 );
-
-  IteratorType              it( output, output->GetLargestPossibleRegion() );
-  itk::Array<unsigned long> votes;
-  votes.SetSize( nImages );
-
-  while( !it.IsAtEnd() )
+  typename ImageType::Pointer prob = ImageType::New();
+  // Read input segmentations
+  for( int i = 5; i < argc; i++ )
     {
-    votes.Fill(0);
-    float         maxVotes = 0.0;
-    unsigned long votedLabel = 0;
-    for( unsigned long i = 0; i < nImages; i++ )
-      {
-      unsigned long label = images[i]->GetPixel( it.GetIndex() );
-      votes.SetElement(label, votes.GetElement(label) + 1 );
+    typename ImageType::Pointer iLabel = ImageType::New();
+    ReadImage<ImageType>( iLabel, argv[i] );
 
-      if( votes.GetElement(label) > maxVotes )
-        {
-        maxVotes = votes.GetElement(label);
-        votedLabel = i;
-        }
+    if( i == 5 )
+      {
+      output->SetRegions( iLabel->GetLargestPossibleRegion() );
+      output->SetSpacing( iLabel->GetSpacing() );
+      output->SetOrigin( iLabel->GetOrigin() );
+      output->SetDirection( iLabel->GetDirection() );
+      output->Allocate();
+      output->FillBuffer( 0 );
+
+      prob->SetRegions( iLabel->GetLargestPossibleRegion() );
+      prob->SetSpacing( iLabel->GetSpacing() );
+      prob->SetOrigin( iLabel->GetOrigin() );
+      prob->SetDirection( iLabel->GetDirection() );
+      prob->Allocate();
+      prob->FillBuffer( 0 );
       }
 
-    it.Set( votedLabel );
-    ++it;
+    IteratorType it( output, output->GetLargestPossibleRegion() );
+
+    while( !it.IsAtEnd() )
+      {
+      if( ( iLabel->GetPixel( it.GetIndex() ) > sigma ) &&
+          ( iLabel->GetPixel( it.GetIndex() ) > prob->GetPixel( it.GetIndex() ) ) )
+        {
+        prob->SetPixel( it.GetIndex(), iLabel->GetPixel( it.GetIndex() ) );
+        output->SetPixel( it.GetIndex(), i - 4 );
+        }
+
+      ++it;
+      }
     }
 
   WriteImage<LabeledImageType>( output, outputName.c_str() );
@@ -9563,22 +9618,47 @@ int STAPLE( int argc, char *argv[] )
 
   std::string outputName = std::string( argv[2] );
   typename StapleFilterType::Pointer stapler = StapleFilterType::New();
+  std::string::size_type idx;
+  idx = outputName.find_first_of('.');
+  std::string tempname = outputName.substr(0, idx);
+  std::string extension = outputName.substr(idx, outputName.length() );
+  float       confidence = atof( argv[4] ); // = 0.5
 
-  int   foreground = atoi( argv[4] );
-  float confidence = atof( argv[5] );
+  // stapler->SetForegroundValue( foreground );
+  stapler->SetConfidenceWeight( confidence );
 
   // Read input segmentations
-  std::vector<typename ImageType::Pointer> images(argc - 6, NULL);
-  for( int i = 6; i < argc; i++ )
+  typename ImageType::Pointer images[argc - 5];
+  typename CalculatorType::Pointer calc = CalculatorType::New();
+  int maxLabel = 0;
+  for( int i = 5; i < argc; i++ )
     {
-    images[i - 6] = ImageType::New();
-    ReadImage<ImageType>( images[i - 6], argv[i] );
-    stapler->SetInput( i - 6, images[i - 6] );
-    stapler->SetForegroundValue( foreground );
-    stapler->SetConfidenceWeight( confidence );
+    images[i - 5] = ImageType::New();
+    ReadImage<ImageType>( images[i - 5], argv[i] );
+    stapler->SetInput( i - 5, images[i - 5] );
+    antscout << "Input image " << i - 5 << " " << argv[i] << std::endl;
+
+    calc->SetImage( images[i - 5] );
+    calc->ComputeMaximum();
+    if( calc->GetMaximum() > maxLabel )
+      {
+      maxLabel = calc->GetMaximum();
+      }
     }
 
-  WriteImage<OutputImageType>( stapler->GetOutput(), outputName.c_str() );
+  antscout << "Examining " << maxLabel << " labels" << std::endl;
+  for( int label = 1; label <= maxLabel; label++ )
+    {
+    std::stringstream out;
+    char              num[5];
+    sprintf( num, "%04d", label );
+
+    std::string oname = tempname + num + extension;
+    stapler->SetForegroundValue( label );
+    stapler->Update();
+    WriteImage<OutputImageType>( stapler->GetOutput(), oname.c_str() );
+    }
+
   return 0;
 }
 
@@ -10263,6 +10343,9 @@ private:
     antscout << "                Default of parameter > 1 will fill all holes" << std::endl;
     antscout << "      Usage        : FillHoles Image.ext parameter" << std::endl;
 
+    antscout << "  Finite            : replace non-finite values with finite-value (default = 0)" << std::endl;
+    antscout << "      Usage        : Finite Image.exdt {replace-value=0}" << std::endl;
+
     antscout << "\n  FitSphere        : " << std::endl;
     antscout << "      Usage        : FitSphere GM-ImageIn {WM-Image} {MaxRad-Default=5}" << std::endl;
 
@@ -10554,6 +10637,10 @@ private:
       else if( strcmp(operation.c_str(), "Where") == 0 )
         {
         Where<2>(argc, argv);
+        }
+      else if( strcmp( operation.c_str(), "Finite") == 0 )
+        {
+        Finite<2>( argc, argv );
         }
       else if( strcmp(operation.c_str(), "FillHoles") == 0 )
         {
@@ -10902,6 +10989,10 @@ private:
         {
         TensorFunctions<3>(argc, argv);
         }
+      else if( strcmp( operation.c_str(), "Finite") == 0 )
+        {
+        Finite<3>( argc, argv );
+        }
       else if( strcmp(operation.c_str(), "FillHoles") == 0 )
         {
         FillHoles<3>(argc, argv);
@@ -11216,7 +11307,12 @@ private:
       // else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<4>(argc,argv);
       // else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<4>(argc,argv);
       // else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorToVectorComponent") == 0) TensorFunctions<4>(argc,argv);
+      // else if (strcmp(operation.c_str(),"TensorToVectorComponent")
+      // == 0) TensorFunctions<4>(argc,argv);
+      else if( strcmp( operation.c_str(), "Finite") == 0 )
+        {
+        Finite<4>( argc, argv );
+        }
       else if( strcmp(operation.c_str(), "FillHoles") == 0 )
         {
         FillHoles<4>(argc, argv);
