@@ -319,6 +319,8 @@ public:
   RealType SparseConjGradRidgeRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit,
                                           unsigned int, bool );
 
+  RealType IHTRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int );
+
   RealType MatchingPursuit( MatrixType& A, VectorType& x_k, RealType convcrit, unsigned int );
 
   RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
@@ -913,6 +915,7 @@ private:
   VectorType                 m_OriginalB;
   vnl_diag_matrix<RealType>  m_Indicator;
   vnl_diag_matrix<TRealType> m_PreC; // preconditioning
+  RealType                   m_GSBestSol;
 };
 } // namespace ants
 } // namespace itk
