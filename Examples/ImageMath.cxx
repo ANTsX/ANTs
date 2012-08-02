@@ -1804,17 +1804,24 @@ int TimeSeriesDisassemble(int argc, char *argv[])
 
   unsigned int n_sub_vols = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   antscout << " Extract " << n_sub_vols << " subvolumes " << std::endl;
-  std::string::size_type idx;
-  idx = outname.find_first_of('.');
-  std::string tempname = outname.substr(0, idx);
-  std::string extension = outname.substr(idx, outname.length() );
+
+  // Extract filename while allowing directory names with '.' in them
+  // (cluster temp dirs)
+  std::string::size_type idx = outname.find_last_of('/');
+  std::string            dirname = outname.substr(0, idx + 1);
+  std::string            filename = outname.substr(idx + 1);
+  std::string::size_type idx2 = filename.find_first_of('.');
+  std::string            tempname = filename.substr(0, idx2);
+  std::string            extension = filename.substr(idx2);
   for( unsigned int i = 0; i < n_sub_vols; i++ )
     {
     std::string       s;
     std::stringstream out;
     out << (100 + i);
     s = out.str();
-    std::string kname = tempname + s + extension;
+    std::string kname = dirname + tempname + s + extension;
+    antscout << kname << std::endl;
+
     typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
     extractRegion.SetSize(ImageDimension - 1, 0);
     extractRegion.SetIndex(ImageDimension - 1, i );
@@ -1826,7 +1833,7 @@ int TimeSeriesDisassemble(int argc, char *argv[])
     extractFilter->Update();
     outimage = extractFilter->GetOutput();
     outimage->SetOrigin( outOrigin );
-    WriteImage<OutImageType>(outimage, kname.c_str() );
+    // WriteImage<OutImageType>(outimage, kname.c_str() );
     }
 
   return 0;
@@ -1970,6 +1977,7 @@ int TimeSeriesSubset(int argc, char *argv[])
     }
   else
     {
+    antscout << "Failed to read input image" << std::endl;
     return 1;
     }
 
