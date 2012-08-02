@@ -1833,7 +1833,7 @@ int TimeSeriesDisassemble(int argc, char *argv[])
     extractFilter->Update();
     outimage = extractFilter->GetOutput();
     outimage->SetOrigin( outOrigin );
-    // WriteImage<OutImageType>(outimage, kname.c_str() );
+    WriteImage<OutImageType>(outimage, kname.c_str() );
     }
 
   return 0;
