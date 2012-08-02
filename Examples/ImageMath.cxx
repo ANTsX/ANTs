@@ -1820,7 +1820,6 @@ int TimeSeriesDisassemble(int argc, char *argv[])
     out << (100 + i);
     s = out.str();
     std::string kname = dirname + tempname + s + extension;
-    antscout << kname << std::endl;
 
     typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
     extractRegion.SetSize(ImageDimension - 1, 0);
