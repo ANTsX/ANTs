@@ -157,4 +157,6 @@
 
 #include "WarpVTKPolyDataMultiTransform.h"
 
+#include "ConvertTransformFile.h"
+
 #endif // ants_h
