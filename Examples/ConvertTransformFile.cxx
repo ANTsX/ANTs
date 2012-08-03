@@ -27,6 +27,7 @@
 #include <fstream>
 #include <stdio.h>
 
+#include "itkAffineTransform.h"
 #include "itkantsReadWriteTransform.h"
 
 /* Utility to read in a transform file (presumed to be in binary format) and output
@@ -38,56 +39,6 @@
 namespace ants
 {
 using namespace std;
-
-template <unsigned int ImageDimension>
-int ConvertTransformFile(std::string inputFilename, std::string outFilename, bool outputMatrixOnly)
-{
-  typedef itk::Transform<double, ImageDimension, ImageDimension> TransformType;
-  typename TransformType::Pointer transform;
-  transform = itk::ants::ReadTransform<ImageDimension>( inputFilename );
-  if( transform.IsNull() )
-    {
-    antscout << "Error while reading transform file. " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  if( outputMatrixOnly )
-    {
-    typedef itk::MatrixOffsetTransformBase<typename TransformType::ScalarType, ImageDimension,
-                                           ImageDimension> OffsetType;
-    typename OffsetType::Pointer matrixOffsetTransform = dynamic_cast<OffsetType *>(transform.GetPointer() );
-    if( matrixOffsetTransform.IsNull() )
-      {
-      antscout << "The transfrom read from file is not derived from MatrixOffsetTransformBase. Cannot output matrix."
-               << std::endl;
-      return EXIT_FAILURE;
-      }
-    typename OffsetType::MatrixType matrix = matrixOffsetTransform->GetMatrix();
-
-    std::ofstream outputStream;
-    outputStream.open(outFilename.c_str(), std::ios::out);
-    if( outputStream.fail() )
-      {
-      outputStream.close();
-      antscout << "Failed opening the output file " << outFilename << std::endl;
-      return EXIT_FAILURE;
-      }
-    outputStream << matrix << std::endl;
-    outputStream.close();
-    }
-  else
-    {
-    // Write it out as a text file using the legacy txt transform format
-    int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
-    if( result == EXIT_FAILURE )
-      {
-      antscout << "Failed writing transform to text format." << std::endl;
-      return EXIT_FAILURE;
-      }
-    }
-
-  return EXIT_SUCCESS;
-}
 
 bool FileExists(string strFilename)
 {
@@ -115,6 +66,167 @@ bool FileExists(string strFilename)
     }
 
   return blnReturn;
+}
+
+template <unsigned int ImageDimension>
+int ConvertTransformFile(int argc, char* argv[])
+{
+  int  inputFilenamePos = 2;
+  int  outFilenamePos = 3;
+  bool outputMatrix = false;
+  bool outputHomogeneousMatrix = false;
+  bool outputAffine = false;
+
+  // User option
+  if( argc > 4 )
+    {
+    if( strcmp(argv[4], "--matrix") == 0 || strcmp(argv[4], "-m") == 0 )
+      {
+      // User has requested outputting matrix information only.
+      outputMatrix = true;
+      }
+    else if( strcmp(argv[4], "--homogeneousMatrix") == 0 || strcmp(argv[4], "--hm") == 0 )
+      {
+      // User has requested outputting homogeneous matrix information only.
+      outputHomogeneousMatrix = true;
+      }
+    else if( strcmp(argv[4], "--convertToAffineType") == 0 )
+      {
+      outputAffine = true;
+      }
+    else
+      {
+      antscout << "Unrecognized option: " << argv[4] << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  // Check the filename
+  std::string inputFilename = std::string( argv[inputFilenamePos] );
+  if( !FileExists(inputFilename) )
+    {
+    antscout << " file " << inputFilename << " does not exist . " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  // Get the output filename
+  std::string outFilename = std::string( argv[outFilenamePos] );
+
+  // Read the transform
+  typedef itk::Transform<double, ImageDimension, ImageDimension> TransformType;
+  typename TransformType::Pointer transform;
+  transform = itk::ants::ReadTransform<ImageDimension>( inputFilename );
+  if( transform.IsNull() )
+    {
+    antscout << "Error while reading transform file. " << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  //
+  // Outputs
+  //
+  typedef itk::MatrixOffsetTransformBase<typename TransformType::ScalarType, ImageDimension,
+                                         ImageDimension> OffsetTransformType;
+  typename OffsetTransformType::Pointer matrixOffsetTransform =
+    dynamic_cast<OffsetTransformType *>(transform.GetPointer() );
+
+  if( outputMatrix || outputHomogeneousMatrix )
+    {
+    if( matrixOffsetTransform.IsNull() )
+      {
+      antscout << "The transfrom read from file is not derived from MatrixOffsetTransformBase. Cannot output matrix."
+               << std::endl;
+      return EXIT_FAILURE;
+      }
+    typename OffsetTransformType::MatrixType matrix = matrixOffsetTransform->GetMatrix();
+
+    std::ofstream outputStream;
+    outputStream.open(outFilename.c_str(), std::ios::out);
+    if( outputStream.fail() )
+      {
+      outputStream.close();
+      antscout << "Failed opening the output file " << outFilename << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    if( outputMatrix )
+      {
+      outputStream << matrix;
+      }
+    else
+      {
+      // Homogeneous matrix
+      typename OffsetTransformType::OutputVectorType offset = matrixOffsetTransform->GetOffset();
+      itk::Matrix<typename OffsetTransformType::ScalarType, ImageDimension + 1, ImageDimension + 1> hMatrix;
+      hMatrix.Fill( itk::NumericTraits<typename OffsetTransformType::ScalarType>::Zero );
+      unsigned int corner = ImageDimension;
+      hMatrix(corner, corner) = itk::NumericTraits<typename OffsetTransformType::ScalarType>::One;
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        for( unsigned int j = 0; j < ImageDimension; j++ )
+          {
+          hMatrix(i, j) = matrix(i, j);
+          }
+        hMatrix(i, ImageDimension) = offset[i];
+        }
+      outputStream << hMatrix;
+      }
+    outputStream.close();
+    }
+  else
+    {
+    if( outputAffine )
+      {
+      // Convert to Affine and output as binary
+      if( matrixOffsetTransform.IsNull() )
+        {
+        antscout
+          << "The transfrom read from file is not derived from MatrixOffsetTransformBase. Cannot convert to Affine."
+          << std::endl;
+        return EXIT_FAILURE;
+        }
+      if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".mat" )
+        {
+        antscout << "Output filename '" << outFilename << "' must end in '.mat' for binary output." << std::endl;
+        return EXIT_FAILURE;
+        }
+      typedef itk::AffineTransform<typename TransformType::ScalarType, ImageDimension> AffineTransformType;
+      typename AffineTransformType::Pointer newAffineTransform = AffineTransformType::New();
+      newAffineTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
+      newAffineTransform->SetOffset( matrixOffsetTransform->GetOffset() );
+      transform = dynamic_cast<TransformType *>(newAffineTransform.GetPointer() );
+      if( transform.IsNull() )
+        {
+        antscout << "Unexpected error casting from affine transform to transform type." << std::endl;
+        return EXIT_FAILURE;
+        }
+      int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
+      if( result == EXIT_FAILURE )
+        {
+        antscout << "Failed writing converted transform to binary format." << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    else
+      {
+      // Write it out as a text file using the legacy txt transform format
+      if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".txt" &&
+          itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".tfm" )
+        {
+        antscout << "Output filename '" << outFilename << "' must end in '.txt' or '.tfm' for text-format output."
+                 << std::endl;
+        return EXIT_FAILURE;
+        }
+      int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
+      if( result == EXIT_FAILURE )
+        {
+        antscout << "Failed writing transform to text format." << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+    }
+
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -166,81 +278,68 @@ private:
 
   if( argc < 4  || ( strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0 ) )
     {
-    antscout << " Utility to read in a transform file (presumed to be in binary format) " << std::endl
-             << " and output it in legacy text format for human reading. " << std::endl
-             << " The option '--matrix' will instead output only the transform matrix " << std::endl
-             << " to a text file, one row per line with space-delimited values. " << std::endl
-             << " This option works only for transforms of type MatrixOffsetTranformBase or derived." << std::endl
+    antscout << "USAGE:  " << std::endl
+             << " " << argv[0] << " dimensions inputTransfromFile.ext outputTransformFile.ext [One of OPTIONS]"
+             << std::endl
              << std::endl;
-    antscout << "Usage:  " << argv[0]
-             << " dimensions inputTransfromFile.ext outputTransformFile['.txt'|'.tfm'] [--matrix | -m] " << std::endl;
+    antscout << "COMMAND: " << std::endl
+             << " Utility to read in a transform file (presumed to be in binary format) " << std::endl
+             << " and output it in various formats. Default output is legacy human-readable text format. " << std::endl
+             << " Without any options, the output filename extension must be .txt or .tfm to " << std::endl
+             << " signify a text-formatted transform file. " << std::endl
+             << std::endl
+             << " OPTIONS: " << std::endl
+             << std::endl
+             << " --matrix, -m " << std::endl
+             << "   Output only the transform matrix (from transform::GetMatrix() )" << std::endl
+             << "   to a text file, one row per line with space-delimited values. " << std::endl
+             << "   This option works only for transforms of type MatrixOffsetTranformBase or derived." << std::endl
+             << std::endl
+             << " --homogeneousMatrix, --hm" << std::endl
+             << "   Output an N+1 square homogeneous matrix from the transform matrix and offset. " << std::endl
+             << "   This option works only for transforms of type MatrixOffsetTranformBase or derived." << std::endl
+             << std::endl
+             << " --convertToAffineType" << std::endl
+             << "   Convert the input transform type to AffineTransform using the transform's " << std::endl
+             << "   matrix and offset, and output again as " << std::endl
+             << "   as a binary transform file. This is useful for using transforms in programs that" << std::endl
+             << "   do not register all available Transform factory types." << std::endl
+             << std::endl;
     if( argc < 4 )
       {
       return EXIT_FAILURE;
       }
     return EXIT_SUCCESS;
     }
-
-  int  dimensionPos = 1;
-  int  inputFilenamePos = 2;
-  int  outFilenamePos = 3;
-  bool outputMatrixOnly = false;
-
-  // User option
-  if( argc > 4 )
+  if( argc > 5 )
     {
-    if( strcmp(argv[4], "--matrix") == 0 || strcmp(argv[4], "-m") == 0 )
-      {
-      // User has requested outputting matrix information only.
-      outputMatrixOnly = true;
-      }
-    else
-      {
-      antscout << "Unrecognized option: " << argv[4] << std::endl;
-      return EXIT_FAILURE;
-      }
+    antscout << "Only one option is allowed at a time." << std::endl;
+    return EXIT_FAILURE;
     }
 
   // Get the image dimension
-  unsigned int dimension = atoi( argv[dimensionPos] );
-
-  // Check the filename
-  std::string inputFilename = std::string( argv[inputFilenamePos] );
-  if( !FileExists(inputFilename) )
-    {
-    antscout << " file " << inputFilename << " does not exist . " << std::endl;
-    return EXIT_FAILURE;
-    }
-
-  // Check the output filename
-  std::string outFilename = std::string( argv[outFilenamePos] );
-  if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".txt" &&
-      itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".tfm" )
-    {
-    antscout << "Output filename '" << outFilename << "' must end in '.txt' or '.tfm' " << std::endl;
-    return EXIT_FAILURE;
-    }
+  unsigned int dimension = atoi( argv[1] );
 
   switch( dimension )
     {
     case 1:
       {
-      ConvertTransformFile<1>(inputFilename, outFilename, outputMatrixOnly);
+      return ConvertTransformFile<1>(argc, argv);
       }
       break;
     case 2:
       {
-      ConvertTransformFile<2>(inputFilename, outFilename, outputMatrixOnly);
+      return ConvertTransformFile<2>(argc, argv);
       }
       break;
     case 3:
       {
-      ConvertTransformFile<3>(inputFilename, outFilename, outputMatrixOnly);
+      return ConvertTransformFile<3>(argc, argv);
       }
       break;
     case 4:
       {
-      ConvertTransformFile<4>(inputFilename, outFilename, outputMatrixOnly);
+      return ConvertTransformFile<4>(argc, argv);
       }
       break;
     default:
