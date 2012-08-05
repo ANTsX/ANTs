@@ -1760,6 +1760,14 @@ RegistrationHelper<VImageDimension>
           static_cast<typename BSplineRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         bsplineRegistration->SetMetricSamplingPercentage( samplingPercentage );
         bsplineRegistration->SetOptimizer( optimizer );
+        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
+          {
+          bsplineRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
+          }
+        if( this->m_FixedInitialTransform->GetNumberOfTransforms() > 0 )
+          {
+          bsplineRegistration->SetFixedInitialTransform( this->m_FixedInitialTransform );
+          }
         bsplineRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
         outputBSplineTransform->SetTransformDomainOrigin( fixedImage->GetOrigin() );
         outputBSplineTransform->SetTransformDomainPhysicalDimensions( physicalDimensions );
