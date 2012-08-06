@@ -2708,9 +2708,6 @@ RegistrationHelper<VImageDimension>
     this->m_CompositeTransform->FlattenTransformQueue();
     }
 
-  std::cout << "Composite Transform:" << std::endl;
-  this->m_CompositeTransform->Print( std::cout, 10 );
-
   totalTimer.Stop();
   this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
   return EXIT_SUCCESS;
