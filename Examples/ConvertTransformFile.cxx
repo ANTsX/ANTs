@@ -28,18 +28,24 @@
 #include <stdio.h>
 
 #include "itkAffineTransform.h"
+#include "itkTranslationTransform.h"
+#include "itkIdentityTransform.h"
+
 #include "itkantsReadWriteTransform.h"
 
 /* Utility to read in a transform file (presumed to be in binary format) and output
  * it in legacy text format for human reading.
- * The option '--matrix' will instead output only the transform matrix to a text file,
- * one row per line with space-delimited values. This option works only for
- * transform of MatrixOffsetTranformBase or derived. */
+ * The options will instead output only a transform matrix to a text file,
+ * one row per dimension with space-delimited values. This option works only for
+ * transforms of MatrixOffsetTranformBase or derived, Translation and Identity transforms. */
 
 namespace ants
 {
 using namespace std;
 
+/*
+ *
+ */
 bool FileExists(string strFilename)
 {
   struct stat stFileInfo;
@@ -68,6 +74,142 @@ bool FileExists(string strFilename)
   return blnReturn;
 }
 
+/*
+ *
+ */
+template <class TTransform>
+bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransform::MatrixType & matrix )
+{
+  const unsigned int ImageDimension = TTransform::InputSpaceDimension;
+
+  // Matrix-offset derived
+    {
+    typedef itk::MatrixOffsetTransformBase<typename TTransform::ScalarType, ImageDimension,
+                                           ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
+
+    if( castTransform.IsNotNull() )
+      {
+      matrix = castTransform->GetMatrix();
+      return true;
+      }
+    }
+
+  matrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::Zero );
+
+  // Translation
+    {
+    typedef itk::TranslationTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
+
+    if( castTransform.IsNotNull() )
+      {
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::One;
+        }
+      return true;
+      }
+    }
+
+  // Identity
+    {
+    typedef itk::IdentityTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
+
+    if( castTransform.IsNotNull() )
+      {
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::One;
+        }
+      return true;
+      }
+    }
+
+  // Unsupported transform type
+  return false;
+}
+
+/*
+ *
+ */
+template <class TTransform, class TMatrix>
+bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatrix & hMatrix )
+{
+  const unsigned int ImageDimension = TTransform::InputSpaceDimension;
+
+  hMatrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::Zero );
+
+  // Get the NxN matrix
+  typename TTransform::MatrixType matrix;
+  if( !GetMatrix<TTransform>( transform, matrix ) )
+    {
+    return false;
+    }
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    for( unsigned int j = 0; j < ImageDimension; j++ )
+      {
+      hMatrix(i, j) = matrix(i, j);
+      }
+    }
+
+  // Set the lower-right corner to 1
+  unsigned int corner = ImageDimension;
+  hMatrix(corner, corner) = itk::NumericTraits<typename TTransform::ScalarType>::One;
+
+  // Matrix-offset derived
+    {
+    typedef itk::MatrixOffsetTransformBase<typename TTransform::ScalarType, ImageDimension,
+                                           ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
+
+    if( castTransform.IsNotNull() )
+      {
+      typename CastTransformType::OutputVectorType offset = castTransform->GetOffset();
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        hMatrix(i, ImageDimension) = offset[i];
+        }
+      return true;
+      }
+    }
+
+  // Translation
+    {
+    typedef itk::TranslationTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
+
+    if( castTransform.IsNotNull() )
+      {
+      typename CastTransformType::OutputVectorType offset = castTransform->GetOffset();
+      for( unsigned int i = 0; i < ImageDimension; i++ )
+        {
+        hMatrix(i, ImageDimension) = offset[i];
+        }
+      return true;
+      }
+    }
+
+  // Identity
+    {
+    typedef itk::IdentityTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
+
+    if( castTransform.IsNotNull() )
+      {
+      return true;
+      }
+    }
+
+  // Unsupported transform type
+  return false;
+}
+
+/*
+ *
+ */
 template <unsigned int ImageDimension>
 int ConvertTransformFile(int argc, char* argv[])
 {
@@ -125,21 +267,8 @@ int ConvertTransformFile(int argc, char* argv[])
   //
   // Outputs
   //
-  typedef itk::MatrixOffsetTransformBase<typename TransformType::ScalarType, ImageDimension,
-                                         ImageDimension> OffsetTransformType;
-  typename OffsetTransformType::Pointer matrixOffsetTransform =
-    dynamic_cast<OffsetTransformType *>(transform.GetPointer() );
-
   if( outputMatrix || outputHomogeneousMatrix )
     {
-    if( matrixOffsetTransform.IsNull() )
-      {
-      antscout << "The transfrom read from file is not derived from MatrixOffsetTransformBase. Cannot output matrix."
-               << std::endl;
-      return EXIT_FAILURE;
-      }
-    typename OffsetTransformType::MatrixType matrix = matrixOffsetTransform->GetMatrix();
-
     std::ofstream outputStream;
     outputStream.open(outFilename.c_str(), std::ios::out);
     if( outputStream.fail() )
@@ -151,79 +280,94 @@ int ConvertTransformFile(int argc, char* argv[])
 
     if( outputMatrix )
       {
-      outputStream << matrix;
+      typedef itk::Matrix<typename TransformType::ScalarType, ImageDimension, ImageDimension> MatrixType;
+      MatrixType matrix;
+      if( GetMatrix<TransformType>( transform, matrix ) )
+        {
+        outputStream << matrix;
+        }
+      else
+        {
+        antscout << "Error. Transform type is unsupported for getting matrix: " << transform->GetNameOfClass()
+                 << std::endl;
+        return EXIT_FAILURE;
+        }
       }
     else
       {
       // Homogeneous matrix
-      typename OffsetTransformType::OutputVectorType offset = matrixOffsetTransform->GetOffset();
-      itk::Matrix<typename OffsetTransformType::ScalarType, ImageDimension + 1, ImageDimension + 1> hMatrix;
-      hMatrix.Fill( itk::NumericTraits<typename OffsetTransformType::ScalarType>::Zero );
-      unsigned int corner = ImageDimension;
-      hMatrix(corner, corner) = itk::NumericTraits<typename OffsetTransformType::ScalarType>::One;
-      for( unsigned int i = 0; i < ImageDimension; i++ )
+      typedef itk::Matrix<typename TransformType::ScalarType, ImageDimension + 1, ImageDimension + 1> MatrixType;
+      MatrixType hMatrix;
+
+      if( GetHomogeneousMatrix<TransformType, MatrixType>( transform, hMatrix ) )
         {
-        for( unsigned int j = 0; j < ImageDimension; j++ )
-          {
-          hMatrix(i, j) = matrix(i, j);
-          }
-        hMatrix(i, ImageDimension) = offset[i];
+        outputStream << hMatrix;
         }
-      outputStream << hMatrix;
-      }
-    outputStream.close();
-    }
-  else
-    {
-    if( outputAffine )
-      {
-      // Convert to Affine and output as binary
-      if( matrixOffsetTransform.IsNull() )
+      else
         {
-        antscout
-          << "The transfrom read from file is not derived from MatrixOffsetTransformBase. Cannot convert to Affine."
-          << std::endl;
-        return EXIT_FAILURE;
-        }
-      if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".mat" )
-        {
-        antscout << "Output filename '" << outFilename << "' must end in '.mat' for binary output." << std::endl;
-        return EXIT_FAILURE;
-        }
-      typedef itk::AffineTransform<typename TransformType::ScalarType, ImageDimension> AffineTransformType;
-      typename AffineTransformType::Pointer newAffineTransform = AffineTransformType::New();
-      newAffineTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
-      newAffineTransform->SetOffset( matrixOffsetTransform->GetOffset() );
-      transform = dynamic_cast<TransformType *>(newAffineTransform.GetPointer() );
-      if( transform.IsNull() )
-        {
-        antscout << "Unexpected error casting from affine transform to transform type." << std::endl;
-        return EXIT_FAILURE;
-        }
-      int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
-      if( result == EXIT_FAILURE )
-        {
-        antscout << "Failed writing converted transform to binary format." << std::endl;
-        return EXIT_FAILURE;
-        }
-      }
-    else
-      {
-      // Write it out as a text file using the legacy txt transform format
-      if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".txt" &&
-          itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".tfm" )
-        {
-        antscout << "Output filename '" << outFilename << "' must end in '.txt' or '.tfm' for text-format output."
+        antscout << "Error. Transform type is unsupported for getting matrix: " << transform->GetNameOfClass()
                  << std::endl;
         return EXIT_FAILURE;
         }
-      int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
-      if( result == EXIT_FAILURE )
-        {
-        antscout << "Failed writing transform to text format." << std::endl;
-        return EXIT_FAILURE;
-        }
       }
+    outputStream.close();
+    return EXIT_SUCCESS;
+    }
+
+  if( outputAffine )
+    {
+    // Convert to Affine and output as binary.
+    // This is done by taking the matrix and offset from the transform
+    // and assigning them to a new affine transform.
+    typedef itk::MatrixOffsetTransformBase<typename TransformType::ScalarType, ImageDimension,
+                                           ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer matrixOffsetTransform =
+      dynamic_cast<CastTransformType *>(transform.GetPointer() );
+    if( matrixOffsetTransform.IsNull() )
+      {
+      antscout
+        << "The transfrom read from file is not derived from MatrixOffsetTransformBase. Cannot convert to Affine."
+        << std::endl;
+      return EXIT_FAILURE;
+      }
+    if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".mat" )
+      {
+      antscout << "Output filename '" << outFilename << "' must end in '.mat' for binary output." << std::endl;
+      return EXIT_FAILURE;
+      }
+    typedef itk::AffineTransform<typename TransformType::ScalarType, ImageDimension> AffineTransformType;
+    typename AffineTransformType::Pointer newAffineTransform = AffineTransformType::New();
+    newAffineTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
+    newAffineTransform->SetOffset( matrixOffsetTransform->GetOffset() );
+    transform = dynamic_cast<TransformType *>(newAffineTransform.GetPointer() );
+    if( transform.IsNull() )
+      {
+      antscout << "Unexpected error casting from affine transform to transform type." << std::endl;
+      return EXIT_FAILURE;
+      }
+    int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
+    if( result == EXIT_FAILURE )
+      {
+      antscout << "Failed writing converted transform to binary format." << std::endl;
+      return EXIT_FAILURE;
+      }
+    return EXIT_SUCCESS;
+    }
+
+  // Default behavior.
+  // Write it out as a text file using the legacy txt transform format
+  if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".txt" &&
+      itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".tfm" )
+    {
+    antscout << "Output filename '" << outFilename << "' must end in '.txt' or '.tfm' for text-format output."
+             << std::endl;
+    return EXIT_FAILURE;
+    }
+  int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
+  if( result == EXIT_FAILURE )
+    {
+    antscout << "Failed writing transform to text format." << std::endl;
+    return EXIT_FAILURE;
     }
 
   return EXIT_SUCCESS;
@@ -231,6 +375,9 @@ int ConvertTransformFile(int argc, char* argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
+/*
+ *
+ */
 int ConvertTransformFile( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
