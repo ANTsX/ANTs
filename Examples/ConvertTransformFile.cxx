@@ -34,8 +34,8 @@
 #include "itkantsReadWriteTransform.h"
 
 /* Utility to read in a transform file (presumed to be in binary format) and output
- * it in legacy text format for human reading.
- * The options will instead output only a transform matrix to a text file,
+ * it in one of several different formats, defaulting to legacy text format for human reading.
+ * Options are available to instead output only a transform matrix to a text file,
  * one row per dimension with space-delimited values. This option works only for
  * transforms of MatrixOffsetTranformBase or derived, Translation and Identity transforms. */
 
@@ -78,28 +78,32 @@ bool FileExists(string strFilename)
  *
  */
 template <class TTransform>
-bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransform::MatrixType & matrix )
+bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransform::MatrixType & matrix,
+                bool outputRAS )
 {
   const unsigned int ImageDimension = TTransform::InputSpaceDimension;
 
+  typedef typename TTransform::ScalarType ScalarType;
+
+  matrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::Zero );
+  bool done = false;
+
   // Matrix-offset derived
     {
-    typedef itk::MatrixOffsetTransformBase<typename TTransform::ScalarType, ImageDimension,
-                                           ImageDimension> CastTransformType;
+    typedef itk::MatrixOffsetTransformBase<ScalarType, ImageDimension, ImageDimension> CastTransformType;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
       {
       matrix = castTransform->GetMatrix();
-      return true;
+      done = true;
       }
     }
 
-  matrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::Zero );
-
   // Translation
+  if( !done )
     {
-    typedef itk::TranslationTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
+    typedef itk::TranslationTransform<ScalarType, ImageDimension> CastTransformType;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -108,13 +112,14 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
         {
         matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::One;
         }
-      return true;
+      done = true;
       }
     }
 
   // Identity
+  if( !done )
     {
-    typedef itk::IdentityTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
+    typedef itk::IdentityTransform<ScalarType, ImageDimension> CastTransformType;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
@@ -123,27 +128,52 @@ bool GetMatrix( const typename TTransform::Pointer & transform, typename TTransf
         {
         matrix(i, i) = itk::NumericTraits<typename TTransform::ScalarType>::One;
         }
-      return true;
+      done = true;
       }
     }
 
-  // Unsupported transform type
-  return false;
+  if( !done )
+    {
+    // Unsupported transform type
+    return false;
+    }
+
+  if( outputRAS )
+    {
+    // Convert to RAS coordinate system. ITK uses LPS.
+    // x and y dimensions are flipped.
+    // This code is from c3d app.
+    vnl_vector<ScalarType> v_lps_to_ras(ImageDimension, 1.0);
+    v_lps_to_ras[0] = -1.0;
+    if( ImageDimension > 1 )
+      {
+      v_lps_to_ras[1] = -1.0;
+      }
+    vnl_diag_matrix<ScalarType> m_lps_to_ras(v_lps_to_ras);
+    vnl_matrix<ScalarType>      mold = matrix.GetVnlMatrix();
+    matrix.GetVnlMatrix().update(m_lps_to_ras * mold * m_lps_to_ras);
+    }
+
+  return true;
 }
 
 /*
  *
  */
 template <class TTransform, class TMatrix>
-bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatrix & hMatrix )
+bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatrix & hMatrix, bool outputRAS )
 {
   const unsigned int ImageDimension = TTransform::InputSpaceDimension;
 
-  hMatrix.Fill( itk::NumericTraits<typename TTransform::ScalarType>::Zero );
+  typedef typename TTransform::ScalarType ScalarType;
+
+  hMatrix.Fill( itk::NumericTraits<ScalarType>::Zero );
+
+  bool done = false;
 
   // Get the NxN matrix
   typename TTransform::MatrixType matrix;
-  if( !GetMatrix<TTransform>( transform, matrix ) )
+  if( !GetMatrix<TTransform>( transform, matrix, outputRAS ) )
     {
     return false;
     }
@@ -159,52 +189,72 @@ bool GetHomogeneousMatrix( const typename TTransform::Pointer & transform, TMatr
   unsigned int corner = ImageDimension;
   hMatrix(corner, corner) = itk::NumericTraits<typename TTransform::ScalarType>::One;
 
-  // Matrix-offset derived
+  //
+  // Get the offset
+  //
+
+  // Identity
     {
-    typedef itk::MatrixOffsetTransformBase<typename TTransform::ScalarType, ImageDimension,
-                                           ImageDimension> CastTransformType;
+    typedef itk::IdentityTransform<ScalarType, ImageDimension> CastTransformType;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
       {
-      typename CastTransformType::OutputVectorType offset = castTransform->GetOffset();
-      for( unsigned int i = 0; i < ImageDimension; i++ )
-        {
-        hMatrix(i, ImageDimension) = offset[i];
-        }
+      // Nothing more to do here.
       return true;
+      }
+    }
+
+  typename TTransform::OutputVectorType offset;
+
+  // Matrix-offset derived
+    {
+    typedef itk::MatrixOffsetTransformBase<ScalarType, ImageDimension, ImageDimension> CastTransformType;
+    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
+
+    if( castTransform.IsNotNull() )
+      {
+      offset = castTransform->GetOffset();
+      done = true;
       }
     }
 
   // Translation
+  if( !done )
     {
-    typedef itk::TranslationTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
+    typedef itk::TranslationTransform<ScalarType, ImageDimension> CastTransformType;
     typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
 
     if( castTransform.IsNotNull() )
       {
-      typename CastTransformType::OutputVectorType offset = castTransform->GetOffset();
-      for( unsigned int i = 0; i < ImageDimension; i++ )
-        {
-        hMatrix(i, ImageDimension) = offset[i];
-        }
-      return true;
+      offset = castTransform->GetOffset();
+      done = true;
       }
     }
 
-  // Identity
+  if( !done )
     {
-    typedef itk::IdentityTransform<typename TTransform::ScalarType, ImageDimension> CastTransformType;
-    typename CastTransformType::Pointer castTransform = dynamic_cast<CastTransformType *>(transform.GetPointer() );
-
-    if( castTransform.IsNotNull() )
-      {
-      return true;
-      }
+    // Unsupported transform type
+    return false;
     }
 
-  // Unsupported transform type
-  return false;
+  if( outputRAS )
+    {
+    // Convert to RAS coordinate system. ITK uses LPS.
+    // x and y dimensions are flipped.
+    // This code is from c3d app.
+    offset[0] *= -1.0;
+    if( ImageDimension > 1 )
+      {
+      offset[1] *= -1.0;
+      }
+    }
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    hMatrix(i, ImageDimension) = offset[i];
+    }
+
+  return true;
 }
 
 /*
@@ -218,27 +268,46 @@ int ConvertTransformFile(int argc, char* argv[])
   bool outputMatrix = false;
   bool outputHomogeneousMatrix = false;
   bool outputAffine = false;
+  bool outputRAS = false;
 
-  // User option
+  // User options
   if( argc > 4 )
     {
-    if( strcmp(argv[4], "--matrix") == 0 || strcmp(argv[4], "-m") == 0 )
+    for( int n = 4; n < argc; n++ )
       {
-      // User has requested outputting matrix information only.
-      outputMatrix = true;
+      if( strcmp(argv[n], "--matrix") == 0 || strcmp(argv[n], "-m") == 0 )
+        {
+        // User has requested outputting matrix information only.
+        outputMatrix = true;
+        }
+      else if( strcmp(argv[n], "--homogeneousMatrix") == 0 || strcmp(argv[n], "--hm") == 0 )
+        {
+        // User has requested outputting homogeneous matrix information only.
+        outputHomogeneousMatrix = true;
+        }
+      else if( strcmp(argv[n], "--convertToAffineType") == 0 )
+        {
+        outputAffine = true;
+        }
+      else if( strcmp(argv[n], "--RAS") == 0 || strcmp(argv[n], "--ras") == 0 )
+        {
+        outputRAS = true;
+        }
+      else
+        {
+        antscout << "Unrecognized option: " << argv[n] << std::endl;
+        return EXIT_FAILURE;
+        }
       }
-    else if( strcmp(argv[4], "--homogeneousMatrix") == 0 || strcmp(argv[4], "--hm") == 0 )
+    if( outputRAS && !outputMatrix && !outputHomogeneousMatrix )
       {
-      // User has requested outputting homogeneous matrix information only.
-      outputHomogeneousMatrix = true;
+      antscout << " '--RAS' option must be used with either of 'matrix' or 'homongeneousMatrix' options." << std::endl;
+      return EXIT_FAILURE;
       }
-    else if( strcmp(argv[4], "--convertToAffineType") == 0 )
+    if( (outputMatrix &&
+         outputHomogeneousMatrix) || (outputMatrix && outputAffine) || (outputHomogeneousMatrix && outputAffine) )
       {
-      outputAffine = true;
-      }
-    else
-      {
-      antscout << "Unrecognized option: " << argv[4] << std::endl;
+      antscout << "Only one primary output option allowed at once." << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -260,7 +329,7 @@ int ConvertTransformFile(int argc, char* argv[])
   transform = itk::ants::ReadTransform<ImageDimension>( inputFilename );
   if( transform.IsNull() )
     {
-    antscout << "Error while reading transform file. " << std::endl;
+    antscout << "Error while reading transform file. Did you specify the correct dimension?" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -282,7 +351,7 @@ int ConvertTransformFile(int argc, char* argv[])
       {
       typedef itk::Matrix<typename TransformType::ScalarType, ImageDimension, ImageDimension> MatrixType;
       MatrixType matrix;
-      if( GetMatrix<TransformType>( transform, matrix ) )
+      if( GetMatrix<TransformType>( transform, matrix, outputRAS ) )
         {
         outputStream << matrix;
         }
@@ -299,7 +368,7 @@ int ConvertTransformFile(int argc, char* argv[])
       typedef itk::Matrix<typename TransformType::ScalarType, ImageDimension + 1, ImageDimension + 1> MatrixType;
       MatrixType hMatrix;
 
-      if( GetHomogeneousMatrix<TransformType, MatrixType>( transform, hMatrix ) )
+      if( GetHomogeneousMatrix<TransformType, MatrixType>( transform, hMatrix, outputRAS ) )
         {
         outputStream << hMatrix;
         }
@@ -426,31 +495,40 @@ private:
   if( argc < 4  || ( strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0 ) )
     {
     antscout << "USAGE:  " << std::endl
-             << " " << argv[0] << " dimensions inputTransfromFile.ext outputTransformFile.ext [One of OPTIONS]"
-             << std::endl
+             << " " << argv[0] << " dimensions inputTransfromFile.ext outputTransformFile.ext [OPTIONS]" << std::endl
              << std::endl;
     antscout << "COMMAND: " << std::endl
              << " Utility to read in a transform file (presumed to be in binary format) " << std::endl
-             << " and output it in various formats. Default output is legacy human-readable text format. " << std::endl
-             << " Without any options, the output filename extension must be .txt or .tfm to " << std::endl
-             << " signify a text-formatted transform file. " << std::endl
+             << " and output it in various formats. Default output is legacy human-readable" << std::endl
+             << " text format.  Without any options, the output filename extension must be " << std::endl
+             << " .txt or .tfm to signify a text-formatted transform file. " << std::endl
              << std::endl
              << " OPTIONS: " << std::endl
              << std::endl
              << " --matrix, -m " << std::endl
              << "   Output only the transform matrix (from transform::GetMatrix() )" << std::endl
              << "   to a text file, one row per line with space-delimited values. " << std::endl
-             << "   This option works only for transforms of type MatrixOffsetTranformBase or derived." << std::endl
+             << "   Only works for transforms of type identity, translation or " << std::endl
+             << "   MatrixOffsetTranformBase and its derived types." << std::endl
+             << "   The output filename must end in '.mat'." << std::endl
              << std::endl
              << " --homogeneousMatrix, --hm" << std::endl
-             << "   Output an N+1 square homogeneous matrix from the transform matrix and offset. " << std::endl
-             << "   This option works only for transforms of type MatrixOffsetTranformBase or derived." << std::endl
+             << "   Output an N+1 square homogeneous matrix from the transform matrix and offset." << std::endl
+             << "   Only works for transforms of type identity, translation or " << std::endl
+             << "   MatrixOffsetTranformBase and its derived types." << std::endl
+             << "   The output filename must end in '.mat'." << std::endl
+             << std::endl
+             << " --RAS, --ras" << std::endl
+             << "   Combined with the 'matrix' or 'homogeneousMatrix' options, this will convert" << std::endl
+             << "   the output into the RAS coordinate system (Right, Anterior, Superior)." << std::endl
+             << "   Otherwise, the output is in the LPS coordinate system (Left, Posterior," << std::endl
+             << "   Superior), which is used by ITK. RAS is used, for example, by Slicer. " << std::endl
              << std::endl
              << " --convertToAffineType" << std::endl
              << "   Convert the input transform type to AffineTransform using the transform's " << std::endl
-             << "   matrix and offset, and output again as " << std::endl
-             << "   as a binary transform file. This is useful for using transforms in programs that" << std::endl
-             << "   do not register all available Transform factory types." << std::endl
+             << "   matrix and offset, and output again as as a binary transform file." << std::endl
+             << "   This is useful for using transforms in programs" << std::endl
+             << "   that do not register all available Transform factory types." << std::endl
              << std::endl;
     if( argc < 4 )
       {
@@ -458,9 +536,9 @@ private:
       }
     return EXIT_SUCCESS;
     }
-  if( argc > 5 )
+  if( argc > 6 )
     {
-    antscout << "Only one option is allowed at a time." << std::endl;
+    antscout << "Too many arguments." << std::endl;
     return EXIT_FAILURE;
     }
 
