@@ -9,6 +9,7 @@
 #define __antsUtilities_h__
 
 #include "antscout.hxx"
+#include "antsAllocImage.h"
 #include <string>
 #include <vector>
 #include <algorithm>
