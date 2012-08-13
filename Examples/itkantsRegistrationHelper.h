@@ -18,11 +18,6 @@
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
 
-#include <string>
-#include <iostream>
-#include <deque>
-
-#include "antsCommandLineParser.h"
 #include "itkANTSAffine3DTransform.h"
 #include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
@@ -36,6 +31,7 @@
 #include "itkBSplineTransformParametersAdaptor.h"
 #include "itkCommand.h"
 #include "itkCompositeTransform.h"
+#include "itkConjugateGradientLineSearchOptimizerv4.h"
 #include "itkCorrelationImageToImageMetricv4.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkDisplacementFieldTransform.h"
@@ -45,6 +41,7 @@
 #include "itkGaussianExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
+#include "itkGradientDescentOptimizerv4.h"
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkImage.h"
@@ -60,6 +57,7 @@
 #include "itkMeanSquaresImageToImageMetricv4.h"
 #include "itkObject.h"
 #include "itkQuaternionRigidTransform.h"
+#include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
 #include "itkSyNImageRegistrationMethod.h"
@@ -76,6 +74,13 @@
 #include "itkWeakPointer.h"
 
 #include "itkantsReadWriteTransform.h"
+
+#include "antsAllocImage.h"
+#include "antsCommandLineParser.h"
+
+#include <string>
+#include <iostream>
+#include <deque>
 
 namespace ants
 {
