@@ -624,14 +624,16 @@ template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
 ::AddExponentialTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                          double TotalFieldVarianceInVarianceSpace)
+                          double VelocityFieldVarianceInVarianceSpace, unsigned int NumberOfIntegrationSteps)
 {
   TransformMethod init;
 
   init.m_XfrmMethod = Exponential;
   init.m_GradientStep = GradientStep;
   init.m_UpdateFieldVarianceInVarianceSpace = UpdateFieldVarianceInVarianceSpace;
-  init.m_TotalFieldVarianceInVarianceSpace = TotalFieldVarianceInVarianceSpace;
+  init.m_VelocityFieldVarianceInVarianceSpace = VelocityFieldVarianceInVarianceSpace;
+  init.m_NumberOfTimeIndices = NumberOfIntegrationSteps;
+
   this->m_TransformMethods.push_back(init);
 }
 
@@ -639,7 +641,8 @@ template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
 ::AddBSplineExponentialTransform(double GradientStep, std::vector<unsigned int> &  UpdateFieldMeshSizeAtBaseLevel,
-                                 std::vector<unsigned int> &  TotalFieldMeshSizeAtBaseLevel,
+                                 std::vector<unsigned int> & VelocityFieldMeshSizeAtBaseLevel,
+                                 unsigned int NumberOfIntegrationSteps,
                                  unsigned int SplineOrder)
 {
   TransformMethod init;
@@ -647,8 +650,10 @@ RegistrationHelper<VImageDimension>
   init.m_XfrmMethod = BSplineExponential;
   init.m_GradientStep = GradientStep;
   init.m_UpdateFieldMeshSizeAtBaseLevel = UpdateFieldMeshSizeAtBaseLevel;
-  init.m_TotalFieldMeshSizeAtBaseLevel = TotalFieldMeshSizeAtBaseLevel;
+  init.m_VelocityFieldMeshSizeAtBaseLevel = VelocityFieldMeshSizeAtBaseLevel;
   init.m_SplineOrder = SplineOrder;
+  init.m_NumberOfTimeIndices = NumberOfIntegrationSteps;
+
   this->m_TransformMethods.push_back(init);
 }
 
@@ -1748,8 +1753,6 @@ RegistrationHelper<VImageDimension>
           adaptors.push_back( bsplineAdaptor.GetPointer() );
           }
 
-//         optimizer->SetScalesEstimator( NULL );
-
         bsplineRegistration->SetFixedImage( preprocessFixedImage );
         bsplineRegistration->SetMovingImage( preprocessMovingImage );
         bsplineRegistration->SetNumberOfLevels( numberOfLevels );
@@ -2462,18 +2465,29 @@ RegistrationHelper<VImageDimension>
 
         // Create the transform adaptors
 
-        typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-            GaussianDisplacementFieldTransformType>
+        typedef itk::GaussianExponentialDiffeomorphicTransformParametersAdaptor<GaussianDisplacementFieldTransformType>
           DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters
 
-        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
-        RealType varianceForTotalField  = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
+        RealType varianceForUpdateField =
+          this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
+        RealType varianceForVelocityField  =
+          this->m_TransformMethods[currentStage].m_VelocityFieldVarianceInVarianceSpace;
+        unsigned int numberOfIntegrationSteps = this->m_TransformMethods[currentStage].m_NumberOfTimeIndices;
 
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
-        outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheTotalField( varianceForTotalField );
+        outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheVelocityField( varianceForVelocityField );
+        outputDisplacementFieldTransform->SetComputeInverse( true );
+        if( numberOfIntegrationSteps == 0 )
+          {
+          outputDisplacementFieldTransform->SetCalculateNumberOfIntegrationStepsAutomatically( true );
+          }
+        else
+          {
+          outputDisplacementFieldTransform->SetNumberOfIntegrationSteps( numberOfIntegrationSteps );
+          }
         outputDisplacementFieldTransform->SetDisplacementField( displacementField );
         // Create the transform adaptors
         // For the gaussian displacement field, the specified variances are in image spacing terms
@@ -2499,6 +2513,9 @@ RegistrationHelper<VImageDimension>
           fieldTransformAdaptor->SetRequiredDirection( shrinkFilter->GetOutput()->GetDirection() );
           fieldTransformAdaptor->SetRequiredOrigin( shrinkFilter->GetOutput()->GetOrigin() );
           fieldTransformAdaptor->SetTransform( outputDisplacementFieldTransform );
+
+          fieldTransformAdaptor->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
+          fieldTransformAdaptor->SetGaussianSmoothingVarianceForTheVelocityField( varianceForVelocityField );
 
           adaptors.push_back( fieldTransformAdaptor.GetPointer() );
           }
@@ -2536,7 +2553,8 @@ RegistrationHelper<VImageDimension>
           {
           this->Logger() << std::endl
                          << "*** Running gaussian exponential field registration (varianceForUpdateField = "
-                         << varianceForUpdateField << ", varianceForTotalField = " << varianceForTotalField << ") ***"
+                         << varianceForUpdateField << ", varianceForVelocityField = " << varianceForVelocityField
+                         << ") ***"
                          << std::endl << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
           displacementFieldRegistration->Update();
@@ -2574,7 +2592,6 @@ RegistrationHelper<VImageDimension>
 
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
           const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
-        outputDisplacementFieldTransform->SetDisplacementField( displacementField );
 
         // Create the transform adaptors
 
@@ -2587,23 +2604,35 @@ RegistrationHelper<VImageDimension>
 
         const std::vector<unsigned int> & meshSizeForTheUpdateField =
           this->m_TransformMethods[currentStage].m_UpdateFieldMeshSizeAtBaseLevel;
-        std::vector<unsigned int> meshSizeForTheTotalField =
-          this->m_TransformMethods[currentStage].m_TotalFieldMeshSizeAtBaseLevel;
+        std::vector<unsigned int> meshSizeForTheVelocityField =
+          this->m_TransformMethods[currentStage].m_VelocityFieldMeshSizeAtBaseLevel;
+        unsigned int numberOfIntegrationSteps = this->m_TransformMethods[currentStage].m_NumberOfTimeIndices;
 
+        if( numberOfIntegrationSteps == 0 )
+          {
+          outputDisplacementFieldTransform->SetCalculateNumberOfIntegrationStepsAutomatically( true );
+          }
+        else
+          {
+          outputDisplacementFieldTransform->SetNumberOfIntegrationSteps( numberOfIntegrationSteps );
+          }
         outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStage].m_SplineOrder );
+        outputDisplacementFieldTransform->SetComputeInverse( true );
+        outputDisplacementFieldTransform->SetDisplacementField( displacementField );
 
-        if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
+        if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() !=
+            VImageDimension )
           {
           ::ants::antscout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
         typename BSplineDisplacementFieldTransformType::ArrayType updateMeshSize;
-        typename BSplineDisplacementFieldTransformType::ArrayType totalMeshSize;
+        typename BSplineDisplacementFieldTransformType::ArrayType velocityMeshSize;
         for( unsigned int d = 0; d < VImageDimension; d++ )
           {
           updateMeshSize[d] = meshSizeForTheUpdateField[d];
-          totalMeshSize[d] = meshSizeForTheTotalField[d];
+          velocityMeshSize[d] = meshSizeForTheVelocityField[d];
           }
         // Create the transform adaptors specific to B-splines
         for( unsigned int level = 0; level < numberOfLevels; level++ )
@@ -2618,8 +2647,7 @@ RegistrationHelper<VImageDimension>
           shrinkFilter->SetInput( displacementField );
           shrinkFilter->Update();
 
-          typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-              BSplineDisplacementFieldTransformType>
+          typedef itk::BSplineExponentialDiffeomorphicTransformParametersAdaptor<BSplineDisplacementFieldTransformType>
             BSplineDisplacementFieldTransformAdaptorType;
           typename BSplineDisplacementFieldTransformAdaptorType::Pointer bsplineFieldTransformAdaptor =
             BSplineDisplacementFieldTransformAdaptorType::New();
@@ -2631,14 +2659,14 @@ RegistrationHelper<VImageDimension>
 
           // A good heuristic is to double the b-spline mesh resolution at each level
           typename BSplineDisplacementFieldTransformType::ArrayType newUpdateMeshSize = updateMeshSize;
-          typename BSplineDisplacementFieldTransformType::ArrayType newTotalMeshSize = totalMeshSize;
+          typename BSplineDisplacementFieldTransformType::ArrayType newVelocityMeshSize = velocityMeshSize;
           for( unsigned int d = 0; d < VImageDimension; d++ )
             {
             newUpdateMeshSize[d] = newUpdateMeshSize[d] << ( level + 1 );
-            newTotalMeshSize[d] = newTotalMeshSize[d] << ( level + 1 );
+            newVelocityMeshSize[d] = newVelocityMeshSize[d] << ( level + 1 );
             }
           bsplineFieldTransformAdaptor->SetMeshSizeForTheUpdateField( newUpdateMeshSize );
-          bsplineFieldTransformAdaptor->SetMeshSizeForTheTotalField( newTotalMeshSize );
+          bsplineFieldTransformAdaptor->SetMeshSizeForTheVelocityField( newVelocityMeshSize );
 
           adaptors.push_back( bsplineFieldTransformAdaptor.GetPointer() );
           }
@@ -2676,7 +2704,8 @@ RegistrationHelper<VImageDimension>
           {
           this->Logger() << std::endl
                          << "*** Running bspline displacement field registration (updateMeshSizeAtBaseLevel = "
-                         << updateMeshSize << ", totalMeshSizeAtBaseLevel = " << totalMeshSize << ") ***" << std::endl
+                         << updateMeshSize << ", velocityMeshSizeAtBaseLevel = " << velocityMeshSize << ") ***"
+                         << std::endl
                          << std::endl;
           displacementFieldRegistrationObserver->Execute( displacementFieldRegistration, itk::StartEvent() );
           displacementFieldRegistration->Update();

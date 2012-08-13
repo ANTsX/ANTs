@@ -28,6 +28,7 @@
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkAffineTransform.h"
 #include "itkBSplineExponentialDiffeomorphicTransform.h"
+#include "itkBSplineExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkBSplineSyNImageRegistrationMethod.h"
@@ -41,6 +42,7 @@
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
 #include "itkGaussianExponentialDiffeomorphicTransform.h"
+#include "itkGaussianExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkHistogramMatchingImageFilter.h"
@@ -259,7 +261,7 @@ public:
     // BSplineDisplacementField
     std::vector<unsigned int> m_TotalFieldMeshSizeAtBaseLevel;
     std::vector<unsigned int> m_UpdateFieldMeshSizeAtBaseLevel;
-    unsigned int              m_SplineOrder; // also TimeVaryingBSplineVelocityField
+    unsigned int              m_SplineOrder; // also anything B-spline
     // TimeVaryingVelocityField
     double       m_UpdateFieldTimeSigma;
     double       m_TotalFieldTimeSigma;
@@ -267,6 +269,10 @@ public:
     // TimeVaryingBSplineVelocityField
     std::vector<unsigned int> m_VelocityFieldMeshSize;
     unsigned int              m_NumberOfTimePointSamples;
+    // Exponential
+    double m_VelocityFieldVarianceInVarianceSpace;
+    // BSplineExponential
+    std::vector<unsigned int> m_VelocityFieldMeshSizeAtBaseLevel;
   };
   typedef std::deque<TransformMethod> TransformMethodListType;
 
@@ -387,14 +393,14 @@ public:
    * add an exponential transform
    */
   void AddExponentialTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                               double TotalFieldVarianceInVarianceSpace);
+                               double VelocityFieldVarianceInVarianceSpace, unsigned int NumberOfIntegrationSteps);
 
   /**
    * add a B-spline exponential transform
    */
   void AddBSplineExponentialTransform(double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
-                                      std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
-                                      unsigned int SplineOrder);
+                                      std::vector<unsigned int> & VelocityFieldMeshSizeAtBaseLevel,
+                                      unsigned int NumberOfIntegrationSteps, unsigned int SplineOrder);
 
   /**
    * Add the collected iterations list
