@@ -26,4 +26,4 @@ $reg -d $dim  \
                        -u 1 \
                        -o [${nm},${nm}_diff.nii.gz]
 
-${AP}antsApplyTransforms -d 3 -i $m -r $f -n linear -t ${nm}1Warp.nii.gz -t ${nm}0Affine.mat -o ${nm}_warped.nii.gz
+${AP}antsApplyTransforms -d $dim -i $m -r $f -n linear -t ${nm}1Warp.nii.gz -t ${nm}0Affine.mat -o ${nm}_warped.nii.gz
