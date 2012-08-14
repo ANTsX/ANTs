@@ -1448,6 +1448,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixP = this->m_MatrixP - this->m_MatrixP.min_value();
   MatrixType        cov = this->m_MatrixP * this->m_MatrixP.transpose();
   vnl_svd<RealType> eig( cov, 1.e-6 );
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
