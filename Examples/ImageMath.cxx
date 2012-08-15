@@ -9635,7 +9635,8 @@ int STAPLE( int argc, char *argv[] )
   stapler->SetConfidenceWeight( confidence );
 
   // Read input segmentations
-  std::vector<typename ImageType::Pointer> images(argc - 5, NULL);
+  typename ImageType::Pointer              nullimage( NULL );
+  std::vector<typename ImageType::Pointer> images(argc - 5, nullimage );
   typename CalculatorType::Pointer calc = CalculatorType::New();
   int maxLabel = 0;
   for( int i = 5; i < argc; i++ )
