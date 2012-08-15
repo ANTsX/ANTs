@@ -2485,7 +2485,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType nvec = At * proj;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+      // nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
       }
     RealType gamma = 0.1;
     bool     smooth = true;
