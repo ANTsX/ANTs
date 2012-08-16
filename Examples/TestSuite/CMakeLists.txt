@@ -1264,7 +1264,7 @@ add_test(ANTS_PSE_MSQ_IMG ${TEST_BINARY_DIR}/ANTS 2 -i 191x170x90x90x10  -r Gaus
 add_test(ANTS_PSE_MSQ_IMG_WARP ${TEST_BINARY_DIR}/WarpImageMultiTransform 2
   ${ANGEL_IMAGE} ${WARP_IMAGE} ${WARP} -R  ${DEVIL_IMAGE} )
 
-add_test(ANTS_PSE_JPG  ConvertToJpg ${WARP_IMAGE} ANTSPSE.jpg)
+add_test(ANTS_PSE_JPG  ${TEST_BINARY_DIR}/ConvertToJpg ${WARP_IMAGE} ANTSPSE.jpg)
 
 add_test(ANTS_PSE_MSQ_IMG_WARP_METRIC_0
   ${TEST_BINARY_DIR}/MeasureImageSimilarity 2 0 ${DEVIL_IMAGE} ${WARP_IMAGE}
