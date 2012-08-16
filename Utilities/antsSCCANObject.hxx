@@ -339,17 +339,17 @@ antsSCCANObject<TInputImage, TRealType>
 template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
-::InitializeV( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p, bool random )
+::InitializeV( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p, unsigned long seed )
 {
   VectorType w_p( p.columns() );
 
   w_p.fill(0);
   for( unsigned int its = 0; its < 1; its++ )
     {
-    vnl_random randgen(time(0) );
+    vnl_random randgen( seed ); /* use constant seed to prevent weirdness */
     for( unsigned long i = 0; i < p.columns(); i++ )
       {
-      if( random )
+      if( seed > 0 )
         {
         w_p(i) = randgen.normal();           //      w_p(i)=randgen.drand32();
         }
@@ -1437,11 +1437,36 @@ antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
+::SparseReconB(   typename antsSCCANObject<TInputImage,
+                                           TRealType>::MatrixType& matrixB,
+                  typename antsSCCANObject<TInputImage,
+                                           TRealType>::VectorType& icept )
+{
+  RealType reconerr = 0;
+  RealType onenorm = 0;
+
+  icept.fill( 0 );
+  for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
+    {
+    VectorType x_i = this->m_MatrixP.get_row( a );
+    VectorType lmsolv = matrixB.get_row( a );
+    (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
+    VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
+    icept( a ) = this->m_Intercept;
+    onenorm += x_i.one_norm() / this->m_MatrixP.cols();
+    reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
+    matrixB.set_row( a, lmsolv );
+    }
+  RealType rr = ( onenorm - reconerr ) / onenorm;
+  return rr;
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseRecon(unsigned int n_vecs)
 {
   this->m_Softer = false;
   RealType reconerr = 0;
-  RealType onenorm = 0;
   this->m_CanonicalCorrelations.set_size( n_vecs );
   this->m_CanonicalCorrelations.fill( 0 );
   ::ants::antscout << " sparse recon " << this->m_MinClusterSizeP << std::endl;
@@ -1449,32 +1474,22 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
   this->m_MatrixP = this->m_MatrixP - this->m_MatrixP.min_value();
-  MatrixType        cov = this->m_MatrixP * this->m_MatrixP.transpose();
-  vnl_svd<RealType> eig( cov, 1.e-6 );
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
   this->m_VariatesP.fill( 0 );
+  VectorType icept( this->m_MatrixP.rows(), 0 );
   for( unsigned int i = 0; i < n_vecs; i++ )
     {
-    if( i < this->m_MatrixP.rows() )
-      {
-      VectorType u = eig.U().get_column( i );
-      VectorType up = u * this->m_MatrixP;
-      this->SparsifyP( up, true );
-      this->m_VariatesP.set_column( i, up );
-      matrixB.set_column( i,  u );
-      }
-    else
-      {
-      this->m_VariatesP.set_column( i, this->InitializeV( this->m_MatrixP, false ) );
-      }
+    VectorType initvec = this->InitializeV( this->m_MatrixP, i + 1 );
+    initvec = initvec / initvec.two_norm();
+    this->m_VariatesP.set_column( i, initvec );
     }
-  VectorType icept( this->m_MatrixP.rows(), 0 );
-  RealType   matpfrobnorm = this->m_MatrixP.frobenius_norm();
+  /** now initialize B */
+  reconerr = this->SparseReconB( matrixB, icept  );
+  ::ants::antscout << "begin : %var " << reconerr << std::endl;
+
+  RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
     {
-    //  cov = this->m_VariatesP.transpose() * this->m_VariatesP;
-    //  vnl_svd<double> qr( cov );
-    //  this->m_VariatesP = this->m_VariatesP * qr.U();
     // update V matrix
     /** a power iteration  method --- depends on the following
 
@@ -1504,38 +1519,21 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType evec = this->m_VariatesP.get_column( a );
       this->m_VariatesP.set_column( a, zero );
-      if( evec.two_norm()  > 0 )
-        {
-        evec = evec / evec.two_norm();
-        }
-
       // get 1st eigenvector ... how should this be done?  how about svd?
-      if( ( a >= this->m_MatrixP.rows() )  &&  ( overit == 0 ) )
+      if( overit == 0 )
         {
-        ( void ) this->PowerIteration(  partialmatrix,  evec, 2, true );
+        ( void ) this->PowerIteration(  partialmatrix,  evec, 3, true );
         }
       this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 20, a );
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
+      //      reconerr = this->SparseReconB( matrixB , icept  );
+      //      ::ants::antscout << overit << ": %var " << reconerr << std::endl;
       }
 
     // update B matrix by linear regression
-    reconerr = onenorm = 0;
-    icept.fill( 0 );
-    for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
-      {
-      VectorType x_i = this->m_MatrixP.get_row( a );
-      VectorType lmsolv = matrixB.get_row( a );                           // good initialization should increase
-                                                                          // convergence speed
-      (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
-      VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
-      icept( a ) = this->m_Intercept;
-      onenorm += x_i.one_norm() / this->m_MatrixP.cols();
-      reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
-      matrixB.set_row( a, lmsolv );
-      }
-    RealType rr = ( onenorm - reconerr ) / onenorm;
-    ::ants::antscout << overit << ": %var " << rr << " raw-reconerr " << reconerr << std::endl;
+    reconerr = this->SparseReconB( matrixB, icept  );
+    ::ants::antscout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
   this->SortResults( n_vecs );
@@ -2466,7 +2464,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   */
   if( evec.two_norm() ==  0 )
     {
-    evec = this->InitializeV( this->m_MatrixP, true );
+    evec = this->InitializeV( this->m_MatrixP, false );
     }
   VectorType proj = ( A * evec  );
   VectorType lastgrad = evec;
@@ -5084,6 +5082,25 @@ antsSCCANObject<TInputImage, TRealType>
     A = Cinv * A;
     ::ants::antscout << " got A precond " << std::endl;
     }
+
+
+  bool dosvdinit = true;
+  if ( n_vecs > ( this->m_MatrixP.rows() - 1 ) ) dosvdinit = false;
+  if ( dosvdinit )
+    {
+    MatrixType cov = this->m_MatrixP * this->m_MatrixP.transpose();
+    vnl_svd<double> qr( cov );
+    matrixB = qr.U().extract( this->m_MatrixP.rows(), n_vecs, 0, 0);
+    this->m_VariatesP = this->m_MatrixP.transpose( ) * matrixB;
+    for( unsigned int i = 0; i < n_vecs; i++ )
+      {
+      VectorType evec = this->m_VariatesP.get_column( i );
+      this->SparsifyP( evec , true );
+      this->m_VariatesP.set_column( i, evec );
+      }
+    }
+  else
+    {
 
 
 */
