@@ -1135,7 +1135,7 @@ RegistrationHelper<VImageDimension>
     optimizer2->SetLearningRate( learningRate );
     optimizer2->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer2->SetNumberOfIterations( currentStageIterations[0] );
-    optimizer2->SetScalesEstimator( scalesEstimator );
+    optimizer2->SetScalesEstimator( NULL );
     optimizer2->SetMinimumConvergenceValue( convergenceThreshold );
     optimizer2->SetConvergenceWindowSize( convergenceWindowSize );
     optimizer2->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
