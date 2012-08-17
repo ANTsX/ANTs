@@ -1,16 +1,18 @@
-
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
+#include "ReadWriteImage.h"
+
+#include "itkImageFileReader.h"
+#include "itkImageFileWriter.h"
+#include "itkResampleImageFilter.h"
+#include "itkVectorIndexSelectionCastImageFilter.h"
 
 #include "itkAffineTransform.h"
 #include "itkCompositeTransform.h"
 #include "itkDisplacementFieldTransform.h"
 #include "itkIdentityTransform.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
-#include "itkResampleImageFilter.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
 #include "itkTransformToDisplacementFieldSource.h"
@@ -18,14 +20,51 @@
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkGaussianInterpolateImageFunction.h"
+#include "itkInterpolateImageFunction.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
 #include "itkLabelImageGaussianInterpolateImageFunction.h"
 
 namespace ants
 {
+template <typename TensorImageType, typename ImageType>
+void
+CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * referenceImage )
+{
+  typename TensorImageType::DirectionType::InternalMatrixType direction =
+    movingTensorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
+
+  if( !direction.is_identity( 0.00001 ) )
+    {
+    itk::ImageRegionIterator<TensorImageType> It( movingTensorImage, movingTensorImage->GetBufferedRegion() );
+    for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+      typename TensorImageType::PixelType tensor = It.Get();
+
+      typename TensorImageType::DirectionType::InternalMatrixType dt;
+      dt(0, 0) = tensor[0];
+      dt(0, 1) = dt(1, 0) = tensor[1];
+      dt(0, 2) = dt(2, 0) = tensor[2];
+      dt(1, 1) = tensor[3];
+      dt(1, 2) = dt(2, 1) = tensor[4];
+      dt(2, 2) = tensor[5];
+
+      dt = direction * dt * direction.transpose();
+
+      tensor[0] = dt(0, 0);
+      tensor[1] = dt(0, 1);
+      tensor[2] = dt(0, 2);
+      tensor[3] = dt(1, 1);
+      tensor[4] = dt(1, 2);
+      tensor[5] = dt(2, 2);
+
+      It.Set( tensor );
+      }
+    }
+}
+
 template <unsigned int Dimension>
-int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
+int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, bool applyToTensorImage = false )
 {
   typedef double                           RealType;
   typedef double                           PixelType;
@@ -33,25 +72,43 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
 
   typedef itk::Image<PixelType, Dimension>  ImageType;
   typedef itk::Image<VectorType, Dimension> DisplacementFieldType;
+  typedef itk::Image<char, Dimension>       ReferenceImageType;
 
-  typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
-  typename ResamplerType::Pointer resampleFilter = ResamplerType::New();
+  typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
+  typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
+
+  const unsigned int NumberOfTensorElements = 6;
+
+  typename TensorImageType::Pointer tensorImage = NULL;
+
+  std::vector<typename ImageType::Pointer> inputImages;
+  inputImages.clear();
+
+  std::vector<typename ImageType::Pointer> outputImages;
+  outputImages.clear();
 
   /**
    * Input object option - for now, we're limiting this to images.
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
-  if( inputOption && inputOption->GetNumberOfValues() > 0 )
+
+  if( applyToTensorImage && inputOption && inputOption->GetNumberOfValues() > 0 )
     {
-    antscout << "Input object: " << inputOption->GetValue() << std::endl;
+    antscout << "Input tensor image: " << inputOption->GetValue() << std::endl;
+
+    ReadTensorImage<TensorImageType>( tensorImage, ( inputOption->GetValue() ).c_str(), true );
+    }
+  else if( !applyToTensorImage && inputOption && inputOption->GetNumberOfValues() > 0 )
+    {
+    antscout << "Input scalar image: " << inputOption->GetValue() << std::endl;
 
     typedef itk::ImageFileReader<ImageType> ReaderType;
     typename ReaderType::Pointer reader = ReaderType::New();
     reader->SetFileName( ( inputOption->GetValue() ).c_str() );
     reader->Update();
 
-    resampleFilter->SetInput( reader->GetOutput() );
+    inputImages.push_back( reader->GetOutput() );
     }
   else if( outputOption && outputOption->GetNumberOfValues() > 0 )
     {
@@ -78,7 +135,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
     antscout << "Reference image: " << referenceOption->GetValue() << std::endl;
 
     // read in the image as char since we only need the header information.
-    typedef itk::Image<char, Dimension>              ReferenceImageType;
     typedef itk::ImageFileReader<ReferenceImageType> ReferenceReaderType;
     typename ReferenceReaderType::Pointer referenceReader =
       ReferenceReaderType::New();
@@ -93,7 +149,21 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
     antscout << "Error:  No reference image specified." << std::endl;
     return EXIT_FAILURE;
     }
-  resampleFilter->SetOutputParametersFromImage( referenceImage );
+
+  if( applyToTensorImage )
+    {
+    CorrectImageTensorDirection<TensorImageType, ReferenceImageType>( tensorImage, referenceImage );
+    for( unsigned int i = 0; i < NumberOfTensorElements; i++ )
+      {
+      typedef itk::VectorIndexSelectionCastImageFilter<TensorImageType, ImageType> SelectorType;
+      typename SelectorType::Pointer selector = SelectorType::New();
+      selector->SetInput( tensorImage );
+      selector->SetIndex( i );
+      selector->Update();
+
+      inputImages.push_back( selector->GetOutput() );
+      }
+    }
 
   /**
    * Transform option
@@ -105,14 +175,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
   typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
 
-  /**
-   * Load an identity transform in case no transforms are loaded.
-   */
-  typedef itk::IdentityTransform<double, Dimension> IdentityTransformType;
-  typename IdentityTransformType::Pointer identityTransform =
-    IdentityTransformType::New();
-  identityTransform->SetIdentity();
-
   typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
   typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
@@ -122,7 +184,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
     {
     return EXIT_FAILURE;
     }
-  resampleFilter->SetTransform( compositeTransform );
 
   /**
    * Interpolation option
@@ -166,6 +227,8 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
   typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
 
   std::string whichInterpolator( "linear" );
+  typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
+  typename InterpolatorType::Pointer interpolator = NULL;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption =
     parser->GetOption( "interpolation" );
@@ -174,33 +237,25 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
     whichInterpolator = interpolationOption->GetValue();
     ConvertToLowerCase( whichInterpolator );
 
-    if( !std::strcmp( whichInterpolator.c_str(), "linear" ) )
+    if( !std::strcmp( whichInterpolator.c_str(), "nearestneighbor" ) )
       {
-      linearInterpolator->SetInputImage( resampleFilter->GetInput() );
-      resampleFilter->SetInterpolator( linearInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "nearestneighbor" ) )
-      {
-      nearestNeighborInterpolator->SetInputImage( resampleFilter->GetInput() );
-      resampleFilter->SetInterpolator( nearestNeighborInterpolator );
+      interpolator = nearestNeighborInterpolator;
       }
     else if( !std::strcmp( whichInterpolator.c_str(), "bspline" ) )
       {
-      bSplineInterpolator->SetInputImage( resampleFilter->GetInput() );
       if( interpolationOption->GetNumberOfParameters() > 0 )
         {
         unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetParameter( 0, 0 ) );
         bSplineInterpolator->SetSplineOrder( bsplineOrder );
         }
-      resampleFilter->SetInterpolator( bSplineInterpolator );
+      interpolator = bSplineInterpolator;
       }
     else if( !std::strcmp( whichInterpolator.c_str(), "gaussian" ) )
       {
-      gaussianInterpolator->SetInputImage( resampleFilter->GetInput() );
       double sigma[Dimension];
       for( unsigned int d = 0; d < Dimension; d++ )
         {
-        sigma[d] = resampleFilter->GetInput()->GetSpacing()[d];
+        sigma[d] = inputImages[0]->GetSpacing()[d];
         }
       double alpha = 1.0;
 
@@ -227,36 +282,14 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
         alpha = parser->Convert<double>( interpolationOption->GetParameter( 1 ) );
         }
       gaussianInterpolator->SetParameters( sigma, alpha );
-      resampleFilter->SetInterpolator( gaussianInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "cosinewindowedsinc" ) )
-      {
-      cosineInterpolator->SetInputImage( resampleFilter->GetInput() );
-      resampleFilter->SetInterpolator( cosineInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "hammingwindowedsinc" ) )
-      {
-      hammingInterpolator->SetInputImage( resampleFilter->GetInput() );
-      resampleFilter->SetInterpolator( hammingInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "lanczoswindowedsinc" ) )
-      {
-      lanczosInterpolator->SetInputImage( resampleFilter->GetInput() );
-      resampleFilter->SetInterpolator( lanczosInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "blackmanwindowedsinc" ) )
-      {
-      blackmanInterpolator->SetInputImage( resampleFilter->GetInput() );
-      resampleFilter->SetInterpolator( blackmanInterpolator );
+      interpolator = gaussianInterpolator;
       }
     else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
       {
-      multiLabelInterpolator->SetInputImage( resampleFilter->GetInput() );
-
       double sigma[Dimension];
       for( unsigned int d = 0; d < Dimension; d++ )
         {
-        sigma[d] = resampleFilter->GetInput()->GetSpacing()[d];
+        sigma[d] = inputImages[0]->GetSpacing()[d];
         }
       double alpha = 4.0;
 
@@ -278,33 +311,74 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
             }
           }
         }
-
       multiLabelInterpolator->SetParameters( sigma, alpha );
-      resampleFilter->SetInterpolator( multiLabelInterpolator );
-      }
-    else
-      {
-      antscout << "Error:  Unrecognized interpolation option." << std::endl;
-      return EXIT_FAILURE;
+      interpolator = multiLabelInterpolator;
       }
     }
-  antscout << "Interpolation type: "
-           << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
 
   /**
    * Default voxel value
    */
-  resampleFilter->SetDefaultPixelValue( 0 );
+  PixelType defaultValue = 0;
   typename itk::ants::CommandLineParser::OptionType::Pointer defaultOption =
     parser->GetOption( "default-value" );
   if( defaultOption && defaultOption->GetNumberOfValues() > 0 )
     {
-    PixelType defaultValue =
-      parser->Convert<PixelType>( defaultOption->GetValue() );
-    resampleFilter->SetDefaultPixelValue( defaultValue );
+    defaultValue = parser->Convert<PixelType>( defaultOption->GetValue() );
     }
-  antscout << "Default pixel value: "
-           << resampleFilter->GetDefaultPixelValue() << std::endl;
+  antscout << "Default pixel value: " << defaultValue << std::endl;
+  for( unsigned int n = 0; n < inputImages.size(); n++ )
+    {
+    typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
+    typename ResamplerType::Pointer resampleFilter = ResamplerType::New();
+    resampleFilter->SetInput( inputImages[n] );
+    resampleFilter->SetOutputParametersFromImage( referenceImage );
+    resampleFilter->SetTransform( compositeTransform );
+    resampleFilter->SetDefaultPixelValue( defaultValue );
+
+    if( interpolator )
+      {
+      interpolator->SetInputImage( inputImages[n] );
+      resampleFilter->SetInterpolator( interpolator );
+      }
+    else
+      {
+      // These interpolators need to be checked after instantiation of the resample filter.
+
+      if( !std::strcmp( whichInterpolator.c_str(), "cosinewindowedsinc" ) )
+        {
+        cosineInterpolator->SetInputImage( inputImages[n] );
+        resampleFilter->SetInterpolator( cosineInterpolator );
+        }
+      else if( !std::strcmp( whichInterpolator.c_str(), "hammingwindowedsinc" ) )
+        {
+        hammingInterpolator->SetInputImage( inputImages[n] );
+        resampleFilter->SetInterpolator( hammingInterpolator );
+        }
+      else if( !std::strcmp( whichInterpolator.c_str(), "lanczoswindowedsinc" ) )
+        {
+        lanczosInterpolator->SetInputImage( inputImages[n] );
+        resampleFilter->SetInterpolator( lanczosInterpolator );
+        }
+      else if( !std::strcmp( whichInterpolator.c_str(), "blackmanwindowedsinc" ) )
+        {
+        blackmanInterpolator->SetInputImage( inputImages[n] );
+        resampleFilter->SetInterpolator( blackmanInterpolator );
+        }
+      else
+        {
+        resampleFilter->SetInterpolator( linearInterpolator );
+        }
+      }
+    if( n == 0 )
+      {
+      antscout << "Interpolation type: " << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
+      }
+
+    resampleFilter->Update();
+
+    outputImages.push_back( resampleFilter->GetOutput() );
+    }
 
   /**
    * output
@@ -319,7 +393,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
       typedef typename itk::TransformToDisplacementFieldSource<DisplacementFieldType> ConverterType;
       typename ConverterType::Pointer converter = ConverterType::New();
       converter->SetOutputParametersFromImage( referenceImage );
-      converter->SetTransform( resampleFilter->GetTransform() );
+      converter->SetTransform( compositeTransform );
 
       typedef  itk::ImageFileWriter<DisplacementFieldType> DisplacementFieldWriterType;
       typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
@@ -341,11 +415,45 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser )
         }
       antscout << "Output warped image: " << outputFileName << std::endl;
 
-      typedef  itk::ImageFileWriter<ImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( resampleFilter->GetOutput() );
-      writer->SetFileName( ( outputFileName ).c_str() );
-      writer->Update();
+      if( applyToTensorImage )
+        {
+        if( outputImages.size() != NumberOfTensorElements )
+          {
+          antscout << "The number of output images does not match the number of tensor elements." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        TensorPixelType zeroTensor( 0.0 );
+
+        typename TensorImageType::Pointer outputTensorImage = TensorImageType::New();
+        outputTensorImage->CopyInformation( referenceImage );
+        outputTensorImage->SetRegions( referenceImage->GetRequestedRegion() );
+        outputTensorImage->Allocate();
+        outputTensorImage->FillBuffer( zeroTensor );
+
+        itk::ImageRegionIteratorWithIndex<TensorImageType> It( outputTensorImage,
+                                                               outputTensorImage->GetRequestedRegion() );
+        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+          {
+          TensorPixelType tensor = It.Get();
+          typename TensorImageType::IndexType index = It.GetIndex();
+          for( unsigned int n = 0; n < NumberOfTensorElements; n++ )
+            {
+            tensor.SetNthComponent( n, outputImages[n]->GetPixel( index ) );
+            }
+          It.Set( tensor );
+          }
+
+        WriteTensorImage<TensorImageType>( outputTensorImage, ( outputFileName ).c_str(), true );
+        }
+      else
+        {
+        typedef  itk::ImageFileWriter<ImageType> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetInput( outputImages[0] );
+        writer->SetFileName( ( outputFileName ).c_str() );
+        writer->Update();
+        }
       }
     }
 
@@ -366,6 +474,20 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "dimensionality" );
     option->SetShortName( 'd' );
     option->SetUsageOption( 0, "2/3" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Boolean option specifying that the input image is to be " )
+      + std::string( "read in as a 3D tensor image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "apply-to-tensor-image" );
+    option->SetShortName( 'e' );
+    option->SetUsageOption( 0, "(0)/1" );
+    option->AddValue( std::string( "0" ) );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -598,38 +720,42 @@ private:
     return EXIT_FAILURE;
     }
 
-  unsigned int              dimension = 3;
-  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-      filename.c_str(), itk::ImageIOFactory::ReadMode );
-  dimension = imageIO->GetNumberOfDimensions();
-
-  itk::ants::CommandLineParser::OptionType::Pointer dimOption =
-    parser->GetOption( "dimensionality" );
-  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+  itk::ants::CommandLineParser::OptionType::Pointer tensorOption =
+    parser->GetOption( "apply-to-tensor-image" );
+  if( tensorOption && parser->Convert<unsigned int>( tensorOption->GetValue() ) )
     {
-    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    antsApplyTransforms<3>( parser, true );
     }
-
-  switch( dimension )
+  else
     {
-    case 2:
+    unsigned int dimension = 3;
+
+    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
+        filename.c_str(), itk::ImageIOFactory::ReadMode );
+    dimension = imageIO->GetNumberOfDimensions();
+
+    itk::ants::CommandLineParser::OptionType::Pointer dimOption =
+      parser->GetOption( "dimensionality" );
+    if( dimOption && dimOption->GetNumberOfValues() > 0 )
       {
-      antsApplyTransforms<2>( parser );
+      dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
       }
-      break;
-    case 3:
-      {
-      antsApplyTransforms<3>( parser );
-      }
-      break;
-    case 4:
-      {
-      antsApplyTransforms<4>( parser );
-      }
-      break;
-    default:
-      antscout << "Unsupported dimension" << std::endl;
-      return EXIT_FAILURE;
+
+//     switch( dimension )
+//       {
+//       case 2:
+//         antsApplyTransforms<2>( parser, false );
+//         break;
+//       case 3:
+//         antsApplyTransforms<3>( parser, false );
+//         break;
+//       case 4:
+//         antsApplyTransforms<4>( parser, false );
+//         break;
+//       default:
+//         antscout << "Unsupported dimension" << std::endl;
+//         return EXIT_FAILURE;
+//       }
     }
   return EXIT_SUCCESS;
 }
