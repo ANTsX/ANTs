@@ -101,21 +101,21 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
   // Although this option will eventually be used, it is not needed now.
 
-//     {
-//     std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
-//       + std::string( "incorporated into the composite transform.  The order of the " )
-//       + std::string( "transforms is stack-esque in that the last transform specified on " )
-//       + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
-//       + std::string( "for additional information." );
-//
-//     OptionType::Pointer option = OptionType::New();
-//     option->SetLongName( "initial-fixed-transform" );
-//     option->SetShortName( 'q' );
-//     option->SetUsageOption( 0, "initialTransform" );
-//     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
-//     option->SetDescription( description );
-//     parser->AddOption( option );
-//     }
+    {
+    std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
+      + std::string( "incorporated into the composite transform.  The order of the " )
+      + std::string( "transforms is stack-esque in that the last transform specified on " )
+      + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
+      + std::string( "for additional information." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initial-fixed-transform" );
+    option->SetShortName( 'q' );
+    option->SetUsageOption( 0, "initialTransform" );
+    option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
 
     {
     std::string description = std::string( "Collapse initial linear transforms " )
