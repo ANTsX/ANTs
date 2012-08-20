@@ -41,7 +41,7 @@ namespace ants
 template <class TInputImage, class TRealType>
 antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
 {
-  this->m_Softer = false;
+  this->m_UseL1 = false;
   this->m_MinClusterSizeP = 1;
   this->m_MinClusterSizeQ = 1;
   this->m_KeptClusterSize = 0;
@@ -469,6 +469,8 @@ antsSCCANObject<TInputImage, TRealType>
       np.set_column(i, wpcol);
       }
     }
+  /** cast to a non-negative space */
+  np = np - np.min_value();
   return np;
 }
 
@@ -602,7 +604,7 @@ antsSCCANObject<TInputImage, TRealType>
       }
     else
       {
-      if( this->m_Softer )
+      if( this->m_UseL1 )
         {
         v_in(i) = v_in(i) - minthresh;
         }
@@ -1465,7 +1467,7 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseRecon(unsigned int n_vecs)
 {
-  this->m_Softer = false;
+  this->m_UseL1 = false;
   RealType reconerr = 0;
   this->m_CanonicalCorrelations.set_size( n_vecs );
   this->m_CanonicalCorrelations.fill( 0 );
@@ -1473,7 +1475,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
-  this->m_MatrixP = this->m_MatrixP - this->m_MatrixP.min_value();
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
   this->m_VariatesP.fill( 0 );
   VectorType icept( this->m_MatrixP.rows(), 0 );
@@ -1546,7 +1547,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     }
 
-  this->m_Softer = false;
+  this->m_UseL1 = false;
   return 1.0 / reconerr;
   /*
   for(  unsigned int a = 0; a < n_vecs; a++ )
@@ -2455,7 +2456,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                      // typename antsSCCANObject<TInputImage, TRealType>::VectorType& y,
                      unsigned int maxits, unsigned int maxorth )
 {
-  this->m_Softer = false;
+  this->m_UseL1 = false;
   /** This computes a hard-thresholded gradient descent on the eigenvector criterion.
       max x  over  x^t A^t A x s.t.  x^t x = 1
       success of the optimization is measured by rayleigh quotient. derivative is:
@@ -2524,7 +2525,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   evec = bestevec;
   ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth << std::endl;
-  this->m_Softer = false;
+  this->m_UseL1 = false;
   return rayquo;
   /*
   this->CurvatureSparseness( evec ,  ( 1 - this->m_FractionNonZeroP ) * 100, 2 );
@@ -3110,10 +3111,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                                  unsigned int maxits, bool makesparse )
 {
   x_k.fill( 0 );
-  this->m_Softer = false;
+  this->m_UseL1 = false;
   RealType spgoal = 100.0 * ( 1 - vnl_math_abs( this->m_FractionNonZeroP ) );
   RealType lambda = 1.e2;
-  ::ants::antscout << "SparseConjGradRidgeRegression: lambda " << lambda << " Soft? " <<   this->m_Softer << " fnp "
+  ::ants::antscout << "SparseConjGradRidgeRegression: lambda " << lambda << " Soft? " <<   this->m_UseL1 << " fnp "
                    << this->m_FractionNonZeroP << std::endl;
   MatrixType At = A.transpose();
   VectorType b( b_in );
@@ -3228,28 +3229,45 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                  typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType convcrit,
                  unsigned int maxits )
 {
-  RealType   lambda = 1.e2;
+  this->m_UseL1 = true;
+  RealType   lambda = 0.e2;
   MatrixType At = A.transpose();
   VectorType b( b_in );
   VectorType p_k = At * ( A * x_k );
-
   p_k = b - p_k - x_k * lambda;
+  VectorType   curdir = p_k;
+  VectorType   lastdir = p_k;
   double       approxerr = 1.e9;
   unsigned int ct = 0;
   VectorType   bestsol = x_k;
   RealType     starterr = 1.e99;
   RealType     minerr = starterr, deltaminerr = 1, lasterr = starterr * 2;
   this->SparsifyP( x_k, true );
-  RealType alpha_k = 1.e-7;
+  RealType alpha_k = 1.e-4 / A.frobenius_norm();
+  ::ants::antscout << " alpha_k " << alpha_k << std::endl;
+  RealType   gamma = 0;
+  bool       conjgrad = true;
+  VectorType lastgrad = x_k;
   while( ( ( deltaminerr > 0.1 ) && ( approxerr > convcrit ) && ( ct < maxits ) )
          || ( ct < 4 ) )
     {
-    VectorType x_k1  = x_k + alpha_k * p_k;
-    // this->CurvatureSparseness( x_k1 ,  ( 1 - this->m_FractionNonZeroP ) * 100, 10 );
+    if( ( lastgrad.two_norm() > 0  ) && ( conjgrad )  && ( ct > 2 ) )
+      {
+      gamma = inner_product( p_k, p_k ) / inner_product( lastgrad, lastgrad );
+      }
+    lastdir = curdir;
+    curdir = ( p_k + gamma * lastdir );
+    if( !conjgrad )
+      {
+      curdir = p_k;
+      }
+    VectorType x_k1  = x_k + alpha_k * curdir;
     this->SparsifyP( x_k1, true );
+    VectorType gradvec = this->ComputeVectorLaplacian( x_k1, this->m_MaskImageP );
     VectorType update = At * (A * x_k1 );
     RealType   dataterm =  (b - update ).two_norm();
-    p_k =  b - update - x_k1 * lambda; // ridge
+    lastgrad = p_k;
+    p_k =  b - update - x_k1 * lambda + gradvec * 1.e4; // ridge
     approxerr = dataterm + x_k1.two_norm() * lambda;
     if( approxerr < minerr )
       {
@@ -3273,7 +3291,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                    typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k, TRealType convcrit,
                    unsigned int maxits )
 {
-  this->m_Softer = false;
+  this->m_UseL1 = false;
   double       approxerr = 1.e9;
   unsigned int ct = 0;
   VectorType   bestsol = x_k;
@@ -3348,7 +3366,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_CanonicalCorrelations.set_size( this->m_OriginalMatrixP.rows() );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
-  this->m_MatrixP = this->m_MatrixP - this->m_MatrixP.min_value();
   this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR );
   this->m_MatrixR = this->m_OriginalMatrixR;
   if( this->m_OriginalMatrixR.size() <=  0 )
@@ -3479,8 +3496,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         // minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e4 );/** biased but ok */
         // minerr1 = this->MatchingPursuit(  matrixP ,  randv,  0, 90  );/** bad */
         // minerr1 = this->SparseConjGradRidgeRegression(  matrixP,  randv, bp, 0, 150, true );/** good */
-        randv.fill( 0 );
-        minerr1 = this->IHTRegression(  matrixP,  randv, bp, 0, 150 ); /** good */
+        //	randv.fill( 0 );
+        minerr1 = this->IHTRegression(  matrixP,  randv, bp, 0, 500 ); /** good */
         if( cl < this->m_VariatesP.cols() )
           {
           this->m_VariatesP.set_column( cl, randv );
