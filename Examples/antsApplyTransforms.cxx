@@ -741,21 +741,21 @@ private:
       dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
       }
 
-//     switch( dimension )
-//       {
-//       case 2:
-//         antsApplyTransforms<2>( parser, false );
-//         break;
-//       case 3:
-//         antsApplyTransforms<3>( parser, false );
-//         break;
-//       case 4:
-//         antsApplyTransforms<4>( parser, false );
-//         break;
-//       default:
-//         antscout << "Unsupported dimension" << std::endl;
-//         return EXIT_FAILURE;
-//       }
+    switch( dimension )
+      {
+      case 2:
+        antsApplyTransforms<2>( parser, false );
+        break;
+      case 3:
+        antsApplyTransforms<3>( parser, false );
+        break;
+      case 4:
+        antsApplyTransforms<4>( parser, false );
+        break;
+      default:
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
+      }
     }
   return EXIT_SUCCESS;
 }
