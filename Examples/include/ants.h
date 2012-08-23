@@ -127,6 +127,8 @@
 
 #include "sccan.h"
 
+#include "simpleSynRegistration.h"
+
 #include "SetDirectionByMatrix.h"
 
 #include "SetOrigin.h"

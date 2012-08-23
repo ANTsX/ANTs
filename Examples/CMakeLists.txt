@@ -36,6 +36,10 @@ macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
 
 endmacro()
 
+#set(PROG_WITH_NO_FLAG simpleSynRegistration)
+#add_executable(${PROG_WITH_NO_FLAG} ${PROG_WITH_NO_FLAG}.cxx)
+#target_link_libraries(${PROG_WITH_NO_FLAG} antsUtilities ${ITK_LIBRARIES})
+
 set(BASE_ANTS_APPS
   ANTS
   ANTSJacobian
@@ -104,6 +108,7 @@ set(BASE_ANTS_APPS
   CreateDTICohort
   AverageAffineTransform
   antsRegistration
+  simpleSynRegistration
   antsApplyTransforms
   antsApplyTransformsToPoints
   CompositeTransformUtil
