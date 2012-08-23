@@ -5,10 +5,10 @@
 // This program does not have any flag. You should just put the arguments after the program name.
 /*
 ~/simpleSynRegistration
- fixed image
- moving image
- initial transform
- output prefix file name
+fixed image
+moving image
+initial transform
+output prefix file name
 */
 
 #include "antsUtilities.h"
@@ -26,18 +26,18 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
 {
   RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
 
-  std::string                               whichMetric = "mattes";
+  const std::string                         whichMetric = "mattes";
   RegistrationHelperType::MetricEnumeration curMetric = regHelper->StringToMetricType(whichMetric);
-  float                                     lowerQuantile = 0.0;
-  float                                     upperQuantile = 1.0;
-  bool                                      doWinsorize(false);
+  const float                               lowerQuantile( 0.0F );
+  const float                               upperQuantile( 1.0F );
+  const bool                                doWinsorize(false);
 
   regHelper->SetWinsorizeImageIntensities(doWinsorize, lowerQuantile, upperQuantile);
 
-  bool doHistogramMatch(true);
+  const bool doHistogramMatch(true);
   regHelper->SetUseHistogramMatching(doHistogramMatch);
 
-  bool doEstimateLearningRateAtEachIteration = true;
+  const bool doEstimateLearningRateAtEachIteration = true;
   regHelper->SetDoEstimateLearningRateAtEachIteration( doEstimateLearningRateAtEachIteration );
 
   std::vector<std::vector<unsigned int> > iterationList;
@@ -48,11 +48,12 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
 
   std::vector<unsigned int> iterations(3);
   iterations[0] = 100; iterations[1] = 70; iterations[2] = 20;
-  double       convergenceThreshold = 1e-6;
-  unsigned int convergenceWindowSize = 10;
   antscout << "  number of levels = 3 " << std::endl;
   iterationList.push_back(iterations);
+
+  const double convergenceThreshold = 1e-6;
   convergenceThresholdList.push_back(convergenceThreshold);
+  const unsigned int convergenceWindowSize = 10;
   convergenceWindowSizeList.push_back(convergenceWindowSize);
 
   std::vector<unsigned int> factors(3);
@@ -63,16 +64,16 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
   sigmas[0] = 2; sigmas[1] = 1; sigmas[2] = 0;
   smoothingSigmasList.push_back(sigmas);
 
-  float                                    samplingPercentage = 1.0;
+  const float                              samplingPercentage = 1.0;
   RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
-  unsigned int                             binOption = 200;
+  const unsigned int                       binOption = 200;
   regHelper->AddMetric(curMetric, fixedImage, movingImage, 1.0, samplingStrategy, binOption, 1, samplingPercentage);
 
-  float       learningRate = 0.25;
-  const float varianceForUpdateField = 3.0;
-  const float varianceForTotalField = 0.0;
-
+  const float learningRate(0.25F);
+  const float varianceForUpdateField( 3.0F );
+  const float varianceForTotalField(0.0F);
   regHelper->AddSyNTransform(learningRate, varianceForUpdateField, varianceForTotalField);
+
   regHelper->SetMovingInitialTransform( compositeInitialTransform );
   regHelper->SetIterations( iterationList );
   regHelper->SetConvergenceWindowSizes( convergenceWindowSizeList );
@@ -148,7 +149,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
   if( initialTransform.IsNull() )
     {
     antscout << "Can't read initial transform " << std::endl;
-    return NULL;
+    return EXIT_FAILURE;
     }
   CompositeTransformType::Pointer compositeInitialTransform = CompositeTransformType::New();
   compositeInitialTransform->AddTransform( initialTransform );
@@ -164,7 +165,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
   itk::ants::WriteTransform<3>( outputTransform, outputFileName.str() );
 
   // compute and write the inverse of the output transform
-  bool writeInverse(true);
+  const bool writeInverse(true);
   if( writeInverse )
     {
     typedef RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
@@ -179,7 +180,6 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
     inverseWriter->SetFileName( outputInverseFileName.str().c_str() );
     inverseWriter->Update();
     }
-
   return EXIT_SUCCESS;
 }
 } // namespace ants
