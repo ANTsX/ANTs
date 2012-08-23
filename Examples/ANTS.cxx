@@ -165,185 +165,192 @@ private:
       }
     return EXIT_SUCCESS;
     }
-  int dim = atoi( argv[1] );
-  if( dim <= 1 || dim > 3 )
+
+  int dim = 0;
+  if( argc >= 1 )
     {
-    antscout << " You passed ImageDimension: " << dim
-             << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
-    ants::PrintCommandLineHelp(argv[0]);
+    dim = atoi( argv[1] );
+    }
+}
+
+if( dim <= 1 || dim > 3 )
+  {
+  antscout << " You passed ImageDimension: " << dim
+           << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
+  ants::PrintCommandLineHelp(argv[0]);
+  return EXIT_FAILURE;
+  }
+/**
+ * Try the simple case of the call "ANTS fixedImage movingImage"
+ */
+if( argc == 3 && ( atoi( argv[1] ) != 2 || atoi( argv[1] ) != 3 ) )
+  {
+  itk::ImageIOBase::Pointer fixedImageIO
+    = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );
+  if( fixedImageIO.IsNull() )
+    {
+    antscout << "Invalid fixed image: " << argv[1] << std::endl;
     return EXIT_FAILURE;
     }
-  /**
-   * Try the simple case of the call "ANTS fixedImage movingImage"
-   */
-  if( argc == 3 && ( atoi( argv[1] ) != 2 || atoi( argv[1] ) != 3 ) )
+  itk::ImageIOBase::Pointer movingImageIO
+    = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::ReadMode );
+  if( movingImageIO.IsNull() )
     {
-    itk::ImageIOBase::Pointer fixedImageIO
-      = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );
-    if( fixedImageIO.IsNull() )
+    antscout << "Invalid moving image: " << argv[2] << std::endl;
+    return EXIT_FAILURE;
+    }
+  fixedImageIO->SetFileName( argv[1] );
+  fixedImageIO->ReadImageInformation();
+  movingImageIO->SetFileName( argv[2] );
+  movingImageIO->ReadImageInformation();
+
+  const unsigned int fdim = fixedImageIO->GetNumberOfDimensions();
+  const unsigned int mdim = movingImageIO->GetNumberOfDimensions();
+  if( fdim != mdim )
+    {
+    antscout << "Fixed image dimension does not equal "
+             << "the moving image dimension (" << fdim << " != " << mdim << ")"
+             << std::endl;
+    return EXIT_FAILURE;
+    }
+  if( fdim != 2 && fdim != 3 )
+    {
+    antscout << "Unsupported image dimension" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  /**
+   * After the checking, we can add the default parameters;
+   */
+
+  std::string transformation( " -t SyN[1.0] ");
+  std::string regularization( " -r Gauss[3,0.5] ");
+  std::string metric = std::string( " -m PR[" ) + std::string( argv[1] )
+    + std::string( "," ) + std::string( argv[2] ) + std::string( ",1,3] " );
+  std::string outputNaming( " -o ANTS.nii.gz " );
+
+  long maxSize = vnl_math_min( fixedImageIO->GetDimensions( 0 ),
+                               movingImageIO->GetDimensions( 0 ) );
+  for( unsigned int d = 1; d < fdim; d++ )
+    {
+    long tmpMax = vnl_math_max( fixedImageIO->GetDimensions( d ),
+                                movingImageIO->GetDimensions( d ) );
+    if( maxSize < tmpMax )
       {
-      antscout << "Invalid fixed image: " << argv[1] << std::endl;
-      return EXIT_FAILURE;
+      maxSize = tmpMax;
       }
-    itk::ImageIOBase::Pointer movingImageIO
-      = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::ReadMode );
-    if( movingImageIO.IsNull() )
+    }
+
+  unsigned int numberOfLevels = static_cast<unsigned int>(
+      vcl_log( (double)maxSize / 32 ) / vcl_log( (double) 2 ) ) + 1;
+  std::string iterations( " -i " );
+  for( int n = numberOfLevels; n > 0; n-- )
+    {
+    std::ostringstream buf;
+    unsigned long      numberOfIterations = ( 5 << (n - 1) );
+    buf << numberOfIterations << "x";
+    iterations += buf.str();
+    }
+  iterations = iterations.substr( 0, iterations.length() - 1 );
+
+  std::ostringstream dimBuf;
+  dimBuf << fdim;
+  std::string arguments;
+  arguments.clear();
+  arguments = std::string( " ANTS " ) + dimBuf.str() + iterations
+    + transformation + regularization + metric + outputNaming;
+
+  dim = fdim;
+
+  antscout << arguments << std::endl;
+
+  unsigned int           my_argc = 0;
+  std::string::size_type delimPos = 0;
+  std::string::size_type tokenPos = 0;
+  std::string::size_type pos = 0;
+  while( true )
+    {
+    delimPos = arguments.find_first_of( " ", pos );
+    tokenPos = arguments.find_first_not_of( " ", pos );
+    if( std::string::npos != delimPos &&
+        std::string::npos != tokenPos && tokenPos < delimPos )
       {
-      antscout << "Invalid moving image: " << argv[2] << std::endl;
-      return EXIT_FAILURE;
+      my_argc++;
       }
-    fixedImageIO->SetFileName( argv[1] );
-    fixedImageIO->ReadImageInformation();
-    movingImageIO->SetFileName( argv[2] );
-    movingImageIO->ReadImageInformation();
-
-    const unsigned int fdim = fixedImageIO->GetNumberOfDimensions();
-    const unsigned int mdim = movingImageIO->GetNumberOfDimensions();
-    if( fdim != mdim )
+    else if( std::string::npos == delimPos )
       {
-      antscout << "Fixed image dimension does not equal "
-               << "the moving image dimension (" << fdim << " != " << mdim << ")"
-               << std::endl;
-      return EXIT_FAILURE;
-      }
-    if( fdim != 2 && fdim != 3 )
-      {
-      antscout << "Unsupported image dimension" << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    /**
-     * After the checking, we can add the default parameters;
-     */
-
-    std::string transformation( " -t SyN[1.0] ");
-    std::string regularization( " -r Gauss[3,0.5] ");
-    std::string metric = std::string( " -m PR[" ) + std::string( argv[1] )
-      + std::string( "," ) + std::string( argv[2] ) + std::string( ",1,3] " );
-    std::string outputNaming( " -o ANTS.nii.gz " );
-
-    long maxSize = vnl_math_min( fixedImageIO->GetDimensions( 0 ),
-                                 movingImageIO->GetDimensions( 0 ) );
-    for( unsigned int d = 1; d < fdim; d++ )
-      {
-      long tmpMax = vnl_math_max( fixedImageIO->GetDimensions( d ),
-                                  movingImageIO->GetDimensions( d ) );
-      if( maxSize < tmpMax )
-        {
-        maxSize = tmpMax;
-        }
-      }
-
-    unsigned int numberOfLevels = static_cast<unsigned int>(
-        vcl_log( (double)maxSize / 32 ) / vcl_log( (double) 2 ) ) + 1;
-    std::string iterations( " -i " );
-    for( int n = numberOfLevels; n > 0; n-- )
-      {
-      std::ostringstream buf;
-      unsigned long      numberOfIterations = ( 5 << (n - 1) );
-      buf << numberOfIterations << "x";
-      iterations += buf.str();
-      }
-    iterations = iterations.substr( 0, iterations.length() - 1 );
-
-    std::ostringstream dimBuf;
-    dimBuf << fdim;
-    std::string arguments;
-    arguments.clear();
-    arguments = std::string( " ANTS " ) + dimBuf.str() + iterations
-      + transformation + regularization + metric + outputNaming;
-
-    dim = fdim;
-
-    antscout << arguments << std::endl;
-
-    unsigned int           my_argc = 0;
-    std::string::size_type delimPos = 0;
-    std::string::size_type tokenPos = 0;
-    std::string::size_type pos = 0;
-    while( true )
-      {
-      delimPos = arguments.find_first_of( " ", pos );
-      tokenPos = arguments.find_first_not_of( " ", pos );
-      if( std::string::npos != delimPos &&
-          std::string::npos != tokenPos && tokenPos < delimPos )
+      if( std::string::npos != tokenPos )
         {
         my_argc++;
         }
-      else if( std::string::npos == delimPos )
+      else
         {
-        if( std::string::npos != tokenPos )
-          {
-          my_argc++;
-          }
-        else
-          {
-          break;
-          }
+        break;
         }
-      pos = delimPos + 1;
       }
+    pos = delimPos + 1;
+    }
 
-    unsigned int arg_count = 0;
-    char * *     my_argv = new char *[my_argc];
-    delimPos = 0;
-    tokenPos = 0;
-    pos = 0;
-    while( true )
+  unsigned int arg_count = 0;
+  char * *     my_argv = new char *[my_argc];
+  delimPos = 0;
+  tokenPos = 0;
+  pos = 0;
+  while( true )
+    {
+    delimPos = arguments.find_first_of( " ", pos );
+    tokenPos = arguments.find_first_not_of( " ", pos );
+    if( std::string::npos != delimPos &&
+        std::string::npos != tokenPos && tokenPos < delimPos )
       {
-      delimPos = arguments.find_first_of( " ", pos );
-      tokenPos = arguments.find_first_not_of( " ", pos );
-      if( std::string::npos != delimPos &&
-          std::string::npos != tokenPos && tokenPos < delimPos )
+      std::string arg = arguments.substr( pos, delimPos - pos );
+      my_argv[arg_count] = new char[arg.size() + 1];
+      strcpy( my_argv[arg_count], arg.c_str() );
+      arg_count++;
+      }
+    else if( std::string::npos == delimPos )
+      {
+      if( std::string::npos != tokenPos )
         {
-        std::string arg = arguments.substr( pos, delimPos - pos );
+        std::string arg = arguments.substr( pos );
         my_argv[arg_count] = new char[arg.size() + 1];
         strcpy( my_argv[arg_count], arg.c_str() );
         arg_count++;
         }
-      else if( std::string::npos == delimPos )
+      else
         {
-        if( std::string::npos != tokenPos )
-          {
-          std::string arg = arguments.substr( pos );
-          my_argv[arg_count] = new char[arg.size() + 1];
-          strcpy( my_argv[arg_count], arg.c_str() );
-          arg_count++;
-          }
-        else
-          {
-          break;
-          }
-        }
-      pos = delimPos + 1;
-      }
-
-    switch( dim )
-      {
-      case 3:
-        {
-        return ANTSex<3>( my_argc, my_argv );
-        }
         break;
-      default:
-        return ANTSex<2>( my_argc, my_argv );
+        }
       }
+    pos = delimPos + 1;
     }
-  else
+
+  switch( dim )
     {
-    switch( dim )
+    case 3:
       {
-      case 3:
-        {
-        return ANTSex<3>( argc, argv );
-        }
-        break;
-      default:
-        return ANTSex<2>( argc, argv );
+      return ANTSex<3>( my_argc, my_argv );
       }
+      break;
+    default:
+      return ANTSex<2>( my_argc, my_argv );
     }
+  }
+else
+  {
+  switch( dim )
+    {
+    case 3:
+      {
+      return ANTSex<3>( argc, argv );
+      }
+      break;
+    default:
+      return ANTSex<2>( argc, argv );
+    }
+  }
 
-  antscout << "Shoudln't have gotten here." << std::endl;
-  return EXIT_FAILURE;
+antscout << "Shoudln't have gotten here." << std::endl;
+return EXIT_FAILURE;
 }
 } // namespace ants
