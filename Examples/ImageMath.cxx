@@ -4124,6 +4124,158 @@ int ImageMath(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int VImageMath(int argc, char *argv[])
+{
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef FieldType                                                       ImageType;
+  typedef typename ImageType::PixelType                                   PixelType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = "";
+  if( argc > argct )
+    {
+    fn2 = std::string(argv[argct]);
+    }
+
+  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::Pointer varimage = NULL;
+
+  typename readertype::Pointer reader2 = readertype::New();
+  typename readertype::Pointer reader1 = readertype::New();
+  reader2->SetFileName(fn2.c_str() );
+
+  bool  isfloat = false;
+  float floatval = 1.0;
+  if( from_string<float>(floatval, fn2, std::dec) )
+    {
+    isfloat = true;
+    }
+  else
+    {
+    reader2->Update();
+    image2 = reader2->GetOutput();
+    }
+
+  reader1->SetFileName(fn1.c_str() );
+  try
+    {
+    reader1->UpdateLargestPossibleRegion();
+    image1 = reader1->GetOutput();
+    }
+  catch( ... )
+    {
+    antscout << " read 1 error ";
+    }
+
+  varimage = AllocImage<ImageType>(image1);
+
+  if( strcmp(operation.c_str(), "mresample") == 0 && !isfloat )
+    {
+    typename ImageType::SpacingType spc = image2->GetSpacing();
+    typedef itk::TranslationTransform<double, ImageDimension> TransformType0;
+    typename TransformType0::Pointer             m_Transform0 = TransformType0::New();
+    typename TransformType0::ParametersType trans = m_Transform0->GetParameters();
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      trans[i] = 0;
+      spc[i] = image1->GetSpacing()[i] * image1->GetLargestPossibleRegion().GetSize()[i]
+        / image2->GetLargestPossibleRegion().GetSize()[i];
+      }
+    image2->SetSpacing(spc);
+    image2->SetOrigin(image1->GetOrigin() );
+    image2->SetDirection(image1->GetDirection() );
+    m_Transform0->SetParameters(trans);
+    antscout << " trans " << m_Transform0->GetParameters() << " Nspc " << image2->GetSpacing() << std::endl;
+    typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
+    typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
+    resample->SetTransform( m_Transform0 );
+    resample->SetInput( image2 );
+    resample->SetOutputParametersFromImage(  image1 );
+    typename ImageType::IndexType zeroind;  zeroind.Fill(0);
+    resample->SetDefaultPixelValue( image1->GetPixel(zeroind) );
+    resample->UpdateLargestPossibleRegion();
+    image2 = resample->GetOutput();
+
+    WriteImage<ImageType>(image2, outname.c_str() );
+    return 0;
+    }
+
+  float volumeelement = 1.0;
+  for( unsigned int i = 0;  i < ImageDimension; i++ )
+    {
+    volumeelement *= varimage->GetSpacing()[i];
+    }
+
+  PixelType result = itk::NumericTraits<PixelType>::Zero;
+  Iterator  vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    IndexType ind = vfIter2.GetIndex();
+    PixelType pix2;
+    if( isfloat )
+      {
+      pix2 = floatval;
+      }
+    else
+      {
+      pix2 = image2->GetPixel(ind);
+      }
+    PixelType pix1 = image1->GetPixel(ind);
+
+    if( strcmp(operation.c_str(), "vm") == 0 )
+      {
+      result = pix1 * pix2;
+      }
+    else if( strcmp(operation.c_str(), "v+") == 0 )
+      {
+      result = pix1 + pix2;
+      }
+    else if( strcmp(operation.c_str(), "v-") == 0 )
+      {
+      result = pix1 - pix2;
+      }
+    else if( strcmp(operation.c_str(), "v/") == 0 )
+      {
+      ::ants::antscout << "Operation v/ not implemented" << std::endl;
+      //	result = // pix1 / pix2;
+      }
+    else if( strcmp(operation.c_str(), "vtotal") == 0 )
+      {
+      result += pix1 * pix2;
+      }
+    vfIter2.Set(result);
+    }
+  if( strcmp(operation.c_str(), "vtotal") == 0 )
+    {
+    antscout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
+    }
+  else
+    {
+    antscout << "operation " << operation << std::endl;
+    }
+  if( outname.length() > 3 )
+    {
+    WriteImage<ImageType>(varimage, outname.c_str() );
+    }
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int TensorFunctions(int argc, char *argv[])
 {
   typedef float PixelType;
@@ -10113,9 +10265,9 @@ private:
     antscout << " NB: Some options output text files" << std::endl;
 
     antscout << "\nMathematical Operations:" << std::endl;
-    antscout << "  m            : Multiply" << std::endl;
-    antscout << "  +             : Add" << std::endl;
-    antscout << "  -             : Subtract" << std::endl;
+    antscout << "  m            : Multiply ---  use vm for vector multiply " << std::endl;
+    antscout << "  +             : Add ---  use v+ for vector add " << std::endl;
+    antscout << "  -             : Subtract ---  use v- for vector subtract " << std::endl;
     antscout << "  /             : Divide" << std::endl;
     antscout << "  ^            : Power" << std::endl;
     antscout << "  exp            : Take exponent exp(imagevalue*value)" << std::endl;
@@ -10514,6 +10666,22 @@ private:
         {
         ImageMath<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "vm") == 0 )
+        {
+        VImageMath<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "vmresample") == 0 )
+        {
+        VImageMath<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "v+") == 0 )
+        {
+        VImageMath<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "v-") == 0 )
+        {
+        VImageMath<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "/") == 0 )
         {
         ImageMath<2>(argc, argv);
@@ -10788,7 +10956,6 @@ private:
         {
         ImageMath<3>(argc, argv);
         }
-
       else if( strcmp(operation.c_str(), "mresample") == 0 )
         {
         ImageMath<3>(argc, argv);
@@ -10800,6 +10967,22 @@ private:
       else if( strcmp(operation.c_str(), "-") == 0 )
         {
         ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "vm") == 0 )
+        {
+        VImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "vmresample") == 0 )
+        {
+        VImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "v+") == 0 )
+        {
+        VImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "v-") == 0 )
+        {
+        VImageMath<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "/") == 0 )
         {
@@ -11164,6 +11347,22 @@ private:
       else if( strcmp(operation.c_str(), "-") == 0 )
         {
         ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "vm") == 0 )
+        {
+        VImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "vmresample") == 0 )
+        {
+        VImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "v+") == 0 )
+        {
+        VImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "v-") == 0 )
+        {
+        VImageMath<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "/") == 0 )
         {
