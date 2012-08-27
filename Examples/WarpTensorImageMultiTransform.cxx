@@ -307,7 +307,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
     }
 
   // Convert to reference image tensor basis
-  DirectionCorrect<TensorImageType, ImageType>(img_mov, img_ref);
+  // DirectionCorrect<TensorImageType, ImageType>(img_mov, img_ref);
 
   typename TensorImageType::Pointer img_output =
     AllocImage<TensorImageType>(img_ref);
