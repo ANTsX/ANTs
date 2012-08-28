@@ -16,7 +16,7 @@ set(proj ITKv4)      #This local name
 
 # Sanity checks
 if(DEFINED ${extProjName}_DIR AND NOT EXISTS ${${extProjName}_DIR})
-  message(FATAL_ERROR "${extProjName}_DIR variable is defined but corresponds to non-existing directory")
+  message(FATAL_ERROR "${extProjName}_DIR variable is defined but corresponds to non-existing directory (${${extProjName}_DIR})")
 endif()
 
 # Set dependency list
@@ -62,24 +62,30 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   #      link properly if -fopenmp is used.
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
+  if(USE_FFTWD OR USE_FFTWF)
+    set(FFTWF_FLAGS -DUSE_FFTWF:BOOL=ON)
+  else()
+    set(FFTWF_FLAGS "")
+  endif()
 
   set(${proj}_CMAKE_OPTIONS
       -DITK_LEGACY_REMOVE:BOOL=ON
+      -DITKV3_COMPATIBILITY:BOOL=OFF
       -DITK_BUILD_ALL_MODULES:BOOL=ON
       -DITK_USE_REVIEW:BOOL=ON
-      -DITKV3_COMPATIBILITY:BOOL=OFF
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DUSE_WRAP_ITK:BOOL=OFF ## HACK:  QUICK CHANGE
+      ${FFTWF_FLAGS}
     )
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
-  set(${proj}_GIT_TAG 1ac95d67a5bd0d759b59545780429107a37e0e1e) #Include metric performance improvements
+  set(${proj}_GIT_TAG 65f08a503d72eb86fcbcf86801c39adc5dc1bb06) #2012-08-28
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
     SOURCE_DIR ${proj}
     BINARY_DIR ${proj}-build
-    UPDATE_COMMAND ""
+    ${cmakeversion_external_update}
     CMAKE_GENERATOR ${gen}
     CMAKE_ARGS
       ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
@@ -98,6 +104,7 @@ else()
     if(NOT ${extProjName}_DIR)
       message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
     endif()
+    message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
   endif()
   # The project is provided using ${extProjName}_DIR, nevertheless since other
   # project may depend on ${extProjName}v4, let's add an 'empty' one
