@@ -220,14 +220,15 @@ static bool WarpTensorImageMultiTransform_ParseInput(int argc, char * *argv, cha
 }
 
 template <class TAffineTransform>
-void GetIdentityTransform(typename TAffineTransform::Pointer & aff)
+static void GetIdentityTransform(typename TAffineTransform::Pointer & aff)
 {
   aff = TAffineTransform::New();
   aff->SetIdentity();
 }
 
+#if 0
 template <typename TensorImageType, typename ImageType>
-void
+static void
 DirectionCorrect( typename TensorImageType::Pointer img_mov, typename ImageType::Pointer img_ref )
 {
   itk::ImageRegionIteratorWithIndex<TensorImageType> it(img_mov, img_mov->GetLargestPossibleRegion() );
@@ -265,9 +266,11 @@ DirectionCorrect( typename TensorImageType::Pointer img_mov, typename ImageType:
     }
 }
 
+#endif
+
 template <int ImageDimension>
-void WarpImageMultiTransform(char *moving_image_filename, char *output_image_filename,
-                             TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
+static void WarpImageMultiTransform(char *moving_image_filename, char *output_image_filename,
+                                    TRAN_OPT_QUEUE & opt_queue, MISC_OPT & misc_opt)
 {
   // typedef itk::Vector<float,6> PixelType;
   typedef itk::SymmetricSecondRankTensor<float,
