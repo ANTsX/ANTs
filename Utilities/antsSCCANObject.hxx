@@ -4003,12 +4003,42 @@ antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
+::InitializeSCCA( unsigned int n_vecs, unsigned int seeder )
+{
+  RealType totalcorr = 0;
+
+  for( unsigned int kk = 0; kk < n_vecs; kk++ )
+    {
+    VectorType qvec;
+    VectorType vec = this->InitializeV( this->m_MatrixP, kk * seeder );
+    vec = vec / vec.two_norm();
+    qvec = ( this->m_MatrixP * vec ) * this->m_MatrixQ;
+    qvec = qvec / qvec.two_norm();
+    vec = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
+    vec = vec / vec.two_norm();
+    for( unsigned int j = 0; j < kk; j++ )
+      {
+      VectorType qj = this->m_VariatesP.get_column(j);
+      vec = this->Orthogonalize( vec, qj );
+      qj = this->m_VariatesQ.get_column(j);
+      qvec = this->Orthogonalize( qvec, qj );
+      }
+    qvec = qvec / qvec.two_norm();
+    vec = vec / vec.two_norm();
+    this->m_VariatesP.set_column( kk, vec );
+    this->m_VariatesQ.set_column( kk, qvec );
+    totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
+    }
+  return totalcorr;
+}
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparsePartialArnoldiCCA(unsigned int n_vecs_in)
 {
   unsigned int n_vecs = n_vecs_in;
 
   this->m_UseL1 = true;
-  //  this->m_UseL1 = false;
   if( n_vecs < 1 )
     {
     n_vecs = 1;
@@ -4042,28 +4072,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
-  for( unsigned int kk = 0; kk < n_vecs; kk++ )
+  RealType     totalcorr = 0;
+  RealType     bestcorr = 0;
+  unsigned int bestseed = 1;
+  for( unsigned int seeder = 1; seeder < 100; seeder++ )
     {
-    VectorType qvec;
-    VectorType vec = this->InitializeV( this->m_MatrixP, kk );
-    vec = vec / vec.two_norm();
-    for( unsigned int quickcca = 0; quickcca < 1; quickcca++ )
+    totalcorr = this->InitializeSCCA( n_vecs, seeder );
+    if( totalcorr > bestcorr )
       {
-      qvec = ( this->m_MatrixP * vec ) * this->m_MatrixQ;
-      qvec = qvec / qvec.two_norm();
-      vec = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
-      vec = vec / vec.two_norm();
+      bestseed = seeder;  bestcorr = totalcorr;
       }
-    for( unsigned int j = 0; j < kk; j++ )
-      {
-      VectorType qj = this->m_VariatesP.get_column(j);
-      vec = this->Orthogonalize( vec, qj );
-      qj = this->m_VariatesQ.get_column(j);
-      qvec = this->Orthogonalize( qvec, qj );
-      }
-    this->m_VariatesP.set_column( kk, vec );
-    this->m_VariatesQ.set_column( kk, qvec );
+    totalcorr = 0;
     }
+  ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
+  this->InitializeSCCA( n_vecs, bestseed );
   unsigned int maxloop = this->m_MaximumNumberOfIterations;
   unsigned int loop = 0;
   bool         energyincreases = true;
@@ -4102,8 +4124,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       pveck = pveck / pveck.two_norm();
       qveck = qveck / qveck.two_norm();
-      pveck = ptemp + pveck * 0.9;
-      qveck = qtemp + qveck * 0.9;
+      pveck = ptemp + pveck * 1.0;
+      qveck = qtemp + qveck * 1.0;
       this->SparsifyP( pveck, true );
       this->SparsifyQ( qveck, true );
       this->m_VariatesP.set_column( k, pveck / pveck.two_norm() );
@@ -4120,7 +4142,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     energy = this->m_CanonicalCorrelations.one_norm() / n_vecs;
     ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
                      << std::endl;
-    if( energy < lastenergy )
+    if( vnl_math_abs( energy - lastenergy ) < 1.e-8 || energy < lastenergy )
       {
       energyincreases = false;
       }
