@@ -345,7 +345,7 @@ public:
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
   VectorType SpatiallySmoothVector( VectorType, ImagePointer, RealType );
 
-  MatrixType NormalizeMatrix(MatrixType p);
+  MatrixType NormalizeMatrix(MatrixType p, bool makepositive = true );
 
   /** needed for partial scca */
   MatrixType CovarianceMatrix(MatrixType p, RealType regularization = 1.e-2 )

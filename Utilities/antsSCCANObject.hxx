@@ -201,7 +201,7 @@ antsSCCANObject<TInputImage, TRealType>
                                                      TRealType>::VectorType& w_p, typename TInputImage::Pointer mask,
                             unsigned int minclust )
 {
-  if( minclust <= 1 )
+  if( minclust <= 1 || mask.IsNull() )
     {
     return w_p;
     }
@@ -369,9 +369,12 @@ antsSCCANObject<TInputImage, TRealType>
 ::SpatiallySmoothVector( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
                          typename TInputImage::Pointer mask, TRealType sigma )
 {
+  if( mask.IsNull() )
+    {
+    return vec;
+    }
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
   RealType     spacingsize = 0;
-
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
     RealType sp = mask->GetSpacing()[d];
@@ -442,7 +445,7 @@ antsSCCANObject<TInputImage, TRealType>
 template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::MatrixType
 antsSCCANObject<TInputImage, TRealType>
-::NormalizeMatrix( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p )
+::NormalizeMatrix( typename antsSCCANObject<TInputImage, TRealType>::MatrixType p, bool makepositive )
 {
   MatrixType np( p.rows(), p.columns() );
 
@@ -470,7 +473,10 @@ antsSCCANObject<TInputImage, TRealType>
       }
     }
   /** cast to a non-negative space */
-  np = np - np.min_value();
+  if( makepositive )
+    {
+    np = np - np.min_value();
+    }
   return np;
 }
 
@@ -2485,12 +2491,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
       // nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+      VectorType v = A * this->m_VariatesP.get_column( orth );
+      RealType   ip1 = inner_product( A * nvec,  v );
+      RealType   ip2 = inner_product( v, v );
+      VectorType ortho = nvec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;
       }
     RealType gamma = 0.1;
-    bool     smooth = true;
-    if( smooth )
+    RealType smooth = 0.5;
+    if( smooth > 0 )
       {
-      nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
+      nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, smooth );
       }
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
       {
@@ -2498,11 +2508,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     lastgrad = nvec;
     evec = evec + nvec * gamma;
-    if( smooth )
+    if( smooth > 0 )
       {
-      evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP, 1. );
+      evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP, smooth );
       }
-    this->CurvatureSparseness( evec,  ( 1 - this->m_FractionNonZeroP ) * 100, 5 );
+    //    this->CurvatureSparseness( evec ,  ( 1 - this->m_FractionNonZeroP ) * 100, 5 );
     this->SparsifyP( evec, true );
     // VectorType gradvec = this->ComputeVectorGradMag( evec, this->m_MaskImageP );
     if( evec.two_norm() > 0 )
@@ -3997,17 +4007,18 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 {
   unsigned int n_vecs = n_vecs_in;
 
-  if( n_vecs < 2 )
+  //  this->m_UseL1 = true;
+  if( n_vecs < 1 )
     {
-    n_vecs = 2;
+    n_vecs = 1;
     }
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
   ::ants::antscout << " arnoldi sparse partial cca " << std::endl;
   ::ants::antscout << "  pos-p " << this->GetKeepPositiveP() << " pos-q " << this->GetKeepPositiveQ() << std::endl;
-  this->m_MatrixP = this->NormalizeMatrix(this->m_OriginalMatrixP);
-  this->m_MatrixQ = this->NormalizeMatrix(this->m_OriginalMatrixQ);
-  this->m_MatrixR = this->NormalizeMatrix(this->m_OriginalMatrixR);
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP, false );
+  this->m_MatrixQ = this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
+  this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR, false );
 
   if( this->m_OriginalMatrixR.size() > 0 )
     {
@@ -4032,21 +4043,33 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
-    this->m_VariatesP.set_column(kk, this->InitializeV(this->m_MatrixP) );
-    this->m_VariatesQ.set_column(kk, this->InitializeV(this->m_MatrixQ) );
+    VectorType qvec;
+    VectorType vec = this->InitializeV( this->m_MatrixP, kk );
+    vec = vec / vec.two_norm();
+    for( unsigned int quickcca = 0; quickcca < 1; quickcca++ )
+      {
+      qvec = ( this->m_MatrixP * vec ) * this->m_MatrixQ;
+      qvec = qvec / qvec.two_norm();
+      vec = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
+      vec = vec / vec.two_norm();
+      }
+    for( unsigned int j = 0; j < kk; j++ )
+      {
+      VectorType qj = this->m_VariatesP.get_column(j);
+      vec = this->Orthogonalize( vec, qj );
+      qj = this->m_VariatesQ.get_column(j);
+      qvec = this->Orthogonalize( qvec, qj );
+      }
+    this->m_VariatesP.set_column( kk, vec );
+    this->m_VariatesQ.set_column( kk, qvec );
     }
   unsigned int maxloop = this->m_MaximumNumberOfIterations;
-  if( maxloop < 25 )
-    {
-    maxloop = 25;
-    }
-
   unsigned int loop = 0;
   bool         energyincreases = true;
   RealType     energy = 0, lastenergy = 0;
-  while( ( ( loop < maxloop ) && energyincreases ) || loop < 20 )
+  while( ( ( loop < maxloop ) && ( energyincreases ) ) || loop < 3 ) //
     {
-// Arnoldi Iteration SCCA
+    // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
       VectorType ptemp = this->m_VariatesP.get_column(k);
@@ -4060,52 +4083,36 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         for( unsigned int j = 0; j < k; j++ )
           {
           VectorType qj = this->m_VariatesP.get_column(j);
-          RealType   ip = inner_product( qj, qj );
-          RealType   hjk = 0;
-          if( ip > 0 )
-            {
-            hjk = inner_product( qj, pveck ) / ip;
-            }
-          pveck = pveck - hjk * qj;
-
+          // this->ZeroProduct( pveck, qj );
+          pveck = this->Orthogonalize( pveck, qj );
           qj = this->m_VariatesQ.get_column(j);
-          ip = inner_product( qj, qj );
-          hjk = 0;
-          if( ip > 0 )
-            {
-            hjk = inner_product( qj, qveck ) / ip;
-            }
-          qveck = qveck - hjk * qj;
+          // this->ZeroProduct( qveck, qj );
+          qveck = this->Orthogonalize( qveck, qj );
           }
         }
-      RealType hkkm1 = pveck.two_norm();
-      if( hkkm1 > 0 )
+      RealType smooth = 0.5;
+      if( smooth > 0 )
         {
-        pveck = pveck / hkkm1;
+        pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
         }
-      hkkm1 = qveck.two_norm();
-      if( hkkm1 > 0 )
+      if( smooth > 0 )
         {
-        qveck = qveck / hkkm1;
+        qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
         }
-      pveck = ptemp + pveck;
-      qveck = qtemp + qveck;
+      pveck = pveck / pveck.two_norm();
+      qveck = qveck / qveck.two_norm();
+      pveck = ptemp + pveck * 0.9;
+      qveck = qtemp + qveck * 0.9;
       this->SparsifyP( pveck, true );
       this->SparsifyQ( qveck, true );
-      hkkm1 = pveck.two_norm();
-      if( hkkm1 > 0 )
-        {
-        this->m_VariatesP.set_column(k, pveck / hkkm1);
-        }
-      hkkm1 = qveck.two_norm();
-      if( hkkm1 > 0 )
-        {
-        this->m_VariatesQ.set_column(k, qveck / hkkm1);
-        }
-      this->NormalizeWeightsByCovariance( k, 0.1, 0.1 );
+      this->m_VariatesP.set_column( k, pveck / pveck.two_norm() );
+      this->m_VariatesQ.set_column( k, qveck / qveck.two_norm() );
+      this->NormalizeWeightsByCovariance( k, 0.05, 0.05 );
       VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
       VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
       this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
+      // std::cout << inner_product( this->m_VariatesP.get_column(0) , this->m_VariatesP.get_column(1) ) << std::endl;
+      // std::cout << inner_product( this->m_VariatesQ.get_column(0) , this->m_VariatesQ.get_column(1) ) << std::endl;
       }
     this->SortResults( n_vecs );
     lastenergy = energy;
