@@ -341,6 +341,8 @@ public:
 
   VectorType InitializeV( MatrixType p, unsigned long seed = 0 );
 
+  TRealType InitializeSCCA( unsigned int n_vecs, unsigned int seeder );
+
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
   VectorType SpatiallySmoothVector( VectorType, ImagePointer, RealType );
