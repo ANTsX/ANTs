@@ -80,6 +80,7 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <deque>
 
 namespace ants
@@ -617,9 +618,27 @@ GetCompositeTransformFromParserOption(typename ParserType::Pointer & parser,
           }
         initialTransformName = std::string( "inverse of " ) + initialTransformName;
         }
-      compositeTransform->AddTransform( initialTransform );
-      transformNames.push_back( initialTransformName );
-      transformTypes.push_back( initialTransform->GetNameOfClass() );
+      static const std::string CompositeTransformID("CompositeTransform");
+      if( initialTransform->GetNameOfClass() == CompositeTransformID )
+        {
+        const typename itk::CompositeTransform<double, VImageDimension>::ConstPointer tempComp =
+          dynamic_cast<const itk::CompositeTransform<double, VImageDimension> *>( initialTransform.GetPointer() );
+        for( unsigned int i = 0; i < tempComp->GetNumberOfTransforms(); ++i )
+          {
+          std::stringstream tempstream;
+          tempstream << initialTransformName << "[" << i << "]";
+
+          compositeTransform->AddTransform( tempComp->GetNthTransform(i) );
+          transformNames.push_back( tempstream.str() );
+          transformTypes.push_back( tempComp->GetNthTransform(i)->GetNameOfClass() );
+          }
+        }
+      else
+        {
+        compositeTransform->AddTransform( initialTransform );
+        transformNames.push_back( initialTransformName );
+        transformTypes.push_back( initialTransform->GetNameOfClass() );
+        }
       }
     }
   antscout << "=============================================================================" << std::endl;

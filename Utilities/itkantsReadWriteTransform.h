@@ -7,6 +7,8 @@
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 
+#include "itkCompositeTransform.h"
+
 namespace itk
 {
 namespace ants
@@ -29,15 +31,27 @@ ReadTransform(const std::string & filename)
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef itk::ImageFileReader<DisplacementFieldType>                       DisplacementFieldReaderType;
   typename DisplacementFieldReaderType::Pointer fieldReader = DisplacementFieldReaderType::New();
-  try
+
+  // There are known tranform type extentions that should not be considered as imaging files
+  // That would be used as deformatino feilds
+  // If file is an hdf5 file, assume it is a tranform instead of an image.
+  if( filename.find(".h5") == std::string::npos
+      && filename.find(".hdf5") == std::string::npos
+      && filename.find(".hdf4") == std::string::npos
+      && filename.find(".mat") == std::string::npos
+      && filename.find(".txt") == std::string::npos
+      )
     {
-    fieldReader->SetFileName( filename.c_str() );
-    fieldReader->Update();
-    hasTransformBeenRead = true;
-    }
-  catch( ... )
-    {
-    hasTransformBeenRead = false;
+    try
+      {
+      fieldReader->SetFileName( filename.c_str() );
+      fieldReader->Update();
+      hasTransformBeenRead = true;
+      }
+    catch( ... )
+      {
+      hasTransformBeenRead = false;
+      }
     }
 
   typedef typename itk::Transform<double, VImageDimension, VImageDimension> TransformType;
@@ -80,8 +94,32 @@ ReadTransform(const std::string & filename)
       return transform;
       }
 
-    transform =
-      dynamic_cast<TransformType *>( transformReader->GetTransformList()->front().GetPointer() );
+    const typename itk::TransformFileReader::TransformListType * const listOfTransforms =
+      transformReader->GetTransformList();
+    transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
+#if 0   // HACK:  THIS IS FOR DEBUGGING, remove when composite transforms work
+    std::cout << "HACK:  " << listOfTransforms->size() << std::endl;
+    for( typename itk::TransformFileReader::TransformListType::const_iterator it = listOfTransforms->begin();
+         it != listOfTransforms->end(); ++it )
+      {
+      std::cout << " HACK " << (*it)->GetNameOfClass() << std::endl;
+      }
+    // When reading a composite tranform file, we need to re-construct it
+    // properly.  This should be fixed in ITKv4, but currently is not the case
+    static const std::string CompositeTransformID("CompositeTransform");
+    if( listOfTransforms->front()->GetNameOfClass() == CompositeTransformID )
+      {
+      const typename itk::CompositeTransform<double, VImageDimension>::ConstPointer tempComp =
+        dynamic_cast<const itk::CompositeTransform<double,
+                                                   VImageDimension> *>( listOfTransforms->front().GetPointer() );
+      std::cout << "Size of TransformQueue is: " << tempComp->GetNumberOfTransforms() << std::endl;
+      for( unsigned int i = 0; i < tempComp->GetNumberOfTransforms(); ++i )
+        {
+        std::cout << i << " transform is of type " << tempComp->GetNthTransform(i)->GetNameOfClass() << std::endl;
+        std::cout << i << " FixedParameters      " << tempComp->GetNthTransform(i)->GetFixedParameters() << std::endl;
+        }
+      }
+#endif
     }
   return transform;
 }
