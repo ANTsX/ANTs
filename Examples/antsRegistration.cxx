@@ -105,14 +105,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
       + std::string( "incorporated into the composite transform.  The order of the " )
       + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
-      + std::string( "for additional information." );
+      + std::string( "the command line is the first to be applied.  In addition to specification " )
+      + std::string( "of ITK transforms, the user can perform an initial translation alignment " )
+      + std::string( "by specifying the fixed and moving images.  These images can then be aligned " )
+      + std::string( "using the image intensities, i.e. \"center of mass\", or the geometric center " )
+      + std::string( "of the images." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initial-fixed-transform" );
     option->SetShortName( 'q' );
     option->SetUsageOption( 0, "initialTransform" );
     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+    option->SetUsageOption( 2, "[fixedImage,movingImage,useCenterOfMass]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -134,14 +138,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description = std::string( "Specify the initial moving transform(s) which get immediately " )
       + std::string( "incorporated into the composite transform.  The order of the " )
       + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  See antsApplyTransforms " )
-      + std::string( "for additional information." );
+      + std::string( "the command line is the first to be applied.  In addition to specification " )
+      + std::string( "of ITK transforms, the user can perform an initial translation alignment " )
+      + std::string( "by specifying the fixed and moving images.  These images can then be aligned " )
+      + std::string( "using the image intensities, i.e. \"center of mass\", or the geometric center " )
+      + std::string( "of the images." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initial-moving-transform" );
     option->SetShortName( 'r' );
     option->SetUsageOption( 0, "initialTransform" );
     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+    option->SetUsageOption( 2, "[fixedImage,movingImage,useCenterOfMass]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -464,27 +472,51 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( initialMovingTransformOption && initialMovingTransformOption->GetNumberOfValues() > 0 )
     {
+    std::vector<bool> isDerivedInitialMovingTransform;
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<VImageDimension>( parser, initialMovingTransformOption );
+      GetCompositeTransformFromParserOption<VImageDimension>( parser, initialMovingTransformOption,
+                                                              isDerivedInitialMovingTransform );
+
     if( compositeTransform.IsNull() )
       {
       return EXIT_FAILURE;
       }
-    regHelper->SetMovingInitialTransform(compositeTransform);
+    regHelper->SetMovingInitialTransform( compositeTransform );
+    // Write out initial derived transforms
+    for( unsigned int n = 0; n < isDerivedInitialMovingTransform.size(); n++ )
+      {
+      std::stringstream curFileName;
+      curFileName << outputPrefix << n << "DerivedInitialMovingTranslation.mat";
+
+      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
+        compositeTransform->GetNthTransform( n );
+      itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+      }
     }
 
   ParserType::OptionType::Pointer initialFixedTransformOption = parser->GetOption( "initial-fixed-transform" );
 
   if( initialFixedTransformOption && initialFixedTransformOption->GetNumberOfValues() > 0 )
     {
+    std::vector<bool> isDerivedInitialFixedTransform;
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<VImageDimension>(
-        parser, initialFixedTransformOption );
+      GetCompositeTransformFromParserOption<VImageDimension>( parser, initialFixedTransformOption,
+                                                              isDerivedInitialFixedTransform );
     if( compositeTransform.IsNull() )
       {
       return EXIT_FAILURE;
       }
-    regHelper->SetFixedInitialTransform(compositeTransform);
+    regHelper->SetFixedInitialTransform( compositeTransform );
+    // Write out initial derived transforms
+    for( unsigned int n = 0; n < isDerivedInitialFixedTransform.size(); n++ )
+      {
+      std::stringstream curFileName;
+      curFileName << outputPrefix << n << "DerivedInitialFixedTranslation.mat";
+
+      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
+        compositeTransform->GetNthTransform( n );
+      itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+      }
     }
 
   if( maskOption.IsNotNull() )
@@ -883,9 +915,17 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       case RegistrationHelperType::SyN:
         {
-        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
-        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
-        regHelper->AddSyNTransform(learningRate, varianceForUpdateField, varianceForTotalField);
+        float varianceForUpdateField = 3.0;
+        if( transformOption->GetNumberOfParameters( currentStage ) > 1 )
+          {
+          varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
+          }
+        float varianceForTotalField = 0.0;
+        if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+          {
+          varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+          }
+        regHelper->AddSyNTransform( learningRate, varianceForUpdateField, varianceForTotalField );
         }
         break;
       case RegistrationHelperType::BSplineSyN:
