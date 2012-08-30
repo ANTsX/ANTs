@@ -116,8 +116,9 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
     typename CompositeTransformType::OutputPointType point_out;
     typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
-    typename CompositeTransformType::Pointer compositeTransform = GetCompositeTransformFromParserOption<Dimension>(
-        parser, transformOption );
+    std::vector<bool> isDerivedTransform;
+    typename CompositeTransformType::Pointer compositeTransform =
+      GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform );
     if( compositeTransform.IsNull() )
       {
       return EXIT_FAILURE;
