@@ -33,7 +33,7 @@ void RegisterMatOff()
 /**
  * print the usage and exit
  */
-void PrintGenericUsageStatement()
+static void PrintGenericUsageStatement()
 {
   antscout << "Usage: CompositeTransformUtil --disassemble <CompositeTransform FileName>"
            << " <transform name prefix>" << std::endl
@@ -80,15 +80,15 @@ Disassemble(itk::TransformBase *transform, const std::string & transformName, co
       }
     else
       {
-      fname << ".txt";
+      fname << ".mat";  //  .txt does not have enough precision!
       }
     itk::ants::WriteTransform<VImageDimension>(curXfrm, fname.str() );
     }
   return EXIT_SUCCESS;
 }
 
-int Disassemble(const std::string & CompositeName,
-                const std::string & Prefix)
+static int Disassemble(const std::string & CompositeName,
+                       const std::string & Prefix)
 {
   itk::TransformBase::Pointer transform = itk::ants::ReadTransform<2>(CompositeName).GetPointer();
 
@@ -127,7 +127,7 @@ template <unsigned int VImageDimension>
 int
 Assemble(const std::string & CompositeName,
          const std::vector<std::string> & transformNames,
-         typename itk::CompositeTransform<double, VImageDimension>::TransformType::Pointer & firstTransform)
+         const typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer & firstTransform)
 {
   typedef itk::CompositeTransform<double, VImageDimension> CompositeTransformType;
   typedef typename CompositeTransformType::TransformType   TransformType;
@@ -146,21 +146,22 @@ Assemble(const std::string & CompositeName,
   return itk::ants::WriteTransform<VImageDimension>(genericXfrmPtr, CompositeName);
 }
 
-int Assemble(const std::string & CompositeName,
-             const std::vector<std::string> & transformNames)
+static int Assemble(const std::string & CompositeName,
+                    const std::vector<std::string> & transformNames)
 {
-  typedef itk::CompositeTransform<double, 2>::TransformType Transform2DType;
-  typedef itk::CompositeTransform<double, 3>::TransformType Transform3DType;
-
-  Transform2DType::Pointer transform2D = itk::ants::ReadTransform<2>(transformNames[0]);
-  if( transform2D.IsNotNull() )
     {
-    return Assemble<2>(CompositeName, transformNames, transform2D);
+    itk::Transform<double, 2, 2>::Pointer FirstTransform = itk::ants::ReadTransform<2>(transformNames[0]);
+    if( FirstTransform.IsNotNull() )
+      {
+      return Assemble<2>(CompositeName, transformNames, FirstTransform);
+      }
     }
-  Transform3DType::Pointer transform3D = itk::ants::ReadTransform<3>(transformNames[0]);
-  if( transform3D.IsNotNull() )
     {
-    return Assemble<3>(CompositeName, transformNames, transform3D);
+    itk::Transform<double, 3, 3>::Pointer FirstTransform = itk::ants::ReadTransform<3>(transformNames[0]);
+    if( FirstTransform.IsNotNull() )
+      {
+      return Assemble<3>(CompositeName, transformNames, FirstTransform);
+      }
     }
   return EXIT_FAILURE;
 }
@@ -176,9 +177,9 @@ int CompositeTransformUtil( std::vector<std::string> args, std::ostream* out_str
   args.insert( args.begin(), "CompositeTransformUtil" );
   std::remove( args.begin(), args.end(), std::string( "" ) );
   std::remove( args.begin(), args.end(), std::string( "" ) );
-  int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
+  unsigned int argc = args.size();
+  char* *      argv = new char *[argc + 1];
+  for( unsigned int i = 0; i < argc; ++i )
     {
     // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
@@ -255,12 +256,14 @@ private:
     return EXIT_FAILURE;
     }
   std::vector<std::string> transformNames;
-  while( argc > 0 )
+
+  do
     {
     std::string transformName(*argv);
     ++argv; --argc;
     transformNames.push_back(transformName);
     }
+  while( argc != 0 );
 
   if( transformNames.size() < 1 )
     {
