@@ -257,6 +257,8 @@ public:
       matrix.rows(), matrix.cols() ); this->m_OriginalMatrixQ.update(matrix); this->m_MatrixQ.update(matrix);
   }
 
+  itkSetMacro( UseL1, bool );
+  itkSetMacro( GradStep, RealType );
   itkSetMacro( FractionNonZeroR, RealType );
   itkSetMacro( KeepPositiveR, bool );
   void SetMaskImageR( ImagePointer mask )
@@ -319,11 +321,12 @@ public:
   RealType SparseConjGradRidgeRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit,
                                           unsigned int, bool );
 
-  RealType IHTRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int );
+  RealType IHTRegression( MatrixType& A, VectorType& x_k, VectorType  b_in, RealType convcrit, unsigned int,
+                          RealType mu, bool isp = true, bool verbose = false );
 
   RealType MatchingPursuit( MatrixType& A, VectorType& x_k, RealType convcrit, unsigned int );
 
-  RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int, bool keeppos,
+  RealType SparseNLConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int,
                              bool makeprojsparse = false, unsigned int loorth =  0,
                              unsigned int hiorth = 0 );
   RealType SparseNLPreConjGrad( MatrixType & A,  VectorType & x_k, VectorType  b, RealType, unsigned int );
@@ -547,6 +550,8 @@ public:
 
   RealType SparsePartialArnoldiCCA(unsigned int nvecs);
 
+  RealType IHTCCA(unsigned int nvecs);
+
   RealType SparseReconB( MatrixType &, VectorType & );
 
   RealType SparseRecon(unsigned int nvecs);
@@ -624,9 +629,9 @@ protected:
       }
   }
 
-  void SparsifyP( VectorType& x_k1, bool keeppos, RealType factor = 1 )
+  void SparsifyP( VectorType& x_k1 )
   {
-    RealType fnp = this->m_FractionNonZeroP * factor;
+    RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
 
     if( vnl_math_abs( fnp ) >= 1 )
       {
@@ -642,7 +647,7 @@ protected:
       {
       x_k1 = x_k1 * ( -1 );
       }
-    this->ReSoftThreshold( x_k1, fnp, keeppos );
+    this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveP );
     this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
     if( negate )
       {
@@ -650,9 +655,9 @@ protected:
       }
   }
 
-  void SparsifyQ( VectorType& x_k1, bool keeppos, RealType factor = 1 )
+  void SparsifyQ( VectorType& x_k1 )
   {
-    RealType fnp = this->m_FractionNonZeroQ * factor;
+    RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ );
 
     if( vnl_math_abs( fnp ) >= 1 )
       {
@@ -668,7 +673,7 @@ protected:
       {
       x_k1 = x_k1 * ( -1 );
       }
-    this->ReSoftThreshold( x_k1, fnp, keeppos );
+    this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveQ );
     this->ClusterThresholdVariate( x_k1, this->m_MaskImageQ, this->m_MinClusterSizeQ );
     if( negate )
       {
@@ -920,6 +925,7 @@ private:
   vnl_diag_matrix<RealType>  m_Indicator;
   vnl_diag_matrix<TRealType> m_PreC; // preconditioning
   RealType                   m_GSBestSol;
+  RealType                   m_GradStep;
 };
 } // namespace ants
 } // namespace itk

@@ -1130,8 +1130,13 @@ RegistrationHelper<VImageDimension>
     optimizerObserver->SetLogStream( *this->m_LogStream );
     optimizerObserver->SetOptimizer( optimizer );
 
-    typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+    typedef itk::GradientDescentLineSearchOptimizerv4 GradientDescentLSOptimizerType;
+    typedef itk::GradientDescentOptimizerv4           GradientDescentOptimizerType;
     typename GradientDescentOptimizerType::Pointer optimizer2 = GradientDescentOptimizerType::New();
+    //    optimizer2->SetLowerLimit( 0 );
+    //    optimizer2->SetUpperLimit( 2 );
+    //    optimizer2->SetEpsilon( 0.2 );
+//    optimizer->SetMaximumLineSearchIterations( 20 );
     optimizer2->SetLearningRate( learningRate );
     optimizer2->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer2->SetNumberOfIterations( currentStageIterations[0] );
