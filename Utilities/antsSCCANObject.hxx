@@ -4018,9 +4018,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     qvec = qvec / qvec.two_norm();
     vec = vec / vec.two_norm();
+    this->SparsifyP( vec );    this->SparsifyQ( qvec );
     this->m_VariatesP.set_column( kk, vec );
     this->m_VariatesQ.set_column( kk, qvec );
-    this->SparsifyP( vec );    this->SparsifyQ( qvec );
+    this->NormalizeWeightsByCovariance( kk, 0, 0 );
     totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     }
   return totalcorr;
@@ -4038,7 +4039,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
-  ::ants::antscout << " arnoldi sparse partial cca " << this->m_UseL1 << std::endl;
+  ::ants::antscout << " arnoldi sparse partial cca : L1?" << this->m_UseL1 << " GradStep " << this->m_GradStep
+                   << std::endl;
   ::ants::antscout << "  pos-p " << this->GetKeepPositiveP() << " pos-q " << this->GetKeepPositiveQ() << std::endl;
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP, false );
   this->m_MatrixQ = this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
@@ -4083,7 +4085,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int loop = 0;
   bool         energyincreases = true;
   RealType     energy = 0, lastenergy = 0;
-  while( ( ( loop < maxloop ) && ( energyincreases ) ) || loop < 1 ) //
+  while( ( ( loop < maxloop ) ) ) // && ( energyincreases ) ) || loop < 1 ) //
     {
     // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
@@ -4093,7 +4095,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType pveck = this->m_MatrixQ * qtemp;
       VectorType qveck = this->m_MatrixP * ptemp;
       pveck = pveck * this->m_MatrixP;
+      pveck = pveck - this->m_MatrixP.transpose() * ( this->m_MatrixP * ptemp ) * 0.5;
       qveck = qveck * this->m_MatrixQ;
+      qveck = qveck - this->m_MatrixQ.transpose() * ( this->m_MatrixQ * qtemp ) * 0.5;
       for( unsigned int j = 0; j < k; j++ )
         {
         VectorType qj = this->m_VariatesP.get_column(j);  // this->ZeroProduct( pveck, qj );
@@ -4101,7 +4105,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         qj = this->m_VariatesQ.get_column(j); // this->ZeroProduct( qveck, qj );
         qveck = this->Orthogonalize( qveck, qj );
         }
-      RealType smooth = 0.5;
+      RealType smooth = 0.0;
       if( smooth > 0 )
         {
         pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
@@ -4110,12 +4114,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
         }
-      pveck = pveck / pveck.two_norm();
-      qveck = qveck / qveck.two_norm();
-      pveck = ptemp + pveck * this->m_GradStep;
-      qveck = qtemp + qveck * this->m_GradStep;
+      ::ants::antscout << " p " << ptemp.two_norm() << " upp " << pveck.two_norm() * this->m_GradStep << " q "
+                       << qtemp.two_norm() << " upq " << qveck.two_norm() * this->m_GradStep << std::endl;
+      pveck = ptemp + pveck * ( this->m_GradStep / static_cast<RealType>( pveck.size() ) );
+      qveck = qtemp + qveck * ( this->m_GradStep / static_cast<RealType>( qveck.size() ) );
       this->SparsifyP( pveck );
       this->SparsifyQ( qveck );
+      pveck = pveck / pveck.two_norm();
+      qveck = qveck / qveck.two_norm();
       if( n_vecs == 0 )
         {
         RealType mup = inner_product( this->m_MatrixP * ptemp, this->m_MatrixP * ptemp ) / ptemp.two_norm();
@@ -4124,9 +4130,34 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         this->IHTRegression(  this->m_MatrixP,  ptemp, pveck, 0, 1, mup, true, false );   pveck = ptemp;
         this->IHTRegression(  this->m_MatrixQ,  qtemp, qveck, 0, 1, muq, false, false );   qveck = qtemp;
         }
-      this->m_VariatesP.set_column( k, pveck / pveck.two_norm()  );
-      this->m_VariatesQ.set_column( k, qveck / qveck.two_norm()  );
-      //      this->NormalizeWeightsByCovariance( k, 100, 100 );
+      // test 4 cases of updates
+      RealType corr0 = this->PearsonCorr( this->m_MatrixP * ptemp, this->m_MatrixQ * qtemp  );
+      RealType corr1 = this->PearsonCorr( this->m_MatrixP * pveck, this->m_MatrixQ * qveck  );
+      RealType corr2 = this->PearsonCorr( this->m_MatrixP * ptemp, this->m_MatrixQ * qveck  );
+      RealType corr3 = this->PearsonCorr( this->m_MatrixP * pveck, this->m_MatrixQ * qtemp  );
+      if( ( corr1 > corr0 ) &&  ( corr1 > corr2 ) &&   ( corr1 > corr3 ) )
+        {
+        this->m_VariatesP.set_column( k, pveck  );
+        this->m_VariatesQ.set_column( k, qveck  );
+        ::ants::antscout << " corr1 " << corr0 << std::endl;
+        }
+      else if( ( corr2 > corr0 ) &&  ( corr2 > corr1 ) &&   ( corr2 > corr3 ) )
+        {
+        this->m_VariatesQ.set_column( k, qveck  );
+        ::ants::antscout << " corr2 " << corr0 << std::endl;
+        }
+      else if( ( corr3 > corr0 ) &&  ( corr3 > corr1 ) &&   ( corr3 > corr2 ) )
+        {
+        this->m_VariatesP.set_column( k, pveck  );
+        ::ants::antscout << " corr3 " << corr0 << " v " << corr1 << std::endl;
+        }
+      else
+        {
+        ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << std::endl;
+        }
+      this->m_VariatesP.set_column( k, pveck  );
+      this->m_VariatesQ.set_column( k, qveck  );
+      this->NormalizeWeightsByCovariance( k, 0, 0 );
       VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
       VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
       this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
@@ -4138,7 +4169,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     energy = this->m_CanonicalCorrelations.one_norm() / n_vecs;
     ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
                      << std::endl;
-    if( vnl_math_abs( energy - lastenergy ) < 1.e-8 || energy < lastenergy )
+    if(  ( energy - lastenergy ) < 1.e-12 )
       {
       energyincreases = false;
       }
