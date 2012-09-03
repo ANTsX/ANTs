@@ -679,10 +679,18 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
     if( !calculatedTransformFromImages )
       {
-      initialTransformName = initialTransformOption->GetParameter( n, 0 );
-      if( initialTransformOption->GetNumberOfParameters( n ) > 1 )
+      if( initialTransformOption->GetNumberOfParameters( n ) == 0 )
         {
-        useInverse = parser->Convert<bool>( initialTransformOption->GetParameter( n, 1  ) );
+        initialTransformName = initialTransformOption->GetValue( n );
+        useInverse = false;
+        }
+      else
+        {
+        initialTransformName = initialTransformOption->GetParameter( n, 0 );
+        if( initialTransformOption->GetNumberOfParameters( n ) > 1 )
+          {
+          useInverse = parser->Convert<bool>( initialTransformOption->GetParameter( n, 1  ) );
+          }
         }
       }
 

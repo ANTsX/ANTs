@@ -21,7 +21,7 @@ ReadTransform(const std::string & filename)
   // state for non-displacment feilds.
   if( !itksys::SystemTools::FileExists( filename.c_str() ) )
     {
-    std::cerr << "Transform file does not exits: " << filename << std::endl;
+    std::cerr << "Transform file does not exist: " << filename << std::endl;
     return NULL;
     }
 
