@@ -4085,7 +4085,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int loop = 0;
   bool         energyincreases = true;
   RealType     energy = 0, lastenergy = 0;
-  while( ( ( loop < maxloop ) ) ) // && ( energyincreases ) ) || loop < 1 ) //
+  while( ( ( loop < maxloop )  && ( energyincreases ) ) || loop < 1 )
     {
     // Arnoldi Iteration SCCA
     for( unsigned int k = 0; k < n_vecs; k++ )
@@ -4100,12 +4100,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qveck = qveck - this->m_MatrixQ.transpose() * ( this->m_MatrixQ * qtemp ) * 0.5;
       for( unsigned int j = 0; j < k; j++ )
         {
-        VectorType qj = this->m_VariatesP.get_column(j);  // this->ZeroProduct( pveck, qj );
-        pveck = this->Orthogonalize( pveck, qj );
-        qj = this->m_VariatesQ.get_column(j); // this->ZeroProduct( qveck, qj );
-        qveck = this->Orthogonalize( qveck, qj );
+        VectorType qj = this->m_VariatesP.get_column( j );  // this->ZeroProduct( pveck, qj );
+        pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm(), qj );
+        qj = this->m_VariatesQ.get_column( j ); // this->ZeroProduct( qveck, qj );
+        qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm(), qj );
         }
-      RealType smooth = 0.0;
+      RealType smooth = 0.5;
       if( smooth > 0 )
         {
         pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
@@ -4114,14 +4114,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
         }
-      ::ants::antscout << " p " << ptemp.two_norm() << " upp " << pveck.two_norm() * this->m_GradStep << " q "
-                       << qtemp.two_norm() << " upq " << qveck.two_norm() * this->m_GradStep << std::endl;
-      pveck = ptemp + pveck * ( this->m_GradStep / static_cast<RealType>( pveck.size() ) );
-      qveck = qtemp + qveck * ( this->m_GradStep / static_cast<RealType>( qveck.size() ) );
+      RealType sclp = ( static_cast<RealType>( pveck.size() ) * this->m_FractionNonZeroP );
+      RealType sclq = ( static_cast<RealType>( qveck.size() ) * this->m_FractionNonZeroQ );
+      pveck = ptemp + pveck * ( this->m_GradStep / sclp );
+      qveck = qtemp + qveck * ( this->m_GradStep / sclq );
       this->SparsifyP( pveck );
       this->SparsifyQ( qveck );
-      pveck = pveck / pveck.two_norm();
-      qveck = qveck / qveck.two_norm();
       if( n_vecs == 0 )
         {
         RealType mup = inner_product( this->m_MatrixP * ptemp, this->m_MatrixP * ptemp ) / ptemp.two_norm();
@@ -4135,34 +4133,30 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       RealType corr1 = this->PearsonCorr( this->m_MatrixP * pveck, this->m_MatrixQ * qveck  );
       RealType corr2 = this->PearsonCorr( this->m_MatrixP * ptemp, this->m_MatrixQ * qveck  );
       RealType corr3 = this->PearsonCorr( this->m_MatrixP * pveck, this->m_MatrixQ * qtemp  );
-      if( ( corr1 > corr0 ) &&  ( corr1 > corr2 ) &&   ( corr1 > corr3 ) )
+      if( corr1 > corr0 )
         {
         this->m_VariatesP.set_column( k, pveck  );
         this->m_VariatesQ.set_column( k, qveck  );
-        ::ants::antscout << " corr1 " << corr0 << std::endl;
+        ::ants::antscout << " corr1 " << corr1 << " v " << corr2 << std::endl;
         }
-      else if( ( corr2 > corr0 ) &&  ( corr2 > corr1 ) &&   ( corr2 > corr3 ) )
+      else if( ( corr2 > corr0 )  &&  ( corr2 > corr3 ) )
         {
         this->m_VariatesQ.set_column( k, qveck  );
-        ::ants::antscout << " corr2 " << corr0 << std::endl;
+        ::ants::antscout << " corr2 " << corr2 << " v " << corr1 << std::endl;
         }
-      else if( ( corr3 > corr0 ) &&  ( corr3 > corr1 ) &&   ( corr3 > corr2 ) )
+      else if( corr3 > corr0 )
         {
         this->m_VariatesP.set_column( k, pveck  );
-        ::ants::antscout << " corr3 " << corr0 << " v " << corr1 << std::endl;
+        ::ants::antscout << " corr3 " << corr3 << " v " << corr1 << std::endl;
         }
       else
         {
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << std::endl;
         }
-      this->m_VariatesP.set_column( k, pveck  );
-      this->m_VariatesQ.set_column( k, qveck  );
       this->NormalizeWeightsByCovariance( k, 0, 0 );
       VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
       VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
       this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
-      // std::cout << inner_product( this->m_VariatesP.get_column(0) , this->m_VariatesP.get_column(1) ) << std::endl;
-      // std::cout << inner_product( this->m_VariatesQ.get_column(0) , this->m_VariatesQ.get_column(1) ) << std::endl;
       }
     this->SortResults( n_vecs );
     lastenergy = energy;
