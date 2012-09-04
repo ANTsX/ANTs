@@ -4158,7 +4158,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       else
         {
-        ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << std::endl;
+        this->m_GradStep *= 0.9;
+        ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
         }
       //        this->m_VariatesP.set_column( k, pveck  );
       //        this->m_VariatesQ.set_column( k, qveck  );
@@ -4172,7 +4173,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     energy = this->m_CanonicalCorrelations.one_norm() / n_vecs;
     ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
                      << std::endl;
-    if(  ( energy - lastenergy ) < 1.e-12 )
+    if( this->m_GradStep < 1.e-12 )
       {
       energyincreases = false;
       }
