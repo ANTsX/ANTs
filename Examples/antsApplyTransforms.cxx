@@ -64,7 +64,7 @@ CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * re
 }
 
 template <unsigned int Dimension>
-int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, bool applyToTensorImage = false )
+int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
   typedef double                           RealType;
   typedef double                           PixelType;
@@ -80,6 +80,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, bool ap
   const unsigned int NumberOfTensorElements = 6;
 
   typename TensorImageType::Pointer tensorImage = NULL;
+  typename TensorImageType::Pointer vectorImage = NULL;
 
   std::vector<typename ImageType::Pointer> inputImages;
   inputImages.clear();
@@ -93,13 +94,13 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, bool ap
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
 
-  if( applyToTensorImage && inputOption && inputOption->GetNumberOfValues() > 0 )
+  if( inputImageType == 2 && inputOption && inputOption->GetNumberOfValues() > 0 )
     {
     antscout << "Input tensor image: " << inputOption->GetValue() << std::endl;
 
     ReadTensorImage<TensorImageType>( tensorImage, ( inputOption->GetValue() ).c_str(), true );
     }
-  else if( !applyToTensorImage && inputOption && inputOption->GetNumberOfValues() > 0 )
+  else if( inputImageType == 0 && inputOption && inputOption->GetNumberOfValues() > 0 )
     {
     antscout << "Input scalar image: " << inputOption->GetValue() << std::endl;
 
@@ -109,6 +110,17 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, bool ap
     reader->Update();
 
     inputImages.push_back( reader->GetOutput() );
+    }
+  else if( inputImageType == 1 && inputOption && inputOption->GetNumberOfValues() > 0 )
+    {
+    antscout << "Input vector image: " << inputOption->GetValue() << std::endl;
+
+    antscout << "Not implemented yet." << std::endl;
+    return EXIT_FAILURE;
+
+//     typedef itk::ImageFileReader<DisplacementFieldType> ReaderType;
+//     typename ReaderType::Pointer reader = ReaderType::New();
+//     reader->SetFileName( ( inputOption->GetValue() ).c_str() );
     }
   else if( outputOption && outputOption->GetNumberOfValues() > 0 )
     {
@@ -150,7 +162,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, bool ap
     return EXIT_FAILURE;
     }
 
-  if( applyToTensorImage )
+  if( inputImageType == 2 )
     {
     CorrectImageTensorDirection<TensorImageType, ReferenceImageType>( tensorImage, referenceImage );
     for( unsigned int i = 0; i < NumberOfTensorElements; i++ )
@@ -416,7 +428,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, bool ap
         }
       antscout << "Output warped image: " << outputFileName << std::endl;
 
-      if( applyToTensorImage )
+      if( inputImageType == 2 )
         {
         if( outputImages.size() != NumberOfTensorElements )
           {
@@ -481,13 +493,14 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Boolean option specifying that the input image is to be " )
-      + std::string( "read in as a 3D tensor image." );
+      std::string( "Option specifying the input image type of scalar (default), " )
+      + std::string( "vector, or tensor." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "apply-to-tensor-image" );
+    option->SetLongName( "input-image-type" );
     option->SetShortName( 'e' );
-    option->SetUsageOption( 0, "(0)/1" );
+    option->SetUsageOption( 0, "0/1/2 " );
+    option->SetUsageOption( 1, "scalar/vector/tensor " );
     option->AddValue( std::string( "0" ) );
     option->SetDescription( description );
     parser->AddOption( option );
@@ -721,42 +734,117 @@ private:
     return EXIT_FAILURE;
     }
 
-  itk::ants::CommandLineParser::OptionType::Pointer tensorOption =
-    parser->GetOption( "apply-to-tensor-image" );
-  if( tensorOption && parser->Convert<unsigned int>( tensorOption->GetValue() ) )
+  itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
+    parser->GetOption( "input-image-type" );
+
+  unsigned int dimension = 3;
+
+  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
+      filename.c_str(), itk::ImageIOFactory::ReadMode );
+  dimension = imageIO->GetNumberOfDimensions();
+
+  itk::ants::CommandLineParser::OptionType::Pointer dimOption =
+    parser->GetOption( "dimensionality" );
+  if( dimOption && dimOption->GetNumberOfValues() > 0 )
     {
-    antsApplyTransforms<3>( parser, true );
+    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
     }
-  else
+
+  switch( dimension )
     {
-    unsigned int dimension = 3;
-
-    itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-        filename.c_str(), itk::ImageIOFactory::ReadMode );
-    dimension = imageIO->GetNumberOfDimensions();
-
-    itk::ants::CommandLineParser::OptionType::Pointer dimOption =
-      parser->GetOption( "dimensionality" );
-    if( dimOption && dimOption->GetNumberOfValues() > 0 )
+    case 2:
       {
-      dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
-      }
+      if( inputImageTypeOption )
+        {
+        std::string inputImageType = inputImageTypeOption->GetValue();
 
-    switch( dimension )
-      {
-      case 2:
-        antsApplyTransforms<2>( parser, false );
-        break;
-      case 3:
-        antsApplyTransforms<3>( parser, false );
-        break;
-      case 4:
-        antsApplyTransforms<4>( parser, false );
-        break;
-      default:
-        antscout << "Unsupported dimension" << std::endl;
-        return EXIT_FAILURE;
+        if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
+          {
+          antsApplyTransforms<2>( parser, 0 );
+          }
+        else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
+          {
+          antsApplyTransforms<2>( parser, 1 );
+          }
+        else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
+          {
+          antscout << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
+          }
+        else
+          {
+          antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      else
+        {
+        antsApplyTransforms<2>( parser, 0 );
+        }
       }
+      break;
+    case 3:
+      {
+      if( inputImageTypeOption )
+        {
+        std::string inputImageType = inputImageTypeOption->GetValue();
+
+        if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
+          {
+          antsApplyTransforms<3>( parser, 0 );
+          }
+        else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
+          {
+          antsApplyTransforms<3>( parser, 1 );
+          }
+        else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
+          {
+          antsApplyTransforms<3>( parser, 2 );
+          }
+        else
+          {
+          antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      else
+        {
+        antsApplyTransforms<3>( parser, 0 );
+        }
+      }
+      break;
+    case 4:
+      {
+      if( inputImageTypeOption )
+        {
+        std::string inputImageType = inputImageTypeOption->GetValue();
+
+        if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
+          {
+          antsApplyTransforms<4>( parser, 0 );
+          }
+        else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
+          {
+          antsApplyTransforms<4>( parser, 1 );
+          }
+        else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
+          {
+          antscout << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
+          }
+        else
+          {
+          antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+          return EXIT_FAILURE;
+          }
+        }
+      else
+        {
+        antsApplyTransforms<3>( parser, 0 );
+        }
+      }
+      break;
+    default:
+      antscout << "Unsupported dimension" << std::endl;
+      return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
 }
