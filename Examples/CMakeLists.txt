@@ -107,6 +107,7 @@ set(BASE_ANTS_APPS
   KellyKapowski
   CreateDTICohort
   AverageAffineTransform
+  AverageAffineTransformNoRigid
   antsRegistration
   simpleSynRegistration
   antsApplyTransforms
