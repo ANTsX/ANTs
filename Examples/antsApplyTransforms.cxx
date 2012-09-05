@@ -80,7 +80,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   const unsigned int NumberOfTensorElements = 6;
 
   typename TensorImageType::Pointer tensorImage = NULL;
-  typename TensorImageType::Pointer vectorImage = NULL;
+  typename DisplacementFieldType::Pointer vectorImage = NULL;
 
   std::vector<typename ImageType::Pointer> inputImages;
   inputImages.clear();
