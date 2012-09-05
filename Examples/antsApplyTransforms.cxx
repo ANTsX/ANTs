@@ -31,7 +31,9 @@ template <typename TensorImageType, typename ImageType>
 void
 CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * referenceImage )
 {
-  typename TensorImageType::DirectionType::InternalMatrixType direction =
+  typedef typename TensorImageType::DirectionType DirectionType;
+
+  typename DirectionType::InternalMatrixType direction =
     movingTensorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
 
   if( !direction.is_identity( 0.00001 ) )
@@ -59,6 +61,44 @@ CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * re
       tensor[5] = dt(2, 2);
 
       It.Set( tensor );
+      }
+    }
+}
+
+template <typename DisplacementFieldType, typename ImageType>
+void
+CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageType * referenceImage )
+{
+  typedef typename DisplacementFieldType::DirectionType DirectionType;
+
+  typename DirectionType::InternalMatrixType direction =
+    movingVectorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
+
+  typedef typename DisplacementFieldType::PixelType VectorType;
+  typedef typename VectorType::ComponentType        ComponentType;
+
+  const unsigned int dimension = ImageType::ImageDimension;
+
+  if( !direction.is_identity( 0.00001 ) )
+    {
+    itk::ImageRegionIterator<DisplacementFieldType> It( movingVectorImage, movingVectorImage->GetBufferedRegion() );
+    for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+      VectorType vector = It.Get();
+
+      vnl_vector<ComponentType> internalVector( dimension );
+      for( unsigned int d = 0; d < dimension; d++ )
+        {
+        internalVector[d] = vector[d];
+        }
+
+      internalVector.pre_multiply( direction );;
+      for( unsigned int d = 0; d < dimension; d++ )
+        {
+        vector[d] = internalVector[d];
+        }
+
+      It.Set( vector );
       }
     }
 }
@@ -115,12 +155,21 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     {
     antscout << "Input vector image: " << inputOption->GetValue() << std::endl;
 
-    antscout << "Not implemented yet." << std::endl;
-    return EXIT_FAILURE;
+    typedef itk::ImageFileReader<DisplacementFieldType> ReaderType;
+    typename ReaderType::Pointer reader = ReaderType::New();
+    reader->SetFileName( ( inputOption->GetValue() ).c_str() );
 
-//     typedef itk::ImageFileReader<DisplacementFieldType> ReaderType;
-//     typename ReaderType::Pointer reader = ReaderType::New();
-//     reader->SetFileName( ( inputOption->GetValue() ).c_str() );
+    try
+      {
+      vectorImage = reader->GetOutput();
+      vectorImage->Update();
+      vectorImage->DisconnectPipeline();
+      }
+    catch( ... )
+      {
+      std::cerr << "Unable to read vector image " << reader->GetFileName() << std::endl;
+      return EXIT_FAILURE;
+      }
     }
   else if( outputOption && outputOption->GetNumberOfValues() > 0 )
     {
@@ -162,7 +211,21 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     return EXIT_FAILURE;
     }
 
-  if( inputImageType == 2 )
+  if( inputImageType == 1 )
+    {
+    CorrectImageVectorDirection<DisplacementFieldType, ReferenceImageType>( vectorImage, referenceImage );
+    for( unsigned int i = 0; i < Dimension; i++ )
+      {
+      typedef itk::VectorIndexSelectionCastImageFilter<DisplacementFieldType, ImageType> SelectorType;
+      typename SelectorType::Pointer selector = SelectorType::New();
+      selector->SetInput( vectorImage );
+      selector->SetIndex( i );
+      selector->Update();
+
+      inputImages.push_back( selector->GetOutput() );
+      }
+    }
+  else if( inputImageType == 2 )
     {
     CorrectImageTensorDirection<TensorImageType, ReferenceImageType>( tensorImage, referenceImage );
     for( unsigned int i = 0; i < NumberOfTensorElements; i++ )
@@ -428,7 +491,41 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         }
       antscout << "Output warped image: " << outputFileName << std::endl;
 
-      if( inputImageType == 2 )
+      if( inputImageType == 1 )
+        {
+        if( outputImages.size() != Dimension )
+          {
+          antscout << "The number of output images does not match the number of vector components." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        VectorType zeroVector( 0.0 );
+
+        typename DisplacementFieldType::Pointer outputVectorImage = DisplacementFieldType::New();
+        outputVectorImage->CopyInformation( referenceImage );
+        outputVectorImage->SetRegions( referenceImage->GetRequestedRegion() );
+        outputVectorImage->Allocate();
+        outputVectorImage->FillBuffer( zeroVector );
+
+        itk::ImageRegionIteratorWithIndex<DisplacementFieldType> It( outputVectorImage,
+                                                                     outputVectorImage->GetRequestedRegion() );
+        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+          {
+          VectorType vector = It.Get();
+          typename DisplacementFieldType::IndexType index = It.GetIndex();
+          for( unsigned int n = 0; n < Dimension; n++ )
+            {
+            vector.SetNthComponent( n, outputImages[n]->GetPixel( index ) );
+            }
+          It.Set( vector );
+          }
+        typedef  itk::ImageFileWriter<DisplacementFieldType> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetInput( outputVectorImage );
+        writer->SetFileName( ( outputFileName ).c_str() );
+        writer->Update();
+        }
+      else if( inputImageType == 2 )
         {
         if( outputImages.size() != NumberOfTensorElements )
           {
