@@ -4088,6 +4088,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   while( ( ( loop < maxloop )  )  && ( energyincreases )  || loop < 1 )
     {
     // Arnoldi Iteration SCCA
+    bool changedgrad = false;
     for( unsigned int k = 0; k < n_vecs; k++ )
       {
       VectorType ptemp = this->m_VariatesP.get_column(k);
@@ -4105,7 +4106,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         qj = this->m_VariatesQ.get_column( j );
         qveck = this->Orthogonalize( qveck, qj );
         }
-      RealType smooth = 0.0;
+      RealType smooth = 0.5;
       if( smooth > 0 )
         {
         pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
@@ -4118,13 +4119,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       RealType sclq = ( static_cast<RealType>( qveck.size() )  * this->m_FractionNonZeroQ );
       pveck = ptemp + pveck * ( this->m_GradStep / sclp );
       qveck = qtemp + qveck * ( this->m_GradStep / sclq );
-      /*      for( unsigned int j = 0; j < k; j++ )
-  {
+      for( unsigned int j = 0; j < k; j++ )
+        {
         VectorType qj = this->m_VariatesP.get_column( j );
-  pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm()  , qj );
+        pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm(), qj );
         qj = this->m_VariatesQ.get_column( j );
-  qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
-        } */
+        qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm(), qj );
+        }
       this->SparsifyP( pveck );
       this->SparsifyQ( qveck );
       if( n_vecs == 0 )
@@ -4154,10 +4155,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       else if( corr3 > corr0 )
         {
         this->m_VariatesP.set_column( k, pveck  );
-        ::ants::antscout << " corr3 " << corr3 << " v " << corr1 << std::endl;
+        ::ants::antscout << " corr3 " << corr3 << " v " << corr0 << std::endl;
         }
       else
         {
+        changedgrad = true;
         this->m_GradStep *= 0.9;
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
         }
@@ -4173,7 +4175,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     energy = this->m_CanonicalCorrelations.one_norm() / n_vecs;
     ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
                      << std::endl;
-    if( this->m_GradStep < 1.e-12 )
+    if( this->m_GradStep < 1.e-12 || ( vnl_math_abs( energy - lastenergy ) < 1.e-8  && !changedgrad ) )
       {
       energyincreases = false;
       }
