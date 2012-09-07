@@ -3,6 +3,8 @@
 
 #include "antsApplyTransforms.h"
 
+#include "antsAlignOrigin.h"
+
 #include "antsApplyTransformsToPoints.h"
 
 #include "ANTSConformalMapping.h"
