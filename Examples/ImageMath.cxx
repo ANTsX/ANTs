@@ -9832,6 +9832,87 @@ int STAPLE( int argc, char *argv[] )
 }
 
 template <unsigned int ImageDimension>
+int AverageLabels( int argc, char *argv[] )
+{
+  typedef int                                   PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::Image<float, ImageDimension>     OutputImageType;
+
+  typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>  IteratorType;
+
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+
+  std::string            outputName = std::string( argv[2] );
+  std::string::size_type idx;
+  idx = outputName.find_first_of('.');
+  std::string tempname = outputName.substr(0, idx);
+  std::string extension = outputName.substr(idx, outputName.length() );
+
+  // Read input segmentations
+  typename ImageType::Pointer              nullimage( NULL );
+  std::vector<typename ImageType::Pointer> images(argc - 4, nullimage );
+
+  typename CalculatorType::Pointer calc = CalculatorType::New();
+  int maxLabel = 0;
+  for( int i = 4; i < argc; i++ )
+    {
+    images[i - 4] = ImageType::New();
+    ReadImage<ImageType>( images[i - 4], argv[i] );
+    antscout << "Input image " << i - 4 << " " << argv[i] << std::endl;
+
+    calc->SetImage( images[i - 4] );
+    calc->ComputeMaximum();
+    if( calc->GetMaximum() > maxLabel )
+      {
+      maxLabel = calc->GetMaximum();
+      }
+    }
+
+  antscout << "Examining " << maxLabel << " labels" << std::endl;
+  typename OutputImageType::Pointer              nullout( NULL );
+  std::vector<typename OutputImageType::Pointer> outimages;
+  for( int label = 0; label < maxLabel; label++ )
+    {
+    typename OutputImageType::Pointer img = OutputImageType::New();
+    img->SetRegions( images[0]->GetLargestPossibleRegion() );
+    img->SetDirection( images[0]->GetDirection() );
+    img->SetOrigin( images[0]->GetOrigin() );
+    img->SetSpacing( images[0]->GetSpacing() );
+    img->Allocate();
+    outimages.push_back( img );
+    }
+  for( unsigned int i = 0; i < images.size(); i++ )
+    {
+    IteratorType it( images[i], images[i]->GetLargestPossibleRegion() );
+    for( it.GoToBegin(); !it.IsAtEnd(); ++it )
+      {
+      if( it.Value() > 0 )
+        {
+        outimages[it.Value() - 1]->SetPixel( it.GetIndex(),
+                                             outimages[it.Value() - 1]->GetPixel( it.GetIndex() )
+                                             + 1.0 / images.size() );
+        }
+      }
+    }
+  for( int label = 1; label <= maxLabel; label++ )
+    {
+    std::stringstream out;
+    char              num[5];
+    sprintf( num, "%04d", label );
+
+    std::string oname = tempname + num + extension;
+    WriteImage<OutputImageType>( outimages[label - 1], oname.c_str() );
+    }
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int CorrelationVoting( int argc, char *argv[] )
 {
   typedef float                                              PixelType;
@@ -10403,10 +10484,13 @@ private:
     antscout << "    Usage: CorrelationVoting Template.ext IntenistyImages* LabelImages* {Optional-Radius=5}"
              << std::endl;
     antscout << "  STAPLE : Select label using STAPLE method" << std::endl;
-    antscout << "    Usage: STAPLE foreground-value confidence-weighting LabelImages*" << std::endl;
+    antscout << "    Usage: STAPLE confidence-weighting LabelImages*" << std::endl;
     antscout << "    Note:  Gives probabilistic output (float)" << std::endl;
     antscout << "  MostLikely : Select label from from maximum probabilistic segmentations" << std::endl;
     antscout << "    Usage: MostLikely ProbabilityImages*" << std::endl;
+    antscout << "  AverageLabels : Select label using STAPLE method" << std::endl;
+    antscout << "    Usage: STAPLE LabelImages*" << std::endl;
+    antscout << "    Note:  Gives probabilistic output (float)" << std::endl;
 
     antscout << "\nImage Metrics & Info:" <<  std::endl;
     antscout << "  PearsonsCorrelation: r-value from intesities of two images" << std::endl;
@@ -10920,6 +11004,14 @@ private:
         {
         ExtractSlice<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "STAPLE") == 0 )
+        {
+        STAPLE<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "AverageLabels") == 0 )
+        {
+        AverageLabels<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
         {
         MajorityVoting<2>(argc, argv);
@@ -11320,6 +11412,10 @@ private:
       else if( strcmp(operation.c_str(), "STAPLE") == 0 )
         {
         STAPLE<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "AverageLabels") == 0 )
+        {
+        AverageLabels<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
         {
