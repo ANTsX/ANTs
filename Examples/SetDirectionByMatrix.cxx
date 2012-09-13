@@ -83,6 +83,7 @@ int ResetDirection(int argc, char *argv[])
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
+  varimage->SetDirection( direction );
 
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
