@@ -1270,7 +1270,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           ind[xx] = vfIter2.GetIndex()[xx];
           }
-        ind[ImageDimension] = timedim;
+        ind[ImageDimension] = timedim + 1;
         outputImage->SetPixel(ind, fval);
         }
       }
