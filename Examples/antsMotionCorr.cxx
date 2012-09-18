@@ -15,7 +15,6 @@
 *  limitations under the License.
 *
 *=========================================================================*/
-
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include "antsCommandLineParser.h"
@@ -439,7 +438,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     typename OptionType::Pointer outputOption = parser->GetOption( "output" );
     if( !outputOption )
       {
-      std::cerr << "Output option not specified.  Should be the output average image name." << std::endl;
+      antscout << "Output option not specified.  Should be the output average image name." << std::endl;
       return EXIT_FAILURE;
       }
     std::string outputPrefix = outputOption->GetParameter( 0, 0 );
@@ -448,11 +447,23 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       outputPrefix = outputOption->GetValue( 0 );
       }
     std::string fn = averageOption->GetValue( 0 );
-    typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
-    typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
-    movingImageReader->SetFileName( fn.c_str() );
-    movingImageReader->Update();
-    typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+    typename MovingImageType::Pointer movingImage;
+    if( fn[0] == '0' && fn[1] == 'x' )
+      {
+      std::stringstream strstream;
+      strstream << fn;
+      void* ptr;
+      strstream >> ptr;
+      movingImage = *( static_cast<typename MovingImageType::Pointer *>( ptr ) );
+      }
+    else
+      {
+      typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
+      typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
+      movingImageReader->SetFileName( fn.c_str() );
+      movingImageReader->Update();
+      movingImage = movingImageReader->GetOutput();
+      }
     movingImage->Update();
     movingImage->DisconnectPipeline();
     typename FixedImageType::Pointer avgImage;
@@ -469,12 +480,24 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     avgImage = extractFilter->GetOutput();
     std::vector<unsigned int> timelist;
     AverageTimeImages<MovingImageType, FixedImageType>( movingImage, avgImage, timelist );
-    typedef itk::ImageFileWriter<FixedImageType> WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName( outputPrefix.c_str() );
-    writer->SetInput( avgImage );
-    writer->Update();
-    antscout << " done writing avg image with direction " << avgImage->GetDirection() << std::endl;
+    if( outputPrefix[0] == '0' && outputPrefix[1] == 'x' )
+      {
+      std::stringstream strstream;
+      strstream << outputPrefix;
+      void* ptr;
+      strstream >> ptr;
+      *( static_cast<typename FixedImageType::Pointer *>( ptr ) ) = avgImage;
+      antscout << "output in avg image" << std::endl;
+      }
+    else
+      {
+      typedef itk::ImageFileWriter<FixedImageType> WriterType;
+      typename WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( outputPrefix.c_str() );
+      writer->SetInput( avgImage );
+      writer->Update();
+      antscout << " done writing avg image " << std::endl;
+      }
     return EXIT_SUCCESS;
     }
 
@@ -485,7 +508,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cerr << "No transformations are specified." << std::endl;
+    antscout << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -494,35 +517,35 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typename OptionType::Pointer metricOption = parser->GetOption( "metric" );
   if( !metricOption || metricOption->GetNumberOfValues() != numberOfStages  )
     {
-    std::cerr << "The number of metrics specified does not match the number of stages." << std::endl;
+    antscout << "The number of metrics specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer iterationsOption = parser->GetOption( "iterations" );
   if( !iterationsOption || iterationsOption->GetNumberOfValues() != numberOfStages  )
     {
-    std::cerr << "The number of iteration sets specified does not match the number of stages." << std::endl;
+    antscout << "The number of iteration sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrinkFactors" );
   if( !shrinkFactorsOption || shrinkFactorsOption->GetNumberOfValues() != numberOfStages  )
     {
-    std::cerr << "The number of shrinkFactor sets specified does not match the number of stages." << std::endl;
+    antscout << "The number of shrinkFactor sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer smoothingSigmasOption = parser->GetOption( "smoothingSigmas" );
   if( !smoothingSigmasOption || smoothingSigmasOption->GetNumberOfValues() != numberOfStages  )
     {
-    std::cerr << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
+    antscout << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( !outputOption )
     {
-    std::cerr << "Output option not specified." << std::endl;
+    antscout << "Output option not specified." << std::endl;
     return EXIT_FAILURE;
     }
   std::string outputPrefix = outputOption->GetParameter( 0, 0 );
@@ -572,27 +595,63 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     antscout << "  moving image: " << movingImageFileName << std::endl;
     typename FixedImageType::Pointer fixed_time_slice = NULL;
     typename FixedImageType::Pointer moving_time_slice = NULL;
-
-    typedef itk::ImageFileReader<FixedImageType> FixedImageReaderType;
-    typename FixedImageReaderType::Pointer fixedImageReader = FixedImageReaderType::New();
-    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-    fixedImageReader->Update();
-    typename FixedImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+    typename FixedImageType::Pointer fixedImage;
+    if( fixedImageFileName[0] == '0' && fixedImageFileName[1] == 'x' )
+      {
+      std::stringstream strstream;
+      strstream << fixedImageFileName;
+      void* ptr;
+      strstream >> ptr;
+      fixedImage = *( static_cast<typename FixedImageType::Pointer *>( ptr ) );
+      }
+    else
+      {
+      typedef itk::ImageFileReader<FixedImageType> FixedImageReaderType;
+      typename FixedImageReaderType::Pointer fixedImageReader = FixedImageReaderType::New();
+      fixedImageReader->SetFileName( fixedImageFileName.c_str() );
+      fixedImageReader->Update();
+      fixedImage = fixedImageReader->GetOutput();
+      }
     fixedImage->Update();
     fixedImage->DisconnectPipeline();
 
-    typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
-    typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
-    movingImageReader->SetFileName( movingImageFileName.c_str() );
-    movingImageReader->Update();
-    typename MovingImageType::Pointer movingImage = movingImageReader->GetOutput();
+    typename MovingImageType::Pointer movingImage;
+    if( movingImageFileName[0] == '0' && movingImageFileName[1] == 'x' )
+      {
+      std::stringstream strstream;
+      strstream << movingImageFileName;
+      void* ptr;
+      strstream >> ptr;
+      movingImage = *( static_cast<typename MovingImageType::Pointer *>( ptr ) );
+      }
+    else
+      {
+      typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
+      typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
+      movingImageReader->SetFileName( movingImageFileName.c_str() );
+      movingImageReader->Update();
+      movingImage = movingImageReader->GetOutput();
+      }
     movingImage->Update();
     movingImage->DisconnectPipeline();
 
-    typename MovingImageReaderType::Pointer outputImageReader = MovingImageReaderType::New();
-    outputImageReader->SetFileName( movingImageFileName.c_str() );
-    outputImageReader->Update();
-    typename MovingImageType::Pointer outputImage = outputImageReader->GetOutput();
+    typename MovingImageType::Pointer outputImage;
+    if( movingImageFileName[0] == '0' && movingImageFileName[1] == 'x' )
+      {
+      std::stringstream strstream;
+      strstream << movingImageFileName;
+      void* ptr;
+      strstream >> ptr;
+      outputImage = *( static_cast<typename MovingImageType::Pointer *>( ptr ) );
+      }
+    else
+      {
+      typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
+      typename MovingImageReaderType::Pointer outputImageReader = MovingImageReaderType::New();
+      outputImageReader->SetFileName( movingImageFileName.c_str() );
+      outputImageReader->Update();
+      outputImage = outputImageReader->GetOutput();
+      }
     outputImage->Update();
     outputImage->DisconnectPipeline();
 
@@ -612,7 +671,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     if( factors.size() != numberOfLevels )
       {
-      std::cerr << "ERROR:  The number of shrink factors does not match the number of levels." << std::endl;
+      antscout << "ERROR:  The number of shrink factors does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
     else
@@ -632,7 +691,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     if( sigmas.size() != numberOfLevels )
       {
-      std::cerr << "ERROR:  The number of smoothing sigmas does not match the number of levels." << std::endl;
+      antscout << "ERROR:  The number of smoothing sigmas does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
     else
@@ -806,6 +865,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
         {
         unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+        unsigned int npoints_to_skip =
+          static_cast<unsigned int>( 1 / std::atof( ( metricOption->GetParameter( currentStage, 5 ) ).c_str() ) );
         typedef itk::MattesMutualInformationImageToImageMetricv4<FixedImageType,
                                                                  FixedImageType> MutualInformationMetricType;
         typename MutualInformationMetricType::Pointer mutualInformationMetric = MutualInformationMetricType::New();
@@ -813,6 +874,26 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         mutualInformationMetric->SetNumberOfHistogramBins( binOption );
         mutualInformationMetric->SetUseMovingImageGradientFilter( false );
         mutualInformationMetric->SetUseFixedImageGradientFilter( false );
+        typedef typename MutualInformationMetricType::FixedSampledPointSetType PointSetType;
+        typedef typename PointSetType::PointType                               PointType;
+        typename PointSetType::Pointer                    pset(PointSetType::New() );
+        unsigned long                                     ind = 0, ct = 0;
+        itk::ImageRegionIteratorWithIndex<FixedImageType> It(fixed_time_slice,
+                                                             fixed_time_slice->GetLargestPossibleRegion() );
+        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+          {
+          // take every N^th point
+          if( ct % npoints_to_skip == 0  ) // about a factor of 5 speed-up over dense
+            {
+            PointType pt;
+            fixed_time_slice->TransformIndexToPhysicalPoint( It.GetIndex(), pt);
+            pset->SetPoint(ind, pt);
+            ind++;
+            }
+          ct++;
+          }
+        mutualInformationMetric->SetFixedSampledPointSet( pset );
+        mutualInformationMetric->SetUseFixedSampledPointSet( true );
         metric = mutualInformationMetric;
         }
       else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
@@ -833,7 +914,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        std::cerr << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
+        antscout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
         }
       metric->SetVirtualDomainFromImage(  fixed_time_slice );
       // Set up the optimizer.  To change the iteration number for each level we rely
@@ -926,7 +1007,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          antscout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( const_cast<AffineTransformType *>( affineRegistration->GetOutput()->Get() ) );
@@ -982,7 +1063,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cerr << "Exception caught: " << e << std::endl;
+          antscout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->Get() ) );
@@ -1241,7 +1322,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+        antscout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
       if( currentStage == static_cast<int>(numberOfStages) - 1 )
@@ -1270,7 +1351,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           ind[xx] = vfIter2.GetIndex()[xx];
           }
-        ind[ImageDimension] = timedim + 1;
+        unsigned int tdim = timedim + 1;
+        if( tdim > ( timedims - 1 ) )
+          {
+          tdim = timedims - 1;
+          }
+        ind[ImageDimension] = tdim;
         outputImage->SetPixel(ind, fval);
         }
       }
@@ -1281,11 +1367,22 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         outputPrefix = outputOption->GetValue( 0 );
         }
-      typedef itk::ImageFileWriter<MovingImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( fileName.c_str() );
-      writer->SetInput( outputImage );
-      writer->Update();
+      if( fileName[0] == '0' && fileName[1] == 'x' )
+        {
+        std::stringstream strstream;
+        strstream << fileName;
+        void* ptr;
+        strstream >> ptr;
+        *( static_cast<typename MovingImageType::Pointer *>( ptr ) ) = outputImage;
+        }
+      else
+        {
+        typedef itk::ImageFileWriter<MovingImageType> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( fileName.c_str() );
+        writer->SetInput( outputImage );
+        writer->Update();
+        }
       }
     if( outputOption && outputOption->GetNumberOfParameters( 0 ) > 2 && outputImage && currentStage == 0 )
       {
@@ -1314,12 +1411,24 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         antscout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
         }
       AverageTimeImages<MovingImageType, FixedImageType>( outputImage, avgImage, timelistsort );
-      typedef itk::ImageFileWriter<FixedImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( fileName.c_str() );
-      writer->SetInput( avgImage );
-      writer->Update();
-      antscout << " done writing avg image " << std::endl;
+      if( fileName[0] == '0' && fileName[1] == 'x' )
+        {
+        std::stringstream strstream;
+        strstream << fileName;
+        void* ptr;
+        strstream >> ptr;
+        *( static_cast<typename FixedImageType::Pointer *>( ptr ) ) = avgImage;
+        antscout << " done writing avg image " << std::endl;
+        }
+      else
+        {
+        typedef itk::ImageFileWriter<FixedImageType> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( fileName.c_str() );
+        writer->SetInput( avgImage );
+        writer->Update();
+        antscout << " done writing avg image " << std::endl;
+        }
       }
     }
   totalTimer.Stop();
@@ -1339,12 +1448,26 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
-    std::string         fnmp = outputPrefix + std::string("MOCOparams.csv");
-    antscout << " write " << fnmp << std::endl;
-    writer->SetFileName( fnmp.c_str() );
-    writer->SetColumnHeaders(ColumnHeaders);
-    writer->SetInput( &param_values );
-    writer->Write();
+    std::string         fnmp;
+    if( outputPrefix[0] == '0' && outputPrefix[1] == 'x' )
+      {
+      std::stringstream strstream;
+      strstream << outputPrefix;
+      void* ptr;
+      strstream >> ptr;
+      ( static_cast<std::pair<std::vector<std::string>, vnl_matrix<double> > *>( ptr ) )->first = ColumnHeaders;
+      ( static_cast<std::pair<std::vector<std::string>, vnl_matrix<double> > *>( ptr ) )->second = param_values;
+      antscout << "motion-correction params written" << std::endl;
+      }
+    else
+      {
+      fnmp = outputPrefix + std::string("MOCOparams.csv");
+      antscout << " write " << fnmp << std::endl;
+      writer->SetFileName( fnmp.c_str() );
+      writer->SetColumnHeaders(ColumnHeaders);
+      writer->SetInput( &param_values );
+      writer->Write();
+      }
     }
 
   return EXIT_SUCCESS;
@@ -1533,13 +1656,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 }
 
-// int main( int argc, char *argv[] )
-
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
 int antsMotionCorr( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
   args.insert( args.begin(), "antsMotionCorr" );
   std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
+
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -1617,7 +1744,7 @@ private:
     }
   else
     {
-    std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+    antscout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -1637,30 +1764,9 @@ private:
       }
       break;
     default:
-      std::cerr << "Unsupported dimension" << std::endl;
+      antscout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
-  return EXIT_SUCCESS;
+  return 0;
 }
 } // namespace ants
-
-/*
-
-
-      { typedef itk::ImageFileWriter<FixedImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "tempf.nii.gz" );
-      writer->SetInput(  fixed_time_slice  );
-      writer->Update(); }
-      { typedef itk::ImageFileWriter<FixedImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "tempm.nii.gz" );
-      writer->SetInput(  moving_time_slice  );
-      writer->Update(); }
-      { typedef itk::ImageFileWriter<FixedImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "tempr.nii.gz" );
-      writer->SetInput(   resampler->GetOutput()  );
-      writer->Update(); }
-
-*/
