@@ -544,8 +544,14 @@ int Jacobian(int argc, char *argv[])
     {
     projvec = std::string(argv[6]);
     }
+  std::string maskfn = std::string( "ThugLifeIsDeadToMe---2pac" );
+  if( argc > 4 )
+    {
+    maskfn = std::string( argv[4] );
+    }
+
   //  antscout << " name "<< argv[2] <<  " mask " << argv[4] << " norm " << norm << " Log " << uselog << std::endl;
-  ComputeJacobian<ImageType, FieldType>(gWarp, argv[2], argv[4], uselog, norm, projvec);
+  ComputeJacobian<ImageType, FieldType>(gWarp, argv[2], const_cast<char *>( maskfn.c_str() ), uselog, norm, projvec);
 //  DiffeomorphicJacobian<ImageType,ImageType,FieldType>(gWarp,1,argv[2]);
 //  if (argc > 3) DiffeomorphicMetric<ImageType,ImageType,FieldType>(gWarp,argv[2]);
 
