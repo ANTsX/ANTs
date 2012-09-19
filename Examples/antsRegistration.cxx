@@ -174,22 +174,22 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'm' );
     option->SetUsageOption(
       0,
-      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "CC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       1,
-      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MI[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       2,
-      "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "Mattes[fixedImage,movingImage,metricWeight,numberOfBins,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       3,
-      "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MeanSquares[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       4,
-      "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "Demons[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       5,
-      "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
