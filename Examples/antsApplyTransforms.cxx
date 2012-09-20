@@ -562,7 +562,21 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         typename WriterType::Pointer writer = WriterType::New();
         writer->SetInput( outputImages[0] );
         writer->SetFileName( ( outputFileName ).c_str() );
-        writer->Update();
+        try
+          {
+          writer->Update();
+          }
+        catch( itk::ExceptionObject & err )
+          {
+          std::cout << "Caught an ITK exception: " << std::endl;
+          std::cout << err << " " << __FILE__ << " " << __LINE__ << std::endl;
+          throw err;
+          }
+        catch( ... )
+          {
+          std::cout << "Error while reading in image: " << outputFileName << std::endl;
+          throw;
+          }
         }
       }
     }
