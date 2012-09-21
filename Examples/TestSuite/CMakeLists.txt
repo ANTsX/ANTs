@@ -41,10 +41,6 @@ list(APPEND ExternalData_URL_TEMPLATES
   #"http://www.psychiatry.uiowa.edu/users/brainstestdata/ctestdata/%(algo)/%(hash)"
   # Alternate data source for tests
   "http://slicer.kitware.com/midas3/api/rest?method=midas.bitstream.download&checksum=%(hash)"
-  # Data published by MIDAS
-  "http://midas.kitware.com/api/rest/midas.bitstream.by.hash?hash=%(hash)&algorithm=%(algo)"
-  # Data published by developers using git-gerrit-push.
-  "http://www.itk.org/files/ExternalData/%(algo)/%(hash)"
 )
 
 # Tell ExternalData commands to transform raw files to content links.
