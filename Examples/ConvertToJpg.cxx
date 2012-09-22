@@ -94,85 +94,102 @@ int ConvertType(int argc, char *argv[])
 // 'main()'
 int ConvertToJpg( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
-  // put the arguments coming in as 'args' into standard (argc,argv) format;
-  // 'args' doesn't have the command name as first, argument, so add it manually;
-  // 'args' may have adjacent arguments concatenated into one argument,
-  // which the parser should handle
-  args.insert( args.begin(), "ConvertToJpg" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
+  try
     {
-    // allocate space for the string plus a null character
-    argv[i] = new char[args[i].length() + 1];
-    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
-    // place the null character in the end
-    argv[i][args[i].length()] = '\0';
-    }
-  argv[argc] = 0;
-  // class to automatically cleanup argv upon destruction
-  class Cleanup_argv
-  {
+    // put the arguments coming in as 'args' into standard (argc,argv) format;
+    // 'args' doesn't have the command name as first, argument, so add it manually;
+    // 'args' may have adjacent arguments concatenated into one argument,
+    // which the parser should handle
+    args.insert( args.begin(), "ConvertToJpg" );
+    std::remove( args.begin(), args.end(), std::string( "" ) );
+    std::remove( args.begin(), args.end(), std::string( "" ) );
+    int     argc = args.size();
+    char* * argv = new char *[args.size() + 1];
+    for( unsigned int i = 0; i < args.size(); ++i )
+      {
+      // allocate space for the string plus a null character
+      argv[i] = new char[args[i].length() + 1];
+      std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+      // place the null character in the end
+      argv[i][args[i].length()] = '\0';
+      }
+    argv[argc] = 0;
+    // class to automatically cleanup argv upon destruction
+    class Cleanup_argv
+    {
 public:
-    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-    {
-    }
+      Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+      {
+      }
 
-    ~Cleanup_argv()
-    {
-      for( unsigned int i = 0; i < argc_plus_one; ++i )
-        {
-        delete[] argv[i];
-        }
-      delete[] argv;
-    }
+      ~Cleanup_argv()
+      {
+        for( unsigned int i = 0; i < argc_plus_one; ++i )
+          {
+          delete[] argv[i];
+          }
+        delete[] argv;
+      }
 
 private:
-    char* *      argv;
-    unsigned int argc_plus_one;
-  };
-  Cleanup_argv cleanup_argv( argv, argc + 1 );
+      char* *      argv;
+      unsigned int argc_plus_one;
+    };
+    Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+    antscout->set_stream( out_stream );
 
-  if( argc < 3 )
-    {
-    antscout << "Usage:   ConvertToJpg infile.nii out.jpg " << std::endl;
-    if( argc >= 2 &&
-        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+    if( argc < 3 )
       {
-      return EXIT_SUCCESS;
+      antscout << "Usage:   ConvertToJpg infile.nii out.jpg " << std::endl;
+      if( argc >= 2 &&
+          ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+        {
+        return EXIT_SUCCESS;
+        }
+      return EXIT_FAILURE;
       }
+
+    // Get the image dimension
+    std::string               fn = std::string(argv[1]);
+    itk::ImageIOBase::Pointer imageIO =
+      itk::ImageIOFactory::CreateImageIO(
+        fn.c_str(), itk::ImageIOFactory::ReadMode);
+    imageIO->SetFileName(fn.c_str() );
+    imageIO->ReadImageInformation();
+
+    switch( imageIO->GetNumberOfDimensions() )
+      {
+      case 2:
+        {
+        ConvertType<2>(argc, argv);
+        }
+        break;
+      case 3:
+        {
+        ConvertType<3>(argc, argv);
+        }
+        break;
+      default:
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+  catch( const itk::ExceptionObject & e )
+    {
+    e.Print( std::cerr );
     return EXIT_FAILURE;
     }
-
-  // Get the image dimension
-  std::string               fn = std::string(argv[1]);
-  itk::ImageIOBase::Pointer imageIO =
-    itk::ImageIOFactory::CreateImageIO(
-      fn.c_str(), itk::ImageIOFactory::ReadMode);
-  imageIO->SetFileName(fn.c_str() );
-  imageIO->ReadImageInformation();
-
-  switch( imageIO->GetNumberOfDimensions() )
+  catch( const std::exception & e )
     {
-    case 2:
-      {
-      ConvertType<2>(argc, argv);
-      }
-      break;
-    case 3:
-      {
-      ConvertType<3>(argc, argv);
-      }
-      break;
-    default:
-      antscout << "Unsupported dimension" << std::endl;
-      return EXIT_FAILURE;
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
     }
-
-  return 0;
+  catch( ... )
+    {
+    std::cerr << "Unknown exception caught" << std::endl;
+    return EXIT_FAILURE;
+    }
+  return EXIT_SUCCESS;
 }
 } // namespace ants
