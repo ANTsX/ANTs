@@ -301,92 +301,110 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
 // 'main()'
 int MeasureImageSimilarity( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
-  // put the arguments coming in as 'args' into standard (argc,argv) format;
-  // 'args' doesn't have the command name as first, argument, so add it manually;
-  // 'args' may have adjacent arguments concatenated into one argument,
-  // which the parser should handle
-  args.insert( args.begin(), "MeasureImageSimilarity" );
-
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
+  try
     {
-    // allocate space for the string plus a null character
-    argv[i] = new char[args[i].length() + 1];
-    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
-    // place the null character in the end
-    argv[i][args[i].length()] = '\0';
-    }
-  argv[argc] = 0;
-  // class to automatically cleanup argv upon destruction
-  class Cleanup_argv
-  {
+    // put the arguments coming in as 'args' into standard (argc,argv) format;
+    // 'args' doesn't have the command name as first, argument, so add it manually;
+    // 'args' may have adjacent arguments concatenated into one argument,
+    // which the parser should handle
+    args.insert( args.begin(), "MeasureImageSimilarity" );
+
+    std::remove( args.begin(), args.end(), std::string( "" ) );
+    int     argc = args.size();
+    char* * argv = new char *[args.size() + 1];
+    for( unsigned int i = 0; i < args.size(); ++i )
+      {
+      // allocate space for the string plus a null character
+      argv[i] = new char[args[i].length() + 1];
+      std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+      // place the null character in the end
+      argv[i][args[i].length()] = '\0';
+      }
+    argv[argc] = 0;
+    // class to automatically cleanup argv upon destruction
+    class Cleanup_argv
+    {
 public:
-    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-    {
-    }
+      Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+      {
+      }
 
-    ~Cleanup_argv()
-    {
-      for( unsigned int i = 0; i < argc_plus_one; ++i )
-        {
-        delete[] argv[i];
-        }
-      delete[] argv;
-    }
+      ~Cleanup_argv()
+      {
+        for( unsigned int i = 0; i < argc_plus_one; ++i )
+          {
+          delete[] argv[i];
+          }
+        delete[] argv;
+      }
 
 private:
-    char* *      argv;
-    unsigned int argc_plus_one;
-  };
-  Cleanup_argv cleanup_argv( argv, argc + 1 );
+      char* *      argv;
+      unsigned int argc_plus_one;
+    };
+    Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+    antscout->set_stream( out_stream );
 
-  if( argc < 3 )
-    {
-    antscout << "Basic useage ex: " << std::endl;
-    antscout << argv[0]
-             <<
-      " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}"
-             << std::endl;
-    antscout << "  outimage (Not Implemented for MI yet)  and logfile are optional  " << std::endl;
-    antscout
-      <<
-      " target-value and epsilon-tolerance set goals for the metric value -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds "
-      << std::endl;
-    antscout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information , 3-SMI " << std::endl;
-    if( argc >= 2 &&
-        ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+    if( argc < 3 )
       {
-      return EXIT_SUCCESS;
+      antscout << "Basic useage ex: " << std::endl;
+      antscout << argv[0]
+               <<
+        " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}"
+               << std::endl;
+      antscout << "  outimage (Not Implemented for MI yet)  and logfile are optional  " << std::endl;
+      antscout
+        <<
+        " target-value and epsilon-tolerance set goals for the metric value -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds "
+        << std::endl;
+      antscout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information , 3-SMI "
+               << std::endl;
+      if( argc >= 2 &&
+          ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
+        {
+        return EXIT_SUCCESS;
+        }
+      return EXIT_FAILURE;
       }
+
+    int metricsuccess = EXIT_FAILURE;
+
+    // Get the image dimension
+    switch( atoi(argv[1]) )
+      {
+      case 2:
+        {
+        metricsuccess = MeasureImageSimilarity<2>(argc, argv);
+        }
+        break;
+      case 3:
+        {
+        metricsuccess = MeasureImageSimilarity<3>(argc, argv);
+        }
+        break;
+      default:
+        antscout << "Unsupported dimension" << std::endl;
+        return EXIT_FAILURE;
+      }
+
+    antscout << " Failure? " << metricsuccess << std::endl;
+    return metricsuccess;
+    }
+  catch( const itk::ExceptionObject & e )
+    {
+    e.Print( std::cerr );
     return EXIT_FAILURE;
     }
-
-  int metricsuccess = EXIT_FAILURE;
-
-  // Get the image dimension
-  switch( atoi(argv[1]) )
+  catch( const std::exception & e )
     {
-    case 2:
-      {
-      metricsuccess = MeasureImageSimilarity<2>(argc, argv);
-      }
-      break;
-    case 3:
-      {
-      metricsuccess = MeasureImageSimilarity<3>(argc, argv);
-      }
-      break;
-    default:
-      antscout << "Unsupported dimension" << std::endl;
-      return EXIT_FAILURE;
+    std::cerr << e.what() << std::endl;
+    return EXIT_FAILURE;
     }
-
-  antscout << " Failure? " << metricsuccess << std::endl;
-
-  return metricsuccess;
+  catch( ... )
+    {
+    std::cerr << "UNKNOWN FAILURE" << std::endl;
+    return EXIT_FAILURE;
+    }
 }
 } // namespace ants
