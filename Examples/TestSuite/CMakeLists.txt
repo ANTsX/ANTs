@@ -824,6 +824,7 @@ foreach(CurrProg ${AllANTSPrograms})
   add_test(${CurrProg}_HELP_LONG  ${TEST_BINARY_DIR}/${CurrProg} ${HELP_FLAG} ) ## Just print the help screen
   set(HELP_FLAG "-h" )
   add_test(${CurrProg}_HELP_SHORT ${TEST_BINARY_DIR}/${CurrProg} ${HELP_FLAG} ) ## Just print the help screen
+  set_property(TEST ${CurrProg}_HELP_SHORT APPEND PROPERTY DEPENDS ${CurrProg}_HELP_LONG)
 endforeach()
 
 ###
