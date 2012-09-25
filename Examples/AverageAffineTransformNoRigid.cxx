@@ -2,14 +2,18 @@
 
 #include "antsUtilities.h"
 #include "itkImageFileReader.h"
+
 #include "itkImageFileWriter.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 
 #include "itkAverageAffineTransformNoRigidFunction.h"
+
 #include "itkTransformFileReader.h"
 #include "itkTransformFileWriter.h"
 
+namespace ants
+{
 static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, char *& output_transform_filename,
                                                      char *& reference_transform_filename, TRAN_OPT_QUEUE & opt_queue)
 {
@@ -43,9 +47,9 @@ static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, cha
       opt.filename = argv[ind];
       if( CheckFileType(opt.filename) != AFFINE_FILE )
         {
-        std::cout << "file: " << opt.filename
-                  << " is not an affine .txt file. Invalid to use '-i' "
-                  << std::endl;
+        antscout << "file: " << opt.filename
+                 << " is not an affine .txt file. Invalid to use '-i' "
+                 << std::endl;
         return false;
         }
       opt.file_type = AFFINE_FILE;
@@ -69,8 +73,8 @@ static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, cha
       opt.filename = argv[ind];
       if( CheckFileType(opt.filename) != AFFINE_FILE )
         {
-        std::cout << "file: " << opt.filename
-                  << " is not an affine .txt file." << std::endl;
+        antscout << "file: " << opt.filename
+                 << " is not an affine .txt file." << std::endl;
         return false;
         }
       opt.file_type = CheckFileType(opt.filename);
@@ -93,7 +97,7 @@ static bool AverageAffineTransformNoRigid_ParseInput(int argc, char * *argv, cha
     }
 
 //    if (reference_image_filename == NULL) {
-//        std::cout << "the reference image file (-R) must be given!!!"
+//        antscout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
 //    }
@@ -156,7 +160,7 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
           {
           aff->GetInverse(aff);
           }
-        // std::cout << aff << std::endl;
+        // antscout << aff << std::endl;
 
         double weight = opt.weight;
         average_func.PushBackAffineTransform(aff, weight);
@@ -165,12 +169,12 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
         }
       case DEFORMATION_FILE:
         {
-        std::cout << "Average affine only files: ignore " << opt.filename
-                  << std::endl;
+        antscout << "Average affine only files: ignore " << opt.filename
+                 << std::endl;
         }
         break;
       default:
-        std::cout << "Unknown file type!" << std::endl;
+        antscout << "Unknown file type!" << std::endl;
       }
     }
 
@@ -190,18 +194,18 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
     {
     if( cnt_affine > 0 )
       {
-      std::cout << "the reference affine file for center is selected as the first affine!" << std::endl;
+      antscout << "the reference affine file for center is selected as the first affine!" << std::endl;
       aff_ref_tmp = average_func.GetTransformList().begin()->aff;
       }
     else
       {
-      std::cout << "No affine input is given. nothing to do ......" << std::endl;
+      antscout << "No affine input is given. nothing to do ......" << std::endl;
       return;
       }
     }
 
   aff_center = aff_ref_tmp->GetCenter();
-  std::cout << "new center is : " << aff_center << std::endl;
+  antscout << "new center is : " << aff_center << std::endl;
 
   // warper->PrintTransformList();
 
@@ -216,15 +220,60 @@ void AverageAffineTransformNoRigid(char *output_affine_txt, char *reference_affi
   tran_writer->SetInput(aff_output);
   tran_writer->Update();
 
-  std::cout << "wrote file to : " << output_affine_txt << std::endl;
+  antscout << "wrote file to : " << output_affine_txt << std::endl;
 }
 
-int main(int argc, char * *argv)
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int AverageAffineTransformNoRigid( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the parser should handle
+  args.insert( args.begin(), "AverageAffineTransformNoRigid" );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  antscout->set_stream( out_stream );
+
   if( argc <= 3 )
     {
-    std::cout
-      << "AverageAffineTransform ImageDimension output_affine_transform [-R reference_affine_transform] "
+    antscout
+      << "AverageAffineTransformNoRigid ImageDimension output_affine_transform [-R reference_affine_transform] "
       << "{[-i] affine_transform_txt [weight(=1)] ]}"
       << std::endl
       << std::endl
@@ -268,17 +317,17 @@ int main(int argc, char * *argv)
 
   if( is_parsing_ok )
     {
-    std::cout << "output_transform_filename: " << output_transform_filename
-              << std::endl;
-    std::cout << "reference_transform_filename: ";
+    antscout << "output_transform_filename: " << output_transform_filename
+             << std::endl;
+    antscout << "reference_transform_filename: ";
 
     if( reference_transform_filename )
       {
-      std::cout << reference_transform_filename << std::endl;
+      antscout << reference_transform_filename << std::endl;
       }
     else
       {
-      std::cout << "NULL" << std::endl;
+      antscout << "NULL" << std::endl;
       }
 
     DisplayOptQueue(opt_queue);
@@ -302,9 +351,10 @@ int main(int argc, char * *argv)
 
   else
     {
-    std::cout << "Input error!" << std::endl;
+    antscout << "Input error!" << std::endl;
     return EXIT_FAILURE;
     }
 
   return EXIT_SUCCESS;
 }
+} // namespace ants

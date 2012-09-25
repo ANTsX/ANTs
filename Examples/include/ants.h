@@ -35,6 +35,8 @@
 
 #include "AverageAffineTransform.h"
 
+#include "AverageAffineTransformNoRigid.h"
+
 #include "AverageImages.h"
 
 #include "AverageTensorImages.h"
