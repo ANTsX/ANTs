@@ -547,7 +547,8 @@ private:
   double                                  m_UpperQuantile;
   std::ostream *                          m_LogStream;
 
-  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType *, bool );
+  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const,
+                                                   const bool applyInverse );
 
   bool m_ApplyLinearTransformsToFixedImageHeader;
   bool m_AllPreviousTransformsAreLinear;

@@ -254,11 +254,11 @@ RegistrationHelper<VImageDimension>
 }
 
 template <class ImageType>
-typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
+typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  inputImage,
                                              typename ImageType::PixelType lowerScaleValue,
                                              typename ImageType::PixelType upperScaleValue,
                                              float winsorizeLowerQuantile, float winsorizeUpperQuantile,
-                                             ImageType *histogramMatchSourceImage = NULL )
+                                             typename ImageType::ConstPointer histogramMatchSourceImage = NULL )
 {
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
@@ -313,7 +313,6 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     outputImage->Update();
     outputImage->DisconnectPipeline();
     }
-
   return outputImage;
 }
 
@@ -849,56 +848,59 @@ RegistrationHelper<VImageDimension>
     {
     this->m_FixedInitialTransform = CompositeTransformType::New();
     }
-  for( unsigned int currentStage = 0; currentStage < this->m_NumberOfStages; currentStage++ )
+  // ########################################################################################
+  // ########################################################################################
+  //##The main loop for exstimating the total composite tranform
+  // ########################################################################################
+  // ########################################################################################
+  for( unsigned int currentStageNumber = 0; currentStageNumber < this->m_NumberOfStages; currentStageNumber++ )
     {
     itk::TimeProbe timer;
     timer.Start();
 
     typedef itk::ImageRegistrationMethodv4<ImageType, ImageType> AffineRegistrationType;
 
-    const int stageNumber = currentStage;
-    this->Logger() << std::endl << "Stage " << stageNumber << std::endl;
+    this->Logger() << std::endl << "Stage " << currentStageNumber << std::endl;
     std::stringstream currentStageString;
-    currentStageString << stageNumber;
+    currentStageString << currentStageNumber;
 
     // Get the fixed and moving images
-    typename ImageType::Pointer fixedImage = this->m_Metrics[currentStage].m_FixedImage;
-    typename ImageType::Pointer movingImage = this->m_Metrics[currentStage].m_MovingImage;
+    const typename ImageType::ConstPointer fixedImage = this->m_Metrics[currentStageNumber].m_FixedImage.GetPointer();
+    const typename ImageType::ConstPointer movingImage = this->m_Metrics[currentStageNumber].m_MovingImage.GetPointer();
     // Preprocess images
 
     std::string outputPreprocessingString = "";
 
     PixelType lowerScaleValue = 0.0;
     PixelType upperScaleValue = 1.0;
-
     if( this->m_WinsorizeImageIntensities )
       {
       outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
       }
 
-    typename ImageType::Pointer preprocessFixedImage =
-      PreprocessImage<ImageType>( fixedImage, lowerScaleValue,
+    const typename ImageType::Pointer preprocessFixedImage =
+      PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
                                   upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
                                   NULL );
 
-    typename ImageType::Pointer preprocessMovingImage;
+    typename ImageType::ConstPointer preprocessMovingImage;
 
     if( this->m_UseHistogramMatching )
       {
       outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
       preprocessMovingImage =
-        PreprocessImage<ImageType>( movingImage,
+        PreprocessImage<ImageType>( movingImage.GetPointer(),
                                     lowerScaleValue, upperScaleValue,
                                     this->m_LowerQuantile, this->m_UpperQuantile,
-                                    preprocessFixedImage );
+                                    preprocessFixedImage.GetPointer() ).GetPointer();
       }
     else
       {
       preprocessMovingImage =
-        PreprocessImage<ImageType>( movingImage,
+        PreprocessImage<ImageType>( movingImage.GetPointer(),
                                     lowerScaleValue, upperScaleValue,
                                     this->m_LowerQuantile, this->m_UpperQuantile,
-                                    NULL );
+                                    NULL ).GetPointer();
       }
 
     if( this->m_ApplyLinearTransformsToFixedImageHeader )
@@ -920,9 +922,9 @@ RegistrationHelper<VImageDimension>
 
     // Get the number of iterations and use that information to specify the number of levels
 
-    const std::vector<unsigned int> & currentStageIterations = this->m_Iterations[currentStage];
+    const std::vector<unsigned int> & currentStageIterations = this->m_Iterations[currentStageNumber];
     this->Logger() << "  iterations = ";
-    for( unsigned m = 0; m < currentStageIterations.size(); m++ )
+    for( unsigned int m = 0; m < currentStageIterations.size(); m++ )
       {
       this->Logger() << currentStageIterations[m];
       if( m < currentStageIterations.size() - 1 )
@@ -932,17 +934,16 @@ RegistrationHelper<VImageDimension>
       }
     this->Logger() << std::endl;
 
-    const double convergenceThreshold = this->m_ConvergenceThresholds[currentStage];
+    const double convergenceThreshold = this->m_ConvergenceThresholds[currentStageNumber];
     this->Logger() << "  convergence threshold = " << convergenceThreshold << std::endl;
-    const unsigned int convergenceWindowSize = this->m_ConvergenceWindowSizes[currentStage];
+    const unsigned int convergenceWindowSize = this->m_ConvergenceWindowSizes[currentStageNumber];
     this->Logger() << "  convergence window size = " << convergenceWindowSize << std::endl;
 
     const unsigned int numberOfLevels = currentStageIterations.size();
     this->Logger() << "  number of levels = " << numberOfLevels << std::endl;
 
     // Get shrink factors
-
-    const std::vector<unsigned int> factors = this->m_ShrinkFactors[currentStage];
+    const std::vector<unsigned int> factors(this->m_ShrinkFactors[currentStageNumber]);
     typename AffineRegistrationType::ShrinkFactorsArrayType shrinkFactorsPerLevel;
     shrinkFactorsPerLevel.SetSize( factors.size() );
 
@@ -963,8 +964,7 @@ RegistrationHelper<VImageDimension>
     this->Logger() << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
 
     // Get smoothing sigmas
-
-    std::vector<float> sigmas = this->m_SmoothingSigmas[currentStage];
+    const std::vector<float> sigmas(this->m_SmoothingSigmas[currentStageNumber]);
     typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
     smoothingSigmasPerLevel.SetSize( sigmas.size() );
 
@@ -984,8 +984,8 @@ RegistrationHelper<VImageDimension>
 
     typename MetricType::Pointer metric;
 
-    float            samplingPercentage = this->m_Metrics[currentStage].m_SamplingPercentage;
-    SamplingStrategy samplingStrategy = this->m_Metrics[currentStage].m_SamplingStrategy;
+    const float            samplingPercentage = this->m_Metrics[currentStageNumber].m_SamplingPercentage;
+    const SamplingStrategy samplingStrategy = this->m_Metrics[currentStageNumber].m_SamplingStrategy;
     typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy = AffineRegistrationType::NONE;
     if( samplingStrategy == random )
       {
@@ -1002,19 +1002,20 @@ RegistrationHelper<VImageDimension>
       ::ants::antscout << "  Using default NONE metricSamplingStrategy " << std::endl;
       }
 
-    switch( this->m_Metrics[currentStage].m_MetricType )
+    switch( this->m_Metrics[currentStageNumber].m_MetricType )
       {
       case CC:
         {
-        unsigned int radiusOption = this->m_Metrics[currentStage].m_Radius;
-
+        const unsigned int radiusOption = this->m_Metrics[currentStageNumber].m_Radius;
         this->Logger() << "  using the CC metric (radius = "
                        << radiusOption << ")" << std::endl;
         typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType> CorrelationMetricType;
         typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
-        typename CorrelationMetricType::RadiusType radius;
-        radius.Fill( radiusOption );
-        correlationMetric->SetRadius( radius );
+          {
+          typename CorrelationMetricType::RadiusType radius;
+          radius.Fill( radiusOption );
+          correlationMetric->SetRadius( radius );
+          }
         correlationMetric->SetUseMovingImageGradientFilter( false );
         correlationMetric->SetUseFixedImageGradientFilter( false );
 
@@ -1023,7 +1024,7 @@ RegistrationHelper<VImageDimension>
         break;
       case Mattes:
         {
-        unsigned int binOption = this->m_Metrics[currentStage].m_NumberOfBins;
+        const unsigned int binOption = this->m_Metrics[currentStageNumber].m_NumberOfBins;
         this->Logger() << "  using the Mattes MI metric (number of bins = "
                        << binOption << ")" << std::endl;
         typedef itk::MattesMutualInformationImageToImageMetricv4<ImageType, ImageType>
@@ -1040,7 +1041,7 @@ RegistrationHelper<VImageDimension>
         break;
       case MI:
         {
-        unsigned int binOption = this->m_Metrics[currentStage].m_NumberOfBins;
+        const unsigned int binOption = this->m_Metrics[currentStageNumber].m_NumberOfBins;
 
         this->Logger() << "  using the MI metric (number of bins = " << binOption << ")" << std::endl;
         typedef itk::JointHistogramMutualInformationImageToImageMetricv4<ImageType,
@@ -1063,7 +1064,6 @@ RegistrationHelper<VImageDimension>
         typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType> MeanSquaresMetricType;
         typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
         meanSquaresMetric = meanSquaresMetric;
-
         metric = meanSquaresMetric;
         }
         break;
@@ -1074,7 +1074,6 @@ RegistrationHelper<VImageDimension>
         typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType> DemonsMetricType;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
         demonsMetric = demonsMetric;
-
         metric = demonsMetric;
         }
         break;
@@ -1090,7 +1089,7 @@ RegistrationHelper<VImageDimension>
         ::ants::antscout << "ERROR: Unrecognized image metric: " << std::endl;
       }
     /** Can really impact performance */
-    bool gaussian = false;
+    const bool gaussian = false;
     metric->SetUseMovingImageGradientFilter( gaussian );
     metric->SetUseFixedImageGradientFilter( gaussian );
     if( this->m_FixedImageMask.IsNotNull() )
@@ -1104,7 +1103,7 @@ RegistrationHelper<VImageDimension>
     // Set up the optimizer.  To change the iteration number for each level we rely
     // on the command observer.
 
-    double learningRate = this->m_TransformMethods[currentStage].m_GradientStep;
+    const double learningRate = this->m_TransformMethods[currentStageNumber].m_GradientStep;
 
     typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
@@ -1116,7 +1115,7 @@ RegistrationHelper<VImageDimension>
     optimizer->SetLowerLimit( 0 );
     optimizer->SetUpperLimit( 2 );
     optimizer->SetEpsilon( 0.2 );
-//    optimizer->SetMaximumLineSearchIterations( 20 );
+    //    optimizer->SetMaximumLineSearchIterations( 20 );
     optimizer->SetLearningRate( learningRate );
     optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer->SetNumberOfIterations( currentStageIterations[0] );
@@ -1136,7 +1135,7 @@ RegistrationHelper<VImageDimension>
     //    optimizer2->SetLowerLimit( 0 );
     //    optimizer2->SetUpperLimit( 2 );
     //    optimizer2->SetEpsilon( 0.2 );
-//    optimizer->SetMaximumLineSearchIterations( 20 );
+    //    optimizer->SetMaximumLineSearchIterations( 20 );
     optimizer2->SetLearningRate( learningRate );
     optimizer2->SetMaximumStepSizeInPhysicalUnits( learningRate );
     optimizer2->SetNumberOfIterations( currentStageIterations[0] );
@@ -1151,16 +1150,14 @@ RegistrationHelper<VImageDimension>
     optimizerObserver2->SetOptimizer( optimizer2 );
 
     // Set up the image registration methods along with the transforms
-    XfrmMethod whichTransform = this->m_TransformMethods[currentStage].m_XfrmMethod;
+    const XfrmMethod whichTransform(this->m_TransformMethods[currentStageNumber].m_XfrmMethod);
 
     switch( whichTransform )
       {
       case Affine:
         {
-        typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
-
         typedef itk::AffineTransform<RealType, VImageDimension> AffineTransformType;
-
+        typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
         affineRegistration->SetFixedImage( preprocessFixedImage );
         affineRegistration->SetMovingImage( preprocessMovingImage );
         affineRegistration->SetNumberOfLevels( numberOfLevels );
@@ -1183,10 +1180,8 @@ RegistrationHelper<VImageDimension>
         typename AffineCommandType::Pointer affineObserver = AffineCommandType::New();
         affineObserver->SetLogStream( *this->m_LogStream );
         affineObserver->SetNumberOfIterations( currentStageIterations );
-
         affineRegistration->AddObserver( itk::IterationEvent(), affineObserver );
         affineRegistration->AddObserver( itk::InitializeEvent(), affineObserver );
-
         try
           {
           this->Logger() << std::endl << "*** Running affine registration ***" << std::endl << std::endl;
@@ -1208,8 +1203,8 @@ RegistrationHelper<VImageDimension>
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<AffineTransformType *>( affineRegistration->GetOutput()
-                                                                                       ->Get() ) );
+          this->m_CompositeTransform->AddTransform( const_cast<AffineTransformType *>(
+                                                      affineRegistration->GetOutput()->Get() ) );
           }
         }
         break;
@@ -1491,8 +1486,10 @@ RegistrationHelper<VImageDimension>
 
         // Extract parameters
 
-        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
-        RealType varianceForTotalField  = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
+        RealType varianceForUpdateField =
+          this->m_TransformMethods[currentStageNumber].m_UpdateFieldVarianceInVarianceSpace;
+        RealType varianceForTotalField  =
+          this->m_TransformMethods[currentStageNumber].m_TotalFieldVarianceInVarianceSpace;
 
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheTotalField( varianceForTotalField );
@@ -1607,11 +1604,11 @@ RegistrationHelper<VImageDimension>
         // Extract parameters
 
         const std::vector<unsigned int> & meshSizeForTheUpdateField =
-          this->m_TransformMethods[currentStage].m_UpdateFieldMeshSizeAtBaseLevel;
+          this->m_TransformMethods[currentStageNumber].m_UpdateFieldMeshSizeAtBaseLevel;
         std::vector<unsigned int> meshSizeForTheTotalField =
-          this->m_TransformMethods[currentStage].m_TotalFieldMeshSizeAtBaseLevel;
+          this->m_TransformMethods[currentStageNumber].m_TotalFieldMeshSizeAtBaseLevel;
 
-        outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStage].m_SplineOrder );
+        outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
@@ -1726,7 +1723,7 @@ RegistrationHelper<VImageDimension>
           const_cast<BSplineTransformType *>( bsplineRegistration->GetOutput()->Get() );
 
         const std::vector<unsigned int> & size =
-          this->m_TransformMethods[currentStage].m_MeshSizeAtBaseLevel;
+          this->m_TransformMethods[currentStageNumber].m_MeshSizeAtBaseLevel;
 
         typename BSplineTransformType::PhysicalDimensionsType physicalDimensions;
         typename BSplineTransformType::MeshSizeType meshSize;
@@ -1843,7 +1840,7 @@ RegistrationHelper<VImageDimension>
         typename ImageType::SpacingType fixedImageSpacing = fixedImage->GetSpacing();
         typename ImageType::DirectionType fixedImageDirection = fixedImage->GetDirection();
 
-        unsigned int numberOfTimeIndices = this->m_TransformMethods[currentStage].m_NumberOfTimeIndices;
+        unsigned int numberOfTimeIndices = this->m_TransformMethods[currentStageNumber].m_NumberOfTimeIndices;
 
         velocityFieldIndex.Fill( 0 );
         velocityFieldSize.Fill( numberOfTimeIndices );
@@ -1873,10 +1870,12 @@ RegistrationHelper<VImageDimension>
 
         // Extract parameters
 
-        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
-        RealType varianceForUpdateFieldTime = this->m_TransformMethods[currentStage].m_UpdateFieldTimeSigma;
-        RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
-        RealType varianceForTotalFieldTime = this->m_TransformMethods[currentStage].m_TotalFieldTimeSigma;
+        RealType varianceForUpdateField =
+          this->m_TransformMethods[currentStageNumber].m_UpdateFieldVarianceInVarianceSpace;
+        RealType varianceForUpdateFieldTime = this->m_TransformMethods[currentStageNumber].m_UpdateFieldTimeSigma;
+        RealType varianceForTotalField =
+          this->m_TransformMethods[currentStageNumber].m_TotalFieldVarianceInVarianceSpace;
+        RealType varianceForTotalFieldTime = this->m_TransformMethods[currentStageNumber].m_TotalFieldTimeSigma;
 
         typedef itk::TimeVaryingVelocityFieldImageRegistrationMethodv4<ImageType, ImageType>
           VelocityFieldRegistrationType;
@@ -2008,7 +2007,8 @@ RegistrationHelper<VImageDimension>
 
         // Determine the parameters (size, spacing, etc) for the time-varying velocity field control point lattice
 
-        const std::vector<unsigned int> & meshSize = this->m_TransformMethods[currentStage].m_VelocityFieldMeshSize;
+        const std::vector<unsigned int> & meshSize =
+          this->m_TransformMethods[currentStageNumber].m_VelocityFieldMeshSize;
         if( meshSize.size() != VImageDimension + 1 )
           {
           ::ants::antscout << "The transform domain mesh size does not have the correct number of elements."
@@ -2017,8 +2017,9 @@ RegistrationHelper<VImageDimension>
           return EXIT_FAILURE;
           }
 
-        unsigned int numberOfTimePointSamples =  this->m_TransformMethods[currentStage].m_NumberOfTimePointSamples;
-        unsigned int splineOrder = this->m_TransformMethods[currentStage].m_SplineOrder;
+        unsigned int numberOfTimePointSamples =
+          this->m_TransformMethods[currentStageNumber].m_NumberOfTimePointSamples;
+        unsigned int splineOrder = this->m_TransformMethods[currentStageNumber].m_SplineOrder;
 
         typedef itk::Image<VectorType, VImageDimension + 1> TimeVaryingVelocityFieldControlPointLatticeType;
 
@@ -2216,10 +2217,10 @@ RegistrationHelper<VImageDimension>
         // GaussianSmoothingOnUpdateDisplacementFieldTransformAdaptor
         for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
+          // TODO:
           // We use the shrink image filter to calculate the fixed parameters of the virtual
           // domain at each level.  To speed up calculation and avoid unnecessary memory
           // usage, we could calculate these fixed parameters directly.
-
           typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
           shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
@@ -2245,8 +2246,10 @@ RegistrationHelper<VImageDimension>
           numberOfIterationsPerLevel[d] = currentStageIterations[d];
           }
 
-        RealType varianceForUpdateField = this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
-        RealType varianceForTotalField = this->m_TransformMethods[currentStage].m_TotalFieldVarianceInVarianceSpace;
+        const RealType varianceForUpdateField =
+          this->m_TransformMethods[currentStageNumber].m_UpdateFieldVarianceInVarianceSpace;
+        const RealType varianceForTotalField =
+          this->m_TransformMethods[currentStageNumber].m_TotalFieldVarianceInVarianceSpace;
 
         displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
@@ -2299,7 +2302,6 @@ RegistrationHelper<VImageDimension>
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
-
         this->m_AllPreviousTransformsAreLinear = false;
         }
         break;
@@ -2337,11 +2339,11 @@ RegistrationHelper<VImageDimension>
         // Extract parameters
 
         const std::vector<unsigned int> & meshSizeForTheUpdateField =
-          this->m_TransformMethods[currentStage].m_UpdateFieldMeshSizeAtBaseLevel;
+          this->m_TransformMethods[currentStageNumber].m_UpdateFieldMeshSizeAtBaseLevel;
         std::vector<unsigned int> meshSizeForTheTotalField =
-          this->m_TransformMethods[currentStage].m_TotalFieldMeshSizeAtBaseLevel;
+          this->m_TransformMethods[currentStageNumber].m_TotalFieldMeshSizeAtBaseLevel;
 
-        outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStage].m_SplineOrder );
+        outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
@@ -2486,12 +2488,11 @@ RegistrationHelper<VImageDimension>
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters
-
         RealType varianceForUpdateField =
-          this->m_TransformMethods[currentStage].m_UpdateFieldVarianceInVarianceSpace;
+          this->m_TransformMethods[currentStageNumber].m_UpdateFieldVarianceInVarianceSpace;
         RealType varianceForVelocityField  =
-          this->m_TransformMethods[currentStage].m_VelocityFieldVarianceInVarianceSpace;
-        unsigned int numberOfIntegrationSteps = this->m_TransformMethods[currentStage].m_NumberOfTimeIndices;
+          this->m_TransformMethods[currentStageNumber].m_VelocityFieldVarianceInVarianceSpace;
+        unsigned int numberOfIntegrationSteps = this->m_TransformMethods[currentStageNumber].m_NumberOfTimeIndices;
 
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheUpdateField( varianceForUpdateField );
         outputDisplacementFieldTransform->SetGaussianSmoothingVarianceForTheConstantVelocityField(
@@ -2619,10 +2620,10 @@ RegistrationHelper<VImageDimension>
         // Extract parameters
 
         const std::vector<unsigned int> & meshSizeForTheUpdateField =
-          this->m_TransformMethods[currentStage].m_UpdateFieldMeshSizeAtBaseLevel;
+          this->m_TransformMethods[currentStageNumber].m_UpdateFieldMeshSizeAtBaseLevel;
         std::vector<unsigned int> meshSizeForTheVelocityField =
-          this->m_TransformMethods[currentStage].m_VelocityFieldMeshSizeAtBaseLevel;
-        unsigned int numberOfIntegrationSteps = this->m_TransformMethods[currentStage].m_NumberOfTimeIndices;
+          this->m_TransformMethods[currentStageNumber].m_VelocityFieldMeshSizeAtBaseLevel;
+        unsigned int numberOfIntegrationSteps = this->m_TransformMethods[currentStageNumber].m_NumberOfTimeIndices;
 
         if( numberOfIntegrationSteps == 0 )
           {
@@ -2632,7 +2633,7 @@ RegistrationHelper<VImageDimension>
           {
           outputDisplacementFieldTransform->SetNumberOfIntegrationSteps( numberOfIntegrationSteps );
           }
-        outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStage].m_SplineOrder );
+        outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
         outputDisplacementFieldTransform->SetDisplacementField( displacementField );
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() !=
@@ -2741,8 +2742,16 @@ RegistrationHelper<VImageDimension>
         ::ants::antscout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
       }
+    // TODO:  Collapse Previous 2 Composite Transforms.  If the two previous composite transforms are
+    //       compatible, then merge them into one transform
+    //       Given that if the request is for
+    //       Translation->Rigid->Similarity->Affine->MSE->SyN
+    //       |------------------------------------|  |------|
+    //       Affine                                  Warp
+    //       The result should be a composite transform with only two elmeents [Affine, Warp]
     timer.Stop();
-    this->Logger() << "  Elapsed time (stage " << stageNumber << "): " << timer.GetMean() << std::endl << std::endl;
+    this->Logger() << "  Elapsed time (stage " << currentStageNumber << "): " << timer.GetMean() << std::endl
+                   << std::endl;
     }
 
   if( this->m_ApplyLinearTransformsToFixedImageHeader &&
@@ -2827,8 +2836,8 @@ RegistrationHelper<VImageDimension>
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform, ImageBaseType * image,
-                                              bool applyInverse )
+::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform,
+                                              ImageBaseType * const image, const bool applyInverse )
 {
   if( !compositeTransform->IsLinear() )
     {
