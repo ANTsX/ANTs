@@ -790,7 +790,7 @@ private:
   RealType CalculateLocalPosteriorProbability( RealType, RealType, RealType,
                                                RealType, RealType, IndexType, unsigned int );
 
-  void EvaluateMRFNeighborhoodWeights(ConstNeighborhoodIterator<ClassifiedImageType>, Array<RealType> & );
+  void EvaluateMRFNeighborhoodWeights( ConstNeighborhoodIterator<ClassifiedImageType>, Array<RealType> & );
 
   RealType PerformLocalLabelingUpdate(NeighborhoodIterator<ClassifiedImageType> );
 
@@ -829,6 +829,8 @@ private:
   ArrayType        m_MRFRadius;
   RealType         m_MRFSmoothingFactor;
   RealImagePointer m_MRFCoefficientImage;
+
+  typename ClassifiedImageType::SpacingType      m_ImageSpacing;
 
   unsigned int           m_MaximumICMCode;
   ClassifiedImagePointer m_ICMCodeImage;

@@ -462,6 +462,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   //
   IterationReporter reporter( this, 0, 1 );
 
+  //
+  // Get spacing for mrf neighborhood evaluation loop
+  //
+  this->m_ImageSpacing = this->GetOutput()->GetSpacing();
+
   bool isConverged = false;
   this->m_CurrentPosteriorProbability = 0.0;
   RealType probabilityOld = NumericTraits<RealType>::NonpositiveMin();
@@ -848,7 +853,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   else
     {
     typename MaskImageType::Pointer maskImage =
-      AllocImage<MaskImageType>(this->GetOutput(), this->m_MaskLabel);
+      AllocImage<MaskImageType>( this->GetOutput(), this->m_MaskLabel );
     stats->SetLabelInput( maskImage );
     }
   stats->UseHistogramsOn();
@@ -916,7 +921,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
   else
     {
     typename MaskImageType::Pointer maskImage =
-      AllocImage<MaskImageType>(this->GetOutput(), this->m_MaskLabel);
+      AllocImage<MaskImageType>( this->GetOutput(), this->m_MaskLabel );
     stats->SetLabelInput( maskImage );
     }
   stats->UseHistogramsOff();
@@ -1276,11 +1281,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     }
 
   RealImagePointer maxPosteriorProbabilityImage =
-    AllocImage<RealImageType>(this->GetOutput(), NumericTraits<RealType>::Zero );
+    AllocImage<RealImageType>( this->GetOutput(), NumericTraits<RealType>::Zero );
 
   typename ClassifiedImageType::Pointer maxLabels =
-    AllocImage<ClassifiedImageType>(this->GetOutput(),
-                                    NumericTraits<LabelType>::Zero );
+    AllocImage<ClassifiedImageType>( this->GetOutput(),
+                                     NumericTraits<LabelType>::Zero );
 
   unsigned int totalNumberOfClasses = this->m_NumberOfTissueClasses
     + this->m_NumberOfPartialVolumeClasses;
@@ -1863,8 +1868,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         RealType distance = 0.0;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
-          distance += vnl_math_sqr( offset[d]
-                                    * this->GetOutput()->GetSpacing()[d] );
+          distance += vnl_math_sqr( offset[d] * this->m_ImageSpacing[d] );
           }
         distance = vcl_sqrt( distance );
 
@@ -1951,7 +1955,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     // for normalization purposes.  This sum is then saved for subsequent calls.
     //
     RealImagePointer posteriorProbabilityImage =
-      AllocImage<RealImageType>(this->GetOutput(), 0);
+      AllocImage<RealImageType>( this->GetOutput(), 0 );
 
     //
     // Calculate the sum of the probability images.  Also, store the
@@ -1960,7 +1964,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     if( whichClass == 1 )
       {
       this->m_SumPosteriorProbabilityImage =
-        AllocImage<RealImageType>(this->GetOutput(), 0);
+        AllocImage<RealImageType>( this->GetOutput(), 0 );
 
       RealImagePointer sumPriorProbabilityImage = NULL;
 
@@ -1968,7 +1972,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           this->m_InitializationStrategy == PriorProbabilityImages )
         {
         sumPriorProbabilityImage =
-          AllocImage<RealImageType>(this->GetOutput(), 0);
+          AllocImage<RealImageType>( this->GetOutput(), 0 );
         for( unsigned int c = 0; c < totalNumberOfClasses; c++ )
           {
           RealImagePointer priorProbabilityImage =
