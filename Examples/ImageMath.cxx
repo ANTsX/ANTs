@@ -10402,10 +10402,12 @@ private:
     antscout
       << " TimeSeriesDisassemble : Outputs n 3D image volumes for each time-point in time-series 4D image."
       << std::endl;
+    antscout << "    Usage        : TimeSeriesDisassemble 4D_TimeSeries.nii.gz " << std::endl
+             << std::endl;
     antscout
       << " TimeSeriesAssemble : Outputs a 4D time-series image from a list of 3D volumes."
       << std::endl;
-    antscout << "    Usage        : TimeSeriesSubset 4D_TimeSeries.nii.gz n " << std::endl;
+    antscout << "    Usage        : TimeSeriesAssemble time_spacing time_origin *images.nii.gz " << std::endl;
     antscout
       <<
       " TimeSeriesToMatrix : Converts a 4D image + mask to matrix (stored as csv file) where rows are time and columns are space ."
