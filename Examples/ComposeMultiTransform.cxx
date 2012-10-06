@@ -180,17 +180,6 @@ void ComposeMultiTransform(char *output_image_filename,
 
   antscout << "output extension is: " << extension << std::endl;
 
-  if( extension != std::string(".mha") )
-    {
-    typedef itk::ImageFileWriter<DisplacementFieldType>
-      WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName(output_image_filename);
-    //        writer->SetUseAvantsNamingConvention(true);
-    writer->SetInput(field_output);
-    writer->Update();
-    }
-  else
     {
     typedef itk::ImageFileWriter<DisplacementFieldType> WriterType;
     typename WriterType::Pointer writer = WriterType::New();
@@ -204,40 +193,22 @@ template <int ImageDimension>
 void ComposeMultiAffine(char *output_affine_txt,
                         char *reference_affine_txt, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::Image<float,
-                     ImageDimension>                              ImageType;
-  typedef itk::Vector<float,
-                      ImageDimension>                             VectorType;
-  typedef itk::Image<VectorType,
-                     ImageDimension>                              DisplacementFieldType;
-  typedef itk::MatrixOffsetTransformBase<double, ImageDimension,
-                                         ImageDimension>          AffineTransformType;
-  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
-                                             AffineTransformType> WarperType;
-  // typedef itk::DisplacementFieldFromMultiTransformFilter<DisplacementFieldType,
-  // DisplacementFieldType, AffineTransformType> WarperType;
+  typedef itk::Image<float, ImageDimension>      ImageType;
+  typedef itk::Vector<float, ImageDimension>     VectorType;
+  typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
 
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> AffineTransformType;
+  // MatrixOffsetTransformBase is not usually registered, so register it here.
+  // MatrixOffsetTransformBase should NOT be a valid transform type for writting,
+  // but it is needed for historical reading purposes.
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
-
-  // typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
-  // typename ImageFileReaderType::Pointer reader_img = ImageFileReaderType::New();
-  // typename ImageType::Pointer img_ref = ImageType::New();
-
-  // typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
-
-  typename WarperType::Pointer warper = WarperType::New();
-  // warper->SetInput(img_mov);
-  // warper->SetEdgePaddingValue( 0);
-  VectorType pad;
-  pad.Fill(0);
-  // warper->SetEdgePaddingValue(pad);
 
   typedef itk::TransformFileReader TranReaderType;
 
-  typedef itk::ImageFileReader<DisplacementFieldType>
-    FieldReaderType;
-
-  int       cnt_affine = 0;
+  typedef itk::WarpImageMultiTransformFilter<ImageType, ImageType, DisplacementFieldType,
+                                             AffineTransformType> WarperType;
+  typename WarperType::Pointer warper = WarperType::New();
+  bool      has_affine_tranform = false;
   const int kOptQueueSize = opt_queue.size();
   for( int i = 0; i < kOptQueueSize; i++ )
     {
@@ -247,19 +218,17 @@ void ComposeMultiAffine(char *output_affine_txt,
       {
       case AFFINE_FILE:
         {
-        typename TranReaderType::Pointer tran_reader =
-          TranReaderType::New();
+        typename TranReaderType::Pointer tran_reader = TranReaderType::New();
         tran_reader->SetFileName(opt.filename);
         tran_reader->Update();
-        typename AffineTransformType::Pointer
-        aff = dynamic_cast<AffineTransformType *>( (tran_reader->GetTransformList() )->front().GetPointer() );
+        typename AffineTransformType::Pointer aff =
+          dynamic_cast<AffineTransformType *>( (tran_reader->GetTransformList() )->front().GetPointer() );
         if( opt_queue[i].do_affine_inv )
           {
           aff->GetInverse(aff);
           }
-        // antscout << aff << std::endl;
         warper->PushBackAffineTransform(aff);
-        cnt_affine++;
+        has_affine_tranform = true;
         }
         break;
       case DEFORMATION_FILE:
@@ -275,9 +244,6 @@ void ComposeMultiAffine(char *output_affine_txt,
       }
     }
 
-  typedef typename AffineTransformType::CenterType PointType;
-  PointType aff_center;
-
   typename AffineTransformType::Pointer aff_ref_tmp;
   if( reference_affine_txt )
     {
@@ -288,7 +254,7 @@ void ComposeMultiAffine(char *output_affine_txt,
     }
   else
     {
-    if( cnt_affine > 0 )
+    if( has_affine_tranform == true )
       {
       antscout << "the reference affine file for center is selected as the first affine!" << std::endl;
       aff_ref_tmp = ( (warper->GetTransformList() ).begin() )->second.aex.aff;
@@ -299,21 +265,20 @@ void ComposeMultiAffine(char *output_affine_txt,
       return;
       }
     }
-
-  aff_center = aff_ref_tmp->GetCenter();
-  antscout << "new center is : " << aff_center << std::endl;
-
-  // warper->PrintTransformList();
-
-  // typename AffineTransformType::Pointer aff_output = warper->ComposeAffineOnlySequence(aff_center);
-  typename AffineTransformType::Pointer aff_output = AffineTransformType::New();
-  warper->ComposeAffineOnlySequence(aff_center, aff_output);
-  typedef itk::TransformFileWriter TranWriterType;
-  typename TranWriterType::Pointer tran_writer = TranWriterType::New();
-  tran_writer->SetFileName(output_affine_txt);
-  tran_writer->SetInput(aff_output);
-  tran_writer->Update();
-
+    {
+    typedef typename AffineTransformType::CenterType PointType;
+    const PointType aff_center = aff_ref_tmp->GetCenter();
+    antscout << "new center is : " << aff_center << std::endl;
+      {
+      typename AffineTransformType::Pointer aff_output = AffineTransformType::New();
+      warper->ComposeAffineOnlySequence(aff_center, aff_output);
+      typedef itk::TransformFileWriter TranWriterType;
+      typename TranWriterType::Pointer tran_writer = TranWriterType::New();
+      tran_writer->SetFileName(output_affine_txt);
+      tran_writer->SetInput(aff_output);
+      tran_writer->Update();
+      }
+    }
   antscout << "wrote file to : " << output_affine_txt << std::endl;
 }
 

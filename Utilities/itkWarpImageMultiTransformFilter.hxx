@@ -458,15 +458,11 @@ void
 WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::ComposeAffineOnlySequence(const PointType & center_output, TransformTypePointer & affine_output)
 {
-//    ::ants::antscout << "test " ;
-//    TransformTypePointer affine_output = TransformType::New();
   affine_output->SetIdentity();
   affine_output->SetCenter(center_output);
-
-//    ::ants::antscout << affine_output;
-
-  typename TransformListType::iterator it = m_TransformList.begin();
-  for( ; it != m_TransformList.end(); it++ )
+  for(
+    typename TransformListType::iterator it = m_TransformList.begin();
+    it != m_TransformList.end(); it++ )
     {
     SingleTransformType ttype = it->first;
 
@@ -475,17 +471,13 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
       case EnumAffineType:
         {
         TransformTypePointer aff = it->second.aex.aff;
-
         affine_output->Compose(aff, 0);
-
-//            ::ants::antscout << affine_output;
-
         break;
         }
-
       case EnumDisplacementFieldType:
         {
         ::ants::antscout << " Ignore deformation type ... " << std::endl;
+        itkExceptionMacro(<< "Affine Only Sequence must only contain Affine Transforms, DisplacementField Found!");
         }
         break;
       default:
@@ -498,13 +490,14 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
 template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 bool
 WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
-::MultiInverseAffineOnlySinglePoint(const PointType & p1, PointType & p2)
+::MultiInverseAffineOnlySinglePoint(const PointType & p1, PointType & point2)
 {
   bool      isinside = true;
-  PointType point1 = p1, point2;
+  PointType point1 = p1;
 
-  typename TransformListType::iterator it = m_TransformList.begin();
-  for( ; it != m_TransformList.end(); it++ )
+  for(
+    typename TransformListType::iterator it = m_TransformList.begin();
+    it != m_TransformList.end(); it++ )
     {
     SingleTransformType ttype = it->first;
 
@@ -514,11 +507,8 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
         {
         TransformTypePointer aff = it->second.aex.aff;
         TransformTypePointer aff_inv = TransformTypePointer::ObjectType::New();
-
         // ::ants::antscout << "aff before:" << aff << std::endl;
-
         aff->GetInverse(aff_inv);
-        // aff->GetInverse(aff);
         // ::ants::antscout << "aff after:" << aff << std::endl;
         // ::ants::antscout << "aff_inv after:" << aff_inv << std::endl;
 
@@ -527,38 +517,34 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
         isinside = true;
         break;
         }
-
       case EnumDisplacementFieldType:
         {
+        itkExceptionMacro(<< "Affine Only Sequence must only contain Affine Transforms, DisplacementField Found!");
         }
         break;
       default:
         itkExceptionMacro(<< "Single Transform Not Supported!");
       }
-
     if( IsOutOfNumericBoundary(point2) )
       {
       isinside = false; break;
       }
-
     point1 = point2;
     }
-
-  p2 = point2;
-
   return isinside;
 }
 
 template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
 bool
 WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
-::MultiTransformPoint(const PointType & p1, PointType & p2, bool bFisrtDeformNoInterp, const IndexType & index)
+::MultiTransformPoint(const PointType & p1, PointType & point2, bool bFirstDeformNoInterp, const IndexType & index)
 {
   bool      isinside = false;
-  PointType point1 = p1, point2;
+  PointType point1 = p1;
 
-  typename TransformListType::iterator it = m_TransformList.begin();
-  for( ; it != m_TransformList.end(); it++ )
+  for(
+    typename TransformListType::iterator it = m_TransformList.begin();
+    it != m_TransformList.end(); it++ )
     {
     SingleTransformType ttype = it->first;
 
@@ -575,11 +561,11 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
       case EnumDisplacementFieldType:
         {
         DisplacementFieldPointer fieldPtr = it->second.dex.field;
-        if( bFisrtDeformNoInterp && it == m_TransformList.begin() )
+        if( bFirstDeformNoInterp && it == m_TransformList.begin() )
           {
           // use discrete coordinates
           DisplacementType displacement = fieldPtr->GetPixel(index);
-          for( int j = 0; j < ImageDimension; j++ )
+          for( unsigned int j = 0; j < ImageDimension; j++ )
             {
             point2[j] = point1[j] + displacement[j];
             }
@@ -589,7 +575,6 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
           {
           // use continous coordinates
           typename DefaultVectorInterpolatorType::ContinuousIndexType  contind;
-
           // use ITK implementation to use orientation header
           fieldPtr->TransformPhysicalPointToContinuousIndex(point1, contind);
 
@@ -605,7 +590,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
             {
             disp2.Fill(0);
             }
-          for( int jj = 0; jj < ImageDimension; jj++ )
+          for( unsigned int jj = 0; jj < ImageDimension; jj++ )
             {
             point2[jj] = disp2[jj] + point1[jj];
             }
@@ -620,12 +605,8 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
       {
       isinside = false; break;
       }
-
     point1 = point2;
     }
-
-  p2 = point2;
-
   return isinside;
 }
 
