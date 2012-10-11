@@ -2042,8 +2042,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType b = b_in - b_in.mean();
   b = b * A;
   VectorType r_k = At * ( A * x_k );
-  RealType   regbeta;
-  RealType   intercept = 0;
   r_k = b - r_k;
   VectorType   p_k = r_k;
   double       approxerr = 1.e9;
@@ -2073,7 +2071,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
       {
-      minerr = approxerr; bestsol = ( x_k1 ); this->m_Intercept = intercept;
+      minerr = approxerr; bestsol = ( x_k1 );
       }
     deltaminerr = ( lasterr - approxerr );
     if( debug )
@@ -2100,11 +2098,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   x_k = bestsol;
-  VectorType predb = A * x_k;
-  regbeta = this->SimpleRegression( b_in, predb );
-  this->m_Intercept = b_in.mean() - predb.mean() * regbeta;
-  VectorType soln = predb * regbeta;
-  x_k = x_k * regbeta;
+  this->m_Intercept = this->ComputeIntercept( A, x_k, b_in );
+  VectorType soln = A * x_k + this->m_Intercept;
   return ( soln - b_in).one_norm() / b_in.size();
 }
 
@@ -2493,11 +2488,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType nvec = At * proj;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      // nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+      nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+      /** alternative --- orthogonalize in n-space
       VectorType v = A * this->m_VariatesP.get_column( orth );
-      RealType   ip1 = inner_product( A * nvec,  v );
-      RealType   ip2 = inner_product( v, v );
-      VectorType ortho = nvec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;
+      RealType ip1 = inner_product( A * nvec,  v );
+      RealType ip2 = inner_product( v, v );
+      nvec = nvec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;
+      */
       }
     RealType gamma = 0.1;
     RealType smooth = 0.5;
@@ -3067,13 +3064,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 */
   /** now get the original y value and result to find prediction error in true units */
   y = this->m_OriginalMatrixR.get_column( 0 );
-  VectorType ypred = this->m_MatrixP * beta_lasso;
-  RealType   regbeta = this->SimpleRegression( y, ypred );
-  RealType   intercept = y.mean() - ypred.mean() * regbeta;
-  VectorType yresid = y - ( ypred * regbeta + intercept );
+  this->m_Intercept = this->ComputeIntercept(  this->m_MatrixP, beta_lasso, y );
+  VectorType ypred = this->m_MatrixP * beta_lasso + this->m_Intercept;
+  VectorType yresid = y - ( ypred  );
   this->m_CanonicalCorrelations( 0 ) = yresid.one_norm() * n;
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), 1 );
-  this->m_VariatesP.set_column( 0,  beta_lasso  * regbeta );
+  this->m_VariatesP.set_column( 0,  beta_lasso  );
   ::ants::antscout << "final error " << this->m_CanonicalCorrelations( 0 ) <<  std::endl;
   return this->m_CanonicalCorrelations( 0 );
 }
@@ -3201,7 +3197,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTRegression( typename antsSCCANObject<TInputImage,
                                           TRealType>::MatrixType& A,
                  typename antsSCCANObject<TInputImage, TRealType>::VectorType& x_k,
-                 typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType convcrit,
+                 typename antsSCCANObject<TInputImage, TRealType>::VectorType  b_in, TRealType itkNotUsed( convcrit ),
                  unsigned int maxits, TRealType mu,  bool isp, bool verbose )
 {
   if( b_in.size() != x_k.size() )
@@ -3239,8 +3235,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType   gamma = 0;
   bool       conjgrad = true;
   VectorType lastgrad = x_k;
-  while( ( ( deltaminerr > 0.1 ) && ( approxerr > convcrit ) && ( ct < maxits ) )
-         || ( ct < 4 ) )
+  //  while( ( ( deltaminerr > 0.1 ) && ( approxerr > convcrit ) && ( ct < maxits ) )
+  //         || ( ct < 4 ) )
+  while(  ( ct < maxits ) && alpha_k > 1.e-12 )
     {
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad )  && ( ct > 2 ) )
       {
@@ -3273,11 +3270,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       minerr = approxerr; bestsol = ( x_k1 );
       }
+    else
+      {
+      alpha_k *= 0.5;
+      }
     deltaminerr = ( lasterr - approxerr );
     if( verbose )
       {
       ::ants::antscout << " IHTRegression " << approxerr <<  " deltaminerr " << deltaminerr <<  " ct " << ct
-                       << " dataterm " << dataterm << std::endl;
+                       << " dataterm " << dataterm <<  " alpha_k " << alpha_k << std::endl;
       }
     lasterr = approxerr;
     x_k = x_k1;
@@ -3336,10 +3337,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->ReSoftThreshold( x_k, vnl_math_abs( this->m_FractionNonZeroP ), true );
     this->ClusterThresholdVariate( x_k, this->m_MaskImageP, this->m_MinClusterSizeP );
 
-    VectorType soln = A * x_k;
-    RealType   regbeta = this->SimpleRegression( this->m_OriginalB, soln );
-    this->m_Intercept = this->m_OriginalB.mean() - soln.mean() * regbeta;
-    resid = ( this->m_OriginalB - soln * regbeta - this->m_Intercept );
+    this->m_Intercept = this->ComputeIntercept(  A, x_k, this->m_OriginalB );
+    VectorType soln = A * x_k + this->m_Intercept;
+    resid = ( this->m_OriginalB - soln );
     approxerr = resid.one_norm();
     if( approxerr < minerr )
       {
@@ -3388,10 +3388,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     folds( f ) = f % foldnum;
     }
   RealType     avgprederr = 0.0;
+  RealType     avgfiterr = 0.0;
   unsigned int extra_cols = 0;
   // VariatesQ holds the average over all folds
   this->m_VariatesQ.set_size( this->m_MatrixP.cols(), n_vecs + extra_cols );
   this->m_VariatesQ.fill( 0 );
+  RealType     totalloerror = 0;
+  RealType     loerror = 0;
   unsigned int predct = 0;
   for( unsigned int fold = 0; fold < foldnum;  fold++ )
     {
@@ -3450,6 +3453,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       p_leave_out = p_leave_out - projmat * p_leave_out;
       }
 
+    VectorType soln;
     MatrixType A;
     this->m_VariatesP.set_size( matrixP.cols(), n_vecs + extra_cols );
     this->m_VariatesP.fill( 0 );
@@ -3493,14 +3497,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           {
           bp = bpneg;
           }
-        // minerr1 = this->ConjGrad(  matrixP ,  randv, b , 0, 10000 );
         // minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 100 ); /**/
         // minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-5, 500, true , true  ); /** miccai good? */
-        // minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e4 );/** biased but ok */
         // minerr1 = this->MatchingPursuit(  matrixP ,  randv,  0, 90  );/** bad */
         // minerr1 = this->SparseConjGradRidgeRegression(  matrixP,  randv, bp, 0, 150, true );/** good */
         //	randv.fill( 0 );
-        minerr1 = this->IHTRegression(  matrixP,  randv, bp, 0, 500, 0 ); /** good */
+        // minerr1 = this->RidgeRegression(  matrixP ,  randv, bp, 1.e4 , 100 , false );/** biased but ok */
+        // minerr1 = this->ConjGrad(  matrixP ,  randv, matrixP * bp , 0, 10000 );      this->SparsifyP( randv );
+        minerr1 = this->IHTRegression(  matrixP,  randv, bp, 0, 500, 0, true, true ); /** good */
         if( cl < this->m_VariatesP.cols() )
           {
           this->m_VariatesP.set_column( cl, randv );
@@ -3519,10 +3523,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       VectorType lmsolv( A.cols(), 1 );
       ( void ) this->ConjGrad(  A,  lmsolv, original_b, 0, 10000 );
-      VectorType soln = A * lmsolv;
-      RealType   regbeta = this->SimpleRegression( original_b, soln );
-      this->m_Intercept = original_b.mean() - soln.mean() * regbeta;
-      RealType fiterr = ( original_b - soln * regbeta - this->m_Intercept ).one_norm() / original_b.size();
+      this->m_Intercept = this->ComputeIntercept( A, lmsolv,  original_b );
+      soln = A * lmsolv + this->m_Intercept;
+      RealType fiterr = ( original_b - soln ).one_norm() / original_b.size();
+      avgfiterr += ( fiterr * ( 1.0 / ( RealType ) foldnum ) );
       /** Testing */
       p_leave_out = this->NormalizeMatrix( p_leave_out );
       A = p_leave_out * this->m_VariatesP.extract( matrixP.cols(), colind, 0, 0);
@@ -3530,8 +3534,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         this->AddColumnsToMatrix( A, r_leave_out, 1, this->m_MatrixR.cols() - 1 );
         }
-      soln = ( A * lmsolv ) * regbeta + this->m_Intercept;
-      RealType     loerror = ( soln - r_leave_out.get_column( 0 ) ).one_norm() / soln.size();
+      soln = ( A * lmsolv ) + this->m_Intercept;
+      loerror = ( soln - r_leave_out.get_column( 0 ) ).one_norm() / soln.size();
       unsigned int fleave_out = 0;
       if( foldnum == 1 )
         {
@@ -3556,7 +3560,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       if( predct > 0 )
         {
         ::ants::antscout << "Fold: " << fold << " minerr," << loerror << ",col," << colind
-                         << " totalpredictionerr " << avgprederr / predct <<  " ,fiterr, " << fiterr << std::endl;
+                         << " totalpredictionerr " << avgprederr / predct <<  " ,fiterr, " << fiterr << " Gap: "
+                         <<  ( avgprederr / predct ) - fiterr  << std::endl;
         }
       else
         {
@@ -3565,9 +3570,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         }
       }
 
-    this->m_VariatesQ = this->m_VariatesQ + this->m_VariatesP * ( 1.0 / ( RealType ) foldnum );
+    RealType wt =
+      ( ( soln
+          - r_leave_out.get_column( 0 ) ).one_norm()
+        / soln.size() ) / (  ( r_leave_out.get_column( 0 ) ).one_norm() / soln.size() );
+    this->m_VariatesQ = this->m_VariatesQ + this->m_VariatesP * ( 1 / wt );
+    totalloerror += ( 1 / wt );
     }
-
+  this->m_VariatesQ = this->m_VariatesQ / totalloerror;
   RealType regbeta =
     this->SimpleRegression(  this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 )  );
   RealType intercept = this->m_OriginalMatrixR.get_column( 0 ).mean() - this->m_CanonicalCorrelations.mean()
@@ -3577,17 +3587,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     (  predicted
        - this->m_OriginalMatrixR.get_column( 0 ) ).one_norm() / this->m_OriginalMatrixR.rows();
   ::ants::antscout << " overall-mean-abs-prediction-error: " << predictionerror << " correlation "
-                   <<  this->PearsonCorr(  predicted, this->m_OriginalMatrixR.get_column( 0 ) )  << std::endl;
+                   <<  this->PearsonCorr(  predicted,
+                          this->m_OriginalMatrixR.get_column( 0 ) )  << " Gap " <<  avgprederr / predct - avgfiterr
+                   << std::endl;
   this->m_VariatesP = this->m_VariatesQ;
-
-  /*
-  for ( unsigned int i = 0; i < this->m_VariatesP.cols(); i++ )
+  for( unsigned int i = 0; i < this->m_VariatesP.cols(); i++ )
     {
     VectorType col = this->m_VariatesP.get_column( i );
-    this->SparsifyP( col , false );
+    this->SparsifyP( col  ); // make averaged predictors sparse!
     this->m_VariatesP.set_column( i, col );
     }
-  */
 
   return avgprederr / predct;
 }
