@@ -130,7 +130,8 @@ public:
     {
     none = 0,
     regular = 1,
-    random = 2
+    random = 2,
+    invalid = 17
     };
   class Metric
   {

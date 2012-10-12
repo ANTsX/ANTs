@@ -716,14 +716,14 @@ DoRegistration(typename ParserType::Pointer & parser)
       samplingPercentage = parser->Convert<float>( metricOption->GetParameter( currentStage, 5 ) );
       }
 
-    std::string Strategy = "";
+    std::string Strategy = "none";
     if( metricOption->GetNumberOfParameters( currentStage ) > 4 )
       {
       Strategy = metricOption->GetParameter( currentStage, 4 );
       }
     ConvertToLowerCase( Strategy );
 
-    typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
+    typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::invalid;
     if( Strategy == "random" )
       {
       samplingStrategy = RegistrationHelperType::random;
@@ -731,6 +731,16 @@ DoRegistration(typename ParserType::Pointer & parser)
     else if( Strategy == "regular" )
       {
       samplingStrategy = RegistrationHelperType::regular;
+      }
+    else if( ( Strategy == "none" ) || ( Strategy == "" ) )
+      {
+      samplingStrategy = RegistrationHelperType::none;
+      }
+    else
+      {
+      samplingStrategy = RegistrationHelperType::invalid;
+      std::cout << "ERROR: invalid sampling strategy specified: " << Strategy << std::endl;
+      return EXIT_FAILURE;
       }
 
     switch( curMetric )

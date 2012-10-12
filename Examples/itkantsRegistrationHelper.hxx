@@ -997,9 +997,14 @@ RegistrationHelper<VImageDimension>
       this->Logger() << "  regular sampling (percentage = " << samplingPercentage << ")" << std::endl;
       metricSamplingStrategy = AffineRegistrationType::REGULAR;
       }
-    else
+    else if( samplingStrategy == none )
       {
       ::ants::antscout << "  Using default NONE metricSamplingStrategy " << std::endl;
+      }
+    else
+      {
+      std::cout << "ERROR: samplingStrategy is incorrectly specified" << std::endl;
+      exit(-1);
       }
 
     switch( this->m_Metrics[currentStageNumber].m_MetricType )
@@ -2936,7 +2941,10 @@ RegistrationHelper<VImageDimension>
                    << "     Moving Image = " << curMetric.m_MovingImage << std::endl
                    << "     Weighting = " << curMetric.m_Weighting << std::endl
                    << "     Sampling Strategy = "
-                   << (curMetric.m_SamplingStrategy == random ? "random" : "regular")
+                   << (curMetric.m_SamplingStrategy ==
+        random ? "random" : (curMetric.m_SamplingStrategy == regular ) ? "regular" : (curMetric.m_SamplingStrategy ==
+                                                                                      none ) ? "none" :
+        "WARNING: UNKNOWN")
                    << std::endl
                    << "     NumberOfBins = " << curMetric.m_NumberOfBins << std::endl
                    << "     Radius = " << curMetric.m_Radius << std::endl
