@@ -24,7 +24,7 @@
 #include "itkGaussianInterpolateImageFunction.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
-#include "itkLabelImageGaussianInterpolateImageFunction.h"
+// HACK Not yet supported #include "itkLabelImageGaussianInterpolateImageFunction.h"
 
 namespace ants
 {
@@ -1135,182 +1135,40 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
-  /**
-   * Interpolation option
-   */
-  typedef itk::LinearInterpolateImageFunction<ImageType, double> LinearInterpolatorType;
-  typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
-
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> NearestNeighborInterpolatorType;
-  typename NearestNeighborInterpolatorType::Pointer nearestNeighborInterpolator =
-    NearestNeighborInterpolatorType::New();
-
-  typedef itk::BSplineInterpolateImageFunction<ImageType, double> BSplineInterpolatorType;
-  typename BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
-
-  typedef itk::GaussianInterpolateImageFunction<ImageType, double> GaussianInterpolatorType;
-  typename GaussianInterpolatorType::Pointer gaussianInterpolator = GaussianInterpolatorType::New();
-
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3> HammingInterpolatorType;
-  typename HammingInterpolatorType::Pointer hammingInterpolator = HammingInterpolatorType::New();
-
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::CosineWindowFunction<3> > CosineInterpolatorType;
-  typename CosineInterpolatorType::Pointer cosineInterpolator = CosineInterpolatorType::New();
-
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::WelchWindowFunction<3> > WelchInterpolatorType;
-  typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
-
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::LanczosWindowFunction<3> > LanczosInterpolatorType;
-  typename LanczosInterpolatorType::Pointer lanczosInterpolator = LanczosInterpolatorType::New();
-
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::BlackmanWindowFunction<3> > BlackmanInterpolatorType;
-  typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
-
-  const unsigned int NVectorComponents = 1;
-  typedef VectorPixelCompare<double, NVectorComponents> CompareType;
-  typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, double,
-                                                                   CompareType> MultiLabelInterpolatorType;
-  typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
-
+  typedef double RealType;
   std::string whichInterpolator( "linear" );
-
   typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
   if( interpolationOption && interpolationOption->GetNumberOfValues() > 0 )
     {
     whichInterpolator = interpolationOption->GetValue();
     ConvertToLowerCase( whichInterpolator );
-
-    if( !std::strcmp( whichInterpolator.c_str(), "linear" ) )
-      {
-      regHelper->SetInterpolator( linearInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "nearestneighbor" ) )
-      {
-      regHelper->SetInterpolator( nearestNeighborInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "bspline" ) )
-      {
-      if( interpolationOption->GetNumberOfParameters() > 0 )
-        {
-        unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetParameter( 0, 0 ) );
-        bSplineInterpolator->SetSplineOrder( bsplineOrder );
-        }
-      regHelper->SetInterpolator( bSplineInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "gaussian" ) )
-      {
-      std::string fixedImageFileName = metricOption->GetParameter( numberOfStages - 1, 0 );
-
-      typedef itk::ImageFileReader<ImageType> ImageReaderType;
-      typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
-
-      fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-      fixedImageReader->Update();
-      typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-
-      double sigma[VImageDimension];
-      for( unsigned int d = 0; d < VImageDimension; d++ )
-        {
-        sigma[d] = fixedImage->GetSpacing()[d];
-        }
-      double alpha = 1.0;
-
-      if( interpolationOption->GetNumberOfParameters() > 0 )
-        {
-        std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
-        if( s.size() == VImageDimension )
-          {
-          for( unsigned int d = 0; d < VImageDimension; d++ )
-            {
-            sigma[d] = s[d];
-            }
-          }
-        else
-          {
-          for( unsigned int d = 0; d < VImageDimension; d++ )
-            {
-            sigma[d] = s[0];
-            }
-          }
-        }
-      if( interpolationOption->GetNumberOfParameters() > 1 )
-        {
-        alpha = parser->Convert<double>( interpolationOption->GetParameter( 1 ) );
-        }
-      gaussianInterpolator->SetParameters( sigma, alpha );
-      regHelper->SetInterpolator( gaussianInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "cosinewindowedsinc" ) )
-      {
-      regHelper->SetInterpolator( cosineInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "hammingwindowedsinc" ) )
-      {
-      regHelper->SetInterpolator( hammingInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "lanczoswindowedsinc" ) )
-      {
-      regHelper->SetInterpolator( lanczosInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "blackmanwindowedsinc" ) )
-      {
-      regHelper->SetInterpolator( blackmanInterpolator );
-      }
-    else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
-      {
-      std::string fixedImageFileName = metricOption->GetParameter( numberOfStages - 1, 0 );
-
-      typedef itk::ImageFileReader<ImageType> ImageReaderType;
-      typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
-
-      fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-      fixedImageReader->Update();
-      typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
-
-      double sigma[VImageDimension];
-      for( unsigned int d = 0; d < VImageDimension; d++ )
-        {
-        sigma[d] = fixedImage->GetSpacing()[d];
-        }
-      double alpha = 4.0;
-
-      if( interpolationOption->GetNumberOfParameters() > 0 )
-        {
-        std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
-        if( s.size() == VImageDimension )
-          {
-          for( unsigned int d = 0; d < VImageDimension; d++ )
-            {
-            sigma[d] = s[d];
-            }
-          }
-        else
-          {
-          for( unsigned int d = 0; d < VImageDimension; d++ )
-            {
-            sigma[d] = s[0];
-            }
-          }
-        }
-
-      multiLabelInterpolator->SetParameters( sigma, alpha );
-      regHelper->SetInterpolator( multiLabelInterpolator );
-      }
-    else
-      {
-      antscout << "Error:  Unrecognized interpolation option." << std::endl;
-      return EXIT_FAILURE;
-      }
     }
 
+  typename ImageType::SpacingType cache_spacing_for_smoothing_sigmas;
+  if( !std::strcmp( whichInterpolator.c_str(), "gaussian" )
+      ||   !std::strcmp( whichInterpolator.c_str(), "multilabel" )
+      )
+    {
+#if 1
+    // HACK:: This can just be cached when reading the fixedImage from above!!
+    //
+    std::string fixedImageFileName = metricOption->GetParameter( numberOfStages - 1, 0 );
+
+    typedef itk::ImageFileReader<ImageType> ImageReaderType;
+    typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+
+    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
+    fixedImageReader->Update();
+    typename ImageType::Pointer fixedImage = fixedImageReader->GetOutput();
+#endif
+    cache_spacing_for_smoothing_sigmas = fixedImage->GetSpacing();
+    }
+
+#include "make_interpolator_snip.tmpl"
+  regHelper->SetInterpolator(interpolator);
+
   typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
-
   typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
-
   if( !outputWarpedImageName.empty() )
     {
     typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
