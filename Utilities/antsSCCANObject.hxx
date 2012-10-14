@@ -3237,7 +3237,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType lastgrad = x_k;
   //  while( ( ( deltaminerr > 0.1 ) && ( approxerr > convcrit ) && ( ct < maxits ) )
   //         || ( ct < 4 ) )
-  while(  ( ct < maxits ) && alpha_k > 1.e-12 )
+  while(  ( ct < maxits ) && alpha_k > 1.e-14 )
     {
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad )  && ( ct > 2 ) )
       {
@@ -4104,10 +4104,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType qtemp = this->m_VariatesQ.get_column(k);
       VectorType pveck = this->m_MatrixQ * qtemp;
       VectorType qveck = this->m_MatrixP * ptemp;
+      /** the gradient of     ( x X ,  y Y ) * ( x X , x X )^{-1}  * ( y Y  , y Y )^{-1}
+       *  where we constrain ( x X , x X ) = ( y Y , y Y ) = 1
+       */
+      RealType ccafactor = inner_product( pveck, qveck );
       pveck = pveck * this->m_MatrixP;
-      pveck = pveck - this->m_MatrixP.transpose() * ( this->m_MatrixP * ptemp ) * 0.5;
+      pveck = pveck - this->m_MatrixP.transpose() * ( this->m_MatrixP * ptemp ) *  ccafactor;
       qveck = qveck * this->m_MatrixQ;
-      qveck = qveck - this->m_MatrixQ.transpose() * ( this->m_MatrixQ * qtemp ) * 0.5;
+      qveck = qveck - this->m_MatrixQ.transpose() * ( this->m_MatrixQ * qtemp ) *  ccafactor;
       for( unsigned int j = 0; j < k; j++ )
         {
         VectorType qj = this->m_VariatesP.get_column( j );
