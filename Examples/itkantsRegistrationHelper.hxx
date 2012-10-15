@@ -1018,7 +1018,7 @@ RegistrationHelper<VImageDimension>
     this->Logger() << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
 
     // Get smoothing sigmas
-    const std::vector<float> sigmas(this->m_SmoothingSigmas[currentStageNumber]);
+    const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
     typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
     smoothingSigmasPerLevel.SetSize( sigmas.size() );
 
@@ -2778,7 +2778,7 @@ RegistrationHelper<VImageDimension>
         try
           {
           this->Logger() << std::endl
-                         << "*** Running bspline displacement field registration (updateMeshSizeAtBaseLevel = "
+                         << "*** Running bspline exponential field registration (updateMeshSizeAtBaseLevel = "
                          << updateMeshSize << ", velocityMeshSizeAtBaseLevel = " << velocityMeshSize << ") ***"
                          << std::endl
                          << std::endl;

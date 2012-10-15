@@ -419,22 +419,22 @@ public:
   /**
    * Add the collected convergence thresholds
    */
-  void SetConvergenceThresholds(const std::vector<double> & thresholds);
+  void SetConvergenceThresholds( const std::vector<double> & thresholds );
 
   /**
    * Add the collected convergence window sizes
    */
-  void SetConvergenceWindowSizes(const std::vector<unsigned int> & windowSizes);
+  void SetConvergenceWindowSizes( const std::vector<unsigned int> & windowSizes );
 
   /**
    * Add the collected smoothing sigmas list
    */
-  void SetSmoothingSigmas(const std::vector<std::vector<float> > & SmoothingSigmas);
+  void SetSmoothingSigmas( const std::vector<std::vector<float> > & SmoothingSigmas );
 
   /**
    * Add the collected shrink factors list
    */
-  void SetShrinkFactors(const std::vector<std::vector<unsigned int> > & ShrinkFactors);
+  void SetShrinkFactors( const std::vector<std::vector<unsigned int> > & ShrinkFactors );
 
   /**
    * turn on histogram matching of the input images

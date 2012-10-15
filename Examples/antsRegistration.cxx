@@ -246,7 +246,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Specify the amount of smoothing at each level." );
+    std::string description = std::string(
+        "Specify the sigma of gaussian smoothing at each level (given in terms of voxels)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "smoothing-sigmas" );
@@ -708,7 +709,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     // Get smoothing sigmas
     std::vector<float> sigmas = parser->ConvertVector<float>( smoothingSigmasOption->GetValue( currentStage ) );
-    smoothingSigmasList.push_back(sigmas);
+    smoothingSigmasList.push_back( sigmas );
 
     float samplingPercentage = 1.0;
     if( metricOption->GetNumberOfParameters( currentStage ) > 5 )
