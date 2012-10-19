@@ -1268,7 +1268,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_VariatesP.set_column(kk, initv);
       }
     }
-  unsigned int maxloop = this->m_MaximumNumberOfIterations;
+  const unsigned int maxloop = this->m_MaximumNumberOfIterations;
 // Arnoldi Iteration SVD/SPCA
   unsigned int loop = 0;
   bool         debug = false;
@@ -1637,7 +1637,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_VariatesP.set_column( kk, initv );
       }
     }
-  unsigned int maxloop = this->m_MaximumNumberOfIterations;
+  const unsigned int maxloop = this->m_MaximumNumberOfIterations;
 // Arnoldi Iteration SVD/SPCA
   unsigned int loop = 0;
   bool         debug = false;
@@ -1886,7 +1886,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     this->m_VariatesP.set_column(kk, this->InitializeV(this->m_MatrixP) );
     }
-  unsigned int maxloop = this->m_MaximumNumberOfIterations;
+  const unsigned int maxloop = this->m_MaximumNumberOfIterations;
 // Arnoldi Iteration SVD/SPCA
   unsigned int loop = 0;
   bool         debug = false;
@@ -3799,7 +3799,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_SparseVariatesP.set_column(kk, initv);
       }
     }
-  unsigned int maxloop = this->m_MaximumNumberOfIterations;
+  const unsigned int maxloop = this->m_MaximumNumberOfIterations;
 // Arnoldi Iteration SVD/SPCA
   unsigned int loop = 0;
   bool         debug = false;
@@ -4090,11 +4090,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
   this->InitializeSCCA( n_vecs, bestseed );
-  unsigned int maxloop = this->m_MaximumNumberOfIterations;
-  unsigned int loop = 0;
-  bool         energyincreases = true;
-  RealType     energy = 0, lastenergy = 0;
-  while( ( ( loop < maxloop )  )  && ( energyincreases )  || loop < 1 )
+  const unsigned int maxloop = this->m_MaximumNumberOfIterations;
+  unsigned int       loop = 0;
+  bool               energyincreases = true;
+  RealType           energy = 0;
+  RealType           lastenergy = 0;
+  while( ( ( loop < maxloop ) && ( energyincreases )  ) || ( loop < 1 ) )
     {
     // Arnoldi Iteration SCCA
     bool changedgrad = false;
@@ -4343,10 +4344,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
   this->InitializeSCCA( n_vecs, bestseed );
-  unsigned int maxloop = this->m_MaximumNumberOfIterations;
-  unsigned int loop = 0;
-  bool         energyincreases = true;
-  RealType     energy = 0, lastenergy = 0;
+  const unsigned int maxloop = this->m_MaximumNumberOfIterations;
+  unsigned int       loop = 0;
+  bool               energyincreases = true;
+  RealType           energy = 0, lastenergy = 0;
   while( ( ( loop < maxloop ) && ( energyincreases ) ) || loop < 1 ) //
     {
     // Arnoldi Iteration SCCA
