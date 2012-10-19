@@ -1,6 +1,8 @@
 #ifndef __itkantsRegistrationHelper_hxx
 #define __itkantsRegistrationHelper_hxx
 
+#include <iomanip>
+
 namespace ants
 {
 /** \class antsRegistrationCommandIterationUpdate
@@ -17,8 +19,6 @@ public:
 protected:
   antsRegistrationCommandIterationUpdate()
   {
-    std::cout << "ECHO HACK: INIT NEW CLASS" << std::endl;
-
     m_clock.Start();
     m_clock.Stop();
     const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
@@ -80,11 +80,11 @@ public:
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
       this->Logger() << "DIAGNOSTIC, "
-                     << lCurrentIteration << ", "
-                     << filter->GetCurrentMetricValue() << ", "
-                     << filter->GetCurrentConvergenceValue() << ", "
-                     << now << ", "
-                     << (now - this->m_lastTotalTime) << ", "
+                     << std::setw(5) << lCurrentIteration << ", "
+                     << std::scientific << std::setprecision(12) << filter->GetCurrentMetricValue() << ", "
+                     << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "
+                     << std::scientific << std::setprecision(4) << now << ", "
+                     << std::scientific << std::setprecision(4) << (now - this->m_lastTotalTime) << ", "
                      << std::endl;
       this->m_lastTotalTime = now;
       m_clock.Start();
@@ -157,11 +157,11 @@ public:
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
       this->Logger() << "DIAGNOSTIC, "
-                     << lCurrentIteration << ", "
-                     << this->m_Optimizer->GetValue() << ", "
-                     << this->m_Optimizer->GetConvergenceValue() << ", "
-                     << now << ", "
-                     << (now - this->m_lastTotalTime)  << ", "
+                     << std::setw(5) << lCurrentIteration << ", "
+                     << std::scientific << std::setprecision(12) << this->m_Optimizer->GetValue() << ", "
+                     << std::scientific << std::setprecision(12) << this->m_Optimizer->GetConvergenceValue() << ", "
+                     << std::scientific << std::setprecision(4) << now << ", "
+                     << std::scientific << std::setprecision(4) << (now - this->m_lastTotalTime)  << ", "
                      << std::endl;
       this->m_lastTotalTime = now;
       m_clock.Start();
