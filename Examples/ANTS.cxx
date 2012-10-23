@@ -156,15 +156,16 @@ private:
 
   antscout->set_stream( out_stream );
 
-  if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
-    {
-    ants::PrintCommandLineHelp(argv[0]);
-    if( argc < 2 )
-      {
-      return EXIT_FAILURE;
-      }
-    return EXIT_SUCCESS;
-    }
+//   if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") )
+// )
+//     {
+//     ants::PrintCommandLineHelp(argv[0]);
+//     if( argc < 2 )
+//       {
+//       return EXIT_FAILURE;
+//       }
+//     return EXIT_SUCCESS;
+//     }
 
   int dim = 0;
   if( argc > 1 )
@@ -172,17 +173,18 @@ private:
     dim = atoi( argv[1] );
     }
 
-  if( dim <= 1 || dim > 3 )
-    {
-    antscout << " You passed ImageDimension: " << dim
-             << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
-    ants::PrintCommandLineHelp(argv[0]);
-    return EXIT_FAILURE;
-    }
+//   if( dim <= 1 || dim > 3 )
+//     {
+//     antscout << " You passed ImageDimension: " << dim
+//              << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
+//     ants::PrintCommandLineHelp(argv[0]);
+//     return EXIT_FAILURE;
+//     }
+
   /**
    * Try the simple case of the call "ANTS fixedImage movingImage"
    */
-  if( argc == 3 && ( atoi( argv[1] ) != 2 || atoi( argv[1] ) != 3 ) )
+  if( argc == 3 && ( atoi( argv[1] ) != '-' || atoi( argv[1] ) != 2 || atoi( argv[1] ) != 3 ) )
     {
     itk::ImageIOBase::Pointer fixedImageIO
       = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );

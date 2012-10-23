@@ -230,7 +230,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Convergence is determined from the number of iterations per level" )
+      std::string( "Convergence is determined from the number of iterations per level " )
       + std::string( "and is determined by fitting a line to the normalized energy " )
       + std::string( "profile of the last N iterations (where N is specified by " )
       + std::string( "the window size) and determining the slope which is then " )
@@ -246,8 +246,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string(
-        "Specify the sigma of gaussian smoothing at each level (given in terms of voxels)." );
+    std::string description = std::string( "Specify the sigma of gaussian smoothing at each level.  " )
+      + std::string( "Units are given in terms of voxels (\'vox\') or physical spacing (\'mm\'). " )
+      + std::string( "Example usage is \'4x2x1mm\' and \'4x2x1vox\' where no units implies physical spacing." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "smoothing-sigmas" );
@@ -567,6 +568,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   std::vector<unsigned int>               convergenceWindowSizeList;
   std::vector<std::vector<unsigned int> > shrinkFactorsList;
   std::vector<std::vector<float> >        smoothingSigmasList;
+  std::vector<bool>                       smoothingSigmasAreInPhysicalUnitsList;
   std::deque<std::string>                 TransformTypeNames;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
@@ -708,7 +710,29 @@ DoRegistration(typename ParserType::Pointer & parser)
     shrinkFactorsList.push_back(factors);
 
     // Get smoothing sigmas
-    std::vector<float> sigmas = parser->ConvertVector<float>( smoothingSigmasOption->GetValue( currentStage ) );
+    std::string smoothingSigmasString = smoothingSigmasOption->GetValue( currentStage );
+    size_t      mmPosition = smoothingSigmasString.find( "mm" );
+    size_t      voxPosition = smoothingSigmasString.find( "vox" );
+    if( mmPosition != std::string::npos )
+      {
+      smoothingSigmasString.replace( mmPosition, 2, "" );
+      smoothingSigmasAreInPhysicalUnitsList.push_back( true );
+      }
+    else if( voxPosition != std::string::npos )
+      {
+      smoothingSigmasString.replace( voxPosition, 3, "" );
+      smoothingSigmasAreInPhysicalUnitsList.push_back( false );
+      }
+    else
+      {
+      smoothingSigmasAreInPhysicalUnitsList.push_back( true );
+      }
+
+    std::vector<float> sigmas = parser->ConvertVector<float>( smoothingSigmasString );
+    if( sigmas.size() == 1 )
+      {
+      sigmas.resize( numberOfLevels, sigmas[0] );
+      }
     smoothingSigmasList.push_back( sigmas );
 
     float samplingPercentage = 1.0;
@@ -1022,6 +1046,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   regHelper->SetConvergenceWindowSizes( convergenceWindowSizeList );
   regHelper->SetConvergenceThresholds( convergenceThresholdList );
   regHelper->SetSmoothingSigmas( smoothingSigmasList );
+  regHelper->SetSmoothingSigmasAreInPhysicalUnits( smoothingSigmasAreInPhysicalUnitsList );
   regHelper->SetShrinkFactors( shrinkFactorsList );
 
   if( regHelper->DoRegistration() == EXIT_FAILURE )

@@ -93,6 +93,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     {
     this->m_Parser->PrintMenu( ::ants::antscout, 7, false );
     std::exception();
+    exit( EXIT_SUCCESS );
     }
 
   std::string  printhelp_short = this->m_Parser->GetOption( 'h' )->GetValue();
@@ -102,6 +103,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     {
     this->m_Parser->PrintMenu( ::ants::antscout, 7, true );
     std::exception();
+    exit( EXIT_SUCCESS );
     }
 }
 

@@ -432,6 +432,11 @@ public:
   void SetSmoothingSigmas( const std::vector<std::vector<float> > & SmoothingSigmas );
 
   /**
+   * Add the collected bool smoothing sigmas in voxel units list
+   */
+  void SetSmoothingSigmasAreInPhysicalUnits( const std::vector<bool> & SmoothingSigmasAreInPhysicalUnits );
+
+  /**
    * Add the collected shrink factors list
    */
   void SetShrinkFactors( const std::vector<std::vector<unsigned int> > & ShrinkFactors );
@@ -540,6 +545,7 @@ private:
   std::vector<double>                     m_ConvergenceThresholds;
   std::vector<unsigned int>               m_ConvergenceWindowSizes;
   std::vector<std::vector<float> >        m_SmoothingSigmas;
+  std::vector<bool>                       m_SmoothingSigmasAreInPhysicalUnits;
   std::vector<std::vector<unsigned int> > m_ShrinkFactors;
   bool                                    m_UseHistogramMatching;
   bool                                    m_WinsorizeImageIntensities;
