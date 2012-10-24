@@ -23,7 +23,7 @@
 #include "itkInterpolateImageFunction.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
-// HACK NOT YET SUPPORTED #include "itkLabelImageGaussianInterpolateImageFunction.h"
+#include "itkLabelImageGaussianInterpolateImageFunction.h"
 
 namespace ants
 {
@@ -108,10 +108,11 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 {
   typedef double                           RealType;
   typedef double                           PixelType;
-  typedef unsigned int                     LabelPixelType;
   typedef itk::Vector<RealType, Dimension> VectorType;
 
-  typedef itk::Image<PixelType, Dimension>  LabelImageType;
+  // typedef unsigned int                     LabelPixelType;
+  // typedef itk::Image<PixelType, Dimension> LabelImageType;
+
   typedef itk::Image<PixelType, Dimension>  ImageType;
   typedef itk::Image<VectorType, Dimension> DisplacementFieldType;
   typedef itk::Image<char, Dimension>       ReferenceImageType;

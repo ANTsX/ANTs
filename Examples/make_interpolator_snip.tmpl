@@ -110,10 +110,9 @@ typename InterpolatorType::Pointer interpolator = NULL;
     }
   else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
     {
-#if 0
     const unsigned int NVectorComponents = 1;
     typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
-    typedef typename itk::LabelImageGaussianInterpolateImageFunction<LabelImageType, RealType,
+    typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType,
 	    CompareType> MultiLabelInterpolatorType;
     typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
     double sigma[VImageDimension];
@@ -143,7 +142,6 @@ typename InterpolatorType::Pointer interpolator = NULL;
       }
     multiLabelInterpolator->SetParameters( sigma, alpha );
     interpolator = multiLabelInterpolator;
-#endif
     }
    //sanity check thtat this function MUST return a valid interpolator
    if ( interpolator.IsNull() )

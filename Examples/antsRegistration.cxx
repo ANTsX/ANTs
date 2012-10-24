@@ -24,7 +24,7 @@
 #include "itkGaussianInterpolateImageFunction.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkWindowedSincInterpolateImageFunction.h"
-// HACK Not yet supported #include "itkLabelImageGaussianInterpolateImageFunction.h"
+#include "itkLabelImageGaussianInterpolateImageFunction.h"
 
 namespace ants
 {
