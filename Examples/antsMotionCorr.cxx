@@ -1042,6 +1042,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType,
                                                RigidTransformType> RigidRegistrationType;
         typename RigidRegistrationType::Pointer rigidRegistration = RigidRegistrationType::New();
+        metric->SetFixedImage( preprocessFixedImage );
+        metric->SetVirtualDomainFromImage( preprocessFixedImage );
+        metric->SetMovingImage( preprocessMovingImage );
         rigidRegistration->SetFixedImage( preprocessFixedImage );
         rigidRegistration->SetMovingImage( preprocessMovingImage );
         rigidRegistration->SetNumberOfLevels( numberOfLevels );
