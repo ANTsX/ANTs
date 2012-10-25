@@ -70,6 +70,7 @@ CommandLineParser
     this->RegroupCommandLineArguments( argc, argv );
 
   unsigned int n = 0;
+  unsigned int order = 0;
 
   this->m_Command = arguments[n++];
 
@@ -104,25 +105,25 @@ CommandLineParser
           }
         if( n == arguments.size() )
           {
-          unknownOption->AddValue( "1",
-                                   this->m_LeftDelimiter, this->m_RightDelimiter );
+          unknownOption->AddFunction( "1",
+                                      this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
           }
         else
           {
           for( unsigned int m = n; m < arguments.size(); m++ )
             {
-            std::string value = arguments[m];
-            if( value.find( "-" ) != 0 )
+            std::string function = arguments[m];
+            if( function.find( "-" ) != 0 )
               {
-              unknownOption->AddValue( value,
-                                       this->m_LeftDelimiter, this->m_RightDelimiter );
+              unknownOption->AddFunction( function,
+                                          this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
               }
             else
               {
               if( m == n )
                 {
-                unknownOption->AddValue( "1",
-                                         this->m_LeftDelimiter, this->m_RightDelimiter );
+                unknownOption->AddFunction( "1",
+                                            this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
                 }
               n = m;
               break;
@@ -135,25 +136,25 @@ CommandLineParser
         {
         if( n == arguments.size() )
           {
-          option->AddValue( "1",
-                            this->m_LeftDelimiter, this->m_RightDelimiter );
+          option->AddFunction( "1",
+                               this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
           }
         else
           {
           for( unsigned int m = n; m < arguments.size(); m++ )
             {
-            std::string value = arguments[m];
-            if( value.find( "-" ) != 0 || atof( value.c_str() ) )
+            std::string function = arguments[m];
+            if( function.find( "-" ) != 0 || atof( function.c_str() ) )
               {
-              option->AddValue( value,
-                                this->m_LeftDelimiter, this->m_RightDelimiter );
+              option->AddFunction( function,
+                                   this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
               }
             else
               {
               if( m == n )
                 {
-                option->AddValue( "1",
-                                  this->m_LeftDelimiter, this->m_RightDelimiter );
+                option->AddFunction( "1",
+                                     this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
                 }
               n = m;
               break;
@@ -163,6 +164,8 @@ CommandLineParser
         }
       }
     }
+
+  this->AssignStages();
 }
 
 std::vector<std::string>
@@ -371,58 +374,56 @@ CommandLineParser
       std::stringstream ss2;
       ss2 << (*it)->GetDescription();
 
-      std::string description = this->BreakUpStringIntoNewLines(
-          ss2.str(), ss1.str(), 80 );
+      std::string description = this->BreakUpStringIntoNewLines( ss2.str(), ss1.str(), 80 );
 
       os << indent << indent << description << std::endl;
       }
     if( !printShortVersion )
       {
-      if( (*it)->GetValues().size() == 1 )
+      if( (*it)->GetFunctions().size() == 1 )
         {
-        os << indent << indent << "<VALUES>: " << (*it)->GetValue( 0 );
-        if( (*it)->GetParameters( 0 ).size() > 0 )
+        os << indent << indent << "<VALUES>: " << (*it)->GetFunction( 0 )->GetName();
+        if( (*it)->GetFunction( 0 )->GetParameters().size() > 0 )
           {
           os << "[";
-          if( (*it)->GetParameters( 0 ).size() == 1 )
+          if( (*it)->GetFunction( 0 )->GetParameters().size() == 1 )
             {
-            os << (*it)->GetParameter( 0, 0 );
+            os << (*it)->GetFunction( 0 )->GetParameter( 0 );
             }
           else
             {
-            for( unsigned int i = 0;
-                 i < (*it)->GetParameters( 0 ).size() - 1; i++ )
+            for( unsigned int i = 0; i < (*it)->GetFunction( 0 )->GetParameters().size() - 1; i++ )
               {
-              os << (*it)->GetParameter( 0, i ) << ",";
+              os << (*it)->GetFunction( 0 )->GetParameter( i ) << ",";
               }
-            os << (*it)->GetParameter( 0, (*it)->GetParameters( 0 ).size() - 1 );
+            os << (*it)->GetFunction( 0 )->GetParameter( (*it)->GetFunction( 0 )->GetParameters().size() - 1 );
             }
           os << "]";
           }
         os << std::endl;
         }
-      else if( (*it)->GetValues().size() > 1 )
+      else if( (*it)->GetFunctions().size() > 1 )
         {
         os << indent << indent << "<VALUES>: ";
-        for( unsigned int n = 0; n < (*it)->GetValues().size() - 1; n++ )
+        for( unsigned int n = 0; n < (*it)->GetFunctions().size() - 1; n++ )
           {
-          os << (*it)->GetValue( n );
-          if( (*it)->GetParameters( n ).size() > 0 )
+          os << (*it)->GetFunction( n )->GetName();
+          if( (*it)->GetFunction( n )->GetParameters().size() > 0 )
             {
             os << "[";
-            if( (*it)->GetParameters( n ).size() == 1 )
+            if( (*it)->GetFunction( n )->GetParameters().size() == 1 )
               {
-              os << (*it)->GetParameter( n, 0 ) << "], ";
+              os << (*it)->GetFunction( n )->GetParameter( 0 ) << "], ";
               }
             else
               {
-              for( unsigned int i = 0;
-                   i < (*it)->GetParameters( n ).size() - 1; i++ )
+              for( unsigned int i = 0; i < (*it)->GetFunction( n )->GetParameters().size() - 1; i++ )
                 {
-                os << (*it)->GetParameter( n, i ) << ",";
+                os << (*it)->GetFunction( n )->GetParameter( i ) << ",";
                 }
-              os << (*it)->GetParameter( n,
-                                         (*it)->GetParameters( n ).size() - 1 ) << "], ";
+              os
+                  << (*it)->GetFunction( n )->GetParameter( (*it)->GetFunction( n )->GetParameters().size()
+                                                            - 1 ) << "], ";
               }
             }
           else
@@ -431,25 +432,23 @@ CommandLineParser
             }
           }
 
-        unsigned int nn = (*it)->GetValues().size() - 1;
+        unsigned int nn = (*it)->GetFunctions().size() - 1;
 
-        os << (*it)->GetValue( nn );
-        if( (*it)->GetParameters( nn ).size() > 0 )
+        os << (*it)->GetFunction( nn )->GetName();
+        if( (*it)->GetFunction( nn )->GetParameters().size() > 0 )
           {
           os << "[";
-          if( (*it)->GetParameters( nn ).size() == 1 )
+          if( (*it)->GetFunction( nn )->GetParameters().size() == 1 )
             {
-            os << (*it)->GetParameter( nn, 0 ) << "]";
+            os << (*it)->GetFunction( nn )->GetParameter( 0 ) << "]";
             }
           else
             {
-            for( unsigned int i = 0;
-                 i < (*it)->GetParameters( nn ).size() - 1; i++ )
+            for( unsigned int i = 0; i < (*it)->GetFunction( nn )->GetParameters().size() - 1; i++ )
               {
-              os << (*it)->GetParameter( nn, i ) << ",";
+              os << (*it)->GetFunction( nn )->GetParameter( i ) << ",";
               }
-            os << (*it)->GetParameter( nn,
-                                       (*it)->GetParameters( nn ).size() - 1 ) << "]";
+            os << (*it)->GetFunction( nn )->GetParameter( (*it)->GetFunction( nn )->GetParameters().size() - 1 ) << "]";
             }
           }
         }
@@ -514,6 +513,45 @@ CommandLineParser
     lastPos = str.find_first_not_of( delimiters, pos );
     // Find next "non-delimiter"
     pos = str.find_first_of( delimiters, lastPos );
+    }
+}
+
+void
+CommandLineParser
+::AssignStages()
+{
+  OptionListType::const_iterator it;
+
+  for( it = this->m_Options.begin(); it != this->m_Options.end(); it++ )
+    {
+    typedef OptionType::FunctionStackType OptionFunctionStackType;
+    OptionFunctionStackType functions = (*it)->GetFunctions();
+
+    OptionFunctionStackType::const_iterator it2;
+
+    unsigned int previousOrder = 0;
+    unsigned int currentOrder = 0;
+    for( it2 = functions.begin(); it2 != functions.end(); it2++ )
+      {
+      if( it2 == functions.begin() )
+        {
+        previousOrder = (*it2)->GetArgOrder();
+        (*it2)->SetWhichStage( 0 );
+        }
+      else
+        {
+        currentOrder = (*it2)->GetArgOrder();
+        if( previousOrder == currentOrder + 1 )
+          {
+          (*it2)->SetWhichStage( functions[it2 - functions.begin() - 1]->GetWhichStage() );
+          }
+        else
+          {
+          (*it2)->SetWhichStage( functions[it2 - functions.begin() - 1]->GetWhichStage() + 1 );
+          }
+        previousOrder = currentOrder;
+        }
+      }
     }
 }
 

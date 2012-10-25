@@ -234,7 +234,7 @@ public:
     typename ParserType::OptionType::Pointer regularizationOption
       = this->m_Parser->GetOption( "regularization" );
 
-    if( ( regularizationOption->GetValue() ).find( "DMFFD" )
+    if( ( regularizationOption->GetFunction( 0 )->GetName() ).find( "DMFFD" )
         != std::string::npos )
       {
       if( ( !TrueEqualsGradElseTotal && this->m_TotalSmoothingparam == 0.0 ) ||
@@ -813,7 +813,7 @@ public:
     /** Univariate Deformable Mapping */
 
 // set up parameters for deformation restriction
-    std::string temp = this->m_Parser->GetOption( "Restrict-Deformation" )->GetValue();
+    std::string temp = this->m_Parser->GetOption( "Restrict-Deformation" )->GetFunction()->GetName();
 
     this->m_RestrictDeformation = this->m_Parser->template ConvertVector<TReal>(temp);
     if( this->m_RestrictDeformation.size() != ImageDimension )
@@ -829,13 +829,13 @@ public:
       }
 
     // set up max iterations per level
-    temp = this->m_Parser->GetOption( "number-of-iterations" )->GetValue();
+    temp = this->m_Parser->GetOption( "number-of-iterations" )->GetFunction()->GetName();
     this->m_Iterations = this->m_Parser->template ConvertVector<unsigned int>(temp);
     this->SetNumberOfLevels(this->m_Iterations.size() );
     this->m_UseROI = false;
     if( typename OptionType::Pointer option = this->m_Parser->GetOption( "roi" ) )
       {
-      temp = this->m_Parser->GetOption( "roi" )->GetValue();
+      temp = this->m_Parser->GetOption( "roi" )->GetFunction()->GetName();
       this->m_RoiNumbers = this->m_Parser->template ConvertVector<TReal>(temp);
       if( temp.length() > 3 )
         {
@@ -845,11 +845,11 @@ public:
 
     typename ParserType::OptionType::Pointer oOption
       = this->m_Parser->GetOption( "output-naming" );
-    this->m_OutputNamingConvention = oOption->GetValue();
+    this->m_OutputNamingConvention = oOption->GetFunction( 0 )->GetName();
 
     typename ParserType::OptionType::Pointer thicknessOption
       = this->m_Parser->GetOption( "geodesic" );
-    if( thicknessOption->GetValue() == "true" ||  thicknessOption->GetValue() == "1" )
+    if( thicknessOption->GetFunction( 0 )->GetName() == "true" ||  thicknessOption->GetFunction( 0 )->GetName() == "1" )
       {
       this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
       }                                                                                                                                      //
@@ -857,7 +857,7 @@ public:
                                                                                                                                              // asymm
                                                                                                                                              //
                                                                                                                                              // forces
-    else if(  thicknessOption->GetValue() == "2" )
+    else if(  thicknessOption->GetFunction( 0 )->GetName() == "2" )
       {
       this->m_ComputeThickness = 1; this->m_SyNFullTime = 1;
       }                                                                                                    // symmetric
@@ -871,10 +871,10 @@ public:
      */
     typename ParserType::OptionType::Pointer transformOption
       = this->m_Parser->GetOption( "transformation-model" );
-    this->SetTransformationModel( transformOption->GetValue() );
-    if( transformOption->GetNumberOfParameters() >= 1 )
+    this->SetTransformationModel( transformOption->GetFunction( 0 )->GetName() );
+    if( transformOption->GetFunction( 0 )->GetNumberOfParameters() >= 1 )
       {
-      std::string parameter = transformOption->GetParameter( 0, 0 );
+      std::string parameter = transformOption->GetFunction( 0 )->GetParameter( 0 );
       TReal       _temp = this->m_Parser->template Convert<TReal>( parameter );
       this->m_Gradstep = _temp;
       this->m_GradstepAltered = _temp;
@@ -883,18 +883,18 @@ public:
       {
       this->m_Gradstep = 0.5;  this->m_GradstepAltered = 0.5;
       }
-    if( transformOption->GetNumberOfParameters() >= 2 )
+    if( transformOption->GetFunction( 0 )->GetNumberOfParameters() >= 2 )
       {
-      std::string parameter = transformOption->GetParameter( 0, 1 );
+      std::string parameter = transformOption->GetFunction( 0 )->GetParameter( 1 );
       this->m_NTimeSteps = this->m_Parser->template Convert<unsigned int>( parameter );
       }
     else
       {
       this->m_NTimeSteps = 1;
       }
-    if( transformOption->GetNumberOfParameters() >= 3 )
+    if( transformOption->GetFunction( 0 )->GetNumberOfParameters() >= 3 )
       {
-      std::string parameter = transformOption->GetParameter( 0, 2 );
+      std::string parameter = transformOption->GetFunction( 0 )->GetParameter( 2 );
       this->m_DeltaTime
         = this->m_Parser->template Convert<TReal>( parameter );
       if( this->m_DeltaTime  > 1 )
@@ -912,9 +912,9 @@ public:
       {
       this->m_DeltaTime = 0.1;
       }
-//    if ( transformOption->GetNumberOfParameters() >= 3 )
+//    if ( transformOption->GetFunction( 0 )->GetNumberOfParameters() >= 3 )
 //      {
-//      std::string parameter = transformOption->GetParameter( 0, 2 );
+//      std::string parameter = transformOption->GetFunction( 0 )->GetParameter( 2 );
 //      this->m_SymmetryType
 //        = this->m_Parser->template Convert<unsigned int>( parameter );
 //      }
@@ -929,29 +929,29 @@ public:
 
     typename ParserType::OptionType::Pointer regularizationOption
       = this->m_Parser->GetOption( "regularization" );
-    if( regularizationOption->GetValue() == "Gauss" )
+    if( regularizationOption->GetFunction( 0 )->GetName() == "Gauss" )
       {
-      if( regularizationOption->GetNumberOfParameters() >= 1 )
+      if( regularizationOption->GetFunction( 0 )->GetNumberOfParameters() >= 1 )
         {
-        std::string parameter = regularizationOption->GetParameter( 0, 0 );
+        std::string parameter = regularizationOption->GetFunction( 0 )->GetParameter( 0 );
         this->m_GradSmoothingparam = this->m_Parser->template Convert<TReal>( parameter );
         }
       else
         {
         this->m_GradSmoothingparam = 3;
         }
-      if( regularizationOption->GetNumberOfParameters() >= 2 )
+      if( regularizationOption->GetFunction( 0 )->GetNumberOfParameters() >= 2 )
         {
-        std::string parameter = regularizationOption->GetParameter( 0, 1 );
+        std::string parameter = regularizationOption->GetFunction( 0 )->GetParameter( 1 );
         this->m_TotalSmoothingparam = this->m_Parser->template Convert<TReal>( parameter );
         }
       else
         {
         this->m_TotalSmoothingparam = 0.5;
         }
-      if( regularizationOption->GetNumberOfParameters() >= 3 )
+      if( regularizationOption->GetFunction( 0 )->GetNumberOfParameters() >= 3 )
         {
-        std::string parameter = regularizationOption->GetParameter( 0, 2 );
+        std::string parameter = regularizationOption->GetFunction( 0 )->GetParameter( 2 );
         this->m_GaussianTruncation = this->m_Parser->template Convert<TReal>( parameter );
         }
       else
@@ -961,12 +961,12 @@ public:
       ::ants::antscout << "  Grad Step " << this->m_Gradstep << " total-smoothing " << this->m_TotalSmoothingparam
                        << " gradient-smoothing " << this->m_GradSmoothingparam << std::endl;
       }
-    else if( ( regularizationOption->GetValue() ).find( "DMFFD" )
+    else if( ( regularizationOption->GetFunction( 0 )->GetName() ).find( "DMFFD" )
              != std::string::npos )
       {
-      if( regularizationOption->GetNumberOfParameters() >= 1 )
+      if( regularizationOption->GetFunction( 0 )->GetNumberOfParameters() >= 1 )
         {
-        std::string parameter = regularizationOption->GetParameter( 0, 0 );
+        std::string parameter = regularizationOption->GetFunction( 0 )->GetParameter( 0 );
         if( parameter.find( "x" ) != std::string::npos )
           {
           std::vector<unsigned int> gradMeshSize
@@ -986,9 +986,9 @@ public:
         {
         this->m_GradSmoothingparam = 3.0;
         }
-      if( regularizationOption->GetNumberOfParameters() >= 2 )
+      if( regularizationOption->GetFunction( 0 )->GetNumberOfParameters() >= 2 )
         {
-        std::string parameter = regularizationOption->GetParameter( 0, 1 );
+        std::string parameter = regularizationOption->GetFunction( 0 )->GetParameter( 1 );
         if( parameter.find( "x" ) != std::string::npos )
           {
           std::vector<unsigned int> totalMeshSize
@@ -1008,9 +1008,9 @@ public:
         {
         this->m_TotalSmoothingparam = 0.5;
         }
-      if( regularizationOption->GetNumberOfParameters() >= 3 )
+      if( regularizationOption->GetFunction( 0 )->GetNumberOfParameters() >= 3 )
         {
-        std::string parameter = regularizationOption->GetParameter( 0, 2 );
+        std::string parameter = regularizationOption->GetFunction( 0 )->GetParameter( 2 );
         this->m_BSplineFieldOrder
           = this->m_Parser->template Convert<unsigned int>( parameter );
         }
@@ -1031,7 +1031,7 @@ public:
       ::ants::antscout << " Default Regularization is Gaussian smoothing with : " << this->m_GradSmoothingparam
                        << " & "
                        << this->m_TotalSmoothingparam << std::endl;
-//      itkExceptionMacro( "Invalid regularization: " << regularizationOption->GetValue() );
+//      itkExceptionMacro( "Invalid regularization: " << regularizationOption->GetFunction( 0 )->GetName() );
       }
   }
 
@@ -1161,7 +1161,7 @@ public:
     // Get subsample factors and gaussian smoothing sigmas if specified
     // by the user.
     std::string subsamplingfactors =
-      this->m_Parser->GetOption( "subsampling-factors" )->GetValue();
+      this->m_Parser->GetOption( "subsampling-factors" )->GetFunction()->GetName();
     if( subsamplingfactors.size() > 0 )
       {
       std::vector<float> factors =
@@ -1182,7 +1182,7 @@ public:
       }
 
     std::string gaussiansmoothingsigmas =
-      this->m_Parser->GetOption( "gaussian-smoothing-sigmas" )->GetValue();
+      this->m_Parser->GetOption( "gaussian-smoothing-sigmas" )->GetFunction()->GetName();
     if( gaussiansmoothingsigmas.size() > 0 )
       {
       std::vector<float> sigmas =
@@ -1428,7 +1428,7 @@ public:
         // Added by Paul: allow weighted metric to be used here
         typename ParserType::OptionType::Pointer regularizationOption
           = this->m_Parser->GetOption( "use-all-metrics-for-convergence" );
-        bool use_all_metrics = (atoi(regularizationOption->GetValue().c_str() ) > 0);
+        bool use_all_metrics = (atoi(regularizationOption->GetFunction()->GetName().c_str() ) > 0);
 
         unsigned int domtar = 12;
         if( this->m_CurrentIteration > domtar )
@@ -1808,7 +1808,7 @@ public:
 
     typename ParserType::OptionType::Pointer thicknessOption
       = this->m_Parser->GetOption( "go-faster" );
-    if( thicknessOption->GetValue() == "true" ||  thicknessOption->GetValue() == "1" )
+    if( thicknessOption->GetFunction( 0 )->GetName() == "true" ||  thicknessOption->GetFunction( 0 )->GetName() == "1" )
       {
       mytoler = 0.5; maxiter = 12;
       }

@@ -88,9 +88,9 @@ int N4( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
-  if( inputImageOption )
+  if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
     {
-    std::string inputFile = inputImageOption->GetValue();
+    std::string inputFile = inputImageOption->GetFunction( 0 )->GetName();
     reader->SetFileName( inputFile.c_str() );
 
     inputImage = reader->GetOutput();
@@ -109,9 +109,9 @@ int N4( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
     parser->GetOption( "mask-image" );
-  if( maskImageOption && maskImageOption->GetNumberOfValues() )
+  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
     {
-    std::string inputFile = maskImageOption->GetValue();
+    std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
     typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
     typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
     maskreader->SetFileName( inputFile.c_str() );
@@ -145,9 +145,9 @@ int N4( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer weightImageOption =
     parser->GetOption( "weight-image" );
-  if( weightImageOption  && weightImageOption->GetNumberOfValues() )
+  if( weightImageOption && weightImageOption->GetNumberOfFunctions() )
     {
-    std::string inputFile = weightImageOption->GetValue();
+    std::string inputFile = weightImageOption->GetFunction( 0 )->GetName();
     typedef itk::ImageFileReader<ImageType> WeightReaderType;
     typename WeightReaderType::Pointer weightreader = WeightReaderType::New();
     weightreader->SetFileName( inputFile.c_str() );
@@ -161,12 +161,12 @@ int N4( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
     parser->GetOption( "convergence" );
-  if( convergenceOption && convergenceOption->GetNumberOfValues() )
+  if( convergenceOption && convergenceOption->GetNumberOfFunctions() )
     {
-    if( convergenceOption->GetNumberOfParameters() > 0 )
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       std::vector<unsigned int> numIters = parser->ConvertVector<unsigned int>(
-          convergenceOption->GetParameter( 0 ) );
+          convergenceOption->GetFunction( 0 )->GetParameter( 0 ) );
       typename CorrecterType::VariableSizeArrayType
         maximumNumberOfIterations( numIters.size() );
       for( unsigned int d = 0; d < numIters.size(); d++ )
@@ -179,10 +179,10 @@ int N4( itk::ants::CommandLineParser *parser )
       numberOfFittingLevels.Fill( numIters.size() );
       correcter->SetNumberOfFittingLevels( numberOfFittingLevels );
       }
-    if( convergenceOption->GetNumberOfParameters() > 1 )
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
       correcter->SetConvergenceThreshold( parser->Convert<float>(
-                                            convergenceOption->GetParameter( 1 ) ) );
+                                            convergenceOption->GetFunction( 0 )->GetParameter( 1 ) ) );
       }
     }
   else // set default values
@@ -209,17 +209,17 @@ int N4( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer bsplineOption =
     parser->GetOption( "bspline-fitting" );
-  if( bsplineOption )
+  if( bsplineOption && bsplineOption->GetNumberOfFunctions() )
     {
-    if( bsplineOption->GetNumberOfParameters() > 1 )
+    if( bsplineOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
       correcter->SetSplineOrder( parser->Convert<unsigned int>(
-                                   bsplineOption->GetParameter( 1 ) ) );
+                                   bsplineOption->GetFunction( 0 )->GetParameter( 1 ) ) );
       }
-    if( bsplineOption->GetNumberOfParameters() > 0 )
+    if( bsplineOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       std::vector<float> array = parser->ConvertVector<float>(
-          bsplineOption->GetParameter( 0 ) );
+          bsplineOption->GetFunction( 0 )->GetParameter( 0 ) );
       typename CorrecterType::ArrayType numberOfControlPoints;
       if( array.size() == 1 )
         {
@@ -312,9 +312,9 @@ int N4( itk::ants::CommandLineParser *parser )
   typename itk::ants::CommandLineParser::OptionType::Pointer shrinkFactorOption =
     parser->GetOption( "shrink-factor" );
   int shrinkFactor = 4;
-  if( shrinkFactorOption && shrinkFactorOption->GetNumberOfValues() )
+  if( shrinkFactorOption && shrinkFactorOption->GetNumberOfFunctions() )
     {
-    shrinkFactor = parser->Convert<int>( shrinkFactorOption->GetValue() );
+    shrinkFactor = parser->Convert<int>( shrinkFactorOption->GetFunction( 0 )->GetName() );
     }
   shrinker->SetShrinkFactors( shrinkFactor );
   maskshrinker->SetShrinkFactors( shrinkFactor );
@@ -332,7 +332,7 @@ int N4( itk::ants::CommandLineParser *parser )
   if( weightImage )
     {
     weightshrinker->SetInput( weightImage );
-    weightshrinker->SetShrinkFactors(shrinkFactor);
+    weightshrinker->SetShrinkFactors( shrinkFactor );
     weightshrinker->Update();
 
     correcter->SetConfidenceImage( weightshrinker->GetOutput() );
@@ -347,22 +347,22 @@ int N4( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer histOption =
     parser->GetOption( "histogram-sharpening" );
-  if( histOption )
+  if( histOption && histOption->GetNumberOfFunctions() )
     {
-    if( histOption->GetNumberOfParameters() > 0 )
+    if( histOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       correcter->SetBiasFieldFullWidthAtHalfMaximum( parser->Convert<float>(
-                                                       histOption->GetParameter( 0 ) ) );
+                                                       histOption->GetFunction( 0 )->GetParameter( 0 ) ) );
       }
-    if( histOption->GetNumberOfParameters() > 1 )
+    if( histOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
       correcter->SetWienerFilterNoise( parser->Convert<float>(
-                                         histOption->GetParameter( 1 ) ) );
+                                         histOption->GetFunction( 0 )->GetParameter( 1 ) ) );
       }
-    if( histOption->GetNumberOfParameters() > 2 )
+    if( histOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
       {
       correcter->SetNumberOfHistogramBins( parser->Convert<unsigned int>(
-                                             histOption->GetParameter( 2 ) ) );
+                                             histOption->GetFunction( 0 )->GetParameter( 2 ) ) );
       }
     }
 
@@ -431,7 +431,7 @@ int N4( itk::ants::CommandLineParser *parser )
     divider->Update();
 
     if( weightImage &&
-        ( maskImageOption && maskImageOption->GetNumberOfValues() > 0 ) )
+        ( maskImageOption && maskImageOption->GetNumberOfFunctions() > 0 ) )
       {
       itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
                                                         divider->GetOutput()->GetLargestPossibleRegion() );
@@ -461,27 +461,27 @@ int N4( itk::ants::CommandLineParser *parser )
     biasFieldCropper->SetDirectionCollapseToSubmatrix();
     biasFieldCropper->Update();
 
-    if( outputOption->GetNumberOfParameters() == 0 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
       typedef  itk::ImageFileWriter<ImageType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetInput( cropper->GetOutput() );
-      writer->SetFileName( ( outputOption->GetValue() ).c_str() );
+      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       writer->Update();
       }
-    if( outputOption->GetNumberOfParameters() > 0 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       typedef  itk::ImageFileWriter<ImageType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
       writer->SetInput( cropper->GetOutput() );
-      writer->SetFileName( ( outputOption->GetParameter( 0 ) ).c_str() );
+      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
       writer->Update();
       }
-    if( outputOption->GetNumberOfParameters() > 1 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
       typedef itk::ImageFileWriter<ImageType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( ( outputOption->GetParameter( 1 ) ).c_str() );
+      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
       writer->SetInput( biasFieldCropper->GetOutput() );
       writer->Update();
       }
@@ -651,7 +651,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -661,7 +661,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -737,7 +737,7 @@ private:
 
   parser->Parse( argc, argv );
 
-  if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetValue() ) )
+  if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction( 0 )->GetName() ) )
     {
     parser->PrintMenu( antscout, 5, false );
     if( argc < 2 )
@@ -746,7 +746,7 @@ private:
       }
     return EXIT_SUCCESS;
     }
-  else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetValue() ) )
+  else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction( 0 )->GetName() ) )
     {
     parser->PrintMenu( antscout, 5, true );
     return EXIT_SUCCESS;
@@ -757,9 +757,9 @@ private:
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "image-dimensionality" );
-  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+  if( dimOption && dimOption->GetNumberOfFunctions() > 0 )
     {
-    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
     }
   else
     {
@@ -768,15 +768,15 @@ private:
 
     itk::ants::CommandLineParser::OptionType::Pointer imageOption =
       parser->GetOption( "input-image" );
-    if( imageOption && imageOption->GetNumberOfValues() > 0 )
+    if( imageOption && imageOption->GetNumberOfFunctions() > 0 )
       {
-      if( imageOption->GetNumberOfParameters( 0 ) > 0 )
+      if( imageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        filename = imageOption->GetParameter( 0, 0 );
+        filename = imageOption->GetFunction( 0 )->GetParameter( 0 );
         }
       else
         {
-        filename = imageOption->GetValue( 0 );
+        filename = imageOption->GetFunction( 0 )->GetName();
         }
       }
     else

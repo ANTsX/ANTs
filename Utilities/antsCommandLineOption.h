@@ -47,6 +47,75 @@ namespace ants
       -m mutualinformation[parameter1] --optimization gradientdescent"
 */
 
+class ITK_EXPORT OptionFunction
+  : public       DataObject
+{
+public:
+  OptionFunction() :
+    m_Name( "" ),
+    m_ArgOrder( 0 ),
+    m_WhichStage( 0 )
+  {
+  };
+  ~OptionFunction()
+  {
+  };
+
+  typedef OptionFunction     Self;
+  typedef DataObject         Superclass;
+  typedef SmartPointer<Self> Pointer;
+
+  itkNewMacro( Self );
+
+  itkTypeMacro( Option, DataObject );
+
+  typedef std::deque<std::string> ParameterStackType;
+
+  itkSetMacro( Name, std::string );
+  itkGetConstMacro( Name, std::string );
+
+  itkSetMacro( ArgOrder, unsigned int );
+  itkGetConstMacro( ArgOrder, unsigned int );
+
+  itkSetMacro( WhichStage, unsigned int );
+  itkGetConstMacro( WhichStage, unsigned int );
+
+  ParameterStackType GetParameters()
+  {
+    return this->m_Parameters;
+  }
+
+  void SetParameters( ParameterStackType parameters )
+  {
+    this->m_Parameters = parameters;
+    this->Modified();
+  }
+
+  std::string GetParameter( unsigned int i = 0 )
+  {
+    if( i < this->m_Parameters.size() )
+      {
+      return this->m_Parameters[i];
+      }
+    else
+      {
+      std::string empty( "" );
+      return empty;
+      }
+  }
+
+  unsigned int GetNumberOfParameters()
+  {
+    return this->m_Parameters.size();
+  }
+
+private:
+  std::string        m_Name;
+  unsigned int       m_ArgOrder;
+  unsigned int       m_WhichStage;
+  ParameterStackType m_Parameters;
+};
+
 class ITK_EXPORT CommandLineOption
   : public       DataObject
 {
@@ -59,33 +128,34 @@ public:
 
   itkTypeMacro( Option, DataObject );
 
-  typedef std::string                ValueType;
-  typedef std::deque<ValueType>      ValueStackType;
-  typedef std::deque<ValueStackType> ParameterStackType;
+  typedef OptionFunction OptionFunctionType;
 
-  ValueStackType GetValues()
+  typedef std::deque<OptionFunctionType::Pointer> FunctionStackType;
+  typedef std::deque<std::string>                 UsageOptionStackType;
+
+  FunctionStackType GetFunctions()
   {
-    return this->m_Values;
+    return this->m_OptionFunctions;
   }
 
-  unsigned int GetNumberOfValues()
+  unsigned int GetNumberOfFunctions()
   {
-    return this->m_Values.size();
+    return this->m_OptionFunctions.size();
   }
 
-  std::string GetValue( unsigned int i = 0 )
+  OptionFunction::Pointer GetFunction( unsigned int i = 0 )
   {
-    if( i < this->m_Values.size() )
+    if( i < this->m_OptionFunctions.size() )
       {
-      return this->m_Values[i];
+      return this->m_OptionFunctions[i];
       }
     else
       {
-      return std::string( "" );
+      return NULL;
       }
   }
 
-  ValueStackType GetUsageOptions()
+  UsageOptionStackType GetUsageOptions()
   {
     return this->m_UsageOptions;
   }
@@ -107,65 +177,21 @@ public:
       }
   }
 
-  ValueStackType GetParameters( unsigned int i = 0 )
-  {
-    if( i < this->m_Parameters.size() )
-      {
-      return this->m_Parameters[i];
-      }
-    else
-      {
-      ValueStackType empty;
-      return empty;
-      }
-  }
-
-  std::string GetParameter( unsigned int i, unsigned int j )
-  {
-    if( i < this->m_Parameters.size() && j < this->m_Parameters[i].size() )
-      {
-      return this->m_Parameters[i][j];
-      }
-    else
-      {
-      return std::string( "" );
-      }
-  }
-
-  std::string GetParameter( unsigned int j )
-  {
-    return this->GetParameter( 0, j );
-  }
-
-  unsigned int GetNumberOfParameters( unsigned int i = 0 )
-  {
-    if( i < this->m_Parameters.size() )
-      {
-      return this->m_Parameters[i].size();
-      }
-    else
-      {
-      return 0;
-      }
-  }
-
   itkSetMacro( ShortName, char );
-  itkGetMacro( ShortName, char );
+  itkGetConstMacro( ShortName, char );
 
   itkSetMacro( LongName, std::string );
-  itkGetMacro( LongName, std::string );
+  itkGetConstMacro( LongName, std::string );
 
   itkSetMacro( Description, std::string );
-  itkGetMacro( Description, std::string );
+  itkGetConstMacro( Description, std::string );
 
-  void AddValue( std::string, char, char );
+  void AddFunction( std::string, char, char, unsigned int order = 0 );
 
-  void AddValue( std::string s )
+  void AddFunction( std::string s )
   {
-    this->AddValue( s, '[', ']' );
+    this->AddFunction( s, '[', ']' );
   }
-
-  void SetValue( unsigned int, std::string );
 
   void SetUsageOption( unsigned int, std::string );
 
@@ -175,12 +201,11 @@ protected:
   {
   };
 private:
-  char               m_ShortName;
-  std::string        m_LongName;
-  std::string        m_Description;
-  ValueStackType     m_UsageOptions;
-  ValueStackType     m_Values;
-  ParameterStackType m_Parameters;
+  char                 m_ShortName;
+  std::string          m_LongName;
+  std::string          m_Description;
+  UsageOptionStackType m_UsageOptions;
+  FunctionStackType    m_OptionFunctions;
 };
 } // end namespace ants
 } // end namespace itk

@@ -72,7 +72,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'a' );
     option->SetUsageOption( 0, "1/(0)" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -130,7 +130,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'b' );
     option->SetUsageOption( 0, "(1)/0" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -318,7 +318,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -328,7 +328,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -436,7 +436,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer compositeOutputOption = parser->GetOption( "write-composite-transform" );
 
-  if( !outputOption )
+  if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
     antscout << "Output option not specified." << std::endl;
     return EXIT_FAILURE;
@@ -444,7 +444,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer collapseLinearTransforms =
     parser->GetOption( "collapse-linear-transforms-to-fixed-image-header" );
-  if( parser->Convert<bool>( collapseLinearTransforms->GetValue( 0 ) ) )
+  if( parser->Convert<bool>( collapseLinearTransforms->GetFunction( 0 )->GetName() ) )
     {
     regHelper->SetApplyLinearTransformsToFixedImageHeader( true );
     }
@@ -453,26 +453,26 @@ DoRegistration(typename ParserType::Pointer & parser)
     regHelper->SetApplyLinearTransformsToFixedImageHeader( false );
     }
 
-  std::string outputPrefix = outputOption->GetValue( 0 );
-  if( outputOption->GetNumberOfParameters( 0 ) > 0 )
+  std::string outputPrefix = outputOption->GetFunction( 0 )->GetName();
+  if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
     {
-    outputPrefix = outputOption->GetParameter( 0, 0 );
+    outputPrefix = outputOption->GetFunction( 0 )->GetParameter( 0 );
     }
   std::string outputWarpedImageName;
-  if( outputOption->GetNumberOfParameters( 0 ) > 1 )
+  if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
     {
-    outputWarpedImageName = outputOption->GetParameter( 0, 1 );
+    outputWarpedImageName = outputOption->GetFunction( 0 )->GetParameter( 1 );
     }
 
   std::string outputInverseWarpedImageName;
-  if( outputOption->GetNumberOfParameters( 0 ) > 2 )
+  if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
     {
-    outputInverseWarpedImageName = outputOption->GetParameter( 0, 2 );
+    outputInverseWarpedImageName = outputOption->GetFunction( 0 )->GetParameter( 2 );
     }
 
   ParserType::OptionType::Pointer initialMovingTransformOption = parser->GetOption( "initial-moving-transform" );
 
-  if( initialMovingTransformOption && initialMovingTransformOption->GetNumberOfValues() > 0 )
+  if( initialMovingTransformOption && initialMovingTransformOption->GetNumberOfFunctions() )
     {
     std::vector<bool> isDerivedInitialMovingTransform;
     typename CompositeTransformType::Pointer compositeTransform =
@@ -498,7 +498,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   ParserType::OptionType::Pointer initialFixedTransformOption = parser->GetOption( "initial-fixed-transform" );
 
-  if( initialFixedTransformOption && initialFixedTransformOption->GetNumberOfValues() > 0 )
+  if( initialFixedTransformOption && initialFixedTransformOption->GetNumberOfFunctions() )
     {
     std::vector<bool> isDerivedInitialFixedTransform;
     typename CompositeTransformType::Pointer compositeTransform =
@@ -525,14 +525,14 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     typedef typename RegistrationHelperType::MaskImageType MaskImageType;
     typedef itk::ImageFileReader<MaskImageType>            ImageReaderType;
-    for( unsigned m = 0; m < maskOption->GetNumberOfParameters(); m++ )
+    for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
       {
-      std::string fname = maskOption->GetParameter(0, m);
+      std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
 
       typename MaskImageType::Pointer maskImage;
       typename ImageReaderType::Pointer reader = ImageReaderType::New();
 
-      reader->SetFileName(fname.c_str() );
+      reader->SetFileName( fname.c_str() );
       try
         {
         reader->Update();
@@ -558,7 +558,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   unsigned int numberOfStages;
 
-  if( transformOption.IsNull() || ( numberOfStages = transformOption->GetNumberOfValues() ) == 0 )
+  if( transformOption.IsNull() || ( numberOfStages = transformOption->GetNumberOfFunctions() ) == 0 )
     {
     antscout << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
@@ -575,8 +575,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     // Get the fixed and moving images
 
-    std::string fixedImageFileName = metricOption->GetParameter( currentStage, 0 );
-    std::string movingImageFileName = metricOption->GetParameter( currentStage, 1 );
+    std::string fixedImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 0 );
+    std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 1 );
     antscout << "  fixed image: " << fixedImageFileName << std::endl;
     antscout << "  moving image: " << movingImageFileName << std::endl;
 
@@ -615,11 +615,10 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     movingImage->DisconnectPipeline();
 
-    std::string whichMetric = metricOption->GetValue( currentStage );
+    std::string whichMetric = metricOption->GetFunction( currentStage )->GetName();
     ConvertToLowerCase( whichMetric );
 
-    typename RegistrationHelperType::MetricEnumeration curMetric =
-      regHelper->StringToMetricType(whichMetric);
+    typename RegistrationHelperType::MetricEnumeration curMetric = regHelper->StringToMetricType( whichMetric );
 
     float lowerQuantile = 0.0;
     float upperQuantile = 1.0;
@@ -627,27 +626,27 @@ DoRegistration(typename ParserType::Pointer & parser)
     OptionType::Pointer winsorizeOption = parser->GetOption( "winsorize-image-intensities" );
     bool                doWinsorize(false);
 
-    if( winsorizeOption && winsorizeOption->GetNumberOfParameters( 0 ) > 0 )
+    if( winsorizeOption && winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       doWinsorize = true;
-      if( winsorizeOption->GetNumberOfParameters( 0 ) > 0 )
+      if( winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        lowerQuantile = parser->Convert<float>( winsorizeOption->GetParameter( 0, 0 ) );
+        lowerQuantile = parser->Convert<float>( winsorizeOption->GetFunction( 0 )->GetParameter( 0 ) );
         }
-      if( winsorizeOption->GetNumberOfParameters( 0 ) > 1 )
+      if( winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        upperQuantile = parser->Convert<float>( winsorizeOption->GetParameter( 0, 1 ) );
+        upperQuantile = parser->Convert<float>( winsorizeOption->GetFunction( 0 )->GetParameter( 1 ) );
         }
       }
     regHelper->SetWinsorizeImageIntensities(doWinsorize, lowerQuantile, upperQuantile);
 
     bool                doHistogramMatch(false);
     OptionType::Pointer histOption = parser->GetOption( "use-histogram-matching" );
-    if( histOption && histOption->GetNumberOfValues() > 0 )
+    if( histOption && histOption->GetNumberOfFunctions() )
       {
-      std::string histValue = histOption->GetValue( 0 );
-      ConvertToLowerCase( histValue );
-      if( histValue.compare( "1" ) == 0 || histValue.compare( "true" ) == 0 )
+      std::string histFunction = histOption->GetFunction( 0 )->GetName();
+      ConvertToLowerCase( histFunction );
+      if( histFunction.compare( "1" ) == 0 || histFunction.compare( "true" ) == 0 )
         {
         doHistogramMatch = true;
         }
@@ -656,11 +655,11 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     bool                doEstimateLearningRateAtEachIteration = true;
     OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
-    if( rateOption && rateOption->GetNumberOfValues() > 0 )
+    if( rateOption && rateOption->GetNumberOfFunctions() )
       {
-      std::string rateValue = rateOption->GetValue( 0 );
-      ConvertToLowerCase( rateValue );
-      if( rateValue.compare( "1" ) == 0 || rateValue.compare( "true" ) == 0 )
+      std::string rateFunction = rateOption->GetFunction( 0 )->GetName();
+      ConvertToLowerCase( rateFunction );
+      if( rateFunction.compare( "1" ) == 0 || rateFunction.compare( "true" ) == 0 )
         {
         doEstimateLearningRateAtEachIteration = false;
         }
@@ -672,21 +671,24 @@ DoRegistration(typename ParserType::Pointer & parser)
     std::vector<unsigned int> iterations;
     double                    convergenceThreshold = 1e-6;
     unsigned int              convergenceWindowSize = 10;
-    if( convergenceOption->GetNumberOfParameters( currentStage ) == 0 )
+    if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() == 0 )
       {
-      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetValue( currentStage ) );
+      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetFunction( currentStage )->GetName() );
       }
-    else if( convergenceOption->GetNumberOfParameters( currentStage ) > 0 )
+    else if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 0 )
       {
-      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetParameter( currentStage, 0 ) );
+      iterations = parser->ConvertVector<unsigned int>( convergenceOption->GetFunction( currentStage )->GetParameter(
+                                                          0 ) );
       }
-    if( convergenceOption->GetNumberOfParameters( currentStage ) > 1 )
+    if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 1 )
       {
-      convergenceThreshold = parser->Convert<double>( convergenceOption->GetParameter( currentStage, 1 ) );
+      convergenceThreshold =
+        parser->Convert<double>( convergenceOption->GetFunction( currentStage )->GetParameter( 1 ) );
       }
-    if( convergenceOption->GetNumberOfParameters( currentStage ) > 2 )
+    if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
       {
-      convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetParameter( currentStage, 2 ) );
+      convergenceWindowSize = parser->Convert<unsigned int>( convergenceOption->GetFunction(
+                                                               currentStage )->GetParameter( 2 ) );
       const unsigned int minAllowedconvergenceWindowSize = 2; // The BSplineScatteredDataPoints requires at least 2
                                                               // points for interpolation.
       if( convergenceWindowSize < minAllowedconvergenceWindowSize )
@@ -696,9 +698,9 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       }
 
-    iterationList.push_back(iterations);
-    convergenceThresholdList.push_back(convergenceThreshold);
-    convergenceWindowSizeList.push_back(convergenceWindowSize);
+    iterationList.push_back( iterations );
+    convergenceThresholdList.push_back( convergenceThreshold );
+    convergenceWindowSizeList.push_back( convergenceWindowSize );
 
     unsigned int numberOfLevels = iterations.size();
     antscout << "  number of levels = " << numberOfLevels << std::endl;
@@ -706,11 +708,11 @@ DoRegistration(typename ParserType::Pointer & parser)
     // Get shrink factors
 
     std::vector<unsigned int> factors =
-      parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetValue( currentStage ) );
-    shrinkFactorsList.push_back(factors);
+      parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetFunction( currentStage )->GetName() );
+    shrinkFactorsList.push_back( factors );
 
     // Get smoothing sigmas
-    std::string smoothingSigmasString = smoothingSigmasOption->GetValue( currentStage );
+    std::string smoothingSigmasString = smoothingSigmasOption->GetFunction( currentStage )->GetName();
     size_t      mmPosition = smoothingSigmasString.find( "mm" );
     size_t      voxPosition = smoothingSigmasString.find( "vox" );
     if( mmPosition != std::string::npos )
@@ -736,15 +738,15 @@ DoRegistration(typename ParserType::Pointer & parser)
     smoothingSigmasList.push_back( sigmas );
 
     float samplingPercentage = 1.0;
-    if( metricOption->GetNumberOfParameters( currentStage ) > 5 )
+    if( metricOption->GetFunction( currentStage )->GetNumberOfParameters() > 5 )
       {
-      samplingPercentage = parser->Convert<float>( metricOption->GetParameter( currentStage, 5 ) );
+      samplingPercentage = parser->Convert<float>( metricOption->GetFunction( currentStage )->GetParameter( 5 ) );
       }
 
     std::string Strategy = "none";
-    if( metricOption->GetNumberOfParameters( currentStage ) > 4 )
+    if( metricOption->GetFunction( currentStage )->GetNumberOfParameters() > 4 )
       {
-      Strategy = metricOption->GetParameter( currentStage, 4 );
+      Strategy = metricOption->GetFunction( currentStage )->GetParameter( 4 );
       }
     ConvertToLowerCase( Strategy );
 
@@ -772,7 +774,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       {
       case RegistrationHelperType::CC:
         {
-        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
+                                                                     currentStage )->GetParameter( 3 ) );
         regHelper->AddMetric(curMetric,
                              fixedImage,
                              movingImage,
@@ -811,7 +814,8 @@ DoRegistration(typename ParserType::Pointer & parser)
       case RegistrationHelperType::Mattes:
       case RegistrationHelperType::MI:
         {
-        unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetParameter( currentStage, 3 ) );
+        unsigned int binOption =
+          parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter( 3 ) );
         regHelper->AddMetric(curMetric,
                              fixedImage,
                              movingImage,
@@ -830,12 +834,12 @@ DoRegistration(typename ParserType::Pointer & parser)
     // Set up the optimizer.  To change the iteration number for each level we rely
     // on the command observer.
 
-    float learningRate = parser->Convert<float>( transformOption->GetParameter( currentStage, 0 ) );
+    float learningRate = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter( 0 ) );
 
-    std::string whichTransform = transformOption->GetValue( currentStage );
+    std::string whichTransform = transformOption->GetFunction( currentStage )->GetName();
     ConvertToLowerCase( whichTransform );
 
-    TransformTypeNames.push_back(whichTransform);
+    TransformTypeNames.push_back(whichTransform );
 
     typename RegistrationHelperType::XfrmMethod xfrmMethod = regHelper->StringToXfrmMethod(whichTransform);
 
@@ -868,21 +872,23 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       case RegistrationHelperType::GaussianDisplacementField:
         {
-        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
-        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetFunction(
+                                                                       currentStage )->GetParameter( 1 ) );
+        const float varianceForTotalField = parser->Convert<float>( transformOption->GetFunction(
+                                                                      currentStage )->GetParameter( 2 ) );
         regHelper->AddGaussianDisplacementFieldTransform(learningRate, varianceForUpdateField, varianceForTotalField);
         }
         break;
       case RegistrationHelperType::BSplineDisplacementField:
         {
         std::vector<unsigned int> meshSizeForTheUpdateField =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
 
         std::vector<unsigned int> meshSizeForTheTotalField;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
           meshSizeForTheTotalField =
-            parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+            parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
           }
         else
           {
@@ -893,9 +899,10 @@ DoRegistration(typename ParserType::Pointer & parser)
           }
 
         unsigned int splineOrder = 3;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
           {
-          splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          splineOrder =
+            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
           }
 
         regHelper->AddBSplineDisplacementFieldTransform(learningRate, meshSizeForTheUpdateField,
@@ -906,20 +913,23 @@ DoRegistration(typename ParserType::Pointer & parser)
       case RegistrationHelperType::BSpline:
         {
         std::vector<unsigned int> MeshSizeAtBaseLevel =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
         regHelper->AddBSplineTransform(learningRate, MeshSizeAtBaseLevel);
         }
         break;
       case RegistrationHelperType::TimeVaryingVelocityField:
         {
-        unsigned int numberOfTimeIndices = parser->Convert<unsigned int>( transformOption->GetParameter( 0, 1 ) );
+        unsigned int numberOfTimeIndices = parser->Convert<unsigned int>( transformOption->GetFunction(
+                                                                            0 )->GetParameter( 1 ) );
 
-        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
-        const float varianceForUpdateFieldTime = parser->Convert<float>( transformOption->GetParameter( currentStage,
-                                                                                                        3 ) );
-        const float varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 4 ) );
-        const float varianceForTotalFieldTime =
-          parser->Convert<float>( transformOption->GetParameter( currentStage, 5 ) );
+        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetFunction(
+                                                                       currentStage )->GetParameter( 2 ) );
+        const float varianceForUpdateFieldTime = parser->Convert<float>( transformOption->GetFunction(
+                                                                           currentStage )->GetParameter( 3 ) );
+        const float varianceForTotalField = parser->Convert<float>( transformOption->GetFunction(
+                                                                      currentStage )->GetParameter( 4 ) );
+        const float varianceForTotalFieldTime = parser->Convert<float>( transformOption->GetFunction(
+                                                                          currentStage )->GetParameter( 5 ) );
         regHelper->AddTimeVaryingVelocityFieldTransform(learningRate,
                                                         numberOfTimeIndices,
                                                         varianceForUpdateField,
@@ -930,17 +940,19 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       case RegistrationHelperType::TimeVaryingBSplineVelocityField:
         {
-        std::vector<unsigned int> meshSize =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( 0, 1 ) );
+        std::vector<unsigned int> meshSize = parser->ConvertVector<unsigned int>( transformOption->GetFunction(
+                                                                                    0 )->GetParameter( 1 ) );
         unsigned int numberOfTimePointSamples = 4;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
-          numberOfTimePointSamples = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+          numberOfTimePointSamples = parser->Convert<unsigned int>( transformOption->GetFunction(
+                                                                      currentStage )->GetParameter( 2 ) );
           }
         unsigned int splineOrder = 3;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
           {
-          splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          splineOrder =
+            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
           }
         regHelper->AddTimeVaryingBSplineVelocityFieldTransform(learningRate,
                                                                meshSize,
@@ -951,14 +963,16 @@ DoRegistration(typename ParserType::Pointer & parser)
       case RegistrationHelperType::SyN:
         {
         float varianceForUpdateField = 3.0;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 1 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 1 )
           {
-          varianceForUpdateField = parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
+          varianceForUpdateField = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(
+                                                             1 ) );
           }
         float varianceForTotalField = 0.0;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
-          varianceForTotalField = parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+          varianceForTotalField = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(
+                                                            2 ) );
           }
         regHelper->AddSyNTransform( learningRate, varianceForUpdateField, varianceForTotalField );
         }
@@ -966,14 +980,15 @@ DoRegistration(typename ParserType::Pointer & parser)
       case RegistrationHelperType::BSplineSyN:
         {
         std::vector<unsigned int> meshSizeForTheUpdateField =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
         std::vector<unsigned int> meshSizeForTheTotalField =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
 
         unsigned int splineOrder = 3;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
           {
-          splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          splineOrder =
+            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
           }
 
         regHelper->AddBSplineSyNTransform(learningRate, meshSizeForTheUpdateField,
@@ -983,15 +998,16 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       case RegistrationHelperType::Exponential:
         {
-        const float varianceForUpdateField =
-          parser->Convert<float>( transformOption->GetParameter( currentStage, 1 ) );
-        const float varianceForVelocityField =
-          parser->Convert<float>( transformOption->GetParameter( currentStage, 2 ) );
+        const float varianceForUpdateField = parser->Convert<float>( transformOption->GetFunction(
+                                                                       currentStage )->GetParameter( 1 ) );
+        const float varianceForVelocityField = parser->Convert<float>( transformOption->GetFunction(
+                                                                         currentStage )->GetParameter( 2 ) );
         unsigned int numberOfIntegrationSteps = 0;  // If the number of integration steps = 0, compute steps
                                                     // automatically
-        if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
           {
-          numberOfIntegrationSteps = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          numberOfIntegrationSteps = parser->Convert<unsigned int>( transformOption->GetFunction(
+                                                                      currentStage )->GetParameter( 3 ) );
           }
         regHelper->AddExponentialTransform( learningRate, varianceForUpdateField, varianceForVelocityField,
                                             numberOfIntegrationSteps );
@@ -1000,13 +1016,13 @@ DoRegistration(typename ParserType::Pointer & parser)
       case RegistrationHelperType::BSplineExponential:
         {
         std::vector<unsigned int> meshSizeForTheUpdateField =
-          parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 1 ) );
+          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
 
         std::vector<unsigned int> meshSizeForTheVelocityField;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 2 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
           meshSizeForTheVelocityField =
-            parser->ConvertVector<unsigned int>( transformOption->GetParameter( currentStage, 2 ) );
+            parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
           }
         else
           {
@@ -1018,15 +1034,17 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         unsigned int numberOfIntegrationSteps = 0;  // If the number of integration steps = 0, compute steps
                                                     // automatically
-        if( transformOption->GetNumberOfParameters( currentStage ) > 3 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
           {
-          numberOfIntegrationSteps = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 3 ) );
+          numberOfIntegrationSteps = parser->Convert<unsigned int>( transformOption->GetFunction(
+                                                                      currentStage )->GetParameter( 3 ) );
           }
 
         unsigned int splineOrder = 3;
-        if( transformOption->GetNumberOfParameters( currentStage ) > 4 )
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 4 )
           {
-          splineOrder = parser->Convert<unsigned int>( transformOption->GetParameter( currentStage, 4 ) );
+          splineOrder =
+            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 4 ) );
           }
 
         regHelper->AddBSplineExponentialTransform( learningRate, meshSizeForTheUpdateField,
@@ -1056,7 +1074,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   //
   // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetCompositeTransform();
-  if( parser->Convert<bool>( compositeOutputOption->GetValue() ) )
+  if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) )
     {
     std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
     std::string inverseCompositeTransformFileName = outputPrefix + std::string( "InverseComposite.h5" );
@@ -1075,7 +1093,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
   // write out transforms actually computed, so skip any initial transforms.
-  for( unsigned int i = initialMovingTransformOption->GetNumberOfValues(); i < numTransforms; ++i )
+  for( unsigned int i = initialMovingTransformOption->GetNumberOfFunctions(); i < numTransforms; ++i )
     {
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
       resultTransform->GetNthTransform( i );
@@ -1164,9 +1182,9 @@ DoRegistration(typename ParserType::Pointer & parser)
   typedef double RealType;
   std::string whichInterpolator( "linear" );
   typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
-  if( interpolationOption && interpolationOption->GetNumberOfValues() > 0 )
+  if( interpolationOption && interpolationOption->GetNumberOfFunctions() )
     {
-    whichInterpolator = interpolationOption->GetValue();
+    whichInterpolator = interpolationOption->GetFunction( 0 )->GetName();
     ConvertToLowerCase( whichInterpolator );
     }
 
@@ -1178,7 +1196,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 #if 1
     // HACK:: This can just be cached when reading the fixedImage from above!!
     //
-    std::string fixedImageFileName = metricOption->GetParameter( numberOfStages - 1, 0 );
+    std::string fixedImageFileName = metricOption->GetFunction( numberOfStages - 1 )->GetParameter( 0 );
 
     typedef itk::ImageFileReader<ImageType> ImageReaderType;
     typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
@@ -1299,7 +1317,7 @@ private:
 
     parser->Parse( argc, argv );
 
-    if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetValue() ) )
+    if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
       {
       parser->PrintMenu( antscout, 5, false );
       if( argc < 2 )
@@ -1308,7 +1326,7 @@ private:
         }
       return EXIT_SUCCESS;
       }
-    else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetValue() ) )
+    else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
       {
       parser->PrintMenu( antscout, 5, true );
       return EXIT_SUCCESS;
@@ -1316,9 +1334,9 @@ private:
     unsigned int dimension = 3;
 
     ParserType::OptionType::Pointer dimOption = parser->GetOption( "dimensionality" );
-    if( dimOption && dimOption->GetNumberOfValues() > 0 )
+    if( dimOption && dimOption->GetNumberOfFunctions() )
       {
-      dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+      dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
       }
     else
       {

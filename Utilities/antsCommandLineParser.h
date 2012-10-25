@@ -93,6 +93,14 @@ public:
     return this->m_UnknownOptions;
   }
 
+  /**
+   * This feature is designed for a more advanced command line usage
+   * where multiple option values are used per stage (e.g.
+   * antsRegistration).  Multiple option value are considered to be of
+   * the same stage if they are situated adjacently on the command line.
+   */
+  void AssignStages();
+
   template <class TValue>
   TValue Convert( std::string optionString )
   {

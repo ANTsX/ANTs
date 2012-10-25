@@ -31,9 +31,9 @@ typename InterpolatorType::Pointer interpolator = NULL;
     {
     typedef itk::BSplineInterpolateImageFunction<ImageType, RealType> BSplineInterpolatorType;
     typename BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
-    if( interpolationOption->GetNumberOfParameters() > 0 )
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetParameter( 0, 0 ) );
+      unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
       bSplineInterpolator->SetSplineOrder( bsplineOrder );
       }
     interpolator = bSplineInterpolator;
@@ -49,27 +49,27 @@ typename InterpolatorType::Pointer interpolator = NULL;
       }
     double alpha = 1.0;
 
-    if( interpolationOption->GetNumberOfParameters() > 0 )
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
+      std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
       if( s.size() == VImageDimension )
-	{
-	for( unsigned int d = 0; d < VImageDimension; d++ )
-	  {
-	  sigma[d] = s[d];
-	  }
-	}
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[d];
+          }
+        }
       else
-	{
-	for( unsigned int d = 0; d < VImageDimension; d++ )
-	  {
-	  sigma[d] = s[0];
-	  }
-	}
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[0];
+          }
+        }
       }
-    if( interpolationOption->GetNumberOfParameters() > 1 )
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      alpha = parser->Convert<double>( interpolationOption->GetParameter( 1 ) );
+      alpha = parser->Convert<double>( interpolationOption->GetFunction( 0 )->GetParameter( 1 ) );
       }
     gaussianInterpolator->SetParameters( sigma, alpha );
     interpolator = gaussianInterpolator;
@@ -122,23 +122,23 @@ typename InterpolatorType::Pointer interpolator = NULL;
       }
     double alpha = 4.0;
 
-    if( interpolationOption->GetNumberOfParameters() > 0 )
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetParameter( 0 ) );
+      std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
       if( s.size() == VImageDimension )
-	{
-	for( unsigned int d = 0; d < VImageDimension; d++ )
-	  {
-	  sigma[d] = s[d];
-	  }
-	}
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[d];
+          }
+        }
       else
-	{
-	for( unsigned int d = 0; d < VImageDimension; d++ )
-	  {
-	  sigma[d] = s[0];
-	  }
-	}
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[0];
+          }
+        }
       }
     multiLabelInterpolator->SetParameters( sigma, alpha );
     interpolator = multiLabelInterpolator;

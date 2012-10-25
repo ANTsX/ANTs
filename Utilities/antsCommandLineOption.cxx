@@ -26,54 +26,50 @@ CommandLineOption
   m_LongName( "" ),
   m_Description( "" )
 {
-  this->m_Values.clear();
+  this->m_OptionFunctions.clear();
   this->m_UsageOptions.clear();
 }
 
 void
 CommandLineOption
-::AddValue( std::string value, char leftDelimiter, char rightDelimiter )
+::AddFunction( std::string functionString, char leftDelimiter, char rightDelimiter, unsigned int order )
 {
-  std::string::size_type leftDelimiterPos = value.find( leftDelimiter );
-  std::string::size_type rightDelimiterPos = value.find( rightDelimiter );
+  OptionFunctionType::Pointer optionFunction = OptionFunctionType::New();
+
+  optionFunction->SetArgOrder( order );
+
+  std::string::size_type leftDelimiterPos = functionString.find( leftDelimiter );
+  std::string::size_type rightDelimiterPos = functionString.find( rightDelimiter );
 
   if( leftDelimiterPos == std::string::npos ||
       rightDelimiterPos == std::string::npos )
     {
-    this->m_Values.push_front( value );
-
-    ValueStackType parameters;
-    this->m_Parameters.push_front( parameters );
+    optionFunction->SetName( functionString );
+    this->m_OptionFunctions.push_front( optionFunction );
     }
   else
     {
-    ValueStackType parameters;
+    OptionFunctionType::ParameterStackType parameters;
 
-    this->m_Values.push_front( value.substr( 0, leftDelimiterPos ) );
+    optionFunction->SetName( functionString.substr( 0, leftDelimiterPos ) );
 
     std::string::size_type leftPos = leftDelimiterPos;
-    std::string::size_type rightPos = value.find( ',', leftPos + 1 );
+    std::string::size_type rightPos = functionString.find( ',', leftPos + 1 );
     while( rightPos != std::string::npos )
       {
-      parameters.push_back( value.substr( leftPos + 1, rightPos - leftPos - 1 ) );
+      parameters.push_back( functionString.substr( leftPos + 1, rightPos - leftPos - 1 ) );
       leftPos = rightPos;
-      rightPos = value.find( ',', leftPos + 1 );
+      rightPos = functionString.find( ',', leftPos + 1 );
       }
 
     rightPos = rightDelimiterPos;
-    parameters.push_back( value.substr( leftPos + 1, rightPos - leftPos - 1 ) );
+    parameters.push_back( functionString.substr( leftPos + 1, rightPos - leftPos - 1 ) );
 
-    this->m_Parameters.push_front( parameters );
+    optionFunction->SetParameters( parameters );
+
+    this->m_OptionFunctions.push_front( optionFunction );
     }
 
-  this->Modified();
-}
-
-void
-CommandLineOption
-::SetValue( unsigned int i, std::string value )
-{
-  this->m_Values[i] = value;
   this->Modified();
 }
 

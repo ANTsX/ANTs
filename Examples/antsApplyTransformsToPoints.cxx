@@ -40,15 +40,16 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
-  if( inputOption && inputOption->GetNumberOfValues() > 0 )
+  if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
     {
-    antscout << "Input csv file: " << inputOption->GetValue() << std::endl;
-    std::string ext = itksys::SystemTools::GetFilenameExtension(  ( inputOption->GetValue() ).c_str()  );
+    antscout << "Input csv file: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    std::string ext =
+      itksys::SystemTools::GetFilenameExtension(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
     if( strcmp(ext.c_str(), ".csv") == 0 )
       {
       typedef itk::CSVArray2DFileReader<double> ReaderType;
       typename ReaderType::Pointer reader = ReaderType::New();
-      reader->SetFileName(  ( inputOption->GetValue() ).c_str()  );
+      reader->SetFileName(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
       reader->SetFieldDelimiterCharacter( ',' );
       reader->SetStringDelimiterCharacter( '"' );
       reader->HasColumnHeadersOn();
@@ -81,10 +82,10 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       return EXIT_FAILURE;
       }
 
-    if( outputOption && outputOption->GetNumberOfValues() > 0 )
+    if( outputOption && outputOption->GetNumberOfFunctions() > 0 )
       {
-      if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
-          parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
+      if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
+          parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
         {
         antscout << "An input csv file is required." << std::endl;
         return EXIT_FAILURE;
@@ -142,17 +143,17 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
     /**
      * output
      */
-    if( outputOption && outputOption->GetNumberOfValues() > 0 )
+    if( outputOption && outputOption->GetNumberOfFunctions() > 0 )
       {
       std::string outputFileName = "";
-      if( outputOption->GetNumberOfParameters( 0 ) > 1 &&
-          parser->Convert<unsigned int>( outputOption->GetParameter( 0, 1 ) ) == 0 )
+      if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
+          parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
         {
-        outputFileName = outputOption->GetParameter( 0, 0 );
+        outputFileName = outputOption->GetFunction( 0 )->GetParameter( 0 );
         }
       else
         {
-        outputFileName = outputOption->GetValue();
+        outputFileName = outputOption->GetFunction( 0 )->GetName();
         }
       antscout << "Output warped points to csv file: " << outputFileName << std::endl;
       std::vector<std::string> ColumnHeaders;
@@ -269,7 +270,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -279,7 +280,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -347,7 +348,7 @@ private:
   parser->Parse( argc, argv );
 
   if( argc < 2 || ( parser->GetOption( "help" ) &&
-                    ( parser->Convert<bool>( parser->GetOption( "help" )->GetValue() ) ) ) )
+                    ( parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) ) ) )
     {
     parser->PrintMenu( antscout, 5, false );
     if( argc < 2 )
@@ -357,7 +358,7 @@ private:
     return EXIT_SUCCESS;
     }
   else if( parser->GetOption( 'h' ) &&
-           ( parser->Convert<bool>( parser->GetOption( 'h' )->GetValue() ) ) )
+           ( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) ) )
     {
     parser->PrintMenu( antscout, 5, true );
     return EXIT_SUCCESS;
@@ -368,15 +369,15 @@ private:
 
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
     parser->GetOption( "input" );
-  if( inputOption && inputOption->GetNumberOfValues() > 0 )
+  if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
     {
-    if( inputOption->GetNumberOfParameters( 0 ) > 0 )
+    if( inputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      filename = inputOption->GetParameter( 0, 0 );
+      filename = inputOption->GetFunction( 0 )->GetParameter( 0 );
       }
     else
       {
-      filename = inputOption->GetValue( 0 );
+      filename = inputOption->GetFunction( 0 )->GetName();
       }
     }
   else
@@ -388,9 +389,9 @@ private:
   unsigned int                                      dimension = 3;
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );
-  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+  if( dimOption && dimOption->GetNumberOfFunctions() > 0 )
     {
-    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
     }
   else
     {

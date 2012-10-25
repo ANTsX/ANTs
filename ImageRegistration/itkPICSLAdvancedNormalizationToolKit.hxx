@@ -86,7 +86,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     ::ants::antscout << std::endl;
     }
 
-  std::string  printhelp_long = this->m_Parser->GetOption( "help" )->GetValue();
+  std::string  printhelp_long = this->m_Parser->GetOption( "help" )->GetFunction( 0 )->GetName();
   unsigned int help_long =
     this->m_Parser->template Convert<unsigned int>( printhelp_long );
   if( help_long )
@@ -96,7 +96,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     exit( EXIT_SUCCESS );
     }
 
-  std::string  printhelp_short = this->m_Parser->GetOption( 'h' )->GetValue();
+  std::string  printhelp_short = this->m_Parser->GetOption( 'h' )->GetFunction( 0 )->GetName();
   unsigned int help_short =
     this->m_Parser->template Convert<unsigned int>( printhelp_short );
   if( help_short )
@@ -120,7 +120,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     {
     this->m_RegistrationOptimizer = RegistrationOptimizerType::New();
     }
-  std::string temp = this->m_Parser->GetOption( "output-naming" )->GetValue();
+  std::string temp = this->m_Parser->GetOption( "output-naming" )->GetFunction( 0 )->GetName();
   this->m_TransformationModel->SetNamingConvention( temp );
   this->m_TransformationModel->InitializeTransform();
   this->m_RegistrationOptimizer->SetParser( this->m_Parser );
@@ -142,7 +142,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   if( typename OptionType::Pointer option = this->m_Parser->GetOption( "mask-image" ) )
     {
     typedef ImageFileReader<ImageType> ReaderType;
-    std::string maskfn =  this->m_Parser->GetOption( "mask-image" )->GetValue();
+    std::string maskfn =  this->m_Parser->GetOption( "mask-image" )->GetFunction( 0 )->GetName();
     if( maskfn.length() > 4 )
       {
       typename ReaderType::Pointer maskImageFileReader = ReaderType::New();
@@ -157,7 +157,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
   // added by songgang
   // try initialize the affine transform
-  typename OptionType::ValueType initial_affine_filename = this->m_Parser->GetOption( "initial-affine" )->GetValue();
+  std::string initial_affine_filename = this->m_Parser->GetOption( "initial-affine" )->GetFunction( 0 )->GetName();
   if( initial_affine_filename != "" )
     {
     ::ants::antscout << "Loading affine registration from: " << initial_affine_filename << std::endl;
@@ -168,8 +168,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     ::ants::antscout << "Use identity affine transform as initial affine para." << std::endl;
     ::ants::antscout << "aff_init.IsNull()==" << aff_init.IsNull() << std::endl;
     }
-  typename OptionType::ValueType fixed_initial_affine_filename = this->m_Parser->GetOption(
-      "fixed-image-initial-affine" )->GetValue();
+  std::string fixed_initial_affine_filename = this->m_Parser->GetOption(
+      "fixed-image-initial-affine" )->GetFunction( 0 )->GetName();
   if( fixed_initial_affine_filename != "" )
     {
     ::ants::antscout << "Loading affine registration from: " << fixed_initial_affine_filename << std::endl;
@@ -180,7 +180,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       <<
       " FIXME!  currently, if one passes a fixed initial affine mapping, then NO affine mapping will be performed subsequently! "
       << std::endl;
-    std::string refheader = this->m_Parser->GetOption( "fixed-image-initial-affine-ref-image" )->GetValue();
+    std::string refheader =
+      this->m_Parser->GetOption( "fixed-image-initial-affine-ref-image" )->GetFunction( 0 )->GetName();
     if( refheader != "" )
       {
       ::ants::antscout << " Setting reference deformation space by " << refheader << std::endl;
@@ -198,7 +199,8 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     ::ants::antscout << "fixed_aff_init.IsNull()==" << fixed_aff_init.IsNull() << std::endl;
     }
 
-  bool useNN = this->m_Parser->template Convert<bool>( this->m_Parser->GetOption( "use-NN" )->GetValue() );
+  bool useNN =
+    this->m_Parser->template Convert<bool>( this->m_Parser->GetOption( "use-NN" )->GetFunction()->GetName() );
   if( useNN )
     {
     this->m_RegistrationOptimizer->SetUseNearestNeighborInterpolation(true);
@@ -208,7 +210,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     this->m_RegistrationOptimizer->SetUseNearestNeighborInterpolation(false);
     }
 
-  typename OptionType::ValueType continue_affine = this->m_Parser->GetOption( "continue-affine" )->GetValue();
+  std::string continue_affine = this->m_Parser->GetOption( "continue-affine" )->GetFunction( 0 )->GetName();
   if( fixed_initial_affine_filename != "" )
     {
     continue_affine = std::string("false");
@@ -221,10 +223,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     // InitializeAffineOption()
       {
       affine_opt.transform_initial = aff_init;
-      std::string temp = this->m_Parser->GetOption( "number-of-affine-iterations" )->GetValue();
+      std::string temp = this->m_Parser->GetOption( "number-of-affine-iterations" )->GetFunction( 0 )->GetName();
       affine_opt.number_of_iteration_list = this->m_Parser->template ConvertVector<int>(temp);
       affine_opt.number_of_levels = affine_opt.number_of_iteration_list.size();
-      temp = this->m_Parser->GetOption( "affine-metric-type" )->GetValue();
+      temp = this->m_Parser->GetOption( "affine-metric-type" )->GetFunction( 0 )->GetName();
       if( temp == "MI" )
         {
         affine_opt.metric_type = AffineWithMutualInformation;
@@ -245,27 +247,27 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         {
         affine_opt.metric_type = AffineWithGradientDifference;
         }
-      temp = this->m_Parser->GetOption( "MI-option" )->GetValue();
+      temp = this->m_Parser->GetOption( "MI-option" )->GetFunction( 0 )->GetName();
       std::vector<int> mi_option = this->m_Parser->template ConvertVector<int>(temp);
       affine_opt.MI_bins = mi_option[0];
       affine_opt.MI_samples = mi_option[1];
-      temp = this->m_Parser->GetOption( "rigid-affine" )->GetValue();
-      std::string temp2 = this->m_Parser->GetOption( "do-rigid" )->GetValue();
+      temp = this->m_Parser->GetOption( "rigid-affine" )->GetFunction( 0 )->GetName();
+      std::string temp2 = this->m_Parser->GetOption( "do-rigid" )->GetFunction( 0 )->GetName();
       affine_opt.is_rigid = (
           ( temp == "true" )  || ( temp2 == "true" ) ||
           ( temp == "1" ) || ( temp2 == "1" ) );
-      temp = this->m_Parser->GetOption( "affine-gradient-descent-option" )->GetValue();
+      temp = this->m_Parser->GetOption( "affine-gradient-descent-option" )->GetFunction( 0 )->GetName();
       std::vector<double> gradient_option = this->m_Parser->template ConvertVector<double>(temp);
       affine_opt.maximum_step_length = gradient_option[0];
       affine_opt.relaxation_factor = gradient_option[1];
       affine_opt.minimum_step_length = gradient_option[2];
       affine_opt.translation_scales = gradient_option[3];
       // ::ants::antscout << affine_opt;
-      temp = this->m_Parser->GetOption( "use-rotation-header" )->GetValue();
+      temp = this->m_Parser->GetOption( "use-rotation-header" )->GetFunction( 0 )->GetName();
       affine_opt.use_rotation_header = (temp == "true");
       ::ants::antscout << "affine_opt.use_rotation_header = " << affine_opt.use_rotation_header  << std::endl;
 
-      temp = this->m_Parser->GetOption( "ignore-void-origin")->GetValue();
+      temp = this->m_Parser->GetOption( "ignore-void-origin")->GetFunction( 0 )->GetName();
       affine_opt.ignore_void_orgin = (temp == "true");
       ::ants::antscout << "affine_opt.ignore_void_orgin = " << affine_opt.ignore_void_orgin  << std::endl;
       }
@@ -386,15 +388,15 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
   typedef ImageFileReader<ImageType> ReaderType;
   bool useHistMatch = this->m_Parser->template Convert<bool>( this->m_Parser->GetOption(
-                                                                "use-Histogram-Matching" )->GetValue() );
+                                                                "use-Histogram-Matching" )->GetFunction()->GetName() );
 
   /**
    * Read the metrics and image files
    */
   if( typename OptionType::Pointer option = this->m_Parser->GetOption( "image-metric" ) )
     {
-    ::ants::antscout << " values " <<  option->GetNumberOfValues() << std::endl;
-    for( unsigned int i = 0; i < option->GetNumberOfValues(); i++ )
+    ::ants::antscout << " values " <<  option->GetNumberOfFunctions() << std::endl;
+    for( unsigned int i = 0; i < option->GetNumberOfFunctions(); i++ )
       {
       SimilarityMetricPointer similarityMetric = SimilarityMetricType::New();
       RealType                similarityMetricScalarWeight = 1.0;
@@ -403,7 +405,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       unsigned int parameterCount = 0;
 
       typename ReaderType::Pointer fixedImageFileReader = ReaderType::New();
-      fixedImageFileReader->SetFileName( option->GetParameter( i, parameterCount ) );
+      fixedImageFileReader->SetFileName( option->GetFunction( i )->GetParameter(  parameterCount ) );
       fixedImageFileReader->Update();
       ImagePointer fixedImage = this->PreprocessImage(
           fixedImageFileReader->GetOutput() );
@@ -414,7 +416,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
                        << fixedImageFileReader->GetFileName() << std::endl;
 
       typename ReaderType::Pointer movingImageFileReader = ReaderType::New();
-      movingImageFileReader->SetFileName( option->GetParameter( i, parameterCount ) );
+      movingImageFileReader->SetFileName( option->GetFunction( i )->GetParameter(  parameterCount ) );
       movingImageFileReader->Update();
       ImagePointer movingImage = this->PreprocessImage(
           movingImageFileReader->GetOutput() );
@@ -442,7 +444,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
       bool isMetricPointSetBased = false;
 
-      typename OptionType::ValueType whichMetric = option->GetValue( i );
+      std::string whichMetric = option->GetFunction( i )->GetName();
 
       if( whichMetric == "point-set-expectation" ||
           whichMetric == "PointSetExpectation" ||
@@ -458,7 +460,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       if( isMetricPointSetBased )
         {
         ::ants::antscout << "Metric " << i << ": " << " Point-set " << whichMetric <<  " n-params "
-                         <<  option->GetNumberOfParameters( i )  << std::endl;
+                         <<  option->GetFunction( i )->GetNumberOfParameters()  << std::endl;
         /**
          * Read in the point-set metric parameters
          */
@@ -468,19 +470,19 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         typename PointSetReaderType::Pointer fixedPointSetReader
           = PointSetReaderType::New();
         fixedPointSetReader->SetFileName(
-          option->GetParameter( i, parameterCount ) );
+          option->GetFunction( i )->GetParameter(  parameterCount ) );
         parameterCount++;
 
         typename PointSetReaderType::Pointer movingPointSetReader
           = PointSetReaderType::New();
         movingPointSetReader->SetFileName(
-          option->GetParameter( i, parameterCount ) );
+          option->GetFunction( i )->GetParameter(  parameterCount ) );
         parameterCount++;
 
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
           similarityMetricScalarWeight = this->m_Parser->template
-            Convert<RealType>( option->GetParameter( i, parameterCount ) );
+            Convert<RealType>( option->GetFunction( i )->GetParameter(  parameterCount ) );
           parameterCount++;
           }
         similarityMetric->SetWeightScalar( similarityMetricScalarWeight );
@@ -491,28 +493,28 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         TReal        pointSetSigma = 5.0;
         bool         extractBoundaryPointsOnly = false;
         unsigned int kNeighborhood = 50;
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
           pointSetPercent = this->m_Parser->template
-            Convert<TReal>( option->GetParameter( i, parameterCount ) );
+            Convert<TReal>( option->GetFunction( i )->GetParameter(  parameterCount ) );
           parameterCount++;
           }
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
           pointSetSigma = this->m_Parser->template
-            Convert<TReal>( option->GetParameter( i, parameterCount ) );
+            Convert<TReal>( option->GetFunction( i )->GetParameter(  parameterCount ) );
           parameterCount++;
           }
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
           extractBoundaryPointsOnly = this->m_Parser->template
-            Convert<bool>( option->GetParameter( i, parameterCount ) );
+            Convert<bool>( option->GetFunction( i )->GetParameter(  parameterCount ) );
           parameterCount++;
           }
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
           kNeighborhood = this->m_Parser->template
-            Convert<unsigned int>( option->GetParameter( i, parameterCount ) );
+            Convert<unsigned int>( option->GetFunction( i )->GetParameter(  parameterCount ) );
           parameterCount++;
           }
         ::ants::antscout << " point-set sigma = " << pointSetSigma << std::endl;
@@ -571,10 +573,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
           metric->SetMovingPointSetSigma( pointSetSigma );
           metric->SetKNeighborhood( kNeighborhood );
 
-          if( option->GetNumberOfParameters( i ) > parameterCount )
+          if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
             {
             unsigned int pm =
-              this->m_Parser->template  Convert<unsigned int>( option->GetParameter( i, parameterCount ) );
+              this->m_Parser->template  Convert<unsigned int>( option->GetFunction( i )->GetParameter(  parameterCount ) );
             metric->SetUseSymmetricMatching( pm );
             ::ants::antscout << " Symmetric match iterations -- going Asymmeric for the rest " << pm << std::endl;
             parameterCount++;
@@ -601,17 +603,17 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //                metric->SetFixedEvaluationKNeighborhood( kNeighborhood );
 //                metric->SetMovingEvaluationKNeighborhood( kNeighborhood );
 //
-//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                if ( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
 //                  {
 //                  metric->SetAlpha( this->m_Parser->template
-//                  Convert<TReal>( option->GetParameter( i, parameterCount ) ) );
+//                  Convert<TReal>( option->GetFunction( i )->GetParameter(  parameterCount ) ) );
 //                  parameterCount++;
 //                  }
-//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                if ( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
 //                  {
 //                  typename RegistrationOptimizerType::ArrayType meshResolution;
 //                  std::vector<TReal> resolution = this->m_Parser->template
-//                    ConvertVector<TReal>( option->GetParameter( i, parameterCount ) );
+//                    ConvertVector<TReal>( option->GetFunction( i )->GetParameter(  parameterCount ) );
 //                  if ( resolution.size() != TDimension )
 //                    {
 //                    itkExceptionMacro( "Mesh resolution does not match image dimension." );
@@ -623,23 +625,23 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //                  metric->SetMeshResolution( meshResolution );
 //                  parameterCount++;
 //                  }
-//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                if ( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
 //                  {
 //                  metric->SetSplineOrder( this->m_Parser->template
-//                  Convert<unsigned int>( option->GetParameter( i, parameterCount ) ) );
+//                  Convert<unsigned int>( option->GetFunction( i )->GetParameter(  parameterCount ) ) );
 //                  parameterCount++;
 //                  }
-//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                if ( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
 //                  {
 //                  metric->SetNumberOfLevels( this->m_Parser->template
-//                  Convert<unsigned int>( option->GetParameter( i, parameterCount ) ) );
+//                  Convert<unsigned int>( option->GetFunction( i )->GetParameter(  parameterCount ) ) );
 //                  parameterCount++;
 //                  }
-//                if ( option->GetNumberOfParameters( i ) > parameterCount )
+//                if ( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
 //                  {
 //                  metric->SetUseAnisotropicCovariances(
 //                    this->m_Parser->template Convert<bool>(
-//                    option->GetParameter( i, parameterCount ) ) );
+//                    option->GetFunction( i )->GetParameter(  parameterCount ) ) );
 //                  parameterCount++;
 //                  }
 //
@@ -672,10 +674,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         similarityMetric->SetFixedPointSet( NULL);
         similarityMetric->SetMovingPointSet( NULL );
 
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
           similarityMetricScalarWeight = this->m_Parser->template
-            Convert<RealType>( option->GetParameter( i, parameterCount ) );
+            Convert<RealType>( option->GetFunction( i )->GetParameter(  parameterCount ) );
           parameterCount++;
           }
         similarityMetric->SetWeightScalar( similarityMetricScalarWeight );
@@ -683,11 +685,11 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
                          << similarityMetricScalarWeight << std::endl;
 
         radius.Fill( 0 );
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
           std::vector<unsigned int> rad = this->m_Parser->template
-            ConvertVector<unsigned int>( option->GetParameter( i,
-                                                               parameterCount ) );
+            ConvertVector<unsigned int>( option->GetFunction( i )->GetParameter(
+                                           parameterCount ) );
 
           if( rad.size() == 1 )
             {
@@ -710,9 +712,10 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
         ::ants::antscout << "  Radius: " << radius << std::endl;
 
         TReal extraparam = -1.e12;
-        if( option->GetNumberOfParameters( i ) > parameterCount )
+        if( option->GetFunction( i )->GetNumberOfParameters() > parameterCount )
           {
-          extraparam = this->m_Parser->template Convert<TReal>( option->GetParameter( i, parameterCount ) );
+          extraparam = this->m_Parser->template Convert<TReal>( option->GetFunction( i )->GetParameter(
+                                                                  parameterCount ) );
           ::ants::antscout << " Setting Extra Param to :  " << extraparam
                            << " often used as a robustness parameter for longitudinal studies " << std::endl;
           parameterCount++;
@@ -1028,7 +1031,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       "TODO/FIXME: the --R sets an ROI option -- it passes a vector of parameters that sets the center and bounding box \n of the region of interest for a sub-field registration.   e.g. in 3D  the option setting \n  -r   10x12x15x50x50x25 \n sets up a bounding box of size 50,50,25 with origin at   10,12,15 in voxel  (should this be physical?) coordinates. " );
     std::string roidefault = std::string("0");
     /** set up a default parameter */
-    option->AddValue(roidefault);
+    option->AddFunction(roidefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1040,7 +1043,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription( "number of levels in multi-resolution optimization -- an integer :: 3 is a common choice " );
     std::string nlevdefault = std::string("3");
     /** set up a default parameter */
-    option->AddValue(nlevdefault);
+    option->AddFunction(nlevdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1052,7 +1055,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription( "number of iterations per level -- a 'vector' e.g.  :  100x100x20 " );
     std::string nitdefault = std::string("10x10x5");
     /** set up a default parameter */
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1072,7 +1075,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       nitdefault = std::string("1x1x1");
       }
     /** set up a default parameter */
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1153,7 +1156,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription(
       " enable to use weighted sum of all metric terms for convergence computation. By default, only the first metric is used");
     std::string zero = std::string( "0" );
-    option->AddValue( zero );
+    option->AddFunction( zero );
     this->m_Parser->AddOption( option );
     }
 
@@ -1165,7 +1168,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetShortName( 'h' );
     option->SetDescription( description );
     std::string zero = std::string( "0" );
-    option->AddValue( zero );
+    option->AddFunction( zero );
     this->m_Parser->AddOption( option );
     }
 
@@ -1177,7 +1180,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "help" );
     option->SetDescription( description );
     std::string zero = std::string( "0" );
-    option->AddValue( zero );
+    option->AddFunction( zero );
     this->m_Parser->AddOption( option );
     }
 
@@ -1190,7 +1193,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       "TRANSFORMATION[gradient-step-length,number-of-time-steps,DeltaTime,symmetry-type].\n\t      Choose one of the following TRANSFORMATIONS:\n\t\tDiff = diffeomorphic\n\t\tElast = Elastic\n\t\tExp = exponential diff\n\t\t Greedy Exp = greedy exponential diff, like diffeomorphic demons. same parameters. \n\t\tSyN -- symmetric normalization \n \n DeltaTime is the integration time-discretization step - sub-voxel - n-time steps currently fixed at 2 " );
     std::string nitdefault = std::string("SyN[0.5]");
     /** set up a default parameter */
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1210,7 +1213,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //        option->SetLongName( "gradient-field-sigma" );
 //        option->SetShortName( 'g' );
 //        option->SetDescription( "this smooths the gradient update field" );
-//        option->AddValue("0.0");
+//        option->AddFunction("0.0");
 //        this->m_Parser->AddOption( option );
 //    }
 //
@@ -1220,7 +1223,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 //        option->SetLongName( "gradient-step-length" );
 //        option->SetShortName( 'l' );
 //        option->SetDescription( "gradient descent parameter - a TReal :: e.g. 1.0 " );
-//        option->AddValue("1.0");
+//        option->AddFunction("1.0");
 //        this->m_Parser->AddOption( option );
 //    }
 
@@ -1233,7 +1236,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       "REGULARIZATION[gradient-field-sigma,def-field-sigma,truncation].\n\t      Choose one of the following REGULARIZATIONS:\n\t\tGauss = gaussian\n\t\tDMFFD = directly manipulated free form deformation" );
     std::string nitdefault = std::string("Gauss[3,0.5]");
     /** set up a default parameter */
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1282,7 +1285,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription(
       " true / false -- if true, SyN is faster but loses some accuracy wrt inverse-identity constraint, see Avants MIA 2008.");
     std::string nitdefault = std::string("false");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1293,7 +1296,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "continue-affine");
     option->SetDescription( "true (default) | false, do (not) perform affine given the initial affine parameters");
     std::string nitdefault = std::string("true");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1305,7 +1308,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "number-of-affine-iterations" );
     option->SetDescription( "number of iterations per level -- a 'vector' e.g.  :  100x100x20 " );
     std::string nitdefault = std::string("10000x10000x10000");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
   if( true )
@@ -1314,7 +1317,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "use-NN" );
     option->SetDescription( "use nearest neighbor interpolation " );
     std::string nitdefault = std::string("0");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
   if( true )
@@ -1323,7 +1326,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "use-Histogram-Matching" );
     option->SetDescription( "use histogram matching of moving to fixed image " );
     std::string nitdefault = std::string("0");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1334,7 +1337,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription(
       "MI: mutual information (default), MSQ: mean square error, SSD, CC: Normalized correlation, CCH: Histogram-based correlation coefficient (not recommended), GD: gradient difference (not recommended) " );
     std::string nitdefault = std::string("MI");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1348,17 +1351,17 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       {
       case 2:
         {
-        option->AddValue(std::string("32x5000") );
+        option->AddFunction(std::string("32x5000") );
         }
         break;
       case 3:
         {
-        option->AddValue(std::string("32x32000") );
+        option->AddFunction(std::string("32x32000") );
         }
         break;
       }
     // std::string nitdefault=std::string("32x8000");
-    // option->AddValue(nitdefault);
+    // option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1368,7 +1371,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "rigid-affine" );
     option->SetDescription( "use rigid transformation : true / false(default)" );
     std::string nitdefault = std::string("false");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
   if( true )
@@ -1377,7 +1380,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "do-rigid" );
     option->SetDescription( "use rigid transformation : true / false(default)" );
     std::string nitdefault = std::string("false");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1388,7 +1391,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription(
       "option of gradient descent in affine transformation:  maximum_step_length x relaxation_factor x minimum_step_length x translation_scales ");
     std::string nitdefault = std::string("0.1x0.5x1.e-4x1.e-4");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1398,7 +1401,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetLongName( "use-rotation-header" );
     option->SetDescription( "use rotation matrix in image headers: true (default) / false" );
     std::string nitdefault = std::string("false");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1409,7 +1412,7 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     option->SetDescription(
       "ignore the apparently unmatched origins (when use-rotation-header is false and the rotation matrix is identity: true (default) / false" );
     std::string nitdefault = std::string("false");
-    option->AddValue(nitdefault);
+    option->AddFunction(nitdefault);
     this->m_Parser->AddOption( option );
     }
 
@@ -1423,12 +1426,12 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       + std::string( "both fixed and moving images for each resolution " )
       + std::string( "level." );
 
-    std::string defaultValue = std::string( "" );
+    std::string defaultFunction = std::string( "" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "gaussian-smoothing-sigmas" );
     option->SetDescription( description );
-    option->AddValue( defaultValue );
+    option->AddFunction( defaultFunction );
     this->m_Parser->AddOption( option );
     }
 
@@ -1442,12 +1445,12 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       + std::string( "both fixed and moving images for each resolution " )
       + std::string( "level." );
 
-    std::string defaultValue = std::string( "" );
+    std::string defaultFunction = std::string( "" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "subsampling-factors" );
     option->SetDescription( description );
-    option->AddValue( defaultValue );
+    option->AddFunction( defaultFunction );
     this->m_Parser->AddOption( option );
     }
 }

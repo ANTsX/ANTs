@@ -85,12 +85,11 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
   debugOption = parser->GetOption( "print-debug-information" );
-  if( debugOption && debugOption->GetNumberOfValues() > 0 )
+  if( debugOption && debugOption->GetNumberOfFunctions() )
     {
-    std::string value = debugOption->GetValue();
+    std::string value = debugOption->GetFunction()->GetName();
     ConvertToLowerCase( value );
-    if( std::strcmp( value.c_str(), "true" ) ||
-        parser->Convert<int>( debugOption->GetValue() ) != 0 )
+    if( std::strcmp( value.c_str(), "true" ) || parser->Convert<int>( value ) != 0 )
       {
       direct->DebugOn();
       }
@@ -101,43 +100,40 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
   segmentationImageOption = parser->GetOption( "segmentation-image" );
-  if( segmentationImageOption )
+  if( segmentationImageOption && segmentationImageOption->GetNumberOfFunctions() )
     {
-    if( segmentationImageOption->GetNumberOfValues() > 0 )
+    if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      if( segmentationImageOption->GetNumberOfParameters() == 0 )
+      typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+      typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+      std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetName();
+      labelReader->SetFileName( inputFile.c_str() );
+
+      segmentationImage = labelReader->GetOutput();
+      segmentationImage->Update();
+      segmentationImage->DisconnectPipeline();
+      }
+    else if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
+      typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
+
+      std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetParameter( 0 );
+      labelReader->SetFileName( inputFile.c_str() );
+
+      segmentationImage = labelReader->GetOutput();
+      segmentationImage->Update();
+      segmentationImage->DisconnectPipeline();
+      if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
-        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
-
-        std::string inputFile = segmentationImageOption->GetValue();
-        labelReader->SetFileName( inputFile.c_str() );
-
-        segmentationImage = labelReader->GetOutput();
-        segmentationImage->Update();
-        segmentationImage->DisconnectPipeline();
+        direct->SetGrayMatterLabel( parser->Convert<LabelType>(
+                                      segmentationImageOption->GetFunction( 0 )->GetParameter( 1 ) ) );
         }
-      else if( segmentationImageOption->GetNumberOfParameters() > 0 )
+      if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
         {
-        typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
-        typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
-
-        std::string inputFile = segmentationImageOption->GetParameter( 0 );
-        labelReader->SetFileName( inputFile.c_str() );
-
-        segmentationImage = labelReader->GetOutput();
-        segmentationImage->Update();
-        segmentationImage->DisconnectPipeline();
-        if( segmentationImageOption->GetNumberOfParameters() > 1 )
-          {
-          direct->SetGrayMatterLabel( parser->Convert<LabelType>(
-                                        segmentationImageOption->GetParameter( 1 ) ) );
-          }
-        if( segmentationImageOption->GetNumberOfParameters() > 2 )
-          {
-          direct->SetWhiteMatterLabel( parser->Convert<LabelType>(
-                                         segmentationImageOption->GetParameter( 2 ) ) );
-          }
+        direct->SetWhiteMatterLabel( parser->Convert<LabelType>(
+                                       segmentationImageOption->GetFunction( 0 )->GetParameter( 2 ) ) );
         }
       }
     }
@@ -153,12 +149,12 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
   grayMatterOption = parser->GetOption( "gray-matter-probability-image" );
-  if( grayMatterOption && grayMatterOption->GetNumberOfValues() > 0 )
+  if( grayMatterOption && grayMatterOption->GetNumberOfFunctions() )
     {
     typedef itk::ImageFileReader<ImageType> ReaderType;
     typename ReaderType::Pointer gmReader = ReaderType::New();
 
-    std::string gmFile = grayMatterOption->GetValue();
+    std::string gmFile = grayMatterOption->GetFunction()->GetName();
     gmReader->SetFileName( gmFile.c_str() );
 
     grayMatterProbabilityImage = gmReader->GetOutput();
@@ -197,12 +193,12 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
   whiteMatterOption = parser->GetOption( "white-matter-probability-image" );
-  if( whiteMatterOption && whiteMatterOption->GetNumberOfValues() > 0 )
+  if( whiteMatterOption && whiteMatterOption->GetNumberOfFunctions() )
     {
     typedef itk::ImageFileReader<ImageType> ReaderType;
     typename ReaderType::Pointer wmReader = ReaderType::New();
 
-    std::string wmFile = whiteMatterOption->GetValue();
+    std::string wmFile = whiteMatterOption->GetFunction( 0 )->GetName();
     wmReader->SetFileName( wmFile.c_str() );
 
     whiteMatterProbabilityImage = wmReader->GetOutput();
@@ -241,22 +237,22 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
     parser->GetOption( "convergence" );
-  if( convergenceOption )
+  if( convergenceOption && convergenceOption->GetNumberOfFunctions() )
     {
-    if( convergenceOption->GetNumberOfParameters() > 0 )
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       direct->SetMaximumNumberOfIterations( parser->Convert<unsigned int>(
-                                              convergenceOption->GetParameter( 0 ) ) );
+                                              convergenceOption->GetFunction( 0 )->GetParameter( 0 ) ) );
       }
-    if( convergenceOption->GetNumberOfParameters() > 1 )
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
       direct->SetConvergenceThreshold( parser->Convert<float>(
-                                         convergenceOption->GetParameter( 1 ) ) );
+                                         convergenceOption->GetFunction( 0 )->GetParameter( 1 ) ) );
       }
-    if( convergenceOption->GetNumberOfParameters() > 2 )
+    if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
       {
       direct->SetConvergenceWindowSize( parser->Convert<unsigned int>(
-                                          convergenceOption->GetParameter( 2 ) ) );
+                                          convergenceOption->GetFunction( 0 )->GetParameter( 2 ) ) );
       }
     }
 
@@ -265,10 +261,10 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
   thicknessPriorOption = parser->GetOption( "thickness-prior-estimate" );
-  if( thicknessPriorOption && thicknessPriorOption->GetNumberOfValues() > 0 )
+  if( thicknessPriorOption && thicknessPriorOption->GetNumberOfFunctions() )
     {
     direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
-                                         thicknessPriorOption->GetValue() ) );
+                                         thicknessPriorOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -276,10 +272,10 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
   gradientStepOption = parser->GetOption( "gradient-step" );
-  if( gradientStepOption && gradientStepOption->GetNumberOfValues() > 0 )
+  if( gradientStepOption && gradientStepOption->GetNumberOfFunctions() )
     {
     direct->SetInitialGradientStep( parser->Convert<RealType>(
-                                      gradientStepOption->GetValue() ) );
+                                      gradientStepOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -287,22 +283,10 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
   smoothingSigmaOption = parser->GetOption( "smoothing-sigma" );
-  if( smoothingSigmaOption && smoothingSigmaOption->GetNumberOfValues() > 0 )
+  if( smoothingSigmaOption && smoothingSigmaOption->GetNumberOfFunctions() )
     {
     direct->SetSmoothingSigma( parser->Convert<RealType>(
-                                 smoothingSigmaOption->GetValue() ) );
-    }
-
-  //
-  // set maximum number of threads
-  //
-  typename itk::ants::CommandLineParser::OptionType::Pointer
-  threadOption = parser->GetOption( "maximum-number-of-threads" );
-  if( threadOption && threadOption->GetNumberOfValues() > 0 )
-    {
-    unsigned int numThreads = parser->Convert<unsigned int>(
-        threadOption->GetValue() );
-    direct->SetNumberOfThreads( numThreads );
+                                 smoothingSigmaOption->GetFunction( 0 )->GetName() ) );
     }
 
   typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
@@ -332,12 +316,12 @@ int DiReCT( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
-  if( outputOption )
+  if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     typedef  itk::ImageFileWriter<ImageType> WriterType;
     typename WriterType::Pointer writer = WriterType::New();
     writer->SetInput( direct->GetOutput() );
-    writer->SetFileName( ( outputOption->GetValue() ).c_str() );
+    writer->SetFileName( ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
     writer->Update();
     }
 
@@ -476,7 +460,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -486,7 +470,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -554,8 +538,7 @@ private:
   InitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
-  if( argc < 2 || parser->Convert<bool>(
-        parser->GetOption( "help" )->GetValue() ) )
+  if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction( 0 )->GetName() ) )
     {
     parser->PrintMenu( antscout, 5, false );
     if( argc < 2 )
@@ -564,8 +547,7 @@ private:
       }
     return EXIT_SUCCESS;
     }
-  else if( parser->Convert<bool>(
-             parser->GetOption( 'h' )->GetValue() ) )
+  else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction( 0 )->GetName() ) )
     {
     parser->PrintMenu( antscout, 5, true );
     return EXIT_SUCCESS;
@@ -576,9 +558,9 @@ private:
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "image-dimensionality" );
-  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+  if( dimOption && dimOption->GetNumberOfFunctions() > 0 )
     {
-    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
     }
   else
     {
@@ -587,15 +569,15 @@ private:
 
     itk::ants::CommandLineParser::OptionType::Pointer imageOption =
       parser->GetOption( "input-image" );
-    if( imageOption && imageOption->GetNumberOfValues() > 0 )
+    if( imageOption && imageOption->GetNumberOfFunctions() > 0 )
       {
-      if( imageOption->GetNumberOfParameters( 0 ) > 0 )
+      if( imageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        filename = imageOption->GetParameter( 0, 0 );
+        filename = imageOption->GetFunction( 0 )->GetParameter( 0 );
         }
       else
         {
-        filename = imageOption->GetValue( 0 );
+        filename = imageOption->GetFunction( 0 )->GetName();
         }
       }
     else

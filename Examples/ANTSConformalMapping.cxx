@@ -145,7 +145,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -155,7 +155,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -220,9 +220,9 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
   float        inflate_param = 0;
   typename itk::ants::CommandLineParser::OptionType::Pointer infOption =
     parser->GetOption( "inflate" );
-  if( infOption && infOption->GetNumberOfValues() > 0 )
+  if( infOption && infOption->GetNumberOfFunctions() )
     {
-    if( infOption->GetNumberOfParameters() == 2 )
+    if( infOption->GetFunction( 0 )->GetNumberOfParameters() == 2 )
       {
       inflate_param = parser->Convert<float>(infOption->GetParameter( 0 ) );
       inflate_iterations = parser->Convert<unsigned int>(infOption->GetParameter( 1 ) );
@@ -240,9 +240,9 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
   float maxCost = 40, distCostW = 1, labelCostW = 0;
   typename itk::ants::CommandLineParser::OptionType::Pointer costOption =
     parser->GetOption( "segmentation-cost" );
-  if( costOption && costOption->GetNumberOfValues() > 0 )
+  if( costOption && costOption->GetNumberOfFunctions() )
     {
-    if( costOption->GetNumberOfParameters() == 3 )
+    if( costOption->GetFunction( 0 )->GetNumberOfParameters() == 3 )
       {
       maxCost = parser->Convert<float>(costOption->GetParameter( 0 ) );
       distCostW = parser->Convert<float>(costOption->GetParameter( 1 ) );
@@ -257,9 +257,9 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     }
 
   typename itk::ants::CommandLineParser::OptionType::Pointer displayOption = parser->GetOption( "display-mesh" );
-  if( displayOption && displayOption->GetNumberOfValues() > 0 )
+  if( displayOption && displayOption->GetNumberOfFunctions() )
     {
-    if( displayOption->GetNumberOfParameters() > 0 )
+    if( displayOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       std::string dispm = displayOption->GetParameter( 0 );
       antscout << " render " << dispm << std::endl;
@@ -309,7 +309,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer inOption =
     parser->GetOption( "input-mesh" );
-  if( inOption && inOption->GetNumberOfParameters() == 2 )
+  if( inOption && inOption->GetFunction( 0 )->GetNumberOfParameters() == 2 )
     {
     std::string                        innm = inOption->GetParameter( 0 );
     vtkSmartPointer<vtkPolyDataReader> labReader = vtkSmartPointer<vtkPolyDataReader>::New();
@@ -355,9 +355,9 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       inflatedmesh = vtkSmartPointer<vtkPolyData>(smoother->GetOutput() );
       antscout << " done smoothing " << std::endl;
       flattener->SetSurfaceMesh(inflatedmesh);
-      if( outputOption->GetNumberOfParameters() > 0 )
+      if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        for( unsigned int p = 0; p < outputOption->GetNumberOfParameters(); p++ )
+        for( unsigned int p = 0; p < outputOption->GetFunction( 0 )->GetNumberOfParameters(); p++ )
           {
           if( p == 2 && inflatedmesh )
             {
@@ -379,13 +379,13 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     flattener->SetSurfaceFeatureMesh(featuremesh);
     }
 
-  bool paramws = parser->template Convert<bool>( parser->GetOption( "param-while-searching" )->GetValue() );
+  bool paramws = parser->template Convert<bool>( parser->GetOption( "param-while-searching" )->GetFunction() );
   flattener->SetParamWhileSearching(paramws);
 
   unsigned int labeltoflatten = parser->template Convert<unsigned int>(
-      parser->GetOption( "label-to-flatten" )->GetValue() );
+      parser->GetOption( "label-to-flatten" )->GetFunction() );
   flattener->SetLabelToFlatten(labeltoflatten);
-  std::string canonicaldomain = parser->GetOption( "canonical-domain" )->GetValue();
+  std::string canonicaldomain = parser->GetOption( "canonical-domain" )->GetFunction();
   //    canonicaldomain=ConvertToLowerCase( canonicaldomain );
   antscout << " you will map label " << labeltoflatten << " to a " << canonicaldomain << std::endl;
   if( canonicaldomain == std::string("circle") )
@@ -402,7 +402,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
-  std::string boundaryparam = parser->GetOption( "boundary-param" )->GetValue();
+  std::string boundaryparam = parser->GetOption( "boundary-param" )->GetFunction();
   // do stuff -- but not implemented yet
   //   flattener->SetDiscBoundaryList(NULL);
 
@@ -420,11 +420,11 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
   /**
    * output
    */
-  if( outputOption && outputOption->GetNumberOfValues() > 0 )
+  if( outputOption && outputOption->GetNumberOfFunctions() )
     {
-    if( outputOption->GetNumberOfParameters() > 0 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      for( unsigned int p = 0; p < outputOption->GetNumberOfParameters(); p++ )
+      for( unsigned int p = 0; p < outputOption->GetFunction( 0 )->GetNumberOfParameters(); p++ )
         {
         if( p == 0 )
           {
@@ -531,7 +531,7 @@ private:
   parser->Parse( argc, argv );
 
   if( argc < 2 || parser->Convert<bool>(
-        parser->GetOption( "help" )->GetValue() ) )
+        parser->GetOption( "help" )->GetFunction() ) )
     {
     parser->PrintMenu( antscout, 5, false );
     if( argc < 2 )
@@ -541,7 +541,7 @@ private:
     return EXIT_SUCCESS;
     }
   else if( parser->Convert<bool>(
-             parser->GetOption( 'h' )->GetValue() ) )
+             parser->GetOption( 'h' )->GetFunction() ) )
     {
     parser->PrintMenu( antscout, 5, true );
     return EXIT_SUCCESS;

@@ -121,9 +121,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer inputAtlasOption =
     parser->GetOption( "dti-atlas" );
-  if( inputAtlasOption && inputAtlasOption->GetNumberOfValues() )
+  if( inputAtlasOption && inputAtlasOption->GetNumberOfFunctions() )
     {
-    std::string inputFile = inputAtlasOption->GetValue();
+    std::string inputFile = inputAtlasOption->GetFunction( 0 )->GetName();
     reader->SetFileName( inputFile.c_str() );
 
     inputAtlas = reader->GetOutput();
@@ -146,26 +146,24 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
-  if( outputOption && outputOption->GetNumberOfValues() )
+  if( outputOption && outputOption->GetNumberOfFunctions() )
     {
-    if( outputOption->GetNumberOfParameters() > 0 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      outputDirectory = outputOption->GetParameter( 0 );
+      outputDirectory = outputOption->GetFunction( 0 )->GetParameter( 0 );
       outputDirectory += std::string( "/" );
       }
-    if( outputOption->GetNumberOfParameters() > 1 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      rootOutputFileName = outputOption->GetParameter( 1 );
+      rootOutputFileName = outputOption->GetFunction( 0 )->GetParameter( 1 );
       }
-    if( outputOption->GetNumberOfParameters() > 2 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
       {
-      numberOfControls = parser->Convert<unsigned int>(
-          outputOption->GetParameter( 2 ) );
+      numberOfControls = parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 2 ) );
       }
-    if( outputOption->GetNumberOfParameters() > 3 )
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 3 )
       {
-      numberOfExperimentals = parser->Convert<unsigned int>(
-          outputOption->GetParameter( 3 ) );
+      numberOfExperimentals = parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 3 ) );
       }
     }
   else
@@ -179,10 +177,10 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
     parser->GetOption( "label-mask-image" );
-  RealType lowerThresholdValue = 0.2;
-  if( maskImageOption && maskImageOption->GetNumberOfValues() )
+  RealType lowerThresholdFunction = 0.2;
+  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
     {
-    std::string inputFile = maskImageOption->GetValue();
+    std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
     typedef itk::ImageFileReader<MaskImageType> ReaderType;
     typename ReaderType::Pointer maskreader = ReaderType::New();
     maskreader->SetFileName( inputFile.c_str() );
@@ -194,13 +192,13 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       }
     catch( ... )
       {
-      lowerThresholdValue = parser->Convert<RealType>( maskImageOption->GetValue() );
+      lowerThresholdFunction = parser->Convert<RealType>( maskImageOption->GetFunction( 0 )->GetName() );
       }
     }
   if( !maskImage->GetBufferPointer() )
     {
     antscout << "Mask not read.  Creating mask by thresholding "
-             << "the FA of the DTI atlas at >= " << lowerThresholdValue
+             << "the FA of the DTI atlas at >= " << lowerThresholdFunction
              << "." << std::endl << std::endl;
 
     typename ImageType::Pointer faImage =
@@ -221,7 +219,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     thresholder->SetInput( faImage );
     thresholder->SetInsideValue( 1 );
     thresholder->SetOutsideValue( 0 );
-    thresholder->SetLowerThreshold( lowerThresholdValue );
+    thresholder->SetLowerThreshold( lowerThresholdFunction );
     thresholder->SetUpperThreshold( 2.0 );
 
     maskImage = thresholder->GetOutput();
@@ -270,37 +268,36 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer pathologyOption =
     parser->GetOption( "pathology" );
-  if( pathologyOption && pathologyOption->GetNumberOfValues() > 0 )
+  if( pathologyOption && pathologyOption->GetNumberOfFunctions() )
     {
-    if( pathologyOption->GetNumberOfValues() == 1 &&
-        ( pathologyOption->GetValue( 0 ) ).empty() )
+    if( pathologyOption->GetNumberOfFunctions() == 1 &&
+        ( pathologyOption->GetFunction( 0 )->GetName() ).empty() )
       {
       float pathologyDeltaEig1 = 0.0;
       float pathologyDeltaEig2_Eig3 = 0.0;
       float percentageVoxels = 0.0;
 
-      if( pathologyOption->GetNumberOfParameters( 0 ) > 0 )
+      if( pathologyOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
         pathologyDeltaEig1 = parser->Convert<float>(
-            pathologyOption->GetParameter( 0, 0 ) );
+            pathologyOption->GetFunction( 0 )->GetParameter( 0 ) );
         }
-      if( pathologyOption->GetNumberOfParameters( 0 ) > 1 )
+      if( pathologyOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
         pathologyDeltaEig2_Eig3 = parser->Convert<float>(
-            pathologyOption->GetParameter( 0, 1 ) );
+            pathologyOption->GetFunction( 0 )->GetParameter( 1 ) );
         }
-      if( pathologyOption->GetNumberOfParameters( 0 ) > 2 )
+      if( pathologyOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
         {
         percentageVoxels = parser->Convert<float>(
-            pathologyOption->GetParameter( 0, 2 ) );
+            pathologyOption->GetFunction( 0 )->GetParameter( 2 ) );
         }
       for( unsigned int n = 0; n < labels.size(); n++ )
         {
         RealType percentage = percentageVoxels;
         if( percentage > 1.0 )
           {
-          percentage /= static_cast<RealType>( labelGeometry->GetVolume(
-                                                 labels[n] ) );
+          percentage /= static_cast<RealType>( labelGeometry->GetVolume( labels[n] ) );
           }
 
         pathologyParameters(n, 0) = pathologyDeltaEig1;
@@ -310,13 +307,11 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      for( unsigned int n = 0; n < pathologyOption->GetNumberOfValues(); n++ )
+      for( unsigned int n = 0; n < pathologyOption->GetNumberOfFunctions(); n++ )
         {
-        LabelType whichClass = parser->Convert<LabelType>(
-            pathologyOption->GetValue( n ) );
+        LabelType whichClass = parser->Convert<LabelType>( pathologyOption->GetFunction( n )->GetName() );
 
-        std::vector<LabelType>::const_iterator it =
-          std::find( labels.begin(), labels.end(), whichClass );
+        std::vector<LabelType>::const_iterator it = std::find( labels.begin(), labels.end(), whichClass );
 
         if( it == labels.end() )
           {
@@ -327,20 +322,17 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         float pathologyDeltaEig2_Eig3 = 0.1;
         float percentageVoxels = 1.0;
 
-        if( pathologyOption->GetNumberOfParameters( n ) > 0 )
+        if( pathologyOption->GetFunction( n )->GetNumberOfParameters() > 0 )
           {
-          pathologyDeltaEig1 = parser->Convert<float>(
-              pathologyOption->GetParameter( n, 0 ) );
+          pathologyDeltaEig1 = parser->Convert<float>( pathologyOption->GetFunction( n )->GetParameter( 0 ) );
           }
-        if( pathologyOption->GetNumberOfParameters( n ) > 1 )
+        if( pathologyOption->GetFunction( n )->GetNumberOfParameters() > 1 )
           {
-          pathologyDeltaEig2_Eig3 = parser->Convert<float>(
-              pathologyOption->GetParameter( n, 1 ) );
+          pathologyDeltaEig2_Eig3 = parser->Convert<float>( pathologyOption->GetFunction( n )->GetParameter( 1 ) );
           }
-        if( pathologyOption->GetNumberOfParameters( n ) > 2 )
+        if( pathologyOption->GetFunction( n )->GetNumberOfParameters() > 2 )
           {
-          percentageVoxels = parser->Convert<float>(
-              pathologyOption->GetParameter( n, 2 ) );
+          percentageVoxels = parser->Convert<float>( pathologyOption->GetFunction( n )->GetParameter( 2 ) );
           }
 
         RealType percentage = percentageVoxels;
@@ -361,16 +353,16 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
   bool applyISV = false;
 
   typename MatrixType::InternalMatrixType ISV(1, 1);
-  typename itk::ants::CommandLineParser::OptionType::Pointer populationOption =
-    parser->GetOption( "registered-population" );
-  if( populationOption && populationOption->GetNumberOfValues() > 0 )
+  typename itk::ants::CommandLineParser::OptionType::Pointer populationOption = parser->GetOption(
+      "registered-population" );
+  if( populationOption && populationOption->GetNumberOfFunctions() )
     {
     antscout << "--- Modeling intersubject variability ---" << std::endl
              << std::endl;
 
     std::vector<std::string> imageNames;
 
-    std::string filename = populationOption->GetValue();
+    std::string filename = populationOption->GetFunction( 0 )->GetName();
 
     std::string imageFile;
 
@@ -482,23 +474,23 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer dwiOption =
     parser->GetOption( "dwi-parameters" );
-  if( dwiOption && dwiOption->GetNumberOfValues() > 0 &&
-      dwiOption->GetNumberOfParameters() > 1 )
+  if( dwiOption && dwiOption->GetNumberOfFunctions() &&
+      dwiOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
     {
     typedef itk::ImageFileReader<ImageType> ReaderType;
     typename ReaderType::Pointer reader2 = ReaderType::New();
-    reader2->SetFileName( dwiOption->GetParameter( 0 ) );
+    reader2->SetFileName( dwiOption->GetFunction( 0 )->GetParameter( 0 ) );
     reader2->Update();
     b0Image = reader2->GetOutput();
     b0Image->DisconnectPipeline();
 
-    std::string  directionsFileName = dwiOption->GetParameter( 1 );
+    std::string  directionsFileName = dwiOption->GetFunction( 0 )->GetParameter( 1 );
     std::fstream str( directionsFileName.c_str() );
 
-    if( dwiOption->GetNumberOfParameters() > 2 )
+    if( dwiOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
       {
       bvalues.push_back(
-        parser->Convert<RealType>( dwiOption->GetParameter( 2 ) ) );
+        parser->Convert<RealType>( dwiOption->GetFunction( 0 )->GetParameter( 2 ) ) );
 
       str >> numberOfDirections;
       }
@@ -513,7 +505,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       if( count % ImageDimension == 0 )
         {
         directions.push_back( direction );
-        if( dwiOption->GetNumberOfParameters() < 2 )
+        if( dwiOption->GetFunction( 0 )->GetNumberOfParameters() < 2 )
           {
           str >> x;
           bvalues.push_back( x );
@@ -545,9 +537,9 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
   typename itk::ants::CommandLineParser::OptionType::Pointer noiseOption =
     parser->GetOption( "noise-sigma" );
-  if( noiseOption && noiseOption->GetNumberOfValues() > 0 )
+  if( noiseOption && noiseOption->GetNumberOfFunctions() )
     {
-    noiseSigma = parser->Convert<RealType>( noiseOption->GetValue() );
+    noiseSigma = parser->Convert<RealType>( noiseOption->GetFunction()->GetName() );
     }
 
   //
@@ -929,7 +921,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "label-mask-image" );
     option->SetShortName( 'x' );
     option->SetUsageOption( 0, "maskImageFileName" );
-    option->SetUsageOption( 1, "lowerThresholdValue" );
+    option->SetUsageOption( 1, "lowerThresholdFunction" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -1045,7 +1037,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -1055,7 +1047,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddValue( std::string( "0" ) );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -1127,8 +1119,7 @@ private:
 
   parser->Parse( argc, argv );
 
-  if( argc < 2 || parser->Convert<bool>(
-        parser->GetOption( "help" )->GetValue() ) )
+  if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
     {
     parser->PrintMenu( antscout, 5, false );
     if( argc < 2 )
@@ -1137,8 +1128,7 @@ private:
       }
     return EXIT_SUCCESS;
     }
-  else if( parser->Convert<bool>(
-             parser->GetOption( 'h' )->GetValue() ) )
+  else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
     {
     parser->PrintMenu( antscout, 5, true );
     return EXIT_SUCCESS;
@@ -1149,9 +1139,9 @@ private:
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "image-dimensionality" );
-  if( dimOption && dimOption->GetNumberOfValues() > 0 )
+  if( dimOption && dimOption->GetNumberOfFunctions() )
     {
-    dimension = parser->Convert<unsigned int>( dimOption->GetValue() );
+    dimension = parser->Convert<unsigned int>( dimOption->GetFunction()->GetName() );
     }
   else
     {
@@ -1160,15 +1150,15 @@ private:
 
     itk::ants::CommandLineParser::OptionType::Pointer imageOption =
       parser->GetOption( "dti-atlas" );
-    if( imageOption && imageOption->GetNumberOfValues() > 0 )
+    if( imageOption && imageOption->GetNumberOfFunctions() )
       {
-      if( imageOption->GetNumberOfParameters( 0 ) > 0 )
+      if( imageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        filename = imageOption->GetParameter( 0, 0 );
+        filename = imageOption->GetFunction( 0 )->GetParameter( 0 );
         }
       else
         {
-        filename = imageOption->GetValue( 0 );
+        filename = imageOption->GetFunction( 0 )->GetName();
         }
       }
     else
