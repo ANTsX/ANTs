@@ -390,7 +390,7 @@ function shapeupdatetotemplate {
     echo " shapeupdatetotemplate 4"
     echo "--------------------------------------------------------------------------------------"
 
-	rm -f ${templatename}Affine.txt
+	rm -f ${templatename}Affine.mat
 
     echo
     echo "--------------------------------------------------------------------------------------"
@@ -399,14 +399,14 @@ function shapeupdatetotemplate {
 
     # Averaging and inversion code --- both are 1st order estimates.
 #    if [ ${dim} -eq 2   ] ; then
-#      ANTSAverage2DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
+#      ANTSAverage2DAffine ${templatename}Affine.mat ${outputname}*Affine.mat
 #    elif [ ${dim} -eq 3  ] ; then
-#      ANTSAverage3DAffine ${templatename}Affine.txt ${outputname}*Affine.txt
+#      ANTSAverage3DAffine ${templatename}Affine.mat ${outputname}*Affine.mat
 #    fi
 
-    ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}Affine.txt ${outputname}*Affine.txt
-    ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warp.nii.gz ${templatename}warp.nii.gz -i  ${templatename}Affine.txt -R ${template}
-    ${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.txt ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
+    ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}Affine.mat ${outputname}*Affine.mat
+    ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}warp.nii.gz ${templatename}warp.nii.gz -i  ${templatename}Affine.mat -R ${template}
+    ${ANTSPATH}WarpImageMultiTransform ${dim} ${template} ${template} -i ${templatename}Affine.mat ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz ${templatename}warp.nii.gz -R ${template}
 
     echo
     echo "--------------------------------------------------------------------------------------"
@@ -420,8 +420,8 @@ function shapeupdatetotemplate {
 
 function ANTSAverage2DAffine {
 
-    OUTNM=${templatename}Affine.txt
-    FLIST=${outputname}*Affine.txt
+    OUTNM=${templatename}Affine.mat
+    FLIST=${outputname}*Affine.mat
     NFILES=0
     PARAM1=0
     PARAM2=0
@@ -472,8 +472,8 @@ function ANTSAverage2DAffine {
 
 function ANTSAverage3DAffine {
 
-    OUTNM=${templatename}Affine.txt
-    FLIST=${outputname}*Affine.txt
+    OUTNM=${templatename}Affine.mat
+    FLIST=${outputname}*Affine.mat
     NFILES=0
     PARAM1=0
     PARAM2=0
@@ -950,7 +950,7 @@ if [ "$RIGID" -eq 1 ] ;
       BASENAME=` echo ${IMG} | cut -d '.' -f 1 `
 
       exe=" ${ANTSPATH}ANTS $DIM -m MI[${TEMPLATE},${IMG},1,32] -o rigid_${IMG} -i 0 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 $RIGIDTYPE"
-      exe2="${ANTSPATH}WarpImageMultiTransform $DIM ${IMG} rigid_${IMG} rigid_${BASENAME}Affine.txt -R ${TEMPLATE}"
+      exe2="${ANTSPATH}WarpImageMultiTransform $DIM ${IMG} rigid_${IMG} rigid_${BASENAME}Affine.mat -R ${TEMPLATE}"
       pexe=" $exe >> job_${count}_metriclog.txt "
 
       qscript="job_${count}_qsub.sh"
@@ -1058,7 +1058,7 @@ if [ "$RIGID" -eq 1 ] ;
     # cleanup and save output in seperate folder
 
     mkdir rigid
-    mv *.cfg rigid*.nii.gz *Affine.txt rigid/
+    mv *.cfg rigid*.nii.gz *Affine.mat rigid/
 
     # backup logs
     if [ $DOQSUB -eq 1 ];
