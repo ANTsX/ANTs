@@ -358,7 +358,7 @@ public:
     float expandFactors[ImageDimension + 1];
 
     expandFactors[ImageDimension] = 1;
-    m_Debug = false;
+//     m_Debug = false;
     for( int idim = 0; idim < ImageDimension; idim++ )
       {
       expandFactors[idim] = (float) this->m_CurrentDomainSize[idim]
@@ -813,29 +813,40 @@ public:
     /** Univariate Deformable Mapping */
 
 // set up parameters for deformation restriction
-    std::string temp = this->m_Parser->GetOption( "Restrict-Deformation" )->GetFunction()->GetName();
 
-    this->m_RestrictDeformation = this->m_Parser->template ConvertVector<TReal>(temp);
-    if( this->m_RestrictDeformation.size() != ImageDimension )
+    typename OptionType::Pointer restrictDeformationOption = this->m_Parser->GetOption( "Restrict-Deformation" );
+    if( restrictDeformationOption && restrictDeformationOption->GetNumberOfFunctions() )
       {
-      ::ants::antscout << " You input a vector of size :  "  << this->m_RestrictDeformation.size()
-                       <<
-        " for --Restrict-Deformation.  The vector length does not match the image dimension.  Ignoring.  "
-                       << std::endl;
-      for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
+      std::string temp = restrictDeformationOption->GetFunction()->GetName();
+
+      this->m_RestrictDeformation = this->m_Parser->template ConvertVector<TReal>( temp );
+      if( this->m_RestrictDeformation.size() != ImageDimension )
         {
-        this->m_RestrictDeformation[jj] = 0;
+        ::ants::antscout << " You input a vector of size :  "  << this->m_RestrictDeformation.size()
+                         <<
+          " for --Restrict-Deformation.  The vector length does not match the image dimension.  Ignoring.  "
+                         << std::endl;
+        for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
+          {
+          this->m_RestrictDeformation[jj] = 0;
+          }
         }
       }
 
     // set up max iterations per level
-    temp = this->m_Parser->GetOption( "number-of-iterations" )->GetFunction()->GetName();
-    this->m_Iterations = this->m_Parser->template ConvertVector<unsigned int>(temp);
-    this->SetNumberOfLevels(this->m_Iterations.size() );
-    this->m_UseROI = false;
-    if( typename OptionType::Pointer option = this->m_Parser->GetOption( "roi" ) )
+
+    typename OptionType::Pointer numberOfIterationsOption = this->m_Parser->GetOption( "number-of-iterations" );
+    if( numberOfIterationsOption && numberOfIterationsOption->GetNumberOfFunctions() )
       {
-      temp = this->m_Parser->GetOption( "roi" )->GetFunction()->GetName();
+      std::string temp = this->m_Parser->GetOption( "number-of-iterations" )->GetFunction()->GetName();
+      this->m_Iterations = this->m_Parser->template ConvertVector<unsigned int>(temp);
+      this->SetNumberOfLevels(this->m_Iterations.size() );
+      }
+    this->m_UseROI = false;
+    typename OptionType::Pointer roiOption = this->m_Parser->GetOption( "roi" );
+    if( roiOption && roiOption->GetNumberOfFunctions() )
+      {
+      std::string temp = roiOption->GetFunction()->GetName();
       this->m_RoiNumbers = this->m_Parser->template ConvertVector<TReal>(temp);
       if( temp.length() > 3 )
         {
@@ -843,13 +854,16 @@ public:
         }
       }
 
-    typename ParserType::OptionType::Pointer oOption
-      = this->m_Parser->GetOption( "output-naming" );
-    this->m_OutputNamingConvention = oOption->GetFunction( 0 )->GetName();
+    typename ParserType::OptionType::Pointer oOption = this->m_Parser->GetOption( "output-naming" );
+    if( oOption->GetNumberOfFunctions() )
+      {
+      this->m_OutputNamingConvention = oOption->GetFunction( 0 )->GetName();
+      }
 
-    typename ParserType::OptionType::Pointer thicknessOption
-      = this->m_Parser->GetOption( "geodesic" );
-    if( thicknessOption->GetFunction( 0 )->GetName() == "true" ||  thicknessOption->GetFunction( 0 )->GetName() == "1" )
+    typename ParserType::OptionType::Pointer thicknessOption = this->m_Parser->GetOption( "geodesic" );
+    if( thicknessOption->GetNumberOfFunctions() &&
+        ( thicknessOption->GetFunction( 0 )->GetName() == "true" ||  thicknessOption->GetFunction( 0 )->GetName() ==
+          "1" ) )
       {
       this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
       }                                                                                                                                      //
@@ -857,7 +871,7 @@ public:
                                                                                                                                              // asymm
                                                                                                                                              //
                                                                                                                                              // forces
-    else if(  thicknessOption->GetFunction( 0 )->GetName() == "2" )
+    else if( thicknessOption->GetNumberOfFunctions() && thicknessOption->GetFunction( 0 )->GetName() == "2" )
       {
       this->m_ComputeThickness = 1; this->m_SyNFullTime = 1;
       }                                                                                                    // symmetric
@@ -869,8 +883,7 @@ public:
     /**
      * Get transformation model and associated parameters
      */
-    typename ParserType::OptionType::Pointer transformOption
-      = this->m_Parser->GetOption( "transformation-model" );
+    typename ParserType::OptionType::Pointer transformOption = this->m_Parser->GetOption( "transformation-model" );
     this->SetTransformationModel( transformOption->GetFunction( 0 )->GetName() );
     if( transformOption->GetFunction( 0 )->GetNumberOfParameters() >= 1 )
       {
@@ -1160,33 +1173,36 @@ public:
 
     // Get subsample factors and gaussian smoothing sigmas if specified
     // by the user.
-    std::string subsamplingfactors =
-      this->m_Parser->GetOption( "subsampling-factors" )->GetFunction()->GetName();
-    if( subsamplingfactors.size() > 0 )
+    typename OptionType::Pointer subsamplingOption = this->m_Parser->GetOption( "subsampling-factors" );
+    if( subsamplingOption && subsamplingOption->GetNumberOfFunctions() )
       {
-      std::vector<float> factors =
-        this->m_Parser->template ConvertVector<float>( subsamplingfactors );
-      if( factors.size() != this->m_NumberOfLevels )
+      std::string subsamplingfactors = subsamplingOption->GetFunction()->GetName();
+      if( subsamplingfactors.size() > 0 )
         {
-        itkWarningMacro( "The number of levels does not match the size of factors."
-                         << "  Using default settings." );
-        }
-      else
-        {
-        this->m_SubsamplingFactors.SetSize( this->m_NumberOfLevels );
-        for( unsigned int d = 0; d < this->m_NumberOfLevels; d++ )
+        std::vector<float> factors = this->m_Parser->template ConvertVector<float>( subsamplingfactors );
+        if( factors.size() != this->m_NumberOfLevels )
           {
-          this->m_SubsamplingFactors[d] = factors[d];
+          itkWarningMacro( "The number of levels does not match the size of factors."
+                           << "  Using default settings." );
+          }
+        else
+          {
+          this->m_SubsamplingFactors.SetSize( this->m_NumberOfLevels );
+          for( unsigned int d = 0; d < this->m_NumberOfLevels; d++ )
+            {
+            this->m_SubsamplingFactors[d] = factors[d];
+            }
           }
         }
       }
 
-    std::string gaussiansmoothingsigmas =
-      this->m_Parser->GetOption( "gaussian-smoothing-sigmas" )->GetFunction()->GetName();
-    if( gaussiansmoothingsigmas.size() > 0 )
+    typename OptionType::Pointer gaussianSmoothingSigmasOption =
+      this->m_Parser->GetOption( "gaussian-smoothing-sigmas" );
+
+    if( gaussianSmoothingSigmasOption && gaussianSmoothingSigmasOption->GetNumberOfFunctions() )
       {
-      std::vector<float> sigmas =
-        this->m_Parser->template ConvertVector<float>( gaussiansmoothingsigmas );
+      std::string        gaussiansmoothingsigmas = gaussianSmoothingSigmasOption->GetFunction()->GetName();
+      std::vector<float> sigmas = this->m_Parser->template ConvertVector<float>( gaussiansmoothingsigmas );
       if( sigmas.size() != this->m_NumberOfLevels )
         {
         itkWarningMacro( "The number of levels does not match the size of sigmas."

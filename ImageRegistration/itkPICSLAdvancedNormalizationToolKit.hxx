@@ -139,7 +139,9 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
   this->InitializeTransformAndOptimizer();
 
 /** Get the mask if there is one */
-  if( typename OptionType::Pointer option = this->m_Parser->GetOption( "mask-image" ) )
+
+  typename OptionType::Pointer option = this->m_Parser->GetOption( "mask-image" );
+  if( option && option->GetNumberOfFunctions() )
     {
     typedef ImageFileReader<ImageType> ReaderType;
     std::string maskfn =  this->m_Parser->GetOption( "mask-image" )->GetFunction( 0 )->GetName();
@@ -157,9 +159,12 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
 
   // added by songgang
   // try initialize the affine transform
-  std::string initial_affine_filename = this->m_Parser->GetOption( "initial-affine" )->GetFunction( 0 )->GetName();
-  if( initial_affine_filename != "" )
+
+  typename OptionType::Pointer initialAffineOption = this->m_Parser->GetOption( "initial-affine" );
+  if( initialAffineOption && initialAffineOption->GetNumberOfFunctions() )
     {
+    std::string initial_affine_filename = initialAffineOption->GetFunction( 0 )->GetName();
+
     ::ants::antscout << "Loading affine registration from: " << initial_affine_filename << std::endl;
     ReadAffineTransformFile<typename TransformationModelType::AffineTransformType>(initial_affine_filename, aff_init);
     }
@@ -168,10 +173,12 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     ::ants::antscout << "Use identity affine transform as initial affine para." << std::endl;
     ::ants::antscout << "aff_init.IsNull()==" << aff_init.IsNull() << std::endl;
     }
-  std::string fixed_initial_affine_filename = this->m_Parser->GetOption(
-      "fixed-image-initial-affine" )->GetFunction( 0 )->GetName();
-  if( fixed_initial_affine_filename != "" )
+
+  std::string fixed_initial_affine_filename = std::string( "" );
+  typename OptionType::Pointer fixedInitialAffineOption = this->m_Parser->GetOption( "fixed-image-initial-affine" );
+  if( fixedInitialAffineOption && fixedInitialAffineOption->GetNumberOfFunctions() )
     {
+    fixed_initial_affine_filename = fixedInitialAffineOption->GetFunction( 0 )->GetName();
     ::ants::antscout << "Loading affine registration from: " << fixed_initial_affine_filename << std::endl;
     fixed_aff_init = TransformationModelType::AffineTransformType::New();
     ReadAffineTransformFile<typename TransformationModelType::AffineTransformType>(fixed_initial_affine_filename,
@@ -180,10 +187,12 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
       <<
       " FIXME!  currently, if one passes a fixed initial affine mapping, then NO affine mapping will be performed subsequently! "
       << std::endl;
-    std::string refheader =
-      this->m_Parser->GetOption( "fixed-image-initial-affine-ref-image" )->GetFunction( 0 )->GetName();
-    if( refheader != "" )
+
+    typename OptionType::Pointer fixedImageInitialAffineRegImageOption = this->m_Parser->GetOption(
+        "fixed-image-initial-affine-ref-image" );
+    if( fixedImageInitialAffineRegImageOption && fixedImageInitialAffineRegImageOption->GetNumberOfFunctions() )
       {
+      std::string refheader = fixedImageInitialAffineRegImageOption->GetFunction( 0 )->GetName();
       ::ants::antscout << " Setting reference deformation space by " << refheader << std::endl;
       typedef ImageFileReader<ImageType> ReaderType;
       typename ReaderType::Pointer fixedImageFileReader = ReaderType::New();
@@ -199,9 +208,9 @@ PICSLAdvancedNormalizationToolKit<TDimension, TReal>
     ::ants::antscout << "fixed_aff_init.IsNull()==" << fixed_aff_init.IsNull() << std::endl;
     }
 
-  bool useNN =
-    this->m_Parser->template Convert<bool>( this->m_Parser->GetOption( "use-NN" )->GetFunction()->GetName() );
-  if( useNN )
+  typename OptionType::Pointer useNNOption = this->m_Parser->GetOption( "use-NN" );
+  if( useNNOption && useNNOption->GetNumberOfFunctions() &&
+      this->m_Parser->template Convert<bool>( useNNOption->GetFunction( 0 )->GetName() ) )
     {
     this->m_RegistrationOptimizer->SetUseNearestNeighborInterpolation(true);
     }
