@@ -24,7 +24,6 @@
 // http://people.revoledu.com/kardi/tutorial/RecursiveStatistic/Time-Variance.htm
 
 #include "antsUtilities.h"
-#include <algorithm>
 
 #include "itkArray.h"
 #include "itkVariableLengthVector.h"
@@ -35,6 +34,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkOptimalSharpeningImageFilter.h"
 #include "itkLaplacianSharpeningImageFilter.h"
+#include "itkResampleImageFilter.h"
 #include <algorithm>
 
 namespace ants
@@ -48,10 +48,25 @@ int AverageImages1(unsigned int argc, char *argv[])
   typedef itk::ImageFileReader<ImageType>              ImageFileReader;
   typedef itk::ImageFileWriter<ImageType>              writertype;
 
-  bool  normalizei = atoi(argv[3]);
-  float numberofimages = (float)argc - 4.;
-  typename ImageType::Pointer averageimage = NULL;
-  typename ImageType::Pointer image2 = NULL;
+    {
+    const std::string temp(argv[1]);
+    if( !( ( temp == "2" ) || ( temp == "3" ) || ( temp == "4" ) ) )
+      {
+      antscout << "ERROR:  Dimension option must be 2 or 3 or 4, " << temp << "given" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+    {
+    const std::string temp(argv[3]);
+    if( !( ( temp == "0" ) || ( temp == "1" )  ) )
+      {
+      antscout << "ERROR:  Normalize option must be 0 or 1, " << temp << "given" << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  const bool  normalizei = atoi(argv[3]);
+  const float numberofimages = (float)argc - 4.;
 
   typename ImageType::SizeType size;
   size.Fill(0);
@@ -59,8 +74,7 @@ int AverageImages1(unsigned int argc, char *argv[])
   for( unsigned int j = 4; j < argc; j++ )
     {
     // Get the image dimension
-    std::string fn = std::string(argv[j]);
-    antscout << " fn " << fn << std::endl;
+    const std::string fn = std::string(argv[j]);
     typename itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetFileName(fn.c_str() );
@@ -71,28 +85,37 @@ int AverageImages1(unsigned int argc, char *argv[])
         {
         size[i] = imageIO->GetDimensions(i);
         bigimage = j;
-        antscout << " bigimage " << j << " size " << size << std::endl;
         }
       }
+    antscout << " fn " << fn << std::endl;
+    antscout << " bigimage " << bigimage << " curr_image " << j << " size " << size << std::endl;
     }
 
-  antscout << " largest image " << size << std::endl;
   typename ImageFileReader::Pointer reader = ImageFileReader::New();
   reader->SetFileName(argv[bigimage]);
   reader->Update();
-  averageimage = reader->GetOutput();
+  typename ImageType::Pointer averageimage = reader->GetOutput();
+  antscout << " Setting physcal space of output average image based on largest image " << std::endl;
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
   antscout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
            << vectorlength << std::endl;
   PixelType meanval = 0;
-  averageimage->FillBuffer(meanval);
+  averageimage->FillBuffer(meanval);  // Reset all images to a mean of zero on the accumulator buffer.
   for( unsigned int j = 4; j < argc; j++ )
     {
     antscout << " reading " << std::string(argv[j]) << std::endl;
     typename ImageFileReader::Pointer rdr = ImageFileReader::New();
     rdr->SetFileName(argv[j]);
     rdr->Update();
-    image2 = rdr->GetOutput();
+    typedef itk::ResampleImageFilter<ImageType, ImageType, float> ResamplerType;
+    typename ResamplerType::Pointer resampler = ResamplerType::New();
+    // default to identity resampler->SetTransform( transform );
+    // default to linearinterp resampler->SetInterpolator( interpolator );
+    resampler->SetInput( rdr->GetOutput() );
+    resampler->SetOutputParametersFromImage( averageimage );
+    resampler->Update();
+
+    typename ImageType::Pointer image2 = resampler->GetOutput();
     Iterator      vfIter2( image2,  image2->GetLargestPossibleRegion() );
     unsigned long ct = 0;
     if( normalizei )
@@ -100,7 +123,7 @@ int AverageImages1(unsigned int argc, char *argv[])
       meanval = 0;
       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
         {
-        PixelType localp = image2->GetPixel( vfIter2.GetIndex() );
+        const PixelType & localp = image2->GetPixel( vfIter2.GetIndex() );
         meanval = meanval + localp;
         ct++;
         }
@@ -121,7 +144,7 @@ int AverageImages1(unsigned int argc, char *argv[])
         val /= meanval;
         }
       val = val / (float)numberofimages;
-      PixelType oldval = averageimage->GetPixel(vfIter2.GetIndex() );
+      const PixelType & oldval = averageimage->GetPixel(vfIter2.GetIndex() );
       averageimage->SetPixel(vfIter2.GetIndex(), val + oldval );
       }
     }
@@ -296,7 +319,7 @@ private:
     return EXIT_FAILURE;
     }
 
-  int                       dim = atoi( argv[1] );
+  const int                 dim = atoi( argv[1] );
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(argv[4], itk::ImageIOFactory::ReadMode);
   imageIO->SetFileName(argv[4]);
@@ -304,7 +327,7 @@ private:
   unsigned int ncomponents = imageIO->GetNumberOfComponents();
 
   // Get the image dimension
-  switch( atoi(argv[1]) )
+  switch( dim )
     {
     case 2:
       {
