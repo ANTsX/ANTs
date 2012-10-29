@@ -536,18 +536,18 @@ CommandLineParser
       if( it2 == functions.begin() )
         {
         previousOrder = (*it2)->GetArgOrder();
-        (*it2)->SetWhichStage( 0 );
+        (*it2)->SetStageID( 0 );
         }
       else
         {
         currentOrder = (*it2)->GetArgOrder();
         if( previousOrder == currentOrder + 1 )
           {
-          (*it2)->SetWhichStage( functions[it2 - functions.begin() - 1]->GetWhichStage() );
+          (*it2)->SetStageID( functions[it2 - functions.begin() - 1]->GetStageID() );
           }
         else
           {
-          (*it2)->SetWhichStage( functions[it2 - functions.begin() - 1]->GetWhichStage() + 1 );
+          (*it2)->SetStageID( functions[it2 - functions.begin() - 1]->GetStageID() + 1 );
           }
         previousOrder = currentOrder;
         }
