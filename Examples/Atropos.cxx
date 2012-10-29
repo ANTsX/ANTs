@@ -118,8 +118,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer initializationOption =
     parser->GetOption( "initialization" );
-  if( initializationOption
-      && initializationOption->GetFunction( 0 )->GetNumberOfParameters() < 1 )
+  if( initializationOption && initializationOption->GetNumberOfFunctions() &&
+      initializationOption->GetFunction( 0 )->GetNumberOfParameters() < 1 )
     {
     antscout << "Incorrect initialization option specification." << std::endl;
     antscout << "   " << initializationOption->GetDescription() << std::endl;
@@ -223,8 +223,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           return EXIT_FAILURE;
           }
 
-        typedef itk::VectorIndexSelectionCastImageFilter
-          <VectorImageType, InputImageType> CasterType;
+        typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, InputImageType> CasterType;
         typename CasterType::Pointer caster = CasterType::New();
         caster->SetInput( reader->GetOutput() );
         for( unsigned int k = 0; k < segmenter->GetNumberOfTissueClasses(); k++ )
@@ -274,7 +273,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer posteriorOption =
     parser->GetOption( "posterior-formulation" );
-  if( posteriorOption )
+  if( posteriorOption && posteriorOption->GetNumberOfFunctions() )
     {
     if( posteriorOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
@@ -339,7 +338,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer convergenceOption =
     parser->GetOption( "convergence" );
-  if( convergenceOption )
+  if( convergenceOption && convergenceOption->GetNumberOfFunctions() )
     {
     if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
@@ -618,8 +617,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   /**
    * MRF options
    */
-  typename itk::ants::CommandLineParser::OptionType::Pointer mrfOption =
-    parser->GetOption( "mrf" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer mrfOption = parser->GetOption( "mrf" );
   if( mrfOption && mrfOption->GetNumberOfFunctions() )
     {
     if( mrfOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
