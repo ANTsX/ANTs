@@ -1184,10 +1184,15 @@ RegistrationHelper<VImageDimension>
       {
       metric->SetMovingImageMask(this->m_MovingImageMask);
       }
-    // Set up the optimizer.  To change the iteration number for each level we rely
+
+    // Set up the optimizers.  To change the iteration number for each level we rely
     // on the command observer.
 
     const double learningRate = this->m_TransformMethods[currentStageNumber].m_GradientStep;
+
+    typedef itk::MultiGradientOptimizerv4 MultiGradientOptimizerType;
+    typename MultiGradientOptimizerType::Pointer multiOptimizer = MultiGradientOptimizerType::New();
+    multiOptimizer->SetNumberOfIterations( currentStageIterations[0] );
 
     typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
@@ -2939,21 +2944,18 @@ RegistrationHelper<VImageDimension>
 }
 
 template <unsigned VImageDimension>
-void
+typename RegistrationHelper<VImageDimension>::MatrixOffsetTransformBasePointer
 RegistrationHelper<VImageDimension>
-::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform,
-                                              ImageBaseType * const image, const bool applyInverse )
+::CollapseLinearTransforms( const CompositeTransformType * compositeTransform )
 {
   if( !compositeTransform->IsLinear() )
     {
-    itkExceptionMacro( "The composite transform is not linear.  Cannot collapse it to the image header." );
+    itkExceptionMacro( "The composite transform is not linear." );
     }
 
-  typedef itk::AffineTransform<RealType, VImageDimension>      AffineTransformType;
-  typedef typename AffineTransformType::Superclass             MatrixOffsetTransformBaseType;
   typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
 
-  typename MatrixOffsetTransformBaseType::Pointer totalTransform = MatrixOffsetTransformBaseType::New();
+  MatrixOffsetTransformBasePointer totalTransform = MatrixOffsetTransformBaseType::New();
   for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
     {
     typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n );
@@ -2973,24 +2975,213 @@ RegistrationHelper<VImageDimension>
       nthTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
       nthTransform->SetOffset( matrixOffsetTransform->GetOffset() );
       }
-    totalTransform->Compose( nthTransform, false );
+    totalTransform->Compose( nthTransform, true );
     }
+
+  return totalTransform;
+}
+
+template <unsigned VImageDimension>
+typename RegistrationHelper<VImageDimension>::DisplacementFieldTransformPointer
+RegistrationHelper<VImageDimension>
+::CollapseDisplacementFieldTransforms( const CompositeTransformType * compositeTransform )
+{
+  std::cout << compositeTransform->GetNumberOfTransforms() << std::endl;
+
+  if( compositeTransform->GetTransformCategory() != TransformType::DisplacementField  )
+    {
+    itkExceptionMacro( "The composite transform is not composed strictly of displacement fields." );
+    }
+
+  DisplacementFieldTransformPointer totalTransform = DisplacementFieldTransformType::New();
+
+  if( compositeTransform->GetNumberOfTransforms() == 0 )
+    {
+    itkWarningMacro( "The composite transform is empty.  Returning empty displacement field transform." );
+
+    return totalTransform;
+    }
+
+  bool hasInverse = true;
+  for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
+    {
+    typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n );
+
+    typename DisplacementFieldTransformType::Pointer nthTransform =
+      dynamic_cast<DisplacementFieldTransformType *>( transform.GetPointer() );
+
+    if( n == 0 )
+      {
+      totalTransform->SetDisplacementField( nthTransform->GetDisplacementField() );
+      if( nthTransform->GetInverseDisplacementField() )
+        {
+        totalTransform->SetInverseDisplacementField( nthTransform->GetInverseDisplacementField() );
+        }
+      else
+        {
+        hasInverse = false;
+        }
+      }
+    else
+      {
+      typedef itk::ComposeDisplacementFieldsImageFilter<DisplacementFieldType> ComposerType;
+
+      typename ComposerType::Pointer composer = ComposerType::New();
+      composer->SetWarpingField( nthTransform->GetDisplacementField() );
+      composer->SetDisplacementField( totalTransform->GetDisplacementField() );
+
+      typename DisplacementFieldType::Pointer totalField = composer->GetOutput();
+      totalField->Update();
+      totalField->DisconnectPipeline();
+
+      typename DisplacementFieldType::Pointer totalInverseField = NULL;
+
+      if( hasInverse && nthTransform->GetInverseDisplacementField() )
+        {
+        typename ComposerType::Pointer inverseComposer = ComposerType::New();
+        inverseComposer->SetWarpingField( totalTransform->GetInverseDisplacementField() );
+        inverseComposer->SetDisplacementField( nthTransform->GetInverseDisplacementField() );
+
+        totalInverseField = inverseComposer->GetOutput();
+        totalInverseField->Update();
+        totalInverseField->DisconnectPipeline();
+        }
+      else
+        {
+        hasInverse = false;
+        }
+      totalTransform->SetDisplacementField( totalField );
+      totalTransform->SetInverseDisplacementField( totalInverseField );
+      }
+    }
+
+  return totalTransform;
+}
+
+template <unsigned VImageDimension>
+typename RegistrationHelper<VImageDimension>::CompositeTransformPointer
+RegistrationHelper<VImageDimension>
+::CollapseCompositeTransform( const CompositeTransformType * compositeTransform )
+{
+  CompositeTransformPointer collapsedCompositeTransform = CompositeTransformType::New();
+
+  // Check for the simple cases where the composite transform is composed entirely
+  // of linear transforms or displacement field transforms.
+  if( compositeTransform->IsLinear() )
+    {
+    collapsedCompositeTransform->AddTransform( this->CollapseLinearTransforms( compositeTransform ) );
+    return collapsedCompositeTransform;
+    }
+  else if( compositeTransform->GetTransformCategory() == TransformType::DisplacementField )
+    {
+    collapsedCompositeTransform->AddTransform( this->CollapseDisplacementFieldTransforms( compositeTransform ) );
+    return collapsedCompositeTransform;
+    }
+
+  // Find the first linear or displacement field transform
+  typename TransformType::TransformCategoryType currentTransformCategory = TransformType::UnknownTransformCategory;
+  unsigned int startIndex = 0;
+  for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
+    {
+    typename TransformType::TransformCategoryType transformCategory =
+      compositeTransform->GetNthTransform( n )->GetTransformCategory();
+    if( transformCategory == TransformType::Linear || transformCategory == TransformType::DisplacementField )
+      {
+      currentTransformCategory = transformCategory;
+      startIndex = n;
+      break;
+      }
+    else
+      {
+      collapsedCompositeTransform->AddTransform( compositeTransform->GetNthTransform( n ) );
+      }
+    }
+
+  // If a linear or displacement field transform is found then we can break down the
+  // composite transform into neighboring sets of like transform types.
+  if( currentTransformCategory != TransformType::UnknownTransformCategory )
+    {
+    CompositeTransformPointer currentCompositeTransform = CompositeTransformType::New();
+    currentCompositeTransform->AddTransform( compositeTransform->GetNthTransform( startIndex ) );
+    for( unsigned int n = startIndex + 1; n < compositeTransform->GetNumberOfTransforms(); n++ )
+      {
+      typename TransformType::TransformCategoryType transformCategory =
+        compositeTransform->GetNthTransform( n )->GetTransformCategory();
+      if( transformCategory == currentTransformCategory )
+        {
+        currentCompositeTransform->AddTransform( compositeTransform->GetNthTransform( n ) );
+        if( n == compositeTransform->GetNumberOfTransforms() - 1 )
+          {
+          if( currentTransformCategory == TransformType::Linear )
+            {
+            collapsedCompositeTransform->AddTransform( this->CollapseLinearTransforms( currentCompositeTransform ) );
+            }
+          else if( currentTransformCategory == TransformType::DisplacementField )
+            {
+            collapsedCompositeTransform->AddTransform( this->CollapseDisplacementFieldTransforms(
+                                                         currentCompositeTransform ) );
+            }
+          }
+        }
+      else
+        {
+        if( currentTransformCategory == TransformType::Linear )
+          {
+          collapsedCompositeTransform->AddTransform( this->CollapseLinearTransforms( currentCompositeTransform ) );
+          currentCompositeTransform->ClearTransformQueue();
+          }
+        else if( currentTransformCategory == TransformType::DisplacementField )
+          {
+          collapsedCompositeTransform->AddTransform( this->CollapseDisplacementFieldTransforms(
+                                                       currentCompositeTransform ) );
+          currentCompositeTransform->ClearTransformQueue();
+          }
+        currentTransformCategory = transformCategory;
+
+        if( ( transformCategory == TransformType::Linear || transformCategory == TransformType::DisplacementField ) &&
+            n < compositeTransform->GetNumberOfTransforms() - 1 )
+          {
+          currentCompositeTransform->AddTransform( compositeTransform->GetNthTransform( n ) );
+          }
+        else
+          {
+          collapsedCompositeTransform->AddTransform( compositeTransform->GetNthTransform( n ) );
+          }
+        }
+      }
+    }
+
+  return collapsedCompositeTransform;
+}
+
+template <unsigned VImageDimension>
+void
+RegistrationHelper<VImageDimension>
+::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform,
+                                              ImageBaseType * const image, const bool applyInverse )
+{
+  if( !compositeTransform->IsLinear() )
+    {
+    itkExceptionMacro( "The composite transform is not linear.  Cannot collapse it to the image header." );
+    }
+
+  MatrixOffsetTransformBasePointer totalTransform = this->CollapseLinearTransforms( compositeTransform );
 
   typename ImageType::PointType origin = image->GetOrigin();
   typename ImageType::DirectionType direction = image->GetDirection();
 
-  typename MatrixOffsetTransformBaseType::Pointer imageTransform = MatrixOffsetTransformBaseType::New();
+  MatrixOffsetTransformBasePointer imageTransform = MatrixOffsetTransformBaseType::New();
   imageTransform->SetMatrix( direction );
   imageTransform->SetOffset( origin.GetVectorFromOrigin() );
 
   if( applyInverse )
     {
-    typename MatrixOffsetTransformBaseType::Pointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
+    MatrixOffsetTransformBasePointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
     inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->GetInverseTransform()
                                                                                      .GetPointer() )->GetMatrix() );
     inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
 
-    totalTransform->Compose( inverseImageTransform, false );
+    totalTransform->Compose( inverseImageTransform.GetPointer(), false );
 
     typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix =
       dynamic_cast<MatrixOffsetTransformBaseType *>( totalTransform->GetInverseTransform().GetPointer() )->GetMatrix();

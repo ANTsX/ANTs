@@ -32,6 +32,7 @@
 #include "itkCenteredAffineTransform.h"
 #include "itkCenteredTransformInitializer.h"
 #include "itkCommand.h"
+#include "itkComposeDisplacementFieldsImageFilter.h"
 #include "itkCompositeTransform.h"
 #include "itkConjugateGradientLineSearchOptimizerv4.h"
 #include "itkCorrelationImageToImageMetricv4.h"
@@ -57,6 +58,7 @@
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMeanSquaresImageToImageMetricv4.h"
+#include "itkMultiGradientOptimizerv4.h"
 #include "itkObject.h"
 #include "itkQuaternionRigidTransform.h"
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
@@ -107,8 +109,14 @@ public:
   typedef itk::ImageBase<VImageDimension>        ImageBaseType;
 
   typedef itk::Transform<double, VImageDimension, VImageDimension>          TransformType;
+  typedef itk::AffineTransform<RealType, VImageDimension>                   AffineTransformType;
+  typedef typename AffineTransformType::Superclass                          MatrixOffsetTransformBaseType;
+  typedef typename MatrixOffsetTransformBaseType::Pointer                   MatrixOffsetTransformBasePointer;
   typedef itk::CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
+  typedef typename CompositeTransformType::Pointer                          CompositeTransformPointer;
   typedef itk::DisplacementFieldTransform<RealType, VImageDimension>        DisplacementFieldTransformType;
+  typedef typename DisplacementFieldTransformType::Pointer                  DisplacementFieldTransformPointer;
+  typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension> TimeVaryingVelocityFieldTransformType;
   typedef itk::ImageToImageMetricv4<ImageType, ImageType>                   MetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
@@ -505,6 +513,11 @@ public:
   void SetMovingImageMask(typename MaskImageType::Pointer & movingImageMask);
 
   /**
+   * Collapse a composite transform by adjacent linear or displacement field transforms.
+   */
+  CompositeTransformPointer CollapseCompositeTransform( const CompositeTransformType * );
+
+  /**
    * Do the registration. Will return EXIT_FAILURE if there is any
    * problem completing the registration.
    */
@@ -556,6 +569,10 @@ private:
 
   void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const,
                                                    const bool applyInverse );
+
+  DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
+
+  MatrixOffsetTransformBasePointer CollapseLinearTransforms( const CompositeTransformType * );
 
   bool m_ApplyLinearTransformsToFixedImageHeader;
   bool m_AllPreviousTransformsAreLinear;

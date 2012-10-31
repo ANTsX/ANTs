@@ -32,6 +32,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
+  // short names in use-  a:b:c:d:f:h:l:m:n:o:q:r:s:t:u::w:x:z
+
     {
     std::string description =
       std::string( "This option forces the image to be treated as a specified-" )
@@ -128,7 +130,21 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "collapse-linear-transforms-to-fixed-image-header" );
     option->SetShortName( 'b' );
-    option->SetUsageOption( 0, "(1)/0" );
+    option->SetUsageOption( 0, "1/(0)" );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Collapse output transforms. " )
+      + std::string( "Specifically, enabling this option combines all adjacent linear transforms " )
+      + std::string( "and composes all adjacent displacement field transforms before writing the " )
+      + std::string( "results to disk." );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "collapse-output-transforms" );
+    option->SetShortName( 'z' );
+    option->SetUsageOption( 0, "1/(0)" );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
@@ -389,6 +405,10 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
     {
     return "BSpline.txt";
     }
+  else if( str == "matrixoffset" )
+    {
+    return "MatrixOffset.mat";
+    }
   else if( str == "gaussiandisplacementfield" ||
            str == "gdf" ||
            str == "bsplinedisplacementfield" ||
@@ -435,6 +455,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   OptionType::Pointer maskOption = parser->GetOption( "masks" );
 
   OptionType::Pointer compositeOutputOption = parser->GetOption( "write-composite-transform" );
+
+  OptionType::Pointer collapseOutputTransformsOption = parser->GetOption( "collapse-output-transforms" );
 
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
@@ -484,15 +506,19 @@ DoRegistration(typename ParserType::Pointer & parser)
       return EXIT_FAILURE;
       }
     regHelper->SetMovingInitialTransform( compositeTransform );
-    // Write out initial derived transforms
-    for( unsigned int n = 0; n < isDerivedInitialMovingTransform.size(); n++ )
-      {
-      std::stringstream curFileName;
-      curFileName << outputPrefix << n << "DerivedInitialMovingTranslation.mat";
 
-      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
-        compositeTransform->GetNthTransform( n );
-      itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+    // Write out initial derived transforms only if we're not collapsing them in the output
+    if( !parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+      {
+      for( unsigned int n = 0; n < isDerivedInitialMovingTransform.size(); n++ )
+        {
+        std::stringstream curFileName;
+        curFileName << outputPrefix << n << "DerivedInitialMovingTranslation.mat";
+
+        typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
+          compositeTransform->GetNthTransform( n );
+        itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+        }
       }
     }
 
@@ -509,15 +535,19 @@ DoRegistration(typename ParserType::Pointer & parser)
       return EXIT_FAILURE;
       }
     regHelper->SetFixedInitialTransform( compositeTransform );
-    // Write out initial derived transforms
-    for( unsigned int n = 0; n < isDerivedInitialFixedTransform.size(); n++ )
-      {
-      std::stringstream curFileName;
-      curFileName << outputPrefix << n << "DerivedInitialFixedTranslation.mat";
 
-      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
-        compositeTransform->GetNthTransform( n );
-      itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+    // Write out initial derived transforms only if we're not collapsing them in the output
+    if( !parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+      {
+      for( unsigned int n = 0; n < isDerivedInitialFixedTransform.size(); n++ )
+        {
+        std::stringstream curFileName;
+        curFileName << outputPrefix << n << "DerivedInitialFixedTranslation.mat";
+
+        typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
+          compositeTransform->GetNthTransform( n );
+        itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+        }
       }
     }
 
@@ -847,7 +877,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     std::string whichTransform = transformOption->GetFunction( currentStage )->GetName();
     ConvertToLowerCase( whichTransform );
 
-    TransformTypeNames.push_back(whichTransform );
+    TransformTypeNames.push_back( whichTransform );
 
     typename RegistrationHelperType::XfrmMethod xfrmMethod = regHelper->StringToXfrmMethod(whichTransform);
 
@@ -1082,6 +1112,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   //
   // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetCompositeTransform();
+
   if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) )
     {
     std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
@@ -1100,11 +1131,65 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
-  // write out transforms actually computed, so skip any initial transforms.
-  for( unsigned int i = initialMovingTransformOption->GetNumberOfFunctions(); i < numTransforms; ++i )
+
+  // write out transforms actually computed, so skip any initial transforms unless
+  // we're collapsing the output transforms.
+
+  typedef typename RegistrationHelperType::CompositeTransformType         CompositeTransformType;
+  typedef typename CompositeTransformType::Pointer                        CompositeTransformPointer;
+  typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+  typedef typename RegistrationHelperType::TransformType                  TransformType;
+
+  unsigned int              startIndex = initialMovingTransformOption->GetNumberOfFunctions();
+  CompositeTransformPointer collapsedResultTransform;
+  if( parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
     {
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
-      resultTransform->GetNthTransform( i );
+    collapsedResultTransform = regHelper->CollapseCompositeTransform( resultTransform );
+    numTransforms = collapsedResultTransform->GetNumberOfTransforms();
+    startIndex = 0;
+    TransformTypeNames.clear();
+    for( unsigned int i = 0; i < numTransforms; i++ )
+      {
+      if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
+        {
+        TransformTypeNames.push_back( "matrixoffset" );
+        }
+      else if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() ==
+               TransformType::DisplacementField )
+        {
+        typename DisplacementFieldTransformType::Pointer nthTransform =
+          dynamic_cast<DisplacementFieldTransformType *>( collapsedResultTransform->GetNthTransform( i ).GetPointer() );
+
+        // We don't know what set of displacement field transforms were optimized.
+        // All we know is whether or not an inverse displacement field exists.  If so,
+        // we simply pass a transform name which either does have an inverse or does
+        // not.
+        if( nthTransform && nthTransform->GetInverseDisplacementField() )
+          {
+          TransformTypeNames.push_back( "syn" );
+          }
+        else
+          {
+          TransformTypeNames.push_back( "gdf" );
+          }
+        }
+      else if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() == TransformType::BSpline )
+        {
+        TransformTypeNames.push_back( "bspline" );
+        }
+      }
+    }
+  for( unsigned int i = startIndex; i < numTransforms; ++i )
+    {
+    typename CompositeTransformType::TransformTypePointer curTransform;
+    if( parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+      {
+      curTransform = collapsedResultTransform->GetNthTransform( i );
+      }
+    else
+      {
+      curTransform = resultTransform->GetNthTransform( i );
+      }
 
     //
     // only registrations not part of the initial transforms in the
