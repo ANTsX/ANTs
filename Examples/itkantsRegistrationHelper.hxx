@@ -2986,8 +2986,6 @@ typename RegistrationHelper<VImageDimension>::DisplacementFieldTransformPointer
 RegistrationHelper<VImageDimension>
 ::CollapseDisplacementFieldTransforms( const CompositeTransformType * compositeTransform )
 {
-  std::cout << compositeTransform->GetNumberOfTransforms() << std::endl;
-
   if( compositeTransform->GetTransformCategory() != TransformType::DisplacementField  )
     {
     itkExceptionMacro( "The composite transform is not composed strictly of displacement fields." );
