@@ -984,17 +984,18 @@ RegistrationHelper<VImageDimension>
 
     if( this->m_ApplyLinearTransformsToMovingImageHeader )
       {
-      this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
-                                                        dynamic_cast<ImageBaseType *>( const_cast<ImageType *>(
-                                                                                         preprocessMovingImage.
-                                                                                         GetPointer() ) ), false );
+      this->ApplyCompositeLinearTransformToMovingImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
+                                                              dynamic_cast<ImageBaseType *>( const_cast<ImageType *>(
+                                                                                               preprocessMovingImage.
+                                                                                               GetPointer() ) ) );
 
       if( this->m_MovingImageMask.IsNotNull() )
         {
-        this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
-                                                          dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
-                                                                                           this->m_MovingImageMask->
-                                                                                           GetImage() ) ), false );
+        this->ApplyCompositeLinearTransformToMovingImageHeader( this->m_CompositeLinearTransformForMovingImageHeader,
+                                                                dynamic_cast<ImageBaseType *>( const_cast<MaskImageType
+                                                                                                          *>( this->
+                                                                                                              m_MovingImageMask
+                                                                                                              ->GetImage() ) ) );
         }
       }
 
@@ -1479,8 +1480,7 @@ RegistrationHelper<VImageDimension>
         if( this->m_ApplyLinearTransformsToMovingImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
           this->m_CompositeLinearTransformForMovingImageHeader->AddTransform( const_cast<SimilarityTransformType *>(
-                                                                                similarityRegistration->GetOutput()->
-                                                                                Get() ) );
+                                                                                similarityRegistration->GetOutput()->Get() ) );
           }
         else
           {
@@ -2853,13 +2853,6 @@ RegistrationHelper<VImageDimension>
         ::ants::antscout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
       }
-    // TODO:  Collapse Previous 2 Composite Transforms.  If the two previous composite transforms are
-    //       compatible, then merge them into one transform
-    //       Given that if the request is for
-    //       Translation->Rigid->Similarity->Affine->MSE->SyN
-    //       |------------------------------------|  |------|
-    //       Affine                                  Warp
-    //       The result should be a composite transform with only two elmeents [Affine, Warp]
     timer.Stop();
     this->Logger() << "  Elapsed time (stage " << currentStageNumber << "): " << timer.GetMean() << std::endl
                    << std::endl;
@@ -3155,8 +3148,8 @@ RegistrationHelper<VImageDimension>
 template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
-::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform,
-                                              ImageBaseType * const image, const bool applyInverse )
+::ApplyCompositeLinearTransformToMovingImageHeader( const CompositeTransformType * compositeTransform,
+                                                    ImageBaseType * const image )
 {
   if( !compositeTransform->IsLinear() )
     {
@@ -3172,36 +3165,22 @@ RegistrationHelper<VImageDimension>
   imageTransform->SetMatrix( direction );
   imageTransform->SetOffset( origin.GetVectorFromOrigin() );
 
-  if( applyInverse )
+//   imageTransform->Compose( totalTransform.GetPointer(), false );
+
+  MatrixOffsetTransformBasePointer inverseTotalTransform = MatrixOffsetTransformBaseType::New();
+  inverseTotalTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( totalTransform->GetInverseTransform()
+                                                                                   .GetPointer() )->GetMatrix() );
+  inverseTotalTransform->SetOffset( -( inverseTotalTransform->GetMatrix() * totalTransform->GetOffset() ) );
+
+  imageTransform->Compose( inverseTotalTransform.GetPointer(), true );
+
+  typename MatrixOffsetTransformBaseType::MatrixType matrix = imageTransform->GetMatrix();
+  typename MatrixOffsetTransformBaseType::OffsetType offset = imageTransform->GetOffset();
+  for( unsigned int d = 0; d < VImageDimension; d++ )
     {
-    MatrixOffsetTransformBasePointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
-    inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->GetInverseTransform()
-                                                                                     .GetPointer() )->GetMatrix() );
-    inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
-
-    totalTransform->Compose( inverseImageTransform.GetPointer(), false );
-
-    typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix =
-      dynamic_cast<MatrixOffsetTransformBaseType *>( totalTransform->GetInverseTransform().GetPointer() )->GetMatrix();
-    typename MatrixOffsetTransformBaseType::OffsetType inverseOffset = -( inverseMatrix * totalTransform->GetOffset() );
-    for( unsigned int d = 0; d < VImageDimension; d++ )
-      {
-      origin[d] = inverseOffset[d];
-      }
-    direction = inverseMatrix;
+    origin[d] = offset[d];
     }
-  else
-    {
-    totalTransform->Compose( imageTransform, true );
-
-    typename MatrixOffsetTransformBaseType::MatrixType matrix = totalTransform->GetMatrix();
-    typename MatrixOffsetTransformBaseType::OffsetType offset = totalTransform->GetOffset();
-    for( unsigned int d = 0; d < VImageDimension; d++ )
-      {
-      origin[d] = offset[d];
-      }
-    direction = matrix;
-    }
+  direction = matrix;
 
   image->SetDirection( direction );
   image->SetOrigin( origin );

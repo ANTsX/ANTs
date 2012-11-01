@@ -567,8 +567,7 @@ private:
   double                                  m_UpperQuantile;
   std::ostream *                          m_LogStream;
 
-  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const,
-                                                   const bool applyInverse );
+  void ApplyCompositeLinearTransformToMovingImageHeader( const CompositeTransformType *, ImageBaseType * const );
 
   DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
 
