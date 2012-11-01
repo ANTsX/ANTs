@@ -468,11 +468,11 @@ DoRegistration(typename ParserType::Pointer & parser)
     parser->GetOption( "collapse-linear-transforms-to-fixed-image-header" );
   if( parser->Convert<bool>( collapseLinearTransforms->GetFunction( 0 )->GetName() ) )
     {
-    regHelper->SetApplyLinearTransformsToFixedImageHeader( true );
+    regHelper->SetApplyLinearTransformsToMovingImageHeader( true );
     }
   else
     {
-    regHelper->SetApplyLinearTransformsToFixedImageHeader( false );
+    regHelper->SetApplyLinearTransformsToMovingImageHeader( false );
     }
 
   std::string outputPrefix = outputOption->GetFunction( 0 )->GetName();
