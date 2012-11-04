@@ -106,7 +106,7 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANON0006_20_T1_sag_twiste
 
 set(antsRegistrationTestName antsRegistrationTest_AffineScaleMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -127,7 +127,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_AffineScaleNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -148,7 +148,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_AffineRotationMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -169,7 +169,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_AffineRotationNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -189,7 +189,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_AffineTranslationMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -210,7 +210,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_AffineTranslationNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -230,7 +230,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_RigidAnisotropicMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -250,7 +250,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_RigidRotationHeadMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -270,7 +270,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_RigidRotationMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -291,7 +291,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_RigidRotationNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -311,7 +311,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_MSEAffineRotationMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -332,7 +332,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_RigidRotGeomNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -357,7 +357,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_RigidRotaRotaRotNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -387,7 +387,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_SimilarityRotationMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 11
@@ -408,7 +408,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_SimilarityRotationNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 11
@@ -428,7 +428,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_SimilarityScaleMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -449,7 +449,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_SimilarityScaleNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -469,7 +469,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_SimilarityTranslationRescaleNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -489,7 +489,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_CCMetricBrainToItself)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare ${test_image_VAR}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -508,7 +508,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_CCSimilarityRotationMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 11
@@ -529,7 +529,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_MSEMetricBrainToItself)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare ${test_image_VAR}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -548,7 +548,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_MSESimilarityRotationMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 11
@@ -569,7 +569,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_ScaleTranslationRescaleHeadMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 7
@@ -594,7 +594,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_ScaleRotationRescaleHeadMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -619,7 +619,7 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
 
 set(antsRegistrationTestName antsRegistrationTest_SyNScaleNoMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
-  COMMAND ${LAUNCH_EXE} antsRegistrationTestDriver
+  COMMAND ${LAUNCH_EXE} $<TARGET_FILE:antsRegistrationTestDriver>
   --compare DATA{${TestDataMD5_DIR}/${antsRegistrationTestName}.result.nii.gz}
             ${CMAKE_CURRENT_BINARY_DIR}/${antsRegistrationTestName}.test.nii.gz
   --compareIntensityTolerance 9
@@ -722,7 +722,8 @@ set_property(TEST ${antsApplyTransformsTestName} APPEND PROPERTY
 set(antsApplyTransformsTestName simpleSynRegistration_Vs_antsRegistration)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsApplyTransformsTestName}
   COMMAND ${LAUNCH_EXE} antsApplyTransformsTestDriver
-  --compare ${CMAKE_CURRENT_BINARY_DIR}/antsApplyTransformsTestForAntsRegistration.test.nii.gz
+  --compare
+  ${CMAKE_CURRENT_BINARY_DIR}/antsApplyTransformsTestForAntsRegistration.test.nii.gz
   ${CMAKE_CURRENT_BINARY_DIR}/antsApplyTransformsTestForSimpleSynRegistration.test.nii.gz
   --compareIntensityTolerance 9
   --compareRadiusTolerance 1
@@ -730,8 +731,8 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsApplyTransformsTestNa
 
   antsApplyTransformsTest -h
 )
-set_property(TEST ${antsApplyTransformsTestName} APPEND PROPERTY
-  DEPENDS antsApplyTransformsTestForAntsRegistration antsApplyTransformsTestForSimpleAntsRegistration)
+set_property(TEST simpleSynRegistration_Vs_antsRegistration APPEND PROPERTY
+  DEPENDS antsApplyTransformsTestForSimpleSynRegistration antsApplyTransformsTestForAntsRegistration )
 ############ End of four step compare tests#################
 
 
