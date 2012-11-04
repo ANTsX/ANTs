@@ -8,17 +8,16 @@ set(WARP_IMAGE ${CMAKE_BINARY_DIR}/${THIS_TEST_NAME}_warped.nii.gz)
 set(INVERSEWARP_IMAGE ${CMAKE_BINARY_DIR}/${THIS_TEST_NAME}_inversewarped.nii.gz)
 
 
-add_test(${THIS_TEST_NAME} ${TEST_BINARY_DIR}/ANTS 2
+add_test(NAME ${THIS_TEST_NAME} COMMAND $<TARGET_FILE:ANTS> 2
  -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -r Gauss[0.5,0.1]
  -t SyN[1,10,0.05] -i 150x100x2x2 -o ${OUTPUT_PREFIX}
  --geodesic 1 --number-of-affine-iterations 0)
 
-add_test(${THIS_TEST_NAME}_WARP ${TEST_BINARY_DIR}/WarpImageMultiTransform 2
+add_test(NAME ${THIS_TEST_NAME}_WARP COMMAND $<TARGET_FILE:WarpImageMultiTransform> 2
  ${C_IMAGE} ${OUTPUT_PREFIX}.nii.gz ${OUTPUT_PREFIX}Warp.nii.gz -R ${CHALF_IMAGE} )
 set_property(TEST ${THIS_TEST_NAME}_WARP APPEND PROPERTY DEPENDS ${THIS_TEST_NAME})
 
-add_test(${THIS_TEST_NAME}_WARP_METRIC_0
- ${TEST_BINARY_DIR}/MeasureImageSimilarity 2 0
+add_test(NAME ${THIS_TEST_NAME}_WARP_METRIC_0 COMMAND $<TARGET_FILE:MeasureImageSimilarity> 2 0
  ${CHALF_IMAGE} ${OUTPUT_PREFIX}.nii.gz
  ${OUTPUT_PREFIX}log.txt ${OUTPUT_PREFIX}metric.nii.gz
  0.0943736 0.1)

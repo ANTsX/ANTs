@@ -84,7 +84,6 @@ set(ANGEL_IMAGE_VTK ${DATA_DIR}/Smile.vtk)
 set(DEVIL_IMAGE_VTK ${DATA_DIR}/Frown.vtk)
 
 set(SEG_IMAGE ${DATA_DIR}/nslice.nii.gz)
-set(TEST_BINARY_DIR ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
 if(RUN_LONG_TESTS)
 
@@ -104,9 +103,6 @@ ExternalData_expand_arguments(${PROJECT_NAME}FetchData translation_rescale_test_
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData rotation_rescale_test_image_VAR DATA{${TestDataMD5_DIR}/rotation.rescale.test.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANON0006_20_T1_dbg_splayed_image_VAR DATA{${TestDataMD5_DIR}/ANON0006_20_T1_dbg_splayed.nii.gz})
 ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANON0006_20_T1_sag_twisted_image_VAR DATA{${TestDataMD5_DIR}/ANON0006_20_T1_sag_twisted.nii.gz})
-
-message(STATUS "${test_mask_VAR} =========================================")
-
 
 set(antsRegistrationTestName antsRegistrationTest_AffineScaleMasks)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${antsRegistrationTestName}
@@ -821,9 +817,9 @@ set(AllANTSPrograms
 
 foreach(CurrProg ${AllANTSPrograms})
   set(HELP_FLAG "--help")
-  add_test(${CurrProg}_HELP_LONG  ${TEST_BINARY_DIR}/${CurrProg} ${HELP_FLAG} ) ## Just print the help screen
+  add_test(NAME ${CurrProg}_HELP_LONG  COMMAND $<TARGET_FILE:${CurrProg}> ${HELP_FLAG} ) ## Just print the help screen
   set(HELP_FLAG "-h" )
-  add_test(${CurrProg}_HELP_SHORT ${TEST_BINARY_DIR}/${CurrProg} ${HELP_FLAG} ) ## Just print the help screen
+  add_test(NAME ${CurrProg}_HELP_SHORT COMMAND $<TARGET_FILE:${CurrProg}> ${HELP_FLAG} ) ## Just print the help screen
   set_property(TEST ${CurrProg}_HELP_SHORT APPEND PROPERTY DEPENDS ${CurrProg}_HELP_LONG)
 endforeach()
 
@@ -856,7 +852,7 @@ set(ROT_REF_IMAGE ${DATA_DIR}/r16roth.nii.gz)
 set(ROT_MOV_IMAGE ${DATA_DIR}/r64roth.nii.gz)
   include(ANTS_ROT_GSYN_test.cmake)
   include(ANTS_ROT_EXP_test.cmake)
-#add_test(ANTS_ROT_EXP_CLEAN rm ${ROT_WARP_FILES})
+#add_test(NAME ANTS_ROT_EXP_CLEAN COMMAND rm ${ROT_WARP_FILES})
 ###
 #  Test SyN with time
 ###
