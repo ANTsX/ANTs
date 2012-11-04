@@ -3,6 +3,7 @@
 *.[oa]
 .DS_Store
 ._*
+.nfs*
 *.nii.gz
 *.nrrd
 *.nhdr
