@@ -750,9 +750,9 @@ DoRegistration(typename ParserType::Pointer & parser)
     shrinkFactorsList.push_back( factors );
 
     // Get smoothing sigmas
-    std::string smoothingSigmasString = smoothingSigmasOption->GetFunction( currentStage )->GetName();
-    size_t      mmPosition = smoothingSigmasString.find( "mm" );
-    size_t      voxPosition = smoothingSigmasString.find( "vox" );
+    std::string  smoothingSigmasString = smoothingSigmasOption->GetFunction( currentStage )->GetName();
+    const size_t mmPosition = smoothingSigmasString.find( "mm" );
+    const size_t voxPosition = smoothingSigmasString.find( "vox" );
     if( mmPosition != std::string::npos )
       {
       smoothingSigmasString.replace( mmPosition, 2, "" );
