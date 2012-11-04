@@ -97,29 +97,6 @@ ReadTransform(const std::string & filename)
     const typename itk::TransformFileReader::TransformListType * const listOfTransforms =
       transformReader->GetTransformList();
     transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
-#if 0   // HACK:  THIS IS FOR DEBUGGING, remove when composite transforms work
-    std::cout << "HACK:  " << listOfTransforms->size() << std::endl;
-    for( typename itk::TransformFileReader::TransformListType::const_iterator it = listOfTransforms->begin();
-         it != listOfTransforms->end(); ++it )
-      {
-      std::cout << " HACK " << (*it)->GetNameOfClass() << std::endl;
-      }
-    // When reading a composite tranform file, we need to re-construct it
-    // properly.  This should be fixed in ITKv4, but currently is not the case
-    static const std::string CompositeTransformID("CompositeTransform");
-    if( listOfTransforms->front()->GetNameOfClass() == CompositeTransformID )
-      {
-      const typename itk::CompositeTransform<double, VImageDimension>::ConstPointer tempComp =
-        dynamic_cast<const itk::CompositeTransform<double,
-                                                   VImageDimension> *>( listOfTransforms->front().GetPointer() );
-      std::cout << "Size of TransformQueue is: " << tempComp->GetNumberOfTransforms() << std::endl;
-      for( unsigned int i = 0; i < tempComp->GetNumberOfTransforms(); ++i )
-        {
-        std::cout << i << " transform is of type " << tempComp->GetNthTransform(i)->GetNameOfClass() << std::endl;
-        std::cout << i << " FixedParameters      " << tempComp->GetNthTransform(i)->GetFixedParameters() << std::endl;
-        }
-      }
-#endif
     }
   return transform;
 }
