@@ -63,7 +63,8 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
   std::vector<float> sigmas(3);
   sigmas[0] = 2; sigmas[1] = 1; sigmas[2] = 0;
   smoothingSigmasList.push_back(sigmas);
-
+  std::vector<bool> smoothingSigmasAreInPhysicalUnitsList;
+  smoothingSigmasAreInPhysicalUnitsList.push_back(true);     // Historical behavior before 2012-10-07
   const float                              samplingPercentage = 1.0;
   RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
   const unsigned int                       binOption = 200;
@@ -80,16 +81,18 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
   regHelper->SetConvergenceThresholds( convergenceThresholdList );
   regHelper->SetSmoothingSigmas( smoothingSigmasList );
   regHelper->SetShrinkFactors( shrinkFactorsList );
-  if( regHelper->DoRegistration() == EXIT_FAILURE )
+  regHelper->SetSmoothingSigmasAreInPhysicalUnits( smoothingSigmasAreInPhysicalUnitsList );
+  if( regHelper->DoRegistration() == EXIT_SUCCESS )
     {
-    antscout << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
+    // Get the output transform
+    CompositeTransformType::Pointer outputCompositeTransform = regHelper->GetCompositeTransform();
+    // write out transform actually computed, so skip the initial transform
+    CompositeTransformType::TransformTypePointer resultTransform = outputCompositeTransform->GetNthTransform( 1 );
+    return resultTransform;
     }
-  // Get the output transform
-  CompositeTransformType::Pointer outputCompositeTransform = regHelper->GetCompositeTransform();
-  // write out transform actually computed, so skip the initial transform
-  CompositeTransformType::TransformTypePointer resultTransform = outputCompositeTransform->GetNthTransform( 1 );
-
-  return resultTransform;
+  antscout << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
+  CompositeTransformType::TransformTypePointer invalidTransform = NULL;
+  return invalidTransform;      // Return an empty registration type.
 }
 
 int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stream = NULL )
@@ -158,7 +161,11 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
   // compute the output transform by calling the "simpleSynReg" function
   CompositeTransformType::TransformTypePointer outputTransform = simpleSynReg( fixedImage, movingImage,
                                                                                compositeInitialTransform );
-
+  if( outputTransform.IsNull() )
+    {
+    antscout << "ERROR: Registration FAILED TO PRODUCE VALID TRANSFORM ...\n" << std::endl;
+    return EXIT_FAILURE;
+    }
   antscout << "***** Ready to write the results ...\n" << std::endl;
   std::stringstream outputFileName;
   outputFileName << args[3] << "Warp.nii.gz";
