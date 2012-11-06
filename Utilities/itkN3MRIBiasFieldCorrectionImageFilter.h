@@ -141,7 +141,7 @@ private:
  * Class definition for N3MRIBiasFieldCorrectionImageFilter
  */
 template <class TInputImage, class TMaskImage = Image<unsigned char,
-                                                      ::itk::GetImageDimension<TInputImage>::ImageDimension>,
+                                                      TInputImage::ImageDimension>,
           class TOutputImage = TInputImage>
 class ITK_EXPORT N3MRIBiasFieldCorrectionImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>

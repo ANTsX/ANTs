@@ -774,7 +774,7 @@ private:
   typename TFixedImage::PointType                  m_FixedImageOrigin;
 
   typedef FixedArray<unsigned long,
-                     ::itk::GetImageDimension<FixedImageType>::ImageDimension> ParametersOffsetType;
+                     FixedImageType::ImageDimension> ParametersOffsetType;
   ParametersOffsetType m_ParametersOffset;
 
   mutable TransformPointer m_Transform;
