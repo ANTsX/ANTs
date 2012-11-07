@@ -468,9 +468,9 @@ public:
    * turn on the option that pushes initial linear transforms to the fixed
    * image header for faster processing
    */
-  itkSetMacro( ApplyLinearTransformsToMovingImageHeader, bool );
-  itkGetConstMacro( ApplyLinearTransformsToMovingImageHeader, bool );
-  itkBooleanMacro( ApplyLinearTransformsToMovingImageHeader );
+  itkSetMacro( ApplyLinearTransformsToFixedImageHeader, bool );
+  itkGetConstMacro( ApplyLinearTransformsToFixedImageHeader, bool );
+  itkBooleanMacro( ApplyLinearTransformsToFixedImageHeader );
 
   /**
    * turn on winsorize image intensity normalization
@@ -574,9 +574,9 @@ private:
 
   MatrixOffsetTransformBasePointer CollapseLinearTransforms( const CompositeTransformType * );
 
-  bool m_ApplyLinearTransformsToMovingImageHeader;
+  bool m_ApplyLinearTransformsToFixedImageHeader;
   bool m_AllPreviousTransformsAreLinear;
-  typename CompositeTransformType::Pointer m_CompositeLinearTransformForMovingImageHeader;
+  typename CompositeTransformType::Pointer m_CompositeLinearTransformForFixedImageHeader;
 };
 
 // ##########################################################################
