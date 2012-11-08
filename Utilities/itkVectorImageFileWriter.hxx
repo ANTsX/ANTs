@@ -149,8 +149,7 @@ VectorImageFileWriter<TVectorImage, TImage>
   typename SelectorType::Pointer selector = SelectorType::New();
   selector->SetInput( this->GetInput() );
 
-  unsigned int dimension = itk::GetVectorDimension
-    <typename VectorImageType::PixelType>::VectorDimension;
+  unsigned int dimension = VectorImageType::PixelType::VectorDimension;
 
   std::string            filename = this->m_FileName;
   std::string::size_type pos = this->m_FileName.rfind( "." );
@@ -399,7 +398,7 @@ VectorImageFileWriter<TVectorImage, TImage>
      << (m_FileName.data() ? m_FileName.data() : "(none)") << std::endl;
 
   os << "Number of vector components (i.e. number of images created): "
-     << itk::GetVectorDimension<typename VectorImageType::PixelType>::VectorDimension
+     << VectorImageType::PixelType::VectorDimension
      << std::endl;
 
   os << indent << "Image IO: ";
