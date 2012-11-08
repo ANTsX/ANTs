@@ -1,3 +1,8 @@
+export MYSRC=/tmp/my_favorite_source_directory
+mkdir -p ${MYSRC}
+cd ${MYSRC}
+git checkout git@github.com:BRAINSia/ANTS.git
+cd ${MYSRC}/ANTS
 
 git svn init https://advants.svn.sourceforge.net/svnroot/advants
 git update-ref refs/remotes/git-svn refs/remotes/origin/master
@@ -9,3 +14,11 @@ git svn rebase
 #	fetch = trunk:refs/remotes/trunk
 #	branches = branches/*:refs/remotes/*
 #	tags = tags/*:refs/remotes/tags/*
+
+
+### Git notes
+## git svn fetch
+## git svn rebase
+## git svn dcommit
+## git push origin master:svn (This shall always be valid with respect to the svn repository)
+## git push origin master:master (This is the version that is build for the nightly dashboards at http://testing.psychiatry.uiowa.edu)
