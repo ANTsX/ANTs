@@ -83,7 +83,7 @@ public:
     this->SetIndexedInputListSample( 0, ptr );
   }
 
-  virtual void SetIndexedInputListSample( unsigned int d, const InputListSampleType * ptr );
+  virtual void SetIndexedInputListSample( const unsigned int d, const InputListSampleType * ptr );
 
   /** Sets the weights using an array */
   virtual void SetListSampleWeights( ListSampleWeightArrayType *array )
@@ -91,19 +91,19 @@ public:
     this->SetListSampleWeights( 0, array );
   }
 
-  virtual void SetListSampleWeights( unsigned int, ListSampleWeightArrayType * );
+  virtual void SetListSampleWeights( const unsigned int, ListSampleWeightArrayType * );
 
   /** Get the input image. */
-  virtual const InputListSampleType * GetInputListSample(const unsigned int idx = 0 ) const;
+  virtual const InputListSampleType * GetInputListSample( const unsigned int idx = 0 ) const;
 
   /** Clear the input list sample to free memory */
-  virtual void ClearInputListSample( unsigned int idx = 0 )
+  virtual void ClearInputListSample( const unsigned int idx = 0 )
   {
     this->SetIndexedInputListSample( idx, NULL );
   }
 
   /** Gets the weights array */
-  virtual ListSampleWeightArrayType * GetListSampleWeights( unsigned int idx = 0 );
+  virtual ListSampleWeightArrayType * GetListSampleWeights( const unsigned int idx = 0 );
 
   /** Evaluate the function at specified Point position.
    * Subclasses must provide this method. */
@@ -115,7 +115,7 @@ protected:
   {
   }
 
-  void PrintSelf(std::ostream& os, Indent indent) const;
+  void PrintSelf( std::ostream& os, Indent indent ) const;
 
   /** Const pointer to the input image. */
   std::vector<typename InputListSampleType::ConstPointer> m_ListSamples;
@@ -138,7 +138,7 @@ private:
 #include "Templates/antsListSampleFunction+-.h"
 #endif
 
-#if ITK_TEMPLATE_TXX
+#ifndef ITK_MANUAL_INSTANTIATION
 #include "antsListSampleFunction.hxx"
 #endif
 
