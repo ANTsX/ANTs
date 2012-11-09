@@ -93,6 +93,7 @@
 #include "itkWeightedCentroidKdTreeGenerator.h"
 #include "vnl/vnl_matrix_fixed.h"
 #include "itkTransformFactory.h"
+#include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 
 #include <fstream>
 #include <iostream>
@@ -10295,6 +10296,61 @@ int MinMaxMean( int argc, char *argv[] )
   return 0;
 }
 
+template <unsigned int ImageDimension>
+int BlobDetector( int argc, char *argv[] )
+{
+  typedef float                                         PixelType;
+  typedef itk::Image<PixelType, ImageDimension>         ImageType;
+  typedef itk::ImageFileReader<ImageType>               ImageReaderType;
+  typedef itk::ImageFileWriter<ImageType>               ImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
+  typedef itk::ImageMomentsCalculator<ImageType>        MomentsCalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>  IteratorType;
+
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  unsigned int nblobs = atoi( argv[argct] );   argct++;
+  //  std::string fn2 = "";
+  //  if( argc > argct )
+  //   {
+  //   fn2 = std::string(argv[argct]); argct++;
+  //   }
+
+  typename ImageType::Pointer image;
+  ReadImage<ImageType>( image, fn1.c_str() );
+
+  typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
+  typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
+  blobFilter->SetStartT( 1.0 );
+  blobFilter->SetEndT( 512 );
+  blobFilter->SetStepsPerOctave( 10 );
+  blobFilter->SetNumberOfBlobs( nblobs );
+  blobFilter->SetInput( image );
+  blobFilter->Update();
+  typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
+  typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
+  WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
+  typedef typename BlobFilterType::BlobsListType BlobsListType;
+  BlobsListType blobs =  blobFilter->GetBlobs();
+  /*
+  if ( !blobs.empty() )
+    for( typename BlobsListType::const_iterator i = blobs.begin(); i != blobs.end(); ++i)
+      {
+      antscout <<  "Value: " << (*i)->GetScaleSpaceValue() << " sigma of Laplacian detector " << (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << std::endl;
+      }
+  antscout << std::endl;
+  */
+
+  return 0;
+}
+
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
@@ -11050,6 +11106,10 @@ private:
         {
         MinMaxMean<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
+        {
+        BlobDetector<2>(argc, argv);
+        }
       //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
         {
@@ -11443,6 +11503,10 @@ private:
         {
         MinMaxMean<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
+        {
+        BlobDetector<3>(argc, argv);
+        }
       else
         {
         antscout << " cannot find operation : " << operation << std::endl;
@@ -11627,6 +11691,10 @@ private:
       else if( strcmp(operation.c_str(), "Where") == 0 )
         {
         Where<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
+        {
+        BlobDetector<4>(argc, argv);
         }
       //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
       // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
