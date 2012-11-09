@@ -7650,23 +7650,23 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   LabelSetType myLabelSet2;
   unsigned int labct = 0;
-                        { Iterator It( image2, image2->GetLargestPossibleRegion() );
-                        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-                          {
-                          PixelType label = It.Get();
-                          if( fabs(label) > 0 )
+                          { Iterator It( image2, image2->GetLargestPossibleRegion() );
+                          for( It.GoToBegin(); !It.IsAtEnd(); ++It )
                             {
-                            if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
-                                == myLabelSet2.end()   &&
-                                find( myLabelSet1.begin(), myLabelSet1.end(), label )
-                                != myLabelSet1.end() )
+                            PixelType label = It.Get();
+                            if( fabs(label) > 0 )
                               {
-                              myLabelSet2.push_back( label );
-                              labct++;
+                              if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
+                                  == myLabelSet2.end()   &&
+                                  find( myLabelSet1.begin(), myLabelSet1.end(), label )
+                                  != myLabelSet1.end() )
+                                {
+                                myLabelSet2.push_back( label );
+                                labct++;
+                                }
                               }
                             }
                           }
-                        }
 
   vnl_vector<double> distances(labct, 0.0);
   vnl_vector<double> dicevals(labct, 0.0);
@@ -10438,6 +10438,10 @@ private:
     antscout << "  GE Image1.ext s    : Grayscale Erosion with radius s" << std::endl;
     antscout << "  GO Image1.ext s    : Grayscale Opening with radius s" << std::endl;
     antscout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
+    antscout
+      <<
+      "  BlobDetector Image1.ext NumberOfBlobs    :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
+      << std::endl;
 
     antscout << "\nTime Series Operations:" << std::endl;
     antscout
