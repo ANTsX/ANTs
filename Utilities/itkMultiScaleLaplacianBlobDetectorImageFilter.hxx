@@ -194,15 +194,15 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
     {
     const double sigma =  vcl_sqrt( InputImageType::ImageDimension / 2.0 ) * i->m_Sigma;
 
-    BlobPointer blob = BlobType::New();
-    blob->SetSigma( sigma );
-    blob->SetScaleSpaceValue( i->m_Value );
-
     // transform the center index into offset vector
     typename BlobType::PointType centerPoint;
     inputImage->TransformIndexToPhysicalPoint( i->m_Center, centerPoint );
-    //    std::cout << "Blob detected at " << i->m_Center  << " with value " << i->m_Value << " and sigma: " <<
-    // i->m_Sigma  << std::endl;
+
+    BlobPointer blob = BlobType::New();
+    blob->SetSigma( sigma );
+    blob->SetScaleSpaceValue( i->m_Value );
+    blob->SetCenter( i->m_Center );
+
     this->m_BlobRadiusImage->SetPixel( i->m_Center, ( int ) ( 0.5 + i->m_Sigma ) );
     const typename BlobType::VectorType centerVector = centerPoint - zeroPoint;
 
@@ -211,7 +211,6 @@ void MultiScaleLaplacianBlobDetectorImageFilter<TInputImage>
 
     m_BlobList.push_back( blob );
     }
-  std::cout << " DONE" << std::endl;
 }
 
 template <class TInputImage>

@@ -10317,20 +10317,21 @@ int BlobDetector( int argc, char *argv[] )
   std::string  operation = std::string(argv[argct]);  argct++;
   std::string  fn1 = std::string(argv[argct]);   argct++;
   unsigned int nblobs = atoi( argv[argct] );   argct++;
-  //  std::string fn2 = "";
-  //  if( argc > argct )
-  //   {
-  //   fn2 = std::string(argv[argct]); argct++;
-  //   }
+  std::string  fn2 = "";
+  if( argc > argct )
+    {
+    fn2 = std::string(argv[argct]); argct++;
+    }
 
   typename ImageType::Pointer image;
+  typename ImageType::Pointer image2;
   ReadImage<ImageType>( image, fn1.c_str() );
 
   typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
   typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
-  blobFilter->SetStartT( 1.0 );
-  blobFilter->SetEndT( 512 );
-  blobFilter->SetStepsPerOctave( 10 );
+  blobFilter->SetStartT( 1 );
+  blobFilter->SetEndT( 128 );
+  blobFilter->SetStepsPerOctave( 64 );
   blobFilter->SetNumberOfBlobs( nblobs );
   blobFilter->SetInput( image );
   blobFilter->Update();
@@ -10338,15 +10339,45 @@ int BlobDetector( int argc, char *argv[] )
   typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
   WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
   typedef typename BlobFilterType::BlobsListType BlobsListType;
-  BlobsListType blobs =  blobFilter->GetBlobs();
-  /*
-  if ( !blobs.empty() )
-    for( typename BlobsListType::const_iterator i = blobs.begin(); i != blobs.end(); ++i)
+
+  BlobsListType blobs1 =  blobFilter->GetBlobs();
+  BlobsListType blobs2;
+  if( !blobs1.empty() )
+    {
+    for( typename BlobsListType::const_iterator i = blobs1.begin(); i != blobs1.end(); ++i )
       {
-      antscout <<  "Value: " << (*i)->GetScaleSpaceValue() << " sigma of Laplacian detector " << (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << std::endl;
+      antscout <<  "Value: " << (*i)->GetScaleSpaceValue() << " sigma of Laplacian detector "
+               << (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << " center "
+               <<  (*i)->GetCenter() << std::endl;
       }
+    }
   antscout << std::endl;
-  */
+  if( fn2.length() > 3 )
+    {
+    ReadImage<ImageType>( image2, fn2.c_str() );
+    typename BlobFilterType::Pointer blobFilter2 = BlobFilterType::New();
+    blobFilter2->SetStartT( 1 );
+    blobFilter2->SetEndT( 128 );
+    blobFilter2->SetStepsPerOctave( 64 );
+    blobFilter2->SetNumberOfBlobs( nblobs );
+    blobFilter2->SetInput( image2 );
+    blobFilter2->Update();
+    blobs2 =  blobFilter2->GetBlobs();
+    if( !blobs2.empty() )
+      {
+      for( typename BlobsListType::const_iterator i = blobs2.begin(); i != blobs2.end(); ++i )
+        {
+        antscout <<  "Value: " << (*i)->GetScaleSpaceValue() << " sigma of Laplacian detector "
+                 << (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << " center "
+                 <<  (*i)->GetCenter() << std::endl;
+        }
+      }
+    antscout << std::endl;
+    }
+
+  antscout << " Blob1Length " << blobs1.size() << " Blob2Length " << blobs2.size() << std::endl;
+
+  // now compute some feature characteristics in each blob
 
   return 0;
 }
@@ -10440,7 +10471,7 @@ private:
     antscout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
     antscout
       <<
-      "  BlobDetector Image1.ext NumberOfBlobs    :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
+      "  BlobDetector Image1.ext NumberOfBlobs  Optional-Image2-(not-implemented-yet)  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
       << std::endl;
 
     antscout << "\nTime Series Operations:" << std::endl;
