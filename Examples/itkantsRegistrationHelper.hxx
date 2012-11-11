@@ -2944,7 +2944,7 @@ RegistrationHelper<VImageDimension>
 }
 
 template <unsigned VImageDimension>
-typename RegistrationHelper<VImageDimension>::MatrixOffsetTransformBasePointer
+typename RegistrationHelper<VImageDimension>::AffineTransformType::Pointer
 RegistrationHelper<VImageDimension>
 ::CollapseLinearTransforms( const CompositeTransformType * compositeTransform )
 {
@@ -2955,12 +2955,12 @@ RegistrationHelper<VImageDimension>
 
   typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
 
-  MatrixOffsetTransformBasePointer totalTransform = MatrixOffsetTransformBaseType::New();
+  typename AffineTransformType::Pointer totalTransform = AffineTransformType::New();
   for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
     {
     typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n );
 
-    typename MatrixOffsetTransformBaseType::Pointer nthTransform = MatrixOffsetTransformBaseType::New();
+    typename AffineTransformType::Pointer nthTransform = AffineTransformType::New();
 
     typename TranslationTransformType::Pointer translationTransform =
       dynamic_cast<TranslationTransformType *>( transform.GetPointer() );
@@ -2977,7 +2977,6 @@ RegistrationHelper<VImageDimension>
       }
     totalTransform->Compose( nthTransform, true );
     }
-
   return totalTransform;
 }
 
@@ -3163,7 +3162,7 @@ RegistrationHelper<VImageDimension>
     itkExceptionMacro( "The composite transform is not linear.  Cannot collapse it to the image header." );
     }
 
-  MatrixOffsetTransformBasePointer totalTransform = this->CollapseLinearTransforms( compositeTransform );
+  typename AffineTransformType::Pointer totalTransform = this->CollapseLinearTransforms( compositeTransform );
 
   typename ImageType::PointType origin = image->GetOrigin();
   typename ImageType::DirectionType direction = image->GetDirection();

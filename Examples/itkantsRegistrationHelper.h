@@ -572,7 +572,7 @@ private:
 
   DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
 
-  MatrixOffsetTransformBasePointer CollapseLinearTransforms( const CompositeTransformType * );
+  typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
 
   bool m_ApplyLinearTransformsToFixedImageHeader;
   bool m_AllPreviousTransformsAreLinear;
