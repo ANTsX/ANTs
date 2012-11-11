@@ -93,6 +93,7 @@
 #include "itkWeightedCentroidKdTreeGenerator.h"
 #include "vnl/vnl_matrix_fixed.h"
 #include "itkTransformFactory.h"
+#include "itkSurfaceImageCurvature.h"
 #include "itkMultiScaleLaplacianBlobDetectorImageFilter.h"
 
 #include <fstream>
@@ -1870,8 +1871,8 @@ int TimeSeriesAssemble(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> SliceIt;
 
   antscout << " Merging " << argc - 6 << " subvolumes " << std::endl;
-  std::cout << " time spacing: " << time << std::endl;
-  std::cout << " time origin: " << origin << std::endl;
+  antscout << " time spacing: " << time << std::endl;
+  antscout << " time origin: " << origin << std::endl;
   for( int i = 6; i < argc; i++ )
     {
     typename ImageType::Pointer image1 = NULL;
@@ -10300,20 +10301,26 @@ template <unsigned int ImageDimension>
 int BlobDetector( int argc, char *argv[] )
 {
   typedef float                                         PixelType;
+  typedef float                                         RealType;
   typedef itk::Image<PixelType, ImageDimension>         ImageType;
   typedef itk::ImageFileReader<ImageType>               ImageReaderType;
   typedef itk::ImageFileWriter<ImageType>               ImageWriterType;
   typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
   typedef itk::ImageMomentsCalculator<ImageType>        MomentsCalculatorType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>  IteratorType;
+  typedef itk::SurfaceImageCurvature<ImageType>         ParamType;
 
   if( argc < 5 )
     {
     antscout << " Not enough inputs " << std::endl;
     return 1;
     }
+  unsigned int stepsperoctave = 10;
+  RealType     minscale = vcl_pow( 2.0, 1 );
+  RealType     maxscale = vcl_pow( 2.0, 12 );
   int          argct = 2;
   std::string  outname = std::string(argv[argct]); argct++;
+  std::string  outname2 = std::string("temp.nii.gz");
   std::string  operation = std::string(argv[argct]);  argct++;
   std::string  fn1 = std::string(argv[argct]);   argct++;
   unsigned int nblobs = atoi( argv[argct] );   argct++;
@@ -10322,6 +10329,10 @@ int BlobDetector( int argc, char *argv[] )
     {
     fn2 = std::string(argv[argct]); argct++;
     }
+  if( argc > argct )
+    {
+    outname2 = std::string(argv[argct]); argct++;
+    }
 
   typename ImageType::Pointer image;
   typename ImageType::Pointer image2;
@@ -10329,14 +10340,16 @@ int BlobDetector( int argc, char *argv[] )
 
   typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
   typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
-  blobFilter->SetStartT( 1 );
-  blobFilter->SetEndT( 128 );
-  blobFilter->SetStepsPerOctave( 64 );
+  typedef typename BlobFilterType::BlobPointer BlobPointer;
+  blobFilter->SetStartT( minscale );
+  blobFilter->SetEndT( maxscale );
+  blobFilter->SetStepsPerOctave( stepsperoctave );
   blobFilter->SetNumberOfBlobs( nblobs );
   blobFilter->SetInput( image );
   blobFilter->Update();
   typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
   typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
+  typename BlobRadiusImageType::Pointer labimg2;
   WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
   typedef typename BlobFilterType::BlobsListType BlobsListType;
 
@@ -10346,9 +10359,9 @@ int BlobDetector( int argc, char *argv[] )
     {
     for( typename BlobsListType::const_iterator i = blobs1.begin(); i != blobs1.end(); ++i )
       {
-      antscout <<  "Value: " << (*i)->GetScaleSpaceValue() << " sigma of Laplacian detector "
-               << (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << " center "
-               <<  (*i)->GetCenter() << std::endl;
+      //	antscout <<  "Size: " << (*i)->GetObjectRadius() << " sigma of Laplacian detector " <<
+      // (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << " center "  <<
+      //  (*i)->GetCenter() << std::endl;
       }
     }
   antscout << std::endl;
@@ -10356,30 +10369,108 @@ int BlobDetector( int argc, char *argv[] )
     {
     ReadImage<ImageType>( image2, fn2.c_str() );
     typename BlobFilterType::Pointer blobFilter2 = BlobFilterType::New();
-    blobFilter2->SetStartT( 1 );
-    blobFilter2->SetEndT( 128 );
-    blobFilter2->SetStepsPerOctave( 64 );
+    blobFilter2->SetStartT( minscale );
+    blobFilter2->SetEndT( maxscale );
+    blobFilter2->SetStepsPerOctave( stepsperoctave );
     blobFilter2->SetNumberOfBlobs( nblobs );
     blobFilter2->SetInput( image2 );
     blobFilter2->Update();
+    labimg2 = blobFilter2->GetBlobRadiusImage();
+    WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
+    labimg->FillBuffer( 0 );
+    labimg2->FillBuffer( 0 );
     blobs2 =  blobFilter2->GetBlobs();
     if( !blobs2.empty() )
       {
       for( typename BlobsListType::const_iterator i = blobs2.begin(); i != blobs2.end(); ++i )
         {
-        antscout <<  "Value: " << (*i)->GetScaleSpaceValue() << " sigma of Laplacian detector "
-                 << (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << " center "
-                 <<  (*i)->GetCenter() << std::endl;
+        //      antscout <<  "Size: " << (*i)->GetObjectRadius() << " sigma of Laplacian detector " <<
+        // (*i)->GetScaleSpaceSigma() << " sigma of detected Gaussian " << (*i)->GetSigma() << " center "  <<
+        //  (*i)->GetCenter() << std::endl;
         }
       }
     antscout << std::endl;
+    }
+  else
+    {
+    return EXIT_SUCCESS;
     }
 
   antscout << " Blob1Length " << blobs1.size() << " Blob2Length " << blobs2.size() << std::endl;
 
   // now compute some feature characteristics in each blob
-
-  return 0;
+  typedef typename ImageType::IndexType        IndexType;
+  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
+  typename iteratorType::RadiusType rad;
+  rad.Fill( 4 );
+  iteratorType GHood(rad, image, image->GetLargestPossibleRegion() );
+  iteratorType GHood2(rad, image2, image2->GetLargestPossibleRegion() );
+  unsigned int Gsz = GHood.Size();
+  typedef vnl_vector<RealType> VectorType;
+  VectorType   sample1( Gsz, 0);
+  VectorType   sample2( Gsz, 0);
+  RealType     maxcorr = -1;
+  unsigned int matchpt = 0;
+  BlobPointer  bestblob = NULL;
+  if( !blobs2.empty() && !( blobs1.empty() ) )
+    {
+    unsigned int count1 = 0;
+    for( typename BlobsListType::const_iterator i = blobs1.begin(); i != blobs1.end(); ++i )
+      {
+      IndexType indexi = (*i)->GetCenter();
+      if( image->GetPixel( indexi ) > 1.e-4 )
+        {
+        GHood.SetLocation( indexi );
+        maxcorr = -1;
+        bestblob = NULL;
+        unsigned int count2 = 0;
+        for( typename BlobsListType::const_iterator j = blobs2.begin(); j != blobs2.end(); ++j )
+          {
+          IndexType indexj = (*j)->GetCenter();
+          GHood2.SetLocation( indexj );
+          // compute mean difference
+          for( unsigned int ii = 0; ii < GHood.Size(); ii++ )
+            {
+            sample1[ii] = GHood.GetPixel( ii );
+            sample2[ii] = GHood2.GetPixel( ii );
+            }
+          RealType mean1 = sample1.mean();
+          RealType mean2 = sample2.mean();
+          sample1 = ( sample1 - mean1 );
+          sample2 = ( sample2 - mean2 );
+          RealType sd1 = sqrt( sample1.squared_magnitude() );
+          RealType sd2 = sqrt( sample2.squared_magnitude() );
+          RealType correlation = inner_product( sample1, sample2 ) / ( sd1 * sd2 );
+          //	vnl_matrix< RealType > mat = outer_product( sample1 / sd1 , sample2 / sd2 );
+          //	vnl_svd<RealType> eig( mat , 1.e-8);
+          //	correlation = 0;
+          //	for( unsigned int ek = 0; ek < 2; ek++ ) correlation += eig.W( ek, ek );
+          if( ( correlation >  maxcorr ) && (  (*i)->GetObjectRadius() > 2.5 ) ) // && (  (*j)->GetObjectRadius() > 3 )
+                                                                                 //   )
+            {
+            maxcorr = correlation;
+            bestblob = ( *j );
+            }
+          count2++;
+          }
+        if(  ( maxcorr > 0.75 ) && ( bestblob )  && ( image->GetPixel( indexi )   > 1.e-4  )  &&
+             ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-4  ) )
+          {
+          antscout << " best correlation " << maxcorr << " rad1 " << ( *i )->GetObjectRadius() << " rad2 "
+                   << bestblob->GetObjectRadius() << " : " << (RealType) count1 / (RealType) nblobs * 100.0 << "% "
+                   << matchpt << " voxval1 " << image->GetPixel( indexi ) << " voxval2 " << image2->GetPixel(
+            bestblob->GetCenter() ) << std::endl;
+          labimg->SetPixel(    ( *i )->GetCenter(), matchpt ); // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
+          labimg2->SetPixel( bestblob->GetCenter(), matchpt ); // ( int ) ( 0.5 + bestblob->GetObjectRadius() ) );
+          matchpt++;
+          }
+        count1++;
+        } // imagei GetPixel gt 0
+      }
+    WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
+    WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
+    }
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
