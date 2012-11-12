@@ -173,14 +173,15 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     antscout << " Grayscale Erode " << rad << std::endl;
     grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleErode->Update();
-    temp = binaryErode->GetOutput();
+    temp = grayscaleErode->GetOutput();
     }
   else if( option == 5 )
     {
     antscout << " Grayscale Dilate " << rad << std::endl;
     grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleDilate->Update();
-    temp = binaryDilate->GetOutput();
+    temp = grayscaleDilate->GetOutput();
+    antscout << " Grayscale Dilate Done " << temp << std::endl;
     }
   else if( option == 6 )
     {
