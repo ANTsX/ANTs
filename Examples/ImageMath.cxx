@@ -21,6 +21,7 @@
 #include "antsAllocImage.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkArray.h"
+#include "itkGradientImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkBayesianClassifierImageFilter.h"
 #include "itkBayesianClassifierInitializationImageFilter.h"
@@ -6259,7 +6260,6 @@ int MorphImage(int argc, char *argv[])
     }
 
   image1 = ants::Morphological<ImageType>(image1, sigma, morphopt, dilateval);
-
   typename writertype::Pointer writer = writertype::New();
   writer->SetFileName(outname.c_str() );
   writer->SetInput( image1 );
@@ -10300,22 +10300,27 @@ int MinMaxMean( int argc, char *argv[] )
 template <unsigned int ImageDimension>
 int BlobDetector( int argc, char *argv[] )
 {
-  typedef float                                         PixelType;
-  typedef float                                         RealType;
-  typedef itk::Image<PixelType, ImageDimension>         ImageType;
-  typedef itk::ImageFileReader<ImageType>               ImageReaderType;
-  typedef itk::ImageFileWriter<ImageType>               ImageWriterType;
-  typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
-  typedef itk::ImageMomentsCalculator<ImageType>        MomentsCalculatorType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>  IteratorType;
-  typedef itk::SurfaceImageCurvature<ImageType>         ParamType;
+  typedef float                                                                   PixelType;
+  typedef float                                                                   RealType;
+  typedef itk::Image<PixelType, ImageDimension>                                   ImageType;
+  typedef itk::ImageFileReader<ImageType>                                         ImageReaderType;
+  typedef itk::ImageFileWriter<ImageType>                                         ImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType>                           CalculatorType;
+  typedef itk::ImageMomentsCalculator<ImageType>                                  MomentsCalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                            IteratorType;
+  typedef itk::SurfaceImageCurvature<ImageType>                                   ParamType;
+  typedef itk::CovariantVector<RealType, ImageDimension>                          GradientPixelType;
+  typedef itk::Image<GradientPixelType, ImageDimension>                           GradientImageType;
+  typedef itk::SmartPointer<GradientImageType>                                    GradientImagePointer;
+  typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType> GradientImageFilterType;
+  typedef typename GradientImageFilterType::Pointer                               GradientImageFilterPointer;
 
   if( argc < 5 )
     {
     antscout << " Not enough inputs " << std::endl;
     return 1;
     }
-  unsigned int stepsperoctave = 10;
+  unsigned int stepsperoctave = 16;
   RealType     minscale = vcl_pow( 2.0, 1 );
   RealType     maxscale = vcl_pow( 2.0, 12 );
   int          argct = 2;
@@ -10337,6 +10342,12 @@ int BlobDetector( int argc, char *argv[] )
   typename ImageType::Pointer image;
   typename ImageType::Pointer image2;
   ReadImage<ImageType>( image, fn1.c_str() );
+  GradientImageFilterPointer gfilter = GradientImageFilterType::New();
+  gfilter->SetInput( image );
+  gfilter->SetSigma( 1.5 );
+  gfilter->Update();
+  GradientImagePointer gimage = gfilter->GetOutput();
+  GradientImagePointer gimage2;
 
   typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
   typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
@@ -10368,6 +10379,11 @@ int BlobDetector( int argc, char *argv[] )
   if( fn2.length() > 3 )
     {
     ReadImage<ImageType>( image2, fn2.c_str() );
+    GradientImageFilterPointer gfilter2 = GradientImageFilterType::New();
+    gfilter2->SetInput( image2 );
+    gfilter2->SetSigma( 1.5 );
+    gfilter2->Update();
+    gimage2 = gfilter2->GetOutput();
     typename BlobFilterType::Pointer blobFilter2 = BlobFilterType::New();
     blobFilter2->SetStartT( minscale );
     blobFilter2->SetEndT( maxscale );
@@ -10402,16 +10418,18 @@ int BlobDetector( int argc, char *argv[] )
   typedef typename ImageType::IndexType        IndexType;
   typedef itk::NeighborhoodIterator<ImageType> iteratorType;
   typename iteratorType::RadiusType rad;
-  rad.Fill( 4 );
+  rad.Fill( 8 );
   iteratorType GHood(rad, image, image->GetLargestPossibleRegion() );
   iteratorType GHood2(rad, image2, image2->GetLargestPossibleRegion() );
   unsigned int Gsz = GHood.Size();
   typedef vnl_vector<RealType> VectorType;
-  VectorType   sample1( Gsz, 0);
-  VectorType   sample2( Gsz, 0);
-  RealType     maxcorr = -1;
-  unsigned int matchpt = 0;
-  BlobPointer  bestblob = NULL;
+  VectorType           sample1( Gsz, 0);
+  VectorType           sample2( Gsz, 0);
+  vnl_matrix<RealType> grad1mat( Gsz, ImageDimension); grad1mat.fill( 0 );
+  vnl_matrix<RealType> grad2mat( Gsz, ImageDimension); grad2mat.fill( 0 );
+  RealType             maxcorr = 1.e9;
+  unsigned int         matchpt = 0;
+  BlobPointer          bestblob = NULL;
   if( !blobs2.empty() && !( blobs1.empty() ) )
     {
     unsigned int count1 = 0;
@@ -10421,7 +10439,7 @@ int BlobDetector( int argc, char *argv[] )
       if( image->GetPixel( indexi ) > 1.e-4 )
         {
         GHood.SetLocation( indexi );
-        maxcorr = -1;
+        maxcorr = 1.e9;
         bestblob = NULL;
         unsigned int count2 = 0;
         for( typename BlobsListType::const_iterator j = blobs2.begin(); j != blobs2.end(); ++j )
@@ -10433,33 +10451,57 @@ int BlobDetector( int argc, char *argv[] )
             {
             sample1[ii] = GHood.GetPixel( ii );
             sample2[ii] = GHood2.GetPixel( ii );
+            IndexType         gind = GHood.GetIndex( ii );
+            IndexType         gind2 = GHood2.GetIndex( ii );
+            GradientPixelType grad1 = gimage->GetPixel( gind );
+            GradientPixelType grad2 = gimage2->GetPixel( gind2 );
+            for( unsigned int jj = 0; jj < ImageDimension; jj++ )
+              {
+              grad1mat( ii, jj ) = grad1[jj]; grad2mat( ii, jj ) = grad2[jj];
+              }
             }
           RealType mean1 = sample1.mean();
           RealType mean2 = sample2.mean();
           sample1 = ( sample1 - mean1 );
           sample2 = ( sample2 - mean2 );
-          RealType sd1 = sqrt( sample1.squared_magnitude() );
-          RealType sd2 = sqrt( sample2.squared_magnitude() );
-          RealType correlation = inner_product( sample1, sample2 ) / ( sd1 * sd2 );
-          //	vnl_matrix< RealType > mat = outer_product( sample1 / sd1 , sample2 / sd2 );
-          //	vnl_svd<RealType> eig( mat , 1.e-8);
-          //	correlation = 0;
-          //	for( unsigned int ek = 0; ek < 2; ek++ ) correlation += eig.W( ek, ek );
-          if( ( correlation >  maxcorr ) && (  (*i)->GetObjectRadius() > 2.5 ) ) // && (  (*j)->GetObjectRadius() > 3 )
-                                                                                 //   )
+          RealType             sd1 = sqrt( sample1.squared_magnitude() );
+          RealType             sd2 = sqrt( sample2.squared_magnitude() );
+          RealType             correlation = inner_product( sample1, sample2 ) / ( sd1 * sd2 );
+          vnl_matrix<RealType> cov1 = grad1mat.transpose() * grad1mat;
+          vnl_matrix<RealType> cov2 = grad2mat.transpose() * grad2mat;
+          correlation =  ( cov1 - cov2 ).frobenius_norm() / ( cov1 + cov2 ).frobenius_norm();
+          /*
+        //	vnl_svd<RealType> eig1(  cov1 , 1.e-8);
+        //	vnl_svd<RealType> eig2(  cov2 , 1.e-8);
+          vnl_symmetric_eigensystem<RealType>  eig1( cov1 );
+          vnl_symmetric_eigensystem<RealType>  eig2( cov2 );
+          RealType numer = 0; RealType norm1 = 0; RealType norm2 = 0;
+          for( unsigned int ek = 0; ek < ( ImageDimension ); ek++ )
+            {
+            numer += eig1.get_eigenvalue( ek  ) *  eig2.get_eigenvalue( ek  ) ;
+            norm1 += eig1.get_eigenvalue( ek  ) *  eig1.get_eigenvalue( ek  ) ;
+            norm2 += eig2.get_eigenvalue( ek  ) *  eig2.get_eigenvalue( ek  ) ;
+            //norm1 += eig1.W( ek, ek ) * eig1.W( ek, ek );
+            }
+          if ( fabs( norm1 * norm2 ) >  0 )
+            correlation = numer / sqrt( norm1 * norm2 );
+            else correlation = 0;*/
+          if( ( correlation <  maxcorr ) && (  (*i)->GetObjectRadius() > 1.5 )  &&
+              (  (*j)->GetObjectRadius() > 1.5 )   )
             {
             maxcorr = correlation;
             bestblob = ( *j );
             }
           count2++;
           }
-        if(  ( maxcorr > 0.75 ) && ( bestblob )  && ( image->GetPixel( indexi )   > 1.e-4  )  &&
-             ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-4  ) )
+        if( /* ( maxcorr > 0.75 ) &&*/ maxcorr < 0.1 && ( bestblob )  ) // && ( image->GetPixel( indexi )   > 1.e-4  )
+                                                                        //  && ( image2->GetPixel( bestblob->GetCenter()
+                                                                        // )  > 1.e-4  ) )
           {
           antscout << " best correlation " << maxcorr << " rad1 " << ( *i )->GetObjectRadius() << " rad2 "
-                   << bestblob->GetObjectRadius() << " : " << (RealType) count1 / (RealType) nblobs * 100.0 << "% "
-                   << matchpt << " voxval1 " << image->GetPixel( indexi ) << " voxval2 " << image2->GetPixel(
-            bestblob->GetCenter() ) << std::endl;
+                   << bestblob->GetObjectRadius() << " : " << (RealType) count1 / (RealType) blobs1.size() * 100.0
+                   << "% "
+                   << matchpt << " voxval1 " <<  indexi  << " voxval2 " <<  bestblob->GetCenter()  << std::endl;
           labimg->SetPixel(    ( *i )->GetCenter(), matchpt ); // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
           labimg2->SetPixel( bestblob->GetCenter(), matchpt ); // ( int ) ( 0.5 + bestblob->GetObjectRadius() ) );
           matchpt++;
