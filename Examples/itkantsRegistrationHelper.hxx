@@ -2,6 +2,7 @@
 #define __itkantsRegistrationHelper_hxx
 
 #include <iomanip>
+#include <itkAffineTransform.h>
 
 namespace ants
 {
@@ -2970,8 +2971,8 @@ RegistrationHelper<VImageDimension>
       }
     else
       {
-      typename MatrixOffsetTransformBaseType::Pointer matrixOffsetTransform =
-        dynamic_cast<MatrixOffsetTransformBaseType *>( transform.GetPointer() );
+      typename MatrixOffsetTransformBaseType::ConstPointer matrixOffsetTransform =
+        dynamic_cast<MatrixOffsetTransformBaseType * const>( transform.GetPointer() );
       nthTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
       nthTransform->SetOffset( matrixOffsetTransform->GetOffset() );
       }
@@ -3167,22 +3168,22 @@ RegistrationHelper<VImageDimension>
   typename ImageType::PointType origin = image->GetOrigin();
   typename ImageType::DirectionType direction = image->GetDirection();
 
-  MatrixOffsetTransformBasePointer imageTransform = MatrixOffsetTransformBaseType::New();
+  typename AffineTransformType::Pointer imageTransform = AffineTransformType::New();
   imageTransform->SetMatrix( direction );
   imageTransform->SetOffset( origin.GetVectorFromOrigin() );
 
   if( applyInverse )
     {
-    MatrixOffsetTransformBasePointer inverseImageTransform = MatrixOffsetTransformBaseType::New();
+    typename AffineTransformType::Pointer inverseImageTransform = AffineTransformType::New();
     inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->GetInverseTransform()
                                                                                      .GetPointer() )->GetMatrix() );
     inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
 
     totalTransform->Compose( inverseImageTransform.GetPointer(), false );
 
-    typename MatrixOffsetTransformBaseType::MatrixType inverseMatrix =
+    typename AffineTransformType::MatrixType inverseMatrix =
       dynamic_cast<MatrixOffsetTransformBaseType *>( totalTransform->GetInverseTransform().GetPointer() )->GetMatrix();
-    typename MatrixOffsetTransformBaseType::OffsetType inverseOffset = -( inverseMatrix * totalTransform->GetOffset() );
+    typename AffineTransformType::OffsetType inverseOffset = -( inverseMatrix * totalTransform->GetOffset() );
     for( unsigned int d = 0; d < VImageDimension; d++ )
       {
       origin[d] = inverseOffset[d];
@@ -3193,8 +3194,8 @@ RegistrationHelper<VImageDimension>
     {
     totalTransform->Compose( imageTransform, true );
 
-    typename MatrixOffsetTransformBaseType::MatrixType matrix = totalTransform->GetMatrix();
-    typename MatrixOffsetTransformBaseType::OffsetType offset = totalTransform->GetOffset();
+    typename AffineTransformType::MatrixType matrix = totalTransform->GetMatrix();
+    typename AffineTransformType::OffsetType offset = totalTransform->GetOffset();
     for( unsigned int d = 0; d < VImageDimension; d++ )
       {
       origin[d] = offset[d];
