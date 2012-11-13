@@ -405,9 +405,9 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
     {
     return "BSpline.txt";
     }
-  else if( str == "matrixoffset" )
+  else if( str == "genericaffine" )
     {
-    return "MatrixOffset.mat";
+    return "GenericAffine.mat";
     }
   else if( str == "gaussiandisplacementfield" ||
            str == "gdf" ||
@@ -1153,7 +1153,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() == TransformType::Linear )
         {
         // The output type must be Affine, not matrixoffset!  TransformTypeNames.push_back( "matrixoffset" );
-        TransformTypeNames.push_back( "affine" );
+        TransformTypeNames.push_back( "genericaffine" );
         }
       else if( collapsedResultTransform->GetNthTransform( i )->GetTransformCategory() ==
                TransformType::DisplacementField )
