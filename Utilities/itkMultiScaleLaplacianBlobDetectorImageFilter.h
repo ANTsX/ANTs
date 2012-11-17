@@ -123,7 +123,7 @@ public:
   /** Blob typedef */
   typedef ScaleSpaceBlobSpatialObject<TInputImage::ImageDimension> BlobType;
   typedef typename BlobType::Pointer                               BlobPointer;
-  typedef std::list<BlobPointer>                                   BlobsListType;
+  typedef std::vector<BlobPointer>                                 BlobsListType;
 
   /** Method for creation through the object factory. */
   itkNewMacro(Self);
