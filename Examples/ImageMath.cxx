@@ -10465,6 +10465,17 @@ void Sinkhorn( vnl_matrix<TRealType>&  correspondencematrix  )
   antscout << " SH done " << std::endl;
 }
 
+template <class TImage>
+typename TImage::Pointer ComputeLaplacianImage( typename TImage::Pointer input )
+{
+  typedef itk::LaplacianRecursiveGaussianImageFilter<TImage, TImage> dgf;
+  typename dgf::Pointer filter = dgf::New();
+  filter->SetSigma( 1.0 );
+  filter->SetInput( input );
+  filter->Update();
+  return filter->GetOutput();
+}
+
 template <unsigned int ImageDimension>
 int BlobDetector( int argc, char *argv[] )
 {
@@ -10530,7 +10541,7 @@ int BlobDetector( int argc, char *argv[] )
   blobFilter->SetEndT( maxscale );
   blobFilter->SetStepsPerOctave( stepsperoctave );
   blobFilter->SetNumberOfBlobs( nblobs );
-  blobFilter->SetInput( image );
+  blobFilter->SetInput( ComputeLaplacianImage<ImageType>( image ) );
   blobFilter->Update();
   typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
   typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
@@ -10552,7 +10563,7 @@ int BlobDetector( int argc, char *argv[] )
     blobFilter2->SetEndT( maxscale );
     blobFilter2->SetStepsPerOctave( stepsperoctave );
     blobFilter2->SetNumberOfBlobs( nblobs );
-    blobFilter2->SetInput( image2 );
+    blobFilter2->SetInput( ComputeLaplacianImage<ImageType>( image2 ) );
     blobFilter2->Update();
     labimg2 = blobFilter2->GetBlobRadiusImage();
     WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
@@ -10595,6 +10606,7 @@ int BlobDetector( int argc, char *argv[] )
       weightsum += ( wt );
       }
     }
+  RealType smallval = 1.e-4;
   for( unsigned int ii = 0; ii < weights.size(); ii++ )
     {
     weights[ii] = weights[ii] / weightsum;
@@ -10620,7 +10632,7 @@ int BlobDetector( int argc, char *argv[] )
       {
       BlobPointer blob1 = blobs1[i];
       IndexType   indexi = blob1->GetCenter();
-      if( image->GetPixel( indexi ) > 1.e-12 )
+      if( image->GetPixel( indexi ) > smallval )
         {
         GHood.SetLocation( indexi );
         maxcorr = -1.e9;
@@ -10631,7 +10643,7 @@ int BlobDetector( int argc, char *argv[] )
           {
           BlobPointer blob2 = blobs2[j];
           IndexType   indexj = blob2->GetCenter();
-          if( image2->GetPixel( indexj ) > 1.e-12 )
+          if( image2->GetPixel( indexj ) > smallval )
             {
             GHood2.SetLocation( indexj );
             RealType correlation =
@@ -10661,7 +10673,8 @@ int BlobDetector( int argc, char *argv[] )
       }
     antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to "
              << corrthresh << " count1 " << count1 << " count2 " << count2 << std::endl;
-    while( correspondencematrix.max_value() > corrthresh && matchpt < 100 )
+    count1 = 0;
+    while( matchpt < ( corrthresh + 1 ) && count1 <  ( blobs1.size() + blobs2.size() ) )
       {
       unsigned int maxpair = correspondencematrix.arg_max();
       unsigned int maxrow = ( unsigned int )  maxpair / correspondencematrix.cols();
@@ -10673,8 +10686,8 @@ int BlobDetector( int argc, char *argv[] )
         {
         if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.05 )
           {
-          if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > 1.e-12 )  &&
-              ( image2->GetPixel( bestblob->GetCenter() )  > 1.e-12 ) )
+          if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
+              ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) )
             {
             antscout << " best correlation " << correspondencematrix.absolute_value_max() << " rad1 "
                      << blob1->GetObjectRadius() << " rad2 " << bestblob->GetObjectRadius() << " : " << matchpt
@@ -10789,7 +10802,7 @@ private:
     antscout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
     antscout
       <<
-      "  BlobDetector Image1.ext NumberOfBlobs  Optional-Image2-(not-implemented-yet)  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
+      "  BlobDetector Image1.ext NumberOfBlobs  Optional-Input-Image2 Blob-2-out.nii.gz N-Blobs-To-Match  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
       << std::endl;
 
     antscout << "\nTime Series Operations:" << std::endl;
