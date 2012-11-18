@@ -940,7 +940,8 @@ RegistrationHelper<VImageDimension>
     itk::TimeProbe timer;
     timer.Start();
 
-    typedef itk::ImageRegistrationMethodv4<ImageType, ImageType> AffineRegistrationType;
+    typedef itk::AffineTransform<RealType, VImageDimension>                           AffineTransformType;
+    typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, AffineTransformType> AffineRegistrationType;
 
     this->Logger() << std::endl << "Stage " << currentStageNumber << std::endl;
     std::stringstream currentStageString;
@@ -1246,7 +1247,6 @@ RegistrationHelper<VImageDimension>
       {
       case Affine:
         {
-        typedef itk::AffineTransform<RealType, VImageDimension> AffineTransformType;
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
         affineRegistration->SetFixedImage( preprocessFixedImage );
         affineRegistration->SetMovingImage( preprocessMovingImage );

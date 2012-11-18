@@ -54,6 +54,7 @@
 #include "itkImageToHistogramFilter.h"
 #include "itkImageToImageMetricv4.h"
 #include "itkIntensityWindowingImageFilter.h"
+#include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
