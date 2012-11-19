@@ -18,6 +18,7 @@
 
 #include "antsUtilities.h"
 #include <algorithm>
+#include <vnl/vnl_inverse.h>
 #include "antsAllocImage.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkArray.h"
@@ -10325,25 +10326,32 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
     {
     sample1[ii] = GHood.GetPixel( activeindex[ii] );
     sample2[ii] = GHood2.GetPixel(  activeindex[ii] );
-    IndexType         gind = GHood.GetIndex(  activeindex[ii] );
-    IndexType         gind2 = GHood2.GetIndex(  activeindex[ii] );
-    GradientPixelType grad1 = gimage->GetPixel( gind ) * weight[ii];
-    GradientPixelType grad2 = gimage2->GetPixel( gind2 ) * weight[ii];
-    for( unsigned int jj = 0; jj < ImageDimension; jj++ )
+    IndexType gind = GHood.GetIndex(  activeindex[ii] );
+    IndexType gind2 = GHood2.GetIndex(  activeindex[ii] );
+    if( ( IsInside<TGImageType>( gimage, gind ) ) && (  IsInside<TGImageType>( gimage2, gind2 )  )  )
       {
-      grad1mat( ii, jj ) = grad1[jj]; grad2mat( ii, jj ) = grad2[jj];
+      GradientPixelType grad1 = gimage->GetPixel( gind ) * weight[ii];
+      GradientPixelType grad2 = gimage2->GetPixel( gind2 ) * weight[ii];
+      for( unsigned int jj = 0; jj < ImageDimension; jj++ )
+        {
+        grad1mat( ii, jj ) = grad1[jj]; grad2mat( ii, jj ) = grad2[jj];
+        }
+      PointType point1;
+      PointType point2;
+      gimage->TransformIndexToPhysicalPoint(   gind, point1 );
+      gimage2->TransformIndexToPhysicalPoint( gind2, point2 );
+      for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+        {
+        avgpoint1[dd] = avgpoint1[dd] + point1[dd] * wt;
+        avgpoint2[dd] = avgpoint2[dd] + point2[dd] * wt;
+        }
+      imagepatch1.push_back( point1 );
+      imagepatch2.push_back( point2 );
       }
-    PointType point1;
-    PointType point2;
-    gimage->TransformIndexToPhysicalPoint(   gind, point1 );
-    gimage2->TransformIndexToPhysicalPoint( gind2, point2 );
-    for( unsigned int dd = 0; dd < ImageDimension; dd++ )
+    else
       {
-      avgpoint1[dd] = avgpoint1[dd] + point1[dd] * wt;
-      avgpoint2[dd] = avgpoint2[dd] + point2[dd] * wt;
+      return 0;
       }
-    imagepatch1.push_back( point1 );
-    imagepatch2.push_back( point2 );
     }
   RealType mean1 = sample1.mean();
   RealType mean2 = sample2.mean();
@@ -10399,7 +10407,7 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
       ptran[dd] -= avgpoint2[dd]; ptran2[dd] = ptran[dd];
       }
     // rotate ptran
-    ptran2 = A_solution * ptran2;
+    ptran2 = ( A_solution ) * ptran2;
     for( unsigned int dd = 0; dd < ImageDimension; dd++ )
       {
       ptran[dd] = ptran2[dd] + avgpoint2[dd];
@@ -10441,7 +10449,7 @@ void Sinkhorn( vnl_matrix<TRealType>&  correspondencematrix  )
   antscout << " SH begin " << std::endl;
   typedef TRealType RealType;
   // now that we have the correspondence matrix we convert it to a "probability" matrix
-  for( unsigned int loop = 0; loop < 5; loop++ )
+  for( unsigned int loop = 0; loop < 2; loop++ )
     {
     for( unsigned int ii = 0; ii < correspondencematrix.cols(); ii++ )
       {
@@ -10476,6 +10484,21 @@ typename TImage::Pointer ComputeLaplacianImage( typename TImage::Pointer input )
   return filter->GetOutput();
 }
 
+template <class T>
+struct blob_index_cmp
+  {
+  blob_index_cmp(const T arr) : barr(arr)
+  {
+  }
+
+  bool operator()(const size_t a, const size_t b) const
+  {
+    return barr[a] < barr[b];
+  }
+
+  const T barr;
+  };
+
 template <unsigned int ImageDimension>
 int BlobDetector( int argc, char *argv[] )
 {
@@ -10493,18 +10516,18 @@ int BlobDetector( int argc, char *argv[] )
   typedef itk::SmartPointer<GradientImageType>                                    GradientImagePointer;
   typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType> GradientImageFilterType;
   typedef typename GradientImageFilterType::Pointer                               GradientImageFilterPointer;
-
+  antscout << " Nearest neighbors should remain nearest neighbors under transformation! - not done " << std::endl;
   if( argc < 5 )
     {
     antscout << " Not enough inputs " << std::endl;
     return 1;
     }
-  bool         usesinkhorn = true;
-  RealType     gradsig = 1.5;       // sigma for gradient filter
-  unsigned int radval = 8;          // radius for correlation
+  bool         usesinkhorn = false;
+  RealType     gradsig = 1.0;       // sigma for gradient filter
+  unsigned int radval = 10;         // radius for correlation
   unsigned int stepsperoctave = 16; // number of steps between doubling of scale
   RealType     minscale = vcl_pow( 1.0, 1 );
-  RealType     maxscale = vcl_pow( 2.0, 8 );
+  RealType     maxscale = vcl_pow( 2.0, 6 );
   int          argct = 2;
   std::string  outname = std::string(argv[argct]); argct++;
   std::string  outname2 = std::string("temp.nii.gz");
@@ -10541,7 +10564,7 @@ int BlobDetector( int argc, char *argv[] )
   blobFilter->SetEndT( maxscale );
   blobFilter->SetStepsPerOctave( stepsperoctave );
   blobFilter->SetNumberOfBlobs( nblobs );
-  blobFilter->SetInput( ComputeLaplacianImage<ImageType>( image ) );
+  blobFilter->SetInput( image ); /*ComputeLaplacianImage<ImageType>( image ) ); */
   blobFilter->Update();
   typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
   typename BlobRadiusImageType::Pointer labimg = blobFilter->GetBlobRadiusImage();
@@ -10563,7 +10586,8 @@ int BlobDetector( int argc, char *argv[] )
     blobFilter2->SetEndT( maxscale );
     blobFilter2->SetStepsPerOctave( stepsperoctave );
     blobFilter2->SetNumberOfBlobs( nblobs );
-    blobFilter2->SetInput( ComputeLaplacianImage<ImageType>( image2 ) );
+    blobFilter2->SetInput( image2 );
+    //  blobFilter2->SetInput( ComputeLaplacianImage<ImageType>( image2 ) );
     blobFilter2->Update();
     labimg2 = blobFilter2->GetBlobRadiusImage();
     WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
@@ -10581,8 +10605,8 @@ int BlobDetector( int argc, char *argv[] )
   typedef itk::NeighborhoodIterator<ImageType> niteratorType;
   typename niteratorType::RadiusType rad;
   rad.Fill( radval );
-  niteratorType GHood(rad, image, image->GetLargestPossibleRegion() );
-  niteratorType GHood2(rad, image2, image2->GetLargestPossibleRegion() );
+  niteratorType GHood(  rad, image, image->GetLargestPossibleRegion() );
+  niteratorType GHood2( rad, image2, image2->GetLargestPossibleRegion() );
   IndexType     zeroind;  zeroind.Fill( radval );
   GHood.SetLocation( zeroind );
   // get indices within a ND-sphere
@@ -10671,10 +10695,12 @@ int BlobDetector( int argc, char *argv[] )
       {
       Sinkhorn<RealType>( correspondencematrix );
       }
-    antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to "
-             << corrthresh << " count1 " << count1 << " count2 " << count2 << std::endl;
+    antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to " << corrthresh
+             << " count1 " << count1 << " count2 " << count2 << std::endl;
     count1 = 0;
-    while( matchpt < ( corrthresh + 1 ) && count1 <  ( blobs1.size() + blobs2.size() ) )
+    typedef std::pair<BlobPointer, BlobPointer> BlobPairType;
+    std::vector<BlobPairType> blobpairs;
+    while( ( matchpt < ( corrthresh + 1 ) ) && ( count1 <  blobs1.size() ) )
       {
       unsigned int maxpair = correspondencematrix.arg_max();
       unsigned int maxrow = ( unsigned int )  maxpair / correspondencematrix.cols();
@@ -10684,31 +10710,102 @@ int BlobDetector( int argc, char *argv[] )
       bestblob = blobs2[maxcol];
       if( bestblob )
         {
-        if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.05 )
+        if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.5 )
           {
           if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
               ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) )
             {
+            BlobPairType blobpairing = std::make_pair( blob1, bestblob );
+            blobpairs.push_back( blobpairing );
             antscout << " best correlation " << correspondencematrix.absolute_value_max() << " rad1 "
                      << blob1->GetObjectRadius() << " rad2 " << bestblob->GetObjectRadius() << " : " << matchpt
                      << std::endl;
             labimg->SetPixel(     blob1->GetCenter(), matchpt ); // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
             labimg2->SetPixel( bestblob->GetCenter(), matchpt ); // ( int ) ( 0.5 + bestblob->GetObjectRadius() ) );
             matchpt++;
+            if( usesinkhorn )
+              {
+              Sinkhorn<RealType>( correspondencematrix );
+              }
             }
           }
         }
       correspondencematrix.set_row( maxrow, correspondencematrix.get_row( 0 ).fill( 0 ) );
       correspondencematrix.set_column( maxcol, correspondencematrix.get_column( 0 ).fill( 0 ) );
+      count1++;
       }
 
+    /** For every blob, compute the distance to its neighbors before and after matching */
+    vnl_matrix<RealType> distmatpre( blobpairs.size(), blobpairs.size() );
+    distmatpre.fill( 0 );
+    vnl_matrix<RealType> distmatpost( blobpairs.size(), blobpairs.size() );
+    distmatpost.fill( 0 );
+    for( unsigned int bp = 0; bp < blobpairs.size(); bp++ )
+      {
+      IndexType             blobind = blobpairs[bp].first->GetCenter();
+      IndexType             blobpairind  = blobpairs[bp].second->GetCenter();
+      std::vector<RealType> distspre;
+      std::vector<RealType> distspost;
+      std::vector<size_t>   distspreind;
+      std::vector<size_t>   distspostind;
+      for( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
+        {
+        IndexType blobneighborind = blobpairs[bp2].first->GetCenter();
+        IndexType blobpairneighborind  = blobpairs[bp2].second->GetCenter();
+        RealType  dist1 = 0;
+        RealType  dist2 = 0;
+        for( unsigned int dim = 0; dim < ImageDimension; dim++ )
+          {
+          RealType delta1 = blobind[dim] - blobneighborind[dim];
+          RealType delta2 = blobpairind[dim]  - blobpairneighborind[dim];
+          dist1 += delta1 * delta1;
+          dist2 += delta2 * delta2;
+          }
+        distspre.push_back( dist1 );
+        distspost.push_back( dist2 );
+        distspreind.push_back(  bp2 );
+        distspostind.push_back( bp2 );
+        //        antscout << " blob " << bp << " vs " << bp2 << sqrt( dist1 ) << " v " << sqrt( dist2 ) << std::endl;
+        distmatpre( bp, bp2 )  = distmatpre(  bp2, bp ) = dist1;
+        distmatpost( bp, bp2 ) = distmatpost( bp2, bp ) = dist2;
+        }
+      bool kneighborhoodequal = false;
+      std::sort( distspreind.begin(), distspreind.end(), blob_index_cmp<std::vector<RealType> &>( distspre  ) );
+      std::sort( distspostind.begin(), distspostind.end(), blob_index_cmp<std::vector<RealType> &>( distspost ) );
+      //      std::cout << distspreind[0] << "  " << distspreind[1] << " dist0 " <<   distspreind[  distspreind[0] ]  <<
+      // std::endl;
+      //      std::cout << distspostind[0] << "  " << distspostind[1] << " dist0 " << distspostind[  distspostind[0] ]
+      //  <<  std::endl;
+      if( ( distspostind[1] == distspreind[1] )   ||
+          ( distspostind[1] == distspreind[2] )   ||
+          ( distspostind[1] == distspreind[3] )  )
+        {
+        kneighborhoodequal = true;
+        }
+      if( !kneighborhoodequal )
+        {
+        labimg->SetPixel(  blobind, 0 );     // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
+        labimg2->SetPixel( blobpairind, 0 ); // ( int ) ( 0.5 + bestblob->GetObjectRadius() ) );
+        }
+      antscout << " blob " << bp << " keep " << kneighborhoodequal << std::endl;
+      }
+      {
+      typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
+      WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( "distpre.csv" );
+      writer->SetInput( &distmatpre );
+      writer->Write();
+      }
+      {
+      typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
+      WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( "distpost.csv" );
+      writer->SetInput( &distmatpost );
+      writer->Write();
+      }
     WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
     WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
     antscout << " Matched " << matchpt << " blobs " << std::endl;
-    if( usesinkhorn )
-      {
-      Sinkhorn<RealType>( correspondencematrix );
-      }
     }
   return EXIT_SUCCESS;
 }

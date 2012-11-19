@@ -32,6 +32,24 @@ namespace ants
 {
 extern boost::iostreams::stream<ants_Sink> antscout;
 
+template <class TImage>
+bool IsInside( typename TImage::Pointer input, typename TImage::IndexType index )
+{
+  /** FIXME - should use StartIndex - */
+  typedef TImage ImageType;
+  enum { ImageDimension = ImageType::ImageDimension };
+  bool isinside = true;
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    float shifted = index[i];
+    if( shifted < 0 || shifted >  input->GetLargestPossibleRegion().GetSize()[i] - 1  )
+      {
+      isinside = false;
+      }
+    }
+  return isinside;
+}
+
 // ##########################################################################
 // ##########################################################################
 // ##########################################################################
