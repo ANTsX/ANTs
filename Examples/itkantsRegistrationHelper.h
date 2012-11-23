@@ -105,7 +105,7 @@ public:
   typedef itk::WeakPointer<const Self>  ConstWeakPointer;
 
   typedef double                                 RealType;
-  typedef float                                  PixelType;
+  typedef double                                 PixelType;
   typedef itk::Image<PixelType, VImageDimension> ImageType;
   typedef itk::ImageBase<VImageDimension>        ImageBaseType;
 

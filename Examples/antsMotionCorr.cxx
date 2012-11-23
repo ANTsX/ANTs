@@ -379,7 +379,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
   typedef TImageIn  ImageType;
   typedef TImageOut OutImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  typedef float                                           PixelType;
+  typedef double                                          PixelType;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> Iterator;
   image_avg->FillBuffer(0);
   unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
@@ -420,7 +420,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   // specified by the user which should match the number of metrics.
   unsigned numberOfStages = 0;
 
-  typedef float                                     PixelType;
+  typedef double                                    PixelType;
   typedef double                                    RealType;
   typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
   typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
@@ -578,11 +578,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   itk::TimeProbe totalTimer;
   totalTimer.Start();
   double metricmean = 0;
+
+  typedef itk::AffineTransform<RealType, ImageDimension>                                      AffineTransformType;
+  typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, AffineTransformType> AffineRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
-    typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType> AffineRegistrationType;
-
     antscout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
     std::stringstream currentStageString;
     currentStageString << currentStage;
