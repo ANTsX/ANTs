@@ -61,6 +61,7 @@
 #include "itkMeanSquaresImageToImageMetricv4.h"
 #include "itkMultiGradientOptimizerv4.h"
 #include "itkObject.h"
+#include "itkObjectToObjectMultiMetricv4.h"
 #include "itkQuaternionRigidTransform.h"
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkSimilarity2DTransform.h"
@@ -109,19 +110,20 @@ public:
   typedef itk::Image<PixelType, VImageDimension> ImageType;
   typedef itk::ImageBase<VImageDimension>        ImageBaseType;
 
-  typedef itk::Transform<double, VImageDimension, VImageDimension>          TransformType;
-  typedef itk::AffineTransform<RealType, VImageDimension>                   AffineTransformType;
-  typedef typename AffineTransformType::Superclass                          MatrixOffsetTransformBaseType;
-  typedef typename MatrixOffsetTransformBaseType::Pointer                   MatrixOffsetTransformBasePointer;
-  typedef itk::CompositeTransform<RealType, VImageDimension>                CompositeTransformType;
-  typedef typename CompositeTransformType::Pointer                          CompositeTransformPointer;
-  typedef itk::DisplacementFieldTransform<RealType, VImageDimension>        DisplacementFieldTransformType;
-  typedef typename DisplacementFieldTransformType::Pointer                  DisplacementFieldTransformPointer;
-  typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
-  typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension> TimeVaryingVelocityFieldTransformType;
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType>                   MetricType;
-  typedef itk::ImageMaskSpatialObject<VImageDimension>                      ImageMaskSpatialObjectType;
-  typedef typename ImageMaskSpatialObjectType::ImageType                    MaskImageType;
+  typedef itk::Transform<double, VImageDimension, VImageDimension>           TransformType;
+  typedef itk::AffineTransform<RealType, VImageDimension>                    AffineTransformType;
+  typedef typename AffineTransformType::Superclass                           MatrixOffsetTransformBaseType;
+  typedef typename MatrixOffsetTransformBaseType::Pointer                    MatrixOffsetTransformBasePointer;
+  typedef itk::CompositeTransform<RealType, VImageDimension>                 CompositeTransformType;
+  typedef typename CompositeTransformType::Pointer                           CompositeTransformPointer;
+  typedef itk::DisplacementFieldTransform<RealType, VImageDimension>         DisplacementFieldTransformType;
+  typedef typename DisplacementFieldTransformType::Pointer                   DisplacementFieldTransformPointer;
+  typedef typename DisplacementFieldTransformType::DisplacementFieldType     DisplacementFieldType;
+  typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension>  TimeVaryingVelocityFieldTransformType;
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType>                    MetricType;
+  typedef itk::ObjectToObjectMultiMetricv4<VImageDimension, VImageDimension> MultiMetricType;
+  typedef itk::ImageMaskSpatialObject<VImageDimension>                       ImageMaskSpatialObjectType;
+  typedef typename ImageMaskSpatialObjectType::ImageType                     MaskImageType;
 
   typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
 
@@ -145,19 +147,21 @@ public:
   class Metric
   {
 public:
-    Metric(MetricEnumeration metricType, typename ImageType::Pointer & fixedImage,
-           typename ImageType::Pointer & movingImage, double weighting, SamplingStrategy samplingStrategy,
-           int numberOfBins,
-           unsigned int radius,
-           double samplingPercentage) :
-      m_MetricType(metricType),
-      m_FixedImage(fixedImage),
-      m_MovingImage(movingImage),
-      m_Weighting(weighting),
-      m_SamplingStrategy(samplingStrategy),
-      m_NumberOfBins(numberOfBins),
-      m_Radius(radius),
-      m_SamplingPercentage(samplingPercentage)
+    Metric( MetricEnumeration metricType, typename ImageType::Pointer & fixedImage,
+            typename ImageType::Pointer & movingImage, unsigned int stageID,
+            double weighting, SamplingStrategy samplingStrategy,
+            int numberOfBins,
+            unsigned int radius,
+            double samplingPercentage ) :
+      m_MetricType( metricType ),
+      m_FixedImage( fixedImage ),
+      m_MovingImage( movingImage ),
+      m_StageID( stageID ),
+      m_Weighting( weighting ),
+      m_SamplingStrategy( samplingStrategy ),
+      m_NumberOfBins( numberOfBins ),
+      m_Radius( radius ),
+      m_SamplingPercentage( samplingPercentage )
     {
     }
 
@@ -188,6 +192,7 @@ public:
     MetricEnumeration m_MetricType;
     typename ImageType::Pointer m_FixedImage;
     typename ImageType::Pointer m_MovingImage;
+    unsigned int     m_StageID;
     double           m_Weighting;
     SamplingStrategy m_SamplingStrategy;
     int              m_NumberOfBins;
@@ -219,15 +224,15 @@ public:
   class TransformMethod
   {
 public:
-    TransformMethod() : m_XfrmMethod(Rigid),
-      m_GradientStep(0),
-      m_UpdateFieldVarianceInVarianceSpace(0.0),
-      m_TotalFieldVarianceInVarianceSpace(0.0),
-      m_SplineOrder(3),
-      m_UpdateFieldTimeSigma(0.0),
-      m_TotalFieldTimeSigma(0.0),
-      m_NumberOfTimeIndices(0),
-      m_NumberOfTimePointSamples(4)
+    TransformMethod() : m_XfrmMethod( Rigid ),
+      m_GradientStep( 0 ),
+      m_UpdateFieldVarianceInVarianceSpace( 0.0 ),
+      m_TotalFieldVarianceInVarianceSpace( 0.0 ),
+      m_SplineOrder( 3 ),
+      m_UpdateFieldTimeSigma( 0.0 ),
+      m_TotalFieldTimeSigma( 0.0 ),
+      m_NumberOfTimeIndices( 0 ),
+      m_NumberOfTimePointSamples( 4 )
     {
     }
 
@@ -295,130 +300,138 @@ public:
   typedef std::deque<TransformMethod> TransformMethodListType;
 
   /** Method for creation through the object factory. */
-  itkNewMacro(Self);
+  itkNewMacro( Self );
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(RegistrationHelper, Object);
+  itkTypeMacro( RegistrationHelper, Object );
 
   /** Dimension of the image.  This constant is used by functions that are
    * templated over image type (as opposed to being templated over pixel type
    * and dimension) when they need compile time access to the dimension of
    * the image. */
-  itkStaticConstMacro(ImageDimension, unsigned int, VImageDimension);
+  itkStaticConstMacro( ImageDimension, unsigned int, VImageDimension );
 
   /**
    * add a metric, corresponding to the registration stage
    */
-  void AddMetric(MetricEnumeration metricType,
-                 typename ImageType::Pointer & fixedImage,
-                 typename ImageType::Pointer & movingImage,
-                 double weighting,
-                 SamplingStrategy samplingStrategy,
-                 int numberOfBins,
-                 unsigned int radius,
-                 double samplingPercentage);
+  void AddMetric( MetricEnumeration metricType,
+                  typename ImageType::Pointer & fixedImage,
+                  typename ImageType::Pointer & movingImage,
+                  unsigned int stageID,
+                  double weighting,
+                  SamplingStrategy samplingStrategy,
+                  int numberOfBins,
+                  unsigned int radius,
+                  double samplingPercentage );
+
+  /**
+   * Get set of metrics per stage.  If we have more than one, we have
+   * to use the MultiMetricType
+   */
+  MetricListType GetMetricListPerStage( unsigned int stageID );
 
   /**
    * return the enumerated Metric type based on a string representation
    */
-  MetricEnumeration StringToMetricType(const std::string & str) const;
+  MetricEnumeration StringToMetricType( const std::string & str ) const;
 
   /**
    * return the enumerated transform method specified by str
    */
-  XfrmMethod StringToXfrmMethod(const std::string & str) const;
+  XfrmMethod StringToXfrmMethod( const std::string & str ) const;
 
   /**
    * set the fixed initial transform.
    */
-  void SetFixedInitialTransform(const TransformType *initialTransform);
+  void SetFixedInitialTransform( const TransformType *initialTransform );
 
   /**
    * set the moving initial transform.
    */
-  void SetMovingInitialTransform(const TransformType *initialTransform);
+  void SetMovingInitialTransform( const TransformType *initialTransform );
 
   /**
    * add a rigid transform
    */
-  void AddRigidTransform(double GradientStep);
+  void AddRigidTransform( double GradientStep );
 
   /**
    * add an affine transform
    */
-  void AddAffineTransform(double GradientStep);
+  void AddAffineTransform( double GradientStep );
 
   /**
    * add a composite affine transform
    */
-  void AddCompositeAffineTransform(double GradientStep);
+  void AddCompositeAffineTransform( double GradientStep );
 
   /**
    * add a similarity transform
    */
-  void AddSimilarityTransform(double GradientStep);
+  void AddSimilarityTransform( double GradientStep );
 
   /**
    * add a translation transform
    */
-  void AddTranslationTransform(double GradientStep);
+  void AddTranslationTransform( double GradientStep );
 
   /**
    * add a spline transform
    */
-  void AddBSplineTransform(double GradientStep, std::vector<unsigned int> & MeshSizeAtBaseLevel);
+  void AddBSplineTransform( double GradientStep, std::vector<unsigned int> & MeshSizeAtBaseLevel );
 
   /**
    * add gaussian displacement transform
    */
-  void AddGaussianDisplacementFieldTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                                             double TotalFieldVarianceInVarianceSpace);
+  void AddGaussianDisplacementFieldTransform( double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                                              double TotalFieldVarianceInVarianceSpace );
 
   /**
    * add bspline displacement transform
    */
-  void AddBSplineDisplacementFieldTransform(double GradientStep,
-                                            std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
-                                            std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
-                                            unsigned int SplineOrder);
+  void AddBSplineDisplacementFieldTransform( double GradientStep,
+                                             std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+                                             std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
+                                             unsigned int SplineOrder );
 
   /**
    * add a time varying velocity field transform
    */
-  void AddTimeVaryingVelocityFieldTransform(double GradientStep, unsigned int NumberOfTimeIndices,
-                                            double UpdateFieldVarianceInVarianceSpace, double UpdateFieldTimeSigma,
-                                            double TotalFieldVarianceInVarianceSpace, double TotalFieldTimeSigma);
+  void AddTimeVaryingVelocityFieldTransform( double GradientStep, unsigned int NumberOfTimeIndices,
+                                             double UpdateFieldVarianceInVarianceSpace, double UpdateFieldTimeSigma,
+                                             double TotalFieldVarianceInVarianceSpace, double TotalFieldTimeSigma );
 
   /**
    * add a time varying b spline velocity field transform
    */
-  void AddTimeVaryingBSplineVelocityFieldTransform(double GradientStep, std::vector<unsigned int> VelocityFieldMeshSize,
-                                                   unsigned int NumberOfTimePointSamples, unsigned int SplineOrder);
+  void AddTimeVaryingBSplineVelocityFieldTransform( double GradientStep,
+                                                    std::vector<unsigned int> VelocityFieldMeshSize,
+                                                    unsigned int NumberOfTimePointSamples, unsigned int SplineOrder );
 
   /**
    * add a SyN transform
    */
-  void AddSyNTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                       double TotalFieldVarianceInVarianceSpace);
+  void AddSyNTransform( double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                        double TotalFieldVarianceInVarianceSpace );
 
   /**
    * add a B-spline SyN transform
    */
-  void AddBSplineSyNTransform(double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
-                              std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel, unsigned int SplineOrder);
+  void AddBSplineSyNTransform( double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+                               std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel, unsigned int SplineOrder );
 
   /**
    * add an exponential transform
    */
-  void AddExponentialTransform(double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                               double VelocityFieldVarianceInVarianceSpace, unsigned int NumberOfIntegrationSteps);
+  void AddExponentialTransform( double GradientStep, double UpdateFieldVarianceInVarianceSpace,
+                                double VelocityFieldVarianceInVarianceSpace, unsigned int NumberOfIntegrationSteps );
 
   /**
    * add a B-spline exponential transform
    */
-  void AddBSplineExponentialTransform(double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
-                                      std::vector<unsigned int> & VelocityFieldMeshSizeAtBaseLevel,
-                                      unsigned int NumberOfIntegrationSteps, unsigned int SplineOrder);
+  void AddBSplineExponentialTransform( double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+                                       std::vector<unsigned int> & VelocityFieldMeshSizeAtBaseLevel,
+                                       unsigned int NumberOfIntegrationSteps, unsigned int SplineOrder );
 
   /**
    * Add the collected iterations list

@@ -577,22 +577,80 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       if( m == 0 )
         {
-        regHelper->SetFixedImageMask(maskImage);
+        regHelper->SetFixedImageMask( maskImage );
         }
       else if( m == 1 )
         {
-        regHelper->SetMovingImageMask(maskImage);
+        regHelper->SetMovingImageMask( maskImage );
         }
       }
     }
 
-  unsigned int numberOfStages;
+  // The misc. options
+  //  * winsorize image intensities
+  //  * use histogram matching
+  //  * estimate learning rate
+  // are currently specified once on the command line and then apply to all
+  // stages.  Advanced parameter specification might require us to rewrite
+  // this in the future.
 
-  if( transformOption.IsNull() || ( numberOfStages = transformOption->GetNumberOfFunctions() ) == 0 )
+  float lowerQuantile = 0.0;
+  float upperQuantile = 1.0;
+
+  bool doWinsorize = false;
+
+  OptionType::Pointer winsorizeOption = parser->GetOption( "winsorize-image-intensities" );
+  if( winsorizeOption && winsorizeOption->GetNumberOfFunctions() )
+    {
+    doWinsorize = true;
+    if( winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      lowerQuantile = parser->Convert<float>( winsorizeOption->GetFunction( 0 )->GetParameter( 0 ) );
+      }
+    if( winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      {
+      upperQuantile = parser->Convert<float>( winsorizeOption->GetFunction( 0 )->GetParameter( 1 ) );
+      }
+    }
+  regHelper->SetWinsorizeImageIntensities( doWinsorize, lowerQuantile, upperQuantile );
+
+  bool doHistogramMatch = false;
+
+  OptionType::Pointer histOption = parser->GetOption( "use-histogram-matching" );
+  if( histOption && histOption->GetNumberOfFunctions() )
+    {
+    std::string histFunction = histOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( histFunction );
+    if( histFunction.compare( "1" ) == 0 || histFunction.compare( "true" ) == 0 )
+      {
+      doHistogramMatch = true;
+      }
+    }
+  regHelper->SetUseHistogramMatching( doHistogramMatch);
+
+  bool doEstimateLearningRateAtEachIteration = true;
+
+  OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
+  if( rateOption && rateOption->GetNumberOfFunctions() )
+    {
+    std::string rateFunction = rateOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( rateFunction );
+    if( rateFunction.compare( "1" ) == 0 || rateFunction.compare( "true" ) == 0 )
+      {
+      doEstimateLearningRateAtEachIteration = false;
+      }
+    }
+  regHelper->SetDoEstimateLearningRateAtEachIteration( doEstimateLearningRateAtEachIteration );
+
+  // We find both the number of transforms and the number of metrics
+
+  unsigned int numberOfTransforms = transformOption->GetNumberOfFunctions();
+  if( transformOption.IsNull() || numberOfTransforms == 0 )
     {
     antscout << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
     }
+
   std::vector<std::vector<unsigned int> > iterationList;
   std::vector<double>                     convergenceThresholdList;
   std::vector<unsigned int>               convergenceWindowSizeList;
@@ -600,102 +658,23 @@ DoRegistration(typename ParserType::Pointer & parser)
   std::vector<std::vector<float> >        smoothingSigmasList;
   std::vector<bool>                       smoothingSigmasAreInPhysicalUnitsList;
   std::deque<std::string>                 TransformTypeNames;
-  // We iterate backwards because the command line options are stored as a stack (first in last out)
-  for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
+  // Each image registration "stage" is characterized by
+  //   * a transform
+  //   * a set of convergence criteria (number of iterations, convergence threshold,
+  //     and/or convergence window)
+  //   * a set of shrink factors
+  //   * a set of smoothing factors (specified in physical space or voxel space)
+  // Note that the set of the number of iterations, the set of shrink factors, and the
+  // set of smoothing factors imply the number of levels that will be used for that stage
+  // and thus they all need to be the same vector length, e.g. "-c 100x50x10 -f 4x2x1 -s 2x1x0".
+  // We use the number of transforms to implicitly guess how many stages are being used in
+  // current registration call.  We don't add the metrics in this loop as there could be
+  // more than one metric per stage.
+  //
+  // Also, we iterate backwards because the command line options are stored as a stack (first
+  // in last out).
+  for( int currentStage = numberOfTransforms - 1; currentStage >= 0; currentStage-- )
     {
-    // Get the fixed and moving images
-
-    std::string fixedImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 0 );
-    std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 1 );
-    antscout << "  fixed image: " << fixedImageFileName << std::endl;
-    antscout << "  moving image: " << movingImageFileName << std::endl;
-
-    typename ImageType::Pointer fixedImage;
-    typename ImageType::Pointer movingImage;
-
-    typedef itk::ImageFileReader<ImageType> ImageReaderType;
-    typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
-
-    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-    fixedImageReader->Update();
-    fixedImage = fixedImageReader->GetOutput();
-    try
-      {
-      fixedImage->Update();
-      }
-    catch( itk::ExceptionObject & excp )
-      {
-      antscout << excp << std::endl;
-      return EXIT_FAILURE;
-      }
-    fixedImage->DisconnectPipeline();
-
-    typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
-    movingImageReader->SetFileName( movingImageFileName.c_str() );
-    movingImageReader->Update();
-    movingImage = movingImageReader->GetOutput();
-    try
-      {
-      movingImage->Update();
-      }
-    catch( itk::ExceptionObject & excp )
-      {
-      antscout << excp << std::endl;
-      return EXIT_FAILURE;
-      }
-    movingImage->DisconnectPipeline();
-
-    std::string whichMetric = metricOption->GetFunction( currentStage )->GetName();
-    ConvertToLowerCase( whichMetric );
-
-    typename RegistrationHelperType::MetricEnumeration curMetric = regHelper->StringToMetricType( whichMetric );
-
-    float lowerQuantile = 0.0;
-    float upperQuantile = 1.0;
-
-    OptionType::Pointer winsorizeOption = parser->GetOption( "winsorize-image-intensities" );
-    bool                doWinsorize(false);
-
-    if( winsorizeOption && winsorizeOption->GetNumberOfFunctions() )
-      {
-      doWinsorize = true;
-      if( winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-        {
-        lowerQuantile = parser->Convert<float>( winsorizeOption->GetFunction( 0 )->GetParameter( 0 ) );
-        }
-      if( winsorizeOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
-        {
-        upperQuantile = parser->Convert<float>( winsorizeOption->GetFunction( 0 )->GetParameter( 1 ) );
-        }
-      }
-    regHelper->SetWinsorizeImageIntensities(doWinsorize, lowerQuantile, upperQuantile);
-
-    bool                doHistogramMatch(false);
-    OptionType::Pointer histOption = parser->GetOption( "use-histogram-matching" );
-    if( histOption && histOption->GetNumberOfFunctions() )
-      {
-      std::string histFunction = histOption->GetFunction( 0 )->GetName();
-      ConvertToLowerCase( histFunction );
-      if( histFunction.compare( "1" ) == 0 || histFunction.compare( "true" ) == 0 )
-        {
-        doHistogramMatch = true;
-        }
-      }
-    regHelper->SetUseHistogramMatching(doHistogramMatch);
-
-    bool                doEstimateLearningRateAtEachIteration = true;
-    OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
-    if( rateOption && rateOption->GetNumberOfFunctions() )
-      {
-      std::string rateFunction = rateOption->GetFunction( 0 )->GetName();
-      ConvertToLowerCase( rateFunction );
-      if( rateFunction.compare( "1" ) == 0 || rateFunction.compare( "true" ) == 0 )
-        {
-        doEstimateLearningRateAtEachIteration = false;
-        }
-      }
-    regHelper->SetDoEstimateLearningRateAtEachIteration( doEstimateLearningRateAtEachIteration );
-
     // Get the number of iterations and use that information to specify the number of levels
 
     std::vector<unsigned int> iterations;
@@ -775,100 +754,6 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     smoothingSigmasList.push_back( sigmas );
 
-    float samplingPercentage = 1.0;
-    if( metricOption->GetFunction( currentStage )->GetNumberOfParameters() > 5 )
-      {
-      samplingPercentage = parser->Convert<float>( metricOption->GetFunction( currentStage )->GetParameter( 5 ) );
-      }
-
-    std::string Strategy = "none";
-    if( metricOption->GetFunction( currentStage )->GetNumberOfParameters() > 4 )
-      {
-      Strategy = metricOption->GetFunction( currentStage )->GetParameter( 4 );
-      }
-    ConvertToLowerCase( Strategy );
-
-    typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::invalid;
-    if( Strategy == "random" )
-      {
-      samplingStrategy = RegistrationHelperType::random;
-      }
-    else if( Strategy == "regular" )
-      {
-      samplingStrategy = RegistrationHelperType::regular;
-      }
-    else if( ( Strategy == "none" ) || ( Strategy == "" ) )
-      {
-      samplingStrategy = RegistrationHelperType::none;
-      }
-    else
-      {
-      samplingStrategy = RegistrationHelperType::invalid;
-      std::cout << "ERROR: invalid sampling strategy specified: " << Strategy << std::endl;
-      return EXIT_FAILURE;
-      }
-
-    switch( curMetric )
-      {
-      case RegistrationHelperType::CC:
-        {
-        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
-                                                                     currentStage )->GetParameter( 3 ) );
-        regHelper->AddMetric(curMetric,
-                             fixedImage,
-                             movingImage,
-                             1.0,
-                             samplingStrategy,
-                             1,
-                             radiusOption,
-                             samplingPercentage);
-        }
-        break;
-      case RegistrationHelperType::GC:
-      case RegistrationHelperType::MeanSquares:
-        {
-        regHelper->AddMetric(curMetric,
-                             fixedImage,
-                             movingImage,
-                             1.0,
-                             samplingStrategy,
-                             1,
-                             1,
-                             samplingPercentage);
-        }
-        break;
-      case RegistrationHelperType::Demons:
-        {
-        regHelper->AddMetric(curMetric,
-                             fixedImage,
-                             movingImage,
-                             1.0,
-                             samplingStrategy,
-                             1,
-                             1,
-                             samplingPercentage);
-        }
-        break;
-      case RegistrationHelperType::Mattes:
-      case RegistrationHelperType::MI:
-        {
-        unsigned int binOption =
-          parser->Convert<unsigned int>( metricOption->GetFunction( currentStage )->GetParameter( 3 ) );
-        regHelper->AddMetric(curMetric,
-                             fixedImage,
-                             movingImage,
-                             1.0,
-                             samplingStrategy,
-                             binOption,
-                             1,
-                             samplingPercentage);
-        }
-        break;
-      default:
-        antscout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
-        return EXIT_FAILURE;
-      }
-
     // Set up the optimizer.  To change the iteration number for each level we rely
     // on the command observer.
 
@@ -879,33 +764,33 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     TransformTypeNames.push_back( whichTransform );
 
-    typename RegistrationHelperType::XfrmMethod xfrmMethod = regHelper->StringToXfrmMethod(whichTransform);
+    typename RegistrationHelperType::XfrmMethod xfrmMethod = regHelper->StringToXfrmMethod( whichTransform );
 
     switch( xfrmMethod )
       {
       case RegistrationHelperType::Affine:
         {
-        regHelper->AddAffineTransform(learningRate);
+        regHelper->AddAffineTransform( learningRate );
         }
         break;
       case RegistrationHelperType::Rigid:
         {
-        regHelper->AddRigidTransform(learningRate);
+        regHelper->AddRigidTransform( learningRate );
         }
         break;
       case RegistrationHelperType::CompositeAffine:
         {
-        regHelper->AddCompositeAffineTransform(learningRate);
+        regHelper->AddCompositeAffineTransform( learningRate );
         }
         break;
       case RegistrationHelperType::Similarity:
         {
-        regHelper->AddSimilarityTransform(learningRate);
+        regHelper->AddSimilarityTransform( learningRate );
         }
         break;
       case RegistrationHelperType::Translation:
         {
-        regHelper->AddTranslationTransform(learningRate);
+        regHelper->AddTranslationTransform( learningRate );
         }
         break;
       case RegistrationHelperType::GaussianDisplacementField:
@@ -943,16 +828,16 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
           }
 
-        regHelper->AddBSplineDisplacementFieldTransform(learningRate, meshSizeForTheUpdateField,
-                                                        meshSizeForTheTotalField,
-                                                        splineOrder);
+        regHelper->AddBSplineDisplacementFieldTransform( learningRate, meshSizeForTheUpdateField,
+                                                         meshSizeForTheTotalField,
+                                                         splineOrder );
         }
         break;
       case RegistrationHelperType::BSpline:
         {
-        std::vector<unsigned int> MeshSizeAtBaseLevel =
+        std::vector<unsigned int> meshSizeAtBaseLevel =
           parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
-        regHelper->AddBSplineTransform(learningRate, MeshSizeAtBaseLevel);
+        regHelper->AddBSplineTransform( learningRate, meshSizeAtBaseLevel );
         }
         break;
       case RegistrationHelperType::TimeVaryingVelocityField:
@@ -968,19 +853,21 @@ DoRegistration(typename ParserType::Pointer & parser)
                                                                       currentStage )->GetParameter( 4 ) );
         const float varianceForTotalFieldTime = parser->Convert<float>( transformOption->GetFunction(
                                                                           currentStage )->GetParameter( 5 ) );
-        regHelper->AddTimeVaryingVelocityFieldTransform(learningRate,
-                                                        numberOfTimeIndices,
-                                                        varianceForUpdateField,
-                                                        varianceForUpdateFieldTime,
-                                                        varianceForTotalField,
-                                                        varianceForTotalFieldTime);
+        regHelper->AddTimeVaryingVelocityFieldTransform( learningRate,
+                                                         numberOfTimeIndices,
+                                                         varianceForUpdateField,
+                                                         varianceForUpdateFieldTime,
+                                                         varianceForTotalField,
+                                                         varianceForTotalFieldTime );
         }
         break;
       case RegistrationHelperType::TimeVaryingBSplineVelocityField:
         {
         std::vector<unsigned int> meshSize = parser->ConvertVector<unsigned int>( transformOption->GetFunction(
                                                                                     0 )->GetParameter( 1 ) );
+
         unsigned int numberOfTimePointSamples = 4;
+
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
           numberOfTimePointSamples = parser->Convert<unsigned int>( transformOption->GetFunction(
@@ -992,10 +879,10 @@ DoRegistration(typename ParserType::Pointer & parser)
           splineOrder =
             parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
           }
-        regHelper->AddTimeVaryingBSplineVelocityFieldTransform(learningRate,
-                                                               meshSize,
-                                                               numberOfTimePointSamples,
-                                                               splineOrder);
+        regHelper->AddTimeVaryingBSplineVelocityFieldTransform( learningRate,
+                                                                meshSize,
+                                                                numberOfTimePointSamples,
+                                                                splineOrder );
         }
         break;
       case RegistrationHelperType::SyN:
@@ -1029,9 +916,9 @@ DoRegistration(typename ParserType::Pointer & parser)
             parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
           }
 
-        regHelper->AddBSplineSyNTransform(learningRate, meshSizeForTheUpdateField,
-                                          meshSizeForTheTotalField,
-                                          splineOrder);
+        regHelper->AddBSplineSyNTransform( learningRate, meshSizeForTheUpdateField,
+                                           meshSizeForTheTotalField,
+                                           splineOrder );
         }
         break;
       case RegistrationHelperType::Exponential:
@@ -1086,7 +973,8 @@ DoRegistration(typename ParserType::Pointer & parser)
           }
 
         regHelper->AddBSplineExponentialTransform( learningRate, meshSizeForTheUpdateField,
-                                                   meshSizeForTheVelocityField, numberOfIntegrationSteps, splineOrder );
+                                                   meshSizeForTheVelocityField,
+                                                   numberOfIntegrationSteps, splineOrder );
         }
         break;
       default:
@@ -1104,6 +992,175 @@ DoRegistration(typename ParserType::Pointer & parser)
   regHelper->SetSmoothingSigmas( smoothingSigmasList );
   regHelper->SetSmoothingSigmasAreInPhysicalUnits( smoothingSigmasAreInPhysicalUnitsList );
   regHelper->SetShrinkFactors( shrinkFactorsList );
+
+  // We iterate through each of the metric "functions" specified on the command
+  // line and add it the registration helper.  We also need to assign the stage
+  // ID to the added metric.  Multiple metrics for a single stage are specified
+  // on the command line by being specified adjacently.
+
+  unsigned int numberOfMetrics = metricOption->GetNumberOfFunctions();
+  for( int currentMetricNumber = numberOfMetrics - 1; currentMetricNumber >= 0; currentMetricNumber-- )
+    {
+    // Get the fixed and moving images
+
+    std::string fixedImageFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
+    std::string movingImageFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
+    antscout << "  fixed image: " << fixedImageFileName << std::endl;
+    antscout << "  moving image: " << movingImageFileName << std::endl;
+
+    typename ImageType::Pointer fixedImage;
+    typename ImageType::Pointer movingImage;
+
+    typedef itk::ImageFileReader<ImageType> ImageReaderType;
+    typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
+
+    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
+    fixedImageReader->Update();
+    fixedImage = fixedImageReader->GetOutput();
+    try
+      {
+      fixedImage->Update();
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      antscout << excp << std::endl;
+      return EXIT_FAILURE;
+      }
+    fixedImage->DisconnectPipeline();
+
+    typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
+    movingImageReader->SetFileName( movingImageFileName.c_str() );
+    movingImageReader->Update();
+    movingImage = movingImageReader->GetOutput();
+    try
+      {
+      movingImage->Update();
+      }
+    catch( itk::ExceptionObject & excp )
+      {
+      antscout << excp << std::endl;
+      return EXIT_FAILURE;
+      }
+    movingImage->DisconnectPipeline();
+
+    // Get the stage ID
+    unsigned int stageID = metricOption->GetFunction( currentMetricNumber )->GetStageID();
+
+    // We check the last stage ID (first iteration) to ensure that the number of stages
+    // (as determined by the number of transforms) is equal to the number of stages (as
+    // determined by the metrics command line specification).
+    if( currentMetricNumber == static_cast<int>( numberOfMetrics - 1 ) )
+      {
+      if( stageID != numberOfTransforms - 1 )
+        {
+        ::ants::antscout << "\n\n\n"
+                         << "Error:  The number of stages does not match up with the metrics." << std::endl
+                         << "The number of transforms is " << numberOfTransforms << " and the last stage ID "
+                         << " as determined by the metrics is " << stageID << "." << std::endl;
+        return EXIT_FAILURE;
+        }
+      }
+
+    std::string whichMetric = metricOption->GetFunction( currentMetricNumber )->GetName();
+    ConvertToLowerCase( whichMetric );
+
+    float metricWeighting = 1.0;
+    if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 2 )
+      {
+      metricWeighting = parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 2 ) );
+      }
+
+    float samplingPercentage = 1.0;
+    if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
+      {
+      samplingPercentage =
+        parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
+      }
+
+    std::string strategy = "none";
+    if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 4 )
+      {
+      strategy = metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 );
+      }
+    ConvertToLowerCase( strategy );
+
+    typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::invalid;
+    if( strategy == "random" )
+      {
+      samplingStrategy = RegistrationHelperType::random;
+      }
+    else if( strategy == "regular" )
+      {
+      samplingStrategy = RegistrationHelperType::regular;
+      }
+    else if( ( strategy == "none" ) || ( strategy == "" ) )
+      {
+      samplingStrategy = RegistrationHelperType::none;
+      }
+    else
+      {
+      samplingStrategy = RegistrationHelperType::invalid;
+      std::cout << "ERROR: invalid sampling strategy specified: " << strategy << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    typename RegistrationHelperType::MetricEnumeration curMetric = regHelper->StringToMetricType( whichMetric );
+
+    switch( curMetric )
+      {
+      case RegistrationHelperType::CC:
+        {
+        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
+                                                                     currentMetricNumber )->GetParameter( 3 ) );
+        regHelper->AddMetric( curMetric,
+                              fixedImage,
+                              movingImage,
+                              stageID,
+                              metricWeighting,
+                              samplingStrategy,
+                              1,
+                              radiusOption,
+                              samplingPercentage );
+        }
+        break;
+      case RegistrationHelperType::GC:
+      case RegistrationHelperType::MeanSquares:
+      case RegistrationHelperType::Demons:
+        {
+        regHelper->AddMetric( curMetric,
+                              fixedImage,
+                              movingImage,
+                              stageID,
+                              metricWeighting,
+                              samplingStrategy,
+                              1,
+                              1,
+                              samplingPercentage );
+        }
+        break;
+      case RegistrationHelperType::Mattes:
+      case RegistrationHelperType::MI:
+        {
+        unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction(
+                                                                  currentMetricNumber )->GetParameter( 3 ) );
+        regHelper->AddMetric( curMetric,
+                              fixedImage,
+                              movingImage,
+                              stageID,
+                              metricWeighting,
+                              samplingStrategy,
+                              binOption,
+                              1,
+                              samplingPercentage );
+        }
+        break;
+      default:
+        antscout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
+        return EXIT_FAILURE;
+      }
+    }
+
+  // Perform the registration
 
   if( regHelper->DoRegistration() == EXIT_FAILURE )
     {
@@ -1290,7 +1347,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 #if 1
     // HACK:: This can just be cached when reading the fixedImage from above!!
     //
-    std::string fixedImageFileName = metricOption->GetFunction( numberOfStages - 1 )->GetParameter( 0 );
+    std::string fixedImageFileName = metricOption->GetFunction( numberOfTransforms - 1 )->GetParameter( 0 );
 
     typedef itk::ImageFileReader<ImageType> ImageReaderType;
     typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
