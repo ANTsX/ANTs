@@ -330,6 +330,15 @@ int antsAffineInitializerImp(int argc, char *argv[])
   antscout << vnl_determinant( A_solution  ) << std::endl;
   if( ImageDimension != 3  )
     {
+    typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
+    typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+    resampleFilter->SetInput( image2 );
+    resampleFilter->SetOutputParametersFromImage( image1 );
+    resampleFilter->SetTransform( affine1 );
+    typename ImageType::IndexType zeroind;  zeroind.Fill(0);
+    resampleFilter->SetDefaultPixelValue( image1->GetPixel(zeroind) );
+    resampleFilter->Update();
+    typename ImageType::Pointer varimage = resampleFilter->GetOutput();
     antscout << ImageDimension << " only partially implemented.  Writing out Principal Axis solution." << std::endl;
     typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetInput( affine1 );
@@ -337,9 +346,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
     transformWriter->Update();
     return EXIT_SUCCESS;
     }
-  typename AffineType::Pointer bestaffine;
+  typename AffineType::Pointer bestaffine = AffineType::New();
   typename AffineType::Pointer affinesearch = AffineType::New();
-  affinesearch->SetCenter( trans2 );
   vnl_vector<RealType>                  evec1_tert = vnl_cross_3d( evec1_primary, evec1_2ndary );
   itk::Vector<RealType, ImageDimension> axis1;
   axis1[0] = evec1_tert[0];
@@ -357,6 +365,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   for( double ang1 = 0; ang1 < ( 2.0 * pi ); ang1 = ang1 + delt )
     {
     affinesearch->SetIdentity();
+    affinesearch->SetCenter( trans2 );
     affinesearch->SetOffset( trans );
     affinesearch->SetMatrix( A_solution );
     affinesearch->SetCenter( trans2 );
@@ -365,14 +374,14 @@ int antsAffineInitializerImp(int argc, char *argv[])
       {
       affinesearch->Rotate3D(axis2, ang2, 1);
       typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
-      typename ResampleFilterType::Pointer resample = ResampleFilterType::New();
-      resample->SetTransform( affinesearch );
-      resample->SetInput( image2 );
-      resample->SetOutputParametersFromImage( image1 );
+      typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
+      resampleFilter->SetInput( image2 );
+      resampleFilter->SetOutputParametersFromImage( image1 );
+      resampleFilter->SetTransform( affinesearch );
       typename ImageType::IndexType zeroind;  zeroind.Fill(0);
-      resample->SetDefaultPixelValue( image1->GetPixel(zeroind) );
-      resample->UpdateLargestPossibleRegion();
-      typename ImageType::Pointer varimage = resample->GetOutput();
+      resampleFilter->SetDefaultPixelValue( image1->GetPixel(zeroind) );
+      resampleFilter->Update();
+      typename ImageType::Pointer varimage = resampleFilter->GetOutput();
       typedef itk::MattesMutualInformationImageToImageMetricv4
         <ImageType, ImageType, ImageType> MetricType1;
       typedef itk::CorrelationImageToImageMetricv4
@@ -386,16 +395,12 @@ int antsAffineInitializerImp(int argc, char *argv[])
       if( value < bestvalue )
         {
         bestvalue  = value;
-        bestaffine = affinesearch;
-        typename writertype::Pointer writer = writertype::New();
-        writer->SetFileName( "temp.nii.gz" );
-        writer->SetInput( varimage );
-        writer->Write();
+        bestaffine->SetParameters( affinesearch->GetParameters() );
+        bestaffine->SetCenter( trans2 );
         }
       antscout << ang1 << "," << ang2 << "," << value << std::endl;
       }
     }
-  //  antscout << " best " << bestvalue << " :  " << bestaffine << std::endl;
   typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( bestaffine );
   transformWriter->SetFileName( outname.c_str() );
