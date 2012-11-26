@@ -55,7 +55,7 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
+#include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelContourImageFilter.h"
@@ -10158,7 +10158,7 @@ int ImageMetrics( int argc, char *argv[] )
     }
   else if( strcmp(argv[3], "Mattes") == 0 )
     {
-    typedef itk::JointHistogramMutualInformationImageToImageMetricv4
+    typedef itk::MattesMutualInformationImageToImageMetricv4
       <ImageType, ImageType, ImageType> MetricType;
 
     int bins = 32;

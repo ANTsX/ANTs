@@ -677,7 +677,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
           useCenterOfMass = false;
           }
         }
-      typedef itk::CenteredAffineTransform<double, VImageDimension> TransformType;
+      typedef itk::AffineTransform<double, VImageDimension> TransformType;
       typename TransformType::Pointer transform = TransformType::New();
 
       typedef itk::CenteredTransformInitializer<TransformType, ImageType, ImageType> TransformInitializerType;

@@ -52,6 +52,7 @@ set(BASE_ANTS_APPS
   ANTSUseLandmarkImagesToGetBSplineDisplacementField
   ANTSUseDeformationFieldToGetAffineTransform
   # FDR
+  antsAffineInitializer
   ImageMath
   SurfaceCurvature
   SurfaceBasedSmoothing

@@ -85,6 +85,8 @@
 
 #include "ImageMath.h"
 
+#include "antsAffineInitializer.h"
+
 #include "ImageSetStatistics.h"
 
 #include "itkCommandLineParserTest.h"
