@@ -336,37 +336,31 @@ int antsAffineInitializerImp(int argc, char *argv[])
   affine1->SetOffset( trans );
   affine1->SetMatrix( A_solution );
   affine1->SetCenter( trans2 );
-  antscout << trans  << std::endl;
-  antscout << A_solution  << std::endl;
-  antscout << vnl_determinant( A_solution  ) << std::endl;
-  if( ImageDimension != 3  )
+  if( ImageDimension > 3  )
     {
-    typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
-    typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
-    resampleFilter->SetInput( image2 );
-    resampleFilter->SetOutputParametersFromImage( image1 );
-    resampleFilter->SetTransform( affine1 );
-    typename ImageType::IndexType zeroind;  zeroind.Fill(0);
-    resampleFilter->SetDefaultPixelValue( image1->GetPixel(zeroind) );
-    resampleFilter->Update();
-    typename ImageType::Pointer varimage = resampleFilter->GetOutput();
-    antscout << ImageDimension << " only partially implemented.  Writing out Principal Axis solution." << std::endl;
     typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
     transformWriter->SetInput( affine1 );
     transformWriter->SetFileName( outname.c_str() );
     transformWriter->Update();
     return EXIT_SUCCESS;
     }
-
-  vnl_vector<RealType>                  evec1_tert = vnl_cross_3d( evec1_primary, evec1_2ndary );
-  itk::Vector<RealType, ImageDimension> axis1;
-  axis1[0] = evec1_tert[0];
-  axis1[1] = evec1_tert[1];
-  axis1[2] = evec1_tert[2];
+  vnl_vector<RealType> evec_tert;
+  if( ImageDimension == 3 )
+    { // try to rotate around tertiary and secondary axis
+    evec_tert = vnl_cross_3d( evec1_primary, evec1_2ndary );
+    }
+  if( ImageDimension == 2 )
+    { // try to rotate around tertiary and secondary axis
+    evec_tert = evec1_2ndary;
+    evec1_2ndary = evec1_primary;
+    }
   itk::Vector<RealType, ImageDimension> axis2;
-  axis2[0] = evec1_2ndary[0];
-  axis2[1] = evec1_2ndary[1];
-  axis2[2] = evec1_2ndary[2];
+  itk::Vector<RealType, ImageDimension> axis1;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    axis1[d] = evec_tert[d];
+    axis2[d] = evec1_2ndary[d];
+    }
   double pi = 3.14159265358979323846;
   double delt = searchfactor;
   typename AffineType::Pointer affinesearch = AffineType::New();
@@ -374,7 +368,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   affinesearch->SetCenter( trans2 );
   typedef  itk::MultiStartOptimizerv4         OptimizerType;
   typedef  typename OptimizerType::ScalesType ScalesType;
-  typename OptimizerType::Pointer  itkOptimizer = OptimizerType::New();
+  typename OptimizerType::Pointer  mstartOptimizer = OptimizerType::New();
   typedef itk::MattesMutualInformationImageToImageMetricv4
     <ImageType, ImageType, ImageType> MetricType;
   typename MetricType::ParametersType newparams(  affine1->GetParameters() );
@@ -393,81 +387,74 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType
     movingScales( affinesearch->GetNumberOfParameters() );
   shiftScaleEstimator->EstimateScales( movingScales );
-  itkOptimizer->SetScales( movingScales );
+  mstartOptimizer->SetScales( movingScales );
   antscout << " Scales: " << movingScales << std::endl;
-  itkOptimizer->SetMetric( mimetric );
-  typename OptimizerType::ParametersListType parametersList = itkOptimizer->GetParametersList();
+  mstartOptimizer->SetMetric( mimetric );
+  typename OptimizerType::ParametersListType parametersList = mstartOptimizer->GetParametersList();
   RealType piover4 = pi / 4;
+  if( ImageDimension == 2 )
+    {
+    piover4 = pi;
+    }
   for( double ang1 = ( piover4 * (-1) ); ang1 <= piover4; ang1 = ang1 + delt )
     {
-    for( double ang2 = ( piover4 * (-1) ); ang2 <= piover4; ang2 = ang2 + delt )
+    if( ImageDimension == 3 )
+      {
+      for( double ang2 = ( piover4 * (-1) ); ang2 <= piover4; ang2 = ang2 + delt )
+        {
+        affinesearch->SetIdentity();
+        affinesearch->SetCenter( trans2 );
+        affinesearch->SetOffset( trans );
+        affinesearch->SetMatrix( A_solution );
+        affinesearch->Rotate3D(axis1, ang1, 1);
+        affinesearch->Rotate3D(axis2, ang2, 1);
+        parametersList.push_back( affinesearch->GetParameters() );
+        }
+      }
+    if( ImageDimension == 2 )
       {
       affinesearch->SetIdentity();
       affinesearch->SetCenter( trans2 );
       affinesearch->SetOffset( trans );
       affinesearch->SetMatrix( A_solution );
-      affinesearch->Rotate3D(axis1, ang1, 1);
-      affinesearch->Rotate3D(axis2, ang2, 1);
+      affinesearch->Rotate2D( ang1, 1);
       parametersList.push_back( affinesearch->GetParameters() );
       }
     }
-  itkOptimizer->SetParametersList( parametersList );
+  mstartOptimizer->SetParametersList( parametersList );
   typedef  itk::ConjugateGradientLineSearchOptimizerv4 LocalOptimizerType;
   typename LocalOptimizerType::Pointer  localoptimizer = LocalOptimizerType::New();
   localoptimizer->SetMetric( mimetric );
   localoptimizer->SetScales( movingScales );
   localoptimizer->SetLearningRate( 0.1 );
-  localoptimizer->SetNumberOfIterations( 10 );
-  itkOptimizer->SetLocalOptimizer( localoptimizer );
-  antscout << "Begin MultiStart:" << parametersList.size() << " searches " << std::endl;
-  itkOptimizer->StartOptimization();
+  localoptimizer->SetNumberOfIterations( 20 );
+  localoptimizer->SetMinimumConvergenceValue( 1.e-7 );
+  localoptimizer->SetConvergenceWindowSize( 10 );
+  localoptimizer->SetLowerLimit( 0 );
+  localoptimizer->SetUpperLimit( 2 );
+  localoptimizer->SetEpsilon( 0.1 );
+  mstartOptimizer->SetLocalOptimizer( localoptimizer );
+  antscout << "Begin MultiStart: " << parametersList.size() << " searches " << std::endl;
+
+  double small_step = 0;
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    small_step += image1->GetSpacing()[i] * image1->GetSpacing()[i];
+    }
+  typedef  itk::GradientDescentOptimizerv4 LocalOptimizerType2;
+  typename LocalOptimizerType2::Pointer localoptimizer2 = LocalOptimizerType2::New();
+  localoptimizer2->SetScales( movingScales );
+  localoptimizer2->SetNumberOfIterations( 20 );
+  localoptimizer2->SetMaximumStepSizeInPhysicalUnits( 0.5 * sqrt( small_step ) );
+  localoptimizer2->SetDoEstimateLearningRateOnce( true );
+  mstartOptimizer->SetLocalOptimizer( localoptimizer2 );
+
+  mstartOptimizer->StartOptimization();
+  antscout << "done" << std::endl;
   typename AffineType::Pointer bestaffine = AffineType::New();
   bestaffine->SetCenter( trans2 );
-  bestaffine->SetParameters( itkOptimizer->GetBestParameters() );
+  bestaffine->SetParameters( mstartOptimizer->GetBestParameters() );
 
-  /*
-  double value = 1.e9;
-  double bestvalue = value;
-  antscout << "ang1" << "," << "ang2" << "," << "value" << std::endl;
-  for ( double ang1 = 0; ang1 < ( 2.0 * pi ); ang1 = ang1 + delt )
-    {
-    for ( double ang2 = 0; ang2 < ( 1.0 * pi ); ang2 = ang2 + delt )
-      {
-      affinesearch->SetIdentity();
-      affinesearch->SetCenter( trans2 );
-      affinesearch->SetOffset( trans );
-      affinesearch->SetMatrix( A_solution );
-      affinesearch->Rotate3D(axis1, ang1, 1);
-      affinesearch->Rotate3D(axis2, ang2, 1);
-      typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
-      typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
-      resampleFilter->SetInput( image2 );
-      resampleFilter->SetOutputParametersFromImage( image1 );
-      resampleFilter->SetTransform( affinesearch );
-      typename ImageType::IndexType zeroind;  zeroind.Fill(0);
-      resampleFilter->SetDefaultPixelValue( image1->GetPixel(zeroind) );
-      resampleFilter->Update();
-      typename ImageType::Pointer varimage = resampleFilter->GetOutput();
-      typedef itk::MattesMutualInformationImageToImageMetricv4
-  <ImageType, ImageType, ImageType> MetricType;
-      typedef itk::CorrelationImageToImageMetricv4
-  <ImageType, ImageType, ImageType> MetricType1;
-      typename MetricType::Pointer metric = MetricType::New();
-      metric->SetFixedImage( image1 );
-      metric->SetMovingImage( varimage );
-      metric->SetNumberOfHistogramBins( 32 );
-      metric->Initialize();
-      value = metric->GetValue();
-      if ( value < bestvalue )
-  {
-  bestvalue  = value;
-  bestaffine->SetParameters( affinesearch->GetParameters() );
-  bestaffine->SetCenter( trans2 );
-  }
-      antscout << ang1/degtorad << "," << ang2/degtorad << "," << value << std::endl;
-      }
-    }
-  */
   typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( bestaffine );
   transformWriter->SetFileName( outname.c_str() );
