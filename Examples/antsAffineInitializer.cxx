@@ -432,14 +432,14 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetMetric( mimetric );
   localoptimizer->SetScales( movingScales );
   localoptimizer->SetLearningRate( 0.1 );
+  localoptimizer->SetMaximumStepSizeInPhysicalUnits( 0.1 * sqrt( small_step ) );
   localoptimizer->SetNumberOfIterations( 20 );
-  localoptimizer->SetMinimumConvergenceValue( 1.e-7 );
-  localoptimizer->SetConvergenceWindowSize( 10 );
   localoptimizer->SetLowerLimit( 0 );
   localoptimizer->SetUpperLimit( 2 );
   localoptimizer->SetEpsilon( 0.1 );
   localoptimizer->SetDoEstimateLearningRateOnce( true );
-  localoptimizer->SetMaximumStepSizeInPhysicalUnits( 0.5 * sqrt( small_step ) );
+  localoptimizer->SetMinimumConvergenceValue( 1.e-8 );
+  localoptimizer->SetConvergenceWindowSize( 10 );
   typedef  itk::GradientDescentOptimizerv4 LocalOptimizerType2;
   typename LocalOptimizerType2::Pointer localoptimizer2 = LocalOptimizerType2::New();
   localoptimizer2->SetScales( movingScales );
