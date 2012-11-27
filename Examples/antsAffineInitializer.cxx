@@ -397,9 +397,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
   antscout << " Scales: " << movingScales << std::endl;
   itkOptimizer->SetMetric( mimetric );
   typename OptimizerType::ParametersListType parametersList = itkOptimizer->GetParametersList();
-  for( double ang1 = 0; ang1 < ( 2.0 * pi ); ang1 = ang1 + delt )
+  RealType piover4 = pi / 4;
+  for( double ang1 = ( piover4 * (-1) ); ang1 <= piover4; ang1 = ang1 + delt )
     {
-    for( double ang2 = 0; ang2 <= ( pi ); ang2 = ang2 + delt )
+    for( double ang2 = ( piover4 * (-1) ); ang2 <= piover4; ang2 = ang2 + delt )
       {
       affinesearch->SetIdentity();
       affinesearch->SetCenter( trans2 );
@@ -416,7 +417,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetMetric( mimetric );
   localoptimizer->SetScales( movingScales );
   localoptimizer->SetLearningRate( 0.1 );
-  localoptimizer->SetNumberOfIterations( 50 );
+  localoptimizer->SetNumberOfIterations( 10 );
   itkOptimizer->SetLocalOptimizer( localoptimizer );
   antscout << "Begin MultiStart:" << parametersList.size() << " searches " << std::endl;
   itkOptimizer->StartOptimization();
