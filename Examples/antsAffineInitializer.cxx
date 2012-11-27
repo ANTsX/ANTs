@@ -30,6 +30,7 @@
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkCastImageFilter.h"
 #include "itkCompositeValleyFunction.h"
+#include "itkConjugateGradientLineSearchOptimizerv4.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkCorrelationImageToImageMetricv4.h"
@@ -71,12 +72,15 @@
 #include "itkMedianImageFilter.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkMultivariateLegendrePolynomial.h"
+#include "itkMultiStartOptimizerv4.h"
 #include "itkNeighborhood.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkNeighborhoodIterator.h"
 #include "itkNormalVariateGenerator.h"
+#include "itkOptimizerParameterScalesEstimator.h"
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkRGBPixel.h"
+#include "itkRegistrationParameterScalesFromPhysicalShift.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "itkSampleToHistogramFilter.h"
@@ -198,6 +202,13 @@ int antsAffineInitializerImp(int argc, char *argv[])
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = std::string(argv[argct]);   argct++;
   std::string outname = std::string(argv[argct]); argct++;
+  RealType    searchfactor = 10; // in degrees
+  if(  argc > argct )
+    {
+    searchfactor = atof( argv[argct] );   argct++;
+    }
+  RealType degtorad = 0.0174532925;
+  searchfactor *= degtorad; // convert degrees to radians
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
   typename readertype::Pointer reader2 = readertype::New();
@@ -346,8 +357,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
     transformWriter->Update();
     return EXIT_SUCCESS;
     }
-  typename AffineType::Pointer bestaffine = AffineType::New();
-  typename AffineType::Pointer affinesearch = AffineType::New();
+
   vnl_vector<RealType>                  evec1_tert = vnl_cross_3d( evec1_primary, evec1_2ndary );
   itk::Vector<RealType, ImageDimension> axis1;
   axis1[0] = evec1_tert[0];
@@ -358,20 +368,75 @@ int antsAffineInitializerImp(int argc, char *argv[])
   axis2[1] = evec1_2ndary[1];
   axis2[2] = evec1_2ndary[2];
   double pi = 3.14159265358979323846;
-  double delt = 2.0 * pi / 72.0;
+  double delt = searchfactor;
+  typename AffineType::Pointer affinesearch = AffineType::New();
+  affinesearch->SetIdentity();
+  affinesearch->SetCenter( trans2 );
+  typedef  itk::MultiStartOptimizerv4         OptimizerType;
+  typedef  typename OptimizerType::ScalesType ScalesType;
+  typename OptimizerType::Pointer  itkOptimizer = OptimizerType::New();
+  typedef itk::MattesMutualInformationImageToImageMetricv4
+    <ImageType, ImageType, ImageType> MetricType;
+  typename MetricType::ParametersType newparams(  affine1->GetParameters() );
+  typename MetricType::Pointer mimetric = MetricType::New();
+  mimetric->SetNumberOfHistogramBins( 32 );
+  mimetric->SetFixedImage( image1 );
+  mimetric->SetMovingImage( image2 );
+  mimetric->SetMovingTransform( affinesearch );
+  mimetric->SetParameters( newparams );
+  mimetric->Initialize();
+  typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> RegistrationParameterScalesFromPhysicalShiftType;
+  typename RegistrationParameterScalesFromPhysicalShiftType::Pointer shiftScaleEstimator =
+    RegistrationParameterScalesFromPhysicalShiftType::New();
+  shiftScaleEstimator->SetMetric( mimetric );
+  shiftScaleEstimator->SetTransformForward( true ); // by default, scales for the moving transform
+  typename RegistrationParameterScalesFromPhysicalShiftType::ScalesType
+    movingScales( affinesearch->GetNumberOfParameters() );
+  shiftScaleEstimator->EstimateScales( movingScales );
+  itkOptimizer->SetScales( movingScales );
+  antscout << " Scales: " << movingScales << std::endl;
+  itkOptimizer->SetMetric( mimetric );
+  typename OptimizerType::ParametersListType parametersList = itkOptimizer->GetParametersList();
+  for( double ang1 = 0; ang1 < ( 2.0 * pi ); ang1 = ang1 + delt )
+    {
+    for( double ang2 = 0; ang2 <= ( pi ); ang2 = ang2 + delt )
+      {
+      affinesearch->SetIdentity();
+      affinesearch->SetCenter( trans2 );
+      affinesearch->SetOffset( trans );
+      affinesearch->SetMatrix( A_solution );
+      affinesearch->Rotate3D(axis1, ang1, 1);
+      affinesearch->Rotate3D(axis2, ang2, 1);
+      parametersList.push_back( affinesearch->GetParameters() );
+      }
+    }
+  itkOptimizer->SetParametersList( parametersList );
+  typedef  itk::ConjugateGradientLineSearchOptimizerv4 LocalOptimizerType;
+  typename LocalOptimizerType::Pointer  localoptimizer = LocalOptimizerType::New();
+  localoptimizer->SetMetric( mimetric );
+  localoptimizer->SetScales( movingScales );
+  localoptimizer->SetLearningRate( 0.1 );
+  localoptimizer->SetNumberOfIterations( 50 );
+  itkOptimizer->SetLocalOptimizer( localoptimizer );
+  antscout << "Begin MultiStart:" << parametersList.size() << " searches " << std::endl;
+  itkOptimizer->StartOptimization();
+  typename AffineType::Pointer bestaffine = AffineType::New();
+  bestaffine->SetCenter( trans2 );
+  bestaffine->SetParameters( itkOptimizer->GetBestParameters() );
+
+  /*
   double value = 1.e9;
   double bestvalue = value;
   antscout << "ang1" << "," << "ang2" << "," << "value" << std::endl;
-  for( double ang1 = 0; ang1 < ( 2.0 * pi ); ang1 = ang1 + delt )
+  for ( double ang1 = 0; ang1 < ( 2.0 * pi ); ang1 = ang1 + delt )
     {
-    affinesearch->SetIdentity();
-    affinesearch->SetCenter( trans2 );
-    affinesearch->SetOffset( trans );
-    affinesearch->SetMatrix( A_solution );
-    affinesearch->SetCenter( trans2 );
-    affinesearch->Rotate3D(axis1, ang1, 1);
-    for( double ang2 = 0; ang2 < ( pi ); ang2 = ang2 + delt )
+    for ( double ang2 = 0; ang2 < ( 1.0 * pi ); ang2 = ang2 + delt )
       {
+      affinesearch->SetIdentity();
+      affinesearch->SetCenter( trans2 );
+      affinesearch->SetOffset( trans );
+      affinesearch->SetMatrix( A_solution );
+      affinesearch->Rotate3D(axis1, ang1, 1);
       affinesearch->Rotate3D(axis2, ang2, 1);
       typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
       typename ResampleFilterType::Pointer resampleFilter = ResampleFilterType::New();
@@ -383,24 +448,25 @@ int antsAffineInitializerImp(int argc, char *argv[])
       resampleFilter->Update();
       typename ImageType::Pointer varimage = resampleFilter->GetOutput();
       typedef itk::MattesMutualInformationImageToImageMetricv4
-        <ImageType, ImageType, ImageType> MetricType1;
+  <ImageType, ImageType, ImageType> MetricType;
       typedef itk::CorrelationImageToImageMetricv4
-        <ImageType, ImageType, ImageType> MetricType;
+  <ImageType, ImageType, ImageType> MetricType1;
       typename MetricType::Pointer metric = MetricType::New();
       metric->SetFixedImage( image1 );
       metric->SetMovingImage( varimage );
-      //      metric->SetNumberOfHistogramBins( 32 );
+      metric->SetNumberOfHistogramBins( 32 );
       metric->Initialize();
       value = metric->GetValue();
-      if( value < bestvalue )
-        {
-        bestvalue  = value;
-        bestaffine->SetParameters( affinesearch->GetParameters() );
-        bestaffine->SetCenter( trans2 );
-        }
-      antscout << ang1 << "," << ang2 << "," << value << std::endl;
+      if ( value < bestvalue )
+  {
+  bestvalue  = value;
+  bestaffine->SetParameters( affinesearch->GetParameters() );
+  bestaffine->SetCenter( trans2 );
+  }
+      antscout << ang1/degtorad << "," << ang2/degtorad << "," << value << std::endl;
       }
     }
+  */
   typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
   transformWriter->SetInput( bestaffine );
   transformWriter->SetFileName( outname.c_str() );
@@ -458,7 +524,8 @@ private:
   if( argc < 3 )
     {
     antscout << "\nUsage: " << argv[0]
-             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat" << std::endl;
+             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor " << std::endl;
+    antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
     return 0;
     }
 
