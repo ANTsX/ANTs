@@ -422,6 +422,11 @@ int antsAffineInitializerImp(int argc, char *argv[])
       }
     }
   mstartOptimizer->SetParametersList( parametersList );
+  double small_step = 0;
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    small_step += image1->GetSpacing()[i] * image1->GetSpacing()[i];
+    }
   typedef  itk::ConjugateGradientLineSearchOptimizerv4 LocalOptimizerType;
   typename LocalOptimizerType::Pointer  localoptimizer = LocalOptimizerType::New();
   localoptimizer->SetMetric( mimetric );
@@ -433,22 +438,18 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetLowerLimit( 0 );
   localoptimizer->SetUpperLimit( 2 );
   localoptimizer->SetEpsilon( 0.1 );
-  mstartOptimizer->SetLocalOptimizer( localoptimizer );
-  antscout << "Begin MultiStart: " << parametersList.size() << " searches " << std::endl;
-
-  double small_step = 0;
-  for( unsigned int i = 0; i < ImageDimension; i++ )
-    {
-    small_step += image1->GetSpacing()[i] * image1->GetSpacing()[i];
-    }
+  localoptimizer->SetDoEstimateLearningRateOnce( true );
+  localoptimizer->SetMaximumStepSizeInPhysicalUnits( 0.5 * sqrt( small_step ) );
   typedef  itk::GradientDescentOptimizerv4 LocalOptimizerType2;
   typename LocalOptimizerType2::Pointer localoptimizer2 = LocalOptimizerType2::New();
   localoptimizer2->SetScales( movingScales );
   localoptimizer2->SetNumberOfIterations( 120 );
   localoptimizer2->SetMaximumStepSizeInPhysicalUnits( 0.5 * sqrt( small_step ) );
   localoptimizer2->SetDoEstimateLearningRateOnce( true );
-  mstartOptimizer->SetLocalOptimizer( localoptimizer2 );
 
+  antscout << "Begin MultiStart: " << parametersList.size() << " searches " << std::endl;
+  mstartOptimizer->SetLocalOptimizer( localoptimizer );
+  //  mstartOptimizer->SetLocalOptimizer( localoptimizer2 );
   mstartOptimizer->StartOptimization();
   antscout << "done" << std::endl;
   typename AffineType::Pointer bestaffine = AffineType::New();
