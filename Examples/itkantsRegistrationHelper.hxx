@@ -2289,17 +2289,20 @@ RegistrationHelper<VImageDimension>
 
         typename TimeVaryingVelocityFieldControlPointLatticeType::SizeType transformDomainMeshSize;
         typename TimeVaryingVelocityFieldControlPointLatticeType::PointType transformDomainOrigin;
-        typename TimeVaryingVelocityFieldControlPointLatticeType::SpacingType transformDomainPhysicalDimensions;
+        typename TimeVaryingVelocityFieldControlPointLatticeType::SpacingType transformDomainSpacing;
+        typename TimeVaryingVelocityFieldControlPointLatticeType::SizeType transformDomainSize;
         typename TimeVaryingVelocityFieldControlPointLatticeType::DirectionType transformDomainDirection;
 
         transformDomainDirection.SetIdentity();
         transformDomainOrigin.Fill( 0.0 );
-        transformDomainPhysicalDimensions.Fill( 1.0 );
+        transformDomainSpacing.Fill( 1.0 );
+        transformDomainSize.Fill( 2 );
         for( unsigned int i = 0; i < VImageDimension; i++ )
           {
           transformDomainOrigin[i] = fixedImageOrigin[i];
           transformDomainMeshSize[i] = 3;
-          transformDomainPhysicalDimensions[i] = static_cast<double>( fixedImageSize[i] - 1 ) * fixedImageSpacing[i];
+          transformDomainSpacing[i] = fixedImageSpacing[i];
+          transformDomainSize[i] = fixedImageSize[i];
           for( unsigned int j = 0; j < VImageDimension; j++ )
             {
             transformDomainDirection[i][j] = fixedImageDirection[i][j];
@@ -2360,18 +2363,18 @@ RegistrationHelper<VImageDimension>
           VelocityFieldTransformAdaptorType::New();
         initialFieldTransformAdaptor->SetTransform( outputTransform );
         initialFieldTransformAdaptor->SetRequiredTransformDomainOrigin( transformDomainOrigin );
-        initialFieldTransformAdaptor->SetRequiredTransformDomainPhysicalDimensions( transformDomainPhysicalDimensions );
+        initialFieldTransformAdaptor->SetRequiredTransformDomainSpacing( transformDomainSpacing );
+        initialFieldTransformAdaptor->SetRequiredTransformDomainSize( transformDomainSize );
         initialFieldTransformAdaptor->SetRequiredTransformDomainMeshSize( transformDomainMeshSize );
         initialFieldTransformAdaptor->SetRequiredTransformDomainDirection( transformDomainDirection );
 
         typename TimeVaryingVelocityFieldControlPointLatticeType::Pointer
-        velocityFieldLattice =
-          AllocImage<TimeVaryingVelocityFieldControlPointLatticeType>
-            (initialFieldTransformAdaptor->GetRequiredControlPointLatticeSize(),
+        velocityFieldLattice = AllocImage<TimeVaryingVelocityFieldControlPointLatticeType>
+            ( initialFieldTransformAdaptor->GetRequiredControlPointLatticeSize(),
             initialFieldTransformAdaptor->GetRequiredControlPointLatticeSpacing(),
             initialFieldTransformAdaptor->GetRequiredControlPointLatticeOrigin(),
             initialFieldTransformAdaptor->GetRequiredControlPointLatticeDirection(),
-            zeroVector);
+            zeroVector );
 
         typename OutputTransformType::VelocityFieldPointType        sampledVelocityFieldOrigin;
         typename OutputTransformType::VelocityFieldSpacingType      sampledVelocityFieldSpacing;
@@ -2419,8 +2422,8 @@ RegistrationHelper<VImageDimension>
           fieldTransformAdaptor->SetTransform( outputTransform );
           fieldTransformAdaptor->SetRequiredTransformDomainOrigin( transformDomainOrigin );
           fieldTransformAdaptor->SetRequiredTransformDomainMeshSize( transformDomainMeshSize );
-          fieldTransformAdaptor->SetRequiredTransformDomainDirection( transformDomainDirection );
-          fieldTransformAdaptor->SetRequiredTransformDomainPhysicalDimensions( transformDomainPhysicalDimensions );
+          fieldTransformAdaptor->SetRequiredTransformDomainSpacing( transformDomainSpacing );
+          fieldTransformAdaptor->SetRequiredTransformDomainSize( transformDomainSize );
 
           adaptors.push_back( fieldTransformAdaptor.GetPointer() );
           for( unsigned int i = 0; i <= VImageDimension; i++ )
