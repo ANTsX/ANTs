@@ -168,6 +168,19 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     searchfactor = atof( argv[argct] );   argct++;
     }
+  if(  argc > argct )
+    {
+    RealType temp = atof( argv[argct] );   argct++;
+    if( temp > 1 )
+      {
+      temp = 1;
+      }
+    if( temp < 0.01 )
+      {
+      temp = 0.01;
+      }
+    piover4 = pi * temp;
+    }
   searchfactor *= degtorad; // convert degrees to radians
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
@@ -349,10 +362,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
   antscout << " Scales: " << movingScales << std::endl;
   mstartOptimizer->SetMetric( mimetric );
   typename OptimizerType::ParametersListType parametersList = mstartOptimizer->GetParametersList();
-  if( ImageDimension == 2 )
-    {
-    piover4 = pi;
-    }
   for( double ang1 = ( piover4 * (-1) ); ang1 <= piover4; ang1 = ang1 + searchfactor )
     {
     if( ImageDimension == 3 )
@@ -399,7 +408,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetMinimumConvergenceValue( 1.e-8 );
   localoptimizer->SetConvergenceWindowSize( 10 );
 
-  antscout << "Begin MultiStart: " << parametersList.size() << " searches " << std::endl;
+  antscout << "Begin MultiStart: " << parametersList.size() << " searches between -/+ " << piover4 / pi
+           << " radians " << std::endl;
   mstartOptimizer->SetLocalOptimizer( localoptimizer );
   mstartOptimizer->StartOptimization();
   antscout << "done" << std::endl;
@@ -464,8 +474,11 @@ private:
   if( argc < 3 )
     {
     antscout << "\nUsage: " << argv[0]
-             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor " << std::endl;
+             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Radian-Fraction "
+             << std::endl;
     antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
+    antscout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis."
+             << std::endl;
     return 0;
     }
 
