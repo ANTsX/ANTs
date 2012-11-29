@@ -120,62 +120,24 @@
 
 namespace ants
 {
-template <class T>
-bool from_string(T& t,
-                 const std::string& s,
-                 std::ios_base & (*f)(std::ios_base &) )
-{
-  std::istringstream iss(s);
-
-  iss >> f >> t;
-
-  // Check to see that there is nothing left over
-  if( !iss.eof() )
-    {
-    return false;
-    }
-
-  return true;
-}
-
-template <class T>
-std::string ants_to_string(T t)
-{
-  std::stringstream istream;
-
-  istream << t;
-  return istream.str();
-}
-
-std::string ANTSGetFilePrefix(const char *str)
-{
-  std::string            filename = str;
-  std::string::size_type pos = filename.rfind( "." );
-  std::string            filepre = std::string( filename, 0, pos );
-
-  if( pos != std::string::npos )
-    {
-    std::string extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      extension = std::string( filepre, pos, filepre.length() - 1 );
-      }
-    //      if (extension==".txt") return AFFINE_FILE;
-//        else return DEFORMATION_FILE;
-    }
-//    else{
-//      return INVALID_FILE;
-// }
-  return filepre;
-}
-
 template <unsigned int ImageDimension>
 int antsAffineInitializerImp(int argc, char *argv[])
 {
   typedef double RealType;
   typedef float  PixelType;
-  //  const unsigned int ImageDimension = AvantsImageDimension;
+
+  /** Define All Parameters Here */
+  double       pi = 3.14159265358979323846;      // probably a vnl alternative
+  RealType     searchfactor = 10;                // in degrees, passed by user
+  unsigned int mibins = 32;                      // for mattes MI metric
+  RealType     degtorad = 0.0174532925;          // to convert degrees to radians
+  RealType     localoptimizerlearningrate = 0.1; // for local search via conjgrad
+  unsigned int localoptimizeriterations = 20;    // for local search via conjgrad
+  // piover4 is (+/-) for cross-section of the sphere to multi-start search in increments
+  // of searchfactor ( converted from degrees to radians ).
+  // the search is centered +/- from the principal axis alignment of the images.
+  RealType piover4 = pi / 4; // works in preliminary practical examples in 3D, in 2D use pi.
+
   typedef itk::TransformFileWriter                                        TransformWriterType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
   typedef itk::Image<VectorType, ImageDimension>                          FieldType;
@@ -202,12 +164,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = std::string(argv[argct]);   argct++;
   std::string outname = std::string(argv[argct]); argct++;
-  RealType    searchfactor = 10; // in degrees
   if(  argc > argct )
     {
     searchfactor = atof( argv[argct] );   argct++;
     }
-  RealType degtorad = 0.0174532925;
   searchfactor *= degtorad; // convert degrees to radians
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
@@ -361,8 +321,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
     axis1[d] = evec_tert[d];
     axis2[d] = evec1_2ndary[d];
     }
-  double pi = 3.14159265358979323846;
-  double delt = searchfactor;
   typename AffineType::Pointer affinesearch = AffineType::New();
   affinesearch->SetIdentity();
   affinesearch->SetCenter( trans2 );
@@ -373,7 +331,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
     <ImageType, ImageType, ImageType> MetricType;
   typename MetricType::ParametersType newparams(  affine1->GetParameters() );
   typename MetricType::Pointer mimetric = MetricType::New();
-  mimetric->SetNumberOfHistogramBins( 32 );
+  mimetric->SetNumberOfHistogramBins( mibins );
   mimetric->SetFixedImage( image1 );
   mimetric->SetMovingImage( image2 );
   mimetric->SetMovingTransform( affinesearch );
@@ -391,16 +349,15 @@ int antsAffineInitializerImp(int argc, char *argv[])
   antscout << " Scales: " << movingScales << std::endl;
   mstartOptimizer->SetMetric( mimetric );
   typename OptimizerType::ParametersListType parametersList = mstartOptimizer->GetParametersList();
-  RealType piover4 = pi / 4;
   if( ImageDimension == 2 )
     {
     piover4 = pi;
     }
-  for( double ang1 = ( piover4 * (-1) ); ang1 <= piover4; ang1 = ang1 + delt )
+  for( double ang1 = ( piover4 * (-1) ); ang1 <= piover4; ang1 = ang1 + searchfactor )
     {
     if( ImageDimension == 3 )
       {
-      for( double ang2 = ( piover4 * (-1) ); ang2 <= piover4; ang2 = ang2 + delt )
+      for( double ang2 = ( piover4 * (-1) ); ang2 <= piover4; ang2 = ang2 + searchfactor )
         {
         affinesearch->SetIdentity();
         affinesearch->SetCenter( trans2 );
@@ -422,6 +379,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
       }
     }
   mstartOptimizer->SetParametersList( parametersList );
+
   double small_step = 0;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
@@ -431,25 +389,18 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typename LocalOptimizerType::Pointer  localoptimizer = LocalOptimizerType::New();
   localoptimizer->SetMetric( mimetric );
   localoptimizer->SetScales( movingScales );
-  localoptimizer->SetLearningRate( 0.1 );
-  localoptimizer->SetMaximumStepSizeInPhysicalUnits( 0.1 * sqrt( small_step ) );
-  localoptimizer->SetNumberOfIterations( 20 );
+  localoptimizer->SetLearningRate( localoptimizerlearningrate );
+  localoptimizer->SetMaximumStepSizeInPhysicalUnits( localoptimizerlearningrate * sqrt( small_step ) );
+  localoptimizer->SetNumberOfIterations( localoptimizeriterations );
   localoptimizer->SetLowerLimit( 0 );
   localoptimizer->SetUpperLimit( 2 );
   localoptimizer->SetEpsilon( 0.1 );
   localoptimizer->SetDoEstimateLearningRateOnce( true );
   localoptimizer->SetMinimumConvergenceValue( 1.e-8 );
   localoptimizer->SetConvergenceWindowSize( 10 );
-  typedef  itk::GradientDescentOptimizerv4 LocalOptimizerType2;
-  typename LocalOptimizerType2::Pointer localoptimizer2 = LocalOptimizerType2::New();
-  localoptimizer2->SetScales( movingScales );
-  localoptimizer2->SetNumberOfIterations( 120 );
-  localoptimizer2->SetMaximumStepSizeInPhysicalUnits( 0.5 * sqrt( small_step ) );
-  localoptimizer2->SetDoEstimateLearningRateOnce( true );
 
   antscout << "Begin MultiStart: " << parametersList.size() << " searches " << std::endl;
   mstartOptimizer->SetLocalOptimizer( localoptimizer );
-  //  mstartOptimizer->SetLocalOptimizer( localoptimizer2 );
   mstartOptimizer->StartOptimization();
   antscout << "done" << std::endl;
   typename AffineType::Pointer bestaffine = AffineType::New();
