@@ -79,7 +79,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
     )
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
-  set(${proj}_GIT_TAG ec4c1a0c7c2ae8345ccd0611fb955f532c35ce80) #2012-11-27 Valgrind correction error.
+  set(${proj}_GIT_TAG 64bff813227aaa45e8ebe8469d44e30bb4063265) #2012-11-28
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
