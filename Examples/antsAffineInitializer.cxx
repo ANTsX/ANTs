@@ -137,6 +137,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   // of searchfactor ( converted from degrees to radians ).
   // the search is centered +/- from the principal axis alignment of the images.
   RealType piover4 = pi / 4; // works in preliminary practical examples in 3D, in 2D use pi.
+  bool     useprincaxis = false;
 
   typedef itk::TransformFileWriter                                        TransformWriterType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -180,6 +181,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
       temp = 0.01;
       }
     piover4 = pi * temp;
+    }
+  if(  argc > argct )
+    {
+    useprincaxis = atoi( argv[argct] );   argct++;
     }
   searchfactor *= degtorad; // convert degrees to radians
   typename ImageType::Pointer image1 = NULL;
@@ -307,7 +312,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
     }
   affine1->SetIdentity();
   affine1->SetOffset( trans );
-//   affine1->SetMatrix( A_solution );
+  if( useprincaxis )
+    {
+    affine1->SetMatrix( A_solution );
+    }
   affine1->SetCenter( trans2 );
   if( ImageDimension > 3  )
     {
@@ -371,7 +379,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
         affinesearch->SetIdentity();
         affinesearch->SetCenter( trans2 );
         affinesearch->SetOffset( trans );
-//    affinesearch->SetMatrix( A_solution );
+        if( useprincaxis )
+          {
+          affinesearch->SetMatrix( A_solution );
+          }
         affinesearch->Rotate3D(axis1, ang1, 1);
         affinesearch->Rotate3D(axis2, ang2, 1);
         parametersList.push_back( affinesearch->GetParameters() );
@@ -382,7 +393,10 @@ int antsAffineInitializerImp(int argc, char *argv[])
       affinesearch->SetIdentity();
       affinesearch->SetCenter( trans2 );
       affinesearch->SetOffset( trans );
-//  affinesearch->SetMatrix( A_solution );
+      if( useprincaxis )
+        {
+        affinesearch->SetMatrix( A_solution );
+        }
       affinesearch->Rotate2D( ang1, 1);
       parametersList.push_back( affinesearch->GetParameters() );
       }
@@ -474,11 +488,16 @@ private:
   if( argc < 3 )
     {
     antscout << "\nUsage: " << argv[0]
-             << " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Radian-Fraction "
+             <<
+      " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction Optional-bool-UsePrincipalAxes  "
              << std::endl;
     antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
     antscout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis."
              << std::endl;
+    antscout
+      <<
+      "  Optional-bool-UsePrincipalAxes determines whether the rotation is searched around an initial principal axis alignment. "
+      << std::endl;
     return 0;
     }
 
