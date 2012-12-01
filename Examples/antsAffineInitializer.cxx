@@ -127,7 +127,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typedef float  PixelType;
 
   /** Define All Parameters Here */
-  double       pi = 3.14159265358979323846;      // probably a vnl alternative
+  double       pi = vnl_math::pi;                // probably a vnl alternative
   RealType     searchfactor = 10;                // in degrees, passed by user
   unsigned int mibins = 32;                      // for mattes MI metric
   RealType     degtorad = 0.0174532925;          // to convert degrees to radians
@@ -307,7 +307,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
     }
   affine1->SetIdentity();
   affine1->SetOffset( trans );
-  affine1->SetMatrix( A_solution );
+//   affine1->SetMatrix( A_solution );
   affine1->SetCenter( trans2 );
   if( ImageDimension > 3  )
     {
@@ -371,7 +371,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
         affinesearch->SetIdentity();
         affinesearch->SetCenter( trans2 );
         affinesearch->SetOffset( trans );
-        affinesearch->SetMatrix( A_solution );
+//    affinesearch->SetMatrix( A_solution );
         affinesearch->Rotate3D(axis1, ang1, 1);
         affinesearch->Rotate3D(axis2, ang2, 1);
         parametersList.push_back( affinesearch->GetParameters() );
@@ -382,7 +382,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
       affinesearch->SetIdentity();
       affinesearch->SetCenter( trans2 );
       affinesearch->SetOffset( trans );
-      affinesearch->SetMatrix( A_solution );
+//  affinesearch->SetMatrix( A_solution );
       affinesearch->Rotate2D( ang1, 1);
       parametersList.push_back( affinesearch->GetParameters() );
       }
