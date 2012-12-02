@@ -292,6 +292,16 @@ public:
     return this->m_OriginalMatrixP;
   }
 
+  RealType GetLambda()
+  {
+    return this->m_lambda;
+  }
+
+  RealType SetLambda(RealType lambda)
+  {
+    return this->m_lambda = lambda;
+  }
+
   MatrixType GetOriginalMatrixQ()
   {
     return this->m_OriginalMatrixQ;
@@ -300,6 +310,23 @@ public:
   MatrixType GetOriginalMatrixR()
   {
     return this->m_OriginalMatrixR;
+  }
+
+  // Prior Constrained PCA
+  MatrixType GetMatrixPriorROI()
+  {
+    return this->m_MatrixPriorROI;
+  }
+
+  void SetFlagForSort()
+  {
+    this->flagForSort = true;
+  }
+
+  // Prior Constrained PCA
+  MatrixType GetOriginalMatrixPriorROI()
+  {
+    return this->m_OriginalMatrixPriorROI;
   }
 
   RealType RunSCCAN2multiple( unsigned int n_vecs );
@@ -338,6 +365,9 @@ public:
 
   RealType IHTPowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, unsigned int );
 
+  RealType IHTPowerIterationPrior( MatrixType & A,  VectorType & x_k, VectorType & x_k_1, unsigned int, unsigned int,
+                                   double );
+
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -351,6 +381,16 @@ public:
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
   VectorType SpatiallySmoothVector( VectorType, ImagePointer, RealType );
+
+  void SetSortFinalLocArray(VectorType locArray)
+  {
+    this->loc_Array = locArray;
+  }
+
+  VectorType GetSortFinalLocArray()
+  {
+    return this->loc_Array;
+  }
 
   MatrixType NormalizeMatrix(MatrixType p, bool makepositive = true );
 
@@ -456,6 +496,28 @@ public:
     /** compute the effect of Z and store it for later use */
   }
 
+  // Prior Constrained PCA
+
+  void SetMatrixPriorROI(  MatrixType matrix )
+  {
+    this->m_OriginalMatrixPriorROI.set_size(matrix.rows(), matrix.cols() );  this->m_MatrixPriorROI.set_size(
+      matrix.rows(), matrix.cols() ); this->m_OriginalMatrixPriorROI.update(matrix); this->m_MatrixPriorROI.update(
+      matrix);
+  }
+
+  // itkSetMacro( priorScale, RealType );
+  // itkGetMacro( priorScale, RealType );
+  RealType GetPriorScaleMat()
+  {
+    return this->m_priorScaleMat;
+  }
+
+  void SetPriorScaleMat(MatrixType priorScaleMat)
+  {
+    this->m_priorScaleMat.set_size(priorScaleMat.rows(), priorScaleMat.cols() ); this->m_priorScaleMat.update(
+      priorScaleMat);
+  }
+
   VectorType GetPWeights()
   {
     return this->m_WeightsP;
@@ -557,6 +619,8 @@ public:
   RealType SparseReconB( MatrixType &, VectorType & );
 
   RealType SparseRecon(unsigned int nvecs);
+
+  RealType SparseReconPrior(unsigned int nvecs, bool prior);
 
   RealType IHTPowerIterationHome( MatrixType & A,  VectorType & x_k, unsigned int, unsigned int );
 
@@ -874,6 +938,7 @@ private:
 
   ImagePointer ConvertVariateToSpatialImage( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );
 
+  MatrixType m_OriginalMatrixPriorROI;
   VectorType ConvertImageToVariate(  ImagePointer image, ImagePointer mask );
 
   VectorType ClusterThresholdVariate( VectorType &, ImagePointer mask, unsigned int);
@@ -895,6 +960,18 @@ private:
   RealType             m_PinvTolerance;
   RealType             m_PercentVarianceForPseudoInverse;
   RealType             m_Epsilon; /** used to prevent div by zero */
+
+  // Prior constrained PCA --Refer to notation in the paper
+  MatrixType m_MatrixPriorROI;
+  MatrixType m_SortedIndicesAll;
+  VectorType sortedIndicesLoop;
+  MatrixType m_Ip;
+  MatrixType m_Ik;
+  MatrixType m_priorScaleMat;
+
+  // VectorType m_WeightsP;
+  VectorType loc_Array;
+  bool       flagForSort;
 
   VectorType   m_WeightsP;
   MatrixType   m_MatrixP;
@@ -931,6 +1008,8 @@ private:
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;
   RealType m_CorrelationForSignificanceTest;
+  RealType m_lambda;
+
   // this->ComputeIntercept( A, x, b );
   RealType                   m_Intercept;
   unsigned int               m_MinClusterSizeP;

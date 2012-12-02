@@ -171,6 +171,133 @@ inline std::string sccan_to_string(const T& t)
 }
 
 template <class TImage, class TComp>
+void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
+                                        typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat, bool have_mask,
+                                        vnl_vector<TComp> l_array, vnl_matrix<TComp> prior_mat )
+{
+  vnl_matrix<TComp> projections = data_mat * varmat;
+
+  std::string::size_type pos = filename.rfind( "." );
+  std::string            filepre = std::string( filename, 0, pos );
+  std::string            extension;
+  if( pos != std::string::npos )
+    {
+    extension = std::string( filename, pos, filename.length() - 1);
+    if( extension == std::string(".gz") )
+      {
+      pos = filepre.rfind( "." );
+      extension = std::string( filepre, pos, filepre.length() - 1 ) + extension;
+      filepre = std::string( filepre, 0, pos );
+      }
+    }
+  std::string   post2;
+  std::ofstream myfile;
+  std::string   fnmp1 = filepre + std::string("projections") + post + std::string(".csv");
+
+  std::vector<std::string> ColumnHeaders1;
+  for( unsigned int nv = 0; nv < projections.cols(); nv++ )
+    {
+    std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
+    ColumnHeaders1.push_back( colname );
+    }
+  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  WriterType::Pointer writer1 = WriterType::New();
+  writer1->SetFileName( fnmp1.c_str() );
+  writer1->SetColumnHeaders(ColumnHeaders1);
+  writer1->SetInput( &projections );
+  try
+    {
+    writer1->Write();
+    }
+  catch( itk::ExceptionObject& exp )
+    {
+    std::cerr << "Exception caught!" << std::endl;
+    std::cerr << exp << std::endl;
+    return;
+    }
+
+  std::cout << data_mat.cols() << prior_mat.cols() << data_mat.rows() << prior_mat.rows() << std::endl;
+  vnl_matrix<TComp> projectionsROI = data_mat * prior_mat.transpose();
+
+  std::string::size_type posROI = filename.rfind( "." );
+  std::string            filepreROI = std::string( filename, 0, posROI );
+  std::string            extensionROI;
+  if( posROI != std::string::npos )
+    {
+    extensionROI = std::string( filename, posROI, filename.length() - 1);
+    if( extension == std::string(".gz") )
+      {
+      posROI = filepreROI.rfind( "." );
+      extensionROI = std::string( filepreROI, posROI, filepreROI.length() - 1 ) + extensionROI;
+      filepreROI = std::string( filepreROI, 0, posROI );
+      }
+    }
+  // std::string post2;
+  // std::ofstream myfile;
+  std::string fnmp_prior = filepreROI + std::string("projectionsROI") + post + std::string(".csv");
+
+  std::vector<std::string> ColumnHeadersROI;
+  for( unsigned int nv = 0; nv < projectionsROI.cols(); nv++ )
+    {
+    std::string colnameROI = std::string("Variate") + sccan_to_string<unsigned int>(nv);
+    ColumnHeadersROI.push_back( colnameROI );
+    }
+  typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+  WriterType::Pointer writerROI = WriterType::New();
+  writerROI->SetFileName( fnmp_prior.c_str() );
+  writerROI->SetColumnHeaders(ColumnHeadersROI);
+  writerROI->SetInput( &projectionsROI );
+  try
+    {
+    writerROI->Write();
+    }
+  catch( itk::ExceptionObject& exp )
+    {
+    std::cerr << "Exception caught!" << std::endl;
+    std::cerr << exp << std::endl;
+    return;
+    }
+
+  if( have_mask )
+    {
+    std::cout << " have_mask " << have_mask << std::endl;
+    for( unsigned int vars = 0; vars < varmat.columns(); vars++  )
+      {
+      post2 = post + sccan_to_string<unsigned int>(l_array.get(vars) );
+      vnl_vector<TComp> temp = varmat.get_column(l_array.get(vars) );
+      // std::cout<<" File Name "<<filename<<" POST "<<l_array.get(vars)<<std::endl;
+      WriteVectorToSpatialImage<TImage, TComp>( filename, post2, temp, mask);
+      }
+    }
+  else
+    {
+    std::vector<std::string> ColumnHeaders;
+    // write out the array2D object
+    std::string fnmp = filepre + std::string("ViewVecs") + std::string(".csv");
+    for( unsigned int nv = 0; nv < varmat.cols(); nv++ )
+      {
+      std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
+      ColumnHeaders.push_back( colname );
+      }
+    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( fnmp.c_str() );
+    writer->SetColumnHeaders(ColumnHeaders);
+    writer->SetInput( &varmat );
+    try
+      {
+      writer->Write();
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
+      return;
+      }
+    }
+}
+
+template <class TImage, class TComp>
 void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
                                   typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat,
                                   bool have_mask )
@@ -1048,9 +1175,31 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   typedef typename SCCANType::DiagonalMatrixType dMatrix;
   /** read the matrix images */
   /** we refer to the two view matrices as P and Q */
+
   std::string pmatname = std::string(option->GetFunction( 0 )->GetParameter( 0 ) );
-  vMatrix     p;
+
+  // std::string priorROImatname=std::string(option->GetParameter( 2 ));
+  vMatrix p;
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
+
+  std::string imagelistPrior = option->GetFunction( 0 )->GetParameter( 1 );
+  std::string priorScaleFile = option->GetFunction( 0 )->GetParameter( 3 );
+  std::cout << priorScaleFile << std::endl;
+
+  std::string outname = "prior.mhd";
+  vMatrix     priorROIMat;
+  vMatrix     priorScaleMat;
+
+  std::string maskPrior = option->GetFunction( 0 )->GetParameter( 2 );
+
+  // ants::antscout << " make robust " << std::endl;
+
+  ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior,  maskPrior, outname );
+
+  ReadMatrixFromCSVorImageSet<Scalar>(outname, priorROIMat);
+
+  ReadMatrixFromCSVorImageSet<Scalar>(priorScaleFile, priorScaleMat);
+
   if( robustify > 0 )
     {
     ::ants::antscout << " make robust " << std::endl;
@@ -1058,9 +1207,14 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
 
   typename ImageType::Pointer mask1 = NULL;
-  bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
+
+  bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 2 ).c_str() );
   /** the penalties define the fraction of non-zero values for each view */
-  double FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
+
+  double FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
+
+  antscout << " frac nonzero " << FracNonZero1 << std::endl;
+
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
@@ -1072,7 +1226,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   if( option->GetFunction( 0 )->GetNumberOfParameters() > 3 )
     {
     std::string nuis_img = option->GetFunction( 0 )->GetParameter( 3 );
-    if( nuis_img.length() > 3 )
+    if( nuis_img.length() > 3 && svd_option != 7 )
       {
       antscout << " nuis_img " << nuis_img << std::endl;
       ReadMatrixFromCSVorImageSet<Scalar>(nuis_img, r);
@@ -1125,6 +1279,11 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   sccanobj->SetMatrixP( p );
   sccanobj->SetMatrixR( r );
   sccanobj->SetMaskImageP( mask1 );
+  sccanobj->SetPriorScaleMat( priorScaleMat);
+  sccanobj->SetMatrixPriorROI( priorROIMat);
+  sccanobj->SetFlagForSort();
+  sccanobj->SetLambda(parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) ) );
+
   double truecorr = 0;
   if( svd_option == 1 )
     {
@@ -1150,6 +1309,10 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     {
     truecorr = sccanobj->SparseRecon(n_evec);  // sparse (default)
     }
+  else if( svd_option == 7 )
+    {
+    truecorr = sccanobj->SparseReconPrior(n_evec, true);  // Prior
+    }
   else
     {
     truecorr = sccanobj->SparseArnoldiSVDGreedy(n_evec);  // sparse (default)
@@ -1174,6 +1337,9 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                     sccanobj->GetVariatesP(), mask1,
                                                     sccanobj->GetMatrixP(), have_p_mask );
+
+    // WriteSortedVariatesToSpatialImage<ImageType,Scalar>( filename, post, sccanobj->GetVariatesP() , mask1 ,
+    // sccanobj->GetMatrixP() , have_p_mask,sccanobj->GetSortFinalLocArray(),priorROIMat );
 
     /** write the eigevalues to the csv file */
     std::string              fnmp = filepre + std::string("_eigenvalues.csv");
@@ -1776,6 +1942,7 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
                  << std::endl;
         antscout << " q-vox " <<  (double)qsigct / sccanobjCovar->GetVariateP(0).size() << " ct " << permct
                  << std::endl;
+        //	antscout << "Here in sccan after printing "<<pct<<std::endl;
         }
 
       return EXIT_SUCCESS;
@@ -2097,8 +2264,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
-      // this will be option 3
-      antscout << " not implemented yet " << std::endl;
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1 );
       return EXIT_SUCCESS;
       }
     SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1, usel1);
