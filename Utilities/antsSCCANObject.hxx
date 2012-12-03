@@ -1545,12 +1545,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType priorVec = this->m_MatrixPriorROI.get_row(a);
       VectorType evec = this->m_VariatesP.get_column( a );
-      // VectorType evec( priorVec );
-
-      this->m_VariatesP.set_column( a, zero );
-
+      if( overit == 0 )
+        {
+        this->SparsifyP( evec );
+        }
       this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec, 5, a, lambda );
-
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       }
@@ -1612,8 +1611,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   bool         conjgrad = true;
   VectorType   bestevec = evec;
   while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
+  // while(  powerits < maxits  )
     {
-    RealType   gamma = 0.0001;
+    RealType   gamma = 1;
     VectorType pvec = this->FastOuterProductVectorMultiplication( prior, evec );
     VectorType nvec = ( At   * ( A    * evec ) );
     if( powerits == 0 )
@@ -1623,7 +1623,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     nvec = nvec * lam1 + pvec * lam2;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      // nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+      //	nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
       }
     nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
