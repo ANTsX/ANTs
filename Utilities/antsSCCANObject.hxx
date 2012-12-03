@@ -1472,7 +1472,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           {
           fnz++;
           }
-        //	sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols();
+        if( this->m_FractionNonZeroP < 1.e-10  )
+          {
+          sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols();
+          }
         }
       }
     ::ants::antscout << sparsenessparams << std::endl;
@@ -1598,6 +1601,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     evec = this->InitializeV( this->m_MatrixP, false );
     }
+  if( inner_product( prior, evec ) == 0 )
+    {
+    evec.update( prior, 0  );
+    }
   VectorType proj = ( A * evec ) * lam1 + this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
   VectorType lastgrad = evec;
   RealType   rayquo = 0, rayquold = -1;
@@ -1623,9 +1630,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     nvec = nvec * lam1 + pvec * lam2;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      //	nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+      // nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
       }
-    nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
+    // nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
       {
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );

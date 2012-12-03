@@ -1177,28 +1177,30 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   /** we refer to the two view matrices as P and Q */
 
   std::string pmatname = std::string(option->GetFunction( 0 )->GetParameter( 0 ) );
-
-  // std::string priorROImatname=std::string(option->GetParameter( 2 ));
-  vMatrix p;
+  vMatrix     p;
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
-
-  std::string imagelistPrior = option->GetFunction( 0 )->GetParameter( 1 );
-  std::string priorScaleFile = option->GetFunction( 0 )->GetParameter( 3 );
-  std::cout << priorScaleFile << std::endl;
-
-  std::string outname = "prior.mhd";
-  vMatrix     priorROIMat;
-  vMatrix     priorScaleMat;
-
-  std::string maskPrior = option->GetFunction( 0 )->GetParameter( 2 );
-
-  // ants::antscout << " make robust " << std::endl;
-
-  ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior,  maskPrior, outname );
-
-  ReadMatrixFromCSVorImageSet<Scalar>(outname, priorROIMat);
-
-  ReadMatrixFromCSVorImageSet<Scalar>(priorScaleFile, priorScaleMat);
+  typename ImageType::Pointer mask1 = NULL;
+  bool have_p_mask = false;
+  have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
+  double FracNonZero1 = 0;
+  if( svd_option != 7 )
+    {
+    parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
+    }
+  vMatrix priorROIMat;
+  vMatrix priorScaleMat;
+  if( svd_option == 7 )
+    {
+    FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
+    std::string imagelistPrior = option->GetFunction( 0 )->GetParameter( 2 );
+    std::string priorScaleFile = option->GetFunction( 0 )->GetParameter( 3 );
+    std::string outname = "prior.mhd";
+    ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, option->GetFunction( 0 )->GetParameter(
+                                                        1 ), outname );
+    ReadMatrixFromCSVorImageSet<Scalar>(outname, priorROIMat);
+    ReadMatrixFromCSVorImageSet<Scalar>(priorScaleFile, priorScaleMat);
+    }
+  antscout << " frac nonzero " << FracNonZero1 << std::endl;
 
   if( robustify > 0 )
     {
@@ -1206,15 +1208,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     p = sccanobj->RankifyMatrixColumns(p);
     }
 
-  typename ImageType::Pointer mask1 = NULL;
-
-  bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 2 ).c_str() );
   /** the penalties define the fraction of non-zero values for each view */
-
-  double FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
-
-  antscout << " frac nonzero " << FracNonZero1 << std::endl;
-
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
@@ -1279,10 +1273,6 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   sccanobj->SetMatrixP( p );
   sccanobj->SetMatrixR( r );
   sccanobj->SetMaskImageP( mask1 );
-  sccanobj->SetPriorScaleMat( priorScaleMat);
-  sccanobj->SetMatrixPriorROI( priorROIMat);
-  sccanobj->SetFlagForSort();
-  sccanobj->SetLambda(parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) ) );
 
   double truecorr = 0;
   if( svd_option == 1 )
@@ -1311,6 +1301,10 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
   else if( svd_option == 7 )
     {
+    sccanobj->SetPriorScaleMat( priorScaleMat);
+    sccanobj->SetMatrixPriorROI( priorROIMat);
+    sccanobj->SetFlagForSort();
+    sccanobj->SetLambda(parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) ) );
     truecorr = sccanobj->SparseReconPrior(n_evec, true);  // Prior
     }
   else
@@ -2537,7 +2531,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption(
       2,
       "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified, -i controls the number of sparse approximations per eigenvector, -n controls the number of eigenvectors.  total output will then be  i*n sparse eigenvectors." );
-    option->SetUsageOption( 3, "prior[....]" );
+    option->SetUsageOption( 3,
+                            "prior[ matrix.mha , mask.nii.gz , PriorList.txt , PriorScale.csv , PriorWeightIn0to1 , sparseness ] ... if sparseness is set to zero, we take sparseness from the priors." );
     option->SetUsageOption( 4, "network[matrix-view1.mhd,mask1,FracNonZero1,guidance-matrix]" );
     option->SetUsageOption( 5, "lasso[matrix-view1.mhd,mask1,Lambda,guidance-matrix]" );
     option->SetUsageOption( 6, "recon[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix]" );
