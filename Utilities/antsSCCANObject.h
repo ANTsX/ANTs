@@ -716,6 +716,8 @@ protected:
 
     if( vnl_math_abs( fnp ) >= 1 )
       {
+      this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveP );
+      this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
       return;
       }
     bool negate = false;
@@ -742,6 +744,8 @@ protected:
 
     if( vnl_math_abs( fnp ) >= 1 )
       {
+      this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveQ );
+      this->ClusterThresholdVariate( x_k1, this->m_MaskImageQ, this->m_MinClusterSizeQ );
       return;
       }
     bool negate = false;

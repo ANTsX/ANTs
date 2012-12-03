@@ -11014,7 +11014,7 @@ private:
     antscout << "    Note:  Gives probabilistic output (float)" << std::endl;
 
     antscout << "\nImage Metrics & Info:" <<  std::endl;
-    antscout << "  PearsonsCorrelation: r-value from intesities of two images" << std::endl;
+    antscout << "  PearsonCorrelation: r-value from intesities of two images" << std::endl;
     antscout << "    Usage: PearsonCorrelation image1.ext image2.ext {Optional-mask.ext}" << std::endl;
     antscout << "  NeighborhoodCorrelation: local correlations" << std::endl;
     antscout << "    Usage: NeighborhoodCorrelation image1.ext image2.ext {Optional-radius=5}" << std::endl;
@@ -11022,7 +11022,7 @@ private:
     antscout << "    Usage: NormalizedCorrelation image1.ext image2.ext" << std::endl;
     antscout << "  Demons: " << std::endl;
     antscout << "    Usage: Demons image1.ext image2.ext" << std::endl;
-    antscout << "  PearsonsCorrelations: mutual information" << std::endl;
+    antscout << "  Mattes: mutual information" << std::endl;
     antscout << "    Usage: Mattes image1.ext image2.ext {Optional-number-bins=32}" << std::endl;
 
     antscout << "\nUnclassified Operators:" << std::endl;
