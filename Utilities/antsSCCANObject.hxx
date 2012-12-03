@@ -1544,8 +1544,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType priorVec = this->m_MatrixPriorROI.get_row(a);
-      // VectorType evec = this->m_VariatesP.get_column( a );
-      VectorType evec( priorVec );
+      VectorType evec = this->m_VariatesP.get_column( a );
+      // VectorType evec( priorVec );
 
       this->m_VariatesP.set_column( a, zero );
 
