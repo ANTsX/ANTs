@@ -1454,7 +1454,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 {
   VectorType sparsenessparams( n_vecs, this->m_FractionNonZeroP );
   double     lambda = this->GetLambda(); // Make it a parameter
-  ::ants::antscout << "lambda" << lambda  << std::endl;
+  ::ants::antscout << "lambda" << lambda  << " GradStep " << this->m_GradStep << std::endl;
 
   if( prior )
     {
@@ -1633,7 +1633,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
     lastgrad = nvec;
-    evec = evec + nvec * gamma;
+    evec = evec + nvec * gamma * this->m_GradStep;
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
       {
