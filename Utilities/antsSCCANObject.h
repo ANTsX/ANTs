@@ -563,6 +563,17 @@ public:
     return this->m_VariatesQ;
   }
 
+  VectorType FastOuterProductVectorMultiplication( VectorType& p, VectorType& v )
+  {     // computes  outer_product( p , p ) * v
+    if( p.size() != v.size() )
+      {
+      ::ants::antscout << "FastOuterProductVectorMultiplication Usage Error " << std::endl; return v;
+      }
+    RealType   ip = inner_product( p, v );
+    VectorType vout( p );
+    return vout * ip;
+  }
+
   RealType ComputeEnergySlope( std::vector<RealType> vexlist, unsigned int n )
   {
     unsigned int N = vexlist.size();

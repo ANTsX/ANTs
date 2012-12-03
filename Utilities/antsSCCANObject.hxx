@@ -1595,13 +1595,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType lam1 = ( 1.0 - lambda );
   RealType lam2 = ( lambda );
 
-  vnl_diag_matrix<RealType> pmat( prior.size() );
-  pmat.set( prior );
   if( evec.two_norm() ==  0 )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
     }
-  VectorType proj = ( A * evec ) * lam1 + ( pmat * evec ) * lam2;
+  VectorType proj = ( A * evec ) * lam1 + this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
   VectorType lastgrad = evec;
   RealType   rayquo = 0, rayquold = -1;
   RealType   denom = inner_product( evec, evec );
@@ -1616,7 +1614,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
     {
     RealType   gamma = 0.0001;
-    VectorType pvec = ( pmat * ( pmat * evec ) );
+    VectorType pvec = this->FastOuterProductVectorMultiplication( prior, evec );
     VectorType nvec = ( At   * ( A    * evec ) );
     if( powerits == 0 )
       {
@@ -1625,7 +1623,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     nvec = nvec * lam1 + pvec * lam2;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      //        nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
+      // nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
       }
     nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
@@ -1639,7 +1637,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       evec = evec / evec.two_norm();
       }
-    proj = ( A * evec ) * lam1 + ( pmat * evec ) * lam2;
+    proj = ( A * evec ) * lam1 + this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
     rayquold = rayquo;
     denom = inner_product( evec, evec );
     if( denom > 0 )
