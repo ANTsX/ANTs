@@ -1182,11 +1182,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   typename ImageType::Pointer mask1 = NULL;
   bool have_p_mask = false;
   have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
-  double FracNonZero1 = 0;
-  if( svd_option != 7 )
-    {
-    parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
-    }
+  double  FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
   vMatrix priorROIMat;
   vMatrix priorScaleMat;
   if( svd_option == 7 )
