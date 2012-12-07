@@ -30,39 +30,10 @@
 #include "itkCSVArray2DDataObject.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkExtractImageFilter.h"
+#include "ReadWriteImage.h"
 
 namespace ants
 {
-template <class TImageType>
-bool SCCANReadImage(itk::SmartPointer<TImageType> & target, const char *file)
-{
-  if( std::string(file).length() < 3 )
-    {
-    antscout << " bad file name " << std::string(file) << std::endl;
-    target = NULL;
-    return false;
-    }
-  // Read the image files begin
-  typedef TImageType                      ImageType;
-  typedef itk::ImageFileReader<ImageType> FileSourceType;
-  typedef typename ImageType::PixelType   PixType;
-  typename FileSourceType::Pointer reffilter = FileSourceType::New();
-  reffilter->SetFileName( file );
-  try
-    {
-    reffilter->Update();
-    }
-  catch( itk::ExceptionObject & e )
-    {
-    antscout << "Exception caught during reference file reading " << std::endl;
-    antscout << e << " file " << file << std::endl;
-    target = NULL;
-    return false;
-    }
-  target = reffilter->GetOutput();
-  return true;
-}
-
 template <class TComp>
 double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 {
@@ -721,7 +692,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   antscout << " imagefn " << imagefn << std::endl;
   if( imagefn.length() > 3 )
     {
-    SCCANReadImage<ImageType>(image1, imagefn.c_str() );
+    ReadImage<ImageType>(image1, imagefn.c_str() );
     }
   else
     {
@@ -770,7 +741,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
 
   if( maskfn.length() > 3 )
     {
-    SCCANReadImage<OutImageType>(mask, maskfn.c_str() );
+    ReadImage<OutImageType>(mask, maskfn.c_str() );
     }
   else
     {
@@ -953,9 +924,9 @@ ConvertCSVVectorToImage( std::string csvfn, std::string maskfn, std::string outn
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   /** read the  images */
   typename ImageType::Pointer mask = NULL;
-  SCCANReadImage<ImageType>(mask, maskfn.c_str() );
+  ReadImage<ImageType>(mask, maskfn.c_str() );
   typename ImageType::Pointer outimage = NULL;
-  SCCANReadImage<ImageType>(outimage, maskfn.c_str() );
+  ReadImage<ImageType>(outimage, maskfn.c_str() );
   outimage->FillBuffer(0);
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   unsigned long mct = 0;
@@ -1181,7 +1152,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
   typename ImageType::Pointer mask1 = NULL;
   bool have_p_mask = false;
-  have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
+  have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
   double  FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
   vMatrix priorROIMat;
   vMatrix priorScaleMat;
@@ -1437,10 +1408,10 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     }
 
   typename ImageType::Pointer mask1 = NULL;
-  bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 2 ).c_str() );
+  bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 2 ).c_str() );
 
   typename ImageType::Pointer mask2 = NULL;
-  bool have_q_mask = SCCANReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
+  bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
 
   /** the penalties define the fraction of non-zero values for each view */
   double FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
@@ -1690,9 +1661,9 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
     }
 
   typename ImageType::Pointer mask1 = NULL;
-  bool have_p_mask = SCCANReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
+  bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
   typename ImageType::Pointer mask2 = NULL;
-  bool have_q_mask = SCCANReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 4 ).c_str() );
+  bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 4 ).c_str() );
   typename ImageType::Pointer mask3 = NULL;
 
   /** the penalties define the fraction of non-zero values for each view */

@@ -222,13 +222,13 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
 
 template <class TImageType>
 // void ReadImage(typename TImageType::Pointer target, const char *file)
-void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
+bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
 {
   typedef typename TImageType::PixelType PixelType;
   enum { ImageDimension = TImageType::ImageDimension };
   if( std::string(file).length() < 3 )
     {
-    ::ants::antscout << " bad file name " << std::string(file) << std::endl;    target = NULL;  return;
+    ::ants::antscout << " bad file name " << std::string(file) << std::endl;    target = NULL;  return false;
     }
 
   std::string comparetype1 = std::string( "0x" );
@@ -254,7 +254,8 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     {
     if( !ANTSFileExists(std::string(file) ) )
       {
-      ::ants::antscout << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL; return;
+      ::ants::antscout << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL;
+      return false;
       }
     typedef TImageType                      ImageType;
     typedef itk::ImageFileReader<ImageType> FileSourceType;
@@ -272,7 +273,7 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
       ::ants::antscout << e << " file " << file << std::endl;
       target = NULL;
       std::exception();
-      return;
+      return false;
       }
 
     // typename ImageType::DirectionType dir;
@@ -282,6 +283,7 @@ void ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     // ::ants::antscout << " setting pointer " << std::endl;
     target = reffilter->GetOutput();
     }
+  return true;
 }
 
 template <class ImageType>
@@ -352,11 +354,11 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
 }
 
 template <class TImageType>
-void WriteImage(itk::SmartPointer<TImageType> image, const char *file)
+bool WriteImage(itk::SmartPointer<TImageType> image, const char *file)
 {
   if( std::string(file).length() < 3 )
     {
-    return;
+    return false;
     }
 
   //  typename TImageType::DirectionType dir;
@@ -388,6 +390,7 @@ void WriteImage(itk::SmartPointer<TImageType> image, const char *file)
     writer->SetInput(image);
     writer->Update();
     }
+  return true;
 }
 
 template <class TImageType>

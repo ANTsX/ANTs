@@ -1,7 +1,9 @@
-
-#include "antsUtilities.h"
+#include <string>
 #include <algorithm>
-
+#include <vector>
+#include <algorithm>
+#include "antsUtilities.h"
+#include "ReadWriteImage.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
@@ -11,7 +13,6 @@
 #include "itkSymmetricSecondRankTensor.h"
 #include "itkVectorImage.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
-
 #include "antsAtroposSegmentationImageFilter.h"
 #include "antsBoxPlotQuantileListSampleFilter.h"
 #include "antsCommandLineOption.h"
@@ -25,12 +26,7 @@
 #include "antsManifoldParzenWindowsListSampleFunction.h"
 #include "antsPassThroughListSampleFilter.h"
 #include "antsPartialVolumeGaussianListSampleFunction.h"
-
 #include "itkTimeProbe.h"
-
-#include <string>
-#include <algorithm>
-#include <vector>
 
 namespace ants
 {
@@ -199,23 +195,18 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
           = fileNamesCreator->GetFileNames();
         for( unsigned int k = 0; k < imageNames.size(); k++ )
           {
-          typedef itk::ImageFileReader<InputImageType> ReaderType;
-          typename ReaderType::Pointer reader = ReaderType::New();
-          reader->SetFileName( imageNames[k].c_str() );
-          reader->Update();
-
-          segmenter->SetPriorProbabilityImage( k + 1, reader->GetOutput() );
+          typename InputImageType::Pointer image;
+          ReadImage<InputImageType>( image, imageNames[k].c_str() );
+          segmenter->SetPriorProbabilityImage( k + 1, image );
           }
         }
       else
         {
         typedef itk::VectorImage<PixelType, ImageDimension> VectorImageType;
-        typedef itk::ImageFileReader<VectorImageType>       ReaderType;
-        typename ReaderType::Pointer reader = ReaderType::New();
-        reader->SetFileName( filename.c_str() );
-        reader->Update();
+        typename VectorImageType::Pointer image;
+        ReadImage<VectorImageType>( image, filename.c_str() );
 
-        if(  reader->GetOutput()->GetNumberOfComponentsPerPixel()
+        if(  image->GetNumberOfComponentsPerPixel()
              != segmenter->GetNumberOfTissueClasses() )
           {
           antscout << "The number of components does not match the number of "
@@ -225,7 +216,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 
         typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, InputImageType> CasterType;
         typename CasterType::Pointer caster = CasterType::New();
-        caster->SetInput( reader->GetOutput() );
+        caster->SetInput( image );
         for( unsigned int k = 0; k < segmenter->GetNumberOfTissueClasses(); k++ )
           {
           caster->SetIndex( k );
@@ -254,12 +245,9 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
                                               initializationOption->GetFunction( 0 )->GetParameter( 2 ) ) );
 
       std::string filename = initializationOption->GetFunction( 0 )->GetParameter( 1 );
-      typedef itk::ImageFileReader<LabelImageType> ReaderType;
-      typename ReaderType::Pointer reader = ReaderType::New();
-      reader->SetFileName( filename.c_str() );
-      reader->Update();
-
-      segmenter->SetPriorLabelImage( reader->GetOutput() );
+      typename LabelImageType::Pointer image;
+      ReadImage<LabelImageType>( image, filename.c_str() );
+      segmenter->SetPriorLabelImage( image );
       }
     else
       {
@@ -361,12 +349,9 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     {
     try
       {
-      typedef  itk::ImageFileReader<LabelImageType> ReaderType;
-      typename ReaderType::Pointer reader = ReaderType::New();
-      reader->SetFileName( ( maskOption->GetFunction( 0 )->GetName() ).c_str() );
-      reader->Update();
-
-      segmenter->SetMaskImage( reader->GetOutput() );
+      typename LabelImageType::Pointer image;
+      ReadImage<LabelImageType>( image, maskOption->GetFunction( 0 )->GetName().c_str()  );
+      segmenter->SetMaskImage( image );
 
       // Check to see that the labels in the prior label image or the non-zero
       // probability voxels in the prior probability images encompass the entire
@@ -581,19 +566,18 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     unsigned int count = 0;
     for( int n = imageOption->GetNumberOfFunctions() - 1; n >= 0; n-- )
       {
-      typedef itk::ImageFileReader<InputImageType> ReaderType;
-      typename ReaderType::Pointer reader = ReaderType::New();
+      std::string imagename;
       if( imageOption->GetFunction( n )->GetNumberOfParameters() > 0 )
         {
-        reader->SetFileName( imageOption->GetFunction( n )->GetParameter( 0 ) );
+        imagename = imageOption->GetFunction( n )->GetParameter( 0 );
         }
       else
         {
-        reader->SetFileName( imageOption->GetFunction( n )->GetName() );
+        imagename = imageOption->GetFunction( n )->GetName();
         }
-      reader->Update();
-
-      segmenter->SetIntensityImage( count, reader->GetOutput() );
+      typename InputImageType::Pointer image;
+      ReadImage<InputImageType>( image, imagename.c_str() );
+      segmenter->SetIntensityImage( count, image );
       if( imageOption->GetFunction( count )->GetNumberOfParameters() > 1 )
         {
         segmenter->SetAdaptiveSmoothingWeight( count,
@@ -1661,19 +1645,13 @@ private:
   switch( dimension )
     {
     case 2:
-      {
       AtroposSegmentation<2>( parser );
-      }
       break;
     case 3:
-      {
       AtroposSegmentation<3>( parser );
-      }
       break;
     case 4:
-      {
       AtroposSegmentation<4>( parser );
-      }
       break;
     default:
       antscout << "Unsupported dimension" << std::endl;
