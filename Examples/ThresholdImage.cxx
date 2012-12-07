@@ -27,8 +27,7 @@
 
 #include "itkExtractImageFilter.h"
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "ReadWriteImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkMultiplyImageFilter.h"
@@ -182,31 +181,14 @@ int ThresholdImage( int argc, char * argv[] )
   //  const     unsigned int   InImageDimension = AvantsImageDimension;
   typedef   float                                   PixelType;
   typedef   itk::Image<PixelType, InImageDimension> FixedImageType;
-  typedef   itk::ImageFileReader<FixedImageType>    FixedReaderType;
-  typename FixedReaderType::Pointer fixedReader = FixedReaderType::New();
-  fixedReader->SetFileName( argv[2] );
-
-  typedef   itk::ImageFileWriter<FixedImageType> MovingWriterType;
-  typename MovingWriterType::Pointer movingWriter = MovingWriterType::New();
-  typename MovingWriterType::Pointer movingWriter2 = MovingWriterType::New();
-  movingWriter->SetFileName( argv[3] );
-
-  try
-    {
-    fixedReader->Update();
-    }
-  catch( itk::ExceptionObject & excp )
-    {
-    antscout << "Exception thrown " << std::endl;
-    antscout << excp << std::endl;
-    return EXIT_FAILURE;
-    }
+  typename FixedImageType::Pointer fixed;
+  ReadImage<FixedImageType>( fixed, argv[2] );
   // Label the surface of the image
   typename FixedImageType::Pointer thresh;
   std::string threshtype = std::string(argv[4]);
   if( strcmp(threshtype.c_str(), "Otsu") == 0 )
     {
-    thresh = OtsuThreshold<FixedImageType>(atoi(argv[5]), fixedReader->GetOutput() );
+    thresh = OtsuThreshold<FixedImageType>(atoi(argv[5]), fixed );
     }
   else
     {
@@ -223,11 +205,10 @@ int ThresholdImage( int argc, char * argv[] )
     thresh = BinaryThreshold_AltInsideOutside_threashold<FixedImageType>(atof(argv[4]), atof(
                                                                            argv[5]),
                                                                          insideValue, outsideValue,
-                                                                         fixedReader->GetOutput() );
+                                                                         fixed );
     }
 
-  movingWriter->SetInput(thresh);
-  movingWriter->Write();
+  WriteImage<FixedImageType>( thresh, argv[3] );
   return EXIT_SUCCESS;
 }
 
