@@ -17,6 +17,7 @@
 *=========================================================================*/
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
+#include "ReadWriteImage.h"
 #include "antsCommandLineParser.h"
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkImageRegistrationMethodv4.h"
