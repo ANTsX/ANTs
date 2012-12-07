@@ -59,47 +59,26 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   typedef itk::Image<RealType, ImageDimension>      ImageType;
   typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
-
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  typename ReaderType::Pointer reader = ReaderType::New();
-  if( argc < 3 )
-    {
-    antscout << "missing 1st filename" << std::endl;
-    throw;
-    }
-  reader->SetFileName( argv[2] );
-  reader->Update();
+  typename ImageType::Pointer image;
+  ReadImage<ImageType>( image, argv[2] );
 
   typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkerType;
   typename ShrinkerType::Pointer shrinker = ShrinkerType::New();
-  shrinker->SetInput( reader->GetOutput() );
+  shrinker->SetInput( image );
   shrinker->SetShrinkFactors( 1 );
 
   typename MaskImageType::Pointer maskImage = NULL;
 
   if( argc > 5 )
     {
-    typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
-    typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
-    maskreader->SetFileName( argv[5] );
-
-    try
-      {
-      maskreader->Update();
-      maskImage = maskreader->GetOutput();
-      }
-    catch( ... )
-      {
-      antscout << "Mask file not read.  Generating mask file using otsu"
-               << " thresholding." << std::endl;
-      }
+    ReadImage<ImageType>( maskImage, argv[5] );
     }
   if( !maskImage )
     {
     typedef itk::OtsuThresholdImageFilter<ImageType, MaskImageType>
       ThresholderType;
     typename ThresholderType::Pointer otsu = ThresholderType::New();
-    otsu->SetInput( reader->GetOutput() );
+    otsu->SetInput( image );
     otsu->SetNumberOfHistogramBins( 200 );
     otsu->SetInsideValue( 0 );
     otsu->SetOutsideValue( 1 );
@@ -200,16 +179,11 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
     antscout << "missing divider image filename" << std::endl;
     throw;
     }
-  writer->SetFileName( argv[3] );
-  writer->SetInput( divider->GetOutput() );
-  writer->Update();
+  WriteImage<ImageType>( divider->GetOutput(), argv[3] );
 
   if( argc > 8 )
     {
-    writer = WriterType::New();
-    writer->SetFileName( argv[8] );
-    writer->SetInput( expFilter->GetOutput() );
-    writer->Update();
+    WriteImage<ImageType>( expFilter->GetOutput(), argv[8] );
     }
 
   return EXIT_SUCCESS;
