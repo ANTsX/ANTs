@@ -448,22 +448,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       }
     std::string fn = averageOption->GetFunction( 0 )->GetName();
     typename MovingImageType::Pointer movingImage;
-    if( fn[0] == '0' && fn[1] == 'x' )
-      {
-      std::stringstream strstream;
-      strstream << fn;
-      void* ptr;
-      strstream >> ptr;
-      movingImage = *( static_cast<typename MovingImageType::Pointer *>( ptr ) );
-      }
-    else
-      {
-      typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
-      typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
-      movingImageReader->SetFileName( fn.c_str() );
-      movingImageReader->Update();
-      movingImage = movingImageReader->GetOutput();
-      }
+    ReadImage<MovingImageType>( movingImage, fn.c_str()  );
     movingImage->Update();
     movingImage->DisconnectPipeline();
     typename FixedImageType::Pointer avgImage;
@@ -597,42 +582,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     typename FixedImageType::Pointer fixed_time_slice = NULL;
     typename FixedImageType::Pointer moving_time_slice = NULL;
     typename FixedImageType::Pointer fixedImage;
-    if( fixedImageFileName[0] == '0' && fixedImageFileName[1] == 'x' )
-      {
-      std::stringstream strstream;
-      strstream << fixedImageFileName;
-      void* ptr;
-      strstream >> ptr;
-      fixedImage = *( static_cast<typename FixedImageType::Pointer *>( ptr ) );
-      }
-    else
-      {
-      typedef itk::ImageFileReader<FixedImageType> FixedImageReaderType;
-      typename FixedImageReaderType::Pointer fixedImageReader = FixedImageReaderType::New();
-      fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-      fixedImageReader->Update();
-      fixedImage = fixedImageReader->GetOutput();
-      }
+    ReadImage<FixedImageType>( fixedImage, fixedImageFileName.c_str() );
     fixedImage->Update();
     fixedImage->DisconnectPipeline();
 
     typename MovingImageType::Pointer movingImage;
-    if( movingImageFileName[0] == '0' && movingImageFileName[1] == 'x' )
-      {
-      std::stringstream strstream;
-      strstream << movingImageFileName;
-      void* ptr;
-      strstream >> ptr;
-      movingImage = *( static_cast<typename MovingImageType::Pointer *>( ptr ) );
-      }
-    else
-      {
-      typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
-      typename MovingImageReaderType::Pointer movingImageReader = MovingImageReaderType::New();
-      movingImageReader->SetFileName( movingImageFileName.c_str() );
-      movingImageReader->Update();
-      movingImage = movingImageReader->GetOutput();
-      }
+    ReadImage<MovingImageType>( movingImage, movingImageFileName.c_str() );
     movingImage->Update();
     movingImage->DisconnectPipeline();
 
