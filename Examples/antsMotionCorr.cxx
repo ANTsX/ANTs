@@ -466,24 +466,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     avgImage = extractFilter->GetOutput();
     std::vector<unsigned int> timelist;
     AverageTimeImages<MovingImageType, FixedImageType>( movingImage, avgImage, timelist );
-    if( outputPrefix[0] == '0' && outputPrefix[1] == 'x' )
-      {
-      std::stringstream strstream;
-      strstream << outputPrefix;
-      void* ptr;
-      strstream >> ptr;
-      *( static_cast<typename FixedImageType::Pointer *>( ptr ) ) = avgImage;
-      antscout << "output in avg image" << std::endl;
-      }
-    else
-      {
-      typedef itk::ImageFileWriter<FixedImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( outputPrefix.c_str() );
-      writer->SetInput( avgImage );
-      writer->Update();
-      antscout << " done writing avg image " << std::endl;
-      }
+    typename FixedImageType::IndexType ind; ind.Fill( 0 );
+    antscout << "average out " << outputPrefix << " pix " << avgImage->GetPixel( ind ) << std::endl;
+    WriteImage<FixedImageType>( avgImage, outputPrefix.c_str() );
     return EXIT_SUCCESS;
     }
 
@@ -593,22 +578,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     movingImage->DisconnectPipeline();
 
     typename MovingImageType::Pointer outputImage;
-    if( movingImageFileName[0] == '0' && movingImageFileName[1] == 'x' )
-      {
-      std::stringstream strstream;
-      strstream << movingImageFileName;
-      void* ptr;
-      strstream >> ptr;
-      outputImage = *( static_cast<typename MovingImageType::Pointer *>( ptr ) );
-      }
-    else
-      {
-      typedef itk::ImageFileReader<MovingImageType> MovingImageReaderType;
-      typename MovingImageReaderType::Pointer outputImageReader = MovingImageReaderType::New();
-      outputImageReader->SetFileName( movingImageFileName.c_str() );
-      outputImageReader->Update();
-      outputImage = outputImageReader->GetOutput();
-      }
+    ReadImage<MovingImageType>( outputImage, movingImageFileName.c_str() );
     outputImage->Update();
     outputImage->DisconnectPipeline();
 
@@ -1348,22 +1318,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         outputPrefix = outputOption->GetFunction( 0 )->GetName();
         }
-      if( fileName[0] == '0' && fileName[1] == 'x' )
-        {
-        std::stringstream strstream;
-        strstream << fileName;
-        void* ptr;
-        strstream >> ptr;
-        *( static_cast<typename MovingImageType::Pointer *>( ptr ) ) = outputImage;
-        }
-      else
-        {
-        typedef itk::ImageFileWriter<MovingImageType> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( fileName.c_str() );
-        writer->SetInput( outputImage );
-        writer->Update();
-        }
+      WriteImage<MovingImageType>( outputImage, fileName.c_str()  );
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 && outputImage && currentStage ==
         0 )
@@ -1393,24 +1348,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         antscout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
         }
       AverageTimeImages<MovingImageType, FixedImageType>( outputImage, avgImage, timelistsort );
-      if( fileName[0] == '0' && fileName[1] == 'x' )
-        {
-        std::stringstream strstream;
-        strstream << fileName;
-        void* ptr;
-        strstream >> ptr;
-        *( static_cast<typename FixedImageType::Pointer *>( ptr ) ) = avgImage;
-        antscout << " done writing avg image " << std::endl;
-        }
-      else
-        {
-        typedef itk::ImageFileWriter<FixedImageType> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetFileName( fileName.c_str() );
-        writer->SetInput( avgImage );
-        writer->Update();
-        antscout << " done writing avg image " << std::endl;
-        }
+      WriteImage<FixedImageType>( avgImage, outputPrefix.c_str() );
       }
     }
   totalTimer.Stop();
