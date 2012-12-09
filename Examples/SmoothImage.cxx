@@ -88,11 +88,7 @@ int SmoothImage(int argc, char *argv[])
     filter2->Update();
     varimage = filter2->GetOutput();
     }
-
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(argv[4]);
-  writer->SetInput( varimage );
-  writer->Write();
+  WriteImage<ImageType>( varimage, argv[4] );
   return EXIT_SUCCESS;
 }
 
