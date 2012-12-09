@@ -2,7 +2,7 @@
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include <algorithm>
-
+#include "ReadWriteImage.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkExpImageFilter.h"
 #include "itkImageFileReader.h"
@@ -71,7 +71,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   if( argc > 5 )
     {
-    ReadImage<ImageType>( maskImage, argv[5] );
+    ReadImage<MaskImageType>( maskImage, argv[5] );
     }
   if( !maskImage )
     {
@@ -142,10 +142,10 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   bspliner->SetInput( correcter->GetLogBiasFieldControlPointLattice() );
   bspliner->SetSplineOrder( correcter->GetSplineOrder() );
   bspliner->SetSize(
-    reader->GetOutput()->GetLargestPossibleRegion().GetSize() );
-  bspliner->SetOrigin( reader->GetOutput()->GetOrigin() );
-  bspliner->SetDirection( reader->GetOutput()->GetDirection() );
-  bspliner->SetSpacing( reader->GetOutput()->GetSpacing() );
+    image->GetLargestPossibleRegion().GetSize() );
+  bspliner->SetOrigin( image->GetOrigin() );
+  bspliner->SetDirection( image->GetDirection() );
+  bspliner->SetSpacing( image->GetSpacing() );
   bspliner->Update();
 
   typename ImageType::Pointer logField =
@@ -168,7 +168,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
 
   typedef itk::DivideImageFilter<ImageType, ImageType, ImageType> DividerType;
   typename DividerType::Pointer divider = DividerType::New();
-  divider->SetInput1( reader->GetOutput() );
+  divider->SetInput1( image );
   divider->SetInput2( expFilter->GetOutput() );
   divider->Update();
 
