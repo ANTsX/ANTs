@@ -242,17 +242,7 @@ int GetLargestComponent(int argc, char *argv[])
     }
 
   typename ImageType::Pointer image1 = NULL;
-  typename readertype::Pointer reader1 = readertype::New();
-  reader1->SetFileName(fn1.c_str() );
-  reader1->UpdateLargestPossibleRegion();
-  try
-    {
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
+  ReadImage<ImageType>(image1, fn1.c_str() );
   // compute the voxel volume
   typename ImageType::SpacingType spacing = image1->GetSpacing();
   float volumeelement = 1.0;
@@ -378,6 +368,130 @@ int GetLargestComponent(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int ClusterThresholdVariate(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  typedef unsigned long                                                    ULPixelType;
+  typedef itk::Image<ULPixelType, ImageDimension>                          labelimagetype;
+  typedef ImageType                                                        InternalImageType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                     fIterator;
+  typedef itk::ImageRegionIteratorWithIndex<labelimagetype>                labIterator;
+  typedef itk::ConnectedComponentImageFilter<ImageType, labelimagetype>    FilterType;
+  typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype> RelabelType;
+
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  std::string  maskfn = std::string(argv[argct]);   argct++;
+  unsigned int minclustersize = 50;
+  if( argc > argct )
+    {
+    minclustersize = atoi( argv[argct] );
+    }
+  typename ImageType::Pointer image = NULL;
+  ReadImage<ImageType>(image, fn1.c_str() );
+  typename ImageType::Pointer mask = NULL;
+  ReadImage<ImageType>(mask, maskfn.c_str() );
+  typename FilterType::Pointer filter = FilterType::New();
+  typename RelabelType::Pointer relabel = RelabelType::New();
+  filter->SetInput( image );
+  filter->SetFullyConnected( 0 );
+  relabel->SetInput( filter->GetOutput() );
+  relabel->SetMinimumObjectSize( 1 );
+  try
+    {
+    relabel->Update();
+    }
+  catch( itk::ExceptionObject & excep )
+    {
+    ::ants::antscout << "Relabel: exception caught !" << std::endl;
+    ::ants::antscout << excep << std::endl;
+    }
+
+  labIterator                vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
+  float                      maximum = relabel->GetNumberOfObjects();
+  std::vector<unsigned long> histogram( (int)maximum + 1);
+  for( int i = 0; i <= maximum; i++ )
+    {
+    histogram[i] = 0;
+    }
+  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+    {
+    float vox = vfIter.Get();
+    if( vox > 0 )
+      {
+      if( vox > 0 )
+        {
+        histogram[(unsigned long)vox] = histogram[(unsigned long)vox] + 1;
+        }
+      }
+    }
+
+  // get the largest component's size
+  unsigned long largest_component_size = 0;
+  for( int i = 0; i <= maximum; i++ )
+    {
+    if( largest_component_size < histogram[i] )
+      {
+      largest_component_size = histogram[i];
+      }
+    }
+
+  if(  largest_component_size < minclustersize )
+    {
+    minclustersize = largest_component_size - 1;
+    }
+//  now create the output vector
+// iterate through the image and set the voxels where  countinlabel[(unsigned
+// long)(labelimage->GetPixel(vfIter.GetIndex()) - min)]
+// is < MinClusterSize
+  unsigned long vecind = 0, keepct = 0;
+  fIterator     mIter( mask,  mask->GetLargestPossibleRegion() );
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() > 0 )
+      {
+      float         vox = mask->GetPixel(vfIter.GetIndex() );
+      unsigned long clustersize = 0;
+      if( vox >= 0  )
+        {
+        clustersize = histogram[(unsigned long)(relabel->GetOutput()->GetPixel(mIter.GetIndex() ) )];
+        if( clustersize > minclustersize )
+          {
+          keepct += 1;
+          }
+        else
+          {
+          image->SetPixel( mIter.GetIndex(), 0 );
+          }
+        vecind++;
+        }
+      }
+    }
+
+  if( outname.length() > 3 )
+    {
+    WriteImage<ImageType>( image, outname.c_str() );
+    }
+
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
 int ExtractSlice(int argc, char *argv[])
 {
   if( argc <= 2 )
@@ -496,18 +610,7 @@ int Finite(int argc, char *argv[])
     }
 
   typename ImageType::Pointer image1 = NULL;
-  typename readertype::Pointer reader1 = readertype::New();
-  reader1->SetFileName(fn1.c_str() );
-  reader1->UpdateLargestPossibleRegion();
-  try
-    {
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
-
+  ReadImage<ImageType>(image1, fn1.c_str() );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   Iterator vfIter2( image1,  image1->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -551,18 +654,7 @@ int ThresholdAtMean(int argc, char *argv[])
     }
 
   typename ImageType::Pointer image1 = NULL;
-  typename readertype::Pointer reader1 = readertype::New();
-  reader1->SetFileName(fn1.c_str() );
-  reader1->UpdateLargestPossibleRegion();
-  try
-    {
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
-
+  ReadImage<ImageType>(image1, fn1.c_str() );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   double        mean = 0, max = -1.e9, min = 1.e9;
   unsigned long ct = 0;
@@ -627,18 +719,7 @@ int FlattenImage(int argc, char *argv[])
     }
 
   typename ImageType::Pointer image1 = NULL;
-  typename readertype::Pointer reader1 = readertype::New();
-  reader1->SetFileName(fn1.c_str() );
-  reader1->UpdateLargestPossibleRegion();
-  try
-    {
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
-
+  ReadImage<ImageType>(image1, fn1.c_str() );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   double        mean = 0, max = -1.e9, min = 1.e9;
   unsigned long ct = 0;
@@ -726,21 +807,15 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<RealType, ImageDimension>  RealImageType;
 
-  typedef itk::ImageFileReader<RealImageType> ReaderType;
-  typename ReaderType::Pointer imageReader = ReaderType::New();
-  imageReader->SetFileName( fn1.c_str() );
-  imageReader->Update();
+  typename RealImageType::Pointer image;
+  ReadImage<RealImageType>( image, fn1.c_str() );
 
   typename ImageType::Pointer mask;
   if( argc > argct )
     {
     try
       {
-      typedef itk::ImageFileReader<ImageType> LabelReaderType;
-      typename LabelReaderType::Pointer labelImageReader = LabelReaderType::New();
-      labelImageReader->SetFileName( argv[argct] );
-      labelImageReader->Update();
-      mask = labelImageReader->GetOutput();
+      ReadImage<ImageType>(mask,  argv[argct]  );
       }
     catch( ... )
       {
@@ -752,14 +827,14 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   //  antscout << " Mask " << std::endl;
   if( mask.IsNull() )
     {
-    mask = AllocImage<ImageType>(imageReader->GetOutput(),
-                                 itk::NumericTraits<PixelType>::One);
+    mask = AllocImage<ImageType>( image,
+                                  itk::NumericTraits<PixelType>::One);
     }
 
   //  antscout << " iterate " << std::endl;
 
-  itk::ImageRegionIterator<RealImageType> ItI( imageReader->GetOutput(),
-                                               imageReader->GetOutput()->GetLargestPossibleRegion() );
+  itk::ImageRegionIterator<RealImageType> ItI( image,
+                                               image->GetLargestPossibleRegion() );
   itk::ImageRegionIterator<ImageType> ItM( mask,
                                            mask->GetLargestPossibleRegion() );
 
@@ -794,7 +869,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   //  antscout << " label " << std::endl;
   typedef itk::LabelStatisticsImageFilter<RealImageType, ImageType> HistogramGeneratorType;
   typename HistogramGeneratorType::Pointer stats = HistogramGeneratorType::New();
-  stats->SetInput( imageReader->GetOutput() );
+  stats->SetInput( image );
   stats->SetLabelInput( mask );
   stats->SetUseHistograms( true );
   stats->SetHistogramParameters( numberOfBins, minValue, maxValue );
@@ -820,11 +895,10 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
       }
     }
 
-  typedef itk::ImageFileWriter<RealImageType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[2] );
-  writer->SetInput( imageReader->GetOutput() );
-  writer->Update();
+  if( outname.length() > 3 )
+    {
+    WriteImage<RealImageType>( image, argv[2] );
+    }
 
   return EXIT_SUCCESS;
 }
@@ -957,12 +1031,7 @@ int TileImages(unsigned int argc, char *argv[])
   rescaler->SetInput( tiledimage );
 
   antscout << " writing output ";
-  typedef itk::ImageFileWriter<ByteImageType> writertype;
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( rescaler->GetOutput() );
-  writer->Update();
-
+  WriteImage<ByteImageType>( rescaler->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -1035,18 +1104,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
   std::string maskfn = std::string(argv[argct]); argct++;
   antscout << " file name " << maskfn << std::endl;
   typename ImageType::Pointer mask = NULL;
-  typename readertype::Pointer reader2 = readertype::New();
-  reader2->SetFileName(maskfn.c_str() );
-  try
-    {
-    reader2->UpdateLargestPossibleRegion();
-    }
-  catch( ... )
-    {
-    antscout << " Error reading " << maskfn << std::endl;
-    }
-  mask = reader2->GetOutput();
-  // ReadImage<ImageType>(mask,maskfn.c_str());
+  ReadImage<ImageType>(mask, maskfn.c_str() );
   //  WriteImage<ImageType>(mask,"temp.nii");
   float clamppercent1 = 0.1;
   if( argc > argct )
@@ -1189,11 +1247,7 @@ int TriPlanarView(unsigned int argc, char *argv[])
   rescaler2->SetInput( matimage );
   rescaler2->Update();
   antscout << " writing output ";
-  typedef itk::ImageFileWriter<ByteImageType> writertype;
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( rescaler2->GetOutput() );
-  writer->Update();
+  WriteImage<ByteImageType>( rescaler2->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -1298,18 +1352,7 @@ int CorruptImage(int argc, char *argv[])
     }
 
   typename ImageType::Pointer image1 = NULL;
-  typename readertype::Pointer reader1 = readertype::New();
-  reader1->SetFileName(fn1.c_str() );
-  reader1->UpdateLargestPossibleRegion();
-  try
-    {
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
-
+  ReadImage<ImageType>(image1, fn1.c_str() );
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   Iterator iter( image1,  image1->GetLargestPossibleRegion() );
   for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
@@ -4015,10 +4058,6 @@ int ImageMath(int argc, char *argv[])
   typename ImageType::Pointer image2 = NULL;
   typename ImageType::Pointer varimage = NULL;
 
-  typename readertype::Pointer reader2 = readertype::New();
-  typename readertype::Pointer reader1 = readertype::New();
-  reader2->SetFileName(fn2.c_str() );
-
   bool  isfloat = false;
   float floatval = 1.0;
   if( from_string<float>(floatval, fn2, std::dec) )
@@ -4027,21 +4066,9 @@ int ImageMath(int argc, char *argv[])
     }
   else
     {
-    reader2->Update();
-    image2 = reader2->GetOutput();
+    ReadImage<ImageType>(image2, fn2.c_str() );
     }
-
-  reader1->SetFileName(fn1.c_str() );
-  try
-    {
-    reader1->UpdateLargestPossibleRegion();
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
-
+  ReadImage<ImageType>(image1, fn1.c_str() );
   varimage = AllocImage<ImageType>(image1);
 
   if( strcmp(operation.c_str(), "mresample") == 0 && !isfloat )
@@ -4202,10 +4229,6 @@ int VImageMath(int argc, char *argv[])
   typename ImageType::Pointer image2 = NULL;
   typename ImageType::Pointer varimage = NULL;
 
-  typename readertype::Pointer reader2 = readertype::New();
-  typename readertype::Pointer reader1 = readertype::New();
-  reader2->SetFileName(fn2.c_str() );
-
   bool  isfloat = false;
   float floatval = 1.0;
   if( from_string<float>(floatval, fn2, std::dec) )
@@ -4214,21 +4237,9 @@ int VImageMath(int argc, char *argv[])
     }
   else
     {
-    reader2->Update();
-    image2 = reader2->GetOutput();
+    ReadImage<ImageType>(image2, fn2.c_str() );
     }
-
-  reader1->SetFileName(fn1.c_str() );
-  try
-    {
-    reader1->UpdateLargestPossibleRegion();
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
-
+  ReadImage<ImageType>(image1, fn1.c_str() );
   varimage = AllocImage<ImageType>(image1);
 
   if( strcmp(operation.c_str(), "mresample") == 0 && !isfloat )
@@ -4813,15 +4824,10 @@ int CompareHeadersAndImages(int argc, char *argv[])
 
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
-
-  typename readertype::Pointer reader2 = readertype::New();
-  typename readertype::Pointer reader1 = readertype::New();
-  reader2->SetFileName(fn2.c_str() );
-
   bool isfloat = false;
   try
     {
-    reader2->UpdateLargestPossibleRegion();
+    ReadImage<ImageType>( image2, fn2.c_str() );
     }
   catch( ... )
     {
@@ -4836,14 +4842,12 @@ int CompareHeadersAndImages(int argc, char *argv[])
     }
   else
     {
-    image2 = reader2->GetOutput();
+    ReadImage<ImageType>(image2, fn2.c_str() );
     }
 
-  reader1->SetFileName(fn1.c_str() );
   try
     {
-    reader1->UpdateLargestPossibleRegion();
-    image1 = reader1->GetOutput();
+    ReadImage<ImageType>(image1, fn1.c_str() );
     }
   catch( ... )
     {
@@ -5059,10 +5063,7 @@ int CompareHeadersAndImages(int argc, char *argv[])
     image2->SetDirection(image1->GetDirection() );
     }
   // write repaired images
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( image2 );
-  writer->Write();
+  WriteImage<ImageType>( image2, outname.c_str() );
   antscout << "  FailureState: " << failure << " for " << fn2  << std::endl;
   return failure;
 }
@@ -5517,18 +5518,7 @@ int NegativeImage(int argc, char *argv[])
     }
 
   typename ImageType::Pointer image1 = NULL;
-  typename readertype::Pointer reader1 = readertype::New();
-  reader1->SetFileName(fn1.c_str() );
-  reader1->UpdateLargestPossibleRegion();
-  try
-    {
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
-
+  ReadImage<ImageType>( image1, fn1.c_str() );
   Iterator vfIter2( image1,  image1->GetLargestPossibleRegion() );
   double   mx = -1.e12, mn = 1.e12;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -5557,10 +5547,7 @@ int NegativeImage(int argc, char *argv[])
     vfIter2.Set(pix);
     }
 
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( image1 );
-  writer->Write();
+  WriteImage<ImageType>( image1, outname.c_str() );
 
   return 0;
 }
@@ -6229,11 +6216,7 @@ int SmoothImage(int argc, char *argv[])
   filter->SetInput(image1);
   filter->Update();
   varimage = filter->GetOutput();
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( varimage );
-  writer->Write();
-
+  WriteImage<ImageType>( varimage, outname.c_str() );
   return 0;
 }
 
@@ -6305,10 +6288,11 @@ int MorphImage(int argc, char *argv[])
     }
 
   image1 = ants::Morphological<ImageType>(image1, sigma, morphopt, dilateval);
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( image1 );
-  writer->Write();
+
+  if( outname.length() > 3 )
+    {
+    WriteImage<ImageType>(image1, outname.c_str() );
+    }
 
   return 0;
 }
@@ -6348,13 +6332,11 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
     topocheck = atoi(argv[argct]);   argct++;
     }
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  typename ReaderType::Pointer reader1 = ReaderType::New();
-  reader1->SetFileName( fn1.c_str() );
-
+  typename ImageType::Pointer image1;
+  ReadImage<ImageType>(image1, fn1.c_str() );
   typedef itk::FastMarchingImageFilter<ImageType> FilterType;
   typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( reader1->GetOutput() );
+  filter->SetInput( image1 );
 
   typedef typename FilterType::NodeContainer  NodeContainer;
   typedef typename FilterType::NodeType       NodeType;
@@ -6452,12 +6434,9 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
       }
     }
 
+  if( outname.length() > 3 )
     {
-    typedef itk::ImageFileWriter<ImageType> WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetFileName( outname.c_str() );
-    writer->SetInput( filter->GetOutput() );
-    writer->Update();
+    WriteImage<ImageType>(filter->GetOutput(), outname.c_str() );
     }
 
   return 0;
@@ -6635,10 +6614,10 @@ int DistanceMap(int argc, char *argv[])
   filter->SetInput(image1);
   filter->Update();
 
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( filter->GetOutput() );
-  writer->Write();
+  if( outname.length() > 3 )
+    {
+    WriteImage<ImageType>(filter->GetOutput(), outname.c_str() );
+    }
 
   return 0;
 }
@@ -6881,10 +6860,10 @@ int NormalizeImage(int argc, char *argv[])
       }
     }
 
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( image );
-  writer->Write();
+  if( outname.length() > 3 )
+    {
+    WriteImage<ImageType>( image, outname.c_str() );
+    }
 
   return 0;
 }
@@ -6911,16 +6890,15 @@ int PrintHeader(int argc, char *argv[])
     }
   //  std::string opt = std::string(argv[argct]);   argct++;
 
-  typename readertype::Pointer reader = readertype::New();
-  reader->SetFileName(fn1.c_str() );
-  reader->Update();
-  antscout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
-  antscout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
-  antscout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
-  antscout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+  typename ImageType::Pointer image;
+  ReadImage<ImageType>(image, fn1.c_str() );
+  antscout << " Spacing " << image->GetSpacing() << std::endl;
+  antscout << " Origin " << image->GetOrigin() << std::endl;
+  antscout << " Direction " << std::endl << image->GetDirection() << std::endl;
+  antscout << " Size " << std::endl << image->GetLargestPossibleRegion().GetSize() << std::endl;
 
   //  if (strcmp(operation.c_str(),"n_last_dim") == 0){
-  // unsigned int lastdim=reader->GetOutput()->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
+  // unsigned int lastdim=image->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
   //   std::ofstream logfile;
   // logfile.open(outname.c_str() );
   // if (logfile.good()  )
@@ -7200,11 +7178,7 @@ int PoissonDiffusion( int argc, char *argv[])
       }
     }
 
-  typedef itk::ImageFileWriter<ImageType> WriterType;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( argv[2] );
-  writer->SetInput( output );
-  writer->Update();
+  WriteImage<ImageType>( output, argv[2] );
 
   return 0;
 }
@@ -8075,11 +8049,10 @@ int Lipschitz( int argc, char *argv[] )
   timer.Stop();
 //    antscout << "Elapsed time: " << timer.GetMeanTime()  << std::endl;
 
-  typedef itk::ImageFileWriter<RealImageType> RealImageWriterType;
-  typename RealImageWriterType::Pointer realwriter = RealImageWriterType::New();
-  realwriter->SetFileName( outname.c_str() );
-  realwriter->SetInput( lipcon );
-  realwriter->Update();
+  if( outname.length() > 3 )
+    {
+    WriteImage<RealImageType>( lipcon, outname.c_str() );
+    }
 
   return 0;
 }
@@ -8121,11 +8094,7 @@ int ExtractVectorComponent( int argc, char *argv[] )
       {
       component->SetPixel(It1.GetIndex(), It1.Get()[whichvec]);
       }
-    typedef itk::ImageFileWriter<RealImageType> RealImageWriterType;
-    typename RealImageWriterType::Pointer realwriter = RealImageWriterType::New();
-    realwriter->SetFileName( outname.c_str() );
-    realwriter->SetInput( component );
-    realwriter->Update();
+    WriteImage<RealImageType>( component, outname.c_str() );
     }
   return EXIT_SUCCESS;
 }
@@ -8225,11 +8194,7 @@ int InvId( int argc, char *argv[] )
   timer.Stop();
 //    antscout << "Elapsed time: " << timer.GetMeanTime()  << std::endl;
 
-  typedef itk::ImageFileWriter<RealImageType> RealImageWriterType;
-  typename RealImageWriterType::Pointer realwriter = RealImageWriterType::New();
-  realwriter->SetFileName( outname.c_str() );
-  realwriter->SetInput( invid );
-  realwriter->Update();
+  WriteImage<RealImageType>( invid, outname.c_str() );
 
   return 0;
 }
@@ -8634,7 +8599,7 @@ int ROIStatistics(      int argc, char *argv[])
     {
     unsigned int roi = mylabel - 1;
     /* first count which roi it is by iterating through the label sets
-    it = myLabelSet.begin();
+     it = myLabelSet.begin();
     while (  (*it) != mylabel && it != myLabelSet.end() )
   {
     antscout << " it " << *it << " roi " << roi << " mylabel " << mylabel << std::endl;
@@ -8948,10 +8913,7 @@ int ByteImage(      int argc, char *argv[])
   rescaler->SetOutputMaximum( 255 );
   rescaler->SetInput( image );
 
-  typename writertype::Pointer writer = writertype::New();
-  writer->SetFileName(outname.c_str() );
-  writer->SetInput( rescaler->GetOutput() );
-  writer->Update();
+  WriteImage<ByteImageType>( rescaler->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -11147,6 +11109,11 @@ private:
       << std::endl;
 
     antscout
+      << "\n  ClusterThresholdVariate        :  for sparse estimation "
+      << std::endl;
+    antscout << "      Usage        : ClusterThresholdVariate image mask  MinClusterSize" << std::endl;
+
+    antscout
       << "\n  ExtractSlice        : Extracts slice number from last dimension of volume (2,3,4) dimensions "
       << std::endl;
     antscout << "      Usage        : ExtractSlice volume.nii.gz slicetoextract" << std::endl;
@@ -11576,6 +11543,10 @@ private:
         {
         ExtractSlice<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ClusterThresholdVariate") == 0 )
+        {
+        ClusterThresholdVariate<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "STAPLE") == 0 )
         {
         STAPLE<2>(argc, argv);
@@ -11961,6 +11932,10 @@ private:
         {
         ExtractSlice<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ClusterThresholdVariate") == 0 )
+        {
+        ClusterThresholdVariate<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
         {
         ConvertLandmarkFile<3>(argc, argv);
@@ -12309,6 +12284,10 @@ private:
       else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
         {
         ExtractSlice<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ClusterThresholdVariate") == 0 )
+        {
+        ClusterThresholdVariate<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
         {
