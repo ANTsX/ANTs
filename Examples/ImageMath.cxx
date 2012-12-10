@@ -82,6 +82,7 @@
 #include "itkSampleToHistogramFilter.h"
 #include "itkScalarImageKmeansImageFilter.h"
 #include "itkShrinkImageFilter.h"
+#include "itkSigmoidImageFilter.h"
 #include "itkSize.h"
 #include "itkSphereSpatialFunction.h"
 #include "itkSTAPLEImageFilter.h"
@@ -1666,6 +1667,49 @@ int PadImage(int argc, char *argv[])
 
   WriteImage<ImageType>(padimage, outname.c_str() );
 
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int SigmoidImage(int argc, char *argv[])
+{
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::ImageFileReader<ImageType>       ReaderType;
+  typedef itk::ImageFileWriter<ImageType>       WriterType;
+
+  int         argct = 2;
+  std::string outname = std::string( argv[argct++] );
+  std::string operation = std::string( argv[argct++] );
+  std::string inputFilename = std::string( argv[argct++] );
+
+  double alpha = 1.0;
+  if( argc > argct )
+    {
+    alpha = atof( argv[argct++] );
+    }
+  double beta = 0.0;
+  if( argc > argct )
+    {
+    beta = atof( argv[argct++] );
+    }
+
+  typename ImageType::Pointer inputImage = NULL;
+  if( inputFilename.length() > 3 )
+    {
+    ReadImage<ImageType>( inputImage, inputFilename.c_str() );
+    }
+
+  typedef itk::SigmoidImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( inputImage );
+  filter->SetAlpha( alpha );
+  filter->SetBeta( beta );
+  filter->SetOutputMinimum( 0.0 );
+  filter->SetOutputMaximum( 1.0 );
+  filter->Update();
+
+  WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -11173,11 +11217,14 @@ private:
     antscout << "\n  Normalize        : Normalize to [0,1]. Option instead divides by average value" << std::endl;
     antscout << "      Usage        : Normalize Image.ext opt" << std::endl;
 
-    antscout << "\n  PadImage        : If Pad-Number is negative, de-Padding occurs" << std::endl;
+    antscout << "\n  PadImage       : If Pad-Number is negative, de-Padding occurs" << std::endl;
     antscout << "      Usage        : PadImage ImageIn Pad-Number" << std::endl;
 
+    antscout << "\n  SigmoidImage   : " << std::endl;
+    antscout << "      Usage        : SigmoidImage ImageIn [alpha=1.0] [beta=0.0]" << std::endl;
+
     antscout << "\n  CenterImage2inImage1        : " << std::endl;
-    antscout << "      Usage        : ReferenceImageSpace ImageToCenter " << std::endl;
+    antscout << "      Usage       : ReferenceImageSpace ImageToCenter " << std::endl;
 
     antscout << "\n  PH            : Print Header" << std::endl;
 
@@ -11447,6 +11494,10 @@ private:
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
         PadImage<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
+        {
+        SigmoidImage<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
         {
@@ -11834,6 +11885,10 @@ private:
         {
         PadImage<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
+        {
+        SigmoidImage<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
         {
         SetOrGetPixel<3>(argc, argv);
@@ -12181,6 +12236,10 @@ private:
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
         PadImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
+        {
+        SigmoidImage<4>(argc, argv);
         }
       //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
       else if( strcmp(operation.c_str(), "MakeImage") == 0 )
