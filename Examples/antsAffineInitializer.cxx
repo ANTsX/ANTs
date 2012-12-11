@@ -394,11 +394,15 @@ int antsAffineInitializerImp(int argc, char *argv[])
   antscout << " Scales: " << movingScales << std::endl;
   mstartOptimizer->SetMetric( mimetric );
   typename OptimizerType::ParametersListType parametersList = mstartOptimizer->GetParametersList();
-  for( double ang1 = ( piover4 * (-1) ); ang1 <= piover4; ang1 = ang1 + searchfactor )
+  affinesearch->SetIdentity();
+  affinesearch->SetCenter( trans2 );
+  affinesearch->SetOffset( trans );
+  parametersList.push_back( affinesearch->GetParameters() );
+  for( double ang1 = ( piover4 * (-1) ); ang1 <= ( piover4 + searchfactor ); ang1 = ang1 + searchfactor )
     {
     if( ImageDimension == 3 )
       {
-      for( double ang2 = ( piover4 * (-1) ); ang2 <= piover4; ang2 = ang2 + searchfactor )
+      for( double ang2 = ( piover4 * (-1) ); ang2 <= ( piover4 + searchfactor ); ang2 = ang2 + searchfactor )
         {
         affinesearch->SetIdentity();
         affinesearch->SetCenter( trans2 );
@@ -437,14 +441,15 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetMetric( mimetric );
   localoptimizer->SetScales( movingScales );
   localoptimizer->SetLearningRate( localoptimizerlearningrate );
-  localoptimizer->SetMaximumStepSizeInPhysicalUnits( localoptimizerlearningrate * sqrt( small_step ) );
+  localoptimizer->SetMaximumStepSizeInPhysicalUnits( localoptimizerlearningrate ); // * sqrt( small_step )
   localoptimizer->SetNumberOfIterations( localoptimizeriterations );
   localoptimizer->SetLowerLimit( 0 );
   localoptimizer->SetUpperLimit( 2 );
   localoptimizer->SetEpsilon( 0.1 );
+  localoptimizer->SetMaximumLineSearchIterations( 20 );
   localoptimizer->SetDoEstimateLearningRateOnce( true );
-  localoptimizer->SetMinimumConvergenceValue( 1.e-8 );
-  localoptimizer->SetConvergenceWindowSize( 10 );
+  localoptimizer->SetMinimumConvergenceValue( 1.e-6 );
+  localoptimizer->SetConvergenceWindowSize( 3 );
 
   antscout << "Begin MultiStart: " << parametersList.size() << " searches between -/+ " << piover4 / pi
            << " radians " << std::endl;
