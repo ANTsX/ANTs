@@ -109,7 +109,7 @@ $reg -d $dim  \
                         -m mattes[  ${nmA}_aff.nii.gz, $B, 1 , 32, random , 0.1 ] $aff \
                        -o [${nmB},${nmB}_aff.nii.gz]
 # now we can do a symmetric deformable mapping
-antsApplyTransforms -d $dim -i $B -o ${nm}_aff.nii.gz -t [ $initA, 1 ] -t  $initB -r $A
+antsApplyTransforms -d $dim -i $B -o ${nm}_aff.nii.gz -t [ $initAmat, 1 ] -t  $initBmat -r $A
 # if [[ ! -s ${nm}1Warp.nii.gz ]]  ; then
   echo now do deformable expecting $initB and $initA to exist
   if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
