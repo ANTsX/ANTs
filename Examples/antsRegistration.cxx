@@ -123,30 +123,38 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     parser->AddOption( option );
     }
 
-    {
-    std::string description = std::string( "Collapse initial linear transforms " )
-      + std::string( "to the fixed image header.  This should speed up subsequent " )
-      + std::string( "nonlinear transform optimizations." );
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "collapse-linear-transforms-to-fixed-image-header" );
-    option->SetShortName( 'b' );
-    option->SetUsageOption( 0, "1/(0)" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
+// This is currently not functioning properly for all linear transforms.  If I
+// restrict the linear transforms to rigid transforms, then it seems to work.
+// I think there's something in working with images that doesn't work properly
+// with a generic affine transform in the header.  You can certainly store it
+// and read it from the header but perhaps this interferes with something fundamental
+// like transforming indices to physical coordinates.  I'll have to investigate
+// in the future.
+
+//     {
+//     std::string description = std::string( "Collapse initial linear transforms " )
+//       + std::string( "to the fixed image header.  This should speed up subsequent " )
+//       + std::string( "nonlinear transform optimizations." );
+//     OptionType::Pointer option = OptionType::New();
+//     option->SetLongName( "collapse-linear-transforms-to-fixed-image-header" );
+//     option->SetShortName( 'b' );
+//     option->SetUsageOption( 0, "1/(0)" );
+//     option->SetDescription( description );
+//     option->AddFunction( std::string( "0" ) );
+//     parser->AddOption( option );
+//     }
 
     {
     std::string description = std::string( "Collapse output transforms. " )
       + std::string( "Specifically, enabling this option combines all adjacent linear transforms " )
       + std::string( "and composes all adjacent displacement field transforms before writing the " )
-      + std::string( "results to disk." );
+      + std::string( "results to disk in the form of an itk affine transform (called xxxGenericAffine.mat). " );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "collapse-output-transforms" );
     option->SetShortName( 'z' );
-    option->SetUsageOption( 0, "1/(0)" );
+    option->SetUsageOption( 0, "(1)/0" );
     option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
+    option->AddFunction( std::string( "1" ) );
     parser->AddOption( option );
     }
 
@@ -466,7 +474,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer collapseLinearTransforms =
     parser->GetOption( "collapse-linear-transforms-to-fixed-image-header" );
-  if( parser->Convert<bool>( collapseLinearTransforms->GetFunction( 0 )->GetName() ) )
+  if( collapseLinearTransforms && parser->Convert<bool>( collapseLinearTransforms->GetFunction( 0 )->GetName() ) )
     {
     regHelper->SetApplyLinearTransformsToFixedImageHeader( true );
     }
