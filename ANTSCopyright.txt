@@ -1,5 +1,5 @@
 ConsortiumOfANTS® - http://www.picsl.upenn.edu/ANTS/
-Copyright (c) 2009-2010 (updated to current year ad infinitum)
+Copyright (c) 2009-2013 (updated to current year ad infinitum)
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

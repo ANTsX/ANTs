@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.5)
 cmake_policy(VERSION 2.8.5)
 
 set(LOCAL_PROJECT_NAME ANTS)
-
+INCLUDE(InstallRequiredSystemLibraries)
 ## NOTE THERE SHOULD BE NO PROJECT STATEMENT HERE!
 ## This file acts as a simple switch to initiate
 ## two completely independant CMake build environments.
@@ -28,33 +28,29 @@ mark_as_advanced(${LOCAL_PROJECT_NAME}_USE_QT)
 option(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT "Install development support include and libraries for external packages." OFF)
 mark_as_advanced(${LOCAL_PROJECT_NAME}_INSTALL_DEVELOPMENT)
 
+set(CPACK_PACKAGE_NAME "ANTs")
+set(CPACK_PACKAGE_VENDOR "CMake.org")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
+set(CPACK_PACKAGE_VERSION "1.9.v4")
+set(CPACK_PACKAGE_VERSION_MAJOR "1")
+set(CPACK_PACKAGE_VERSION_MINOR "9")
+set(CPACK_PACKAGE_VERSION_PATCH "v4")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS_Install")
+set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - robust image registration, segmentation and more")
+set(CPACK_RESOURCE_FILE_LICENSE  "${CMAKE_CURRENT_SOURCE_DIR}/ANTSCopyright.txt")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.txt")
 #-----------------------------------------------------------------------------
 # Superbuild script
 #-----------------------------------------------------------------------------
 if(${LOCAL_PROJECT_NAME}_SUPERBUILD)
   project(SuperBuild_${LOCAL_PROJECT_NAME})
   include("${CMAKE_CURRENT_SOURCE_DIR}/SuperBuild.cmake")
-  set(CPACK_PACKAGE_NAME "ANTs")
-  set(CPACK_PACKAGE_VENDOR "CMake.org")
-  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
-  set(CPACK_PACKAGE_VERSION "1.9.v4")
-  set(CPACK_PACKAGE_VERSION_MAJOR "1")
-  set(CPACK_PACKAGE_VERSION_MINOR "9")
-  set(CPACK_PACKAGE_VERSION_PATCH "v4")
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS")
   include(CPack)   # This must always be last!
   return()
 else()
   project(${LOCAL_PROJECT_NAME})
   include("${CMAKE_CURRENT_SOURCE_DIR}/${LOCAL_PROJECT_NAME}.cmake")
-  set(CPACK_PACKAGE_NAME "ANTs")
-  set(CPACK_PACKAGE_VENDOR "CMake.org")
-  set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANTs - Advanced Normalization Tools")
-  set(CPACK_PACKAGE_VERSION "1.9.v4")
-  set(CPACK_PACKAGE_VERSION_MAJOR "1")
-  set(CPACK_PACKAGE_VERSION_MINOR "9")
-  set(CPACK_PACKAGE_VERSION_PATCH "v4")
-  set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS")
   include(CPack)   # This must always be last!
   return()
 endif()

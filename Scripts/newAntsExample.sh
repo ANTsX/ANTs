@@ -12,17 +12,28 @@ nm2=` basename $m | cut -d '.' -f 1 `
 nm=${D}${nm1}_fixed_${nm2}_moving   # construct output prefix
 reg=${AP}antsRegistration           # path to antsRegistration
 echo affine $m $f outname is $nm
+its=10000x0x0
 $reg -d $dim -r [ $f, $m ,1]  \
                         -m mattes[  $f, $m , 1 , 32, regular, 0.1 ] \
-                         -t affine[ 1 ] \
-                         -c [10000x1000x1000,1.e-8,20]  \
+                         -t translation[ 0.1 ] \
+                         -c [$its,1.e-8,20]  \
+                        -s 4x2x1  \
+                        -f 6x4x2 -l 1 \
+                        -m mattes[  $f, $m , 1 , 32, regular, 0.1 ] \
+                         -t rigid[ 0.1 ] \
+                         -c [$its,1.e-8,20]  \
+                        -s 4x2x1  \
+                        -f 6x4x2 -l 1 \
+                        -m mattes[  $f, $m , 1 , 32, regular, 0.1 ] \
+                         -t affine[ 0.1 ] \
+                         -c [$its,1.e-8,20]  \
                         -s 4x2x1  \
                         -f 6x4x2 -l 1 \
                         -m mattes[  $f, $m , 1 , 32 ] \
                          -t syn[ .3, 3, 0.0 ] \
-                         -c [100x0x0,1.e-8,20]  \
+                         -c [10x0x0,1.e-8,20]  \
                         -s 2x1x0  \
-                        -f 4x2x1 -l 1 -u 1 \
+                        -f 4x2x1 -l 1 -u 1 -z 1 \
                        -o [${nm},${nm}_diff.nii.gz,${nm}_inv.nii.gz]
 
-${AP}antsApplyTransforms -d $dim -i $m -r $f -n linear -t ${nm}1Warp.nii.gz -t ${nm}0Affine.mat ${nm}DerivedInitialMovingTranslation.mat -o ${nm}_warped.nii.gz
+${AP}antsApplyTransforms -d $dim -i $m -r $f -n linear -t ${nm}1Warp.nii.gz -t ${nm}0GenericAffine.mat -o ${nm}_warped.nii.gz
