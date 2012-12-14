@@ -1682,10 +1682,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType x_i = this->m_MatrixP.get_row( a );
     ::ants::antscout << "indat " << x_i.mean() << std::endl;
     VectorType lmsolv = matrixB.get_row( a );
-    (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
+    (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 1.e-6, 10000 ); // A x = b
     //    vnl_svd<RealType> lmsolver( this->m_VariatesP, 1.e-6 );
     //    lmsolv = lmsolver.solve( x_i );
-    //    this->m_Intercept = this->ComputeIntercept(  this->m_VariatesP, lmsolv, x_i );
     ::ants::antscout << "lmsolv " << lmsolv.mean() << std::endl;
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     ::ants::antscout << "x_recon " << x_recon.mean() << std::endl;
