@@ -1468,11 +1468,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       unsigned int fnz = 0;
       for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
         {
-        if( vnl_math_abs( priorrow( y ) ) > 1.e-6 )
+        if( vnl_math_abs( priorrow( y ) ) > 0.2500000 )
           {
           fnz++;
           }
-        if( this->m_FractionNonZeroP < 0.2500000  )
+        if( this->m_FractionNonZeroP <  1.e-10  )
           {
           sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols();
           }
