@@ -1680,20 +1680,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
     {
     VectorType x_i = this->m_MatrixP.get_row( a );
-    ::ants::antscout << "indat " << x_i.mean() << std::endl;
+    //    ::ants::antscout << "indat " << x_i.mean() << std::endl;
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
     //    vnl_svd<RealType> lmsolver( this->m_VariatesP, 1.e-6 );
     //    lmsolv = lmsolver.solve( x_i );
-    ::ants::antscout << "lmsolv " << lmsolv.mean() << std::endl;
+    //    ::ants::antscout << "lmsolv " << lmsolv.mean() << std::endl;
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
-    ::ants::antscout << "x_recon " << x_recon.mean() << std::endl;
+    //    ::ants::antscout << "x_recon " << x_recon.mean() << std::endl;
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();
     reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
     matrixB.set_row( a, lmsolv );
     RealType localcorr = this->PearsonCorr( x_recon, x_i  );
-    ::ants::antscout << "loccorr " << localcorr << std::endl;
+    //    ::ants::antscout << "loccorr " << localcorr << std::endl;
     meancorr += localcorr;
     }
   ::ants::antscout << "Corr: " << meancorr / this->m_MatrixP.rows()  << std::endl;
