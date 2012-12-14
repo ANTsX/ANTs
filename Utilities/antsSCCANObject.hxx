@@ -1472,7 +1472,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           {
           fnz++;
           }
-        if( this->m_FractionNonZeroP < 1.e-10  )
+        if( this->m_FractionNonZeroP < 0.2500000  )
           {
           sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols();
           }
@@ -1681,7 +1681,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     VectorType x_i = this->m_MatrixP.get_row( a );
     VectorType lmsolv = matrixB.get_row( a );
-    (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
+    //    (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
+    vnl_svd<RealType> lmsolver( this->m_VariatesP, 1.e-6 );
+    lmsolv = lmsolver.solve( x_i );
+    this->m_Intercept = this->ComputeIntercept(  this->m_VariatesP, lmsolv, x_i );
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();
@@ -2972,7 +2975,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType orthvec = nvec;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      orthvec = this->Orthogonalize( orthvec, this->m_VariatesP.get_column( orth ) );
+      //    orthvec = this->Orthogonalize( orthvec, this->m_VariatesP.get_column( orth ) );
       /** alternative --- orthogonalize in n-space
       VectorType v = A * this->m_VariatesP.get_column( orth );
       RealType ip1 = inner_product( A * nvec,  v );
