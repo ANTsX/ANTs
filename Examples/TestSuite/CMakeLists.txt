@@ -34,14 +34,7 @@ endmacro(MakeTestDriverFromANTSbinary ANTSbinaryName)
 #-----------------------------------------------------------------------
 # Setup locations to find externally maintained test data.
 #-----------------------------------------------------------------------
-list(APPEND ExternalData_URL_TEMPLATES
-  # Local data store populated by the ITK pre-commit hook
-  "file:///${${PROJECT_NAME}_SOURCE_DIR}/.ExternalData/%(algo)/%(hash)"
-  # Data published by Iowa Psychiatry web interface
-  #"http://www.psychiatry.uiowa.edu/users/brainstestdata/ctestdata/%(algo)/%(hash)"
-  # Alternate data source for tests
-  "http://slicer.kitware.com/midas3/api/rest?method=midas.bitstream.download&checksum=%(hash)"
-)
+include(ANTSExternalData)
 
 # Tell ExternalData commands to transform raw files to content links.
 set(ExternalData_LINK_CONTENT MD5)
