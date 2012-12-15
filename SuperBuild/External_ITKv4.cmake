@@ -75,11 +75,13 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DITK_USE_REVIEW:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DUSE_WRAP_ITK:BOOL=OFF ## HACK:  QUICK CHANGE
+      -DITK_USE_SYSTEM_DCMTK:BOOL=OFF
+      -DModule_ITKIODCMTK:BOOL=OFF
       ${FFTWF_FLAGS}
     )
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
-  set(${proj}_GIT_TAG 2823c65d64f92f4e3cef8bae078271b336c68a6f) #2012-11-29
+  set(${proj}_GIT_TAG 57011fe11b3106a9c03185c2af18c1ed197224c5) #2012-12-15
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
