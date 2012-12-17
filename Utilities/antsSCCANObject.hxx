@@ -1474,7 +1474,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
           }
         if( this->m_FractionNonZeroP <  1.e-10  )
           {
-          sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols();
+          sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
           }
         }
       }
@@ -1604,6 +1604,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   if( inner_product( prior, evec ) == 0 )
     {
     evec.update( prior, 0  );
+    this->SparsifyP( evec  );
     }
   VectorType proj = ( A * evec ) * lam1 + this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
   VectorType lastgrad = evec;
@@ -1652,14 +1653,21 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       rayquo = inner_product( proj, proj  ) / denom;
       }
     powerits++;
-    if( rayquo > rayquold )
+    if( rayquo > rayquold || powerits == 1 )
       {
       bestevec = evec;
       }
     }
 
   evec = bestevec;
-  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth << std::endl;
+  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
+  if( inner_product( prior, evec ) == 0 )
+    {
+    evec.update( prior, 0  );
+    this->SparsifyP( evec  );
+    ::ants::antscout << " recompute " << maxorth;
+    }
+  ::ants::antscout << std::endl;
   return rayquo;
 }
 
