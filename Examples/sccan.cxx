@@ -1369,6 +1369,10 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     antscout << "Warning:  no output option set." << std::endl;
     writeoutput = false;
     }
+  if( newimp > 0 )
+    {
+    antscout << "New imp irrelevant " << std::endl;
+    }
   itk::ants::CommandLineParser::OptionType::Pointer option =
     parser->GetOption( "scca" );
   typedef itk::Image<PixelType, ImageDimension>         ImageType;
@@ -1402,6 +1406,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   vMatrix     q;
   // antscout <<" read-q "<< std::endl;
   ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
+  //  antscout << q.get_row(0) << std::endl;
+  //  antscout << q.mean() << std::endl;
   if( CompareMatrixSizes<Scalar>( p, q ) == EXIT_FAILURE )
     {
     return EXIT_FAILURE;
@@ -1441,23 +1447,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sccanobj->SetMatrixQ( q );
   sccanobj->SetMaskImageP( mask1 );
   sccanobj->SetMaskImageQ( mask2 );
-  unsigned int ihtval = 0;
-  double       truecorr = 0;
-  if( newimp )
-    {
-    truecorr = sccanobj->RidgeCCA(n_evec );
-    }
-  else
-    {
-    if( n_evec <= ihtval )
-      {
-      truecorr = sccanobj->IHTCCA(n_evec );
-      }
-    else
-      {
-      truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
-      }
-    }
+  double truecorr = 0;
+  truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
   vVector w_p = sccanobj->GetVariateP(0);
   vVector w_q = sccanobj->GetVariateQ(0);
   antscout << " true-corr " << sccanobj->GetCanonicalCorrelations() << std::endl;
@@ -1497,24 +1488,15 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     for( unsigned long pct = 0; pct <= permct; pct++ )
       {
       // 0. compute permutation for q ( switch around rows )
-      vMatrix q_perm = PermuteMatrix<Scalar>( sccanobj->GetMatrixQ() );
+      sccanobj->SetGradStep( gradstep );
+      sccanobj->SetMatrixP( p );
+      ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
+      vMatrix q_perm = PermuteMatrix<Scalar>( q );
       sccanobj->SetMatrixQ( q_perm );
       double permcorr = 0;
-      if( newimp )
-        {
-        permcorr = sccanobj->RidgeCCA(n_evec );
-        }
-      else
-        {
-        if( n_evec <= ihtval )
-          {
-          permcorr = sccanobj->IHTCCA(n_evec );
-          }
-        else
-          {
-          permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
-          }
-        }
+      permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
+      antscout << " perm-corr " << sccanobj->GetCanonicalCorrelations()  << std::endl;
+
       if( permcorr > truecorr )
         {
         perm_exceed_ct++;
