@@ -145,6 +145,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 //     }
 
     {
+    std::string description = std::string( "Prints out the CC similarity metric measure " )
+      + std::string( "between the original input fixed and moving images at each iteraton " );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "print-similarity-measure" );
+    option->SetShortName( 'p' );
+    option->SetUsageOption( 0, "1/(0)" );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Collapse output transforms. " )
       + std::string( "Specifically, enabling this option combines all adjacent linear transforms " )
       + std::string( "and composes all adjacent displacement field transforms before writing the " )
@@ -481,6 +493,16 @@ DoRegistration(typename ParserType::Pointer & parser)
   else
     {
     regHelper->SetApplyLinearTransformsToFixedImageHeader( false );
+    }
+
+  OptionType::Pointer printSimilarityMeasure = parser->GetOption( "print-similarity-measure" );
+  if( parser->Convert<bool>( printSimilarityMeasure->GetFunction( 0 )->GetName() ) )
+    {
+    regHelper->SetPrintSimilarityMeasure( true );
+    }
+  else
+    {
+    regHelper->SetPrintSimilarityMeasure( false );
     }
 
   std::string outputPrefix = outputOption->GetFunction( 0 )->GetName();

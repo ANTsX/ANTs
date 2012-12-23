@@ -93,8 +93,8 @@ public:
                      << std::setw(5) << lCurrentIteration << ", "
                      << std::scientific << std::setprecision(12) << filter->GetCurrentMetricValue() << ", "
                      << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "
-                     << std::scientific << std::setprecision(4) << now << ", "
-                     << std::scientific << std::setprecision(4) << (now - this->m_lastTotalTime) << ", "
+                     << std::setprecision(4) << now << ", "
+                     << std::setprecision(4) << (now - this->m_lastTotalTime) << ", "
                      << std::endl;
       this->m_lastTotalTime = now;
       m_clock.Start();
@@ -124,10 +124,306 @@ private:
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 };
 
+/*
+There are two types of registration that do not use generic "itkImageRegistrationMethodv4" filter and generic optimization structures:
+- DisplacementFieldRegistrationType
+  including:
+    * SyN registration
+    * BSplineSyN registration
+
+- VelocityFieldRegistrationType
+  including:
+    * TimeVaryingVelocityFeild
+    * TimeVaryingBSplineVelocityField
+As these registration types have their own specific optimization processes, a different observer is needed to watch their internal optimization procedure.
+*/
+template <class TFilter>
+class antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate : public itk::Command
+{
+public:
+  typedef antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate Self;
+  typedef itk::Command                                                       Superclass;
+  typedef itk::SmartPointer<Self>                                            Pointer;
+  itkNewMacro( Self );
+
+  typedef typename TFilter::FixedImageType  FixedImageType;
+  typedef typename TFilter::MovingImageType MovingImageType;
+
+  /** ImageDimension constants */
+  itkStaticConstMacro( VImageDimension, unsigned int, FixedImageType::ImageDimension );
+
+  typedef typename TFilter::OutputTransformType                          OutputTransformType;
+  typedef typename TFilter::OutputTransformType::ScalarType              RealType;
+  typedef itk::ImageToImageMetricv4<FixedImageType, MovingImageType>     MetricType;
+  typedef typename MetricType::MeasureType                               MeasureType;
+  typedef typename MetricType::VirtualImageType                          VirtualImageType;
+  typedef itk::CompositeTransform<RealType, VImageDimension>             CompositeTransformType;
+  typedef typename CompositeTransformType::TransformType                 TransformBaseType;
+  typedef itk::DisplacementFieldTransform<RealType, VImageDimension>     DisplacementFieldTransformType;
+  typedef typename DisplacementFieldTransformType::DisplacementFieldType DisplacementFieldType;
+  typedef typename DisplacementFieldType::PixelType                      DisplacementVectorType;
+  typedef itk::ImageDuplicator<DisplacementFieldType>                    DisplacementFieldDuplicatorType;
+protected:
+  antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate()
+  {
+    m_clock.Start();
+    m_clock.Stop();
+    const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
+    this->m_lastTotalTime = now;
+    m_clock.Start();
+    this->m_LogStream = &::ants::antscout;
+    this->m_MeasureSimilarityValue = false;
+  }
+
+public:
+
+  void Execute(itk::Object *caller, const itk::EventObject & event)
+  {
+    Execute( (const itk::Object *) caller, event);
+  }
+
+  void Execute(const itk::Object * object, const itk::EventObject & event )
+  {
+    TFilter const * const filter = dynamic_cast<const TFilter *>( object );
+
+    if( typeid( event ) != typeid( itk::IterationEvent ) )
+      {
+      return;
+      }
+    else if( typeid( event ) == typeid( itk::IterationEvent ) )
+      {
+      const unsigned int lCurrentIteration = filter->GetCurrentIteration();
+      if( lCurrentIteration  == 1 )
+        {
+        if( this->m_MeasureSimilarityValue )
+          {
+          // Print header line one time
+          this->Logger()
+            <<
+            "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,--,similarityMeasureValue"
+            << std::endl;
+          }
+        else
+          {
+          this->Logger() << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
+                         << std::endl;
+          }
+        }
+      m_clock.Stop();
+      const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
+
+      MeasureType metricValue = 0.0;
+      if( this->m_MeasureSimilarityValue )
+        {
+        // This function finds the similarity value between the original fixed image and the original moving images
+        // using a CC metric type with radius 5.
+        // The feature can be used to observe the progress of the registration process at each iteration.
+        this->UpdateMetricValue(filter, metricValue);
+        }
+
+      this->Logger() << "DIAGNOSTIC, "
+                     << std::setw(5) << lCurrentIteration << ", "
+                     << std::scientific << std::setprecision(12) << filter->GetCurrentMetricValue() << ", "
+                     << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "
+                     << std::setprecision(4) << now << ", "
+                     << std::setprecision(4) << (now - this->m_lastTotalTime) << ", ";
+      if( this->m_MeasureSimilarityValue )
+        {
+        this->Logger() << std::scientific << std::setprecision(12) <<  metricValue
+                       << std::endl;
+        }
+      else
+        {
+        this->Logger() << std::endl;
+        }
+
+      this->m_lastTotalTime = now;
+      m_clock.Start();
+      }
+  }
+
+  itkSetMacro( MeasureSimilarityValue, bool );
+  itkBooleanMacro( MeasureSimilarityValue );
+
+  void SetNumberOfIterations( const std::vector<unsigned int> & iterations )
+  {
+    this->m_NumberOfIterations = iterations;
+  }
+
+  void SetLogStream(std::ostream & logStream)
+  {
+    this->m_LogStream = &logStream;
+  }
+
+  void UpdateMetricValue(TFilter const * const filter,
+                         MeasureType & metricValue )
+  {
+    // Get the registration metric from the filter, input metric is needed to find the virtual domain image
+    typename MetricType::ConstPointer inputMetric(
+      dynamic_cast<MetricType *>( const_cast<TFilter *>( filter )->GetMetric() ) );
+    typename VirtualImageType::ConstPointer virtualDomainImage = inputMetric->GetVirtualImage();
+
+    ////////////////////////////////////Define the CC Metric Type to Compute Similarity
+    // Measure////////////////////////////
+    // This metric type is used to measure the general similarity metric between the original input fixed and moving
+    // images.
+    typename MetricType::Pointer metric;
+    typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, MovingImageType> CorrelationMetricType;
+    typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+      {
+      typename CorrelationMetricType::RadiusType radius;
+      radius.Fill( 5 );
+      correlationMetric->SetRadius( radius );
+      }
+    correlationMetric->SetUseMovingImageGradientFilter( false );
+    correlationMetric->SetUseFixedImageGradientFilter( false );
+    metric = correlationMetric;
+
+    /*
+     Below, the implementation is just provided for SyN registration filter.
+     TODO: expand the similarity metric implementation for other registration types mentioned above.
+     */
+    if( strcmp( inputMetric->GetMovingTransform()->GetNameOfClass(), "DisplacementFieldTransform" ) == 0 )
+      {
+      /*
+      Filter return the MovingToMiddleTransform and FixedToMiddleTransform of each iteration. These transforms are used to generate input transforms of our metric
+      NOTICE: Using const_cast for filter does not make any issue, because the requested outputs just will be copied to another objects.
+      */
+      // Copy the SyN internal transforms at each iteration
+      typename DisplacementFieldTransformType::Pointer myFixedToMiddleTransform = DisplacementFieldTransformType::New();
+      typename DisplacementFieldTransformType::Pointer myMovingToMiddleTransform =
+        DisplacementFieldTransformType::New();
+
+      // copy FixedToMiddleTransform
+      typename DisplacementFieldDuplicatorType::Pointer FixedDisplacementDuplicator =
+        DisplacementFieldDuplicatorType::New();
+      FixedDisplacementDuplicator->SetInputImage( const_cast<DisplacementFieldTransformType *>( filter->
+                                                                                                GetFixedToMiddleTransform() )->GetDisplacementField() );
+      FixedDisplacementDuplicator->Update();
+      typename DisplacementFieldDuplicatorType::Pointer FixedInverseDisplacementDuplicator =
+        DisplacementFieldDuplicatorType::New();
+      FixedInverseDisplacementDuplicator->SetInputImage( const_cast<DisplacementFieldTransformType *>( filter->
+                                                                                                       GetFixedToMiddleTransform() )->GetInverseDisplacementField() );
+      FixedInverseDisplacementDuplicator->Update();
+
+      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetOutput() );
+      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetOutput() );
+
+      // copy MovingToMiddleTransform
+      typename DisplacementFieldDuplicatorType::Pointer MovingDisplacementDuplicator =
+        DisplacementFieldDuplicatorType::New();
+      MovingDisplacementDuplicator->SetInputImage(  const_cast<DisplacementFieldTransformType *>( filter->
+                                                                                                  GetMovingToMiddleTransform() )->GetDisplacementField() );
+      MovingDisplacementDuplicator->Update();
+      typename DisplacementFieldDuplicatorType::Pointer MovingInverseDisplacementDuplicator =
+        DisplacementFieldDuplicatorType::New();
+      MovingInverseDisplacementDuplicator->SetInputImage( const_cast<DisplacementFieldTransformType *>( filter->
+                                                                                                        GetMovingToMiddleTransform() )->GetInverseDisplacementField() );
+      MovingInverseDisplacementDuplicator->Update();
+
+      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetOutput() );
+      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetOutput() );
+
+      // Based on SyN Registration implementation, fixed composite and moving composite transform is generated to
+      // compute the metric value at each iteration.
+      typedef typename TFilter::InitialTransformType InitialTransformType;
+
+      typename CompositeTransformType::Pointer fixedComposite = CompositeTransformType::New();
+      typename CompositeTransformType::Pointer movingComposite = CompositeTransformType::New();
+
+      fixedComposite->AddTransform( const_cast<InitialTransformType *>( filter->GetFixedInitialTransform() ) );
+      fixedComposite->AddTransform( myFixedToMiddleTransform->GetInverseTransform() );
+      fixedComposite->FlattenTransformQueue();
+      fixedComposite->SetOnlyMostRecentTransformToOptimizeOn();
+
+      movingComposite->AddTransform( const_cast<InitialTransformType *>( filter->GetMovingInitialTransform() ) );
+      movingComposite->AddTransform( myMovingToMiddleTransform->GetInverseTransform() );
+      movingComposite->FlattenTransformQueue();
+      movingComposite->SetOnlyMostRecentTransformToOptimizeOn();
+
+      // SyN uses the above composite transforms to compute the current metric value in two ways as follows:
+      /*
+       At the first method, the input images are downsampled by the fixed and moving transforms,
+       and then, the output of resamplers are passed to the metric with identity transforms.
+      */
+      if( filter->GetDownsampleImagesForMetricDerivatives() )
+        {
+        typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> FixedResamplerType;
+        typename FixedResamplerType::Pointer fixedResampler = FixedResamplerType::New();
+        fixedResampler->SetTransform( fixedComposite );
+        fixedResampler->SetInput( filter->GetFixedImage() );
+        fixedResampler->SetSize( virtualDomainImage->GetRequestedRegion().GetSize() );
+        fixedResampler->SetOutputOrigin( virtualDomainImage->GetOrigin() );
+        fixedResampler->SetOutputSpacing( virtualDomainImage->GetSpacing() );
+        fixedResampler->SetOutputDirection( virtualDomainImage->GetDirection() );
+        fixedResampler->SetDefaultPixelValue( 0 );
+        fixedResampler->Update();
+
+        typedef itk::ResampleImageFilter<MovingImageType, MovingImageType> MovingResamplerType;
+        typename MovingResamplerType::Pointer movingResampler = MovingResamplerType::New();
+        movingResampler->SetTransform( movingComposite );
+        movingResampler->SetInput( filter->GetMovingImage() );
+        movingResampler->SetSize( virtualDomainImage->GetRequestedRegion().GetSize() );
+        movingResampler->SetOutputOrigin( virtualDomainImage->GetOrigin() );
+        movingResampler->SetOutputSpacing( virtualDomainImage->GetSpacing() );
+        movingResampler->SetOutputDirection( virtualDomainImage->GetDirection() );
+        movingResampler->SetDefaultPixelValue( 0 );
+        movingResampler->Update();
+
+        typedef typename itk::IdentityTransform<RealType, VImageDimension> IdentityTransformType;
+        typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
+
+        const DisplacementVectorType zeroVector( 0.0 );
+        typename DisplacementFieldType::Pointer identityField = DisplacementFieldType::New();
+        identityField->CopyInformation( virtualDomainImage );
+        identityField->SetRegions( virtualDomainImage->GetRequestedRegion() );
+        identityField->Allocate();
+        identityField->FillBuffer( zeroVector );
+
+        typename DisplacementFieldTransformType::Pointer identityDisplacementFieldTransform =
+          DisplacementFieldTransformType::New();
+        identityDisplacementFieldTransform->SetDisplacementField( identityField );
+
+        metric->SetFixedImage( fixedResampler->GetOutput() );
+        metric->SetFixedTransform( identityTransform );
+        metric->SetMovingImage( movingResampler->GetOutput() );
+        metric->SetMovingTransform( identityDisplacementFieldTransform );
+        }
+      /*
+       At the second method, the computed fixed and moving composite transforms are passed to the filter directly
+       with the original fixed and moving images.
+      */
+      else if( !( filter->GetDownsampleImagesForMetricDerivatives() ) )
+        {
+        metric->SetFixedImage( filter->GetFixedImage() );
+        metric->SetFixedTransform( fixedComposite );
+        metric->SetMovingImage( filter->GetMovingImage() );
+        metric->SetMovingTransform( movingComposite );
+        }
+      }
+    metric->SetVirtualDomainFromImage( virtualDomainImage );
+    metric->Initialize();
+    metricValue = metric->GetValue();
+  }
+
+private:
+  std::ostream & Logger() const
+  {
+    return *m_LogStream;
+  }
+
+  std::vector<unsigned int> m_NumberOfIterations;
+  std::ostream *            m_LogStream;
+  itk::TimeProbe            m_clock;
+  bool                      m_MeasureSimilarityValue;
+
+  itk::RealTimeClock::TimeStampType m_lastTotalTime;
+};
+
 /** \class antsRegistrationOptimizerCommandIterationUpdate
  *  \brief observe the optimizer for traditional registration methods
  */
-template <class TOptimizer>
+template <unsigned VImageDimension, class TOptimizer>
 class antsRegistrationOptimizerCommandIterationUpdate : public itk::Command
 {
 public:
@@ -135,6 +431,12 @@ public:
   typedef itk::Command                                    Superclass;
   typedef itk::SmartPointer<Self>                         Pointer;
   itkNewMacro( Self );
+
+  typedef typename itk::Image<double, VImageDimension>     ImageType;
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType>  MetricType;
+  typedef typename MetricType::MeasureType                 MeasureType;
+  typedef itk::CompositeTransform<double, VImageDimension> CompositeTransformType;
+  typedef typename CompositeTransformType::TransformType   TransformBaseType;
 protected:
   antsRegistrationOptimizerCommandIterationUpdate()
   {
@@ -144,6 +446,9 @@ protected:
     this->m_lastTotalTime = now;
     m_clock.Start();
     this->m_LogStream = &::ants::antscout;
+    this->m_origfixedImage = ImageType::New();
+    this->m_origMovingImage = ImageType::New();
+    this->m_MeasureSimilarityValue = false;
   }
 
 public:
@@ -160,23 +465,55 @@ public:
       const unsigned int lCurrentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
       if( lCurrentIteration  == 1 )
         {
-        // Print header line one time
-        this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                       << std::endl;
+        if( this->m_MeasureSimilarityValue )
+          {
+          // Print header line one time
+          this->Logger()
+            <<
+            "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,--,similarityMeasureValue"
+            << std::endl;
+          }
+        else
+          {
+          this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
+                         << std::endl;
+          }
         }
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
+
+      MeasureType metricValue = 0.0;
+      if( this->m_MeasureSimilarityValue )
+        {
+        // This function finds the similarity value between the original fixed image and the original moving images
+        // using a CC metric type with radius 5.
+        // The feature can be used to observe the progress of the registration process at each iteration.
+        this->UpdateMetricValue(this->m_Optimizer, metricValue);
+        }
+
       this->Logger() << "DIAGNOSTIC, "
                      << std::setw(5) << lCurrentIteration << ", "
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetValue() << ", "
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetConvergenceValue() << ", "
-                     << std::scientific << std::setprecision(4) << now << ", "
-                     << std::scientific << std::setprecision(4) << (now - this->m_lastTotalTime)  << ", "
-                     << std::endl;
+                     << std::setprecision(4) << now << ", "
+                     << std::setprecision(4) << (now - this->m_lastTotalTime)  << ", ";
+      if( this->m_MeasureSimilarityValue )
+        {
+        this->Logger() << std::scientific << std::setprecision(12) << metricValue
+                       << std::endl;
+        }
+      else
+        {
+        this->Logger() << std::endl;
+        }
+
       this->m_lastTotalTime = now;
       m_clock.Start();
       }
   }
+
+  itkSetMacro( MeasureSimilarityValue, bool );
+  itkBooleanMacro( MeasureSimilarityValue );
 
   void SetLogStream(std::ostream & logStream)
   {
@@ -197,20 +534,134 @@ public:
     this->m_Optimizer->AddObserver( itk::IterationEvent(), this );
   }
 
+  void SetOrigFixedImage(typename ImageType::Pointer origfixedImage)
+  {
+    this->m_origfixedImage = origfixedImage;
+  }
+
+  void SetOrigMovingImage(typename ImageType::Pointer origMovingImage)
+  {
+    this->m_origMovingImage = origMovingImage;
+  }
+
+  void UpdateMetricValue(itk::WeakPointer<OptimizerType> myOptimizer,
+                         MeasureType & metricValue )
+  {
+    // Get the registration metric from the optimizer
+    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetMetric() ) );
+
+    // Define the CC metric type
+    // This metric type is used to measure the general similarity metric between the original input fixed and moving
+    // images.
+    typename MetricType::Pointer metric;
+    typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType> CorrelationMetricType;
+    typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+      {
+      typename CorrelationMetricType::RadiusType radius;
+      radius.Fill( 5 );
+      correlationMetric->SetRadius( radius );
+      }
+    correlationMetric->SetUseMovingImageGradientFilter( false );
+    correlationMetric->SetUseFixedImageGradientFilter( false );
+    metric = correlationMetric;
+
+    // We need to create an exact copy from the composite fixed and moving transforms returned from the metric
+    // We should roll of the composite transform and create a new instance from each of their sub transforms
+
+    // For the fixed transform, first we should check that wether it is an identity transform or composite transform.
+    typename TransformBaseType::Pointer fixedTransform;
+    if( strcmp( inputMetric->GetFixedTransform()->GetNameOfClass(), "CompositeTransform" ) == 0 )
+      {
+      typename CompositeTransformType::Pointer myFixedTransform = CompositeTransformType::New();
+
+      // Const_cast just makes it possible to cast the metric's transform to a composite transform, so we can copy each
+      // of its sub transforms to a new instance.
+      // Notice that the metric transform will not be changes inside this fuction.
+      typedef typename MetricType::FixedTransformType FixedTransformType;
+      typename CompositeTransformType::ConstPointer inputFixedTransform =
+        dynamic_cast<CompositeTransformType *>( const_cast<FixedTransformType *>( inputMetric->GetFixedTransform() ) );
+      if( inputFixedTransform->GetNumberOfTransforms() > 0 )
+        {
+        unsigned int N = inputFixedTransform->GetNumberOfTransforms();
+        for( unsigned int i = 0; i < N; i++ )
+          {
+          // Create a new instance from each sub transforms.
+          typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputFixedTransform->GetNthTransform(
+                                                                                                i)->CreateAnother().GetPointer() ) );
+          // Copy the information to each sub transform and add this transform to the final composite transform.
+          typename TransformBaseType::ParametersType fixedImage_paras( inputFixedTransform->GetNthTransform(
+                                                                         i)->GetParameters() );
+          typename TransformBaseType::ParametersType fixedImage_fixed_paras( inputFixedTransform->GetNthTransform(
+                                                                               i)->GetFixedParameters() );
+          subTransform->SetParameters( fixedImage_paras );
+          subTransform->SetFixedParameters( fixedImage_fixed_paras );
+          myFixedTransform->AddTransform( subTransform );
+          }
+        myFixedTransform->SetOnlyMostRecentTransformToOptimizeOn();
+        }
+      fixedTransform = myFixedTransform;
+      }
+    else if( strcmp( inputMetric->GetFixedTransform()->GetNameOfClass(), "IdentityTransform" ) == 0 )
+      {
+      typedef typename itk::IdentityTransform<double, VImageDimension> IdentityTransformType;
+      typename IdentityTransformType::Pointer myFixedTransform = IdentityTransformType::New();
+      fixedTransform = myFixedTransform;
+      }
+    else
+      {
+      itkExceptionMacro( "Fixed Transform should be either \"Composite\" or \"Identity\" transform." );
+      }
+
+    // Same procedure for the moving transform. Moving transform is alwas a Composite transform.
+    typedef typename MetricType::MovingTransformType MovingTransformType;
+    typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
+    typename CompositeTransformType::ConstPointer inputMovingTransform =
+      dynamic_cast<CompositeTransformType *>( const_cast<MovingTransformType *>( inputMetric->GetMovingTransform() ) );
+    if( inputMovingTransform->GetNumberOfTransforms() > 0 )
+      {
+      unsigned int N = inputMovingTransform->GetNumberOfTransforms();
+      for( unsigned int i = 0; i < N; i++ )
+        {
+        typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputMovingTransform->GetNthTransform(
+                                                                                              i)->CreateAnother().GetPointer() ) );
+        typename TransformBaseType::ParametersType moving_paras( inputMovingTransform->GetNthTransform(
+                                                                   i)->GetParameters() );
+        typename TransformBaseType::ParametersType moving_fixed_paras( inputMovingTransform->GetNthTransform(
+                                                                         i)->GetFixedParameters() );
+        subTransform->SetParameters( moving_paras );
+        subTransform->SetFixedParameters( moving_fixed_paras );
+        movingTransform->AddTransform( subTransform );
+        }
+      movingTransform->SetOnlyMostRecentTransformToOptimizeOn();
+      }
+
+    metric->SetVirtualDomainFromImage( inputMetric->GetVirtualImage() );
+    metric->SetFixedImage( this->m_origfixedImage );
+    metric->SetFixedTransform( fixedTransform );
+    metric->SetMovingImage( this->m_origMovingImage );
+    metric->SetMovingTransform( movingTransform );
+    metric->Initialize();
+    metricValue = metric->GetValue();
+  }
+
 private:
   /**
    *  WeakPointer to the Optimizer
    */
   itk::WeakPointer<OptimizerType> m_Optimizer;
+  // itk::WeakPointer<OptimizerType> m_TempOptimizer;
 
   std::ostream & Logger() const
   {
     return *m_LogStream;
   }
 
+  bool                              m_MeasureSimilarityValue;
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
+  typename ImageType::Pointer       m_origfixedImage;
+  typename ImageType::Pointer       m_origMovingImage;
 };
 
 /**
@@ -303,6 +754,7 @@ RegistrationHelper<VImageDimension>
   m_UpperQuantile( 1.0 ),
   m_LogStream( &::ants::antscout ),
   m_ApplyLinearTransformsToFixedImageHeader( true ),
+  m_PrintSimilarityMeasure( true ),
   m_AllPreviousTransformsAreLinear( true ),
   m_CompositeLinearTransformForFixedImageHeader( NULL )
 {
@@ -1278,10 +1730,18 @@ RegistrationHelper<VImageDimension>
     optimizer->SetConvergenceWindowSize( convergenceWindowSize );
     optimizer->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
     optimizer->SetDoEstimateLearningRateOnce( !this->m_DoEstimateLearningRateAtEachIteration );
-    typedef antsRegistrationOptimizerCommandIterationUpdate<ConjugateGradientDescentOptimizerType> OptimizerCommandType;
+
+    typedef antsRegistrationOptimizerCommandIterationUpdate<VImageDimension,
+                                                            ConjugateGradientDescentOptimizerType> OptimizerCommandType;
     typename OptimizerCommandType::Pointer optimizerObserver = OptimizerCommandType::New();
     optimizerObserver->SetLogStream( *this->m_LogStream );
     optimizerObserver->SetOptimizer( optimizer );
+    optimizerObserver->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
+    optimizerObserver->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
+    if( this->m_PrintSimilarityMeasure )
+      {
+      optimizerObserver->SetMeasureSimilarityValue( true );
+      }
 
     typedef itk::GradientDescentLineSearchOptimizerv4 GradientDescentLSOptimizerType;
     typedef itk::GradientDescentOptimizerv4           GradientDescentOptimizerType;
@@ -1298,10 +1758,18 @@ RegistrationHelper<VImageDimension>
     optimizer2->SetConvergenceWindowSize( convergenceWindowSize );
     optimizer2->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
     optimizer2->SetDoEstimateLearningRateOnce( !this->m_DoEstimateLearningRateAtEachIteration );
-    typedef antsRegistrationOptimizerCommandIterationUpdate<GradientDescentOptimizerType> OptimizerCommandType2;
+
+    typedef antsRegistrationOptimizerCommandIterationUpdate<VImageDimension,
+                                                            GradientDescentOptimizerType> OptimizerCommandType2;
     typename OptimizerCommandType2::Pointer optimizerObserver2 = OptimizerCommandType2::New();
     optimizerObserver2->SetLogStream( *this->m_LogStream );
     optimizerObserver2->SetOptimizer( optimizer2 );
+    optimizerObserver2->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
+    optimizerObserver2->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
+    if( this->m_PrintSimilarityMeasure )
+      {
+      optimizerObserver2->SetMeasureSimilarityValue( true );
+      }
 
     // Set up the image registration methods along with the transforms
     const XfrmMethod whichTransform(this->m_TransformMethods[currentStageNumber].m_XfrmMethod);
@@ -2564,14 +3032,30 @@ RegistrationHelper<VImageDimension>
         outputDisplacementFieldTransform->SetDisplacementField( displacementField );
         outputDisplacementFieldTransform->SetInverseDisplacementField( inverseDisplacementField );
 
+        // For all Velocity field and Displacement field registration types that are not using generic
+        // itkImageRegistrationMethodv4 we use two type of observer:
+        // First one is used to handle InitializeEvent
+        // Second one is used to handle IterationEvent
+        // We defined two observer because we wanted to decouple the observer of generic itkImageRegistrationMethodv4
+        // filter from the observer of its child classes
         typedef antsRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType> DisplacementFieldCommandType;
         typename DisplacementFieldCommandType::Pointer displacementFieldRegistrationObserver =
           DisplacementFieldCommandType::New();
         displacementFieldRegistrationObserver->SetLogStream( *this->m_LogStream );
         displacementFieldRegistrationObserver->SetNumberOfIterations( currentStageIterations );
-
-        displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver );
         displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver );
+
+        typedef antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType>
+          DisplacementFieldCommandType2;
+        typename DisplacementFieldCommandType2::Pointer displacementFieldRegistrationObserver2 =
+          DisplacementFieldCommandType2::New();
+        displacementFieldRegistrationObserver2->SetLogStream(*this->m_LogStream);
+        displacementFieldRegistrationObserver2->SetNumberOfIterations( currentStageIterations );
+        if( this->m_PrintSimilarityMeasure )
+          {
+          displacementFieldRegistrationObserver2->SetMeasureSimilarityValue( true );
+          }
+        displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver2 );
 
         try
           {

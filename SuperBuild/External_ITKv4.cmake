@@ -98,6 +98,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DBUILD_TESTING:BOOL=OFF
       ${${proj}_CMAKE_OPTIONS}
     INSTALL_COMMAND ""
+    UPDATE_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}
     )
