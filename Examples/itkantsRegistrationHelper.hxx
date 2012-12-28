@@ -172,7 +172,7 @@ protected:
     this->m_lastTotalTime = now;
     m_clock.Start();
     this->m_LogStream = &::ants::antscout;
-    this->m_MeasureSimilarityValue = false;
+    this->m_ComputeFullScaleCCAtEachIteration = false;
   }
 
 public:
@@ -195,12 +195,11 @@ public:
       const unsigned int lCurrentIteration = filter->GetCurrentIteration();
       if( lCurrentIteration  == 1 )
         {
-        if( this->m_MeasureSimilarityValue )
+        if( this->m_ComputeFullScaleCCAtEachIteration )
           {
           // Print header line one time
           this->Logger()
-            <<
-            "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,--,similarityMeasureValue"
+            << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCC"
             << std::endl;
           }
         else
@@ -213,7 +212,7 @@ public:
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
 
       MeasureType metricValue = 0.0;
-      if( this->m_MeasureSimilarityValue )
+      if( this->m_ComputeFullScaleCCAtEachIteration )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 5.
@@ -227,7 +226,7 @@ public:
                      << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
                      << std::setprecision(4) << (now - this->m_lastTotalTime) << ", ";
-      if( this->m_MeasureSimilarityValue )
+      if( this->m_ComputeFullScaleCCAtEachIteration )
         {
         this->Logger() << std::scientific << std::setprecision(12) <<  metricValue
                        << std::endl;
@@ -242,8 +241,8 @@ public:
       }
   }
 
-  itkSetMacro( MeasureSimilarityValue, bool );
-  itkBooleanMacro( MeasureSimilarityValue );
+  itkSetMacro( ComputeFullScaleCCAtEachIteration, bool );
+  itkBooleanMacro( ComputeFullScaleCCAtEachIteration );
 
   void SetNumberOfIterations( const std::vector<unsigned int> & iterations )
   {
@@ -415,7 +414,7 @@ private:
   std::vector<unsigned int> m_NumberOfIterations;
   std::ostream *            m_LogStream;
   itk::TimeProbe            m_clock;
-  bool                      m_MeasureSimilarityValue;
+  bool                      m_ComputeFullScaleCCAtEachIteration;
 
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 };
@@ -448,7 +447,7 @@ protected:
     this->m_LogStream = &::ants::antscout;
     this->m_origfixedImage = ImageType::New();
     this->m_origMovingImage = ImageType::New();
-    this->m_MeasureSimilarityValue = false;
+    this->m_ComputeFullScaleCCAtEachIteration = false;
   }
 
 public:
@@ -465,12 +464,11 @@ public:
       const unsigned int lCurrentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
       if( lCurrentIteration  == 1 )
         {
-        if( this->m_MeasureSimilarityValue )
+        if( this->m_ComputeFullScaleCCAtEachIteration )
           {
           // Print header line one time
           this->Logger()
-            <<
-            "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,--,similarityMeasureValue"
+            << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCC"
             << std::endl;
           }
         else
@@ -483,7 +481,7 @@ public:
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
 
       MeasureType metricValue = 0.0;
-      if( this->m_MeasureSimilarityValue )
+      if( this->m_ComputeFullScaleCCAtEachIteration )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 5.
@@ -497,7 +495,7 @@ public:
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
                      << std::setprecision(4) << (now - this->m_lastTotalTime)  << ", ";
-      if( this->m_MeasureSimilarityValue )
+      if( this->m_ComputeFullScaleCCAtEachIteration )
         {
         this->Logger() << std::scientific << std::setprecision(12) << metricValue
                        << std::endl;
@@ -512,8 +510,8 @@ public:
       }
   }
 
-  itkSetMacro( MeasureSimilarityValue, bool );
-  itkBooleanMacro( MeasureSimilarityValue );
+  itkSetMacro( ComputeFullScaleCCAtEachIteration, bool );
+  itkBooleanMacro( ComputeFullScaleCCAtEachIteration );
 
   void SetLogStream(std::ostream & logStream)
   {
@@ -558,7 +556,8 @@ public:
     typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
       {
       typename CorrelationMetricType::RadiusType radius;
-      radius.Fill( 5 );
+      radius.Fill( 4 );  // NOTE: This is just a common reference for fine-tuning parameters, so perhaps a smaller
+                         // window would be sufficient.
       correlationMetric->SetRadius( radius );
       }
     correlationMetric->SetUseMovingImageGradientFilter( false );
@@ -577,28 +576,27 @@ public:
       // Const_cast just makes it possible to cast the metric's transform to a composite transform, so we can copy each
       // of its sub transforms to a new instance.
       // Notice that the metric transform will not be changes inside this fuction.
+      // NOTE:  This will not be needed when ITKv4 is updated to include const versions of all get functions.
+      // TODO: Remove const_cast once ITKv4 is fixed to allow const Get Macro functions.
       typedef typename MetricType::FixedTransformType FixedTransformType;
       typename CompositeTransformType::ConstPointer inputFixedTransform =
         dynamic_cast<CompositeTransformType *>( const_cast<FixedTransformType *>( inputMetric->GetFixedTransform() ) );
-      if( inputFixedTransform->GetNumberOfTransforms() > 0 )
+      const unsigned int N = inputFixedTransform->GetNumberOfTransforms();
+      for( unsigned int i = 0; i < N; i++ )
         {
-        unsigned int N = inputFixedTransform->GetNumberOfTransforms();
-        for( unsigned int i = 0; i < N; i++ )
-          {
-          // Create a new instance from each sub transforms.
-          typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputFixedTransform->GetNthTransform(
-                                                                                                i)->CreateAnother().GetPointer() ) );
-          // Copy the information to each sub transform and add this transform to the final composite transform.
-          typename TransformBaseType::ParametersType fixedImage_paras( inputFixedTransform->GetNthTransform(
-                                                                         i)->GetParameters() );
-          typename TransformBaseType::ParametersType fixedImage_fixed_paras( inputFixedTransform->GetNthTransform(
-                                                                               i)->GetFixedParameters() );
-          subTransform->SetParameters( fixedImage_paras );
-          subTransform->SetFixedParameters( fixedImage_fixed_paras );
-          myFixedTransform->AddTransform( subTransform );
-          }
-        myFixedTransform->SetOnlyMostRecentTransformToOptimizeOn();
+        // Create a new instance from each sub transforms.
+        typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputFixedTransform->GetNthTransform(
+                                                                                              i)->CreateAnother().GetPointer() ) );
+        // Copy the information to each sub transform and add this transform to the final composite transform.
+        const typename TransformBaseType::ParametersType & fixedImage_paras =
+          inputFixedTransform->GetNthTransform(i)->GetParameters();
+        const typename TransformBaseType::ParametersType & fixedImage_fixed_paras =
+          inputFixedTransform->GetNthTransform(i)->GetFixedParameters();
+        subTransform->SetParameters( fixedImage_paras );
+        subTransform->SetFixedParameters( fixedImage_fixed_paras );
+        myFixedTransform->AddTransform( subTransform );
         }
+      myFixedTransform->SetOnlyMostRecentTransformToOptimizeOn();
       fixedTransform = myFixedTransform;
       }
     else if( strcmp( inputMetric->GetFixedTransform()->GetNameOfClass(), "IdentityTransform" ) == 0 )
@@ -612,30 +610,30 @@ public:
       itkExceptionMacro( "Fixed Transform should be either \"Composite\" or \"Identity\" transform." );
       }
 
-    // Same procedure for the moving transform. Moving transform is alwas a Composite transform.
+    // Same procedure for the moving transform. Moving transform is always a Composite transform.
     typedef typename MetricType::MovingTransformType MovingTransformType;
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
+    // TODO: Remove const_cast once ITKv4 is fixed to allow const Get Macro functions.
     typename CompositeTransformType::ConstPointer inputMovingTransform =
       dynamic_cast<CompositeTransformType *>( const_cast<MovingTransformType *>( inputMetric->GetMovingTransform() ) );
-    if( inputMovingTransform->GetNumberOfTransforms() > 0 )
+    const unsigned int N = inputMovingTransform->GetNumberOfTransforms();
+    for( unsigned int i = 0; i < N; i++ )
       {
-      unsigned int N = inputMovingTransform->GetNumberOfTransforms();
-      for( unsigned int i = 0; i < N; i++ )
-        {
-        typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputMovingTransform->GetNthTransform(
-                                                                                              i)->CreateAnother().GetPointer() ) );
-        typename TransformBaseType::ParametersType moving_paras( inputMovingTransform->GetNthTransform(
-                                                                   i)->GetParameters() );
-        typename TransformBaseType::ParametersType moving_fixed_paras( inputMovingTransform->GetNthTransform(
-                                                                         i)->GetFixedParameters() );
-        subTransform->SetParameters( moving_paras );
-        subTransform->SetFixedParameters( moving_fixed_paras );
-        movingTransform->AddTransform( subTransform );
-        }
-      movingTransform->SetOnlyMostRecentTransformToOptimizeOn();
+      typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputMovingTransform->GetNthTransform(
+                                                                                            i)->CreateAnother().GetPointer() ) );
+      const typename TransformBaseType::ParametersType & moving_paras =
+        inputMovingTransform->GetNthTransform(i)->GetParameters();
+      const typename TransformBaseType::ParametersType & moving_fixed_paras =
+        inputMovingTransform->GetNthTransform(i)->GetFixedParameters();
+      subTransform->SetParameters( moving_paras );
+      subTransform->SetFixedParameters( moving_fixed_paras );
+      movingTransform->AddTransform( subTransform );
       }
+    movingTransform->SetOnlyMostRecentTransformToOptimizeOn();
 
-    metric->SetVirtualDomainFromImage( inputMetric->GetVirtualImage() );
+    // NOTE: The virtual domain should not change at each level. metric->SetVirtualDomainFromImage(
+    // inputMetric->GetVirtualImage() );
+    metric->SetVirtualDomainFromImage( this->m_origfixedImage );
     metric->SetFixedImage( this->m_origfixedImage );
     metric->SetFixedTransform( fixedTransform );
     metric->SetMovingImage( this->m_origMovingImage );
@@ -656,7 +654,7 @@ private:
     return *m_LogStream;
   }
 
-  bool                              m_MeasureSimilarityValue;
+  bool                              m_ComputeFullScaleCCAtEachIteration;
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
@@ -1740,7 +1738,7 @@ RegistrationHelper<VImageDimension>
     optimizerObserver->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
     if( this->m_PrintSimilarityMeasure )
       {
-      optimizerObserver->SetMeasureSimilarityValue( true );
+      optimizerObserver->SetComputeFullScaleCCAtEachIteration( true );
       }
 
     typedef itk::GradientDescentLineSearchOptimizerv4 GradientDescentLSOptimizerType;
@@ -1768,7 +1766,7 @@ RegistrationHelper<VImageDimension>
     optimizerObserver2->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
     if( this->m_PrintSimilarityMeasure )
       {
-      optimizerObserver2->SetMeasureSimilarityValue( true );
+      optimizerObserver2->SetComputeFullScaleCCAtEachIteration( true );
       }
 
     // Set up the image registration methods along with the transforms
@@ -3053,7 +3051,7 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistrationObserver2->SetNumberOfIterations( currentStageIterations );
         if( this->m_PrintSimilarityMeasure )
           {
-          displacementFieldRegistrationObserver2->SetMeasureSimilarityValue( true );
+          displacementFieldRegistrationObserver2->SetComputeFullScaleCCAtEachIteration( true );
           }
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver2 );
 
