@@ -100,7 +100,7 @@ RegistrationHelper<VImageDimension>
   m_UpperQuantile( 1.0 ),
   m_LogStream( &::ants::antscout ),
   m_ApplyLinearTransformsToFixedImageHeader( true ),
-  m_PrintSimilarityMeasure( true ),
+  m_PrintSimilarityMeasureInterval( 0 ),
   m_AllPreviousTransformsAreLinear( true ),
   m_CompositeLinearTransformForFixedImageHeader( NULL )
 {
@@ -1085,9 +1085,9 @@ RegistrationHelper<VImageDimension>
     optimizerObserver->SetOptimizer( optimizer );
     optimizerObserver->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
     optimizerObserver->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
-    if( this->m_PrintSimilarityMeasure )
+    if( this->m_PrintSimilarityMeasureInterval != 0 )
       {
-      optimizerObserver->SetComputeFullScaleCCAtEachIteration( true );
+      optimizerObserver->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
       }
 
     typedef itk::GradientDescentLineSearchOptimizerv4 GradientDescentLSOptimizerType;
@@ -1114,9 +1114,9 @@ RegistrationHelper<VImageDimension>
     optimizerObserver2->SetOptimizer( optimizer2 );
     optimizerObserver2->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
     optimizerObserver2->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
-    if( this->m_PrintSimilarityMeasure )
+    if( this->m_PrintSimilarityMeasureInterval != 0 )
       {
-      optimizerObserver2->SetComputeFullScaleCCAtEachIteration( true );
+      optimizerObserver2->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
       }
 
     // Set up the image registration methods along with the transforms
@@ -2390,9 +2390,9 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistrationObserver2->SetNumberOfIterations( currentStageIterations );
         displacementFieldRegistrationObserver2->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
         displacementFieldRegistrationObserver2->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
-        if( this->m_PrintSimilarityMeasure )
+        if( this->m_PrintSimilarityMeasureInterval != 0 )
           {
-          displacementFieldRegistrationObserver2->SetComputeFullScaleCCAtEachIteration( true );
+          displacementFieldRegistrationObserver2->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
           }
         displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver2 );
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver2 );

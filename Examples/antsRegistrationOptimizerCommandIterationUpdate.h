@@ -31,7 +31,7 @@ protected:
     this->m_LogStream = &::ants::antscout;
     this->m_origFixedImage = ImageType::New();
     this->m_origMovingImage = ImageType::New();
-    this->m_ComputeFullScaleCCAtEachIteration = false;
+    this->m_ComputeFullScaleCCInterval = 0;
   }
 
 public:
@@ -43,15 +43,16 @@ public:
 
   void Execute(const itk::Object *, const itk::EventObject & event)
   {
+#if 0
     if( typeid( event ) == typeid( itk::InitializeEvent ) )
       {
-      const unsigned int currentLevel = filter->GetCurrentLevel();
+      const unsigned int currentLevel = this->m_Optimizer->GetCurrentLevel();
 
-      typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
-      typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
-      typename TFilter::TransformParametersAdaptorsContainerType adaptors =
-        filter->GetTransformParametersAdaptorsPerLevel();
-      bool smoothingSigmasAreInPhysicalUnits = filter->GetSmoothingSigmasAreSpecifiedInPhysicalUnits();
+      typename TOptimizer::ShrinkFactorsArrayType shrinkFactors = this->m_Optimizer->GetShrinkFactorsPerLevel();
+      typename TOptimizer::SmoothingSigmasArrayType smoothingSigmas = this->m_Optimizer->GetSmoothingSigmasPerLevel();
+      typename TOptimizer::TransformParametersAdaptorsContainerType adaptors =
+        this->m_Optimizer->GetTransformParametersAdaptorsPerLevel();
+      bool smoothingSigmasAreInPhysicalUnits = this->m_Optimizer->GetSmoothingSigmasAreSpecifiedInPhysicalUnits();
 
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
@@ -77,23 +78,25 @@ public:
 
       typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
-          const_cast<typename TFilter::OptimizerType *>( const_cast<TFilter *>( filter )->GetOptimizer() ) );
+          const_cast<typename TOptimizer::OptimizerType *>( const_cast<TOptimizer *>( this->m_Optimizer )->GetOptimizer() ) );
 
       // TODO:  This looks very wrong.  There is a const_cast above, and then the change
       //       of the number of iterations here on what should be a const object.
       optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
       }
-    else if( typeid( event ) == typeid( itk::IterationEvent ) )
+    else
+#endif
+    if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
       const unsigned int lCurrentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
       if( lCurrentIteration  == 1 )
         {
-        if( this->m_ComputeFullScaleCCAtEachIteration )
+        if( this->m_ComputeFullScaleCCInterval != 0 )
           {
           // Print header line one time
           this->Logger()
-            << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCC"
-            << std::flush << std::endl;
+            << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCCInterval="
+            << this->m_ComputeFullScaleCCInterval << std::flush << std::endl;
           }
         else
           {
@@ -105,9 +108,10 @@ public:
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
 
       MeasureType        metricValue = 0.0;
-      const unsigned int lastIteration = this->m_Optimizer->GetNumberOfIterations() - 1;
-      if( this->m_ComputeFullScaleCCAtEachIteration &&
-          ( lCurrentIteration == 1 || ( lCurrentIteration % 10 == 0 ) || lCurrentIteration == lastIteration) )
+      const unsigned int lastIteration = this->m_Optimizer->GetNumberOfIterations();
+      if( ( this->m_ComputeFullScaleCCInterval != 0 ) &&
+          ( lCurrentIteration == 1 || ( lCurrentIteration % this->m_ComputeFullScaleCCInterval == 0 ) ||
+          lCurrentIteration == lastIteration) )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 5.
@@ -121,7 +125,7 @@ public:
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
                      << std::setprecision(4) << (now - this->m_lastTotalTime)  << ", ";
-      if( this->m_ComputeFullScaleCCAtEachIteration  &&  fabs(metricValue) > 1e-7 )
+      if( ( this->m_ComputeFullScaleCCInterval != 0 ) &&  fabs(metricValue) > 1e-7 )
         {
         this->Logger() << std::scientific << std::setprecision(12) << metricValue
                        << std::flush << std::endl;
@@ -141,8 +145,7 @@ public:
       }
   }
 
-  itkSetMacro( ComputeFullScaleCCAtEachIteration, bool );
-  itkBooleanMacro( ComputeFullScaleCCAtEachIteration );
+  itkSetMacro( ComputeFullScaleCCInterval, unsigned int );
 
   void SetNumberOfIterations( const std::vector<unsigned int> & iterations )
   {
@@ -291,7 +294,7 @@ private:
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 
-  bool m_ComputeFullScaleCCAtEachIteration;
+  unsigned int m_ComputeFullScaleCCInterval;
 
   typename ImageType::Pointer       m_origFixedImage;
   typename ImageType::Pointer       m_origMovingImage;

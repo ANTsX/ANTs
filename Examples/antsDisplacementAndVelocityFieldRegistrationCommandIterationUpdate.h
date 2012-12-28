@@ -51,7 +51,7 @@ protected:
     this->m_lastTotalTime = now;
     m_clock.Start();
     this->m_LogStream = &::ants::antscout;
-    this->m_ComputeFullScaleCCAtEachIteration = false;
+    this->m_ComputeFullScaleCCInterval = 0;
   }
 
 public:
@@ -111,12 +111,13 @@ public:
       const unsigned int lCurrentIteration = filter->GetCurrentIteration();
       if( lCurrentIteration == 1 )
         {
-        if( this->m_ComputeFullScaleCCAtEachIteration )
+        if( this->m_ComputeFullScaleCCInterval != 0 )
           {
           // Print header line one time
           this->Logger()
-            << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCC"
-            << std::flush << std::endl;
+            <<
+            "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCCInterval="
+            << this->m_ComputeFullScaleCCInterval << std::flush << std::endl;
           }
         else
           {
@@ -128,9 +129,10 @@ public:
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
 
       MeasureType        metricValue = 0.0;
-      const unsigned int lastIteration = this->m_NumberOfIterations[currentLevel] - 1;
-      if( this->m_ComputeFullScaleCCAtEachIteration &&
-          ( lCurrentIteration == 1 || (lCurrentIteration % 10 == 0 ) || lCurrentIteration == lastIteration) )
+      const unsigned int lastIteration = this->m_NumberOfIterations[currentLevel];
+      if( ( this->m_ComputeFullScaleCCInterval != 0 ) &&
+          ( lCurrentIteration == 1 || (lCurrentIteration % this->m_ComputeFullScaleCCInterval == 0 ) ||
+            lCurrentIteration == lastIteration) )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 5.
@@ -144,7 +146,7 @@ public:
                      << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
                      << std::setprecision(4) << (now - this->m_lastTotalTime) << ", ";
-      if( this->m_ComputeFullScaleCCAtEachIteration  &&  fabs(metricValue) > 1e-7 )
+      if( ( this->m_ComputeFullScaleCCInterval != 0 ) &&  fabs(metricValue) > 1e-7 )
         {
         this->Logger() << std::scientific << std::setprecision(12) <<  metricValue
                        << std::flush << std::endl;
@@ -164,8 +166,7 @@ public:
       }
   }
 
-  itkSetMacro( ComputeFullScaleCCAtEachIteration, bool );
-  itkBooleanMacro( ComputeFullScaleCCAtEachIteration );
+  itkSetMacro( ComputeFullScaleCCInterval, unsigned int );
 
   void SetNumberOfIterations( const std::vector<unsigned int> & iterations )
   {
@@ -347,7 +348,7 @@ private:
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 
-  bool m_ComputeFullScaleCCAtEachIteration;
+  unsigned int m_ComputeFullScaleCCInterval;
 
   typename FixedImageType::Pointer  m_origFixedImage;
   typename MovingImageType::Pointer m_origMovingImage;

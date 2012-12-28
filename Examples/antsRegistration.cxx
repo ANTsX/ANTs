@@ -146,11 +146,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description = std::string( "Prints out the CC similarity metric measure " )
-      + std::string( "between the original input fixed and moving images at each iteraton " );
+      + std::string( "between the full-size input fixed and the transformed moving images at each iteraton " )
+      + std::string( "a value of 0 (the default) indicates that the full scale computation should not take place")
+      + std::string( "any value greater than 0 represents the interval of full scale metric computation.");
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "print-similarity-measure" );
+    option->SetLongName( "print-similarity-measure-interval" );
     option->SetShortName( 'p' );
-    option->SetUsageOption( 0, "1/(0)" );
+    option->SetUsageOption( 0, "<unsigned integer value>" );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
@@ -495,14 +497,16 @@ DoRegistration(typename ParserType::Pointer & parser)
     regHelper->SetApplyLinearTransformsToFixedImageHeader( false );
     }
 
-  OptionType::Pointer printSimilarityMeasure = parser->GetOption( "print-similarity-measure" );
-  if( parser->Convert<bool>( printSimilarityMeasure->GetFunction( 0 )->GetName() ) )
+  OptionType::Pointer printSimilarityMeasureInterval = parser->GetOption( "print-similarity-measure-interval" );
+  if( printSimilarityMeasureInterval && printSimilarityMeasureInterval->GetNumberOfFunctions() )
     {
-    regHelper->SetPrintSimilarityMeasure( true );
+    unsigned int intervalLength = parser->Convert<unsigned int>( printSimilarityMeasureInterval->GetFunction(
+                                                                   0 )->GetName() );
+    regHelper->SetPrintSimilarityMeasureInterval(intervalLength);
     }
   else
     {
-    regHelper->SetPrintSimilarityMeasure( false );
+    regHelper->SetPrintSimilarityMeasureInterval( 0 );
     }
 
   std::string outputPrefix = outputOption->GetFunction( 0 )->GetName();

@@ -490,9 +490,8 @@ public:
    * turn on the option that prints the CC similarity measure
    * between the original fixed input image and original moving input image at each iteraton.
    */
-  itkSetMacro( PrintSimilarityMeasure, bool );
-  itkGetConstMacro( PrintSimilarityMeasure, bool );
-  itkBooleanMacro( PrintSimilarityMeasure );
+  itkSetMacro( PrintSimilarityMeasureInterval, unsigned int );
+  itkGetConstMacro( PrintSimilarityMeasureInterval, unsigned int );
 
   /**
    * turn on winsorize image intensity normalization
@@ -596,9 +595,9 @@ private:
 
   typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
 
-  bool m_ApplyLinearTransformsToFixedImageHeader;
-  bool m_PrintSimilarityMeasure;
-  bool m_AllPreviousTransformsAreLinear;
+  bool         m_ApplyLinearTransformsToFixedImageHeader;
+  unsigned int m_PrintSimilarityMeasureInterval;
+  bool         m_AllPreviousTransformsAreLinear;
   typename CompositeTransformType::Pointer m_CompositeLinearTransformForFixedImageHeader;
 };
 
