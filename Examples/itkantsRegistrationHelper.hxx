@@ -65,7 +65,7 @@ public:
         this->Logger() << " vox" << std::endl;
         }
       this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
-                     << std::endl;
+                     << std::flush << std::endl;
       // this->Logger() << "\n  LEVEL_TIME_INDEX: " << now << " SINCE_LAST: " << (now-this->m_lastTotalTime) <<
       // std::endl;
       this->m_lastTotalTime = now;
@@ -84,7 +84,7 @@ public:
         {
         // Print header line one time
         this->Logger() << "XDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                       << std::endl;
+                       << std::flush << std::endl;
         }
 
       m_clock.Stop();
@@ -95,7 +95,7 @@ public:
                      << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
                      << std::setprecision(4) << (now - this->m_lastTotalTime) << ", "
-                     << std::endl;
+                     << std::flush << std::endl;
       this->m_lastTotalTime = now;
       m_clock.Start();
       }
@@ -120,6 +120,8 @@ private:
   std::vector<unsigned int> m_NumberOfIterations;
   std::ostream *            m_LogStream;
   itk::TimeProbe            m_clock;
+// typename ImageType::Pointer m_origFixedImage;
+// typename ImageType::Pointer m_origMovingImage;
 
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 };
@@ -200,7 +202,7 @@ public:
           // Print header line one time
           this->Logger()
             << "XXDIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCC"
-            << std::endl;
+            << std::flush << std::endl;
           }
         else
           {
@@ -217,7 +219,7 @@ public:
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 5.
         // The feature can be used to observe the progress of the registration process at each iteration.
-        this->UpdateMetricValue(filter, metricValue);
+        this->UpdateFullScaleMetricValue(filter, metricValue);
         }
 
       this->Logger() << "DIAGNOSTIC, "
@@ -229,7 +231,7 @@ public:
       if( this->m_ComputeFullScaleCCAtEachIteration )
         {
         this->Logger() << std::scientific << std::setprecision(12) <<  metricValue
-                       << std::endl;
+                       << std::flush << std::endl;
         }
       else
         {
@@ -254,13 +256,22 @@ public:
     this->m_LogStream = &logStream;
   }
 
-  void UpdateMetricValue(TFilter const * const filter,
-                         MeasureType & metricValue )
+  void SetOrigFixedImage(typename FixedImageType::Pointer origFixedImage)
+  {
+    this->m_origFixedImage = origFixedImage;
+  }
+
+  void SetOrigMovingImage(typename MovingImageType::Pointer origMovingImage)
+  {
+    this->m_origMovingImage = origMovingImage;
+  }
+
+  void UpdateFullScaleMetricValue(TFilter const * const filter,
+                                  MeasureType & metricValue ) const
   {
     // Get the registration metric from the filter, input metric is needed to find the virtual domain image
     typename MetricType::ConstPointer inputMetric(
       dynamic_cast<MetricType *>( const_cast<TFilter *>( filter )->GetMetric() ) );
-    typename VirtualImageType::ConstPointer virtualDomainImage = inputMetric->GetVirtualImage();
 
     ////////////////////////////////////Define the CC Metric Type to Compute Similarity
     // Measure////////////////////////////
@@ -350,22 +361,16 @@ public:
         typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> FixedResamplerType;
         typename FixedResamplerType::Pointer fixedResampler = FixedResamplerType::New();
         fixedResampler->SetTransform( fixedComposite );
-        fixedResampler->SetInput( filter->GetFixedImage() );
-        fixedResampler->SetSize( virtualDomainImage->GetRequestedRegion().GetSize() );
-        fixedResampler->SetOutputOrigin( virtualDomainImage->GetOrigin() );
-        fixedResampler->SetOutputSpacing( virtualDomainImage->GetSpacing() );
-        fixedResampler->SetOutputDirection( virtualDomainImage->GetDirection() );
+        fixedResampler->SetInput( this->m_origFixedImage );
+        fixedResampler->SetOutputParametersFromImage( this->m_origFixedImage );
         fixedResampler->SetDefaultPixelValue( 0 );
         fixedResampler->Update();
 
         typedef itk::ResampleImageFilter<MovingImageType, MovingImageType> MovingResamplerType;
         typename MovingResamplerType::Pointer movingResampler = MovingResamplerType::New();
         movingResampler->SetTransform( movingComposite );
-        movingResampler->SetInput( filter->GetMovingImage() );
-        movingResampler->SetSize( virtualDomainImage->GetRequestedRegion().GetSize() );
-        movingResampler->SetOutputOrigin( virtualDomainImage->GetOrigin() );
-        movingResampler->SetOutputSpacing( virtualDomainImage->GetSpacing() );
-        movingResampler->SetOutputDirection( virtualDomainImage->GetDirection() );
+        movingResampler->SetInput( this->m_origMovingImage );
+        movingResampler->SetOutputParametersFromImage( this->m_origFixedImage );
         movingResampler->SetDefaultPixelValue( 0 );
         movingResampler->Update();
 
@@ -374,8 +379,8 @@ public:
 
         const DisplacementVectorType zeroVector( 0.0 );
         typename DisplacementFieldType::Pointer identityField = DisplacementFieldType::New();
-        identityField->CopyInformation( virtualDomainImage );
-        identityField->SetRegions( virtualDomainImage->GetRequestedRegion() );
+        identityField->CopyInformation( this->m_origFixedImage );
+        identityField->SetRegions( this->m_origFixedImage->GetRequestedRegion() );
         identityField->Allocate();
         identityField->FillBuffer( zeroVector );
 
@@ -394,13 +399,13 @@ public:
       */
       else if( !( filter->GetDownsampleImagesForMetricDerivatives() ) )
         {
-        metric->SetFixedImage( filter->GetFixedImage() );
+        metric->SetFixedImage( this->m_origFixedImage );
         metric->SetFixedTransform( fixedComposite );
-        metric->SetMovingImage( filter->GetMovingImage() );
+        metric->SetMovingImage( this->m_origMovingImage );
         metric->SetMovingTransform( movingComposite );
         }
       }
-    metric->SetVirtualDomainFromImage( virtualDomainImage );
+    metric->SetVirtualDomainFromImage( this->m_origFixedImage );
     metric->Initialize();
     metricValue = metric->GetValue();
   }
@@ -416,6 +421,8 @@ private:
   itk::TimeProbe            m_clock;
   bool                      m_ComputeFullScaleCCAtEachIteration;
 
+  typename FixedImageType::Pointer  m_origFixedImage;
+  typename MovingImageType::Pointer m_origMovingImage;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 };
 
@@ -445,7 +452,7 @@ protected:
     this->m_lastTotalTime = now;
     m_clock.Start();
     this->m_LogStream = &::ants::antscout;
-    this->m_origfixedImage = ImageType::New();
+    this->m_origFixedImage = ImageType::New();
     this->m_origMovingImage = ImageType::New();
     this->m_ComputeFullScaleCCAtEachIteration = false;
   }
@@ -469,12 +476,12 @@ public:
           // Print header line one time
           this->Logger()
             << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST,FullScaleCC"
-            << std::endl;
+            << std::flush << std::endl;
           }
         else
           {
           this->Logger() << "DIAGNOSTIC,Iteration,metricValue,convergenceValue,ITERATION_TIME_INDEX,SINCE_LAST"
-                         << std::endl;
+                         << std::flush << std::endl;
           }
         }
       m_clock.Stop();
@@ -486,7 +493,7 @@ public:
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 5.
         // The feature can be used to observe the progress of the registration process at each iteration.
-        this->UpdateMetricValue(this->m_Optimizer, metricValue);
+        this->UpdateFullScaleMetricValue(this->m_Optimizer, metricValue);
         }
 
       this->Logger() << "DIAGNOSTIC, "
@@ -498,11 +505,11 @@ public:
       if( this->m_ComputeFullScaleCCAtEachIteration )
         {
         this->Logger() << std::scientific << std::setprecision(12) << metricValue
-                       << std::endl;
+                       << std::flush << std::endl;
         }
       else
         {
-        this->Logger() << std::endl;
+        this->Logger() << std::flush << std::endl;
         }
 
       this->m_lastTotalTime = now;
@@ -532,9 +539,9 @@ public:
     this->m_Optimizer->AddObserver( itk::IterationEvent(), this );
   }
 
-  void SetOrigFixedImage(typename ImageType::Pointer origfixedImage)
+  void SetOrigFixedImage(typename ImageType::Pointer origFixedImage)
   {
-    this->m_origfixedImage = origfixedImage;
+    this->m_origFixedImage = origFixedImage;
   }
 
   void SetOrigMovingImage(typename ImageType::Pointer origMovingImage)
@@ -542,8 +549,8 @@ public:
     this->m_origMovingImage = origMovingImage;
   }
 
-  void UpdateMetricValue(itk::WeakPointer<OptimizerType> myOptimizer,
-                         MeasureType & metricValue )
+  void UpdateFullScaleMetricValue(itk::WeakPointer<OptimizerType> myOptimizer,
+                                  MeasureType & metricValue ) const
   {
     // Get the registration metric from the optimizer
     typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetMetric() ) );
@@ -551,7 +558,6 @@ public:
     // Define the CC metric type
     // This metric type is used to measure the general similarity metric between the original input fixed and moving
     // images.
-    typename MetricType::Pointer metric;
     typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType> CorrelationMetricType;
     typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
       {
@@ -562,7 +568,7 @@ public:
       }
     correlationMetric->SetUseMovingImageGradientFilter( false );
     correlationMetric->SetUseFixedImageGradientFilter( false );
-    metric = correlationMetric;
+    typename MetricType::Pointer metric = correlationMetric.GetPointer();
 
     // We need to create an exact copy from the composite fixed and moving transforms returned from the metric
     // We should roll of the composite transform and create a new instance from each of their sub transforms
@@ -631,10 +637,8 @@ public:
       }
     movingTransform->SetOnlyMostRecentTransformToOptimizeOn();
 
-    // NOTE: The virtual domain should not change at each level. metric->SetVirtualDomainFromImage(
-    // inputMetric->GetVirtualImage() );
-    metric->SetVirtualDomainFromImage( this->m_origfixedImage );
-    metric->SetFixedImage( this->m_origfixedImage );
+    metric->SetVirtualDomainFromImage( this->m_origFixedImage );
+    metric->SetFixedImage( this->m_origFixedImage );
     metric->SetFixedTransform( fixedTransform );
     metric->SetMovingImage( this->m_origMovingImage );
     metric->SetMovingTransform( movingTransform );
@@ -658,7 +662,7 @@ private:
   std::ostream *                    m_LogStream;
   itk::TimeProbe                    m_clock;
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
-  typename ImageType::Pointer       m_origfixedImage;
+  typename ImageType::Pointer       m_origFixedImage;
   typename ImageType::Pointer       m_origMovingImage;
 };
 
@@ -3049,6 +3053,8 @@ RegistrationHelper<VImageDimension>
           DisplacementFieldCommandType2::New();
         displacementFieldRegistrationObserver2->SetLogStream(*this->m_LogStream);
         displacementFieldRegistrationObserver2->SetNumberOfIterations( currentStageIterations );
+        displacementFieldRegistrationObserver2->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
+        displacementFieldRegistrationObserver2->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
         if( this->m_PrintSimilarityMeasure )
           {
           displacementFieldRegistrationObserver2->SetComputeFullScaleCCAtEachIteration( true );
