@@ -127,6 +127,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
     }
   catch( itk::ExceptionObject & excp )
     {
+    antscout << excp << std::endl;
     return EXIT_FAILURE;
     }
   // ==========read the moving image
@@ -140,6 +141,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
     }
   catch( itk::ExceptionObject & excp )
     {
+    antscout << excp << std::endl;
     return EXIT_FAILURE;
     }
 
