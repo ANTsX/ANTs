@@ -27,6 +27,7 @@ public:
     if( os_ != NULL )
       {
       os_->write( buffer, num_chars );
+      os_->flush();
       }
     return num_chars;
   }
