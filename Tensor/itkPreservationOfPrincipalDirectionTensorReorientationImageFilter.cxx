@@ -295,12 +295,14 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
     }
   else
     {
+    // Retain input image space as that should be handled in antsApplyTransforms
+
     this->m_DirectionTransform->SetMatrix( m_DisplacementField->GetDirection() );
 
-    output->SetRegions( m_DisplacementField->GetLargestPossibleRegion() );
-    output->SetSpacing( m_DisplacementField->GetSpacing() );
-    output->SetOrigin( m_DisplacementField->GetOrigin() );
-    output->SetDirection( m_DisplacementField->GetDirection() );
+    output->SetRegions( input->GetLargestPossibleRegion() );
+    output->SetSpacing( input->GetSpacing() );
+    output->SetOrigin( input->GetOrigin() );
+    output->SetDirection( input->GetDirection() );
     output->Allocate();
 
     this->m_DisplacementTransform = DisplacementFieldTransformType::New();
