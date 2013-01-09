@@ -76,6 +76,7 @@
 #include "itkNeighborhoodIterator.h"
 #include "itkNormalVariateGenerator.h"
 #include "itkOtsuThresholdImageFilter.h"
+#include "itkPulsedArterialSpinLabeledCerebralBloodFlowImageFilter.h"
 #include "itkRGBPixel.h"
 #include "itkRelabelComponentImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
@@ -89,6 +90,9 @@
 #include "itkSubtractImageFilter.h"
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
+#include "itkTimeSeriesSimpleSubtractionImageFilter.h"
+#include "itkTimeSeriesSurroundSubtractionImageFilter.h"
+#include "itkTimeSeriesSincSubtractionImageFilter.h"
 #include "itkTransformFileReader.h"
 #include "itkTranslationTransform.h"
 #include "itkVariableSizeMatrix.h"
@@ -137,6 +141,24 @@ std::string ants_to_string(T t)
 
   istream << t;
   return istream.str();
+}
+
+std::string ANTSOptionName(const char *str)
+{
+  std::string            filename = str;
+  std::string::size_type pos = filename.rfind( "=" );
+  std::string            name = std::string( filename, 0, pos );
+
+  return name;
+}
+
+std::string ANTSOptionValue(const char *str)
+{
+  std::string            filename = str;
+  std::string::size_type pos = filename.rfind( "=" );
+  std::string            value = std::string( filename, pos + 1, filename.length() );
+
+  return value;
 }
 
 std::string ANTSGetFilePrefix(const char *str)
@@ -2102,6 +2124,206 @@ int TimeSeriesSubset(int argc, char *argv[])
     outimage = extractFilter->GetOutput();
     WriteImage<OutImageType>(outimage, kname.c_str() );
     }
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int TimeSeriesSimpleSubtraction(int argc, char *argv[])
+{
+  typedef float                                     PixelType;
+  typedef itk::Image<PixelType, ImageDimension>     InputImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1> OutputImageType;
+
+  typedef itk::TimeSeriesSimpleSubtractionImageFilter<InputImageType, OutputImageType>
+    ImageFilterType;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
+  typename ImageFilterType::Pointer filter = ImageFilterType::New();
+
+  if( argc >= 6 )
+    {
+    if( atoi(argv[argct]) > 0 )
+      {
+      filter->SetReverseOrdered( true );
+      }
+    }
+
+  typename InputImageType::Pointer image1 = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<InputImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  filter->SetInput( image1 );
+  filter->Update();
+
+  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int TimeSeriesSurroundSubtraction(int argc, char *argv[])
+{
+  typedef float                                     PixelType;
+  typedef itk::Image<PixelType, ImageDimension>     InputImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1> OutputImageType;
+
+  typedef itk::TimeSeriesSurroundSubtractionImageFilter<InputImageType, OutputImageType>
+    ImageFilterType;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
+  typename ImageFilterType::Pointer filter = ImageFilterType::New();
+
+  if( argc >= 6 )
+    {
+    if( atoi(argv[argct]) > 0 )
+      {
+      filter->SetReverseOrdered( true );
+      }
+    }
+
+  typename InputImageType::Pointer image1 = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<InputImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  filter->SetInput( image1 );
+  filter->Update();
+
+  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int TimeSeriesSincSubtraction(int argc, char *argv[])
+{
+  typedef float                                     PixelType;
+  typedef itk::Image<PixelType, ImageDimension>     InputImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1> OutputImageType;
+
+  typedef itk::TimeSeriesSincSubtractionImageFilter<InputImageType, OutputImageType>
+    ImageFilterType;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
+  typename ImageFilterType::Pointer filter = ImageFilterType::New();
+
+  if( argc >= 6 )
+    {
+    if( atoi(argv[argct]) > 0 )
+      {
+      filter->SetReverseOrdered( true );
+      }
+    }
+
+  typename InputImageType::Pointer image1 = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<InputImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  filter->SetInput( image1 );
+  filter->Update();
+
+  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int PASLQuantifyCBF(int argc, char *argv[])
+{
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+
+  typedef itk::PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<ImageType, ImageType>
+    FilterType;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct]); argct++;
+  std::string operation = std::string(argv[argct]);  argct++;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+
+  typename FilterType::Pointer getCBF = FilterType::New();
+
+  // scan for optional parameters
+  while( argct < argc )
+    {
+    if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "TI1") == 0 )
+      {
+      getCBF->SetTI1( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "TI2") == 0 )
+      {
+      getCBF->SetTI2( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "T1blood") == 0 )
+      {
+      getCBF->SetT1blood( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "Lambda") == 0 )
+      {
+      getCBF->SetLambda( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "Alpha") == 0 )
+      {
+      getCBF->SetAlpha( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "SliceDelay") == 0 )
+      {
+      getCBF->SetSliceDelay( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+
+    argct++;
+    }
+
+  // read in optional parameters here
+  // float m_TI1;
+  // float m_TI2;
+  // float m_T1blood;
+  // float m_lmabda;
+  // float m_alpha;
+  // float m_sliceDelay;
+
+  typename ImageType::Pointer ratio = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(ratio, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  getCBF->SetInput( ratio );
+  getCBF->Update();
+
+  WriteImage<ImageType>( getCBF->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -10938,6 +11160,18 @@ private:
       " TimeSeriesToMatrix : Converts a 4D image + mask to matrix (stored as csv file) where rows are time and columns are space ."
       << std::endl;
     antscout << "    Usage        : TimeSeriesToMatrix 4D_TimeSeries.nii.gz mask " << std::endl;
+    antscout
+      << " TimeSeriesSimpleSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
+      << std::endl;
+    antscout << "    Usage        : TimeSeriesSimpleSubtraction image.nii.gz " << std::endl;
+    antscout
+      << " TimeSeriesSurroundSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
+      << std::endl;
+    antscout << "    Usage        : TimeSeriesSurroundSubtraction image.nii.gz " << std::endl;
+    antscout
+      << " TimeSeriesSincSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
+      << std::endl;
+    antscout << "    Usage        : TimeSeriesSincSubtraction image.nii.gz " << std::endl;
 
     antscout
       <<
@@ -10960,6 +11194,13 @@ private:
       << " f =  \frac{      lambda DeltaM R_{1a}        }  " << std::endl
       << "  {     2 \alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
     antscout << "    Usage        : pCASL 3D/4D_TimeSeries.nii.gz parameter_list.txt " << std::endl;
+    antscout
+      << " PASLQuantifyCBF : Outputs a 3D CBF image in ml/100g/min from a magnetization ratio image"
+      << std::endl;
+    antscout
+      <<
+      "    Usage        : PASLQuantifyCBF mag_ratio.nii.gz [TI1=700] [TI2=1900] [T1blood=1664] [Lambda=0.9] [Alpha=0.95] [SliceDelay-45] "
+      << std::endl;
 
     antscout << "\nTensor Operations:" << std::endl;
     antscout << "  4DTensorTo3DTensor    : Outputs a 3D_DT_Image with the same information. " << std::endl;
@@ -11840,6 +12081,10 @@ private:
         {
         TensorFunctions<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "PASLQuantifyCBF") == 0 )
+        {
+        PASLQuantifyCBF<3>(argc, argv);
+        }
       else if( strcmp( operation.c_str(), "Finite") == 0 )
         {
         Finite<3>( argc, argv );
@@ -12308,6 +12553,18 @@ private:
       else if( strcmp(operation.c_str(), "TimeSeriesToMatrix") == 0 )
         {
         TimeSeriesToMatrix<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TimeSeriesSimpleSubtraction") == 0 )
+        {
+        TimeSeriesSimpleSubtraction<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TimeSeriesSurroundSubtraction") == 0 )
+        {
+        TimeSeriesSurroundSubtraction<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TimeSeriesSincSubtraction") == 0 )
+        {
+        TimeSeriesSincSubtraction<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "ThreeTissueConfounds") == 0 )
         {
