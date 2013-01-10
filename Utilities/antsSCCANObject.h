@@ -623,6 +623,8 @@ public:
 
   RealType SparsePartialCCA(unsigned int nvecs);
 
+  bool CCAUpdate(unsigned int nvecs, bool );
+
   RealType SparsePartialArnoldiCCA(unsigned int nvecs);
 
   RealType IHTCCA(unsigned int nvecs);

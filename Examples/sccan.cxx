@@ -1451,7 +1451,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
   vVector w_p = sccanobj->GetVariateP(0);
   vVector w_q = sccanobj->GetVariateQ(0);
-  antscout << " true-corr " << sccanobj->GetCanonicalCorrelations() << std::endl;
+  vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
+  antscout << " true-corr " << sccancorrs << std::endl;
 
   if( writeoutput )
     {
@@ -1482,12 +1483,14 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sermuted ;  2. scca ;  3. test corrs and weights significance */
   if( permct > 0 )
     {
-    unsigned long perm_exceed_ct = 0;
-    vVector       w_p_signif_ct(w_p.size(), 0);
-    vVector       w_q_signif_ct(w_q.size(), 0);
+    vnl_vector<unsigned long> perm_exceed_ct( sccancorrs.size(),  0 );
+    vVector                   w_p_signif_ct(w_p.size(), 0);
+    vVector                   w_q_signif_ct(w_q.size(), 0);
     for( unsigned long pct = 0; pct <= permct; pct++ )
       {
       // 0. compute permutation for q ( switch around rows )
+      sccanobj->SetFractionNonZeroP(FracNonZero1);
+      sccanobj->SetFractionNonZeroQ(FracNonZero2);
       sccanobj->SetGradStep( gradstep );
       sccanobj->SetMatrixP( p );
       ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
@@ -1495,11 +1498,14 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       sccanobj->SetMatrixQ( q_perm );
       double permcorr = 0;
       permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
-      antscout << " perm-corr " << sccanobj->GetCanonicalCorrelations()  << std::endl;
-
-      if( permcorr > truecorr )
+      vVector permcorrs = sccanobj->GetCanonicalCorrelations();
+      antscout << " perm-corr " << permcorrs << std::endl;
+      for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
         {
-        perm_exceed_ct++;
+        if( permcorrs[kk] > sccancorrs[kk] )
+          {
+          perm_exceed_ct[kk]++;
+          }
         }
       vVector w_p_perm = sccanobj->GetVariateP(0);
       vVector w_q_perm = sccanobj->GetVariateQ(0);
@@ -1518,8 +1524,14 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
           }
         }
       // end solve cca permutation
-      antscout << permcorr << " p-value " <<  (double)perm_exceed_ct
-        / (pct + 1) << " ct " << pct << " true " << truecorr << std::endl;
+      antscout << "perm: ";
+      for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+        {
+        //	antscout << " k" << kk << "p: " <<  ( double ) perm_exceed_ct[kk]
+        antscout << ( double ) perm_exceed_ct[kk]
+          / (pct + 1) << ","; // << " true " << sccancorrs[kk];
+        }
+      antscout << " ct " << pct << std::endl;
       }
     unsigned long psigct = 0, qsigct = 0;
     for( unsigned long j = 0; j < w_p.size(); j++ )
@@ -1552,7 +1564,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
         w_q_signif_ct(j) = 0;
         }
       }
-    antscout <<  " p-value " <<  (double)perm_exceed_ct / (permct) << " ct " << permct << std::endl;
+    antscout <<  " p-value " << perm_exceed_ct / (permct) << " ct " << permct << std::endl;
     antscout << " p-vox " <<  (double)psigct / w_p.size() << " ct " << permct << std::endl;
     antscout << " q-vox " <<  (double)qsigct / w_q.size() << " ct " << permct << std::endl;
 
