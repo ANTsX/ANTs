@@ -37,7 +37,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, N4 tries to " )
+      + std::string( "dimensional image.  If not specified, we try to " )
       + std::string( "infer the dimensionality from the input image." );
 
     OptionType::Pointer option = OptionType::New();
