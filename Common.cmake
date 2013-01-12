@@ -8,22 +8,14 @@ include(CMakeDependentOption)
 option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
 set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
-set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build BRAINS (3 or 4).")
+set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build ANTS (only ITKv4 supported).")
 # Set the possible values of ITK major version for cmake-gui
-set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "3" "4")
-if(NOT ${ITK_VERSION_MAJOR} STREQUAL "3" AND NOT ${ITK_VERSION_MAJOR} STREQUAL "4")
-  message(FATAL_ERROR "ITK_VERSION_MAJOR should be either 3 or 4")
+set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "4")
+if(NOT ${ITK_VERSION_MAJOR} STREQUAL "4")
+  message(FATAL_ERROR "ITK_VERSION_MAJOR should be 4")
 endif()
 
-set(USE_ITKv3 OFF)
 set(USE_ITKv4 ON)
-if(${ITK_VERSION_MAJOR} STREQUAL "3")
-  set(USE_ITKv3 ON)
-  set(USE_ITKv4 OFF)
-endif()
-
-#CMAKE_DEPENDENT_OPTION(
-#  USE_BRAINSSnapShotWriter            "Build BRAINSSnapShotWriter (ITKv4)"          OFF "USE_ITKv4" OFF)
 
 # With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
 # For earlier versions, we nullify the update state to prevent updates and
