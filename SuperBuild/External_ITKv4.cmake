@@ -62,7 +62,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   #      link properly if -fopenmp is used.
   string(REPLACE "-fopenmp" "" ITK_CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
   string(REPLACE "-fopenmp" "" ITK_CMAKE_CXX_FLAGS "${CMAKE_CX_FLAGS}")
-  if(USE_FFTWD OR USE_FFTWF)
+  if(ITK_USE_FFTWD OR ITK_USE_FFTWF)
     set(FFTWF_FLAGS -DUSE_FFTWF:BOOL=ON)
   else()
     set(FFTWF_FLAGS "")
