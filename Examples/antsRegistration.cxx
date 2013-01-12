@@ -146,7 +146,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description = std::string( "Prints out the CC similarity metric measure " )
-      + std::string( "between the full-size input fixed and the transformed moving images at each iteraton " )
+      + std::string( "between the full-size input fixed and the transformed moving images at each iteration " )
       + std::string( "a value of 0 (the default) indicates that the full scale computation should not take place")
       + std::string( "any value greater than 0 represents the interval of full scale metric computation.");
     OptionType::Pointer option = OptionType::New();

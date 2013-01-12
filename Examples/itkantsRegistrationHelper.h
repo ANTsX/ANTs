@@ -488,7 +488,7 @@ public:
 
   /**
    * turn on the option that prints the CC similarity measure
-   * between the original fixed input image and original moving input image at each iteraton.
+   * between the full-size fixed and moving input images at each iteraton.
    */
   itkSetMacro( PrintSimilarityMeasureInterval, unsigned int );
   itkGetConstMacro( PrintSimilarityMeasureInterval, unsigned int );

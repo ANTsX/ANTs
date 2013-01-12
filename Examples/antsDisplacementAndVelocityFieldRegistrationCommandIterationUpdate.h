@@ -276,7 +276,7 @@ public:
       // SyN uses the above composite transforms to compute the current metric value in two ways as follows:
       /*
        At the first method, the input images are downsampled by the fixed and moving transforms,
-       and then, the output of resamplers are passed to the metric with identity transforms.
+       and then, the output of resamplers are passed to the CC similarity metric with identity transforms.
       */
       if( filter->GetDownsampleImagesForMetricDerivatives() )
         {
@@ -316,8 +316,8 @@ public:
         metric->SetMovingTransform( identityDisplacementFieldTransform );
         }
       /*
-       At the second method, the computed fixed and moving composite transforms are passed to the filter directly
-       with the original fixed and moving images.
+       At the second method, the computed fixed and moving composite transforms are passed to the CC similarity metric directly
+       with the full scale fixed and moving images.
       */
       else if( !( filter->GetDownsampleImagesForMetricDerivatives() ) )
         {
