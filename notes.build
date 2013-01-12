@@ -4,13 +4,13 @@ cd ${MYSRC}
 git clone git@github.com:BRAINSia/ANTS.git
 cd ${MYSRC}/ANTS
 
-git svn init https://advants.svn.sourceforge.net/svnroot/advants/trunk
+git svn init https://svn.code.sf.net/p/advants/svn/trunk
 git update-ref refs/remotes/git-svn refs/remotes/origin/master
 git svn rebase
 
 ## Ensure that the following is represented in your .git/config file
 #[svn-remote "svn"]
-#	url = https://advants.svn.sourceforge.net/svnroot/advants/trunk
+#	url = https://svn.code.sf.net/p/advants/svn/trunk
 #	fetch = :refs/remotes/git-svn
 
 
