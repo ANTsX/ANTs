@@ -114,7 +114,7 @@ public:
           lCurrentIteration == lastIteration) )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
-        // using a CC metric type with radius 5.
+        // using a CC metric type with radius 4.
         // The feature can be used to observe the progress of the registration process at each iteration.
         this->UpdateFullScaleMetricValue(this->m_Optimizer, metricValue);
         }
@@ -203,7 +203,7 @@ public:
     typename MetricType::Pointer metric = correlationMetric.GetPointer();
 
     // We need to create an exact copy from the composite fixed and moving transforms returned from the metric
-    // We should roll of the composite transform and create a new instance from each of their sub transforms
+    // We should roll off the composite transform and create a new instance from each of its sub transforms
 
     // For the fixed transform, first we should check that wether it is an identity transform or composite transform.
     typename TransformBaseType::Pointer fixedTransform;
@@ -213,7 +213,7 @@ public:
 
       // Const_cast just makes it possible to cast the metric's transform to a composite transform, so we can copy each
       // of its sub transforms to a new instance.
-      // Notice that the metric transform will not be changes inside this fuction.
+      // Notice that the metric transform will not be changed inside this fuction.
       // NOTE:  This will not be needed when ITKv4 is updated to include const versions of all get functions.
       // TODO: Remove const_cast once ITKv4 is fixed to allow const Get Macro functions.
       typedef typename MetricType::FixedTransformType FixedTransformType;
@@ -222,7 +222,7 @@ public:
       const unsigned int N = inputFixedTransform->GetNumberOfTransforms();
       for( unsigned int i = 0; i < N; i++ )
         {
-        // Create a new instance from each sub transforms.
+        // Create a new instance from each sub transform.
         typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputFixedTransform->GetNthTransform(
                                                                                               i)->CreateAnother().GetPointer() ) );
         // Copy the information to each sub transform and add this transform to the final composite transform.

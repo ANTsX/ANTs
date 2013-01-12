@@ -2381,7 +2381,7 @@ RegistrationHelper<VImageDimension>
         outputDisplacementFieldTransform->SetInverseDisplacementField( inverseDisplacementField );
 
         // For all Velocity field and Displacement field registration types that are not using generic
-        // itkImageRegistrationMethodv4 we use two type of observer:
+        // itkImageRegistrationMethodv4 we use following type of observer:
         typedef antsDisplacementAndVelocityFieldRegistrationCommandIterationUpdate<DisplacementFieldRegistrationType>
           DisplacementFieldCommandType2;
         typename DisplacementFieldCommandType2::Pointer displacementFieldRegistrationObserver2 =

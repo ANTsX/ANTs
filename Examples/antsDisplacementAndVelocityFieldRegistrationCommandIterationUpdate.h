@@ -191,7 +191,7 @@ public:
   void UpdateFullScaleMetricValue(TFilter const * const filter,
                                   MeasureType & metricValue ) const
   {
-    // Get the registration metric from the filter, input metric is needed to find the virtual domain image
+    // Get the registration metric from the filter, input metric is needed to find the type of input transform.
     typename MetricType::ConstPointer inputMetric(
       dynamic_cast<MetricType *>( const_cast<TFilter *>( filter )->GetMetric() ) );
 
@@ -204,7 +204,8 @@ public:
     typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
       {
       typename CorrelationMetricType::RadiusType radius;
-      radius.Fill( 5 );
+      radius.Fill( 4 ); // NOTE: This is just a common reference for fine-tuning parameters, so perhaps a smaller window
+                        // would be sufficient.
       correlationMetric->SetRadius( radius );
       }
     correlationMetric->SetUseMovingImageGradientFilter( false );
@@ -218,8 +219,8 @@ public:
     if( strcmp( inputMetric->GetMovingTransform()->GetNameOfClass(), "DisplacementFieldTransform" ) == 0 )
       {
       /*
-      Filter return the MovingToMiddleTransform and FixedToMiddleTransform of each iteration. These transforms are used to generate input transforms of our metric
-      NOTICE: Using const_cast for filter does not make any issue, because the requested outputs just will be copied to another objects.
+      Filter returns the SyN internal trnasforms (MovingToMiddleTransform & FixedToMiddleTransform) at each iteration. These transforms are used to generate input transforms of full scale CC metric.
+      NOTICE: Using const_cast for filter does not make any issue because the requested outputs are copied to another objects, and there will be no change to them at future.
       */
       // Copy the SyN internal transforms at each iteration
       typename DisplacementFieldTransformType::Pointer myFixedToMiddleTransform = DisplacementFieldTransformType::New();
@@ -256,7 +257,7 @@ public:
       myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetOutput() );
       myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetOutput() );
 
-      // Based on SyN Registration implementation, fixed composite and moving composite transform is generated to
+      // Based on SyN Registration implementation, fixed composite and moving composite transforms are generated to
       // compute the metric value at each iteration.
       typedef typename TFilter::InitialTransformType InitialTransformType;
 
