@@ -195,7 +195,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     // read in the image as char since we only need the header information.
     antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
     typename ReferenceImageType::Pointer refimage;
-    ReadImage<ImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
+    ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
     referenceImage->Update();
     referenceImage->DisconnectPipeline();
     }
