@@ -244,23 +244,14 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
-  // typename ImageFileReaderType::Pointer reader_img = ImageFileReaderType::New();
-  // reader_img->SetFileName(moving_image_filename);
-  // reader_img->Update();
-  // typename ImageType::Pointer img_mov = ImageType::New();
-  // img_mov = reader_img->GetOutput();
   typename VectorImageType::Pointer img_mov;
 
   ReadImage<VectorImageType>(img_mov, moving_image_filename);
   antscout << " Four-D image size: " << img_mov->GetLargestPossibleRegion().GetSize() << std::endl;
   typename ImageType::Pointer img_ref;
-  typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
   if( misc_opt.reference_image_filename )
     {
-    reader_img_ref->SetFileName(misc_opt.reference_image_filename);
-    reader_img_ref->Update();
-    img_ref = reader_img_ref->GetOutput();
+    ReadImage<ImageType>( img_ref, misc_opt.reference_image_filename );
     }
 
   typedef itk::ExtractImageFilter<VectorImageType, ImageType> ExtractFilterType;
@@ -519,14 +510,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
-  // typename ImageFileReaderType::Pointer reader_img = ImageFileReaderType::New();
-  // reader_img->SetFileName(moving_image_filename);
-  // reader_img->Update();
-  // typename ImageType::Pointer img_mov = ImageType::New();
-  // img_mov = reader_img->GetOutput();
   typename VectorImageType::Pointer img_mov;
-
   typename itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(moving_image_filename, itk::ImageIOFactory::ReadMode);
   imageIO->SetFileName(moving_image_filename);
@@ -541,9 +525,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
   typename ImageFileReaderType::Pointer reader_img_ref = ImageFileReaderType::New();
   if( misc_opt.reference_image_filename )
     {
-    reader_img_ref->SetFileName(misc_opt.reference_image_filename);
-    reader_img_ref->Update();
-    img_ref = reader_img_ref->GetOutput();
+    ReadImage<ImageType>( img_ref, misc_opt.reference_image_filename );
     }
 
   typename VectorImageType::Pointer img_output =
