@@ -614,13 +614,13 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,
                                        std::vector<bool> & derivedTransforms )
 {
-  typename ImageType::Pointer fixedImage = NULL;
-  typename ImageType::Pointer movingImage = NULL;
   typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
   typedef typename RegistrationHelperType::ImageType ImageType;
+  typename ImageType::Pointer fixedImage = NULL;
+  typename ImageType::Pointer movingImage = NULL;
 
   std::deque<std::string> transformNames;
   std::deque<std::string> transformTypes;
