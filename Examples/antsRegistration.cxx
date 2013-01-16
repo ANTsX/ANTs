@@ -18,6 +18,7 @@
 
 #include "antsUtilities.h"
 #include "itkantsRegistrationHelper.h"
+#include "ReadWriteImage.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
@@ -1044,37 +1045,9 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     typename ImageType::Pointer fixedImage;
     typename ImageType::Pointer movingImage;
-
-    typedef itk::ImageFileReader<ImageType> ImageReaderType;
-    typename ImageReaderType::Pointer fixedImageReader = ImageReaderType::New();
-
-    fixedImageReader->SetFileName( fixedImageFileName.c_str() );
-    fixedImageReader->Update();
-    fixedImage = fixedImageReader->GetOutput();
-    try
-      {
-      fixedImage->Update();
-      }
-    catch( itk::ExceptionObject & excp )
-      {
-      antscout << excp << std::endl;
-      return EXIT_FAILURE;
-      }
+    ReadImage<ImageType>( fixedImage,  fixedImageFileName.c_str() );
+    ReadImage<ImageType>( movingImage, movingImageFileName.c_str() );
     fixedImage->DisconnectPipeline();
-
-    typename ImageReaderType::Pointer movingImageReader = ImageReaderType::New();
-    movingImageReader->SetFileName( movingImageFileName.c_str() );
-    movingImageReader->Update();
-    movingImage = movingImageReader->GetOutput();
-    try
-      {
-      movingImage->Update();
-      }
-    catch( itk::ExceptionObject & excp )
-      {
-      antscout << excp << std::endl;
-      return EXIT_FAILURE;
-      }
     movingImage->DisconnectPipeline();
 
     // Get the stage ID
