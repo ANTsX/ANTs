@@ -1373,19 +1373,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
   if( !outputWarpedImageName.empty() )
     {
-    typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
-    writer->SetFileName( outputWarpedImageName.c_str() );
-    writer->SetInput( warpedImage );
-    try
-      {
-      writer->Update();
-      }
-    catch( itk::ExceptionObject & err )
-      {
-      antscout << "Can't write warped image " << outputWarpedImageName << std::endl;
-      antscout << "Exception Object caught: " << std::endl;
-      antscout << err << std::endl;
-      }
+    WriteImage<ImageType>( warpedImage, outputWarpedImageName.c_str()  );
     }
 
   if( !outputInverseWarpedImageName.empty() )
@@ -1393,19 +1381,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     typename ImageType::Pointer inverseWarpedImage = regHelper->GetInverseWarpedImage();
     if( inverseWarpedImage.IsNotNull() )
       {
-      typename WarpedImageWriterType::Pointer inverseWriter = WarpedImageWriterType::New();
-      inverseWriter->SetFileName( outputInverseWarpedImageName.c_str() );
-      inverseWriter->SetInput( inverseWarpedImage );
-      try
-        {
-        inverseWriter->Update();
-        }
-      catch( itk::ExceptionObject & err )
-        {
-        antscout << "Can't write inverse warped image " << outputInverseWarpedImageName << std::endl;
-        antscout << "Exception Object caught: " << std::endl;
-        antscout << err << std::endl;
-        }
+      WriteImage<ImageType>( inverseWarpedImage, outputInverseWarpedImageName.c_str()  );
       }
     }
 
