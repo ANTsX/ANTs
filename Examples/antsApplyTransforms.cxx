@@ -146,13 +146,9 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   else if( inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions() )
     {
     antscout << "Input scalar image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
-
-    typedef itk::ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer reader = ReaderType::New();
-    reader->SetFileName( ( inputOption->GetFunction( 0 )->GetName() ).c_str() );
-    reader->Update();
-
-    inputImages.push_back( reader->GetOutput() );
+    typename ImageType::Pointer image;
+    ReadImage<ImageType>( image, ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
+    inputImages.push_back( image );
     }
   else if( inputImageType == 1 && inputOption && inputOption->GetNumberOfFunctions() )
     {
@@ -196,15 +192,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     parser->GetOption( "reference-image" );
   if( referenceOption && referenceOption->GetNumberOfFunctions() )
     {
-    antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
-
     // read in the image as char since we only need the header information.
-    typedef itk::ImageFileReader<ReferenceImageType> ReferenceReaderType;
-    typename ReferenceReaderType::Pointer referenceReader =
-      ReferenceReaderType::New();
-    referenceReader->SetFileName( ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
-
-    referenceImage = referenceReader->GetOutput();
+    antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
+    typename ReferenceImageType::Pointer refimage;
+    ReadImage<ImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
     referenceImage->Update();
     referenceImage->DisconnectPipeline();
     }
@@ -415,13 +406,9 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         }
       else
         {
-        typedef  itk::ImageFileWriter<ImageType> WriterType;
-        typename WriterType::Pointer writer = WriterType::New();
-        writer->SetInput( outputImages[0] );
-        writer->SetFileName( ( outputFileName ).c_str() );
         try
           {
-          writer->Update();
+          WriteImage<ImageType>( outputImages[0], ( outputFileName ).c_str()  );
           }
         catch( itk::ExceptionObject & err )
           {
@@ -431,7 +418,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           }
         catch( ... )
           {
-          std::cout << "Error while reading in image: " << outputFileName << std::endl;
+          std::cout << "Error while writing in image: " << outputFileName << std::endl;
           throw;
           }
         }
