@@ -614,6 +614,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,
                                        std::vector<bool> & derivedTransforms )
 {
+  typename ImageType::Pointer fixedImage = NULL;
+  typename ImageType::Pointer movingImage = NULL;
   typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
@@ -637,8 +639,6 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       }
     else if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
       {
-      typename ImageType::Pointer fixedImage = NULL;
-      typename ImageType::Pointer movingImage = NULL;
       std::string fixedImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
       ReadImage<ImageType>( fixedImage,  fixedImageFileName.c_str() );
       if( fixedImage )
