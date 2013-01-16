@@ -18,6 +18,7 @@
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
 
+#include "ReadWriteImage.h"
 #include "itkANTSAffine3DTransform.h"
 #include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
@@ -636,176 +637,148 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       }
     else if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
       {
-      typedef itk::ImageFileReader<ImageType> ImageReaderType;
-
       typename ImageType::Pointer fixedImage = NULL;
-
-      std::string fixedImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
-
-      typename ImageReaderType::Pointer fixedReader = ImageReaderType::New();
-      fixedReader->SetFileName( fixedImageFileName.c_str() );
-      try
-        {
-        fixedReader->Update();
-        fixedImage = fixedReader->GetOutput();
-        }
-      catch( ... )
-        {
-        std::cerr << "Unable to read fixed image: " << fixedImageFileName.c_str() << std::endl;
-        exit( EXIT_FAILURE );
-        }
-
       typename ImageType::Pointer movingImage = NULL;
-
+      std::string fixedImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
+      ReadImage<ImageType>( fixedImage,  fixedImageFileName.c_str() );
       if( fixedImage )
         {
         std::string movingImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 1 );
-
-        typename ImageReaderType::Pointer movingReader = ImageReaderType::New();
-        movingReader->SetFileName( movingImageFileName.c_str() );
-        try
-          {
-          movingReader->Update();
-          movingImage = movingReader->GetOutput();
-          }
-        catch( ... )
-          {
-          std::cerr <<  "Unable to read moving image: " << movingImageFileName.c_str() << std::endl;
-          exit( EXIT_FAILURE );
-          }
-        }
-
-      bool useCenterOfMass = true;
-      if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
-        {
-        std::string parameter = initialTransformOption->GetFunction( n )->GetParameter( 2 );
-        ConvertToLowerCase( parameter );
-        if( parameter.compare( "0" ) == 0 || parameter.compare( "false" ) == 0 )
-          {
-          useCenterOfMass = false;
-          }
-        }
-      typedef itk::AffineTransform<double, VImageDimension> TransformType;
-      typename TransformType::Pointer transform = TransformType::New();
-
-      typedef itk::CenteredTransformInitializer<TransformType, ImageType, ImageType> TransformInitializerType;
-      typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-
-      initializer->SetTransform( transform );
-
-      initializer->SetFixedImage( fixedImage );
-      initializer->SetMovingImage( movingImage );
-
-      if( useCenterOfMass )
-        {
-        initializer->MomentsOn();
-        initialTransformName = std::string( "Center of mass alignment using " );
-        }
-      else
-        {
-        initializer->GeometryOn();
-        initialTransformName = std::string( "Image alignment using " );
-        }
-      initializer->InitializeTransform();
-
-      initialTransformName += std::string( "fixed image: " )
-        + initialTransformOption->GetFunction( n )->GetParameter( 0 )
-        + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
-
-      typedef itk::TranslationTransform<double, VImageDimension> TranslationTransformType;
-      typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
-      translationTransform->SetOffset( transform->GetTranslation() );
-
-      compositeTransform->AddTransform( translationTransform );
-
-      calculatedTransformFromImages = true;
-      derivedTransforms[n] = true;
-
-      transformNames.push_back( initialTransformName );
-      transformTypes.push_back( translationTransform->GetNameOfClass() );
-      }
-
-    if( !calculatedTransformFromImages )
-      {
-      if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() == 0 )
-        {
-        initialTransformName = initialTransformOption->GetFunction( n )->GetName();
-        useInverse = false;
-        }
-      else
-        {
-        initialTransformName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
-        if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 1 )
-          {
-          useInverse = parser->Convert<bool>( initialTransformOption->GetFunction( n )->GetParameter( 1 ) );
-          }
+        ReadImage<ImageType>( movingImage, movingImageFileName.c_str() );
         }
       }
 
-    static bool MatOffRegistered(false); // Only register once for each template dimension.
-    if( !MatOffRegistered )
+    bool useCenterOfMass = true;
+    if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
       {
-      MatOffRegistered = true;
-      // Register the matrix offset transform base class to the
-      // transform factory for compatibility with the current ANTs.
-      typedef itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension> MatrixOffsetTransformType;
-      itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+      std::string parameter = initialTransformOption->GetFunction( n )->GetParameter( 2 );
+      ConvertToLowerCase( parameter );
+      if( parameter.compare( "0" ) == 0 || parameter.compare( "false" ) == 0 )
+        {
+        useCenterOfMass = false;
+        }
       }
+    typedef itk::AffineTransform<double, VImageDimension> TransformType;
+    typename TransformType::Pointer transform = TransformType::New();
 
-    if( !calculatedTransformFromImages )
+    typedef itk::CenteredTransformInitializer<TransformType, ImageType, ImageType> TransformInitializerType;
+    typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
+
+    initializer->SetTransform( transform );
+
+    initializer->SetFixedImage( fixedImage );
+    initializer->SetMovingImage( movingImage );
+
+    if( useCenterOfMass )
       {
-      typedef ants::RegistrationHelper<VImageDimension>                       RegistrationHelperType;
-      typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+      initializer->MomentsOn();
+      initialTransformName = std::string( "Center of mass alignment using " );
+      }
+    else
+      {
+      initializer->GeometryOn();
+      initialTransformName = std::string( "Image alignment using " );
+      }
+    initializer->InitializeTransform();
 
-      typedef typename RegistrationHelperType::TransformType TransformType;
-      typename TransformType::Pointer initialTransform =
-        itk::ants::ReadTransform<VImageDimension>( initialTransformName );
+    initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 0 )
+      + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
+
+    typedef itk::TranslationTransform<double, VImageDimension> TranslationTransformType;
+    typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
+    translationTransform->SetOffset( transform->GetTranslation() );
+
+    compositeTransform->AddTransform( translationTransform );
+
+    calculatedTransformFromImages = true;
+    derivedTransforms[n] = true;
+
+    transformNames.push_back( initialTransformName );
+    transformTypes.push_back( translationTransform->GetNameOfClass() );
+    }
+
+  if( !calculatedTransformFromImages )
+    {
+    if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() == 0 )
+      {
+      initialTransformName = initialTransformOption->GetFunction( n )->GetName();
+      useInverse = false;
+      }
+    else
+      {
+      initialTransformName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
+      if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 1 )
+        {
+        useInverse = parser->Convert<bool>( initialTransformOption->GetFunction( n )->GetParameter( 1 ) );
+        }
+      }
+    }
+
+  static bool MatOffRegistered(false);   // Only register once for each template dimension.
+  if( !MatOffRegistered )
+    {
+    MatOffRegistered = true;
+    // Register the matrix offset transform base class to the
+    // transform factory for compatibility with the current ANTs.
+    typedef itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+    itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
+    }
+
+  if( !calculatedTransformFromImages )
+    {
+    typedef ants::RegistrationHelper<VImageDimension>                       RegistrationHelperType;
+    typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
+
+    typedef typename RegistrationHelperType::TransformType TransformType;
+    typename TransformType::Pointer initialTransform =
+      itk::ants::ReadTransform<VImageDimension>( initialTransformName );
+    if( initialTransform.IsNull() )
+      {
+      ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;
+      return NULL;
+      }
+    if( useInverse )
+      {
+      initialTransform = dynamic_cast<TransformType *>( initialTransform->GetInverseTransform().GetPointer() );
       if( initialTransform.IsNull() )
         {
-        ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;
+        ::ants::antscout << "Inverse does not exist for " << initialTransformName << std::endl;
         return NULL;
         }
-      if( useInverse )
+      initialTransformName = std::string( "inverse of " ) + initialTransformName;
+      }
+    static const std::string CompositeTransformID("CompositeTransform");
+    if( initialTransform->GetNameOfClass() == CompositeTransformID )
+      {
+      const typename itk::CompositeTransform<double, VImageDimension>::ConstPointer tempComp =
+        dynamic_cast<const itk::CompositeTransform<double, VImageDimension> *>( initialTransform.GetPointer() );
+      for( unsigned int i = 0; i < tempComp->GetNumberOfTransforms(); ++i )
         {
-        initialTransform = dynamic_cast<TransformType *>( initialTransform->GetInverseTransform().GetPointer() );
-        if( initialTransform.IsNull() )
-          {
-          ::ants::antscout << "Inverse does not exist for " << initialTransformName << std::endl;
-          return NULL;
-          }
-        initialTransformName = std::string( "inverse of " ) + initialTransformName;
-        }
-      static const std::string CompositeTransformID("CompositeTransform");
-      if( initialTransform->GetNameOfClass() == CompositeTransformID )
-        {
-        const typename itk::CompositeTransform<double, VImageDimension>::ConstPointer tempComp =
-          dynamic_cast<const itk::CompositeTransform<double, VImageDimension> *>( initialTransform.GetPointer() );
-        for( unsigned int i = 0; i < tempComp->GetNumberOfTransforms(); ++i )
-          {
-          std::stringstream tempstream;
-          tempstream << initialTransformName << "[" << i << "]";
+        std::stringstream tempstream;
+        tempstream << initialTransformName << "[" << i << "]";
 
-          compositeTransform->AddTransform( tempComp->GetNthTransform( i ) );
-          transformNames.push_back( tempstream.str() );
-          transformTypes.push_back( tempComp->GetNthTransform( i )->GetNameOfClass() );
-          }
-        }
-      else
-        {
-        compositeTransform->AddTransform( initialTransform );
-        transformNames.push_back( initialTransformName );
-        transformTypes.push_back( initialTransform->GetNameOfClass() );
+        compositeTransform->AddTransform( tempComp->GetNthTransform( i ) );
+        transformNames.push_back( tempstream.str() );
+        transformTypes.push_back( tempComp->GetNthTransform( i )->GetNameOfClass() );
         }
       }
+    else
+      {
+      compositeTransform->AddTransform( initialTransform );
+      transformNames.push_back( initialTransformName );
+      transformTypes.push_back( initialTransform->GetNameOfClass() );
+      }
     }
-  antscout << "=============================================================================" << std::endl;
-  antscout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
-  for( unsigned int n = 0; n < transformNames.size(); n++ )
-    {
-    antscout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
-    }
-  antscout << "=============================================================================" << std::endl;
-  return compositeTransform;
+}
+
+antscout << "=============================================================================" << std::endl;
+antscout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
+for( unsigned int n = 0; n < transformNames.size(); n++ )
+  {
+  antscout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
+  }
+antscout << "=============================================================================" << std::endl;
+return compositeTransform;
 }
 
 // ####################

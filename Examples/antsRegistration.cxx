@@ -18,8 +18,6 @@
 
 #include "antsUtilities.h"
 #include "itkantsRegistrationHelper.h"
-#include "ReadWriteImage.h"
-
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkGaussianInterpolateImageFunction.h"
