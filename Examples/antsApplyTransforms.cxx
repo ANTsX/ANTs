@@ -191,7 +191,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   if( referenceOption && referenceOption->GetNumberOfFunctions() )
     {
     antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
-    typename ReferenceImageType::Pointer refimage;
     ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
     //    referenceImage->Update();
     //    referenceImage->DisconnectPipeline(); // BA - not sure why pipeline is disconnected , possibly causes antsr
@@ -692,9 +691,10 @@ private:
 
   unsigned int dimension = 3;
 
-  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-      filename.c_str(), itk::ImageIOFactory::ReadMode );
-  dimension = imageIO->GetNumberOfDimensions();
+  // BA - code below creates problems in ANTsR
+  //  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
+  //      filename.c_str(), itk::ImageIOFactory::ReadMode );
+  //  dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );
