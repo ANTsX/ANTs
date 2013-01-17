@@ -244,6 +244,8 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
+  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
+
   typename VectorImageType::Pointer img_mov;
 
   ReadImage<VectorImageType>(img_mov, moving_image_filename);
@@ -317,7 +319,6 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
       }
 
     typedef itk::TransformFileReader                    TranReaderType;
-    typedef itk::ImageFileReader<ImageType>             ImageFileReaderType;
     typedef itk::ImageFileReader<DisplacementFieldType> FieldReaderType;
 
     unsigned int transcount = 0;
@@ -363,7 +364,7 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
           {
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
           typename ImageType::Pointer img_affine;
-          ReadImage<ImageType>(img_affine, opt.filename)
+          ReadImage<ImageType>(img_affine, opt.filename);
 
           GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
 
