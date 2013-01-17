@@ -115,7 +115,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   typedef itk::Image<PixelType, Dimension>  ImageType;
   typedef itk::Image<VectorType, Dimension> DisplacementFieldType;
-  typedef itk::Image<PixelType, Dimension>  ReferenceImageType;
+  typedef ImageType                         ReferenceImageType;
 
   typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
   typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
@@ -183,9 +183,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   /**
    * Reference image option
    */
-
-  // read in the image as char since we only need the header information.
-  typedef itk::Image<PixelType, Dimension> ReferenceImageType;
+  typedef ImageType ReferenceImageType;
   typename ReferenceImageType::Pointer referenceImage;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer referenceOption =
@@ -195,8 +193,9 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
     typename ReferenceImageType::Pointer refimage;
     ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
-    referenceImage->Update();
-    referenceImage->DisconnectPipeline();
+    //    referenceImage->Update();
+    //    referenceImage->DisconnectPipeline(); // BA - not sure why pipeline is disconnected , possibly causes antsr
+    // problems ...
     }
   else
     {
