@@ -606,33 +606,6 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           transcount++;
           }
           break;
-        case IMAGE_AFFINE_HEADER:
-          {
-          typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
-          typename AffineTransformType::Pointer aff = AffineTransformType::New();
-          typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
-          reader_image_affine->SetFileName(opt.filename);
-          reader_image_affine->Update();
-          typename ImageType::Pointer img_affine = reader_image_affine->GetOutput();
-
-          GetAffineTransformFromImage<ImageType, AffineTransformType>(img_affine, aff);
-
-          if( opt.do_affine_inv )
-            {
-            typename AffineTransformType::Pointer aff_inv = AffineTransformType::New();
-            aff->GetInverse(aff_inv);
-            aff = aff_inv;
-            }
-
-          // antscout <<" aff from image header " << transcount <<  std::endl;
-          warper->PushBackAffineTransform(aff);
-
-          //            if (transcount==0){
-          //                warper->SetOutputParametersFromImage( img_mov );
-          //            }
-          transcount++;
-          }
-          break;
         case DEFORMATION_FILE:
           {
           typename FieldReaderType::Pointer field_reader = FieldReaderType::New();
