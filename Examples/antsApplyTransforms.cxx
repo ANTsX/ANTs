@@ -115,7 +115,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   typedef itk::Image<PixelType, Dimension>  ImageType;
   typedef itk::Image<VectorType, Dimension> DisplacementFieldType;
-  typedef itk::Image<char, Dimension>       ReferenceImageType;
+  typedef itk::Image<PixelType, Dimension>  ReferenceImageType;
 
   typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
   typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
