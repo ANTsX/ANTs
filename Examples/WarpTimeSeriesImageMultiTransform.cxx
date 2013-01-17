@@ -608,6 +608,7 @@ void WarpImageMultiTransform(char *moving_image_filename, char *output_image_fil
           break;
         case IMAGE_AFFINE_HEADER:
           {
+          typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
           typename AffineTransformType::Pointer aff = AffineTransformType::New();
           typename ImageFileReaderType::Pointer reader_image_affine = ImageFileReaderType::New();
           reader_image_affine->SetFileName(opt.filename);
