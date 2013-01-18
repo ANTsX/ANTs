@@ -7,6 +7,8 @@ set(PICSL_INCLUDE_DIRS
 ../Temporary
 .
 )
+
+include_directories( ${BOOST_INCLUDE_DIR} ) #Define where to find Boost includes
 include_directories(${PICSL_INCLUDE_DIRS})
 link_directories( ${ITK_LIBRARY_PATH}  )
 # message("${ITK_LIBRARIES}")
