@@ -993,24 +993,15 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     {
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      typedef  itk::ImageFileWriter<LabelImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( segmenter->GetOutput() );
-      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
-      writer->Update();
+      WriteImage<LabelImageType>(segmenter->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      typedef  itk::ImageFileWriter<LabelImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( segmenter->GetOutput() );
-      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
-      writer->Update();
+      WriteImage<LabelImageType>(segmenter->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
       }
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
-      std::string filename = outputOption->GetFunction( 0 )->GetParameter( 1 );
-
+      std::string                          filename = outputOption->GetFunction( 0 )->GetParameter( 1 );
       itk::NumericSeriesFileNames::Pointer fileNamesCreator = itk::NumericSeriesFileNames::New();
       fileNamesCreator->SetStartIndex( 1 );
       fileNamesCreator->SetEndIndex( segmenter->GetNumberOfTissueClasses() );
