@@ -2,8 +2,9 @@
 ##
 # Apocrita tests
 ##
-set(R16_MASK ${DATA_DIR}/r16mask.nii.gz)
-set(R16_PRIORS ${DATA_DIR}/r16priors.nii.gz)
+
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData R16_MASK DATA{${SMALL_DATA_DIR}/r16mask.nii.gz)
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData R16_PRIORS DATA{${SMALL_DATA_DIR}/r16priors.nii.gz)
 
 #add_test(NAME APOC_OTSU_INIT COMMAND $<TARGET_FILE:Apocrita> 2 -i otsu[${R16_IMAGE},3] -x ${R16_MASK} -n 10 -m [0.3,1x1,0.2,0.1] -o ${OUTPUT_PREFIX}.nii.gz )
 #add_test(NAME APOC_OTSU_INIT_RADIUS_2x2 COMMAND $<TARGET_FILE:Apocrita> 2 -i otsu[${R16_IMAGE},3] -x ${R16_MASK} -n 10 -m [0.3,2,0.2,0.1] -o ${OUTPUT_PREFIX}.nii.gz )

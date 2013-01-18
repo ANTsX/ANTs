@@ -63,20 +63,20 @@ MakeTestDriverFromANTSbinary(antsApplyTransformsTest antsApplyTransformsTest.cxx
 #  Perform testing
 ###
 set(TestDataMD5_DIR ${CMAKE_SOURCE_DIR}/TestData)
-set(DATA_DIR ${CMAKE_SOURCE_DIR}/Examples/Data)
-set(R16_IMAGE ${DATA_DIR}/r16slice.nii.gz)
-set(R64_IMAGE ${DATA_DIR}/r64slice.nii.gz)
+set(SMALL_DATA_DIR ${TestDataMD5_DIR}/Data)
+
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData R16_IMAGE DATA{${SMALL_DATA_DIR}/r16slice.nii.gz})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData R64_IMAGE DATA{${SMALL_DATA_DIR}/r64slice.nii.gz})
 ###
 # PSE sub-tests:  Check to see if .txt files and .vtk files also run correctly
 ###
-set(DEVIL_IMAGE ${DATA_DIR}/Frown.nii)
-set(ANGEL_IMAGE ${DATA_DIR}/Smile.nii)
-set(ANGEL_IMAGE_TXT ${DATA_DIR}/Smile.txt)
-set(DEVIL_IMAGE_TXT ${DATA_DIR}/Frown.txt)
-set(ANGEL_IMAGE_VTK ${DATA_DIR}/Smile.vtk)
-set(DEVIL_IMAGE_VTK ${DATA_DIR}/Frown.vtk)
-
-set(SEG_IMAGE ${DATA_DIR}/nslice.nii.gz)
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData DEVIL_IMAGE DATA{${SMALL_DATA_DIR}/Frown.nii})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANGEL_IMAGE DATA{${SMALL_DATA_DIR}/Smile.nii})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData DEVIL_IMAGE_TXT DATA{${SMALL_DATA_DIR}/Frown.txt})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANGEL_IMAGE_TXT DATA{${SMALL_DATA_DIR}/Smile.txt})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData DEVIL_IMAGE_VTK DATA{${SMALL_DATA_DIR}/Frown.vtk})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData ANGEL_IMAGE_VTK DATA{${SMALL_DATA_DIR}/Smile.vtk})
+#ExternalData_expand_arguments(${PROJECT_NAME}FetchData SEG_IMAGE DATA{${SMALL_DATA_DIR}/nslice.nii.gz})
 
 if(RUN_LONG_TESTS)
 
@@ -840,18 +840,20 @@ if(RUN_LONG_TESTS)
 ###
 #  ANTS images with non-trival rotation header test
 ###
-#set(ROT_REF_IMAGE ${DATA_DIR}/ref2.nii.gz)
-#set(ROT_MOV_IMAGE ${DATA_DIR}/mov2.nii.gz)
-set(ROT_REF_IMAGE ${DATA_DIR}/r16roth.nii.gz)
-set(ROT_MOV_IMAGE ${DATA_DIR}/r64roth.nii.gz)
+#ExternalData_expand_arguments(${PROJECT_NAME}FetchData ROT_REF_IMAGE DATA{${SMALL_DATA_DIR}/ref2.nii.gz})
+#ExternalData_expand_arguments(${PROJECT_NAME}FetchData ROT_MOV_IMAGE DATA{${SMALL_DATA_DIR}/mov2.nii.gz})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData ROT_REF_IMAGE DATA{${SMALL_DATA_DIR}/r16roth.nii.gz})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData ROT_MOV_IMAGE DATA{${SMALL_DATA_DIR}/r64roth.nii.gz})
+
   include(ANTS_ROT_GSYN_test.cmake)
   include(ANTS_ROT_EXP_test.cmake)
 #add_test(NAME ANTS_ROT_EXP_CLEAN COMMAND rm ${ROT_WARP_FILES})
 ###
 #  Test SyN with time
 ###
-set(CHALF_IMAGE ${DATA_DIR}/chalf.nii.gz)
-set(C_IMAGE ${DATA_DIR}/c.nii.gz)
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData CHALF_IMAGE DATA{${SMALL_DATA_DIR}/chalf.nii.gz})
+ExternalData_expand_arguments(${PROJECT_NAME}FetchData C_IMAGE DATA{${SMALL_DATA_DIR}/c.nii.gz})
+
 include(ANTS_SYN_WITH_TIME_test.cmake)
 include(APOC_OTSU_INIT_test.cmake)
 endif(RUN_LONG_TESTS)
