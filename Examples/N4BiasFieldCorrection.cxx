@@ -8,8 +8,7 @@
 #include "itkConstantPadImageFilter.h"
 #include "itkExpImageFilter.h"
 #include "itkExtractImageFilter.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "ReadWriteImage.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkN4BiasFieldCorrectionImageFilter.h"
@@ -76,24 +75,19 @@ int N4( itk::ants::CommandLineParser *parser )
   typedef itk::Image<RealType, ImageDimension> ImageType;
   typename ImageType::Pointer inputImage = NULL;
 
-  typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
+  typedef itk::Image<RealType, ImageDimension> MaskImageType;
   typename MaskImageType::Pointer maskImage = NULL;
 
   typedef itk::N4BiasFieldCorrectionImageFilter<ImageType, MaskImageType,
                                                 ImageType> CorrecterType;
   typename CorrecterType::Pointer correcter = CorrecterType::New();
 
-  typedef itk::ImageFileReader<ImageType> ReaderType;
-  typename ReaderType::Pointer reader = ReaderType::New();
-
   typename itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "input-image" );
   if( inputImageOption && inputImageOption->GetNumberOfFunctions() )
     {
     std::string inputFile = inputImageOption->GetFunction( 0 )->GetName();
-    reader->SetFileName( inputFile.c_str() );
-
-    inputImage = reader->GetOutput();
+    ReadImage<ImageType>( inputImage, inputFile.c_str() );
     inputImage->Update();
     inputImage->DisconnectPipeline();
     }
@@ -112,18 +106,9 @@ int N4( itk::ants::CommandLineParser *parser )
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
     {
     std::string inputFile = maskImageOption->GetFunction( 0 )->GetName();
-    typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
-    typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
-    maskreader->SetFileName( inputFile.c_str() );
-    try
-      {
-      maskImage = maskreader->GetOutput();
-      maskImage->Update();
-      maskImage->DisconnectPipeline();
-      }
-    catch( ... )
-      {
-      }
+    ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
+    maskImage->Update();
+    maskImage->DisconnectPipeline();
     }
   if( !maskImage )
     {
@@ -148,10 +133,7 @@ int N4( itk::ants::CommandLineParser *parser )
   if( weightImageOption && weightImageOption->GetNumberOfFunctions() )
     {
     std::string inputFile = weightImageOption->GetFunction( 0 )->GetName();
-    typedef itk::ImageFileReader<ImageType> WeightReaderType;
-    typename WeightReaderType::Pointer weightreader = WeightReaderType::New();
-    weightreader->SetFileName( inputFile.c_str() );
-    weightImage = weightreader->GetOutput();
+    ReadImage<ImageType>( weightImage, inputFile.c_str() );
     weightImage->Update();
     weightImage->DisconnectPipeline();
     }
@@ -463,19 +445,11 @@ int N4( itk::ants::CommandLineParser *parser )
 
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      typedef  itk::ImageFileWriter<ImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( cropper->GetOutput() );
-      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
-      writer->Update();
+      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      typedef  itk::ImageFileWriter<ImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput( cropper->GetOutput() );
-      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
-      writer->Update();
+      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
@@ -757,7 +731,7 @@ private:
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "image-dimensionality" );
-  if( dimOption && dimOption->GetNumberOfFunctions() > 0 )
+  if( dimOption && dimOption->GetNumberOfFunctions() )
     {
     dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
     }
