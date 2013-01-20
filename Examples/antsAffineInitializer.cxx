@@ -144,8 +144,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>                              VectorType;
   typedef itk::Image<VectorType, ImageDimension>                          FieldType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef itk::ImageFileWriter<ImageType>                                 writertype;
   typedef  typename ImageType::IndexType                                  IndexType;
   typedef  typename ImageType::SizeType                                   SizeType;
   typedef  typename ImageType::SpacingType                                SpacingType;
@@ -199,39 +197,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
   searchfactor *= degtorad; // convert degrees to radians
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
-  typename readertype::Pointer reader2 = readertype::New();
-  typename readertype::Pointer reader1 = readertype::New();
-  reader2->SetFileName(fn2.c_str() );
-  bool isfloat = false;
-  try
-    {
-    reader2->UpdateLargestPossibleRegion();
-    }
-  catch( ... )
-    {
-    antscout << " Error reading " << fn2 << std::endl;
-    isfloat = true;
-    }
-  float floatval = 1.0;
-  if( isfloat )
-    {
-    floatval = atof(argv[argct]);
-    }
-  else
-    {
-    image2 = reader2->GetOutput();
-    }
-
-  reader1->SetFileName(fn1.c_str() );
-  try
-    {
-    reader1->UpdateLargestPossibleRegion();
-    image1 = reader1->GetOutput();
-    }
-  catch( ... )
-    {
-    antscout << " read 1 error ";
-    }
+  ReadImage<ImageType>(image1, fn1.c_str() );
+  ReadImage<ImageType>(image2, fn2.c_str() );
   RealType   ctm1;
   VectorType ccg1;
   VectorType cpm1;
