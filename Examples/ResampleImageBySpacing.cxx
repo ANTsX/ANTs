@@ -15,61 +15,35 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-
 #include "antsUtilities.h"
 #include <algorithm>
-
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "ReadWriteImage.h"
 #include "itkResampleImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "itkRecursiveGaussianImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
-
 #include "itkDiscreteGaussianImageFilter.h"
 
 namespace ants
 {
-template <class TImage>
-typename TImage::Pointer
-SmoothImage(typename TImage::Pointer image, float sig)
-{
-  typedef itk::DiscreteGaussianImageFilter<TImage, TImage> dgf;
-  typename dgf::Pointer filter = dgf::New();
-  filter->SetVariance(sig);
-  filter->SetUseImageSpacingOn();
-  filter->SetMaximumError(.01f);
-  filter->SetInput(image);
-  filter->Update();
-  return filter->GetOutput();
-}
-
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 int ResampleImageBySpacing( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
-  // put the arguments coming in as 'args' into standard (argc,argv) format;
-  // 'args' doesn't have the command name as first, argument, so add it manually;
-  // 'args' may have adjacent arguments concatenated into one argument,
-  // which the parser should handle
   args.insert( args.begin(), "ResampleImageBySpacing" );
-
   std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
     {
-    // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
     std::strncpy( argv[i], args[i].c_str(), args[i].length() );
-    // place the null character in the end
     argv[i][args[i].length()] = '\0';
     }
   argv[argc] = 0;
-  // class to automatically cleanup argv upon destruction
   class Cleanup_argv
   {
 public:
@@ -91,7 +65,6 @@ private:
     unsigned int argc_plus_one;
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
-
   antscout->set_stream( out_stream );
 
   if( argc < 5 )
@@ -124,26 +97,8 @@ private:
     typedef itk::Image<InternalPixelType, 2> InternalImageType;
     typedef itk::Image<OutputPixelType,   2> OutputImageType;
 
-    typedef itk::ImageFileReader<InputImageType>  ReaderType;
-    typedef itk::ImageFileWriter<OutputImageType> WriterType;
-
-    ReaderType::Pointer reader = ReaderType::New();
-    WriterType::Pointer writer = WriterType::New();
-
-    reader->SetFileName( argv[2] );
-    writer->SetFileName( argv[3] );
-
-    try
-      {
-      reader->Update();
-      }
-    catch( itk::ExceptionObject & excep )
-      {
-      antscout << "Exception caught!" << std::endl;
-      antscout << excep << std::endl;
-      }
-
-    InputImageType::ConstPointer inputImage = reader->GetOutput();
+    InputImageType::Pointer inputImage;
+    ReadImage<InputImageType>( inputImage, argv[2] );
 
     const InputImageType::SpacingType& inputSpacing = inputImage->GetSpacing();
 
@@ -181,7 +136,7 @@ private:
 
     antscout <<  " spacing2 " << spacing << std::endl;
 
-    InternalImageType::ConstPointer smoothedImage = reader->GetOutput();
+    InternalImageType::Pointer smoothedImage = inputImage;
     if( dosmooth )
       {
       for( int sm = 0; sm < 2; sm++ )
@@ -260,26 +215,12 @@ private:
 
     antscout << " output size " << size << " spc " << spacing << std::endl;
     resampler->SetSize( size );
-
     resampler->SetInput( smoothedImage );
-
-    writer->SetInput( resampler->GetOutput() );
-
     TransformType::Pointer transform = TransformType::New();
-
     transform->SetIdentity();
-
     resampler->SetTransform( transform );
-
-    try
-      {
-      writer->Update();
-      }
-    catch( itk::ExceptionObject & excep )
-      {
-      antscout << "Exception catched !" << std::endl;
-      antscout << excep << std::endl;
-      }
+    resampler->Update();
+    WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
     }
 
   if( Dimension == 3 )
@@ -291,27 +232,8 @@ private:
     typedef itk::Image<InputPixelType,    3> InputImageType;
     typedef itk::Image<InternalPixelType, 3> InternalImageType;
     typedef itk::Image<OutputPixelType,   3> OutputImageType;
-
-    typedef itk::ImageFileReader<InputImageType>  ReaderType;
-    typedef itk::ImageFileWriter<OutputImageType> WriterType;
-
-    ReaderType::Pointer reader = ReaderType::New();
-    WriterType::Pointer writer = WriterType::New();
-
-    reader->SetFileName( argv[2] );
-    writer->SetFileName( argv[3] );
-
-    try
-      {
-      reader->Update();
-      }
-    catch( itk::ExceptionObject & excep )
-      {
-      antscout << "Exception caught!" << std::endl;
-      antscout << excep << std::endl;
-      }
-
-    InputImageType::ConstPointer inputImage = reader->GetOutput();
+    InputImageType::Pointer inputImage;
+    ReadImage<InputImageType>( inputImage, argv[2] );
 
     const InputImageType::SpacingType& inputSpacing = inputImage->GetSpacing();
 
@@ -353,7 +275,7 @@ private:
 
     antscout <<  " spacing2 " << spacing << std::endl;
 
-    InternalImageType::ConstPointer smoothedImage = reader->GetOutput();
+    InternalImageType::Pointer smoothedImage = inputImage;
     if( dosmooth )
       {
       for( int sm = 0; sm < 3; sm++ )
@@ -432,26 +354,12 @@ private:
 
     antscout << " output size " << size << " spc " << spacing << std::endl;
     resampler->SetSize( size );
-
     resampler->SetInput( smoothedImage );
-
-    writer->SetInput( resampler->GetOutput() );
-
     TransformType::Pointer transform = TransformType::New();
-
     transform->SetIdentity();
-
     resampler->SetTransform( transform );
-
-    try
-      {
-      writer->Update();
-      }
-    catch( itk::ExceptionObject & excep )
-      {
-      antscout << "Exception catched !" << std::endl;
-      antscout << excep << std::endl;
-      }
+    resampler->Update();
+    WriteImage<OutputImageType>( resampler->GetOutput(), argv[3] );
     }
   return EXIT_SUCCESS;
 }
