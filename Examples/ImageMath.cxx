@@ -7189,6 +7189,7 @@ int GradientImage(      int argc, char *argv[])
   rescaler->SetOutputMinimum(   0 );
   rescaler->SetOutputMaximum( 1 );
   rescaler->SetInput( image2 );
+  rescaler->Update();
   WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
   return 0;
 }
@@ -7250,6 +7251,7 @@ int LaplacianImage(      int argc, char *argv[])
   rescaler->SetOutputMinimum(   0 );
   rescaler->SetOutputMaximum( 1 );
   rescaler->SetInput( image2 );
+  rescaler->Update();
   WriteImage<ImageType>( rescaler->GetOutput(), outname.c_str() );
   return 0;
 }
@@ -11082,7 +11084,6 @@ private:
     unsigned int argc_plus_one;
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
-
   antscout->set_stream( out_stream );
 
   if( argc < 5 )
