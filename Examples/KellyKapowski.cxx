@@ -10,8 +10,7 @@
 #include "itkDiReCTImageFilter953.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImage.h"
-#include "itkImageFileReader.h"
-#include "itkImageFileWriter.h"
+#include "ReadWriteImage.h"
 #include "itkTimeProbe.h"
 
 #include <string>
@@ -68,7 +67,7 @@ template <unsigned int ImageDimension>
 int DiReCT( itk::ants::CommandLineParser *parser )
 {
   typedef float RealType;
-  typedef short LabelType;
+  typedef float LabelType;
 
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
   typename LabelImageType::Pointer segmentationImage = NULL;
@@ -104,25 +103,15 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     {
     if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
-      typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
-
       std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetName();
-      labelReader->SetFileName( inputFile.c_str() );
-
-      segmentationImage = labelReader->GetOutput();
+      ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
       segmentationImage->Update();
       segmentationImage->DisconnectPipeline();
       }
     else if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
-      typename LabelReaderType::Pointer labelReader = LabelReaderType::New();
-
       std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetParameter( 0 );
-      labelReader->SetFileName( inputFile.c_str() );
-
-      segmentationImage = labelReader->GetOutput();
+      ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
       segmentationImage->Update();
       segmentationImage->DisconnectPipeline();
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
@@ -151,13 +140,8 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   grayMatterOption = parser->GetOption( "gray-matter-probability-image" );
   if( grayMatterOption && grayMatterOption->GetNumberOfFunctions() )
     {
-    typedef itk::ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer gmReader = ReaderType::New();
-
     std::string gmFile = grayMatterOption->GetFunction()->GetName();
-    gmReader->SetFileName( gmFile.c_str() );
-
-    grayMatterProbabilityImage = gmReader->GetOutput();
+    ReadImage<ImageType>( grayMatterProbabilityImage, gmFile.c_str()   );
     grayMatterProbabilityImage->Update();
     grayMatterProbabilityImage->DisconnectPipeline();
     }
@@ -195,13 +179,8 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   whiteMatterOption = parser->GetOption( "white-matter-probability-image" );
   if( whiteMatterOption && whiteMatterOption->GetNumberOfFunctions() )
     {
-    typedef itk::ImageFileReader<ImageType> ReaderType;
-    typename ReaderType::Pointer wmReader = ReaderType::New();
-
     std::string wmFile = whiteMatterOption->GetFunction( 0 )->GetName();
-    wmReader->SetFileName( wmFile.c_str() );
-
-    whiteMatterProbabilityImage = wmReader->GetOutput();
+    ReadImage<ImageType>( whiteMatterProbabilityImage, wmFile.c_str()   );
     whiteMatterProbabilityImage->Update();
     whiteMatterProbabilityImage->DisconnectPipeline();
     }
@@ -318,11 +297,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
-    typedef  itk::ImageFileWriter<ImageType> WriterType;
-    typename WriterType::Pointer writer = WriterType::New();
-    writer->SetInput( direct->GetOutput() );
-    writer->SetFileName( ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
-    writer->Update();
+    WriteImage<ImageType>(  direct->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
     }
 
   return EXIT_SUCCESS;
