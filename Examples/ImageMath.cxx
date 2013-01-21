@@ -10714,6 +10714,137 @@ typename TImage::Pointer ComputeLaplacianImage( typename TImage::Pointer input )
   return filter->GetOutput();
 }
 
+template <unsigned int ImageDimension>
+int Check3TissueLabeling( int argc, char *argv[] )
+{
+  // This function is used for quality control in the abp.sh pipeline.
+  // On the UVa cluster, the labels after the segmentation step on
+  // random data sets would be of some odd permutation.  Under expected
+  // conditions the labels should be  CSF -> 1, GM -> 2, WM -> 3 but for
+  // some reason which we can't reproduce, they'd be some other ordering.
+  // The warped priors are correct so we use those images and the segmentation
+  // to reorder the labels and move the posteriors where appropriate.
+
+  if( argc < 8 )
+    {
+    antscout << "Usage: " << argv[0] << " ImageDimension";
+    antscout << " segmentationImage Check3TissueLabeling";
+    antscout << " priorWarped1 priorWarped2 priorWarped3";
+    antscout << " posteriorWarped1 posteriorWarped2 posteriorWarped3" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typedef double       PixelType;
+  typedef unsigned int LabelType;
+
+  const unsigned int NumberOfLabels = 3;
+
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::ImageFileReader<ImageType>       ReaderType;
+  typedef itk::Image<LabelType, ImageDimension> LabelImageType;
+  typedef itk::ImageFileReader<LabelImageType>  LabelReaderType;
+
+  typename LabelImageType::Pointer labelImage;
+  ReadImage<LabelImageType>( labelImage, argv[2] );
+
+  typename ImageType::Pointer priors[NumberOfLabels];
+  typename ImageType::Pointer posteriors[NumberOfLabels];
+  for( unsigned int d = 0; d < NumberOfLabels; d++ )
+    {
+    ReadImage<ImageType>( priors[d], argv[d + 4] );
+    ReadImage<ImageType>( posteriors[d], argv[d + 7] );
+    }
+
+  LabelType movingLabels[NumberOfLabels];
+  LabelType fixedLabels[NumberOfLabels];
+  for( unsigned int d = 0; d < NumberOfLabels; d++ )
+    {
+    typedef itk::LabelStatisticsImageFilter<ImageType, LabelImageType> HistogramGeneratorType;
+    typename HistogramGeneratorType::Pointer stats = HistogramGeneratorType::New();
+    stats->SetInput( priors[d] );
+    stats->SetLabelInput( labelImage );
+    stats->Update();
+
+    LabelType maxLabel = 1;
+    for( LabelType l = 2; l <= NumberOfLabels; l++ )
+      {
+      if( stats->GetMean( l ) > stats->GetMean( maxLabel ) )
+        {
+        maxLabel = l;
+        }
+      }
+    movingLabels[d] = maxLabel;
+    fixedLabels[d] = d + 1;
+    }
+  for( unsigned int d = 0; d < NumberOfLabels; d++ )
+    {
+    antscout << fixedLabels[d] << " -> " << movingLabels[d] << std::endl;
+
+    bool foundLabel = false;
+    for( LabelType l = 1; l <= NumberOfLabels; l++ )
+      {
+      if( movingLabels[d] == l )
+        {
+        foundLabel = true;
+        }
+      }
+    if( !foundLabel )
+      {
+      antscout << "Not all labels were found." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
+  bool writeSegmentationImage = false;
+  for( unsigned int d = 0; d < NumberOfLabels; d++ )
+    {
+    LabelType movingLabel = movingLabels[d];
+    LabelType fixedLabel = fixedLabels[d];
+
+    if( movingLabel == fixedLabel )
+      {
+      continue;
+      }
+    else
+      {
+      writeSegmentationImage = true;
+
+      antscout << "Writing posteriors " << movingLabels[d] << " " << argv[7 + d] << std::endl;
+      antscout << "Writing posteriors "
+               << movingLabels[movingLabels[d] - 1] << " " << argv[7 + movingLabels[d] - 1] << std::endl;
+
+      WriteImage<ImageType>( posteriors[movingLabels[d] - 1], argv[7 + d] );
+      WriteImage<ImageType>( posteriors[movingLabels[movingLabels[d] - 1] - 1], argv[7 + movingLabels[d] - 1] );
+
+      LabelType tmp = movingLabels[d];
+      movingLabels[d] = movingLabels[tmp - 1];
+      movingLabels[tmp - 1] = tmp;
+      }
+
+    itk::ImageRegionIterator<LabelImageType> ItL( labelImage, labelImage->GetRequestedRegion() );
+    for( ItL.GoToBegin(); !ItL.IsAtEnd(); ++ItL )
+      {
+      LabelType currentLabel = ItL.Get();
+      if( currentLabel == movingLabel )
+        {
+        ItL.Set( fixedLabel );
+        }
+      else if( currentLabel == fixedLabel )
+        {
+        ItL.Set( movingLabel );
+        }
+      }
+    }
+
+  if( writeSegmentationImage )
+    {
+    antscout << "Relabeling segmentation image." << std::endl;
+    WriteImage<LabelImageType>( labelImage, argv[2] );
+    }
+
+  return EXIT_SUCCESS;
+}
+
 template <class T>
 struct blob_index_cmp
   {
@@ -11833,6 +11964,10 @@ private:
         {
         MinMaxMean<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "Check3TissueLabeling") == 0 )
+        {
+        Check3TissueLabeling<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
         {
         BlobDetector<2>(argc, argv);
@@ -12245,6 +12380,10 @@ private:
       else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
         {
         BlobDetector<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Check3TissueLabeling") == 0 )
+        {
+        Check3TissueLabeling<3>(argc, argv);
         }
       else
         {
