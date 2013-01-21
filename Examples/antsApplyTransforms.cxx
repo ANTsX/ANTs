@@ -107,7 +107,7 @@ template <unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
   typedef double                           RealType;
-  typedef double                           PixelType;
+  typedef float                            PixelType;
   typedef itk::Vector<RealType, Dimension> VectorType;
 
   // typedef unsigned int                     LabelPixelType;
