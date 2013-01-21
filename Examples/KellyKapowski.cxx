@@ -66,19 +66,19 @@ public:
 template <unsigned int ImageDimension>
 int DiReCT( itk::ants::CommandLineParser *parser )
 {
-  typedef float RealType;
-  typedef float LabelType;
+  typedef float        RealType;
+  typedef unsigned int LabelType;
 
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
-  typename LabelImageType::Pointer segmentationImage = NULL;
+  typename LabelImageType::Pointer segmentationImage;
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
-  typename ImageType::Pointer grayMatterProbabilityImage = NULL;
-  typename ImageType::Pointer whiteMatterProbabilityImage = NULL;
+  typename ImageType::Pointer grayMatterProbabilityImage;
+  typename ImageType::Pointer whiteMatterProbabilityImage;
 
   typedef itk::DiReCTImageFilter<LabelImageType, ImageType> DiReCTFilterType;
   typename DiReCTFilterType::Pointer direct = DiReCTFilterType::New();
-
+  typedef typename DiReCTFilterType::LabelType DirectLabelType;
   //
   // debugging information
   //
@@ -93,7 +93,6 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       direct->DebugOn();
       }
     }
-
   //
   // segmentation image
   //
@@ -105,24 +104,24 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       {
       std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetName();
       ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
-      segmentationImage->Update();
-      segmentationImage->DisconnectPipeline();
+      antscout << segmentationImage->GetLargestPossibleRegion().GetSize() << std::endl;
       }
     else if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetParameter( 0 );
       ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
-      segmentationImage->Update();
-      segmentationImage->DisconnectPipeline();
+      antscout << segmentationImage->GetLargestPossibleRegion().GetSize() << std::endl;
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        direct->SetGrayMatterLabel( parser->Convert<LabelType>(
-                                      segmentationImageOption->GetFunction( 0 )->GetParameter( 1 ) ) );
+        DirectLabelType gmval = parser->Convert<DirectLabelType>( segmentationImageOption->GetFunction(
+                                                                    0 )->GetParameter( 1 ) );
+        direct->SetGrayMatterLabel( gmval );
         }
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
         {
-        direct->SetWhiteMatterLabel( parser->Convert<LabelType>(
-                                       segmentationImageOption->GetFunction( 0 )->GetParameter( 2 ) ) );
+        DirectLabelType wmval = parser->Convert<DirectLabelType>( segmentationImageOption->GetFunction(
+                                                                    0 )->GetParameter( 2 ) );
+        direct->SetWhiteMatterLabel( wmval );
         }
       }
     }
@@ -132,7 +131,6 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
   direct->SetSegmentationImage( segmentationImage );
-
   //
   // gray matter probability image
   //
@@ -142,8 +140,6 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     {
     std::string gmFile = grayMatterOption->GetFunction()->GetName();
     ReadImage<ImageType>( grayMatterProbabilityImage, gmFile.c_str()   );
-    grayMatterProbabilityImage->Update();
-    grayMatterProbabilityImage->DisconnectPipeline();
     }
   else
     {
@@ -168,10 +164,8 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     smoother->Update();
 
     grayMatterProbabilityImage = smoother->GetOutput();
-    grayMatterProbabilityImage->DisconnectPipeline();
     }
   direct->SetGrayMatterProbabilityImage( grayMatterProbabilityImage );
-
   //
   // white matter probability image
   //
@@ -181,8 +175,6 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     {
     std::string wmFile = whiteMatterOption->GetFunction( 0 )->GetName();
     ReadImage<ImageType>( whiteMatterProbabilityImage, wmFile.c_str()   );
-    whiteMatterProbabilityImage->Update();
-    whiteMatterProbabilityImage->DisconnectPipeline();
     }
   else
     {
@@ -207,10 +199,8 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     smoother->Update();
 
     whiteMatterProbabilityImage = smoother->GetOutput();
-    whiteMatterProbabilityImage->DisconnectPipeline();
     }
   direct->SetWhiteMatterProbabilityImage( whiteMatterProbabilityImage );
-
   //
   // convergence options
   //
@@ -245,7 +235,6 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
                                          thicknessPriorOption->GetFunction( 0 )->GetName() ) );
     }
-
   //
   // gradient step
   //
@@ -271,13 +260,12 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
   typename CommandType::Pointer observer = CommandType::New();
   direct->AddObserver( itk::IterationEvent(), observer );
-
   itk::TimeProbe timer;
   try
     {
-    // direct->DebugOn();
+    //    direct->DebugOn();
     timer.Start();
-    direct->Update();
+    direct->Update(); // causes problems with ANTsR , unknown reason
     timer.Stop();
     }
   catch( itk::ExceptionObject & e )

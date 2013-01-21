@@ -571,7 +571,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                            + ItForwardIncrementalField.Get() );
       const typename InputImageType::PixelType grayMatterPixel =
         static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
-      if( ItSegmentationImage.Get() == grayMatterPixel )
+      if(  ItSegmentationImage.Get()  == grayMatterPixel )
         {
         RealType thicknessValue = 0.0;
         if( ItHitImage.Get() > 0.001 )
@@ -624,7 +624,7 @@ template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegion( const InputImageType *segmentationImage,
-                 unsigned int whichRegion )
+                 typename DiReCTImageFilter<TInputImage, TOutputImage>::LabelType whichRegion )
 {
   typedef BinaryThresholdImageFilter<InputImageType, InputImageType>
     ThresholderType;
@@ -647,7 +647,7 @@ template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::InputImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::ExtractRegionalContours( const InputImageType *segmentationImage,
-                           unsigned int whichRegion )
+                           typename DiReCTImageFilter<TInputImage, TOutputImage>::LabelType whichRegion )
 {
   InputImagePointer thresholdedRegion = this->ExtractRegion(
       segmentationImage, whichRegion );

@@ -69,6 +69,7 @@ public:
   typedef TInputImage                         InputImageType;
   typedef typename InputImageType::Pointer    InputImagePointer;
   typedef typename InputImageType::PixelType  InputPixelType;
+  typedef InputPixelType                      LabelType;
   typedef typename InputImageType::RegionType RegionType;
   typedef typename InputImageType::IndexType  IndexType;
   typedef typename IndexType::IndexValueType  IndexValueType;
@@ -139,32 +140,32 @@ public:
   /**
    * Set the maximum number of registration iterations.  Default = 50.
    */
-  itkSetMacro( MaximumNumberOfIterations, unsigned int );
+  itkSetMacro( MaximumNumberOfIterations, LabelType );
 
   /**
    * Get the maximum number of registration iterations.  Default = 50.
    */
-  itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
+  itkGetConstMacro( MaximumNumberOfIterations, LabelType );
 
   /**
    * Set the gray matter label in the segmentation image.  Default = 2.
    */
-  itkSetMacro( GrayMatterLabel, unsigned int );
+  itkSetMacro( GrayMatterLabel, LabelType );
 
   /**
    * Get the gray matter label in the segmentation image.  Default = 2.
    */
-  itkGetConstMacro( GrayMatterLabel, unsigned int );
+  itkGetConstMacro( GrayMatterLabel, LabelType );
 
   /**
    * Set the white matter label in the segmentation image.  Default = 3.
    */
-  itkSetMacro( WhiteMatterLabel, unsigned int );
+  itkSetMacro( WhiteMatterLabel, LabelType );
 
   /**
    * Get the white matter label in the segmentation image.  Default = 3.
    */
-  itkGetConstMacro( WhiteMatterLabel, unsigned int );
+  itkGetConstMacro( WhiteMatterLabel, LabelType );
 
   /**
    * Set the convergence threshold.  Default = 0.001.
@@ -270,12 +271,12 @@ private:
   /**
    * Private function for extracting regions (e.g. gray or white).
    */
-  InputImagePointer ExtractRegion( const InputImageType *, unsigned int );
+  InputImagePointer ExtractRegion( const InputImageType *, LabelType );
 
   /**
    * Private function for extracting regional contours (e.g. gray or white).
    */
-  InputImagePointer ExtractRegionalContours( const InputImageType *, unsigned int );
+  InputImagePointer ExtractRegionalContours( const InputImageType *, LabelType );
 
   /**
    * Private function for warping an image.
@@ -298,8 +299,8 @@ private:
   RealType     m_CurrentGradientStep;
   unsigned int m_NumberOfIntegrationPoints;
 
-  unsigned int m_GrayMatterLabel;
-  unsigned int m_WhiteMatterLabel;
+  LabelType m_GrayMatterLabel;
+  LabelType m_WhiteMatterLabel;
 
   unsigned int m_ElapsedIterations;
   unsigned int m_MaximumNumberOfIterations;
