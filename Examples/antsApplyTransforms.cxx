@@ -277,6 +277,14 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     return EXIT_FAILURE;
     }
 
+  if( !compositeTransform->GetNumberOfParameters() )
+    {
+    antscout << "WARNING: No transforms found, using identify transform" << std::endl;
+    typename MatrixOffsetTransformType::Pointer idTransform = MatrixOffsetTransformType::New();
+    idTransform->SetIdentity();
+    compositeTransform->AddTransform( idTransform );
+    }
+
   std::string whichInterpolator( "linear" );
   typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
   if( interpolationOption && interpolationOption->GetNumberOfFunctions() )
