@@ -5,6 +5,7 @@
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkExtractImageFilter.h"
 #include "itkResampleImageFilter.h"
 #include "itkVectorIndexSelectionCastImageFilter.h"
 
@@ -113,15 +114,17 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   // typedef unsigned int                     LabelPixelType;
   // typedef itk::Image<PixelType, Dimension> LabelImageType;
 
-  typedef itk::Image<PixelType, Dimension>  ImageType;
-  typedef itk::Image<VectorType, Dimension> DisplacementFieldType;
-  typedef ImageType                         ReferenceImageType;
+  typedef itk::Image<PixelType, Dimension>     ImageType;
+  typedef itk::Image<PixelType, Dimension + 1> TimeSeriesImageType;
+  typedef itk::Image<VectorType, Dimension>    DisplacementFieldType;
+  typedef ImageType                            ReferenceImageType;
 
   typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
   typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
 
   const unsigned int NumberOfTensorElements = 6;
 
+  typename TimeSeriesImageType::Pointer timeSeriesImage = NULL;
   typename TensorImageType::Pointer tensorImage = NULL;
   typename DisplacementFieldType::Pointer vectorImage = NULL;
 
@@ -137,10 +140,14 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typename itk::ants::CommandLineParser::OptionType::Pointer inputOption = parser->GetOption( "input" );
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
 
-  if( inputImageType == 2 && inputOption && inputOption->GetNumberOfFunctions() )
+  if( inputImageType == 3 && inputOption && inputOption->GetNumberOfFunctions() )
+    {
+    antscout << "Input time-series image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    ReadImage<TimeSeriesImageType>( timeSeriesImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str() );
+    }
+  else if( inputImageType == 2 && inputOption && inputOption->GetNumberOfFunctions() )
     {
     antscout << "Input tensor image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
-
     ReadTensorImage<TensorImageType>( tensorImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str(), true );
     }
   else if( inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions() )
@@ -192,9 +199,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     {
     antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
     ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
-    //    referenceImage->Update();
-    //    referenceImage->DisconnectPipeline(); // BA - not sure why pipeline is disconnected , possibly causes antsr
-    // problems ...
     }
   else
     {
@@ -228,6 +232,27 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       selector->Update();
 
       inputImages.push_back( selector->GetOutput() );
+      }
+    }
+  else if( inputImageType == 3 )
+    {
+    typename TimeSeriesImageType::RegionType extractRegion = timeSeriesImage->GetLargestPossibleRegion();
+    unsigned int numberOfTimePoints = extractRegion.GetSize()[Dimension];
+    int          startTimeIndex = extractRegion.GetIndex()[Dimension];
+
+    extractRegion.SetSize( Dimension, 0 );
+    for( unsigned int i = 0; i < numberOfTimePoints; i++ )
+      {
+      extractRegion.SetIndex( Dimension, startTimeIndex + i );
+
+      typedef itk::ExtractImageFilter<TimeSeriesImageType, ImageType> ExtracterType;
+      typename ExtracterType::Pointer extracter = ExtracterType::New();
+      extracter->SetInput( timeSeriesImage );
+      extracter->SetExtractionRegion( extractRegion );
+      extracter->SetDirectionCollapseToSubmatrix();
+      extracter->Update();
+
+      inputImages.push_back( extracter->GetOutput() );
       }
     }
 
@@ -270,6 +295,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     }
 
 #include "make_interpolator_snip.tmpl"
+
   /**
    * Default voxel value
    */
@@ -398,8 +424,62 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
             }
           It.Set( tensor );
           }
-
         WriteTensorImage<TensorImageType>( outputTensorImage, ( outputFileName ).c_str(), true );
+        }
+      else if( inputImageType == 3 )
+        {
+        unsigned int numberOfTimePoints = timeSeriesImage->GetLargestPossibleRegion().GetSize()[Dimension];
+
+        if( outputImages.size() != numberOfTimePoints )
+          {
+          antscout << "The number of output images does not match the number of image time points." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        typename TimeSeriesImageType::Pointer outputTimeSeriesImage = TimeSeriesImageType::New();
+
+        typename TimeSeriesImageType::PointType origin = timeSeriesImage->GetOrigin();
+        typename TimeSeriesImageType::SizeType size = timeSeriesImage->GetLargestPossibleRegion().GetSize();
+        typename TimeSeriesImageType::DirectionType direction = timeSeriesImage->GetDirection();
+        typename TimeSeriesImageType::IndexType index = timeSeriesImage->GetLargestPossibleRegion().GetIndex();
+        for( unsigned int i = 0; i < Dimension; i++ )
+          {
+          origin[i] = referenceImage->GetOrigin()[i];
+          size[i] = referenceImage->GetRequestedRegion().GetSize()[i];
+          index[i] = referenceImage->GetRequestedRegion().GetIndex()[i];
+          for( unsigned int j = 0; j < Dimension; j++ )
+            {
+            direction[i][j] = referenceImage->GetDirection()[i][j];
+            }
+          }
+
+        typename TimeSeriesImageType::RegionType region;
+        region.SetSize( size );
+        region.SetIndex( index );
+
+        int startTimeIndex = timeSeriesImage->GetLargestPossibleRegion().GetIndex()[Dimension];
+
+        outputTimeSeriesImage->CopyInformation( timeSeriesImage );
+        outputTimeSeriesImage->SetOrigin( origin );
+        outputTimeSeriesImage->SetDirection( direction );
+        outputTimeSeriesImage->SetRegions( region );
+        outputTimeSeriesImage->Allocate();
+        outputTimeSeriesImage->FillBuffer( 0 );
+
+        typename ImageType::IndexType referenceIndex;
+
+        itk::ImageRegionIteratorWithIndex<TimeSeriesImageType> It( outputTimeSeriesImage,
+                                                                   outputTimeSeriesImage->GetRequestedRegion() );
+        for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+          {
+          typename TimeSeriesImageType::IndexType timeImageIndex = It.GetIndex();
+          for( unsigned int i = 0; i < Dimension; i++ )
+            {
+            referenceIndex[i] = timeImageIndex[i];
+            }
+          It.Set( outputImages[timeImageIndex[Dimension] - startTimeIndex]->GetPixel( referenceIndex ) );
+          }
+        WriteImage<TimeSeriesImageType>( outputTimeSeriesImage, ( outputFileName ).c_str() );
         }
       else
         {
@@ -446,13 +526,13 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "Option specifying the input image type of scalar (default), " )
-      + std::string( "vector, or tensor." );
+      + std::string( "vector, tensor, or time series." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "input-image-type" );
     option->SetShortName( 'e' );
-    option->SetUsageOption( 0, "0/1/2 " );
-    option->SetUsageOption( 1, "scalar/vector/tensor " );
+    option->SetUsageOption( 0, "0/1/2/3 " );
+    option->SetUsageOption( 1, "scalar/vector/tensor/time-series " );
     option->AddFunction( std::string( "0" ) );
     option->SetDescription( description );
     parser->AddOption( option );
@@ -723,6 +803,10 @@ private:
           {
           antscout << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
           }
+        else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
+          {
+          antsApplyTransforms<2>( parser, 3 );
+          }
         else
           {
           antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
@@ -753,6 +837,10 @@ private:
           {
           antsApplyTransforms<3>( parser, 2 );
           }
+        else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
+          {
+          antsApplyTransforms<3>( parser, 3 );
+          }
         else
           {
           antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
@@ -782,6 +870,10 @@ private:
         else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
           {
           antscout << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
+          }
+        else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
+          {
+          antscout << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
           }
         else
           {
