@@ -382,7 +382,8 @@ int antsAffineInitializerImp(int argc, char *argv[])
     mimetric->SetFixedImageMask( so );
     }
   mimetric->Initialize();
-  typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> RegistrationParameterScalesFromPhysicalShiftType;
+  typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType>
+    RegistrationParameterScalesFromPhysicalShiftType;
   typename RegistrationParameterScalesFromPhysicalShiftType::Pointer shiftScaleEstimator =
     RegistrationParameterScalesFromPhysicalShiftType::New();
   shiftScaleEstimator->SetMetric( mimetric );

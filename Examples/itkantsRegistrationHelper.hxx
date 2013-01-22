@@ -621,9 +621,8 @@ RegistrationHelper<VImageDimension>
   if( this->m_SmoothingSigmasAreInPhysicalUnits.size() != this->m_NumberOfStages )
     {
     ::ants::antscout
-                     <<
-      "The number of smoothing sigma in physical units bool values does not match the number of stages."
-                     << std::endl;
+      << "The number of smoothing sigma in physical units bool values does not match the number of stages."
+      << std::endl;
     return EXIT_FAILURE;
     }
   for( unsigned int i = 0; i < this->m_Metrics.size(); i++ )
@@ -744,7 +743,7 @@ RegistrationHelper<VImageDimension>
     }
   // ########################################################################################
   // ########################################################################################
-  //##The main loop for exstimating the total composite tranform
+  // ##The main loop for exstimating the total composite tranform
   // ########################################################################################
   // ########################################################################################
   for( unsigned int currentStageNumber = 0; currentStageNumber < this->m_NumberOfStages; currentStageNumber++ )
@@ -885,8 +884,8 @@ RegistrationHelper<VImageDimension>
       if( this->m_ApplyLinearTransformsToFixedImageHeader )
         {
         this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
-                                                          dynamic_cast<ImageBaseType *>( preprocessFixedImage.GetPointer() ),
-                                                          false );
+                                                          dynamic_cast<ImageBaseType *>( preprocessFixedImage.
+                                                                                         GetPointer() ), false );
 
         if( this->m_FixedImageMask.IsNotNull() )
           {
@@ -1472,7 +1471,8 @@ RegistrationHelper<VImageDimension>
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
           this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<TranslationTransformType *>(
-                                                                               translationRegistration->GetOutput()->Get() ) );
+                                                                               translationRegistration->GetOutput()->
+                                                                               Get() ) );
           }
         else
           {
@@ -1499,7 +1499,8 @@ RegistrationHelper<VImageDimension>
           GaussianDisplacementFieldTransformType;
 
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               GaussianDisplacementFieldTransformType> DisplacementFieldRegistrationType;
+                                               GaussianDisplacementFieldTransformType>
+          DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
@@ -2595,7 +2596,8 @@ RegistrationHelper<VImageDimension>
                                                                VImageDimension> GaussianDisplacementFieldTransformType;
 
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               GaussianDisplacementFieldTransformType> DisplacementFieldRegistrationType;
+                                               GaussianDisplacementFieldTransformType>
+          DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
@@ -3185,7 +3187,8 @@ template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
 ::ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType * compositeTransform,
-                                              ImageBaseType * const image, const bool applyInverse )
+                                              ImageBaseType * const image,
+                                              const bool applyInverse )
 {
   if( !compositeTransform->IsLinear() )
     {
@@ -3204,8 +3207,9 @@ RegistrationHelper<VImageDimension>
   if( applyInverse )
     {
     typename AffineTransformType::Pointer inverseImageTransform = AffineTransformType::New();
-    inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->GetInverseTransform()
-                                                                                     .GetPointer() )->GetMatrix() );
+    inverseImageTransform->SetMatrix( dynamic_cast<MatrixOffsetTransformBaseType *>( imageTransform->
+                                                                                     GetInverseTransform().GetPointer() )
+                                      ->GetMatrix() );
     inverseImageTransform->SetOffset( -( inverseImageTransform->GetMatrix() * imageTransform->GetOffset() ) );
 
     totalTransform->Compose( inverseImageTransform.GetPointer(), false );

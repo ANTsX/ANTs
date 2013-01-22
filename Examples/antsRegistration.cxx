@@ -246,21 +246,26 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption(  3, "Similarity[gradientStep]" );
     option->SetUsageOption(  4, "Translation[gradientStep]" );
     option->SetUsageOption(  5, "BSpline[gradientStep,meshSizeAtBaseLevel]" );
-    option->SetUsageOption(  6,
-                             "GaussianDisplacementField[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption(  7,
-                             "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption(  8,
-                             "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldVarianceInVoxelSpace,updateFieldTimeVariance,totalFieldVarianceInVoxelSpace,totalFieldTimeVariance]" );
-    option->SetUsageOption(  9,
-                             "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
+    option->SetUsageOption(
+      6, "GaussianDisplacementField[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
+    option->SetUsageOption(
+      7,
+      "BSplineDisplacementField[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption(
+      8,
+      "TimeVaryingVelocityField[gradientStep,numberOfTimeIndices,updateFieldVarianceInVoxelSpace,updateFieldTimeVariance,totalFieldVarianceInVoxelSpace,totalFieldTimeVariance]" );
+    option->SetUsageOption(
+      9,
+      "TimeVaryingBSplineVelocityField[gradientStep,velocityFieldMeshSize,<numberOfTimePointSamples=4>,<splineOrder=3>]" );
     option->SetUsageOption( 10, "SyN[gradientStep,updateFieldVarianceInVoxelSpace,totalFieldVarianceInVoxelSpace]" );
-    option->SetUsageOption( 11,
-                            "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
-    option->SetUsageOption( 12,
-                            "Exponential[gradientStep,updateFieldVarianceInVoxelSpace,velocityFieldVarianceInVoxelSpace,<numberOfIntegrationSteps>]" );
-    option->SetUsageOption( 13,
-                            "BSplineExponential[gradientStep,updateFieldMeshSizeAtBaseLevel,velocityFieldMeshSizeAtBaseLevel,<numberOfIntegrationSteps>,<splineOrder=3>]" );
+    option->SetUsageOption(
+      11, "BSplineSyN[gradientStep,updateFieldMeshSizeAtBaseLevel,totalFieldMeshSizeAtBaseLevel,<splineOrder=3>]" );
+    option->SetUsageOption(
+      12,
+      "Exponential[gradientStep,updateFieldVarianceInVoxelSpace,velocityFieldVarianceInVoxelSpace,<numberOfIntegrationSteps>]" );
+    option->SetUsageOption(
+      13,
+      "BSplineExponential[gradientStep,updateFieldMeshSizeAtBaseLevel,velocityFieldMeshSizeAtBaseLevel,<numberOfIntegrationSteps>,<splineOrder=3>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -923,8 +928,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         float varianceForUpdateField = 3.0;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 1 )
           {
-          varianceForUpdateField = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(
-                                                             1 ) );
+          varianceForUpdateField =
+            parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
           }
         float varianceForTotalField = 0.0;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )

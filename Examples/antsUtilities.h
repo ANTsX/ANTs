@@ -446,29 +446,45 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
       switch( i )
         {
         case 0:
-  { ind[0] = 0; ind[1] = 0; ind[2] = 0; }
-                                        break;
+          {
+          ind[0] = 0; ind[1] = 0; ind[2] = 0;
+          }
+          break;
         case 1:
-  { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0; }
-                                                   break;
+          {
+          ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = 0;
+          }
+          break;
         case 2:
-  { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                   break;
+          {
+          ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = 0;
+          }
+          break;
         case 3:
-  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0; }
-                                                              break;
+          {
+          ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = 0;
+          }
+          break;
         case 4:
-  { ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                   break;
+          {
+          ind[0] = 0; ind[1] = 0; ind[2] = imgsz[2] - 1;
+          }
+          break;
         case 5:
-  { ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1; }
-                                                              break;
+          {
+          ind[0] = imgsz[0] - 1; ind[1] = 0; ind[2] = imgsz[2] - 1;
+          }
+          break;
         case 6:
-  { ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                              break;
+          {
+          ind[0] = 0; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1;
+          }
+          break;
         case 7:
-  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1; }
-                                                                         break;
+          {
+          ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; ind[2] = imgsz[2] - 1;
+          }
+          break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
@@ -490,17 +506,25 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
       switch( i )
         {
         case 0:
-  { ind[0] = 0; ind[1] = 0; }
-                            break;
+          {
+          ind[0] = 0; ind[1] = 0;
+          }
+          break;
         case 1:
-  { ind[0] = imgsz[0] - 1; ind[1] = 0; }
-                                       break;
+          {
+          ind[0] = imgsz[0] - 1; ind[1] = 0;
+          }
+          break;
         case 2:
-  { ind[0] = 0; ind[1] = imgsz[1] - 1; }
-                                       break;
+          {
+          ind[0] = 0; ind[1] = imgsz[1] - 1;
+          }
+          break;
         case 3:
-  { ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1; }
-                                                  break;
+          {
+          ind[0] = imgsz[0] - 1; ind[1] = imgsz[1] - 1;
+          }
+          break;
         }
       PointType pt_orig, pt_warped;
       img->TransformIndexToPhysicalPoint(ind, pt_orig);

@@ -557,7 +557,8 @@ private:
     {
     antscout << "Usage:   " << argv[0]
              << " fixedImageWithLabeledLandmarks  movingImageWithLabeledLandmarks outputDisplacementField "
-             << "meshSize[0]xmeshSize[1]x... numberOfLevels [order=3] [enforceStationaryBoundaries=1] [landmarkWeights]"
+             <<
+      "meshSize[0]xmeshSize[1]x... numberOfLevels [order=3] [enforceStationaryBoundaries=1] [landmarkWeights]"
              << std::endl;
     antscout
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "

@@ -111,7 +111,7 @@ public:
       const unsigned int lastIteration = this->m_Optimizer->GetNumberOfIterations();
       if( ( this->m_ComputeFullScaleCCInterval != 0 ) &&
           ( lCurrentIteration == 1 || ( lCurrentIteration % this->m_ComputeFullScaleCCInterval == 0 ) ||
-          lCurrentIteration == lastIteration) )
+            lCurrentIteration == lastIteration) )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
         // using a CC metric type with radius 4.
@@ -223,8 +223,8 @@ public:
       for( unsigned int i = 0; i < N; i++ )
         {
         // Create a new instance from each sub transform.
-        typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputFixedTransform->GetNthTransform(
-                                                                                              i)->CreateAnother().GetPointer() ) );
+        typename TransformBaseType::Pointer subTransform(
+          dynamic_cast<TransformBaseType *>( inputFixedTransform->GetNthTransform(i)->CreateAnother().GetPointer() ) );
         // Copy the information to each sub transform and add this transform to the final composite transform.
         const typename TransformBaseType::ParametersType & fixedImage_paras =
           inputFixedTransform->GetNthTransform(i)->GetParameters();
@@ -257,8 +257,8 @@ public:
     const unsigned int N = inputMovingTransform->GetNumberOfTransforms();
     for( unsigned int i = 0; i < N; i++ )
       {
-      typename TransformBaseType::Pointer subTransform(dynamic_cast<TransformBaseType *>( inputMovingTransform->GetNthTransform(
-                                                                                            i)->CreateAnother().GetPointer() ) );
+      typename TransformBaseType::Pointer subTransform(
+        dynamic_cast<TransformBaseType *>( inputMovingTransform->GetNthTransform(i)->CreateAnother().GetPointer() ) );
       const typename TransformBaseType::ParametersType & moving_paras =
         inputMovingTransform->GetNthTransform(i)->GetParameters();
       const typename TransformBaseType::ParametersType & moving_fixed_paras =

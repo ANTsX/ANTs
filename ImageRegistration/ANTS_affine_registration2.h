@@ -1525,7 +1525,8 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
 
       if( is_converged )
         {
-        ::ants::antscout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
+        ::ants::antscout << "    reach oscillation, current step: " << current_step_length << "<"
+                         << minimum_step_length
                          << std::endl;
         }
       else

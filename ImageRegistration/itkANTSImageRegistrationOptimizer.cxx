@@ -802,9 +802,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     if( updateenergy )
       {
       this->m_LastEnergy[metricCount] = this->m_Energy[metricCount];
-      this->m_Energy[metricCount] = df->GetEnergy(); //
-                                                     //
-                                                     // *this->m_SimilarityMetrics[metricCount]->GetWeightScalar()/sumWeights;
+      this->m_Energy[metricCount] = df->GetEnergy();
+      // *this->m_SimilarityMetrics[metricCount]->GetWeightScalar()/sumWeights;
       }
 
     // smooth the fields
@@ -1270,8 +1269,8 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     if( updateenergy )
       {
       this->m_LastEnergy[metricCount] = this->m_Energy[metricCount];
-      this->m_Energy[metricCount] = df->GetEnergy(); //
-                                                     // *this->m_SimilarityMetrics[metricCount]->GetWeightScalar()/sumWeights;
+      this->m_Energy[metricCount] = df->GetEnergy();
+      // *this->m_SimilarityMetrics[metricCount]->GetWeightScalar()/sumWeights;
       }
 
     // smooth the fields
@@ -2326,9 +2325,9 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     TReal      A = 1;
     TReal      alpha = 0, alpha1 = 0, alpha2 = 0, beta = 0, beta1 = 0, beta2 = 0;
     VectorType vec1 = velocityUpdate->GetPixel(m_FieldIter.GetIndex() );               // r_k+1
-    VectorType vec2 = vec1;                                                            //
-                                                                                       // this->m_LastTimeVaryingVelocity->GetPixel(m_FieldIter.GetIndex());
-                                                                                       // // r_k
+    VectorType vec2 = vec1;
+    // this->m_LastTimeVaryingVelocity->GetPixel(m_FieldIter.GetIndex());
+    // r_k
     VectorType upd = this->m_LastTimeVaryingUpdate->GetPixel(m_FieldIter.GetIndex() ); // p_k
     for( unsigned int ii = 0; ii < ImageDimension; ii++ )
       {

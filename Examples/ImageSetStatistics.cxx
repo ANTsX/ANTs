@@ -138,18 +138,7 @@ SmoothImage(typename TImage::Pointer image, float sig)
 template <class TInputImage>
 // typename TInputImage::Pointer
 void
-HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage) //
-                                                                                                                   //
-                                                                                                                   //
-                                                                                                                   //
-                                                                                                                   // typename
-                                                                                                                   //
-                                                                                                                   //
-                                                                                                                   // TInputImage::Pointer
-                                                                                                                   //
-                                                                                                                   //
-                                                                                                                   // m_OutputMovingImage
-                                                                                                                   // )
+HistogramMatch(typename TInputImage::Pointer m_InputFixedImage,  typename TInputImage::Pointer m_InputMovingImage)
 {
   antscout << " MATCHING INTENSITIES " << std::endl;
 

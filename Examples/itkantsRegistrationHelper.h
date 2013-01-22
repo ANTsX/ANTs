@@ -149,10 +149,8 @@ public:
   {
 public:
     Metric( MetricEnumeration metricType, typename ImageType::Pointer & fixedImage,
-            typename ImageType::Pointer & movingImage, unsigned int stageID,
-            double weighting, SamplingStrategy samplingStrategy,
-            int numberOfBins,
-            unsigned int radius,
+            typename ImageType::Pointer & movingImage, unsigned int stageID, double weighting,
+            SamplingStrategy samplingStrategy, int numberOfBins, unsigned int radius,
             double samplingPercentage ) :
       m_MetricType( metricType ),
       m_FixedImage( fixedImage ),
@@ -171,17 +169,29 @@ public:
       switch( this->m_MetricType )
         {
         case CC:
-      { return "CC"; }
+          {
+          return "CC";
+          }
         case MI:
-      { return "MI"; }
+          {
+          return "MI";
+          }
         case Mattes:
-      { return "Mattes";; }
+          {
+          return "Mattes";;
+          }
         case MeanSquares:
-      { return "MeanSquares"; }
+          {
+          return "MeanSquares";
+          }
         case Demons:
-      { return "Demons"; }
+          {
+          return "Demons";
+          }
         case GC:
-      { return "GC"; }
+          {
+          return "GC";
+          }
         default:
           {
           }
@@ -242,33 +252,61 @@ public:
       switch( this->m_XfrmMethod )
         {
         case Rigid:
-      { return std::string("Rigid"); }
+          {
+          return std::string("Rigid");
+          }
         case Affine:
-      { return std::string("Affine"); }
+          {
+          return std::string("Affine");
+          }
         case CompositeAffine:
-      { return std::string("CompositeAffine"); }
+          {
+          return std::string("CompositeAffine");
+          }
         case Similarity:
-      { return std::string("Similarity"); }
+          {
+          return std::string("Similarity");
+          }
         case Translation:
-      { return std::string("Translation"); }
+          {
+          return std::string("Translation");
+          }
         case BSpline:
-      { return std::string("BSpline"); }
+          {
+          return std::string("BSpline");
+          }
         case GaussianDisplacementField:
-      { return std::string("GaussianDisplacementField"); }
+          {
+          return std::string("GaussianDisplacementField");
+          }
         case BSplineDisplacementField:
-      { return std::string("BSplineDisplacementField"); }
+          {
+          return std::string("BSplineDisplacementField");
+          }
         case TimeVaryingVelocityField:
-      { return std::string("TimeVaryingVelocityField"); }
+          {
+          return std::string("TimeVaryingVelocityField");
+          }
         case TimeVaryingBSplineVelocityField:
-      { return std::string("TimeVaryingBSplineVelocityField"); }
+          {
+          return std::string("TimeVaryingBSplineVelocityField");
+          }
         case SyN:
-      { return std::string("SyN"); }
+          {
+          return std::string("SyN");
+          }
         case BSplineSyN:
-      { return std::string("BSplineSyN"); }
+          {
+          return std::string("BSplineSyN");
+          }
         case Exponential:
-      { return std::string("Exponential"); }
+          {
+          return std::string("Exponential");
+          }
         case BSplineExponential:
-      { return std::string("BSplineExponential"); }
+          {
+          return std::string("BSplineExponential");
+          }
         case UnknownXfrm: return std::string("UnknownXfrm");
         }
       return std::string("Impossible");
@@ -679,8 +717,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       initializer->InitializeTransform();
 
-      initialTransformName += std::string( "fixed image: " )
-        + initialTransformOption->GetFunction( n )->GetParameter( 0 )
+      initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter(
+          0 )
         + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
 
       typedef itk::TranslationTransform<double, VImageDimension> TranslationTransformType;
@@ -729,8 +767,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
 
       typedef typename RegistrationHelperType::TransformType TransformType;
-      typename TransformType::Pointer initialTransform =
-        itk::ants::ReadTransform<VImageDimension>( initialTransformName );
+      typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<VImageDimension>(
+          initialTransformName );
       if( initialTransform.IsNull() )
         {
         ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;

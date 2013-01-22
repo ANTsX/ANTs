@@ -1,6 +1,6 @@
 /* from
  * @article{MollerHughes99,
-  author = "Tomas Möller and John F. Hughes",
+  author = "Tomas Mller and John F. Hughes",
   title = "Efficiently Building a Matrix to Rotate One Vector to Another",
   journal = "journal of graphics tools",
   volume = "4",

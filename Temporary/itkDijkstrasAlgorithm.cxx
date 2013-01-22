@@ -279,7 +279,8 @@ void DijkstrasAlgorithm<TGraphSearchNode>::FindPath()
     }  // end of while
 
   m_NumberSearched = (unsigned long) m_QS->GetTimer();
-  ::::ants::antscout << "Done with find path " << " Q size " << m_QS->m_Q.size() << " num searched " << m_NumberSearched
+  ::::ants::antscout << "Done with find path " << " Q size " << m_QS->m_Q.size() << " num searched "
+                     << m_NumberSearched
                      << " \n";
 
   return;

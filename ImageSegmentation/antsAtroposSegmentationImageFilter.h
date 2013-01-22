@@ -147,7 +147,13 @@ public:
 
   /** Initialization typedefs */
   enum InitializationStrategyType
-            { Random, KMeans, Otsu, PriorProbabilityImages, PriorLabelImage };
+    {
+    Random,
+    KMeans,
+    Otsu,
+    PriorProbabilityImages,
+    PriorLabelImage
+    };
 
   typedef std::pair<RealType, RealType>            LabelParametersType;
   typedef std::map<LabelType, LabelParametersType> LabelParameterMapType;

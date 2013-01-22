@@ -144,7 +144,8 @@ inline std::string sccan_to_string(const T& t)
 template <class TImage, class TComp>
 void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
                                         typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat, bool have_mask,
-                                        vnl_vector<TComp> l_array, vnl_matrix<TComp> prior_mat )
+                                        vnl_vector<TComp> l_array,
+                                        vnl_matrix<TComp> prior_mat )
 {
   vnl_matrix<TComp> projections = data_mat * varmat;
 
@@ -2492,8 +2493,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption(
       2,
       "cgspca[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix] --- will only use view1 ... unless nuisance matrix is specified, -i controls the number of sparse approximations per eigenvector, -n controls the number of eigenvectors.  total output will then be  i*n sparse eigenvectors." );
-    option->SetUsageOption( 3,
-                            "prior[ matrix.mha , mask.nii.gz , PriorList.txt , PriorScale.csv , PriorWeightIn0to1 , sparseness ] ... if sparseness is set to zero, we take sparseness from the priors." );
+    option->SetUsageOption(
+      3,
+      "prior[ matrix.mha , mask.nii.gz , PriorList.txt , PriorScale.csv , PriorWeightIn0to1 , sparseness ] ... if sparseness is set to zero, we take sparseness from the priors." );
     option->SetUsageOption( 4, "network[matrix-view1.mhd,mask1,FracNonZero1,guidance-matrix]" );
     option->SetUsageOption( 5, "lasso[matrix-view1.mhd,mask1,Lambda,guidance-matrix]" );
     option->SetUsageOption( 6, "recon[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix]" );

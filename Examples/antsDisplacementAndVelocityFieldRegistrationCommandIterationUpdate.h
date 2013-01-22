@@ -195,7 +195,7 @@ public:
     typename MetricType::ConstPointer inputMetric(
       dynamic_cast<MetricType *>( const_cast<TFilter *>( filter )->GetMetric() ) );
 
-    ////////////////////////////////////Define the CC Metric Type to Compute Similarity
+    // //////////////////////////////////Define the CC Metric Type to Compute Similarity
     // Measure////////////////////////////
     // This metric type is used to measure the general similarity metric between the original input fixed and moving
     // images.
@@ -231,12 +231,16 @@ public:
       typename DisplacementFieldDuplicatorType::Pointer FixedDisplacementDuplicator =
         DisplacementFieldDuplicatorType::New();
       FixedDisplacementDuplicator->SetInputImage( const_cast<DisplacementFieldTransformType *>( filter->
-                                                                                                GetFixedToMiddleTransform() )->GetDisplacementField() );
+                                                                                                GetFixedToMiddleTransform(
+                                                                                                  ) )->
+                                                  GetDisplacementField() );
       FixedDisplacementDuplicator->Update();
       typename DisplacementFieldDuplicatorType::Pointer FixedInverseDisplacementDuplicator =
         DisplacementFieldDuplicatorType::New();
       FixedInverseDisplacementDuplicator->SetInputImage( const_cast<DisplacementFieldTransformType *>( filter->
-                                                                                                       GetFixedToMiddleTransform() )->GetInverseDisplacementField() );
+                                                                                                       GetFixedToMiddleTransform(
+                                                                                                         ) )->
+                                                         GetInverseDisplacementField() );
       FixedInverseDisplacementDuplicator->Update();
 
       myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetOutput() );
@@ -246,12 +250,16 @@ public:
       typename DisplacementFieldDuplicatorType::Pointer MovingDisplacementDuplicator =
         DisplacementFieldDuplicatorType::New();
       MovingDisplacementDuplicator->SetInputImage(  const_cast<DisplacementFieldTransformType *>( filter->
-                                                                                                  GetMovingToMiddleTransform() )->GetDisplacementField() );
+                                                                                                  GetMovingToMiddleTransform(
+                                                                                                    ) )->
+                                                    GetDisplacementField() );
       MovingDisplacementDuplicator->Update();
       typename DisplacementFieldDuplicatorType::Pointer MovingInverseDisplacementDuplicator =
         DisplacementFieldDuplicatorType::New();
       MovingInverseDisplacementDuplicator->SetInputImage( const_cast<DisplacementFieldTransformType *>( filter->
-                                                                                                        GetMovingToMiddleTransform() )->GetInverseDisplacementField() );
+                                                                                                        GetMovingToMiddleTransform(
+                                                                                                          ) )->
+                                                          GetInverseDisplacementField() );
       MovingInverseDisplacementDuplicator->Update();
 
       myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetOutput() );

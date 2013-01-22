@@ -1455,6 +1455,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 {
   VectorType sparsenessparams( n_vecs, this->m_FractionNonZeroP );
   double     lambda = this->GetLambda(); // Make it a parameter
+
   ::ants::antscout << "lambda" << lambda  << " GradStep " << this->m_GradStep << std::endl;
 
   if( prior )
@@ -1557,7 +1558,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       }
-    ///////////////////////
+    // /////////////////////
     // update B matrix by linear regression
     reconerr = onenorm = 0;
     icept.fill( 0 );
@@ -4060,8 +4061,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     totalloerror += ( 1 / wt );
     }
   this->m_VariatesQ = this->m_VariatesQ / totalloerror;
-  RealType regbeta =
-    this->SimpleRegression(  this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 )  );
+  RealType regbeta = this->SimpleRegression(  this->m_CanonicalCorrelations, this->m_OriginalMatrixR.get_column( 0 )  );
   RealType intercept = this->m_OriginalMatrixR.get_column( 0 ).mean() - this->m_CanonicalCorrelations.mean()
     * regbeta;
   VectorType predicted = this->m_CanonicalCorrelations * regbeta + intercept;

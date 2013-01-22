@@ -865,17 +865,16 @@ public:
         ( thicknessOption->GetFunction( 0 )->GetName() == "true" ||  thicknessOption->GetFunction( 0 )->GetName() ==
           "1" ) )
       {
-      this->m_ComputeThickness = 1; this->m_SyNFullTime = 2;
-      }                                                                                                                                      //
-                                                                                                                                             //
-                                                                                                                                             // asymm
-                                                                                                                                             //
-                                                                                                                                             // forces
+      // asymm forces
+      this->m_ComputeThickness = 1;
+      this->m_SyNFullTime = 2;
+      }
     else if( thicknessOption->GetNumberOfFunctions() && thicknessOption->GetFunction( 0 )->GetName() == "2" )
       {
-      this->m_ComputeThickness = 1; this->m_SyNFullTime = 1;
-      }                                                                                                    // symmetric
-                                                                                                           // forces
+      // symmetric forces
+      this->m_ComputeThickness = 1;
+      this->m_SyNFullTime = 1;
+      }
     else
       {
       this->m_ComputeThickness = 0;  // not full time varying stuff
@@ -1648,17 +1647,11 @@ public:
     else if( this->GetTransformationModel() == std::string("Exp") )
       {
       DisplacementFieldPointer diffmap =
-        this->IntegrateConstantVelocity( this->m_DisplacementField, (unsigned int)this->m_NTimeSteps,
-                                         1 );                                                                                               //
-                                                                                                                                            //
-                                                                                                                                            // 1.0/
-                                                                                                                                            //
-                                                                                                                                            // (TReal)this->m_NTimeSteps);
+        this->IntegrateConstantVelocity( this->m_DisplacementField, (unsigned int)this->m_NTimeSteps, 1 );
+      // 1.0/ (TReal)this->m_NTimeSteps);
       DisplacementFieldPointer invdiffmap =
-        this->IntegrateConstantVelocity(this->m_DisplacementField, (unsigned int) this->m_NTimeSteps,
-                                        -1 );                                                                                                //
-                                                                                                                                             //
-                                                                                                                                             // -1.0/(TReal)this->m_NTimeSteps);
+        this->IntegrateConstantVelocity(this->m_DisplacementField, (unsigned int) this->m_NTimeSteps, -1 );
+      // -1.0/(TReal)this->m_NTimeSteps);
       this->m_InverseDisplacementField = invdiffmap;
       this->m_DisplacementField = diffmap;
       AffineTransformPointer invaff = NULL;

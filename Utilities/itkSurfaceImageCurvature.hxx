@@ -1129,21 +1129,34 @@ void  SurfaceImageCurvature<TSurface>
       switch( which )
         {
         case ( 0 ):
-  { this->ComputeJoshiFrame( this->m_Origin); }
-                                              break;
+          {
+          this->ComputeJoshiFrame( this->m_Origin);
+          }
+          break;
         case ( 1 ):
-  { this->JainMeanAndGaussianCurvature( this->m_Origin); }
-                                                         break;
+          {
+          this->JainMeanAndGaussianCurvature( this->m_Origin);
+          }
+          break;
         case ( 2 ):
-  { this->ShimshoniFrame(this->m_Origin); }
-                                          break;
+          {
+          this->ShimshoniFrame(this->m_Origin);
+          }
+          break;
         case ( 3 ):
-  { this->WeingartenMap(); }
-                           break;
+          {
+          this->WeingartenMap();
+          }
+          break;
         case ( 4 ):
-  { kpix = this->ComputeMeanEuclideanDistance(); }
-                                                 break;
-        default:     this->WeingartenMap();
+          {
+          kpix = this->ComputeMeanEuclideanDistance();
+          }
+          break;
+        default:
+          {
+          this->WeingartenMap();
+          }
         }
 
       //      this->PrintFrame();

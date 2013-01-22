@@ -175,7 +175,7 @@ public:
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
-  /// \todo need to concepts checked
+  // / \todo need to concepts checked
   /** End concept checking */
 #endif
 protected:

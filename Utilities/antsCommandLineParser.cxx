@@ -422,8 +422,8 @@ CommandLineParser
                 os << (*it)->GetFunction( n )->GetParameter( i ) << ",";
                 }
               os
-                  << (*it)->GetFunction( n )->GetParameter( (*it)->GetFunction( n )->GetParameters().size()
-                                                            - 1 ) << "], ";
+                << (*it)->GetFunction( n )->GetParameter( (*it)->GetFunction( n )->GetParameters().size()
+                                                          - 1 ) << "], ";
               }
             }
           else

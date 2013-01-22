@@ -166,16 +166,16 @@ template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class
 bool register_image_affine3d_mres_mask(ImagePointerType fixed_image, ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object, ParaType para0,
                                        itk::Point<double,
-                                                  3> center, int number_of_iteration, int MI_bins, int MI_samples,
-                                       ParaType & para1,
+                                                  3>
+                                       center, int number_of_iteration, int MI_bins, int MI_samples, ParaType & para1,
                                        double & rval);
 
 template <class ImagePointerType, class ImageMaskSpatialObjectPointerType, class ParaType>
 bool register_image_affine2d_mres_mask(ImagePointerType fixed_image, ImagePointerType moving_image,
                                        ImageMaskSpatialObjectPointerType mask_fixed_object, ParaType para0,
                                        itk::Point<double,
-                                                  2> center, int number_of_iteration, int MI_bins, int MI_samples,
-                                       ParaType & para1,
+                                                  2>
+                                       center, int number_of_iteration, int MI_bins, int MI_samples, ParaType & para1,
                                        double & rval);
 
 template <class ImagePointerType, class ParaType, class PointType, class TransformTypePointer>

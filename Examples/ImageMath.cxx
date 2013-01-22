@@ -2964,11 +2964,9 @@ int pCASL(int argc, char *argv[])
           RealType w    = 700;  // FIXME milliseconds from PMC3049525
           // Label width: Not in dicom, but sequence-specific -- magic parameter. Reference values: pCASL 1.5, CASL 1.6,
           // PASL 0.7.
-          RealType scaling = 4 * alpha * M_0 * T_1t * ( exp( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  ); //
-                                                                                                                      //
-                                                                                                                      // from
-                                                                                                                      //
-                                                                                                                      // PMC3049525
+          // from PMC3049525
+          const RealType scaling = 4 * alpha * M_0 * T_1t
+            * ( exp( -1.0 * ( tau + w ) / T_1a ) - exp( -1.0 * w / T_1t )  );
           cbf( t ) = lambda * deltaM * ( -1.0 )  / scaling;
           total += cbf( t );
           cbfct++;
@@ -7892,23 +7890,24 @@ int DiceAndMinDistSum(      int argc, char *argv[])
 
   LabelSetType myLabelSet2;
   unsigned int labct = 0;
-                          { Iterator It( image2, image2->GetLargestPossibleRegion() );
-                          for( It.GoToBegin(); !It.IsAtEnd(); ++It )
-                            {
-                            PixelType label = It.Get();
-                            if( fabs(label) > 0 )
-                              {
-                              if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
-                                  == myLabelSet2.end()   &&
-                                  find( myLabelSet1.begin(), myLabelSet1.end(), label )
-                                  != myLabelSet1.end() )
-                                {
-                                myLabelSet2.push_back( label );
-                                labct++;
-                                }
-                              }
-                            }
-                          }
+    {
+    Iterator It( image2, image2->GetLargestPossibleRegion() );
+    for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+      {
+      PixelType label = It.Get();
+      if( fabs(label) > 0 )
+        {
+        if( find( myLabelSet2.begin(), myLabelSet2.end(), label )
+            == myLabelSet2.end()   &&
+            find( myLabelSet1.begin(), myLabelSet1.end(), label )
+            != myLabelSet1.end() )
+          {
+          myLabelSet2.push_back( label );
+          labct++;
+          }
+        }
+      }
+    }
 
   vnl_vector<double> distances(labct, 0.0);
   vnl_vector<double> dicevals(labct, 0.0);
@@ -10529,7 +10528,8 @@ int MinMaxMean( int argc, char *argv[] )
 template <unsigned int ImageDimension, class TRealType, class TImageType, class TGImageType, class TInterp>
 TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::NeighborhoodIterator<TImageType> GHood2,
                              std::vector<unsigned int> activeindex, std::vector<TRealType> weight,
-                             typename TGImageType::Pointer gimage, typename TGImageType::Pointer gimage2,
+                             typename TGImageType::Pointer gimage,
+                             typename TGImageType::Pointer gimage2,
                              TInterp interp2 )
 {
   typedef TRealType                                      RealType;
