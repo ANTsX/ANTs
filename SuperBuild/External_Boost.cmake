@@ -4,7 +4,7 @@ set(Boost_Build_Script ${CMAKE_CURRENT_LIST_DIR}/buildboost.cmake)
 
 ExternalProject_add(Boost
   SVN_REPOSITORY http://svn.boost.org/svn/boost/trunk
-  SVN_REVISION -r "77936"
+  SVN_REVISION -r "82586"
 #  URL http://sourceforge.net/projects/boost/files/boost/1.49.0/boost_1_49_0.tar.gz
 #  URL_MD5 e0defc8c818e4f1c5bbb29d0292b76ca
   SOURCE_DIR Boost
