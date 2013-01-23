@@ -330,6 +330,10 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       {
       antscout << "Interpolation type: " << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
       }
+    if( inputImageType == 3 )
+      {
+      antscout << "  Applying transform(s) to time point " << n << " (out of " << inputImages.size() << ")." << std::endl;
+      }
     resampleFilter->Update();
     outputImages.push_back( resampleFilter->GetOutput() );
     }
