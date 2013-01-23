@@ -1,6 +1,10 @@
 Experimental transition to github for development: Wed Jan 23 10:46:13 EST 2013
 
-Release 1.9.x --- svn release 793++
+Installation/Compilation:
+
+http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
+
+Release 1.9.x --- final svn release = 1781, now moved to git ....
 
 Homepage:  http://www.picsl.upenn.edu/ANTS/
 
