@@ -1,3 +1,5 @@
+Experimental transition to github for development: Wed Jan 23 10:46:13 EST 2013
+
 Release 1.9.x --- svn release 793++
 
 Homepage:  http://www.picsl.upenn.edu/ANTS/
