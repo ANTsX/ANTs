@@ -10755,9 +10755,9 @@ int Check3TissueLabeling( int argc, char *argv[] )
     ReadImage<ImageType>( posteriors[d], argv[d + 7] );
     }
 
-  LabelType movingLabels[NumberOfLabels];
-  LabelType fixedLabels[NumberOfLabels];
-  for( unsigned int d = 0; d < NumberOfLabels; d++ )
+  LabelType movingLabels[3];
+  LabelType fixedLabels[3];
+  for( unsigned int d = 0; d < 3; d++ )
     {
     typedef itk::LabelStatisticsImageFilter<ImageType, LabelImageType> HistogramGeneratorType;
     typename HistogramGeneratorType::Pointer stats = HistogramGeneratorType::New();
@@ -10766,8 +10766,9 @@ int Check3TissueLabeling( int argc, char *argv[] )
     stats->Update();
 
     LabelType maxLabel = 1;
-    for( LabelType l = 2; l <= NumberOfLabels; l++ )
+    for( LabelType l = 2; l <= 3; l++ )
       {
+
       if( stats->GetMean( l ) > stats->GetMean( maxLabel ) )
         {
         maxLabel = l;
@@ -10776,12 +10777,16 @@ int Check3TissueLabeling( int argc, char *argv[] )
     movingLabels[d] = maxLabel;
     fixedLabels[d] = d + 1;
     }
-  for( unsigned int d = 0; d < NumberOfLabels; d++ )
-    {
-    antscout << fixedLabels[d] << " -> " << movingLabels[d] << std::endl;
 
+  for( unsigned int d = 0; d < 3; d++ )
+    {
+    std::cout << fixedLabels[d] << " -> " << movingLabels[d] << std::endl;
+    }
+
+  for( LabelType l = 1; l <= 3; l++ )
+    {
     bool foundLabel = false;
-    for( LabelType l = 1; l <= NumberOfLabels; l++ )
+    for( unsigned int d = 0; d < 3; d++ )
       {
       if( movingLabels[d] == l )
         {
@@ -10790,7 +10795,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
       }
     if( !foundLabel )
       {
-      antscout << "Not all labels were found." << std::endl;
+      std::cerr << "Not all labels were found." << std::endl;
       return EXIT_FAILURE;
       }
     }
