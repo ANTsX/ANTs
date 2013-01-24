@@ -104,13 +104,11 @@ int DiReCT( itk::ants::CommandLineParser *parser )
       {
       std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetName();
       ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
-      antscout << segmentationImage->GetLargestPossibleRegion().GetSize() << std::endl;
       }
     else if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetParameter( 0 );
       ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
-      antscout << segmentationImage->GetLargestPossibleRegion().GetSize() << std::endl;
       if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
         DirectLabelType gmval = parser->Convert<DirectLabelType>( segmentationImageOption->GetFunction(
