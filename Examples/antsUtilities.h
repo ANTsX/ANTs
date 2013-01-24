@@ -563,7 +563,19 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
   antscout << "origin_warped: " << origin_warped << std::endl;
   antscout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
 }
+
+template <class TImageIn, class TImageOut>
+typename TImageOut::Pointer 
+arCastImage( typename TImageIn::Pointer Rimage ) 
+{
+  typedef itk::CastImageFilter<TImageIn, TImageOut> CastFilterType;
+  typename CastFilterType::Pointer caster = CastFilterType::New();
+  caster->SetInput( Rimage );
+  caster->Update();
+  return caster->GetOutput();
 }
+
+} // end namespace 
 
 // ##########################################################################
 // TODO: KENT:  This block feels like it could be better encapsulated as a c++ class
