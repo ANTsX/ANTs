@@ -421,11 +421,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   // specified by the user which should match the number of metrics.
   unsigned numberOfStages = 0;
 
-  typedef double                                    PixelType;
+  typedef float                                     PixelType;
   typedef double                                    RealType;
-  typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
-  typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
-  typedef vnl_matrix<double>                        vMatrix;
+  typedef itk::Image<PixelType, ImageDimension>     FixedIOImageType;
+  typedef itk::Image<RealType , ImageDimension>     FixedImageType;
+  typedef itk::Image<PixelType, ImageDimension + 1> MovingIOImageType;
+  typedef itk::Image<RealType, ImageDimension + 1>  MovingImageType;
+  typedef vnl_matrix<RealType>                      vMatrix;
   vMatrix param_values;
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
   std::vector<typename CompositeTransformType::Pointer> CompositeTransformVector;
@@ -448,13 +450,11 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       outputPrefix = outputOption->GetFunction( 0 )->GetName();
       }
     std::string fn = averageOption->GetFunction( 0 )->GetName();
-    typename MovingImageType::Pointer movingImage;
-    ReadImage<MovingImageType>( movingImage, fn.c_str()  );
-    movingImage->Update();
-    movingImage->DisconnectPipeline();
-    typename FixedImageType::Pointer avgImage;
-    typedef itk::ExtractImageFilter<MovingImageType, FixedImageType> ExtractFilterType;
-    typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
+    typename MovingIOImageType::Pointer movingImage;
+    ReadImage<MovingIOImageType>( movingImage, fn.c_str()  );
+    typename FixedIOImageType::Pointer avgImage;
+    typedef itk::ExtractImageFilter<MovingIOImageType, FixedIOImageType> ExtractFilterType;
+    typename MovingIOImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
     extractRegion.SetSize(ImageDimension, 0);
     typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
     extractFilter->SetInput( movingImage );
@@ -465,9 +465,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     extractFilter->Update();
     avgImage = extractFilter->GetOutput();
     std::vector<unsigned int> timelist;
-    AverageTimeImages<MovingImageType, FixedImageType>( movingImage, avgImage, timelist );
+    AverageTimeImages<MovingIOImageType, FixedIOImageType>( movingImage, avgImage, timelist );
     antscout << "average out " << outputPrefix <<  std::endl;
-    WriteImage<FixedImageType>( avgImage, outputPrefix.c_str() );
+    WriteImage<FixedIOImageType>( avgImage, outputPrefix.c_str() );
     return EXIT_SUCCESS;
     }
 
@@ -566,18 +566,22 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     antscout << "  moving image: " << movingImageFileName << std::endl;
     typename FixedImageType::Pointer fixed_time_slice = NULL;
     typename FixedImageType::Pointer moving_time_slice = NULL;
+    typename FixedIOImageType::Pointer fixedInImage;
+    ReadImage<FixedIOImageType>( fixedInImage, fixedImageFileName.c_str() );
+    fixedInImage->Update();
+    fixedInImage->DisconnectPipeline();
     typename FixedImageType::Pointer fixedImage;
-    ReadImage<FixedImageType>( fixedImage, fixedImageFileName.c_str() );
-    fixedImage->Update();
-    fixedImage->DisconnectPipeline();
+    fixedImage = arCastImage< FixedIOImageType, FixedImageType >( fixedInImage );
 
+    typename MovingIOImageType::Pointer movingInImage;
     typename MovingImageType::Pointer movingImage;
-    ReadImage<MovingImageType>( movingImage, movingImageFileName.c_str() );
-    movingImage->Update();
-    movingImage->DisconnectPipeline();
+    ReadImage<MovingIOImageType>( movingInImage, movingImageFileName.c_str()  );
+    movingInImage->Update();
+    movingInImage->DisconnectPipeline();
+    movingImage = arCastImage<MovingIOImageType,MovingImageType>( movingInImage );
 
-    typename MovingImageType::Pointer outputImage;
-    ReadImage<MovingImageType>( outputImage, movingImageFileName.c_str() );
+    typename MovingIOImageType::Pointer outputImage;
+    ReadImage<MovingIOImageType>( outputImage, movingImageFileName.c_str() );
     outputImage->Update();
     outputImage->DisconnectPipeline();
 
@@ -1318,14 +1322,14 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         outputPrefix = outputOption->GetFunction( 0 )->GetName();
         }
       antscout << "motion corrected out " << fileName <<  std::endl;
-      WriteImage<MovingImageType>( outputImage, fileName.c_str()  );
+      WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 && outputImage && currentStage ==
         0 )
       {
       std::string fileName = outputOption->GetFunction( 0 )->GetParameter( 2 );
-      typename FixedImageType::Pointer avgImage;
-      typedef itk::ExtractImageFilter<MovingImageType, FixedImageType> ExtractFilterType;
+      typename FixedIOImageType::Pointer avgImage;
+      typedef itk::ExtractImageFilter<MovingImageType, FixedIOImageType> ExtractFilterType;
       typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
       extractRegion.SetSize(ImageDimension, 0);
       typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
@@ -1347,9 +1351,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         timelistsort.push_back(timelist[i]);
         antscout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
         }
-      AverageTimeImages<MovingImageType, FixedImageType>( outputImage, avgImage, timelistsort );
+      AverageTimeImages<MovingIOImageType, FixedIOImageType>( outputImage, avgImage, timelistsort );
       antscout << " write average post " << fileName << std::endl;
-      WriteImage<FixedImageType>( avgImage, fileName.c_str() );
+      WriteImage<FixedIOImageType>( avgImage, fileName.c_str() );
       }
     }
   totalTimer.Stop();
