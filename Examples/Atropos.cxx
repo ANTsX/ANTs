@@ -1303,8 +1303,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption(
       2,
       "Aristotle[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]" );
-//  option->SetUsageOption( 3, "Zeno[<useMixtureModelProportions=1>]" );
-//  option->SetUsageOption( 4, "Diogenes[<useMixtureModelProportions=1>]" );
+  option->SetUsageOption( 3, "Wittgenstein[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]]" );
+  option->SetUsageOption( 4, "Sigmoid[<useMixtureModelProportions=1>,<initialAnnealingTemperature=1>,<annealingRate=1>,<minimumTemperature=0.1>]]" );
 //  option->SetUsageOption( 5, "Thales[<useMixtureModelProportions=1>]" );
 //  option->SetUsageOption( 6, "Democritus" );
     option->SetDescription( description );
