@@ -52,6 +52,8 @@ protected:
     m_clock.Start();
     this->m_LogStream = &::ants::antscout;
     this->m_ComputeFullScaleCCInterval = 0;
+    this->m_WriteInterationsOutputsInIntervals = 0;
+    this->m_CurrentStageNumber = 0;
   }
 
 public:
@@ -135,10 +137,24 @@ public:
             lCurrentIteration == lastIteration) )
         {
         // This function finds the similarity value between the original fixed image and the original moving images
-        // using a CC metric type with radius 5.
+        // using a CC metric type with radius 4.
         // The feature can be used to observe the progress of the registration process at each iteration.
         this->UpdateFullScaleMetricValue(filter, metricValue);
         }
+
+      if( ( this->m_WriteInterationsOutputsInIntervals != 0 ) &&
+          ( lCurrentIteration == 1 || (lCurrentIteration % this->m_WriteInterationsOutputsInIntervals == 0 ) ||
+            lCurrentIteration == lastIteration) )
+        {
+        // This function writes the output volume of each iteration to the disk.
+        // The feature can be used to observe the progress of the registration process at each iteration,
+        // and make a short movie from the the registration process.
+        this->WriteIntervalVolumes(filter);
+        }
+      else
+        {
+        std::cout << " "; // if the output of current iteration is written to disk, and star
+        }                 // will appear before line, else a free space will be printed to keep visual alignment.
 
       this->Logger() << "DIAGNOSTIC, "
                      << std::setw(5) << lCurrentIteration << ", "
@@ -167,6 +183,10 @@ public:
   }
 
   itkSetMacro( ComputeFullScaleCCInterval, unsigned int );
+
+  itkSetMacro( WriteInterationsOutputsInIntervals, unsigned int );
+
+  itkSetMacro( CurrentStageNumber, unsigned int );
 
   void SetNumberOfIterations( const std::vector<unsigned int> & iterations )
   {
@@ -341,6 +361,117 @@ public:
     metricValue = metric->GetValue();
   }
 
+  void WriteIntervalVolumes(TFilter const * const filter) const
+  {
+    // //////////////////////////
+    // Get output transform from the registration filter at each iteration
+    // It can be useful in some cases e.g. when we want to present the registration progress as a series of consequent
+    // pictures.
+    typename DisplacementFieldTransformType::Pointer OutputTransformAtCurrentIteration =
+      DisplacementFieldTransformType::New();
+
+    // Filter return the MovingToMiddleTransform and FixedToMiddleTransform of each iteration, so they should be
+    // composed to generate the final output transform of current iteration
+
+    // Notice that using const_cast for filter does not make any issue, because the inputMovingTransform will never be
+    // used in any processing. It is only copied to another transform.
+
+    typedef itk::ComposeDisplacementFieldsImageFilter<DisplacementFieldType, DisplacementFieldType> ComposerType;
+    typename ComposerType::Pointer composer = ComposerType::New();
+    composer->SetDisplacementField(
+      const_cast<DisplacementFieldTransformType *>( filter->GetMovingToMiddleTransform() )->GetInverseDisplacementField() );
+    composer->SetWarpingField(
+      const_cast<DisplacementFieldTransformType *>( filter->GetFixedToMiddleTransform() )->GetDisplacementField() );
+    composer->Update();
+
+    typename ComposerType::Pointer inverseComposer = ComposerType::New();
+    inverseComposer->SetDisplacementField( const_cast<DisplacementFieldTransformType *>( filter->
+                                                                                         GetFixedToMiddleTransform() )
+                                           ->GetInverseDisplacementField() );
+    inverseComposer->SetWarpingField(
+      const_cast<DisplacementFieldTransformType *>( filter->GetMovingToMiddleTransform() )->GetDisplacementField() );
+    inverseComposer->Update();
+
+    OutputTransformAtCurrentIteration->SetDisplacementField( composer->GetOutput() );
+    OutputTransformAtCurrentIteration->SetInverseDisplacementField( inverseComposer->GetOutput() );
+
+    // Now this output transform is copied to another instance to prevent undesired changes.
+
+    typedef itk::ImageDuplicator<DisplacementFieldType> DisplacementFieldDuplicatorType;
+    typename DisplacementFieldDuplicatorType::Pointer disDuplicator = DisplacementFieldDuplicatorType::New();
+    disDuplicator->SetInputImage( OutputTransformAtCurrentIteration->GetDisplacementField() );
+    disDuplicator->Update();
+
+    typename DisplacementFieldDuplicatorType::Pointer disInverseDuplicator = DisplacementFieldDuplicatorType::New();
+    disInverseDuplicator->SetInputImage( OutputTransformAtCurrentIteration->GetInverseDisplacementField() );
+    disInverseDuplicator->Update();
+
+    typename DisplacementFieldTransformType::Pointer outputTransformReadyToUse = DisplacementFieldTransformType::New();
+    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetOutput() );
+    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetOutput() );
+
+    // Now add this updated transform to the composite transform including the initial trnasform
+    typedef typename TFilter::InitialTransformType InitialTransformType;
+
+    typename CompositeTransformType::Pointer outputCompositTransform = CompositeTransformType::New();
+    outputCompositTransform->AddTransform( const_cast<InitialTransformType *>( filter->GetMovingInitialTransform() ) );
+    outputCompositTransform->AddTransform( outputTransformReadyToUse );
+    outputCompositTransform->FlattenTransformQueue();
+    outputCompositTransform->SetOnlyMostRecentTransformToOptimizeOn();
+
+    // Now we use the output transform to get warped image using linear interpolation
+    typedef itk::LinearInterpolateImageFunction<MovingImageType, RealType> LinearInterpolatorType;
+    typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
+
+    typedef itk::ResampleImageFilter<FixedImageType, MovingImageType> ResampleFilterType;
+    typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+    resampler->SetTransform( outputCompositTransform );
+    resampler->SetInput( this->m_origMovingImage );
+    resampler->SetOutputParametersFromImage( this->m_origFixedImage );
+    resampler->SetInterpolator( linearInterpolator );
+    resampler->SetDefaultPixelValue( 0 );
+    resampler->Update();
+
+    // write the results to the disk
+    const unsigned int curLevel = filter->GetCurrentLevel();
+    const unsigned int curIter = filter->GetCurrentIteration();
+    std::stringstream  currentFileName;
+    currentFileName << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << curLevel + 1;
+    /*
+     The name arrangement of written files are important to us.
+     To prevent: "Iter1 Iter10 Iter2 Iter20" we use the following style.
+     Then the order is: "Iter1 Iter2 ... Iters10 ... Itert20"
+    */
+    if( curIter > 9 )
+      {
+      currentFileName << "_Iters" << curIter << ".nii.gz";
+      }
+    else if( curIter > 19 )
+      {
+      currentFileName << "_Itert" << curIter << ".nii.gz";
+      }
+    else
+      {
+      currentFileName << "_Iter" << curIter << ".nii.gz";
+      }
+    std::cout << "*"; // The star befor each DIAGNOSTIC shows that its output is writtent out.
+
+    typedef itk::ImageFileWriter<MovingImageType> WarpedImageWriterType;
+    typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
+    writer->SetFileName( currentFileName.str().c_str() );
+    writer->SetInput( resampler->GetOutput() );
+    try
+      {
+      writer->Update();
+      }
+    catch( itk::ExceptionObject & err )
+      {
+      antscout << "Can't write warped image " << currentFileName.str().c_str() << std::endl;
+      antscout << "Exception Object caught: " << std::endl;
+      antscout << err << std::endl;
+      }
+  }
+
 private:
   std::ostream & Logger() const
   {
@@ -358,6 +489,8 @@ private:
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 
   unsigned int m_ComputeFullScaleCCInterval;
+  unsigned int m_WriteInterationsOutputsInIntervals;
+  unsigned int m_CurrentStageNumber;
 
   typename FixedImageType::Pointer  m_origFixedImage;
   typename MovingImageType::Pointer m_origMovingImage;

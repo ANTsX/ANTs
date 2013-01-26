@@ -533,6 +533,12 @@ public:
   itkGetConstMacro( PrintSimilarityMeasureInterval, unsigned int );
 
   /**
+   * turn on the option that writes the output volume in intervals of iterations.
+   */
+  itkSetMacro( WriteIntervalVolumes, unsigned int );
+  itkGetConstMacro( WriteIntervalVolumes, unsigned int );
+
+  /**
    * turn on winsorize image intensity normalization
    */
   void SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0 );
@@ -636,6 +642,7 @@ private:
 
   bool         m_ApplyLinearTransformsToFixedImageHeader;
   unsigned int m_PrintSimilarityMeasureInterval;
+  unsigned int m_WriteIntervalVolumes;
   bool         m_AllPreviousTransformsAreLinear;
   typename CompositeTransformType::Pointer m_CompositeLinearTransformForFixedImageHeader;
 };

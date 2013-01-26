@@ -32,6 +32,9 @@ protected:
     this->m_origFixedImage = ImageType::New();
     this->m_origMovingImage = ImageType::New();
     this->m_ComputeFullScaleCCInterval = 0;
+    this->m_WriteInterationsOutputsInIntervals = 0;
+    this->m_CurrentStageNumber = 0;
+    this->m_CurLevel = 0;
   }
 
 public:
@@ -119,6 +122,20 @@ public:
         this->UpdateFullScaleMetricValue(this->m_Optimizer, metricValue);
         }
 
+      if( ( this->m_WriteInterationsOutputsInIntervals != 0 ) &&
+          ( lCurrentIteration == 1 || (lCurrentIteration % this->m_WriteInterationsOutputsInIntervals == 0 ) ||
+         lCurrentIteration == lastIteration) )
+        {
+        // This function writes the output volume of each iteration to the disk.
+        // The feature can be used to observe the progress of the registration process at each iteration,
+        // and make a short movie from the the registration process.
+        this->WriteIntervalVolumes(this->m_Optimizer);
+        }
+      else
+        {
+        std::cout << " "; // if the output of current iteration is written to disk, and star
+        }                 // will appear before line, else a free space will be printed to keep visual alignment.
+
       this->Logger() << "DIAGNOSTIC, "
                      << std::setw(5) << lCurrentIteration << ", "
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetValue() << ", "
@@ -146,6 +163,10 @@ public:
   }
 
   itkSetMacro( ComputeFullScaleCCInterval, unsigned int );
+
+  itkSetMacro( WriteInterationsOutputsInIntervals, unsigned int );
+
+  itkSetMacro( CurrentStageNumber, unsigned int );
 
   void SetNumberOfIterations( const std::vector<unsigned int> & iterations )
   {
@@ -278,6 +299,89 @@ public:
     metricValue = metric->GetValue();
   }
 
+  void WriteIntervalVolumes(itk::WeakPointer<OptimizerType> myOptimizer)
+  {
+    // Get the registration metric from the optimizer
+    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetMetric() ) );
+
+    // First, compute the moving transform
+    typedef typename MetricType::MovingTransformType MovingTransformType;
+    typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
+    // TODO: Remove const_cast once ITKv4 is fixed to allow const Get Macro functions.
+    typename CompositeTransformType::ConstPointer inputMovingTransform =
+      dynamic_cast<CompositeTransformType *>( const_cast<MovingTransformType *>( inputMetric->GetMovingTransform() ) );
+    const unsigned int N = inputMovingTransform->GetNumberOfTransforms();
+    for( unsigned int i = 0; i < N; i++ )
+      {
+      typename TransformBaseType::Pointer subTransform(
+        dynamic_cast<TransformBaseType *>( inputMovingTransform->GetNthTransform(i)->CreateAnother().GetPointer() ) );
+      const typename TransformBaseType::ParametersType & moving_paras =
+        inputMovingTransform->GetNthTransform(i)->GetParameters();
+      const typename TransformBaseType::ParametersType & moving_fixed_paras =
+        inputMovingTransform->GetNthTransform(i)->GetFixedParameters();
+      subTransform->SetParameters( moving_paras );
+      subTransform->SetFixedParameters( moving_fixed_paras );
+      movingTransform->AddTransform( subTransform );
+      }
+    movingTransform->SetOnlyMostRecentTransformToOptimizeOn();
+
+    // Now we apply this output transform to get warped image
+    typedef itk::LinearInterpolateImageFunction<ImageType, double> LinearInterpolatorType;
+    typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
+
+    typedef itk::ResampleImageFilter<ImageType, ImageType> ResampleFilterType;
+    typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+    resampler->SetTransform( movingTransform );
+    resampler->SetInput( this->m_origMovingImage );
+    resampler->SetOutputParametersFromImage( this->m_origFixedImage );
+    resampler->SetInterpolator( linearInterpolator );
+    resampler->SetDefaultPixelValue( 0 );
+    resampler->Update();
+
+    // write the results to the disk
+    // const unsigned int curLevel = this->m_Optimizer->GetCurrentLevel();
+    const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
+    if( curIter == 1 )
+      {
+      ++this->m_CurLevel;
+      }
+    std::stringstream currentFileName;
+    currentFileName << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << this->m_CurLevel;
+    /*
+    The name arrangement of written files are important to us.
+    To prevent: "Iter1 Iter10 Iter2 Iter20" we use the following style.
+    Then the order is: "Iter1 Iter2 ... Iters10 ... Itert20"
+    */
+    if( curIter > 9 )
+      {
+      currentFileName << "_Iters" << curIter << ".nii.gz";
+      }
+    else if( curIter > 19 )
+      {
+      currentFileName << "_Itert" << curIter << ".nii.gz";
+      }
+    else
+      {
+      currentFileName << "_Iter" << curIter << ".nii.gz";
+      }
+    std::cout << "*"; // The star befor each DIAGNOSTIC shows that its output is writtent out.
+
+    typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
+    typename WarpedImageWriterType::Pointer writer = WarpedImageWriterType::New();
+    writer->SetFileName( currentFileName.str().c_str() );
+    writer->SetInput( resampler->GetOutput() );
+    try
+      {
+      writer->Update();
+      }
+    catch( itk::ExceptionObject & err )
+      {
+      antscout << "Can't write warped image " << currentFileName.str().c_str() << std::endl;
+      antscout << "Exception Object caught: " << std::endl;
+      antscout << err << std::endl;
+      }
+  }
+
 private:
   std::ostream & Logger() const
   {
@@ -295,6 +399,9 @@ private:
   itk::RealTimeClock::TimeStampType m_lastTotalTime;
 
   unsigned int m_ComputeFullScaleCCInterval;
+  unsigned int m_WriteInterationsOutputsInIntervals;
+  unsigned int m_CurrentStageNumber;
+  unsigned int m_CurLevel;
 
   typename ImageType::Pointer       m_origFixedImage;
   typename ImageType::Pointer       m_origMovingImage;
