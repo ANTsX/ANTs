@@ -1803,13 +1803,28 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                    static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
       }
       break;
+    case Wittgenstein:
+      {
+      // Same as socrates but with a small epsilon added to the spatial prior.
+      // The problem is when spatialPriorProbability = 0 and this->m_PriorProbabilityWeight
+      // is epsilon greater than 0.0.
+
+      spatialPriorProbability = vnl_math_max( static_cast<RealType>( 1e-10 ), spatialPriorProbability );
+
+      posteriorProbability =
+        vcl_pow( static_cast<double>( spatialPriorProbability
+                                      * distancePriorProbability),
+                 static_cast<double>( this->m_PriorProbabilityWeight ) )
+        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
+                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
+      }
+      break;
     }
 
   if( this->m_InitialAnnealingTemperature != 1.0 )
     {
     RealType annealingTemperature = this->m_InitialAnnealingTemperature
-      * vcl_pow( this->m_AnnealingRate, static_cast<RealType>(
-                   this->m_ElapsedIterations ) );
+      * vcl_pow( this->m_AnnealingRate, static_cast<RealType>( this->m_ElapsedIterations ) );
 
     annealingTemperature = vnl_math_max( annealingTemperature,
                                          this->m_MinimumAnnealingTemperature );
@@ -3303,6 +3318,11 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     case Aristotle:
       {
       os << "Aristotle" << std::endl;
+      }
+      break;
+    case Wittgenstein:
+      {
+      os << "Wittgenstein" << std::endl;
       }
       break;
     }

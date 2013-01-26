@@ -319,6 +319,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       segmenter->SetPosteriorProbabilityFormulation(
         SegmentationFilterType::Aristotle );
       }
+    else if( !posteriorStrategy.compare( std::string( "wittgenstein" ) ) )
+      {
+      segmenter->SetPosteriorProbabilityFormulation(
+        SegmentationFilterType::Wittgenstein );
+      }
     }
 
   /**
