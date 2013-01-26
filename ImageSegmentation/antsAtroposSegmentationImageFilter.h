@@ -160,7 +160,7 @@ public:
   typedef Array<RealType>                          ParametersType;
 
   /** Posterior probability formulation typedefs */
-  enum PosteriorProbabilityFormulationType { Socrates, Plato, Aristotle, Wittgenstein };
+  enum PosteriorProbabilityFormulationType { Socrates, Plato, Aristotle, Wittgenstein, Sigmoid };
 
   // ivars Set/Get functionality
 
@@ -519,7 +519,7 @@ public:
    * prior probability information should be included in the posterior
    * probability information.
    */
-  itkSetClampMacro( PriorProbabilityWeight, RealType, 0.0, 1.0 );
+  itkSetClampMacro( PriorProbabilityWeight, RealType, 0.0, 1.e9 );
 
   /**
    * Get the prior probability weight.

@@ -324,6 +324,11 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       segmenter->SetPosteriorProbabilityFormulation(
         SegmentationFilterType::Wittgenstein );
       }
+    else if( !posteriorStrategy.compare( std::string( "sigmoid" ) ) )
+      {
+      segmenter->SetPosteriorProbabilityFormulation(
+        SegmentationFilterType::Sigmoid );
+      }
     }
 
   /**
@@ -1278,7 +1283,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     + std::string( " Socrates: posteriorProbability = (spatialPrior)^priorWeight" )
     + std::string( "*(likelihood*mrfPrior)^(1-priorWeight), " )
     + std::string( " Plato: posteriorProbability = 1.0, " )
-    + std::string( " Aristotle: posteriorProbability = 1.0, " )/* +
+    + std::string( " Aristotle: posteriorProbability = 1.0, " )
+    + std::string( " Wittgenstein: posteriorProbability = 1.0, " )
+    + std::string( " Sigmoid: posteriorProbability = 1.0, " )/* +
     std::string( " Zeno: posteriorProbability = 1.0\n" ) +
     std::string( " Diogenes: posteriorProbability = 1.0\n" ) +
     std::string( " Thales: posteriorProbability = 1.0\n" ) +
