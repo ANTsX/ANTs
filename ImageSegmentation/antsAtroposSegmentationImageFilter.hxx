@@ -1812,8 +1812,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       spatialPriorProbability = vnl_math_max( static_cast<RealType>( 1e-10 ), spatialPriorProbability );
 
       posteriorProbability =
-        vcl_pow( static_cast<double>( spatialPriorProbability
-                                      * distancePriorProbability),
+        vcl_pow( static_cast<double>( spatialPriorProbability ),
                  static_cast<double>( this->m_PriorProbabilityWeight ) )
         * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
                    static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
