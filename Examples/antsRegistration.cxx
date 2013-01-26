@@ -158,6 +158,21 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string(
+        "Writes out the output volume at each iteration. It helps to present the registration process as a short movie " )
+      + std::string( "a value of 0 (the default) indicates that this option should not take place")
+      + std::string(
+        "any value greater than 0 represents the interval between the iterations which outputs are written to the disk.");
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "write-interval-volumes" );
+    option->SetShortName( 'v' );
+    option->SetUsageOption( 0, "<unsigned integer value>" );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Collapse output transforms. " )
       + std::string( "Specifically, enabling this option combines all adjacent linear transforms " )
       + std::string( "and composes all adjacent displacement field transforms before writing the " )
@@ -507,6 +522,17 @@ DoRegistration(typename ParserType::Pointer & parser)
     unsigned int intervalLength = parser->Convert<unsigned int>( printSimilarityMeasureInterval->GetFunction(
                                                                    0 )->GetName() );
     regHelper->SetPrintSimilarityMeasureInterval(intervalLength);
+    }
+  else
+    {
+    regHelper->SetPrintSimilarityMeasureInterval( 0 );
+    }
+
+  OptionType::Pointer writeIntervalVolumes = parser->GetOption( "write-interval-volumes" );
+  if( writeIntervalVolumes && writeIntervalVolumes->GetNumberOfFunctions() )
+    {
+    unsigned int LengthOfIntervals = parser->Convert<unsigned int>( writeIntervalVolumes->GetFunction( 0 )->GetName() );
+    regHelper->SetWriteIntervalVolumes(LengthOfIntervals);
     }
   else
     {

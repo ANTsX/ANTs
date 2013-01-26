@@ -101,6 +101,7 @@ RegistrationHelper<VImageDimension>
   m_LogStream( &::ants::antscout ),
   m_ApplyLinearTransformsToFixedImageHeader( true ),
   m_PrintSimilarityMeasureInterval( 0 ),
+  m_WriteIntervalVolumes( 0 ),
   m_AllPreviousTransformsAreLinear( true ),
   m_CompositeLinearTransformForFixedImageHeader( NULL )
 {
@@ -1088,6 +1089,11 @@ RegistrationHelper<VImageDimension>
       {
       optimizerObserver->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
       }
+    if( this->m_WriteIntervalVolumes != 0 )
+      {
+      optimizerObserver->SetWriteInterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
+      optimizerObserver->SetCurrentStageNumber( currentStageNumber );
+      }
 
     typedef itk::GradientDescentLineSearchOptimizerv4 GradientDescentLSOptimizerType;
     typedef itk::GradientDescentOptimizerv4           GradientDescentOptimizerType;
@@ -1116,6 +1122,11 @@ RegistrationHelper<VImageDimension>
     if( this->m_PrintSimilarityMeasureInterval != 0 )
       {
       optimizerObserver2->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
+      }
+    if( this->m_WriteIntervalVolumes != 0 )
+      {
+      optimizerObserver2->SetWriteInterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
+      optimizerObserver2->SetCurrentStageNumber( currentStageNumber );
       }
 
     // Set up the image registration methods along with the transforms
@@ -2394,6 +2405,11 @@ RegistrationHelper<VImageDimension>
         if( this->m_PrintSimilarityMeasureInterval != 0 )
           {
           displacementFieldRegistrationObserver2->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
+          }
+        if( this->m_WriteIntervalVolumes != 0 )
+          {
+          displacementFieldRegistrationObserver2->SetWriteInterationsOutputsInIntervals( this->m_WriteIntervalVolumes );
+          displacementFieldRegistrationObserver2->SetCurrentStageNumber( currentStageNumber );
           }
         displacementFieldRegistration->AddObserver( itk::InitializeEvent(), displacementFieldRegistrationObserver2 );
         displacementFieldRegistration->AddObserver( itk::IterationEvent(), displacementFieldRegistrationObserver2 );
