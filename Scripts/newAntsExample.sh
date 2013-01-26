@@ -17,22 +17,22 @@ $reg -d $dim -r [ $f, $m ,1]  \
                         -m mattes[  $f, $m , 1 , 32, regular, 0.1 ] \
                          -t translation[ 0.1 ] \
                          -c [$its,1.e-8,20]  \
-                        -s 4x2x1  \
+                        -s 4x2x1vox  \
                         -f 6x4x2 -l 1 \
                         -m mattes[  $f, $m , 1 , 32, regular, 0.1 ] \
                          -t rigid[ 0.1 ] \
                          -c [$its,1.e-8,20]  \
-                        -s 4x2x1  \
+                        -s 4x2x1vox  \
                         -f 6x4x2 -l 1 \
                         -m mattes[  $f, $m , 1 , 32, regular, 0.1 ] \
                          -t affine[ 0.1 ] \
                          -c [$its,1.e-8,20]  \
-                        -s 4x2x1  \
+                        -s 4x2x1vox  \
                         -f 6x4x2 -l 1 \
                         -m mattes[  $f, $m , 1 , 32 ] \
                          -t syn[ .3, 3, 0.0 ] \
                          -c [10x0x0,1.e-8,20]  \
-                        -s 2x1x0  \
+                        -s 2x1x0vox  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                        -o [${nm},${nm}_diff.nii.gz,${nm}_inv.nii.gz]
 
