@@ -798,6 +798,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                    << this->m_ThicknessPriorEstimate << std::endl;
   ::ants::antscout << indent << "Smoothing sigma = "
                    << this->m_SmoothingSigma << std::endl;
+  ::ants::antscout << indent << "Number of integration points = "
+                   << this->m_NumberOfIntegrationPoints << std::endl;
   ::ants::antscout << indent << "Initial gradient step = "
                    << this->m_InitialGradientStep << std::endl;
   ::ants::antscout << indent << "Current gradient step = "

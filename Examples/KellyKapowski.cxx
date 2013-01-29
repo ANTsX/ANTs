@@ -5,9 +5,6 @@
 #include "antsCommandLineParser.h"
 
 #include "itkDiReCTImageFilter.h"
-#include "itkDiReCTImageFilter926.h"
-#include "itkDiReCTImageFilter949.h"
-#include "itkDiReCTImageFilter953.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImage.h"
 #include "ReadWriteImage.h"
@@ -144,8 +141,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     antscout << "  Grey matter probability image not specified. "
              << "Creating one from the segmentation image." << std::endl;
 
-    typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType>
-      ThresholderType;
+    typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> ThresholderType;
     typename ThresholderType::Pointer thresholder = ThresholderType::New();
     thresholder->SetInput( segmentationImage );
     thresholder->SetLowerThreshold( direct->GetGrayMatterLabel() );
@@ -227,7 +223,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   // thickness prior estimate
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-  thicknessPriorOption = parser->GetOption( "thickness-prior-estimate" );
+    thicknessPriorOption = parser->GetOption( "thickness-prior-estimate" );
   if( thicknessPriorOption && thicknessPriorOption->GetNumberOfFunctions() )
     {
     direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
@@ -237,7 +233,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   // gradient step
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-  gradientStepOption = parser->GetOption( "gradient-step" );
+    gradientStepOption = parser->GetOption( "gradient-step" );
   if( gradientStepOption && gradientStepOption->GetNumberOfFunctions() )
     {
     direct->SetInitialGradientStep( parser->Convert<RealType>(
@@ -248,11 +244,22 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   // smoothing sigma
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-  smoothingSigmaOption = parser->GetOption( "smoothing-sigma" );
+    smoothingSigmaOption = parser->GetOption( "smoothing-sigma" );
   if( smoothingSigmaOption && smoothingSigmaOption->GetNumberOfFunctions() )
     {
     direct->SetSmoothingSigma( parser->Convert<RealType>(
                                  smoothingSigmaOption->GetFunction( 0 )->GetName() ) );
+    }
+
+  //
+  // smoothing sigma
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+    numberOfIntegrationPointsOption = parser->GetOption( "number-of-integration-points" );
+  if( numberOfIntegrationPointsOption && numberOfIntegrationPointsOption->GetNumberOfFunctions() )
+    {
+    direct->SetNumberOfIntegrationPoints( parser->Convert<RealType>(
+                                 numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
     }
 
   typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
@@ -392,12 +399,24 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "smoothing-sigma.  Default = 1.5." );
+      std::string( "Defines the Gaussian smoothing of the velocity field.  Default = 1.5." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "smoothing-sigma" );
     option->SetShortName( 'm' );
     option->SetUsageOption( 0, "sigma" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Number of compositions of the diffeomorphism per iteration.  Default = 10." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "number-of-integration-points" );
+    option->SetShortName( 'n' );
+    option->SetUsageOption( 0, "numberOfPoints" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

@@ -237,6 +237,16 @@ public:
   itkGetConstMacro( SmoothingSigma, RealType );
 
   /**
+   * Set the number of integration points.  Default = 10.
+   */
+  itkSetMacro( NumberOfIntegrationPoints, unsigned int  );
+
+  /**
+   * Get the number of integration points.  Default = 10.
+   */
+  itkGetConstMacro( NumberOfIntegrationPoints, unsigned int );
+
+  /**
    * Get the number of elapsed iterations.  This is a helper function for
    * reporting observations.
    */
