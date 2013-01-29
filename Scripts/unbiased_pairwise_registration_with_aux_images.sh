@@ -84,9 +84,9 @@ if [[ ! -s $A ]] || [[  ! -s $B ]]  ; then echo inputs: $A $B $prefix ; echo $us
 
 reg=antsRegistration
 uval=0
-affits=999x550x10
-aff=" -t affine[ 0.5 ]  -c [ $affits ,1.e-7,20]  -s 3x2x0 -f 4x2x1 -u $uval -l 0 "
-synits=2x0  #BA 
+affits=999x550x20
+aff=" -t affine[ 0.2 ]  -c [ $affits ,1.e-7,20]  -s 3x2x0 -f 4x2x1 -u $uval -l 0 "
+synits=100x50  #BA 
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 nmA=${prefix}_A_norm
@@ -134,10 +134,14 @@ $reg -d $dim  \
                        -o [${nmB},${nmB}_aff.nii.gz]
 # now we can do a symmetric deformable mapping
 antsApplyTransforms -d $dim -i $B -o ${nm}_aff.nii.gz -t [ $initAmat, 1 ] -t  $initBmat -r $A
+N3BiasFieldCorrection $dim $A ${nm}_n3_a.nii.gz 4 
+N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2 
+N3BiasFieldCorrection $dim $B ${nm}_n3_b.nii.gz 4 
+N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2 
   echo now do deformable expecting $initB and $initA to exist
   if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
-                         -m mattes[  $A, $B , 1 , 32 ] \
+                         -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
                          -t syn[ 0.25, 3, 0.5 ] \
                          -c [${synits},1.e-8,10]  \
                         -s 1x0 \
@@ -181,9 +185,9 @@ if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then
                          -c [ $affits ,1.e-7,20]  \
                         -s 4x2x1vox  \
                         -f 4x2x1 -l 1 \
-                        -m mattes[  $imgs , 1 , 32 ] \
-                         -t syn[ .3, 3, 0.0 ] \
-                         -c [50x50x0,1.e-8,20]  \
+                        -m cc[  $imgs , 1 , 4 ] \
+                         -t syn[ .2, 3, 0.0 ] \
+                         -c [100x50x20,1.e-8,20]  \
                         -s 2x1x0vox  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                        -o [${nm}_gt_,${nm}_gt.nii.gz]
@@ -196,7 +200,7 @@ antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_B.nii.gz -n NearestNeigh
 MultiplyImages $dim  ${nm}_bm_A.nii.gz $A  ${nm}_A_brain.nii.gz
 MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
 fi 
-if [[ -s $G ]] && [[ -s $N ]] ; then 
+if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then 
   echo deal with auxiliary images ... here DTI
   ffa=${nm}_ffa.nii.gz
   mfa=${nm}_mfa.nii.gz
@@ -212,7 +216,7 @@ if [[ -s $G ]] && [[ -s $N ]] ; then
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [50x20x0,1.e-7,20]  \
+                         -c [50x30x10,1.e-7,20]  \
                         -s 4x2x1mm  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
                        -o [${nm}_ffa,${nm}_ffa_distcorr.nii.gz]
@@ -226,15 +230,26 @@ if [[ -s $G ]] && [[ -s $N ]] ; then
                          -m mattes[  $imgs , 1 , 32 ] \
                          -m cc[  $imgs , 1 , 2 ] \
                          -t SyN[ 0.2, 3, 0.5 ] \
-                         -c [50x20x0,1.e-7,20]  \
+                         -c [50x30x10,1.e-7,20]  \
                         -s 4x2x1mm  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
-                       -o [${nm}_mfa,${nm}_mfa_distcorr.nii.gz]
+                        -o [${nm}_mfa,${nm}_mfa_distcorr.nii.gz]
 #
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat                       -t  $initAmat -t ${nm}_ffa1Warp.nii.gz -t ${nm}_ffa0GenericAffine.mat "
 antsApplyTransforms -d $dim -i $ffa -o  ${nm}_ffanorm.nii.gz  -r $template $trans
 #
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}1Warp.nii.gz  -t  $initBmat -t ${nm}_mfa1Warp.nii.gz -t ${nm}_mfa0GenericAffine.mat "
 antsApplyTransforms -d $dim -i $mfa -o  ${nm}_mfanorm.nii.gz  -r $template $trans
+ImageMath $dim ${nm}_fadiff.nii.gz - ${nm}_ffanorm.nii.gz  ${nm}_mfanorm.nii.gz
 fi 
-echo done with aux images
+echo done with aux images --- now get final jacobians 
+
+
+# get final jacobian values 
+trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat                       -t  $initAmat"
+antsApplyTransforms -d $dim -i ${nm}_A_brain.nii.gz -o  [${nm}_A_fullWarp.nii.gz, 1 ]  -r $template $trans
+ANTSJacobian $dim ${nm}_A_fullWarp.nii.gz ${nm}_A_full 1 no 0
+#
+trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}1Warp.nii.gz  -t  $initBmat"
+antsApplyTransforms -d $dim -i ${nm}_B_brain.nii.gz -o  [${nm}_B_fullWarp.nii.gz, 1 ]  -r $template $trans
+ANTSJacobian $dim ${nm}_B_fullWarp.nii.gz ${nm}_B_full 1 no 0
