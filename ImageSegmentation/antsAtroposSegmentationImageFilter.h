@@ -160,7 +160,7 @@ public:
   typedef Array<RealType>                          ParametersType;
 
   /** Posterior probability formulation typedefs */
-  enum PosteriorProbabilityFormulationType { Socrates, Plato, Aristotle, Wittgenstein, Sigmoid };
+  enum PosteriorProbabilityFormulationType { Socrates, Plato, Aristotle, Sigmoid };
 
   // ivars Set/Get functionality
 

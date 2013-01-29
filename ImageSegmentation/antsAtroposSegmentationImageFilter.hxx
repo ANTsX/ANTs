@@ -1756,37 +1756,46 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                       RealType mrfPriorProbability, RealType likelihood, IndexType index,
                                       unsigned int whichClass )
 {
+  // Ensure that the probabilities are at least and epsilon > 0.0 due to numerical issues
+
+  RealType probabilityEpsilon = 1.0e-10;
+
+  spatialPriorProbability = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), spatialPriorProbability );
+  distancePriorProbability = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), distancePriorProbability );
+  mrfPriorProbability = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), mrfPriorProbability );
+  likelihood = vnl_math_max( static_cast<RealType>( probabilityEpsilon ), likelihood );
+
   RealType posteriorProbability = 0.0;
 
   switch( this->m_PosteriorProbabilityFormulation )
     {
-    case Socrates: default:
+    case Socrates:  default:
       {
-	/** R example
-	    library(ANTsR)
-	    post<-antsImageRead('testBrainSegmentationPosteriors2.nii.gz',2)
-	    prior<-antsImageRead('testBrainSegmentationPriorWarped2.nii.gz',2)
-	    mask<-antsImageRead('testBrainExtractionMask.nii.gz',2)
-	    pwt<-rev( c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)  )
-	    gz0<-mask > 0 
-	    socrates<-function( likelihood, prior , priorwt  ) {likelihood^(1-priorwt) * prior^priorwt }
-	    png('atropossocrates.png',width=1280,height=1280)
-	    par( mfrow=c(3,4) )
-	    plotANTsImage( prior ) 
-	    for ( i in c(1:length(pwt)) ) 
-	    {
-	    tit<-paste("Prior-Weight = ",as.character(pwt[i]))
-	    temp<-antsImageClone(prior)
-	    temp[ gz0 ]<-socrates(  post[ gz0 ] , prior[ gz0 ] , pwt[i] ) 
-	    plotANTsImage( temp ) 
-	    }
-	    dev.off()
-	*/
+      /** R example
+        library(ANTsR)
+        post<-antsImageRead('testBrainSegmentationPosteriors2.nii.gz',2)
+        prior<-antsImageRead('testBrainSegmentationPriorWarped2.nii.gz',2)
+        mask<-antsImageRead('testBrainExtractionMask.nii.gz',2)
+        pwt<-rev( c(0,0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1)  )
+        gz0<-mask > 0
+        socrates<-function( likelihood, prior , priorwt  ) {likelihood^(1-priorwt) * prior^priorwt }
+        png('atropossocrates.png',width=1280,height=1280)
+        par( mfrow=c(3,4) )
+        plotANTsImage( prior )
+        for ( i in c(1:length(pwt)) )
+        {
+        tit<-paste( "Prior-Weight = ", as.character( pwt[i] ) )
+        temp<-antsImageClone( prior )
+        temp[ gz0 ]<-socrates( post[gz0], prior[gz0], pwt[i] )
+        plotANTsImage( temp )
+        }
+        dev.off()
+      */
       posteriorProbability =
-        vcl_pow( static_cast<double>( spatialPriorProbability ),
-                 static_cast<double>( this->m_PriorProbabilityWeight ) )
-        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
-                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
+        vcl_pow( static_cast<RealType>( spatialPriorProbability ),
+                 static_cast<RealType>( this->m_PriorProbabilityWeight ) )
+        * vcl_pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
+                   static_cast<RealType>( 1.0 - this->m_PriorProbabilityWeight ) );
       }
       break;
     case Plato:
@@ -1807,60 +1816,38 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         mrfPriorProbability = 1.0;
         }
       posteriorProbability =
-        vcl_pow( static_cast<double>( spatialPriorProbability ),
-                 static_cast<double>( this->m_PriorProbabilityWeight ) )
-        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
-                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
+        vcl_pow( static_cast<RealType>( spatialPriorProbability ),
+                 static_cast<RealType>( this->m_PriorProbabilityWeight ) )
+        * vcl_pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
+                   static_cast<RealType>( 1.0 - this->m_PriorProbabilityWeight ) );
       }
       break;
     case Aristotle:
       {
       posteriorProbability =
-        vcl_pow( static_cast<double>( spatialPriorProbability
-                                      * distancePriorProbability),
-                 static_cast<double>( this->m_PriorProbabilityWeight ) )
-        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
-                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
-      }
-      break;
-    case Wittgenstein:
-      {
-      // Same as socrates but with a small epsilon added to the spatial prior.
-      // The problem is when spatialPriorProbability = 0 and this->m_PriorProbabilityWeight
-      // is epsilon greater than 0.0.
-
-      spatialPriorProbability = vnl_math_max( static_cast<RealType>( 1e-10 ), spatialPriorProbability );
-
-      posteriorProbability =
-        vcl_pow( static_cast<double>( spatialPriorProbability ),
-                 static_cast<double>( this->m_PriorProbabilityWeight ) )
-        * vcl_pow( static_cast<double>( likelihood * mrfPriorProbability ),
-                   static_cast<double>( 1.0 - this->m_PriorProbabilityWeight ) );
+        vcl_pow( static_cast<RealType>( spatialPriorProbability * distancePriorProbability),
+                 static_cast<RealType>( this->m_PriorProbabilityWeight ) )
+        * vcl_pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
+                   static_cast<RealType>( 1.0 - this->m_PriorProbabilityWeight ) );
       }
       break;
     case Sigmoid:
       {
-      RealType totalNumberOfClasses = 
-	static_cast< RealType >( this->m_NumberOfTissueClasses
-				 + this->m_NumberOfPartialVolumeClasses );
-      /** some R code to show the effect 
-	  pwt<-c(0,2^c(0:7))
-	  sig<-function( x , priorwt, offset=0.5 ) { 1.0 / ( 1 + exp(-(x-offset)*priorwt )  ) }
-	  probs<-c(0:100)/100
-	  par( mfrow=c(3,3) )
-	  for ( i in c(1:length(pwt)) ) 
-	  {
-	  tit<-paste("Prior-Weight = ",as.character(pwt[i]))
-	  plot(main=tit,sig(probs,pwt[i]),type='l',ylim=c(0,1)); points(probs,type='l',col='red')
-	  }
+      /** some R code to show the effect
+        pwt<-c(0,2^c(0:7))
+        sig<-function( x , priorwt, offset=0.5 ) { 1.0 / ( 1 + exp(-(x-offset)*priorwt )  ) }
+        probs<-c(0:100)/100
+        par( mfrow=c(3,3) )
+        for ( i in c(1:length(pwt)) )
+        {
+        tit<-paste("Prior-Weight = ",as.character(pwt[i]))
+        plot(main=tit,sig(probs,pwt[i]),type='l',ylim=c(0,1)); points(probs,type='l',col='red')
+        }
       */
-      spatialPriorProbability = vnl_math_max( static_cast<RealType>( 1e-10 ), spatialPriorProbability );
-      RealType x = spatialPriorProbability;
+      RealType totalNumberOfClasses = static_cast<RealType>( this->m_NumberOfTissueClasses + this->m_NumberOfPartialVolumeClasses );
       RealType offset = 1.0 / totalNumberOfClasses;
-      spatialPriorProbability = 1 /
-	( 1 + vcl_exp( -1.0 * ( x - offset ) * this->m_PriorProbabilityWeight ) );
-      posteriorProbability = static_cast<double>( spatialPriorProbability ) *
-	static_cast<double>( likelihood * mrfPriorProbability );
+      spatialPriorProbability = 1.0 / ( 1.0 + vcl_exp( -1.0 * ( spatialPriorProbability - offset ) * this->m_PriorProbabilityWeight ) );
+      posteriorProbability = static_cast<RealType>( spatialPriorProbability ) * static_cast<RealType>( likelihood * mrfPriorProbability );
       }
       break;
     }
@@ -3362,11 +3349,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     case Aristotle:
       {
       os << "Aristotle" << std::endl;
-      }
-      break;
-    case Wittgenstein:
-      {
-      os << "Wittgenstein" << std::endl;
       }
       break;
     case Sigmoid:
