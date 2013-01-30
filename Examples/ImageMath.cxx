@@ -55,6 +55,7 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkLabelOverlapMeasuresImageFilter.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
@@ -10755,98 +10756,168 @@ int Check3TissueLabeling( int argc, char *argv[] )
     ReadImage<ImageType>( posteriors[d], argv[d + 7] );
     }
 
+  typename LabelImageType::Pointer maxPriorLabelImage = LabelImageType::New();
+  maxPriorLabelImage->CopyInformation( labelImage );
+  maxPriorLabelImage->SetRegions( labelImage->GetRequestedRegion() );
+  maxPriorLabelImage->Allocate();
+  maxPriorLabelImage->FillBuffer( 0 );
+
+  itk::ImageRegionIteratorWithIndex<LabelImageType> ItL( labelImage, labelImage->GetRequestedRegion() );
+  itk::ImageRegionIterator<LabelImageType> ItM( maxPriorLabelImage, maxPriorLabelImage->GetRequestedRegion() );
+  for( ItL.GoToBegin(), ItM.GoToBegin(); !ItL.IsAtEnd(); ++ItM, ++ItL )
+    {
+    if( ItL.Get() == 0 )
+      {
+      continue;
+      }
+
+    LabelType maxLabel = 1;
+    PixelType maxPrior = priors[0]->GetPixel( ItL.GetIndex() );
+    for( LabelType d = 2; d <= 3; d++ )
+      {
+      PixelType prior = priors[d-1]->GetPixel( ItL.GetIndex() );
+      if( prior > maxPrior )
+        {
+        maxPrior = prior;
+        maxLabel = d;
+        }
+      }
+    ItM.Set( maxLabel );
+    }
+
+  itk::Matrix<LabelType, 6, 3> permutations;
+
+  unsigned int which = 0;
+
+  permutations(which, 0) = 1;
+  permutations(which, 1) = 2;
+  permutations(which, 2) = 3;
+
+  permutations(++which, 0) = 1;
+  permutations(which  , 1) = 3;
+  permutations(which  , 2) = 2;
+
+  permutations(++which, 0) = 2;
+  permutations(which  , 1) = 1;
+  permutations(which  , 2) = 3;
+
+  permutations(++which, 0) = 2;
+  permutations(which  , 1) = 3;
+  permutations(which  , 2) = 1;
+
+  permutations(++which, 0) = 3;
+  permutations(which  , 1) = 1;
+  permutations(which  , 2) = 2;
+
+  permutations(++which, 0) = 3;
+  permutations(which  , 1) = 2;
+  permutations(which  , 2) = 1;
+
+  PixelType maxDice = 0.0;
+  int maxPermutationRow = -1;
+  for( unsigned r = 0; r < 6; r++ )
+    {
+    typedef itk::ImageDuplicator<LabelImageType> DuplicatorType;
+    typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+    duplicator->SetInputImage( labelImage );
+    duplicator->Update();
+
+    typename LabelImageType::Pointer permutedLabelImage = duplicator->GetOutput();
+
+    itk::ImageRegionIterator<LabelImageType> ItP( permutedLabelImage, permutedLabelImage->GetRequestedRegion() );
+    for( ItP.GoToBegin(); !ItP.IsAtEnd(); ++ItP )
+      {
+      LabelType permutedLabel = ItP.Get();
+      if( permutedLabel != 0 )
+        {
+        unsigned int whichColumn = permutedLabel - 1;
+        ItP.Set( permutations( r, whichColumn ) );
+        }
+      }
+
+    typedef itk::LabelOverlapMeasuresImageFilter<LabelImageType> FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetSourceImage( permutedLabelImage );
+    filter->SetTargetImage( maxPriorLabelImage );
+    filter->Update();
+
+    PixelType dice = filter->GetMeanOverlap();
+    antscout << r << ": " << dice << std::endl;
+    if( dice > maxDice )
+      {
+      maxPermutationRow = r;
+      maxDice = dice;
+      }
+    }
+
+  if( maxPermutationRow == -1 )
+    {
+    std::cerr << "Unexpected problem." << std::endl;
+    return EXIT_FAILURE;
+    }
+
   LabelType movingLabels[3];
   LabelType fixedLabels[3];
   for( unsigned int d = 0; d < 3; d++ )
     {
-    typedef itk::LabelStatisticsImageFilter<ImageType, LabelImageType> HistogramGeneratorType;
-    typename HistogramGeneratorType::Pointer stats = HistogramGeneratorType::New();
-    stats->SetInput( priors[d] );
-    stats->SetLabelInput( labelImage );
-    stats->Update();
-
-    LabelType maxLabel = 1;
-    for( LabelType l = 2; l <= 3; l++ )
-      {
-
-      if( stats->GetMean( l ) > stats->GetMean( maxLabel ) )
-        {
-        maxLabel = l;
-        }
-      }
-    movingLabels[d] = maxLabel;
+    antscout << d+1 << " -> " << permutations( maxPermutationRow, d ) << std::endl;
+    movingLabels[d] = permutations( maxPermutationRow, d );
     fixedLabels[d] = d + 1;
     }
 
-  for( unsigned int d = 0; d < 3; d++ )
+  if( maxPermutationRow == 0 )
     {
-    std::cout << fixedLabels[d] << " -> " << movingLabels[d] << std::endl;
+    antscout << "No need to change labels/posteriors." << std::endl;
     }
-
-  for( LabelType l = 1; l <= 3; l++ )
+  else
     {
-    bool foundLabel = false;
     for( unsigned int d = 0; d < 3; d++ )
       {
-      if( movingLabels[d] == l )
+      LabelType movingLabel = movingLabels[d];
+      LabelType fixedLabel = fixedLabels[d];
+
+      if( movingLabel == fixedLabel )
         {
-        foundLabel = true;
+        continue;
         }
-      }
-    if( !foundLabel )
-      {
-      std::cerr << "Not all labels were found." << std::endl;
-      return EXIT_FAILURE;
-      }
-    }
-
-  bool writeSegmentationImage = false;
-  for( unsigned int d = 0; d < NumberOfLabels; d++ )
-    {
-    LabelType movingLabel = movingLabels[d];
-    LabelType fixedLabel = fixedLabels[d];
-
-    if( movingLabel == fixedLabel )
-      {
-      continue;
-      }
-    else
-      {
-      writeSegmentationImage = true;
-
-      antscout << "Writing posteriors " << movingLabels[d] << " " << argv[7 + d] << std::endl;
-      antscout << "Writing posteriors "
-               << movingLabels[movingLabels[d] - 1] << " " << argv[7 + movingLabels[d] - 1] << std::endl;
-
-      WriteImage<ImageType>( posteriors[movingLabels[d] - 1], argv[7 + d] );
-      WriteImage<ImageType>( posteriors[movingLabels[movingLabels[d] - 1] - 1], argv[7 + movingLabels[d] - 1] );
-
-      LabelType tmp = movingLabels[d];
-      movingLabels[d] = movingLabels[tmp - 1];
-      movingLabels[tmp - 1] = tmp;
-      }
-
-    itk::ImageRegionIterator<LabelImageType> ItL( labelImage, labelImage->GetRequestedRegion() );
-    for( ItL.GoToBegin(); !ItL.IsAtEnd(); ++ItL )
-      {
-      LabelType currentLabel = ItL.Get();
-      if( currentLabel == movingLabel )
+      else
         {
-        ItL.Set( fixedLabel );
+        antscout << "Writing posteriors " << movingLabels[d] << " " << argv[7 + d] << std::endl;
+        antscout << "Writing posteriors "
+                 << movingLabels[movingLabels[d] - 1] << " " << argv[7 + movingLabels[d] - 1] << std::endl;
+
+        WriteImage<ImageType>( posteriors[movingLabels[d] - 1], argv[7 + d] );
+        WriteImage<ImageType>( posteriors[movingLabels[movingLabels[d] - 1] - 1], argv[7 + movingLabels[d] - 1] );
+
+        LabelType tmp = movingLabels[d];
+        movingLabels[d] = movingLabels[tmp-1];
+        movingLabels[tmp-1] = tmp;
         }
-      else if( currentLabel == fixedLabel )
+      if( d == 0 )
         {
-        ItL.Set( movingLabel );
+        typedef itk::ImageDuplicator<LabelImageType> DuplicatorType;
+        typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+        duplicator->SetInputImage( labelImage );
+        duplicator->Update();
+
+        typename LabelImageType::Pointer permutedLabelImage = duplicator->GetOutput();
+
+        itk::ImageRegionIterator<LabelImageType> ItP( permutedLabelImage, permutedLabelImage->GetRequestedRegion() );
+        for( ItP.GoToBegin(); !ItP.IsAtEnd(); ++ItP )
+          {
+          LabelType permutedLabel = ItP.Get();
+          if( permutedLabel != 0 )
+            {
+            unsigned int whichColumn = permutedLabel - 1;
+            ItP.Set( permutations( maxPermutationRow, whichColumn ) );
+            }
+          }
+
+        antscout << "Relabeling segmentation image." << std::endl;
+        WriteImage<LabelImageType>( labelImage, argv[2] );
         }
       }
     }
-
-  if( writeSegmentationImage )
-    {
-    antscout << "Relabeling segmentation image." << std::endl;
-    WriteImage<LabelImageType>( labelImage, argv[2] );
-    }
-
   return EXIT_SUCCESS;
 }
 
