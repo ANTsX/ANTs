@@ -1467,18 +1467,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
       {
       VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
-      unsigned int fnz = 0;
+      RealType fnz = 0;
       for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
         {
-        if( vnl_math_abs( priorrow( y ) ) > 0.2500000 )
-          {
-          fnz++;
-          }
-        if( this->m_FractionNonZeroP <  1.e-10  )
-          {
-          sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
-          }
+	fnz += vnl_math_abs( priorrow( y ) );
         }
+      if( this->m_FractionNonZeroP <  1.e-10  )
+	{
+        sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
+	}
       }
     ::ants::antscout << sparsenessparams << std::endl;
     }
@@ -1647,12 +1644,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       evec = evec / evec.two_norm();
       }
-    proj = ( A * evec ) * lam1 + this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
     rayquold = rayquo;
     denom = inner_product( evec, evec );
     if( denom > 0 )
       {
-      rayquo = inner_product( proj, proj  ) / denom;
+      // fast way to compute   evec^T * (  A^T A + M M^T ) evec  
+      proj =  ( At   * ( A    * evec ) ) * lam1 + 
+	this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
+      rayquo = inner_product( evec, proj  ) / denom;
       }
     powerits++;
     if( rayquo > rayquold || powerits == 1 )
