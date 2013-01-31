@@ -4,6 +4,7 @@
 // #include "itkSmallStrainDiffusionTensorReorientationImageFilter.h"
 // #include "itkVectorIndexSelectionCastImageFilter.h"
 
+#include "antsUtilities.h"
 #include "itkSymmetricSecondRankTensor.h"
 #include "itkVector.h"
 #include "itkVersor.h"
@@ -134,7 +135,9 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
 
   if( fabs(e3) < eps )
     {
-    success = false; ::ants::antscout << "-4" << std::flush; return dtv;
+    success = false;
+    ants::antscout << "-4" << std::flush;
+    return dtv;
     }
 
   MatrixType eigmat(3, 3);
@@ -455,8 +458,8 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
   DT(1, 0) = DT(0, 1) = dtv[1];
   DT(2, 0) = DT(0, 2) = dtv[2];
   DT(2, 1) = DT(1, 2) = dtv[4];
-  //  if (takelog )::ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
-  // ::ants::antscout << " dtv " << dtv << std::endl;
+  //  if (takelog )ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
+  // ants::antscout << " dtv " << dtv << std::endl;
   vnl_symmetric_eigensystem<double> eig(DT);
   double                            e1 = (eig.D(0, 0) );
   double                            e2 = (eig.D(1, 1) );
@@ -602,8 +605,8 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
   DT(1, 0) = DT(0, 1) = dtv[1];
   DT(2, 0) = DT(0, 2) = dtv[2];
   DT(2, 1) = DT(1, 2) = dtv[4];
-  //  if (takelog )::ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
-  // ::ants::antscout << " dtv " << dtv << std::endl;
+  //  if (takelog )ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
+  // ants::antscout << " dtv " << dtv << std::endl;
   vnl_symmetric_eigensystem<double> eig(DT);
 
   itk::RGBPixel<float> rgb;
@@ -705,8 +708,8 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
   DT(1, 0) = DT(0, 1) = dtv[1];
   DT(2, 0) = DT(0, 2) = dtv[2];
   DT(2, 1) = DT(1, 2) = dtv[4];
-  //  if (takelog )::ants::antscout << " TAKING LOG " << std::endl;  elseants::antscout << "TAKING EXP " << std::endl;
-  // ::ants::antscout << " dtv " << dtv << std::endl;
+  //  if (takelog )ants::antscout << " TAKING LOG " << std::endl;  else ants::antscout << "TAKING EXP " << std::endl;
+  // ants::antscout << " dtv " << dtv << std::endl;
   vnl_symmetric_eigensystem<double> eig(DT);
 
   itk::Vector<float, 3> rgb;
