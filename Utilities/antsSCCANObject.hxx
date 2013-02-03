@@ -4530,13 +4530,13 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     pveck = ptemp + pveck * ( this->m_GradStep / sclp );
     qveck = qtemp + qveck * ( this->m_GradStep / sclq );
-    //      for( unsigned int j = 0; j < k; j++ )
-    //	{
-    //        VectorType qj = this->m_VariatesP.get_column( j );
-    //	pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm()  , qj );
-    //        qj = this->m_VariatesQ.get_column( j );
-    //	qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
-    //        }
+    for( unsigned int j = 0; j < k; j++ )
+      {
+      VectorType qj = this->m_VariatesP.get_column( j );
+      pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm()  , qj );
+      qj = this->m_VariatesQ.get_column( j );
+      qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
+      }
     this->SparsifyP( pveck );
     this->SparsifyQ( qveck );
     if( n_vecs == 0 )
@@ -4605,17 +4605,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     unsigned int theseed = ( kk + 1 ) * seeder;
     VectorType   vec = this->InitializeV( this->m_MatrixP, theseed  );
-    RealType     smooth = 1.0;
-    if( smooth > 0 )
-      {
-      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
-      }
     vec = vec / vec.two_norm();
     VectorType qvec = ( this->m_MatrixP * vec ) * this->m_MatrixQ;
-    if( smooth > 0 )
-      {
-      qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
-      }
     qvec = qvec / qvec.two_norm();
     vec = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
     vec = vec / vec.two_norm();
@@ -4625,6 +4616,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       vec = this->Orthogonalize( vec, qj );
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
+      }
+    RealType     smooth = 1.5;
+    if( smooth > 0 )
+      {
+      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
+      qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
       }
     qvec = qvec / qvec.two_norm();
     vec = vec / vec.two_norm();
@@ -4651,15 +4648,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
-  if( this->m_Debug )
-    {
-    ::ants::antscout << " arnoldi sparse partial cca : L1?" << this->m_UseL1 << " GradStep " << this->m_GradStep
-                     << std::endl;
-    }
-  if( this->m_Debug )
-    {
-    ::ants::antscout << "  pos-p " << this->GetKeepPositiveP() << " pos-q " << this->GetKeepPositiveQ() << std::endl;
-    }
+  ::ants::antscout << " arnoldi sparse partial cca : L1?" << this->m_UseL1 << " GradStep " << this->m_GradStep
+                     <<  "  p+ " << this->GetKeepPositiveP() << " q+ " << this->GetKeepPositiveQ() << std::endl;
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP, false );
   this->m_MatrixQ = this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
   this->m_MatrixR = this->NormalizeMatrix( this->m_OriginalMatrixR, false );
@@ -4688,7 +4678,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType     totalcorr = 0;
   RealType     bestcorr = 0;
   unsigned int bestseed = 0;
-  for( unsigned int seeder = 0; seeder < 1; seeder++ )
+  for( unsigned int seeder = 0; seeder < 10; seeder++ )
     {
     totalcorr = this->InitializeSCCA( n_vecs, seeder );
     if( totalcorr > bestcorr )
@@ -4711,14 +4701,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // Arnoldi Iteration SCCA
     bool changedgrad = this->CCAUpdate( n_vecs_in, true );
     lastenergy = energy;
-    energy = 0;
-    for( unsigned int k = 0; k < n_vecs_in; k++ )
-      {
-      energy += this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
-      }
-    //    if( this->m_Debug )
-    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
-                     << std::endl;
+    energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
+    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
     if( this->m_GradStep < 1.e-12 || ( vnl_math_abs( energy - lastenergy ) < 1.e-8  && !changedgrad ) )
       {
       energyincreases = false;
