@@ -17,7 +17,7 @@ set(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLin
 
 ## Note that the antsUtilities can always be built static.  It will then be linked
 ## Directly into the other libraries.
-add_library(antsUtilities STATIC antsUtilities.cxx )
+add_library(antsUtilities STATIC antsUtilities.cxx  ../Utilities/ReadWriteImage.cxx)
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 
 macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
