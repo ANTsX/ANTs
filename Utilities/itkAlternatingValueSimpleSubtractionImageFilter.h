@@ -23,28 +23,18 @@
 namespace itk
 {
 /** \class AlternatingValueSimpleSubtractionImageFilter
- * \brief Join N-D images into an (N+1)-D image
+ * \brief Finds difference signal from alternating signal 
  *
  * This filter is templated over the input image type and the output image
- * type. The pixel type of them must be the same and the input dimension
- * must be less than the output dimension.
- * When the input images are N-dimensinal, they are joined in order and
- * the size of the N+1'th dimension of the output is same as the number of
- * the inputs. The spacing and the origin (where the first input is placed)
- * for the N+1'th dimension is specified in this filter. The output image
- * informations for the first N dimensions are taken from the first input.
- * Note that all the inputs should have the same information.
+ * type. The output image is the difference between a two alternating 
+ * signals that alternate over the subtraction dimension.
  *
  * \ingroup GeometricTransform
  * \ingroup MultiThreaded
  * \ingroup Streamed
  *
- * \author Hideaki Hiraki
+ * \author Jeffrey Duda
  *
- * Contributed in the users list
- * http://public.kitware.com/pipermail/insight-users/2004-February/006542.html
- *
- * \ingroup ITKImageCompose
  */
 template <class TInputImage, class TOutputImage>
 class ITK_EXPORT AlternatingValueSimpleSubtractionImageFilter :
@@ -86,6 +76,9 @@ public:
   itkConceptMacro( InputConvertibleToOutputCheck,
                    ( Concept::Convertible<typename TInputImage::PixelType,
                                           typename TOutputImage::PixelType> ) );
+  itkConceptMacro( DimensionCheck,
+                   ( Concept::SameDimension<InputImageDimension, 
+                                            OutputImageDimension> ) );
   /** End concept checking */
 #endif
 protected:

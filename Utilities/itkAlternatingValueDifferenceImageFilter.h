@@ -29,8 +29,9 @@ namespace itk
  * \brief Finds difference signal from alternating signal 
  *
  * This filter is templated over the input image type and the output image
- * type. The output image is the difference between a two alternating 
- * signals that alternate over the subtraction dimension.
+ * type. Each signal is interpolated over the entire range of the
+ * subtraction dimension. The output image is the difference between
+ * the two intepolated signals. 
  *
  * \ingroup GeometricTransform
  * \ingroup MultiThreaded
@@ -83,7 +84,7 @@ public:
   itkSetMacro( IndexPadding, unsigned int );
 
   /** Set the interpolator function.  The default is
-   * WindowedSincInterpolateImageFunction<InputImageType,
+   * LinearInterpolateImageFunction<InputImageType,
    * TInterpolatorPrecisionType>. Some
    * other options are NearestNeighborInterpolateImageFunction
    * (useful for binary masks and other images with a small number of
@@ -101,8 +102,9 @@ public:
   itkConceptMacro( InputConvertibleToOutputCheck,
                    ( Concept::Convertible<typename TInputImage::PixelType,
                                           typename TOutputImage::PixelType> ) );
-  //itkConceptMacro( DimensionCheck,
-  //                 ( Concept::SameDimension<TInputImage, TOutputImage> ) );
+  itkConceptMacro( DimensionCheck,
+                   ( Concept::SameDimension<InputImageDimension, 
+                                            OutputImageDimension> ) );
 
   /** End concept checking */
 #endif

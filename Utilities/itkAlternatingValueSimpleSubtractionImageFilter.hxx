@@ -147,7 +147,6 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
     typedef typename InputImageType::DirectionType  InputDirectionType;
     typedef typename OutputImageType::DirectionType OutputDirectionType;
     InputDirectionType  inputDir = inputPtr->GetDirection();
-    unsigned int        inputdim = InputImageType::GetImageDimension();
     unsigned int        outputdim = OutputImageType::GetImageDimension();
     OutputDirectionType outputDir = outputPtr->GetDirection();
     for( unsigned int i = 0; i < outputdim; i++ )
