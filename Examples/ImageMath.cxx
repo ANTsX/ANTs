@@ -20,13 +20,17 @@
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
 #include "antsAllocImage.h"
+#include "itkAlternatingValueDifferenceImageFilter.h"
+#include "itkAlternatingValueSimpleSubtractionImageFilter.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
 #include "itkArray.h"
+#include "itkAverageOverDimensionImageFilter.h"
 #include "itkGradientImageFilter.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkBayesianClassifierImageFilter.h"
 #include "itkBayesianClassifierInitializationImageFilter.h"
 #include "itkBilateralImageFilter.h"
+#include "itkBSplineInterpolateImageFunction.h"
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkCastImageFilter.h"
 #include "itkCompositeValleyFunction.h"
@@ -87,18 +91,17 @@
 #include "itkSigmoidImageFilter.h"
 #include "itkSize.h"
 #include "itkSphereSpatialFunction.h"
+#include "itkSplitAlternatingTimeSeriesImageFilter.h"
 #include "itkSTAPLEImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
-#include "itkTimeSeriesSimpleSubtractionImageFilter.h"
-#include "itkTimeSeriesSurroundSubtractionImageFilter.h"
-#include "itkTimeSeriesSincSubtractionImageFilter.h"
 #include "itkTransformFileReader.h"
 #include "itkTranslationTransform.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkWeightedCentroidKdTreeGenerator.h"
+#include "itkWindowedSincInterpolateImageFunction.h"
 #include "vnl/vnl_matrix_fixed.h"
 #include "itkTransformFactory.h"
 #include "itkSurfaceImageCurvature.h"
@@ -2136,21 +2139,24 @@ int TimeSeriesSimpleSubtraction(int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>     InputImageType;
   typedef itk::Image<PixelType, ImageDimension - 1> OutputImageType;
 
-  typedef itk::TimeSeriesSimpleSubtractionImageFilter<InputImageType, OutputImageType>
+  typedef itk::AlternatingValueSimpleSubtractionImageFilter<InputImageType, InputImageType>
     ImageFilterType;
+  typedef itk::AverageOverDimensionImageFilter<InputImageType, OutputImageType>
+    MeanFilterType;
 
   int         argct = 2;
-  std::string outname = std::string(argv[argct]); argct++;
-  std::string operation = std::string(argv[argct]);  argct++;
-  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string outname = std::string(argv[argct++]);
+  std::string operation = std::string(argv[argct++]);
+  std::string fn1 = std::string(argv[argct++]);
+  bool        mean = false;
 
   typename ImageFilterType::Pointer filter = ImageFilterType::New();
 
-  if( argc >= 6 )
+  if ( argc >= 6 )
     {
-    if( atoi(argv[argct]) > 0 )
+    if ( atoi(argv[argct++]) > 0 )
       {
-      filter->SetReverseOrdered( true );
+      mean = true;
       }
     }
 
@@ -2167,33 +2173,90 @@ int TimeSeriesSimpleSubtraction(int argc, char *argv[])
   filter->SetInput( image1 );
   filter->Update();
 
-  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+  if ( mean ) 
+    {
+    typename MeanFilterType::Pointer meanFilter = MeanFilterType::New();
+    meanFilter->SetInput( filter->GetOutput() );
+    meanFilter->SetAveragingDimension( ImageDimension-1 );
+    meanFilter->SetDirectionCollapseToSubmatrix();
+    meanFilter->Update();
+    WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
+    }
+  else 
+    {
+    WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
+    }
 
   return 0;
 }
 
 template <unsigned int ImageDimension>
-int TimeSeriesSurroundSubtraction(int argc, char *argv[])
+int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
 {
   typedef float                                     PixelType;
   typedef itk::Image<PixelType, ImageDimension>     InputImageType;
   typedef itk::Image<PixelType, ImageDimension - 1> OutputImageType;
 
-  typedef itk::TimeSeriesSurroundSubtractionImageFilter<InputImageType, OutputImageType>
+  typedef itk::AlternatingValueDifferenceImageFilter<InputImageType, InputImageType>
     ImageFilterType;
+  typedef itk::AverageOverDimensionImageFilter<InputImageType, OutputImageType>
+    MeanFilterType;
+
+  //typedef itk::LinearInterpolateImageFunction<InputImageType, double> LinearInterpolatorType;
+  //typedef typename LinearInterpolatorType::Pointer                    LinearInterpolatorPointerType;
+
+  typedef itk::BSplineInterpolateImageFunction<InputImageType, double > BSplineInterpolatorType;
+  typedef typename BSplineInterpolatorType::Pointer                     BSplineInterpolatorPointerType;
+  
+  const unsigned int SincRadius = 4;
+  typedef itk::WindowedSincInterpolateImageFunction<InputImageType, 4>   SincInterpolatorType;
+  typedef typename SincInterpolatorType::Pointer                         SincInterpolatorPointerType;
 
   int         argct = 2;
-  std::string outname = std::string(argv[argct]); argct++;
-  std::string operation = std::string(argv[argct]);  argct++;
-  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string outname = std::string(argv[argct++]);
+  std::string operation = std::string(argv[argct++]);
+  std::string fn1 = std::string(argv[argct++]);
 
   typename ImageFilterType::Pointer filter = ImageFilterType::New();
 
   if( argc >= 6 )
     {
-    if( atoi(argv[argct]) > 0 )
+    std::string interp = argv[argct++];
+    if( strcmp( "sinc", interp.c_str() ) == 0 )
       {
-      filter->SetReverseOrdered( true );
+      antscout << "Using sinc interpolation" << std::endl;
+      SincInterpolatorPointerType labelInterp = SincInterpolatorType::New();
+      SincInterpolatorPointerType controlInterp = SincInterpolatorType::New();
+      filter->SetControlInterpolator( controlInterp );
+      filter->SetLabelInterpolator( labelInterp );
+      filter->SetIndexPadding( SincRadius );      
+      filter->SetIndexPadding( 1 );
+      }
+    else if ( strcmp( "bspline", interp.c_str() ) == 0 )
+      {
+      antscout << "Using bspline interpolation of order 3" << std::endl;
+      BSplineInterpolatorPointerType labelInterpB = BSplineInterpolatorType::New();
+      labelInterpB->SetSplineOrder( 3 );
+      BSplineInterpolatorPointerType controlInterpB = BSplineInterpolatorType::New();
+      controlInterpB->SetSplineOrder( 3 );
+      filter->SetControlInterpolator( controlInterpB );
+      filter->SetLabelInterpolator( labelInterpB );
+      filter->SetIndexPadding( 1 );
+      }
+    else
+      {
+      antscout << "Using linear interpolation" << std::endl;
+      }
+
+    }
+
+
+  bool mean = false;
+  if( argc >= 7 )
+    {
+    if( atoi(argv[argct++]) > 0 )
+      {
+      mean = true;
       }
     }
 
@@ -2209,51 +2272,114 @@ int TimeSeriesSurroundSubtraction(int argc, char *argv[])
 
   filter->SetInput( image1 );
   filter->Update();
-
-  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+  if ( mean ) 
+    {
+    typename MeanFilterType::Pointer meanFilter = MeanFilterType::New();
+    meanFilter->SetInput( filter->GetOutput() );
+    meanFilter->SetAveragingDimension( ImageDimension-1 );
+    meanFilter->SetDirectionCollapseToSubmatrix();
+    meanFilter->Update();
+    WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
+    }
+  else 
+    {
+    WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
+    }
 
   return 0;
 }
 
 template <unsigned int ImageDimension>
-int TimeSeriesSincSubtraction(int argc, char *argv[])
+int SplitAlternatingTimeSeries(int argc, char *argv[])
 {
-  typedef float                                     PixelType;
-  typedef itk::Image<PixelType, ImageDimension>     InputImageType;
-  typedef itk::Image<PixelType, ImageDimension - 1> OutputImageType;
+  typedef float                                   PixelType;
+  typedef itk::Image<PixelType, ImageDimension >  ImageType;
 
-  typedef itk::TimeSeriesSincSubtractionImageFilter<InputImageType, OutputImageType>
+  typedef itk::SplitAlternatingTimeSeriesImageFilter<ImageType, ImageType>
     ImageFilterType;
 
-  int         argct = 2;
-  std::string outname = std::string(argv[argct]); argct++;
-  std::string operation = std::string(argv[argct]);  argct++;
-  std::string fn1 = std::string(argv[argct]);   argct++;
-
-  typename ImageFilterType::Pointer filter = ImageFilterType::New();
-
-  if( argc >= 6 )
+  if ( argc < 5 )
     {
-    if( atoi(argv[argct]) > 0 )
-      {
-      filter->SetReverseOrdered( true );
-      }
+    antscout << "Usage: ImageMath 4 split.nii.gz AlternatingTimeSeriesExtraction time.nii.gz" << std::endl;
+    return 1;
     }
 
-  typename InputImageType::Pointer image1 = NULL;
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct]); argct++;
+  std::string  operation = std::string(argv[argct]);  argct++;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+
+  std::string::size_type idx;
+  idx = outname.find_first_of('.');
+
+  std::string basename = outname.substr(0, idx);
+  std::string extension = outname.substr(idx, outname.length() );
+
+  std::string zero( "0" );
+  std::string one( "1" );
+  
+  std::string outname0 = basename + zero + extension;
+  std::string outname1 = basename + one + extension;
+
+  typename ImageFilterType::Pointer filter = ImageFilterType::New();
+  typename ImageType::Pointer image1 = NULL;
   if( fn1.length() > 3 )
     {
-    ReadImage<InputImageType>(image1, fn1.c_str() );
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+  
+  filter->SetInput( image1 );
+  filter->Update();
+
+  WriteImage<ImageType>(filter->GetOutput(0), outname0.c_str() );
+  WriteImage<ImageType>(filter->GetOutput(1), outname1.c_str() );
+  return 0;
+
+}
+
+template <unsigned int ImageDimension>
+int AverageOverDimension(int argc, char *argv[])
+{
+  typedef float                                   PixelType;
+  typedef itk::Image<PixelType, ImageDimension >  ImageType;
+  typedef itk::Image<PixelType, ImageDimension-1> AverageImageType;
+
+  typedef itk::AverageOverDimensionImageFilter<ImageType, AverageImageType>
+    ImageFilterType;
+
+  if ( argc < 6 )
+    {
+    antscout << "Usage: ImageMath 4 average.nii.gz AverageOverDimension time.nii.gz dimension" << std::endl;
+    return 1;
+    }
+
+  int          argct = 2;
+  std::string  outname = std::string(argv[argct++]);
+  std::string  operation = std::string(argv[argct++]);
+  std::string  fn1 = std::string(argv[argct++]);
+  unsigned int dim = atoi( argv[argct++] );
+
+  typename ImageType::Pointer image1 = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
     }
   else
     {
     return 1;
     }
 
+  typename ImageFilterType::Pointer filter = ImageFilterType::New();
   filter->SetInput( image1 );
+  filter->SetAveragingDimension( dim );
+  filter->SetDirectionCollapseToSubmatrix();
   filter->Update();
 
-  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+  WriteImage<AverageImageType>( filter->GetOutput(), outname.c_str() );
   return 0;
 }
 
@@ -12774,13 +12900,17 @@ private:
         {
         TimeSeriesSimpleSubtraction<4>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "TimeSeriesSurroundSubtraction") == 0 )
+      else if( strcmp(operation.c_str(), "TimeSeriesInterpolationSubtraction") == 0 )
         {
-        TimeSeriesSurroundSubtraction<4>(argc, argv);
+        TimeSeriesInterpolationSubtraction<4>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "TimeSeriesSincSubtraction") == 0 )
+      else if ( strcmp(operation.c_str(), "SplitAlternatingTimeSeries") == 0 )
         {
-        TimeSeriesSincSubtraction<4>(argc, argv);
+        SplitAlternatingTimeSeries<4>(argc, argv);
+        }
+      else if ( strcmp(operation.c_str(), "AverageOverDimension") == 0 )
+        {
+        AverageOverDimension<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "ThreeTissueConfounds") == 0 )
         {
