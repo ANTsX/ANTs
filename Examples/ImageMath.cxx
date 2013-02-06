@@ -2202,9 +2202,6 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
   typedef itk::AverageOverDimensionImageFilter<InputImageType, OutputImageType>
     MeanFilterType;
 
-  //typedef itk::LinearInterpolateImageFunction<InputImageType, double> LinearInterpolatorType;
-  //typedef typename LinearInterpolatorType::Pointer                    LinearInterpolatorPointerType;
-
   typedef itk::BSplineInterpolateImageFunction<InputImageType, double > BSplineInterpolatorType;
   typedef typename BSplineInterpolatorType::Pointer                     BSplineInterpolatorPointerType;
   
@@ -2218,6 +2215,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
   std::string fn1 = std::string(argv[argct++]);
 
   typename ImageFilterType::Pointer filter = ImageFilterType::New();
+  filter->SetSubtractionDimension( ImageDimension - 1 );
 
   if( argc >= 6 )
     {
