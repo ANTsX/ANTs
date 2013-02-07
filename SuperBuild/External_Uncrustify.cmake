@@ -26,7 +26,7 @@ if(NOT DEFINED Uncrustify_EXE AND NOT ${USE_SYSTEM_Uncrustify})
   ExternalProject_add(${proj}
     GIT_REPOSITORY ${Uncrustify_REPOSITORY}
     GIT_TAG ${Uncrustify_GIT_TAG}
-    ${cmakeversion_external_update}
+    ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
     SOURCE_DIR ${proj}
     BINARY_DIR ${proj}-build
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=${CMAKE_BINARY_DIR}/Utils

@@ -17,10 +17,10 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/Common.cmake)
 #-----------------------------------------------------------------------------
 # Git protocol option
 #-----------------------------------------------------------------------------
-option(${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL "For development, turn this on to use the git protocol instead." OFF)
-set(git_protocol "http")
-if( ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL)
-  set(git_protocol "git")
+option(${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL "If behind a firewall turn this off to use http instead." ON)
+set(git_protocol "git")
+if(NOT ${CMAKE_PROJECT_NAME}_USE_GIT_PROTOCOL)
+  set(git_protocol "http")
 endif()
 
 find_package(Git REQUIRED)
@@ -43,6 +43,19 @@ if(CMAKE_EXTRA_GENERATOR)
   set(gen "${CMAKE_EXTRA_GENERATOR} - ${CMAKE_GENERATOR}")
 else()
   set(gen "${CMAKE_GENERATOR}")
+endif()
+
+
+# With CMake 2.8.9 or later, the UPDATE_COMMAND is required for updates to occur.
+# For earlier versions, we nullify the update state to prevent updates and
+# undesirable rebuild.
+option(FORCE_EXTERNAL_BUILDS "Force rebuilding of external project (if they are updated)" OFF)
+if(CMAKE_VERSION VERSION_LESS 2.8.9 OR NOT FORCE_EXTERNAL_BUILDS)
+  set(cmakeversion_external_update UPDATE_COMMAND)
+  set(cmakeversion_external_update_value "" )
+else()
+  set(cmakeversion_external_update LOG_UPDATE )
+  set(cmakeversion_external_update_value 1)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -79,6 +92,8 @@ CMAKE_DEPENDENT_OPTION(
   USE_SYSTEM_Cppcheck "Use system Cppcheck program" OFF
   "BUILD_STYLE_UTILS" OFF
   )
+
+set(EXTERNAL_PROJECT_BUILD_TYPE "Release" CACHE STRING "Default build type for support libraries")
 
 option(USE_SYSTEM_ITK "Build using an externally defined version of ITK" OFF)
 option(USE_SYSTEM_SlicerExecutionModel "Build using an externally defined version of SlicerExecutionModel"  OFF)
@@ -179,7 +194,9 @@ list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
 
 _expand_external_project_vars()
 set(COMMON_EXTERNAL_PROJECT_ARGS ${${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_ARGS})
-SlicerMacroCheckExternalProjectDependency(${LOCAL_PROJECT_NAME})
+set(extProjName ${LOCAL_PROJECT_NAME})
+set(proj        ${LOCAL_PROJECT_NAME})
+SlicerMacroCheckExternalProjectDependency(${proj})
 
 #-----------------------------------------------------------------------------
 # Set CMake OSX variable to pass down the external project

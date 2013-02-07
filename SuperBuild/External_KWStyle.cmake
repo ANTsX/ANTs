@@ -34,7 +34,7 @@ if(NOT DEFINED KWStyle_EXE AND NOT ${USE_SYSTEM_KWStyle})
     CVS_MODULE KWStyle
     SOURCE_DIR ${proj}
     BINARY_DIR ${proj}-build
-    ${cmakeversion_external_update}
+    ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
     CMAKE_ARGS
       ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
       -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_BINARY_DIR}/Utils
