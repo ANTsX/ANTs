@@ -2385,14 +2385,16 @@ template <unsigned int ImageDimension>
 int PASLQuantifyCBF(int argc, char *argv[])
 {
   typedef float                                 PixelType;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::Image<PixelType, ImageDimension> TimeImageType;
+  typedef itk::Image<PixelType, ImageDimension-1> ImageType;
 
-  typedef itk::PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<ImageType, ImageType>
+  typedef itk::PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TimeImageType, ImageType, TimeImageType>
     FilterType;
   int         argct = 2;
-  std::string outname = std::string(argv[argct]); argct++;
-  std::string operation = std::string(argv[argct]);  argct++;
-  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string outname = std::string(argv[argct++]);
+  std::string operation = std::string(argv[argct++]);  
+  std::string fn1 = std::string(argv[argct++]);
+  std::string m0name = std::string(argv[argct++]);
 
   typename FilterType::Pointer getCBF = FilterType::New();
 
@@ -2435,20 +2437,31 @@ int PASLQuantifyCBF(int argc, char *argv[])
   // float m_alpha;
   // float m_sliceDelay;
 
-  typename ImageType::Pointer ratio = NULL;
+  typename TimeImageType::Pointer diff = NULL;
   if( fn1.length() > 3 )
     {
-    ReadImage<ImageType>(ratio, fn1.c_str() );
+    ReadImage<TimeImageType>(diff, fn1.c_str() );
     }
   else
     {
     return 1;
     }
 
-  getCBF->SetInput( ratio );
+  typename ImageType::Pointer m0 = NULL;
+  if( m0name.length() > 3 )
+    {
+    ReadImage<ImageType>(m0, m0name.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  getCBF->SetDifferenceImage( diff );
+  getCBF->SetReferenceImage( m0 );
   getCBF->Update();
 
-  WriteImage<ImageType>( getCBF->GetOutput(), outname.c_str() );
+  WriteImage<TimeImageType>( getCBF->GetOutput(), outname.c_str() );
 
   return 0;
 }
@@ -12921,6 +12934,10 @@ private:
       else if( strcmp(operation.c_str(), "ComputeTimeSeriesLeverage") == 0 )
         {
         ComputeTimeSeriesLeverage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PASLQuantifyCBF") == 0 )
+        {
+        PASLQuantifyCBF<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PASL") == 0 )
         {

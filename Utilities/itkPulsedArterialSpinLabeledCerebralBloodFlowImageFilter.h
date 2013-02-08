@@ -46,7 +46,7 @@ namespace itk
  *
  * \ingroup ITKImageCompose
  */
-template <class TInputImage, class TOutputImage>
+template <class TInputImage, class TReferenceImage, class TOutputImage>
 class ITK_EXPORT PulsedArterialSpinLabeledCerebralBloodFlowImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -64,18 +64,23 @@ public:
   itkTypeMacro(PulsedArterialSpinLabeledCerebralBloodFlowImageFilter, ImageToImageFilter);
 
   /** Compiler can't inherit typedef? */
-  typedef typename Superclass::InputImageType  InputImageType;
-  typedef typename Superclass::OutputImageType OutputImageType;
-  typedef typename InputImageType::Pointer     InputImagePointer;
-  typedef typename OutputImageType::Pointer    OutputImagePointer;
-  typedef typename InputImageType::RegionType  InputImageRegionType;
-  typedef typename OutputImageType::RegionType OutputImageRegionType;
+  typedef TInputImage                             InputImageType;
+  typedef typename Superclass::OutputImageType    OutputImageType;
+  typedef TReferenceImage                         ReferenceImageType;
+  typedef typename InputImageType::Pointer        InputImagePointer;
+  typedef typename OutputImageType::Pointer       OutputImagePointer;
+  typedef typename ReferenceImageType::Pointer    ReferenceImagePointer;
+  typedef typename InputImageType::RegionType     InputImageRegionType;
+  typedef typename OutputImageType::RegionType    OutputImageRegionType;
+  typedef typename ReferenceImageType::RegionType ReferenceImageRegionType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
   itkStaticConstMacro(InputImageDimension, unsigned int,
                       TInputImage::ImageDimension);
   itkStaticConstMacro(OutputImageDimension, unsigned int,
                       TOutputImage::ImageDimension);
+  itkStaticConstMacro(ReferenceImageDimension, unsigned int,
+                      TReferenceImage::ImageDimension);
 
   itkGetMacro(TI1, float);
   itkSetMacro(TI1, float);
@@ -95,6 +100,10 @@ public:
   itkGetMacro(SliceDelay, float);
   itkSetMacro(SliceDelay, float);
 
+  void SetDifferenceImage( const InputImageType * image );
+
+  void SetReferenceImage( const ReferenceImageType * image );
+
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
   itkConceptMacro( InputConvertibleToOutputCheck,
@@ -107,6 +116,9 @@ protected:
   ~PulsedArterialSpinLabeledCerebralBloodFlowImageFilter()
   {
   }
+
+  typename TInputImage::ConstPointer     GetDifferenceImage();
+  typename TReferenceImage::ConstPointer GetReferenceImage();
 
   void PrintSelf(std::ostream & os, Indent indent) const;
 
