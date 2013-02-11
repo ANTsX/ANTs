@@ -368,6 +368,7 @@ public:
   RealType IHTPowerIterationPrior( MatrixType & A,  VectorType & x_k, VectorType & x_k_1, unsigned int, unsigned int,
                                    double );
 
+  void SoftClustThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights , unsigned int, ImagePointer );
   void ReSoftThreshold( VectorType& v_in, RealType fractional_goal, bool allow_negative_weights );
 
   void ConstantProbabilityThreshold( VectorType& v_in, RealType probability_goal, bool allow_negative_weights );
@@ -726,15 +727,11 @@ protected:
   void SparsifyP( VectorType& x_k1 )
   {
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
-
-    if( vnl_math_abs( fnp ) >= 1 )
+    if( vnl_math_abs( fnp ) > 1 )
       {
-      this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveP );
-      this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
       return;
       }
     bool negate = false;
-
     if( x_k1.mean() <= 0 )
       {
       negate = true;
@@ -743,17 +740,73 @@ protected:
       {
       x_k1 = x_k1 * ( -1 );
       }
-    this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveP );
-    this->ClusterThresholdVariate( x_k1, this->m_MaskImageP, this->m_MinClusterSizeP );
+    RealType low = 0; 
+    RealType high = 1;
+    RealType eng = fnp;
+    RealType mid = low + 0.5 * ( high - low );
+    while ( eng > 1.e-6 && vnl_math_abs( high - low ) > 1.e-6 ) 
+      {
+      mid = low + 0.5 * ( high - low );
+      VectorType searcherm( x_k1 );
+      this->SoftClustThreshold( searcherm, mid, this->m_KeepPositiveP,  this->m_MinClusterSizeP, this->m_MaskImageP );
+      RealType fnm = this->CountNonZero( searcherm );
+      if ( fnm > fnp ) { low = mid;  }
+      if ( fnm < fnp ) { high = mid; }      
+      eng = vnl_math_abs( fnp - fnm );
+      //      ::ants::cout << " low " << low << " high " << high << " fnp " << fnp << " new " << fnm << std::endl;
+      }
+    this->SoftClustThreshold( x_k1, mid, this->m_KeepPositiveP,  this->m_MinClusterSizeP, this->m_MaskImageP );
     if( negate )
       {
       x_k1 = x_k1 * ( -1 );
       }
+    return;
   }
 
   void SparsifyQ( VectorType& x_k1 )
   {
+    RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ  );
+    if( vnl_math_abs( fnp ) > 1 )
+      {
+      return;
+      }
+    bool negate = false;
+    if( x_k1.mean() <= 0 )
+      {
+      negate = true;
+      }
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
+    RealType low = 0; 
+    RealType high = 1;
+    RealType eng = fnp;
+    RealType mid = low + 0.5 * ( high - low );
+    while ( eng > 1.e-6 && vnl_math_abs( high - low ) > 1.e-6 ) 
+      {
+      mid = low + 0.5 * ( high - low );
+      VectorType searcherm( x_k1 );
+      this->SoftClustThreshold( searcherm, mid, this->m_KeepPositiveQ,  this->m_MinClusterSizeQ, this->m_MaskImageQ );
+      RealType fnm = this->CountNonZero( searcherm );
+      if ( fnm > fnp ) { low = mid;  }
+      if ( fnm < fnp ) { high = mid; }      
+      eng = vnl_math_abs( fnp - fnm );
+      }
+    this->SoftClustThreshold( x_k1, mid, this->m_KeepPositiveQ,  this->m_MinClusterSizeQ, this->m_MaskImageQ );
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
+    return;
+  }
+
+/*
+  void SparsifyQ( VectorType& x_k1 )
+  {
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ );
+    this->SoftClustThreshold( x_k1, fnp, this->m_KeepPositiveQ,  this->m_MinClusterSizeQ, this->m_MaskImageQ );
+    return;
 
     if( vnl_math_abs( fnp ) >= 1 )
       {
@@ -778,7 +831,7 @@ protected:
       x_k1 = x_k1 * ( -1 );
       }
   }
-
+*/
   void SparsifyP( VectorType& x_k1, VectorType& refvec  )
   {
     if( x_k1.size() != refvec.size() )
@@ -821,7 +874,7 @@ protected:
 
     for( unsigned int i = 0; i < v.size(); i++ )
       {
-      if( v[i] != 0 )
+	if( vnl_math_abs( v[i] ) > this->m_Epsilon )
         {
         ct++;
         }
@@ -948,7 +1001,7 @@ protected:
     mat_to_add_to = outmat;
   }
 
-  RealType CurvatureSparseness( VectorType& x, RealType sparsenessgoal, unsigned int maxit );
+  RealType CurvatureSparseness( VectorType& x, RealType sparsenessgoal, unsigned int maxit, ImagePointer );
 
   // , MatrixType& A, VectorType& b );
 private:
