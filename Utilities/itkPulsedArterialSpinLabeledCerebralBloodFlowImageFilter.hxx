@@ -52,7 +52,7 @@ void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetDifferenceImage(const TInputImage* img)
 {
-  SetNthInput(0, const_cast<TInputImage*>(img));
+  this->SetNthInput(0, const_cast<TInputImage*>(img));
 }
  
 template <class TInputImage, class TReferenceImage, class TOutputImage>
@@ -69,7 +69,7 @@ void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetReferenceImage(const TReferenceImage* ref)
 {
-  SetNthInput(1, const_cast<TReferenceImage*>(ref));
+  this->SetNthInput(1, const_cast<TReferenceImage*>(ref));
 }
 
 template <class TInputImage, class TReferenceImage, class TOutputImage>
