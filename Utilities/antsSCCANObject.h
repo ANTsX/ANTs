@@ -99,6 +99,7 @@ public:
   itkSetMacro( SCCANFormulation, SCCANFormulationType );
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
 
+  void NormalizeWeights(const unsigned int k );
   void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
 
   void WhitenDataSetForRunSCCANMultiple(unsigned int nvecs = 0);
@@ -375,6 +376,7 @@ public:
 
   VectorType InitializeV( MatrixType p, unsigned long seed = 0 );
 
+  TRealType InitializeSCCA_simple( unsigned int n_vecs );
   TRealType InitializeSCCA( unsigned int n_vecs, unsigned int seeder );
 
   TRealType InitializeSPCA( unsigned int n_vecs, unsigned int seeder, MatrixType &, VectorType & );
@@ -740,11 +742,11 @@ protected:
       {
       x_k1 = x_k1 * ( -1 );
       }
-    RealType low = 0; 
-    RealType high = 1;
+    RealType low  = x_k1.min_value();
+    RealType high = x_k1.max_value();
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
-    while ( eng > 1.e-6 && vnl_math_abs( high - low ) > 1.e-6 ) 
+    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 ) 
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
@@ -753,7 +755,7 @@ protected:
       if ( fnm > fnp ) { low = mid;  }
       if ( fnm < fnp ) { high = mid; }      
       eng = vnl_math_abs( fnp - fnm );
-      //      ::ants::cout << " low " << low << " high " << high << " fnp " << fnp << " new " << fnm << std::endl;
+      //      ::ants::antscout << " low " << low << " high " << high << " fnp " << fnp << " new " << fnm << std::endl;
       }
     this->SoftClustThreshold( x_k1, mid, this->m_KeepPositiveP,  this->m_MinClusterSizeP, this->m_MaskImageP );
     if( negate )
@@ -779,11 +781,11 @@ protected:
       {
       x_k1 = x_k1 * ( -1 );
       }
-    RealType low = 0; 
-    RealType high = 1;
+    RealType low  = x_k1.min_value();
+    RealType high = x_k1.max_value();
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
-    while ( eng > 1.e-6 && vnl_math_abs( high - low ) > 1.e-6 ) 
+    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 ) 
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );

@@ -375,7 +375,7 @@ antsSCCANObject<TInputImage, TRealType>
 ::SpatiallySmoothVector( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
                          typename TInputImage::Pointer mask, TRealType sigma )
 {
-  if( mask.IsNull() )
+  if( mask.IsNull() || sigma < 1.e-9 )
     {
     return vec;
     }
@@ -544,38 +544,23 @@ antsSCCANObject<TInputImage, TRealType>
 ::SoftClustThreshold( typename antsSCCANObject<TInputImage, TRealType>::VectorType &  v_in, 
   TRealType soft_thresh, bool keep_positive , unsigned int clust, typename TInputImage::Pointer mask )
 {
-  for( unsigned int i = 0; i < v_in.size(); i++ )
-    {
-    if(  keep_positive && v_in(i) < 0 )
-      {
-      v_in(i) = vnl_math_abs( v_in(i) );
-      }
-    }
   // here , we apply the minimum threshold to the data.
-  unsigned int ct = 0;
   for( unsigned int i = 0; i < v_in.size(); i++ )
     {
     RealType val = v_in(i);
-    if( !keep_positive )
-      {
-      val = fabs(val);
-      }
-    else if( val < 0 )
-      {
-      val = vnl_math_abs( val );
-      }
-    if( this->m_UseL1 )
-      {
-      val = val - soft_thresh;
-      }
-    if( val < soft_thresh )
+    if ( keep_positive && val < 0 ) val = 0 ; //*= ( -1 );
+    if( vnl_math_abs( val ) < soft_thresh )
       {
       v_in(i) = 0;
-      ct++;
       }
     else
       {
       v_in(i) = val;
+      if( this->m_UseL1 )
+        {
+	if ( v_in(i) > 0 ) v_in(i) = v_in(i) - soft_thresh;
+	if ( v_in(i) < 0 ) v_in(i) = v_in(i) + soft_thresh;
+        }
       }
     }
   this->ClusterThresholdVariate( v_in, mask, clust );
@@ -4634,7 +4619,8 @@ bool antsSCCANObject<TInputImage, TRealType>
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
         }
       }
-    this->NormalizeWeightsByCovariance( k, 0, 0 );
+    this->NormalizeWeightsByCovariance( k, 1, 1 );
+    //   this->NormalizeWeights( k );
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
@@ -4642,6 +4628,68 @@ bool antsSCCANObject<TInputImage, TRealType>
   this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
+
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::InitializeSCCA_simple( unsigned int n_vecs )
+{
+  /** get the row mean for each matrix , then correlate the other matrix with that, then sparsify 
+   *  for 2nd,3rd,etc evecs, orthogonalize initial vector against sparsified.
+   */
+  RealType totalcorr = 0;
+  VectorType prowmean( this->m_MatrixP.rows(), 0 );
+  for( unsigned long i = 0; i < this->m_MatrixP.rows(); i++ )
+    {
+    prowmean( i ) = this->m_MatrixP.get_row( i ).mean();
+    }
+  VectorType qrowmean( this->m_MatrixQ.rows(), 0 );
+  for( unsigned long i = 0; i < this->m_MatrixQ.rows(); i++ )
+    {
+    qrowmean( i ) = this->m_MatrixQ.get_row( i ).mean();
+    }
+  prowmean = prowmean / prowmean.two_norm();
+  qrowmean = qrowmean / qrowmean.two_norm();
+  VectorType ipvec = ( prowmean + qrowmean ) * this->m_MatrixP;
+  VectorType iqvec = ( prowmean + qrowmean ) * this->m_MatrixQ;
+  for( unsigned int kk = 0; kk < n_vecs; kk++ )
+    {
+    VectorType qvec = ( this->m_MatrixP * ipvec ) * this->m_MatrixQ;
+    qvec = qvec / qvec.two_norm();
+    VectorType vec  = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
+    vec = vec / vec.two_norm();
+    VectorType vec2  = ( this->m_MatrixQ * iqvec ) * this->m_MatrixP;
+    vec2 = vec2 / vec2.two_norm();
+    VectorType qvec2 = ( this->m_MatrixP * vec2 ) * this->m_MatrixQ;
+    qvec2 = qvec2 / qvec2.two_norm();
+    if ( vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec2,  this->m_MatrixQ * qvec2 )  ) >
+	 vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec )  ) )
+      {
+      vec = vec2;
+      qvec = qvec2;
+      }
+    for( unsigned int j = 0; j < kk; j++ )
+      {
+      VectorType qj = this->m_VariatesP.get_column(j);
+      vec = this->Orthogonalize( vec, qj );
+      qj = this->m_VariatesQ.get_column(j);
+      qvec = this->Orthogonalize( qvec, qj );
+      }
+    RealType     smooth = 3;
+    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
+    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
+    qvec = qvec / qvec.two_norm();
+    vec = vec / vec.two_norm();
+    this->SparsifyP( vec );    this->SparsifyQ( qvec );
+    this->m_VariatesP.set_column( kk, vec );
+    this->m_VariatesQ.set_column( kk, qvec );
+    // this->NormalizeWeights( kk );
+    this->NormalizeWeightsByCovariance( kk, 1, 1 );
+    totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
+    }
+  return totalcorr;
+}
+
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
@@ -4665,24 +4713,44 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    RealType     smooth = 0;
-    if( smooth > 0 )
-      {
-      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
-      qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
-      }
+    RealType     smooth = 3;
+    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
+    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
     qvec = qvec / qvec.two_norm();
     vec = vec / vec.two_norm();
     this->SparsifyP( vec );    this->SparsifyQ( qvec );
     this->m_VariatesP.set_column( kk, vec );
     this->m_VariatesQ.set_column( kk, qvec );
-    this->NormalizeWeightsByCovariance( kk, 0, 0 );
+    // this->NormalizeWeights( kk );
+    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     }
   return totalcorr;
   //  this->CCAUpdate( n_vecs , false );
   return this->m_CanonicalCorrelations.sum();
 }
+
+
+  /*
+  RealType     totalcorr = 0;
+  RealType     bestcorr = 0;
+  unsigned int bestseed = 0;
+  for( unsigned int seeder = 0; seeder < 1; seeder++ )
+    {
+    totalcorr = this->InitializeSCCA( n_vecs, seeder );
+    if( totalcorr > bestcorr )
+      {
+      bestseed = seeder;  bestcorr = totalcorr;
+      ::ants::antscout << " seed " << seeder << " corr " << bestcorr << std::endl;
+      }
+    }
+  if( this->m_Debug )
+    {
+    ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
+    }
+  this->InitializeSCCA( n_vecs, bestseed );
+  */
+
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
@@ -4724,23 +4792,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
-  RealType     totalcorr = 0;
-  RealType     bestcorr = 0;
-  unsigned int bestseed = 0;
-  for( unsigned int seeder = 0; seeder < 5; seeder++ )
-    {
-    totalcorr = this->InitializeSCCA( n_vecs, seeder );
-    if( totalcorr > bestcorr )
-      {
-      bestseed = seeder;  bestcorr = totalcorr;
-      //      ::ants::antscout << " seed " << seeder << " corr " << bestcorr << std::endl;
-      }
-    }
-  if( this->m_Debug )
-    {
-    ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
-    }
-  this->InitializeSCCA( n_vecs, bestseed );
+  this->InitializeSCCA_simple( n_vecs );
   const unsigned int maxloop = this->m_MaximumNumberOfIterations;
   unsigned int       loop = 0;
   bool               energyincreases = true;
@@ -5055,6 +5107,19 @@ void antsSCCANObject<TInputImage, TRealType>
     {
     ::ants::antscout << "  whiten and apply R done " << std::endl;
     }
+}
+
+
+template <class TInputImage, class TRealType>
+void antsSCCANObject<TInputImage, TRealType>
+::NormalizeWeights(const unsigned int k )
+{
+  this->m_WeightsP = this->m_VariatesP.get_column( k );
+  this->m_WeightsP = this->m_WeightsP / sqrt(this->m_WeightsP.two_norm());
+  this->m_VariatesP.set_column( k, this->m_WeightsP );
+  this->m_WeightsQ = this->m_VariatesQ.get_column( k );
+  this->m_WeightsQ = this->m_WeightsQ / sqrt(this->m_WeightsQ.two_norm());
+  this->m_VariatesQ.set_column( k, this->m_WeightsQ );
 }
 
 template <class TInputImage, class TRealType>
