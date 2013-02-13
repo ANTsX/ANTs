@@ -548,7 +548,8 @@ antsSCCANObject<TInputImage, TRealType>
   for( unsigned int i = 0; i < v_in.size(); i++ )
     {
     RealType val = v_in(i);
-    if ( keep_positive && val < 0 ) val = 0 ; //*= ( -1 );
+    if ( keep_positive && val < 0 ) val = 0 ; 
+    // if ( keep_positive && val < 0 ) val *= ( -1 );
     if( vnl_math_abs( val ) < soft_thresh )
       {
       v_in(i) = 0;
@@ -4713,7 +4714,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    RealType     smooth = 3;
+    RealType     smooth = 1;
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
     qvec = qvec / qvec.two_norm();
@@ -4731,25 +4732,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 }
 
 
-  /*
-  RealType     totalcorr = 0;
-  RealType     bestcorr = 0;
-  unsigned int bestseed = 0;
-  for( unsigned int seeder = 0; seeder < 1; seeder++ )
-    {
-    totalcorr = this->InitializeSCCA( n_vecs, seeder );
-    if( totalcorr > bestcorr )
-      {
-      bestseed = seeder;  bestcorr = totalcorr;
-      ::ants::antscout << " seed " << seeder << " corr " << bestcorr << std::endl;
-      }
-    }
-  if( this->m_Debug )
-    {
-    ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
-    }
-  this->InitializeSCCA( n_vecs, bestseed );
-  */
 
 
 template <class TInputImage, class TRealType>
@@ -4792,7 +4774,24 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
-  this->InitializeSCCA_simple( n_vecs );
+  RealType     bestcorr = this->InitializeSCCA_simple( n_vecs );
+  RealType     totalcorr = 0;
+  int bestseed = -1;
+  for( unsigned int seeder = 0; seeder < 33; seeder++ )
+    {
+    totalcorr = this->InitializeSCCA( n_vecs, seeder );
+    if( totalcorr > bestcorr )
+      {
+      bestseed = seeder;  bestcorr = totalcorr;
+      ::ants::antscout << " seed " << seeder << " corr " << bestcorr << std::endl;
+      }
+    }
+  if( this->m_Debug )
+    {
+    ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
+    }
+  if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed );
+
   const unsigned int maxloop = this->m_MaximumNumberOfIterations;
   unsigned int       loop = 0;
   bool               energyincreases = true;
