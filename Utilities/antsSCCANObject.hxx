@@ -34,6 +34,7 @@
 #include "itkGradientMagnitudeRecursiveGaussianImageFilter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
+#include "itkSurfaceImageCurvature.h"
 namespace itk
 {
 namespace ants
@@ -380,6 +381,22 @@ antsSCCANObject<TInputImage, TRealType>
     return vec;
     }
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
+  typedef itk::SurfaceImageCurvature<TInputImage> ParamType;
+  typename ParamType::Pointer Parameterizer = ParamType::New();
+  Parameterizer->SetInputImage(mask);
+  Parameterizer->SetFunctionImage(image);
+  Parameterizer->SetNeighborhoodRadius( 2 );
+  Parameterizer->SetSigma( sigma );
+  Parameterizer->SetUseGeodesicNeighborhood(false);
+  Parameterizer->SetUseLabel(false);
+  Parameterizer->SetThreshold(0.5);
+  Parameterizer->IntegrateFunctionOverSurface(true);
+  for( unsigned int i = 0; i < 2; i++ )
+    {
+    Parameterizer->IntegrateFunctionOverSurface(true);
+    }
+  VectorType svec = this->ConvertImageToVariate( Parameterizer->GetFunctionImage(),  mask );
+  return svec;
   RealType     spacingsize = 0;
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
@@ -4525,7 +4542,7 @@ antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 bool antsSCCANObject<TInputImage, TRealType>
-::CCAUpdate( unsigned int n_vecs, bool allowchange  )
+::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov )
 {
   this->m_Debug = false;
   bool changedgrad = false;
@@ -4539,7 +4556,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     /** the gradient of     ( x X ,  y Y ) * ( x X , x X )^{-1}  * ( y Y  , y Y )^{-1}
      *  where we constrain ( x X , x X ) = ( y Y , y Y ) = 1
      */
-    RealType ccafactor = inner_product( pveck, qveck );
+    RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
     pveck = pveck - this->m_MatrixP.transpose() * ( this->m_MatrixP * ptemp ) *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
@@ -4620,8 +4637,19 @@ bool antsSCCANObject<TInputImage, TRealType>
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
         }
       }
-    this->NormalizeWeightsByCovariance( k, 1, 1 );
-    //   this->NormalizeWeights( k );
+    /* a test
+    VectorType temp = this->m_VariatesQ.get_column( 0 );
+    this->NormalizeWeightsByCovariance( k, 0, 0 );
+    VectorType temp1 = this->m_VariatesQ.get_column( 0 );
+    this->NormalizeWeights( k );
+    VectorType temp2 = this->m_VariatesQ.get_column( 0 );
+    std::cout << " temp1 " << temp1 << std::endl;
+    std::cout << " temp2 " << temp2 << std::endl;
+    this->m_VariatesQ.set_column( 0 , temp ); */
+
+    if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
+    else this->NormalizeWeights( k );
+
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
@@ -4676,7 +4704,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    RealType     smooth = 3;
+    RealType     smooth = 1;
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
     qvec = qvec / qvec.two_norm();
@@ -4684,8 +4712,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparsifyP( vec );    this->SparsifyQ( qvec );
     this->m_VariatesP.set_column( kk, vec );
     this->m_VariatesQ.set_column( kk, qvec );
-    // this->NormalizeWeights( kk );
-    this->NormalizeWeightsByCovariance( kk, 1, 1 );
+    this->NormalizeWeights( kk );
+    //   this->NormalizeWeightsByCovariance( kk, 0, 0 );
     totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     }
   return totalcorr;
@@ -4714,7 +4742,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    RealType     smooth = 1;
+    RealType     smooth = 0;
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP, smooth );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ, smooth );
     qvec = qvec / qvec.two_norm();
@@ -4722,8 +4750,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparsifyP( vec );    this->SparsifyQ( qvec );
     this->m_VariatesP.set_column( kk, vec );
     this->m_VariatesQ.set_column( kk, qvec );
-    // this->NormalizeWeights( kk );
-    this->NormalizeWeightsByCovariance( kk, 1, 1 );
+    this->NormalizeWeights( kk );
+    //    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     }
   return totalcorr;
@@ -4774,10 +4802,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
+  this->InitializeSCCA_simple( n_vecs ); 
+  /*
   RealType     bestcorr = this->InitializeSCCA_simple( n_vecs );
   RealType     totalcorr = 0;
   int bestseed = -1;
-  for( unsigned int seeder = 0; seeder < 33; seeder++ )
+  for( unsigned int seeder = 0; seeder < 35; seeder++ )
     {
     totalcorr = this->InitializeSCCA( n_vecs, seeder );
     if( totalcorr > bestcorr )
@@ -4790,7 +4820,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
     }
-  if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed );
+  if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed ); */
 
   const unsigned int maxloop = this->m_MaximumNumberOfIterations;
   unsigned int       loop = 0;
@@ -4800,7 +4830,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   while( ( ( loop < maxloop )  && ( energyincreases )  ) )
     {
     // Arnoldi Iteration SCCA
-    bool changedgrad = this->CCAUpdate( n_vecs_in, true );
+    bool normbycov = true;
+    if ( !normbycov && loop == 0 ) this->m_GradStep *= 1.e-8;
+    bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
     ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
@@ -5114,10 +5146,10 @@ void antsSCCANObject<TInputImage, TRealType>
 ::NormalizeWeights(const unsigned int k )
 {
   this->m_WeightsP = this->m_VariatesP.get_column( k );
-  this->m_WeightsP = this->m_WeightsP / sqrt(this->m_WeightsP.two_norm());
+  this->m_WeightsP = this->m_WeightsP / sqrt(this->m_WeightsP.two_norm()); // to scale gradient down
   this->m_VariatesP.set_column( k, this->m_WeightsP );
   this->m_WeightsQ = this->m_VariatesQ.get_column( k );
-  this->m_WeightsQ = this->m_WeightsQ / sqrt(this->m_WeightsQ.two_norm());
+  this->m_WeightsQ = this->m_WeightsQ / sqrt(this->m_WeightsQ.two_norm()); // to scale gradient down
   this->m_VariatesQ.set_column( k, this->m_WeightsQ );
 }
 
@@ -5146,6 +5178,7 @@ void antsSCCANObject<TInputImage, TRealType>
       }
     if( normP > 0 )
       {
+      ::ants::antscout << "normP " << normP ;
       this->m_WeightsP = this->m_WeightsP / sqrt(normP);
       this->m_VariatesP.set_column( k, this->m_WeightsP );
       }
@@ -5164,6 +5197,7 @@ void antsSCCANObject<TInputImage, TRealType>
       }
     if( normQ > 0 )
       {
+      ::ants::antscout << " normQ " << normQ << " ";
       this->m_WeightsQ = this->m_WeightsQ / sqrt(normQ);
       this->m_VariatesQ.set_column( k, this->m_WeightsQ );
       }

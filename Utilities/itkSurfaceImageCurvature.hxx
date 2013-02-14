@@ -861,13 +861,13 @@ SurfaceImageCurvature<TSurface>
     ::ants::antscout << " no image " << std::endl; return 0;
     }
 
-  ::ants::antscout << "  allocating temp image ";
+  //  ::ants::antscout << "  allocating temp image ";
   typename OutputImageType::Pointer tempimage = OutputImageType::New();
   tempimage->SetLargestPossibleRegion( image->GetLargestPossibleRegion() );
   tempimage->SetBufferedRegion( image->GetLargestPossibleRegion() );
   tempimage->Allocate();
 
-  ::ants::antscout << "  done allocating  ";
+  //  ::ants::antscout << "  done allocating  ";
 
   typename ImageType::SizeType rad;
   typename ImageType::SizeType rad2;
@@ -885,11 +885,11 @@ SurfaceImageCurvature<TSurface>
   typename ImageType::RegionType requestedRegion;
   ImageIteratorType ti( this->GetInput(), this->GetInput()->GetLargestPossibleRegion() );
 
-  ::ants::antscout << " begin integrate ";
+  //  ::ants::antscout << " begin integrate ";
 
   ti.GoToBegin();
   unsigned int ct = 0;
-  ::ants::antscout << " begin while " << std::endl;
+  //  ::ants::antscout << " begin while " << std::endl;
   while( !ti.IsAtEnd()  )
     {
     index = ti.GetIndex();
@@ -915,10 +915,10 @@ SurfaceImageCurvature<TSurface>
 //        ::ants::antscout << " get area ";
       RealType area = this->IntegrateFunctionOverNeighborhood(norm);
       tempimage->SetPixel(index, area);
-      if( ct % 10000 == 0 )
-        {
-        ::ants::antscout << " area is : " << area << " ct " << ct << " pix " << ti.Get() << std::endl;
-        }
+      //      if( ct % 10000 == 0 )
+      //        {
+      //        ::ants::antscout << " area is : " << area << " ct " << ct << " pix " << ti.Get() << std::endl;
+      //        }
 //        if ( area > 1) ::ants::antscout << " ind " << index << " area " << area  << std::endl;
       // SD why sometimes a pixel is NaN ?
       //      if ( !(area > 0)) ::ants::antscout << " ind " << index << " area " << area << " pix " << ti.Get() <<
@@ -964,7 +964,7 @@ SurfaceImageCurvature<TSurface>
   unsigned int npts = this->m_PointList.size();
   double       curvature = 0.0, tw = 0;
 
-  ::ants::antscout << " npts " << npts;
+  //  ::ants::antscout << " npts " << npts;
 
   for( unsigned int pp = 0; pp < npts; pp++ )
     {
@@ -981,7 +981,7 @@ SurfaceImageCurvature<TSurface>
       }
     tw += wi;
     RealType func = this->m_FunctionImage->GetPixel( localindex );
-    ::ants::antscout << " pp " << pp << " func " << func << std::endl;
+    //    ::ants::antscout << " pp " << pp << " func " << func << std::endl;
     if( norm )
       {
       curvature += wi * func;

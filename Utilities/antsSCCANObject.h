@@ -626,7 +626,7 @@ public:
 
   RealType SparsePartialCCA(unsigned int nvecs);
 
-  bool CCAUpdate(unsigned int nvecs, bool );
+  bool CCAUpdate(unsigned int nvecs, bool , bool );
 
   RealType SparsePartialArnoldiCCA(unsigned int nvecs);
 
@@ -715,13 +715,20 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
-  void PositivePart( VectorType& x_k1 )
+  void PositivePart( VectorType& x_k1 , bool takemin = true )
   {
+    if ( takemin ) 
+      {
+      RealType minval = x_k1.min_value();
+      x_k1 = x_k1 - minval;
+      return;
+      }
     for( unsigned int i = 0; i < x_k1.size(); i++ )
       {
       if( x_k1[i] < 0 )
         {
-        x_k1[i] = 0;
+	x_k1[i] = vnl_math_abs( x_k1[i] );
+	x_k1[i] = 0;
         }
       }
   }
@@ -729,14 +736,19 @@ protected:
   void SparsifyP( VectorType& x_k1 )
   {
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
-    if( vnl_math_abs( fnp ) > 1 )
+    if (  this->m_FractionNonZeroP >= 1 && ( this->m_KeepPositiveP ) )
+      {
+      this->PositivePart( x_k1 );
+      return;
+      }
+    if( fnp >= 1 )
       {
       return;
       }
     bool negate = false;
     if( x_k1.mean() <= 0 )
       {
-      negate = true;
+      negate = false;
       }
     if( negate )
       {
@@ -768,14 +780,19 @@ protected:
   void SparsifyQ( VectorType& x_k1 )
   {
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ  );
-    if( vnl_math_abs( fnp ) > 1 )
+    if (  this->m_FractionNonZeroQ >= 1 && ( this->m_KeepPositiveQ ) )
+      {
+      this->PositivePart( x_k1 );
+      return;
+      }
+    if( fnp >= 1 )
       {
       return;
       }
     bool negate = false;
     if( x_k1.mean() <= 0 )
       {
-      negate = true;
+      negate = false;
       }
     if( negate )
       {
@@ -902,7 +919,7 @@ protected:
       {
       return 0;
       }
-    return numer / denom;
+    return vnl_math_abs( numer / denom );
   }
 
   RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType a, RealType b,

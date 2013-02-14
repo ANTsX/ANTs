@@ -1525,7 +1525,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
           }
         }
       // end solve cca permutation
-      antscout << "perm: ";
+      antscout << "perm p-value: ";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
         {
         //	antscout << " k" << kk << "p: " <<  ( double ) perm_exceed_ct[kk]

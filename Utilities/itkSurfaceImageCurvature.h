@@ -69,7 +69,7 @@ public:
   typedef typename Superclass::PointType  PointType;
   typedef typename Superclass::MatrixType MatrixType;
 
-  typedef  Image<RealType, itkGetStaticConstMacro(ImageDimension)>
+  typedef  Image<PixelType, itkGetStaticConstMacro(ImageDimension)>
     OutputImageType;
   typedef ImageRegionIteratorWithIndex<OutputImageType> OutputImageIteratorType;
 
