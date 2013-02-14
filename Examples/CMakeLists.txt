@@ -154,9 +154,7 @@ install(PROGRAMS ../Scripts/ants.sh
                  ../Scripts/antsIntroduction.sh
                  ../Scripts/antsaffine.sh
                  ../Scripts/waitForXGridJobs.pl
-                 ../Scripts/ANTSAverage2DAffine.sh
-                 ../Scripts/ANTSAverage3DAffine.sh
-                 ../Scripts/buildtemplateparallel.sh
+                ../Scripts/buildtemplateparallel.sh
                  ../Scripts/ANTSpexec.sh
                  ../Scripts/waitForSGEQJobs.pl
                 DESTINATION bin

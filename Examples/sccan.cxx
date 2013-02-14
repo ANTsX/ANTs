@@ -1525,14 +1525,14 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
           }
         }
       // end solve cca permutation
-      antscout << "perm p-value: ";
+      if ( pct == permct ) antscout << "perm p-value: ";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
         {
         //	antscout << " k" << kk << "p: " <<  ( double ) perm_exceed_ct[kk]
-        antscout << ( double ) perm_exceed_ct[kk]
+	if ( pct == permct ) antscout << ( double ) perm_exceed_ct[kk]
           / (pct + 1) << ","; // << " true " << sccancorrs[kk];
         }
-      antscout << " ct " << pct << std::endl;
+      if ( pct == permct ) antscout << " ct " << pct << std::endl;
       }
     unsigned long psigct = 0, qsigct = 0;
     for( unsigned long j = 0; j < w_p.size(); j++ )
@@ -1565,9 +1565,9 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
         w_q_signif_ct(j) = 0;
         }
       }
-    antscout <<  " p-value " << perm_exceed_ct / (permct) << " ct " << permct << std::endl;
-    antscout << " p-vox " <<  (double)psigct / w_p.size() << " ct " << permct << std::endl;
-    antscout << " q-vox " <<  (double)qsigct / w_q.size() << " ct " << permct << std::endl;
+    // antscout <<  " p-value " << perm_exceed_ct / (permct) << " ct " << permct << std::endl;
+    //    antscout << " p-vox " <<  (double)psigct / w_p.size() << " ct " << permct << std::endl;
+    //    antscout << " q-vox " <<  (double)qsigct / w_q.size() << " ct " << permct << std::endl;
 
     if( writeoutput  )
       {

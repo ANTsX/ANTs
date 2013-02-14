@@ -4637,15 +4637,6 @@ bool antsSCCANObject<TInputImage, TRealType>
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
         }
       }
-    /* a test
-    VectorType temp = this->m_VariatesQ.get_column( 0 );
-    this->NormalizeWeightsByCovariance( k, 0, 0 );
-    VectorType temp1 = this->m_VariatesQ.get_column( 0 );
-    this->NormalizeWeights( k );
-    VectorType temp2 = this->m_VariatesQ.get_column( 0 );
-    std::cout << " temp1 " << temp1 << std::endl;
-    std::cout << " temp2 " << temp2 << std::endl;
-    this->m_VariatesQ.set_column( 0 , temp ); */
 
     if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
     else this->NormalizeWeights( k );
@@ -4835,7 +4826,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
-    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
+    if( this->m_Debug ) ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
     if( this->m_GradStep < 1.e-12 || ( vnl_math_abs( energy - lastenergy ) < 1.e-8  && !changedgrad ) )
       {
       energyincreases = false;
@@ -5178,7 +5169,7 @@ void antsSCCANObject<TInputImage, TRealType>
       }
     if( normP > 0 )
       {
-      ::ants::antscout << "normP " << normP ;
+      if( this->m_Debug ) ::ants::antscout << "normP " << normP ;
       this->m_WeightsP = this->m_WeightsP / sqrt(normP);
       this->m_VariatesP.set_column( k, this->m_WeightsP );
       }
@@ -5197,7 +5188,7 @@ void antsSCCANObject<TInputImage, TRealType>
       }
     if( normQ > 0 )
       {
-      ::ants::antscout << " normQ " << normQ << " ";
+      if( this->m_Debug ) ::ants::antscout << " normQ " << normQ << " ";
       this->m_WeightsQ = this->m_WeightsQ / sqrt(normQ);
       this->m_VariatesQ.set_column( k, this->m_WeightsQ );
       }
