@@ -4029,11 +4029,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         VectorType randv = this->InitializeV( matrixP, 0 );
         VectorType bp = b * matrixP;
         VectorType bpneg( bp );
-        this->PosNegVector( bp, true );
+	this->PosNegVector( bp, true );
         this->PosNegVector( bpneg, false );
         if( cl % 2 != 0 )
           {
-          bp = bpneg;
+          bp = bpneg * (-1);
           }
         // minerr1 = this->SparseNLPreConjGrad( matrixP, randv, bp, 1.e-1, 100 ); /**/
         // minerr1 = this->SparseNLConjGrad( matrixP, randv, bp, 1.e-5, 500, true , true  ); /** miccai good? */
@@ -4585,7 +4585,7 @@ bool antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column( j );
       qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
       }
-    RealType smooth = 0;
+    RealType smooth = 0.0;
     pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
     qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
     this->SparsifyP( pveck );
@@ -4637,10 +4637,8 @@ bool antsSCCANObject<TInputImage, TRealType>
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
         }
       }
-
     if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
     else this->NormalizeWeights( k );
-
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
@@ -4703,8 +4701,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparsifyP( vec );    this->SparsifyQ( qvec );
     this->m_VariatesP.set_column( kk, vec );
     this->m_VariatesQ.set_column( kk, qvec );
-    this->NormalizeWeights( kk );
-    //   this->NormalizeWeightsByCovariance( kk, 0, 0 );
+    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     }
   return totalcorr;
@@ -4793,7 +4790,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
-  this->InitializeSCCA_simple( n_vecs ); 
+  ::ants::antscout << "Initialization: " << this->InitializeSCCA_simple( n_vecs ) << std::endl;
   /*
   RealType     bestcorr = this->InitializeSCCA_simple( n_vecs );
   RealType     totalcorr = 0;
@@ -4826,7 +4823,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
-    if( this->m_Debug ) ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
+    // if( this->m_Debug ) 
+    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
     if( this->m_GradStep < 1.e-12 || ( vnl_math_abs( energy - lastenergy ) < 1.e-8  && !changedgrad ) )
       {
       energyincreases = false;

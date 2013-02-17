@@ -735,6 +735,7 @@ protected:
 
   void SparsifyP( VectorType& x_k1 )
   {
+    if ( x_k1.size() <= 1 ) return;
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
     if (  this->m_FractionNonZeroP >= 1 && ( this->m_KeepPositiveP ) )
       {
@@ -779,6 +780,7 @@ protected:
 
   void SparsifyQ( VectorType& x_k1 )
   {
+    if ( x_k1.size() <= 1 ) return;
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ  );
     if (  this->m_FractionNonZeroQ >= 1 && ( this->m_KeepPositiveQ ) )
       {
