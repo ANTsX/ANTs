@@ -164,9 +164,9 @@ else
        ;;
           d) #dimensions
        DIMENSION=$OPTARG
-       if [[ ${DIMENSION} -gt 3 || ${DIMENSION} -lt 2 ]];
+       if [[ ${DIMENSION} -gt 4 || ${DIMENSION} -lt 2 ]];
          then
-           echo " Error:  ImageDimension must be 2 or 3 "
+           echo " Error:  ImageDimension must be 2, 3, or 4 "
            exit 1
          fi
        ;;
