@@ -45,15 +45,17 @@ Required arguments:
      -l:  posterior label for N4 weight mask    Which posterior probability image should be used to define the
                                                 N4 weight mask.  Can also specify multiple posteriors in which
                                                 case the chosen posteriors are added.
-     -o:  Output prefix                          The following images are created:
+     -o:  output prefix                         The following images are created:
                                                   * ${OUTPUT_PREFIX}N4Corrected.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}Segmentation.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}SegmentationPosteriors.${OUTPUT_SUFFIX}
 
 Optional arguments:
 
-     -p:  Segmentation priors                   Prior probability images initializing the segmentation.
+     -p:  segmentation priors                   Prior probability images initializing the segmentation.
                                                 Specified using c-style formatting, e.g. -p labelsPriors%02d.nii.gz.
+     -r:  mrf                                   Specifies MRF prior (of the form '[weight,neighborhood]', e.g.
+                                                '[0.1,1x1x1]' which is default).
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
@@ -148,12 +150,13 @@ ATROPOS_SEGMENTATION_MASK=''
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=3
+ATROPOS_SEGMENTATION_MRF=''
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:c:d:h:k:l:m:n:o:p:s:w:x:" OPT
+  while getopts "a:c:d:h:k:l:m:n:o:p:r:s:w:x:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -195,6 +198,9 @@ else
           s) #output suffix
        OUTPUT_SUFFIX=$OPTARG
        ;;
+          r) #mrf
+       ATROPOS_SEGMENTATION_MRF=$OPTARG
+       ;;
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
        ;;
@@ -209,10 +215,13 @@ else
   done
 fi
 
-ATROPOS_SEGMENTATION_MRF="[0.1,1x1x1]";
-if [[ DIMENSION -eq 2 ]];
+if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
   then
-    ATROPOS_SEGMENTATION_MRF="[0.1,1x1]"
+    ATROPOS_SEGMENTATION_MRF="[0.1,1x1x1]";
+    if [[ DIMENSION -eq 2 ]];
+      then
+        ATROPOS_SEGMENTATION_MRF="[0.1,1x1]"
+      fi
   fi
 
 ATROPOS_SEGMENTATION_CONVERGENCE="[${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS},0.0]"
