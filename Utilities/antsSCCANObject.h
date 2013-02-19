@@ -735,54 +735,20 @@ protected:
 
   void SparsifyP( VectorType& x_k1 )
   {
-    if ( x_k1.size() <= 1 ) return;
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
-    if (  this->m_FractionNonZeroP >= 1 && ( this->m_KeepPositiveP ) )
-      {
-      this->PositivePart( x_k1 );
-      return;
-      }
-    if( fnp >= 1 )
-      {
-      return;
-      }
-    bool negate = false;
-    if( x_k1.mean() <= 0 )
-      {
-      negate = false;
-      }
-    if( negate )
-      {
-      x_k1 = x_k1 * ( -1 );
-      }
-    RealType low  = x_k1.min_value();
-    RealType high = x_k1.max_value();
-    RealType eng = fnp;
-    RealType mid = low + 0.5 * ( high - low );
-    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 ) 
-      {
-      mid = low + 0.5 * ( high - low );
-      VectorType searcherm( x_k1 );
-      this->SoftClustThreshold( searcherm, mid, this->m_KeepPositiveP,  this->m_MinClusterSizeP, this->m_MaskImageP );
-      RealType fnm = this->CountNonZero( searcherm );
-      if ( fnm > fnp ) { low = mid;  }
-      if ( fnm < fnp ) { high = mid; }      
-      eng = vnl_math_abs( fnp - fnm );
-      //      ::ants::antscout << " low " << low << " high " << high << " fnp " << fnp << " new " << fnm << std::endl;
-      }
-    this->SoftClustThreshold( x_k1, mid, this->m_KeepPositiveP,  this->m_MinClusterSizeP, this->m_MaskImageP );
-    if( negate )
-      {
-      x_k1 = x_k1 * ( -1 );
-      }
-    return;
+    this->Sparsify( x_k1, fnp, this->m_KeepPositiveP , this->m_MinClusterSizeP, this->m_MaskImageP);
   }
 
   void SparsifyQ( VectorType& x_k1 )
+  {
+    RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ  );
+    this->Sparsify( x_k1, fnp, this->m_KeepPositiveQ , this->m_MinClusterSizeQ, this->m_MaskImageQ);
+  }
+
+  void Sparsify( VectorType& x_k1 , RealType fnp, bool keeppos, unsigned int clust, ImagePointer mask  )
   {
     if ( x_k1.size() <= 1 ) return;
-    RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ  );
-    if (  this->m_FractionNonZeroQ >= 1 && ( this->m_KeepPositiveQ ) )
+    if (  fnp >= 1 &&  keeppos )
       {
       this->PositivePart( x_k1 );
       return;
@@ -804,17 +770,19 @@ protected:
     RealType high = x_k1.max_value();
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
-    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 ) 
+    unsigned int its = 0;
+    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 ) 
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
-      this->SoftClustThreshold( searcherm, mid, this->m_KeepPositiveQ,  this->m_MinClusterSizeQ, this->m_MaskImageQ );
+      this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
       RealType fnm = this->CountNonZero( searcherm );
       if ( fnm > fnp ) { low = mid;  }
       if ( fnm < fnp ) { high = mid; }      
       eng = vnl_math_abs( fnp - fnm );
+      its++;
       }
-    this->SoftClustThreshold( x_k1, mid, this->m_KeepPositiveQ,  this->m_MinClusterSizeQ, this->m_MaskImageQ );
+    this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
     if( negate )
       {
       x_k1 = x_k1 * ( -1 );
@@ -822,37 +790,6 @@ protected:
     return;
   }
 
-/*
-  void SparsifyQ( VectorType& x_k1 )
-  {
-    RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ );
-    this->SoftClustThreshold( x_k1, fnp, this->m_KeepPositiveQ,  this->m_MinClusterSizeQ, this->m_MaskImageQ );
-    return;
-
-    if( vnl_math_abs( fnp ) >= 1 )
-      {
-      this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveQ );
-      this->ClusterThresholdVariate( x_k1, this->m_MaskImageQ, this->m_MinClusterSizeQ );
-      return;
-      }
-    bool negate = false;
-
-    if( x_k1.mean() <= 0 )
-      {
-      negate = true;
-      }
-    if( negate )
-      {
-      x_k1 = x_k1 * ( -1 );
-      }
-    this->ReSoftThreshold( x_k1, fnp, this->m_KeepPositiveQ );
-    this->ClusterThresholdVariate( x_k1, this->m_MaskImageQ, this->m_MinClusterSizeQ );
-    if( negate )
-      {
-      x_k1 = x_k1 * ( -1 );
-      }
-  }
-*/
   void SparsifyP( VectorType& x_k1, VectorType& refvec  )
   {
     if( x_k1.size() != refvec.size() )
