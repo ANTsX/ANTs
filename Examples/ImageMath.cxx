@@ -81,6 +81,7 @@
 #include "itkNeighborhoodIterator.h"
 #include "itkNormalVariateGenerator.h"
 #include "itkOtsuThresholdImageFilter.h"
+#include "itkPseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter.h"
 #include "itkPulsedArterialSpinLabeledCerebralBloodFlowImageFilter.h"
 #include "itkRGBPixel.h"
 #include "itkRelabelComponentImageFilter.h"
@@ -2228,7 +2229,6 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
       filter->SetControlInterpolator( controlInterp );
       filter->SetLabelInterpolator( labelInterp );
       filter->SetIndexPadding( SincRadius );      
-      filter->SetIndexPadding( 1 );
       }
     else if ( strcmp( "bspline", interp.c_str() ) == 0 )
       {
@@ -2247,7 +2247,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
       }
 
     }
-
+      
 
   bool mean = false;
   if( argc >= 7 )
@@ -2282,6 +2282,17 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
   else 
     {
     WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
+    }
+
+  if( argc >= 8  )
+    {
+    std::string control_out = argv[argct++];
+    WriteImage<InputImageType>(filter->GetControlOutputImage(), control_out.c_str() );
+    }
+  if( argc >= 8  )
+    {
+    std::string label_out = argv[argct++];
+    WriteImage<InputImageType>(filter->GetLabelOutputImage(), label_out.c_str() );
     }
 
   return 0;
@@ -2390,6 +2401,7 @@ int PASLQuantifyCBF(int argc, char *argv[])
 
   typedef itk::PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TimeImageType, ImageType, TimeImageType>
     FilterType;
+
   int         argct = 2;
   std::string outname = std::string(argv[argct++]);
   std::string operation = std::string(argv[argct++]);  
@@ -2465,6 +2477,86 @@ int PASLQuantifyCBF(int argc, char *argv[])
 
   return 0;
 }
+
+
+template <unsigned int ImageDimension>
+int PCASLQuantifyCBF(int argc, char *argv[])
+{
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> TimeImageType;
+  typedef itk::Image<PixelType, ImageDimension-1> ImageType;
+
+  typedef itk::PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TimeImageType, ImageType, TimeImageType>
+    FilterType;
+  int         argct = 2;
+  std::string outname = std::string(argv[argct++]);
+  std::string operation = std::string(argv[argct++]);  
+  std::string fn1 = std::string(argv[argct++]);
+  std::string m0name = std::string(argv[argct++]);
+
+  typename FilterType::Pointer getCBF = FilterType::New();
+
+  // scan for optional parameters
+  while( argct < argc )
+    {
+    if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "TI1") == 0 )
+      {
+      getCBF->SetTI1( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "TI2") == 0 )
+      {
+      getCBF->SetTI2( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "T1blood") == 0 )
+      {
+      getCBF->SetT1blood( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "Lambda") == 0 )
+      {
+      getCBF->SetLambda( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "Alpha") == 0 )
+      {
+      getCBF->SetAlpha( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+    else if( strcmp(ANTSOptionName( argv[argct] ).c_str(), "SliceDelay") == 0 )
+      {
+      getCBF->SetSliceDelay( atof( ANTSOptionValue( argv[argct] ).c_str() ) );
+      }
+
+    argct++;
+    }
+
+
+  typename TimeImageType::Pointer diff = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<TimeImageType>(diff, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  typename ImageType::Pointer m0 = NULL;
+  if( m0name.length() > 3 )
+    {
+    ReadImage<ImageType>(m0, m0name.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  getCBF->SetDifferenceImage( diff );
+  getCBF->SetReferenceImage( m0 );
+  getCBF->Update();
+
+  WriteImage<TimeImageType>( getCBF->GetOutput(), outname.c_str() );
+
+  return 0;
+}
+
 
 template <unsigned int ImageDimension>
 int ComputeTimeSeriesLeverage(int argc, char *argv[])
@@ -11517,6 +11609,11 @@ private:
       << " TimeSeriesSincSubtraction : Outputs a 3D mean pair-wise difference list of 3D volumes."
       << std::endl;
     antscout << "    Usage        : TimeSeriesSincSubtraction image.nii.gz " << std::endl;
+    antscout
+      << " SplitAlternatingTimeSeries : Outputs 2 3D time series"
+      << std::endl;
+    antscout << "    Usage        : SplitAlternatingTimeSeries image.nii.gz " << std::endl;
+
 
     antscout
       <<
@@ -12939,6 +13036,10 @@ private:
         {
         PASLQuantifyCBF<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "PCASLQuantifyCBF") == 0 )
+        {
+        PCASLQuantifyCBF<4>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "PASL") == 0 )
         {
         PASL<4>(argc, argv);
@@ -12985,7 +13086,7 @@ private:
         }
       else
         {
-        antscout << " cannot find operation : " << operation << std::endl;
+        antscout << " cannot find 4D operation : " << operation << std::endl;
         }
       }
       break;
