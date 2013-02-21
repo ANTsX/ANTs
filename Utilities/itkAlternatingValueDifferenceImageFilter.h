@@ -46,7 +46,7 @@ class ITK_EXPORT AlternatingValueDifferenceImageFilter :
 {
 public:
   /** Standard class typedefs. */
-  typedef AlternatingValueDifferenceImageFilter           Self;
+  typedef AlternatingValueDifferenceImageFilter         Self;
   typedef ImageToImageFilter<TInputImage, TOutputImage> Superclass;
   typedef SmartPointer<Self>                            Pointer;
   typedef SmartPointer<const Self>                      ConstPointer;
@@ -96,6 +96,12 @@ public:
   /** Get a pointer to the interpolator function. */
   itkGetConstObjectMacro(ControlInterpolator, InterpolatorType);
   itkGetConstObjectMacro(LabelInterpolator, InterpolatorType);
+
+  itkGetObjectMacro(ControlImage, InputImageType);
+  itkGetObjectMacro(LabelImage, InputImageType);
+
+  itkGetObjectMacro(ControlOutputImage, InputImageType);
+  itkGetObjectMacro(LabelOutputImage, InputImageType);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -159,6 +165,10 @@ private:
   InputImagePointer m_ControlImage;
 
   InputImagePointer m_LabelImage;
+
+  InputImagePointer m_ControlOutputImage;
+
+  InputImagePointer m_LabelOutputImage;
 
   InterpolatorPointerType m_ControlInterpolator;    // Image function for
                                                     // interpolation
