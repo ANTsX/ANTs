@@ -98,6 +98,8 @@ public:
   itkGetConstMacro( ElapsedIterations, unsigned int );
   itkSetMacro( SCCANFormulation, SCCANFormulationType );
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
+  itkSetMacro( Silent, bool );
+  itkGetMacro( Silent, bool );
 
   void NormalizeWeights(const unsigned int k );
   void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
@@ -972,6 +974,7 @@ private:
   VectorType ClusterThresholdVariate( VectorType &, ImagePointer mask, unsigned int);
 
   bool       m_Debug;
+  bool       m_Silent;
   MatrixType m_OriginalMatrixP;
   MatrixType m_OriginalMatrixQ;
   MatrixType m_OriginalMatrixR;
