@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
 #include "antsAllocImage.h"
+#include "antsSCCANObject.h"
 #include "itkAlternatingValueDifferenceImageFilter.h"
 #include "itkAlternatingValueSimpleSubtractionImageFilter.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
@@ -60,7 +61,6 @@
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
-#include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelContourImageFilter.h"
@@ -69,11 +69,13 @@
 #include "itkLabeledPointSetFileWriter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkListSample.h"
+#include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMRFImageFilter.h"
 #include "itkMRIBiasFieldCorrectionFilter.h"
 #include "itkMaskImageFilter.h"
 #include "itkMaximumImageFilter.h"
 #include "itkMedianImageFilter.h"
+#include "itkMinimumMaximumImageCalculator.h"
 #include "itkMultiplyImageFilter.h"
 #include "itkMultivariateLegendrePolynomial.h"
 #include "itkNeighborhood.h"
@@ -2393,6 +2395,187 @@ int AverageOverDimension(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int TimeSeriesRegionSCCA(int argc, char *argv[])
+{
+  typedef float                                        PixelType;
+  typedef itk::Image<PixelType, ImageDimension>        InputImageType;
+  typedef itk::Image<unsigned int, ImageDimension>     LabelImageType;
+
+  typedef itk::MinimumMaximumImageCalculator<LabelImageType>  LabelCalculatorType;
+  typedef itk::ants::antsSCCANObject<InputImageType, double>  SCCANType;
+
+  typedef typename SCCANType::MatrixType         MatrixType;
+  typedef typename SCCANType::VectorType         VectorType;
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct++]);
+  std::string operation = std::string(argv[argct++]);
+  std::string labelName = std::string(argv[argct++]);
+  std::string timeName  = std::string(argv[argct++]);
+
+  // FIXME - add option for multi input for combined CCA
+  
+  typename LabelImageType::Pointer labels = NULL;
+  ReadImage<LabelImageType>( labels, labelName.c_str() );
+
+  typename InputImageType::Pointer time = NULL;
+  ReadImage<InputImageType>( time, timeName.c_str() );
+  
+  typename LabelCalculatorType::Pointer calc = LabelCalculatorType::New();
+  calc->SetImage( labels );
+  calc->ComputeMaximum();
+  unsigned int nLabels = calc->GetMaximum();
+  unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
+  unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
+
+  std::cout << "Examining " << nLabels << " regions, covering " 
+            << nVoxels << " voxels " << std::endl;
+
+  unsigned int labelCounts[nLabels];
+
+  for (unsigned int i=0; i<nLabels; i++)
+    {
+    typename LabelImageType::IndexType idx;
+    idx[1] = 0;
+
+    labelCounts[i] = 0;
+    for ( unsigned int v=0; v<nVoxels; v++)
+      {
+      idx[0] = v;
+      if ( labels->GetPixel(idx) == (i+1) )
+        {
+        ++labelCounts[i];
+        }
+      }
+    }
+
+  typename InputImageType::Pointer connmat = InputImageType::New();
+  typename InputImageType::RegionType region;
+  region.SetSize(0,nLabels);
+  region.SetSize(1,nLabels);
+  connmat->SetRegions( region );
+  connmat->Allocate();
+  connmat->FillBuffer(0);
+
+  // Coorelation parameters
+  bool robust = false;
+  unsigned int iterct = 20; 
+  bool useL1 = false;
+  float gradstep = vnl_math_abs( useL1 );
+  bool keepPositive = false;
+  float sparsity = 1.0;
+  unsigned int minClusterSize = 1;
+  unsigned int n_evec = 5;
+  unsigned int minRegionSize = 1;
+
+  // used to rankify matrices if using robust
+  typename SCCANType::Pointer cca_rankify = SCCANType::New();
+
+  for (unsigned int i=0; i<nLabels; i++)
+    {
+    typename LabelImageType::IndexType idx;
+    idx[1] = 0;
+
+    MatrixType P(nTimes, labelCounts[i], 0.0);
+
+    unsigned int iCount = 0;
+    for ( unsigned int v=0; v<nVoxels; v++)
+      {
+      idx[0] = v;
+      typename InputImageType::IndexType timeIdx;
+      timeIdx[1] = v;
+      
+      if ( labels->GetPixel(idx) == (i+1) )
+        {
+        for ( unsigned int t=0; t<nTimes; t++)
+          {
+          timeIdx[0] = t;
+          P(t,iCount) = time->GetPixel(timeIdx);
+          }
+        ++iCount;
+        }
+      }
+      
+    if ( robust && ( labelCounts[i] >= minRegionSize)  )
+      {
+      P = cca_rankify->RankifyMatrixColumns(P);
+      }
+      
+
+    if ( labelCounts[i] >= minRegionSize ) 
+      {
+      for ( unsigned int j=i+1; j<nLabels; j++)
+        {
+        MatrixType Q(nTimes, labelCounts[j], 0.0);
+        typename LabelImageType::IndexType idx2;
+        idx2[1] = 0;
+        
+        unsigned int jCount = 0;
+        for (unsigned int v2=0; v2<nVoxels; v2++)
+          {
+          idx2[0] = v2; 
+          typename InputImageType::IndexType timeIdx2;
+          timeIdx2[1] = v2;
+          
+          if ( labels->GetPixel(idx2) == (j+1) )
+            {
+            for ( unsigned int t2=0; t2<nTimes; t2++)
+              {
+              timeIdx2[0] = t2;
+              Q(t2,jCount) = time->GetPixel(timeIdx2);
+              }
+            ++jCount;
+            }
+          }
+        
+        if ( robust )
+          {
+          Q = cca_rankify->RankifyMatrixColumns(Q);
+          }
+        
+        if ( labelCounts[j] >= minRegionSize)
+          {
+          
+          // Correlation magic goes here
+          typename SCCANType::Pointer cca = SCCANType::New();
+          cca->SetSilent( true );
+          cca->SetMaximumNumberOfIterations(iterct);      
+          cca->SetUseL1( useL1 );
+          cca->SetGradStep( gradstep );
+          cca->SetKeepPositiveP( keepPositive );
+          cca->SetKeepPositiveQ( keepPositive );
+          cca->SetFractionNonZeroP( sparsity );
+          cca->SetFractionNonZeroQ( sparsity );
+          cca->SetMinClusterSizeP( minClusterSize );
+          cca->SetMinClusterSizeQ( minClusterSize );
+          cca->SetMatrixP( P );
+          cca->SetMatrixQ( Q );
+          
+          // is truecorr just sccancorrs[0]?
+          double truecorr = cca->SparsePartialArnoldiCCA(n_evec);
+          VectorType sccancorrs = cca->GetCanonicalCorrelations();
+          
+          typename InputImageType::IndexType connIdx;
+          connIdx[0] = i;
+          connIdx[1] = j;
+          connmat->SetPixel( connIdx, sccancorrs[0] );
+          connIdx[0] = j;
+          connIdx[1] = i;
+          connmat->SetPixel( connIdx, sccancorrs[0] );
+          
+          }
+
+        }
+      }
+    }
+
+    WriteImage<InputImageType>(connmat, outname.c_str() );
+    
+    return 0;
+}
+
+
+template <unsigned int ImageDimension>
 int PASLQuantifyCBF(int argc, char *argv[])
 {
   typedef float                                 PixelType;
@@ -2482,6 +2665,7 @@ int PASLQuantifyCBF(int argc, char *argv[])
 template <unsigned int ImageDimension>
 int PCASLQuantifyCBF(int argc, char *argv[])
 {
+  /*
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, ImageDimension> TimeImageType;
   typedef itk::Image<PixelType, ImageDimension-1> ImageType;
@@ -2553,7 +2737,7 @@ int PCASLQuantifyCBF(int argc, char *argv[])
   getCBF->Update();
 
   WriteImage<TimeImageType>( getCBF->GetOutput(), outname.c_str() );
-
+  */
   return 0;
 }
 
@@ -12282,6 +12466,10 @@ private:
         {
         BlobDetector<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "TimeSeriesRegionSCCA") == 0 )
+        {
+        TimeSeriesRegionSCCA<2>(argc, argv);
+        }
       //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
         {
@@ -13038,7 +13226,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "PCASLQuantifyCBF") == 0 )
         {
-        PCASLQuantifyCBF<4>(argc, argv);
+        //PCASLQuantifyCBF<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PASL") == 0 )
         {
