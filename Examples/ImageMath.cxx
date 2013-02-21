@@ -4467,6 +4467,7 @@ int ImageMath(int argc, char *argv[])
     }
 
   float    result = 0;
+  unsigned long ct = 0;
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
@@ -4537,12 +4538,21 @@ int ImageMath(int argc, char *argv[])
       {
       result += pix1 * pix2;
       }
-
+    else if( strcmp(operation.c_str(), "mean") == 0 )
+      {
+      result += pix1 * pix2;
+      ct++;
+      }
+    
     vfIter2.Set(result);
     }
   if( strcmp(operation.c_str(), "total") == 0 )
     {
     antscout << "total: " << result << " total-volume: " << result * volumeelement << std::endl;
+    }
+  else if( strcmp(operation.c_str(), "mean") == 0 )
+    {
+    antscout << result/ct << std::endl;
     }
   else
     {
@@ -8954,7 +8964,7 @@ int ROIStatistics(      int argc, char *argv[])
       masses[(unsigned long) label] = masses[(unsigned long) label] + vv;
       }
     }
-  logfile << "ROIName,ROINumber,ClusterSize,Mass,comX,comY,comZ,comT" << std::endl;
+  logfile << "ROIName,ROINumber,ClusterSize,Mass,Mean,comX,comY,comZ,comT" << std::endl;
   //  for( it = myLabelSet.begin(); it != myLabelSet.end(); ++it )
   for( unsigned int mylabel = 1; mylabel < maxlab + 1; mylabel++ )
     {
@@ -9016,7 +9026,7 @@ int ROIStatistics(      int argc, char *argv[])
       logfile << roimap[roi] << "," << roi + 1 << ","
               << clusters[roi
                   + 1] << ","
-              << masses[roi + 1] << "," << comx << "," << comy << "," << comz << "," << comt << std::endl;
+              << masses[roi + 1] << "," << masses[roi + 1]/clusters[roi+1] << "," << comx << "," << comy << "," << comz << "," << comt << std::endl;
       }
     }
   logfile.close();
@@ -11457,10 +11467,16 @@ private:
     antscout
       << "  total            : Sums up values in an image or in image1*image2 (img2 is the probability mask)"
       << std::endl;
+    antscout
+      << "  mean            :  Average of values in an image or in image1*image2 (img2 is the probability mask)"
+      << std::endl;
+    antscout
+      << "  vtotal            : Sums up volumetrically weighted values in an image or in image1*image2 (img2 is the probability mask)"
+      << std::endl;
     antscout << "  Decision        : Computes result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))" << std::endl;
     antscout << "  Neg            : Produce image negative" << std::endl;
 
-    antscout << "\nSpatial Filtering:" << std::endl;
+    antscout << "\nSpatial Filtering:" <<  std::endl;
     antscout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s" << std::endl;
     antscout << "  MD Image1.ext s    : Morphological Dilation with radius s" << std::endl;
     antscout << "  ME Image1.ext s    : Morphological Erosion with radius s" << std::endl;
@@ -11928,6 +11944,14 @@ private:
         {
         ImageMath<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "vtotal") == 0 )
+        {
+        ImageMath<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "mean") == 0 )
+        {
+        ImageMath<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "Decision") == 0 )
         {
         ImageMath<2>(argc, argv);
@@ -12251,6 +12275,14 @@ private:
         ImageMath<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "total") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "vtotal") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "mean") == 0 )
         {
         ImageMath<3>(argc, argv);
         }
@@ -12663,6 +12695,14 @@ private:
         ImageMath<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "total") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "vtotal") == 0 )
+        {
+        ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "mean") == 0 )
         {
         ImageMath<4>(argc, argv);
         }
