@@ -1748,13 +1748,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
     {
     VectorType x_i = this->m_MatrixP.get_row( a );
-    //    ::ants::antscout << "indat " << x_i.mean() << std::endl;
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
-    this->SparsifyOther( lmsolv , 0.5 , false );
+    //    this->SparsifyOther( lmsolv , 0.5 , false );
     //    vnl_svd<RealType> lmsolver( this->m_VariatesP, 1.e-6 );
     //    lmsolv = lmsolver.solve( x_i );
-    //    ::ants::antscout << "lmsolv " << lmsolv << std::endl;
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();
@@ -4594,7 +4592,7 @@ bool antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column( j );
       qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
       }
-    RealType smooth = 0.0;
+    RealType smooth = 1.0;
     pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
     qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
     this->SparsifyP( pveck );
