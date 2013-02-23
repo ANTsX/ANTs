@@ -808,7 +808,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     else
       {
-      smoothingSigmasAreInPhysicalUnitsList.push_back( true );
+      smoothingSigmasAreInPhysicalUnitsList.push_back( false );
       }
 
     std::vector<float> sigmas = parser->ConvertVector<float>( smoothingSigmasString );

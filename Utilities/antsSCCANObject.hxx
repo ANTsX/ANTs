@@ -35,6 +35,8 @@
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkSurfaceImageCurvature.h"
+#include "itkImageFileWriter.h"
+
 namespace itk
 {
 namespace ants
@@ -47,6 +49,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_MinClusterSizeQ = 1;
   this->m_KeptClusterSize = 0;
   this->m_Debug = false;
+  this->m_Silent = false;
   this->m_CorrelationForSignificanceTest = 0;
   this->m_SpecializationForHBM2011 = false;
   this->m_AlreadyWhitened = false;
@@ -3168,8 +3171,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SortResults( n_vecs );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / n_vecs;
-    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
-                     << std::endl;
+    if ( ! m_Silent ) 
+      {
+      ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
+                       << std::endl;
+      }
     if( energy < lastenergy )
       {
       energyincreases = false;
@@ -4762,8 +4768,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
-  ::ants::antscout << " arnoldi sparse partial cca : L1?" << this->m_UseL1 << " GradStep " << this->m_GradStep
+  if ( ! m_Silent )
+    {
+    ::ants::antscout << " arnoldi sparse partial cca : L1?" << this->m_UseL1 << " GradStep " << this->m_GradStep
                      <<  "  p+ " << this->GetKeepPositiveP() << " q+ " << this->GetKeepPositiveQ() << std::endl;
+    }
   this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
   this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
   this->m_MatrixR =  this->NormalizeMatrix( this->m_OriginalMatrixR, false );
@@ -4790,7 +4799,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
-  ::ants::antscout << "Initialization: " << this->InitializeSCCA_simple( n_vecs ) << std::endl;
+  if ( !m_Silent ) 
+    {
+    ::ants::antscout << "Initialization: " << this->InitializeSCCA_simple( n_vecs ) << std::endl;
+    }
   /*
   RealType     bestcorr = this->InitializeSCCA_simple( n_vecs );
   RealType     totalcorr = 0;
@@ -4824,7 +4836,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
     // if( this->m_Debug ) 
-    ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
+    if ( ! m_Silent )
+      {
+      ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
+      }
     if( this->m_GradStep < 1.e-12 || ( vnl_math_abs( energy - lastenergy ) < 1.e-8  && !changedgrad ) )
       {
       energyincreases = false;
