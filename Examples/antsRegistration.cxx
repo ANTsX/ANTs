@@ -305,7 +305,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description = std::string( "Specify the sigma of gaussian smoothing at each level.  " )
       + std::string( "Units are given in terms of voxels (\'vox\') or physical spacing (\'mm\'). " )
-      + std::string( "Example usage is \'4x2x1mm\' and \'4x2x1vox\' where no units implies physical spacing." );
+      + std::string( "Example usage is \'4x2x1mm\' and \'4x2x1vox\' where no units implies voxel spacing." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "smoothing-sigmas" );
