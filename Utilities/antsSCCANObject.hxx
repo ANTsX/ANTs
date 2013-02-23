@@ -1740,7 +1740,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 {
   RealType reconerr = 0;
   RealType onenorm = 0;
-
+  MatrixType temp( this->m_MatrixP );
   icept.fill( 0 );
   RealType meancorr = 0;
   matrixB.set_size( this->m_MatrixP.rows(), this->m_VariatesP.cols() );
@@ -1751,17 +1751,17 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     //    ::ants::antscout << "indat " << x_i.mean() << std::endl;
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
+    this->SparsifyOther( lmsolv , 0.5 , false );
     //    vnl_svd<RealType> lmsolver( this->m_VariatesP, 1.e-6 );
     //    lmsolv = lmsolver.solve( x_i );
-    //    ::ants::antscout << "lmsolv " << lmsolv.mean() << std::endl;
+    //    ::ants::antscout << "lmsolv " << lmsolv << std::endl;
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
-    //    ::ants::antscout << "x_recon " << x_recon.mean() << std::endl;
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();
     reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
     matrixB.set_row( a, lmsolv );
     RealType localcorr = this->PearsonCorr( x_recon, x_i  );
-    //    ::ants::antscout << "loccorr " << localcorr << std::endl;
+    temp.set_row( a, x_recon );
     meancorr += localcorr;
     }
   ::ants::antscout << "Corr: " << meancorr / this->m_MatrixP.rows()  << std::endl;
@@ -1783,7 +1783,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     writer->SetInput( &recon );
     writer->Write();
     }
-  RealType rr = ( onenorm - reconerr ) / onenorm;
+  RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
+  RealType rr = ( temp - this->m_MatrixP ).frobenius_norm();
+  return ( 1.0 - rr * rr / ( matpfrobnorm * matpfrobnorm ) );
+  //  RealType rr = ( onenorm - reconerr ) *  ( onenorm - reconerr ) / ( onenorm * onenorm );
   return rr;
 }
 

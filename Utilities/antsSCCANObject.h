@@ -735,6 +735,11 @@ protected:
       }
   }
 
+  void SparsifyOther( VectorType& x_k1 , RealType fnp, bool keeppos )
+  {
+    this->Sparsify( x_k1, fnp, keeppos , 0, NULL);
+  }
+
   void SparsifyP( VectorType& x_k1 )
   {
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
