@@ -124,16 +124,18 @@ int main( int argc, char * * argv )
 
   char tfn[1024];
   sprintf(tfn, "%s-AdaBoostResults-param-Tlabel0", argv[3]);
-  ifstream ifs( tfn, ifstream::in );
   double   initt;
-  if( !ifs.good() )
     {
-    initt = 0.5;
-    }
-  else
-    {
-    initt = 0;
-    ifs.close();
+    ifstream initt_ifs( tfn, ifstream::in );
+    if( !initt_ifs.good() )
+      {
+      initt = 0.5;
+      }
+    else
+      {
+      initt = 0;
+      initt_ifs.close();
+      }
     }
   for( csegit.GoToBegin(), nsegit.GoToBegin(), asegit.GoToBegin(); !csegit.IsAtEnd(); ++csegit, ++nsegit, ++asegit )
     {
@@ -229,7 +231,6 @@ int main( int argc, char * * argv )
       threshold.push_back(t);
       ifs >> t;
       }
-
     ifs.close();
     LC = alpha.size();
     cout << "#weak learners: " << LC << endl;

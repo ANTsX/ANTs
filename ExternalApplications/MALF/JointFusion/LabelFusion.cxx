@@ -393,10 +393,12 @@ int lfapp(int argc, char *argv[])
     }
 
   // Create writer
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetInput(target);
-  writer->SetFileName(p.fnOutput.c_str() );
-  writer->Update();
+    {
+    typename WriterType::Pointer target_writer = WriterType::New();
+    target_writer->SetInput(target);
+    target_writer->SetFileName(p.fnOutput.c_str() );
+    target_writer->Update();
+    }
 
   // Finally, store the posterior maps
   if( p.fnPosterior.size() )
@@ -427,11 +429,13 @@ int lfapp(int argc, char *argv[])
         pout->SetPixel(qt.GetIndex(), qt.Get() );
         }
 
-      // Create writer
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput(pout);
-      writer->SetFileName(buffer);
-      writer->Update();
+        {
+        // Create writer
+        typename WriterType::Pointer pout_writer = WriterType::New();
+        pout_writer->SetInput(pout);
+        pout_writer->SetFileName(buffer);
+        pout_writer->Update();
+        }
       }
     }
 
