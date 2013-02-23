@@ -105,8 +105,7 @@ PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TRe
   while( !outIt.IsAtEnd() )
     {
     // account for delay between acquisition of slices
-    float TI = ( this->m_TI2 - this->m_TI1)
-      + this->m_SliceDelay * (outIt.GetIndex()[2] - 1);
+    // const float TI = ( this->m_TI2 - this->m_TI1) + this->m_SliceDelay * (outIt.GetIndex()[2] - 1);
 
     typename ReferenceImageType::IndexType idx;
     for ( unsigned int i=0; i<ReferenceImageDimension; i++)
