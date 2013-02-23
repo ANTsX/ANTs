@@ -27,6 +27,7 @@
 #include <fstream>
 #include <stdio.h>
 
+#include "itkTransformFactory.h"
 #include "itkAffineTransform.h"
 #include "itkTranslationTransform.h"
 #include "itkIdentityTransform.h"
@@ -327,6 +328,8 @@ int ConvertTransformFile(int argc, char* argv[])
   // Read the transform
   typedef itk::Transform<double, ImageDimension, ImageDimension> TransformType;
   typename TransformType::Pointer transform;
+  typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> baseTransformType;
+  itk::TransformFactory<baseTransformType>::RegisterTransform();
   transform = itk::ants::ReadTransform<ImageDimension>( inputFilename );
   if( transform.IsNull() )
     {
