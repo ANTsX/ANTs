@@ -420,12 +420,10 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
 //  typedef itk::Image<VectorType,itkGetStaticConstMacro(ImageDimension)>     FieldType;
 // ::ants::antscout << " warp file name " << warpfn + ext << std::endl;
 
-  std::string fn = "";
-
 // First - read the vector fields
 // NOTE : THE FIELD SHOULD WARP INPUT1 TO INPUT2, THUS SHOULD POINT
 // FROM INPUT2 TO INPUT1
-  fn = warpfn + "x" + ext;
+  std::string fn = warpfn + "x" + ext;
   typename RealImageType::Pointer xvec = ReadImage<ImageType>( (char *)fn.c_str() );
   //  ::ants::antscout << " done reading " << fn << std::endl;
   fn = warpfn + "y" + ext;

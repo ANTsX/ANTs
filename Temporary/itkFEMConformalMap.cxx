@@ -333,7 +333,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   pt_ptr = &pt;
 
   bool inimage;
-  for(  itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin(); elt != m_Solver.el.end(); elt++ )
+  for(  itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin(); elt != m_Solver.el.end(); ++elt )
     {
     unsigned int Nnodes = (*elt)->GetNumberOfNodes();
     inimage = true;
@@ -436,7 +436,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   PointType* pt_ptr;
   PointType  pt;
   pt_ptr = &pt;
-  for(  itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin(); elt != m_Solver.el.end(); elt++ )
+  for(  itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin(); elt != m_Solver.el.end(); ++elt )
     {
     unsigned int Nnodes = (*elt)->GetNumberOfNodes();
 
@@ -526,7 +526,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   PointType* pt_ptr;
   PointType  pt;
   pt_ptr = &pt;
-  for(  itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin(); elt != m_Solver.el.end(); elt++ )
+  for(  itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin(); elt != m_Solver.el.end(); ++elt )
     {
     unsigned int Nnodes = (*elt)->GetNumberOfNodes();
 
@@ -596,7 +596,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
   unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
   dofsperelt = (*elt)->GetNumberOfDegreesOfFreedomPerNode() * Nnodes;
-  for( ; elt != m_Solver.el.end(); elt++ )
+  for( ; elt != m_Solver.el.end(); ++elt )
     {
     for( unsigned int nd = 0; nd < Nnodes; nd++ )
       {
@@ -991,7 +991,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   unsigned int ngfn = 0, dof;
 
 //  ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin();
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
     {
     dof = (*n)->GetDegreeOfFreedom(0);
     float x = m_RealSolution[dof];
@@ -1075,12 +1075,12 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 
   if( m_Debug )
     {
-    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
       {
       ::::ants::antscout << "Node#: " << (*n)->GN << ": ";
       ::::ants::antscout << " coord " << (*n)->GetCoordinates() << std::endl;
       }
-    for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
+    for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); ++n )
       {
       ::::ants::antscout << "Elt#: " << (*n)->GN << ": has " << (*n)->GetNumberOfNodes() << " nodes ";
       for( int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
@@ -1166,7 +1166,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
       ::::ants::antscout << "\nNodal displacements:\n";
       }
     unsigned int ct = 0;
-    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
       {
       if( m_Debug )
         {
@@ -1241,7 +1241,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     scs = pd->GetScalars();
     }
   typename TImage::SpacingType spacing = image->GetSpacing();
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
     {
     // extrinisic coords
     VectorType loc = (*n)->GetCoordinates();
@@ -1297,7 +1297,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   vtkCellArray* tris2 = vtkCellArray::New();
 
   ::::ants::antscout << " start with tris " << std::endl;
-  for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
+  for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); ++n )
     {
     tris1->InsertNextCell(3);
     tris2->InsertNextCell(3);

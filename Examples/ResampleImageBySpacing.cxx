@@ -147,8 +147,7 @@ private:
 
         GaussianFilterType::Pointer smootherX = GaussianFilterType::New();
         smootherX->SetInput( smoothedImage );
-        float sig = 0;
-        sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
+        const float sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
         antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );
@@ -286,8 +285,7 @@ private:
 
         GaussianFilterType::Pointer smootherX = GaussianFilterType::New();
         smootherX->SetInput( smoothedImage );
-        float sig = 0;
-        sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
+        const float sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
         antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );

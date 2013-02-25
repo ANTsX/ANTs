@@ -1,5 +1,3 @@
-
-
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include <algorithm>
@@ -196,7 +194,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   typename FloatImageType::RegionType m_JacobianRegion;
   typename FloatImageType::Pointer mask = NULL;
   typename FieldType::PixelType pvec;
-  if( v.size() > 0 )
+  if( !v.empty() )
     {
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
@@ -316,7 +314,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
       {
       ct++;
       cpix = TransformVector<ImageType, FieldType>(field, rindex);
-      if( v.size() > 0 )
+      if( !v.empty() )
         {
         cpix = ProjectVector<ImageType, FieldType>(cpix, pvec);
         }
@@ -341,13 +339,13 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
         space = 1.0; // should use image spacing here?
 
         rpix = TransformVector<ImageType, FieldType>(field, difIndex[row][1]);
-        if( v.size() > 0 )
+        if( !v.empty() )
           {
           rpix = ProjectVector<ImageType, FieldType>(rpix, pvec);
           }
         rpix = rpix * h + cpix * (1. - h);
         lpix = TransformVector<ImageType, FieldType>(field, difIndex[row][0]);
-        if( v.size() > 0 )
+        if( !v.empty() )
           {
           lpix = ProjectVector<ImageType, FieldType>(lpix, pvec);
           }

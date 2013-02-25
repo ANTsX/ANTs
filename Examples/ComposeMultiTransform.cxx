@@ -367,10 +367,9 @@ private:
   char *output_image_filename = NULL;
   char *reference_image_filename = NULL;
 
-  bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = ComposeMultiTransform_ParseInput(argc - 2, argv + 2, output_image_filename,
+  const bool is_parsing_ok = ComposeMultiTransform_ParseInput(argc - 2, argv + 2, output_image_filename,
                                                    reference_image_filename, opt_queue);
 
   if( is_parsing_ok )
