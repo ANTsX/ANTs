@@ -27,7 +27,7 @@
 
 namespace ants
 {
-void PrintCommandLineHelp( const std::string progName )
+void PrintCommandLineHelp( const std::string & progName )
 {
   antscout <<  " \n " << std::endl;
   antscout <<  "Example usage: \n " << std::endl;

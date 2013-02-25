@@ -116,15 +116,13 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
     stats->SetInput(reader->GetOutput() );
     stats->Update();
 
-    unsigned int label = 1;
-    label = (argc >= 6) ? atoi(argv[5]) : 1;
+    unsigned int label = (argc >= 6) ? atoi(argv[5]) : 1;
     region = stats->GetRegion(label);
 
     antscout << "bounding box of label=" << label
              << " : " << region << std::endl;
 
-    unsigned int padWidth = 0;
-    padWidth = (argc >= 7) ? atoi(argv[6]) : 0;
+    unsigned int padWidth = (argc >= 7) ? atoi(argv[6]) : 0;
 
     region.PadByRadius(padWidth);
 
