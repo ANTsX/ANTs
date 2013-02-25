@@ -4800,9 +4800,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
+  RealType initReturn = this->InitializeSCCA_simple( n_vecs );
   if ( !m_Silent ) 
     {
-    ::ants::antscout << "Initialization: " << this->InitializeSCCA_simple( n_vecs ) << std::endl;
+    ::ants::antscout << "Initialization: " << initReturn << std::endl;
     }
   /*
   RealType     bestcorr = this->InitializeSCCA_simple( n_vecs );
