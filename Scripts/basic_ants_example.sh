@@ -5,7 +5,7 @@ if [ $# -lt 5 ] ; then
 echo this script will allow you to run \( Reg \) a pairwise segmentation,  \( RegSegPSE or RegSegMSQ \) or  run segmentation, then use segmentation output in registration or \( BTP \) build a template.
 echo you call the script like this
 echo $0 ImageDimensionality Opt OutputPrefix  r16slice.nii.gz r64slice.nii.gz
-echo where Opt is Reg , RegSeg , BTP
+echo where Opt is Reg , RegSeg , BTP , RegSegPSE
 echo
 echo should work for 2D or 3D images.
 echo

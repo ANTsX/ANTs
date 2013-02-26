@@ -69,3 +69,6 @@ configure_file(${CMAKE_CURRENT_LIST_DIR}/CTestCustom.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake COPYONLY)
 
 add_subdirectory(Examples)
+if(BUILD_EXTERNAL_APPLICATIONS)
+  add_subdirectory(ExternalApplications)
+endif()

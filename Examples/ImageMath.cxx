@@ -2365,9 +2365,8 @@ int AverageOverDimension(int argc, char *argv[])
   if ( argc < 6 )
     {
     antscout << "Usage: ImageMath 4 average.nii.gz AverageOverDimension time.nii.gz dimension" << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
-
   int          argct = 2;
   std::string  outname = std::string(argv[argct++]);
   std::string  operation = std::string(argv[argct++]);
@@ -2407,6 +2406,10 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   typedef typename SCCANType::MatrixType         MatrixType;
   typedef typename SCCANType::VectorType         VectorType;
 
+  if(argc < 6)
+    {
+    return EXIT_FAILURE;
+    }
   int         argct = 2;
   std::string outname = std::string(argv[argct++]);
   std::string operation = std::string(argv[argct++]);
@@ -2465,7 +2468,6 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   bool keepPositive = false;
   float sparsity = 1.0;
   unsigned int minClusterSize = 1;
-  unsigned int n_evec = 5;
   unsigned int minRegionSize = 1;
 
   // used to rankify matrices if using robust
@@ -2552,7 +2554,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
           cca->SetMatrixQ( Q );
           
           // is truecorr just sccancorrs[0]?
-          double truecorr = cca->SparsePartialArnoldiCCA(n_evec);
+          // const double truecorr = cca->SparsePartialArnoldiCCA(n_evec);
           VectorType sccancorrs = cca->GetCanonicalCorrelations();
           
           typename InputImageType::IndexType connIdx;
@@ -2663,15 +2665,18 @@ int PASLQuantifyCBF(int argc, char *argv[])
 
 
 template <unsigned int ImageDimension>
-int PCASLQuantifyCBF(int argc, char *argv[])
+int PCASLQuantifyCBF(int argc, char *  /*NOT USED argv*/[])
 {
+  if ( argc < 6 )
+  {
+  return EXIT_FAILURE;
+  }
   /*
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, ImageDimension> TimeImageType;
   typedef itk::Image<PixelType, ImageDimension-1> ImageType;
 
-  typedef itk::PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TimeImageType, ImageType, TimeImageType>
-    FilterType;
+  typedef itk::PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TimeImageType, ImageType, TimeImageType> FilterType;
   int         argct = 2;
   std::string outname = std::string(argv[argct++]);
   std::string operation = std::string(argv[argct++]);  

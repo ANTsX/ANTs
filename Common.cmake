@@ -8,6 +8,9 @@ include(CMakeDependentOption)
 option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
 set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
+option(BUILD_EXTERNAL_APPLICATIONS "Build applications that are bundled with ANTs for convenience." ON)
+set(BUILD_EXTERNAL_APPLICATIONS ${BUILD_EXTERNAL_APPLICATIONS})
+
 set(ITK_VERSION_MAJOR 4 CACHE STRING "Choose the expected ITK major version to build ANTS (only ITKv4 supported).")
 # Set the possible values of ITK major version for cmake-gui
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "4")
