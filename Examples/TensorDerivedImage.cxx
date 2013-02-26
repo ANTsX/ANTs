@@ -168,10 +168,6 @@ private:
         {
         tr = 0;
         }
-      if( tr != tr )
-        {
-        tr = 0;
-        }
       if( outType == "TR" )
         {
         outImage->SetPixel(inputIt.GetIndex(), tr);

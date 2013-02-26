@@ -384,7 +384,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> Iterator;
   image_avg->FillBuffer(0);
   unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  if( timelist.size() == 0 )
+  if( timelist.empty() )
     {
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
@@ -888,11 +888,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           antscout << " not employing scales estimator " << scalesFunction << std::endl;
           }
         }
+      /*
       double small_step = 0;
       for( unsigned int i = 0; i < ImageDimension; i++ )
         {
         small_step += fixed_time_slice->GetSpacing()[i] * fixed_time_slice->GetSpacing()[i];
         }
+      */
       optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
       optimizer->SetDoEstimateLearningRateOnce( doEstimateLearningRateOnce );
       optimizer->SetDoEstimateLearningRateAtEachIteration( !doEstimateLearningRateOnce );

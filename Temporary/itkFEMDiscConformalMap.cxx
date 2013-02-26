@@ -779,7 +779,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   this->m_DiscBoundarySorter.resize(gsz, 0);
   for( unsigned int j = 0; j < gsz; j++ )
     {
-    float inb = 0;
     if( manifoldIntegrator->GetGraphNode(j) )
       {
       float cost = manifoldIntegrator->GetGraphNode(j)->GetTotalCost();
@@ -789,6 +788,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
         }
       if(  fabs( manifoldIntegrator->GetGraphNode(j)->GetValue(3) - label ) < 0.5 && cost <= this->m_MaxCost )
         {
+        float inb = 0;
         for( unsigned int i = 0; i < manifoldIntegrator->GetGraphNode(j)->m_NumberOfNeighbors; i++ )
           {
           if(  fabs( manifoldIntegrator->GetGraphNode(j)->m_Neighbors[i]->GetValue(3) - label ) > 0.5 )
@@ -1063,14 +1063,9 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::FixBoundaryPoints(unsigned int option)
 {
 //  if (dim > 3 || dim < -3 || dim == 0 ) return;
-
-  unsigned int dofsperelt;
-
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
   unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
   unsigned int                           dofs = (*elt)->GetNumberOfDegreesOfFreedomPerNode();
-
-  dofsperelt = dofs * Nnodes;
 
   int fixct = 0;
   int eltct = 0;
@@ -1128,7 +1123,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
         // std::endl;
         }
       }
-    elt++;
+    ++el;
     eltct++;
     }
 
@@ -1217,7 +1212,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::MakeFlatImage()
   int maxits = 100;
   for( int its = 0; its <= maxits; its++ )
     {
-    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
       {
       float temp = 255.0 - manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(3); // curvature
       //      float temp=255.0*manifoldIntegrator->GetGraphNode((*n)->GN)->GetValue(2); // extrinsic dist
@@ -1311,7 +1306,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float
 
   vtkIdTypeArray* paramPoints = vtkIdTypeArray::New();
   paramPoints->SetName("points");
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
     {
     loctype loc = manifoldIntegrator->GetGraphNode( (*n)->GN)->GetLocation();
     float   pt1[3];
@@ -1327,8 +1322,8 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float
 
     //    temp=m_RealSolution[(*n)->GN]*255.0;
     //    temp=( (unsigned int) this->InBorder(manifoldIntegrator->GetGraphNode((*n)->GN)) )*255;
-    float temp = manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(3); // for curvature
-    temp = features->GetTuple1( (*n)->GN);
+    //    float temp = manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(3); // for curvature
+    float temp = features->GetTuple1( (*n)->GN);
     //    float temp=manifoldIntegrator->GetGraphNode((*n)->GN)->GetValue(1)*255; // for curvature
     float temp2 = manifoldIntegrator->GetGraphNode( (*n)->GN)->GetValue(0) * 255; // for length
     param->InsertNextValue(temp);
@@ -1346,7 +1341,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>::BuildOutputMeshes(float
   vtkCellArray* tris2 = vtkCellArray::New();
 
   ::::ants::antscout << " start with tris " << std::endl;
-  for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
+  for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); ++n )
     {
     tris1->InsertNextCell(3);
     tris2->InsertNextCell(3);
@@ -1408,7 +1403,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
       {
       m_Solver.Read(f);
       }
-    catch( ::itk::fem::FEMException e )
+    catch( ::itk::fem::FEMException & e )
       {
       ::::ants::antscout << "Error reading FEM problem: " << filename << "!\n";
       e.Print(::::ants::antscout);
@@ -1441,13 +1436,13 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   m_Debug = false;
   if( m_Debug )
     {
-    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+    for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
       {
       ::::ants::antscout << "Node#: " << (*n)->GN << ": ";
       ::::ants::antscout << " coord " << (*n)->GetCoordinates()
                          << " coord2 " << manifoldIntegrator->GetGraphNode( (*n)->GN)->GetLocation() << std::endl;
       }
-    for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); n++ )
+    for( ::itk::fem::Solver::ElementArray::iterator n = m_Solver.el.begin(); n != m_Solver.el.end(); ++n )
       {
       ::::ants::antscout << "Elt#: " << (*n)->GN << ": has " << (*n)->GetNumberOfNodes() << " nodes ";
       for( unsigned int i = 0; i < (*n)->GetNumberOfNodes(); i++ )
@@ -1479,7 +1474,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   ::::ants::antscout << " e solve ";
   m_Solver.UpdateDisplacements(); // copies solution to nodes
   unsigned long ct  =  0;
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
     {
     for( unsigned int d = 0, dof; (dof = (*n)->GetDegreeOfFreedom(d) ) != ::itk::fem::Element::InvalidDegreeOfFreedomID;
          d++ )
@@ -1507,7 +1502,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   m_Solver.Solve();
   m_Solver.UpdateDisplacements(); // copies solution to nodes
   unsigned long ct = 0;
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
     {
     for( unsigned int d = 0, dof; (dof = (*n)->GetDegreeOfFreedom(d) ) != ::itk::fem::Element::InvalidDegreeOfFreedomID;
          d++ )
@@ -1544,7 +1539,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
   // backtrack everywhere to set up forweard tracking
   float maxmanifolddist = 0;
-  float meanmanifolddist = 0;
   float distDistortion = 0;
 
   unsigned int ct = 0;
@@ -1555,7 +1549,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
       if( manifoldIntegrator->GetGraphNode(i)->GetTotalCost() <= manifoldIntegrator->GetMaxCost() )
         {
         float ttt = manifoldIntegrator->GetGraphNode(i)->GetValue(2);
-        meanmanifolddist += ttt;
         if( ttt > maxmanifolddist )
           {
           maxmanifolddist = ttt;
@@ -1564,18 +1557,15 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
         }
       }
     }
-  meanmanifolddist /= (float)ct;
   ct = 0;
   for( int i = 0; i < manifoldIntegrator->GetGraphSize(); i++ )
     {
-    float manifolddist;
-    float rad;
     if( manifoldIntegrator->GetGraphNode(i) )
       {
       if( manifoldIntegrator->GetGraphNode(i)->GetTotalCost() < manifoldIntegrator->GetMaxCost() )
         {
-        rad = manifoldIntegrator->GetGraphNode(i)->GetValue(0);
-        manifolddist = manifoldIntegrator->GetGraphNode(i)->GetValue(2) / maxmanifolddist;
+        const float rad = manifoldIntegrator->GetGraphNode(i)->GetValue(0);
+        const float manifolddist = manifoldIntegrator->GetGraphNode(i)->GetValue(2) / maxmanifolddist;
         manifoldIntegrator->GetGraphNode(i)->SetValue(manifolddist, 2);
         distDistortion += fabs(rad - manifolddist);
         ct++;
@@ -1611,7 +1601,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
   unsigned long ct  = 0;
 
-  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); n++ )
+  for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
     {
     ct++;
     unsigned long dof = (*n)->GetDegreeOfFreedom(0);

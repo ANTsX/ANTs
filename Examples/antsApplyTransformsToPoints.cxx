@@ -365,27 +365,6 @@ private:
     }
 
   // Read in the first intensity image to get the image dimension.
-  std::string filename;
-
-  itk::ants::CommandLineParser::OptionType::Pointer inputOption =
-    parser->GetOption( "input" );
-  if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
-    {
-    if( inputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-      {
-      filename = inputOption->GetFunction( 0 )->GetParameter( 0 );
-      }
-    else
-      {
-      filename = inputOption->GetFunction( 0 )->GetName();
-      }
-    }
-  else
-    {
-    antscout << "No csv file point set was specified." << std::endl;
-    return EXIT_FAILURE;
-    }
-
   unsigned int                                      dimension = 3;
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );

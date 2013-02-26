@@ -87,7 +87,6 @@ int  LabelUniquely(int argc, char *argv[])
     throw;
     }
   std::string fn1 = std::string(argv[1]);
-  std::string fn2 = std::string(argv[2]);
   float       clusterthresh = atof(argv[3]);
 
   typename ImageType::Pointer image1 = NULL;

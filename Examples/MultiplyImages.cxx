@@ -59,7 +59,6 @@ int MultiplyImages(int argc, char *argv[])
 
   std::string fn1 = std::string(argv[2]);
   std::string fn2 = std::string(argv[3]);
-  std::string outname = std::string(argv[4]);
 
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;

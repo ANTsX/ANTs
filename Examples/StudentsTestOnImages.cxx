@@ -231,7 +231,6 @@ void computePermStatPval(int numFeatures, int numPerms,
     qsort(sortPermStat, numPerms, sizeof(StatElement),
           (int (*)(const void *, const void *) )smallerStatElem);
 
-    double prevPval = 0;
     double curPval = 0;
     for( perm = 0; perm < numPerms; perm++ )
       {
@@ -244,7 +243,6 @@ void computePermStatPval(int numFeatures, int numPerms,
         {
         // current value is different from previous value (or first value),
         // thus step up p-value
-        prevPval = curPval;
         curPval = nextPval;
         }
 
@@ -555,7 +553,7 @@ int StudentsTestOnImages(int argc, char *argv[])
 //  unsigned long dof=numSubjects-2;
 
   WriteImage(StatImage, outname.c_str() );
-  std::string soutname = std::string("PVAL") + outname;
+  // std::string soutname = std::string("PVAL") + outname;
   // WriteImage(PImage,soutname.c_str());
 
   return 1;

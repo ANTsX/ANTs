@@ -163,7 +163,6 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
       }
     }
   std::string   post2;
-  std::ofstream myfile;
   std::string   fnmp1 = filepre + std::string("projections") + post + std::string(".csv");
 
   std::vector<std::string> ColumnHeaders1;
@@ -289,7 +288,6 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       }
     }
   std::string              post2;
-  std::ofstream            myfile;
   std::string              fnmp = filepre + std::string("projections") + post + std::string(".csv");
   std::vector<std::string> ColumnHeaders;
   for( unsigned int nv = 0; nv < projections.cols(); nv++ )
@@ -433,32 +431,6 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
   return q_perm;
 }
 
-template <unsigned int ImageDimension, class PixelType>
-int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
-                     itk::ants::CommandLineParser::OptionType * /* outputOption */ = NULL )
-{
-  std::string funcName = std::string("matrixOperation");
-
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef double                                matPixelType;
-  typedef itk::Image<matPixelType, 2>           MatrixImageType;
-  typename ImageType::Pointer outputImage = NULL;
-
-  //   option->SetUsageOption( 2, "multires_matrix_invert[list.txt,maskhighres.nii.gz,masklowres.nii.gz,matrix.mhd]" );
-
-  std::string value = option->GetFunction( 0 )->GetName();
-  if( strcmp( value.c_str(), "multires_matrix_invert" ) == 0 )
-    {
-    std::string listfn = option->GetFunction( 0 )->GetParameter( 0 );
-    std::string maskhfn = option->GetFunction( 0 )->GetParameter( 1 );
-    std::string masklfn = option->GetFunction( 0 )->GetParameter( 2 );
-    //      vnl_matrix<matPixelType> matrixinv=MultiResMatrixInvert<ImageDimension,matPixelType>( listfn, maskhfn,
-    // masklfn );
-    }
-
-  return EXIT_SUCCESS;
-}
-
 template <class RealType>
 int
 CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
@@ -542,9 +514,6 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
   std::vector<std::string> image_fn_list;
   // first, count the number of files
   const unsigned int maxChar = 512;
-  char               lineBuffer[maxChar];
-  char               filenm[maxChar];
-  unsigned int       filecount = 0;
     {
     std::ifstream inputStreamA( imagelist.c_str(), std::ios::in );
     if( !inputStreamA.is_open() )
@@ -552,6 +521,9 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       antscout << "Can't open image list file: " << imagelist << std::endl;
       return;
       }
+    char lineBuffer[maxChar];
+    char filenm[maxChar];
+    unsigned int filecount = 0;
     while( !inputStreamA.eof() )
       {
       inputStreamA.getline( lineBuffer, maxChar, '\n' );
@@ -591,8 +563,8 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       typename ReaderType::Pointer reader2 = ReaderType::New();
       reader2->SetFileName( image_fn_list[j] );
       reader2->Update();
-      unsigned long xx = 0, yy = 0, tvoxct = 0;
-      xx = j;
+      unsigned long yy = 0, tvoxct = 0;
+      unsigned long xx = j;
       for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
         {
         if( mIter.Get() >= 0.5 )
@@ -637,8 +609,8 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       typename ReaderType::Pointer reader2 = ReaderType::New();
       reader2->SetFileName( image_fn_list[j] );
       reader2->Update();
-      unsigned long xx = 0, yy = 0, tvoxct = 0;
-      xx = j;
+      unsigned long yy = 0, tvoxct = 0;
+      unsigned long xx = j;
       typename MatrixImageType::IndexType mind;
       for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
         {
@@ -1152,8 +1124,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   vMatrix     p;
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
   typename ImageType::Pointer mask1 = NULL;
-  bool have_p_mask = false;
-  have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
+  bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
   double  FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
   vMatrix priorROIMat;
   vMatrix priorScaleMat;
@@ -1396,7 +1367,6 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typedef typename SCCANType::MatrixType         vMatrix;
   typedef typename SCCANType::VectorType         vVector;
   typedef typename SCCANType::DiagonalMatrixType dMatrix;
-  Scalar pinvtoler = 1.e-6;
   /** read the matrix images */
   /** we refer to the two view matrices as P and Q */
   std::string pmatname = std::string(option->GetFunction( 0 )->GetParameter( 0 ) );
@@ -1448,8 +1418,6 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sccanobj->SetMatrixQ( q );
   sccanobj->SetMaskImageP( mask1 );
   sccanobj->SetMaskImageQ( mask2 );
-  double truecorr = 0;
-  truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
   vVector w_p = sccanobj->GetVariateP(0);
   vVector w_q = sccanobj->GetVariateQ(0);
   vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
@@ -1497,8 +1465,6 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
       vMatrix q_perm = PermuteMatrix<Scalar>( q );
       sccanobj->SetMatrixQ( q_perm );
-      double permcorr = 0;
-      permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
       vVector permcorrs = sccanobj->GetCanonicalCorrelations();
       antscout << " perm-corr " << permcorrs << std::endl;
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
@@ -1535,6 +1501,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       if ( pct == permct ) antscout << " ct " << pct << std::endl;
       }
     unsigned long psigct = 0, qsigct = 0;
+    Scalar pinvtoler = 1.e-6;
     for( unsigned long j = 0; j < w_p.size(); j++ )
       {
       if( w_p(j) > pinvtoler )
@@ -1956,9 +1923,10 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
     /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
      q=q*CqqInv;
     sermuted ;  2. scca ;  3. test corrs and weights significance */
-    unsigned long perm_exceed_ct = 0;
+    
     if( permct > 0 )
       {
+      unsigned long perm_exceed_ct = 0;
       vVector w_p_signif_ct(w_p.size(), 0);
       vVector w_q_signif_ct(w_q.size(), 0);
       vVector w_r_signif_ct(w_r.size(), 0);
@@ -2073,17 +2041,6 @@ int sccan( itk::ants::CommandLineParser *parser )
   else
     {
     robustify = parser->Convert<unsigned int>( robust_option->GetFunction()->GetName() );
-    }
-
-  matPixelType                                      evecgradientpenalty = 1;
-  itk::ants::CommandLineParser::OptionType::Pointer evecg_option =
-    parser->GetOption( "EvecGradPenalty" );
-  if( !evecg_option || evecg_option->GetNumberOfFunctions() == 0 )
-    {
-    }
-  else
-    {
-    evecgradientpenalty = parser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
     }
 
   unsigned int                                      p_cluster_thresh = 1;

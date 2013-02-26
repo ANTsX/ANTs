@@ -75,8 +75,6 @@ private:
   typedef  ImageType::PixelType            PixType;
 
 //  std::string fn="C://Data//brain15labelimage.img";
-  std::string ext = ".nii";
-
   float opt = 0;
   float sig = 1.0;
   //  float thresh=0.0;
@@ -125,7 +123,6 @@ private:
   floatImageType::Pointer smooth = NULL;
   smooth = Parameterizer->GetFunctionImage();
 
-  std::string fnname = std::string(argv[1]).substr(0, std::string(argv[1]).length() - 4);
   std::string ofn = std::string(argv[4]);
   antscout << " writing result " << ofn <<  std::endl;
   // writer->SetFileName(ofn.c_str());

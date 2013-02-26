@@ -222,11 +222,9 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
 //  mx=1.3;
 //  mx=2.0;
 
-  vtkFloatArray* param;
-
   // while (!done)
     {
-    param = vtkFloatArray::New();
+    vtkFloatArray* param = vtkFloatArray::New();
     param->SetName(paramname);
     float dif = (mx - mn) * scaledata;
     float mx2 = meank + dif;

@@ -248,10 +248,6 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double s
       {
       laplacian->SetPixel(ind, 1);
       }
-    else if( gm->GetPixel(ind) && wm->GetPixel(ind) == 0 )
-      {
-      laplacian->SetPixel(ind, 0.);
-      }
     else
       {
       laplacian->SetPixel(ind, 0.);

@@ -481,14 +481,13 @@ public:
       }
 
     CovariantVectorType fixedGradient;
-    double              loce = 0.0;
     ParametersType      fdvec1(ImageDimension);
     ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
     fdvec2.Fill(0);
     fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( oindex );
     double nccm1 = 0;
-    loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
+    double loce = this->GetValueAndDerivativeInv(oindex, nccm1, fdvec1, fdvec2);
     float eps = 10;
     if( loce > eps )
       {
@@ -579,7 +578,6 @@ public:
       }
 
     CovariantVectorType movingGradient;
-    double              loce = 0.0;
     ParametersType      fdvec1(ImageDimension);
     ParametersType      fdvec2(ImageDimension);
     fdvec1.Fill(0);
@@ -587,7 +585,7 @@ public:
     movingGradient = m_MovingImageGradientCalculator->EvaluateAtIndex( oindex );
 
     double nccm1 = 0;
-    loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
+    double loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
 
     float eps = 10;
     if( loce > eps )
