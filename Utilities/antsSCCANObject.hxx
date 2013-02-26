@@ -1605,6 +1605,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType priorVec = this->m_MatrixPriorROI.get_row(a);
+		  
+		  if( priorVec.one_norm()  < 1.e-12 )
+		  {
+			  ::ants::antscout << "Prior Norm too small, could be a bug: " << priorVec.one_norm() << std::endl;
+			  std::exception();
+		  }
+		 
 		  priorVec = priorVec/priorVec.one_norm();
       VectorType evec = this->m_VariatesP.get_column( a );
       if( overit == 0 )
