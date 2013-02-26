@@ -106,7 +106,7 @@ Element3DMembrane1DOF<TBaseClass>
       }
     m_mat = dynamic_cast<const MaterialLinearElasticity *>( &*mats->Find(n) );
     }
-  catch( FEMExceptionObjectNotFound e )
+  catch( FEMExceptionObjectNotFound & e )
     {
     throw FEMExceptionObjectNotFound(__FILE__, __LINE__, "Element3DMembrane1DOF::Read()", e.m_baseClassName, e.m_GN);
     }

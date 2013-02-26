@@ -888,11 +888,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           antscout << " not employing scales estimator " << scalesFunction << std::endl;
           }
         }
+      /*
       double small_step = 0;
       for( unsigned int i = 0; i < ImageDimension; i++ )
         {
         small_step += fixed_time_slice->GetSpacing()[i] * fixed_time_slice->GetSpacing()[i];
         }
+      */
       optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
       optimizer->SetDoEstimateLearningRateOnce( doEstimateLearningRateOnce );
       optimizer->SetDoEstimateLearningRateAtEachIteration( !doEstimateLearningRateOnce );

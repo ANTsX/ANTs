@@ -541,7 +541,6 @@ public:
   /*   Normalizing the image to the range of [0 1] */
   double GetMovingParzenTerm( double intensity )
   {
-    return intensity;
     double windowTerm = static_cast<double>( intensity ) -  this->m_MovingImageTrueMin;
     windowTerm = windowTerm / ( this->m_MovingImageTrueMax - this->m_MovingImageTrueMin   );
     return windowTerm;
@@ -549,7 +548,6 @@ public:
 
   double GetFixedParzenTerm( double intensity )
   {
-    return intensity;
     double windowTerm = static_cast<double>( intensity ) -  this->m_FixedImageTrueMin;
     windowTerm = windowTerm / ( this->m_FixedImageTrueMax - this->m_FixedImageTrueMin   );
     return windowTerm;

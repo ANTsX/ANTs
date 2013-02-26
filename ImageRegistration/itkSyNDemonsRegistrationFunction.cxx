@@ -221,7 +221,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     }
 
   // update the metric
-  GlobalDataStruct *globalData = (GlobalDataStruct *)gd;
+  GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
   if( globalData )
     {
     globalData->m_SumOfSquaredDifference += vnl_math_sqr( speedValue );
@@ -309,7 +309,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     }
 
   // update the metric
-  GlobalDataStruct *globalData = (GlobalDataStruct *)gd;
+  GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
   if( globalData )
     {
     globalData->m_SumOfSquaredDifference += vnl_math_sqr( speedValue );
@@ -348,7 +348,7 @@ void
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::ReleaseGlobalDataPointer( void *gd ) const
 {
-  GlobalDataStruct * globalData = (GlobalDataStruct *) gd;
+  GlobalDataStruct *globalData = reinterpret_cast<GlobalDataStruct *>( gd );
 
   m_SumOfSquaredDifference  += globalData->m_SumOfSquaredDifference;
   m_NumberOfPixelsProcessed += globalData->m_NumberOfPixelsProcessed;

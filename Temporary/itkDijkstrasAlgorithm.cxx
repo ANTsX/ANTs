@@ -34,8 +34,6 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SetGraphSize(GraphSizeType Sz)
 template <class TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::InitializeGraph()
 {
-  bool InBorder = false;
-
   m_GraphRegion.SetSize( m_GraphSize );
   m_Graph->SetLargestPossibleRegion( m_GraphRegion );
   m_Graph->SetRequestedRegion( m_GraphRegion );
@@ -173,12 +171,11 @@ template <class TGraphSearchNode>
 void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
 {
   // ::::ants::antscout << " SES 0 " << std::endl;
-  int                           i = 0, j = 0;
   GraphNeighborhoodIteratorType GHood(m_Radius, m_Graph, m_Graph->GetRequestedRegion() );
   GraphNeighborhoodIndexType    GNI;
 
   // ::::ants::antscout << " SES 1 " << std::endl;
-  for( i = 0; i < GraphDimension; i++ )
+  for( unsigned int i = 0; i < GraphDimension; i++ )
     {
     // ::::ants::antscout << " SES 2 " << std::endl;
     GNI[i] = (long)(m_CurrentNode->GetLocation()[i] + 0.5);
@@ -187,7 +184,6 @@ void DijkstrasAlgorithm<TGraphSearchNode>::SearchEdgeSet()
   // ::::ants::antscout << " SES 3 " << std::endl;
   GHood.SetLocation(GNI);
 
-  bool inimage = true;
   for( unsigned int dd = 0; dd < GraphDimension; dd++ )
     {
     if( GNI[dd] < 2 || GNI[dd] > (unsigned long)(m_GraphSize[dd] - 2) )
