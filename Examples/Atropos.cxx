@@ -968,7 +968,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 //    segmenter->DebugOn();
     segmenter->Update();
     }
-  catch( itk::ExceptionObject exp )
+  catch( itk::ExceptionObject & exp )
     {
     antscout << exp << std::endl;
     return EXIT_FAILURE;

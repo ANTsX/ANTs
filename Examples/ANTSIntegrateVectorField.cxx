@@ -103,11 +103,8 @@ SmoothDeformation(typename TImage::Pointer vectorimage, float sig)
 template <class TImage, class TField, class TInterp, class TInterp2>
 float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointer /* thickimage */,
                        typename TImage::IndexType velind,  typename TField::Pointer lapgrad,  float itime,
-                       float starttime, float /* finishtime */,
-                       bool timedone, float deltaTime, typename TInterp::Pointer vinterp,
-                       typename TImage::SpacingType spacing, float vecsign,
-                       float timesign,
-                       float gradsign )
+                       float starttime, const float deltaTime, typename TInterp::Pointer vinterp,
+                       typename TImage::SpacingType spacing, float vecsign, float timesign, float gradsign )
 {
   typedef   TField                                                 TimeVaryingVelocityFieldType;
   typedef typename TField::PixelType                               VectorType;
@@ -133,7 +130,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
     pointIn1[jj] = velind[jj] * lapgrad->GetSpacing()[jj];
     }
   itime = starttime;
-  timedone = false;
+  bool timedone = false;
   float totalmag = 0;
   while( !timedone )
     {
@@ -295,12 +292,12 @@ int IntegrateVectorField(int argc, char *argv[])
   typedef typename  ImageType::SizeType          SizeType;
   typedef typename  ImageType::SpacingType       SpacingType;
 
-  double      dT = 0.001;
-  float       gradstep = 1. / dT; // atof(argv[3])*(-1.0);
+  const float deltaTime = 0.001;
+  float       gradstep = 1. / deltaTime; // atof(argv[3])*(-1.0);
   std::string vectorfn = std::string(argv[1]);
   std::string roifn = std::string(argv[2]);
   int         argct = 3;
-  std::string outname = std::string(argv[argct]); argct++;
+  argct++;
   std::string lenoutname = std::string("");
   if( argc > argct )
     {
@@ -378,23 +375,21 @@ int IntegrateVectorField(int argc, char *argv[])
     {
     velind = Iterator.GetIndex();
     float      itime = starttime;
-    bool       timedone = false;
     VectorType disp;
     disp.Fill(0.0);
-    double deltaTime = dT, vecsign = 1.0;
-    float  gradsign = 1.0;
     if( ROIimage->GetPixel(velind) == 2 )
       {
       vinterp->SetInputImage(VECimage);
-      gradsign = -1.0; vecsign = -1.0;
+      float gradsign = -1.0;
+      double vecsign = -1.0;
       float len1 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
-          (ROIimage, thickimage, velind, VECimage,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
+          (ROIimage, thickimage, velind, VECimage,  itime, starttime, deltaTime,  vinterp,
           spacing, vecsign, gradsign,
           timesign);
 
       gradsign = 1.0;  vecsign = 1;
       float len2 = IntegrateLength<ImageType, DisplacementFieldType, DefaultInterpolatorType, ScalarInterpolatorType>
-          (ROIimage, thickimage, velind, VECimage,  itime, starttime, finishtime,  timedone,  deltaTime,  vinterp,
+          (ROIimage, thickimage, velind, VECimage,  itime, starttime, deltaTime,  vinterp,
           spacing, vecsign, gradsign,
           timesign );
 
