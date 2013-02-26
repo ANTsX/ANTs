@@ -271,11 +271,6 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   typename FieldType::PixelType rrpix;
   typename FieldType::PixelType cpix;
 
-  float volumeelt = 1.0;
-  for( int j = 0; j < ImageDimension; j++ )
-    {
-    volumeelt *= sp[j];
-    }
   //   double totaljac=0.0;
 
   // /the finite difference equations
