@@ -591,8 +591,8 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       typename ReaderType::Pointer reader2 = ReaderType::New();
       reader2->SetFileName( image_fn_list[j] );
       reader2->Update();
-      unsigned long xx = 0, yy = 0, tvoxct = 0;
-      xx = j;
+      unsigned long yy = 0, tvoxct = 0;
+      unsigned long xx = j;
       for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
         {
         if( mIter.Get() >= 0.5 )
@@ -637,8 +637,8 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       typename ReaderType::Pointer reader2 = ReaderType::New();
       reader2->SetFileName( image_fn_list[j] );
       reader2->Update();
-      unsigned long xx = 0, yy = 0, tvoxct = 0;
-      xx = j;
+      unsigned long yy = 0, tvoxct = 0;
+      unsigned long xx = j;
       typename MatrixImageType::IndexType mind;
       for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
         {
@@ -1152,8 +1152,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   vMatrix     p;
   ReadMatrixFromCSVorImageSet<Scalar>(pmatname, p);
   typename ImageType::Pointer mask1 = NULL;
-  bool have_p_mask = false;
-  have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
+  bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
   double  FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
   vMatrix priorROIMat;
   vMatrix priorScaleMat;
@@ -1448,8 +1447,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sccanobj->SetMatrixQ( q );
   sccanobj->SetMaskImageP( mask1 );
   sccanobj->SetMaskImageQ( mask2 );
-  double truecorr = 0;
-  truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
+  double truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
   vVector w_p = sccanobj->GetVariateP(0);
   vVector w_q = sccanobj->GetVariateQ(0);
   vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
@@ -1497,8 +1495,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
       vMatrix q_perm = PermuteMatrix<Scalar>( q );
       sccanobj->SetMatrixQ( q_perm );
-      double permcorr = 0;
-      permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
+      double permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
       vVector permcorrs = sccanobj->GetCanonicalCorrelations();
       antscout << " perm-corr " << permcorrs << std::endl;
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )

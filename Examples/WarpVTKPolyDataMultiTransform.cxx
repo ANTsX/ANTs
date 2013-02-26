@@ -549,10 +549,9 @@ private:
   char *output_vtk_filename = NULL;
   char *reference_image_filename = NULL;
 
-  bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = WarpVTKPolyDataMultiTransform_ParseInput(argc - 2, argv + 2, input_vtk_filename, output_vtk_filename,
+  bool is_parsing_ok = WarpVTKPolyDataMultiTransform_ParseInput(argc - 2, argv + 2, input_vtk_filename, output_vtk_filename,
                                                            reference_image_filename, opt_queue);
 
   if( is_parsing_ok )

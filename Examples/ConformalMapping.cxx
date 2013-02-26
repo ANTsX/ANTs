@@ -184,7 +184,6 @@ void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
   typedef itk::Mesh<float>                                 MeshType;
   typedef itk::BinaryMask3DMeshSource<ImageType, MeshType> MeshSourceType;
 
-  PixelType backgroundValue = 0;
   PixelType internalValue   = 1;
   typename MeshSourceType::Pointer meshSource = MeshSourceType::New();
   meshSource->SetBinaryImage( image );
@@ -222,7 +221,6 @@ void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
   Parameterizer->ConformalMap();
   Parameterizer->ComputeStereographicCoordinates();
 
-  int irad = 50;
   if( Parameterizer->GetImage() )
     {
     antscout << " writing param images " << std::endl;
@@ -394,12 +392,10 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
 //  mx=1.3;
 //  mx=2.0;
 
-  vtkFloatArray* param;
-
 //   bool done=false;
 // while (!done)
     {
-    param = vtkFloatArray::New();
+    vtkFloatArray* param = vtkFloatArray::New();
     param->SetName("angle");
     float dif = (mx - mn) * 0.25;
     float mx2 = meank + dif;
@@ -490,7 +486,7 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
   // Display((vtkUnstructuredGrid*)Parameterizer->m_ExtractedSurfaceMesh);
 
 //  antscout << " display flattened patch ";
-  int segct = 0;
+
 //   float step  = 0.1;
 //   float maxt=0.0;
 //  for (float tt = 0.0; tt<=maxt; tt=tt+step)
@@ -515,16 +511,11 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
       vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
       writer->SetInput(Parameterizer->m_DiskSurfaceMesh);
       std::string        outnm;
-      std::ostringstream buf;
-      buf << ( segct + 10 );
-      //    outnm=outfn+std::string(buf.str().c_str())+"mapflat.vtk";
       outnm = outfn + "mapflat.vtk";
       antscout << " writing " << outnm << std::endl;
       writer->SetFileName(outnm.c_str() );
       writer->SetFileTypeToBinary();
       writer->Update();
-
-      segct++;
       }
     }
 /*
@@ -939,7 +930,6 @@ private:
   // Declare the type of the Mesh
 
   char*       filename;
-  char*       refmeshname;
   PixelType   loth = 1;
   PixelType   hith = 256;
   int         fixdir = 1;
@@ -990,9 +980,6 @@ private:
 
     ImageType::Pointer image = readfilter->GetOutput();
 
-//   PixelType backgroundValue = 0;
-//   PixelType internalValue   = 255;
-
     ImageType::Pointer thresh = BinaryThreshold<ImageType>(loth, hith, hith, image );
 
     // Save the mesh
@@ -1018,9 +1005,6 @@ private:
 
     ImageType::Pointer image = readfilter->GetOutput();
 
-//   PixelType backgroundValue = 0;
-//   PixelType internalValue   = 255;
-
     ImageType::Pointer thresh = BinaryThreshold<ImageType>(loth, hith, hith, image );
 
     // Save the mesh
@@ -1039,7 +1023,7 @@ private:
   else if( fixdir == 7 )
   /*************** flat map to mesh *****************/
     {
-    refmeshname = argv[7];
+    char * const refmeshname = argv[7];
     vtkPolyDataReader *fltReader = vtkPolyDataReader::New();
     fltReader->SetFileName(refmeshname);
     fltReader->Update();

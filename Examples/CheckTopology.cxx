@@ -358,8 +358,8 @@ private:
 
     float        G2 = 0;
     unsigned int mct = 0;
-    float        err = 1.e9, lasterr = 1.e10, derr = 1.e9;
-    derr = lasterr - err;
+    float        err = 1.e9, lasterr = 1.e10;
+    float derr = lasterr - err;
     while( G2 == 0 && derr > 0 )
       {
       lasterr = err;

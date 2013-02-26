@@ -402,7 +402,6 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
-  std::string boundaryparam = parser->GetOption( "boundary-param" )->GetFunction();
   // do stuff -- but not implemented yet
   //   flattener->SetDiscBoundaryList(NULL);
 

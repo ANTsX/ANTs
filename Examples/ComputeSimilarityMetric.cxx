@@ -101,8 +101,6 @@ int ComputeSimilarityMetric(int argc, char *argv[])
   typename MIMetricType::Pointer mimet = MIMetricType::New();
   typename CCMetricType::Pointer ccmet = CCMetricType::New();
 
-  int nbins = 32;
-
   typename CCMetricType::RadiusType hradius;
   typename CCMetricType::RadiusType ccradius;
   ccradius.Fill(4);

@@ -118,14 +118,10 @@ private:
     mask = AllocImage<MaskImageType>(reader->GetOutput(), 1);
     }
 
-  double origin[ImageDimension];
-  double spacing[ImageDimension];
   int    size[ImageDimension];
   int    totalsize = 1;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    origin[i] = reader->GetOutput()->GetOrigin()[i];
-    spacing[i] = reader->GetOutput()->GetSpacing()[i];
     size[i] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i];
     if( argc > 4 && atoi( argv[5] ) == (int) i )
       {

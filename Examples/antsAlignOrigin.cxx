@@ -321,11 +321,9 @@ private:
   itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
     parser->GetOption( "input-image-type" );
 
-  unsigned int dimension = 3;
-
   itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
       filename.c_str(), itk::ImageIOFactory::ReadMode );
-  dimension = imageIO->GetNumberOfDimensions();
+  unsigned int dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );
