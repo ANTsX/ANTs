@@ -199,11 +199,9 @@ int antsAffineInitializerImp(int argc, char *argv[])
   typename ImageType::Pointer image2 = NULL;
   ReadImage<ImageType>(image1, fn1.c_str() );
   ReadImage<ImageType>(image2, fn2.c_str() );
-  RealType   ctm1;
   VectorType ccg1;
   VectorType cpm1;
   MatrixType cpa1;
-  RealType   ctm2;
   VectorType ccg2;
   VectorType cpm2;
   MatrixType cpa2;
@@ -220,7 +218,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
     {
     calculator1->Compute();
     fixed_center = calculator1->GetCenterOfGravity();
-    ctm1 = calculator1->GetTotalMass();
     ccg1 = calculator1->GetCenterOfGravity();
     cpm1 = calculator1->GetPrincipalMoments();
     cpa1 = calculator1->GetPrincipalAxes();
@@ -228,7 +225,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
       {
       calculator2->Compute();
       moving_center = calculator2->GetCenterOfGravity();
-      ctm2 = calculator2->GetTotalMass();
       ccg2 = calculator2->GetCenterOfGravity();
       cpm2 = calculator2->GetPrincipalMoments();
       cpa2 = calculator2->GetPrincipalAxes();
@@ -399,11 +395,13 @@ int antsAffineInitializerImp(int argc, char *argv[])
     }
   mstartOptimizer->SetParametersList( parametersList );
 
+  /*
   double small_step = 0;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     small_step += image1->GetSpacing()[i] * image1->GetSpacing()[i];
     }
+  */
   typedef  itk::ConjugateGradientLineSearchOptimizerv4 LocalOptimizerType;
   typename LocalOptimizerType::Pointer  localoptimizer = LocalOptimizerType::New();
   localoptimizer->SetMetric( mimetric );

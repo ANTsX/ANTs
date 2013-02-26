@@ -779,7 +779,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
   this->m_DiscBoundarySorter.resize(gsz, 0);
   for( unsigned int j = 0; j < gsz; j++ )
     {
-    float inb = 0;
     if( manifoldIntegrator->GetGraphNode(j) )
       {
       float cost = manifoldIntegrator->GetGraphNode(j)->GetTotalCost();
@@ -789,6 +788,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
         }
       if(  fabs( manifoldIntegrator->GetGraphNode(j)->GetValue(3) - label ) < 0.5 && cost <= this->m_MaxCost )
         {
+        float inb = 0;
         for( unsigned int i = 0; i < manifoldIntegrator->GetGraphNode(j)->m_NumberOfNeighbors; i++ )
           {
           if(  fabs( manifoldIntegrator->GetGraphNode(j)->m_Neighbors[i]->GetValue(3) - label ) > 0.5 )
@@ -1063,14 +1063,9 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 ::FixBoundaryPoints(unsigned int option)
 {
 //  if (dim > 3 || dim < -3 || dim == 0 ) return;
-
-  unsigned int dofsperelt;
-
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
   unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
   unsigned int                           dofs = (*elt)->GetNumberOfDegreesOfFreedomPerNode();
-
-  dofsperelt = dofs * Nnodes;
 
   int fixct = 0;
   int eltct = 0;
@@ -1408,7 +1403,7 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
       {
       m_Solver.Read(f);
       }
-    catch( ::itk::fem::FEMException e )
+    catch( ::itk::fem::FEMException & e )
       {
       ::::ants::antscout << "Error reading FEM problem: " << filename << "!\n";
       e.Print(::::ants::antscout);
@@ -1544,7 +1539,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 
   // backtrack everywhere to set up forweard tracking
   float maxmanifolddist = 0;
-  float meanmanifolddist = 0;
   float distDistortion = 0;
 
   unsigned int ct = 0;
@@ -1555,7 +1549,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
       if( manifoldIntegrator->GetGraphNode(i)->GetTotalCost() <= manifoldIntegrator->GetMaxCost() )
         {
         float ttt = manifoldIntegrator->GetGraphNode(i)->GetValue(2);
-        meanmanifolddist += ttt;
         if( ttt > maxmanifolddist )
           {
           maxmanifolddist = ttt;
@@ -1564,18 +1557,15 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
         }
       }
     }
-  meanmanifolddist /= (float)ct;
   ct = 0;
   for( int i = 0; i < manifoldIntegrator->GetGraphSize(); i++ )
     {
-    float manifolddist;
-    float rad;
     if( manifoldIntegrator->GetGraphNode(i) )
       {
       if( manifoldIntegrator->GetGraphNode(i)->GetTotalCost() < manifoldIntegrator->GetMaxCost() )
         {
-        rad = manifoldIntegrator->GetGraphNode(i)->GetValue(0);
-        manifolddist = manifoldIntegrator->GetGraphNode(i)->GetValue(2) / maxmanifolddist;
+        const float rad = manifoldIntegrator->GetGraphNode(i)->GetValue(0);
+        const float manifolddist = manifoldIntegrator->GetGraphNode(i)->GetValue(2) / maxmanifolddist;
         manifoldIntegrator->GetGraphNode(i)->SetValue(manifolddist, 2);
         distDistortion += fabs(rad - manifolddist);
         ct++;

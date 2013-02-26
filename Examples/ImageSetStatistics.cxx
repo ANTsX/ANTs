@@ -189,7 +189,6 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
     double fixedMean = 0;
     // double movingMean=0;
 
-    unsigned int indct;
     unsigned int hoodlen = hoodIt.Size();
 
     // unsigned int inct=0;
@@ -203,7 +202,7 @@ LocalMean(typename TImage::Pointer image, unsigned int nhood,  typename TImage::
       // double sumj=0;
       double       sumi = 0;
       unsigned int cter = 0;
-      for( indct = 0; indct < hoodlen; indct++ )
+      for( unsigned int indct = 0; indct < hoodlen; indct++ )
         {
         typename TImage::IndexType index = hoodIt.GetIndex(indct);
         bool inimage = true;
@@ -601,7 +600,6 @@ float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> s
   unsigned int max = 0;
   float        maxsim = -1.e9;
   float        totalsim = 0;
-  float        estapp = 0;
   for( unsigned int i = 0; i < size; i++ )
     {
     totalsim += similarityvec[i];
@@ -614,16 +612,12 @@ float myantssimilaritymaxlabel(std::vector<float> labelvec, std::vector<float> s
     {
     float simval = similarityvec[i];
     float appval = labelvec[i];
-    estapp += appval * simval / totalsim;
     if( simval > maxsim )
       {
       maxsim = simval; max = i;
       }
-    //            antscout << " simval " << simval << " i " << i << " appval " << appval << " maxsim " << maxsim << "
-    // max " << max << std::endl;
     }
-  //        antscout <<"  estapp " << estapp << " max " << max << std::endl;
-  // return estapp;
+
   if( opt == true )
     {
     return labelvec[max];
@@ -809,7 +803,6 @@ int ImageSetStatistics(int argc, char *argv[])
   // read similarity images, if needed
   std::vector<typename ImageType::Pointer> simimagestack;
   simimagestack.resize(filecount2);
-  std::vector<std::string> simfilenames(filecount2);
   ct = 0;
   if( simimagelist.length() > 2 && ( whichstat == 5 || whichstat == 6 ) )
     {
@@ -828,7 +821,6 @@ int ImageSetStatistics(int argc, char *argv[])
         }
       else
         {
-        simfilenames[ct] = std::string(filenm);
         ReadImage<ImageType>(simimagestack[ct], filenm, false);
         ct++;
         }

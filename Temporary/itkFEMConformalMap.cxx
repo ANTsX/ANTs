@@ -128,7 +128,6 @@ bool FEMConformalMap<TSurface, TImage, TDimension>
   vtkPoints* vtkpoints = m_VtkSurfaceMesh->GetPoints();
   int        numPoints = vtkpoints->GetNumberOfPoints();
   int        foundnum = 0;
-  int        boundsz = 0;
   for( int i = 0; i < numPoints; i++ )
     {
     double* pt = vtkpoints->GetPoint(i);
@@ -153,12 +152,10 @@ bool FEMConformalMap<TSurface, TImage, TDimension>
   vtkIdType*    pts;
   unsigned long i = 0;
   unsigned long toti = vtkcells->GetNumberOfCells();
-  unsigned long rate = toti / 50;
   //  ::::ants::antscout << " progress ";
   ::::ants::antscout << " DONE: NUMBER OF CELLS start " << toti << std::endl;
   for( vtkcells->InitTraversal(); vtkcells->GetNextCell(npts, pts); )
     {
-    bool                 eltok = true;
     ElementType::Pointer e;
     e = dynamic_cast<ElementType *>(e1->Clone() );
 
@@ -271,15 +268,9 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   disp.set_size(3);
   disp.fill(0.0);
 
-  float solval, posval;
-
   float WIDTH  = rad * 2.1;
   float HEIGHT = rad * 2.1;
   float DEPTH  = rad * 2.1;
-
-  float frad = (float)rad;
-
-  int i, j, k;
 
   typename ImageType::SizeType size;
   size[0] = WIDTH;
@@ -495,7 +486,6 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 ::MapStereographicCoordinatesToImage(int cdim)
 {
   typedef float Float;
-  Float rstep, sstep, tstep;
 
   vnl_vector<Float> Pos;  // solution at the point
   vnl_vector<Float> Sol;  // solution at the local point
@@ -507,7 +497,6 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   disp.set_size(3);
   disp.fill(0.0);
 
-  Float solval, posval;
   bool  inimage;
 
   ImageRegionIteratorWithIndex<ImageType> wimIter( m_Image, m_Image->GetLargestPossibleRegion()  );
@@ -590,12 +579,10 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 
   itk::fem::Element::VectorType minv;
   itk::fem::Element::VectorType maxv;
-
-  unsigned int dofsperelt;
-
+  
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
   unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
-  dofsperelt = (*elt)->GetNumberOfDegreesOfFreedomPerNode() * Nnodes;
+
   for( ; elt != m_Solver.el.end(); ++elt )
     {
     for( unsigned int nd = 0; nd < Nnodes; nd++ )
@@ -638,12 +625,9 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     return;
     }
 
-  unsigned int dofsperelt;
-
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
   unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
   unsigned int                           dofs = (*elt)->GetNumberOfDegreesOfFreedomPerNode();
-  dofsperelt = dofs * Nnodes;
 
     {
     float                     fixval;
@@ -774,7 +758,7 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMConformalMap<TSurface, TImage, TDimension>
 ::ApplyRealForces(int dim)
 {
-  int ct = 0;
+
 
   if( dim > 6 )
     {
@@ -820,8 +804,6 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     VectorType CA = C - A;
     VectorType CB = C - B;
     float      bamag = BA.magnitude();
-    float      cbmag = CB.magnitude();
-    float      acmag = CA.magnitude();
 
     float theta = (CA[0] * BA[0] + CA[1] * BA[1] + CA[2] * BA[2]) / bamag * bamag;
     if( theta > 1 )
@@ -832,9 +814,6 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     VectorType E = A + BA * theta;
     VectorType CE = C - E;
 
-    float cemag = CE.magnitude();
-
-    float mag = bamag;
     // load node 0
       {
       itk::fem::LoadNode::Pointer load = itk::fem::LoadNode::New();
@@ -853,12 +832,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
       load->m_element = (e);
       m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*load) );
       }
-
-    ct++;
-    if( ct > 0 )
-      {
-      return;
-      }
+    return;
     }
 }
 
@@ -866,8 +840,6 @@ template <typename TSurface, typename TImage, unsigned int TDimension>
 void  FEMConformalMap<TSurface, TImage, TDimension>
 ::ApplyImaginaryForces(int dim)
 {
-  unsigned int ct = 0;
-
   if( dim > 6 )
     {
     dim = 6;
@@ -929,8 +901,6 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     VectorType CA = C - A;
     VectorType CB = C - B;
     float      bamag = BA.magnitude();
-    float      cbmag = CB.magnitude();
-    float      acmag = CA.magnitude();
 
     float theta = (CA[0] * BA[0] + CA[1] * BA[1] + CA[2] * BA[2]) / bamag * bamag;
     if( theta > 1 || theta < 0 )
@@ -972,11 +942,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
       m_Solver.load.push_back( itk::fem::FEMP<itk::fem::Load>(&*load) );
       }
 
-    ct++;
-    if( ct > 0 )
-      {
-      return;
-      }
+    return;
     }
 }
 
@@ -988,7 +954,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
   float radsq;      // radius squared
   float c1, c2, c3; // stereographic coordinates
 
-  unsigned int ngfn = 0, dof;
+  unsigned int dof;
 
 //  ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin();
   for( ::itk::fem::Solver::NodeArray::iterator n = m_Solver.node.begin(); n != m_Solver.node.end(); ++n )
@@ -1038,7 +1004,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
       {
       m_Solver.Read(f);
       }
-    catch( ::itk::fem::FEMException e )
+    catch( ::itk::fem::FEMException & e )
       {
       ::::ants::antscout << "Error reading FEM problem: " << filename << "!\n";
       e.Print(::::ants::antscout);

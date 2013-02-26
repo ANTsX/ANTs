@@ -125,11 +125,6 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   // setup moving image interpolator
   m_MovingImageInterpolator->SetInputImage( Superclass::m_MovingImage );
 
-  unsigned long numpix = 1;
-  for( int i = 0; i < ImageDimension; i++ )
-    {
-    numpix *= Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[i];
-    }
   m_MetricTotal = 0.0;
   this->m_Energy = 0.0;
 
@@ -511,10 +506,6 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
   if( sff * smm != 0.0 )
     {
     this->localCrossCorrelation = sfm * sfm / ( sff * smm );
-    }
-  else if( sff == 0.0 && smm == 0 )
-    {
-    this->localCrossCorrelation = 1.0;
     }
   else
     {

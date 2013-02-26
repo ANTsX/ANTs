@@ -503,7 +503,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           {
           std::cout << "Caught an ITK exception: " << std::endl;
           std::cout << err << " " << __FILE__ << " " << __LINE__ << std::endl;
-          throw err;
+          throw & err;
           }
         catch( ... )
           {
@@ -757,6 +757,8 @@ private:
     }
 
   // Read in the first intensity image to get the image dimension.
+  
+  /*
   std::string filename;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
@@ -777,6 +779,7 @@ private:
     antscout << "No reference image was specified." << std::endl;
     return EXIT_FAILURE;
     }
+  */
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
     parser->GetOption( "input-image-type" );
@@ -785,7 +788,7 @@ private:
 
   // BA - code below creates problems in ANTsR
   //  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-  //      filename.c_str(), itk::ImageIOFactory::ReadMode );
+  //                                                            filename.c_str(), itk::ImageIOFactory::ReadMode );
   //  dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =

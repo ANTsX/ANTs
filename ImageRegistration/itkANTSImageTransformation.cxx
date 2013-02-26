@@ -65,7 +65,6 @@ ANTSImageTransformation<TDimension, TReal>
 {
   ::ants::antscout << " begin writing " << m_NamingConvention << std::endl;
 
-  bool                   is_supported = false;
   std::string            filePrefix = this->m_NamingConvention;
   std::string::size_type pos = filePrefix.rfind( "." );
   std::string            extension;
@@ -74,6 +73,7 @@ ANTSImageTransformation<TDimension, TReal>
   if( pos != std::string::npos
       && std::string( filePrefix, pos, pos + 2 ) != std::string( "./" ) )
     {
+    bool is_supported = false;
     filePrefix = std::string( filePrefix, 0, pos );
     extension = std::string( this->m_NamingConvention, pos,
                              this->m_NamingConvention.length() - 1 );

@@ -2264,7 +2264,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       osstream << fct;
       fct++;
       std::string fnm = std::string("field1") + osstream.str() + std::string("warp.nii.gz");
-      std::string fnm2 = std::string("field2") + osstream.str() + std::string("warp.nii.gz");
+      //  std::string fnm2 = std::string("field2") + osstream.str() + std::string("warp.nii.gz");
       //  writer->SetUseAvantsNamingConvention( true );
       writer->SetInput( this->m_SyNFInv );
       writer->SetFileName( fnm.c_str() );

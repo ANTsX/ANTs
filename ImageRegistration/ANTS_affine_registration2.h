@@ -1096,7 +1096,6 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
         ::ants::antscout << "ExceptionObject caught !" << std::endl;
         ::ants::antscout << err << std::endl;
         return false;
-        break;
         }
 
       // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep
@@ -1299,7 +1298,6 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         ::ants::antscout << "ExceptionObject caught !" << std::endl;
         ::ants::antscout << err << std::endl;
         return false;
-        break;
         }
 
       // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep

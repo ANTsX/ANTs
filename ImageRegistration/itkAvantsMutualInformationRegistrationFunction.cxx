@@ -497,12 +497,12 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   double fixedImagePDFValue = pdfinterpolator2->Evaluate(mind);
   double dFmPDF = this->ComputeFixedImageMarginalPDFDerivative( mind, 0 );
 
-  double term1 = 0, term2 = 0, eps = 1.e-16;
+  const double eps = 1.e-16;
   if( jointPDFValue > eps &&  (fixedImagePDFValue) > 0 )
     {
     const double pRatio = vcl_log(jointPDFValue) - vcl_log(fixedImagePDFValue);
-    term1 = dJPDF * pRatio;
-    term2 = vcl_log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
+    const double term1 = dJPDF * pRatio;
+    const double term2 = vcl_log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
     value =  (term2 - term1);
     }  // end if-block to check non-zero bin contribution
   else
@@ -537,12 +537,12 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   double movingImagePDFValue = pdfinterpolator3->EvaluateAtContinuousIndex(mind);
   double dMmPDF = this->ComputeMovingImageMarginalPDFDerivative( mind, 0 );
 
-  double term1 = 0, term2 = 0, eps = 1.e-16;
+  const double eps = 1.e-16;
   if( jointPDFValue > eps &&  (movingImagePDFValue) > 0 )
     {
     const double pRatio = vcl_log(jointPDFValue) - vcl_log(movingImagePDFValue);
-    term1 = dJPDF * pRatio;
-    term2 = vcl_log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
+    const double term1 = dJPDF * pRatio;
+    const double term2 = vcl_log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
     value =  (term2 - term1);
     } // end if-block to check non-zero bin contribution
   else
