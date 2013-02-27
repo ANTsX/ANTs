@@ -2176,7 +2176,7 @@ int TimeSeriesSimpleSubtraction(int argc, char *argv[])
   filter->SetInput( image1 );
   filter->Update();
 
-  if ( mean ) 
+  if ( mean )
     {
     typename MeanFilterType::Pointer meanFilter = MeanFilterType::New();
     meanFilter->SetInput( filter->GetOutput() );
@@ -2185,7 +2185,7 @@ int TimeSeriesSimpleSubtraction(int argc, char *argv[])
     meanFilter->Update();
     WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
     }
-  else 
+  else
     {
     WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
     }
@@ -2207,7 +2207,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
 
   typedef itk::BSplineInterpolateImageFunction<InputImageType, double > BSplineInterpolatorType;
   typedef typename BSplineInterpolatorType::Pointer                     BSplineInterpolatorPointerType;
-  
+
   const unsigned int SincRadius = 4;
   typedef itk::WindowedSincInterpolateImageFunction<InputImageType, 4>   SincInterpolatorType;
   typedef typename SincInterpolatorType::Pointer                         SincInterpolatorPointerType;
@@ -2230,7 +2230,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
       SincInterpolatorPointerType controlInterp = SincInterpolatorType::New();
       filter->SetControlInterpolator( controlInterp );
       filter->SetLabelInterpolator( labelInterp );
-      filter->SetIndexPadding( SincRadius );      
+      filter->SetIndexPadding( SincRadius );
       }
     else if ( strcmp( "bspline", interp.c_str() ) == 0 )
       {
@@ -2249,7 +2249,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
       }
 
     }
-      
+
 
   bool mean = false;
   if( argc >= 7 )
@@ -2272,7 +2272,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
 
   filter->SetInput( image1 );
   filter->Update();
-  if ( mean ) 
+  if ( mean )
     {
     typename MeanFilterType::Pointer meanFilter = MeanFilterType::New();
     meanFilter->SetInput( filter->GetOutput() );
@@ -2281,7 +2281,7 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
     meanFilter->Update();
     WriteImage<OutputImageType>(meanFilter->GetOutput(), outname.c_str() );
     }
-  else 
+  else
     {
     WriteImage<InputImageType>(filter->GetOutput(), outname.c_str() );
     }
@@ -2328,7 +2328,7 @@ int SplitAlternatingTimeSeries(int argc, char *argv[])
 
   std::string zero( "0" );
   std::string one( "1" );
-  
+
   std::string outname0 = basename + zero + extension;
   std::string outname1 = basename + one + extension;
 
@@ -2342,7 +2342,7 @@ int SplitAlternatingTimeSeries(int argc, char *argv[])
     {
     return 1;
     }
-  
+
   filter->SetInput( image1 );
   filter->Update();
 
@@ -2417,13 +2417,13 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   std::string timeName  = std::string(argv[argct++]);
 
   // FIXME - add option for multi input for combined CCA
-  
+
   typename LabelImageType::Pointer labels = NULL;
   ReadImage<LabelImageType>( labels, labelName.c_str() );
 
   typename InputImageType::Pointer time = NULL;
   ReadImage<InputImageType>( time, timeName.c_str() );
-  
+
   typename LabelCalculatorType::Pointer calc = LabelCalculatorType::New();
   calc->SetImage( labels );
   calc->ComputeMaximum();
@@ -2431,7 +2431,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
   unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
 
-  std::cout << "Examining " << nLabels << " regions, covering " 
+  std::cout << "Examining " << nLabels << " regions, covering "
             << nVoxels << " voxels " << std::endl;
 
   unsigned int labelCounts[nLabels];
@@ -2462,7 +2462,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
 
   // Coorelation parameters
   bool robust = false;
-  unsigned int iterct = 20; 
+  unsigned int iterct = 20;
   bool useL1 = false;
   float gradstep = vnl_math_abs( useL1 );
   bool keepPositive = false;
@@ -2486,7 +2486,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
       idx[0] = v;
       typename InputImageType::IndexType timeIdx;
       timeIdx[1] = v;
-      
+
       if ( labels->GetPixel(idx) == (i+1) )
         {
         for ( unsigned int t=0; t<nTimes; t++)
@@ -2497,28 +2497,28 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
         ++iCount;
         }
       }
-      
+
     if ( robust && ( labelCounts[i] >= minRegionSize)  )
       {
       P = cca_rankify->RankifyMatrixColumns(P);
       }
-      
 
-    if ( labelCounts[i] >= minRegionSize ) 
+
+    if ( labelCounts[i] >= minRegionSize )
       {
       for ( unsigned int j=i+1; j<nLabels; j++)
         {
         MatrixType Q(nTimes, labelCounts[j], 0.0);
         typename LabelImageType::IndexType idx2;
         idx2[1] = 0;
-        
+
         unsigned int jCount = 0;
         for (unsigned int v2=0; v2<nVoxels; v2++)
           {
-          idx2[0] = v2; 
+          idx2[0] = v2;
           typename InputImageType::IndexType timeIdx2;
           timeIdx2[1] = v2;
-          
+
           if ( labels->GetPixel(idx2) == (j+1) )
             {
             for ( unsigned int t2=0; t2<nTimes; t2++)
@@ -2529,19 +2529,19 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
             ++jCount;
             }
           }
-        
+
         if ( robust )
           {
           Q = cca_rankify->RankifyMatrixColumns(Q);
           }
-        
+
         if ( labelCounts[j] >= minRegionSize)
           {
-          
+
           // Correlation magic goes here
           typename SCCANType::Pointer cca = SCCANType::New();
           cca->SetSilent( true );
-          cca->SetMaximumNumberOfIterations(iterct);      
+          cca->SetMaximumNumberOfIterations(iterct);
           cca->SetUseL1( useL1 );
           cca->SetGradStep( gradstep );
           cca->SetKeepPositiveP( keepPositive );
@@ -2552,11 +2552,11 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
           cca->SetMinClusterSizeQ( minClusterSize );
           cca->SetMatrixP( P );
           cca->SetMatrixQ( Q );
-          
+
           // is truecorr just sccancorrs[0]?
           // const double truecorr = cca->SparsePartialArnoldiCCA(n_evec);
           VectorType sccancorrs = cca->GetCanonicalCorrelations();
-          
+
           typename InputImageType::IndexType connIdx;
           connIdx[0] = i;
           connIdx[1] = j;
@@ -2564,7 +2564,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
           connIdx[0] = j;
           connIdx[1] = i;
           connmat->SetPixel( connIdx, sccancorrs[0] );
-          
+
           }
 
         }
@@ -2572,7 +2572,7 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
     }
 
     WriteImage<InputImageType>(connmat, outname.c_str() );
-    
+
     return 0;
 }
 
@@ -2589,7 +2589,7 @@ int PASLQuantifyCBF(int argc, char *argv[])
 
   int         argct = 2;
   std::string outname = std::string(argv[argct++]);
-  std::string operation = std::string(argv[argct++]);  
+  std::string operation = std::string(argv[argct++]);
   std::string fn1 = std::string(argv[argct++]);
   std::string m0name = std::string(argv[argct++]);
 
@@ -2679,7 +2679,7 @@ int PCASLQuantifyCBF(int argc, char *  /*NOT USED argv*/[])
   typedef itk::PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TimeImageType, ImageType, TimeImageType> FilterType;
   int         argct = 2;
   std::string outname = std::string(argv[argct++]);
-  std::string operation = std::string(argv[argct++]);  
+  std::string operation = std::string(argv[argct++]);
   std::string fn1 = std::string(argv[argct++]);
   std::string m0name = std::string(argv[argct++]);
 
@@ -4824,7 +4824,7 @@ int ImageMath(int argc, char *argv[])
       result += pix1 * pix2;
       ct++;
       }
-    
+
     vfIter2.Set(result);
     }
   if( strcmp(operation.c_str(), "total") == 0 )
@@ -11144,6 +11144,74 @@ typename TImage::Pointer ComputeLaplacianImage( typename TImage::Pointer input )
 }
 
 template <unsigned int ImageDimension>
+int PureTissueN4WeightMask( int argc, char *argv[] )
+{
+  // This function is used to create the weight mask for N4.
+  // The basic idea is that we want a weight mask which emphasizes
+  // those voxels which are comprised of "pure" tissue types, e.g.
+  // 100% prob. that it is gray matter.  In words, suppose I want a
+  // pure tissue weight mask comprised of gray matter and white matter.
+  // To do this, I calculate the probability that something is gray
+  // matter and not white matter or that something is white matter and
+  // not gray matter.  Generalized, this formula is
+  //
+  //   weightMask = \sum_{i=1}^N P_i ( \Prod_{j=1,j!=i}^N (1 - P_j ) )
+  //
+  // where P_i is the i^th probability
+
+  if( argc < 5 )
+    {
+    antscout << "Usage: " << argv[0] << " ImageDimension";
+    antscout << " outputWeightImage PureTissueN4WeightMask";
+    antscout << " probImage1 probImage2 ... probImageN" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typedef float       PixelType;
+
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::ImageFileReader<ImageType>       ReaderType;
+
+  std::vector<typename ImageType::Pointer> images;
+  for( int n = 4; n < argc; n++ )
+    {
+    typename ImageType::Pointer image;
+    ReadImage<ImageType>( image, argv[n] );
+    images.push_back( image );
+    }
+
+  typename ImageType::Pointer output = ImageType::New();
+  output->CopyInformation( images[0] );
+  output->SetRegions( images[0]->GetLargestPossibleRegion() );
+  output->Allocate();
+  output->FillBuffer( 0 );
+
+  itk::ImageRegionIteratorWithIndex<ImageType> ItO( output, output->GetLargestPossibleRegion() );
+  for( ItO.GoToBegin(); !ItO.IsAtEnd(); ++ItO )
+    {
+    PixelType probability = 0.0;
+    for( unsigned int i = 0; i < images.size(); i++ )
+      {
+      PixelType negation = 1.0;
+      for( unsigned int j = 0; j < images.size(); j++ )
+        {
+        if( i == j )
+          {
+          continue;
+          }
+        negation *= ( 1.0 - images[j]->GetPixel( ItO.GetIndex() ) );
+        }
+      probability += negation * images[i]->GetPixel( ItO.GetIndex() );
+      }
+    ItO.Set( probability );
+    }
+
+  WriteImage<ImageType>( output, argv[2] );
+
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
 int Check3TissueLabeling( int argc, char *argv[] )
 {
   // This function is used for quality control in the abp.sh pipeline.
@@ -12491,6 +12559,10 @@ private:
         {
         Check3TissueLabeling<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "PureTissueN4WeightMask") == 0 )
+        {
+        PureTissueN4WeightMask<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
         {
         BlobDetector<2>(argc, argv);
@@ -12920,6 +12992,10 @@ private:
         {
         Check3TissueLabeling<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "PureTissueN4WeightMask") == 0 )
+        {
+        PureTissueN4WeightMask<3>(argc, argv);
+        }
       else
         {
         antscout << " cannot find operation : " << operation << std::endl;
@@ -13112,6 +13188,10 @@ private:
       else if( strcmp(operation.c_str(), "Where") == 0 )
         {
         Where<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PureTissueN4WeightMask") == 0 )
+        {
+        PureTissueN4WeightMask<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
         {
