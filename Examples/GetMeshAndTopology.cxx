@@ -376,8 +376,8 @@ private:
 
   std::string outfn = std::string(argv[3]);
 
-  ImageType::Pointer image2;
-  ImageType::Pointer image;
+  ImageType::Pointer image2 = ImageType::New();
+  ImageType::Pointer image = ImageType::New();
   ReadImage<ImageType>(image, argv[1]);
   ReadImage<ImageType>(image2, argv[2]);
 

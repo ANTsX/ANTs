@@ -329,7 +329,7 @@ private:
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef float                                 FieldValueType;
 
-  ImageType::Pointer image;
+  ImageType::Pointer image = ImageType::New();
   ReadImage<ImageType>(image, argv[1]);
   image = BinaryThreshold<ImageType>(0.5, 1.e9, 1, image);
   float initG = GetImageTopology<ImageType>(image);
