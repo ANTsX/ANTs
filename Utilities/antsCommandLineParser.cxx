@@ -66,7 +66,7 @@ bool
 CommandLineParser
 ::starts_with(const std::string & s1, const std::string & s2)
 {
-  return s2.size() <= s1.size() && s1.compare(0, (s2.size()-1), s2) == 0;
+  return s2.length() <= s1.length() && s1.compare(0, s2.length(), s2) == 0;
 }
 
 void
