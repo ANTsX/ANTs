@@ -50,7 +50,8 @@ public:
   typedef TAffineTransform                   AffineTransformType;
   typedef TMaskImage                         MaskImageType;
   typedef typename MaskImageType::Pointer    MaskObjectPointerType;
-  OptAffine()
+  OptAffine():
+  metric_type (AffineWithMutualInformation)
   {
     MI_bins = 32;
     MI_samples = 6000;
