@@ -101,7 +101,7 @@ private:
   typedef itk::Image<float, 3>           ImageType;
 
   typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
-  TensorImageType::Pointer img_mov;
+  TensorImageType::Pointer img_mov =TensorImageType::New();
 
   // No reason to use log-euclidean space
   ReadTensorImage<TensorImageType>(img_mov, moving_image_filename, false);

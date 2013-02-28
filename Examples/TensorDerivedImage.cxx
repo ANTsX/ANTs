@@ -103,7 +103,7 @@ private:
   char *      outputName = argv[2];
   std::string outType = argv[3];
 
-  TensorImageType::Pointer dtimg;
+  TensorImageType::Pointer dtimg = TensorImageType::New();
   ReadTensorImage<TensorImageType>(dtimg, inputName, false);
 
   antscout << "tensor_image: " << inputName << std::endl;

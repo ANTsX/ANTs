@@ -596,7 +596,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
     RunningImagePointerType           R_fixedImage, R_movingImage;
     RunningOptAffineType              R_opt;
-    RunningAffineTransformPointerType transform_running;
+    RunningAffineTransformPointerType transform_running = RunningAffineTransformPointerType::New();
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
@@ -617,7 +617,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
     RunningImagePointerType           R_fixedImage, R_movingImage;
     RunningOptAffineType              R_opt;
-    RunningAffineTransformPointerType transform_running;
+    RunningAffineTransformPointerType transform_running = RunningAffineTransformPointerType::New();
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 

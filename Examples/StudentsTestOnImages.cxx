@@ -116,7 +116,7 @@ void generatePermGroup(int * groupID, int lengthGroupA, int lengthGroupB,
     genGroupID[i] = groupID[newPerm[i]];
     }
 
-  delete newPerm;
+  delete [] newPerm;
 }
 
 void generatePerm(int length, int * genPerm)
@@ -139,7 +139,7 @@ void generatePerm(int length, int * genPerm)
     {
     genPerm[cnt] = newPerm[cnt].index;
     }
-  delete newPerm;
+  delete [] newPerm;
 }
 
 int smallerPermElem(PermElement * elem1, PermElement * elem2)
@@ -192,7 +192,7 @@ double computeQuantile(int numObs, double * stat, double quantile)
 
   double retval = stat[sortStat[(int) quantindex].index];
 
-  delete sortStat;
+  delete [] sortStat;
 
   return retval;
 }
@@ -249,7 +249,7 @@ void computePermStatPval(int numFeatures, int numPerms,
       permStatPval[curIndex * numFeatures + feat] = curPval;
       }
     }
-  delete sortPermStat;
+  delete [] sortPermStat;
 }
 
 double decode_ieee_single( unsigned char *v, int natural_order)
