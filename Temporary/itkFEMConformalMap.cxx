@@ -626,7 +626,6 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
     }
 
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
-  unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
   unsigned int                           dofs = (*elt)->GetNumberOfDegreesOfFreedomPerNode();
 
     {

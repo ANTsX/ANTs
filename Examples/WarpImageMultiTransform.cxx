@@ -93,12 +93,9 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
       if( strchr(s, 'x') )
         {
         char *tok = strtok(s, "x");
-        for( int i = 0; i < NDimensions; i++ )
+        int i = 0;
+        while( tok!=NULL && i<NDimensions )
           {
-          if( tok == NULL )
-            {
-            antscout << "Invalid sigma specification:" << s << std::endl;
-            }
           double x = atof(tok);
           if( x < 0 )
             {
@@ -106,6 +103,11 @@ static bool WarpImageMultiTransform_ParseInput(int argc, char * *argv, char *& m
             }
           misc_opt.opt_ML.sigma[i] = x;
           tok = strtok(NULL, "x");
+          ++i;
+          }
+        if( i!=NDimensions || tok!=NULL )
+          {
+          antscout << "Invalid sigma specification:" << s << std::endl;
           }
         }
       else

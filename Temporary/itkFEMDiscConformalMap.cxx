@@ -1064,7 +1064,6 @@ void  FEMDiscConformalMap<TSurface, TImage, TDimension>
 {
 //  if (dim > 3 || dim < -3 || dim == 0 ) return;
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
-  unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
   unsigned int                           dofs = (*elt)->GetNumberOfDegreesOfFreedomPerNode();
 
   int fixct = 0;

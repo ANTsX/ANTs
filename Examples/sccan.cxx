@@ -288,6 +288,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       }
     }
   std::string              post2;
+  std::ofstream            myfile;
   std::string              fnmp = filepre + std::string("projections") + post + std::string(".csv");
   std::vector<std::string> ColumnHeaders;
   for( unsigned int nv = 0; nv < projections.cols(); nv++ )
@@ -431,6 +432,32 @@ PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
   return q_perm;
 }
 
+template <unsigned int ImageDimension, class PixelType>
+int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
+                     itk::ants::CommandLineParser::OptionType * /* outputOption */ = NULL )
+{
+  std::string funcName = std::string("matrixOperation");
+
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef double                                matPixelType;
+  typedef itk::Image<matPixelType, 2>           MatrixImageType;
+  typename ImageType::Pointer outputImage = NULL;
+
+  //   option->SetUsageOption( 2, "multires_matrix_invert[list.txt,maskhighres.nii.gz,masklowres.nii.gz,matrix.mhd]" );
+
+  std::string value = option->GetFunction( 0 )->GetName();
+  if( strcmp( value.c_str(), "multires_matrix_invert" ) == 0 )
+    {
+    std::string listfn = option->GetFunction( 0 )->GetParameter( 0 );
+    std::string maskhfn = option->GetFunction( 0 )->GetParameter( 1 );
+    std::string masklfn = option->GetFunction( 0 )->GetParameter( 2 );
+    //      vnl_matrix<matPixelType> matrixinv=MultiResMatrixInvert<ImageDimension,matPixelType>( listfn, maskhfn,
+    // masklfn );
+    }
+
+  return EXIT_SUCCESS;
+}
+
 template <class RealType>
 int
 CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
@@ -521,9 +548,9 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       antscout << "Can't open image list file: " << imagelist << std::endl;
       return;
       }
-    char lineBuffer[maxChar];
-    char filenm[maxChar];
-    unsigned int filecount = 0;
+    char               lineBuffer[maxChar];
+    char               filenm[maxChar];
+    unsigned int       filecount = 0;
     while( !inputStreamA.eof() )
       {
       inputStreamA.getline( lineBuffer, maxChar, '\n' );
@@ -1923,7 +1950,6 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
     /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
      q=q*CqqInv;
     sermuted ;  2. scca ;  3. test corrs and weights significance */
-    
     if( permct > 0 )
       {
       unsigned long perm_exceed_ct = 0;
@@ -2041,6 +2067,17 @@ int sccan( itk::ants::CommandLineParser *parser )
   else
     {
     robustify = parser->Convert<unsigned int>( robust_option->GetFunction()->GetName() );
+    }
+
+  matPixelType                                      evecgradientpenalty = 1;
+  itk::ants::CommandLineParser::OptionType::Pointer evecg_option =
+    parser->GetOption( "EvecGradPenalty" );
+  if( !evecg_option || evecg_option->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    evecgradientpenalty = parser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
     }
 
   unsigned int                                      p_cluster_thresh = 1;
@@ -2471,6 +2508,7 @@ int sccan( std::vector<std::string> args, std::ostream* out_stream = NULL )
   // which the parser should handle
   args.insert( args.begin(), "sccan" );
 
+  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

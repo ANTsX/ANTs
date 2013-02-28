@@ -556,6 +556,9 @@ int StudentsTestOnImages(int argc, char *argv[])
   // std::string soutname = std::string("PVAL") + outname;
   // WriteImage(PImage,soutname.c_str());
 
+  delete [] feature;
+  delete [] groupLabel;
+  
   return 1;
 }
 

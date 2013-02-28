@@ -8997,7 +8997,6 @@ int ROIStatistics(      int argc, char *argv[])
     throw std::exception();
     }
   const std::string outname = std::string(argv[argct]);
-  std::string csvname = ANTSGetFilePrefix(outname.c_str() ) + std::string(".csv");
   typedef vnl_matrix<double> MatrixType;
   argct += 2;
   std::string fn0 = std::string(argv[argct]);   argct++;

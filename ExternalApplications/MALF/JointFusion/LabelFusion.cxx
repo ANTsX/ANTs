@@ -414,7 +414,7 @@ int lfapp(int argc, char *argv[])
 
     // Iterate over the labels
     typename VoterType::PosteriorMap::const_iterator it;
-    for( it = pm.begin(); it != pm.end(); it++ )
+    for( it = pm.begin(); it != pm.end(); ++it )
       {
       // Get the filename
       char buffer[4096];
