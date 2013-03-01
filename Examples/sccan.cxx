@@ -272,7 +272,7 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
 template <class TImage, class TComp>
 void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_matrix<TComp> varmat,
                                   typename TImage::Pointer  mask,  vnl_matrix<TComp> data_mat,
-                                  bool have_mask )
+                                  bool have_mask, vnl_matrix<TComp> u_mat  )
 {
   vnl_matrix<TComp>      projections = data_mat * varmat;
   std::string::size_type pos = filename.rfind( "." );
@@ -339,6 +339,32 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     try
       {
       writer->Write();
+      }
+    catch( itk::ExceptionObject& exp )
+      {
+      antscout << "Exception caught!" << std::endl;
+      antscout << exp << std::endl;
+      return;
+      }
+    }
+
+  if ( u_mat.size() > 0 ) 
+    {
+    // write out the array2D object for U matrix
+    ColumnHeaders.clear();
+    fnmp = filepre + std::string("_Umatrix_") + post + std::string(".csv");
+    for( unsigned int nv = 0; nv < varmat.cols(); nv++ )
+      {
+      std::string colname = std::string("U") + sccan_to_string<unsigned int>(nv);
+      ColumnHeaders.push_back( colname );
+      }
+    writer = WriterType::New();
+    writer->SetFileName( fnmp.c_str() );
+    writer->SetColumnHeaders(ColumnHeaders);
+    writer->SetInput( &u_mat );
+    try
+      {
+      writer->Write(); 
       }
     catch( itk::ExceptionObject& exp )
       {
@@ -1298,7 +1324,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     std::string post = std::string("View1vec");
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                     sccanobj->GetVariatesP(), mask1,
-                                                    sccanobj->GetMatrixP(), have_p_mask );
+                                                    sccanobj->GetMatrixP(), have_p_mask, sccanobj->GetMatrixU() );
 
     // WriteSortedVariatesToSpatialImage<ImageType,Scalar>( filename, post, sccanobj->GetVariatesP() , mask1 ,
     // sccanobj->GetMatrixP() , have_p_mask,sccanobj->GetSortFinalLocArray(),priorROIMat );
@@ -1472,11 +1498,11 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     antscout << " have_p_mask " << have_p_mask << " have_q_mask " << have_q_mask << std::endl;
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                     sccanobj->GetVariatesP(), mask1,
-                                                    sccanobj->GetMatrixP(), have_p_mask );
+                                                    sccanobj->GetMatrixP(), have_p_mask, sccanobj->GetMatrixU() );
     post = std::string("View2vec");
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                     sccanobj->GetVariatesQ(), mask2,
-                                                    sccanobj->GetMatrixQ(), have_q_mask );
+                                                    sccanobj->GetMatrixQ(), have_q_mask, sccanobj->GetMatrixU() );
     }
 
   /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
@@ -1783,11 +1809,11 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
         std::string post = std::string("View1vec");
         WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                         sccanobjCovar->GetVariatesP(), mask1, sccanobjCovar->GetMatrixP(
-                                                          ), have_p_mask );
+                                                          ), have_p_mask, sccanobj->GetMatrixU() );
         post = std::string("View2vec");
         WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                         sccanobjCovar->GetVariatesQ(), mask2, sccanobjCovar->GetMatrixQ(
-                                                          ), have_q_mask );
+                                                          ), have_q_mask, sccanobj->GetMatrixU() );
         }
 
       /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
@@ -1946,11 +1972,11 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
       std::string post = std::string("View1vec");
       WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                       sccanobj->GetVariatesP(), mask1,
-                                                      sccanobj->GetMatrixP(), have_p_mask);
+                                                      sccanobj->GetMatrixP(), have_p_mask, sccanobj->GetMatrixU());
       post = std::string("View2vec");
       WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                       sccanobj->GetVariatesQ(), mask2,
-                                                      sccanobj->GetMatrixQ(), have_q_mask );
+                                                      sccanobj->GetMatrixQ(), have_q_mask, sccanobj->GetMatrixU() );
       }
 
     /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
