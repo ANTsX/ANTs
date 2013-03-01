@@ -626,7 +626,7 @@ typedef struct
 
 extern TRAN_FILE_TYPE CheckFileType(const char * const str);
 
-extern TRAN_FILE_TYPE CheckFileType(const std::string str);
+extern TRAN_FILE_TYPE CheckFileType(const std::string & str);
 
 extern void SetAffineInvFlag(TRAN_OPT & opt, bool & set_current_affine_inv);
 

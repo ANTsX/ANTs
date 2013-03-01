@@ -309,10 +309,9 @@ private:
   char *output_transform_filename = NULL;
   char *reference_transform_filename = NULL;
 
-  bool is_parsing_ok = false;
   int  kImageDim = atoi(argv[1]);
 
-  is_parsing_ok = AverageAffineTransform_ParseInput(argc - 2, argv + 2, output_transform_filename,
+  bool is_parsing_ok = AverageAffineTransform_ParseInput(argc - 2, argv + 2, output_transform_filename,
                                                     reference_transform_filename, opt_queue);
 
   if( is_parsing_ok )

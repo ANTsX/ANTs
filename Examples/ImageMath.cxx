@@ -3066,10 +3066,10 @@ int PASL(int argc, char *argv[])
   typedef itk::ImageRegionIteratorWithIndex<ImageType>     ImageIt;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType>  SliceIt;
 
-  RealType M0W = 1300; // FIXME
-  RealType TE = 4000;
-  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
-  calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
+  //RealType M0W = 1300; // FIXME
+  //RealType TE = 4000;
+  //RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+  RealType calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
 
   if( fn1.length() > 3 )
     {
@@ -3298,10 +3298,10 @@ int pCASL(int argc, char *argv[])
 
   outimage = AllocImage<OutImageType>(M0image, 0);
 
-  RealType M0W = 1300; // FIXME
-  RealType TE = 4000;
-  RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
-  calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
+  //RealType M0W = 1300; // FIXME
+  //RealType TE = 4000;
+  //RealType calculatedM0 = 1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
+  RealType calculatedM0 = 2800; // from "Impact of equilibrium magnetization of blood on ASL quantification" by YChen et al
 
   bool haveM0 = true;
   if( m0fn.length() > 3 )
@@ -9288,8 +9288,8 @@ int ROIStatistics(      int argc, char *argv[])
       {
       myCenterOfMass[i] /= (float)totalct;
       }
-    double comx = 0, comy = 0, comz = 0, comt = 0;
-    comx = myCenterOfMass[0];
+    double comy = 0, comz = 0, comt = 0;
+    double comx = myCenterOfMass[0];
     if( ImageDimension >= 2 )
       {
       comy = myCenterOfMass[1];
@@ -11638,7 +11638,6 @@ int BlobDetector( int argc, char *argv[] )
       unsigned int maxpair = correspondencematrix.arg_max();
       unsigned int maxrow = ( unsigned int )  maxpair / correspondencematrix.cols();
       unsigned int maxcol = maxpair - maxrow * correspondencematrix.cols();
-      bestblob = NULL;
       BlobPointer blob1 = blobs1[maxrow];
       bestblob = blobs2[maxcol];
       if( bestblob )

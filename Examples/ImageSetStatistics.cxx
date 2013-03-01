@@ -555,13 +555,13 @@ float trimmean(std::vector<float> vec)
 
   vec_sz mid = size / 2;
 
-  float lo = mid - (0.1 * size + 1);
-  float hi = mid + (0.1 * size + 1);
-  lo = 0;
-  hi = size;
-  float ct = hi - lo;
+  //float lo = mid - (0.1 * size + 1);
+  //float hi = mid + (0.1 * size + 1);
+  const unsigned int lo = 0;
+  const unsigned int hi = size;
+  const unsigned int ct = hi - lo;
   float total = 0;
-  for( unsigned int i = (unsigned int)lo; i < hi; i++ )
+  for( unsigned int i = lo; i < hi; i++ )
     {
     total += vec[i];
     }

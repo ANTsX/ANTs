@@ -384,7 +384,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> Iterator;
   image_avg->FillBuffer(0);
   unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  if( timelist.size() == 0 )
+  if( timelist.empty() )
     {
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
