@@ -1759,8 +1759,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
     //    this->SparsifyOther( lmsolv , 0.5 , false );
-    //    vnl_svd<RealType> lmsolver( this->m_VariatesP, 1.e-6 );
-    //    lmsolv = lmsolver.solve( x_i );
+    // this gives NMF => 
+    this->SparsifyOther( lmsolv , 0.5 , true );
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();
@@ -1789,6 +1789,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     writer->SetInput( &recon );
     writer->Write();
     }
+  this->m_MatrixU = matrixB;
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   RealType rr = ( temp - this->m_MatrixP ).frobenius_norm();
   return ( 1.0 - rr * rr / ( matpfrobnorm * matpfrobnorm ) );

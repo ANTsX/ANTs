@@ -290,6 +290,11 @@ public:
     return this->m_MatrixR;
   }
 
+  MatrixType GetMatrixU()
+  {
+    return this->m_MatrixU;
+  }
+
   MatrixType GetOriginalMatrixP()
   {
     return this->m_OriginalMatrixP;
@@ -1027,6 +1032,8 @@ private:
   VariateType m_SparseVariatesP;
   VariateType m_VariatesP;
   VariateType m_VariatesQ;
+  /** solution to   X - U V */
+  MatrixType   m_MatrixU;
 
   VectorType   m_WeightsR;
   MatrixType   m_MatrixR;
