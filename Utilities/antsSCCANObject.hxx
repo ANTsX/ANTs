@@ -1758,9 +1758,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType x_i = this->m_MatrixP.get_row( a );
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
-    //    this->SparsifyOther( lmsolv , 0.5 , false );
     // this gives NMF => 
-    this->SparsifyOther( lmsolv , 0.5 , true );
+    //    this->SparsifyOther( lmsolv , 0.5 , true );
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();
