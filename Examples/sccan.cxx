@@ -1526,14 +1526,16 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       double permcorr = 0;
       permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
       vVector permcorrs = sccanobj->GetCanonicalCorrelations();
-      antscout << " perm-corr " << permcorrs << std::endl;
+      antscout << " perm-corr " << permcorrs << " ct " << pct << " p-values ";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
         {
         if( permcorrs[kk] > sccancorrs[kk] )
           {
           perm_exceed_ct[kk]++;
           }
+        antscout <<  ( double ) perm_exceed_ct[kk] / (pct + 1) << " ";
         }
+      antscout << std::endl;
       vVector w_p_perm = sccanobj->GetVariateP(0);
       vVector w_q_perm = sccanobj->GetVariateQ(0);
       for( unsigned long j = 0; j < w_p.size(); j++ )
@@ -1551,14 +1553,13 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
           }
         }
       // end solve cca permutation
-      if ( pct == permct ) antscout << "perm p-value: ";
+      if ( pct == permct ) antscout << "final_p_values" << ",";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
         {
-        //	antscout << " k" << kk << "p: " <<  ( double ) perm_exceed_ct[kk]
 	if ( pct == permct ) antscout << ( double ) perm_exceed_ct[kk]
-          / (pct + 1) << ","; // << " true " << sccancorrs[kk];
+          / (pct + 1) << ",";
         }
-      if ( pct == permct ) antscout << " ct " << pct << std::endl;
+      if ( pct == permct ) antscout << "x" << std::endl;
       }
     unsigned long psigct = 0, qsigct = 0;
     for( unsigned long j = 0; j < w_p.size(); j++ )
