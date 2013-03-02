@@ -346,7 +346,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       }
     }
 
-  if ( u_mat.size() > 0 ) 
+  if ( u_mat.size() > 0 )
     {
     // write out the array2D object for U matrix
     ColumnHeaders.clear();
@@ -362,7 +362,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     writer->SetInput( &u_mat );
     try
       {
-      writer->Write(); 
+      writer->Write();
       }
     catch( itk::ExceptionObject& exp )
       {
@@ -1952,7 +1952,7 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
     /** begin permutation 1. q_pvMatrix CqqInv=vnl_svd_inverse<Scalar>(Cqq);
      q=q*CqqInv;
     sermuted ;  2. scca ;  3. test corrs and weights significance */
-    
+
     if( permct > 0 )
       {
       unsigned long perm_exceed_ct = 0;

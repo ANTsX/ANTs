@@ -2525,13 +2525,6 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
           cca->SetMinClusterSizeQ( minClusterSize );
           cca->SetMatrixP( P );
           cca->SetMatrixQ( Q );
-<<<<<<< HEAD
-
-          // is truecorr just sccancorrs[0]?
-          // const double truecorr = cca->SparsePartialArnoldiCCA(n_evec);
-=======
-          
->>>>>>> COMP: Fix all the cppcheck performance warnings for ANTS
           VectorType sccancorrs = cca->GetCanonicalCorrelations();
 
           typename InputImageType::IndexType connIdx;
@@ -2565,13 +2558,8 @@ int PASLQuantifyCBF(int argc, char *argv[])
     FilterType;
 
   int         argct = 2;
-<<<<<<< HEAD
-  std::string outname = std::string(argv[argct++]);
-  std::string operation = std::string(argv[argct++]);
-=======
   const std::string outname = std::string(argv[argct++]);
   argct++;
->>>>>>> COMP: Fix all the cppcheck performance warnings for ANTS
   std::string fn1 = std::string(argv[argct++]);
   std::string m0name = std::string(argv[argct++]);
 

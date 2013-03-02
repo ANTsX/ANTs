@@ -486,7 +486,7 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
 
   double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( oindex )  );
   double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( oindex )  );
-  
+
   JointPDFPointType pdfind;
   this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, pdfind);
   const double jointPDFValue = pdfinterpolator->Evaluate(pdfind);

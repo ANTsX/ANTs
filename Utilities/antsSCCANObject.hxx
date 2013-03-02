@@ -561,14 +561,14 @@ antsSCCANObject<TInputImage, TRealType>
 template <class TInputImage, class TRealType>
 void
 antsSCCANObject<TInputImage, TRealType>
-::SoftClustThreshold( typename antsSCCANObject<TInputImage, TRealType>::VectorType &  v_in, 
+::SoftClustThreshold( typename antsSCCANObject<TInputImage, TRealType>::VectorType &  v_in,
   TRealType soft_thresh, bool keep_positive , unsigned int clust, typename TInputImage::Pointer mask )
 {
   // here , we apply the minimum threshold to the data.
   for( unsigned int i = 0; i < v_in.size(); i++ )
     {
     RealType val = v_in(i);
-    if ( keep_positive && val < 0 ) val = 0 ; 
+    if ( keep_positive && val < 0 ) val = 0 ;
     // if ( keep_positive && val < 0 ) val *= ( -1 );
     if( vnl_math_abs( val ) < soft_thresh )
       {
@@ -585,7 +585,7 @@ antsSCCANObject<TInputImage, TRealType>
       }
     }
   this->ClusterThresholdVariate( v_in, mask, clust );
-  //  ::ants::antscout <<" resoft " << this->CountNonZero( v_in ) << std::endl; 
+  //  ::ants::antscout <<" resoft " << this->CountNonZero( v_in ) << std::endl;
   return;
 }
 
@@ -1605,13 +1605,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType priorVec = this->m_MatrixPriorROI.get_row(a);
-		  
+		
 		  if( priorVec.one_norm()  < 1.e-12 )
 		  {
 			  ::ants::antscout << "Prior Norm too small, could be a bug: " << priorVec.one_norm() << std::endl;
 			  std::exception();
 		  }
-		 
+		
 		  priorVec = priorVec/priorVec.one_norm();
       VectorType evec = this->m_VariatesP.get_column( a );
       if( overit == 0 )
@@ -1715,8 +1715,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     denom = inner_product( evec, evec );
     if( denom > 0 )
       {
-      // fast way to compute   evec^T * (  A^T A + M M^T ) evec  
-      proj =  ( At   * ( A    * evec ) ) * lam1 + 
+      // fast way to compute   evec^T * (  A^T A + M M^T ) evec
+      proj =  ( At   * ( A    * evec ) ) * lam1 +
 	this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
       rayquo = inner_product( evec, proj  ) / denom;
       }
@@ -1758,7 +1758,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType x_i = this->m_MatrixP.get_row( a );
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
-    // this gives NMF => 
+    // this gives NMF =>
     //    this->SparsifyOther( lmsolv , 0.5 , true );
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     icept( a ) = this->m_Intercept;
@@ -3180,7 +3180,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SortResults( n_vecs );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / n_vecs;
-    if ( ! m_Silent ) 
+    if ( ! m_Silent )
       {
       ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy
                        << std::endl;
@@ -4667,7 +4667,7 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::InitializeSCCA_simple( unsigned int n_vecs )
 {
-  /** get the row mean for each matrix , then correlate the other matrix with that, then sparsify 
+  /** get the row mean for each matrix , then correlate the other matrix with that, then sparsify
    *  for 2nd,3rd,etc evecs, orthogonalize initial vector against sparsified.
    */
   RealType totalcorr = 0;
@@ -4809,7 +4809,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->m_VariatesP.set_size(this->m_MatrixP.cols(), n_vecs);
   this->m_VariatesQ.set_size(this->m_MatrixQ.cols(), n_vecs);
   RealType initReturn = this->InitializeSCCA_simple( n_vecs );
-  if ( !m_Silent ) 
+  if ( !m_Silent )
     {
     ::ants::antscout << "Initialization: " << initReturn << std::endl;
     }
@@ -4845,7 +4845,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
-    // if( this->m_Debug ) 
+    // if( this->m_Debug )
     if ( ! m_Silent )
       {
       ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;

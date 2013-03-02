@@ -141,7 +141,7 @@ public:
     {
       this->m_Axis = 0;
     }
-  
+
     int GetAxis() const
     {
       return m_Axis;

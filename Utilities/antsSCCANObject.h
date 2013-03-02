@@ -724,7 +724,7 @@ protected:
 
   void PositivePart( VectorType& x_k1 , bool takemin = true )
   {
-    if ( takemin ) 
+    if ( takemin )
       {
       RealType minval = x_k1.min_value();
       x_k1 = x_k1 - minval;
@@ -783,14 +783,14 @@ protected:
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
     unsigned int its = 0;
-    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 ) 
+    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
       this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
       RealType fnm = this->CountNonZero( searcherm );
       if ( fnm > fnp ) { low = mid;  }
-      if ( fnm < fnp ) { high = mid; }      
+      if ( fnm < fnp ) { high = mid; }
       eng = vnl_math_abs( fnp - fnm );
       its++;
       }

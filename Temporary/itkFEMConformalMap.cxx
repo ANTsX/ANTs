@@ -579,7 +579,7 @@ void  FEMConformalMap<TSurface, TImage, TDimension>
 
   itk::fem::Element::VectorType minv;
   itk::fem::Element::VectorType maxv;
-  
+
   itk::fem::Element::ArrayType::iterator elt = m_Solver.el.begin();
   unsigned int                           Nnodes = (*elt)->GetNumberOfNodes();
 

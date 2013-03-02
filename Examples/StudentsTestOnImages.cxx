@@ -555,7 +555,7 @@ int StudentsTestOnImages(int argc, char *argv[])
 
   delete [] feature;
   delete [] groupLabel;
-  
+
   return 1;
 }
 

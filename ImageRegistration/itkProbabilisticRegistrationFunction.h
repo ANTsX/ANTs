@@ -166,7 +166,7 @@ public:
   {
   //HACK: The signature of this function should be reconsidered
   //      a delete of a re-interpret cast is a dangerous
-  //      proposition.  
+  //      proposition.
     delete reinterpret_cast<GlobalDataStruct *>( GlobalData );
   }
 

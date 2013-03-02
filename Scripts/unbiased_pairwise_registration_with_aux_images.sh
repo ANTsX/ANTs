@@ -95,7 +95,7 @@ reg=antsRegistration
 uval=0
 affits=999x550x20
 aff=" -t rigid[ 0.2 ]  -c [ $affits ,1.e-7,20]  -s 3x2x0 -f 4x2x1 -u $uval -l 0 "
-synits=100x50  #BA 
+synits=100x50  #BA
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 nmA=${prefix}_A_norm
@@ -143,10 +143,10 @@ $reg -d $dim  \
                        -o [${nmB},${nmB}_aff.nii.gz]
 # now we can do a symmetric deformable mapping
 antsApplyTransforms -d $dim -i $B -o ${nm}_aff.nii.gz -t [ $initAmat, 1 ] -t  $initBmat -r $A
-N3BiasFieldCorrection $dim $A ${nm}_n3_a.nii.gz 4 
-N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2 
-N3BiasFieldCorrection $dim $B ${nm}_n3_b.nii.gz 4 
-N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2 
+N3BiasFieldCorrection $dim $A ${nm}_n3_a.nii.gz 4
+N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2
+N3BiasFieldCorrection $dim $B ${nm}_n3_b.nii.gz 4
+N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
   echo now do deformable expecting $initB and $initA to exist
   if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
@@ -165,8 +165,8 @@ N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
 #                        -f 2x1 \
 #                       -u $uval \
 #                       -o [${nminv},${nminv}_diff_symm.nii.gz]
-  else 
-    echo  $initBmat and $initAmat DO NOT exist 
+  else
+    echo  $initBmat and $initAmat DO NOT exist
     exit
   fi
 fi
@@ -178,15 +178,15 @@ ANTSJacobian $dim ${nm}1Warp.nii.gz ${nm} 1 no 0
 # ImageMath $dim ${prefix}invid.nii.gz InvId ${nminv}1Warp.nii.gz ${nm}1Warp.nii.gz
 
 
-initafffn=${nm}_init_aff.mat 
-if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then 
+initafffn=${nm}_init_aff.mat
+if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then
   imgsmall=${nm}_diffsmall.nii.gz
   temsmall=${nm}_temsmall.nii.gz
-  ResampleImageBySpacing $dim ${nm}_diff_symm.nii.gz $imgsmall 4 4 4 
-  ResampleImageBySpacing $dim $template $temsmall 4 4 4 
-  antsAffineInitializer 3 $temsmall  $imgsmall  $initafffn 15 0.1 0 10 
+  ResampleImageBySpacing $dim ${nm}_diff_symm.nii.gz $imgsmall 4 4 4
+  ResampleImageBySpacing $dim $template $temsmall 4 4 4
+  antsAffineInitializer 3 $temsmall  $imgsmall  $initafffn 15 0.1 0 10
   gf=$template
-  gm=${nm}_diff_symm.nii.gz 
+  gm=${nm}_diff_symm.nii.gz
   imgs=" $gf, $gm "
   $reg -d $dim  -r $initafffn  \
                         -m mattes[  $imgs , 1 , 32, regular, 0.25 ] \
@@ -211,12 +211,12 @@ MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
 
 
   ######### now redo bias correction & syn #########
-  N3BiasFieldCorrection $dim ${nm}_A_brain.nii.gz ${nm}_n3_a.nii.gz 4 
-  N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2  
-  N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2 
-  N3BiasFieldCorrection $dim ${nm}_B_brain.nii.gz ${nm}_n3_b.nii.gz 4 
-  N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2 
-  N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2 
+  N3BiasFieldCorrection $dim ${nm}_A_brain.nii.gz ${nm}_n3_a.nii.gz 4
+  N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2
+  N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2
+  N3BiasFieldCorrection $dim ${nm}_B_brain.nii.gz ${nm}_n3_b.nii.gz 4
+  N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
+  N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
   echo now do deformable expecting $initB and $initA to exist
   if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
     $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
@@ -227,14 +227,14 @@ MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
                         -f 2x1 \
                        -u $uval -b 0 -z 1 \
                        -o [${nm},${nm}_diff_symm.nii.gz]
-  else 
-    echo  $initBmat and $initAmat DO NOT exist 
+  else
+    echo  $initBmat and $initAmat DO NOT exist
     exit
   fi
   antsApplyTransforms -d $dim -i $B -o ${nm}_diff.nii.gz -t [ $initAmat, 1 ] -t ${nm}1Warp.nii.gz -t  $initBmat -r $A
   ANTSJacobian $dim ${nm}1Warp.nii.gz ${nm} 1 no 0
-fi 
-if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then 
+fi
+if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then
   echo deal with auxiliary images ... here DTI
   ffa=${nm}_ffa.nii.gz
   mfa=${nm}_mfa.nii.gz
@@ -286,12 +286,12 @@ antsApplyTransforms -d $dim -i $ffa -o  ${nm}_ffanorm.nii.gz  -r $template $tran
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}1Warp.nii.gz  -t  $initBmat -t ${nm}_mfa1Warp.nii.gz -t ${nm}_mfa0GenericAffine.mat "
 antsApplyTransforms -d $dim -i $mfa -o  ${nm}_mfanorm.nii.gz  -r $template $trans
 ImageMath $dim ${nm}_fadiff.nii.gz - ${nm}_ffanorm.nii.gz  ${nm}_mfanorm.nii.gz
-fi 
-echo done with aux images --- now get final jacobians 
+fi
+echo done with aux images --- now get final jacobians
 
 
 
-if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then 
+if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then
   echo deal with auxiliary images ... here DTI
   fcbf=${nm}_fcbf.nii.gz
   mcbf=${nm}_mcbf.nii.gz
@@ -343,11 +343,11 @@ antsApplyTransforms -d $dim -i $fcbf -o  ${nm}_fcbfnorm.nii.gz  -r $template $tr
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}1Warp.nii.gz  -t  $initBmat -t ${nm}_mcbf1Warp.nii.gz -t ${nm}_mcbf0GenericAffine.mat "
 antsApplyTransforms -d $dim -i $mcbf -o  ${nm}_mcbfnorm.nii.gz  -r $template $trans
 ImageMath $dim ${nm}_cbfdiff.nii.gz - ${nm}_fcbfnorm.nii.gz  ${nm}_mcbfnorm.nii.gz
-fi 
-echo done with 2nd aux images --- now get final jacobians 
+fi
+echo done with 2nd aux images --- now get final jacobians
 
 
-# get final jacobian values 
+# get final jacobian values
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat                       -t  $initAmat"
 antsApplyTransforms -d $dim -i ${nm}_A_brain.nii.gz -o  [${nm}_A_fullWarp.nii.gz, 1 ]  -r $template $trans
 ANTSJacobian $dim ${nm}_A_fullWarp.nii.gz ${nm}_A_full 1 no 0
