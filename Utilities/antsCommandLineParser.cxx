@@ -62,6 +62,13 @@ CommandLineParser
     }
 }
 
+bool
+CommandLineParser
+::starts_with(const std::string & s1, const std::string & s2)
+{
+  return s2.length() <= s1.length() && s1.compare(0, s2.length(), s2) == 0;
+}
+
 void
 CommandLineParser
 ::Parse( unsigned int argc, char * *argv )
@@ -80,11 +87,11 @@ CommandLineParser
     std::string name;
 
     name.clear();
-    if( argument.find( "--" ) == 0 )
+    if( starts_with( argument, "--" ) )
       {
       name = argument.substr( 2, argument.length() - 1 );
       }
-    else if( argument.find( "-" ) == 0 && argument.find( "--" ) > 0 )
+    else if( starts_with( argument, "-" ) && !starts_with( argument, "--" ) )
       {
       name = argument.substr( 1, 2 );
       }
@@ -113,7 +120,7 @@ CommandLineParser
           for( unsigned int m = n; m < arguments.size(); m++ )
             {
             std::string function = arguments[m];
-            if( function.find( "-" ) != 0 )
+            if( !starts_with( function, "-" ) )
               {
               unknownOption->AddFunction( function,
                                           this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
@@ -144,7 +151,7 @@ CommandLineParser
           for( unsigned int m = n; m < arguments.size(); m++ )
             {
             std::string function = arguments[m];
-            if( function.find( "-" ) != 0 || atof( function.c_str() ) )
+            if( !starts_with( function, "-" ) || atof( function.c_str() ) )
               {
               option->AddFunction( function,
                                    this->m_LeftDelimiter, this->m_RightDelimiter, order++ );
@@ -277,7 +284,7 @@ CommandLineParser
     }
 
   OptionListType::iterator it;
-  for( it = this->m_Options.begin(); it != this->m_Options.end(); it++ )
+  for( it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
     {
     if( name.compare( (*it)->GetLongName() ) == 0 )
       {
@@ -293,7 +300,7 @@ CommandLineParser
 {
   OptionListType::iterator it;
 
-  for( it = this->m_Options.begin(); it != this->m_Options.end(); it++ )
+  for( it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
     {
     if( name == (*it)->GetShortName() )
       {
@@ -327,7 +334,7 @@ CommandLineParser
   os << "OPTIONS: " << std::endl;
 
   OptionListType::const_iterator it;
-  for( it = this->m_Options.begin(); it != this->m_Options.end(); it++ )
+  for( it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
     {
     os << indent;
     std::stringstream ss;
@@ -522,7 +529,7 @@ CommandLineParser
 {
   OptionListType::const_iterator it;
 
-  for( it = this->m_Options.begin(); it != this->m_Options.end(); it++ )
+  for( it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
     {
     typedef OptionType::FunctionStackType OptionFunctionStackType;
     OptionFunctionStackType functions = (*it)->GetFunctions();
@@ -531,7 +538,7 @@ CommandLineParser
 
     unsigned int previousOrder = 0;
     unsigned int currentOrder = 0;
-    for( it2 = functions.begin(); it2 != functions.end(); it2++ )
+    for( it2 = functions.begin(); it2 != functions.end(); ++it2 )
       {
       if( it2 == functions.begin() )
         {
@@ -568,7 +575,7 @@ CommandLineParser
   os << indent << "Options: " << std::endl;
 
   OptionListType::const_iterator it;
-  for( it = this->m_Options.begin(); it != this->m_Options.end(); it++ )
+  for( it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
     {
     (*it)->Print( os, indent );
     }
@@ -578,7 +585,7 @@ CommandLineParser
     os << indent << "Unknown Options: " << std::endl;
     OptionListType::const_iterator its;
     for( its = this->m_UnknownOptions.begin();
-         its != this->m_UnknownOptions.end(); its++ )
+         its != this->m_UnknownOptions.end(); ++its )
       {
       (*its)->Print( os, indent );
       }

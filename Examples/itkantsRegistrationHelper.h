@@ -243,7 +243,8 @@ public:
       m_UpdateFieldTimeSigma( 0.0 ),
       m_TotalFieldTimeSigma( 0.0 ),
       m_NumberOfTimeIndices( 0 ),
-      m_NumberOfTimePointSamples( 4 )
+      m_NumberOfTimePointSamples( 4 ),
+      m_VelocityFieldVarianceInVarianceSpace( 0.0 )
     {
     }
 

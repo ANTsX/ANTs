@@ -271,8 +271,6 @@ int CheckTopology( std::vector<std::string> args, std::ostream* out_stream = NUL
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "CheckTopology" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -331,7 +329,7 @@ private:
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef float                                 FieldValueType;
 
-  ImageType::Pointer image;
+  ImageType::Pointer image = ImageType::New();
   ReadImage<ImageType>(image, argv[1]);
   image = BinaryThreshold<ImageType>(0.5, 1.e9, 1, image);
   float initG = GetImageTopology<ImageType>(image);
@@ -358,8 +356,9 @@ private:
 
     float        G2 = 0;
     unsigned int mct = 0;
-    float        err = 1.e9, lasterr = 1.e10, derr = 1.e9;
-    derr = lasterr - err;
+    float        err = 1.e9;
+    float        lasterr = 1.e10;
+    float        derr = lasterr - err;
     while( G2 == 0 && derr > 0 )
       {
       lasterr = err;

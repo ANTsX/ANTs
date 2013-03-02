@@ -212,6 +212,9 @@ public:
     std::string::size_type pos = filename.rfind( "." );
     std::string            filepre = std::string( filename, 0, pos );
 
+#if 0 //HACK: This looks like an error in logic.  It has no effect
+    //Perhaps this shoudl be put into a common function, or use ITK code to accomplish the desired task.
+    //as is done in BRAINS.
     if( pos != std::string::npos )
       {
       std::string extension = std::string( filename, pos, filename.length() - 1);
@@ -220,12 +223,8 @@ public:
         pos = filepre.rfind( "." );
         extension = std::string( filepre, pos, filepre.length() - 1 );
         }
-      //      if (extension==".txt") return AFFINE_FILE;
-      //        else return DEFORMATION_FILE;
       }
-    //    else{
-    //      return INVALID_FILE;
-    // }
+#endif
     return filepre;
   }
 
@@ -1571,16 +1570,11 @@ public:
             this->m_EnergyBad[qq]++;
             }
           }
-        unsigned int numbade = 0;
         for( unsigned int qq = 0; qq < this->m_Energy.size(); qq++ )
           {
           if( this->m_CurrentIteration <= 1 )
             {
             this->m_EnergyBad[qq] = 0;
-            }
-          else if( this->m_EnergyBad[qq] > 1 )
-            {
-            numbade += this->m_EnergyBad[qq];
             }
           }
 

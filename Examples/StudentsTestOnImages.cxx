@@ -116,7 +116,7 @@ void generatePermGroup(int * groupID, int lengthGroupA, int lengthGroupB,
     genGroupID[i] = groupID[newPerm[i]];
     }
 
-  delete newPerm;
+  delete [] newPerm;
 }
 
 void generatePerm(int length, int * genPerm)
@@ -139,7 +139,7 @@ void generatePerm(int length, int * genPerm)
     {
     genPerm[cnt] = newPerm[cnt].index;
     }
-  delete newPerm;
+  delete [] newPerm;
 }
 
 int smallerPermElem(PermElement * elem1, PermElement * elem2)
@@ -192,7 +192,7 @@ double computeQuantile(int numObs, double * stat, double quantile)
 
   double retval = stat[sortStat[(int) quantindex].index];
 
-  delete sortStat;
+  delete [] sortStat;
 
   return retval;
 }
@@ -231,7 +231,6 @@ void computePermStatPval(int numFeatures, int numPerms,
     qsort(sortPermStat, numPerms, sizeof(StatElement),
           (int (*)(const void *, const void *) )smallerStatElem);
 
-    double prevPval = 0;
     double curPval = 0;
     for( perm = 0; perm < numPerms; perm++ )
       {
@@ -244,14 +243,13 @@ void computePermStatPval(int numFeatures, int numPerms,
         {
         // current value is different from previous value (or first value),
         // thus step up p-value
-        prevPval = curPval;
         curPval = nextPval;
         }
 
       permStatPval[curIndex * numFeatures + feat] = curPval;
       }
     }
-  delete sortPermStat;
+  delete [] sortPermStat;
 }
 
 double decode_ieee_single( unsigned char *v, int natural_order)
@@ -552,12 +550,12 @@ int StudentsTestOnImages(int argc, char *argv[])
 
   typedef itk::Statistics::TDistribution DistributionType;
   typename DistributionType::Pointer distributionFunction = DistributionType::New();
-//  unsigned long dof=numSubjects-2;
 
   WriteImage(StatImage, outname.c_str() );
-  std::string soutname = std::string("PVAL") + outname;
-  // WriteImage(PImage,soutname.c_str());
 
+  delete [] feature;
+  delete [] groupLabel;
+  
   return 1;
 }
 
@@ -571,7 +569,6 @@ int StudentsTestOnImages( std::vector<std::string> args, std::ostream* out_strea
   // which the parser should handle
   args.insert( args.begin(), "StudentsTestOnImages" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

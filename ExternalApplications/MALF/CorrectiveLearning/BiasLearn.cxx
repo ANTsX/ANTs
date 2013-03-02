@@ -131,9 +131,8 @@ int main( int argc, char * * argv )
   cout << rstr << " : " << rstr.length() << endl;
 
   int DX, DY, DZ;
-  int p = -1, p1;
-  p = rstr.find("x");
-  p1 = rstr.find("x", p + 1);
+  const int p = rstr.find("x");
+  const int p1 = rstr.find("x", p + 1);
   t.assign(rstr, 0, p);
   DX = atoi(t.c_str() );
   t.assign(rstr, p + 1, p1 - p);

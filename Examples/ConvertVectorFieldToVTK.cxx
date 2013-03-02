@@ -41,7 +41,6 @@ int ConvertVectorFieldToVTK( std::vector<std::string> args, std::ostream* out_st
   // which the parser should handle
   args.insert( args.begin(), "ConvertVectorFieldToVTK" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -118,14 +117,10 @@ private:
     mask = AllocImage<MaskImageType>(reader->GetOutput(), 1);
     }
 
-  double origin[ImageDimension];
-  double spacing[ImageDimension];
   int    size[ImageDimension];
   int    totalsize = 1;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
-    origin[i] = reader->GetOutput()->GetOrigin()[i];
-    spacing[i] = reader->GetOutput()->GetSpacing()[i];
     size[i] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[i];
     if( argc > 4 && atoi( argv[5] ) == (int) i )
       {

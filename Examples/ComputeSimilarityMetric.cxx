@@ -101,8 +101,6 @@ int ComputeSimilarityMetric(int argc, char *argv[])
   typename MIMetricType::Pointer mimet = MIMetricType::New();
   typename CCMetricType::Pointer ccmet = CCMetricType::New();
 
-  int nbins = 32;
-
   typename CCMetricType::RadiusType hradius;
   typename CCMetricType::RadiusType ccradius;
   ccradius.Fill(4);
@@ -222,8 +220,6 @@ int ComputeSimilarityMetric( std::vector<std::string> args, std::ostream* out_st
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "ComputeSimilarityMetric" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
