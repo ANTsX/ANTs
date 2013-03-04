@@ -783,7 +783,7 @@ protected:
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
     unsigned int its = 0;
-    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 )
+    while ( eng > 1.e-4 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
