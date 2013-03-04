@@ -1204,7 +1204,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
   //
   // write out transforms stored in the composite
-  typename CompositeTransformType::Pointer resultTransform = regHelper->GetCompositeTransform();
+  typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();
 
   if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) )
     {
@@ -1311,8 +1311,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     // write inverse transform file
     if( writeInverse && dispTransform.IsNotNull() )
       {
-      typename DisplacementFieldType::Pointer inverseDispField =
-        dispTransform->GetInverseDisplacementField();
+      typename DisplacementFieldType::ConstPointer inverseDispField = dispTransform->GetInverseDisplacementField();
       if( inverseDispField.IsNotNull() )
         {
         std::stringstream curInverseFileName;

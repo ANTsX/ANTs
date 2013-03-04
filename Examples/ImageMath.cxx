@@ -2262,12 +2262,12 @@ int TimeSeriesInterpolationSubtraction(int argc, char *argv[])
   if( argc >= 8  )
     {
     std::string control_out = argv[argct++];
-    WriteImage<InputImageType>(filter->GetControlOutputImage(), control_out.c_str() );
+    WriteImage<InputImageType>(filter->GetModifiableControlOutputImage(), control_out.c_str() );
     }
   if( argc >= 8  )
     {
     std::string label_out = argv[argct++];
-    WriteImage<InputImageType>(filter->GetLabelOutputImage(), label_out.c_str() );
+    WriteImage<InputImageType>(filter->GetModifiableLabelOutputImage(), label_out.c_str() );
     }
 
   return 0;
@@ -7672,7 +7672,7 @@ int PoissonDiffusion( int argc, char *argv[])
   duplicator->SetInputImage( reader->GetOutput() );
   duplicator->Update();
 
-  typename ImageType::Pointer output = duplicator->GetOutput();
+  typename ImageType::Pointer output = duplicator->GetModifiableOutput();
   output->DisconnectPipeline();
 
   typedef itk::ImageFileReader<LabelImageType> LabelReaderType;
@@ -11117,7 +11117,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
     duplicator->SetInputImage( labelImage );
     duplicator->Update();
 
-    typename LabelImageType::Pointer permutedLabelImage = duplicator->GetOutput();
+    typename LabelImageType::Pointer permutedLabelImage = duplicator->GetModifiableOutput();
 
     itk::ImageRegionIterator<LabelImageType> ItP( permutedLabelImage, permutedLabelImage->GetRequestedRegion() );
     for( ItP.GoToBegin(); !ItP.IsAtEnd(); ++ItP )
@@ -11195,7 +11195,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
         duplicator->SetInputImage( labelImage );
         duplicator->Update();
 
-        typename LabelImageType::Pointer permutedLabelImage = duplicator->GetOutput();
+        typename LabelImageType::Pointer permutedLabelImage = duplicator->GetModifiableOutput();
 
         itk::ImageRegionIterator<LabelImageType> ItP( permutedLabelImage, permutedLabelImage->GetRequestedRegion() );
         for( ItP.GoToBegin(); !ItP.IsAtEnd(); ++ItP )

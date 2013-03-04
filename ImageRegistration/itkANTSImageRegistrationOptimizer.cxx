@@ -691,7 +691,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
 * metric loop within ComputeUpdateField */
 
     // Get the FiniteDifferenceFunction to use in calculations.
-    MetricBaseTypePointer df = this->m_SimilarityMetrics[metricCount]->GetMetric();
+    MetricBaseTypePointer df = this->m_SimilarityMetrics[metricCount]->GetModifiableMetric();
     df->SetFixedImage(wfimage);
     df->SetMovingImage(wmimage);
     if( df->ThisIsAPointSetMetric() )

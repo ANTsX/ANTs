@@ -121,10 +121,8 @@ WriteTransform(typename itk::Transform<double, VImageDimension, VImageDimension>
     {
     if( dispXfrm != 0 )
       {
-      typename DisplacementFieldType::Pointer dispField =
-        dispXfrm->GetDisplacementField();
-      typename DisplacementFieldWriter::Pointer writer =
-        DisplacementFieldWriter::New();
+      typename DisplacementFieldType::Pointer dispField = dispXfrm->GetModifiableDisplacementField();
+      typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
       writer->SetInput(dispField);
       writer->SetFileName(filename.c_str() );
       writer->Update();

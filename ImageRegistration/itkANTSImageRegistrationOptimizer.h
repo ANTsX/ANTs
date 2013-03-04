@@ -1348,7 +1348,7 @@ public:
         {
         for( unsigned int metricCount = 0;  metricCount <   numberOfMetrics;  metricCount++ )
           {
-          this->m_SimilarityMetrics[metricCount]->GetMetric()->SetIterations(this->m_CurrentIteration);
+          this->m_SimilarityMetrics[metricCount]->GetModifiableMetric()->SetIterations(this->m_CurrentIteration);
           }
 
         if( this->GetTransformationModel() == std::string("Elast") )

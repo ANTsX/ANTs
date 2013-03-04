@@ -206,7 +206,7 @@ public:
                                   MeasureType & metricValue ) const
   {
     // Get the registration metric from the optimizer
-    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetMetric() ) );
+    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType const *>( myOptimizer->GetMetric() ) );
 
     // Define the CC metric type
     // This metric type is used to measure the general similarity metric between the original input fixed and moving
@@ -302,7 +302,7 @@ public:
   void WriteIntervalVolumes(itk::WeakPointer<OptimizerType> myOptimizer)
   {
     // Get the registration metric from the optimizer
-    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetMetric() ) );
+    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType const *>( myOptimizer->GetMetric() ) );
 
     // First, compute the moving transform
     typedef typename MetricType::MovingTransformType MovingTransformType;

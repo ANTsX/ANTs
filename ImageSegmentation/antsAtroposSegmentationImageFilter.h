@@ -618,7 +618,7 @@ public:
   /**
    * Get the outlier handling filter.
    */
-  itkGetObjectMacro( OutlierHandlingFilter, OutlierHandlingFilterType );
+  itkGetModifiableObjectMacro( OutlierHandlingFilter, OutlierHandlingFilterType );
 
   /**
    * Set the likelihood function for a specified class.  These functions are
