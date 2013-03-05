@@ -350,12 +350,15 @@ time_start_brain_segmentation=`date +%s`
 
 if [[ $INITIALIZE_WITH_KMEANS -eq 0 ]]
   then
-    logCmd cp ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[0]}]} ${SEGMENTATION_WEIGHT_MASK}
 
-    for (( i = 1; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
+    N4_PROB_FILES=()
+    for (( i = 0; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
       do
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} + ${SEGMENTATION_WEIGHT_MASK} ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]}
+        N4_PROB_FILES=( $N4_PROB_FILES ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]} )
       done
+
+    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_PROB_FILES[@]}
+
   fi
 
 if [[ -f ${SEGMENTATION_CONVERGENCE_FILE} ]];
@@ -472,12 +475,13 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           fi
       fi
 
-    logCmd cp ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[0]}]} ${SEGMENTATION_WEIGHT_MASK}
-
-    for (( j = 1; j < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; j++ ))
+    N4_PROB_FILES=()
+    for (( j = 0; j < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; j++ ))
       do
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} + ${SEGMENTATION_WEIGHT_MASK} ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]}
+        N4_PROB_FILES=( $N4_PROB_FILES ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]} )
       done
+
+    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_PROB_FILES[@]}
 
   done
 
@@ -540,4 +544,3 @@ if [[ `type -p RScript` > /dev/null ]];
   fi
 
 exit 0
-

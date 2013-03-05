@@ -157,6 +157,11 @@ int AdaBoostTrain(double* X, int* Y, int NSample, int NFeature, int iterN, char*
          << "For the first case, our current algorithm can not recover errors for this target." << endl
          << "But we still should be able to recover errors for other labeles." << endl
          << "For the second case, use a larger dilation radius should fix this problem." << endl;
+    delete [] tX;
+    delete [] H;
+    delete [] F;
+    delete [] CH;
+    delete [] W;
     return -1;
     }
 

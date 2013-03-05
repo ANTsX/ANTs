@@ -38,7 +38,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
 {
   Superclass::PrintSelf(os, indent);
 
-  os << indent << "SubtractionDimension: " << m_SubtractionDimension << std::endl;  
+  os << indent << "SubtractionDimension: " << m_SubtractionDimension << std::endl;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -243,8 +243,8 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
     typename InputImageType::IndexType idx2 = outIt.GetIndex();
     idx1[m_SubtractionDimension] = 2*outIt.GetIndex()[m_SubtractionDimension];
     idx2[m_SubtractionDimension] = 2*outIt.GetIndex()[m_SubtractionDimension] + 1;
-     
-    outIt.Set( this->GetInput()->GetPixel(idx1) 
+
+    outIt.Set( this->GetInput()->GetPixel(idx1)
                - this->GetInput()->GetPixel(idx2) );
     ++outIt;
     }

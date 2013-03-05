@@ -42,7 +42,6 @@ int TensorDerivedImage( std::vector<std::string> args, std::ostream* out_stream 
   // which the parser should handle
   args.insert( args.begin(), "TensorDerivedImage" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -104,7 +103,7 @@ private:
   char *      outputName = argv[2];
   std::string outType = argv[3];
 
-  TensorImageType::Pointer dtimg;
+  TensorImageType::Pointer dtimg = TensorImageType::New();
   ReadTensorImage<TensorImageType>(dtimg, inputName, false);
 
   antscout << "tensor_image: " << inputName << std::endl;
@@ -165,10 +164,6 @@ private:
       ScalarImageType::PixelType tr;
       tr = inputIt.Value()[0] + inputIt.Value()[2] + inputIt.Value()[5];
       if( tr < 0 )
-        {
-        tr = 0;
-        }
-      if( tr != tr )
         {
         tr = 0;
         }

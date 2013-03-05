@@ -369,7 +369,7 @@ int N4( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
-  if( outputOption )
+  if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     /**
                     * Reconstruct the bias field at full image resolution.  Divide
@@ -388,8 +388,7 @@ int N4( itk::ants::CommandLineParser *parser )
     bspliner->SetSpacing( inputImage->GetSpacing() );
     bspliner->Update();
 
-    typename ImageType::Pointer logField =
-      AllocImage<ImageType>(inputImage);
+    typename ImageType::Pointer logField = AllocImage<ImageType>( inputImage );
 
     itk::ImageRegionIterator<typename CorrecterType::ScalarImageType> ItB(
       bspliner->GetOutput(),
@@ -447,17 +446,13 @@ int N4( itk::ants::CommandLineParser *parser )
       {
       WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
       }
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+    else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
-      }
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
-      {
-      typedef itk::ImageFileWriter<ImageType> WriterType;
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
-      writer->SetInput( biasFieldCropper->GetOutput() );
-      writer->Update();
+      WriteImage<ImageType>( cropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
+      if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+        {
+        WriteImage<ImageType>( biasFieldCropper->GetOutput(),  ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        }
       }
     }
 
@@ -650,7 +645,6 @@ int N4BiasFieldCorrection( std::vector<std::string> args, std::ostream* out_stre
   // which the parser should handle
   args.insert( args.begin(), "N4BiasFieldCorrection" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

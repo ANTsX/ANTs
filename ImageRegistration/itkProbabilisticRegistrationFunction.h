@@ -164,7 +164,10 @@ public:
   /** Release memory for global data structure. */
   virtual void ReleaseGlobalDataPointer( void *GlobalData ) const
   {
-    delete (GlobalDataStruct *) GlobalData;
+  //HACK: The signature of this function should be reconsidered
+  //      a delete of a re-interpret cast is a dangerous
+  //      proposition.
+    delete reinterpret_cast<GlobalDataStruct *>( GlobalData );
   }
 
   /** Set the object's state before each iteration. */

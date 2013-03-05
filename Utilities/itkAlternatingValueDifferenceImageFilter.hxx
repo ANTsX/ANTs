@@ -147,7 +147,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
     // set the spacing and origin
     outputPtr->SetSpacing(outputSpacing);
     outputPtr->SetOrigin(outputOrigin);
-    
+
     //
     // Copy the direction cosines from the input to the output.
     // On join, the output dim is always >= input dim
@@ -270,7 +270,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
   this->m_LabelImage->SetDirection( this->GetInput()->GetDirection() );
   this->m_LabelImage->Allocate();
 
-  
+
   this->m_ControlOutputImage = InputImageType::New();
   this->m_ControlOutputImage->SetRegions( this->GetOutput()->GetLargestPossibleRegion() );
   this->m_ControlOutputImage->SetSpacing(  this->GetOutput()->GetSpacing() );
@@ -304,7 +304,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
       {
       this->m_ControlImage->SetPixel( idx, it.Value() );
       }
-    
+
 
     ++it;
     }
@@ -346,7 +346,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
 
     float cValue = this->m_ControlInterpolator->Evaluate( pt );
     float lValue = this->m_LabelInterpolator->Evaluate( pt );
-    
+
     this->m_ControlOutputImage->SetPixel(outIt.GetIndex(), cValue );
     this->m_LabelOutputImage->SetPixel(outIt.GetIndex(), lValue );
 

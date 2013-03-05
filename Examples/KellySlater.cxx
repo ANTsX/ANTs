@@ -248,10 +248,6 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, double s
       {
       laplacian->SetPixel(ind, 1);
       }
-    else if( gm->GetPixel(ind) && wm->GetPixel(ind) == 0 )
-      {
-      laplacian->SetPixel(ind, 0.);
-      }
     else
       {
       laplacian->SetPixel(ind, 0.);
@@ -1062,7 +1058,6 @@ int KellySlater( std::vector<std::string> args, std::ostream* out_stream = NULL 
   // which the parser should handle
   args.insert( args.begin(), "KellySlater" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

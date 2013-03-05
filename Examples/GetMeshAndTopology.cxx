@@ -222,15 +222,13 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
 //  mx=1.3;
 //  mx=2.0;
 
-  vtkFloatArray* param;
-
   // while (!done)
     {
-    param = vtkFloatArray::New();
+    vtkFloatArray* param = vtkFloatArray::New();
     param->SetName(paramname);
     float dif = (mx - mn) * scaledata;
-    float mx2 = meank + dif;
-    float mn2 = meank - dif;
+    const float mx2 = meank + dif;
+    const float mn2 = meank - dif;
     dif = mx2 - mn2;
     for( int i = 0; i < numPoints; i++ )
       {
@@ -314,7 +312,6 @@ int GetMeshAndTopology( std::vector<std::string> args, std::ostream* out_stream 
   // which the parser should handle
   args.insert( args.begin(), "GetMeshAndTopology" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -379,9 +376,9 @@ private:
 
   std::string outfn = std::string(argv[3]);
 
-  ImageType::Pointer image2;
   ImageType::Pointer image;
   ReadImage<ImageType>(image, argv[1]);
+  ImageType::Pointer image2;
   ReadImage<ImageType>(image2, argv[2]);
 
   ImageType::DirectionType fmat = image->GetDirection();

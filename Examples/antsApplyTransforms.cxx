@@ -503,7 +503,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           {
           std::cout << "Caught an ITK exception: " << std::endl;
           std::cout << err << " " << __FILE__ << " " << __LINE__ << std::endl;
-          throw err;
+          throw & err;
           }
         catch( ... )
           {
@@ -686,8 +686,6 @@ int antsApplyTransforms( std::vector<std::string> args, std::ostream* out_stream
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "antsApplyTransforms" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -756,9 +754,11 @@ private:
     return EXIT_SUCCESS;
     }
 
+#if 0 // HACK This makes no sense here, filename is never used.
+  //Perhaps the "input" option is not needed in this program
+  //but is a copy/paste error from another program.
   // Read in the first intensity image to get the image dimension.
   std::string filename;
-
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
     parser->GetOption( "reference-image" );
   if( inputOption && inputOption->GetNumberOfFunctions() )
@@ -777,6 +777,7 @@ private:
     antscout << "No reference image was specified." << std::endl;
     return EXIT_FAILURE;
     }
+#endif
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
     parser->GetOption( "input-image-type" );
@@ -785,7 +786,7 @@ private:
 
   // BA - code below creates problems in ANTsR
   //  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-  //      filename.c_str(), itk::ImageIOFactory::ReadMode );
+  //                                                            filename.c_str(), itk::ImageIOFactory::ReadMode );
   //  dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =

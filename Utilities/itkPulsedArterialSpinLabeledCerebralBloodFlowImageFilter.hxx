@@ -48,13 +48,13 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
 }
 
 template <class TInputImage, class TReferenceImage, class TOutputImage>
-void 
+void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetDifferenceImage(const TInputImage* img)
 {
   this->SetNthInput(0, const_cast<TInputImage*>(img));
 }
- 
+
 template <class TInputImage, class TReferenceImage, class TOutputImage>
 typename TInputImage::ConstPointer
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
@@ -65,7 +65,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
 }
 
 template <class TInputImage, class TReferenceImage, class TOutputImage>
-void 
+void
 PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetReferenceImage(const TReferenceImage* ref)
 {
@@ -115,7 +115,7 @@ PulsedArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceIma
       }
 
     float ratio = inIt.Value() / this->GetReferenceImage()->GetPixel( idx );
-    
+
     // 540,000 is a unit conversion to give ml/100g/min
     float cbf = ratio * 5400000.0 * this->m_Lambda
       / ( 2.0 * this->m_Alpha * this->m_TI1 * exp( -TI / this->m_T1blood ) );

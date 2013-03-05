@@ -97,6 +97,8 @@ ReadTransform(const std::string & filename)
     const typename itk::TransformFileReader::TransformListType * const listOfTransforms =
       transformReader->GetTransformList();
     transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
+    /** below is a bad thing but it's the only temporary fix i could find for ANTsR on unix --- B.A. */
+    if ( transform.IsNull() ) transform = static_cast<TransformType *>( listOfTransforms->front().GetPointer() );
     }
   return transform;
 }

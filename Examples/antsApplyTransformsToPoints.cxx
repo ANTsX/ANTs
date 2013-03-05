@@ -1,4 +1,3 @@
-
 #include "itkCSVNumericObjectFileWriter.h"
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
@@ -294,8 +293,6 @@ int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream* ou
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "antsApplyTransformsToPoints" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -364,9 +361,11 @@ private:
     return EXIT_SUCCESS;
     }
 
+#if 0 // HACK This makes no sense here, filename is never used.
+  //Perhaps the "input" option is not needed in this program
+  //but is a copy/paste error from another program.
   // Read in the first intensity image to get the image dimension.
   std::string filename;
-
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
     parser->GetOption( "input" );
   if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
@@ -385,8 +384,9 @@ private:
     antscout << "No csv file point set was specified." << std::endl;
     return EXIT_FAILURE;
     }
+#endif
 
-  unsigned int                                      dimension = 3;
+  unsigned int dimension = 3;
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );
   if( dimOption && dimOption->GetNumberOfFunctions() > 0 )

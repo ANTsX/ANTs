@@ -487,24 +487,22 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( oindex )  );
   double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( oindex )  );
 
-  double dJPDF = 0, dFmPDF = 0, jointPDFValue = 0, fixedImagePDFValue = 0;
-
   JointPDFPointType pdfind;
   this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, pdfind);
-  jointPDFValue = pdfinterpolator->Evaluate(pdfind);
-  dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 0 );
+  const double jointPDFValue = pdfinterpolator->Evaluate(pdfind);
+  const double dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 0 );
 
   typename   pdfintType2::ContinuousIndexType  mind;
   mind[0] = pdfind[0];
-  fixedImagePDFValue = pdfinterpolator2->Evaluate(mind);
-  dFmPDF = this->ComputeFixedImageMarginalPDFDerivative( mind, 0 );
+  const double fixedImagePDFValue = pdfinterpolator2->Evaluate(mind);
+  const double dFmPDF = this->ComputeFixedImageMarginalPDFDerivative( mind, 0 );
 
-  double term1 = 0, term2 = 0, eps = 1.e-16;
+  const double eps = 1.e-16;
   if( jointPDFValue > eps &&  (fixedImagePDFValue) > 0 )
     {
     const double pRatio = vcl_log(jointPDFValue) - vcl_log(fixedImagePDFValue);
-    term1 = dJPDF * pRatio;
-    term2 = vcl_log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
+    const double term1 = dJPDF * pRatio;
+    const double term2 = vcl_log( (double)2) * dFmPDF * jointPDFValue / fixedImagePDFValue;
     value =  (term2 - term1);
     }  // end if-block to check non-zero bin contribution
   else
@@ -529,24 +527,22 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
   double movingImageValue = this->GetMovingParzenTerm(  this->m_MovingImage->GetPixel( oindex )  );
   double fixedImageValue = this->GetFixedParzenTerm(  this->m_FixedImage->GetPixel( oindex )  );
 
-  double dJPDF = 0, dMmPDF = 0, jointPDFValue = 0, movingImagePDFValue = 0;
-
   JointPDFPointType pdfind;
   this->ComputeJointPDFPoint(fixedImageValue, movingImageValue, pdfind);
-  jointPDFValue = pdfinterpolator->Evaluate(pdfind);
-  dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 1 );
+  const double jointPDFValue = pdfinterpolator->Evaluate(pdfind);
+  const double dJPDF = this->ComputeJointPDFDerivative( pdfind, 0, 1 );
 
   typename   pdfintType2::ContinuousIndexType  mind;
   mind[0] = pdfind[1];
-  movingImagePDFValue = pdfinterpolator3->EvaluateAtContinuousIndex(mind);
-  dMmPDF = this->ComputeMovingImageMarginalPDFDerivative( mind, 0 );
+  const double movingImagePDFValue = pdfinterpolator3->EvaluateAtContinuousIndex(mind);
+  const double dMmPDF = this->ComputeMovingImageMarginalPDFDerivative( mind, 0 );
 
-  double term1 = 0, term2 = 0, eps = 1.e-16;
+  const double eps = 1.e-16;
   if( jointPDFValue > eps &&  (movingImagePDFValue) > 0 )
     {
     const double pRatio = vcl_log(jointPDFValue) - vcl_log(movingImagePDFValue);
-    term1 = dJPDF * pRatio;
-    term2 = vcl_log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
+    const double term1 = dJPDF * pRatio;
+    const double term2 = vcl_log( (double)2) * dMmPDF * jointPDFValue / movingImagePDFValue;
     value =  (term2 - term1);
     } // end if-block to check non-zero bin contribution
   else

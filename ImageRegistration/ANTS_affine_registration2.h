@@ -50,7 +50,8 @@ public:
   typedef TAffineTransform                   AffineTransformType;
   typedef TMaskImage                         MaskImageType;
   typedef typename MaskImageType::Pointer    MaskObjectPointerType;
-  OptAffine()
+  OptAffine():
+  metric_type (AffineWithMutualInformation)
   {
     MI_bins = 32;
     MI_samples = 6000;
@@ -595,10 +596,10 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
     RunningImagePointerType           R_fixedImage, R_movingImage;
     RunningOptAffineType              R_opt;
-    RunningAffineTransformPointerType transform_running;
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
+    RunningAffineTransformPointerType transform_running = NULL;
     ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
       (R_fixedImage, R_movingImage, R_opt, transform_running);
 
@@ -616,10 +617,10 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
     RunningImagePointerType           R_fixedImage, R_movingImage;
     RunningOptAffineType              R_opt;
-    RunningAffineTransformPointerType transform_running;
 
     PreConversionInAffine(fixedImage, R_fixedImage, movingImage, R_movingImage, opt, R_opt);
 
+    RunningAffineTransformPointerType transform_running = NULL;
     ComputeSingleAffineTransform2D3D<RunningImageType, RunningAffineTransformType, RunningOptAffineType>
       (R_fixedImage, R_movingImage, R_opt, transform_running);
 
@@ -1096,7 +1097,6 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
         ::ants::antscout << "ExceptionObject caught !" << std::endl;
         ::ants::antscout << err << std::endl;
         return false;
-        break;
         }
 
       // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep
@@ -1299,7 +1299,6 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         ::ants::antscout << "ExceptionObject caught !" << std::endl;
         ::ants::antscout << err << std::endl;
         return false;
-        break;
         }
 
       // use the similar routine as RegularStepGradientDescentBaseOptimizer::AdvanceOneStep

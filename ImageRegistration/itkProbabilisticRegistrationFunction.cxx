@@ -122,11 +122,6 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   // setup moving image interpolator
   m_MovingImageInterpolator->SetInputImage( Superclass::m_MovingImage );
 
-  unsigned long numpix = 1;
-  for( int i = 0; i < ImageDimension; i++ )
-    {
-    numpix *= Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[i];
-    }
   m_MetricTotal = 0.0;
   this->m_Energy = 0.0;
 
@@ -607,11 +602,6 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   // setup moving image interpolator
   m_MovingImageInterpolator->SetInputImage( Superclass::m_MovingImage );
 
-  unsigned long numpix = 1;
-  for( int i = 0; i < ImageDimension; i++ )
-    {
-    numpix *= Superclass::m_FixedImage->GetLargestPossibleRegion().GetSize()[i];
-    }
   m_MetricTotal = 0.0;
   this->m_Energy = 0.0;
 
@@ -831,9 +821,6 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   double sfm = 0.0;
 //  double fixedValue;
 //  double movingValue;
-  sff = 0.0;
-  smm = 0.0;
-  sfm = 0.0;
   PointType           mappedPoint;
   CovariantVectorType gradI, gradJ;
   if( this->m_FixedImageMask )
@@ -880,10 +867,6 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     {
     localProbabilistic = sfm * sfm / ( sff * smm );
     }
-  else if( sff == 0.0 && smm == 0 )
-    {
-    localProbabilistic = 1.0;
-    }
   else
     {
     localProbabilistic = 1.0;
@@ -915,9 +898,6 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   double sfm = 0.0;
 //  double fixedValue;
 //  double movingValue;
-  sff = 0.0;
-  smm = 0.0;
-  sfm = 0.0;
   PointType           mappedPoint;
   CovariantVectorType gradI, gradJ;
   if( this->m_FixedImageMask )
@@ -961,10 +941,6 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   if( sff * smm != 0.0 )
     {
     localProbabilistic = sfm * sfm / ( sff * smm );
-    }
-  else if( sff == 0.0 && smm == 0 )
-    {
-    localProbabilistic = 1.0;
     }
   else
     {

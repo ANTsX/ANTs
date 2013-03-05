@@ -808,8 +808,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
       -n 5 \
       -c 3 \
-      -l 2 \            # use the gray matter posteriors and
-      -l 3 \            # the white matter posteriors
+      -l 2 \
+      -l 3 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -k $KEEP_TMP_IMAGES \
       -o ${OUTPUT_PREFIX}Brain \

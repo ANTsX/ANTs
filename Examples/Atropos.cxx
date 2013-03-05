@@ -968,7 +968,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 //    segmenter->DebugOn();
     segmenter->Update();
     }
-  catch( itk::ExceptionObject exp )
+  catch( itk::ExceptionObject & exp )
     {
     antscout << exp << std::endl;
     return EXIT_FAILURE;
@@ -1525,8 +1525,6 @@ int Atropos( std::vector<std::string> args, std::ostream* out_stream = NULL )
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "Atropos" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
