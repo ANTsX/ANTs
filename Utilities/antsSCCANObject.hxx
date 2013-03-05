@@ -1524,13 +1524,23 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_MatrixPriorROI.rows();
     for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
-      {
+	{
       VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
       RealType fnz = 0;
       for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
         {
 	fnz += vnl_math_abs( priorrow( y ) );
         }
+		  
+		  for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
+		  {
+			  if(vnl_math_abs( priorrow( y ) ) >1.e-2 ){
+			  fnz += 1;
+			  }
+		  }
+		  
+		  ::ants::antscout << " fnz " << fnz <<std::endl;
+		  
       if( this->m_FractionNonZeroP <  1.e-10  )
 	{
         sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
@@ -1606,12 +1616,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType priorVec = this->m_MatrixPriorROI.get_row(a);
 		  
-		  if( priorVec.one_norm()  < 1.e-12 )
+		  if( priorVec.one_norm()  < 1.e-8 )
 		  {
 			  ::ants::antscout << "Prior Norm too small, could be a bug: " << priorVec.one_norm() << std::endl;
 			  std::exception();
 		  }
 		 
+		 // ::ants::antscout << "Prior Norm: " << priorVec.one_norm() << std::endl;
 		  priorVec = priorVec/priorVec.one_norm();
       VectorType evec = this->m_VariatesP.get_column( a );
       if( overit == 0 )
