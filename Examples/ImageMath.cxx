@@ -4842,7 +4842,7 @@ int VImageMath(int argc, char *argv[])
   std::string fn2 = "";
   if( argc > argct )
     {
-    fn2 = std::string(argv[argct]);
+    fn2 = std::string(argv[argct++]);
     }
 
   typename ImageType::Pointer image1 = NULL;
@@ -4981,12 +4981,18 @@ int TensorFunctions(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = "";
+  if( argc > argct )
+    {
+    fn2 = std::string(argv[argct++]);
+    }
 
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
   typename ColorImageType::Pointer  cimage = NULL;    // output color image
   typename VectorImageType::Pointer  vecimage = NULL; // output vector image
   typename TensorImageType::Pointer toimage = NULL;   // output tensor image
+  typename ImageType::Pointer       maskimage = NULL; // mask image
 
   if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
     {
@@ -5212,6 +5218,14 @@ int TensorFunctions(int argc, char *argv[])
     {
     cimage =
       AllocImage<ColorImageType>(timage);
+    
+
+    if( argc > 5 )
+      {
+      antscout << "Using mask image: " << fn2 << std::endl;
+      ReadImage<ImageType>(maskimage, fn2.c_str() );
+      }
+
     }
   else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
     {
@@ -5301,8 +5315,18 @@ int TensorFunctions(int argc, char *argv[])
       }
     else if( strcmp(operation.c_str(), "TensorColor") == 0 )
       {
-      RGBType rgb = GetTensorRGB<TensorType>(tIter.Value() );
-      cimage->SetPixel(ind, rgb);
+      if ( argc > 5 )
+        {
+        if ( maskimage->GetPixel( tIter.GetIndex() ) > 0 )
+          {
+          cimage->SetPixel(ind, GetTensorRGB<TensorType>(tIter.Value() ) );
+          }
+        }
+      else
+        {
+        RGBType rgb = GetTensorRGB<TensorType>(tIter.Value() );
+        cimage->SetPixel(ind, rgb);
+        }
       }
     else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
       {
