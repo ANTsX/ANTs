@@ -701,7 +701,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( inputField );
   duplicator->Update();
-  DisplacementFieldPointer outputField = duplicator->GetOutput();
+  DisplacementFieldPointer outputField = duplicator->GetModifiableOutput();
 
   typedef VectorNeighborhoodOperatorImageFilter<DisplacementFieldType,
                                                 DisplacementFieldType> SmootherType;

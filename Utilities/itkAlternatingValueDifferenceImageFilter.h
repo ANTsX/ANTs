@@ -97,11 +97,11 @@ public:
   itkGetConstObjectMacro(ControlInterpolator, InterpolatorType);
   itkGetConstObjectMacro(LabelInterpolator, InterpolatorType);
 
-  itkGetObjectMacro(ControlImage, InputImageType);
-  itkGetObjectMacro(LabelImage, InputImageType);
+  itkGetModifiableObjectMacro(ControlImage, InputImageType);
+  itkGetModifiableObjectMacro(LabelImage, InputImageType);
 
-  itkGetObjectMacro(ControlOutputImage, InputImageType);
-  itkGetObjectMacro(LabelOutputImage, InputImageType);
+  itkGetModifiableObjectMacro(ControlOutputImage, InputImageType);
+  itkGetModifiableObjectMacro(LabelOutputImage, InputImageType);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */

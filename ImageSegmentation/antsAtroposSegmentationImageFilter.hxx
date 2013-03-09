@@ -565,7 +565,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
         duplicator->SetInputImage( this->GetPriorLabelImage() );
         duplicator->Update();
 
-        this->SetNthOutput( 0, duplicator->GetOutput() );
+        this->SetNthOutput( 0, duplicator->GetModifiableOutput() );
         }
       }
       break;
@@ -2234,7 +2234,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
           duplicator->Update();
 
           this->m_PosteriorProbabilityImages.push_back(
-            duplicator->GetOutput() );
+            duplicator->GetModifiableOutput() );
           }
         }
 

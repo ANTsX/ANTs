@@ -544,13 +544,13 @@ public:
    */
   void SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0 );
 
-  itkGetObjectMacro( CompositeTransform, CompositeTransformType );
+  itkGetModifiableObjectMacro( CompositeTransform, CompositeTransformType );
 
   /**
    * Set/Get the interpolator.  Linear is default.
    */
   itkSetObjectMacro( Interpolator, InterpolatorType );
-  itkGetObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
 
   /**
    *  Get the Warped Image & Inverse Warped Images

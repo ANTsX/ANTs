@@ -585,7 +585,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     duplicator->SetInputImage( inputAtlas );
     duplicator->Update();
 
-    typename TensorImageType::Pointer dti = duplicator->GetOutput();
+    typename TensorImageType::Pointer dti = duplicator->GetModifiableOutput();
     dti->DisconnectPipeline();
 
     // If we are to apply intersubject variability, we calculate random
