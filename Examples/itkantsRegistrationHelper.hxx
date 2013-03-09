@@ -3057,10 +3057,10 @@ RegistrationHelper<VImageDimension>
 
     if( n == 0 )
       {
-      totalTransform->SetDisplacementField( nthTransform->GetDisplacementField() );
+      totalTransform->SetDisplacementField( nthTransform->GetModifiableDisplacementField() );
       if( nthTransform->GetInverseDisplacementField() )
         {
-        totalTransform->SetInverseDisplacementField( nthTransform->GetInverseDisplacementField() );
+        totalTransform->SetInverseDisplacementField( nthTransform->GetModifiableInverseDisplacementField() );
         }
       else
         {
