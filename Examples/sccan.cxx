@@ -1385,7 +1385,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
 template <unsigned int ImageDimension, class PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
-              PixelType usel1 )
+              PixelType usel1 , PixelType uselong )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -1409,6 +1409,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetMaximumNumberOfIterations(iterct);
+  if ( uselong > 0 ) sccanobj->SetUseLongitudinalFormulation( true );
   PixelType gradstep = vnl_math_abs( usel1 );
   if( usel1 > 0 )
     {
@@ -1481,21 +1482,19 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
   antscout << " true-corr " << sccancorrs << std::endl;
 
+  std::string filename =  outputOption->GetFunction( 0 )->GetName();
+  std::string::size_type pos = filename.rfind( "." );
+  std::string            filepre = std::string( filename, 0, pos );
+  std::string            extension = std::string( filename, pos, filename.length() - 1);
+  if( extension == std::string(".gz") )
+    {
+    pos = filepre.rfind( "." );
+    extension = std::string( filepre, pos, filepre.length() - 1 ) + extension;
+    filepre = std::string( filepre, 0, pos );
+    }
+  std::string post = std::string("View1vec");
   if( writeoutput )
     {
-    std::string filename =  outputOption->GetFunction( 0 )->GetName();
-    antscout << " write " << filename << std::endl;
-    std::string::size_type pos = filename.rfind( "." );
-    std::string            filepre = std::string( filename, 0, pos );
-    std::string            extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      extension = std::string( filepre, pos, filepre.length() - 1 ) + extension;
-      filepre = std::string( filepre, 0, pos );
-      }
-    std::string post = std::string("View1vec");
-    antscout << " have_p_mask " << have_p_mask << " have_q_mask " << have_q_mask << std::endl;
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                     sccanobj->GetVariatesP(), mask1,
                                                     sccanobj->GetMatrixP(), have_p_mask, sccanobj->GetMatrixU() );
@@ -1553,13 +1552,26 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
           }
         }
       // end solve cca permutation
-      if ( pct == permct ) antscout << "final_p_values" << ",";
-      for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
-        {
-	if ( pct == permct ) antscout << ( double ) perm_exceed_ct[kk]
-          / (pct + 1) << ",";
-        }
-      if ( pct == permct ) antscout << "x" << std::endl;
+      if ( pct == permct ) 
+	{
+	antscout << "final_p_values" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  antscout << ( double ) perm_exceed_ct[kk] / (pct + 1) << ",";
+	  }
+	antscout << "x" << std::endl;
+
+	std::ofstream myfile;
+	std::string fnmp = filepre + std::string("_pvalues.csv");
+	myfile.open(fnmp.c_str(), std::ios::out );
+	myfile << "final_p_values" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  myfile << ( double ) perm_exceed_ct[kk] / (pct + 1) << ",";
+	  }
+	myfile << "x" << std::endl;
+	myfile.close();
+	}
       }
     unsigned long psigct = 0, qsigct = 0;
     for( unsigned long j = 0; j < w_p.size(); j++ )
@@ -1592,24 +1604,9 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
         w_q_signif_ct(j) = 0;
         }
       }
-    // antscout <<  " p-value " << perm_exceed_ct / (permct) << " ct " << permct << std::endl;
-    //    antscout << " p-vox " <<  (double)psigct / w_p.size() << " ct " << permct << std::endl;
-    //    antscout << " q-vox " <<  (double)qsigct / w_q.size() << " ct " << permct << std::endl;
-
     if( writeoutput  )
       {
-      std::string filename =  outputOption->GetFunction( 0 )->GetName();
-      antscout << " write " << filename << std::endl;
-      std::string::size_type pos = filename.rfind( "." );
-      std::string            filepre = std::string( filename, 0, pos );
-      std::string            extension = std::string( filename, pos, filename.length() - 1);
-      if( extension == std::string(".gz") )
-        {
-        pos = filepre.rfind( "." );
-        extension = std::string( filepre, pos, filepre.length() - 1 ) + extension;
-        filepre = std::string( filepre, 0, pos );
-        }
-      std::string post = std::string("View1pval");
+      post = std::string("View1pval");
       if( have_p_mask )
         {
         WriteVectorToSpatialImage<ImageType, Scalar>( filename, post, w_p_signif_ct, mask1);
@@ -2078,6 +2075,18 @@ int sccan( itk::ants::CommandLineParser *parser )
     evec_ct = parser->Convert<unsigned int>( evec_option->GetFunction()->GetName() );
     }
 
+  matPixelType                                      uselong = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer long_option =
+    parser->GetOption( "uselong" );
+  if( !long_option || long_option->GetNumberOfFunctions() == 0 )
+    {
+    //    antscout << "Warning:  no permutation option set." << std::endl;
+    }
+  else
+    {
+    uselong = parser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
+    }
+
   matPixelType                                      usel1 = 0.1;
   itk::ants::CommandLineParser::OptionType::Pointer l1_option =
     parser->GetOption( "l1" );
@@ -2274,7 +2283,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       antscout << " scca 2-view " << std::endl;
       exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
                                                     q_cluster_thresh,
-                                                    iterct, usel1 );
+                                                    iterct, usel1 , uselong );
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
@@ -2380,6 +2389,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "robustify" );
     option->SetShortName( 'r' );
+    option->SetUsageOption( 0, "0" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string(
+        "use longitudinal formulation ( > 0 ) or not ( <= 0 ) " );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "uselong" );
+    option->SetShortName( 'g' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
     parser->AddOption( option );

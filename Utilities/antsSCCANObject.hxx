@@ -68,6 +68,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_ConvergenceThreshold = 1.e-6;
   this->m_Epsilon = 1.e-12;
   this->m_GradStep = 0.1;
+  this->m_UseLongitudinalFormulation = false;
 }
 
 template <class TInputImage, class TRealType>
@@ -3066,7 +3067,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     nvec = nvec * 0.5 + orthvec * 0.5;
     RealType gamma = 0.1;
-    RealType smooth = 0.5;
+    RealType smooth = 0.0;
     if( smooth > 0 )
       {
       nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, smooth );
@@ -3077,7 +3078,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     lastgrad = nvec;
     evec = evec + nvec * ( gamma * relfac );
-    //    if ( smooth > 0 ) evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP, smooth );
+    smooth = 0.0;
+    if ( smooth > 0 ) evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP, smooth );
     //    this->CurvatureSparseness( evec ,  ( 1 - this->m_FractionNonZeroP ) * 100, 5 );
     this->SparsifyP( evec  );
     // VectorType gradvec = this->ComputeVectorGradMag( evec, this->m_MaskImageP );
@@ -4600,9 +4602,14 @@ bool antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column( j );
       qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
       }
-    RealType smooth = 1.0;
+    RealType smooth = 0.0;
     pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
     qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
+    if ( this->m_UseLongitudinalFormulation )
+      {
+      if ( k == 0 )::ants::antscout << "Longitudinal=>p=q: ";
+      pveck = qveck;
+      }
     this->SparsifyP( pveck );
     this->SparsifyQ( qveck );
     if( n_vecs == 0 )

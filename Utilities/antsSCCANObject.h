@@ -100,6 +100,8 @@ public:
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
   itkSetMacro( Silent, bool );
   itkGetMacro( Silent, bool );
+  itkSetMacro( UseLongitudinalFormulation , bool );
+  itkGetMacro( UseLongitudinalFormulation , bool );
 
   void NormalizeWeights(const unsigned int k );
   void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
@@ -635,6 +637,8 @@ public:
 
   bool CCAUpdate(unsigned int nvecs, bool , bool );
 
+  bool CCAUpdateLong(unsigned int nvecs, bool , bool );
+
   RealType SparsePartialArnoldiCCA(unsigned int nvecs);
 
   RealType IHTCCA(unsigned int nvecs);
@@ -1019,6 +1023,7 @@ private:
   ImagePointer m_MaskImageP;
   RealType     m_FractionNonZeroP;
   bool         m_KeepPositiveP;
+  bool         m_UseLongitudinalFormulation;
 
   VectorType   m_WeightsQ;
   MatrixType   m_MatrixQ;
