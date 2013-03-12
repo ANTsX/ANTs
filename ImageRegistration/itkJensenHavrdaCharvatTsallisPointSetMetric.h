@@ -84,7 +84,7 @@ public:
   itkGetConstObjectMacro( MovingPointSet, PointSetType );
 
   itkSetObjectMacro( Transform, TransformType );
-  itkGetObjectMacro( Transform, TransformType );
+  itkGetModifiableObjectMacro( Transform, TransformType );
 
   /**
    * The only transform type used is Identity

@@ -174,7 +174,7 @@ public:
   itkSetObjectMacro( Interpolator, InterpolatorType );
 
   /** Get a pointer to the interpolator function. */
-  itkGetObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
 
   /** Set the output image spacing. */
   itkSetMacro(OutputSpacing, SpacingType);
