@@ -1409,7 +1409,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetMaximumNumberOfIterations(iterct);
-  if ( uselong > 0 ) sccanobj->SetUseLongitudinalFormulation( true );
+  if ( uselong > 0 ) sccanobj->SetUseLongitudinalFormulation( uselong );
   PixelType gradstep = vnl_math_abs( usel1 );
   if( usel1 > 0 )
     {
@@ -1562,12 +1562,25 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
 	antscout << "x" << std::endl;
 
 	std::ofstream myfile;
-	std::string fnmp = filepre + std::string("_pvalues.csv");
+	std::string fnmp = filepre + std::string("_summary.csv");
 	myfile.open(fnmp.c_str(), std::ios::out );
+	myfile << "TypeOfMeasure" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(kk);
+	  myfile << colname << ",";
+	  }
+	myfile << "x" << std::endl;
 	myfile << "final_p_values" << ",";
 	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
           {
 	  myfile << ( double ) perm_exceed_ct[kk] / (pct + 1) << ",";
+	  }
+	myfile << "x" << std::endl;
+	myfile << "corrs" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  myfile << sccancorrs[kk]  << ",";
 	  }
 	myfile << "x" << std::endl;
 	myfile.close();

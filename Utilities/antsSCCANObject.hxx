@@ -68,7 +68,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_ConvergenceThreshold = 1.e-6;
   this->m_Epsilon = 1.e-12;
   this->m_GradStep = 0.1;
-  this->m_UseLongitudinalFormulation = false;
+  this->m_UseLongitudinalFormulation = 0;
 }
 
 template <class TInputImage, class TRealType>
@@ -4605,13 +4605,21 @@ bool antsSCCANObject<TInputImage, TRealType>
     RealType smooth = 0.0;
     pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
     qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
-    if ( this->m_UseLongitudinalFormulation )
+    if ( ( this->m_UseLongitudinalFormulation > 1.e-9 ) && ( pveck.size() == qveck.size() ) )
       {
-      if ( k == 0 )::ants::antscout << "Longitudinal=>p=q: ";
-      pveck = qveck;
+      //pveck = qveck;
+      pveck = pveck + ( qveck - pveck ) * this->m_UseLongitudinalFormulation;
+      qveck = qveck + ( pveck - qveck ) * this->m_UseLongitudinalFormulation;
       }
     this->SparsifyP( pveck );
     this->SparsifyQ( qveck );
+    if ( this->m_UseLongitudinalFormulation > 1.e-9 )
+      {
+      if ( k == 0  && ( pveck.size() != qveck.size() ) ) 
+        ::ants::antscout << "Cannot Use Longitudinal formulation if input matrix sizes dont match. ";
+      else if ( k == 0 )
+        ::ants::antscout << "Longitudinal=>p=q: " << ( pveck - qveck ).one_norm();
+      }
     if( n_vecs == 0 )
       {
       RealType mup = inner_product( this->m_MatrixP * ptemp, this->m_MatrixP * ptemp ) / ptemp.two_norm();
