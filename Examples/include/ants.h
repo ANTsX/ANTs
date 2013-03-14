@@ -167,4 +167,6 @@
 
 #include "ConvertTransformFile.h"
 
+#include "compareTwoCompositeTransforms.h"
+
 #endif // ants_h
