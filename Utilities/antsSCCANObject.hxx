@@ -1651,7 +1651,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType lam1 = ( 1.0 - lambda );
   RealType lam2 = ( lambda );
   VectorType prior( priorin );
-
   if( evec.two_norm() ==  0 )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
@@ -1677,10 +1676,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType   bestevec = evec;
   while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
     {
-    RealType   gamma = 1;
+    RealType   gamma  = 1;
     RealType   mgamma = 1;
-    VectorType pvec = this->FastOuterProductVectorMultiplication( prior, evec );
-    VectorType nvec = ( At   * ( A    * evec ) );
+    VectorType pvec   = this->FastOuterProductVectorMultiplication( prior, evec );
+    VectorType nvec   = ( At   * ( A    * evec ) );
+    /** combine the gradients according to prior weights */
     VectorType lpvec = pvec + ( nvec - pvec ) * lam1;
     VectorType lnvec = nvec + ( pvec - nvec ) * lam2;
     pvec = lpvec;
@@ -1689,7 +1689,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       ::ants::antscout << " V1 " << nvec.one_norm() << " V2 " << pvec.one_norm() << " ";
       }
-    //    nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
+    nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
       {
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
