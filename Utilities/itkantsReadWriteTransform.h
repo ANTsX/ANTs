@@ -15,7 +15,9 @@ namespace ants
 {
 template <unsigned VImageDimension>
 typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer
-ReadTransform(const std::string & filename)
+ReadTransform(const std::string & filename,
+              const bool UsedStaticCastForR = false) // This parameter changes to true by the programs that use R, so this code
+                                                     // returns a different output for them.
 {
   // We must explicitly check for file existance because failed reading is an acceptable
   // state for non-displacment feilds.
@@ -97,8 +99,12 @@ ReadTransform(const std::string & filename)
     const typename itk::TransformFileReader::TransformListType * const listOfTransforms =
       transformReader->GetTransformList();
     transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
+    
     /** below is a bad thing but it's the only temporary fix i could find for ANTsR on unix --- B.A. */
-    if ( transform.IsNull() ) transform = static_cast<TransformType *>( listOfTransforms->front().GetPointer() );
+    if ( transform.IsNull() && ( UsedStaticCastForR == true ) )
+       {
+       transform = static_cast<TransformType *>( listOfTransforms->front().GetPointer() );
+       }
     }
   return transform;
 }
@@ -121,10 +127,8 @@ WriteTransform(typename itk::Transform<double, VImageDimension, VImageDimension>
     {
     if( dispXfrm != 0 )
       {
-      typename DisplacementFieldType::Pointer dispField =
-        dispXfrm->GetDisplacementField();
-      typename DisplacementFieldWriter::Pointer writer =
-        DisplacementFieldWriter::New();
+      typename DisplacementFieldType::Pointer dispField = dispXfrm->GetModifiableDisplacementField();
+      typename DisplacementFieldWriter::Pointer writer = DisplacementFieldWriter::New();
       writer->SetInput(dispField);
       writer->SetFileName(filename.c_str() );
       writer->Update();

@@ -71,7 +71,7 @@ public:
     <InputFieldType, RealType>                    InterpolatorType;
 
   /** Get the interpolator. */
-  itkGetObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
 
   /** Set the deformation field */
   void SetDisplacementField( const InputFieldType *field )
