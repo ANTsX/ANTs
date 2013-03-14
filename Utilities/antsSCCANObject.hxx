@@ -1527,14 +1527,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	{
       VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
       RealType fnz = 0;
-      for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
-        {
-	fnz += vnl_math_abs( priorrow( y ) );
-        }
+  //    for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
+    //    {
+	//fnz += vnl_math_abs( priorrow( y ) );
+      //  }
 		  
 		  for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
 		  {
-			  if(vnl_math_abs( priorrow( y ) ) >1.e-2 ){
+			  if(vnl_math_abs( priorrow( y ) ) >1.e-10 ){
 			  fnz += 1;
 			  }
 		  }
@@ -1637,22 +1637,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     // /////////////////////
     // update B matrix by linear regression
-    reconerr = onenorm = 0;
-    icept.fill( 0 );
-    for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
-      {
-      VectorType x_i = this->m_MatrixP.get_row( a );
-      VectorType lmsolv = matrixB.get_row( a );                         // good initialization should increase
-      // convergence speed
-      (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
-      VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
-      icept( a ) = this->m_Intercept;
-      onenorm += x_i.one_norm() / this->m_MatrixP.cols();
-      reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
-      matrixB.set_row( a, lmsolv );
-      }
-    RealType rr = ( onenorm - reconerr ) / onenorm;
-    ::ants::antscout << overit << ": %var " << rr << " raw-reconerr " << reconerr << std::endl;
+	reconerr = this->SparseReconB( matrixB, icept  );	
+    ::ants::antscout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
   // this->SortResults( n_vecs );
@@ -3118,6 +3104,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   evecin = bestevec;
+	
+   ::ants::antscout << "here";	
+	
   ::ants::antscout << "rayleigh-quotient: " << bestrayquo << " in " << powerits << " num " << maxorth << " fnz "
                    << this->m_FractionNonZeroP << std::endl;
   return bestrayquo;
