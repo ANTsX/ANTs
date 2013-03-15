@@ -30,7 +30,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -i t1.nii.gz -x mask.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -a t1.nii.gz -x mask.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
@@ -67,7 +67,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using apb with the following arguments:
+    Using antsAtroposN4 with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       segmentation priors     = ${ATROPOS_SEGMENTATION_PRIORS}

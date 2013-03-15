@@ -4,7 +4,7 @@
   Module:    $Id: WeightedVotingLabelFusionImageFilter.txx,v 1.1 2012/09/05 14:39:51 zhuzhu771 Exp $
   Language:  C++ program
   Copyright (c) 2012 Paul A. Yushkevich, University of Pennsylvania
-
+  
   This file is part of ASHS
 
   ASHS is free software: you can redistribute it and/or modify
@@ -15,23 +15,22 @@
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
+  GNU General Public License for more details. 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-  ===================================================================
-
+  =================================================================== 
+  
   CITATION:
 
     This program implements the method described in the paper
 
-    H. Wang, J. W. Suh, J. Pluta, M. Altinay, and P. Yushkevich,
-       (2011) "Computing Optimal Weights for Label Fusion based
-       Multi-Atlas Segmentation," in Proc. Information Processing
-       in Medical Imaging (IPMI), 2011
+    H. Wang, J. W. Suh, S. Das, J. Pluta, C. Craige, P. Yushkevich, 
+    "Multi-atlas segmentation with joint label fusion," IEEE Trans. 
+    on Pattern Analysis and Machine Intelligence, 35(3), 611-623, 2013
 
   =================================================================== */
-
+  
 #include <itkNeighborhoodIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <vnl/vnl_matrix.h>
@@ -47,24 +46,24 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 ::UpdateInputs()
 {
   // Set all the inputs
-#if ITK_VERSION_MAJOR < 4
-  this->SetNumberOfInputs(1 + 2 * m_Atlases.size() + m_Exclusions.size() );
-#else
-  this->SetNumberOfIndexedInputs(1 + 2 * m_Atlases.size() + m_Exclusions.size() );
-#endif
+  this->SetNumberOfInputs(1 + 2 * m_Atlases.size() + m_Exclusions.size());
 
   size_t kInput = 0;
   this->SetNthInput(kInput++, m_Target);
-  for( size_t i = 0; i < m_Atlases.size(); i++ )
+  for(size_t i = 0; i < m_Atlases.size(); i++)
     {
     this->SetNthInput(kInput++, m_Atlases[i]);
     this->SetNthInput(kInput++, m_AtlasSegs[i]);
     }
-  for( typename ExclusionMap::iterator it = m_Exclusions.begin(); it != m_Exclusions.end(); ++it )
+
+  for(typename ExclusionMap::iterator it = m_Exclusions.begin(); it != m_Exclusions.end(); ++it)
     {
     this->SetNthInput(kInput++, it->second);
     }
 }
+
+
+
 
 template <class TInputImage, class TOutputImage>
 void
@@ -79,61 +78,57 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
   // Pad this region by the search window and patch size
   outRegion.PadByRadius(m_SearchRadius);
   outRegion.PadByRadius(m_PatchRadius);
+
   // Iterate over all the inputs to this filter
-  for( size_t i = 0; i < this->GetNumberOfInputs(); i++ )
+  for(size_t i = 0; i < this->GetNumberOfInputs(); i++)
     {
     // Get i-th input
-    InputImageType *input = const_cast<InputImageType *>(this->GetInput(i) );
-    RegionType      region = outRegion;
-    region.Crop(input->GetLargestPossibleRegion() );
+    InputImageType *input = const_cast<InputImageType *>(this->GetInput(i));
+    RegionType region = outRegion;
+    region.Crop(input->GetLargestPossibleRegion());
     input->SetRequestedRegion(region);
     }
 }
 
-template <class TInputImage, class TOutputImage>
+template<class TInputImage, class TOutputImage>
 void
 WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 ::ComputeOffsetTable(
-  const InputImageType * const image,
-  const SizeType & radius,
-  int * *offset,
-  size_t & nPatch,
-  int * *manhattan)
+  const InputImageType *image, 
+  const SizeType &radius, 
+  int **offset, 
+  size_t &nPatch,
+  int **manhattan)
 {
   // Use iterators to construct offset tables
-  const RegionType r = image->GetBufferedRegion();
-  NIter            itTempPatch(radius, image, r);
+  RegionType r = image->GetBufferedRegion();
+  NIter itTempPatch(radius, image, r);
 
   // Position the iterator in the middle to avoid problems with boundary conditions
   IndexType iCenter;
-
-  for( size_t i = 0; i < InputImageDimension; i++ )
-    {
-    iCenter[i] = r.GetIndex(i) + r.GetSize(i) / 2;
-    }
+  for(size_t i = 0; i < InputImageDimension; i++)
+    iCenter[i] = r.GetIndex(i) + r.GetSize(i)/2;
   itTempPatch.SetLocation(iCenter);
 
-  // Compute the offsets
+  // Compute the offsets 
   nPatch = itTempPatch.Size();
   (*offset) = new int[nPatch];
-  if( manhattan )
-    {
+  if(manhattan)
     (*manhattan) = new int[nPatch];
-    }
-  for( size_t i = 0; i < nPatch; i++ )
-    {
+  for(size_t i = 0; i < nPatch; i++)
+  {
     (*offset)[i] = itTempPatch[i] - itTempPatch.GetCenterPointer();
-    if( manhattan )
+    if(manhattan)
       {
-      const typename NIter::OffsetType & off = itTempPatch.GetOffset(i);
+      typename NIter::OffsetType off = itTempPatch.GetOffset(i);
       (*manhattan)[i] = 0;
-      for( int d = 0; d < InputImageDimension; d++ )
-        {
+      for(int d = 0; d < InputImageDimension; d++)
         (*manhattan)[i] += abs(off[d]);
-        }
       }
-    }
+  }
 }
+
+
 
 template <class TInputImage, class TOutputImage>
 void
@@ -148,19 +143,19 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
   InputImageType *target = m_Target;
 
   // Create a neighborhood iterator for the target image
-  NIter itTarget(m_PatchRadius, target, this->GetOutput()->GetRequestedRegion() );
+  NIter itTarget(m_PatchRadius, target, this->GetOutput()->GetRequestedRegion());
 
   // Get the number of atlases
-  const int n = m_Atlases.size();
+  int n = m_Atlases.size();
 
   // Construct offset tables for all the images (these can be different because they
   // depend on the buffered region)
   size_t nPatch, nSearch;
-  int *  offPatchTarget;
-  int * *offPatchAtlas = new int *[n];
-  int * *offPatchSeg = new int *[n];
-  int * *offSearchAtlas = new int *[n];
-  int *  manhattan;
+  int *offPatchTarget, 
+      **offPatchAtlas = new int *[n],
+      **offPatchSeg = new int *[n], 
+      **offSearchAtlas = new int *[n],
+      *manhattan;
 
   // Collect search statistics
   std::vector<int> searchHisto(100, 0);
@@ -170,103 +165,101 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 
   // Find all unique labels in the requested region
   std::set<InputImagePixelType> labelset;
-  for( int i = 0; i < n; i++ )
+  for(int i = 0; i < n; i++)
     {
     // Find all the labels
-    const InputImageType *                                 seg = m_AtlasSegs[i];
-    itk::ImageRegionConstIteratorWithIndex<InputImageType> it(seg, seg->GetRequestedRegion() );
-    for( ; !it.IsAtEnd(); ++it )
+    const InputImageType *seg = m_AtlasSegs[i];
+    itk::ImageRegionConstIteratorWithIndex<InputImageType> it(seg, seg->GetRequestedRegion());
+    for(; !it.IsAtEnd(); ++it)
       {
       InputImagePixelType label = it.Get();
       labelset.insert(label);
       }
 
     // Compute the offset table for that atlas
-    ComputeOffsetTable(m_Atlases[i], m_PatchRadius, offPatchAtlas + i, nPatch);
-    ComputeOffsetTable(m_AtlasSegs[i], m_PatchRadius, offPatchSeg + i, nPatch);
-    ComputeOffsetTable(m_Atlases[i], m_SearchRadius, offSearchAtlas + i, nSearch, &manhattan);
+    ComputeOffsetTable(m_Atlases[i], m_PatchRadius, offPatchAtlas+i, nPatch);
+    ComputeOffsetTable(m_AtlasSegs[i], m_PatchRadius, offPatchSeg+i, nPatch);
+    ComputeOffsetTable(m_Atlases[i], m_SearchRadius, offSearchAtlas+i, nSearch, &manhattan);
     }
 
   // Initialize the posterior maps
   m_PosteriorMap.clear();
+
   // Allocate posterior images for the different labels
-  for( typename std::set<InputImagePixelType>::iterator sit = labelset.begin();
-       sit != labelset.end(); ++sit )
+  for(typename std::set<InputImagePixelType>::iterator sit = labelset.begin();
+    sit != labelset.end(); ++sit)
     {
     m_PosteriorMap[*sit] = PosteriorImage::New();
-    m_PosteriorMap[*sit]->CopyInformation(target); // Set orientation/spacing/DirCosign/Components/etc from target.
-    m_PosteriorMap[*sit]->SetLargestPossibleRegion(target->GetLargestPossibleRegion() );
-    m_PosteriorMap[*sit]->SetRequestedRegion(this->GetOutput()->GetRequestedRegion() );
-    m_PosteriorMap[*sit]->SetBufferedRegion(this->GetOutput()->GetRequestedRegion() );
+    m_PosteriorMap[*sit]->SetLargestPossibleRegion(target->GetLargestPossibleRegion());
+    m_PosteriorMap[*sit]->SetRequestedRegion(this->GetOutput()->GetRequestedRegion());
+    m_PosteriorMap[*sit]->SetBufferedRegion(this->GetOutput()->GetRequestedRegion());
     m_PosteriorMap[*sit]->Allocate();
     m_PosteriorMap[*sit]->FillBuffer(0.0f);
     }
 
   int iter = 0;
 
+
   // We need an array of absolute patch differences between target image and atlases
   // (apd - atlas patch difference)
-  InputImagePixelType * *apd = new InputImagePixelType *[n];
-  for( int i = 0; i < n; i++ )
-    {
+  InputImagePixelType **apd = new InputImagePixelType*[n];
+  for(int i = 0; i < n; i++)
     apd[i] = new InputImagePixelType[nPatch];
-    }
 
   // Also an array of pointers to the segmentations of different atlases
-  const InputImagePixelType * *patchSeg = new const InputImagePixelType *[n];
+  const InputImagePixelType **patchSeg = new const InputImagePixelType*[n]; 
 
   // Create an array for storing the normalized target patch to save more time
   InputImagePixelType *xNormTargetPatch = new InputImagePixelType[nPatch];
 
   // Iterate over voxels in the output region
   typedef itk::ImageRegionIteratorWithIndex<TOutputImage> OutIter;
-  for( OutIter it(this->GetOutput(), this->GetOutput()->GetBufferedRegion() ); !it.IsAtEnd(); ++it )
+  for(OutIter it(this->GetOutput(), this->GetOutput()->GetBufferedRegion()); !it.IsAtEnd(); ++it)
     {
     // Point the target iterator to the output location
-    itTarget.SetLocation(it.GetIndex() );
-    InputImagePixelType *pTargetCurrent = target->GetBufferPointer() + target->ComputeOffset(it.GetIndex() );
+    itTarget.SetLocation(it.GetIndex());
+    InputImagePixelType *pTargetCurrent = target->GetBufferPointer() + target->ComputeOffset(it.GetIndex());
 
     // Compute stats for the target patch
     InputImagePixelType mu, sigma;
     PatchStats(pTargetCurrent, nPatch, offPatchTarget, mu, sigma);
-    for( unsigned int i = 0; i < nPatch; i++ )
-      {
+    for(unsigned int i = 0; i < nPatch; i++)
       xNormTargetPatch[i] = (*(pTargetCurrent + offPatchTarget[i]) - mu) / sigma;
-      }
+
     // In each atlas, search for a patch that matches our patch
-    for( int i = 0; i < n; i++ )
+    for(int i = 0; i < n; i++)
       {
       const InputImageType *atlas = m_Atlases[i];
       const InputImageType *seg = m_AtlasSegs[i];
-      int *                 offPatch = offPatchAtlas[i], *offSearch = offSearchAtlas[i];
+      int *offPatch = offPatchAtlas[i], *offSearch = offSearchAtlas[i];
 
       // Get the requested region for the atlas
       RegionType rr = atlas->GetRequestedRegion();
 
       // Define the search region
       RegionType rSearch;
-      for( int j = 0; j < InputImageDimension; j++ )
+      for(int j = 0; j < InputImageDimension; j++)
         {
         rr.SetIndex(j, rr.GetIndex(j) + m_SearchRadius[j]);
         rr.SetSize(j, rr.GetSize(j) - 2 * m_SearchRadius[j]);
         rSearch.SetIndex(j, it.GetIndex()[j] - m_SearchRadius[j]);
-        rSearch.SetSize(j, 2 * m_SearchRadius[j] + 1);
+        rSearch.SetSize(j, 2 * m_SearchRadius[j]+1);
         }
       rSearch.Crop(rr);
 
       // Search over neighborhood
-      const InputImagePixelType *pAtlasCurrent = atlas->GetBufferPointer() + atlas->ComputeOffset(it.GetIndex() );
-      double                     bestMatch = 1e100;
+      const InputImagePixelType *pAtlasCurrent = atlas->GetBufferPointer() + atlas->ComputeOffset(it.GetIndex());
+      double bestMatch = 1e100;
       const InputImagePixelType *bestMatchPtr = NULL;
-      InputImagePixelType        bestMatchSum = 0, bestMatchSSQ = 0;
-      int                        bestK = 0;
-      for( unsigned int k = 0; k < nSearch; k++ )
+      InputImagePixelType bestMatchSum = 0, bestMatchSSQ = 0;
+      int bestK = 0;
+      for(unsigned int k = 0; k < nSearch; k++)
         {
         // Pointer to the voxel at the center of the search
         const InputImagePixelType *pSearchCenter = pAtlasCurrent + offSearch[k];
-        InputImagePixelType        matchSum = 0, matchSSQ = 0;
-        double                     match = this->PatchSimilarity(pSearchCenter, xNormTargetPatch, nPatch, offPatch,
-                                                                 matchSum, matchSSQ);
+        InputImagePixelType matchSum = 0, matchSSQ = 0;
+        double match = this->PatchSimilarity(pSearchCenter, xNormTargetPatch, nPatch, offPatch,
+                                             matchSum, matchSSQ);
         /*
         if(it.GetIndex()[0] == 326 && it.GetIndex()[1] == 244 && it.GetIndex()[2] == 12 && i == 9)
           {
@@ -276,13 +269,13 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
             {
             std::cout << "BAD PATCH" << std::endl;
             for(int z = 0; z < nPatch; z++)
-              std::cout << *(pSearchCenter + offPatch[z]) <<
+              std::cout << *(pSearchCenter + offPatch[z]) << 
                 "\t" << xNormTargetPatch[z] << std::endl;
             printf("match = %f, sum = %f, ssq = %f\n", match, matchSum, matchSSQ);
             }
           }
           */
-        if( match < bestMatch )
+        if(match < bestMatch)
           {
           bestMatch = match;
           bestMatchPtr = pSearchCenter;
@@ -354,51 +347,45 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
         */
 
       // Once the patch has been found, compute the absolute difference with target image
-      const InputImagePixelType bestMatchMean = bestMatchSum / nPatch;
-      InputImagePixelType       bestMatchVar =
+      InputImagePixelType bestMatchMean = bestMatchSum / nPatch;
+      InputImagePixelType bestMatchVar = 
         (bestMatchSSQ - nPatch * bestMatchMean * bestMatchMean) / (nPatch - 1);
-      if( bestMatchVar < 1.0e-12 )
-        {
+      if(bestMatchVar < 1.0e-12)
         bestMatchVar = 1.0e-12;
-        }
-      const InputImagePixelType bestMatchSD = sqrt(bestMatchVar);
-      for( unsigned int m = 0; m < nPatch; m++ )
+      InputImagePixelType bestMatchSD = sqrt(bestMatchVar);
+
+      for(unsigned int m = 0; m < nPatch; m++)
         {
-        const InputImagePixelType x = *(bestMatchPtr + offPatch[m]);
+        InputImagePixelType x = *(bestMatchPtr + offPatch[m]);
         apd[i][m] = fabs(xNormTargetPatch[m] - (x - bestMatchMean) / bestMatchSD);
         }
 
       // Store the best found neighborhood
-      patchSeg[i] = (bestMatchPtr - atlas->GetBufferPointer() ) + seg->GetBufferPointer();
+      patchSeg[i] = (bestMatchPtr - atlas->GetBufferPointer()) + seg->GetBufferPointer();
       }
 
     // Allocate Mx
     typedef vnl_matrix<double> MatrixType;
     MatrixType Mx(n, n);
+
     // Now we can compute Mx
-    for( int i = 0; i < n; i++ )
+    for(int i = 0; i < n; i++) 
       {
-      for( int k = 0; k <= i; k++ )
+      for(int k = 0; k <= i; k++) 
         {
         // Multiply through the apd arrays
         InputImagePixelType mxval = 0.0;
-        for( unsigned int m = 0; m < nPatch; m++ )
-          {
+        for(unsigned int m = 0; m < nPatch; m++)
           mxval += apd[i][m] * apd[k][m];
-          }
 
         mxval /= (nPatch - 1);
-
-        if( m_Beta == 2 )
-          {
+        
+        if(m_Beta == 2)
           mxval *= mxval;
-          }
         else
-          {
           mxval = pow(mxval, m_Beta);
-          }
 
-        Mx(i, k) = Mx(k, i) = mxval;
+        Mx(i,k) = Mx(k,i) = mxval;
         }
       }
 
@@ -454,22 +441,24 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 
     // Normalize the weights
     W *= 1.0 / dot_product(W, ones);
+
     /*
     if(it.GetIndex()[0] == 326 && it.GetIndex()[1] == 244 && it.GetIndex()[2] == 12)
       {
       std::cout << W << std::endl;
       }
       */
+
     // Perform voting using Hongzhi's averaging scheme. Iterate over all segmentation patches
-    for( unsigned int ni = 0; ni < nPatch; ni++ )
+    for(unsigned int ni = 0; ni < nPatch; ni++)
       {
-      const IndexType & idx = itTarget.GetIndex(ni);
-      if( this->GetOutput()->GetRequestedRegion().IsInside(idx) )
+      IndexType idx = itTarget.GetIndex(ni);
+      if(this->GetOutput()->GetRequestedRegion().IsInside(idx))
         {
-        for( int i = 0; i < n; i++ )
+        for(int i = 0; i < n; i++)
           {
           // The segmentation at the corresponding patch location in atlas i
-          const InputImagePixelType & label = *(patchSeg[i] + offPatchSeg[i][ni]);
+          InputImagePixelType label = *(patchSeg[i] + offPatchSeg[i][ni]);
 
           // Add that weight the posterior map for voxel at idx
           m_PosteriorMap[label]->SetPixel(idx, m_PosteriorMap[label]->GetPixel(idx) + W[i]);
@@ -477,35 +466,33 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
         }
       }
 
-    if( ++iter % 1000 == 0 )
-      {
-      std::cout << "." << std::flush;
-      }
+      if(++iter % 1000 == 0)
+        std::cout << "." << std::flush;
     }
 
   std::cout << std::endl << "Search Manhattan Distance Histogram " << std::endl;
-  for( size_t i = 0; i < searchHisto.size() && searchHisto[i] > 0; i++ )
-    {
+  for(size_t i = 0; i < searchHisto.size() && searchHisto[i] > 0; i++)
     std::cout << "    " << i << "\t" << searchHisto[i] << std::endl;
-    }
 
   std::cout << std::endl << "VOTING " << std::endl;
+
   // Perform voting at each voxel
-  for( OutIter it(this->GetOutput(), this->GetOutput()->GetBufferedRegion() ); !it.IsAtEnd(); ++it )
+  for(OutIter it(this->GetOutput(), this->GetOutput()->GetBufferedRegion()); !it.IsAtEnd(); ++it)
     {
-    double              wmax = 0;
+    double wmax = 0;
     InputImagePixelType winner = 0;
-    for( typename std::set<InputImagePixelType>::iterator sit = labelset.begin();
-         sit != labelset.end(); ++sit )
+
+    for(typename std::set<InputImagePixelType>::iterator sit = labelset.begin();
+      sit != labelset.end(); ++sit)
       {
-      const double & posterior = m_PosteriorMap[*sit]->GetPixel(it.GetIndex() );
+      double posterior = m_PosteriorMap[*sit]->GetPixel(it.GetIndex());
 
       // check if the label is excluded
-      typename ExclusionMap::const_iterator xit = m_Exclusions.find(*sit);
-      const bool excluded = (xit != m_Exclusions.end() && xit->second->GetPixel(it.GetIndex() ) != 0);
+      typename ExclusionMap::iterator xit = m_Exclusions.find(*sit);
+      bool excluded = (xit != m_Exclusions.end() && xit->second->GetPixel(it.GetIndex()) != 0);
 
       // Vote!
-      if( wmax < posterior && !excluded )
+      if (wmax < posterior && !excluded)
         {
         wmax = posterior;
         winner = *sit;
@@ -516,41 +503,34 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
     }
 
   // Clear posterior maps
-  if( !m_RetainPosteriorMaps )
-    {
+  if(!m_RetainPosteriorMaps)
     m_PosteriorMap.clear();
-    }
 }
+
 
 template <class TInputImage, class TOutputImage>
 void
 WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
-::PatchStats(const InputImagePixelType * const p,
-             const size_t n,
-             const int * const offsets,
-             InputImagePixelType & mean,
-             InputImagePixelType & std)
+::PatchStats(const InputImagePixelType *p, size_t n, int *offsets, InputImagePixelType &mean, InputImagePixelType &std)
 {
   InputImagePixelType sum = 0, ssq = 0;
-
-  for( unsigned int i = 0; i < n; i++ )
+  for(unsigned int i = 0; i < n; i++)
     {
-    const InputImagePixelType & v = *(p + offsets[i]);
+    InputImagePixelType v = *(p + offsets[i]);
     sum += v;
     ssq += v * v;
     }
 
   mean = sum / n;
-  std = sqrt( (ssq - n * mean * mean) / (n - 1) );
-  if( std < 1e-6 )
-    {
+  std = (ssq - n * mean * mean) / (n - 1);
+  if(std < 1e-6)
     std = 1e-6;
-    }
+  std = sqrt(std);
 }
 
 /**
  * This function computes similarity between a normalized patch (normtrg) and a patch
- * that has not been normalized (psearch). It can be shown that the sum of squared
+ * that has not been normalized (psearch). It can be shown that the sum of squared 
  * differences between a normalized patch u and a unnormalized patch v is equal to
  *
  * 2 [ (n-1) - (\Sum u_i v_i ) / \sigma_v ]
@@ -565,40 +545,33 @@ template <class TInputImage, class TOutputImage>
 double
 WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 ::PatchSimilarity(
-  const InputImagePixelType * const psearch,
-  const InputImagePixelType * const normtrg,
-  const size_t n,
-  const int * const offsets,
-  InputImagePixelType & sum_psearch,
-  InputImagePixelType & ssq_psearch)
+  const InputImagePixelType *psearch, 
+  const InputImagePixelType *normtrg, 
+  size_t n, 
+  int *offsets,
+  InputImagePixelType &sum_psearch,
+  InputImagePixelType &ssq_psearch)
 {
   // Here the patch normtrg should already be normalized.
   // We simultaneously compute the patch stats and solve the problem
   InputImagePixelType sum_uv = 0;
-
-  for( unsigned int i = 0; i < n; i++ )
+  for(unsigned int i = 0; i < n; i++)
     {
-    const InputImagePixelType & u = *(psearch + offsets[i]);
-    const InputImagePixelType & v = normtrg[i];
+    InputImagePixelType u = *(psearch + offsets[i]);
+    InputImagePixelType v = normtrg[i];
     sum_psearch += u;
     ssq_psearch += u * u;
     sum_uv += u * v;
     }
 
   InputImagePixelType var_u_unnorm = ssq_psearch - sum_psearch * sum_psearch / n;
-  if( var_u_unnorm < 1.0e-6 )
-    {
+  if(var_u_unnorm < 1.0e-6)
     var_u_unnorm = 1.0e-6;
-    }
 
-  if( sum_uv > 0 )
-    {
-    return -(sum_uv * sum_uv) / var_u_unnorm;
-    }
+  if(sum_uv > 0)
+    return - (sum_uv * sum_uv) / var_u_unnorm;
   else
-    {
     return (sum_uv * sum_uv) / var_u_unnorm;
-    }
 
   // InputImagePixelType sd_u = std::max(1e-6, sqrt((ssq_u - sum_u * sum_u / n) / (n - 1)));
   // return 2 * ((n - 1) - sum_uv / sd_u);
@@ -607,36 +580,28 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 double
 WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
-::JointErrorEstimate(const InputImagePixelType * const t,
-                     const InputImagePixelType * const a1,
-                     const InputImagePixelType * const a2,
-                     const size_t n,
-                     const int * const offsets)
+::JointErrorEstimate(const InputImagePixelType *t, const InputImagePixelType *a1, const InputImagePixelType *a2, size_t n, int *offsets)
 {
-  InputImagePixelType mu_t, sigma_t;
-
+  InputImagePixelType mu_t, sigma_t, mu1, sigma1, mu2, sigma2;
   PatchStats(t, n, offsets, mu_t, sigma_t);
-  InputImagePixelType mu1, sigma1;
   PatchStats(a1, n, offsets, mu1, sigma1);
-  InputImagePixelType mu2, sigma2;
   PatchStats(a2, n, offsets, mu2, sigma2);
 
   // What should we return when patches have zero variance?
-  if( sigma1 == 0 || sigma2 == 0 || sigma_t == 0 )
-    {
+  if(sigma1 == 0 || sigma2 == 0 || sigma_t == 0)
     return 0;
-    }
 
   double Mxval = 0.0;
-  for( unsigned int i = 0; i < n; i++ )
+  for(unsigned int i = 0; i < n; i++)
     {
-    const int &         off = offsets[i];
+    int off = offsets[i];
     InputImagePixelType ft = (*(t + off) - mu_t) / sigma_t;
     InputImagePixelType f1 = (*(a1 + off) - mu1) / sigma1;
     InputImagePixelType f2 = (*(a2 + off) - mu2) / sigma2;
 
-    Mxval += fabs(ft - f1) * fabs(ft - f2);
+    Mxval += fabs(ft-f1) * fabs(ft-f2);
     }
 
   return pow(Mxval, -m_Beta);
 }
+

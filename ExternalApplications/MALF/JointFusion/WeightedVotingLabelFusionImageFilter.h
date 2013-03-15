@@ -116,20 +116,20 @@ private:
   typedef itk::Neighborhood<InputImagePixelType, InputImageDimension> HoodType;
   typedef itk::ConstNeighborhoodIterator<InputImageType>              NIter;
 
-  double PatchSimilarity(const InputImagePixelType * const psearch, const InputImagePixelType * const pnormtrg,
-                         const size_t n, const int * const offsets, InputImagePixelType & psearchSum,
-                         InputImagePixelType & psearchSSQ);
+  double PatchSimilarity(const InputImagePixelType * const psearch, const InputImagePixelType * const normtrg,
+                         const size_t n, int * offsets, InputImagePixelType & sum_psearch,
+                         InputImagePixelType & ssq_psearch);
 
   void ComputeOffsetTable(const InputImageType * const image, const SizeType & radius, int * *offset, size_t & nPatch,
                           int * *manhattan = NULL);
 
   void UpdateInputs();
 
-  void PatchStats(const InputImagePixelType * const p, const size_t n, const int * const offsets,
-                  InputImagePixelType & mean, InputImagePixelType & sd);
+  void PatchStats(const InputImagePixelType * p, size_t n, int * offsets,
+                  InputImagePixelType & mean, InputImagePixelType & std);
 
-  double JointErrorEstimate(const InputImagePixelType *const t, const InputImagePixelType * const a1,
-                            const InputImagePixelType * const a2, const size_t n, const int * const offsets);
+  double JointErrorEstimate(const InputImagePixelType * t, const InputImagePixelType * a1,
+                            const InputImagePixelType * a2, size_t n, int *offsets);
 
   SizeType m_SearchRadius;
   SizeType m_PatchRadius;
