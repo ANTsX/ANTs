@@ -68,7 +68,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_ConvergenceThreshold = 1.e-6;
   this->m_Epsilon = 1.e-12;
   this->m_GradStep = 0.1;
-  this->m_UseLongitudinalFormulation = false;
+  this->m_UseLongitudinalFormulation = 0;
 }
 
 template <class TInputImage, class TRealType>
@@ -1525,13 +1525,24 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_MatrixPriorROI.rows();
     for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
-      {
+	{
       VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
       RealType fnz = 0;
-      for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
-        {
-	fnz += vnl_math_abs( priorrow( y ) );
-        }
+
+  //    for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
+    //    {
+	//fnz += vnl_math_abs( priorrow( y ) );
+      //  }
+		  
+		  for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
+		  {
+			  if(vnl_math_abs( priorrow( y ) ) >1.e-10 ){
+			  fnz += 1;
+			  }
+		  }
+		  
+		  ::ants::antscout << " fnz " << fnz <<std::endl;
+		  
       if( this->m_FractionNonZeroP <  1.e-10  )
 	{
         sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
@@ -1557,6 +1568,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType initvec = this->m_MatrixPriorROI.get_row(i);
       initvec = initvec / initvec.two_norm();
+      this->SparsifyP( initvec );
       this->m_VariatesP.set_column( i, initvec );
       }
     }
@@ -1606,13 +1618,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType priorVec = this->m_MatrixPriorROI.get_row(a);
-		
+
 		  if( priorVec.one_norm()  < 1.e-12 )
+
 		  {
 			  ::ants::antscout << "Prior Norm too small, could be a bug: " << priorVec.one_norm() << std::endl;
 			  std::exception();
 		  }
-		
+		 
+		 // ::ants::antscout << "Prior Norm: " << priorVec.one_norm() << std::endl;
+
 		  priorVec = priorVec/priorVec.one_norm();
       VectorType evec = this->m_VariatesP.get_column( a );
       if( overit == 0 )
@@ -1625,22 +1640,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     // /////////////////////
     // update B matrix by linear regression
-    reconerr = onenorm = 0;
-    icept.fill( 0 );
-    for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
-      {
-      VectorType x_i = this->m_MatrixP.get_row( a );
-      VectorType lmsolv = matrixB.get_row( a );                         // good initialization should increase
-      // convergence speed
-      (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
-      VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
-      icept( a ) = this->m_Intercept;
-      onenorm += x_i.one_norm() / this->m_MatrixP.cols();
-      reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
-      matrixB.set_row( a, lmsolv );
-      }
-    RealType rr = ( onenorm - reconerr ) / onenorm;
-    ::ants::antscout << overit << ": %var " << rr << " raw-reconerr " << reconerr << std::endl;
+
+	reconerr = this->SparseReconB( matrixB, icept  );	
+    ::ants::antscout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
   // this->SortResults( n_vecs );
@@ -1652,18 +1654,34 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::IHTPowerIterationPrior( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
                           typename antsSCCANObject<TInputImage, TRealType>::VectorType& evec,
-                          typename antsSCCANObject<TInputImage, TRealType>::VectorType& prior,
+                          typename antsSCCANObject<TInputImage, TRealType>::VectorType& priorin,
                           unsigned int maxits, unsigned int maxorth, double lambda )
 {
+  RealType lam1 = ( 1.0 - lambda );
+  RealType lam2 = ( lambda );
+  RealType     frob = A.frobenius_norm();
+  A = A * ( 1.e1 / frob );
+  /*  
+  // d/dv \| X_p - u_a v^t \| =  u_a^t ( X_p  - u_a v^t ) 
+  //  u_a^t X_p -   u_a^t u_a v^t 
+  // d/dv \| M - v v^t \| =  v^t ( M  - v v^t ) 
+  //  v^t M -   ip( v, v ) v^t 
+  VectorType bvec = this->m_MatrixU.get_column( maxorth );
+  VectorType mygrad1 = ( bvec *  A - evec * inner_product( bvec, bvec ) ) * lam1;
+  VectorType mygrad2 = ( this->FastOuterProductVectorMultiplication( priorin, evec ) 
+			 - evec * inner_product( evec, evec ) ) * lam2;
+  VectorType mygrad = mygrad1 + mygrad2 ;
+  evec = evec +  mygrad * this->m_GradStep; 
+  this->SparsifyP( evec );
+  return 1;
+  */
   /** This computes a hard-thresholded gradient descent on the eigenvector criterion.
       max x  over  x^t A^t A x s.t.  x^t x = 1
       success of the optimization is measured by rayleigh quotient. derivative is:
       d.dx ( x^t A^t A x  ) =   A^t A x  ,   x \leftarrow  x / \| x \|
       we use a conjugate gradient version of this optimization.
   */
-  RealType lam1 = ( 1.0 - lambda );
-  RealType lam2 = ( lambda );
-
+  VectorType prior( priorin );
   if( evec.two_norm() ==  0 )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
@@ -1673,8 +1691,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     evec.update( prior, 0  );
     this->SparsifyP( evec  );
     }
-  VectorType proj = ( A * evec ) * lam1 + this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
+  VectorType mgrad = this->FastOuterProductVectorMultiplication( prior, evec );
+  VectorType proj = ( A * evec ) * lam1 + mgrad * lam2;
   VectorType lastgrad = evec;
+  VectorType mlastgrad = mgrad;
   RealType   rayquo = 0, rayquold = -1;
   RealType   denom = inner_product( evec, evec );
   if( denom > 0 )
@@ -1686,27 +1706,26 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   bool         conjgrad = true;
   VectorType   bestevec = evec;
   while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
-  // while(  powerits < maxits  )
+  //  while(  powerits < 2 )
     {
-    RealType   gamma = 1;
-    VectorType pvec = this->FastOuterProductVectorMultiplication( prior, evec );
-    VectorType nvec = ( At   * ( A    * evec ) );
-    if( powerits == 0 )
-      {
-      ::ants::antscout << " V1 " << nvec.one_norm() * lam1 << " V2 " << pvec.one_norm() * lam2 << " ";
-      }
-    nvec = nvec * lam1 + pvec * lam2;
-    for( unsigned int orth = 0; orth < maxorth; orth++ )
-      {
-      // nvec = this->Orthogonalize( nvec, this->m_VariatesP.get_column( orth ) );
-      }
-    // nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
+    RealType   gamma  = 1;
+    RealType   mgamma = 1;
+    VectorType pvec   = this->FastOuterProductVectorMultiplication( prior, evec );
+    VectorType nvec   = ( At   * ( A    * evec ) );
+    /** combine the gradients according to prior weights */
+    nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP, 1. );
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
       {
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
+    if( ( mlastgrad.two_norm() > 0  ) && ( conjgrad ) )
+      {
+      mgamma = inner_product( pvec, pvec ) / inner_product( mlastgrad, mlastgrad );
+      }
     lastgrad = nvec;
-    evec = evec + nvec * gamma * this->m_GradStep;
+    mlastgrad = pvec;
+    ::ants::antscout << ( nvec * gamma * lam1 ).one_norm() << " vs " << (pvec * mgamma * lam2).one_norm()  << std::endl;
+    evec = evec + ( nvec * gamma * lam1 + pvec * mgamma * lam2 ) * this->m_GradStep;
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
       {
@@ -1729,14 +1748,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   evec = bestevec;
-  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
+  //  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
   if( inner_product( prior, evec ) == 0 )
     {
     evec.update( prior, 0  );
     this->SparsifyP( evec  );
     ::ants::antscout << " recompute " << maxorth;
     }
-  ::ants::antscout << std::endl;
   return rayquo;
 }
 
@@ -3107,6 +3125,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   evecin = bestevec;
+	
+   ::ants::antscout << "here";	
+	
   ::ants::antscout << "rayleigh-quotient: " << bestrayquo << " in " << powerits << " num " << maxorth << " fnz "
                    << this->m_FractionNonZeroP << std::endl;
   return bestrayquo;
@@ -4605,13 +4626,22 @@ bool antsSCCANObject<TInputImage, TRealType>
     RealType smooth = 0.0;
     pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP, smooth );
     qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ, smooth );
-    if ( this->m_UseLongitudinalFormulation )
+    if ( ( this->m_UseLongitudinalFormulation > 1.e-9 ) && ( pveck.size() == qveck.size() ) )
       {
-      if ( k == 0 )::ants::antscout << "Longitudinal=>p=q: ";
-      pveck = qveck;
+      VectorType lpveck = pveck + ( qveck - pveck ) * this->m_UseLongitudinalFormulation;
+      VectorType lqveck = qveck + ( pveck - qveck ) * this->m_UseLongitudinalFormulation;
+      pveck = lpveck;
+      qveck = lqveck;
       }
     this->SparsifyP( pveck );
     this->SparsifyQ( qveck );
+    if ( this->m_UseLongitudinalFormulation > 1.e-9 )
+      {
+      if ( k == 0  && ( pveck.size() != qveck.size() ) ) 
+        ::ants::antscout << "Cannot Use Longitudinal formulation if input matrix sizes dont match. ";
+      else if ( k == 0 )
+        ::ants::antscout << "Longitudinal=>p=q: " << ( pveck - qveck ).one_norm();
+      }
     if( n_vecs == 0 )
       {
       RealType mup = inner_product( this->m_MatrixP * ptemp, this->m_MatrixP * ptemp ) / ptemp.two_norm();

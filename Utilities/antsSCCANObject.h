@@ -100,8 +100,8 @@ public:
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
   itkSetMacro( Silent, bool );
   itkGetMacro( Silent, bool );
-  itkSetMacro( UseLongitudinalFormulation , bool );
-  itkGetMacro( UseLongitudinalFormulation , bool );
+  itkSetMacro( UseLongitudinalFormulation , RealType );
+  itkGetMacro( UseLongitudinalFormulation , RealType );
 
   void NormalizeWeights(const unsigned int k );
   void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
@@ -1023,7 +1023,7 @@ private:
   ImagePointer m_MaskImageP;
   RealType     m_FractionNonZeroP;
   bool         m_KeepPositiveP;
-  bool         m_UseLongitudinalFormulation;
+  RealType     m_UseLongitudinalFormulation;
 
   VectorType   m_WeightsQ;
   MatrixType   m_MatrixQ;
