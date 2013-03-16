@@ -4,7 +4,7 @@
   Module:    $Id: WeightedVotingLabelFusionImageFilter.txx,v 1.1 2012/09/05 14:39:51 zhuzhu771 Exp $
   Language:  C++ program
   Copyright (c) 2012 Paul A. Yushkevich, University of Pennsylvania
-  
+
   This file is part of ASHS
 
   ASHS is free software: you can redistribute it and/or modify
@@ -15,22 +15,22 @@
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details. 
+  GNU General Public License for more details.
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-  =================================================================== 
-  
+  ===================================================================
+
   CITATION:
 
     This program implements the method described in the paper
 
-    H. Wang, J. W. Suh, S. Das, J. Pluta, C. Craige, P. Yushkevich, 
-    "Multi-atlas segmentation with joint label fusion," IEEE Trans. 
+    H. Wang, J. W. Suh, S. Das, J. Pluta, C. Craige, P. Yushkevich,
+    "Multi-atlas segmentation with joint label fusion," IEEE Trans.
     on Pattern Analysis and Machine Intelligence, 35(3), 611-623, 2013
 
   =================================================================== */
-  
+
 #include <itkNeighborhoodIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <vnl/vnl_matrix.h>
@@ -46,7 +46,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 ::UpdateInputs()
 {
   // Set all the inputs
-  this->SetNumberOfInputs(1 + 2 * m_Atlases.size() + m_Exclusions.size());
+  this->SetNumberOfIndexedInputs(1 + 2 * m_Atlases.size() + m_Exclusions.size());
 
   size_t kInput = 0;
   this->SetNthInput(kInput++, m_Target);
@@ -94,9 +94,9 @@ template<class TInputImage, class TOutputImage>
 void
 WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 ::ComputeOffsetTable(
-  const InputImageType *image, 
-  const SizeType &radius, 
-  int **offset, 
+  const InputImageType *image,
+  const SizeType &radius,
+  int **offset,
   size_t &nPatch,
   int **manhattan)
 {
@@ -110,7 +110,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
     iCenter[i] = r.GetIndex(i) + r.GetSize(i)/2;
   itTempPatch.SetLocation(iCenter);
 
-  // Compute the offsets 
+  // Compute the offsets
   nPatch = itTempPatch.Size();
   (*offset) = new int[nPatch];
   if(manhattan)
@@ -151,9 +151,9 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
   // Construct offset tables for all the images (these can be different because they
   // depend on the buffered region)
   size_t nPatch, nSearch;
-  int *offPatchTarget, 
+  int *offPatchTarget,
       **offPatchAtlas = new int *[n],
-      **offPatchSeg = new int *[n], 
+      **offPatchSeg = new int *[n],
       **offSearchAtlas = new int *[n],
       *manhattan;
 
@@ -207,7 +207,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
     apd[i] = new InputImagePixelType[nPatch];
 
   // Also an array of pointers to the segmentations of different atlases
-  const InputImagePixelType **patchSeg = new const InputImagePixelType*[n]; 
+  const InputImagePixelType **patchSeg = new const InputImagePixelType*[n];
 
   // Create an array for storing the normalized target patch to save more time
   InputImagePixelType *xNormTargetPatch = new InputImagePixelType[nPatch];
@@ -269,7 +269,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
             {
             std::cout << "BAD PATCH" << std::endl;
             for(int z = 0; z < nPatch; z++)
-              std::cout << *(pSearchCenter + offPatch[z]) << 
+              std::cout << *(pSearchCenter + offPatch[z]) <<
                 "\t" << xNormTargetPatch[z] << std::endl;
             printf("match = %f, sum = %f, ssq = %f\n", match, matchSum, matchSSQ);
             }
@@ -348,7 +348,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 
       // Once the patch has been found, compute the absolute difference with target image
       InputImagePixelType bestMatchMean = bestMatchSum / nPatch;
-      InputImagePixelType bestMatchVar = 
+      InputImagePixelType bestMatchVar =
         (bestMatchSSQ - nPatch * bestMatchMean * bestMatchMean) / (nPatch - 1);
       if(bestMatchVar < 1.0e-12)
         bestMatchVar = 1.0e-12;
@@ -369,9 +369,9 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
     MatrixType Mx(n, n);
 
     // Now we can compute Mx
-    for(int i = 0; i < n; i++) 
+    for(int i = 0; i < n; i++)
       {
-      for(int k = 0; k <= i; k++) 
+      for(int k = 0; k <= i; k++)
         {
         // Multiply through the apd arrays
         InputImagePixelType mxval = 0.0;
@@ -379,7 +379,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
           mxval += apd[i][m] * apd[k][m];
 
         mxval /= (nPatch - 1);
-        
+
         if(m_Beta == 2)
           mxval *= mxval;
         else
@@ -530,7 +530,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 
 /**
  * This function computes similarity between a normalized patch (normtrg) and a patch
- * that has not been normalized (psearch). It can be shown that the sum of squared 
+ * that has not been normalized (psearch). It can be shown that the sum of squared
  * differences between a normalized patch u and a unnormalized patch v is equal to
  *
  * 2 [ (n-1) - (\Sum u_i v_i ) / \sigma_v ]
@@ -545,9 +545,9 @@ template <class TInputImage, class TOutputImage>
 double
 WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 ::PatchSimilarity(
-  const InputImagePixelType *psearch, 
-  const InputImagePixelType *normtrg, 
-  size_t n, 
+  const InputImagePixelType *psearch,
+  const InputImagePixelType *normtrg,
+  size_t n,
   int *offsets,
   InputImagePixelType &sum_psearch,
   InputImagePixelType &ssq_psearch)
