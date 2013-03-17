@@ -269,9 +269,17 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
   typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
+  bool useStaticCastForR = false;
+  typename itk::ants::CommandLineParser::OptionType::Pointer rOption =
+    parser->GetOption( "static-cast-for-R" );
+  if( rOption && rOption->GetNumberOfFunctions() )
+    {
+    useStaticCastForR = parser->Convert<bool>(  rOption->GetFunction( 0 )->GetName() );
+    }
+
   std::vector<bool> isDerivedTransform;
   typename CompositeTransformType::Pointer compositeTransform =
-    GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform );
+    GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
   if( compositeTransform.IsNull() )
     {
     return EXIT_FAILURE;
@@ -651,6 +659,17 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "default-value" );
     option->SetShortName( 'v' );
+    option->SetUsageOption( 0, "value" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "forces static cast in ReadTransform (for R)" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName( 'z' );
+    option->SetDescription( description );
+    option->SetLongName( "static-cast-for-R" );
     option->SetUsageOption( 0, "value" );
     option->SetDescription( description );
     parser->AddOption( option );

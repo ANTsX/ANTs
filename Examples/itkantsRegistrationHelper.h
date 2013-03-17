@@ -658,7 +658,7 @@ template <unsigned VImageDimension>
 typename ants::RegistrationHelper<VImageDimension>::CompositeTransformType::Pointer
 GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,
-                                       std::vector<bool> & derivedTransforms )
+                                       std::vector<bool> & derivedTransforms, bool useStaticCastForR = false )
 {
   typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
@@ -776,7 +776,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
       typedef typename RegistrationHelperType::TransformType TransformType;
       typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<VImageDimension>(
-          initialTransformName );
+												   initialTransformName , useStaticCastForR );
       if( initialTransform.IsNull() )
         {
         ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;
