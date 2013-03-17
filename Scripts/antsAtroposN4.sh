@@ -30,7 +30,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -a t1.nii.gz -x mask.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -i t1.nii.gz -x mask.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
@@ -67,7 +67,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using antsAtroposN4 with the following arguments:
+    Using apb with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       segmentation priors     = ${ATROPOS_SEGMENTATION_PRIORS}
@@ -204,7 +204,7 @@ else
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
        ;;
-          x) #atropos prior weight
+          x) #atropos segmentation mask
        ATROPOS_SEGMENTATION_MASK=$OPTARG
        ;;
           *) # getopts issues an error message
@@ -306,7 +306,7 @@ for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
   done
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
-if [[ ! -e $OUTPUT_PREFIX ]];
+if [[ ! -f $OUTPUT_PREFIX ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
@@ -350,15 +350,12 @@ time_start_brain_segmentation=`date +%s`
 
 if [[ $INITIALIZE_WITH_KMEANS -eq 0 ]]
   then
+    logCmd cp ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[0]}]} ${SEGMENTATION_WEIGHT_MASK}
 
-    N4_PROB_FILES=()
-    for (( i = 0; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
+    for (( i = 1; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
       do
-        N4_PROB_FILES=( $N4_PROB_FILES ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]} )
+        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} + ${SEGMENTATION_WEIGHT_MASK} ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]}
       done
-
-    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_PROB_FILES[@]}
-
   fi
 
 if [[ -f ${SEGMENTATION_CONVERGENCE_FILE} ]];
@@ -475,13 +472,12 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           fi
       fi
 
-    N4_PROB_FILES=()
-    for (( j = 0; j < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; j++ ))
-      do
-        N4_PROB_FILES=( $N4_PROB_FILES ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]} )
-      done
+    logCmd cp ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[0]}]} ${SEGMENTATION_WEIGHT_MASK}
 
-    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_PROB_FILES[@]}
+    for (( j = 1; j < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; j++ ))
+      do
+        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} + ${SEGMENTATION_WEIGHT_MASK} ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]}
+      done
 
   done
 
@@ -544,3 +540,4 @@ if [[ `type -p RScript` > /dev/null ]];
   fi
 
 exit 0
+
