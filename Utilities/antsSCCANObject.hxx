@@ -1673,12 +1673,31 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                           typename antsSCCANObject<TInputImage, TRealType>::VectorType& priorin,
                           unsigned int maxits, unsigned int maxorth, double lambda )
 {
+  RealType lam1 = ( 1.0 - lambda );
+  RealType lam2 = ( lambda );
+  RealType     frob = A.frobenius_norm();
+  A = A * ( 1.e1 / frob );
+  /*  
+  // d/dv \| X_p - u_a v^t \| =  u_a^t ( X_p  - u_a v^t ) 
+  //  u_a^t X_p -   u_a^t u_a v^t 
+  // d/dv \| M - v v^t \| =  v^t ( M  - v v^t ) 
+  //  v^t M -   ip( v, v ) v^t 
+  VectorType bvec = this->m_MatrixU.get_column( maxorth );
+  VectorType mygrad1 = ( bvec *  A - evec * inner_product( bvec, bvec ) ) * lam1;
+  VectorType mygrad2 = ( this->FastOuterProductVectorMultiplication( priorin, evec ) 
+			 - evec * inner_product( evec, evec ) ) * lam2;
+  VectorType mygrad = mygrad1 + mygrad2 ;
+  evec = evec +  mygrad * this->m_GradStep; 
+  this->SparsifyP( evec );
+  return 1;
+  */
   /** This computes a hard-thresholded gradient descent on the eigenvector criterion.
       max x  over  x^t A^t A x s.t.  x^t x = 1
       success of the optimization is measured by rayleigh quotient. derivative is:
       d.dx ( x^t A^t A x  ) =   A^t A x  ,   x \leftarrow  x / \| x \|
       we use a conjugate gradient version of this optimization.
   */
+
 	RealType lam1 = ( 1.0 - lambda );
   RealType lam2 = lambda;
   VectorType prior( priorin );
@@ -1706,6 +1725,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   bool         conjgrad = true;
   VectorType   bestevec = evec;
   while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
+  //  while(  powerits < 2 )
     {
     RealType   gamma  = 1;
     RealType   mgamma = 1;
@@ -1741,6 +1761,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 		
     lastgrad = nvec;
     mlastgrad = pvec;
+
     evec = evec + ( nvec * gamma*lam1/nvec.two_norm() + pvec * mgamma*lam2/pvec.two_norm() ) * this->m_GradStep;
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
@@ -1764,14 +1785,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   evec = bestevec;
-  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
+  //  ::ants::antscout << "rayleigh-quotient: " << rayquo << " in " << powerits << " num " << maxorth;
   if( inner_product( prior, evec ) == 0 )
     {
     evec.update( prior, 0  );
     this->SparsifyP( evec  );
     ::ants::antscout << " recompute " << maxorth;
     }
-  ::ants::antscout << std::endl;
   return rayquo;
 }
 

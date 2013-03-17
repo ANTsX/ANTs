@@ -16,7 +16,7 @@ namespace ants
 template <unsigned VImageDimension>
 typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer
 ReadTransform(const std::string & filename,
-              const bool UsedStaticCastForR = false) // This parameter changes to true by the programs that use R, so this code
+              const bool useStaticCastForR = false) // This parameter changes to true by the programs that use R, so this code
                                                      // returns a different output for them.
 {
   // We must explicitly check for file existance because failed reading is an acceptable
@@ -101,7 +101,7 @@ ReadTransform(const std::string & filename,
     transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
     
     /** below is a bad thing but it's the only temporary fix i could find for ANTsR on unix --- B.A. */
-    if ( transform.IsNull() && ( UsedStaticCastForR == true ) )
+    if ( transform.IsNull() && ( useStaticCastForR == true ) )
        {
        transform = static_cast<TransformType *>( listOfTransforms->front().GetPointer() );
        }

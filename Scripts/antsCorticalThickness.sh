@@ -46,7 +46,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -i t1.nii.gz -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -a t1.nii.gz -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
@@ -92,7 +92,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using apb with the following arguments:
+    Using antsCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       extraction template     = ${EXTRACTION_TEMPLATE}
