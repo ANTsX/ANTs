@@ -1555,8 +1555,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
-  RealType     frob = this->m_MatrixP.frobenius_norm();
-  //  this->m_MatrixP = this->m_MatrixP / frob;
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
   this->m_VariatesP.fill( 0 );
   VectorType icept( this->m_MatrixP.rows(), 0 );
@@ -1633,7 +1631,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         this->SparsifyP( evec );
         }
-      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec, 8, a, lambda );
+      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec, 4, a, lambda );
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       }
@@ -1656,8 +1654,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                           typename antsSCCANObject<TInputImage, TRealType>::VectorType& priorin,
                           unsigned int maxits, unsigned int maxorth, double lambda )
 {
-  RealType lam1 = ( 1.0 - lambda );
-  RealType lam2 = ( lambda );
   /*  
   // d/dv \| X_p - u_a v^t \| =  u_a^t ( X_p  - u_a v^t ) 
   //  u_a^t X_p -   u_a^t u_a v^t 
@@ -1689,7 +1685,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparsifyP( evec  );
     }
   VectorType mgrad = this->FastOuterProductVectorMultiplication( prior, evec );
-  VectorType proj = ( A * evec ) * lam1 + mgrad * lam2;
+  VectorType proj = ( A * prior );
   VectorType lastgrad = evec;
   VectorType mlastgrad = mgrad;
   RealType   rayquo = 0, rayquold = -1;
@@ -1732,8 +1728,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     if( denom > 0 )
       {
       // fast way to compute   evec^T * (  A^T A + M M^T ) evec
-      proj =  ( At   * ( A    * evec ) ) * lam1 +
-	this->FastOuterProductVectorMultiplication( prior, evec ) * lam2;
+      proj =  ( At   * ( A    * evec ) ) * basevscale +
+	this->FastOuterProductVectorMultiplication( prior, evec ) * basepscale;
       rayquo = inner_product( evec, proj  ) / denom;
       }
     powerits++;
