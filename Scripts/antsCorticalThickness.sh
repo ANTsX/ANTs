@@ -46,7 +46,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -a t1.nii.gz -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -i t1.nii.gz -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
@@ -92,7 +92,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using antsCorticalThickness with the following arguments:
+    Using apb with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       extraction template     = ${EXTRACTION_TEMPLATE}
@@ -109,30 +109,6 @@ echoParameters() {
       regularization          = ${ANTS_REGULARIZATION}
       transformation          = ${ANTS_TRANSFORMATION}
       max iterations          = ${ANTS_MAX_ITERATIONS}
-
-    N4 parameters (pre brain extraction):
-      convergence             = ${N4_CONVERGENCE_1}
-      shrink factor           = ${N4_SHRINK_FACTOR_1}
-      B-spline parameters     = ${N4_BSPLINE_PARAMS}
-    N4 parameters (segmentation):
-      convergence             = ${N4_CONVERGENCE_2}
-      shrink factor           = ${N4_SHRINK_FACTOR_2}
-      B-spline parameters     = ${N4_BSPLINE_PARAMS}
-
-    Atropos parameters (extraction):
-       convergence            = ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE}
-       likelihood             = ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD}
-       initialization         = ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION}
-       mrf                    = ${ATROPOS_BRAIN_EXTRACTION_MRF}
-    Atropos parameters (segmentation):
-       convergence            = ${ATROPOS_SEGMENTATION_CONVERGENCE}
-       likelihood             = ${ATROPOS_SEGMENTATION_LIKELIHOOD}
-       prior weight           = ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}
-       initialization         = ${ATROPOS_SEGMENTATION_INITIALIZATION}
-       posterior formulation  = ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}
-       mrf                    = ${ATROPOS_SEGMENTATION_MRF}
-       Max N4->Atropos iters. = ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS}
-       N4->Atropos threshold  = ${ATROPOS_SEGMENTATION_DICE_THRESHOLD}
 
     DiReCT parameters:
       convergence             = ${DIRECT_CONVERGENCE}
@@ -208,17 +184,12 @@ N4_SHRINK_FACTOR_2=2
 N4_BSPLINE_PARAMS="[200]"
 
 ATROPOS=${ANTSPATH}Atropos
-ATROPOS_BRAIN_EXTRACTION_INITIALIZATION="kmeans[3]"
-ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD="Gaussian"
-ATROPOS_BRAIN_EXTRACTION_CONVERGENCE="[3,0.0]"
 
 ATROPOS_SEGMENTATION_INITIALIZATION="PriorProbabilityImages"
-ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_CONVERGENCE="[5,0.0]"
 ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates"
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=15
-ATROPOS_SEGMENTATION_DICE_THRESHOLD=0.99
 
 DIRECT=${ANTSPATH}KellyKapowski
 DIRECT_CONVERGENCE="[45,0.0,10]";
@@ -231,7 +202,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:d:e:f:h:i:k:l:m:n:p:o:s:t:v:w:" OPT
+  while getopts "a:d:e:f:h:i:k:l:m:n:p:o:s:t:w:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -292,18 +263,6 @@ else
       esac
   done
 fi
-
-ATROPOS_BRAIN_EXTRACTION_MRF="[0.2,1x1x1]"
-if [[ DIMENSION -eq 2 ]];
-  then
-    ATROPOS_BRAIN_EXTRACTION_MRF="[0.2,1x1]"
-  fi
-ATROPOS_SEGMENTATION_MRF="[0.1,1x1x1]";
-if [[ DIMENSION -eq 2 ]];
-  then
-    ATROPOS_SEGMENTATION_MRF="[0.1,1x1]"
-  fi
-
 
 ################################################################################
 #
@@ -437,7 +396,7 @@ if [[ `diff $EXTRACTION_TEMPLATE $SEGMENTATION_TEMPLATE >/dev/null` ]];
   fi
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
-if [[ ! -e $OUTPUT_PREFIX ]];
+if [[ ! -f $OUTPUT_PREFIX ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
@@ -466,234 +425,16 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 #
 ################################################################################
 
-BRAIN_EXTRACTION_OUTPUT=${OUTPUT_PREFIX}BrainExtraction
-EXTRACTION_WARP_OUTPUT_PREFIX=${BRAIN_EXTRACTION_OUTPUT}Prior
-EXTRACTION_WARP=${EXTRACTION_WARP_OUTPUT_PREFIX}1Warp.nii.gz
-EXTRACTION_INVERSE_WARP=${EXTRACTION_WARP_OUTPUT_PREFIX}1InverseWarp.nii.gz
-EXTRACTION_GENERIC_AFFINE=${EXTRACTION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
-EXTRACTION_MASK_PRIOR_WARPED=${EXTRACTION_WARP_OUTPUT_PREFIX}Warped.${OUTPUT_SUFFIX}
-EXTRACTION_MASK=$BRAIN_EXTRACTION_MASK
-EXTRACTION_SEGMENTATION=${BRAIN_EXTRACTION_OUTPUT}Segmentation.${OUTPUT_SUFFIX}
-EXTRACTION_BRAIN=${BRAIN_EXTRACTION_OUTPUT}Brain.${OUTPUT_SUFFIX}
-EXTRACTION_WM=${BRAIN_EXTRACTION_OUTPUT}WM.${OUTPUT_SUFFIX}
-EXTRACTION_GM=${BRAIN_EXTRACTION_OUTPUT}GM.${OUTPUT_SUFFIX}
-EXTRACTION_CSF=${BRAIN_EXTRACTION_OUTPUT}CSF.${OUTPUT_SUFFIX}
-EXTRACTION_TMP=${BRAIN_EXTRACTION_OUTPUT}Tmp.${OUTPUT_SUFFIX}
-EXTRACTION_INITIAL_AFFINE=${BRAIN_EXTRACTION_OUTPUT}InitialAffine.mat
-EXTRACTION_INITIAL_AFFINE_FIXED=${BRAIN_EXTRACTION_OUTPUT}InitialAffineFixed.${OUTPUT_SUFFIX}
-EXTRACTION_INITIAL_AFFINE_MOVING=${BRAIN_EXTRACTION_OUTPUT}InitialAffineMoving.${OUTPUT_SUFFIX}
-EXTRACTION_LAPLACIAN=${BRAIN_EXTRACTION_OUTPUT}Laplacian.${OUTPUT_SUFFIX}
-EXTRACTION_TEMPLATE_LAPLACIAN=${BRAIN_EXTRACTION_OUTPUT}TemplateLaplacian.${OUTPUT_SUFFIX}
+bash ${ANTSPATH}/antsBrainExtraction.sh \
+  -d ${DIMENSION} \
+  -a ${ANATOMICAL_IMAGES[0]} \
+  -e ${EXTRACTION_TEMPLATE} \
+  -m ${EXTRACTION_PRIOR} \
+  -o ${OUTPUT_PREFIX} \
+  -k $KEEP_TMP_IMAGES \
+  -s ${OUTPUT_SUFFIX}
 
-TMP_FILES=( $EXTRACTION_MASK_PRIOR_WARPED $EXTRACTION_WARP $EXTRACTION_INVERSE_WARP $EXTRACTION_TMP $EXTRACTION_GM $EXTRACTION_CSF $EXTRACTION_SEGMENTATION $EXTRACTION_INITIAL_AFFINE $EXTRACTION_INITIAL_AFFINE_MOVING $EXTRACTION_INITIAL_AFFINE_FIXED $EXTRACTION_LAPLACIAN $EXTRACTION_TEMPLATE_LAPLACIAN )
-
-if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
-  then
-
-    time_start_brain_extraction=`date +%s`
-
-    ################################################################################
-    #
-    # N4 Correction (pre brain extraction)
-    #
-    ################################################################################
-
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo " Bias correction of anatomical images (pre brain extraction)"
-    echo "   1) pre-process by truncating the image intensities"
-    echo "   2) run N4"
-    echo "--------------------------------------------------------------------------------------"
-    echo
-
-    time_start_n4_correction=`date +%s`
-
-    for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
-      do
-        N4_TRUNCATED_IMAGE=${OUTPUT_PREFIX}N4Truncated${i}.${OUTPUT_SUFFIX}
-        N4_CORRECTED_IMAGE=${OUTPUT_PREFIX}N4Corrected${i}.${OUTPUT_SUFFIX}
-
-        TMP_FILES=( ${TMP_FILES[@]} $N4_TRUNCATED_IMAGE $N4_CORRECTED_IMAGE )
-        N4_CORRECTED_IMAGES=( ${N4_CORRECTED_IMAGES[@]} ${N4_CORRECTED_IMAGE} )
-
-        if [[ ! -f ${N4_CORRECTED_IMAGE} ]];
-          then
-            logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${N4_TRUNCATED_IMAGE} TruncateImageIntensity ${ANATOMICAL_IMAGES[$i]} 0.025 0.975 256
-
-            exe_n4_correction="${N4} -d ${DIMENSION} -i ${N4_TRUNCATED_IMAGE} -s ${N4_SHRINK_FACTOR_1} -c ${N4_CONVERGENCE_1} -b ${N4_BSPLINE_PARAMS} -o ${N4_CORRECTED_IMAGE}"
-            logCmd $exe_n4_correction
-          fi
-      done
-
-    time_end_n4_correction=`date +%s`
-    time_elapsed_n4_correction=$((time_end_n4_correction - time_start_n4_correction))
-
-    ## check if output was produced
-    if [[ ! -f ${N4_CORRECTED_IMAGES[0]} ]];
-      then
-        echo "Expected output was not produce.  The N4 corrected image doesn't exist:"
-        echo "   ${N4_CORRECTED_IMAGES[0]}"
-        exit 1
-      fi
-
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo " Done with N4 correction (pre brain extraction):  $(( time_elapsed_n4_correction / 3600 ))h $(( time_elapsed_n4_correction %3600 / 60 ))m $(( time_elapsed_n4_correction % 60 ))s"
-    echo "--------------------------------------------------------------------------------------"
-    echo
-
-    if [[ ! -f ${EXTRACTION_MASK} ]];
-      then
-        if [[ ! -f ${N4_CORRECTED_IMAGES[0]} ]];
-          then
-            echo "The N4 corrected image doesn't exist:"
-            echo "   ${N4_CORRECTED_IMAGES[0]}"
-            exit 1
-          fi
-
-        echo
-        echo "--------------------------------------------------------------------------------------"
-        echo " Brain extraction using the following steps:"
-        echo "   1) Register $EXTRACTION_TEMPLATE to ${N4_CORRECTED_IMAGES[0]}"
-        echo "   2) Warp $EXTRACTION_PRIOR to ${ANATOMICAL_IMAGES[0]} using, from 1),"
-        echo "      ${OUTPUT_PREFIX}BrainExtractionWarp/Affine"
-        echo "   3) Refine segmentation results using Atropos"
-        echo "--------------------------------------------------------------------------------------"
-        echo
-
-        ## Step 1 ##
-        if [[ ! -f ${EXTRACTION_WARP} ]];
-          then
-            logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${EXTRACTION_TEMPLATE} ${EXTRACTION_INITIAL_AFFINE_FIXED} 4 4 4 1
-            logCmd ${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_INITIAL_AFFINE_MOVING} 4 4 4 1
-
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_LAPLACIAN} Laplacian ${N4_CORRECTED_IMAGES[0]} 1.5 1
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_TEMPLATE_LAPLACIAN} Laplacian ${EXTRACTION_TEMPLATE} 1.5 1
-
-            exe_initial_align="${ANTSPATH}/antsAffineInitializer ${DIMENSION} ${EXTRACTION_INITIAL_AFFINE_FIXED} ${EXTRACTION_INITIAL_AFFINE_MOVING} ${EXTRACTION_INITIAL_AFFINE} 15 0.1 0 10"
-            if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
-              then
-                exe_initial_align="${exe_initial_align} ${EXTRACTION_REGISTRATION_MASK}"
-              fi
-            logCmd $exe_initial_align
-
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1"
-            if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
-              then
-                basecall="${basecall} -x [${EXTRACTION_REGISTRATION_MASK}]"
-              fi
-            stage1="-m MI[${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 4x2x1x0"
-            stage2="-m MI[${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
-            stage3="-m CC[${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},0.5,4] -m CC[${EXTRACTION_TEMPLATE_LAPLACIAN},${EXTRACTION_LAPLACIAN},0.5,4] -c [50x10x0,1e-9,15] -t SyN[0.1,3,0] -f 4x2x1 -s 2x1x0"
-
-            exe_brain_extraction_1="${basecall} ${stage1} ${stage2} ${stage3}"
-            logCmd $exe_brain_extraction_1
-          fi
-
-        ## check to see if the output registration transforms exist
-        if [[ ! -f ${EXTRACTION_GENERIC_AFFINE} ]];
-          then
-            echo "The registration component of the extraction step didn't complete properly."
-            echo "The transform file ${EXTRACTION_GENERIC_AFFINE} does not exist."
-            exit 1
-          fi
-
-        if [[ ! -f ${EXTRACTION_INVERSE_WARP} ]];
-          then
-            echo "The registration component of the extraction step didn't complete properly."
-            echo "The transform file ${EXTRACTION_INVERSE_WARP} does not exist."
-            exit 1
-          fi
-
-        ## Step 2 ##
-        exe_brain_extraction_2="${WARP} -d ${DIMENSION} -i ${EXTRACTION_PRIOR} -o ${EXTRACTION_MASK_PRIOR_WARPED} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian -t [${EXTRACTION_GENERIC_AFFINE},1] -t ${EXTRACTION_INVERSE_WARP}"
-        logCmd $exe_brain_extraction_2
-
-        ## superstep 1b ##
-        logCmd ${ANTSPATH}ThresholdImage ${DIMENSION} ${EXTRACTION_MASK_PRIOR_WARPED} ${EXTRACTION_MASK_PRIOR_WARPED} 0.5 1 1 0
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK_PRIOR_WARPED} 2
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} GetLargestComponent ${EXTRACTION_MASK}
-
-        ## superstep 6 ##
-        ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
-        for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
-          do
-            ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${N4_CORRECTED_IMAGES[$i]}";
-          done
-
-        exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD}"
-        logCmd $exe_brain_extraction_3
-
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} 3 3 1 0
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_GM} 2 2 1 0
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_CSF} 1 1 1 0
-
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_WM} GetLargestComponent ${EXTRACTION_WM}
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_GM} GetLargestComponent ${EXTRACTION_GM}
-
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_TMP} FillHoles ${EXTRACTION_GM} 2
-        logCmd ${ANTSPATH}MultiplyImages ${DIMENSION} ${EXTRACTION_GM} ${EXTRACTION_TMP} ${EXTRACTION_GM}
-
-        logCmd ${ANTSPATH}MultiplyImages ${DIMENSION} ${EXTRACTION_WM} 3 ${EXTRACTION_WM}
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_TMP} ME ${EXTRACTION_CSF} 10
-
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_GM} addtozero ${EXTRACTION_GM} ${EXTRACTION_TMP}
-        logCmd ${ANTSPATH}MultiplyImages ${DIMENSION} ${EXTRACTION_GM} 2 ${EXTRACTION_GM}
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} addtozero ${EXTRACTION_WM} ${EXTRACTION_GM}
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} addtozero ${EXTRACTION_SEGMENTATION} ${EXTRACTION_CSF}
-
-        ## superstep 7 ##
-        logCmd ${ANTSPATH}ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_MASK} 2 3
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} ME ${EXTRACTION_MASK} 2
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} GetLargestComponent ${EXTRACTION_MASK}
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK} 4
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} FillHoles ${EXTRACTION_MASK} 2
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} addtozero ${EXTRACTION_MASK} ${EXTRACTION_MASK_PRIOR_WARPED}
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK} 5
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} ME ${EXTRACTION_MASK} 5
-
-      fi
-
-    if [[ ! -f ${EXTRACTION_WM} ]];
-      then
-        ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
-        for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
-          do
-            ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${N4_CORRECTED_IMAGES[$i]}";
-          done
-
-        exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD}"
-        logCmd $exe_brain_extraction_3
-
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} 3 3 1 0
-      fi
-
-    logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${EXTRACTION_MASK} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_BRAIN}
-
-    if [[ ! -f ${EXTRACTION_MASK} ]];
-      then
-        echo "Expected output was not produced.  The brain mask doesn't exist:"
-        echo "   $EXTRACTION_MASK"
-        exit 1
-      fi
-
-    time_end_brain_extraction=`date +%s`
-    time_elapsed_brain_extraction=$((time_end_brain_extraction - time_start_brain_extraction))
-
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo " Done with brain extraction:  $(( time_elapsed_brain_extraction / 3600 ))h $(( time_elapsed_brain_extraction %3600 / 60 ))m $(( time_elapsed_brain_extraction % 60 ))s"
-    echo "--------------------------------------------------------------------------------------"
-    echo
-  fi
-
-if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
-  then
-    for f in ${TMP_FILES[@]}
-      do
-        logCmd rm $f
-      done
-  fi
+SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
 
 ################################################################################
 #
@@ -704,8 +445,6 @@ if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
 SEGMENTATION_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1Warp.nii.gz
 SEGMENTATION_INVERSE_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1InverseWarp.nii.gz
 SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
-SEGMENTATION_WHITE_MATTER_MASK=${EXTRACTION_WM}
-SEGMENTATION_BRAIN=${EXTRACTION_BRAIN}
 SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
 SEGMENTATION_BRAIN_WEIGHT_MASK=${BRAIN_SEGMENTATION_OUTPUT}WeightMask.nii.gz
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
@@ -746,7 +485,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     ## Step 1 ##
     if [[ ! -f ${SEGMENTATION_WARP} ]];
       then
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${EXTRACTION_MASK} 20
+        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
         basecall=''
         if [[ $INPUT_TEMPLATES_ARE_THE_SAME -eq 1 && -f ${EXTRACTION_AFFINE} ]];
@@ -804,20 +543,21 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     bash ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
-      -x ${EXTRACTION_MASK} \
+      -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
       -n 5 \
       -c 3 \
-      -l 2 \
       -l 3 \
+      -l 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
+      -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -k $KEEP_TMP_IMAGES \
       -o ${OUTPUT_PREFIX}Brain \
       -s ${OUTPUT_SUFFIX}
 
     ## Step 3 ###
-    TMP_FILES=( $EXTRACTION_AFFINE $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE $SEGMENTATION_WHITE_MATTER_MASK $SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED )
-    TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $EXTRACTION_GENERIC_AFFINE $SEGMENTATION_BRAIN_WEIGHT_MASK)
+    TMP_FILES=( $EXTRACTION_AFFINE $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE $SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED )
+    TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $SEGMENTATION_BRAIN_WEIGHT_MASK)
 
     if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
       then
