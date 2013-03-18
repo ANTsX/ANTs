@@ -396,7 +396,7 @@ if [[ `diff $EXTRACTION_TEMPLATE $SEGMENTATION_TEMPLATE >/dev/null` ]];
   fi
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
-if [[ ! -f $OUTPUT_PREFIX ]];
+if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR

@@ -233,7 +233,7 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
   done
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
-if [[ ! -f $OUTPUT_PREFIX ]];
+if [[ ! -d $OUTPUT_DIR ]];
   then
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
