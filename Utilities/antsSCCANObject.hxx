@@ -1516,11 +1516,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType sparsenessparams( n_vecs, this->m_FractionNonZeroP );
   double     lambda = this->GetLambda(); // Make it a parameter
 
-  ::ants::antscout << "lambda" << lambda  << " GradStep " << this->m_GradStep << std::endl;
+  //::ants::antscout << "lambda" << lambda  << " GradStep " << this->m_GradStep << std::endl;
 
   if( prior )
     {
-    ::ants::antscout << " prior " << this->m_OriginalMatrixPriorROI.rows() << " c "
+    ::ants::antscout << "prior " << this->m_OriginalMatrixPriorROI.rows() << " c "
                      << this->m_OriginalMatrixPriorROI.cols()  << std::endl;
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_MatrixPriorROI.rows();
@@ -1529,11 +1529,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
       RealType fnz = 0;
 
-  //    for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
-    //    {
-	//fnz += vnl_math_abs( priorrow( y ) );
-      //  }
-		  
+  		  
 		  for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
 		  {
 			  if(vnl_math_abs( priorrow( y ) ) >1.e-10 ){
@@ -1541,22 +1537,26 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 			  }
 		  }
 		  
-		  ::ants::antscout << " fnz " << fnz <<std::endl;
+		  //::ants::antscout << " fnz " << fnz <<std::endl;
 		  
       if( this->m_FractionNonZeroP <  1.e-10  )
 	{
         sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
 	}
-      }
-    ::ants::antscout << sparsenessparams << std::endl;
+	}
+    ::ants::antscout <<"sparseness: " <<sparsenessparams << std::endl;
     }
+	
+	
   RealType reconerr = 0;
   this->m_CanonicalCorrelations.set_size( n_vecs );
   this->m_CanonicalCorrelations.fill( 0 );
-  ::ants::antscout << " sparse recon prior " << this->m_MinClusterSizeP << std::endl;
+  //::ants::antscout << " sparse recon prior " << this->m_MinClusterSizeP << std::endl;
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  RealType     frob = this->m_MatrixP.frobenius_norm();
+  //  this->m_MatrixP = this->m_MatrixP / frob;
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
   this->m_VariatesP.fill( 0 );
   VectorType icept( this->m_MatrixP.rows(), 0 );
@@ -1625,15 +1625,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 			  std::exception();
 		  }
 		 
-		 // ::ants::antscout << "Prior Norm: " << priorVec.one_norm() << std::endl;
+		  //::ants::antscout << "Prior Norm: " << priorVec.two_norm() << std::endl;
 
-		  priorVec = priorVec/priorVec.one_norm();
+		  priorVec = priorVec/priorVec.two_norm();
       VectorType evec = this->m_VariatesP.get_column( a );
       if( overit == 0 )
         {
         this->SparsifyP( evec );
         }
-      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec, 10, a, lambda );
+      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec, 8, a, lambda );
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       }
@@ -1658,8 +1658,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 {
   RealType lam1 = ( 1.0 - lambda );
   RealType lam2 = ( lambda );
-  RealType     frob = A.frobenius_norm();
-  A = A * ( 1.e1 / frob );
   /*  
   // d/dv \| X_p - u_a v^t \| =  u_a^t ( X_p  - u_a v^t ) 
   //  u_a^t X_p -   u_a^t u_a v^t 
@@ -1702,38 +1700,28 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   MatrixType   At = A.transpose();
   unsigned int powerits = 0;
-  bool         conjgrad = true;
   VectorType   bestevec = evec;
-  //  while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
+  RealType     basevscale = 1;
+  RealType     basepscale = 1;
   while(  powerits < maxits )
     {
-    RealType   gamma  = 1;
-    RealType   mgamma = 1;
     VectorType pvec   = this->FastOuterProductVectorMultiplication( prior, evec );
     VectorType nvec   = ( At   * ( A    * evec ) );
-    VectorType orthvec = nvec;
-    if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
+    if ( powerits == 0 )
+      {
+      basevscale = pvec.two_norm() / nvec.two_norm() * this->m_GradStep;
+      basepscale = this->m_GradStep * lambda;
+      }
+    VectorType g1 = nvec * basevscale;
+    VectorType g2 = pvec * basepscale;
+    RealType gamma = 0.1;
+    nvec = g1 + g2;
+    if( ( lastgrad.two_norm() > 0  ) )
       {
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
-    if( ( mlastgrad.two_norm() > 0  ) && ( conjgrad ) )
-      {
-      mgamma = inner_product( pvec, pvec ) / inner_product( mlastgrad, mlastgrad );
-      }
     lastgrad = nvec;
-    mlastgrad = pvec;
-    //    ::ants::antscout << ( nvec * gamma * lam1 ).one_norm() << " vs " << (pvec * mgamma * lam2).one_norm()  << std::endl;
-    if ( powerits % 2 == 0 ) mgamma = 0; else gamma = 0;
-    evec = evec + ( nvec * gamma * lam1 + pvec * mgamma * lam2 ) * this->m_GradStep;
-    for( unsigned int orth = 0; orth < maxorth; orth++ )
-      {
-	//evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
-      /** alternative --- orthogonalize in n-space 
-      VectorType v = A * this->m_VariatesP.get_column( orth );
-      RealType ip1 = inner_product( A * evec,  v );
-      RealType ip2 = inner_product( v, v );
-      evec = evec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;*/
-      }
+    evec = evec + nvec * gamma;
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
       {
