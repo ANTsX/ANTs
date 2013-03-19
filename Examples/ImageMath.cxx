@@ -4981,18 +4981,14 @@ int TensorFunctions(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
-  std::string fn2 = "";
-  if( argc > argct )
-    {
-    fn2 = std::string(argv[argct++]);
-    }
+  std::string fn2 = ""; // used for whichvec and mask file name below
 
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
   typename ColorImageType::Pointer  cimage = NULL;    // output color image
-  typename VectorImageType::Pointer  vecimage = NULL; // output vector image
+  typename VectorImageType::Pointer vecimage = NULL;  // output vector image
   typename TensorImageType::Pointer toimage = NULL;   // output tensor image
-  typename ImageType::Pointer       maskimage = NULL; // mask image
+  typename ImageType::Pointer       mimage = NULL;    // mask image
 
   if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
     {
@@ -5200,9 +5196,10 @@ int TensorFunctions(int argc, char *argv[])
   unsigned int whichvec = ImageDimension - 1;
   if( argc > argct )
     {
-    whichvec = atoi(argv[argct]);
+    fn2 = std::string(argv[argct]);
+    whichvec = atoi(fn2.c_str());
+    argct++;
     }
-  argct++;
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
 
@@ -5223,9 +5220,21 @@ int TensorFunctions(int argc, char *argv[])
     if( argc > 5 )
       {
       antscout << "Using mask image: " << fn2 << std::endl;
-      ReadImage<ImageType>(maskimage, fn2.c_str() );
+      ReadImage<ImageType>(mimage, fn2.c_str() );
       }
 
+    }
+  else if( strcmp(operation.c_str(), "TensorMask") == 0 )
+    {
+    antscout << "Using mask image: " << fn2 << std::endl;
+
+    ReadImage<ImageType>(mimage, fn2.c_str());
+
+    typename TensorImageType::PixelType zero;
+       
+    zero.Fill(0);
+      
+    toimage = AllocImage<TensorImageType>(timage, zero);
     }
   else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
     {
@@ -5243,6 +5252,20 @@ int TensorFunctions(int argc, char *argv[])
     {
     vimage = AllocImage<ImageType>(timage);
     }
+
+  
+  TensorType zeroTensor;  // for masking background tensors 
+
+  for ( unsigned int i = 0; i < 6; i++ ) 
+    {
+    zeroTensor[i] = 0.0;
+    }
+
+  RGBType rgbZero; 
+
+  rgbZero[0] = 0;
+  rgbZero[1] = 0;
+  rgbZero[2] = 0;
 
   Iterator tIter(timage, timage->GetLargestPossibleRegion() );
   for(  tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
@@ -5317,9 +5340,13 @@ int TensorFunctions(int argc, char *argv[])
       {
       if ( argc > 5 )
         {
-        if ( maskimage->GetPixel( tIter.GetIndex() ) > 0 )
+        if ( mimage->GetPixel( tIter.GetIndex() ) > 0 )
           {
           cimage->SetPixel(ind, GetTensorRGB<TensorType>(tIter.Value() ) );
+          }
+        else 
+          {
+          cimage->SetPixel(ind, rgbZero);
           }
         }
       else
@@ -5328,6 +5355,20 @@ int TensorFunctions(int argc, char *argv[])
         cimage->SetPixel(ind, rgb);
         }
       }
+    else if( strcmp(operation.c_str(), "TensorMask") == 0 )
+      {
+      float maskVal = mimage->GetPixel(ind);
+    
+      if (maskVal > 0.0) 
+        {
+          toimage->SetPixel( ind, tIter.Value() );
+        }
+      else 
+        {
+          toimage->SetPixel( ind, zeroTensor );
+        }
+ 
+      } 
     else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
       {
       VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), whichvec);
@@ -5425,7 +5466,8 @@ int TensorFunctions(int argc, char *argv[])
     WriteImage<VectorImageType>(vecimage, outname.c_str() );
     }
   else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
-           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) )
+           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) || 
+           (strcmp(operation.c_str(), "TensorMask") == 0 ) )
     {
     WriteTensorImage<TensorImageType>(toimage, outname.c_str(), false );
     }
@@ -11766,7 +11808,10 @@ private:
       "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest eigenvalue). 3 = 8 => gets values from the tensor "
       << std::endl;
     antscout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
+    antscout << "  TensorMask     : Mask a tensor image, sets background tensors to zero " << std::endl;
+    antscout << "    Usage        : TensorMask DTImage.ext mask.ext" << std::endl;
 
+ 
     antscout << "\nLabel Fusion:" << std::endl;
     antscout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
     antscout << "    Usage: MajorityVoting LabelImage1.nii.gz .. LabelImageN.nii.gz" << std::endl;
@@ -12612,6 +12657,10 @@ private:
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorColor") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "TensorMask") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }
