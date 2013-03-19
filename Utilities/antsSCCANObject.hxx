@@ -1557,6 +1557,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
 	
+	/*
 	for( unsigned int x = 0; x < this->m_MatrixP.rows(); x++ )
 	{
 		VectorType   dataMatrixXrow = this->m_MatrixP.get_row( x );
@@ -1564,7 +1565,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 		dataMatrixXrow=dataMatrixXrow/dataMatrixXrow.two_norm();
 		this->m_MatrixP.set_row(x,dataMatrixXrow);
 		
-	}		
+	}		*/
 	
 	
   	
@@ -1676,7 +1677,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType lam1 = ( 1.0 - lambda );
   RealType lam2 = ( lambda );
   RealType     frob = A.frobenius_norm();
-  A = A * ( 1.e1 / frob );
   /*  
   // d/dv \| X_p - u_a v^t \| =  u_a^t ( X_p  - u_a v^t ) 
   //  u_a^t X_p -   u_a^t u_a v^t 
@@ -1698,8 +1698,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       we use a conjugate gradient version of this optimization.
   */
 
-	RealType lam1 = ( 1.0 - lambda );
-  RealType lam2 = lambda;
+
   VectorType prior( priorin );
   if( evec.two_norm() ==  0 )
     {
@@ -1727,8 +1726,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   while( ( ( rayquo > rayquold ) && ( powerits < maxits ) )  )
   //  while(  powerits < 2 )
     {
-    RealType   gamma  = 1;
-    RealType   mgamma = 1;
+    //RealType   gamma  = 1;
+    //RealType   mgamma = 1;
     VectorType pvec   = this->FastOuterProductVectorMultiplication( prior, evec );
     VectorType nvec   = ( At   * ( A    * evec ) );
 	// ::ants::antscout << " V1Start " << nvec.one_norm() << " V2Start " << pvec.one_norm() << " ";	
@@ -1738,13 +1737,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
    // pvec = lpvec;
    // nvec = lnvec;
 		
+		VectorType g1 = nvec  * this->m_GradStep;
+		VectorType g2 = pvec * lambda;
+		//    ::ants::antscout << g1.two_norm() << " " << g2.two_norm() << std::endl;
+		RealType gamma = 0.1;
+		nvec = g1 + g2;	
 	
     if( powerits == 0 )
       {
 	
-	  ::ants::antscout << "lam1 " << lam1 << "lam2 " << lam2 << " ";	  
+	  //::ants::antscout << "lam1 " << lam1 << "lam2 " << lam2 << " ";	  
 	  //::ants::antscout << " lpvec " << lpvec.one_norm() << "lnvec " << lnvec.one_norm() << " ";	  
-      //::ants::antscout << " V1 " << nvec.two_norm() << " V2 " << pvec.two_norm() << " ";
+     // ::ants::antscout << " V1 " << nvec.one_norm() << " V2 " << pvec.one_norm() << " ";
+		  
+	 // ::ants::antscout << " A " << A <<" ";	  
 	  //::ants::antscout << " V1*lam1 " << nvec.two_norm()*lam1 << " V2*lam2 " << pvec.two_norm()*lam2 << " ";	  
 		  
       }
@@ -1753,16 +1759,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
-    if( ( mlastgrad.two_norm() > 0  ) && ( conjgrad ) )
-      {
-      mgamma = inner_product( pvec, pvec ) / inner_product( mlastgrad, mlastgrad );
-      }
-		
+   	
 		
     lastgrad = nvec;
-    mlastgrad = pvec;
-
-    evec = evec + ( nvec * gamma*lam1/nvec.two_norm() + pvec * mgamma*lam2/pvec.two_norm() ) * this->m_GradStep;
+    evec = evec + nvec * gamma;
+		
+		
+		
+   // evec = evec + ( nvec * gamma*lam1 + pvec * mgamma*lam2 ) * this->m_GradStep;
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
       {
