@@ -157,6 +157,8 @@
 
 #include "TileImages.h"
 
+#include "TimeSCCAN.h"
+
 #include "WarpImageMultiTransform.h"
 
 #include "WarpTensorImageMultiTransform.h"
