@@ -22,6 +22,7 @@
 
 #include "antsCommandLineOption.h"
 #include "antsCommandLineParser.h"
+#include "antsSCCANObject.h"
 #include "ReadWriteImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include <vnl/vnl_vector.h>
@@ -54,17 +55,21 @@ double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
   return numer / denom;
 }
 
-
 template <class NetworkType>
 bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Pointer time, typename NetworkType::Pointer labels,
-                unsigned int nLabels, unsigned int minSize )
+                unsigned int nLabels, unsigned int minRegionSize, unsigned int n_evec, unsigned int iterct, float sparsity, 
+                bool robust, bool useL1, float gradstep, bool keepPositive, unsigned int minClusterSize )
 {
+  typedef itk::ants::antsSCCANObject<NetworkType, double>  SCCANType;
+  typedef typename SCCANType::MatrixType                   MatrixType;
+  typedef typename SCCANType::VectorType                   VectorType;
 
   // Determine the number of regions to examine
   std::set<unsigned int> labelset;
+  itk::ImageRegionIteratorWithIndex<NetworkType> it( labels, labels->GetLargestPossibleRegion() );
+
   if ( nLabels == 0 )
     {
-    itk::ImageRegionIteratorWithIndex<NetworkType> it( labels, labels->GetLargestPossibleRegion() );
     
     while( !it.IsAtEnd() )
       {
@@ -95,12 +100,162 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
   network->Allocate();
   network->FillBuffer( 0.0 );
 
+  unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
+  unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
+
+  if ( nVoxels != time->GetLargestPossibleRegion().GetSize()[1] )
+    {
+    antscout << "number of labels does not match number of voxels" << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  std::cout << "Examining " << N << " regions, covering "
+            << nVoxels << " voxels with " << nTimes << " time points each" << std::endl;
+
+  unsigned int labelCounts[N];
+
+  for (unsigned int i=0; i<N; i++)
+    {
+    typename NetworkType::IndexType idx;
+    idx[1] = 0;
+
+    labelCounts[i] = 0;
+    for ( unsigned int v=0; v<nVoxels; v++)
+      {
+      idx[0] = v;
+      if ( labels->GetPixel(idx) == (i+1) )
+        {
+        ++labelCounts[i];
+        }
+      }
+    }
+
+  // used to rankify matrices if using robust
+  typename SCCANType::Pointer cca_rankify = SCCANType::New();
+
+  for (unsigned int i=0; i<N; i++)
+    {
+    typename NetworkType::IndexType idx;
+    idx[1] = 0;
+
+    MatrixType P(nTimes, labelCounts[i], 0.0);
+
+    unsigned int iCount = 0;
+    for ( unsigned int v=0; v<nVoxels; v++)
+      {
+      idx[0] = v;
+      typename NetworkType::IndexType timeIdx;
+      timeIdx[1] = v;
+
+      if ( labels->GetPixel(idx) == (i+1) )
+        {
+        for ( unsigned int t=0; t<nTimes; t++)
+          {
+          timeIdx[0] = t;
+          P(t,iCount) = time->GetPixel(timeIdx);
+          }
+        ++iCount;
+        }
+      }
+
+    if ( robust && ( labelCounts[i] >= minRegionSize)  )
+      {
+      P = cca_rankify->RankifyMatrixColumns(P);
+      }
 
 
+    if ( labelCounts[i] >= minRegionSize )
+      {
+      for ( unsigned int j=i+1; j<N; j++)
+        {
+        MatrixType Q(nTimes, labelCounts[j], 0.0);
+        typename NetworkType::IndexType idx2;
+        idx2[1] = 0;
+
+        unsigned int jCount = 0;
+        for (unsigned int v2=0; v2<nVoxels; v2++)
+          {
+          idx2[0] = v2;
+          typename NetworkType::IndexType timeIdx2;
+          timeIdx2[1] = v2;
+
+          if ( labels->GetPixel(idx2) == (j+1) )
+            {
+            for ( unsigned int t2=0; t2<nTimes; t2++)
+              {
+              timeIdx2[0] = t2;
+              Q(t2,jCount) = time->GetPixel(timeIdx2);
+              }
+            ++jCount;
+            }
+          }
+
+        if ( robust )
+          {
+          Q = cca_rankify->RankifyMatrixColumns(Q);
+          }
+
+        if ( labelCounts[j] >= minRegionSize)
+          {
+
+          // Correlation magic goes here
+          typename SCCANType::Pointer cca = SCCANType::New();
+          cca->SetSilent( true );
+          cca->SetMaximumNumberOfIterations(iterct);
+          cca->SetUseL1( useL1 );
+          cca->SetGradStep( gradstep );
+          cca->SetKeepPositiveP( keepPositive );
+          cca->SetKeepPositiveQ( keepPositive );
+          cca->SetFractionNonZeroP( sparsity );
+          cca->SetFractionNonZeroQ( sparsity );
+          cca->SetMinClusterSizeP( minClusterSize );
+          cca->SetMinClusterSizeQ( minClusterSize );
+          cca->SetMatrixP( P );
+          cca->SetMatrixQ( Q );
+
+          // is truecorr just sccancorrs[0]?
+          double truecorr = cca->SparsePartialArnoldiCCA(n_evec);
+          VectorType sccancorrs = cca->GetCanonicalCorrelations();
+                            
+          VectorType pVec = cca->GetVariateP();
+          for ( unsigned int ip=0; ip<pVec.size(); ip++)
+            {
+            pVec[ip] = vnl_math_abs( pVec[ip] );
+            }
+          // pVec = pVec.normalize();
+          pVec = P * pVec;
+
+          VectorType qVec = cca->GetVariateQ();
+          for ( unsigned int iq=0; iq<qVec.size(); iq++)
+            {
+            qVec[iq] = vnl_math_abs( qVec[iq] );
+            }
+          //qVec = qVec.normalize();
+          qVec = Q * qVec;       
+
+          double final_corr = vnl_pearson_corr(pVec,qVec);
+          if ( ! vnl_math_isfinite( final_corr ) )
+            {
+            final_corr = 0.0; 
+            }
+
+          typename NetworkType::IndexType connIdx;
+          connIdx[0] = i;
+          connIdx[1] = j;
+          network->SetPixel( connIdx, final_corr );
+          connIdx[0] = j;
+          connIdx[1] = i;
+          network->SetPixel( connIdx, final_corr );
+
+          }
+
+        }
+      }
+    }
 
   return network;
-  
 }
+
 
 template <class NetworkType>
 bool RegionAveraging(typename NetworkType::Pointer network, typename NetworkType::Pointer time, typename NetworkType::Pointer labels,
@@ -205,31 +360,14 @@ for (unsigned int i=0; i<N; i++)
         {
         VectorType p = timeSig.get_row(i);
         VectorType q = timeSig.get_row(j);
-        
-        double corr = 0.0;
-        double xysum = 0;
-        for( unsigned int z = 0; z < p.size(); z++ )
-          {
-          xysum += (p[z] * q[z]);
-          }
-        
-        double frac = 1.0 / (double)p.size();
-        double xsum = p.sum();
-        double ysum = q.sum();
-        double xsqr = p.squared_magnitude();
-        double ysqr = q.squared_magnitude();
-        double numer = xysum - frac * xsum * ysum;
-        double denom = sqrt( ( xsqr - frac * xsum * xsum) * ( ysqr - frac * ysum * ysum) );
-        if( denom > 0 )
-          {
-          corr = numer / denom;
-          }
+
+        double corr = vnl_pearson_corr(p,q);
+
         if ( ! vnl_math_isfinite( corr ) )
           {
           corr = 0.0; 
           }
                
-        
         typename NetworkType::IndexType connIdx;
         connIdx[0] = i;
         connIdx[1] = j;
@@ -291,7 +429,19 @@ int timesccan( itk::ants::CommandLineParser *parser )
     roiSize = parser->Convert<unsigned int>( size_option->GetFunction()->GetName() );
     }
 
-  unsigned int                                      evec_ct = 1;
+  unsigned int                                      clusterSize = 1;
+  itk::ants::CommandLineParser::OptionType::Pointer clust_option =
+    parser->GetOption( "minimum-cluster-size" );
+  if( !clust_option || clust_option->GetNumberOfFunctions() == 0 )
+    {
+    //    antscout << "Warning:  no permutation option set." << std::endl;
+    }
+  else
+    {
+    clusterSize = parser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
+    }
+
+  unsigned int                                      evec_ct = 5;
   itk::ants::CommandLineParser::OptionType::Pointer evec_option =
     parser->GetOption( "n_eigenvectors" );
   if( !evec_option || evec_option->GetNumberOfFunctions() == 0 )
@@ -301,6 +451,42 @@ int timesccan( itk::ants::CommandLineParser *parser )
   else
     {
     evec_ct = parser->Convert<unsigned int>( evec_option->GetFunction()->GetName() );
+    }
+
+  unsigned int                                      iterations = 20;
+  itk::ants::CommandLineParser::OptionType::Pointer iter_option =
+    parser->GetOption( "iterations" );
+  if( !iter_option || iter_option->GetNumberOfFunctions() == 0 )
+    {
+    //    antscout << "Warning:  no permutation option set." << std::endl;
+    }
+  else
+    {
+    iterations = parser->Convert<unsigned int>( iter_option->GetFunction()->GetName() );
+    }
+
+  float                                             sparsity = 0.1;
+  itk::ants::CommandLineParser::OptionType::Pointer sparse_option =
+    parser->GetOption( "sparsity" );
+  if( !sparse_option || sparse_option->GetNumberOfFunctions() == 0 )
+    {
+    //    antscout << "Warning:  no permutation option set." << std::endl;
+    }
+  else
+    {
+    sparsity = parser->Convert<unsigned int>( sparse_option->GetFunction()->GetName() );
+    }
+
+  unsigned int                                      keepPositive = 1;
+  itk::ants::CommandLineParser::OptionType::Pointer pos_option =
+    parser->GetOption( "keep-positive" );
+  if( !pos_option || pos_option->GetNumberOfFunctions() == 0 )
+    {
+    //    antscout << "Warning:  no permutation option set." << std::endl;
+    }
+  else
+    {
+    keepPositive = parser->Convert<unsigned int>( pos_option->GetFunction()->GetName() );
     }
 
   unsigned int                                      usel1 = 1;
@@ -336,18 +522,6 @@ int timesccan( itk::ants::CommandLineParser *parser )
   else
     {
     evecgradientpenalty = parser->Convert<unsigned int>( evecg_option->GetFunction()->GetName() );
-    }
-
-  unsigned int                                      cluster_thresh = 1;
-  itk::ants::CommandLineParser::OptionType::Pointer clust_option =
-    parser->GetOption( "ClusterThresh" );
-  if( !clust_option || clust_option->GetNumberOfFunctions() == 0 )
-    {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
-    }
-  else
-    {
-    cluster_thresh = parser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
     }
 
   bool                                              eigen_imp = false;
@@ -390,7 +564,10 @@ int timesccan( itk::ants::CommandLineParser *parser )
       NetworkType::Pointer labelMat = NULL;
       ReadImage<NetworkType>( labelMat, labelMatrixName.c_str() );      
 
-      RegionSCCA<NetworkType>( network, timeMat, labelMat, nLabels, roiSize );
+      float gradstep = -0.5 + vnl_math_abs( usel1 );
+
+      RegionSCCA<NetworkType>( network, timeMat, labelMat, nLabels, roiSize, evec_ct, iterations,
+                               sparsity, robustify, usel1, gradstep, keepPositive, clusterSize );
       }
     else if ( connectivityStrategy == "region-averaging" )
       {
@@ -471,6 +648,28 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
   option->SetLongName( "minimum-region-size" );
   option->SetShortName( 'R' );
   option->SetUsageOption( 0, "1" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "Number of iterations" );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "iterations" );
+  option->SetShortName( 'i' );
+  option->SetUsageOption( 0, "20" );
+  option->SetDescription( description );
+  parser->AddOption( option );
+  }
+
+  {
+  std::string description =
+    std::string( "Sparsity - a float from (0,1] indicating what fraction of the data to use" );
+  OptionType::Pointer option = OptionType::New();
+  option->SetLongName( "sparsity" );
+  option->SetShortName( 's' );
+  option->SetUsageOption( 0, "0.10" );
   option->SetDescription( description );
   parser->AddOption( option );
   }
