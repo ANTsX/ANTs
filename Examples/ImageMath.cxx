@@ -5401,7 +5401,6 @@ int TensorFunctions(int argc, char *argv[])
 
     if( argc > 5 )
       {
-      fn2 = std::string(argv[argct++]);
       antscout << "Using mask image: " << fn2 << std::endl;
       ReadImage<ImageType>(mimage, fn2.c_str() );
       }
@@ -5679,7 +5678,7 @@ int TensorFunctions(int argc, char *argv[])
     }
   else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
            (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) || 
-           (strcmp(operation.c_str(), "TensorMask") == 0 ) ) ||
+           (strcmp(operation.c_str(), "TensorMask") == 0 ) ||
            (strcmp(operation.c_str(), "ValidTensor") == 0 ) )
     {
     WriteTensorImage<TensorImageType>(toimage, outname.c_str(), false );
