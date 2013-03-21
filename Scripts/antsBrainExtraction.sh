@@ -118,7 +118,7 @@ OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
 OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
 OUTPUT_SUFFIX="nii.gz"
 
-KEEP_TMP_IMAGES='true'
+KEEP_TMP_IMAGES=0
 
 DIMENSION=3
 
@@ -475,7 +475,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
     echo
   fi
 
-if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
+if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
     for f in ${TMP_FILES[@]}
       do
