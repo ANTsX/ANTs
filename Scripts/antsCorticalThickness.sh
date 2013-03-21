@@ -414,7 +414,6 @@ time_start=`date +%s`
 #
 ################################################################################
 
-N4_CORRECTED_IMAGES=()
 BRAIN_EXTRACTION_MASK=${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
 BRAIN_SEGMENTATION=${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
@@ -431,7 +430,7 @@ bash ${ANTSPATH}/antsBrainExtraction.sh \
   -e ${EXTRACTION_TEMPLATE} \
   -m ${EXTRACTION_PRIOR} \
   -o ${OUTPUT_PREFIX} \
-  -k $KEEP_TMP_IMAGES \
+  -k ${KEEP_TMP_IMAGES} \
   -s ${OUTPUT_SUFFIX}
 
 SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
@@ -455,8 +454,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " Brain segmentation using the following steps:"
-    echo "   1) Register $SEGMENTATION_TEMPLATE and $SEGMENTATION_PRIOR to ${N4_CORRECTED_IMAGES[0]}"
-    echo "   2) Warp priors to ${N4_CORRECTED_IMAGES[0]}"
+    echo "   1) Register $SEGMENTATION_TEMPLATE and $SEGMENTATION_PRIOR to ${ANATOMICAL_IMAGES[0]}"
+    echo "   2) Warp priors to ${ANATOMICAL_IMAGES[0]}"
     echo "   3) N-tissue segmentation using Atropos and N4"
     echo "--------------------------------------------------------------------------------------"
     echo
@@ -551,7 +550,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -l 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
-      -k $KEEP_TMP_IMAGES \
+      -k ${KEEP_TMP_IMAGES} \
       -o ${OUTPUT_PREFIX}Brain \
       -s ${OUTPUT_SUFFIX}
 
