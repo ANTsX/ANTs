@@ -80,8 +80,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${FFTWF_FLAGS}
     )
   ### --- End Project specific additions
-  set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
-  set(${proj}_GIT_TAG 87ca6b4c5670ff02a8811e80691e536a953b2445) #2013-03-02
+  set(${proj}_REPOSITORY ${git_protocol}://github.com/aghayoor/ITK.git)
+  set(${proj}_GIT_TAG a7ca9d40c59d8363715d9bec24ff14c7c1270e9a) #2013-03-29
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}

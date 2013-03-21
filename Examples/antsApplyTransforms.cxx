@@ -15,7 +15,7 @@
 #include "itkIdentityTransform.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
-#include "itkTransformFileReader.h"
+#include "itkTransformFileReaderTemplate.h"
 #include "itkTransformToDisplacementFieldSource.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
@@ -279,7 +279,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   std::vector<bool> isDerivedTransform;
   typename CompositeTransformType::Pointer compositeTransform =
-    GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
+    GetCompositeTransformFromParserOption<RealType, Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
   if( compositeTransform.IsNull() )
     {
     return EXIT_FAILURE;
