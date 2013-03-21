@@ -38,6 +38,7 @@
 #include "itkConnectedComponentImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
 #include "itkCorrelationImageToImageMetricv4.h"
+#include "itkDiffusionTensor3D.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
@@ -2546,6 +2547,153 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
     return 0;
 }
 
+template <unsigned int ImageDimension>
+int TimeSeriesRegionCorr(int argc, char *argv[])
+{
+  typedef float                                        PixelType;
+  typedef itk::Image<PixelType, ImageDimension>        InputImageType;
+  typedef itk::Image<unsigned int, ImageDimension>     LabelImageType;
+
+  typedef itk::MinimumMaximumImageCalculator<LabelImageType>  LabelCalculatorType;
+  typedef itk::ants::antsSCCANObject<InputImageType, double>  SCCANType;
+
+  typedef typename SCCANType::MatrixType         MatrixType;
+  typedef typename SCCANType::VectorType         VectorType;
+
+  if(argc < 6)
+    {
+    return EXIT_FAILURE;
+    }
+
+  int         argct = 2;
+  std::string outname = std::string(argv[argct++]);
+  std::string operation = std::string(argv[argct++]);
+  std::string labelName = std::string(argv[argct++]);
+  std::string timeName  = std::string(argv[argct++]);
+
+  unsigned int minRegionSize = 3;
+  bool robust = false;
+  
+  if ( argc > 6 )
+    minRegionSize = atoi( argv[argct++] );
+
+  std::cout << "min region = " << minRegionSize << std::endl;
+
+  // FIXME - add option for multi input for combined CCA
+  
+  typename LabelImageType::Pointer labels = NULL;
+  ReadImage<LabelImageType>( labels, labelName.c_str() );
+
+  typename InputImageType::Pointer time = NULL;
+  ReadImage<InputImageType>( time, timeName.c_str() );
+  
+  typename LabelCalculatorType::Pointer calc = LabelCalculatorType::New();
+  calc->SetImage( labels );
+  calc->ComputeMaximum();
+  unsigned int nLabels = calc->GetMaximum();
+  unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
+  unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
+
+  std::cout << "Examining " << nLabels << " regions, covering " 
+            << nVoxels << " voxels " << std::endl;
+
+  VectorType labelCounts( nLabels, 0 );
+  
+
+  typename InputImageType::Pointer connmat = InputImageType::New();
+  typename InputImageType::RegionType region;
+  region.SetSize(0,nLabels);
+  region.SetSize(1,nLabels);
+  connmat->SetRegions( region );
+  connmat->Allocate();
+  connmat->FillBuffer(-1);
+
+  MatrixType timeSig( nLabels, nTimes, 0.0 );
+  for ( unsigned int i=0; i<nLabels; i++)
+    {
+    typename LabelImageType::IndexType idx;
+    idx[1] = 0;
+    
+    for ( unsigned int v=0; v<nVoxels; v++)
+      {      
+      idx[0] = v;
+      if ( labels->GetPixel(idx) == (i+1) )
+        {
+        labelCounts[i]++;
+
+        typename InputImageType::IndexType timeIdx;
+        timeIdx[1] = v;
+        for ( unsigned int t=0; t<nTimes; t++)
+          {
+          timeIdx[0] = t;
+          timeSig(i,t) += time->GetPixel(timeIdx);
+          }
+        }
+      }
+    }
+
+  for ( unsigned int i=0; i<nLabels; i++ )
+    {
+    for ( unsigned int j=0; j<nTimes; j++ )
+      {
+      timeSig(i,j) /= labelCounts[i];
+      }
+    }
+
+  std::cout << "Building matrices..." << std::endl;
+
+  for (unsigned int i=0; i<nLabels; i++)
+    {
+    for ( unsigned int j=(i+1); j<nLabels; j++ )      {
+      
+      if ( (labelCounts[i] > minRegionSize) && (labelCounts[j] > minRegionSize ) )
+        {
+        VectorType p = timeSig.get_row(i);
+        VectorType q = timeSig.get_row(j);
+        
+        double corr = 0.0;
+        double xysum = 0;
+        for( unsigned int z = 0; z < p.size(); z++ )
+          {
+          xysum += (p[z] * q[z]);
+          }
+        
+        double frac = 1.0 / (double)p.size();
+        double xsum = p.sum();
+        double ysum = q.sum();
+        double xsqr = p.squared_magnitude();
+        double ysqr = q.squared_magnitude();
+        double numer = xysum - frac * xsum * ysum;
+        double denom = sqrt( ( xsqr - frac * xsum * xsum) * ( ysqr - frac * ysum * ysum) );
+        if( denom > 0 )
+          {
+          corr = numer / denom;
+          }
+        if ( ! vnl_math_isfinite( corr ) )
+          {
+          corr = 0.0; 
+          }
+               
+        
+        typename InputImageType::IndexType connIdx;
+        connIdx[0] = i;
+        connIdx[1] = j;
+        connmat->SetPixel( connIdx, corr );
+        connIdx[0] = j;
+        connIdx[1] = i;
+        connmat->SetPixel( connIdx, corr );
+          
+        }
+      
+      }
+    }
+
+std::cout << "Write output " << outname << std::endl;
+WriteImage<InputImageType>(connmat, outname.c_str() );
+  
+  return 0;
+}
+
 
 template <unsigned int ImageDimension>
 int PASLQuantifyCBF(int argc, char *argv[])
@@ -4955,6 +5103,40 @@ int VImageMath(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int SmoothTensorImage(int argc, char *argv[])
+{
+  typedef float                                              ValueType;
+  typedef itk::DiffusionTensor3D<ValueType>                  TensorType;
+  typedef itk::Image<TensorType,ImageDimension>              TensorImageType;
+
+  typedef itk::RecursiveGaussianImageFilter<TensorImageType, TensorImageType>
+    GaussianFilterType;
+
+  int         argct = 2;
+  const std::string outname = std::string(argv[argct++]);
+  std::string operation = std::string(argv[argct++]);  
+  std::string fn1 = std::string(argv[argct++]);
+  float sigma = atof(argv[argct++]);
+  //std::string fn2 = "";
+  //if( argc > argct )
+  //  {
+  //  fn2 = std::string(argv[argct++]);
+  //  }
+
+  typename TensorImageType::Pointer inDT = NULL;
+  ReadTensorImage<TensorImageType>(inDT, fn1.c_str());
+
+  typename GaussianFilterType::Pointer gFilter = GaussianFilterType::New();
+  gFilter->SetInput( inDT );
+  gFilter->SetSigma( sigma );
+  gFilter->Update();
+
+  WriteTensorImage<TensorImageType>(gFilter->GetOutput(), outname.c_str());
+  return 0;
+
+}
+
+template <unsigned int ImageDimension>
 int TensorFunctions(int argc, char *argv[])
 {
   typedef float PixelType;
@@ -4981,18 +5163,14 @@ int TensorFunctions(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]); argct++;
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
-  std::string fn2 = "";
-  if( argc > argct )
-    {
-    fn2 = std::string(argv[argct++]);
-    }
-
+  std::string fn2 = ""; // used for whichvec and mask file name below
+  
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
   typename ColorImageType::Pointer  cimage = NULL;    // output color image
-  typename VectorImageType::Pointer  vecimage = NULL; // output vector image
+  typename VectorImageType::Pointer vecimage = NULL;  // output vector image
   typename TensorImageType::Pointer toimage = NULL;   // output tensor image
-  typename ImageType::Pointer       maskimage = NULL; // mask image
+  typename ImageType::Pointer       mimage = NULL;    // mask image
 
   if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
     {
@@ -5200,9 +5378,10 @@ int TensorFunctions(int argc, char *argv[])
   unsigned int whichvec = ImageDimension - 1;
   if( argc > argct )
     {
-    whichvec = atoi(argv[argct]);
+    fn2 = std::string(argv[argct]);
+    whichvec = atoi(fn2.c_str());
+    argct++;
     }
-  argct++;
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
 
@@ -5223,9 +5402,21 @@ int TensorFunctions(int argc, char *argv[])
     if( argc > 5 )
       {
       antscout << "Using mask image: " << fn2 << std::endl;
-      ReadImage<ImageType>(maskimage, fn2.c_str() );
+      ReadImage<ImageType>(mimage, fn2.c_str() );
       }
 
+    }
+  else if( strcmp(operation.c_str(), "TensorMask") == 0 )
+    {
+    antscout << "Using mask image: " << fn2 << std::endl;
+
+    ReadImage<ImageType>(mimage, fn2.c_str());
+
+    typename TensorImageType::PixelType zero;
+       
+    zero.Fill(0);
+      
+    toimage = AllocImage<TensorImageType>(timage, zero);
     }
   else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
     {
@@ -5233,7 +5424,8 @@ int TensorFunctions(int argc, char *argv[])
     vecimage = AllocImage<VectorImageType>(timage, zero);
     }
   else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
-           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0) )
+           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0)  ||
+           (strcmp(operation.c_str(), "ValidTensor") == 0)  )
     {
     typename TensorImageType::PixelType zero;
     zero.Fill(0);
@@ -5243,6 +5435,20 @@ int TensorFunctions(int argc, char *argv[])
     {
     vimage = AllocImage<ImageType>(timage);
     }
+
+  
+  TensorType zeroTensor;  // for masking background tensors 
+
+  for ( unsigned int i = 0; i < 6; i++ ) 
+    {
+    zeroTensor[i] = 0.0;
+    }
+
+  RGBType rgbZero; 
+
+  rgbZero[0] = 0;
+  rgbZero[1] = 0;
+  rgbZero[2] = 0;
 
   Iterator tIter(timage, timage->GetLargestPossibleRegion() );
   for(  tIter.GoToBegin(); !tIter.IsAtEnd(); ++tIter )
@@ -5317,9 +5523,13 @@ int TensorFunctions(int argc, char *argv[])
       {
       if ( argc > 5 )
         {
-        if ( maskimage->GetPixel( tIter.GetIndex() ) > 0 )
+        if ( mimage->GetPixel( tIter.GetIndex() ) > 0 )
           {
           cimage->SetPixel(ind, GetTensorRGB<TensorType>(tIter.Value() ) );
+          }
+        else 
+          {
+          cimage->SetPixel(ind, rgbZero);
           }
         }
       else
@@ -5328,11 +5538,26 @@ int TensorFunctions(int argc, char *argv[])
         cimage->SetPixel(ind, rgb);
         }
       }
+    else if( strcmp(operation.c_str(), "TensorMask") == 0 )
+      {
+      float maskVal = mimage->GetPixel(ind);
+    
+      if (maskVal > 0.0) 
+        {
+          toimage->SetPixel( ind, tIter.Value() );
+        }
+      else 
+        {
+          toimage->SetPixel( ind, zeroTensor );
+        }
+ 
+      } 
     else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
       {
       VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), whichvec);
       vecimage->SetPixel(ind, vv);
       }
+
     else if( strcmp(operation.c_str(), "TensorToVectorComponent") == 0 )
       {
       if( whichvec <= 2 )
@@ -5411,8 +5636,35 @@ int TensorFunctions(int argc, char *argv[])
       TensorType oTensor = Matrix2Vector<TensorType, TensorType::MatrixType::InternalMatrixType>( lclTensor );
       toimage->SetPixel( tIter.GetIndex(), oTensor );
       }
-    }
+    else if( strcmp(operation.c_str(), "ValidTensor") == 0 )
+      {
+      typename TensorType::EigenValuesArrayType eigenValues;
+      typename TensorType::EigenVectorsMatrixType eigenVectors;
+      typename TensorType::EigenVectorsMatrixType eigenValuesMatrix;
+      eigenValuesMatrix.Fill( 0.0 );
+      tIter.Value().ComputeEigenAnalysis( eigenValues, eigenVectors );
+      bool hasNeg = false;
+      for( unsigned int i = 0; i < 3; i++ )
+        {
+        if ( eigenValues[i] < 0 )
+          {
+          hasNeg = true;
+          }
+        eigenValuesMatrix(i, i) = fabs( eigenValues[i] );
+        }
+      if ( hasNeg )
+        {
+        std::cout << tIter.Value() << std::endl;
+        std::cout << eigenValues << std::endl;
+        }
 
+      typename TensorType::MatrixType::InternalMatrixType lclTensor
+        = eigenVectors.GetTranspose() * eigenValuesMatrix.GetVnlMatrix() * eigenVectors.GetVnlMatrix();
+
+      TensorType oTensor = Matrix2Vector<TensorType, TensorType::MatrixType::InternalMatrixType>( lclTensor );
+      toimage->SetPixel( tIter.GetIndex(), oTensor );
+      }
+    }
   if( strcmp(operation.c_str(), "TensorColor") == 0 )
     {
     typename ColorWriterType::Pointer cwrite = ColorWriterType::New();
@@ -5425,7 +5677,9 @@ int TensorFunctions(int argc, char *argv[])
     WriteImage<VectorImageType>(vecimage, outname.c_str() );
     }
   else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
-           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) )
+           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) || 
+           (strcmp(operation.c_str(), "TensorMask") == 0 ) ||
+           (strcmp(operation.c_str(), "ValidTensor") == 0 ) )
     {
     WriteTensorImage<TensorImageType>(toimage, outname.c_str(), false );
     }
@@ -11766,7 +12020,10 @@ private:
       "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest eigenvalue). 3 = 8 => gets values from the tensor "
       << std::endl;
     antscout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
+    antscout << "  TensorMask     : Mask a tensor image, sets background tensors to zero " << std::endl;
+    antscout << "    Usage        : TensorMask DTImage.ext mask.ext" << std::endl;
 
+ 
     antscout << "\nLabel Fusion:" << std::endl;
     antscout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
     antscout << "    Usage: MajorityVoting LabelImage1.nii.gz .. LabelImageN.nii.gz" << std::endl;
@@ -12378,6 +12635,10 @@ private:
         {
         TimeSeriesRegionSCCA<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "TimeSeriesRegionCorr") == 0 )
+        {
+        TimeSeriesRegionCorr<2>(argc, argv);
+        }
       //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
         {
@@ -12567,6 +12828,10 @@ private:
         {
         Where<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "SmoothTensorImage") == 0 )
+        {
+        SmoothTensorImage<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "TensorFA") == 0 )
         {
         TensorFunctions<3>(argc, argv);
@@ -12615,6 +12880,10 @@ private:
         {
         TensorFunctions<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "TensorMask") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
         {
         TensorFunctions<3>(argc, argv);
@@ -12624,6 +12893,10 @@ private:
         TensorFunctions<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "TensorToLocalSpace") == 0 )
+        {
+        TensorFunctions<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ValidTensor") == 0 )
         {
         TensorFunctions<3>(argc, argv);
         }

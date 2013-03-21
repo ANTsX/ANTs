@@ -144,7 +144,7 @@ OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
 OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
 OUTPUT_SUFFIX="nii.gz"
 
-KEEP_TMP_IMAGES='true'
+KEEP_TMP_IMAGES=0
 
 DIMENSION=3
 
@@ -414,7 +414,6 @@ time_start=`date +%s`
 #
 ################################################################################
 
-N4_CORRECTED_IMAGES=()
 BRAIN_EXTRACTION_MASK=${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
 BRAIN_SEGMENTATION=${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
 CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
@@ -431,7 +430,7 @@ bash ${ANTSPATH}/antsBrainExtraction.sh \
   -e ${EXTRACTION_TEMPLATE} \
   -m ${EXTRACTION_PRIOR} \
   -o ${OUTPUT_PREFIX} \
-  -k $KEEP_TMP_IMAGES \
+  -k ${KEEP_TMP_IMAGES} \
   -s ${OUTPUT_SUFFIX}
 
 SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
@@ -455,8 +454,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " Brain segmentation using the following steps:"
-    echo "   1) Register $SEGMENTATION_TEMPLATE and $SEGMENTATION_PRIOR to ${N4_CORRECTED_IMAGES[0]}"
-    echo "   2) Warp priors to ${N4_CORRECTED_IMAGES[0]}"
+    echo "   1) Register $SEGMENTATION_TEMPLATE and $SEGMENTATION_PRIOR to ${ANATOMICAL_IMAGES[0]}"
+    echo "   2) Warp priors to ${ANATOMICAL_IMAGES[0]}"
     echo "   3) N-tissue segmentation using Atropos and N4"
     echo "--------------------------------------------------------------------------------------"
     echo
@@ -551,15 +550,15 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -l 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
-      -k $KEEP_TMP_IMAGES \
       -o ${OUTPUT_PREFIX}Brain \
+      -k ${KEEP_TMP_IMAGES} \
       -s ${OUTPUT_SUFFIX}
 
     ## Step 3 ###
     TMP_FILES=( $EXTRACTION_AFFINE $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE $SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED )
     TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $SEGMENTATION_BRAIN_WEIGHT_MASK)
 
-    if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
+    if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
         for f in ${TMP_FILES[@]}
           do
@@ -623,7 +622,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     exe_direct="${DIRECT} -d ${DIMENSION} -s [${BRAIN_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}] -g ${CORTICAL_THICKNESS_GM} -w ${CORTICAL_THICKNESS_WM} -o ${CORTICAL_THICKNESS_IMAGE} -c ${DIRECT_CONVERGENCE} -t ${DIRECT_THICKNESS_PRIOR} -r ${DIRECT_GRAD_STEP_SIZE} -m ${DIRECT_SMOOTHING_SIGMA} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS}"
     logCmd $exe_direct
 
-    if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
+    if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
         for f in ${TMP_FILES[@]}
           do
@@ -690,7 +689,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         exe_template_registration_2="${WARP} -d ${DIMENSION} -i ${SEGMENTATION_BRAIN_N4_IMAGES[0]} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian -t ${REGISTRATION_TEMPLATE_WARP} -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE}"
         logCmd $exe_template_registration_2
 
-        if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
+        if [[ $KEEP_TMP_IMAGES -eq 0 ]];
           then
             for f in ${TMP_FILES[@]}
               do

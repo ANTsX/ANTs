@@ -50,14 +50,7 @@ Required arguments:
      -m:  Brain extraction probability mask     Brain probability mask created using e.g. LPBA40 data set which
                                                 have brain masks defined, and warped to anatomical template and
                                                 averaged resulting in a probability image.
-     -o:  Output prefix                         The following images are created:
-                                                  * ${OUTPUT_PREFIX}N4Corrected.${OUTPUT_SUFFIX}
-                                                  * ${OUTPUT_PREFIX}ExtractedBrain.${OUTPUT_SUFFIX}
-                                                  * ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
-                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors1.${OUTPUT_SUFFIX}  CSF
-                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors2.${OUTPUT_SUFFIX}  GM
-                                                  * ${OUTPUT_PREFIX}BrainSegmentationPosteriors3.${OUTPUT_SUFFIX}  WM
-                                                  * ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
+     -o:  Output prefix                         Output directory + file prefix
 
 Optional arguments:
 
@@ -125,7 +118,7 @@ OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
 OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
 OUTPUT_SUFFIX="nii.gz"
 
-KEEP_TMP_IMAGES='true'
+KEEP_TMP_IMAGES=0
 
 DIMENSION=3
 
@@ -482,7 +475,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
     echo
   fi
 
-if [[ $KEEP_TMP_IMAGES = "false" || $KEEP_TMP_IMAGES = "0" ]];
+if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
     for f in ${TMP_FILES[@]}
       do
