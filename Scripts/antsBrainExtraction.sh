@@ -66,7 +66,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using antsCorticalThickness with the following arguments:
+    Using antsBrainExtraction with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       extraction template     = ${EXTRACTION_TEMPLATE}

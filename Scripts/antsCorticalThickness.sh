@@ -92,7 +92,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using apb with the following arguments:
+    Using antsCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       extraction template     = ${EXTRACTION_TEMPLATE}
@@ -159,6 +159,8 @@ SEGMENTATION_PRIOR=""
 WHITE_MATTER_LABEL=3
 GRAY_MATTER_LABEL=2
 CSF_MATTER_LABEL=1
+
+ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
 
 ################################################################################
 #

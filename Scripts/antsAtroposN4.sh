@@ -67,7 +67,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using apb with the following arguments:
+    Using antsAtroposN4 with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       segmentation priors     = ${ATROPOS_SEGMENTATION_PRIORS}
