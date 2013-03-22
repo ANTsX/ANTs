@@ -69,6 +69,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_Epsilon = 1.e-12;
   this->m_GradStep = 0.1;
   this->m_UseLongitudinalFormulation = 0;
+  this->m_RowSparseness = 0;
 }
 
 template <class TInputImage, class TRealType>
@@ -1770,7 +1771,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
     // this gives NMF =>
-    //    this->SparsifyOther( lmsolv , 0.5 , true );
+    this->SparsifyOther( lmsolv );
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();

@@ -214,7 +214,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
           cca->SetMatrixQ( Q );
 
           // is truecorr just sccancorrs[0]?
-          double truecorr = cca->SparsePartialArnoldiCCA(n_evec);
+          cca->SparsePartialArnoldiCCA(n_evec);
           VectorType sccancorrs = cca->GetCanonicalCorrelations();
                             
           VectorType pVec = cca->GetVariateP();

@@ -100,6 +100,8 @@ public:
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
   itkSetMacro( Silent, bool );
   itkGetMacro( Silent, bool );
+  itkSetMacro( RowSparseness, RealType );
+  itkGetMacro( RowSparseness, RealType );
   itkSetMacro( UseLongitudinalFormulation , RealType );
   itkGetMacro( UseLongitudinalFormulation , RealType );
 
@@ -744,9 +746,16 @@ protected:
       }
   }
 
-  void SparsifyOther( VectorType& x_k1 , RealType fnp, bool keeppos )
+  void SparsifyOther( VectorType& x_k1  )
   {
+    RealType fnp = vnl_math_abs( this->m_RowSparseness );
+    if ( fnp < 1.e-11 ) return;
+    bool usel1 = this->m_UseL1; 
+    this->m_UseL1 = true;
+    bool keeppos = false;
+    if ( this->m_RowSparseness > 1.e-11 ) keeppos = true;
     this->Sparsify( x_k1, fnp, keeppos , 0, NULL);
+    this->m_UseL1 = usel1; 
   }
 
   void SparsifyP( VectorType& x_k1 )
@@ -992,6 +1001,7 @@ private:
   MatrixType m_OriginalMatrixP;
   MatrixType m_OriginalMatrixQ;
   MatrixType m_OriginalMatrixR;
+  RealType   m_RowSparseness;
 
   antsSCCANObject(const Self &); // purposely not implemented
   void operator=(const Self &);  // purposely not implemented
