@@ -1769,9 +1769,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     VectorType x_i = this->m_MatrixP.get_row( a );
     VectorType lmsolv = matrixB.get_row( a );
-    (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 10000 ); // A x = b
-    // this gives NMF =>
-    this->SparsifyOther( lmsolv );
+    (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 100 ); // A x = b
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
     icept( a ) = this->m_Intercept;
     onenorm += x_i.one_norm() / this->m_MatrixP.cols();
@@ -1821,7 +1819,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                    <<  this->m_KeepPositiveP << std::endl;
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
-  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP );
+  this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP  );
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
   this->m_VariatesP.fill( 0 );
   VectorType icept( this->m_MatrixP.rows(), 0 );
@@ -1874,12 +1872,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = 1 - ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       VectorType evec = this->m_VariatesP.get_column( a );
       this->m_VariatesP.set_column( a, zero );
-      if( overit == 0 )
-        {
-        ( void ) this->PowerIteration(  partialmatrix,  evec, 3, true );
-        }
-      this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 20, a );    // 0 => a
-      //      ( void ) this->IHTPowerIteration(  partialmatrix,  evec, 4  , a );// 0 => a
+      if ( overit == 0 ) ( void ) this->PowerIteration(  partialmatrix,  evec, 5, true );
+      this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 5, a );    // 0 => a
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       a++;
@@ -2606,11 +2600,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
    *  http://www.matematicas.unam.mx/gfgf/cg2010/HISTORY-conjugategradient.pdf
    */
   bool debug = false;
-
-  if( debug )
-    {
-    ::ants::antscout << " DEBUG " << std::endl;
-    }
   // minimize the following error :    \| A^T*A * vec_i -    b \|  +  sparseness_penalty
   MatrixType At = A.transpose();
   VectorType b = b_in - b_in.mean();
@@ -2621,7 +2610,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   double       approxerr = 1.e9;
   unsigned int ct = 0;
   VectorType   bestsol = x_k;
-  RealType     starterr = r_k.two_norm();
+  RealType     starterr = b.two_norm();
   RealType     minerr = starterr, deltaminerr = 1, lasterr = starterr * 2;
   while(  deltaminerr > 0 && approxerr > convcrit && ct < maxits )
     {
@@ -2641,6 +2630,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       ::ants::antscout << " alpha_k " << alpha_k << std::endl;
       }
     VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
+    this->SparsifyOther( x_k1 ); // this can be used to approximate NMF
     VectorType r_k1 =  b - At * (A * x_k1 );
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
@@ -2658,8 +2648,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // in this paper's notation d => p,  g => r , alpha, beta, x the same , so y = rk1 - rk
     // measures the change in the residual
     VectorType yk = r_k1 - r_k;
-    // RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
-    RealType   beta_k = inner_product( r_k1, r_k1 ) /  inner_product( r_k, r_k ); // classic cg
+    RealType  bknd =  inner_product( p_k, yk );
+    RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
+    //    RealType   beta_k = inner_product( r_k1, r_k1 ) /  inner_product( r_k, r_k ); // classic cg
     VectorType p_k1  = r_k1 + beta_k * p_k;
     if( debug )
       {
@@ -3065,18 +3056,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   //  while ( ( relfac > 1.e-4  )  && ( powerits < maxits ) )
     {
     VectorType nvec = At * proj;
-    VectorType orthvec = nvec;
-    for( unsigned int orth = 0; orth < maxorth; orth++ )
-      {
-      orthvec = this->Orthogonalize( orthvec, this->m_VariatesP.get_column( orth ) );
-      /** alternative --- orthogonalize in n-space
-      VectorType v = A * this->m_VariatesP.get_column( orth );
-      RealType ip1 = inner_product( A * nvec,  v );
-      RealType ip2 = inner_product( v, v );
-      nvec = nvec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;
-      */
-      }
-    nvec = nvec * 0.5 + orthvec * 0.5;
     RealType gamma = 0.1;
     RealType smooth = 0.0;
     if( smooth > 0 )
@@ -3093,12 +3072,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     if ( smooth > 0 ) evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP, smooth );
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      //      evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
-      /** alternative --- orthogonalize in n-space */
+      evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
+      /** alternative --- orthogonalize in n-space 
       VectorType v = A * this->m_VariatesP.get_column( orth );
       RealType ip1 = inner_product( A * evec,  v );
       RealType ip2 = inner_product( v, v );
-      evec = evec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;
+      //      evec = evec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;*/
       }
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
