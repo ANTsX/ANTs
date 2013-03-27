@@ -23,10 +23,10 @@
 namespace itk
 {
 /** \class AlternatingValueSimpleSubtractionImageFilter
- * \brief Finds difference signal from alternating signal 
+ * \brief Finds difference signal from alternating signal
  *
  * This filter is templated over the input image type and the output image
- * type. The output image is the difference between a two alternating 
+ * type. The output image is the difference between a two alternating
  * signals that alternate over the subtraction dimension.
  *
  * \ingroup GeometricTransform
@@ -77,7 +77,7 @@ public:
                    ( Concept::Convertible<typename TInputImage::PixelType,
                                           typename TOutputImage::PixelType> ) );
   itkConceptMacro( DimensionCheck,
-                   ( Concept::SameDimension<InputImageDimension, 
+                   ( Concept::SameDimension<InputImageDimension,
                                             OutputImageDimension> ) );
   /** End concept checking */
 #endif

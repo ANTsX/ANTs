@@ -241,18 +241,29 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
 
   //
-  // smoothing sigma
+  // smoothing variance for the velocity field
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-    smoothingSigmaOption = parser->GetOption( "smoothing-sigma" );
-  if( smoothingSigmaOption && smoothingSigmaOption->GetNumberOfFunctions() )
+    smoothingVelocityFieldVarianceOption = parser->GetOption( "smoothing-velocity-field-variance" );
+  if( smoothingVelocityFieldVarianceOption && smoothingVelocityFieldVarianceOption->GetNumberOfFunctions() )
     {
-    direct->SetSmoothingSigma( parser->Convert<RealType>(
-                                 smoothingSigmaOption->GetFunction( 0 )->GetName() ) );
+    direct->SetSmoothingVelocityFieldVariance( parser->Convert<RealType>(
+                                 smoothingVelocityFieldVarianceOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
-  // smoothing sigma
+  // smoothing variance for the hit and total images
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+    smoothingVarianceOption = parser->GetOption( "smoothing-variance" );
+  if( smoothingVarianceOption && smoothingVarianceOption->GetNumberOfFunctions() )
+    {
+    direct->SetSmoothingVariance( parser->Convert<RealType>(
+                                 smoothingVarianceOption->GetFunction( 0 )->GetName() ) );
+    }
+
+  //
+  // number of integration points
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
     numberOfIntegrationPointsOption = parser->GetOption( "number-of-integration-points" );
@@ -399,12 +410,24 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
+      std::string( "Defines the Gaussian smoothing of the hit and total images.  Default = 1.0." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "smoothing-variance" );
+    option->SetShortName( 'l' );
+    option->SetUsageOption( 0, "variance" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
       std::string( "Defines the Gaussian smoothing of the velocity field.  Default = 1.5." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "smoothing-sigma" );
+    option->SetLongName( "smoothing-velocity-field-variance" );
     option->SetShortName( 'm' );
-    option->SetUsageOption( 0, "sigma" );
+    option->SetUsageOption( 0, "variance" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -465,7 +488,6 @@ int KellyKapowski( std::vector<std::string> args, std::ostream* out_stream = NUL
   // which the parser should handle
   args.insert( args.begin(), "KellyKapowski" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

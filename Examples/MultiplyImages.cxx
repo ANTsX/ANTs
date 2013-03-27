@@ -59,7 +59,6 @@ int MultiplyImages(int argc, char *argv[])
 
   std::string fn1 = std::string(argv[2]);
   std::string fn2 = std::string(argv[3]);
-  std::string outname = std::string(argv[4]);
 
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer image2 = NULL;
@@ -138,7 +137,6 @@ int MultiplyImages( std::vector<std::string> args, std::ostream* out_stream = NU
   // which the parser should handle
   args.insert( args.begin(), "MultiplyImages" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

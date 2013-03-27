@@ -56,7 +56,7 @@ SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
   // get pointers to the input and output
   typename Superclass::InputImageConstPointer inputPtr  = this->GetInput();
   typename Superclass::OutputImagePointer outputPtr0 = this->GetOutput(0);
-  typename Superclass::OutputImagePointer outputPtr1 = this->GetOutput(1);  
+  typename Superclass::OutputImagePointer outputPtr1 = this->GetOutput(1);
 
   if ( !outputPtr0 || !outputPtr1 || !inputPtr )
     {
@@ -72,15 +72,15 @@ SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
   // for the last dimension, assumed to be time
   unsigned int halfTime = inputPtr->GetLargestPossibleRegion().GetSize()[InputImageDimension-1] / 2;
   outputLargestPossibleRegion.SetSize( InputImageDimension-1, halfTime );
-                                                                     
+
   outputPtr0->SetLargestPossibleRegion(outputLargestPossibleRegion);
-  outputPtr1->SetLargestPossibleRegion(outputLargestPossibleRegion);                                                                       
+  outputPtr1->SetLargestPossibleRegion(outputLargestPossibleRegion);
   outputPtr0->SetSpacing( inputPtr->GetSpacing() );
   outputPtr1->SetSpacing( inputPtr->GetSpacing() );
-  
+
   outputPtr0->SetDirection( inputPtr->GetDirection() );
   outputPtr1->SetDirection( inputPtr->GetDirection() );
-  
+
   typename InputImageType::PointType origin = inputPtr->GetOrigin();
   outputPtr0->SetOrigin( origin );
   origin[InputImageDimension-1] += inputPtr->GetSpacing()[InputImageDimension-1];
@@ -109,12 +109,12 @@ SplitAlternatingTimeSeriesImageFilter< TInputImage, TOutputImage >
   ProgressReporter progress( this, threadId, outputRegionForThread.GetNumberOfPixels() );
 
   OutputImageRegionType outputRegion = outputRegionForThread;
-  
+
   ImageRegionIterator< OutputImageType > outIt0(
     this->GetOutput(0), outputRegion);
   ImageRegionIterator< OutputImageType > outIt1(
     this->GetOutput(1), outputRegion);
- 
+
   while ( !outIt0.IsAtEnd() )
     {
     typename InputImageType::IndexType idx = outIt0.GetIndex();

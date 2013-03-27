@@ -227,14 +227,24 @@ public:
   itkGetConstMacro( CurrentGradientStep, RealType );
 
   /**
-   * Set the smoothing sigma.  Default = 1.5.
+   * Set the smoothing sigma for the velocity field (in voxels).  Default = 1.5.
    */
-  itkSetClampMacro( SmoothingSigma, RealType, 0, NumericTraits<RealType>::max() );
+  itkSetClampMacro( SmoothingVelocityFieldVariance, RealType, 0, NumericTraits<RealType>::max() );
 
   /**
-   * Get the smoothing sigma.  Default = 1.5.
+   * Get the smoothing sigma for the velocity field (in voxels).  Default = 1.5.
    */
-  itkGetConstMacro( SmoothingSigma, RealType );
+  itkGetConstMacro( SmoothingVelocityFieldVariance, RealType );
+
+  /**
+   * Set the smoothing sigma for the total and hit images (in voxels).  Default = 1.0.
+   */
+  itkSetClampMacro( SmoothingVariance, RealType, 0, NumericTraits<RealType>::max() );
+
+  /**
+   * Set the smoothing sigma for the total and hit images (in voxels).  Default = 1.5.
+   */
+  itkGetConstMacro( SmoothingVariance, RealType );
 
   /**
    * Set the number of integration points.  Default = 10.
@@ -263,6 +273,7 @@ public:
    * reporting observations.
    */
   itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
+
 protected:
 
   DiReCTImageFilter();
@@ -303,8 +314,14 @@ private:
    */
   DisplacementFieldPointer SmoothDisplacementField( const DisplacementFieldType *, const RealType );
 
+  /**
+   * Private function for smoothing the image.
+   */
+  RealImagePointer SmoothImage( const RealImageType *, const RealType );
+
   RealType     m_ThicknessPriorEstimate;
-  RealType     m_SmoothingSigma;
+  RealType     m_SmoothingVariance;
+  RealType     m_SmoothingVelocityFieldVariance;
   RealType     m_InitialGradientStep;
   RealType     m_CurrentGradientStep;
   unsigned int m_NumberOfIntegrationPoints;

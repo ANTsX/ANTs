@@ -34,7 +34,6 @@ namespace ants
 int ResampleImageBySpacing( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   args.insert( args.begin(), "ResampleImageBySpacing" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -147,8 +146,7 @@ private:
 
         GaussianFilterType::Pointer smootherX = GaussianFilterType::New();
         smootherX->SetInput( smoothedImage );
-        float sig = 0;
-        sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
+        const float sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
         antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );
@@ -286,8 +284,7 @@ private:
 
         GaussianFilterType::Pointer smootherX = GaussianFilterType::New();
         smootherX->SetInput( smoothedImage );
-        float sig = 0;
-        sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
+        const float sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
         antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );

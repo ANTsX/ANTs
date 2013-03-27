@@ -97,7 +97,6 @@ int MemoryTest(unsigned int argc, char *argv[])
 
 //  int nbins=32;
 
-  typename CCMetricType::RadiusType hradius;
   typename CCMetricType::RadiusType ccradius;
   ccradius.Fill(4);
   typename MIMetricType::RadiusType miradius;
@@ -117,36 +116,13 @@ int MemoryTest(unsigned int argc, char *argv[])
   ccmet->SetGradientStep(1.e2);
   ccmet->SetNormalizeGradient(false);
 
-  double      metricvalue = 0;
-  std::string metricname = "";
-  if( whichmetric  == 0 )
+  if( whichmetric == 1 ) // imagedifference
     {
-    hradius = miradius;
-    unsigned long ct = 0;
-    for(  iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
-      {
-      IndexType index = iter.GetIndex();
-      double    fval = image1->GetPixel(index);
-      double    mval = image2->GetPixel(index);
-      metricvalue += fabs(fval - mval);
-      ct++;
-      }
-    metricvalue /= (float)ct;
-    metricname = "MSQ ";
-    }
-  else if( whichmetric == 1 ) // imagedifference
-    {
-    hradius = ccradius;
     ccmet->InitializeIteration();
-    metricvalue = ccmet->ComputeCrossCorrelation();
-    metricname = "CC ";
     }
-  else
+  else if( whichmetric != 0 )
     {
-    hradius = miradius;
     mimet->InitializeIteration();
-    metricvalue = mimet->ComputeMutualInformation();
-    metricname = "MI ";
     }
 
   return EXIT_SUCCESS;
@@ -162,7 +138,6 @@ int MemoryTest( std::vector<std::string> args, std::ostream* out_stream = NULL )
   // which the parser should handle
   args.insert( args.begin(), "MemoryTest" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

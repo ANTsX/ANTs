@@ -208,12 +208,12 @@ public:
     this->m_origMovingImage = origMovingImage;
   }
 
-  void UpdateFullScaleMetricValue(TFilter const * const filter,
+  void UpdateFullScaleMetricValue(const TFilter * const filter,
                                   MeasureType & metricValue ) const
   {
     // Get the registration metric from the filter, input metric is needed to find the type of input transform.
     typename MetricType::ConstPointer inputMetric(
-      dynamic_cast<MetricType *>( const_cast<TFilter *>( filter )->GetMetric() ) );
+      dynamic_cast<MetricType  const *>(  filter->GetMetric() ) );
 
     // //////////////////////////////////Define the CC Metric Type to Compute Similarity
     // Measure////////////////////////////
@@ -263,8 +263,8 @@ public:
                                                          GetInverseDisplacementField() );
       FixedInverseDisplacementDuplicator->Update();
 
-      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetOutput() );
-      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetOutput() );
+      myFixedToMiddleTransform->SetDisplacementField( FixedDisplacementDuplicator->GetModifiableOutput() );
+      myFixedToMiddleTransform->SetInverseDisplacementField( FixedInverseDisplacementDuplicator->GetModifiableOutput() );
 
       // copy MovingToMiddleTransform
       typename DisplacementFieldDuplicatorType::Pointer MovingDisplacementDuplicator =
@@ -282,8 +282,8 @@ public:
                                                           GetInverseDisplacementField() );
       MovingInverseDisplacementDuplicator->Update();
 
-      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetOutput() );
-      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetOutput() );
+      myMovingToMiddleTransform->SetDisplacementField( MovingDisplacementDuplicator->GetModifiableOutput() );
+      myMovingToMiddleTransform->SetInverseDisplacementField( MovingInverseDisplacementDuplicator->GetModifiableOutput() );
 
       // Based on SyN Registration implementation, fixed composite and moving composite transforms are generated to
       // compute the metric value at each iteration.
@@ -407,8 +407,8 @@ public:
     disInverseDuplicator->Update();
 
     typename DisplacementFieldTransformType::Pointer outputTransformReadyToUse = DisplacementFieldTransformType::New();
-    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetOutput() );
-    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetOutput() );
+    outputTransformReadyToUse->SetDisplacementField( disDuplicator->GetModifiableOutput() );
+    outputTransformReadyToUse->SetInverseDisplacementField( disInverseDuplicator->GetModifiableOutput() );
 
     // Now add this updated transform to the composite transform including the initial trnasform
     typedef typename TFilter::InitialTransformType InitialTransformType;

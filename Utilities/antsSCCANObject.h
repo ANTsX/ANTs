@@ -100,6 +100,10 @@ public:
   itkGetConstMacro( SCCANFormulation, SCCANFormulationType );
   itkSetMacro( Silent, bool );
   itkGetMacro( Silent, bool );
+  itkSetMacro( RowSparseness, RealType );
+  itkGetMacro( RowSparseness, RealType );
+  itkSetMacro( UseLongitudinalFormulation , RealType );
+  itkGetMacro( UseLongitudinalFormulation , RealType );
 
   void NormalizeWeights(const unsigned int k );
   void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
@@ -635,6 +639,8 @@ public:
 
   bool CCAUpdate(unsigned int nvecs, bool , bool );
 
+  bool CCAUpdateLong(unsigned int nvecs, bool , bool );
+
   RealType SparsePartialArnoldiCCA(unsigned int nvecs);
 
   RealType IHTCCA(unsigned int nvecs);
@@ -724,7 +730,7 @@ protected:
 
   void PositivePart( VectorType& x_k1 , bool takemin = true )
   {
-    if ( takemin ) 
+    if ( takemin )
       {
       RealType minval = x_k1.min_value();
       x_k1 = x_k1 - minval;
@@ -740,9 +746,16 @@ protected:
       }
   }
 
-  void SparsifyOther( VectorType& x_k1 , RealType fnp, bool keeppos )
+  void SparsifyOther( VectorType& x_k1  )
   {
+    RealType fnp = vnl_math_abs( this->m_RowSparseness );
+    if ( fnp < 1.e-11 ) return;
+    bool usel1 = this->m_UseL1; 
+    this->m_UseL1 = true;
+    bool keeppos = false;
+    if ( this->m_RowSparseness > 1.e-11 ) keeppos = true;
     this->Sparsify( x_k1, fnp, keeppos , 0, NULL);
+    this->m_UseL1 = usel1; 
   }
 
   void SparsifyP( VectorType& x_k1 )
@@ -783,14 +796,14 @@ protected:
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
     unsigned int its = 0;
-    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 ) 
+    while ( eng > 1.e-4 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
       this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
       RealType fnm = this->CountNonZero( searcherm );
       if ( fnm > fnp ) { low = mid;  }
-      if ( fnm < fnp ) { high = mid; }      
+      if ( fnm < fnp ) { high = mid; }
       eng = vnl_math_abs( fnp - fnm );
       its++;
       }
@@ -988,6 +1001,7 @@ private:
   MatrixType m_OriginalMatrixP;
   MatrixType m_OriginalMatrixQ;
   MatrixType m_OriginalMatrixR;
+  RealType   m_RowSparseness;
 
   antsSCCANObject(const Self &); // purposely not implemented
   void operator=(const Self &);  // purposely not implemented
@@ -1019,6 +1033,7 @@ private:
   ImagePointer m_MaskImageP;
   RealType     m_FractionNonZeroP;
   bool         m_KeepPositiveP;
+  RealType     m_UseLongitudinalFormulation;
 
   VectorType   m_WeightsQ;
   MatrixType   m_MatrixQ;

@@ -26,12 +26,12 @@
 namespace itk
 {
 /** \class AlternatingValueDifferenceImageFilter
- * \brief Finds difference signal from alternating signal 
+ * \brief Finds difference signal from alternating signal
  *
  * This filter is templated over the input image type and the output image
  * type. Each signal is interpolated over the entire range of the
  * subtraction dimension. The output image is the difference between
- * the two intepolated signals. 
+ * the two intepolated signals.
  *
  * \ingroup GeometricTransform
  * \ingroup MultiThreaded
@@ -97,11 +97,11 @@ public:
   itkGetConstObjectMacro(ControlInterpolator, InterpolatorType);
   itkGetConstObjectMacro(LabelInterpolator, InterpolatorType);
 
-  itkGetObjectMacro(ControlImage, InputImageType);
-  itkGetObjectMacro(LabelImage, InputImageType);
+  itkGetModifiableObjectMacro(ControlImage, InputImageType);
+  itkGetModifiableObjectMacro(LabelImage, InputImageType);
 
-  itkGetObjectMacro(ControlOutputImage, InputImageType);
-  itkGetObjectMacro(LabelOutputImage, InputImageType);
+  itkGetModifiableObjectMacro(ControlOutputImage, InputImageType);
+  itkGetModifiableObjectMacro(LabelOutputImage, InputImageType);
 
 #ifdef ITK_USE_CONCEPT_CHECKING
   /** Begin concept checking */
@@ -109,7 +109,7 @@ public:
                    ( Concept::Convertible<typename TInputImage::PixelType,
                                           typename TOutputImage::PixelType> ) );
   itkConceptMacro( DimensionCheck,
-                   ( Concept::SameDimension<InputImageDimension, 
+                   ( Concept::SameDimension<InputImageDimension,
                                             OutputImageDimension> ) );
 
   /** End concept checking */

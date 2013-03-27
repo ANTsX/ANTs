@@ -214,23 +214,23 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
       }
 
     rgbfilter->SetUseInputImageExtremaForScaling( false );
-    rgbfilter->GetColormap()->SetMinimumInputValue( maskMinimumValue );
-    rgbfilter->GetColormap()->SetMaximumInputValue( maskMaximumValue );
+    rgbfilter->GetModifiableColormap()->SetMinimumInputValue( maskMinimumValue );
+    rgbfilter->GetModifiableColormap()->SetMaximumInputValue( maskMaximumValue );
     }
 
-  rgbfilter->GetColormap()->SetMinimumRGBComponentValue(
+  rgbfilter->GetModifiableColormap()->SetMinimumRGBComponentValue(
     ( argc > 9 ) ? static_cast<
       typename RGBPixelType::ComponentType>( atof( argv[9] ) ) : 0 );
-  rgbfilter->GetColormap()->SetMaximumRGBComponentValue(
+  rgbfilter->GetModifiableColormap()->SetMaximumRGBComponentValue(
     ( argc > 10 ) ? static_cast<
       typename RGBPixelType::ComponentType>( atof( argv[10] ) ) : 255 );
 
   if( argc > 8 )
     {
     rgbfilter->SetUseInputImageExtremaForScaling( false );
-    rgbfilter->GetColormap()->SetMinimumInputValue(
+    rgbfilter->GetModifiableColormap()->SetMinimumInputValue(
       static_cast<RealType>( atof( argv[7] ) ) );
-    rgbfilter->GetColormap()->SetMaximumInputValue(
+    rgbfilter->GetModifiableColormap()->SetMaximumInputValue(
       static_cast<RealType>( atof( argv[8] ) ) );
     }
 
@@ -262,13 +262,13 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
         {
         RGBPixelType rgbpixel;
 
-//        RealType minimumValue = rgbfilter->GetColormap()->GetMinimumInputValue();
-//        RealType maximumValue = rgbfilter->GetColormap()->GetMaximumInputValue();
+//        RealType minimumValue = rgbfilter->GetModifiableColormap()->GetMinimumInputValue();
+//        RealType maximumValue = rgbfilter->GetModifiableColormap()->GetMaximumInputValue();
 //
 //        RealType minimumRGBValue
-//          = rgbfilter->GetColormap()->GetMinimumRGBComponentValue();
+//          = rgbfilter->GetModifiableColormap()->GetMinimumRGBComponentValue();
 //        RealType maximumRGBValue
-//          = rgbfilter->GetColormap()->GetMaximumRGBComponentValue();
+//          = rgbfilter->GetModifiableColormap()->GetMaximumRGBComponentValue();
 //
 //        RealType ratio = ( ItS.Get() - minimumValue ) / ( maximumValue - minimumValue );
 //
@@ -302,8 +302,6 @@ int ConvertScalarImageToRGB( std::vector<std::string> args, std::ostream* out_st
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "ConvertScalarImageToRGB" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

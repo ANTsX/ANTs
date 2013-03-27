@@ -1204,7 +1204,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
   //
   // write out transforms stored in the composite
-  typename CompositeTransformType::Pointer resultTransform = regHelper->GetCompositeTransform();
+  typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();
 
   if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) )
     {
@@ -1311,8 +1311,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     // write inverse transform file
     if( writeInverse && dispTransform.IsNotNull() )
       {
-      typename DisplacementFieldType::Pointer inverseDispField =
-        dispTransform->GetInverseDisplacementField();
+      typename DisplacementFieldType::ConstPointer inverseDispField = dispTransform->GetInverseDisplacementField();
       if( inverseDispField.IsNotNull() )
         {
         std::stringstream curInverseFileName;
@@ -1428,8 +1427,6 @@ int antsRegistration( std::vector<std::string> args, std::ostream* out_stream = 
     // 'args' may have adjacent arguments concatenated into one argument,
     // which the parser should handle
     args.insert( args.begin(), "antsRegistration" );
-    std::remove( args.begin(), args.end(), std::string( "" ) );
-    std::remove( args.begin(), args.end(), std::string( "" ) );
     int     argc = args.size();
     char* * argv = new char *[args.size() + 1];
     for( unsigned int i = 0; i < args.size(); ++i )

@@ -1131,9 +1131,9 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
 }
 
 template <unsigned int ImageDimension, class PixelType>
-int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec = 2,
-                  unsigned int robustify = 0, unsigned int p_cluster_thresh = 100, unsigned int iterct = 20,
-                  unsigned int svd_option = 0, PixelType usel1 = 1 )
+int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec ,
+                  unsigned int robustify , unsigned int p_cluster_thresh , unsigned int iterct ,
+                  unsigned int svd_option , PixelType usel1  , PixelType row_sparseness  )
 {
   if( svd_option == 1 )
     {
@@ -1163,11 +1163,12 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     sccanobj->SetUseL1( true );
     }
   else
-    {
+    { 
     sccanobj->SetUseL1( false );
     }
   sccanobj->SetGradStep( gradstep );
   sccanobj->SetMaximumNumberOfIterations(iterct);
+  sccanobj->SetRowSparseness( row_sparseness );
   typedef typename SCCANType::MatrixType         vMatrix;
   typedef typename SCCANType::VectorType         vVector;
   typedef typename SCCANType::DiagonalMatrixType dMatrix;
@@ -1385,7 +1386,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
 template <unsigned int ImageDimension, class PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
-              PixelType usel1 )
+              PixelType usel1 , PixelType uselong, PixelType row_sparseness )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -1409,6 +1410,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetMaximumNumberOfIterations(iterct);
+  if ( uselong > 0 ) sccanobj->SetUseLongitudinalFormulation( uselong );
   PixelType gradstep = vnl_math_abs( usel1 );
   if( usel1 > 0 )
     {
@@ -1419,6 +1421,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     sccanobj->SetUseL1( false );
     }
   sccanobj->SetGradStep( gradstep );
+  sccanobj->SetRowSparseness( row_sparseness );
   typedef typename SCCANType::MatrixType         vMatrix;
   typedef typename SCCANType::VectorType         vVector;
   typedef typename SCCANType::DiagonalMatrixType dMatrix;
@@ -1481,21 +1484,19 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
   antscout << " true-corr " << sccancorrs << std::endl;
 
+  std::string filename =  outputOption->GetFunction( 0 )->GetName();
+  std::string::size_type pos = filename.rfind( "." );
+  std::string            filepre = std::string( filename, 0, pos );
+  std::string            extension = std::string( filename, pos, filename.length() - 1);
+  if( extension == std::string(".gz") )
+    {
+    pos = filepre.rfind( "." );
+    extension = std::string( filepre, pos, filepre.length() - 1 ) + extension;
+    filepre = std::string( filepre, 0, pos );
+    }
+  std::string post = std::string("View1vec");
   if( writeoutput )
     {
-    std::string filename =  outputOption->GetFunction( 0 )->GetName();
-    antscout << " write " << filename << std::endl;
-    std::string::size_type pos = filename.rfind( "." );
-    std::string            filepre = std::string( filename, 0, pos );
-    std::string            extension = std::string( filename, pos, filename.length() - 1);
-    if( extension == std::string(".gz") )
-      {
-      pos = filepre.rfind( "." );
-      extension = std::string( filepre, pos, filepre.length() - 1 ) + extension;
-      filepre = std::string( filepre, 0, pos );
-      }
-    std::string post = std::string("View1vec");
-    antscout << " have_p_mask " << have_p_mask << " have_q_mask " << have_q_mask << std::endl;
     WriteVariatesToSpatialImage<ImageType, Scalar>( filename, post,
                                                     sccanobj->GetVariatesP(), mask1,
                                                     sccanobj->GetMatrixP(), have_p_mask, sccanobj->GetMatrixU() );
@@ -1526,14 +1527,16 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       double permcorr = 0;
       permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
       vVector permcorrs = sccanobj->GetCanonicalCorrelations();
-      antscout << " perm-corr " << permcorrs << std::endl;
+      antscout << " perm-corr " << permcorrs << " ct " << pct << " p-values ";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
         {
         if( permcorrs[kk] > sccancorrs[kk] )
           {
           perm_exceed_ct[kk]++;
           }
+        antscout <<  ( double ) perm_exceed_ct[kk] / (pct + 1) << " ";
         }
+      antscout << std::endl;
       vVector w_p_perm = sccanobj->GetVariateP(0);
       vVector w_q_perm = sccanobj->GetVariateQ(0);
       for( unsigned long j = 0; j < w_p.size(); j++ )
@@ -1551,14 +1554,39 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
           }
         }
       // end solve cca permutation
-      if ( pct == permct ) antscout << "perm p-value: ";
-      for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
-        {
-        //	antscout << " k" << kk << "p: " <<  ( double ) perm_exceed_ct[kk]
-	if ( pct == permct ) antscout << ( double ) perm_exceed_ct[kk]
-          / (pct + 1) << ","; // << " true " << sccancorrs[kk];
-        }
-      if ( pct == permct ) antscout << " ct " << pct << std::endl;
+      if ( pct == permct ) 
+	{
+	antscout << "final_p_values" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  antscout << ( double ) perm_exceed_ct[kk] / (pct + 1) << ",";
+	  }
+	antscout << "x" << std::endl;
+
+	std::ofstream myfile;
+	std::string fnmp = filepre + std::string("_summary.csv");
+	myfile.open(fnmp.c_str(), std::ios::out );
+	myfile << "TypeOfMeasure" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(kk);
+	  myfile << colname << ",";
+	  }
+	myfile << "x" << std::endl;
+	myfile << "final_p_values" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  myfile << ( double ) perm_exceed_ct[kk] / (pct + 1) << ",";
+	  }
+	myfile << "x" << std::endl;
+	myfile << "corrs" << ",";
+	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
+          {
+	  myfile << sccancorrs[kk]  << ",";
+	  }
+	myfile << "x" << std::endl;
+	myfile.close();
+	}
       }
     unsigned long psigct = 0, qsigct = 0;
     for( unsigned long j = 0; j < w_p.size(); j++ )
@@ -1591,24 +1619,9 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
         w_q_signif_ct(j) = 0;
         }
       }
-    // antscout <<  " p-value " << perm_exceed_ct / (permct) << " ct " << permct << std::endl;
-    //    antscout << " p-vox " <<  (double)psigct / w_p.size() << " ct " << permct << std::endl;
-    //    antscout << " q-vox " <<  (double)qsigct / w_q.size() << " ct " << permct << std::endl;
-
     if( writeoutput  )
       {
-      std::string filename =  outputOption->GetFunction( 0 )->GetName();
-      antscout << " write " << filename << std::endl;
-      std::string::size_type pos = filename.rfind( "." );
-      std::string            filepre = std::string( filename, 0, pos );
-      std::string            extension = std::string( filename, pos, filename.length() - 1);
-      if( extension == std::string(".gz") )
-        {
-        pos = filepre.rfind( "." );
-        extension = std::string( filepre, pos, filepre.length() - 1 ) + extension;
-        filepre = std::string( filepre, 0, pos );
-        }
-      std::string post = std::string("View1pval");
+      post = std::string("View1pval");
       if( have_p_mask )
         {
         WriteVectorToSpatialImage<ImageType, Scalar>( filename, post, w_p_signif_ct, mask1);
@@ -2050,7 +2063,6 @@ int sccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "n_permutations" );
   if( !permoption || permoption->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -2070,11 +2082,21 @@ int sccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "n_eigenvectors" );
   if( !evec_option || evec_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
     evec_ct = parser->Convert<unsigned int>( evec_option->GetFunction()->GetName() );
+    }
+
+  matPixelType                                      uselong = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer long_option =
+    parser->GetOption( "uselong" );
+  if( !long_option || long_option->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    uselong = parser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      usel1 = 0.1;
@@ -2082,7 +2104,6 @@ int sccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "l1" );
   if( !l1_option || l1_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -2094,7 +2115,6 @@ int sccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "robustify" );
   if( !robust_option || robust_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -2112,12 +2132,24 @@ int sccan( itk::ants::CommandLineParser *parser )
     evecgradientpenalty = parser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
     }
 
+  matPixelType row_sparseness = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer row_option =
+    parser->GetOption( "row_sparseness" );
+  if( !row_option || row_option->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    row_sparseness = parser->Convert<matPixelType>( row_option->GetFunction()->GetName() );
+    }
+
+
+
   unsigned int                                      p_cluster_thresh = 1;
   itk::ants::CommandLineParser::OptionType::Pointer clust_option =
     parser->GetOption( "PClusterThresh" );
   if( !clust_option || clust_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -2128,7 +2160,6 @@ int sccan( itk::ants::CommandLineParser *parser )
   clust_option = parser->GetOption( "QClusterThresh" );
   if( !clust_option || clust_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -2140,7 +2171,6 @@ int sccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "ridge_cca" );
   if( !eigen_option || eigen_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -2221,35 +2251,35 @@ int sccan( itk::ants::CommandLineParser *parser )
     std::string initializationStrategy = svdOption->GetFunction()->GetName();
     if(  !initializationStrategy.compare( std::string( "sparse" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 0, usel1 );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 0, usel1, row_sparseness );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "cgspca" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2, usel1);
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2, usel1, row_sparseness);
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "network" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4, usel1);
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4, usel1, row_sparseness );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "lasso" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 5, usel1 );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 5, usel1, row_sparseness );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "recon" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1 );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1, row_sparseness );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1 );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1, row_sparseness );
       return EXIT_SUCCESS;
       }
-    SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1, usel1);
+    SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1, usel1, row_sparseness );
     return EXIT_SUCCESS;
     }
 
@@ -2273,7 +2303,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       antscout << " scca 2-view " << std::endl;
       exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
                                                     q_cluster_thresh,
-                                                    iterct, usel1 );
+                                                    iterct, usel1 , uselong , row_sparseness);
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
@@ -2353,6 +2383,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
+      std::string( "Row sparseness - if (+) then keep values (+) otherwise allow +/- values --- always L1" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "row_sparseness" );
+    option->SetShortName( 'z' );
+    option->SetUsageOption( 0, "0" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
       std::string( "Max iterations for scca optimization (min 20)." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "iterations" );
@@ -2364,7 +2405,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Number of permutations to use in scca." );
+      std::string( "Number of eigenvectors to compute in scca/spca." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "n_eigenvectors" );
     option->SetShortName( 'n' );
@@ -2379,6 +2420,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "robustify" );
     option->SetShortName( 'r' );
+    option->SetUsageOption( 0, "0" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string(
+        "use longitudinal formulation ( > 0 ) or not ( <= 0 ) " );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "uselong" );
+    option->SetShortName( 'g' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
     parser->AddOption( option );
@@ -2417,7 +2470,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Number of permutations to use in scca." );
+      std::string( "Ridge cca." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "ridge_cca" );
     option->SetShortName( 'e' );

@@ -74,7 +74,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
       countDim++;
       }
     }
-    
+
   inputSize[this->m_AveragingDimension] = this->GetInput()->GetRequestedRegion().GetSize()[this->m_AveragingDimension];
   inputIndex[this->m_AveragingDimension] = this->GetInput()->GetRequestedRegion().GetIndex()[this->m_AveragingDimension];
 
@@ -89,7 +89,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 {
   this->m_AveragingDimension = averagingDimension;
 
-  if ( this->m_AveragingDimension > InputImageDimension ) 
+  if ( this->m_AveragingDimension > InputImageDimension )
     {
     itkExceptionMacro("Averaging dimension is larger than input image dimension");
     }
@@ -173,7 +173,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
     typename OutputImageType::PointType outputOrigin;
     outputOrigin.Fill(0.0);
     outputDirection.SetIdentity();
- 
+
     unsigned int countDim = 0;
     for ( unsigned int i = 0; i < InputImageDimension; ++i )
       {
@@ -306,7 +306,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
 
   unsigned int nValues = inputRegionForThread.GetSize()[this->m_AveragingDimension];
   unsigned int offset = inputRegionForThread.GetIndex()[this->m_AveragingDimension];
-  
+
   ImageRegionIteratorWithIndex<OutputImageType> it( outputPtr, outputRegionForThread );
 
   while ( !it.IsAtEnd() )
@@ -321,7 +321,7 @@ AverageOverDimensionImageFilter< TInputImage, TOutputImage >
         ++dimCount;
         }
       }
-    
+
     typename OutputImageType::PixelType value = 0.0;
     typename OutputImageType::PixelType nTimes = (nValues - offset + 1);
     for ( unsigned int i=offset; i<nValues; i++)

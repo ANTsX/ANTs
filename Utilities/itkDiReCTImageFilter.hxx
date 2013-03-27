@@ -21,7 +21,7 @@
 #include "itkDiReCTImageFilter.h"
 
 #include "itkAddImageFilter.h"
-#include "itkAndImageFilter.h"
+// #include "itkAndImageFilter.h"
 #include "itkBinaryContourImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
@@ -40,12 +40,14 @@
 #include "itkIterationReporter.h"
 #include "itkMaximumImageFilter.h"
 #include "itkMultiplyByConstantImageFilter.h"
-#include "itkOrImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
 #include "itkVectorNeighborhoodOperatorImageFilter.h"
 #include "itkWarpImageFilter.h"
 #include "itkWindowConvergenceMonitoringFunction.h"
+
+
+#include "itkImageFileWriter.h"
 
 namespace itk
 {
@@ -53,7 +55,8 @@ template <class TInputImage, class TOutputImage>
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::DiReCTImageFilter() :
   m_ThicknessPriorEstimate( 10.0 ),
-  m_SmoothingSigma( 1.5 ),
+  m_SmoothingVariance( 1.0 ),
+  m_SmoothingVelocityFieldVariance( 1.5 ),
   m_InitialGradientStep( 0.025 ),
   m_CurrentGradientStep( 0.025 ),
   m_NumberOfIntegrationPoints( 10 ),
@@ -176,39 +179,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   caster->Update();
   RealImagePointer whiteMatterContours = caster->GetOutput();
 
-  // Create mask image prior to the use of the boolean logic used in the code
-  // to avoid performing
-
-  typedef AndImageFilter<InputImageType, InputImageType, InputImageType>
-    AndFilterType;
-  typedef OrImageFilter<InputImageType, InputImageType, InputImageType>
-    OrFilterType;
-
-  typename OrFilterType::Pointer orFilter1 = OrFilterType::New();
-  orFilter1->SetInput1( dilatedMatterContours );
-  orFilter1->SetInput2( whiteMatterContoursTmp );
-
-  typename OrFilterType::Pointer orFilter2 = OrFilterType::New();
-  orFilter2->SetInput1( orFilter1->GetOutput() );
-  orFilter2->SetInput2( grayMatter );
-
-  typedef BinaryThresholdImageFilter<InputImageType, InputImageType>
-    ThresholderType;
-  typename ThresholderType::Pointer thresholder = ThresholderType::New();
-  thresholder->SetInput( segmentationImageImporter->GetOutput() );
-  thresholder->SetLowerThreshold( 0 );
-  thresholder->SetUpperThreshold( 0 );
-  thresholder->SetInsideValue( 0 );
-  thresholder->SetOutsideValue( 1 );
-  thresholder->Update();
-
-  typename AndFilterType::Pointer andFilter = AndFilterType::New();
-  andFilter->SetInput1( orFilter2->GetOutput() );
-  andFilter->SetInput2( thresholder->GetOutput() );
-  andFilter->Update();
-
-  InputImagePointer maskImage = andFilter->GetOutput();
-
   // Initialize fields and images.
 
   VectorType zeroVector( 0.0 );
@@ -286,12 +256,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   ImageRegionIterator<DisplacementFieldType> ItInverseIncrementalField(
     inverseIncrementalField,
     inverseIncrementalField->GetRequestedRegion() );
-  ImageRegionConstIterator<InputImageType> ItMaskImage(
-    maskImage,
-    maskImage->GetRequestedRegion() );
-  ImageRegionConstIteratorWithIndex<InputImageType>
-  ItSegmentationImage(segmentationImageImporter->GetOutput(),
-                      segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  ImageRegionConstIteratorWithIndex<InputImageType> ItSegmentationImage(
+    segmentationImageImporter->GetOutput(),
+    segmentationImageImporter->GetOutput()->GetRequestedRegion() );
   ImageRegionIterator<RealImageType> ItSpeedImage(
     speedImage,
     speedImage->GetRequestedRegion() );
@@ -359,7 +326,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       typename GradientImageFilterType::Pointer gradientFilter =
         GradientImageFilterType::New();
       gradientFilter->SetInput( warpedWhiteMatterProbabilityMap );
-      gradientFilter->SetSigma( this->m_SmoothingSigma );
+      gradientFilter->SetSigma( this->m_SmoothingVariance );
       gradientFilter->Update();
 
       DisplacementFieldPointer gradientImage = gradientFilter->GetOutput();
@@ -409,20 +376,23 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             {
             ItGradientImage.Set( zeroVector );
             }
-          RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get()
-                             - ItGrayMatterProbabilityMap.Get() );
+          RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
 
           currentEnergy += vnl_math_abs( delta );
           numberOfGrayMatterVoxels++;
 
-          RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get()
-            * this->m_CurrentGradientStep;
+          RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
           if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
             {
             speedValue = 0.0;
             }
           ItSpeedImage.Set( speedValue );
           }
+        else
+          {
+          ItSpeedImage.Set( 0.0 );
+          }
+
         ++ItGradientImage;
         ++ItGrayMatterProbabilityMap;
         ++ItSegmentationImage;
@@ -434,13 +404,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
       ItForwardIncrementalField.GoToBegin();
       ItGradientImage.GoToBegin();
-      ItIntegratedField.GoToBegin();
-      ItInverseField.GoToBegin();
-      ItInverseIncrementalField.GoToBegin();
-      ItMaskImage.GoToBegin();
       ItSegmentationImage.GoToBegin();
       ItSpeedImage.GoToBegin();
-      ItVelocityField.GoToBegin();
       ItWhiteMatterContours.GoToBegin();
 
       while( !ItSegmentationImage.IsAtEnd() )
@@ -450,13 +415,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         typename InputImageType::PixelType segmentationValue =
           ItSegmentationImage.Get();
 
-        if( !ItMaskImage.Get() )
-          {
-          ItIntegratedField.Set( zeroVector );
-          ItInverseField.Set( zeroVector );
-          ItVelocityField.Set( zeroVector );
-          }
-        ItInverseIncrementalField.Set( ItVelocityField.Get() );
         ItForwardIncrementalField.Set( ItForwardIncrementalField.Get()
                                        + ItGradientImage.Get() * ItSpeedImage.Get() );
         if( segmentationValue == grayMatterPixel || segmentationValue == whiteMatterPixel )
@@ -484,14 +442,43 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
         ++ItForwardIncrementalField;
         ++ItGradientImage;
-        ++ItIntegratedField;
-        ++ItInverseField;
-        ++ItInverseIncrementalField;
-        ++ItMaskImage;
         ++ItSegmentationImage;
         ++ItSpeedImage;
-        ++ItVelocityField;
         ++ItWhiteMatterContours;
+        }
+
+      ItSegmentationImage.GoToBegin();
+      ItDilatedMatterContours.GoToBegin();
+      ItWhiteMatterContours.GoToBegin();
+      ItVelocityField.GoToBegin();
+      ItInverseIncrementalField.GoToBegin();
+      ItIntegratedField.GoToBegin();
+      ItInverseField.GoToBegin();
+      while( !ItSegmentationImage.IsAtEnd() )
+        {
+        typename InputImageType::PixelType segmentationValue =
+          ItSegmentationImage.Get();
+        typename InputImageType::PixelType whiteMatterContoursValue =
+          static_cast<typename InputImageType::PixelType>( ItWhiteMatterContours.Get() );
+        typename InputImageType::PixelType dilatedMatterContoursValue = ItDilatedMatterContours.Get();
+
+        if( segmentationValue == 0 ||
+          ( whiteMatterContoursValue == 0 && dilatedMatterContoursValue == 0 && segmentationValue != this->m_GrayMatterLabel ) )
+          {
+          ItInverseField.Set( zeroVector );
+          ItVelocityField.Set( zeroVector );
+          ItIntegratedField.Set( zeroVector );
+          }
+
+        ItInverseIncrementalField.Set( ItVelocityField.Get() );
+
+        ++ItSegmentationImage;
+        ++ItDilatedMatterContours;
+        ++ItWhiteMatterContours;
+        ++ItVelocityField;
+        ++ItInverseIncrementalField;
+        ++ItInverseField;
+        ++ItIntegratedField;
         }
 
       if( integrationPoint == 1 )
@@ -527,63 +514,84 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     // calculate the size of the solution to allow us to adjust the
     // gradient step length.
 
-    RealType maxNorm = 0.0;
+//     RealType maxNorm = 0.0;
+//
+//     typename InputImageType::SpacingType spacing = grayMatter->GetSpacing();
+//
+//     ImageRegionIterator<DisplacementFieldType> ItIntegratedField2(
+//       integratedField,
+//       integratedField->GetRequestedRegion() );
+//
+//     ItIntegratedField2.GoToBegin();
+//     for( ItIntegratedField2.GoToBegin(); !ItIntegratedField2.IsAtEnd();
+//          ++ItIntegratedField2 )
+//       {
+//       VectorType vector = ItIntegratedField2.Get();
+//       for( unsigned int d = 0; d < ImageDimension; d++ )
+//         {
+//         vector[d] = vector[d] / spacing[d];
+//         }
+//       RealType norm = vector.GetNorm();
+//       if( norm > maxNorm )
+//         {
+//         maxNorm = norm;
+//         }
+//       }
+//     itkDebugMacro( "   MaxNorm = " << maxNorm );
+//
+//     if( this->m_ElapsedIterations == 2 )
+//       {
+//       this->m_CurrentGradientStep = this->m_CurrentGradientStep * 1.0 / maxNorm;
+//       velocityField->FillBuffer( zeroVector );
+//       }
 
-    typename InputImageType::SpacingType spacing = grayMatter->GetSpacing();
 
-    ImageRegionIterator<DisplacementFieldType> ItIntegratedField2(
-      integratedField,
-      integratedField->GetRequestedRegion() );
 
-    ItIntegratedField2.GoToBegin();
-    for( ItIntegratedField2.GoToBegin(); !ItIntegratedField2.IsAtEnd();
-         ++ItIntegratedField2 )
+    RealImagePointer smoothHitImage;
+    RealImagePointer smoothTotalImage;
+    if( this->m_SmoothingVariance > 0.0 )
       {
-      VectorType vector = ItIntegratedField2.Get();
-      for( unsigned int d = 0; d < ImageDimension; d++ )
-        {
-        vector[d] = vector[d] / spacing[d];
-        }
-      RealType norm = vector.GetNorm();
-      if( norm > maxNorm )
-        {
-        maxNorm = norm;
-        }
+      smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
+      smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
       }
-    itkDebugMacro( "   MaxNorm = " << maxNorm );
-
-    if( this->m_ElapsedIterations == 2 )
+    else
       {
-      this->m_CurrentGradientStep = this->m_CurrentGradientStep * 1.0 / maxNorm;
-      velocityField->FillBuffer( zeroVector );
+      smoothHitImage = hitImage;
+      smoothTotalImage = totalImage;
       }
+
+    ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
+      smoothHitImage->GetRequestedRegion() );
+    ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
+      smoothTotalImage->GetRequestedRegion() );
 
     ItCorticalThicknessImage.GoToBegin();
     ItForwardIncrementalField.GoToBegin();
-    ItHitImage.GoToBegin();
     ItSegmentationImage.GoToBegin();
-    ItTotalImage.GoToBegin();
+    ItSmoothHitImage.GoToBegin();
+    ItSmoothTotalImage.GoToBegin();
     ItVelocityField.GoToBegin();
 
     while( !ItSegmentationImage.IsAtEnd() )
       {
-      ItVelocityField.Set( ItVelocityField.Get()
-                           + ItForwardIncrementalField.Get() );
+      ItVelocityField.Set( ItVelocityField.Get() + ItForwardIncrementalField.Get() );
       const typename InputImageType::PixelType grayMatterPixel =
         static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
-      if(  ItSegmentationImage.Get()  == grayMatterPixel )
+      if(  ItSegmentationImage.Get() == grayMatterPixel )
         {
         RealType thicknessValue = 0.0;
-        if( ItHitImage.Get() > 0.001 )
+        if( ItSmoothHitImage.Get() > 0.001 )
           {
-          thicknessValue = ItTotalImage.Get() / ItHitImage.Get();
+          thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
           if( thicknessValue < 0.0 )
             {
             thicknessValue = 0.0;
             }
           if( thicknessValue > this->m_ThicknessPriorEstimate )
             {
-            thicknessValue = this->m_ThicknessPriorEstimate;
+//             thicknessValue = this->m_ThicknessPriorEstimate;
+            RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
+            ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
             }
           }
 
@@ -592,14 +600,14 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
       ++ItCorticalThicknessImage;
       ++ItForwardIncrementalField;
-      ++ItHitImage;
+      ++ItSmoothHitImage;
       ++ItSegmentationImage;
-      ++ItTotalImage;
+      ++ItSmoothTotalImage;
       ++ItVelocityField;
       }
 
     velocityField = this->SmoothDisplacementField( velocityField,
-                                                   this->m_SmoothingSigma );
+                                                   this->m_SmoothingVelocityFieldVariance );
 
     // Calculate current energy and current convergence measurement
 
@@ -672,13 +680,12 @@ template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::WarpImage( const RealImageType *inputImage,
-             const DisplacementFieldType *DisplacementField )
+             const DisplacementFieldType *displacementField )
 {
-  typedef WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType>
-    WarperType;
+  typedef WarpImageFilter<RealImageType, RealImageType, DisplacementFieldType> WarperType;
   typename WarperType::Pointer warper = WarperType::New();
   warper->SetInput( inputImage );
-  warper->SetDisplacementField( DisplacementField );
+  warper->SetDisplacementField( displacementField );
   warper->SetEdgePaddingValue( 0 );
   warper->SetOutputSpacing( inputImage->GetSpacing() );
   warper->SetOutputOrigin( inputImage->GetOrigin() );
@@ -701,7 +708,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( inputField );
   duplicator->Update();
-  DisplacementFieldPointer outputField = duplicator->GetOutput();
+  DisplacementFieldPointer outputField = duplicator->GetModifiableOutput();
 
   typedef VectorNeighborhoodOperatorImageFilter<DisplacementFieldType,
                                                 DisplacementFieldType> SmootherType;
@@ -778,6 +785,25 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   return outputField;
 }
 
+template <class TInputImage, class TOutputImage>
+typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
+DiReCTImageFilter<TInputImage, TOutputImage>
+::SmoothImage( const RealImageType *inputImage, const RealType variance )
+{
+  typedef DiscreteGaussianImageFilter<RealImageType, RealImageType> SmootherType;
+  typename SmootherType::Pointer smoother = SmootherType::New();
+  smoother->SetVariance( variance );
+  smoother->SetUseImageSpacingOff();
+  smoother->SetMaximumError( 0.01 );
+  smoother->SetInput( inputImage );
+
+  typename RealImageType::Pointer smoothImage = smoother->GetOutput();
+  smoothImage->Update();
+  smoothImage->DisconnectPipeline();
+
+  return smoothImage;
+}
+
 /**
  * Standard "PrintSelf" method
  */
@@ -797,7 +823,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   ::ants::antscout << indent << "Thickness prior estimate = "
                    << this->m_ThicknessPriorEstimate << std::endl;
   ::ants::antscout << indent << "Smoothing sigma = "
-                   << this->m_SmoothingSigma << std::endl;
+                   << this->m_SmoothingVariance << std::endl;
+  ::ants::antscout << indent << "Smoothing velocity field sigma = "
+                   << this->m_SmoothingVelocityFieldVariance << std::endl;
   ::ants::antscout << indent << "Number of integration points = "
                    << this->m_NumberOfIntegrationPoints << std::endl;
   ::ants::antscout << indent << "Initial gradient step = "

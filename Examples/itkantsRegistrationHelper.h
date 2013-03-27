@@ -243,7 +243,8 @@ public:
       m_UpdateFieldTimeSigma( 0.0 ),
       m_TotalFieldTimeSigma( 0.0 ),
       m_NumberOfTimeIndices( 0 ),
-      m_NumberOfTimePointSamples( 4 )
+      m_NumberOfTimePointSamples( 4 ),
+      m_VelocityFieldVarianceInVarianceSpace( 0.0 )
     {
     }
 
@@ -543,13 +544,13 @@ public:
    */
   void SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0 );
 
-  itkGetObjectMacro( CompositeTransform, CompositeTransformType );
+  itkGetModifiableObjectMacro( CompositeTransform, CompositeTransformType );
 
   /**
    * Set/Get the interpolator.  Linear is default.
    */
   itkSetObjectMacro( Interpolator, InterpolatorType );
-  itkGetObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
 
   /**
    *  Get the Warped Image & Inverse Warped Images
@@ -657,7 +658,7 @@ template <unsigned VImageDimension>
 typename ants::RegistrationHelper<VImageDimension>::CompositeTransformType::Pointer
 GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,
-                                       std::vector<bool> & derivedTransforms )
+                                       std::vector<bool> & derivedTransforms, bool useStaticCastForR = false )
 {
   typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
@@ -775,7 +776,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
       typedef typename RegistrationHelperType::TransformType TransformType;
       typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<VImageDimension>(
-          initialTransformName );
+												   initialTransformName , useStaticCastForR );
       if( initialTransform.IsNull() )
         {
         ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;

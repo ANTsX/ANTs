@@ -42,7 +42,6 @@ int SmoothImage(int argc, char *argv[])
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
-  std::string fn1 = std::string(argv[2]);
   float       sigma = atof(argv[3]);
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer varimage = NULL;
@@ -102,7 +101,6 @@ int SmoothImage( std::vector<std::string> args, std::ostream* out_stream = NULL 
   // which the parser should handle
   args.insert( args.begin(), "SmoothImage" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

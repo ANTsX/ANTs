@@ -137,6 +137,11 @@ public:
   class AxisNodeType : public NodeType
   {
 public:
+    AxisNodeType()
+    {
+      this->m_Axis = 0;
+    }
+
     int GetAxis() const
     {
       return m_Axis;

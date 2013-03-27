@@ -560,11 +560,10 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::GetSearchBoundary()
 
   for( unsigned int j = 0; j < gsz; j++ )
     {
-    float cost = 0;
     this->m_CurrentNode = this->m_GraphX[j];
     if( this->m_CurrentNode )
       {
-      cost = m_CurrentNode->GetTotalCost();
+      const float cost = m_CurrentNode->GetTotalCost();
       if(  cost <= this->m_MaxCost &&  (cost >= this->m_MaxCost - 4) )
         {
         this->m_BoundaryList.push_back(this->m_CurrentNode);

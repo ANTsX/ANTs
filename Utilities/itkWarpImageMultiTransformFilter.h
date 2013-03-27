@@ -179,7 +179,7 @@ public:
   itkSetObjectMacro( Interpolator, InterpolatorType );
 
   /** Get a pointer to the interpolator function. */
-  itkGetObjectMacro( Interpolator, InterpolatorType );
+  itkGetModifiableObjectMacro( Interpolator, InterpolatorType );
 
   /** Convenience funciton to set all the necessary items */
   virtual void SetOutputParametersFromImage(const ImageBaseType *image);

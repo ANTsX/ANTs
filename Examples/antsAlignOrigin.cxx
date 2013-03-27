@@ -226,8 +226,6 @@ int antsAlignOrigin( std::vector<std::string> args, std::ostream* out_stream = N
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "antsAlignOrigin" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -321,11 +319,9 @@ private:
   itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
     parser->GetOption( "input-image-type" );
 
-  unsigned int dimension = 3;
-
   itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
       filename.c_str(), itk::ImageIOFactory::ReadMode );
-  dimension = imageIO->GetNumberOfDimensions();
+  unsigned int dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );

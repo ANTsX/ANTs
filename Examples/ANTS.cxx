@@ -27,7 +27,7 @@
 
 namespace ants
 {
-void PrintCommandLineHelp( const std::string progName )
+void PrintCommandLineHelp( const std::string & progName )
 {
   antscout <<  " \n " << std::endl;
   antscout <<  "Example usage: \n " << std::endl;
@@ -118,8 +118,6 @@ int ANTS( std::vector<std::string> args, std::ostream* out_stream = NULL )
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "ANTS" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

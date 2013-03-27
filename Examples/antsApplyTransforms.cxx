@@ -269,9 +269,17 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
   typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
+  bool useStaticCastForR = false;
+  typename itk::ants::CommandLineParser::OptionType::Pointer rOption =
+    parser->GetOption( "static-cast-for-R" );
+  if( rOption && rOption->GetNumberOfFunctions() )
+    {
+    useStaticCastForR = parser->Convert<bool>(  rOption->GetFunction( 0 )->GetName() );
+    }
+
   std::vector<bool> isDerivedTransform;
   typename CompositeTransformType::Pointer compositeTransform =
-    GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform );
+    GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
   if( compositeTransform.IsNull() )
     {
     return EXIT_FAILURE;
@@ -503,7 +511,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           {
           std::cout << "Caught an ITK exception: " << std::endl;
           std::cout << err << " " << __FILE__ << " " << __LINE__ << std::endl;
-          throw err;
+          throw & err;
           }
         catch( ... )
           {
@@ -657,6 +665,17 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string( "forces static cast in ReadTransform (for R)" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetShortName( 'z' );
+    option->SetDescription( description );
+    option->SetLongName( "static-cast-for-R" );
+    option->SetUsageOption( 0, "value" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -686,8 +705,6 @@ int antsApplyTransforms( std::vector<std::string> args, std::ostream* out_stream
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
   args.insert( args.begin(), "antsApplyTransforms" );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -756,9 +773,11 @@ private:
     return EXIT_SUCCESS;
     }
 
+#if 0 // HACK This makes no sense here, filename is never used.
+  //Perhaps the "input" option is not needed in this program
+  //but is a copy/paste error from another program.
   // Read in the first intensity image to get the image dimension.
   std::string filename;
-
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
     parser->GetOption( "reference-image" );
   if( inputOption && inputOption->GetNumberOfFunctions() )
@@ -777,6 +796,7 @@ private:
     antscout << "No reference image was specified." << std::endl;
     return EXIT_FAILURE;
     }
+#endif
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
     parser->GetOption( "input-image-type" );
@@ -785,7 +805,7 @@ private:
 
   // BA - code below creates problems in ANTsR
   //  itk::ImageIOBase::Pointer imageIO = itk::ImageIOFactory::CreateImageIO(
-  //      filename.c_str(), itk::ImageIOFactory::ReadMode );
+  //                                                            filename.c_str(), itk::ImageIOFactory::ReadMode );
   //  dimension = imageIO->GetNumberOfDimensions();
 
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =

@@ -135,9 +135,9 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
 
   if( fabs(e3) < eps )
     {
-    success = false;
-    ants::antscout << "-4" << std::flush;
-    return dtv;
+    //success = false;
+    //ants::antscout << "-4" << std::flush;
+    //return dtv;
     }
 
   MatrixType eigmat(3, 3);

@@ -180,8 +180,8 @@ N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
 #                        -f 2x1 \
 #                       -u $uval -b 0 -z 1 \
 #                       -o [${nminv},${nminv}_diff_symm.nii.gz]
-  else 
-    echo  $initBmat and $initAmat DO NOT exist 
+  else
+    echo  $initBmat and $initAmat DO NOT exist
     exit
   fi
 fi
@@ -213,15 +213,15 @@ rm ${nm}tempWarp.nii.gz
     exit
   fi
 
-initafffn=${nm}_init_aff.mat 
-if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then 
+initafffn=${nm}_init_aff.mat
+if [[ -s $template ]] && [[ ! -s  ${nm}_gt_0GenericAffine.mat ]] ; then
   imgsmall=${nm}_diffsmall.nii.gz
   temsmall=${nm}_temsmall.nii.gz
   ResampleImageBySpacing $dim ${nm}_avg.nii.gz $imgsmall 4 4 4 
   ResampleImageBySpacing $dim $template $temsmall 4 4 4 
   antsAffineInitializer $dim $temsmall  $imgsmall  $initafffn 15 0.1 0 10 
   gf=$template
-  gm=${nm}_avg.nii.gz 
+  gm=${nm}_avg.nii.gz
   imgs=" $gf, $gm "
   $reg -d $dim  -r $initafffn  \
                         -m mattes[  $imgs , 1 , 32, regular, 0.25 ] \
@@ -247,6 +247,42 @@ fi
 echo done with brain extraction 
 
 if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then 
+=======
+# map brain mask to subject space T1
+trans=" -t [ $initAmat, 1 ] -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
+antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_A.nii.gz -n NearestNeighbor -r $A $trans
+trans=" -t [ $initBmat, 1 ] -t ${nm}1InverseWarp.nii.gz -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
+antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_B.nii.gz -n NearestNeighbor -r $B $trans
+MultiplyImages $dim  ${nm}_bm_A.nii.gz $A  ${nm}_A_brain.nii.gz
+MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
+
+
+  ######### now redo bias correction & syn #########
+  N3BiasFieldCorrection $dim ${nm}_A_brain.nii.gz ${nm}_n3_a.nii.gz 4
+  N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2
+  N3BiasFieldCorrection $dim ${nm}_n3_a.nii.gz ${nm}_n3_a.nii.gz 2
+  N3BiasFieldCorrection $dim ${nm}_B_brain.nii.gz ${nm}_n3_b.nii.gz 4
+  N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
+  N3BiasFieldCorrection $dim ${nm}_n3_b.nii.gz ${nm}_n3_b.nii.gz 2
+  echo now do deformable expecting $initB and $initA to exist
+  if [[ -s $initAmat  ]] && [[ -s $initBmat ]] ; then
+    $reg -d $dim  --initial-fixed-transform $initAmat  --initial-moving-transform $initBmat \
+                         -m mattes[  ${nm}_n3_a.nii.gz, ${nm}_n3_b.nii.gz , 1 , 32 ] \
+                         -t syn[ 0.25, 3, 0.5 ] \
+                         -c [${synits},1.e-8,10]  \
+                        -s 1x0 \
+                        -f 2x1 \
+                       -u $uval -b 0 -z 1 \
+                       -o [${nm},${nm}_diff_symm.nii.gz]
+  else
+    echo  $initBmat and $initAmat DO NOT exist
+    exit
+  fi
+  antsApplyTransforms -d $dim -i $B -o ${nm}_diff.nii.gz -t [ $initAmat, 1 ] -t ${nm}1Warp.nii.gz -t  $initBmat -r $A
+  ANTSJacobian $dim ${nm}1Warp.nii.gz ${nm} 1 no 0
+fi
+if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then
+>>>>>>> dafbbbc56dace03666e61a8eceb654d97d7293a8
   echo deal with auxiliary images ... here DTI
   ffa=${nm}_ffa.nii.gz
   mfa=${nm}_mfa.nii.gz
@@ -298,13 +334,18 @@ antsApplyTransforms -d $dim -i $ffa -o  ${nm}_ffanorm.nii.gz  -r $template $tran
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat -t ${nm}_B1Warp.nii.gz  -t  $initBmat -t ${nm}_mfa1Warp.nii.gz -t ${nm}_mfa0GenericAffine.mat "
 antsApplyTransforms -d $dim -i $mfa -o  ${nm}_mfanorm.nii.gz  -r $template $trans
 ImageMath $dim ${nm}_fadiff.nii.gz - ${nm}_ffanorm.nii.gz  ${nm}_mfanorm.nii.gz
-fi 
-echo done with aux images --- now get final jacobians 
+fi
+echo done with aux images --- now get final jacobians
 
  
 
+<<<<<<< HEAD
 if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then 
   echo deal with auxiliary images ... here a scalar image pair 
+=======
+if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then
+  echo deal with auxiliary images ... here DTI
+>>>>>>> dafbbbc56dace03666e61a8eceb654d97d7293a8
   fcbf=${nm}_fcbf.nii.gz
   mcbf=${nm}_mcbf.nii.gz
   ImageMath $dim $fcbf Normalize $H
@@ -360,12 +401,17 @@ echo $exe1 > ${nm}_cbf_map.txt
 echo $exe2 >> ${nm}_cbf_map.txt 
 #####
 ImageMath $dim ${nm}_cbfdiff.nii.gz - ${nm}_fcbfnorm.nii.gz  ${nm}_mcbfnorm.nii.gz
-fi 
-echo done with 2nd aux images --- now get final jacobians 
+fi
+echo done with 2nd aux images --- now get final jacobians
 
 
+<<<<<<< HEAD
 # get final jacobian values 
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat  -t ${nm}_A1Warp.nii.gz  -t  $initAmat"
+=======
+# get final jacobian values
+trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat                       -t  $initAmat"
+>>>>>>> dafbbbc56dace03666e61a8eceb654d97d7293a8
 antsApplyTransforms -d $dim -i ${nm}_A_brain.nii.gz -o  [${nm}_A_fullWarp.nii.gz, 1 ]  -r $template $trans
 ANTSJacobian $dim ${nm}_A_fullWarp.nii.gz ${nm}_A_full 1 no 0
 #

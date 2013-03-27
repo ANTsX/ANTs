@@ -48,13 +48,13 @@ PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TRe
 }
 
 template <class TInputImage, class TReferenceImage, class TOutputImage>
-void 
+void
 PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetDifferenceImage(const TInputImage* img)
 {
   SetNthInput(0, const_cast<TInputImage*>(img));
 }
- 
+
 template <class TInputImage, class TReferenceImage, class TOutputImage>
 typename TInputImage::ConstPointer
 PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
@@ -65,7 +65,7 @@ PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TRe
 }
 
 template <class TInputImage, class TReferenceImage, class TOutputImage>
-void 
+void
 PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TReferenceImage, TOutputImage>
 ::SetReferenceImage(const TReferenceImage* ref)
 {
@@ -114,11 +114,11 @@ PseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter<TInputImage, TRe
       }
 
     //float ratio = inIt.Value() / this->GetReferenceImage()->GetPixel( idx );
-   
-   
+
+
     //1.06 * M0W *  exp( 1 / 40.0 - 1 / 80.0) * TE;
-    
-  
+
+
     //RealType deltaM = itIt.Value();                  //  control - tagged if  control is odd
 
     //RealType T_1a = 1650; // 3T  from ASL_whyNhow.pdf

@@ -109,7 +109,6 @@ int SetDirectionByMatrix( std::vector<std::string> args, std::ostream* out_strea
   // which the parser should handle
   args.insert( args.begin(), "SetDirectionByMatrix" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

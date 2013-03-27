@@ -57,6 +57,9 @@ MakeTestDriverFromANTSbinary(ANTSTest ANTSTest.cxx ANTS)
 MakeTestDriverFromANTSbinary(WarpImageMultiTransform WarpImageMultiTransformTest.cxx WarpImageMultiTransform)
 MakeTestDriverFromANTSbinary(simpleSynRegistrationTest simpleSynRegistrationTest.cxx simpleSynRegistration)
 MakeTestDriverFromANTSbinary(antsApplyTransformsTest antsApplyTransformsTest.cxx antsApplyTransforms)
+MakeTestDriverFromANTSbinary(CompositeTransformUtilTest CompositeTransformUtilTest.cxx CompositeTransformUtil)
+MakeTestDriverFromANTSbinary(compareTwoCompositeTransformsTest compareTwoCompositeTransformsTest.cxx compareTwoCompositeTransforms)
+
 
 
 ###
@@ -728,6 +731,46 @@ set_property(TEST simpleSynRegistration_Vs_antsRegistration APPEND PROPERTY
   DEPENDS antsApplyTransformsTestForSimpleSynRegistration antsApplyTransformsTestForAntsRegistration )
 ############ End of four step compare tests#################
 
+### checks that CompositeTransformUtil runs without failure using --assemble flag####
+set(CompositeTransformUtilTestName CompositeTransformUtilTest)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${CompositeTransformUtilTestName}
+  COMMAND ${LAUNCH_EXE} CompositeTransformUtilTestDriver
+
+  CompositeTransformUtilTest
+  --assemble ${CMAKE_CURRENT_BINARY_DIR}/${CompositeTransformUtilTestName}.test.h5
+  DATA{${TestDataMD5_DIR}/${CompositeTransformUtilTestName}_RigidTransform.mat}
+  DATA{${TestDataMD5_DIR}/${CompositeTransformUtilTestName}_AffineTransform.mat}
+  DATA{${TestDataMD5_DIR}/${CompositeTransformUtilTestName}_SyNTransform.nii.gz}
+  )
+
+# Compare the results of the CompositeTransformUtil with the baseline file
+set(CompositeTransformUtilTestName CompositeTransformUtil_ComparisonTesting)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${CompositeTransformUtilTestName}
+  COMMAND ${LAUNCH_EXE} compareTwoCompositeTransformsTestDriver
+
+  compareTwoCompositeTransformsTest
+  ${CMAKE_CURRENT_BINARY_DIR}/CompositeTransformUtilTest.test.h5
+  DATA{${TestDataMD5_DIR}/CompositeTransformUtilTest.result.h5}
+  )
+set_property(TEST ${CompositeTransformUtilTestName} APPEND PROPERTY
+  DEPENDS CompositeTransformUtilTest)
+
+# Tests CompositeTransformUtil when it is run by --disassemble flag
+set(CompositeTransformUtilTestName CompositeTransformUtilTest_disassemble)
+ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${CompositeTransformUtilTestName}
+  COMMAND ${LAUNCH_EXE} CompositeTransformUtilTestDriver
+  --compare
+  DATA{${TestDataMD5_DIR}/CompositeTransformUtilTest_SyNTransform.nii.gz}
+  ${CMAKE_CURRENT_BINARY_DIR}/02_${CompositeTransformUtilTestName}_DisplacementFieldTransform.nii.gz
+  --compareIntensityTolerance 9
+  --compareRadiusTolerance 1
+  --compareNumberOfPixelsTolerance 1000
+
+  CompositeTransformUtilTest
+  --disassemble DATA{${TestDataMD5_DIR}/CompositeTransformUtilTest.result.h5}
+  ${CompositeTransformUtilTestName}
+  )
+############ End of CompositeTransformUtil tests#################
 
 endif(RUN_LONG_TESTS)
 

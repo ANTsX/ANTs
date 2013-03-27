@@ -37,9 +37,8 @@ int RebaseTensorImage( std::vector<std::string> args, std::ostream* out_stream =
   // which the parser should handle
   args.insert( args.begin(), "RebaseTensorImage" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
+  const int argc = args.size();
+  char * * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
     {
     // allocate space for the string plus a null character
@@ -86,10 +85,9 @@ private:
     return EXIT_FAILURE;
     }
 
-  int dim = atoi(argv[1]);
-
-  char * moving_image_filename = argv[2];
-  char * output_image_filename = argv[3];
+  const int dim = atoi(argv[1]);
+  const char * const moving_image_filename = argv[2];
+  const char * const output_image_filename = argv[3];
 
   if( dim != 3 )
     {
@@ -102,9 +100,9 @@ private:
   typedef itk::Image<float, 3>           ImageType;
 
   typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
-  TensorImageType::Pointer img_mov;
 
   // No reason to use log-euclidean space
+  TensorImageType::Pointer img_mov;
   ReadTensorImage<TensorImageType>(img_mov, moving_image_filename, false);
 
   TensorImageType::DirectionType::InternalMatrixType direction = img_mov->GetDirection().GetVnlMatrix();

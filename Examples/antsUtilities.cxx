@@ -45,7 +45,7 @@ TRAN_FILE_TYPE CheckFileType(const char * const str)
   return AFFINE_FILE;
 }
 
-TRAN_FILE_TYPE CheckFileType(const std::string str)
+TRAN_FILE_TYPE CheckFileType(const std::string & str)
 {
   return CheckFileType( str.c_str() );
 }

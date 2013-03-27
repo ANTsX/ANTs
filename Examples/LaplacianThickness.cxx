@@ -1,5 +1,3 @@
-
-
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include <algorithm>
@@ -348,10 +346,6 @@ LaplacianGrad(typename TImage::Pointer wm, typename TImage::Pointer gm, float si
     if( wm->GetPixel(ind) >= 0.5 )
       {
       laplacian->SetPixel(ind, 1);
-      }
-    else if( gm->GetPixel(ind) >= 0.5  && wm->GetPixel(ind) < 0.5 )
-      {
-      laplacian->SetPixel(ind, 2.);
       }
     else
       {
@@ -970,7 +964,6 @@ int LaplacianThickness( std::vector<std::string> args, std::ostream* out_stream 
   // which the parser should handle
   args.insert( args.begin(), "LaplacianThickness" );
 
-  std::remove( args.begin(), args.end(), std::string( "" ) );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )

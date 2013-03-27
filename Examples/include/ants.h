@@ -157,6 +157,8 @@
 
 #include "TileImages.h"
 
+#include "TimeSCCAN.h"
+
 #include "WarpImageMultiTransform.h"
 
 #include "WarpTensorImageMultiTransform.h"
@@ -166,5 +168,7 @@
 #include "WarpVTKPolyDataMultiTransform.h"
 
 #include "ConvertTransformFile.h"
+
+#include "compareTwoCompositeTransforms.h"
 
 #endif // ants_h

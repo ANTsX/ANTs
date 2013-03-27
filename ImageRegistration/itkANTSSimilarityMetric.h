@@ -84,7 +84,7 @@ public:
   itkGetConstMacro( WeightScalar, RealType );
 
   itkSetObjectMacro( Metric, MetricType );
-  itkGetObjectMacro( Metric, MetricType );
+  itkGetModifiableObjectMacro( Metric, MetricType );
 
   itkSetMacro( MaximizeMetric, bool );
   itkGetConstMacro( MaximizeMetric, bool );
