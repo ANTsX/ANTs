@@ -104,6 +104,8 @@ public:
   itkGetMacro( RowSparseness, RealType );
   itkSetMacro( UseLongitudinalFormulation , RealType );
   itkGetMacro( UseLongitudinalFormulation , RealType );
+  itkSetMacro( Smoother , RealType );
+  itkGetMacro( Smoother , RealType );
 
   void NormalizeWeights(const unsigned int k );
   void NormalizeWeightsByCovariance(const unsigned int k, const TRealType taup = 0, const TRealType tauq = 0);
@@ -394,7 +396,7 @@ public:
 
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
-  VectorType SpatiallySmoothVector( VectorType, ImagePointer, RealType );
+  VectorType SpatiallySmoothVector( VectorType, ImagePointer );
 
   void SetSortFinalLocArray(VectorType locArray)
   {
@@ -1034,6 +1036,7 @@ private:
   RealType     m_FractionNonZeroP;
   bool         m_KeepPositiveP;
   RealType     m_UseLongitudinalFormulation;
+  RealType     m_Smoother;
 
   VectorType   m_WeightsQ;
   MatrixType   m_MatrixQ;
