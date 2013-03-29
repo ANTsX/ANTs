@@ -491,9 +491,9 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
         basecall=''
         if [[ $INPUT_TEMPLATES_ARE_THE_SAME -eq 1 && -f ${EXTRACTION_AFFINE} ]];
           then
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_AFFINE},1] -z 1"
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_AFFINE},1] -z 1"
           else
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},1] -z 1"
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},1] -z 1"
           fi
 
         basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
@@ -676,7 +676,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
 
         time_start_template_registration=`date +%s`
 
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1] -z 1"
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1] -z 1"
         stage1="-m MI[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 4x2x1 -s 2x1x0"
         stage2="-m MI[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 4x2x1 -s 2x1x0"
         stage3="-m CC[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 4x2x1 -s 2x1x0"
@@ -722,6 +722,25 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         echo " Done with registration to specified template:  $(( time_elapsed_template_registration / 3600 ))h $(( time_elapsed_template_registration %3600 / 60 ))m $(( time_elapsed_template_registration % 60 ))s"
         echo "--------------------------------------------------------------------------------------"
         echo
+
+
+        #### BA Edits Begin ####
+        echo "--------------------------------------------------------------------------------------"
+	echo "Compute summary measurements"
+        echo "--------------------------------------------------------------------------------------"
+	logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${OUTPUT_PREFIX} 1 
+        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}thicknorm.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian -t ${REGISTRATION_TEMPLATE_WARP} -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE}"
+        logCmd $exe_template_registration_3
+	ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${SEGMENTATION_BRAIN_N4_IMAGES[0]}`
+	bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}.csv
+	echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}.csv
+        echo "--------------------------------------------------------------------------------------"
+        #### BA Edits End #### 
+
 
       fi
   fi
