@@ -723,6 +723,25 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         echo "--------------------------------------------------------------------------------------"
         echo
 
+
+        #### BA Edits Begin ####
+        echo "--------------------------------------------------------------------------------------"
+	echo "Compute summary measurements"
+        echo "--------------------------------------------------------------------------------------"
+	logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${OUTPUT_PREFIX} 1 
+        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}thicknorm.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian -t ${REGISTRATION_TEMPLATE_WARP} -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE}"
+        logCmd $exe_template_registration_3
+	ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${SEGMENTATION_BRAIN_N4_IMAGES[0]}`
+	bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}.csv
+	echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}.csv
+        echo "--------------------------------------------------------------------------------------"
+        #### BA Edits End #### 
+
+
       fi
   fi
 
