@@ -67,7 +67,7 @@ We use *label* to denote a label image with values in range 0 to N
      -m:  Brain extraction probability mask     Brain *probability* mask created using e.g. LPBA40 labels which
                                                 have brain masks defined, and warped to anatomical template and
                                                 averaged resulting in a probability image.
-     -l:  Brain segmentation template           Anatomical *intensity* template for brain segmentation.
+     -l:  Brain segmentation template           Anatomical *intensity* brain image - should not have skull or other extraneous features.
      -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
                                                 with the -l option.  Specified using c-style formatting, e.g.
                                                 -p labelsPriors%02d.nii.gz.
