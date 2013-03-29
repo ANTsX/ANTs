@@ -50,19 +50,25 @@ Example:
 
 Required arguments:
 
+We use *intensity* to denote the original anatomical image of the brain
+
+We use *probability* to denote a probability image with values in range 0 to 1 
+
+We use *label* to denote a label image with values in range 0 to N 
+
      -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
-     -a:  Anatomical image                      Structural image, typically T1.  If more than one
+     -a:  Anatomical image                      Structural *intensity* image, typically T1.  If more than one
                                                 anatomical image is specified, subsequently specified
                                                 images are used during the segmentation process.  However,
                                                 only the first image is used in the registration of priors.
                                                 Our suggestion would be to specify the T1 as the first image.
-     -e:  Brain extraction template             Anatomical template created using e.g. LPBA40 data set with
+     -e:  Brain extraction template             Anatomical *intensity* template created using a population data set with
                                                 buildtemplateparallel.sh in ANTs.
-     -m:  Brain extraction probability mask     Brain probability mask created using e.g. LPBA40 data set which
+     -m:  Brain extraction probability mask     Brain *probability* mask created using e.g. LPBA40 labels which
                                                 have brain masks defined, and warped to anatomical template and
                                                 averaged resulting in a probability image.
-     -l:  Brain segmentation template           Anatomical template for brain segmentation.
-     -p:  Brain segmentation priors             Label probability priors corresponding to the image specified
+     -l:  Brain segmentation template           Anatomical *intensity* template for brain segmentation.
+     -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
                                                 with the -l option.  Specified using c-style formatting, e.g.
                                                 -p labelsPriors%02d.nii.gz.
      -o:  Output prefix                         The following images are created:
@@ -76,13 +82,13 @@ Required arguments:
 
 Optional arguments:
 
-     -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
+     -f:  Brain extraction registration mask    Mask *probability* used for registration to limit the metric computation to
                                                 a specific region.
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -t:  template for t1 registration
+     -t:  template for t1 registration          Anatomical *intensity* template 
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
-     -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
+     -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0)
      -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 15)
 
 USAGE
