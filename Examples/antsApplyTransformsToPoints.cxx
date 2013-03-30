@@ -49,11 +49,11 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       typedef itk::CSVArray2DFileReader<double> ReaderType;
       typename ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
-      reader->SetFieldDelimiterCharacter( ',' );
-      reader->SetStringDelimiterCharacter( '"' );
+      //      reader->SetFieldDelimiterCharacter( ',' );
+      //      reader->SetStringDelimiterCharacter( '"' );
       reader->HasColumnHeadersOn();
       reader->HasRowHeadersOff();
-      reader->UseStringDelimiterCharacterOff();
+      //    reader->UseStringDelimiterCharacterOff();
       try
         {
         reader->Update();
@@ -136,7 +136,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         {
         points_out( pointct, p ) = point_out[p];
         }
-      std::cout << " point-in = " << point_in << " point-out = " << point_out << std::endl;
+      //      antscout << " point-in = " << point_in << " point-out = " << point_out << std::endl;
       }
 
     /**
