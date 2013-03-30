@@ -66,7 +66,9 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
       DataFrameObjectType::Pointer dfo = reader->GetOutput();
       points_in = dfo->GetMatrix();
-      points_out.set_size( points_in.rows(), Dimension );
+      if (  points_in.cols() == 5 )
+	points_out.set_size( points_in.rows(), 5 );
+      else points_out.set_size( points_in.rows(), Dimension );
       }
     else
       {
@@ -136,7 +138,10 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         {
         points_out( pointct, p ) = point_out[p];
         }
-      //      antscout << " point-in = " << point_in << " point-out = " << point_out << std::endl;
+      for( unsigned int p = Dimension; p < points_in.cols(); p++ )
+        {
+	points_out( pointct, p ) = points_in( pointct, p );
+        }
       }
 
     /**
@@ -161,12 +166,17 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       colname = std::string("y");
       ColumnHeaders.push_back( colname );
       colname = std::string("z");
-      if( Dimension > 2 )
+      if( Dimension > 2 || points_in.cols() == 5 )
         {
         ColumnHeaders.push_back( colname );
         }
       colname = std::string("t");
-      if( Dimension > 3 )
+      if( Dimension > 3 || points_in.cols() == 5 )
+        {
+        ColumnHeaders.push_back( colname );
+        }
+      colname = std::string("label");
+      if( Dimension > 4 || points_in.cols() == 5 )
         {
         ColumnHeaders.push_back( colname );
         }
