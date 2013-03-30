@@ -32,6 +32,10 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
   typedef vnl_matrix<PixelType> MatrixType;
   MatrixType points_out;
   MatrixType points_in;
+  typedef itk::CSVArray2DFileReader<double> ReaderType;
+  typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
+  typedef typename DataFrameObjectType::StringVectorType StringVectorType;
+  StringVectorType colheadernames;
   //  bool input_points_are_indices = false;
 
   /**
@@ -46,11 +50,10 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       itksys::SystemTools::GetFilenameExtension(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
     if( strcmp(ext.c_str(), ".csv") == 0 )
       {
-      typedef itk::CSVArray2DFileReader<double> ReaderType;
       typename ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
-      //      reader->SetFieldDelimiterCharacter( ',' );
-      //      reader->SetStringDelimiterCharacter( '"' );
+      reader->SetFieldDelimiterCharacter( ',' );
+      reader->SetStringDelimiterCharacter( '"' );
       reader->HasColumnHeadersOn();
       reader->HasRowHeadersOff();
       //    reader->UseStringDelimiterCharacterOff();
@@ -63,12 +66,15 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         antscout << "Exception caught!" << std::endl;
         antscout << exp << std::endl;
         }
-      typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
       DataFrameObjectType::Pointer dfo = reader->GetOutput();
+      colheadernames = dfo->GetColumnHeaders();
+      if ( colheadernames.size() < Dimension ) 
+	{
+	antscout << "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D." << std::endl;
+	return EXIT_FAILURE;
+	}
       points_in = dfo->GetMatrix();
-      if (  points_in.cols() == 5 )
-	points_out.set_size( points_in.rows(), 5 );
-      else points_out.set_size( points_in.rows(), Dimension );
+      points_out.set_size( points_in.rows(),  points_in.cols() );
       }
     else
       {
@@ -160,27 +166,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         outputFileName = outputOption->GetFunction( 0 )->GetName();
         }
       antscout << "Output warped points to csv file: " << outputFileName << std::endl;
-      std::vector<std::string> ColumnHeaders;
-      std::string              colname = std::string("x");
-      ColumnHeaders.push_back( colname );
-      colname = std::string("y");
-      ColumnHeaders.push_back( colname );
-      colname = std::string("z");
-      if( Dimension > 2 || points_in.cols() == 5 )
-        {
-        ColumnHeaders.push_back( colname );
-        }
-      colname = std::string("t");
-      if( Dimension > 3 || points_in.cols() == 5 )
-        {
-        ColumnHeaders.push_back( colname );
-        }
-      colname = std::string("label");
-      if( Dimension > 4 || points_in.cols() == 5 )
-        {
-        ColumnHeaders.push_back( colname );
-        }
-
+      StringVectorType ColumnHeaders = colheadernames;
       typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
       writer->SetFileName( outputFileName );
@@ -344,10 +330,11 @@ private:
 
   parser->SetCommand( argv[0] );
 
+  std::string examplestring = std::string( "");
   std::string commandDescription =
     std::string( "antsApplyTransformsToPoints, applied to an input image, transforms it " )
     + std::string( "according to a reference image and a transform " )
-    + std::string( "(or a set of transforms)." );
+    + std::string( "(or a set of transforms).  " ) + examplestring;
 
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
