@@ -2572,7 +2572,6 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
   std::string timeName  = std::string(argv[argct++]);
 
   unsigned int minRegionSize = 3;
-  bool robust = false;
   
   if ( argc > 6 )
     minRegionSize = atoi( argv[argct++] );
@@ -5117,11 +5116,11 @@ int SmoothTensorImage(int argc, char *argv[])
   std::string operation = std::string(argv[argct++]);  
   std::string fn1 = std::string(argv[argct++]);
   float sigma = atof(argv[argct++]);
-  //std::string fn2 = "";
-  //if( argc > argct )
-  //  {
-  //  fn2 = std::string(argv[argct++]);
-  //  }
+  std::string fn2 = "";
+  if( argc > argct )
+    {
+    fn2 = std::string(argv[argct++]);
+    }
 
   typename TensorImageType::Pointer inDT = NULL;
   ReadTensorImage<TensorImageType>(inDT, fn1.c_str());

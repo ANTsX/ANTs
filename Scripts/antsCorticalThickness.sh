@@ -50,19 +50,25 @@ Example:
 
 Required arguments:
 
+We use *intensity* to denote the original anatomical image of the brain
+
+We use *probability* to denote a probability image with values in range 0 to 1 
+
+We use *label* to denote a label image with values in range 0 to N 
+
      -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
-     -a:  Anatomical image                      Structural image, typically T1.  If more than one
+     -a:  Anatomical image                      Structural *intensity* image, typically T1.  If more than one
                                                 anatomical image is specified, subsequently specified
                                                 images are used during the segmentation process.  However,
                                                 only the first image is used in the registration of priors.
                                                 Our suggestion would be to specify the T1 as the first image.
-     -e:  Brain extraction template             Anatomical template created using e.g. LPBA40 data set with
+     -e:  Brain extraction template             Anatomical *intensity* template created using a population data set with
                                                 buildtemplateparallel.sh in ANTs.
-     -m:  Brain extraction probability mask     Brain probability mask created using e.g. LPBA40 data set which
+     -m:  Brain extraction probability mask     Brain *probability* mask created using e.g. LPBA40 labels which
                                                 have brain masks defined, and warped to anatomical template and
                                                 averaged resulting in a probability image.
-     -l:  Brain segmentation template           Anatomical template for brain segmentation.
-     -p:  Brain segmentation priors             Label probability priors corresponding to the image specified
+     -l:  Brain segmentation template           Anatomical *intensity* brain image - should not have skull or other extraneous features.
+     -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
                                                 with the -l option.  Specified using c-style formatting, e.g.
                                                 -p labelsPriors%02d.nii.gz.
      -o:  Output prefix                         The following images are created:
@@ -76,13 +82,13 @@ Required arguments:
 
 Optional arguments:
 
-     -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
+     -f:  Brain extraction registration mask    Mask *probability* used for registration to limit the metric computation to
                                                 a specific region.
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -t:  template for t1 registration
+     -t:  template for t1 registration          Anatomical *intensity* template 
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
-     -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
+     -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0)
      -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 15)
 
 USAGE
@@ -92,7 +98,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using apb with the following arguments:
+    Using antsCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
       extraction template     = ${EXTRACTION_TEMPLATE}
@@ -160,6 +166,8 @@ WHITE_MATTER_LABEL=3
 GRAY_MATTER_LABEL=2
 CSF_MATTER_LABEL=1
 
+ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
+
 ################################################################################
 #
 # Programs and their parameters
@@ -192,9 +200,9 @@ ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates"
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=15
 
 DIRECT=${ANTSPATH}KellyKapowski
-DIRECT_CONVERGENCE="[45,0.0,10]";
+DIRECT_CONVERGENCE="[75,0.0,10]";
 DIRECT_THICKNESS_PRIOR="10";
-DIRECT_GRAD_STEP_SIZE="0.025";
+DIRECT_GRAD_STEP_SIZE="0.01";
 DIRECT_SMOOTHING_SIGMA="1.5";
 DIRECT_NUMBER_OF_DIFF_COMPOSITIONS="10";
 
@@ -489,9 +497,9 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
         basecall=''
         if [[ $INPUT_TEMPLATES_ARE_THE_SAME -eq 1 && -f ${EXTRACTION_AFFINE} ]];
           then
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_AFFINE},1] -z 1"
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_AFFINE},1] -z 1"
           else
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},1] -z 1"
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},1] -z 1"
           fi
 
         basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
@@ -674,7 +682,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
 
         time_start_template_registration=`date +%s`
 
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1] -z 1"
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1] -z 1"
         stage1="-m MI[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 4x2x1 -s 2x1x0"
         stage2="-m MI[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 4x2x1 -s 2x1x0"
         stage3="-m CC[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 4x2x1 -s 2x1x0"
@@ -720,6 +728,25 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         echo " Done with registration to specified template:  $(( time_elapsed_template_registration / 3600 ))h $(( time_elapsed_template_registration %3600 / 60 ))m $(( time_elapsed_template_registration % 60 ))s"
         echo "--------------------------------------------------------------------------------------"
         echo
+
+
+        #### BA Edits Begin ####
+        echo "--------------------------------------------------------------------------------------"
+	echo "Compute summary measurements"
+        echo "--------------------------------------------------------------------------------------"
+	logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${OUTPUT_PREFIX} 1 
+        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}thicknorm.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian -t ${REGISTRATION_TEMPLATE_WARP} -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE}"
+        logCmd $exe_template_registration_3
+	ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${SEGMENTATION_BRAIN_N4_IMAGES[0]}`
+	bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+	echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}.csv
+	echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}.csv
+        echo "--------------------------------------------------------------------------------------"
+        #### BA Edits End #### 
+
 
       fi
   fi
