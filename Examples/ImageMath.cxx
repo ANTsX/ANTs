@@ -9152,6 +9152,7 @@ int LabelStats(      int argc, char *argv[])
 
   std::ofstream logfile;
   logfile.open(outname.c_str() );
+  logfile << "x,y,z,t,label" << std::endl;
 
   std::sort(myLabelSet.begin(), myLabelSet.end() );
   typename LabelSetType::const_iterator it;
@@ -9221,6 +9222,12 @@ int LabelStats(      int argc, char *argv[])
 
 // square image
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
+    if ( ImageDimension == 2 ) 
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << ",0,0," << currentlabel << std::endl;
+    if ( ImageDimension == 3 ) 
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ",0," << currentlabel << std::endl;
+    if ( ImageDimension == 4 ) 
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << "," << myCenterOfMass[3] << "," << currentlabel << std::endl;
     labelcount++;
     }
 
