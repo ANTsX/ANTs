@@ -146,12 +146,22 @@ public:
   /**
    * Set the maximum number of registration iterations.  Default = 50.
    */
-  itkSetMacro( MaximumNumberOfIterations, LabelType );
+  itkSetMacro( MaximumNumberOfIterations, unsigned int );
 
   /**
    * Get the maximum number of registration iterations.  Default = 50.
    */
-  itkGetConstMacro( MaximumNumberOfIterations, LabelType );
+  itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
+
+  /**
+   * Set the maximum number of registration iterations.  Default = 20.
+   */
+  itkSetMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
+
+  /**
+   * Get the maximum number of registration iterations.  Default = 20.
+   */
+  itkGetConstMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
 
   /**
    * Set the gray matter label in the segmentation image.  Default = 2.
@@ -337,6 +347,7 @@ private:
 
   unsigned int m_ElapsedIterations;
   unsigned int m_MaximumNumberOfIterations;
+  unsigned int m_MaximumNumberOfInvertDisplacementFieldIterations;
   RealType     m_CurrentEnergy;
   RealType     m_CurrentConvergenceMeasurement;
   RealType     m_ConvergenceThreshold;

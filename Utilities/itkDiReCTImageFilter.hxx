@@ -63,6 +63,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_GrayMatterLabel( 2 ),
   m_WhiteMatterLabel( 3 ),
   m_MaximumNumberOfIterations( 50 ),
+  m_MaximumNumberOfInvertDisplacementFieldIterations( 20 ),
   m_CurrentEnergy( NumericTraits<RealType>::max() ),
   m_ConvergenceThreshold( 0.001 ),
   m_ConvergenceWindowSize( 10 )
@@ -487,7 +488,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       typename InverterType::Pointer inverter1 = InverterType::New();
       inverter1->SetInput( inverseField );
       inverter1->SetInverseFieldInitialEstimate( integratedField );
-      inverter1->SetMaximumNumberOfIterations( 20 );
+      inverter1->SetMaximumNumberOfIterations( this->m_MaximumNumberOfInvertDisplacementFieldIterations );
       inverter1->SetMeanErrorToleranceThreshold( 0.001 );
       inverter1->SetMaxErrorToleranceThreshold( 0.1 );
       inverter1->Update();
@@ -498,7 +499,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       typename InverterType::Pointer inverter2 = InverterType::New();
       inverter2->SetInput( integratedField );
       inverter2->SetInverseFieldInitialEstimate( inverseField );
-      inverter2->SetMaximumNumberOfIterations( 20 );
+      inverter2->SetMaximumNumberOfIterations( this->m_MaximumNumberOfInvertDisplacementFieldIterations );
       inverter2->SetMeanErrorToleranceThreshold( 0.001 );
       inverter2->SetMaxErrorToleranceThreshold( 0.1 );
       inverter2->Update();
@@ -829,6 +830,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
                    << this->m_SmoothingVelocityFieldVariance << std::endl;
   ::ants::antscout << indent << "Number of integration points = "
                    << this->m_NumberOfIntegrationPoints << std::endl;
+  ::ants::antscout << indent << "Maximum number of invert displacement field iterations = "
+                   << this->m_MaximumNumberOfInvertDisplacementFieldIterations << std::endl;
   ::ants::antscout << indent << "Initial gradient step = "
                    << this->m_InitialGradientStep << std::endl;
   ::ants::antscout << indent << "Current gradient step = "
