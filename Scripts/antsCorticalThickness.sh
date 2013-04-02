@@ -37,9 +37,8 @@ Usage:
 
 `basename $0` -d imageDimension
               -a anatomicalImage
-              -e brainExtractionTemplate
+              -e brainTemplate
               -m brainExtractionProbabilityMask
-              -l brainSegmentationTemplate
               -p brainSegmentationPriors
               <OPTARGS>
               -o outputPrefix
@@ -50,25 +49,32 @@ Example:
 
 Required arguments:
 
+We use *intensity* to denote the original anatomical image of the brain.
+
+We use *probability* to denote a probability image with values in range 0 to 1.
+
+We use *label* to denote a label image with values in range 0 to N
+
      -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
-     -a:  Anatomical image                      Structural image, typically T1.  If more than one
+     -a:  Anatomical image                      Structural *intensity* image, typically T1.  If more than one
                                                 anatomical image is specified, subsequently specified
                                                 images are used during the segmentation process.  However,
                                                 only the first image is used in the registration of priors.
                                                 Our suggestion would be to specify the T1 as the first image.
-     -e:  Brain extraction template             Anatomical template created using e.g. LPBA40 data set with
-                                                buildtemplateparallel.sh in ANTs.
-     -m:  Brain extraction probability mask     Brain probability mask created using e.g. LPBA40 data set which
+     -e:  Brain template                        Anatomical *intensity* template (possibly created using a population
+                                                data set with buildtemplateparallel.sh in ANTs).  This template is
+                                                *not* skull-stripped.
+     -m:  Brain extraction probability mask     Brain *probability* mask created using e.g. LPBA40 labels which
                                                 have brain masks defined, and warped to anatomical template and
                                                 averaged resulting in a probability image.
-     -l:  Brain segmentation template           Anatomical template for brain segmentation.
-     -p:  Brain segmentation priors             Label probability priors corresponding to the image specified
-                                                with the -l option.  Specified using c-style formatting, e.g.
+     -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
+                                                with the -e option.  Specified using c-style formatting, e.g.
                                                 -p labelsPriors%02d.nii.gz.
      -o:  Output prefix                         The following images are created:
                                                   * ${OUTPUT_PREFIX}N4Corrected.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}ExtractedBrain.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
+                                                  * ${OUTPUT_PREFIX}BrainSegmentation?N4.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors1.${OUTPUT_SUFFIX}  CSF
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors2.${OUTPUT_SUFFIX}  GM
                                                   * ${OUTPUT_PREFIX}BrainSegmentationPosteriors3.${OUTPUT_SUFFIX}  WM
@@ -76,13 +82,20 @@ Required arguments:
 
 Optional arguments:
 
-     -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
-                                                a specific region.
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -t:  template for t1 registration
+     -t:  template for t1 registration          Anatomical *intensity* template (assumed to be skull-stripped).  A common
+                                                use case would be where this would be the same template as specified in the
+                                                -e option which is not skull stripped.  If this is the case, we do not
+                                                need to find the transforms as they were found during segmentation.
+                                                Instead we simply save those (inverse) transforms as
+                                                  * ${OUTPUT_PREFIX}TemplateToSubject0GenericAffine.mat
+                                                  * ${OUTPUT_PREFIX}TemplateToSubject1Warp.${OUTPUT_SUFFIX}
+                                                  * ${OUTPUT_PREFIX}TemplateToSubject1InverseWarp.${OUTPUT_SUFFIX}
+                                                Otherwise, we perform the registration (fixed image = template and moving image =
+                                                individual subject) to produce those files.
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
-     -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
+     -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0)
      -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 15)
 
 USAGE
@@ -95,10 +108,8 @@ echoParameters() {
     Using antsCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
-      extraction template     = ${EXTRACTION_TEMPLATE}
-      extraction reg. mask    = ${EXTRACTION_REGISTRATION_MASK}
+      extraction template     = ${BRAIN_TEMPLATE}
       extraction prior        = ${EXTRACTION_PRIOR}
-      segmentation template   = ${SEGMENTATION_TEMPLATE}
       segmentation prior      = ${SEGMENTATION_PRIOR}
       output prefix           = ${OUTPUT_PREFIX}
       output image suffix     = ${OUTPUT_SUFFIX}
@@ -151,10 +162,8 @@ DIMENSION=3
 ANATOMICAL_IMAGES=()
 REGISTRATION_TEMPLATE=""
 
-EXTRACTION_TEMPLATE=""
-EXTRACTION_REGISTRATION_MASK=""
+BRAIN_TEMPLATE=""
 EXTRACTION_PRIOR=""
-SEGMENTATION_TEMPLATE=""
 SEGMENTATION_PRIOR=""
 WHITE_MATTER_LABEL=3
 GRAY_MATTER_LABEL=2
@@ -194,9 +203,9 @@ ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates"
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=15
 
 DIRECT=${ANTSPATH}KellyKapowski
-DIRECT_CONVERGENCE="[75,0.0,10]";
+DIRECT_CONVERGENCE="[45,0.0,10]";
 DIRECT_THICKNESS_PRIOR="10";
-DIRECT_GRAD_STEP_SIZE="0.01";
+DIRECT_GRAD_STEP_SIZE="0.025";
 DIRECT_SMOOTHING_SIGMA="1.5";
 DIRECT_NUMBER_OF_DIFF_COMPOSITIONS="10";
 
@@ -219,10 +228,7 @@ else
          fi
        ;;
           e) #brain extraction anatomical image
-       EXTRACTION_TEMPLATE=$OPTARG
-       ;;
-          f) #brain extraction registration mask
-       EXTRACTION_REGISTRATION_MASK=$OPTARG
+       BRAIN_TEMPLATE=$OPTARG
        ;;
           h) #help
        Usage >&2
@@ -233,9 +239,6 @@ else
        ;;
           k) #keep tmp images
        KEEP_TMP_IMAGES=$OPTARG
-       ;;
-          l) #brain segmentation label anatomical image
-       SEGMENTATION_TEMPLATE=$OPTARG
        ;;
           m) #brain extraction prior probability mask
        EXTRACTION_PRIOR=$OPTARG
@@ -271,6 +274,7 @@ fi
 # Preliminaries:
 #  1. Check existence of inputs
 #  2. Figure out output directory and mkdir if necessary
+#  3. See if $REGISTRATION_TEMPLATE is the same as $BRAIN_TEMPLATE
 #
 ################################################################################
 
@@ -283,10 +287,10 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
     fi
   done
 
-if [[ ! -f ${EXTRACTION_TEMPLATE} ]];
+if [[ ! -f ${BRAIN_TEMPLATE} ]];
   then
     echo "The extraction template doesn't exist:"
-    echo "   $EXTRACTION_TEMPLATE"
+    echo "   $BRAIN_TEMPLATE"
     exit 1
   fi
 if [[ ! -f ${EXTRACTION_PRIOR} ]];
@@ -296,13 +300,10 @@ if [[ ! -f ${EXTRACTION_PRIOR} ]];
     exit 1
   fi
 
-
-## check segmentation inputs
-if [[ ! -f ${SEGMENTATION_TEMPLATE} ]];
+TEMPLATES_ARE_IDENTICAL=0
+if [[ ${BRAIN_TEMPLATE} == ${REGISTRATION_TEMPLATE} ]];
   then
-    echo "The segmentation template doesn't exist:"
-    echo "   $SEGMENTATION_TEMPLATE"
-    exit 1
+    TEMPLATES_ARE_IDENTICAL=1
   fi
 
 FORMAT=${SEGMENTATION_PRIOR}
@@ -388,15 +389,6 @@ for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
       fi
   done
 
-# check to see if input extraction template and input segmentation are the same
-# if so, we can initialize the segmentation registration with the affine transform
-# derived from the extraction step.
-INPUT_TEMPLATES_ARE_THE_SAME=0
-if [[ `diff $EXTRACTION_TEMPLATE $SEGMENTATION_TEMPLATE >/dev/null` ]];
-  then
-    echo INPUT_TEMPLATES_ARE_THE_SAME=1
-  fi
-
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
 if [[ ! -d $OUTPUT_DIR ]];
   then
@@ -409,6 +401,7 @@ echoParameters >&2
 echo "---------------------  Running `basename $0` on $HOSTNAME  ---------------------"
 
 time_start=`date +%s`
+
 
 ################################################################################
 #
@@ -429,13 +422,18 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 bash ${ANTSPATH}/antsBrainExtraction.sh \
   -d ${DIMENSION} \
   -a ${ANATOMICAL_IMAGES[0]} \
-  -e ${EXTRACTION_TEMPLATE} \
+  -e ${BRAIN_TEMPLATE} \
   -m ${EXTRACTION_PRIOR} \
   -o ${OUTPUT_PREFIX} \
   -k ${KEEP_TMP_IMAGES} \
   -s ${OUTPUT_SUFFIX}
 
-SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
+EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
+EXTRACTION_GENERIC_AFFINE=${OUTPUT_PREFIX}BrainExtractionPrior0GenericAffine.mat
+
+EXTRACTED_BRAIN_TEMPLATE=${OUTPUT_PREFIX}ExtractedTemplateBrain.${OUTPUT_SUFFIX}
+logCmd ThresholdImage ${DIMENSION} ${EXTRACTION_PRIOR} ${EXTRACTED_BRAIN_TEMPLATE} 0.1 1.01 1 0
+logCmd ImageMath ${DIMENSION} ${EXTRACTED_BRAIN_TEMPLATE} m ${EXTRACTED_BRAIN_TEMPLATE} ${BRAIN_TEMPLATE}
 
 ################################################################################
 #
@@ -447,7 +445,7 @@ SEGMENTATION_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1Warp.nii.gz
 SEGMENTATION_INVERSE_WARP=${SEGMENTATION_WARP_OUTPUT_PREFIX}1InverseWarp.nii.gz
 SEGMENTATION_GENERIC_AFFINE=${SEGMENTATION_WARP_OUTPUT_PREFIX}0GenericAffine.mat
 SEGMENTATION_MASK_DILATED=${BRAIN_SEGMENTATION_OUTPUT}MaskDilated.nii.gz
-SEGMENTATION_BRAIN_WEIGHT_MASK=${BRAIN_SEGMENTATION_OUTPUT}WeightMask.nii.gz
+EXTRACTED_SEGMENTATION_BRAIN_WEIGHT_MASK=${BRAIN_SEGMENTATION_OUTPUT}WeightMask.nii.gz
 SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 
 if [[ ! -f ${BRAIN_SEGMENTATION} ]];
@@ -456,23 +454,23 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " Brain segmentation using the following steps:"
-    echo "   1) Register $SEGMENTATION_TEMPLATE and $SEGMENTATION_PRIOR to ${ANATOMICAL_IMAGES[0]}"
+    echo "   1) Register ${EXTRACTED_BRAIN_TEMPLATE} and ${SEGMENTATION_PRIOR} to ${ANATOMICAL_IMAGES[0]}"
     echo "   2) Warp priors to ${ANATOMICAL_IMAGES[0]}"
     echo "   3) N-tissue segmentation using Atropos and N4"
     echo "--------------------------------------------------------------------------------------"
     echo
 
     # Check inputs
-    if [[ ! -f ${SEGMENTATION_TEMPLATE} ]];
+    if [[ ! -f ${EXTRACTED_BRAIN_TEMPLATE} ]];
       then
         echo "The segmentation template doesn't exist:"
-        echo "   $SEGMENTATION_TEMPLATE"
+        echo "   ${EXTRACTED_BRAIN_TEMPLATE}"
         exit 1
       fi
-    if [[ ! -f ${SEGMENTATION_BRAIN} ]];
+    if [[ ! -f ${EXTRACTED_SEGMENTATION_BRAIN} ]];
       then
         echo "The extracted brain doesn't exist:"
-        echo "   $SEGMENTATION_BRAIN"
+        echo "   ${EXTRACTED_SEGMENTATION_BRAIN}"
         exit 1
       fi
     if [[ ${NUMBER_OF_PRIOR_IMAGES} -ne 3 ]];
@@ -488,20 +486,12 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       then
         logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
-        basecall=''
-        if [[ $INPUT_TEMPLATES_ARE_THE_SAME -eq 1 && -f ${EXTRACTION_AFFINE} ]];
-          then
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_AFFINE},1] -z 1"
-          else
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},1] -z 1"
-          fi
-
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_GENERIC_AFFINE},1]"
         basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
-        stage1="-m MI[${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 4x2x1x0"
-        stage2="-m MI[${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
-        stage3="-m CC[${SEGMENTATION_BRAIN},${SEGMENTATION_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+        stage1="-m MI[${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
+        stage2="-m CC[${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
 
-        exe_brain_segmentation_1="${basecall} ${stage1} ${stage2} ${stage3}"
+        exe_brain_segmentation_1="${basecall} ${stage1} ${stage2}"
         logCmd $exe_brain_segmentation_1
       fi
 
@@ -557,8 +547,12 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -s ${OUTPUT_SUFFIX}
 
     ## Step 3 ###
-    TMP_FILES=( $EXTRACTION_AFFINE $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE $SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED )
-    TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $SEGMENTATION_BRAIN_WEIGHT_MASK)
+    TMP_FILES=( $EXTRACTION_GENERIC_AFFINE $EXTRACTED_SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED $EXTRACTED_BRAIN_TEMPLATE )
+    TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $EXTRACTED_SEGMENTATION_BRAIN_WEIGHT_MASK )
+    if [[ $TEMPLATES_ARE_IDENTICAL -eq 0 ]];
+      then
+        TMP_FILES=( ${TMP_FILES[@]} $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE )
+      fi
 
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
@@ -650,36 +644,51 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 
   fi
 
+
 ################################################################################
 #
 # Registration to a template
 #
 ################################################################################
 
-if [[ -f ${REGISTRATION_TEMPLATE} ]];
+REGISTRATION_TEMPLATE_OUTPUT_PREFIX=${OUTPUT_PREFIX}TemplateToSubject
+REGISTRATION_TEMPLATE_GENERIC_AFFINE=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat
+REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX}
+REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX}
+
+
+if [[ ${TEMPLATES_ARE_IDENTICAL} -eq 1 ]];
   then
 
-    REGISTRATION_TEMPLATE_OUTPUT_PREFIX=${OUTPUT_PREFIX}RegistrationToTemplate
-    REGISTRATION_TEMPLATE_GENERIC_AFFINE=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat
-    REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX}
+    logCmd mv $SEGMENTATION_GENERIC_AFFINE $REGISTRATION_TEMPLATE_GENERIC_AFFINE
+    logCmd mv $SEGMENTATION_WARP $REGISTRATION_TEMPLATE_WARP
+    logCmd mv $SEGMENTATION_INVERSE_WARP $REGISTRATION_TEMPLATE_INVERSE_WARP
 
-    if [[ ! -f ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} || ! -f ${REGISTRATION_TEMPLATE_WARP} || ! -f "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.${OUTPUT_SUFFIX}" ]];
+  else if [[ ! -f ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} || ! -f ${REGISTRATION_TEMPLATE_WARP} || ! -f "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.${OUTPUT_SUFFIX}" ]];
       then
 
         echo
         echo "--------------------------------------------------------------------------------------"
-        echo " T1 registration to specified template"
+        echo " Registration ${SEGMENTATION_BRAIN_N4_IMAGES[$j]} to specified template"
         echo "--------------------------------------------------------------------------------------"
         echo
 
-        TMP_FILES=()
+        SEGMENTATION_BRAIN_N4_IMAGES=`ls ${OUTPUT_PREFIX}Brain*N4.nii.gz`
+        EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=()
+        for (( j = 0; j < ${#SEGMENTATION_BRAIN_N4_IMAGES[@]}; j++ ))
+          do
+            EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=( ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} ${OUTPUT_PREFIX}ExtractedBrain${j}N4.nii.gz )
+            logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[$j]} m ${SEGMENTATION_BRAIN_N4_IMAGES[$j]} ${BRAIN_EXTRACTION_MASK}
+          done
+
+        TMP_FILES=( ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} )
 
         time_start_template_registration=`date +%s`
 
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1] -z 1"
-        stage1="-m MI[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 4x2x1 -s 2x1x0"
-        stage2="-m MI[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 4x2x1 -s 2x1x0"
-        stage3="-m CC[${REGISTRATION_TEMPLATE},${SEGMENTATION_BRAIN_N4_IMAGES[0]},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 4x2x1 -s 2x1x0"
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1]"
+        stage1="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
+        stage2="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
+        stage3="-m CC[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
 
         exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
 
@@ -687,9 +696,6 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
           then
             logCmd $exe_template_registration_1
           fi
-
-        exe_template_registration_2="${WARP} -d ${DIMENSION} -i ${SEGMENTATION_BRAIN_N4_IMAGES[0]} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian -t ${REGISTRATION_TEMPLATE_WARP} -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE}"
-        logCmd $exe_template_registration_2
 
         if [[ $KEEP_TMP_IMAGES -eq 0 ]];
           then
@@ -722,6 +728,24 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         echo " Done with registration to specified template:  $(( time_elapsed_template_registration / 3600 ))h $(( time_elapsed_template_registration %3600 / 60 ))m $(( time_elapsed_template_registration % 60 ))s"
         echo "--------------------------------------------------------------------------------------"
         echo
+
+
+        #### BA Edits Begin ####
+        echo "--------------------------------------------------------------------------------------"
+       	echo "Compute summary measurements"
+        echo "--------------------------------------------------------------------------------------"
+        logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_INVERSE_WARP} ${OUTPUT_PREFIX} 1
+        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t [${REGISTRATION_TEMPLATE_GENERIC_AFFINE},1] -t ${REGISTRATION_TEMPLATE_INVERSE_WARP}"
+        logCmd $exe_template_registration_3
+        ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}`
+        bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+        gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+        wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+        thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+        echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}.csv
+        echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}.csv
+        echo "--------------------------------------------------------------------------------------"
+        #### BA Edits End ####
 
       fi
   fi
