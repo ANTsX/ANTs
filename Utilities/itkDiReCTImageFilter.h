@@ -115,8 +115,7 @@ public:
    */
   const RealImageType * GetGrayMatterProbabilityImage() const
   {
-    return static_cast<const RealImageType *>(
-      this->ProcessObject::GetInput( 1 ) );
+    return static_cast<const RealImageType *>( this->ProcessObject::GetInput( 1 ) );
   }
 
   /**
@@ -133,9 +132,16 @@ public:
    */
   const RealImageType * GetWhiteMatterProbabilityImage() const
   {
-    return static_cast<const RealImageType *>(
-      this->ProcessObject::GetInput( 2 ) );
+    return static_cast<const RealImageType *>( this->ProcessObject::GetInput( 2 ) );
   }
+
+  /**
+   * Get the warped white matter probability map.
+   */
+  const RealImageType * GetWarpedWhiteMatterProbabilityImage() const
+    {
+    return static_cast<const RealImageType *>( this->ProcessObject::GetOutput( 1 ) );
+    }
 
   /**
    * Set the maximum number of registration iterations.  Default = 50.

@@ -94,8 +94,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   identity.SetIdentity();
 
   typedef ImportImageFilter<InputPixelType, ImageDimension> SegmentationImageImporterType;
-  typename SegmentationImageImporterType::Pointer segmentationImageImporter =
-    SegmentationImageImporterType::New();
+  typename SegmentationImageImporterType::Pointer segmentationImageImporter = SegmentationImageImporterType::New();
   segmentationImageImporter->SetImportPointer( const_cast<InputPixelType *>(
                                                  this->GetSegmentationImage()->GetBufferPointer() ),
                                                ( this->GetSegmentationImage()->GetBufferedRegion() ).GetNumberOfPixels(),
@@ -104,12 +103,14 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   segmentationImageImporter->SetOrigin( this->GetSegmentationImage()->GetOrigin() );
   segmentationImageImporter->SetSpacing( this->GetSegmentationImage()->GetSpacing() );
   segmentationImageImporter->SetDirection( identity );
-  segmentationImageImporter->Update();
+
+  InputImagePointer segmentationImage = segmentationImageImporter->GetOutput();
+  segmentationImage->Update();
+  segmentationImage->DisconnectPipeline();
 
   typedef ImportImageFilter<RealType, ImageDimension> ProbablilityImageImporterType;
 
-  typename ProbablilityImageImporterType::Pointer grayMatterProbabilityImageImporter =
-    ProbablilityImageImporterType::New();
+  typename ProbablilityImageImporterType::Pointer grayMatterProbabilityImageImporter = ProbablilityImageImporterType::New();
   grayMatterProbabilityImageImporter->SetImportPointer( const_cast<RealType *>(
                                                           this->GetGrayMatterProbabilityImage()->GetBufferPointer() ),
                                                         ( this->GetGrayMatterProbabilityImage()->GetBufferedRegion() ).
@@ -118,10 +119,12 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   grayMatterProbabilityImageImporter->SetOrigin( this->GetGrayMatterProbabilityImage()->GetOrigin() );
   grayMatterProbabilityImageImporter->SetSpacing( this->GetGrayMatterProbabilityImage()->GetSpacing() );
   grayMatterProbabilityImageImporter->SetDirection( identity );
-  grayMatterProbabilityImageImporter->Update();
 
-  typename ProbablilityImageImporterType::Pointer whiteMatterProbabilityImageImporter =
-    ProbablilityImageImporterType::New();
+  RealImagePointer grayMatterProbabilityImage = grayMatterProbabilityImageImporter->GetOutput();
+  grayMatterProbabilityImage->Update();
+  grayMatterProbabilityImage->DisconnectPipeline();
+
+  typename ProbablilityImageImporterType::Pointer whiteMatterProbabilityImageImporter = ProbablilityImageImporterType::New();
   whiteMatterProbabilityImageImporter->SetImportPointer( const_cast<RealType *>(
                                                            this->GetWhiteMatterProbabilityImage()->GetBufferPointer() ),
                                                          ( this->GetWhiteMatterProbabilityImage()->GetBufferedRegion() )
@@ -130,15 +133,16 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   whiteMatterProbabilityImageImporter->SetOrigin( this->GetWhiteMatterProbabilityImage()->GetOrigin() );
   whiteMatterProbabilityImageImporter->SetSpacing( this->GetWhiteMatterProbabilityImage()->GetSpacing() );
   whiteMatterProbabilityImageImporter->SetDirection( identity );
-  whiteMatterProbabilityImageImporter->Update();
+
+  RealImagePointer whiteMatterProbabilityImage = whiteMatterProbabilityImageImporter->GetOutput();
+  whiteMatterProbabilityImage->Update();
+  whiteMatterProbabilityImage->DisconnectPipeline();
 
   // Extract the gray and white matter segmentations and combine to form the
   // gm/wm region.  Dilate the latter region by 1 voxel.
 
-  InputImagePointer grayMatter = this->ExtractRegion(
-      segmentationImageImporter->GetOutput(), this->m_GrayMatterLabel );
-  InputImagePointer whiteMatter = this->ExtractRegion(
-      segmentationImageImporter->GetOutput(), this->m_WhiteMatterLabel );
+  InputImagePointer grayMatter = this->ExtractRegion( segmentationImage, this->m_GrayMatterLabel );
+  InputImagePointer whiteMatter = this->ExtractRegion( segmentationImage, this->m_WhiteMatterLabel );
 
   typedef AddImageFilter<InputImageType, InputImageType, InputImageType> AdderType;
   typename AdderType::Pointer adder = AdderType::New();
@@ -146,11 +150,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   adder->SetInput2( whiteMatter );
   adder->Update();
 
-  InputImagePointer thresholdedRegion = this->ExtractRegion(
-      const_cast<const InputImageType *>( adder->GetOutput() ), 1 );
+  InputImagePointer thresholdedRegion = this->ExtractRegion( const_cast<const InputImageType *>( adder->GetOutput() ), 1 );
 
-  typedef BinaryBallStructuringElement<InputPixelType, ImageDimension>
-    StructuringElementType;
+  typedef BinaryBallStructuringElement<InputPixelType, ImageDimension> StructuringElementType;
   typedef BinaryDilateImageFilter<InputImageType, InputImageType,
                                   StructuringElementType> DilatorType;
 
@@ -168,10 +170,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
   // Extract the white and gm/wm matter contours
 
-  InputImagePointer dilatedMatterContours = this->ExtractRegionalContours(
-      dilatedMatters, 1 );
-  InputImagePointer whiteMatterContoursTmp = this->ExtractRegionalContours(
-      segmentationImageImporter->GetOutput(), this->m_WhiteMatterLabel );
+  InputImagePointer dilatedMatterContours = this->ExtractRegionalContours( dilatedMatters, 1 );
+  InputImagePointer whiteMatterContoursTmp = this->ExtractRegionalContours( segmentationImage, this->m_WhiteMatterLabel );
 
   typedef CastImageFilter<InputImageType, RealImageType> CasterType;
   typename CasterType::Pointer caster = CasterType::New();
@@ -184,55 +184,55 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   VectorType zeroVector( 0.0 );
 
   RealImagePointer corticalThicknessImage = RealImageType::New();
-  corticalThicknessImage->CopyInformation( segmentationImageImporter->GetOutput() );
-  corticalThicknessImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  corticalThicknessImage->CopyInformation( segmentationImage );
+  corticalThicknessImage->SetRegions( segmentationImage->GetRequestedRegion() );
   corticalThicknessImage->Allocate();
   corticalThicknessImage->FillBuffer( 0.0 );
 
   DisplacementFieldPointer forwardIncrementalField = DisplacementFieldType::New();
-  forwardIncrementalField->CopyInformation( segmentationImageImporter->GetOutput() );
-  forwardIncrementalField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  forwardIncrementalField->CopyInformation( segmentationImage );
+  forwardIncrementalField->SetRegions( segmentationImage->GetRequestedRegion() );
   forwardIncrementalField->Allocate();
 
   RealImagePointer hitImage = RealImageType::New();
-  hitImage->CopyInformation( segmentationImageImporter->GetOutput() );
-  hitImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  hitImage->CopyInformation( segmentationImage );
+  hitImage->SetRegions( segmentationImage->GetRequestedRegion() );
   hitImage->Allocate();
 
   DisplacementFieldPointer integratedField = DisplacementFieldType::New();
-  integratedField->CopyInformation( segmentationImageImporter->GetOutput() );
-  integratedField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  integratedField->CopyInformation( segmentationImage );
+  integratedField->SetRegions( segmentationImage->GetRequestedRegion() );
   integratedField->Allocate();
   integratedField->FillBuffer( zeroVector );
 
   DisplacementFieldPointer inverseField = DisplacementFieldType::New();
-  inverseField->CopyInformation( segmentationImageImporter->GetOutput() );
-  inverseField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  inverseField->CopyInformation( segmentationImage );
+  inverseField->SetRegions( segmentationImage->GetRequestedRegion() );
   inverseField->Allocate();
 
   DisplacementFieldPointer inverseIncrementalField = DisplacementFieldType::New();
-  inverseIncrementalField->CopyInformation( segmentationImageImporter->GetOutput() );
-  inverseIncrementalField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  inverseIncrementalField->CopyInformation( segmentationImage );
+  inverseIncrementalField->SetRegions( segmentationImage->GetRequestedRegion() );
   inverseIncrementalField->Allocate();
 
   RealImagePointer speedImage = RealImageType::New();
-  speedImage->CopyInformation( segmentationImageImporter->GetOutput() );
-  speedImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  speedImage->CopyInformation( segmentationImage );
+  speedImage->SetRegions( segmentationImage->GetRequestedRegion() );
   speedImage->Allocate();
 
   RealImagePointer thicknessImage = RealImageType::New();
-  thicknessImage->CopyInformation( segmentationImageImporter->GetOutput() );
-  thicknessImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  thicknessImage->CopyInformation( segmentationImage );
+  thicknessImage->SetRegions( segmentationImage->GetRequestedRegion() );
   thicknessImage->Allocate();
 
   RealImagePointer totalImage = RealImageType::New();
-  totalImage->CopyInformation( segmentationImageImporter->GetOutput() );
-  totalImage->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  totalImage->CopyInformation( segmentationImage );
+  totalImage->SetRegions( segmentationImage->GetRequestedRegion() );
   totalImage->Allocate();
 
   DisplacementFieldPointer velocityField = DisplacementFieldType::New();
-  velocityField->CopyInformation( segmentationImageImporter->GetOutput() );
-  velocityField->SetRegions( segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+  velocityField->CopyInformation( segmentationImage );
+  velocityField->SetRegions( segmentationImage->GetRequestedRegion() );
   velocityField->Allocate();
   velocityField->FillBuffer( zeroVector );
 
@@ -242,8 +242,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     corticalThicknessImage,
     corticalThicknessImage->GetRequestedRegion() );
   ImageRegionConstIterator<RealImageType> ItGrayMatterProbabilityMap(
-    grayMatterProbabilityImageImporter->GetOutput(),
-    grayMatterProbabilityImageImporter->GetOutput()->GetRequestedRegion() );
+    grayMatterProbabilityImage,
+    grayMatterProbabilityImage->GetRequestedRegion() );
   ImageRegionIterator<RealImageType> ItHitImage(
     hitImage,
     hitImage->GetRequestedRegion() );
@@ -257,8 +257,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     inverseIncrementalField,
     inverseIncrementalField->GetRequestedRegion() );
   ImageRegionConstIteratorWithIndex<InputImageType> ItSegmentationImage(
-    segmentationImageImporter->GetOutput(),
-    segmentationImageImporter->GetOutput()->GetRequestedRegion() );
+    segmentationImage,
+    segmentationImage->GetRequestedRegion() );
   ImageRegionIterator<RealImageType> ItSpeedImage(
     speedImage,
     speedImage->GetRequestedRegion() );
@@ -284,8 +284,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   bool isConverged = false;
   this->m_CurrentConvergenceMeasurement = NumericTraits<RealType>::max();
   this->m_ElapsedIterations = 0;
-  while( this->m_ElapsedIterations++ < this->m_MaximumNumberOfIterations &&
-         isConverged == false )
+  while( this->m_ElapsedIterations++ < this->m_MaximumNumberOfIterations && isConverged == false )
     {
     RealType currentEnergy = 0.0;
     RealType numberOfGrayMatterVoxels = 0.0;
@@ -314,18 +313,15 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       inverseField->Update();
       inverseField->DisconnectPipeline();
 
-      RealImagePointer warpedWhiteMatterProbabilityMap = this->WarpImage(
-          whiteMatterProbabilityImageImporter->GetOutput(), inverseField );
-      RealImagePointer warpedWhiteMatterContours = this->WarpImage(
-          whiteMatterContours, inverseField );
-      RealImagePointer warpedThicknessImage = this->WarpImage(
-          thicknessImage, inverseField );
+      RealImagePointer warpedWhiteMatterProbabilityImage = this->WarpImage( whiteMatterProbabilityImage, inverseField );
+      RealImagePointer warpedWhiteMatterContours = this->WarpImage( whiteMatterContours, inverseField );
+      RealImagePointer warpedThicknessImage = this->WarpImage( thicknessImage, inverseField );
 
       typedef GradientRecursiveGaussianImageFilter<RealImageType, DisplacementFieldType>
         GradientImageFilterType;
       typename GradientImageFilterType::Pointer gradientFilter =
         GradientImageFilterType::New();
-      gradientFilter->SetInput( warpedWhiteMatterProbabilityMap );
+      gradientFilter->SetInput( warpedWhiteMatterProbabilityImage );
       gradientFilter->SetSigma( this->m_SmoothingVariance );
       gradientFilter->Update();
 
@@ -337,8 +333,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         gradientImage,
         gradientImage->GetRequestedRegion() );
       ImageRegionIterator<RealImageType> ItWarpedWhiteMatterProbabilityMap(
-        warpedWhiteMatterProbabilityMap,
-        warpedWhiteMatterProbabilityMap->GetRequestedRegion() );
+        warpedWhiteMatterProbabilityImage,
+        warpedWhiteMatterProbabilityImage->GetRequestedRegion() );
       ImageRegionIterator<RealImageType> ItWarpedWhiteMatterContours(
         warpedWhiteMatterContours,
         warpedWhiteMatterContours->GetRequestedRegion() );
@@ -545,8 +541,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 //       velocityField->FillBuffer( zeroVector );
 //       }
 
-
-
     RealImagePointer smoothHitImage;
     RealImagePointer smoothTotalImage;
     if( this->m_SmoothingVariance > 0.0 )
@@ -625,7 +619,14 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     reporter.CompletedStep();
     }
 
+  // Replace the identity direction with the original direction in the outputs
+
+  RealImagePointer warpedWhiteMatterProbabilityImage = this->WarpImage( whiteMatterProbabilityImage, inverseField );
+  warpedWhiteMatterProbabilityImage->SetDirection( this->GetSegmentationImage()->GetDirection() );
+  corticalThicknessImage->SetDirection( this->GetSegmentationImage()->GetDirection() );
+
   this->SetNthOutput( 0, corticalThicknessImage );
+  this->SetNthOutput( 1, warpedWhiteMatterProbabilityImage );
 }
 
 template <class TInputImage, class TOutputImage>
