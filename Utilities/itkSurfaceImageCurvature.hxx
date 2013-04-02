@@ -458,6 +458,7 @@ void  SurfaceImageCurvature<TSurface>
   IteratorType Iterator( image, image->GetLargestPossibleRegion().GetSize() );
   bool         wmgmcurv = true;
   Iterator.GoToBegin();
+  std::cout <<" ASS " << std::endl;
   while(  !Iterator.IsAtEnd()  )
     {
     float pix = Iterator.Get();
@@ -468,7 +469,6 @@ void  SurfaceImageCurvature<TSurface>
     ++Iterator;
     }
 
-  wmgmcurv = false;
   ::ants::antscout << " Using Binary Segmentation curv? " << wmgmcurv << std::endl;
 
   if( wmgmcurv )
