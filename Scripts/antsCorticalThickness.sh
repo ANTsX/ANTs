@@ -53,7 +53,7 @@ We use *intensity* to denote the original anatomical image of the brain.
 
 We use *probability* to denote a probability image with values in range 0 to 1.
 
-We use *label* to denote a label image with values in range 0 to N
+We use *label* to denote a label image with values in range 0 to N.
 
      -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
      -a:  Anatomical image                      Structural *intensity* image, typically T1.  If more than one
