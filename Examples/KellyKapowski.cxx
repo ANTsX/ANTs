@@ -227,7 +227,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( thicknessPriorOption && thicknessPriorOption->GetNumberOfFunctions() )
     {
     direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
-                                         thicknessPriorOption->GetFunction( 0 )->GetName() ) );
+                                       thicknessPriorOption->GetFunction( 0 )->GetName() ) );
     }
   //
   // gradient step
@@ -237,7 +237,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( gradientStepOption && gradientStepOption->GetNumberOfFunctions() )
     {
     direct->SetInitialGradientStep( parser->Convert<RealType>(
-                                      gradientStepOption->GetFunction( 0 )->GetName() ) );
+                                    gradientStepOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -248,7 +248,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( smoothingVelocityFieldVarianceOption && smoothingVelocityFieldVarianceOption->GetNumberOfFunctions() )
     {
     direct->SetSmoothingVelocityFieldVariance( parser->Convert<RealType>(
-                                 smoothingVelocityFieldVarianceOption->GetFunction( 0 )->GetName() ) );
+                                               smoothingVelocityFieldVarianceOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -259,7 +259,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( smoothingVarianceOption && smoothingVarianceOption->GetNumberOfFunctions() )
     {
     direct->SetSmoothingVariance( parser->Convert<RealType>(
-                                 smoothingVarianceOption->GetFunction( 0 )->GetName() ) );
+                                  smoothingVarianceOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -270,7 +270,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( numberOfIntegrationPointsOption && numberOfIntegrationPointsOption->GetNumberOfFunctions() )
     {
     direct->SetNumberOfIntegrationPoints( parser->Convert<RealType>(
-                                 numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
+                                          numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
     }
 
   typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
@@ -299,9 +299,35 @@ int DiReCT( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
-  if( outputOption && outputOption->GetNumberOfFunctions() )
+
+  if( outputOption && outputOption->GetNumberOfFunctions() > 0 )
     {
-    WriteImage<ImageType>(  direct->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      }
+    else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter() ).c_str() );
+      if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+        {
+        WriteImage<ImageType>( direct->GetOutput( 1 ), ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        }
+      }
+    }
+
+  if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+    {
+    std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetName();
+    ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
+    }
+  else if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+
+    {
+    }
+  if( outputOption && outputOption->GetNumberOfFunctions() > 1 )
+    {
+    WriteImage<ImageType>(  direct->GetOutput( 1 ), ( outputOption->GetFunction( 1 )->GetName() ).c_str() );
     }
 
   return EXIT_SUCCESS;
@@ -452,7 +478,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "imageFilename" );
+    option->SetUsageOption( 0, "imageFileName" );
+    option->SetUsageOption( 1, "[imageFileName,warpedWhiteMatterImageFileName]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
