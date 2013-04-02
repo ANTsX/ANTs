@@ -57,7 +57,7 @@ Optional arguments:
      -r:  mrf                                   Specifies MRF prior (of the form '[weight,neighborhood]', e.g.
                                                 '[0.1,1x1x1]' which is default).
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
+     -k:  keep temporary files                  Keep temporary files on disk (default = false).
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
 
 USAGE
@@ -192,7 +192,7 @@ else
           o) #output prefix
        OUTPUT_PREFIX=$OPTARG
        ;;
-          p) #brain segmentation label prior image
+          p) # segmentation label prior image
        ATROPOS_SEGMENTATION_PRIORS=$OPTARG
        ;;
           s) #output suffix
@@ -343,16 +343,19 @@ for (( i = 0; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
     N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]=$((N4_WEIGHT_MASK_POSTERIOR_LABELS[$i]-1))
   done
 
-time_start_brain_segmentation=`date +%s`
+time_start_segmentation=`date +%s`
 
 if [[ $INITIALIZE_WITH_KMEANS -eq 0 ]]
   then
-    logCmd cp ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[0]}]} ${SEGMENTATION_WEIGHT_MASK}
 
-    for (( i = 1; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
+    N4_WEIGHT_MASK_IMAGES=()
+    for (( i = 0; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
       do
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} + ${SEGMENTATION_WEIGHT_MASK} ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]}
+        N4_WEIGHT_MASK_IMAGES=( ${N4_WEIGHT_MASK_IMAGES[@]} ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]} )
       done
+
+    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+
   fi
 
 if [[ -f ${SEGMENTATION_CONVERGENCE_FILE} ]];
@@ -396,10 +399,10 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           fi
       fi
 
-    exe_brain_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}[1] ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
+    exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}[1] ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
     if [[ $i -eq 0 ]];
       then
-        exe_brain_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK}  -c ${ATROPOS_SEGMENTATION_CONVERGENCE} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}[0] ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
+        exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK}  -c ${ATROPOS_SEGMENTATION_CONVERGENCE} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}[0] ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
       else
         logCmd cp -f ${ATROPOS_SEGMENTATION} ${SEGMENTATION_PREVIOUS_ITERATION}
 
@@ -414,7 +417,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           done
       fi
 
-    logCmd $exe_brain_segmentation
+    logCmd $exe_segmentation
 
     if [[ $i -eq 0 ]];
       then
@@ -469,12 +472,13 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           fi
       fi
 
-    logCmd cp ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[0]}]} ${SEGMENTATION_WEIGHT_MASK}
-
-    for (( j = 1; j < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; j++ ))
+    N4_WEIGHT_MASK_IMAGES=()
+    for (( i = 0; i < ${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}; i++ ))
       do
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} + ${SEGMENTATION_WEIGHT_MASK} ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]}
+        N4_WEIGHT_MASK_IMAGES=( ${N4_WEIGHT_MASK_IMAGES[@]} ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]} )
       done
+
+    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
 
   done
 
@@ -488,16 +492,16 @@ if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       done
   fi
 
-time_end_brain_segmentation=`date +%s`
-time_elapsed_brain_segmentation=$((time_end_brain_segmentation - time_start_brain_segmentation))
+time_end_segmentation=`date +%s`
+time_elapsed_segmentation=$((time_end_segmentation - time_start_segmentation))
 
 echo
 echo "--------------------------------------------------------------------------------------"
 if [[ POSTERIOR_PROBABILITY_CONVERGED -eq 1 ]];
   then
-    echo " Done with brain segmentation (posterior prob. converged):  $(( time_elapsed_brain_segmentation / 3600 ))h $(( time_elapsed_brain_segmentation %3600 / 60 ))m $(( time_elapsed_brain_segmentation % 60 ))s"
+    echo " Done with segmentation (posterior prob. converged):  $(( time_elapsed_segmentation / 3600 ))h $(( time_elapsed_segmentation %3600 / 60 ))m $(( time_elapsed_segmentation % 60 ))s"
   else
-    echo " Done with brain segmentation (exceeded max. iterations):  $(( time_elapsed_brain_segmentation / 3600 ))h $(( time_elapsed_brain_segmentation %3600 / 60 ))m $(( time_elapsed_brain_segmentation % 60 ))s"
+    echo " Done with segmentation (exceeded max. iterations):  $(( time_elapsed_segmentation / 3600 ))h $(( time_elapsed_segmentation %3600 / 60 ))m $(( time_elapsed_segmentation % 60 ))s"
   fi
 echo "--------------------------------------------------------------------------------------"
 echo
