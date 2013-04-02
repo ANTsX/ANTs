@@ -657,82 +657,79 @@ REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_
 REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX}
 
 
-if [[ ${TEMPLATES_ARE_IDENTICAL} -eq 1 ]];
+
+if [[ -f ${REGISTRATION_TEMPLATE} ]];
   then
 
-    logCmd mv $SEGMENTATION_GENERIC_AFFINE $REGISTRATION_TEMPLATE_GENERIC_AFFINE
-    logCmd mv $SEGMENTATION_WARP $REGISTRATION_TEMPLATE_WARP
-    logCmd mv $SEGMENTATION_INVERSE_WARP $REGISTRATION_TEMPLATE_INVERSE_WARP
+    TMP_FILES=( $REGISTRATION_TEMPLATE_GENERIC_AFFINE $REGISTRATION_TEMPLATE_WARP $REGISTRATION_TEMPLATE_INVERSE_WARP )
 
-  else if [[ ! -f ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} || ! -f ${REGISTRATION_TEMPLATE_WARP} || ! -f "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.${OUTPUT_SUFFIX}" ]];
+    if [[ ${TEMPLATES_ARE_IDENTICAL} -eq 1 ]];
       then
 
-        echo
-        echo "--------------------------------------------------------------------------------------"
-        echo " Registration ${SEGMENTATION_BRAIN_N4_IMAGES[$j]} to specified template"
-        echo "--------------------------------------------------------------------------------------"
-        echo
+        logCmd mv $SEGMENTATION_GENERIC_AFFINE $REGISTRATION_TEMPLATE_GENERIC_AFFINE
+        logCmd mv $SEGMENTATION_WARP $REGISTRATION_TEMPLATE_WARP
+        logCmd mv $SEGMENTATION_INVERSE_WARP $REGISTRATION_TEMPLATE_INVERSE_WARP
 
-        SEGMENTATION_BRAIN_N4_IMAGES=`ls ${OUTPUT_PREFIX}Brain*N4.nii.gz`
-        EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=()
-        for (( j = 0; j < ${#SEGMENTATION_BRAIN_N4_IMAGES[@]}; j++ ))
-          do
-            EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=( ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} ${OUTPUT_PREFIX}ExtractedBrain${j}N4.nii.gz )
-            logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[$j]} m ${SEGMENTATION_BRAIN_N4_IMAGES[$j]} ${BRAIN_EXTRACTION_MASK}
-          done
-
-        TMP_FILES=( ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} )
-
-        time_start_template_registration=`date +%s`
-
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1]"
-        stage1="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
-        stage2="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
-        stage3="-m CC[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
-
-        exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
-
-        if [[ ! -f ${REGISTRATION_TEMPLATE_WARP} ]];
+      else if [[ ! -f ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} || ! -f ${REGISTRATION_TEMPLATE_WARP} || ! -f "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.${OUTPUT_SUFFIX}" ]];
           then
-            logCmd $exe_template_registration_1
-          fi
+            echo
+            echo "--------------------------------------------------------------------------------------"
+            echo " Registration ${REGISTRATION_TEMPLATE} to ${SEGMENTATION_BRAIN_N4_IMAGES[$j]}"
+            echo "--------------------------------------------------------------------------------------"
+            echo
 
-        if [[ $KEEP_TMP_IMAGES -eq 0 ]];
-          then
-            for f in ${TMP_FILES[@]}
+            SEGMENTATION_BRAIN_N4_IMAGES=`ls ${OUTPUT_PREFIX}Brain*N4.nii.gz`
+            EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=()
+            for (( j = 0; j < ${#SEGMENTATION_BRAIN_N4_IMAGES[@]}; j++ ))
               do
-                logCmd rm $f
+                EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=( ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} ${OUTPUT_PREFIX}ExtractedBrain${j}N4.nii.gz )
+                logCmd ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[$j]} m ${SEGMENTATION_BRAIN_N4_IMAGES[$j]} ${BRAIN_EXTRACTION_MASK}
               done
+
+            TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} )
+
+            time_start_template_registration=`date +%s`
+
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1]"
+            stage1="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
+            stage2="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
+            stage3="-m CC[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+
+            exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
+
+            if [[ ! -f ${REGISTRATION_TEMPLATE_WARP} ]];
+              then
+                logCmd $exe_template_registration_1
+              fi
+
+            ## check to see if the output registration transforms exist
+            if [[ ! -f ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} ]];
+              then
+                echo "The registration component of the segmentation step didn't complete properly."
+                echo "The transform file ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} does not exist."
+                exit 1
+              fi
+
+            if [[ ! -f ${REGISTRATION_TEMPLATE_WARP} ]];
+              then
+                echo "The registration component of the segmentation step didn't complete properly."
+                echo "The transform file ${REGISTRATION_TEMPLATE_WARP} does not exist."
+                exit 1
+              fi
+
+            time_end_template_registration=`date +%s`
+            time_elapsed_template_registration=$((time_end_template_registration - time_start_template_registration))
+
+            echo
+            echo "--------------------------------------------------------------------------------------"
+            echo " Done with registration:  $(( time_elapsed_template_registration / 3600 ))h $(( time_elapsed_template_registration %3600 / 60 ))m $(( time_elapsed_template_registration % 60 ))s"
+            echo "--------------------------------------------------------------------------------------"
+            echo
           fi
-
-        ## check to see if the output registration transforms exist
-        if [[ ! -f ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} ]];
-          then
-            echo "The registration component of the segmentation step didn't complete properly."
-            echo "The transform file ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} does not exist."
-            exit 1
-          fi
-
-        if [[ ! -f ${REGISTRATION_TEMPLATE_WARP} ]];
-          then
-            echo "The registration component of the segmentation step didn't complete properly."
-            echo "The transform file ${REGISTRATION_TEMPLATE_WARP} does not exist."
-            exit 1
-          fi
-
-        time_end_template_registration=`date +%s`
-        time_elapsed_template_registration=$((time_end_template_registration - time_start_template_registration))
-
-        echo
-        echo "--------------------------------------------------------------------------------------"
-        echo " Done with registration to specified template:  $(( time_elapsed_template_registration / 3600 ))h $(( time_elapsed_template_registration %3600 / 60 ))m $(( time_elapsed_template_registration % 60 ))s"
-        echo "--------------------------------------------------------------------------------------"
-        echo
-
 
         #### BA Edits Begin ####
         echo "--------------------------------------------------------------------------------------"
-       	echo "Compute summary measurements"
+        echo "Compute summary measurements"
         echo "--------------------------------------------------------------------------------------"
         logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_INVERSE_WARP} ${OUTPUT_PREFIX} 1
         exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t [${REGISTRATION_TEMPLATE_GENERIC_AFFINE},1] -t ${REGISTRATION_TEMPLATE_INVERSE_WARP}"
@@ -747,9 +744,15 @@ if [[ ${TEMPLATES_ARE_IDENTICAL} -eq 1 ]];
         echo "--------------------------------------------------------------------------------------"
         #### BA Edits End ####
 
+        if [[ $KEEP_TMP_IMAGES -eq 0 ]];
+          then
+            for f in ${TMP_FILES[@]}
+              do
+                logCmd rm $f
+              done
+          fi
       fi
   fi
-
 
 ################################################################################
 #
