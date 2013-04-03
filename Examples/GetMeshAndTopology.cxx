@@ -35,9 +35,19 @@
 #include "vtkRenderer.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkDataSetMapper.h"
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkPNGWriter.h>
+#include <vtkGraphicsFactory.h>
+#include <vtkImagingFactory.h>
 #include "ReadWriteImage.h"
 #include "itkRescaleIntensityImageFilter.h"
-
 #include "vtkDelaunay2D.h"
 #include "vtkFloatArray.h"
 #include <vtkSmartPointer.h>
@@ -92,8 +102,17 @@ float ComputeGenus(vtkPolyData* pd1)
   return g;
 }
 
-void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter = true)
+void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter = true, bool offscreen = true )
 {
+  vtkSmartPointer<vtkGraphicsFactory> graphics_factory = 
+    vtkSmartPointer<vtkGraphicsFactory>::New();
+  graphics_factory->SetOffScreenOnlyMode( 1);
+  graphics_factory->SetUseMesaClasses( 1 );
+ 
+  vtkSmartPointer<vtkImagingFactory> imaging_factory = 
+    vtkSmartPointer<vtkImagingFactory>::New();
+  imaging_factory->SetUseMesaClasses( 1 ); 
+ 
   vtkRenderer*     ren1 = vtkRenderer::New();
   vtkRenderer*     ren2 = vtkRenderer::New();
   vtkRenderWindow* renWin = vtkRenderWindow::New();
@@ -142,7 +161,22 @@ void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter
   // add the actor and start the render loop
   ren1->AddActor(actor);
   renWin->Render();
-  inter->Start();
+
+  if ( offscreen ) 
+    {
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = 
+    vtkSmartPointer<vtkWindowToImageFilter>::New();
+    windowToImageFilter->SetInput(renWin);
+    windowToImageFilter->SetMagnification( 4 );
+    windowToImageFilter->Update();
+ 
+    vtkSmartPointer<vtkPNGWriter> writer = 
+      vtkSmartPointer<vtkPNGWriter>::New();
+    writer->SetFileName("screenshot.png");
+    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+    writer->Write();
+    }
+  if ( ! offscreen )  inter->Start();
   mapper->Delete();
   actor->Delete();
   ren1->Delete();
