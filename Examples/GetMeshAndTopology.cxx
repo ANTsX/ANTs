@@ -25,11 +25,16 @@
 #include "vtkPolyDataReader.h"
 
 #include "BinaryImageToMeshFilter.h"
+#include "vtkUnstructuredGrid.h"
 #include "vtkCallbackCommand.h"
 #include "vtkPointPicker.h"
 #include "vtkCellPicker.h"
 #include "vtkPolyDataWriter.h"
 #include "vtkPolyDataReader.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkDataSetMapper.h"
 #include "ReadWriteImage.h"
 #include "itkRescaleIntensityImageFilter.h"
 
@@ -85,6 +90,70 @@ float ComputeGenus(vtkPolyData* pd1)
   antscout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
 
   return g;
+}
+
+void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter = true)
+{
+  vtkRenderer*     ren1 = vtkRenderer::New();
+  vtkRenderer*     ren2 = vtkRenderer::New();
+  vtkRenderWindow* renWin = vtkRenderWindow::New();
+  renWin->AddRenderer(ren1);
+  if( secondwin )
+    {
+    renWin->AddRenderer(ren2);
+    }
+  vtkRenderWindowInteractor* inter = vtkRenderWindowInteractor::New();
+  inter->SetRenderWindow(renWin);
+  vtkCallbackCommand *cbc = vtkCallbackCommand::New();
+  ren1->AddObserver(vtkCommand::KeyPressEvent, cbc);
+
+  vtkDataSetMapper* mapper = vtkDataSetMapper::New();
+  mapper->SetInput(vtkgrid);
+  mapper->SetScalarRange(0, 255);
+  vtkActor* actor = vtkActor::New();
+  actor->SetMapper(mapper);
+  vtkDataSetMapper* mapper2 = vtkDataSetMapper::New();
+  if( secondwin )
+    {
+    mapper2->SetInput(vtkgrid);
+    }
+  if( secondwin )
+    {
+    mapper2->SetScalarRange(0, 255);
+    }
+  vtkActor* actor2 = vtkActor::New();
+  if( secondwin )
+    {
+    actor2->SetMapper(mapper2);
+    }
+  if( secondwin )
+    {
+    ren1->SetViewport(0.0, 0.0, 0.5, 1.0);
+    ren2->SetViewport(0.5, 0.0, 1.0, 1.0);
+    }
+  else
+    {
+    ren1->SetViewport(0.0, 0.0, 1.0, 1.0);
+    }
+  if( secondwin )
+    {
+    ren2->AddActor(actor2);
+    }
+  // add the actor and start the render loop
+  ren1->AddActor(actor);
+  renWin->Render();
+  inter->Start();
+  mapper->Delete();
+  actor->Delete();
+  ren1->Delete();
+  mapper2->Delete();
+  actor2->Delete();
+  ren2->Delete();
+  renWin->Delete();
+  if( delinter )
+    {
+    inter->Delete();
+    }
 }
 
 float vtkComputeTopology(vtkPolyData* pd)
@@ -177,7 +246,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   fltMesh->Update();
   vtkPolyData* vtkmesh = fltMesh->GetMesh();
 // assign scalars to the original surface mesh
-//  Display((vtkUnstructuredGrid*)vtkmesh);
+  Display((vtkUnstructuredGrid*)vtkmesh);
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
@@ -264,7 +333,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       param->InsertNextValue(vvv);
       }
     vtkmesh->GetPointData()->SetScalars(param);
-    //  Display((vtkUnstructuredGrid*)vtkmesh);
+      Display((vtkUnstructuredGrid*)vtkmesh);
 //  antscout<<"DOne? "; std::cin >> done;
     }
   antscout << " done with mesh map ";
@@ -294,7 +363,7 @@ float GetImageTopology(typename TImage::Pointer image)
   fltMesh->Update();
   vtkPolyData* vtkmesh = fltMesh->GetMesh();
 // assign scalars to the original surface mesh
-//  Display((vtkUnstructuredGrid*)vtkmesh);
+  Display((vtkUnstructuredGrid*)vtkmesh);
 
   float genus =  vtkComputeTopology(vtkmesh);
   antscout << " Genus " << genus << std::endl;
