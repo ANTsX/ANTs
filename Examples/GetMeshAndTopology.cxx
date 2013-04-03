@@ -102,11 +102,11 @@ float ComputeGenus(vtkPolyData* pd1)
   return g;
 }
 
-void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter = true, bool offscreen = true )
+void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin = false, bool delinter = true )
 {
   vtkSmartPointer<vtkGraphicsFactory> graphics_factory = 
     vtkSmartPointer<vtkGraphicsFactory>::New();
-  graphics_factory->SetOffScreenOnlyMode( 1);
+  if ( offscreen.length() > 4 ) graphics_factory->SetOffScreenOnlyMode( 1);
   graphics_factory->SetUseMesaClasses( 1 );
  
   vtkSmartPointer<vtkImagingFactory> imaging_factory = 
@@ -162,7 +162,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter
   ren1->AddActor(actor);
   renWin->Render();
 
-  if ( offscreen ) 
+  if ( offscreen.length() > 4 ) 
     {
     vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = 
     vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -172,11 +172,11 @@ void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter
  
     vtkSmartPointer<vtkPNGWriter> writer = 
       vtkSmartPointer<vtkPNGWriter>::New();
-    writer->SetFileName("screenshot.png");
+    writer->SetFileName( offscreen.c_str()  );
     writer->SetInputConnection(windowToImageFilter->GetOutputPort());
     writer->Write();
     }
-  if ( ! offscreen )  inter->Start();
+  if (  offscreen.length() < 5 )  inter->Start();
   mapper->Delete();
   actor->Delete();
   ren1->Delete();
@@ -257,20 +257,12 @@ float vtkComputeTopology(vtkPolyData* pd)
 template <class TImage>
 void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image2,  std::string outfn,
                   const char* paramname, float scaledata,
-                  float aaParm )
+                  float aaParm, std::string offscreen )
 {
   //  antscout << " parname " << std::string(paramname) << std::endl;
   typedef TImage      ImageType;
   typedef ImageType   itype;
   typedef vtkPolyData MeshType;
-
-  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
-  typename dgf::Pointer filter = dgf::New();
-  filter->SetVariance(0.8);
-  filter->SetMaximumError(.01f);
-  filter->SetUseImageSpacingOn();
-  filter->SetInput(image);
-  filter->Update();
 
   typedef BinaryImageToMeshFilter<ImageType> FilterType;
   typename  FilterType::Pointer fltMesh = FilterType::New();
@@ -280,7 +272,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   fltMesh->Update();
   vtkPolyData* vtkmesh = fltMesh->GetMesh();
 // assign scalars to the original surface mesh
-  Display((vtkUnstructuredGrid*)vtkmesh);
+//  Display((vtkUnstructuredGrid*)vtkmesh);
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
@@ -367,14 +359,13 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       param->InsertNextValue(vvv);
       }
     vtkmesh->GetPointData()->SetScalars(param);
-      Display((vtkUnstructuredGrid*)vtkmesh);
-//  antscout<<"DOne? "; std::cin >> done;
     }
+  antscout <<" Now display to " << offscreen << std::endl;
+  Display((vtkUnstructuredGrid*)vtkmesh, offscreen );
   antscout << " done with mesh map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(vtkmesh);
   antscout << " writing " << outfn << std::endl;
-  // outnm="C:\\temp\\mesh.vtk";
   writer->SetFileName(outfn.c_str() );
   writer->SetFileTypeToBinary();
   writer->Update();
@@ -397,7 +388,7 @@ float GetImageTopology(typename TImage::Pointer image)
   fltMesh->Update();
   vtkPolyData* vtkmesh = fltMesh->GetMesh();
 // assign scalars to the original surface mesh
-  Display((vtkUnstructuredGrid*)vtkmesh);
+//  Display((vtkUnstructuredGrid*)vtkmesh);
 
   float genus =  vtkComputeTopology(vtkmesh);
   antscout << " Genus " << genus << std::endl;
@@ -453,7 +444,7 @@ private:
 
   if( argc < 2 )
     {
-    antscout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001" << std::endl;
+    antscout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001 offscreen.png " << std::endl;
     antscout << " outputs vtk version of input image -- assumes object is defined by non-zero values " << std::endl;
     antscout << " mesh is colored by the value of the image voxel " << std::endl;
     antscout <<  " the AA-Param could cause topo problems but makes nicer meshes  " << std::endl;
@@ -506,9 +497,13 @@ private:
     aaParm = atof(argv[6]);
     }
   antscout << "aaParm " << aaParm << std::endl;
-  GetValueMesh<ImageType>(image, image2, outfn, paramname, scaledata, aaParm);
+  std::string offscreen="win";
+  if( argc > 7 )
+    {
+    offscreen = std::string( argv[7] );
+    }
+  GetValueMesh<ImageType>(image, image2, outfn, paramname, scaledata, aaParm, offscreen );
   //  GetImageTopology<ImageType>(image);
-
   return 0;
 }
 } // namespace ants
