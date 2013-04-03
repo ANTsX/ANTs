@@ -741,6 +741,15 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
         echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}.csv
         echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}.csv
+        if [[ -f ${ANTSPATH}/GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
+          ${ANTSPATH}/ThresholdImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${OUTPUT_PREFIX}temp.nii.gz 3 3
+          ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz ME ${OUTPUT_PREFIX}temp.nii.gz 1
+          ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz GetLargestComponent ${OUTPUT_PREFIX}temp.nii.gz 1
+          ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz MD ${OUTPUT_PREFIX}temp.nii.gz 2
+          ${ANTSPATH}/SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.nii.gz
+          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
+          rm ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz
+        fi
         echo "--------------------------------------------------------------------------------------"
         #### BA Edits End ####
 
