@@ -362,9 +362,6 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
     vtkmesh->GetPointData()->SetScalars(param);
     }
   antscout <<" Now display to " << offscreen << std::endl;
-
-  if ( inflate > 0 ) {
-  typedef vtkPolyData MeshType;
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   inflater->SetInput(vtkmesh);
@@ -376,10 +373,10 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   inflater->SetPassBand( 0.001 ); // smaller values increase smoothing
   inflater->NonManifoldSmoothingOn();
   inflater->NormalizeCoordinatesOff();
-  inflater->Update();
-  vtkmesh = inflater->GetOutput();
+  if ( inflate > 0 ) {
+    inflater->Update();
+    vtkmesh = inflater->GetOutput();
   }
-
   Display((vtkUnstructuredGrid*)vtkmesh, offscreen );
   antscout << " done with mesh map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
@@ -521,7 +518,7 @@ private:
     {
     offscreen = std::string( argv[7] );
     }
-  unsigned int inflate = false;
+  unsigned int inflate = 0;
   if( argc > 8 )
     {
     inflate = atoi(argv[8]);
