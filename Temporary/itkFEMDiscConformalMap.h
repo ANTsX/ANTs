@@ -65,9 +65,10 @@
 #include "itkVectorContainer.h"
 #include "itkCastImageFilter.h"
 
-#include "itkFEM.h"
+// #include "itkFEM.h"
 #include "itkFEMLinearSystemWrapperItpack.h"
-
+#include "itkFEMLoadNode.h"
+#include "itkFEMSolver.h"
 #include "itkMesh.h"
 
 namespace itk
@@ -130,7 +131,7 @@ public:
 
   /** FEM types */
   typedef itk::fem::MaterialLinearElasticity                   MaterialType;
-  typedef itk::fem::Node                                       NodeType;
+  typedef itk::fem::Element::Node                              NodeType;
   typedef itk::fem::LoadNode                                   LoadType;
   typedef itk::fem::Element3DC0LinearTriangularLaplaceBeltrami ElementType;
   typedef itk::fem::Element3DC0LinearTriangularMembrane        ElementType1;
@@ -268,7 +269,7 @@ private:
   float                               m_DistanceCostWeight;
   float                               m_LabelCostWeight;
 
-  itk::fem::Solver m_Solver;
+  itk::fem::Solver<3> m_Solver;
 
   bool       m_ReadFromFile;
   bool       m_Debug;

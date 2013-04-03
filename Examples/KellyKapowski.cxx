@@ -269,8 +269,19 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     numberOfIntegrationPointsOption = parser->GetOption( "number-of-integration-points" );
   if( numberOfIntegrationPointsOption && numberOfIntegrationPointsOption->GetNumberOfFunctions() )
     {
-    direct->SetNumberOfIntegrationPoints( parser->Convert<RealType>(
+    direct->SetNumberOfIntegrationPoints( parser->Convert<unsigned int>(
                                           numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
+    }
+
+  //
+  // number of invert displacement field iterations
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+    numberOfInvertDisplacementFieldIterationsOption = parser->GetOption( "maximum-number-of-invert-displacement-field-iterations" );
+  if( numberOfInvertDisplacementFieldIterationsOption && numberOfInvertDisplacementFieldIterationsOption->GetNumberOfFunctions() )
+    {
+    direct->SetMaximumNumberOfInvertDisplacementFieldIterations( parser->Convert<unsigned int>(
+                                                                 numberOfInvertDisplacementFieldIterationsOption->GetFunction( 0 )->GetName() ) );
     }
 
   typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
@@ -466,6 +477,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "number-of-integration-points" );
     option->SetShortName( 'n' );
     option->SetUsageOption( 0, "numberOfPoints" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Maximum number of iterations for estimating the invert displacement field.  Default = 20." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "maximum-number-of-invert-displacement-field-iterations" );
+    option->SetShortName( 'p' );
+    option->SetUsageOption( 0, "numberOfIterations" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

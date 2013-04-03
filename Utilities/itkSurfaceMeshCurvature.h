@@ -79,12 +79,12 @@ public:
     for( unsigned int i = 0; i < m_SurfacePatch->m_Neighbors.size(); i++ )
       {
       VertexType neigh = m_SurfacePatch->m_Neighbors[i]->GetLocation();
-      PointType  pt;
+      PointType  pti;
       for( int j = 0; j < 3; j++ )
         {
-        pt(j) = neigh[j];
+        pti(j) = neigh[j];
         }
-      this->m_PointList.insert(this->m_PointList.begin(), pt);
+      this->m_PointList.insert(this->m_PointList.begin(), pti);
       this->m_FunctionValueList.insert(
         this->m_FunctionValueList.begin(), this->m_SurfacePatch->m_Neighbors[i]->GetValue(0) );
       }
