@@ -160,6 +160,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
     }
   // add the actor and start the render loop
   ren1->AddActor(actor);
+  ren1->SetBackground(1,1,1); // Background color
   renWin->Render();
 
   if ( offscreen.length() > 4 ) 
