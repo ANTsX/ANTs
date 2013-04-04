@@ -389,7 +389,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
     inflater->Update();
     vtkmesh = inflater->GetOutput();
   }
-  Display((vtkUnstructuredGrid*)vtkmesh, offscreen );
+  if ( offscreen.length() > 2 ) Display((vtkUnstructuredGrid*)vtkmesh, offscreen );
   antscout << " done with mesh map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(vtkmesh);
@@ -472,11 +472,12 @@ private:
 
   if( argc < 2 )
     {
-    antscout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001 offscreen.png " << std::endl;
+    antscout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001 offscreen.png  inflation-interations " << std::endl;
     antscout << " outputs vtk version of input image -- assumes object is defined by non-zero values " << std::endl;
     antscout << " mesh is colored by the value of the image voxel " << std::endl;
-    antscout <<  " the AA-Param could cause topo problems but makes nicer meshes  " << std::endl;
-    antscout << " ValueScale controls contrast in image appearance - lower increaseses -- should be <= 1 "
+    antscout <<  " the AntiaAliasParm could cause topo problems but makes nicer meshes  " << std::endl;
+    antscout <<  " the offscreen param will render to screen if set to win, 0 means no rendering " << std::endl;
+    antscout << " ValueScale controls contrast in image appearance - lower increaseses contrast -- should be <= 1 "
              << std::endl;
     return EXIT_FAILURE;
     }
