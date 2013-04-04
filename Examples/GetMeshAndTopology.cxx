@@ -20,6 +20,7 @@
 #include "itkBinaryMask3DMeshSource.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "vtkPolyData.h"
+#include "vtkCellData.h"
 #include "vtkPolyDataConnectivityFilter.h"
 #include "vtkExtractEdges.h"
 #include "vtkPolyDataReader.h"
@@ -104,6 +105,13 @@ float ComputeGenus(vtkPolyData* pd1)
 
 void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin = false, bool delinter = true )
 {
+
+  vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normalGenerator->SetInput(vtkgrid);
+  normalGenerator->ComputePointNormalsOn();
+  normalGenerator->ComputeCellNormalsOff();
+  normalGenerator->Update();
+
   vtkSmartPointer<vtkGraphicsFactory> graphics_factory = 
     vtkSmartPointer<vtkGraphicsFactory>::New();
   if ( offscreen.length() > 4 ) graphics_factory->SetOffScreenOnlyMode( 1);
@@ -127,7 +135,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
   ren1->AddObserver(vtkCommand::KeyPressEvent, cbc);
 
   vtkDataSetMapper* mapper = vtkDataSetMapper::New();
-  mapper->SetInput(vtkgrid);
+  mapper->SetInput(  normalGenerator->GetOutput() );
   mapper->SetScalarRange(0, 255);
   vtkActor* actor = vtkActor::New();
   actor->SetMapper(mapper);
@@ -159,6 +167,10 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
     ren2->AddActor(actor2);
     }
   // add the actor and start the render loop
+  // see http://www.vtk.org/doc/nightly/html/classvtkProperty.html
+  actor->GetProperty()->SetInterpolationToFlat();
+  actor->GetProperty()->SetInterpolationToGouraud();
+  actor->GetProperty()->ShadingOff();
   ren1->AddActor(actor);
   ren1->SetBackground(1,1,1); // Background color
   renWin->Render();
