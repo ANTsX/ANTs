@@ -1531,8 +1531,8 @@ int SetOrGetPixel(int argc, char *argv[])
       }
     image1->TransformPhysicalPointToIndex(porig, index);
     }
-  antscout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
-  antscout << " Ind " << index << std::endl;
+  //  antscout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
+  //  antscout << " Ind " << index << std::endl;
   bool isinside = true;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
@@ -1547,19 +1547,20 @@ int SetOrGetPixel(int argc, char *argv[])
     {
     if( get )
       {
-      antscout << " GetValue at " << index << " is " << image1->GetPixel(index) << std::endl;
+      //antscout << " GetValue at " << index << " is " << image1->GetPixel(index) << std::endl;
+      antscout << image1->GetPixel(index) << std::endl;
       }
     else
       {
-      antscout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
-               << std::endl;
+      //  antscout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
+      //         << std::endl;
       image2->SetPixel(index, value);
       WriteImage<ImageType>(image2, outname.c_str() );
       }
     }
   else
     {
-    antscout << " not in image " << index << std::endl;
+    antscout << "NA" << std::endl;
     }
 
   return 0;
