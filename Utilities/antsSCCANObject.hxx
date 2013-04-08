@@ -1720,7 +1720,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
     lastgrad = nvec;
-    evec = evec + nvec * gamma;
+    evec = nvec + evec * gamma;
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
       {
@@ -2038,7 +2038,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
     lastgrad = nvec;
-    evec = evec + nvec * gamma;
+    evec = evec * gamma + nvec;
     evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
     this->CurvatureSparseness( evec,  ( 1 - this->m_FractionNonZeroP ) * 100, 5 , this->m_MaskImageP );
 
@@ -3065,7 +3065,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
     lastgrad = nvec;
-    evec = evec + nvec * ( gamma * relfac );
+    evec = ( evec * gamma + nvec ) * relfac ;
     evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {

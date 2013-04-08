@@ -9108,7 +9108,7 @@ int LabelStats(      int argc, char *argv[])
 
   int         argct = 2;
   const std::string outname = std::string(argv[argct]);
-  std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string(".nii.gz");
+  std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string("_square.nii.gz");
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = "";
@@ -9192,12 +9192,12 @@ int LabelStats(      int argc, char *argv[])
         totalct += 1;
         if( valimage )
           {
-          totalmass += valimage->GetPixel(It.GetIndex() );
+          totalmass += valimage->GetPixel( It.GetIndex() );
           }
 
         // compute center of mass
         typename ImageType::PointType point;
-        image->TransformIndexToPhysicalPoint(It.GetIndex(), point);
+        image->TransformIndexToPhysicalPoint( It.GetIndex(), point );
         for( unsigned int i = 0; i < spacing.Size(); i++ )
           {
           myCenterOfMass[i] += point[i];
