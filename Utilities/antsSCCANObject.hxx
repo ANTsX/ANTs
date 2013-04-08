@@ -1528,28 +1528,25 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_MatrixPriorROI.rows();
     for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
-	{
+      {
       VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
       RealType fnz = 0;
-
-  		  
-		  for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
-		  {
-			  if(vnl_math_abs( priorrow( y ) ) >1.e-10 ){
-			  fnz += 1;
-			  }
-		  }
-		  
-		  //::ants::antscout << " fnz " << fnz <<std::endl;
-		  
+      for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
+	{
+	if(vnl_math_abs( priorrow( y ) ) >1.e-10 )
+          {
+	  fnz += 1;
+	  }
+	}
       if( this->m_FractionNonZeroP <  1.e-10  )
 	{
         sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
 	}
-	}
+      priorrow = priorrow/priorrow.two_norm();
+      this->m_MatrixPriorROI.set_row( x , priorrow );
+      }
     ::ants::antscout <<"sparseness: " <<sparsenessparams << std::endl;
     }
-	
 	
   RealType reconerr = 0;
   this->m_CanonicalCorrelations.set_size( n_vecs );
@@ -1618,30 +1615,24 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       partialmatrix = this->m_MatrixP - partialmatrix;
       VectorType priorVec = this->m_MatrixPriorROI.get_row(a);
-
-		  if( priorVec.one_norm()  < 1.e-12 )
-
-		  {
-			  ::ants::antscout << "Prior Norm too small, could be a bug: " << priorVec.one_norm() << std::endl;
-			  std::exception();
-		  }
-		 
-		  //::ants::antscout << "Prior Norm: " << priorVec.two_norm() << std::endl;
-
-		  priorVec = priorVec/priorVec.two_norm();
+      if( priorVec.one_norm()  < 1.e-12 )
+	{
+	::ants::antscout << "Prior Norm too small, could be a bug: " << priorVec.one_norm() << std::endl;
+	  std::exception();
+	}
       VectorType evec = this->m_VariatesP.get_column( a );
       if( overit == 0 )
         {
         this->SparsifyP( evec );
         }
-      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec, 4, a, lambda );
+      priorVec = priorVec / priorVec.two_norm();
+      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec , 5, a, lambda );
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       }
     // /////////////////////
     // update B matrix by linear regression
-
-	reconerr = this->SparseReconB( matrixB, icept  );	
+    reconerr = this->SparseReconB( matrixB, icept  );	
     ::ants::antscout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
@@ -1704,7 +1695,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType     basepscale = 1;
   while(  powerits < maxits )
     {
-    VectorType pvec   = this->FastOuterProductVectorMultiplication( prior, evec );
+    VectorType pvec = this->FastOuterProductVectorMultiplication( prior , evec );
     VectorType nvec   = ( At   * ( A    * evec ) );
     if ( powerits == 0 )
       {
@@ -1721,6 +1712,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     lastgrad = nvec;
     evec = nvec + evec * gamma;
+    for( unsigned int orth = 0; orth < maxorth; orth++ )
+      {
+      evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
+      }
+    evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
       {
@@ -1732,7 +1728,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       // fast way to compute   evec^T * (  A^T A + M M^T ) evec
       proj =  ( At   * ( A    * evec ) ) * basevscale +
-	this->FastOuterProductVectorMultiplication( prior, evec ) * basepscale;
+	( this->FastOuterProductVectorMultiplication( prior , evec ) ) * basepscale;
       rayquo = inner_product( evec, proj  ) / denom;
       }
     powerits++;
