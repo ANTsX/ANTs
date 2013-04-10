@@ -1604,7 +1604,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       this->m_FractionNonZeroP = sparsenessparams( a );
       VectorType bvec = matrixB.get_column( a );
-      matrixB.set_column( a, zerob );
+      matrixB.set_column( a, zerob );  //  if  X =  U V^T  + Error   then   matrixB = U 
       MatrixType tempMatrix = this->m_VariatesP;
       tempMatrix.set_column( a, zero );
       MatrixType partialmatrix = matrixB * tempMatrix.transpose();
@@ -1629,10 +1629,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec , 5, a, lambda );
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
+      // /////////////////////
+      // update B matrix by linear regression
+      reconerr = this->SparseReconB( matrixB, icept  );	
       }
-    // /////////////////////
-    // update B matrix by linear regression
-    reconerr = this->SparseReconB( matrixB, icept  );	
     ::ants::antscout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
@@ -1693,6 +1693,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType   bestevec = evec;
   RealType     basevscale = 1;
   RealType     basepscale = 1;
+  VectorType di;
   while(  powerits < maxits )
     {
     VectorType pvec = this->FastOuterProductVectorMultiplication( prior , evec );
@@ -1706,12 +1707,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType g2 = pvec * basepscale;
     RealType gamma = 0.1;
     nvec = g1 + g2;
+    if ( powerits == 0 ) di = nvec;
     if( ( lastgrad.two_norm() > 0  ) )
       {
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
     lastgrad = nvec;
-    evec = nvec + evec * gamma;
+    VectorType diplus1 =  nvec + di * gamma;
+    evec = evec + diplus1;
+    di = diplus1;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
       evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
@@ -1777,7 +1781,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     temp.set_row( a, x_recon );
     meancorr += localcorr;
     }
-  ::ants::antscout << "Corr: " << meancorr / this->m_MatrixP.rows()  << std::endl;
+  //  ::ants::antscout << "Corr: " << meancorr / this->m_MatrixP.rows()  << std::endl;
   if( false )
     {
     std::vector<std::string> ColumnHeaders;
@@ -1875,6 +1879,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       a++;
+      // update B matrix by linear regression
+      reconerr = this->SparseReconB( matrixB, icept  );
       } // while
 
 // filter / join eigenvectors ...
@@ -1911,8 +1917,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     sparsenessparams = sparsenessparams / sparsenessparams.sum();
     }
 */
-    // update B matrix by linear regression
-    reconerr = this->SparseReconB( matrixB, icept  );
     ::ants::antscout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
@@ -3050,18 +3054,22 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   bool         conjgrad = true;
   VectorType   bestevec = evecin;
   RealType     relfac = 1.0;
+  VectorType di;
   while(  ( ( rayquo > bestrayquo ) && ( powerits < maxits ) )  || powerits < 2 )
   //  while ( ( relfac > 1.e-4  )  && ( powerits < maxits ) )
     {
     VectorType nvec = At * proj;
     RealType gamma = 0.1;
     nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP );
+    if ( powerits == 0 ) di = nvec;
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
       {
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
     lastgrad = nvec;
     evec = ( evec * gamma + nvec ) * relfac ;
+    VectorType diplus1 =  nvec + di * gamma;
+    evec = evec + diplus1 * relfac ;
     evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
