@@ -2409,7 +2409,8 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   std::cout << "Examining " << nLabels << " regions, covering "
             << nVoxels << " voxels " << std::endl;
 
-  unsigned int labelCounts[nLabels];
+  //unsigned int labelCounts[nLabels];
+  unsigned int *labelCounts = new unsigned int [nLabels] ;
 
   for (unsigned int i=0; i<nLabels; i++)
     {
@@ -2544,6 +2545,8 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
     }
 
     WriteImage<InputImageType>(connmat, outname.c_str() );
+
+    delete []labelCounts;
 
     return 0;
 }
