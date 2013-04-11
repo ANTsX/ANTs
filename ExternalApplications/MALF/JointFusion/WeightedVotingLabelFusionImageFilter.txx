@@ -374,7 +374,8 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
       for(int k = 0; k <= i; k++)
         {
         // Multiply through the apd arrays
-        InputImagePixelType mxval = 0.0;
+        //InputImagePixelType mxval = 0.0;
+        double mxval = 0.0;
         for(unsigned int m = 0; m < nPatch; m++)
           mxval += apd[i][m] * apd[k][m];
 
@@ -385,7 +386,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
         else
           mxval = pow(mxval, m_Beta);
 
-        Mx(i,k) = Mx(k,i) = mxval;
+        Mx(i,k) = Mx(k,i) = (InputImagePixelType)mxval;
         }
       }
 
