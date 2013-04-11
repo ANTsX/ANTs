@@ -112,7 +112,8 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
   std::cout << "Examining " << N << " regions, covering "
             << nVoxels << " voxels with " << nTimes << " time points each" << std::endl;
 
-  unsigned int labelCounts[N];
+  //unsigned int labelCounts[N];
+  unsigned int *labelCounts = new unsigned int [N] ;
 
   for (unsigned int i=0; i<N; i++)
     {
@@ -252,6 +253,8 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
         }
       }
     }
+
+  delete []labelCounts;
 
   return network;
 }
