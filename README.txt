@@ -197,79 +197,85 @@ ANTs registration
   Principal references
     http://www.ncbi.nlm.nih.gov/pubmed/20851191
     Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC.
-    Neuroimage. 2011 Feb 1;54(3):2033-44. doi: 10.1016/j.neuroimage.2010.09.025. Epub 2010 Sep 17.
-    A reproducible evaluation of ANTs similarity metric performance in brain image registration.
+    Neuroimage. 2011 Feb 1;54(3):2033-44. doi: 10.1016/j.neuroimage.2010.09.025.
+    A reproducible evaluation of ANTs similarity metric performance in brain
+    image registration.
 
     http://link.springer.com/chapter/10.1007/978-3-642-31340-0_28
-    Brian B. Avants, Nicholas J. Tustison, Gang Song, Baohua Wu, Michael Stauffer, Matthew McCormick,
-    Hans J. Johnson, James C. Gee: A Unified Image Registration Framework for ITK. WBIR 2012: 266-275
+    Brian B. Avants, Nicholas J. Tustison, Gang Song, Baohua Wu, Michael Stauffer,
+    Matthew McCormick, Hans J. Johnson, James C. Gee: A Unified Image Registration
+    Framework for ITK. WBIR 2012: 266-275
 
   Symmetric Normalization (SyN)
     http://www.ncbi.nlm.nih.gov/pubmed/17659998
     Avants BB, Epstein CL, Grossman M, Gee JC.
-    Med Image Anal. 2008 Feb;12(1):26-41. Epub 2007 Jun 23.
-    Symmetric diffeomorphic image registration with cross-correlation: evaluating automated labeling
-    of elderly and neurodegenerative brain.
+    Med Image Anal. 2008 Feb;12(1):26-41.
+    Symmetric diffeomorphic image registration with cross-correlation: evaluating
+    automated labeling of elderly and neurodegenerative brain.
 
   B-spline-based
     http://www.ncbi.nlm.nih.gov/pubmed/19171516
     Tustison NJ, Avants BB, Gee JC.
-    IEEE Trans Image Process. 2009 Mar;18(3):624-35. doi: 10.1109/TIP.2008.2010072. Epub 2009 Jan 20.
+    IEEE Trans Image Process. 2009 Mar;18(3):624-35. doi: 10.1109/TIP.2008.2010072.
     Directly manipulated free-form deformation image registration.
 
     http://link.springer.com/chapter/10.1007%2F978-3-642-31340-0_4
     Nicholas J. Tustison, Brian B. Avants:
-    Diffeomorphic Directly Manipulated Free-Form Deformation Image Registration via Vector Field Flows.
-    WBIR 2012: 31-39
+    Diffeomorphic Directly Manipulated Free-Form Deformation Image Registration
+    via Vector Field Flows. WBIR 2012: 31-39
 
   Point set registration
      Point-set expectation (PSE)
      http://www.ncbi.nlm.nih.gov/pubmed/19437413
      Pluta J, Avants BB, Glynn S, Awate S, Gee JC, Detre JA.
      Hippocampus. 2009 Jun;19(6):565-71. doi: 10.1002/hipo.20619.
-     Appearance and incomplete label matching for diffeomorphic template based hippocampus segmentation.
+     Appearance and incomplete label matching for diffeomorphic template based
+     hippocampus segmentation.
 
      Havrda-Charvat-Tsallis (JTB)
      http://www.ncbi.nlm.nih.gov/pubmed/20937578
      Tustison NJ, Awate SP, Song G, Cook TS, Gee JC.
-     IEEE Trans Med Imaging. 2011 Feb;30(2):451-60. doi: 10.1109/TMI.2010.2086065. Epub 2010 Oct 11.
+     IEEE Trans Med Imaging. 2011 Feb;30(2):451-60. doi: 10.1109/TMI.2010.2086065.
      Point set registration using Havrda-Charvat-Tsallis entropy measures.
 
 Template construction
   http://www.ncbi.nlm.nih.gov/pubmed/19818860
   Avants BB, Yushkevich P, Pluta J, Minkoff D, Korczykowski M, Detre J, Gee JC.
-  Neuroimage. 2010 Feb 1;49(3):2457-66. doi: 10.1016/j.neuroimage.2009.09.062. Epub 2009 Oct 8.
+  Neuroimage. 2010 Feb 1;49(3):2457-66. doi: 10.1016/j.neuroimage.2009.09.062.
   The optimal template effect in hippocampus studies of diseased populations.
 
   http://www.ncbi.nlm.nih.gov/pubmed/18995188
   Avants B, Duda JT, Kim J, Zhang H, Pluta J, Gee JC, Whyte J.
   Acad Radiol. 2008 Nov;15(11):1360-75. doi: 10.1016/j.acra.2008.07.007.
-  Multivariate analysis of structural and diffusion imaging in traumatic brain injury.
+  Multivariate analysis of structural and diffusion imaging in traumatic
+  brain injury.
 
 Atropos (n-tissue multivariate segmentation)
   http://www.ncbi.nlm.nih.gov/pubmed/21373993
   Avants BB, Tustison NJ, Wu J, Cook PA, Gee JC.
   Neuroinformatics. 2011 Dec;9(4):381-400. doi: 10.1007/s12021-011-9109-y.
-  An open source multivariate framework for n-tissue segmentation with evaluation on public data.
+  An open source multivariate framework for n-tissue segmentation with
+  evaluation on public data.
 
 N4 Bias Correction
   http://www.ncbi.nlm.nih.gov/pubmed/20378467
   Tustison NJ, Avants BB, Cook PA, Zheng Y, Egan A, Yushkevich PA, Gee JC.
-  IEEE Trans Med Imaging. 2010 Jun;29(6):1310-20. doi: 10.1109/TMI.2010.2046908. Epub 2010 Apr 8.
+  IEEE Trans Med Imaging. 2010 Jun;29(6):1310-20. doi: 10.1109/TMI.2010.2046908.
   N4ITK: improved N3 bias correction.
 
 DiReCT aka KellyKapowski/KellySlater
   http://www.ncbi.nlm.nih.gov/pubmed/19150502
   Das SR, Avants BB, Grossman M, Gee JC.
-  Neuroimage. 2009 Apr 15;45(3):867-79. doi: 10.1016/j.neuroimage.2008.12.016. Epub 2008 Dec 25.
+  Neuroimage. 2009 Apr 15;45(3):867-79. doi: 10.1016/j.neuroimage.2008.12.016.
   Registration based cortical thickness measurement.
 
 SCCAN
   http://www.ncbi.nlm.nih.gov/pubmed/20083207
   Avants BB, Cook PA, Ungar L, Gee JC, Grossman M.
-  Neuroimage. 2010 Apr 15;50(3):1004-16. doi: 10.1016/j.neuroimage.2010.01.041. Epub 2010 Jan 18.
-  Dementia induces correlated reductions in white matter integrity and cortical thickness: a
-  multivariate neuroimaging study with sparse canonical correlation analysis.
+  Neuroimage. 2010 Apr 15;50(3):1004-16. doi: 10.1016/j.neuroimage.2010.01.041.
+  Dementia induces correlated reductions in white matter integrity and cortical
+  thickness: a multivariate neuroimaging study with sparse canonical correlation
+  analysis.
 
 SurfaceCurvature
   http://www.ncbi.nlm.nih.gov/pubmed/15344450
@@ -280,30 +286,34 @@ SurfaceCurvature
 Topological well-composedness
   http://www.ncbi.nlm.nih.gov/pubmed/?term=Topological+well-composedness
   Tustison NJ, Avants BB, Siqueira M, Gee JC.
-  IEEE Trans Image Process. 2011 Jun;20(6):1756-61. doi: 10.1109/TIP.2010.2095021. Epub 2010 Nov 29.
-  Topological well-composedness and glamorous glue: a digital gluing algorithm for topologically
-  constrained front propagation.
+  IEEE Trans Image Process. 2011 Jun;20(6):1756-61. doi: 10.1109/TIP.2010.2095021.
+  Topological well-composedness and glamorous glue: a digital gluing algorithm
+  for topologically constrained front propagation.
 
 ANTs-related Studies
   http://www.ncbi.nlm.nih.gov/pubmed/19195496
-  Klein A, Andersson J, Ardekani BA, Ashburner J, Avants B, Chiang MC, Christensen GE, Collins DL,
-  Gee J, Hellier P, Song JH, Jenkinson M, Lepage C, Rueckert D, Thompson P, Vercauteren T, Woods RP,
-  Mann JJ, Parsey RV.
-  Neuroimage. 2009 Jul 1;46(3):786-802. doi: 10.1016/j.neuroimage.2008.12.037. Epub 2009 Jan 13.
-  Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration.
+  Klein A, Andersson J, Ardekani BA, Ashburner J, Avants B, Chiang MC,
+  Christensen GE, Collins DL, Gee J, Hellier P, Song JH, Jenkinson M, Lepage C,
+  Rueckert D, Thompson P, Vercauteren T, Woods RP, Mann JJ, Parsey RV.
+  Neuroimage. 2009 Jul 1;46(3):786-802. doi: 10.1016/j.neuroimage.2008.12.037.
+  Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI
+  registration.
 
   http://www.ncbi.nlm.nih.gov/pubmed/20123029
-  Klein A, Ghosh SS, Avants B, Yeo BT, Fischl B, Ardekani B, Gee JC, Mann JJ, Parsey RV.
-  Neuroimage. 2010 May 15;51(1):214-20. doi: 10.1016/j.neuroimage.2010.01.091. Epub 2010 Feb 1.
+  Klein A, Ghosh SS, Avants B, Yeo BT, Fischl B, Ardekani B, Gee JC, Mann JJ,
+  Parsey RV.
+  Neuroimage. 2010 May 15;51(1):214-20. doi: 10.1016/j.neuroimage.2010.01.091.
   Evaluation of volume-based and surface-based brain image registration methods.
 
   http://www.ncbi.nlm.nih.gov/pubmed/23151955
   Tustison NJ, Avants BB, Cook PA, Kim J, Whyte J, Gee JC, Stone JR.
-  Hum Brain Mapp. 2012 Nov 14. doi: 10.1002/hbm.22211. [Epub ahead of print]
-  Logical circularity in voxel-based analysis: Normalization strategy may induce statistical bias.
+  Hum Brain Mapp. 2012 Nov 14. doi: 10.1002/hbm.22211.
+  Logical circularity in voxel-based analysis: Normalization strategy may induce
+  statistical bias.
 
   http://www.ncbi.nlm.nih.gov/pubmed/17999940
   Kim J, Avants B, Patel S, Whyte J, Coslett BH, Pluta J, Detre JA, Gee JC.
   Neuroimage. 2008 Feb 1;39(3):1014-26. Epub 2007 Oct 13.
-  Structural consequences of diffuse traumatic brain injury: a large deformation tensor-based morphometry study.
+  Structural consequences of diffuse traumatic brain injury: a large deformation
+  tensor-based morphometry study.
 
