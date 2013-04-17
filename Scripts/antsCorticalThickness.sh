@@ -709,11 +709,11 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
             TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} )
 
             time_start_template_registration=`date +%s`
-
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1]"
-            stage1="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
-            stage2="-m MI[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
-            stage3="-m CC[${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+	    imgs=" ${REGISTRATION_TEMPLATE}, ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]} "
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [ $imgs ,1]"
+            stage1="-m MI[${imgs},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
+            stage2="-m MI[${imgs},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
+            stage3="-m CC[${imgs},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
 
             exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
 
@@ -751,8 +751,8 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         echo "--------------------------------------------------------------------------------------"
         echo "Compute summary measurements"
         echo "--------------------------------------------------------------------------------------"
-        logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_INVERSE_WARP} ${OUTPUT_PREFIX} 1
-        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t [${REGISTRATION_TEMPLATE_GENERIC_AFFINE},1] -t ${REGISTRATION_TEMPLATE_INVERSE_WARP}"
+        logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${OUTPUT_PREFIX} 1
+        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE}  "
         logCmd $exe_template_registration_3
         ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}`
         bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
@@ -767,7 +767,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
           ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz GetLargestComponent ${OUTPUT_PREFIX}temp.nii.gz 1
           ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz MD ${OUTPUT_PREFIX}temp.nii.gz 2
           ${ANTSPATH}/SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.nii.gz
-          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
+#          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
           rm ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz
         fi
         echo "--------------------------------------------------------------------------------------"
