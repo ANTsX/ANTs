@@ -156,7 +156,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:d:e:h:k:m:o:s:" OPT
+  while getopts "a:d:e:f:h:k:m:o:s:" OPT
     do
       case $OPT in
           d) #dimensions
@@ -179,6 +179,9 @@ else
        ;;
           e) #brain extraction anatomical image
        EXTRACTION_TEMPLATE=$OPTARG
+       ;;
+          f) #brain extraction registration mask
+       EXTRACTION_REGISTRATION_MASK=$OPTARG
        ;;
           m) #brain extraction prior probability mask
        EXTRACTION_PRIOR=$OPTARG
@@ -375,6 +378,11 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
             stage3="-m CC[${EXTRACTION_TEMPLATE},${N4_CORRECTED_IMAGES[0]},0.5,4] -m CC[${EXTRACTION_TEMPLATE_LAPLACIAN},${EXTRACTION_LAPLACIAN},0.5,4] -c [50x10x0,1e-9,15] -t SyN[0.1,3,0] -f 4x2x1 -s 2x1x0"
 
             exe_brain_extraction_1="${basecall} ${stage1} ${stage2} ${stage3}"
+            if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
+              then
+                exe_brain_extraction_1="${exe_brain_extraction_1} -x ${EXTRACTION_REGISTRATION_MASK}"
+              fi
+
             logCmd $exe_brain_extraction_1
           fi
 

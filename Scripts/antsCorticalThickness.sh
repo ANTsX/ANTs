@@ -93,6 +93,8 @@ Optional arguments:
                                                   * ${OUTPUT_PREFIX}TemplateToSubject1InverseWarp.${OUTPUT_SUFFIX}
                                                 Otherwise, we perform the registration (fixed image = template and moving image =
                                                 individual subject) to produce those files.
+     -f:  extraction registration mask          Mask (defined in the template space) used during registration
+                                                for brain extraction.
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
      -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0)
@@ -108,8 +110,9 @@ echoParameters() {
     Using antsCorticalThickness with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${ANATOMICAL_IMAGES[@]}
-      extraction template     = ${BRAIN_TEMPLATE}
+      brain template          = ${BRAIN_TEMPLATE}
       extraction prior        = ${EXTRACTION_PRIOR}
+      extraction reg. mask    = ${EXTRACTION_REGISTRATION_MASK}
       segmentation prior      = ${SEGMENTATION_PRIOR}
       output prefix           = ${OUTPUT_PREFIX}
       output image suffix     = ${OUTPUT_SUFFIX}
@@ -164,6 +167,7 @@ REGISTRATION_TEMPLATE=""
 
 BRAIN_TEMPLATE=""
 EXTRACTION_PRIOR=""
+EXTRACTION_REGISTRATION_MASK=""
 SEGMENTATION_PRIOR=""
 WHITE_MATTER_LABEL=3
 GRAY_MATTER_LABEL=2
@@ -229,6 +233,9 @@ else
        ;;
           e) #brain extraction anatomical image
        BRAIN_TEMPLATE=$OPTARG
+       ;;
+          f) #brain extraction registration mask
+       EXTRACTION_REGISTRATION_MASK=$OPTARG
        ;;
           h) #help
        Usage >&2
@@ -419,14 +426,27 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 #
 ################################################################################
 
-bash ${ANTSPATH}/antsBrainExtraction.sh \
-  -d ${DIMENSION} \
-  -a ${ANATOMICAL_IMAGES[0]} \
-  -e ${BRAIN_TEMPLATE} \
-  -m ${EXTRACTION_PRIOR} \
-  -o ${OUTPUT_PREFIX} \
-  -k ${KEEP_TMP_IMAGES} \
-  -s ${OUTPUT_SUFFIX}
+if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
+  then
+    bash ${ANTSPATH}/antsBrainExtraction.sh \
+      -d ${DIMENSION} \
+      -a ${ANATOMICAL_IMAGES[0]} \
+      -e ${BRAIN_TEMPLATE} \
+      -f ${EXTRACTION_REGISTRATION_MASK} \
+      -m ${EXTRACTION_PRIOR} \
+      -o ${OUTPUT_PREFIX} \
+      -k ${KEEP_TMP_IMAGES} \
+      -s ${OUTPUT_SUFFIX}
+  else
+    bash ${ANTSPATH}/antsBrainExtraction.sh \
+      -d ${DIMENSION} \
+      -a ${ANATOMICAL_IMAGES[0]} \
+      -e ${BRAIN_TEMPLATE} \
+      -m ${EXTRACTION_PRIOR} \
+      -o ${OUTPUT_PREFIX} \
+      -k ${KEEP_TMP_IMAGES} \
+      -s ${OUTPUT_SUFFIX}
+  fi
 
 EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
 EXTRACTION_GENERIC_AFFINE=${OUTPUT_PREFIX}BrainExtractionPrior0GenericAffine.mat
