@@ -95,6 +95,10 @@ private:
 
   if( argc < 3 )
     {
+    antscout << " This implements The Shape Operator for Differential Analysis of Images (google for the pdf)" << std::endl;
+    antscout << " By B. Avants and J.C. Gee " << std::endl;
+    antscout << " Documentation is on demand --- if there is enough interest, documentation will improve." << std::endl;
+    antscout << " There are several modes of operation and you must try parameters and input either binary or gray scale images to see the different effects ---- experimentation or reading the (minimal) documentation /  paper / code is needed to understand the program " << std::endl;
     antscout << " usage :  SurfaceCurvature FileNameIn FileNameOut sigma option  " << std::endl;
     antscout << " e.g  :   SurfaceCurvature    BrainIn.nii BrainOut.nii   3  0 " << std::endl;
     antscout << " option 0 means just compute mean curvature from intensity " << std::endl;

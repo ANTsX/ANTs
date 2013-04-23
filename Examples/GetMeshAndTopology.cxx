@@ -20,19 +20,35 @@
 #include "itkBinaryMask3DMeshSource.h"
 #include "itkNearestNeighborInterpolateImageFunction.h"
 #include "vtkPolyData.h"
+#include "vtkCellData.h"
 #include "vtkPolyDataConnectivityFilter.h"
 #include "vtkExtractEdges.h"
 #include "vtkPolyDataReader.h"
 
 #include "BinaryImageToMeshFilter.h"
+#include "vtkUnstructuredGrid.h"
 #include "vtkCallbackCommand.h"
 #include "vtkPointPicker.h"
 #include "vtkCellPicker.h"
 #include "vtkPolyDataWriter.h"
 #include "vtkPolyDataReader.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkDataSetMapper.h"
+#include <vtkPolyDataMapper.h>
+#include <vtkActor.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
+#include <vtkWindowToImageFilter.h>
+#include <vtkPNGWriter.h>
+#include <vtkGraphicsFactory.h>
+#include <vtkImagingFactory.h>
 #include "ReadWriteImage.h"
 #include "itkRescaleIntensityImageFilter.h"
-
 #include "vtkDelaunay2D.h"
 #include "vtkFloatArray.h"
 #include <vtkSmartPointer.h>
@@ -85,6 +101,106 @@ float ComputeGenus(vtkPolyData* pd1)
   antscout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
 
   return g;
+}
+
+void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin = false, bool delinter = true )
+{
+
+  vtkSmartPointer<vtkPolyDataNormals> normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
+  normalGenerator->SetInput(vtkgrid);
+  normalGenerator->ComputePointNormalsOn();
+  normalGenerator->ComputeCellNormalsOff();
+  normalGenerator->Update();
+
+  vtkSmartPointer<vtkGraphicsFactory> graphics_factory = 
+    vtkSmartPointer<vtkGraphicsFactory>::New();
+  if ( offscreen.length() > 4 ) graphics_factory->SetOffScreenOnlyMode( 1);
+  graphics_factory->SetUseMesaClasses( 1 );
+ 
+  vtkSmartPointer<vtkImagingFactory> imaging_factory = 
+    vtkSmartPointer<vtkImagingFactory>::New();
+  imaging_factory->SetUseMesaClasses( 1 ); 
+ 
+  vtkRenderer*     ren1 = vtkRenderer::New();
+  vtkRenderer*     ren2 = vtkRenderer::New();
+  vtkRenderWindow* renWin = vtkRenderWindow::New();
+  renWin->AddRenderer(ren1);
+  if( secondwin )
+    {
+    renWin->AddRenderer(ren2);
+    }
+  vtkRenderWindowInteractor* inter = vtkRenderWindowInteractor::New();
+  inter->SetRenderWindow(renWin);
+  vtkCallbackCommand *cbc = vtkCallbackCommand::New();
+  ren1->AddObserver(vtkCommand::KeyPressEvent, cbc);
+
+  vtkDataSetMapper* mapper = vtkDataSetMapper::New();
+  mapper->SetInput(  normalGenerator->GetOutput() );
+  mapper->SetScalarRange(0, 255);
+  vtkActor* actor = vtkActor::New();
+  actor->SetMapper(mapper);
+  vtkDataSetMapper* mapper2 = vtkDataSetMapper::New();
+  if( secondwin )
+    {
+    mapper2->SetInput(vtkgrid);
+    }
+  if( secondwin )
+    {
+    mapper2->SetScalarRange(0, 255);
+    }
+  vtkActor* actor2 = vtkActor::New();
+  if( secondwin )
+    {
+    actor2->SetMapper(mapper2);
+    }
+  if( secondwin )
+    {
+    ren1->SetViewport(0.0, 0.0, 0.5, 1.0);
+    ren2->SetViewport(0.5, 0.0, 1.0, 1.0);
+    }
+  else
+    {
+    ren1->SetViewport(0.0, 0.0, 1.0, 1.0);
+    }
+  if( secondwin )
+    {
+    ren2->AddActor(actor2);
+    }
+  // add the actor and start the render loop
+  // see http://www.vtk.org/doc/nightly/html/classvtkProperty.html
+  actor->GetProperty()->SetInterpolationToFlat();
+  actor->GetProperty()->SetInterpolationToGouraud();
+  actor->GetProperty()->ShadingOff();
+  ren1->AddActor(actor);
+  ren1->SetBackground(1,1,1); // Background color
+  renWin->Render();
+
+  if ( offscreen.length() > 4 ) 
+    {
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = 
+    vtkSmartPointer<vtkWindowToImageFilter>::New();
+    windowToImageFilter->SetInput(renWin);
+    windowToImageFilter->SetMagnification( 4 );
+    windowToImageFilter->Update();
+ 
+    vtkSmartPointer<vtkPNGWriter> writer = 
+      vtkSmartPointer<vtkPNGWriter>::New();
+    writer->SetFileName( offscreen.c_str()  );
+    writer->SetInputConnection(windowToImageFilter->GetOutputPort());
+    writer->Write();
+    }
+  if (  offscreen.length() < 5 )  inter->Start();
+  mapper->Delete();
+  actor->Delete();
+  ren1->Delete();
+  mapper2->Delete();
+  actor2->Delete();
+  ren2->Delete();
+  renWin->Delete();
+  if( delinter )
+    {
+    inter->Delete();
+    }
 }
 
 float vtkComputeTopology(vtkPolyData* pd)
@@ -154,20 +270,12 @@ float vtkComputeTopology(vtkPolyData* pd)
 template <class TImage>
 void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image2,  std::string outfn,
                   const char* paramname, float scaledata,
-                  float aaParm )
+                  float aaParm, std::string offscreen , unsigned int inflate )
 {
   //  antscout << " parname " << std::string(paramname) << std::endl;
   typedef TImage      ImageType;
   typedef ImageType   itype;
   typedef vtkPolyData MeshType;
-
-  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
-  typename dgf::Pointer filter = dgf::New();
-  filter->SetVariance(0.8);
-  filter->SetMaximumError(.01f);
-  filter->SetUseImageSpacingOn();
-  filter->SetInput(image);
-  filter->Update();
 
   typedef BinaryImageToMeshFilter<ImageType> FilterType;
   typename  FilterType::Pointer fltMesh = FilterType::New();
@@ -264,14 +372,28 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       param->InsertNextValue(vvv);
       }
     vtkmesh->GetPointData()->SetScalars(param);
-    //  Display((vtkUnstructuredGrid*)vtkmesh);
-//  antscout<<"DOne? "; std::cin >> done;
     }
+  antscout <<" Now display to " << offscreen << std::endl;
+  vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
+    vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
+  inflater->SetInput(vtkmesh);
+  inflater->SetNumberOfIterations( inflate );
+  inflater->BoundarySmoothingOn();
+  inflater->FeatureEdgeSmoothingOff();
+  inflater->SetFeatureAngle(180.0);
+  inflater->SetEdgeAngle(180.0);
+  inflater->SetPassBand( 0.001 ); // smaller values increase smoothing
+  inflater->NonManifoldSmoothingOn();
+  inflater->NormalizeCoordinatesOff();
+  if ( inflate > 0 ) {
+    inflater->Update();
+    vtkmesh = inflater->GetOutput();
+  }
+  if ( offscreen.length() > 2 ) Display((vtkUnstructuredGrid*)vtkmesh, offscreen );
   antscout << " done with mesh map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(vtkmesh);
   antscout << " writing " << outfn << std::endl;
-  // outnm="C:\\temp\\mesh.vtk";
   writer->SetFileName(outfn.c_str() );
   writer->SetFileTypeToBinary();
   writer->Update();
@@ -350,11 +472,12 @@ private:
 
   if( argc < 2 )
     {
-    antscout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001" << std::endl;
+    antscout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001 offscreen.png  inflation-interations " << std::endl;
     antscout << " outputs vtk version of input image -- assumes object is defined by non-zero values " << std::endl;
     antscout << " mesh is colored by the value of the image voxel " << std::endl;
-    antscout <<  " the AA-Param could cause topo problems but makes nicer meshes  " << std::endl;
-    antscout << " ValueScale controls contrast in image appearance - lower increaseses -- should be <= 1 "
+    antscout <<  " the AntiaAliasParm could cause topo problems but makes nicer meshes  " << std::endl;
+    antscout <<  " the offscreen param will render to screen if set to win, 0 means no rendering " << std::endl;
+    antscout << " ValueScale controls contrast in image appearance - lower increaseses contrast -- should be <= 1 "
              << std::endl;
     return EXIT_FAILURE;
     }
@@ -403,9 +526,18 @@ private:
     aaParm = atof(argv[6]);
     }
   antscout << "aaParm " << aaParm << std::endl;
-  GetValueMesh<ImageType>(image, image2, outfn, paramname, scaledata, aaParm);
+  std::string offscreen="win";
+  if( argc > 7 )
+    {
+    offscreen = std::string( argv[7] );
+    }
+  unsigned int inflate = 0;
+  if( argc > 8 )
+    {
+    inflate = atoi(argv[8]);
+    }
+  GetValueMesh<ImageType>(image, image2, outfn, paramname, scaledata, aaParm, offscreen, inflate );
   //  GetImageTopology<ImageType>(image);
-
   return 0;
 }
 } // namespace ants

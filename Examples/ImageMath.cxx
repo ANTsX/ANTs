@@ -1531,8 +1531,8 @@ int SetOrGetPixel(int argc, char *argv[])
       }
     image1->TransformPhysicalPointToIndex(porig, index);
     }
-  antscout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
-  antscout << " Ind " << index << std::endl;
+  //  antscout << " use phy " << usephyspace << " " << indx << " " << indy << " " << indz << std::endl;
+  //  antscout << " Ind " << index << std::endl;
   bool isinside = true;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
@@ -1547,19 +1547,20 @@ int SetOrGetPixel(int argc, char *argv[])
     {
     if( get )
       {
-      antscout << " GetValue at " << index << " is " << image1->GetPixel(index) << std::endl;
+      //antscout << " GetValue at " << index << " is " << image1->GetPixel(index) << std::endl;
+      antscout << image1->GetPixel(index) << std::endl;
       }
     else
       {
-      antscout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
-               << std::endl;
+      //  antscout << " SetValue at " << index << " value " << value << " replaces " <<  image1->GetPixel(index)
+      //         << std::endl;
       image2->SetPixel(index, value);
       WriteImage<ImageType>(image2, outname.c_str() );
       }
     }
   else
     {
-    antscout << " not in image " << index << std::endl;
+    antscout << "NA" << std::endl;
     }
 
   return 0;
@@ -2408,7 +2409,8 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   std::cout << "Examining " << nLabels << " regions, covering "
             << nVoxels << " voxels " << std::endl;
 
-  unsigned int labelCounts[nLabels];
+  //unsigned int labelCounts[nLabels];
+  unsigned int *labelCounts = new unsigned int [nLabels] ;
 
   for (unsigned int i=0; i<nLabels; i++)
     {
@@ -2543,6 +2545,8 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
     }
 
     WriteImage<InputImageType>(connmat, outname.c_str() );
+
+    delete []labelCounts;
 
     return 0;
 }
@@ -9107,7 +9111,7 @@ int LabelStats(      int argc, char *argv[])
 
   int         argct = 2;
   const std::string outname = std::string(argv[argct]);
-  std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string(".nii.gz");
+  std::string imagename = ANTSGetFilePrefix(outname.c_str() ) + std::string("_square.nii.gz");
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = "";
@@ -9152,6 +9156,7 @@ int LabelStats(      int argc, char *argv[])
 
   std::ofstream logfile;
   logfile.open(outname.c_str() );
+  logfile << "x,y,z,t,label" << std::endl;
 
   std::sort(myLabelSet.begin(), myLabelSet.end() );
   typename LabelSetType::const_iterator it;
@@ -9190,12 +9195,12 @@ int LabelStats(      int argc, char *argv[])
         totalct += 1;
         if( valimage )
           {
-          totalmass += valimage->GetPixel(It.GetIndex() );
+          totalmass += valimage->GetPixel( It.GetIndex() );
           }
 
         // compute center of mass
         typename ImageType::PointType point;
-        image->TransformIndexToPhysicalPoint(It.GetIndex(), point);
+        image->TransformIndexToPhysicalPoint( It.GetIndex(), point );
         for( unsigned int i = 0; i < spacing.Size(); i++ )
           {
           myCenterOfMass[i] += point[i];
@@ -9221,6 +9226,12 @@ int LabelStats(      int argc, char *argv[])
 
 // square image
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
+    if ( ImageDimension == 2 ) 
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << ",0,0," << currentlabel << std::endl;
+    if ( ImageDimension == 3 ) 
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ",0," << currentlabel << std::endl;
+    if ( ImageDimension == 4 ) 
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << "," << myCenterOfMass[3] << "," << currentlabel << std::endl;
     labelcount++;
     }
 
