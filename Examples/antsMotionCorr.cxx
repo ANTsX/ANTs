@@ -1285,7 +1285,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       std::vector<unsigned int> timelistsort;
       for( unsigned int i = 0; i < nimagestoavg; i++ )
         {
-        timelistsort.push_back(timelist[i]);
+	if ( i < timelist.size() ) timelistsort.push_back(timelist[i]);
         antscout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
         }
       AverageTimeImages<MovingIOImageType, FixedIOImageType>( outputImage, avgImage, timelistsort );
