@@ -274,7 +274,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     whiteMatterContours->GetRequestedRegion() );
 
   // Monitor the convergence
-  typedef itk::Function::WindowConvergenceMonitoringFunction<double> ConvergenceMonitoringType;
+  typedef Function::WindowConvergenceMonitoringFunction<double> ConvergenceMonitoringType;
   ConvergenceMonitoringType::Pointer convergenceMonitoring = ConvergenceMonitoringType::New();
   convergenceMonitoring->SetWindowSize( this->m_ConvergenceWindowSize );
 
