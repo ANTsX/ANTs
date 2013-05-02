@@ -506,7 +506,13 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       then
         logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_GENERIC_AFFINE},1]"
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX}"
+        if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
+          then
+            basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
+          else
+            basecall="${basecall} -r [${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},1]"
+          fi
         basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
         stage1="-m MI[${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
         stage2="-m CC[${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
