@@ -584,6 +584,58 @@ RegistrationHelper<VImageDimension>
 }
 
 template <unsigned VImageDimension>
+typename RegistrationHelper<VImageDimension>::ShrinkFactorsPerDimensionContainerType
+RegistrationHelper<VImageDimension>
+::CalculateShrinkFactorsPerDimension( unsigned int factor, ImagePointer image )
+{
+  typedef typename ImageType::SpacingType SpacingType;
+  typedef double                          SpacingValueType;
+
+  SpacingType spacing = image->GetSpacing();
+
+  SpacingValueType minSpacing = spacing[0];
+  unsigned int minIndex = 0;
+  for( unsigned int n = 1; n < VImageDimension; n++ )
+    {
+    if( minSpacing > spacing[n] )
+      {
+      minSpacing = spacing[n];
+      minIndex = n;
+      }
+    }
+
+  ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension;
+  shrinkFactorsPerDimension.Fill( 0 );
+  shrinkFactorsPerDimension[minIndex] = factor;
+
+  SpacingType newSpacing;
+  newSpacing[minIndex] = spacing[minIndex] * factor;
+
+  for( unsigned int n = 0; n < VImageDimension; n++ )
+    {
+    if( shrinkFactorsPerDimension[n] == 0 )
+      {
+      SpacingValueType newMinSpacing = spacing[n] * static_cast<SpacingValueType>( factor );
+      double minDifferenceFromMinSpacing = vnl_math_abs( newMinSpacing - newSpacing[minIndex] );
+      unsigned int minFactor = factor;
+      for( unsigned int f = factor - 1; f > 0; f-- )
+        {
+        newMinSpacing = spacing[n] * static_cast<SpacingValueType>( f );
+
+        // We use <= such that the smaller factor is preferred if distances are the same
+        if( vnl_math_abs( newMinSpacing - newSpacing[minIndex] ) <= minDifferenceFromMinSpacing )
+          {
+          minDifferenceFromMinSpacing = vnl_math_abs( newMinSpacing - newSpacing[minIndex] );
+          minFactor = f;
+          }
+        }
+      shrinkFactorsPerDimension[n] = minFactor;
+      }
+    }
+  return shrinkFactorsPerDimension;
+}
+
+template <unsigned VImageDimension>
 void
 RegistrationHelper<VImageDimension>
 ::SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile, float UpperQuantile )
@@ -742,6 +794,7 @@ RegistrationHelper<VImageDimension>
     {
     this->m_FixedInitialTransform = CompositeTransformType::New();
     }
+
   // ########################################################################################
   // ########################################################################################
   // ##The main loop for exstimating the total composite tranform
@@ -778,47 +831,6 @@ RegistrationHelper<VImageDimension>
     const unsigned int numberOfLevels = currentStageIterations.size();
     this->Logger() << "  number of levels = " << numberOfLevels << std::endl;
 
-    typedef itk::AffineTransform<RealType, VImageDimension>                           AffineTransformType;
-    typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, AffineTransformType> AffineRegistrationType;
-
-    // Get shrink factors
-    const std::vector<unsigned int> factors(this->m_ShrinkFactors[currentStageNumber]);
-    typename AffineRegistrationType::ShrinkFactorsArrayType shrinkFactorsPerLevel;
-    shrinkFactorsPerLevel.SetSize( factors.size() );
-
-    if( factors.size() != numberOfLevels )
-      {
-      ::ants::antscout << "\n\n\n"
-                       << "ERROR:  The number of shrink factors does not match the number of levels."
-                       << "\nShrink Factors: " << factors.size()
-                       << "\nNumber Of Levels: " << numberOfLevels
-                       << "\n\n\n"
-                       << std::endl;
-      return EXIT_FAILURE;
-      }
-    for( unsigned int n = 0; n < shrinkFactorsPerLevel.Size(); n++ )
-      {
-      shrinkFactorsPerLevel[n] = factors[n];
-      }
-    this->Logger() << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
-
-    // Get smoothing sigmas
-    const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
-    typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
-    smoothingSigmasPerLevel.SetSize( sigmas.size() );
-
-    if( sigmas.size() != numberOfLevels )
-      {
-      ::ants::antscout << "ERROR:  The number of smoothing sigmas "
-                       << "does not match the number of levels." << std::endl;
-      return EXIT_FAILURE;
-      }
-    for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
-      {
-      smoothingSigmasPerLevel[n] = sigmas[n];
-      }
-    this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
-
     // Get the number of metrics at the current stage.  If more than one metric
     // then we need to use the MultiMetricType.  Due to the way the metrics are
     // pulled off the command line stack, we need to iterate from the top down.
@@ -838,8 +850,48 @@ RegistrationHelper<VImageDimension>
       multiMetric = MultiMetricType::New();
       }
 
+    // Get shrink factors and adjust according to the current image
+    const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
+    if( factors.size() != numberOfLevels )
+      {
+      ::ants::antscout << "\n\n\n"
+                       << "ERROR:  The number of shrink factors does not match the number of levels."
+                       << "\nShrink Factors: " << factors.size()
+                       << "\nNumber Of Levels: " << numberOfLevels
+                       << "\n\n\n"
+                       << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels;
+    for( unsigned int n = 0; n < numberOfLevels; n++ )
+      {
+      ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension =
+        this->CalculateShrinkFactorsPerDimension( factors[n], stageMetricList[0].m_FixedImage.GetPointer() );
+      shrinkFactorsPerDimensionForAllLevels.push_back( shrinkFactorsPerDimension );
+      this->Logger() << "  Shrink factors (level " << n+1 << " out of " << numberOfLevels << "): " << shrinkFactorsPerDimension << std::endl;
+      }
+
+    // Get smoothing sigmas
+    const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
+    typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
+    smoothingSigmasPerLevel.SetSize( sigmas.size() );
+
+    if( sigmas.size() != numberOfLevels )
+      {
+      ::ants::antscout << "ERROR:  The number of smoothing sigmas "
+                       << "does not match the number of levels." << std::endl;
+      return EXIT_FAILURE;
+      }
+    for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
+      {
+      smoothingSigmasPerLevel[n] = sigmas[n];
+      }
+    this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
+
     std::vector<typename ImageType::Pointer> preprocessedFixedImagesPerStage;
     std::vector<typename ImageType::Pointer> preprocessedMovingImagesPerStage;
+
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
       // Get the fixed and moving images
@@ -1051,12 +1103,9 @@ RegistrationHelper<VImageDimension>
 
     const double learningRate = this->m_TransformMethods[currentStageNumber].m_GradientStep;
 
-    typedef itk::MultiGradientOptimizerv4 MultiGradientOptimizerType;
-    typename MultiGradientOptimizerType::Pointer multiOptimizer = MultiGradientOptimizerType::New();
-    multiOptimizer->SetNumberOfIterations( currentStageIterations[0] );
-
     // There's a scale issue here.  Currently we are using the first metric to estimate the
     // scales but we might need to change this.
+
     typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( singleMetric );
@@ -1076,6 +1125,7 @@ RegistrationHelper<VImageDimension>
     optimizer->SetConvergenceWindowSize( convergenceWindowSize );
     optimizer->SetDoEstimateLearningRateAtEachIteration( this->m_DoEstimateLearningRateAtEachIteration );
     optimizer->SetDoEstimateLearningRateOnce( !this->m_DoEstimateLearningRateAtEachIteration );
+
 
     typedef antsRegistrationOptimizerCommandIterationUpdate<VImageDimension,
                                                             ConjugateGradientDescentOptimizerType> OptimizerCommandType;
@@ -1130,7 +1180,7 @@ RegistrationHelper<VImageDimension>
       }
 
     // Set up the image registration methods along with the transforms
-    const XfrmMethod whichTransform(this->m_TransformMethods[currentStageNumber].m_XfrmMethod);
+    const XfrmMethod whichTransform( this->m_TransformMethods[currentStageNumber].m_XfrmMethod );
 
     switch( whichTransform )
       {
@@ -1152,7 +1202,10 @@ RegistrationHelper<VImageDimension>
           }
 
         affineRegistration->SetNumberOfLevels( numberOfLevels );
-        affineRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          affineRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         affineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
                                                                              currentStageNumber] );
@@ -1221,7 +1274,10 @@ RegistrationHelper<VImageDimension>
           }
 
         rigidRegistration->SetNumberOfLevels( numberOfLevels );
-        rigidRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          rigidRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         rigidRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
                                                                             currentStageNumber] );
@@ -1294,7 +1350,10 @@ RegistrationHelper<VImageDimension>
           }
 
         affineRegistration->SetNumberOfLevels( numberOfLevels );
-        affineRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          affineRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         affineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
                                                                              currentStageNumber] );
@@ -1367,7 +1426,10 @@ RegistrationHelper<VImageDimension>
           }
 
         similarityRegistration->SetNumberOfLevels( numberOfLevels );
-        similarityRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          similarityRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         similarityRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         similarityRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
@@ -1440,7 +1502,10 @@ RegistrationHelper<VImageDimension>
           }
 
         translationRegistration->SetNumberOfLevels( numberOfLevels );
-        translationRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          translationRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         translationRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         translationRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
@@ -1547,7 +1612,7 @@ RegistrationHelper<VImageDimension>
 
           typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( displacementField );
           shrinkFilter->Update();
 
@@ -1576,7 +1641,10 @@ RegistrationHelper<VImageDimension>
           }
 
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
@@ -1685,7 +1753,7 @@ RegistrationHelper<VImageDimension>
 
           typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( displacementField );
           shrinkFilter->Update();
 
@@ -1726,7 +1794,10 @@ RegistrationHelper<VImageDimension>
           displacementFieldRegistration->SetMetric( singleMetric );
           }
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
@@ -1805,7 +1876,7 @@ RegistrationHelper<VImageDimension>
           {
           typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( preprocessedFixedImagesPerStage[0] );
           shrinkFilter->Update();
 
@@ -1842,7 +1913,10 @@ RegistrationHelper<VImageDimension>
           }
 
         bsplineRegistration->SetNumberOfLevels( numberOfLevels );
-        bsplineRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          bsplineRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         bsplineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         bsplineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
                                                                               currentStageNumber] );
@@ -2005,7 +2079,10 @@ RegistrationHelper<VImageDimension>
           numberOfIterationsPerLevel[d] = currentStageIterations[d];
           }
         velocityFieldRegistration->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
-        velocityFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          velocityFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         velocityFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         velocityFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
@@ -2014,11 +2091,11 @@ RegistrationHelper<VImageDimension>
           VelocityFieldTransformAdaptorType;
 
         typename VelocityFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
-        for( unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); level++ )
+        for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
           typedef itk::ShrinkImageFilter<ImageType, ImageType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( preprocessedFixedImagesPerStage[0] );
           shrinkFilter->Update();
 
@@ -2237,13 +2314,16 @@ RegistrationHelper<VImageDimension>
           numberOfIterationsPerLevel[d] = currentStageIterations[d];
           }
         velocityFieldRegistration->SetNumberOfIterationsPerLevel( numberOfIterationsPerLevel );
-        velocityFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          velocityFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         velocityFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         velocityFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
 
         typename VelocityFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
-        for( unsigned int level = 0; level < shrinkFactorsPerLevel.Size(); level++ )
+        for( unsigned int level = 0; level < numberOfLevels; level++ )
           {
           typename VelocityFieldTransformAdaptorType::Pointer fieldTransformAdaptor =
             VelocityFieldTransformAdaptorType::New();
@@ -2326,7 +2406,7 @@ RegistrationHelper<VImageDimension>
           // usage, we could calculate these fixed parameters directly.
           typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( displacementField );
           shrinkFilter->Update();
 
@@ -2378,7 +2458,10 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
@@ -2495,7 +2578,7 @@ RegistrationHelper<VImageDimension>
 
           typedef itk::ShrinkImageFilter<DisplacementFieldType, DisplacementFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( displacementField );
           shrinkFilter->Update();
 
@@ -2557,7 +2640,10 @@ RegistrationHelper<VImageDimension>
         displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
           this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
@@ -2658,7 +2744,7 @@ RegistrationHelper<VImageDimension>
 
           typedef itk::ShrinkImageFilter<ConstantVelocityFieldType, ConstantVelocityFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( constantVelocityField );
           shrinkFilter->Update();
 
@@ -2690,7 +2776,10 @@ RegistrationHelper<VImageDimension>
           }
 
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         displacementFieldRegistration->SetMetricSamplingStrategy(
           static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
@@ -2806,7 +2895,7 @@ RegistrationHelper<VImageDimension>
 
           typedef itk::ShrinkImageFilter<ConstantVelocityFieldType, ConstantVelocityFieldType> ShrinkFilterType;
           typename ShrinkFilterType::Pointer shrinkFilter = ShrinkFilterType::New();
-          shrinkFilter->SetShrinkFactors( shrinkFactorsPerLevel[level] );
+          shrinkFilter->SetShrinkFactors( shrinkFactorsPerDimensionForAllLevels[level] );
           shrinkFilter->SetInput( constantVelocityField );
           shrinkFilter->Update();
 
@@ -2848,7 +2937,10 @@ RegistrationHelper<VImageDimension>
           }
 
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        displacementFieldRegistration->SetShrinkFactorsPerLevel( shrinkFactorsPerLevel );
+        for( unsigned int level = 0; level < numberOfLevels; ++level )
+          {
+          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          }
         displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
@@ -2899,14 +2991,6 @@ RegistrationHelper<VImageDimension>
         ::ants::antscout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
       }
-    // TODO:  Collapse Previous 2 Composite Transforms.  If the two previous composite transforms are
-    //       compatible, then merge them into one transform
-    //       Given that if the request is for
-    //       Translation->Rigid->Similarity->Affine->MSE->SyN
-    //       |------------------------------------|  |------|
-    //       Affine                                  Warp
-    //       The result should be a composite transform with only two elements [Affine, Warp]
-    // This should be done.  See the function CollapseCompositeTransform().
     timer.Stop();
     this->Logger() << "  Elapsed time (stage " << currentStageNumber << "): " << timer.GetMean() << std::endl
                    << std::endl;
@@ -2921,6 +3005,7 @@ RegistrationHelper<VImageDimension>
 
   totalTimer.Stop();
   this->Logger() << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
+
   return EXIT_SUCCESS;
 }
 

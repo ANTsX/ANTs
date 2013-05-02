@@ -109,24 +109,26 @@ public:
   typedef double                                 RealType;
   typedef double                                 PixelType;
   typedef itk::Image<PixelType, VImageDimension> ImageType;
+  typedef typename ImageType::Pointer            ImagePointer;
   typedef itk::ImageBase<VImageDimension>        ImageBaseType;
 
-  typedef itk::Transform<double, VImageDimension, VImageDimension>           TransformType;
-  typedef itk::AffineTransform<RealType, VImageDimension>                    AffineTransformType;
-  typedef typename AffineTransformType::Superclass                           MatrixOffsetTransformBaseType;
-  typedef typename MatrixOffsetTransformBaseType::Pointer                    MatrixOffsetTransformBasePointer;
-  typedef itk::CompositeTransform<RealType, VImageDimension>                 CompositeTransformType;
-  typedef typename CompositeTransformType::Pointer                           CompositeTransformPointer;
-  typedef itk::DisplacementFieldTransform<RealType, VImageDimension>         DisplacementFieldTransformType;
-  typedef typename DisplacementFieldTransformType::Pointer                   DisplacementFieldTransformPointer;
-  typedef typename DisplacementFieldTransformType::DisplacementFieldType     DisplacementFieldType;
-  typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension>  TimeVaryingVelocityFieldTransformType;
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType>                    MetricType;
-  typedef itk::ObjectToObjectMultiMetricv4<VImageDimension, VImageDimension> MultiMetricType;
-  typedef itk::ImageMaskSpatialObject<VImageDimension>                       ImageMaskSpatialObjectType;
-  typedef typename ImageMaskSpatialObjectType::ImageType                     MaskImageType;
-
-  typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
+  typedef itk::Transform<double, VImageDimension, VImageDimension>                   TransformType;
+  typedef itk::AffineTransform<RealType, VImageDimension>                            AffineTransformType;
+  typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, AffineTransformType>  AffineRegistrationType;
+  typedef typename AffineRegistrationType::ShrinkFactorsPerDimensionContainerType    ShrinkFactorsPerDimensionContainerType;
+  typedef typename AffineTransformType::Superclass                                   MatrixOffsetTransformBaseType;
+  typedef typename MatrixOffsetTransformBaseType::Pointer                            MatrixOffsetTransformBasePointer;
+  typedef itk::CompositeTransform<RealType, VImageDimension>                         CompositeTransformType;
+  typedef typename CompositeTransformType::Pointer                                   CompositeTransformPointer;
+  typedef itk::DisplacementFieldTransform<RealType, VImageDimension>                 DisplacementFieldTransformType;
+  typedef typename DisplacementFieldTransformType::Pointer                           DisplacementFieldTransformPointer;
+  typedef typename DisplacementFieldTransformType::DisplacementFieldType             DisplacementFieldType;
+  typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension>          TimeVaryingVelocityFieldTransformType;
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType>                            MetricType;
+  typedef itk::ObjectToObjectMultiMetricv4<VImageDimension, VImageDimension>         MultiMetricType;
+  typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
+  typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
+  typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;
 
   enum MetricEnumeration
     {
@@ -504,6 +506,15 @@ public:
   void SetShrinkFactors( const std::vector<std::vector<unsigned int> > & ShrinkFactors );
 
   /**
+   * Given an image and a specified shrink factor, calculate the shrink factor for
+   * each dimension.  The heuristic we use is to apply the specified shrink factor
+   * to the image dimension with the highest resolution (i.e. smallest spacing).
+   * Then, for each other dimension, we find the factor ( < specified factor ) which
+   * makes the subsampled image as close to isotropic (in terms of spacing) as possible.
+   */
+  ShrinkFactorsPerDimensionContainerType CalculateShrinkFactorsPerDimension( unsigned int, ImagePointer );
+
+  /**
    * turn on histogram matching of the input images
    */
   itkSetMacro( UseHistogramMatching, bool );
@@ -611,8 +622,8 @@ private:
     return *m_LogStream;
   }
 
-  typename CompositeTransformType::Pointer m_CompositeTransform;
-  typename CompositeTransformType::Pointer m_FixedInitialTransform;
+  typename CompositeTransformType::Pointer         m_CompositeTransform;
+  typename CompositeTransformType::Pointer         m_FixedInitialTransform;
   typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
   typename ImageMaskSpatialObjectType::Pointer     m_MovingImageMask;
 

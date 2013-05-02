@@ -105,14 +105,14 @@ public:
       }
     if( currentLevel < this->m_NumberOfIterations.size() )
       {
-      typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
+      typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors = filter->GetShrinkFactorsPerDimension( currentLevel );
       typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
       typename TFilter::TransformParametersAdaptorsContainerType adaptors =
         filter->GetTransformParametersAdaptorsPerLevel();
 
       this->Logger() << "  Current level = " << currentLevel << std::endl;
       this->Logger() << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
-      this->Logger() << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
+      this->Logger() << "    shrink factors = " << shrinkFactors << std::endl;
       this->Logger() << "    smoothing sigmas = " << smoothingSigmas[currentLevel] << std::endl;
       this->Logger() << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
                      << std::endl;
@@ -266,7 +266,7 @@ public:
       }
 
     unsigned int currentLevel = filter->GetCurrentLevel();
-    typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
+    typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors = filter->GetShrinkFactorsPerDimension( currentLevel );
     typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
     typename TFilter::TransformParametersAdaptorsContainerType adaptors =
       filter->GetTransformParametersAdaptorsPerLevel();
@@ -1172,7 +1172,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 	displacementFieldRegistration->SetFixedImage( 0, preprocessFixedImage );
 	displacementFieldRegistration->SetMovingImage( 0, preprocessMovingImage );
 	displacementFieldRegistration->SetMetric( metric );
-          
+
 
         if( compositeTransform->GetNumberOfTransforms() > 0 )
           {
