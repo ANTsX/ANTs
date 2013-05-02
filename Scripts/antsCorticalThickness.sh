@@ -545,6 +545,10 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
         logCmd $exe_brain_segmentation_2
       done
 
+    # We do two stages of antsAtroposN4.  The first stage is to get a good N4
+    # bias corrected image(s).  This bias corrected image(s) is used as input to the
+    # second stage where we only do 2 iterations.
+
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
@@ -556,6 +560,27 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
+      -n 5 \
+      -c 3 \
+      -l 3 \
+      -l 2 \
+      -p ${SEGMENTATION_PRIOR_WARPED} \
+      -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
+      -o ${OUTPUT_PREFIX}Brain \
+      -k ${KEEP_TMP_IMAGES} \
+      -s ${OUTPUT_SUFFIX}
+
+    ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
+    for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
+      do
+        ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${OUTPUT_PREFIX}BrainSegmentation${j}N4.${OUTPUT_SUFFIX}";
+      done
+
+    bash ${ANTSPATH}/antsAtroposN4.sh \
+      -d ${DIMENSION} \
+      ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
+      -x ${BRAIN_EXTRACTION_MASK} \
+      -m 2 \
       -n 5 \
       -c 3 \
       -l 3 \
