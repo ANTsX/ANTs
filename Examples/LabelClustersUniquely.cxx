@@ -121,7 +121,8 @@ int  LabelUniquely(int argc, char *argv[])
 //  float maximum=relabel->GetNumberOfObjects();
   typename CastFilterType2::Pointer castRegions = CastFilterType2::New();
   castRegions->SetInput( relabel->GetOutput() );
-  WriteImage<ImageType>(   castRegions->GetOutput() , argv[2]);
+  castRegions->Update();
+  WriteImage<ImageType>(   castRegions->GetOutput() , argv[2] );
 
   return 0;
 }
