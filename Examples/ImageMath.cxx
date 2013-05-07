@@ -4297,35 +4297,24 @@ int StackImage(int argc, char *argv[])
   int         argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
-  std::string fn1 = std::string(argv[argct]);   argct++;
-  std::string fn2 = "";
-  if( argc > argct )
-    {
-    fn2 = std::string(argv[argct]);
-    }
-  argct++;
+  std::string fn1 = std::string(argv[argct]);
+ 
+  unsigned int nSlices = argc - argct;
+  std::cout << "nSlices = " << nSlices << std::endl;
 
   typename ImageType::Pointer image1 = NULL;
   if( fn1.length() > 3 )
     {
     ReadImage<ImageType>(image1, fn1.c_str() );
     }
-  typename ImageType::Pointer image2 = NULL;
-  if( fn2.length() > 3 )
-    {
-    ReadImage<ImageType>(image2, fn2.c_str() );
-    }
 
   typename ImageType::PointType origin2 = image1->GetOrigin();
-
   typename ImageType::SizeType size = image1->GetLargestPossibleRegion().GetSize();
   typename ImageType::SizeType newsize = image1->GetLargestPossibleRegion().GetSize();
   typename ImageType::RegionType newregion;
-  // determine new image size
+  newsize[ImageDimension - 1] = nSlices * image1->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
+  unsigned int constantPad = image1->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
 
-  newsize[ImageDimension
-          - 1] =
-    (unsigned int)newsize[ImageDimension - 1] + image2->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   antscout << " oldsize " << size <<  " newsize " << newsize << std::endl;
   newregion.SetSize(newsize);
   newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
@@ -4336,40 +4325,45 @@ int StackImage(int argc, char *argv[])
                           origin2,
                           image1->GetDirection(),
                           0);
-
   typename ImageType::IndexType index; index.Fill(0);
   typename ImageType::IndexType index2; index2.Fill(0);
   typename ImageType::PointType point1, pointpad;
   image1->TransformIndexToPhysicalPoint(index, point1);
   padimage->TransformIndexToPhysicalPoint(index2, pointpad);
-  //  antscout << " pre " << point1 << " pad " << pointpad << std::endl;
   for( unsigned int i = 0; i < ImageDimension; i++ )
     {
     origin2[i] += (point1[i] - pointpad[i]);
     }
   padimage->SetOrigin(origin2);
-  const float padvalue = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  Iterator iter( padimage,  padimage->GetLargestPossibleRegion() );
-  for( iter.GoToBegin(); !iter.IsAtEnd();
-       ++iter )
+
+  unsigned int offset = 0;
+  while ( argc > argct )
     {
-    const typename ImageType::IndexType & oindex = iter.GetIndex();
-    typename ImageType::IndexType padindex = iter.GetIndex();
-    bool isinside = false;
-    if( oindex[ImageDimension - 1]  >= padvalue )
+    std::string fn2 = std::string(argv[argct++]);
+    std::cout << fn2 << std::endl;
+
+    ReadImage<ImageType>(image1, fn2.c_str() );
+
+    const float padvalue = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
+    if (padvalue != constantPad )
       {
-      isinside = true;
+      antscout << "All inputs must be of same size" << std::endl;
+      return 1;
       }
-    if( isinside )
+
+    Iterator iter( image1,  image1->GetLargestPossibleRegion() );
+    for( iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
-      float shifted = ( (float)oindex[ImageDimension - 1] - padvalue);
-      padindex[ImageDimension - 1] = (unsigned int)shifted;
-      padimage->SetPixel(oindex, image2->GetPixel(padindex) );
+      
+      typename ImageType::IndexType oindex = iter.GetIndex();
+      typename ImageType::IndexType padindex = iter.GetIndex();
+      padindex[ImageDimension - 1] = padindex[ImageDimension - 1] + offset;
+      padimage->SetPixel(padindex, image1->GetPixel(oindex) );
+      
       }
-    else
-      {
-      padimage->SetPixel(oindex, image1->GetPixel(oindex) );
-      }
+    
+    offset += constantPad;
+
     }
 
   WriteImage<ImageType>(padimage, outname.c_str() );
@@ -5457,10 +5451,10 @@ int TensorFunctions(int argc, char *argv[])
 
     if( strcmp(operation.c_str(), "TensorFA") == 0 )
       {
-      result = GetTensorFA<TensorType>(tIter.Value() );
-      if( vnl_math_isnan(result) )
+      result = 0.0;
+      if( IsRealTensor<TensorType>( tIter.Value() ) )
         {
-        result = 0;
+        result = GetTensorFA<TensorType>(tIter.Value() );
         }
       vimage->SetPixel(ind, result);
       }
