@@ -192,6 +192,20 @@ TensorType TensorExp( TensorType dtv, bool /* takelog */, bool success = true)
 }
 
 template <class TensorType>
+bool IsRealTensor( TensorType dtv )
+{
+  bool isreal = true;
+  for ( unsigned int i=0; i<6; i++ )
+    {
+    if ( !vnl_math_isfinite( dtv[i] ) )
+      {
+      isreal = false;
+      }
+    }
+  return isreal;
+}
+
+template <class TensorType>
 float  GetTensorFA( TensorType dtv )
 {
   typedef vnl_matrix<double> MatrixType;
