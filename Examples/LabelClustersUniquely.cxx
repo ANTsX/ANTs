@@ -59,10 +59,11 @@ int  LabelUniquely(int argc, char *argv[])
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   // typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  typedef float                                           InternalPixelType;
-  typedef int                                             ULPixelType;
-  typedef itk::Image<ULPixelType, ImageDimension>         labelimagetype;
-  typedef itk::CastImageFilter<ImageType, labelimagetype> CastFilterType;
+  typedef float                                            InternalPixelType;
+  typedef int                                              ULPixelType;
+  typedef itk::Image<ULPixelType, ImageDimension>          labelimagetype;
+  typedef itk::CastImageFilter<ImageType, labelimagetype>  CastFilterType;
+  typedef itk::CastImageFilter< labelimagetype, ImageType> CastFilterType2;
 
   typedef ImageType                                                          InternalImageType;
   typedef ImageType                                                          OutputImageType;
@@ -118,7 +119,10 @@ int  LabelUniquely(int argc, char *argv[])
     }
 
 //  float maximum=relabel->GetNumberOfObjects();
-  WriteImage<labelimagetype>( relabel->GetOutput(), argv[2]);
+  typename CastFilterType2::Pointer castRegions = CastFilterType2::New();
+  castRegions->SetInput( relabel->GetOutput() );
+  castRegions->Update();
+  WriteImage<ImageType>(   castRegions->GetOutput() , argv[2] );
 
   return 0;
 }
@@ -200,3 +204,5 @@ private:
   return EXIT_SUCCESS;
 }
 } // namespace ants
+
+

@@ -115,8 +115,7 @@ public:
    */
   const RealImageType * GetGrayMatterProbabilityImage() const
   {
-    return static_cast<const RealImageType *>(
-      this->ProcessObject::GetInput( 1 ) );
+    return static_cast<const RealImageType *>( this->ProcessObject::GetInput( 1 ) );
   }
 
   /**
@@ -133,19 +132,36 @@ public:
    */
   const RealImageType * GetWhiteMatterProbabilityImage() const
   {
-    return static_cast<const RealImageType *>(
-      this->ProcessObject::GetInput( 2 ) );
+    return static_cast<const RealImageType *>( this->ProcessObject::GetInput( 2 ) );
   }
+
+  /**
+   * Get the warped white matter probability map.
+   */
+  const RealImageType * GetWarpedWhiteMatterProbabilityImage() const
+    {
+    return static_cast<const RealImageType *>( this->ProcessObject::GetOutput( 1 ) );
+    }
 
   /**
    * Set the maximum number of registration iterations.  Default = 50.
    */
-  itkSetMacro( MaximumNumberOfIterations, LabelType );
+  itkSetMacro( MaximumNumberOfIterations, unsigned int );
 
   /**
    * Get the maximum number of registration iterations.  Default = 50.
    */
-  itkGetConstMacro( MaximumNumberOfIterations, LabelType );
+  itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
+
+  /**
+   * Set the maximum number of registration iterations.  Default = 20.
+   */
+  itkSetMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
+
+  /**
+   * Get the maximum number of registration iterations.  Default = 20.
+   */
+  itkGetConstMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
 
   /**
    * Set the gray matter label in the segmentation image.  Default = 2.
@@ -331,6 +347,7 @@ private:
 
   unsigned int m_ElapsedIterations;
   unsigned int m_MaximumNumberOfIterations;
+  unsigned int m_MaximumNumberOfInvertDisplacementFieldIterations;
   RealType     m_CurrentEnergy;
   RealType     m_CurrentConvergenceMeasurement;
   RealType     m_ConvergenceThreshold;

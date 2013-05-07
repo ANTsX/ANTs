@@ -64,6 +64,10 @@ option(OLD_BASELINE_TESTS "Use reported metrics from old tests"                 
 #-----------------------------------------------------------------------------
 include(CTest)
 enable_testing()
+#Set the global max TIMEOUT for CTest jobs.  This is very large for the moment
+#and should be revisted to reduce based on "LONG/SHORT" test times, set to 1 hr for now
+set(CTEST_TEST_TIMEOUT 1800 CACHE STRING "Maximum seconds allowed before CTest will kill the test." FORCE)
+set(DART_TESTING_TIMEOUT ${CTEST_TEST_TIMEOUT} CACHE STRING "Maximum seconds allowed before CTest will kill the test." FORCE)
 
 configure_file(${CMAKE_CURRENT_LIST_DIR}/CTestCustom.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake COPYONLY)

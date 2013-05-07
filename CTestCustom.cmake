@@ -9,32 +9,29 @@
 #-- #"{standard input}:[0-9][0-9]*: Warning: "
 #-- #)
 
-#-- #if("@CMAKE_SYSTEM@" MATCHES "OSF")
-#set(CTEST_CUSTOM_WARNING_EXCEPTION
-#    $ {CTEST_CUSTOM_WARNING_EXCEPTION}
-#    "fltk"
-#    "xforms"
-#    "vtkKWApplication"
-#    "vtkKWObject"
-#    )
-#-- #endif("@CMAKE_SYSTEM@" MATCHES "OSF")
-
-#-- #The following are brains2 warnings that just need to be suppressed because they are caused
-#-- #by third parties, and will never be fixed.
-#set(CTEST_CUSTOM_WARNING_EXCEPTION
-#  "Point.*may be used uninitialized"
-#  ".*was declared here.*"
-#    )
-##Intel compiler does not like itkLegacyMacro warning #1170
-
 #
 # For further details regarding this file,
-# see http://www.vtk.org/Wiki/CMake_Testing_With_CTest#Customizing_CTest
+# see http://www.cmake.org/Wiki/CMake_Testing_With_CTest#Customizing_CTest
 #
+# and
+# http://www.kitware.com/blog/home/post/27
+#
+#----------------------------------------------------------------------
 
 #-- #Reset maximum number of warnings so that they all show up.
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS   1000)
+
+# The following tests should not be run under valgrind
+set(CTEST_CUSTOM_MEMCHECK_IGNORE
+  @CTEST_CUSTOM_MEMCHECK_IGNORE@
+  )
+
+set(CTEST_EXTRA_COVERAGE_GLOB
+  Source/.*/*.h
+  Source/.*/*.txx
+  Source/.*/*.cxx
+  )
 
 set(CTEST_CUSTOM_COVERAGE_EXCLUDE
   ${CTEST_CUSTOM_COVERAGE_EXCLUDE}
@@ -66,20 +63,6 @@ set(CTEST_CUSTOM_COVERAGE_EXCLUDE
   ".*/generated_cpp/.*"
   )
 
-# The following tests should not be run under valgrind
-set(CTEST_CUSTOM_MEMCHECK_IGNORE
-
-  )
-
-set(CTEST_CUSTOM_ERROR_MATCH
-  ${CTEST_CUSTOM_ERROR_MATCH}
-  "CMake Error[ :]"
-  )
-
-set(CTEST_CUSTOM_WARNING_MATCH
-  ${CTEST_CUSTOM_WARNING_MATCH}
-  "CMake Warning[ :]"
-  )
 
 set(CTEST_CUSTOM_WARNING_EXCEPTION
   ${CTEST_CUSTOM_WARNING_EXCEPTION}
@@ -88,29 +71,40 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "VC.include."
 
   # Ignore 'detached HEAD' warnings
-  "Note.*checking out"
+  ".*Note: checking out.*"
   ".*detached.*HEAD.*"
+  ".*warning generated..*"
 
   # NIPYPE warnings:
   ".*NIPYPE-prefix.*warning.*"
 
   # PCRE warnings:
   ".*PCRE-prefix.*warning.*"
-  "PCRE.*warning"
-  "pcre.*has no symbols"
-  "pcre.*warning"
+  ".*PCRE.*warning.*"
+  ".*pcre.*has no symbols.*"
+  ".*pcre.*warning*"
+
+  ".*checking for C compiler warning.*"
+  ".*gmake.*: warning.*"
+
+  # JPEG warnings:
+  ".*/JPEG.*"
+  ".*warning: unused parameter .*cinfo.*"
+  ".*/TIFF.*"
 
   # Swig warnings:
-  ".*Swig-prefix.*warning"
-  "Note.*SWIG"
-  "CParse.*warning"
+  ".*Swig-prefix.*warning.*"
+  ".*Note.*SWIG.*"
+  ".*CParse.*warning.*"
   ".*parser.y.*"
-  "maximum warning verbosity"
-  "Swig.*note.*"
-  "warning.*argument unused during compilation"
+  ".*maximum warning verbosity.*"
+  ".*Swig.*note.*"
+  ".*Swig/Source.*"
+  ".*warning.*argument unused during compilation.*"
 
   # Open-CV warnings:
   ".*OpenCV-build.*warning.*"
+  ".*OpenCV-install.*warning.*"
   ".*OpenCV.*"
 
   # FFTW warnings:
@@ -172,11 +166,6 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   # Make
   "warning: jobserver unavailable"
 
-  # Suppressing warnings about duplicate libraries in Darwin
-  # At some point this may be addressed by CMake feature request:
-  # http://public.kitware.com/Bug/view.php?id=10179
-  "ld: warning: duplicate dylib"
-
   # Suppressing warnings about GL_GLEXT_LEGACY, the link reported below
   # report a similar problem with GL_GLEXT_PROTOTYPE.
   # http://lists.apple.com/archives/mac-opengl/2009/Dec/msg00081.html
@@ -221,10 +210,11 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "ld.*has different visibility.*libLog4Qt.a"
 
   # CTK - dcmtk
-  "dcmdata/dcovlay.h:93: warning: use of old-style cast"
-  "/usr/bin/ranlib: .*lib(dcmtls|oflog).a.*has no symbols"
-  "ld.*has different visibility.*(libdcmdata|libdcmnet|libdcmimgle|liboflog|libofstd).a"
-  "DCMTK.(ofstd|dcmdata|dcmjpls|dcmnet|dcmimage|dcmimgle|dcmpstat|dcmqrdb).(lib|include|apps).*conversion from '(size_t|SOCKET)' to '.*', possible loss of data"
+  ".*dcmdata/dcovlay.h:93: warning: use of old-style cast.*"
+  ".*/usr/bin/ranlib: .*lib(dcmtls|oflog).a.*has no symbols.*"
+  ".*ld.*has different visibility.*(libdcmdata|libdcmnet|libdcmimgle|liboflog|libofstd).a.*"
+  ".*DCMTK.(ofstd|dcmdata|dcmjpls|dcmnet|dcmimage|dcmimgle|dcmpstat|dcmqrdb).(lib|include|apps).*conversion from '(size_t|SOCKET)' to '.*', possible loss of data.*"
+  ".*DCMTK.*warning.*"
 
   # Libs/OpenIGTLink
   "(OpenIGTLink|openigtlink).[Ss]ource.igtl"
@@ -248,7 +238,7 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   # Python - Linux
   "dist.py.*UserWarning.*licence.*distribution option is deprecated"
   "Objects.unicodeobject.c.*warning:.*differ in signedness"
-  "[Ii]nclude.(string|unicodeobject).h.*note: expected ‘const char *’ but argument is of type ‘unsigned char *’"
+  "[Ii]nclude.(string|unicodeobject).h.*note: expected .const char *. but argument is of type .unsigned char *."
   "Modules.(getpath|signalmodule).c.*warning: ignoring return value of.*declared with attribute warn_unused_result"
   "Modules.expat.xmlparse.*warning.*discards qualifiers from pointer target type"
   # Python - Mac
@@ -302,6 +292,8 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   ## HACK: THIS SHOULD NOT BE SUPPRESSED, NEED TO FIX OPENCV!!
   "BRAINSCutApplyModel.cxx.*warning.*increases required alignment"
 
+  "ModuleFactory.*warning.*SymbolPointer"
+
   ## HACK: THIS SHOULD NOT BE SUPPRESSED, NEED TO FIX IN ANTS
   "ANTS.*warning"
   ## External Packages
@@ -314,6 +306,36 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "ITKv4"
   "SlicerExecutionModel"
   "SimpleITK"
+
+  ".*has no symbols"
+  "CMake Warning:"
+  "note: expanded from macro"
+  ": note:"
+  "vrscanl.c.* warning: unused parameter"
+  "boost/archive/iterators/transform_width.hpp"
+  "/usr/bin/libtool: warning same member name"
+  )
+
+set(CTEST_CUSTOM_WARNING_MATCH
+  ${CTEST_CUSTOM_WARNING_MATCH}
+  #"CMake Warning[ :]"
+  )
+
+if(APPLE)
+set(CTEST_CUSTOM_WARNING_EXCEPTION
+  ${CTEST_CUSTOM_WARNING_EXCEPTION}
+  "warning -.: directory name .* does not exist"
+
+  # Suppressing warnings about duplicate libraries in Darwin
+  # At some point this may be addressed by CMake feature request:
+  # http://public.kitware.com/Bug/view.php?id=10179
+  "ld.*warning.*duplicate dylib.*"
+  )
+endif()
+
+set(CTEST_CUSTOM_ERROR_MATCH
+  ${CTEST_CUSTOM_ERROR_MATCH}
+  "CMake Error[ :]"
   )
 
 set(CTEST_CUSTOM_ERROR_EXCEPTION

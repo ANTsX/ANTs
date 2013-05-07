@@ -40,7 +40,7 @@ public:
       {
       const unsigned int currentLevel = filter->GetCurrentLevel();
 
-      typename TFilter::ShrinkFactorsArrayType shrinkFactors = filter->GetShrinkFactorsPerLevel();
+      typename TFilter::ShrinkFactorsPerDimensionContainerType shrinkFactors = filter->GetShrinkFactorsPerDimension( currentLevel );
       typename TFilter::SmoothingSigmasArrayType smoothingSigmas = filter->GetSmoothingSigmasPerLevel();
       typename TFilter::TransformParametersAdaptorsContainerType adaptors =
         filter->GetTransformParametersAdaptorsPerLevel();
@@ -51,7 +51,7 @@ public:
       this->Logger() << "  Current level = " << currentLevel + 1 << " of " << this->m_NumberOfIterations.size()
                      << std::endl;
       this->Logger() << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
-      this->Logger() << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
+      this->Logger() << "    shrink factors = " << shrinkFactors << std::endl;
       this->Logger() << "    smoothing sigmas = " << smoothingSigmas[currentLevel];
       if( smoothingSigmasAreInPhysicalUnits )
         {

@@ -418,7 +418,11 @@ TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float ep
 template <class TTensorType>
 float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
 {
-  float eps = 1.e-9, mag = 0;
+  if( opt <= 1 )
+    {
+    return ( dtv[0] + dtv[3] + dtv[5] ) / 3.0;
+    }
+   float eps = 1.e-9, mag = 0;
 
   for( unsigned int jj = 0; jj < 6; jj++ )
     {
@@ -440,7 +444,7 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     return 0;
     }
 
-  //  typedef itk::Vector<float, 6> TensorTypeIn;
+   //  typedef itk::Vector<float, 6> TensorTypeIn;
   typedef itk::Vector<float, 6> TensorType;
   typedef itk::Vector<float, 6> TensorTypeOut;
   typedef itk::Vector<float, 6> TensorTypeIn;

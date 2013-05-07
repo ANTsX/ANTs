@@ -227,7 +227,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( thicknessPriorOption && thicknessPriorOption->GetNumberOfFunctions() )
     {
     direct->SetThicknessPriorEstimate( parser->Convert<RealType>(
-                                         thicknessPriorOption->GetFunction( 0 )->GetName() ) );
+                                       thicknessPriorOption->GetFunction( 0 )->GetName() ) );
     }
   //
   // gradient step
@@ -237,7 +237,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( gradientStepOption && gradientStepOption->GetNumberOfFunctions() )
     {
     direct->SetInitialGradientStep( parser->Convert<RealType>(
-                                      gradientStepOption->GetFunction( 0 )->GetName() ) );
+                                    gradientStepOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -248,7 +248,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( smoothingVelocityFieldVarianceOption && smoothingVelocityFieldVarianceOption->GetNumberOfFunctions() )
     {
     direct->SetSmoothingVelocityFieldVariance( parser->Convert<RealType>(
-                                 smoothingVelocityFieldVarianceOption->GetFunction( 0 )->GetName() ) );
+                                               smoothingVelocityFieldVarianceOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -259,7 +259,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   if( smoothingVarianceOption && smoothingVarianceOption->GetNumberOfFunctions() )
     {
     direct->SetSmoothingVariance( parser->Convert<RealType>(
-                                 smoothingVarianceOption->GetFunction( 0 )->GetName() ) );
+                                  smoothingVarianceOption->GetFunction( 0 )->GetName() ) );
     }
 
   //
@@ -269,8 +269,19 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     numberOfIntegrationPointsOption = parser->GetOption( "number-of-integration-points" );
   if( numberOfIntegrationPointsOption && numberOfIntegrationPointsOption->GetNumberOfFunctions() )
     {
-    direct->SetNumberOfIntegrationPoints( parser->Convert<RealType>(
-                                 numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
+    direct->SetNumberOfIntegrationPoints( parser->Convert<unsigned int>(
+                                          numberOfIntegrationPointsOption->GetFunction( 0 )->GetName() ) );
+    }
+
+  //
+  // number of invert displacement field iterations
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+    numberOfInvertDisplacementFieldIterationsOption = parser->GetOption( "maximum-number-of-invert-displacement-field-iterations" );
+  if( numberOfInvertDisplacementFieldIterationsOption && numberOfInvertDisplacementFieldIterationsOption->GetNumberOfFunctions() )
+    {
+    direct->SetMaximumNumberOfInvertDisplacementFieldIterations( parser->Convert<unsigned int>(
+                                                                 numberOfInvertDisplacementFieldIterationsOption->GetFunction( 0 )->GetName() ) );
     }
 
   typedef CommandIterationUpdate<DiReCTFilterType> CommandType;
@@ -299,9 +310,35 @@ int DiReCT( itk::ants::CommandLineParser *parser )
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
-  if( outputOption && outputOption->GetNumberOfFunctions() )
+
+  if( outputOption && outputOption->GetNumberOfFunctions() > 0 )
     {
-    WriteImage<ImageType>(  direct->GetOutput(),  ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetName() ).c_str() );
+      }
+    else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      WriteImage<ImageType>( direct->GetOutput(), ( outputOption->GetFunction( 0 )->GetParameter() ).c_str() );
+      if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+        {
+        WriteImage<ImageType>( direct->GetOutput( 1 ), ( outputOption->GetFunction( 0 )->GetParameter( 1 ) ).c_str() );
+        }
+      }
+    }
+
+  if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+    {
+    std::string inputFile = segmentationImageOption->GetFunction( 0 )->GetName();
+    ReadImage<LabelImageType>( segmentationImage, inputFile.c_str()   );
+    }
+  else if( segmentationImageOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+
+    {
+    }
+  if( outputOption && outputOption->GetNumberOfFunctions() > 1 )
+    {
+    WriteImage<ImageType>(  direct->GetOutput( 1 ), ( outputOption->GetFunction( 1 )->GetName() ).c_str() );
     }
 
   return EXIT_SUCCESS;
@@ -446,13 +483,26 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
+      std::string( "Maximum number of iterations for estimating the invert displacement field.  Default = 20." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "maximum-number-of-invert-displacement-field-iterations" );
+    option->SetShortName( 'p' );
+    option->SetUsageOption( 0, "numberOfIterations" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
       std::string( "The output consists of a thickness map defined in the " )
       + std::string( "segmented gray matter. " );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "imageFilename" );
+    option->SetUsageOption( 0, "imageFileName" );
+    option->SetUsageOption( 1, "[imageFileName,warpedWhiteMatterImageFileName]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
