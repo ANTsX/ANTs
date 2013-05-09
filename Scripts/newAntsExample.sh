@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-dim=2 # image dimensionality
+dim=3 # image dimensionality
 AP="" # /home/yourself/code/ANTS/bin/bin/  # path to ANTs binaries
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2  # controls multi-threading
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
@@ -45,8 +45,9 @@ $reg -d $dim -r [ $f, $m ,1]  \
                          -c [$its,1.e-8,20]  \
                         -s 4x2x1vox  \
                         -f 3x2x1 -l 1 \
-                        -m mattes[  $f, $m , 1 , 32 ] \
-                         -t syn[ .25, 3, 0.0 ] \
+                        -m mattes[  $f, $m , 2 , 32 ] \
+                        -m cc[  $f, $m , 1 , 4 ] \
+                         -t SyN[ .25, 3, 0 ] \
                          -c [ $syn ]  \
                         -s 1x0.5x0vox  \
                         -f 4x2x1 -l 1 -u 1 -z 1 \
