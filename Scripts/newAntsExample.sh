@@ -45,8 +45,8 @@ $reg -d $dim -r [ $f, $m ,1]  \
                          -c [$its,1.e-8,20]  \
                         -s 4x2x1vox  \
                         -f 3x2x1 -l 1 \
-                        -m mattes[  $f, $m , 2 , 32 ] \
-                        -m cc[  $f, $m , 1 , 4 ] \
+                        -m mattes[  $f, $m , 0.5 , 32 ] \
+                        -m cc[  $f, $m , 0.5 , 4 ] \
                          -t SyN[ .20, 3, 0 ] \
                          -c [ $syn ]  \
                         -s 1x0.5x0vox  \
