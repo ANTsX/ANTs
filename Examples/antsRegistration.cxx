@@ -151,7 +151,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "print-similarity-measure-interval" );
     option->SetShortName( 'p' );
-    option->SetUsageOption( 0, "<unsigned integer value>" );
+    option->SetUsageOption( 0, "<unsignedIntegerValue>" );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
@@ -166,7 +166,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "write-interval-volumes" );
     option->SetShortName( 'v' );
-    option->SetUsageOption( 0, "<unsigned integer value>" );
+    option->SetUsageOption( 0, "<unsignedIntegerValue>" );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
