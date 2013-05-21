@@ -51,7 +51,7 @@ public:
       {
       const unsigned int currentLevel = this->m_Optimizer->GetCurrentLevel();
 
-      typename TOptimizer::ShrinkFactorsArrayType shrinkFactors = this->m_Optimizer->GetShrinkFactorsPerLevel();
+      typename TOptimizer::ShrinkFactorsPerDimensionContainerType shrinkFactors = this->m_Optimizer->GetShrinkFactorsPerDimension( currentLevel );
       typename TOptimizer::SmoothingSigmasArrayType smoothingSigmas = this->m_Optimizer->GetSmoothingSigmasPerLevel();
       typename TOptimizer::TransformParametersAdaptorsContainerType adaptors =
         this->m_Optimizer->GetTransformParametersAdaptorsPerLevel();
@@ -62,7 +62,7 @@ public:
       this->Logger() << "  Current level = " << currentLevel + 1 << " of " << this->m_NumberOfIterations.size()
                      << std::endl;
       this->Logger() << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
-      this->Logger() << "    shrink factors = " << shrinkFactors[currentLevel] << std::endl;
+      this->Logger() << "    shrink factors = " << shrinkFactors << std::endl;
       this->Logger() << "    smoothing sigmas = " << smoothingSigmas[currentLevel];
       if( smoothingSigmasAreInPhysicalUnits )
         {

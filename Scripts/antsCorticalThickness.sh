@@ -506,7 +506,13 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       then
         logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -r [${EXTRACTION_GENERIC_AFFINE},1]"
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX}"
+        if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
+          then
+            basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
+          else
+            basecall="${basecall} -r [${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},1]"
+          fi
         basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
         stage1="-m MI[${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
         stage2="-m CC[${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
@@ -545,6 +551,10 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
         logCmd $exe_brain_segmentation_2
       done
 
+    # We do two stages of antsAtroposN4.  The first stage is to get a good N4
+    # bias corrected image(s).  This bias corrected image(s) is used as input to the
+    # second stage where we only do 2 iterations.
+
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
@@ -556,6 +566,27 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
+      -n 5 \
+      -c 3 \
+      -l 3 \
+      -l 2 \
+      -p ${SEGMENTATION_PRIOR_WARPED} \
+      -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
+      -o ${OUTPUT_PREFIX}Brain \
+      -k ${KEEP_TMP_IMAGES} \
+      -s ${OUTPUT_SUFFIX}
+
+    ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
+    for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
+      do
+        ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${OUTPUT_PREFIX}BrainSegmentation${j}N4.${OUTPUT_SUFFIX}";
+      done
+
+    bash ${ANTSPATH}/antsAtroposN4.sh \
+      -d ${DIMENSION} \
+      ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
+      -x ${BRAIN_EXTRACTION_MASK} \
+      -m 2 \
       -n 5 \
       -c 3 \
       -l 3 \
