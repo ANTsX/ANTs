@@ -106,18 +106,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
       + std::string( "incorporated into the composite transform.  The order of the " )
       + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  In addition to specification " )
-      + std::string( "of ITK transforms, the user can perform an initial translation alignment " )
-      + std::string( "by specifying the fixed and moving images.  These images can then be aligned " )
-      + std::string( "using the image intensities, i.e. \"center of mass\", or the geometric center " )
-      + std::string( "of the images." );
+      + std::string( "the command line is the first to be applied.  In addition to initialization " )
+      + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
+      + std::string( "by specifying the fixed and moving images and selecting an initialization " )
+      + std::string( "feature.  These features include using the geometric center of the images (=0), " )
+      + std::string( "the image intensities (=1), or the origin of the images (=2)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initial-fixed-transform" );
     option->SetShortName( 'q' );
     option->SetUsageOption( 0, "initialTransform" );
     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
-    option->SetUsageOption( 2, "[fixedImage,movingImage,useCenterOfMass]" );
+    option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -190,18 +190,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description = std::string( "Specify the initial moving transform(s) which get immediately " )
       + std::string( "incorporated into the composite transform.  The order of the " )
       + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  In addition to specification " )
-      + std::string( "of ITK transforms, the user can perform an initial translation alignment " )
-      + std::string( "by specifying the fixed and moving images.  These images can then be aligned " )
-      + std::string( "using the image intensities, i.e. \"center of mass\", or the geometric center " )
-      + std::string( "of the images." );
+      + std::string( "the command line is the first to be applied.  In addition to initialization " )
+      + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
+      + std::string( "by specifying the fixed and moving images and selecting an initialization " )
+      + std::string( "feature.  These features include using the geometric center of the images (=0), " )
+      + std::string( "the image intensities (=1), or the origin of the images (=2)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initial-moving-transform" );
     option->SetShortName( 'r' );
     option->SetUsageOption( 0, "initialTransform" );
     option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
-    option->SetUsageOption( 2, "[fixedImage,movingImage,useCenterOfMass]" );
+    option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

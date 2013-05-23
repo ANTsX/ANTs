@@ -703,41 +703,60 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         std::string movingImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 1 );
         ReadImage<ImageType>( movingImage, movingImageFileName.c_str() );
         }
-      bool useCenterOfMass = true;
-      if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
-        {
-        std::string parameter = initialTransformOption->GetFunction( n )->GetParameter( 2 );
-        ConvertToLowerCase( parameter );
-        if( parameter.compare( "0" ) == 0 || parameter.compare( "false" ) == 0 )
-          {
-          useCenterOfMass = false;
-          }
-        }
+
+      // initialization feature types:
+      //  0: image centers
+      //  1: center of (intensity) mass
+      //  2: image origins
+
+      unsigned short initializationFeature = parser->Convert<unsigned short>(
+        initialTransformOption->GetFunction( n )->GetParameter( 2 ) );
+
       typedef itk::AffineTransform<double, VImageDimension> TransformType;
       typename TransformType::Pointer transform = TransformType::New();
 
-      typedef itk::CenteredTransformInitializer<TransformType, ImageType, ImageType> TransformInitializerType;
-      typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
-
-      initializer->SetTransform( transform );
-
-      initializer->SetFixedImage( fixedImage );
-      initializer->SetMovingImage( movingImage );
-
-      if( useCenterOfMass )
+      if( initializationFeature == 0 || initializationFeature == 1 )
         {
-        initializer->MomentsOn();
-        initialTransformName = std::string( "Center of mass alignment using " );
+        typedef itk::CenteredTransformInitializer<TransformType, ImageType, ImageType> TransformInitializerType;
+        typename TransformInitializerType::Pointer initializer = TransformInitializerType::New();
+
+        initializer->SetTransform( transform );
+
+        initializer->SetFixedImage( fixedImage );
+        initializer->SetMovingImage( movingImage );
+
+        if( initializationFeature == 0 )
+          {
+          initializer->MomentsOn();
+          initialTransformName = std::string( "Center of mass alignment using " );
+          }
+        else
+          {
+          initializer->GeometryOn();
+          initialTransformName = std::string( "Image center alignment using " );
+          }
+        initializer->InitializeTransform();
         }
       else
         {
-        initializer->GeometryOn();
-        initialTransformName = std::string( "Image alignment using " );
-        }
-      initializer->InitializeTransform();
+        initialTransformName = std::string( "Image origin alignment using " );
 
-      initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter(
-          0 )
+        typename TransformType::InputPointType   rotationCenter;
+        typename TransformType::OutputVectorType translationVector;
+
+        typename ImageType::PointType fixedOrigin = fixedImage->GetOrigin();
+        typename ImageType::PointType movingOrigin = movingImage->GetOrigin();
+
+        for ( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          rotationCenter[d] = fixedOrigin[d];
+          translationVector[d] = movingOrigin[d] - fixedOrigin[d];
+          }
+        transform->SetCenter( rotationCenter );
+        transform->SetTranslation( translationVector );
+        }
+
+      initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 0 )
         + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
 
       typedef itk::TranslationTransform<double, VImageDimension> TranslationTransformType;
@@ -770,7 +789,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       }
 
-    static bool MatOffRegistered(false); // Only register once for each template dimension.
+    static bool MatOffRegistered( false ); // Only register once for each template dimension.
     if( !MatOffRegistered )
       {
       MatOffRegistered = true;
