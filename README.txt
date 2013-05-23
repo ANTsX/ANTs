@@ -330,3 +330,7 @@ ANTs-related Studies
   tensor-based morphometry study.
   Neuroimage. 2008 Feb 1;39(3):1014-26. Epub 2007 Oct 13.
 
+
+# gource visualization 
+gource ./ -s 0.05 --stop-at-end --output-ppm-stream ants.ppm
+ffmpeg -y  -f image2pipe -vcodec ppm -i ants.ppm -vcodec mpeg4 -preset slow -crf 2 -b:v 4M ./ants_gource.mp4
