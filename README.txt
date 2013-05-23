@@ -1,3 +1,5 @@
+See the *new* ants [website](http://stnava.github.io/ANTs/ "ANTs")
+
 Experimental transition to github for development: Wed Jan 23 10:46:13 EST 2013
 
 Installation/Compilation:
