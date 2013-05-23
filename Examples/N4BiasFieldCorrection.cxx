@@ -160,6 +160,7 @@ int N4( itk::ants::CommandLineParser *parser )
       typename CorrecterType::ArrayType numberOfFittingLevels;
       numberOfFittingLevels.Fill( numIters.size() );
       correcter->SetNumberOfFittingLevels( numberOfFittingLevels );
+      correcter->SetConvergenceThreshold( 0.0 );
       }
     if( convergenceOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
       {
@@ -174,7 +175,7 @@ int N4( itk::ants::CommandLineParser *parser )
     maximumNumberOfIterations.Fill( 50 );
     correcter->SetMaximumNumberOfIterations( maximumNumberOfIterations );
     correcter->SetNumberOfFittingLevels( 4 );
-    correcter->SetConvergenceThreshold( 0.000001 );
+    correcter->SetConvergenceThreshold( 0.0 );
     }
 
   /**
@@ -559,7 +560,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "convergence" );
     option->SetShortName( 'c' );
-    option->SetUsageOption( 0, "[<numberOfIterations=50x50x50x50>,<convergenceThreshold=0.000001>]" );
+    option->SetUsageOption( 0, "[<numberOfIterations=50x50x50x50>,<convergenceThreshold=0.0>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -609,7 +610,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "[correctedImage,<biasField>]" );
+    option->SetUsageOption( 0, "correctedImage" );
+    option->SetUsageOption( 1, "[correctedImage,<biasField>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
