@@ -6,7 +6,7 @@
 
   git checkout --orphan gh-pages
 
-  git add index.html
+  git add index.html .htaccess 
 
   git add forhtml/
 
