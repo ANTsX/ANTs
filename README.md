@@ -1,12 +1,12 @@
+See the *new* ants [website](http://stnava.github.io/ANTs/ "ANTs")
+
+[Installation/Compilation](http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/ "Build")
+
+[Old Homepage](http://www.picsl.upenn.edu/ANTS/)
+
 Experimental transition to github for development: Wed Jan 23 10:46:13 EST 2013
 
-Installation/Compilation:
-
-http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
-
 Release 1.9.x --- final svn release = 1781, now moved to git ....
-
-Homepage:  http://www.picsl.upenn.edu/ANTS/
 
 Introduction -- ANTS is a tool for computational neuroanatomy based on
 medical images.  ANTS reads any image type that can be read by ITK
@@ -330,3 +330,7 @@ ANTs-related Studies
   tensor-based morphometry study.
   Neuroimage. 2008 Feb 1;39(3):1014-26. Epub 2007 Oct 13.
 
+
+# gource visualization 
+gource ./ -s 0.05 --stop-at-end --output-ppm-stream ants.ppm
+ffmpeg -y  -f image2pipe -vcodec ppm -i ants.ppm -vcodec mpeg4 -preset slow -crf 2 -b:v 4M ./ants_gource.mp4
