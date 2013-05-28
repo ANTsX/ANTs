@@ -57,6 +57,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageGaussianModelEstimator.h"
 #include "itkImageKmeansModelEstimator.h"
+#include "itkImageMaskSpatialObject.h"
 #include "itkImageMomentsCalculator.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
@@ -10900,15 +10901,29 @@ int ImageMetrics( int argc, char *argv[] )
     typedef itk::MattesMutualInformationImageToImageMetricv4
       <ImageType, ImageType, ImageType> MetricType;
 
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
+
     int bins = 32;
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+
     if( argc > 6 )
       {
       bins = atoi( argv[6] );
       }
-
-    typename MetricType::Pointer metric = MetricType::New();
-    metric->SetFixedImage( img1 );
-    metric->SetMovingImage( img2 );
+    
+    if( argc > 7 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[7] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
+   
     metric->SetNumberOfHistogramBins( bins );
     metric->Initialize();
     value = metric->GetValue();
@@ -11811,7 +11826,7 @@ int BlobDetector( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
+float ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -12300,6 +12315,8 @@ private:
     return EXIT_FAILURE;
     }
 
+  int returnvalue = EXIT_SUCCESS;
+
   std::string operation = std::string(argv[3]);
 
   switch( atoi(argv[1]) )
@@ -12617,7 +12634,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
-        ImageMetrics<2>(argc, argv);
+        returnvalue = ImageMetrics<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
@@ -13062,7 +13079,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
-        ImageMetrics<3>(argc, argv);
+        returnvalue = ImageMetrics<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
@@ -13475,7 +13492,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
-        ImageMetrics<4>(argc, argv);
+        returnvalue = ImageMetrics<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
