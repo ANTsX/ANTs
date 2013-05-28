@@ -10831,8 +10831,8 @@ int ImageMetrics( int argc, char *argv[] )
 {
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
-    <ImageType, ImageType, ImageType>                                          MetricType;
+  //typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
+  //  <ImageType, ImageType, ImageType>                         MetricType;
 
   if( argc < 5 )
     {
@@ -10851,21 +10851,34 @@ int ImageMetrics( int argc, char *argv[] )
   if( strcmp(argv[3], "NeighborhoodCorrelation") == 0 )
     {
     typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
-      <ImageType, ImageType, ImageType>                                          MetricType;
+      <ImageType, ImageType, ImageType>                          MetricType;
+
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
 
     int r = 5;
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+
     if( argc > 6 )
       {
       r = atoi( argv[6] );
       }
+    if( argc > 7 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[7] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
 
     typename MetricType::RadiusType radius;
     radius.Fill( r );
-
-    typename MetricType::Pointer metric = MetricType::New();
     metric->SetRadius( radius );
-    metric->SetFixedImage( img1 );
-    metric->SetMovingImage( img2 );
+
     metric->Initialize();
     value = metric->GetValue();
     }
@@ -10874,9 +10887,24 @@ int ImageMetrics( int argc, char *argv[] )
     typedef itk::CorrelationImageToImageMetricv4
       <ImageType, ImageType, ImageType> MetricType;
 
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetFixedImage( img1 );
     metric->SetMovingImage( img2 );
+
+    if( argc > 6 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[6] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
+
+
     metric->Initialize();
     value = metric->GetValue();
     }
@@ -10885,9 +10913,22 @@ int ImageMetrics( int argc, char *argv[] )
     typedef itk::DemonsImageToImageMetricv4
       <ImageType, ImageType, ImageType> MetricType;
 
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetFixedImage( img1 );
     metric->SetMovingImage( img2 );
+
+    if( argc > 6 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[6] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
 
     // FIXME - Calling initialize on demons causes seg fault
     antscout << "Demons is currently broken" << std::endl;
@@ -12062,13 +12103,13 @@ private:
     antscout << "  PearsonCorrelation: r-value from intesities of two images" << std::endl;
     antscout << "    Usage: PearsonCorrelation image1.ext image2.ext {Optional-mask.ext}" << std::endl;
     antscout << "  NeighborhoodCorrelation: local correlations" << std::endl;
-    antscout << "    Usage: NeighborhoodCorrelation image1.ext image2.ext {Optional-radius=5}" << std::endl;
+    antscout << "    Usage: NeighborhoodCorrelation image1.ext image2.ext {Optional-radius=5} {Optional-image-mask}" << std::endl;
     antscout << "  NormalizedCorrelation: r-value from intesities of two images" << std::endl;
-    antscout << "    Usage: NormalizedCorrelation image1.ext image2.ext" << std::endl;
+    antscout << "    Usage: NormalizedCorrelation image1.ext image2.ext {Optional-image-mask}" << std::endl;
     antscout << "  Demons: " << std::endl;
     antscout << "    Usage: Demons image1.ext image2.ext" << std::endl;
     antscout << "  Mattes: mutual information" << std::endl;
-    antscout << "    Usage: Mattes image1.ext image2.ext {Optional-number-bins=32}" << std::endl;
+    antscout << "    Usage: Mattes image1.ext image2.ext {Optional-number-bins=32} {Optional-image-mask}" << std::endl;
 
     antscout << "\nUnclassified Operators:" << std::endl;
 
