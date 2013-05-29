@@ -1,0 +1,16 @@
+
+edit the index.html
+
+then run (from the root dir)
+
+./forhtml/push-website
+
+e.g. 
+
+git checkout master 
+vi index.html 
+git add index.html 
+git commit -m 'ENH: grant ref'
+git push origin master  # push your new index.html changes 
+./forhtml/push-website  # send the site to github 
+

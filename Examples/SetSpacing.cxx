@@ -74,7 +74,7 @@ int SetSpacing(int argc, char *argv[])
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
-  outim->SetSpacing(spacing);
+  varimage->SetSpacing(spacing);
 
   Iterator vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )

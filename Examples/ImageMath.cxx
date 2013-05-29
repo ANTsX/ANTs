@@ -57,6 +57,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageGaussianModelEstimator.h"
 #include "itkImageKmeansModelEstimator.h"
+#include "itkImageMaskSpatialObject.h"
 #include "itkImageMomentsCalculator.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
@@ -10830,8 +10831,8 @@ int ImageMetrics( int argc, char *argv[] )
 {
   typedef float                                 PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
-    <ImageType, ImageType, ImageType>                                          MetricType;
+  //typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
+  //  <ImageType, ImageType, ImageType>                         MetricType;
 
   if( argc < 5 )
     {
@@ -10850,21 +10851,34 @@ int ImageMetrics( int argc, char *argv[] )
   if( strcmp(argv[3], "NeighborhoodCorrelation") == 0 )
     {
     typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4
-      <ImageType, ImageType, ImageType>                                          MetricType;
+      <ImageType, ImageType, ImageType>                          MetricType;
+
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
 
     int r = 5;
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+
     if( argc > 6 )
       {
       r = atoi( argv[6] );
       }
+    if( argc > 7 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[7] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
 
     typename MetricType::RadiusType radius;
     radius.Fill( r );
-
-    typename MetricType::Pointer metric = MetricType::New();
     metric->SetRadius( radius );
-    metric->SetFixedImage( img1 );
-    metric->SetMovingImage( img2 );
+
     metric->Initialize();
     value = metric->GetValue();
     }
@@ -10873,9 +10887,24 @@ int ImageMetrics( int argc, char *argv[] )
     typedef itk::CorrelationImageToImageMetricv4
       <ImageType, ImageType, ImageType> MetricType;
 
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetFixedImage( img1 );
     metric->SetMovingImage( img2 );
+
+    if( argc > 6 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[6] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
+
+
     metric->Initialize();
     value = metric->GetValue();
     }
@@ -10884,9 +10913,22 @@ int ImageMetrics( int argc, char *argv[] )
     typedef itk::DemonsImageToImageMetricv4
       <ImageType, ImageType, ImageType> MetricType;
 
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
+
     typename MetricType::Pointer metric = MetricType::New();
     metric->SetFixedImage( img1 );
     metric->SetMovingImage( img2 );
+
+    if( argc > 6 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[6] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
 
     // FIXME - Calling initialize on demons causes seg fault
     antscout << "Demons is currently broken" << std::endl;
@@ -10900,15 +10942,29 @@ int ImageMetrics( int argc, char *argv[] )
     typedef itk::MattesMutualInformationImageToImageMetricv4
       <ImageType, ImageType, ImageType> MetricType;
 
+    typedef typename itk::ImageMaskSpatialObject<ImageDimension> MaskType;
+    typedef typename MaskType::ImageType MaskImageType;
+
     int bins = 32;
+    typename MetricType::Pointer metric = MetricType::New();
+    metric->SetFixedImage( img1 );
+    metric->SetMovingImage( img2 );
+
     if( argc > 6 )
       {
       bins = atoi( argv[6] );
       }
-
-    typename MetricType::Pointer metric = MetricType::New();
-    metric->SetFixedImage( img1 );
-    metric->SetMovingImage( img2 );
+    
+    if( argc > 7 )
+      {
+      typename MaskType::Pointer mask = MaskType::New();
+      typename MaskImageType::Pointer maskImage = MaskImageType::New();
+      ReadImage<MaskImageType>( maskImage, argv[7] );
+      mask->SetImage( maskImage );
+      metric->SetFixedImageMask( mask );
+      metric->SetMovingImageMask( mask );
+      }
+   
     metric->SetNumberOfHistogramBins( bins );
     metric->Initialize();
     value = metric->GetValue();
@@ -11811,7 +11867,7 @@ int BlobDetector( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
+float ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -12047,13 +12103,13 @@ private:
     antscout << "  PearsonCorrelation: r-value from intesities of two images" << std::endl;
     antscout << "    Usage: PearsonCorrelation image1.ext image2.ext {Optional-mask.ext}" << std::endl;
     antscout << "  NeighborhoodCorrelation: local correlations" << std::endl;
-    antscout << "    Usage: NeighborhoodCorrelation image1.ext image2.ext {Optional-radius=5}" << std::endl;
+    antscout << "    Usage: NeighborhoodCorrelation image1.ext image2.ext {Optional-radius=5} {Optional-image-mask}" << std::endl;
     antscout << "  NormalizedCorrelation: r-value from intesities of two images" << std::endl;
-    antscout << "    Usage: NormalizedCorrelation image1.ext image2.ext" << std::endl;
+    antscout << "    Usage: NormalizedCorrelation image1.ext image2.ext {Optional-image-mask}" << std::endl;
     antscout << "  Demons: " << std::endl;
     antscout << "    Usage: Demons image1.ext image2.ext" << std::endl;
     antscout << "  Mattes: mutual information" << std::endl;
-    antscout << "    Usage: Mattes image1.ext image2.ext {Optional-number-bins=32}" << std::endl;
+    antscout << "    Usage: Mattes image1.ext image2.ext {Optional-number-bins=32} {Optional-image-mask}" << std::endl;
 
     antscout << "\nUnclassified Operators:" << std::endl;
 
@@ -12299,6 +12355,8 @@ private:
       }
     return EXIT_FAILURE;
     }
+
+  int returnvalue = EXIT_SUCCESS;
 
   std::string operation = std::string(argv[3]);
 
@@ -12617,7 +12675,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
-        ImageMetrics<2>(argc, argv);
+        returnvalue = ImageMetrics<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
@@ -13062,7 +13120,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
-        ImageMetrics<3>(argc, argv);
+        returnvalue = ImageMetrics<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
@@ -13475,7 +13533,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "Mattes") == 0 )
         {
-        ImageMetrics<4>(argc, argv);
+        returnvalue = ImageMetrics<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
