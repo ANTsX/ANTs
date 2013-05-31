@@ -538,7 +538,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "dimensionality" );
     option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "2/3" );
+    option->SetUsageOption( 0, "2/3/4" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
