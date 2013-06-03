@@ -727,13 +727,13 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
         if( initializationFeature == 0 )
           {
-          initializer->MomentsOn();
-          initialTransformName = std::string( "Center of mass alignment using " );
+          initializer->GeometryOn();
+          initialTransformName = std::string( "Image center alignment using " );
           }
         else
           {
-          initializer->GeometryOn();
-          initialTransformName = std::string( "Image center alignment using " );
+          initializer->MomentsOn();
+          initialTransformName = std::string( "Center of mass alignment using " );
           }
         initializer->InitializeTransform();
         }
