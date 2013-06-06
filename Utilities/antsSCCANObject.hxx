@@ -2650,9 +2650,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     // in this paper's notation d => p,  g => r , alpha, beta, x the same , so y = rk1 - rk
     // measures the change in the residual
     VectorType yk = r_k1 - r_k;
-    RealType  bknd =  inner_product( p_k, yk );
-    RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
-    //    RealType   beta_k = inner_product( r_k1, r_k1 ) /  inner_product( r_k, r_k ); // classic cg
+    //RealType  bknd =  inner_product( p_k, yk );
+    //RealType  beta_k = inner_product( ( yk - p_k * 2 * yk.two_norm() / bknd ) , r_k1 / bknd ); // Hager and Zhang
+    RealType   beta_k = inner_product( r_k1, r_k1 ) /  inner_product( r_k, r_k ); // classic cg
     VectorType p_k1  = r_k1 + beta_k * p_k;
     if( debug )
       {
