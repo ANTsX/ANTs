@@ -2577,20 +2577,20 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
   std::string timeName  = std::string(argv[argct++]);
 
   unsigned int minRegionSize = 3;
-  
+
   if ( argc > 6 )
     minRegionSize = atoi( argv[argct++] );
 
   std::cout << "min region = " << minRegionSize << std::endl;
 
   // FIXME - add option for multi input for combined CCA
-  
+
   typename LabelImageType::Pointer labels = NULL;
   ReadImage<LabelImageType>( labels, labelName.c_str() );
 
   typename InputImageType::Pointer time = NULL;
   ReadImage<InputImageType>( time, timeName.c_str() );
-  
+
   typename LabelCalculatorType::Pointer calc = LabelCalculatorType::New();
   calc->SetImage( labels );
   calc->ComputeMaximum();
@@ -2598,11 +2598,11 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
   unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
   unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
 
-  std::cout << "Examining " << nLabels << " regions, covering " 
+  std::cout << "Examining " << nLabels << " regions, covering "
             << nVoxels << " voxels " << std::endl;
 
   VectorType labelCounts( nLabels, 0 );
-  
+
 
   typename InputImageType::Pointer connmat = InputImageType::New();
   typename InputImageType::RegionType region;
@@ -2617,9 +2617,9 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
     {
     typename LabelImageType::IndexType idx;
     idx[1] = 0;
-    
+
     for ( unsigned int v=0; v<nVoxels; v++)
-      {      
+      {
       idx[0] = v;
       if ( labels->GetPixel(idx) == (i+1) )
         {
@@ -2649,19 +2649,19 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
   for (unsigned int i=0; i<nLabels; i++)
     {
     for ( unsigned int j=(i+1); j<nLabels; j++ )      {
-      
+
       if ( (labelCounts[i] > minRegionSize) && (labelCounts[j] > minRegionSize ) )
         {
         VectorType p = timeSig.get_row(i);
         VectorType q = timeSig.get_row(j);
-        
+
         double corr = 0.0;
         double xysum = 0;
         for( unsigned int z = 0; z < p.size(); z++ )
           {
           xysum += (p[z] * q[z]);
           }
-        
+
         double frac = 1.0 / (double)p.size();
         double xsum = p.sum();
         double ysum = q.sum();
@@ -2675,10 +2675,10 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
           }
         if ( ! vnl_math_isfinite( corr ) )
           {
-          corr = 0.0; 
+          corr = 0.0;
           }
-               
-        
+
+
         typename InputImageType::IndexType connIdx;
         connIdx[0] = i;
         connIdx[1] = j;
@@ -2686,15 +2686,15 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
         connIdx[0] = j;
         connIdx[1] = i;
         connmat->SetPixel( connIdx, corr );
-          
+
         }
-      
+
       }
     }
 
 std::cout << "Write output " << outname << std::endl;
 WriteImage<InputImageType>(connmat, outname.c_str() );
-  
+
   return 0;
 }
 
@@ -4303,7 +4303,7 @@ int StackImage(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string fn1 = std::string(argv[argct]);
- 
+
   unsigned int nSlices = argc - argct;
   std::cout << "nSlices = " << nSlices << std::endl;
 
@@ -4359,14 +4359,14 @@ int StackImage(int argc, char *argv[])
     Iterator iter( image1,  image1->GetLargestPossibleRegion() );
     for( iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
-      
+
       typename ImageType::IndexType oindex = iter.GetIndex();
       typename ImageType::IndexType padindex = iter.GetIndex();
       padindex[ImageDimension - 1] = padindex[ImageDimension - 1] + offset;
       padimage->SetPixel(padindex, image1->GetPixel(oindex) );
-      
+
       }
-    
+
     offset += constantPad;
 
     }
@@ -5112,7 +5112,7 @@ int SmoothTensorImage(int argc, char *argv[])
 
   int         argct = 2;
   const std::string outname = std::string(argv[argct++]);
-  std::string operation = std::string(argv[argct++]);  
+  std::string operation = std::string(argv[argct++]);
   std::string fn1 = std::string(argv[argct++]);
   float sigma = atof(argv[argct++]);
   std::string fn2 = "";
@@ -5162,7 +5162,7 @@ int TensorFunctions(int argc, char *argv[])
   std::string operation = std::string(argv[argct]);  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = ""; // used for whichvec and mask file name below
-  
+
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
   typename ColorImageType::Pointer  cimage = NULL;    // output color image
@@ -5395,7 +5395,7 @@ int TensorFunctions(int argc, char *argv[])
     {
     cimage =
       AllocImage<ColorImageType>(timage);
-    
+
 
     if( argc > 5 )
       {
@@ -5411,9 +5411,9 @@ int TensorFunctions(int argc, char *argv[])
     ReadImage<ImageType>(mimage, fn2.c_str());
 
     typename TensorImageType::PixelType zero;
-       
+
     zero.Fill(0);
-      
+
     toimage = AllocImage<TensorImageType>(timage, zero);
     }
   else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
@@ -5434,15 +5434,15 @@ int TensorFunctions(int argc, char *argv[])
     vimage = AllocImage<ImageType>(timage);
     }
 
-  
-  TensorType zeroTensor;  // for masking background tensors 
 
-  for ( unsigned int i = 0; i < 6; i++ ) 
+  TensorType zeroTensor;  // for masking background tensors
+
+  for ( unsigned int i = 0; i < 6; i++ )
     {
     zeroTensor[i] = 0.0;
     }
 
-  RGBType rgbZero; 
+  RGBType rgbZero;
 
   rgbZero[0] = 0;
   rgbZero[1] = 0;
@@ -5525,7 +5525,7 @@ int TensorFunctions(int argc, char *argv[])
           {
           cimage->SetPixel(ind, GetTensorRGB<TensorType>(tIter.Value() ) );
           }
-        else 
+        else
           {
           cimage->SetPixel(ind, rgbZero);
           }
@@ -5539,17 +5539,17 @@ int TensorFunctions(int argc, char *argv[])
     else if( strcmp(operation.c_str(), "TensorMask") == 0 )
       {
       float maskVal = mimage->GetPixel(ind);
-    
-      if (maskVal > 0.0) 
+
+      if (maskVal > 0.0)
         {
           toimage->SetPixel( ind, tIter.Value() );
         }
-      else 
+      else
         {
           toimage->SetPixel( ind, zeroTensor );
         }
- 
-      } 
+
+      }
     else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
       {
       VectorType vv = GetTensorPrincipalEigenvector<TensorType>(tIter.Value(), whichvec);
@@ -5675,7 +5675,7 @@ int TensorFunctions(int argc, char *argv[])
     WriteImage<VectorImageType>(vecimage, outname.c_str() );
     }
   else if( (strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0) ||
-           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) || 
+           (strcmp(operation.c_str(), "TensorToLocalSpace") == 0 ) ||
            (strcmp(operation.c_str(), "TensorMask") == 0 ) ||
            (strcmp(operation.c_str(), "ValidTensor") == 0 ) )
     {
@@ -9221,11 +9221,11 @@ int LabelStats(      int argc, char *argv[])
 
 // square image
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
-    if ( ImageDimension == 2 ) 
+    if ( ImageDimension == 2 )
       logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << ",0,0," << currentlabel << std::endl;
-    if ( ImageDimension == 3 ) 
+    if ( ImageDimension == 3 )
       logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ",0," << currentlabel << std::endl;
-    if ( ImageDimension == 4 ) 
+    if ( ImageDimension == 4 )
       logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << "," << myCenterOfMass[3] << "," << currentlabel << std::endl;
     labelcount++;
     }
@@ -10954,7 +10954,7 @@ int ImageMetrics( int argc, char *argv[] )
       {
       bins = atoi( argv[6] );
       }
-    
+
     if( argc > 7 )
       {
       typename MaskType::Pointer mask = MaskType::New();
@@ -10964,7 +10964,7 @@ int ImageMetrics( int argc, char *argv[] )
       metric->SetFixedImageMask( mask );
       metric->SetMovingImageMask( mask );
       }
-   
+
     metric->SetNumberOfHistogramBins( bins );
     metric->Initialize();
     value = metric->GetValue();
@@ -11945,7 +11945,7 @@ int BlobDetector( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-float ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -12097,7 +12097,7 @@ private:
       <<
       " PASL : computes the PASL model of CBF  "     << std::endl <<  "f =  \frac{      lambda DeltaM        } "
       << std::endl
-      << " {     2 \alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
+      << " {     2  alpha M_0 TI_1 exp( - TI_2 / T_{1a} )  } " << std::endl;
     antscout
       << "    Usage        : PASL 3D/4D_TimeSeries.nii.gz BoolFirstImageIsControl M0Image parameter_list.txt "
       << std::endl;
@@ -12106,7 +12106,7 @@ private:
       <<
       " pCASL : computes the pCASL model of CBF  "     << std::endl
       << " f =  \frac{      lambda DeltaM R_{1a}        }  " << std::endl
-      << "  {     2 \alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
+      << "  {     2 alpha M_0 [ exp( - w R_{1a} ) - exp( -w ( \tau + w ) R_{1a}) ]     } " << std::endl;
     antscout << "    Usage        : pCASL 3D/4D_TimeSeries.nii.gz parameter_list.txt " << std::endl;
     antscout
       << " PASLQuantifyCBF : Outputs a 3D CBF image in ml/100g/min from a magnetization ratio image"
@@ -12161,7 +12161,7 @@ private:
     antscout << "  TensorMask     : Mask a tensor image, sets background tensors to zero " << std::endl;
     antscout << "    Usage        : TensorMask DTImage.ext mask.ext" << std::endl;
 
- 
+
     antscout << "\nLabel Fusion:" << std::endl;
     antscout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
     antscout << "    Usage: MajorityVoting LabelImage1.nii.gz .. LabelImageN.nii.gz" << std::endl;
