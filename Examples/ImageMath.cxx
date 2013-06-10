@@ -11569,6 +11569,129 @@ struct blob_index_cmp
   const T barr;
   };
 
+
+template <unsigned int ImageDimension,class TImage, class BlobsListType >
+void getBlobCorrespondenceMatrix( unsigned int radval, typename TImage::Pointer image,  typename TImage::Pointer image2, vnl_matrix<float>& correspondencematrix, BlobsListType blobs1,  BlobsListType blobs2 , float gradsig )
+{
+  typedef float                                                                   PixelType;
+  typedef float                                                                   RealType;
+  typedef itk::Image<PixelType, ImageDimension>                                   ImageType;
+  typedef itk::ImageFileReader<ImageType>                                         ImageReaderType;
+  typedef itk::ImageFileWriter<ImageType>                                         ImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType>                           CalculatorType;
+  typedef itk::ImageMomentsCalculator<ImageType>                                  MomentsCalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                            IteratorType;
+  typedef itk::SurfaceImageCurvature<ImageType>                                   ParamType;
+  typedef itk::CovariantVector<RealType, ImageDimension>                          GradientPixelType;
+  typedef itk::Image<GradientPixelType, ImageDimension>                           GradientImageType;
+  typedef itk::SmartPointer<GradientImageType>                                    GradientImagePointer;
+  typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType> GradientImageFilterType;
+  typedef typename GradientImageFilterType::Pointer                               GradientImageFilterPointer;
+  typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
+  typedef typename BlobFilterType::BlobPointer BlobPointer;
+
+  GradientImageFilterPointer gfilter = GradientImageFilterType::New();
+  gfilter->SetInput( image );
+  gfilter->SetSigma( gradsig );
+  gfilter->Update();
+  GradientImagePointer gimage = gfilter->GetOutput();
+
+  GradientImageFilterPointer gfilter2 = GradientImageFilterType::New();
+  gfilter2->SetInput( image2 );
+  gfilter2->SetSigma( gradsig );
+  gfilter2->Update();
+  GradientImagePointer gimage2 = gfilter2->GetOutput();
+
+  // now compute some feature characteristics in each blob
+  correspondencematrix.set_size( blobs1.size() , blobs2.size() );
+  correspondencematrix.fill( 0 );
+  typedef typename ImageType::IndexType        IndexType;
+  typedef itk::NeighborhoodIterator<ImageType> niteratorType;
+  typename niteratorType::RadiusType rad;
+  rad.Fill( radval );
+  niteratorType GHood(  rad, image, image->GetLargestPossibleRegion() );
+  niteratorType GHood2( rad, image2, image2->GetLargestPossibleRegion() );
+  IndexType     zeroind;  zeroind.Fill( radval );
+  GHood.SetLocation( zeroind );
+  // get indices within a ND-sphere
+  std::vector<unsigned int> activeindex;
+  std::vector<RealType>     weights;
+  RealType                  weightsum = 0;
+  for( unsigned int ii = 0; ii < GHood.Size(); ii++ )
+    {
+    IndexType ind = GHood.GetIndex( ii );
+    RealType  dist = 0;
+    for( unsigned int jj = 0; jj < ImageDimension; jj++ )
+      {
+      dist += ( ind[jj] - zeroind[jj] ) * ( ind[jj] - zeroind[jj] );
+      }
+    dist = sqrt( dist );
+    if( dist <= radval )
+      {
+      activeindex.push_back( ii );
+      RealType wt =  exp( -1.0 * dist / radval );
+      weights.push_back( wt );
+      weightsum += ( wt );
+      }
+    }
+  for( unsigned int ii = 0; ii < weights.size(); ii++ )
+    {
+    weights[ii] = weights[ii] / weightsum;
+    }
+  BlobPointer  bestblob = NULL;
+  if( ( !blobs2.empty() ) && ( !blobs1.empty() ) )
+    {
+    unsigned int count2;
+    RealType smallval = 1.e-4;
+    typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
+    typedef typename ScalarInterpolatorType::Pointer              InterpPointer;
+    InterpPointer interp1 =  ScalarInterpolatorType::New();
+    interp1->SetInputImage(image);
+    InterpPointer interp2 =  ScalarInterpolatorType::New();
+    interp2->SetInputImage(image2);
+    unsigned int count1 = 0;
+    for( unsigned int i = 0; i < blobs1.size(); i++ )
+      {
+      BlobPointer blob1 = blobs1[i];
+      IndexType   indexi = blob1->GetCenter();
+      if( image->GetPixel( indexi ) > smallval )
+        {
+        GHood.SetLocation( indexi );
+        bestblob = NULL;
+        count2 = 0;
+        for( unsigned int j = 0; j < blobs2.size(); j++ )
+          {
+          const BlobPointer & blob2 = blobs2[j];
+          const IndexType   & indexj = blob2->GetCenter();
+          if( image2->GetPixel( indexj ) > smallval )
+            {
+            GHood2.SetLocation( indexj );
+            RealType correlation =
+              PatchCorrelation<ImageDimension, RealType, ImageType, GradientImageType, InterpPointer>( GHood, GHood2,
+                                                                                                       activeindex,
+                                                                                                       weights, gimage,
+                                                                                                       gimage2,
+                                                                                                       interp2 );
+            if( correlation < 0 )
+              {
+              correlation = 0;
+              }
+            correspondencematrix( i, j ) = correlation;
+            count2++;
+            }
+          }
+        count1++;
+        } // imagei GetPixel gt 0
+      if( i % 100 == 0 )
+        {
+        antscout << " Progress : " << (float ) i / (float) blobs1.size() * 100.0 << std::endl;
+        }
+      }
+    Sinkhorn<RealType>( correspondencematrix );
+    }
+    return;
+}
+
 template <unsigned int ImageDimension>
 int BlobDetector( int argc, char *argv[] )
 {
@@ -11592,9 +11715,9 @@ int BlobDetector( int argc, char *argv[] )
     antscout << " Not enough inputs " << std::endl;
     return 1;
     }
-  RealType     gradsig = 1.0;       // sigma for gradient filter
-  unsigned int radval = 10;         // radius for correlation
-  unsigned int stepsperoctave = 16; // number of steps between doubling of scale
+  RealType     gradsig = 1.5;       // sigma for gradient filter
+  unsigned int radval = 20;         // radius for correlation
+  unsigned int stepsperoctave = 4; // number of steps between doubling of scale
   RealType     minscale = vcl_pow( 1.0, 1 );
   RealType     maxscale = vcl_pow( 2.0, 6 );
   int          argct = 2;
@@ -11620,12 +11743,6 @@ int BlobDetector( int argc, char *argv[] )
   typename ImageType::Pointer image;
   typename ImageType::Pointer image2;
   ReadImage<ImageType>( image, fn1.c_str() );
-  GradientImageFilterPointer gfilter = GradientImageFilterType::New();
-  gfilter->SetInput( image );
-  gfilter->SetSigma( gradsig );
-  gfilter->Update();
-  GradientImagePointer gimage = gfilter->GetOutput();
-  GradientImagePointer gimage2;
   typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
   typename BlobFilterType::Pointer blobFilter = BlobFilterType::New();
   typedef typename BlobFilterType::BlobPointer BlobPointer;
@@ -11641,15 +11758,17 @@ int BlobDetector( int argc, char *argv[] )
   WriteImage<BlobRadiusImageType>( labimg, outname.c_str() );
   typedef typename BlobFilterType::BlobsListType BlobsListType;
   BlobsListType blobs1 =  blobFilter->GetBlobs();
+
+  vnl_matrix<RealType> correspondencematrix1;
+  vnl_matrix<RealType> correspondencematrix2;
+  vnl_matrix<RealType> correspondencematrix;
+  getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
+    ( radval, image, image, correspondencematrix1, blobs1, blobs1, gradsig );
+
   BlobsListType blobs2;
   if( fn2.length() > 3 )
     {
     ReadImage<ImageType>( image2, fn2.c_str() );
-    GradientImageFilterPointer gfilter2 = GradientImageFilterType::New();
-    gfilter2->SetInput( image2 );
-    gfilter2->SetSigma( gradsig );
-    gfilter2->Update();
-    gimage2 = gfilter2->GetOutput();
     typename BlobFilterType::Pointer blobFilter2 = BlobFilterType::New();
     blobFilter2->SetStartT( minscale );
     blobFilter2->SetEndT( maxscale );
@@ -11663,6 +11782,8 @@ int BlobDetector( int argc, char *argv[] )
     labimg->FillBuffer( 0 );
     labimg2->FillBuffer( 0 );
     blobs2 =  blobFilter2->GetBlobs();
+    getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
+      ( radval, image2, image2, correspondencematrix2, blobs2, blobs2, gradsig );
     }
   else
     {
@@ -11706,58 +11827,12 @@ int BlobDetector( int argc, char *argv[] )
   BlobPointer  bestblob = NULL;
   if( ( !blobs2.empty() ) && ( !blobs1.empty() ) )
     {
+    getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
+      ( radval, image, image2, correspondencematrix, blobs1, blobs2, gradsig );
     unsigned int matchpt = 1;
-    unsigned int count2;
-    RealType smallval = 1.e-4;
-    typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
-    typedef typename ScalarInterpolatorType::Pointer              InterpPointer;
-    InterpPointer interp1 =  ScalarInterpolatorType::New();
-    interp1->SetInputImage(image);
-    InterpPointer interp2 =  ScalarInterpolatorType::New();
-    interp2->SetInputImage(image2);
-    vnl_matrix<RealType> correspondencematrix( blobs1.size(), blobs2.size() );
-    correspondencematrix.fill( 0 );
+    antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to " << corrthresh << std::endl;
     unsigned int count1 = 0;
-    for( unsigned int i = 0; i < blobs1.size(); i++ )
-      {
-      BlobPointer blob1 = blobs1[i];
-      IndexType   indexi = blob1->GetCenter();
-      if( image->GetPixel( indexi ) > smallval )
-        {
-        GHood.SetLocation( indexi );
-        bestblob = NULL;
-        count2 = 0;
-        for( unsigned int j = 0; j < blobs2.size(); j++ )
-          {
-          const BlobPointer & blob2 = blobs2[j];
-          const IndexType   & indexj = blob2->GetCenter();
-          if( image2->GetPixel( indexj ) > smallval )
-            {
-            GHood2.SetLocation( indexj );
-            RealType correlation =
-              PatchCorrelation<ImageDimension, RealType, ImageType, GradientImageType, InterpPointer>( GHood, GHood2,
-                                                                                                       activeindex,
-                                                                                                       weights, gimage,
-                                                                                                       gimage2,
-                                                                                                       interp2 );
-            if( correlation < 0 )
-              {
-              correlation = 0;
-              }
-            correspondencematrix( i, j ) = correlation;
-            count2++;
-            }
-          }
-        count1++;
-        } // imagei GetPixel gt 0
-      if( i % 100 == 0 )
-        {
-        antscout << " Progress : " << (float ) i / (float) blobs1.size() * 100.0 << std::endl;
-        }
-      }
-    antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to " << corrthresh
-             << " count1 " << count1 << " count2 " << count2 << std::endl;
-    count1 = 0;
+    RealType smallval = 1.e-4;
     typedef std::pair<BlobPointer, BlobPointer> BlobPairType;
     std::vector<BlobPairType> blobpairs;
     while( ( matchpt < ( corrthresh + 1 ) ) && ( count1 <  blobs1.size() ) )
@@ -11769,7 +11844,7 @@ int BlobDetector( int argc, char *argv[] )
       bestblob = blobs2[maxcol];
       if( bestblob )
         {
-        if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.5 )
+        if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.25 )
           {
           if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
               ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) )
@@ -11795,6 +11870,8 @@ int BlobDetector( int argc, char *argv[] )
     distmatpre.fill( 0 );
     vnl_matrix<RealType> distmatpost( blobpairs.size(), blobpairs.size() );
     distmatpost.fill( 0 );
+    if ( false ) 
+    {
     for( unsigned int bp = 0; bp < blobpairs.size(); bp++ )
       {
       IndexType             blobind = blobpairs[bp].first->GetCenter();
@@ -11844,6 +11921,7 @@ int BlobDetector( int argc, char *argv[] )
         }
       antscout << " blob " << bp << " keep " << kneighborhoodequal << std::endl;
       }
+      } // if false
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
@@ -11956,10 +12034,10 @@ private:
     antscout << "  GE Image1.ext s    : Grayscale Erosion with radius s" << std::endl;
     antscout << "  GO Image1.ext s    : Grayscale Opening with radius s" << std::endl;
     antscout << "  GC Image1.ext s    : Grayscale Closing with radius s" << std::endl;
-    antscout
-      <<
-      "  BlobDetector Image1.ext NumberOfBlobs  Optional-Input-Image2 Blob-2-out.nii.gz N-Blobs-To-Match  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) "
-      << std::endl;
+    antscout << "  BlobDetector Image1.ext NumberOfBlobsToExtract  Optional-Input-Image2 Blob-2-out.nii.gz N-Blobs-To-Match  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) " << std::endl;
+    antscout << "    Example matching 6 best blobs from 2 images: " << std::endl;
+    antscout << "    ImageMath 2 blob.nii.gz BlobDetector image1.nii.gz 1000  image2.nii.gz blob2.nii.gz 6 " << std::endl;
+    antscout << std::endl;
 
     antscout << "\nTime Series Operations:" << std::endl;
     antscout
