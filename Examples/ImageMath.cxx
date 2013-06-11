@@ -11783,7 +11783,7 @@ int BlobDetector( int argc, char *argv[] )
     labimg2->FillBuffer( 0 );
     blobs2 =  blobFilter2->GetBlobs();
     getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
-      ( radval, image2, image2, correspondencematrix2, blobs2, blobs2, gradsig );
+     ( radval, image2, image2, correspondencematrix2, blobs2, blobs2, gradsig );
     }
   else
     {
@@ -11832,7 +11832,7 @@ int BlobDetector( int argc, char *argv[] )
     unsigned int matchpt = 1;
     antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to " << corrthresh << std::endl;
     unsigned int count1 = 0;
-    RealType smallval = 1.e-4;
+    RealType smallval = 1.e-1;
     typedef std::pair<BlobPointer, BlobPointer> BlobPairType;
     std::vector<BlobPairType> blobpairs;
     while( ( matchpt < ( corrthresh + 1 ) ) && ( count1 <  blobs1.size() ) )
@@ -11846,10 +11846,11 @@ int BlobDetector( int argc, char *argv[] )
         {
 	  if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < 0.25 )
           {
-          if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
-              ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) && 
-	      ( correspondencematrix1(maxrow,maxrow) >= 0.01 ) && 
-	      ( correspondencematrix2(maxcol,maxcol) >= 0.01 ) )
+	    if( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
+	                    ( image2->GetPixel( bestblob->GetCenter() )  > smallval ) && 
+	        ( correspondencematrix1(maxrow,maxrow) >= ( 10.0 / correspondencematrix1.cols() ) ) && 
+		( correspondencematrix2(maxcol,maxcol) >= ( 10.0 / correspondencematrix2.cols() ) ) 
+	    )
             {
             BlobPairType blobpairing = std::make_pair( blob1, bestblob );
             blobpairs.push_back( blobpairing );
@@ -11906,13 +11907,21 @@ int BlobDetector( int argc, char *argv[] )
       bool kneighborhoodequal = false;
       std::sort( distspreind.begin(), distspreind.end(), blob_index_cmp<std::vector<RealType> &>( distspre  ) );
       std::sort( distspostind.begin(), distspostind.end(), blob_index_cmp<std::vector<RealType> &>( distspost ) );
-      std::cout <<  distspreind[0] << "  " <<  distspreind[1]  << " dist0 " <<   distmatpre(distspreind[0],distspreind[1]) << std::endl;
-      std::cout << distspostind[0] << "  " << distspostind[1] << " dist0 " <<  distmatpost(distspostind[0],distspostind[1]) <<  std::endl;
-      if( (  ( distspostind[1] == distspreind[1] )   ||
-             ( distspostind[1] == distspreind[2] )   ||
-             ( distspostind[1] == distspreind[3] )  ) &&
-	  ( vnl_math_abs( distmatpost(distspostind[0],distspostind[1]) - 
-			  distmatpre(distspreind[0],distspreind[1]) ) /  distmatpre(distspreind[0],distspreind[1])  < 0.05 ) )
+      std::cout <<  distspreind[0] << "  " <<  distspreind[1]  << " dist0 " <<   distmatpre( bp , distspreind[1]) << std::endl;
+      std::cout << distspostind[0] << "  " << distspostind[1] << " dist0 " <<   distmatpost( bp, distspostind[1]) <<  " bp " << bp << std::endl;
+      RealType dthresh = 0.02;
+      if( // (  ( distspostind[1] == distspreind[1] ) )  ||
+            //   ( distspostind[1] == distspreind[2] )   ||
+            //   ( distspostind[1] == distspreind[3] )  ) &&
+	  ( vnl_math_abs( distmatpost( bp, distspostind[3] ) - 
+			  distmatpre(  bp,  distspreind[3] ) ) /  distmatpre( bp, distspreind[3])  < dthresh ) 
+	  ||
+          ( vnl_math_abs( distmatpost( bp, distspostind[1] ) - 
+	      distmatpre(  bp,  distspreind[1] ) ) /  distmatpre( bp, distspreind[1])  <  dthresh ) 
+	  ||
+          ( vnl_math_abs( distmatpost( bp, distspostind[2] ) - 
+	      distmatpre(  bp,  distspreind[2] ) ) /  distmatpre( bp, distspreind[2])  <  dthresh ) 
+	)
         {
         kneighborhoodequal = true;
         }
@@ -11924,6 +11933,7 @@ int BlobDetector( int argc, char *argv[] )
       antscout << " blob " << bp << " keep " << kneighborhoodequal << std::endl;
       }
       } // if false
+    if (  correspondencematrix1.rows() > 0 )
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
@@ -11931,6 +11941,7 @@ int BlobDetector( int argc, char *argv[] )
       writer->SetInput( &correspondencematrix1 );
       writer->Write();
       }
+    if (  correspondencematrix2.rows() > 0 )
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
