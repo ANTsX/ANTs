@@ -11749,7 +11749,6 @@ int BlobDetector( int argc, char *argv[] )
   typedef itk::SmartPointer<GradientImageType>                                    GradientImagePointer;
   typedef itk::GradientRecursiveGaussianImageFilter<ImageType, GradientImageType> GradientImageFilterType;
   typedef typename GradientImageFilterType::Pointer                               GradientImageFilterPointer;
-  antscout << " Nearest neighbors should remain nearest neighbors under transformation! - not done " << std::endl;
   if( argc < 5 )
     {
     antscout << " Not enough inputs " << std::endl;
