@@ -11054,6 +11054,46 @@ int PearsonCorrelation( int argc, char *argv[] )
 }
 
 template <unsigned int ImageDimension>
+int Translate( int argc, char *argv[] )
+{
+  typedef float                                            PixelType;
+  typedef itk::Image<PixelType, ImageDimension>            ImageType;
+  typedef itk::ResampleImageFilter<ImageType,ImageType>    FilterType;
+  typedef itk::TranslationTransform<double,ImageDimension> TransformType;
+  typedef typename TransformType::OutputVectorType         OffsetType;
+
+  if ( argc < (int)(ImageDimension + 4 ) )
+    {
+    antscout << "Not enough input parameters" << std::endl;
+    return EXIT_FAILURE;
+    }
+  
+  typename ImageType::Pointer input = ImageType::New();
+  ReadImage<ImageType>( input, argv[4] );
+  //antscout << "Input image: " << argv[4] << std::endl;
+    
+  typename TransformType::Pointer translate = TransformType::New();
+  OffsetType offset;
+  for (unsigned int i=0; i<ImageDimension; i++) 
+    {
+    offset[i] = atof( argv[i+5] );
+    }
+  translate->SetOffset( offset );
+  //antscout << "Translation: " << offset << std::endl;
+
+  typename FilterType::Pointer resample = FilterType::New();
+  resample->SetInput( input );
+  resample->SetTransform( translate );
+  resample->SetOutputParametersFromImage( input );
+  resample->SetDefaultPixelValue( 0 );
+  resample->Update();
+
+  WriteImage<ImageType>( resample->GetOutput(), argv[2] );
+  
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
 int MinMaxMean( int argc, char *argv[] )
 {
   typedef float                                         PixelType;
@@ -12041,6 +12081,9 @@ private:
     antscout << "    ImageMath 2 blob.nii.gz BlobDetector image1.nii.gz 1000  image2.nii.gz blob2.nii.gz 6 " << std::endl;
     antscout << std::endl;
 
+    antscout << "\nTransform Image: " << std::endl;
+    antscout << "Translate InImage.ext x [ y z ] " << std::endl;
+
     antscout << "\nTime Series Operations:" << std::endl;
     antscout
       <<
@@ -12741,6 +12784,10 @@ private:
         {
         PearsonCorrelation<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "Translate") == 0 )
+        {
+        Translate<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
         {
         ImageMetrics<2>(argc, argv);
@@ -13186,6 +13233,10 @@ private:
         {
         PearsonCorrelation<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "Translate") == 0 )
+        {
+        Translate<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
         {
         ImageMetrics<3>(argc, argv);
@@ -13598,6 +13649,10 @@ private:
       else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
         {
         PearsonCorrelation<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Translate") == 0 )
+        {
+        Translate<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
         {
