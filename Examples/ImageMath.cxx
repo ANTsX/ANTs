@@ -11952,7 +11952,7 @@ int BlobDetector( int argc, char *argv[] )
       else antscout << " blob " << bp << " keep " <<  distratiomat.get_row( bp ) << std::endl;
       }
     } // if false
-    if (  correspondencematrix1.rows() > 0 )
+    if (  ( correspondencematrix1.rows() > 0 ) && ( false ) )
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
@@ -11961,7 +11961,7 @@ int BlobDetector( int argc, char *argv[] )
       writer->SetInput( &distmatpre );
       writer->Write();
       }
-    if (  correspondencematrix2.rows() > 0 )
+    if (  ( correspondencematrix2.rows() > 0 ) && ( false ) )
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
