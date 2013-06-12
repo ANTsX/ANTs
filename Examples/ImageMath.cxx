@@ -11811,7 +11811,7 @@ int BlobDetector( int argc, char *argv[] )
   correspondencematrix1.fill( 1 );
   vnl_matrix<RealType> correspondencematrix2;
   vnl_matrix<RealType> correspondencematrix;
-  getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >( radval, image, image, correspondencematrix1, blobs1, blobs1, gradsig , dosinkhorn );
+  // getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >( radval, image, image, correspondencematrix1, blobs1, blobs1, gradsig , dosinkhorn );
 
   BlobsListType blobs2;
   if( fn2.length() > 3 )
@@ -11831,7 +11831,7 @@ int BlobDetector( int argc, char *argv[] )
     blobs2 =  blobFilter2->GetBlobs();
     correspondencematrix2.set_size( blobs2.size() , blobs2.size() );
     correspondencematrix2.fill( 1 );
-    getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType > ( radval, image2, image2, correspondencematrix2, blobs2, blobs2, gradsig, dosinkhorn );
+    //    getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType > ( radval, image2, image2, correspondencematrix2, blobs2, blobs2, gradsig, dosinkhorn );
     }
   else
     {
@@ -11846,8 +11846,8 @@ int BlobDetector( int argc, char *argv[] )
     {
     getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
       ( radval, image, image2, correspondencematrix, blobs1, blobs2, gradsig, dosinkhorn );
-    vnl_matrix<RealType> diagcorr = outer_product( correspondencematrix1.get_diagonal(),  correspondencematrix2.get_diagonal() );
-    Sinkhorn<RealType>( diagcorr );  
+    // vnl_matrix<RealType> diagcorr = outer_product( correspondencematrix1.get_diagonal(),  correspondencematrix2.get_diagonal() );
+    // Sinkhorn<RealType>( diagcorr );  
     // for ( unsigned int row = 0; row < correspondencematrix.rows(); row++ )
     //  for ( unsigned int col = 0; col < correspondencematrix.cols(); col++ )
     //	correspondencematrix( row, col ) *= diagcorr( row, col );
