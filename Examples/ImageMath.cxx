@@ -11756,16 +11756,16 @@ int BlobDetector( int argc, char *argv[] )
     }
   // sensitive parameters are set here - begin
   RealType     gradsig = 1.0;       // sigma for gradient filter
-  unsigned int radval = 20;         // radius for correlation
   unsigned int stepsperoctave = 4; // number of steps between doubling of scale
   RealType     minscale = vcl_pow( 1.0, 1 );
   RealType     maxscale = vcl_pow( 2.0, 8 );
-  RealType     maxradiusdiffallowed = 0.25;
   RealType     uniqfeat_thresh = 0.01;
   RealType smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ] 
   bool dosinkhorn = false;
-  RealType dthresh = 0.02; // IMPORTANT distance preservation threshold 
+  RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference 
   RealType kneighborhoodval = 3; // IMPORTANT - defines how many nhood nodes to use in k-hood definition
+  unsigned int radval = 20;         // IMPORTANT radius for correlation
+  RealType dthresh = 0.02; // IMPORTANT distance preservation threshold 
   // sensitive parameters are set here - end
   int          argct = 2;
   const std::string  outname = std::string(argv[argct]);
