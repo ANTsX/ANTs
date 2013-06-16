@@ -2407,9 +2407,6 @@ int TimeSeriesRegionSCCA(int argc, char *argv[])
   unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
   unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
 
-  std::cout << "Examining " << nLabels << " regions, covering "
-            << nVoxels << " voxels " << std::endl;
-
   //unsigned int labelCounts[nLabels];
   unsigned int *labelCounts = new unsigned int [nLabels] ;
 
@@ -2581,8 +2578,6 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
   if ( argc > 6 )
     minRegionSize = atoi( argv[argct++] );
 
-  std::cout << "min region = " << minRegionSize << std::endl;
-
   // FIXME - add option for multi input for combined CCA
 
   typename LabelImageType::Pointer labels = NULL;
@@ -2597,9 +2592,6 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
   unsigned int nLabels = calc->GetMaximum();
   unsigned int nVoxels = labels->GetLargestPossibleRegion().GetSize()[0];
   unsigned int nTimes = time->GetLargestPossibleRegion().GetSize()[0];
-
-  std::cout << "Examining " << nLabels << " regions, covering "
-            << nVoxels << " voxels " << std::endl;
 
   VectorType labelCounts( nLabels, 0 );
 
@@ -2643,8 +2635,6 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
       timeSig(i,j) /= labelCounts[i];
       }
     }
-
-  std::cout << "Building matrices..." << std::endl;
 
   for (unsigned int i=0; i<nLabels; i++)
     {
@@ -2692,8 +2682,7 @@ int TimeSeriesRegionCorr(int argc, char *argv[])
       }
     }
 
-std::cout << "Write output " << outname << std::endl;
-WriteImage<InputImageType>(connmat, outname.c_str() );
+  WriteImage<InputImageType>(connmat, outname.c_str() );
 
   return 0;
 }
@@ -4305,7 +4294,6 @@ int StackImage(int argc, char *argv[])
   std::string fn1 = std::string(argv[argct]);
 
   unsigned int nSlices = argc - argct;
-  std::cout << "nSlices = " << nSlices << std::endl;
 
   typename ImageType::Pointer image1 = NULL;
   if( fn1.length() > 3 )
@@ -4345,7 +4333,6 @@ int StackImage(int argc, char *argv[])
   while ( argc > argct )
     {
     std::string fn2 = std::string(argv[argct++]);
-    std::cout << fn2 << std::endl;
 
     ReadImage<ImageType>(image1, fn2.c_str() );
 
@@ -5649,11 +5636,6 @@ int TensorFunctions(int argc, char *argv[])
           hasNeg = true;
           }
         eigenValuesMatrix(i, i) = fabs( eigenValues[i] );
-        }
-      if ( hasNeg )
-        {
-        std::cout << tIter.Value() << std::endl;
-        std::cout << eigenValues << std::endl;
         }
 
       typename TensorType::MatrixType::InternalMatrixType lclTensor
@@ -11229,9 +11211,6 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
     }
   vnl_svd<RealType>    wahba( B );
   vnl_matrix<RealType> A_solution = wahba.V() * wahba.U().transpose();
-  //  std::cout <<" V1 " << evec1_primary << std::endl;
-  //  std::cout <<" V2 " << evec2_primary << std::endl;
-  //  std::cout <<" R(V2) " << A_solution * evec2_primary << " dets " << vnl_determinant<RealType>(  wahba.V()) <<  "
   //   " << vnl_determinant<RealType>(  wahba.U()) << std::endl;
   // now rotate the points to the same frame and sample the neighborhoods again
   for( unsigned int ii = 0; ii < Gsz; ii++ )
@@ -12030,7 +12009,13 @@ int MatchBlobs( int argc, char *argv[] )
   calc->ComputeMaximum();
   typename ImageType::Pointer labimg  = MakeNewImage<ImageType>( image, 0 );
   typename ImageType::Pointer labimg2 = MakeNewImage<ImageType>( image2, 0 );
+  typename ImageType::Pointer confimg2 = MakeNewImage<ImageType>( image2, 0 );
   float maximum  = calc->GetMaximum();
+  unsigned int corrthresh =  ( (unsigned int) maximum ) * 100;
+  if( argc > argct )
+    {
+    corrthresh = atof(argv[argct]); argct++;
+    }
   RealType kneighborhoodval = maximum; // IMPORTANT - defines how many nhood nodes to use in k-hood definition
   IteratorType cIter( imageLM, imageLM->GetLargestPossibleRegion() );
   BlobsListType blobs1;
@@ -12075,24 +12060,28 @@ int MatchBlobs( int argc, char *argv[] )
     blobs2.push_back( blob );
     }  
 
-
-
   getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
     ( radval, image, image2, correspondencematrix, blobs1, blobs2, gradsig, dosinkhorn );
 
   unsigned int matchpt = 1;
-  unsigned int corrthresh =  ( (unsigned int) maximum ) * 100;
   antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to " << corrthresh << std::endl;
   unsigned int count1 = 0;
   typedef std::pair<BlobPointer, BlobPointer> BlobPairType;
     std::vector<BlobPairType> blobpairs;
-    while( ( matchpt < ( corrthresh + 1 ) )  )
+  vnl_matrix<RealType> correspondencematrix_hard( correspondencematrix );
+  vnl_matrix<RealType> correspondencematrix_soft( correspondencematrix );
+  while( ( matchpt < ( corrthresh + 1 ) )  )
       {
-      unsigned int maxpair = correspondencematrix.arg_max();
+      unsigned int maxpair = correspondencematrix_hard.arg_max();
+      if ( maxpair < 1.e-9 ) 
+	{
+	correspondencematrix_hard.update(  correspondencematrix_soft );
+        maxpair = correspondencematrix_hard.arg_max();
+	}
       unsigned int maxrow = ( unsigned int )  maxpair / correspondencematrix.cols();
       unsigned int maxcol = maxpair - maxrow * correspondencematrix.cols();
       BlobPointer blob1 = blobs1[maxrow];
-      BlobPointer bestblob = blobs2[maxcol];
+      BlobPointer bestblob( blobs2[maxcol] );
       if( bestblob &&  bestblob->GetObjectRadius() > 1 )
         {
 	  if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < maxradiusdiffallowed )
@@ -12100,16 +12089,16 @@ int MatchBlobs( int argc, char *argv[] )
 	    if ( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
 		( image2->GetPixel( bestblob->GetCenter() )  > smallval ) )
             {
+	    bestblob->SetScaleSpaceValue( correspondencematrix( maxrow, maxcol ) );
             BlobPairType blobpairing = std::make_pair( blob1, bestblob );
             blobpairs.push_back( blobpairing );
-            antscout << " best correlation " << correspondencematrix.absolute_value_max() << " rad1 "
-                     << blob1->GetObjectRadius() << " rad2 " << bestblob->GetObjectRadius() << " : " << matchpt
-                     << std::endl;
             matchpt++;
             }
           }
         }
-      correspondencematrix( maxrow, maxcol ) = 0;
+      correspondencematrix_hard.set_row( maxrow, correspondencematrix_hard.get_row( maxrow ).fill( 0 ) );
+      correspondencematrix_hard.set_column( maxcol, correspondencematrix_hard.get_column( maxcol ).fill( 0 ) );
+      correspondencematrix_soft( maxrow, maxcol ) = 0;
       count1++;
       }
 
@@ -12149,7 +12138,6 @@ int MatchBlobs( int argc, char *argv[] )
         distspost.push_back( dist2 );
         distspreind.push_back(  bp2 );
         distspostind.push_back( bp2 );
-        //        antscout << " blob " << bp << " vs " << bp2 << sqrt( dist1 ) << " v " << sqrt( dist2 ) << std::endl;
         distmatpre(   bp, bp2 ) = distmatpre(   bp2, bp ) = dist1;
         distmatpost(  bp, bp2 ) = distmatpost(  bp2, bp ) = dist2;
         distratiomat( bp, bp2 ) = distratiomat( bp2, bp ) = drat;
@@ -12170,7 +12158,8 @@ int MatchBlobs( int argc, char *argv[] )
 	{
 	labimg->SetPixel(  blobind, blobpairs[bp].first->GetScaleSpaceValue() );     // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
 	labimg2->SetPixel( blobpairind, blobpairs[bp].first->GetScaleSpaceValue() ); 
-	antscout << " blob " << bp << " keep " <<  distratiomat.get_row( bp ) << " LM " << blobpairs[bp].first->GetScaleSpaceValue() <<  std::endl;
+	confimg2->SetPixel( blobpairind, blobpairs[bp].second->GetScaleSpaceValue() ); 
+	//	antscout << " blob " << bp << " keep " <<  distratiomat.get_row( bp ) << " LM " << blobpairs[bp].first->GetScaleSpaceValue() <<  std::endl;
 	}
       }
     } // if false
@@ -12178,8 +12167,8 @@ int MatchBlobs( int argc, char *argv[] )
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( "temp_distmat1.csv" );
-      writer->SetInput( &distmatpre );
+      writer->SetFileName( "temp_corrmat.csv" );
+      writer->SetInput( &correspondencematrix );
       writer->Write();
       }
     if ( true ) 
@@ -12191,10 +12180,11 @@ int MatchBlobs( int argc, char *argv[] )
       writer->Write();
       }
     std::string outname1 = outname + std::string("lm1.nii.gz");
-    std::string outname2 = outname + std::string("lm2.nii.gz");
     WriteImage<BlobRadiusImageType>( labimg, outname1.c_str() );
+    std::string outname2 = outname + std::string("lm2.nii.gz");
     WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
-    antscout << " Matched " << matchpt << " blobs " << std::endl;
+    std::string outname3 = outname + std::string("conf2.nii.gz");
+    WriteImage<BlobRadiusImageType>( confimg2, outname3.c_str() );
   return EXIT_SUCCESS;
 }
 
