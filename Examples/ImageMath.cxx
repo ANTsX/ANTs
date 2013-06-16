@@ -11976,6 +11976,229 @@ int BlobDetector( int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
+
+template <unsigned int ImageDimension>
+int MatchBlobs( int argc, char *argv[] )
+{
+  typedef float                                                                   PixelType;
+  typedef float                                                                   RealType;
+  typedef itk::Image<PixelType, ImageDimension>                                   ImageType;
+  typedef itk::ImageFileReader<ImageType>                                         ImageReaderType;
+  typedef itk::ImageFileWriter<ImageType>                                         ImageWriterType;
+  typedef itk::MinimumMaximumImageCalculator<ImageType>                           CalculatorType;
+  typedef itk::ImageMomentsCalculator<ImageType>                                  MomentsCalculatorType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                            IteratorType;
+  typedef itk::SurfaceImageCurvature<ImageType>                                   ParamType;
+  typedef itk::CovariantVector<RealType, ImageDimension>                          GradientPixelType;
+  typedef itk::Image<GradientPixelType, ImageDimension>                           GradientImageType;
+  typedef itk::SmartPointer<GradientImageType>                                    GradientImagePointer;
+  typedef itk::MultiScaleLaplacianBlobDetectorImageFilter<ImageType> BlobFilterType;
+  typedef typename BlobFilterType::BlobPointer BlobPointer;
+  typedef typename BlobFilterType::BlobRadiusImageType BlobRadiusImageType;
+  typedef typename BlobFilterType::BlobsListType BlobsListType;
+  typedef typename BlobFilterType::BlobType BlobType;
+  typedef typename ImageType::IndexType        IndexType;
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return 1;
+    }
+  // sensitive parameters are set here - begin
+  RealType     gradsig = 1.0;       // sigma for gradient filter
+  RealType smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
+  bool dosinkhorn = false;
+  RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference 
+  unsigned int radval = 20;         // IMPORTANT radius for correlation
+  RealType dthresh = 0.02; // IMPORTANT distance preservation threshold 
+  // sensitive parameters are set here - end
+  int          argct = 2;
+  const std::string  outname = std::string(argv[argct]);
+  argct += 2;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  std::string  landmarks1 = std::string(argv[argct]);   argct++;
+  std::string  fn2 = std::string(argv[argct]);   argct++;
+  typename ImageType::Pointer image;
+  typename ImageType::Pointer imageLM;
+  typename ImageType::Pointer image2;
+  ReadImage<ImageType>( image, fn1.c_str() );
+  ReadImage<ImageType>( imageLM, landmarks1.c_str() );
+  ReadImage<ImageType>( image2, fn2.c_str() );
+  vnl_matrix<RealType> correspondencematrix;
+  typedef itk::MinimumMaximumImageCalculator<ImageType>  LabelCalculatorType;
+  typename LabelCalculatorType::Pointer calc = LabelCalculatorType::New();
+  calc->SetImage( imageLM );
+  calc->ComputeMaximum();
+  typename ImageType::Pointer labimg  = MakeNewImage<ImageType>( image, 0 );
+  typename ImageType::Pointer labimg2 = MakeNewImage<ImageType>( image2, 0 );
+  float maximum  = calc->GetMaximum();
+  RealType kneighborhoodval = maximum; // IMPORTANT - defines how many nhood nodes to use in k-hood definition
+  IteratorType cIter( imageLM, imageLM->GetLargestPossibleRegion() );
+  BlobsListType blobs1;
+  itk::Point<double, ImageType::ImageDimension> zeroPoint;
+  zeroPoint.Fill(0);
+  ::ants::antscout <<" N-Landmarks " << maximum << std::endl;
+  for(  cIter.GoToBegin(); !cIter.IsAtEnd(); ++cIter )
+    {
+    RealType val = imageLM->GetPixel( cIter.GetIndex() );
+    if ( val > 0 ) 
+      {
+      typename BlobType::PointType centerPoint;
+      image->TransformIndexToPhysicalPoint(  cIter.GetIndex(), centerPoint );
+      BlobPointer blob = BlobType::New();
+      blob->SetSigma( 1 );
+      blob->SetScaleSpaceValue( val );
+      blob->SetCenter(  cIter.GetIndex() );
+      const typename BlobType::VectorType centerVector = centerPoint - zeroPoint;
+      blob->GetObjectToParentTransform()->SetOffset(centerVector);
+      blob->ComputeBoundingBox();
+      blobs1.push_back( blob );
+      }
+    }  
+
+  typedef itk::ImageRandomConstIteratorWithIndex<ImageType>               randIterator;
+  randIterator mIter( image2, image2->GetLargestPossibleRegion() );
+  unsigned int n_samples = 10000;
+  mIter.SetNumberOfSamples( n_samples );
+  BlobsListType blobs2;
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    // transform the center index into offset vector
+    typename BlobType::PointType centerPoint;
+    image2->TransformIndexToPhysicalPoint(  mIter.GetIndex(), centerPoint );
+    BlobPointer blob = BlobType::New();
+    blob->SetSigma( 1 );
+    blob->SetScaleSpaceValue( image2->GetPixel( mIter.GetIndex() ) );
+    blob->SetCenter(  mIter.GetIndex() );
+    const typename BlobType::VectorType centerVector = centerPoint - zeroPoint;
+    blob->GetObjectToParentTransform()->SetOffset(centerVector);
+    blob->ComputeBoundingBox();
+    blobs2.push_back( blob );
+    }  
+
+
+
+  getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
+    ( radval, image, image2, correspondencematrix, blobs1, blobs2, gradsig, dosinkhorn );
+
+  unsigned int matchpt = 1;
+  unsigned int corrthresh =  ( (unsigned int) maximum ) * 100;
+  antscout << " now compute pairwise matching " << correspondencematrix.max_value() << " reducing to " << corrthresh << std::endl;
+  unsigned int count1 = 0;
+  typedef std::pair<BlobPointer, BlobPointer> BlobPairType;
+    std::vector<BlobPairType> blobpairs;
+    while( ( matchpt < ( corrthresh + 1 ) )  )
+      {
+      unsigned int maxpair = correspondencematrix.arg_max();
+      unsigned int maxrow = ( unsigned int )  maxpair / correspondencematrix.cols();
+      unsigned int maxcol = maxpair - maxrow * correspondencematrix.cols();
+      BlobPointer blob1 = blobs1[maxrow];
+      BlobPointer bestblob = blobs2[maxcol];
+      if( bestblob &&  bestblob->GetObjectRadius() > 1 )
+        {
+	  if( fabs( bestblob->GetObjectRadius() - blob1->GetObjectRadius() ) < maxradiusdiffallowed )
+          {
+	    if ( bestblob && ( image->GetPixel( blob1->GetCenter() ) > smallval )  &&
+		( image2->GetPixel( bestblob->GetCenter() )  > smallval ) )
+            {
+            BlobPairType blobpairing = std::make_pair( blob1, bestblob );
+            blobpairs.push_back( blobpairing );
+            antscout << " best correlation " << correspondencematrix.absolute_value_max() << " rad1 "
+                     << blob1->GetObjectRadius() << " rad2 " << bestblob->GetObjectRadius() << " : " << matchpt
+                     << std::endl;
+            matchpt++;
+            }
+          }
+        }
+      correspondencematrix( maxrow, maxcol ) = 0;
+      count1++;
+      }
+
+    /** For every blob, compute the distance to its neighbors before and after matching */
+    vnl_matrix<RealType> distmatpre( blobpairs.size(), blobpairs.size() );
+    distmatpre.fill( 0 );
+    vnl_matrix<RealType> distmatpost( blobpairs.size(), blobpairs.size() );
+    distmatpost.fill( 0 );
+    vnl_matrix<RealType> distratiomat( blobpairs.size(), blobpairs.size() );
+    distratiomat.fill( 0 );
+    if ( true )
+    {
+    for( unsigned int bp = 0; bp < blobpairs.size(); bp++ )
+      {
+      IndexType             blobind = blobpairs[bp].first->GetCenter();
+      IndexType             blobpairind  = blobpairs[bp].second->GetCenter();
+      std::vector<RealType> distspre;
+      std::vector<RealType> distspost;
+      std::vector<size_t>   distspreind;
+      std::vector<size_t>   distspostind;
+      for( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
+        {
+        IndexType blobneighborind = blobpairs[bp2].first->GetCenter();
+        IndexType blobpairneighborind  = blobpairs[bp2].second->GetCenter();
+        RealType  dist1 = 0;
+        RealType  dist2 = 0;
+        for( unsigned int dim = 0; dim < ImageDimension; dim++ )
+          {
+          RealType delta1 = blobind[dim] - blobneighborind[dim];
+          RealType delta2 = blobpairind[dim]  - blobpairneighborind[dim];
+          dist1 += delta1 * delta1;
+          dist2 += delta2 * delta2;
+          }
+	RealType drat = 0;
+	if ( dist1 > 0 ) drat = dist2 / dist1;
+        distspre.push_back( dist1 );
+        distspost.push_back( dist2 );
+        distspreind.push_back(  bp2 );
+        distspostind.push_back( bp2 );
+        //        antscout << " blob " << bp << " vs " << bp2 << sqrt( dist1 ) << " v " << sqrt( dist2 ) << std::endl;
+        distmatpre(   bp, bp2 ) = distmatpre(   bp2, bp ) = dist1;
+        distmatpost(  bp, bp2 ) = distmatpost(  bp2, bp ) = dist2;
+        distratiomat( bp, bp2 ) = distratiomat( bp2, bp ) = drat;
+        }
+      }
+    // now we have the distance ratio matrix - let's find a cluster of nodes with values near 1
+    // count the k neighborhood for each blobpair possibility
+    for( unsigned int bp = 0; bp < blobpairs.size(); bp++ )
+      {
+      IndexType             blobind = blobpairs[bp].first->GetCenter();
+      IndexType             blobpairind  = blobpairs[bp].second->GetCenter();
+      unsigned int kct = 0;
+      for( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
+	{
+	if ( ( bp2 != bp ) && ( vnl_math_abs( distratiomat( bp2, bp ) - 1 ) <  dthresh ) ) kct++;
+	}
+      if ( kct >= kneighborhoodval )
+	{
+	labimg->SetPixel(  blobind, blobpairs[bp].first->GetScaleSpaceValue() );     // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
+	labimg2->SetPixel( blobpairind, blobpairs[bp].first->GetScaleSpaceValue() ); 
+	antscout << " blob " << bp << " keep " <<  distratiomat.get_row( bp ) << " LM " << blobpairs[bp].first->GetScaleSpaceValue() <<  std::endl;
+	}
+      }
+    } // if false
+    if ( true ) 
+      {
+      typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
+      WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( "temp_distmat1.csv" );
+      writer->SetInput( &distmatpre );
+      writer->Write();
+      }
+    if ( true ) 
+      {
+      typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
+      WriterType::Pointer writer = WriterType::New();
+      writer->SetFileName( "temp_distmat2.csv" );
+      writer->SetInput( &distratiomat );
+      writer->Write();
+      }
+    std::string outname1 = outname + std::string("lm1.nii.gz");
+    std::string outname2 = outname + std::string("lm2.nii.gz");
+    WriteImage<BlobRadiusImageType>( labimg, outname1.c_str() );
+    WriteImage<BlobRadiusImageType>( labimg2, outname2.c_str() );
+    antscout << " Matched " << matchpt << " blobs " << std::endl;
+  return EXIT_SUCCESS;
+}
+
+
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
@@ -12070,6 +12293,7 @@ private:
     antscout << "  BlobDetector Image1.ext NumberOfBlobsToExtract  Optional-Input-Image2 Blob-2-out.nii.gz N-Blobs-To-Match  :  blob detection by searching for local extrema of the Laplacian of the Gassian (LoG) " << std::endl;
     antscout << "    Example matching 6 best blobs from 2 images: " << std::endl;
     antscout << "    ImageMath 2 blob.nii.gz BlobDetector image1.nii.gz 1000  image2.nii.gz blob2.nii.gz 6 " << std::endl;
+    antscout << "  MatchBlobs Image1.ext Image1LM.ext Image2.ext" << std::endl;
     antscout << std::endl;
 
     antscout << "\nTransform Image: " << std::endl;
@@ -12811,6 +13035,10 @@ private:
         {
         BlobDetector<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MatchBlobs") == 0 )
+        {
+        MatchBlobs<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "TimeSeriesRegionSCCA") == 0 )
         {
         TimeSeriesRegionSCCA<2>(argc, argv);
@@ -13252,6 +13480,10 @@ private:
         {
         BlobDetector<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MatchBlobs") == 0 )
+        {
+        MatchBlobs<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "Check3TissueLabeling") == 0 )
         {
         Check3TissueLabeling<3>(argc, argv);
@@ -13460,6 +13692,10 @@ private:
       else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
         {
         BlobDetector<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "MatchBlobs") == 0 )
+        {
+	  MatchBlobs<4>(argc, argv);
         }
       //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
       // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
