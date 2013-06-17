@@ -11987,7 +11987,7 @@ int MatchBlobs( int argc, char *argv[] )
   RealType smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   bool dosinkhorn = false;
   RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference 
-  unsigned int radval = 20;         // IMPORTANT radius for correlation
+  unsigned int radval = 5;         // IMPORTANT radius for correlation
   RealType dthresh = 0.02; // IMPORTANT distance preservation threshold 
   // sensitive parameters are set here - end
   int          argct = 2;
@@ -12016,6 +12016,14 @@ int MatchBlobs( int argc, char *argv[] )
     {
     corrthresh = atof(argv[argct]); argct++;
     }
+  if( argc > argct )
+    {
+    radval = atof(argv[argct]); argct++;
+    }
+  if( argc > argct )
+    {
+    dthresh = atof(argv[argct]); argct++;
+    }
   RealType kneighborhoodval = maximum; // IMPORTANT - defines how many nhood nodes to use in k-hood definition
   IteratorType cIter( imageLM, imageLM->GetLargestPossibleRegion() );
   BlobsListType blobs1;
@@ -12042,7 +12050,8 @@ int MatchBlobs( int argc, char *argv[] )
 
   typedef itk::ImageRandomConstIteratorWithIndex<ImageType>               randIterator;
   randIterator mIter( image2, image2->GetLargestPossibleRegion() );
-  unsigned int n_samples = 10000;
+  unsigned long numpx = image2->GetBufferedRegion().GetNumberOfPixels();
+  unsigned int n_samples = ( unsigned int ) ( ( float ) numpx ) * 0.1;
   mIter.SetNumberOfSamples( n_samples );
   BlobsListType blobs2;
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
@@ -12150,11 +12159,21 @@ int MatchBlobs( int argc, char *argv[] )
       IndexType             blobind = blobpairs[bp].first->GetCenter();
       IndexType             blobpairind  = blobpairs[bp].second->GetCenter();
       unsigned int kct = 0;
+      typedef vnl_vector<RealType> kVectorType;
+      kVectorType kLog1( kneighborhoodval , 0 );
       for( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
 	{
-	if ( ( bp2 != bp ) && ( vnl_math_abs( distratiomat( bp2, bp ) - 1 ) <  dthresh ) ) kct++;
+	if ( ( bp2 != bp ) && ( vnl_math_abs( distratiomat( bp2, bp ) - 1 ) <  dthresh )  
+	     //	  &&   ( blobpairs[bp2].first->GetScaleSpaceValue() != blobpairs[bp].first->GetScaleSpaceValue() )   
+	     //   &&   ( blobpairs[bp2].second->GetScaleSpaceValue() != blobpairs[bp].second->GetScaleSpaceValue() )  
+	     ) 
+	  {
+	  kct++;
+	  kLog1(  blobpairs[bp2].first->GetScaleSpaceValue() - 1 ) = 1;
+	  }
 	}
-      if ( kct >= kneighborhoodval )
+      // if ( ( kLog1.sum() >= ( kneighborhoodval / 2 ) ) && ( kct >= kneighborhoodval ) )
+      if ( ( kct >= kneighborhoodval ) )
 	{
 	labimg->SetPixel(  blobind, blobpairs[bp].first->GetScaleSpaceValue() );     // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
 	labimg2->SetPixel( blobpairind, blobpairs[bp].first->GetScaleSpaceValue() ); 
