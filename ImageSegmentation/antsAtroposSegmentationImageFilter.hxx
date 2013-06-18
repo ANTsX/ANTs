@@ -646,6 +646,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
                                      priorProbabilityImage->GetPixel( ItO.GetIndex() ) );
       }
     }
+
   for( unsigned int n = 0; n < totalNumberOfClasses; n++ )
     {
     if( n < this->m_NumberOfTissueClasses )
