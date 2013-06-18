@@ -379,7 +379,8 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
             exe_n4_correction="${exe_n4_correction} -w ${SEGMENTATION_WEIGHT_MASK}"
           fi
         logCmd $exe_n4_correction
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} HistogramMatch ${SEGMENTATION_N4_IMAGES[$j]} ${ANATOMICAL_IMAGES[$j]} 255 1
+        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} Normalize ${SEGMENTATION_N4_IMAGES[$j]}
+        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} m ${SEGMENTATION_N4_IMAGES[$j]} 1000
       done
 
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
