@@ -31,7 +31,7 @@ namespace itk
  *
  */
 template <class TPointSet>
-class ITK_EXPORT JensenHavrdaCharvatTsallisPointSetMetric :
+class JensenHavrdaCharvatTsallisPointSetMetric :
   public         PointSetToPointSetMetric<TPointSet, TPointSet>
 {
 public:

@@ -83,7 +83,7 @@ template <
   class TDisplacementField,
   class TTransform
   >
-class ITK_EXPORT WarpImageWAffineFilter :
+class WarpImageWAffineFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

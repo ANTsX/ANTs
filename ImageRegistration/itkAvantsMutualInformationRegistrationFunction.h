@@ -120,7 +120,7 @@ namespace itk
  * \ingroup ThreadUnSafe
  */
 template <class TFixedImage, class TMovingImage, class TDisplacementField>
-class ITK_EXPORT AvantsMutualInformationRegistrationFunction :
+class AvantsMutualInformationRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:

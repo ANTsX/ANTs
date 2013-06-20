@@ -61,7 +61,7 @@ namespace itk
 * \ingroup FiniteDifferenceFunctions
 */
 template <class TFixedImage, class TMovingImage, class TDisplacementField, class TPointSet>
-class ITK_EXPORT ExpectationBasedPointSetRegistrationFunction :
+class ExpectationBasedPointSetRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage,
                                                          TDisplacementField>

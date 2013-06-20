@@ -36,7 +36,7 @@ namespace Statistics
  */
 
 template <class TListSample, class TOutput = double, class TCoordRep = double>
-class ITK_EXPORT HistogramParzenWindowsListSampleFunction
+class HistogramParzenWindowsListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:

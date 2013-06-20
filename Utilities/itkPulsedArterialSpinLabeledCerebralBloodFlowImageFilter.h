@@ -47,7 +47,7 @@ namespace itk
  * \ingroup ITKImageCompose
  */
 template <class TInputImage, class TReferenceImage, class TOutputImage>
-class ITK_EXPORT PulsedArterialSpinLabeledCerebralBloodFlowImageFilter :
+class PulsedArterialSpinLabeledCerebralBloodFlowImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

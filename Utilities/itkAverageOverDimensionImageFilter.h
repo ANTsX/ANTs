@@ -87,7 +87,7 @@ namespace itk
  */
 
 template< class TInputImage, class TOutputImage >
-class ITK_EXPORT AverageOverDimensionImageFilter:
+class AverageOverDimensionImageFilter:
   public InPlaceImageFilter< TInputImage, TOutputImage >
 {
 public:

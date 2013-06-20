@@ -103,7 +103,7 @@ private:
  * \author Bradley Lowekamp
 */
 template <class TInputImage>
-class ITK_EXPORT MultiScaleLaplacianBlobDetectorImageFilter
+class MultiScaleLaplacianBlobDetectorImageFilter
   : public       ImageToImageFilter<TInputImage, TInputImage>
 {
 public:

@@ -9,8 +9,8 @@ namespace itk
 {
 template <class TScalarType = double>
 // Data type for scalars (float or double)
-// class ITK_EXPORT Rigid2DTransform :
-class ITK_EXPORT ANTSCenteredAffine2DTransform :
+// class Rigid2DTransform :
+class ANTSCenteredAffine2DTransform :
   public         MatrixOffsetTransformBase<TScalarType, 2, 2> // Dimensions of input and output spaces
 {
 public:
