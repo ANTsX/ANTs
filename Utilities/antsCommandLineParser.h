@@ -43,7 +43,7 @@ namespace ants
     {10, 20, 30} as "10x20x30".
 */
 
-class ITK_EXPORT CommandLineParser
+class CommandLineParser
   : public       DataObject
 {
 public:

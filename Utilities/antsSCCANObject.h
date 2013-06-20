@@ -33,7 +33,7 @@ namespace itk
 namespace ants
 {
 template <class TInputImage, class TRealType = double>
-class ITK_EXPORT antsSCCANObject :
+class antsSCCANObject :
   public         ImageToImageFilter<TInputImage, TInputImage>
 {
 public:

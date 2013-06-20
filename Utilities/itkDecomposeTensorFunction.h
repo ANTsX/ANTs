@@ -34,7 +34,7 @@ template <typename TInput,
           typename TRealType = float,
           typename TOutput = itk::VariableSizeMatrix<TRealType>
           >
-class ITK_EXPORT DecomposeTensorFunction : public ProcessObject
+class DecomposeTensorFunction : public ProcessObject
 {
 public:
   /** Standard class typedefs. */

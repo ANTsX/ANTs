@@ -41,7 +41,7 @@ namespace itk
  * \ingroup IntensityImageFilters
  */
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT LogTensorImageFilter :
+class LogTensorImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

@@ -38,7 +38,7 @@ namespace itk
  * \ingroup PDEDeformableRegistrationFunctions
  */
 template <class TFixedImage, class TMovingImage, class TDisplacementField>
-class ITK_EXPORT AvantsPDEDeformableRegistrationFunction :
+class AvantsPDEDeformableRegistrationFunction :
   public         PDEDeformableRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 {
 public:

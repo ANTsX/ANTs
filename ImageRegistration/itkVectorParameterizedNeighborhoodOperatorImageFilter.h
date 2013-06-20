@@ -56,7 +56,7 @@ namespace itk
  */
 
 template <class TInputImage, class TOutputImage, class TParamImage>
-class ITK_EXPORT VectorParameterizedNeighborhoodOperatorImageFilter :
+class VectorParameterizedNeighborhoodOperatorImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

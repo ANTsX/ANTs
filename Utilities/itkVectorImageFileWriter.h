@@ -58,7 +58,7 @@ public:
  * \ingroup IOFilters
  */
 template <class TVectorImage, class TImage>
-class ITK_EXPORT VectorImageFileWriter :
+class VectorImageFileWriter :
   public         ProcessObject
 {
 public:

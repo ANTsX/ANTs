@@ -89,7 +89,7 @@ public:
 }
 
 template <class TInputImage, class TConstant, class TOutputImage>
-class ITK_EXPORT DivideByConstantImageFilter :
+class DivideByConstantImageFilter :
   public
   UnaryFunctorImageFilter<TInputImage, TOutputImage,
                           Functor::DivideByConstant<

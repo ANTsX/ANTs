@@ -29,7 +29,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3, class TReal = float>
-class ITK_EXPORT ANTSSimilarityMetric
+class ANTSSimilarityMetric
   : public       Object
 {
 public:
