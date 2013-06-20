@@ -56,6 +56,7 @@ Optional arguments:
                                                 Specified using c-style formatting, e.g. -p labelsPriors%02d.nii.gz.
      -r:  mrf                                   Specifies MRF prior (of the form '[weight,neighborhood]', e.g.
                                                 '[0.1,1x1x1]' which is default).
+     -b:  posterior formulation                 'Posterior formulation and whether or not to use mixture model proportions.'
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
      -k:  keep temporary files                  Keep temporary files on disk (default = false).
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
@@ -145,7 +146,7 @@ N4_WEIGHT_MASK_POSTERIOR_LABELS=()
 ATROPOS=${ANTSPATH}Atropos
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
-ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates"
+ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
 ATROPOS_SEGMENTATION_MASK=''
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
@@ -156,7 +157,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:c:d:h:k:l:m:n:o:p:r:s:w:x:" OPT
+  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:w:x:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -176,6 +177,9 @@ else
        ;;
           a) #anatomical t1 image
        ANATOMICAL_IMAGES[${#ANATOMICAL_IMAGES[@]}]=$OPTARG
+       ;;
+          b) #atropos prior weight
+       ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION=$OPTARG
        ;;
           k) #keep tmp images
        KEEP_TMP_IMAGES=$OPTARG
@@ -401,7 +405,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           fi
       fi
 
-    exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}[1] ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
+    exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
     if [[ $i -eq 0 ]];
       then
         exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK}  -c ${ATROPOS_SEGMENTATION_CONVERGENCE} -p ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}[0] ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
