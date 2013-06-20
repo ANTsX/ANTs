@@ -730,7 +730,7 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
-  void PositivePart( VectorType& x_k1 , bool takemin = true )
+  void PositivePart( VectorType& x_k1 , bool takemin = false )
   {
     if ( takemin )
       {
@@ -756,7 +756,16 @@ protected:
     this->m_UseL1 = true;
     bool keeppos = false;
     if ( this->m_RowSparseness > 1.e-11 ) keeppos = true;
-    this->Sparsify( x_k1, fnp, keeppos , 0, NULL);
+    VectorType x_k1_inv( x_k1 );
+    for ( unsigned int i = 0; i < x_k1.size(); i++ )
+      {
+      if (  vnl_math_abs( x_k1_inv( i ) ) > 1.e-9 ) x_k1_inv( i ) = x_k1( i ) ;
+      }
+    this->Sparsify( x_k1_inv, fnp, keeppos , 0, NULL );
+    for ( unsigned int i = 0; i < x_k1.size(); i++ )
+      {
+      if (  vnl_math_abs( x_k1_inv( i ) ) > 1.e-9 ) x_k1( i ) = x_k1_inv( i ) ;
+      }
     this->m_UseL1 = usel1; 
   }
 
