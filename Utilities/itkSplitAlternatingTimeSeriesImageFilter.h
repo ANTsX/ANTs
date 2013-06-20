@@ -47,7 +47,7 @@ namespace itk
  * \ingroup ITKImageCompose
  */
 template< class TInputImage, class TOutputImage >
-class ITK_EXPORT SplitAlternatingTimeSeriesImageFilter:
+class SplitAlternatingTimeSeriesImageFilter:
   public ImageToImageFilter< TInputImage, TOutputImage >
 {
 public:

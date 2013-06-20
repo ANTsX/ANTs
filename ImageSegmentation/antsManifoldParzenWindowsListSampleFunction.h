@@ -37,7 +37,7 @@ namespace Statistics
  */
 
 template <class TListSample, class TOutput = double, class TCoordRep = double>
-class ITK_EXPORT ManifoldParzenWindowsListSampleFunction
+class ManifoldParzenWindowsListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:

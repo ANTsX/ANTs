@@ -28,7 +28,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3>
-class ITK_EXPORT ANTSLabeledPointSet
+class ANTSLabeledPointSet
   : public       Object
 {
 public:

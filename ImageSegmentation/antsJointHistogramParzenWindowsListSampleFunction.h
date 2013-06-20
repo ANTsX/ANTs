@@ -34,7 +34,7 @@ namespace Statistics
  */
 
 template <class TListSample, class TOutput = double, class TCoordRep = double>
-class ITK_EXPORT JointHistogramParzenWindowsListSampleFunction
+class JointHistogramParzenWindowsListSampleFunction
   : public       ListSampleFunction<TListSample, TOutput, TCoordRep>
 {
 public:

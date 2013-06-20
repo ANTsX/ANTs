@@ -31,7 +31,7 @@ template <typename TInputImage,
           typename TOutput =
             itk::VariableSizeMatrix<TRealType>
           >
-class ITK_EXPORT VectorFieldGradientImageFunction :
+class VectorFieldGradientImageFunction :
   public         ImageFunction<TInputImage, TOutput>
 {
 public:

@@ -36,7 +36,7 @@ namespace Statistics
  */
 
 template <class TScalarListSample>
-class ITK_EXPORT BoxPlotQuantileListSampleFilter
+class BoxPlotQuantileListSampleFilter
   : public       ListSampleToListSampleFilter<TScalarListSample, TScalarListSample>
 {
 public:

@@ -33,7 +33,7 @@ namespace Statistics
  */
 
 template <class TListSample>
-class ITK_EXPORT PassThroughListSampleFilter
+class PassThroughListSampleFilter
   : public       ListSampleToListSampleFilter<TListSample, TListSample>
 {
 public:

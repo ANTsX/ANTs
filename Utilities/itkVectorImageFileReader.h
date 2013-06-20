@@ -82,7 +82,7 @@ public:
 template <class TImage, class TVectorImage,
           class ConvertPixelTraits = DefaultConvertPixelTraits<
               ITK_TYPENAME TImage::IOPixelType> >
-class ITK_EXPORT VectorImageFileReader : public ImageSource<TVectorImage>
+class VectorImageFileReader : public ImageSource<TVectorImage>
 {
 public:
   /** Standard class typedefs. */

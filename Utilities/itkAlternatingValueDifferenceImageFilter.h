@@ -41,7 +41,7 @@ namespace itk
  *
  */
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT AlternatingValueDifferenceImageFilter :
+class AlternatingValueDifferenceImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
