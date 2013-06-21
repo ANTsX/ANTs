@@ -1826,7 +1826,7 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     case Aristotle:
       {
       posteriorProbability =
-        vcl_pow( static_cast<RealType>( spatialPriorProbability * distancePriorProbability),
+        vcl_pow( static_cast<RealType>( spatialPriorProbability * distancePriorProbability ),
                  static_cast<RealType>( this->m_PriorProbabilityWeight ) )
         * vcl_pow( static_cast<RealType>( likelihood * mrfPriorProbability ),
                    static_cast<RealType>( 1.0 - this->m_PriorProbabilityWeight ) );
