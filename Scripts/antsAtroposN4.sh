@@ -157,7 +157,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:w:x:" OPT
+  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -199,11 +199,14 @@ else
           p) # segmentation label prior image
        ATROPOS_SEGMENTATION_PRIORS=$OPTARG
        ;;
+          r) #mrf
+       ATROPOS_SEGMENTATION_MRF=$OPTARG
+       ;;
           s) #output suffix
        OUTPUT_SUFFIX=$OPTARG
        ;;
-          r) #mrf
-       ATROPOS_SEGMENTATION_MRF=$OPTARG
+          t) #n4 convergence
+       N4_CONVERGENCE=$OPTARG
        ;;
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
