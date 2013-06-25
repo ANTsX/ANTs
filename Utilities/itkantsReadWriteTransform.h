@@ -13,8 +13,8 @@ namespace itk
 {
 namespace ants
 {
-template <unsigned VImageDimension>
-typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer
+template <class T, unsigned VImageDimension>
+typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer
 ReadTransform(const std::string & filename,
               const bool useStaticCastForR = false) // This parameter changes to true by the programs that use R, so this code
                                                      // returns a different output for them.
@@ -29,7 +29,7 @@ ReadTransform(const std::string & filename,
 
   bool hasTransformBeenRead = false;
 
-  typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
+  typedef typename itk::DisplacementFieldTransform<T, VImageDimension> DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef itk::ImageFileReader<DisplacementFieldType>                       DisplacementFieldReaderType;
   typename DisplacementFieldReaderType::Pointer fieldReader = DisplacementFieldReaderType::New();
@@ -56,7 +56,7 @@ ReadTransform(const std::string & filename,
       }
     }
 
-  typedef typename itk::Transform<double, VImageDimension, VImageDimension> TransformType;
+  typedef typename itk::Transform<T, VImageDimension, VImageDimension> TransformType;
   typename TransformType::Pointer transform;
   if( hasTransformBeenRead )
     {
@@ -67,8 +67,8 @@ ReadTransform(const std::string & filename,
     }
   else
     {
-    typename itk::TransformFileReader::Pointer transformReader
-      = itk::TransformFileReader::New();
+    typename itk::TransformFileReaderTemplate<T>::Pointer transformReader
+      = itk::TransformFileReaderTemplate<T>::New();
 
     transformReader->SetFileName( filename.c_str() );
     try
@@ -96,10 +96,10 @@ ReadTransform(const std::string & filename,
       return transform;
       }
 
-    const typename itk::TransformFileReader::TransformListType * const listOfTransforms =
+    const typename itk::TransformFileReaderTemplate<T>::TransformListType * const listOfTransforms =
       transformReader->GetTransformList();
     transform = dynamic_cast<TransformType *>( listOfTransforms->front().GetPointer() );
-    
+
     /** below is a bad thing but it's the only temporary fix i could find for ANTsR on unix --- B.A. */
     if ( transform.IsNull() && ( useStaticCastForR == true ) )
        {
@@ -109,15 +109,15 @@ ReadTransform(const std::string & filename,
   return transform;
 }
 
-template <unsigned int VImageDimension>
+template <class T, unsigned int VImageDimension>
 int
-WriteTransform(typename itk::Transform<double, VImageDimension, VImageDimension>::Pointer & xfrm,
+WriteTransform(typename itk::Transform<T, VImageDimension, VImageDimension>::Pointer & xfrm,
                const std::string & filename)
 {
-  typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
+  typedef typename itk::DisplacementFieldTransform<T, VImageDimension>      DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
   typedef typename itk::ImageFileWriter<DisplacementFieldType>              DisplacementFieldWriter;
-  typedef itk::TransformFileWriter                                          TransformWriterType;
+  typedef itk::TransformFileWriterTemplate<T>                               TransformWriterType;
 
   DisplacementFieldTransformType *dispXfrm =
     dynamic_cast<DisplacementFieldTransformType *>(xfrm.GetPointer() );
