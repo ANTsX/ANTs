@@ -368,6 +368,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "float" );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -382,16 +392,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
-  
-    {
-    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
-    
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "float" );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
@@ -1511,7 +1511,7 @@ private:
       antscout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
       return EXIT_FAILURE;
       }
-    
+
     std::string Type = "double";
     OptionType::Pointer typeOption = parser->GetOption( "float" );
     if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
