@@ -22,6 +22,18 @@ if(NOT EXISTS "${EXTERNAL_PROJECT_DIR}")
   set(EXTERNAL_PROJECT_DIR ${${CMAKE_PROJECT_NAME}_SOURCE_DIR}/SuperBuild)
 endif()
 
+###
+macro(ProjectDependancyPush CACHE_LIST VALUE)
+  list(APPEND ${CACHE_LIST} ${VALUE})
+  #message(STATUS "PUSHING ${VALUE} onto ${CACHE_LIST}:  --> ${${CACHE_LIST}}")
+endmacro()
+
+macro(ProjectDependancyPop CACHE_LIST TVAR)
+  list(GET ${CACHE_LIST} -1 ${TVAR})
+  list(REMOVE_AT ${CACHE_LIST} -1)
+  #message(STATUS "POPING ${${TVAR}} from ${CACHE_LIST}:  --> ${${CACHE_LIST}}")
+endmacro()
+
 macro(SlicerMacroCheckExternalProjectDependency proj)
   # Set indent variable if needed
   if(NOT DEFINED __indent)
@@ -53,14 +65,24 @@ macro(SlicerMacroCheckExternalProjectDependency proj)
   # Include dependencies
   foreach(dep ${${proj}_DEPENDENCIES})
     if(NOT External_${dep}_FILE_INCLUDED)
-      include(${EXTERNAL_PROJECT_DIR}/External_${dep}.cmake)
+      if(EXISTS "${EXTERNAL_PROJECT_DIR}/External_${dep}.cmake")
+        include(${EXTERNAL_PROJECT_DIR}/External_${dep}.cmake)
+      elseif(EXISTS "${Slicer_ADDITIONAL_EXTERNAL_PROJECT_DIR}/External_${dep}.cmake")
+        include(${Slicer_ADDITIONAL_EXTERNAL_PROJECT_DIR}/External_${dep}.cmake)
+      else()
+        message(FATAL_ERROR "Can't find External_${dep}.cmake")
+      endif()
     endif()
   endforeach()
 
+  set(__${proj}_superbuild_message "SuperBuild - ${__indent}${proj}[OK]")
+  set(__${proj}_indent ${__indent})
+
   # If project being process has dependencies, indicates it has also been added.
   if(NOT "${${proj}_DEPENDENCIES}" STREQUAL "")
-    message(STATUS "SuperBuild - ${__indent}${proj}[OK]")
+    message(STATUS ${__${proj}_superbuild_message})
   endif()
+
 
   # Update indent variable
   string(LENGTH "${__indent}" __indent_length)

@@ -16,9 +16,8 @@ set(proj ${extProjName}) #This local name
 
 # Sanity checks
 if(DEFINED ${extProjName}_DIR AND NOT EXISTS ${${extProjName}_DIR})
-  message(FATAL_ERROR "${extProjName}_DIR variable is defined but corresponds to non-existing directory")
+  message(FATAL_ERROR "${extProjName}_DIR variable is defined but corresponds to non-existing directory (${${extProjName}_DIR})")
 endif()
-
 
 # Set dependency list
 set(${proj}_DEPENDENCIES "")
@@ -36,7 +35,8 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
     list(APPEND CMAKE_OSX_EXTERNAL_PROJECT_ARGS
       -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES}
       -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
-      -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
+      -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+      -DVTK_REQUIRED_OBJCXX_FLAGS:STRING="")
   endif()
 
   ### --- Project specific additions here
@@ -58,7 +58,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   endif()
 
   set(VTK_QT_ARGS)
-  if(${PROJECT_NAME}_USE_QT)
+  if(${LOCAL_PROJECT_NAME}_USE_QT)
     if(NOT APPLE)
       set(VTK_QT_ARGS
         #-DDESIRED_QT_VERSION:STRING=4 # Unused
@@ -82,12 +82,12 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
         )
     endif()
     find_package(Qt4 REQUIRED)
-  else(${PROJECT_NAME}_USE_QT)
+  else()
     set(VTK_QT_ARGS
         -DVTK_USE_GUISUPPORT:BOOL=OFF
         -DVTK_USE_QT:BOOL=OFF
         )
-  endif(${PROJECT_NAME}_USE_QT)
+  endif()
 
   # Disable Tk when Python wrapping is enabled
   if (Slicer_USE_PYTHONQT)
@@ -130,6 +130,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   endif()
 
   set(${proj}_CMAKE_OPTIONS
+      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_CURRENT_BINARY_DIR}/${proj}-install
       -DVTK_USE_PARALLEL:BOOL=ON
       -DVTK_DEBUG_LEAKS:BOOL=${Slicer_USE_VTK_DEBUG_LEAKS}
       -DVTK_LEGACY_REMOVE:BOOL=OFF
@@ -143,33 +144,52 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${VTK_MAC_ARGS}
       )
   ### --- End Project specific additions
-  set(${proj}_REPOSITORY ${git_protocol}://vtk.org/VTK.git CACHE STRING "" FORCE)
-  set(${proj}_GIT_TAG "v5.8.0" CACHE STRING "" FORCE)
+  set(${proj}_REPOSITORY ${git_protocol}://vtk.org/VTK.git)
+  set(${proj}_GIT_TAG "v5.10.0")
   ExternalProject_Add(${proj}
     GIT_REPOSITORY ${${proj}_REPOSITORY}
     GIT_TAG ${${proj}_GIT_TAG}
     SOURCE_DIR ${proj}
     BINARY_DIR ${proj}-build
+    LOG_CONFIGURE 0  # Wrap configure in script to ignore log output from dashboards
+    LOG_BUILD     0  # Wrap build in script to to ignore log output from dashboards
+    LOG_TEST      0  # Wrap test in script to to ignore log output from dashboards
+    LOG_INSTALL   0  # Wrap install in script to to ignore log output from dashboards
     ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
     CMAKE_GENERATOR ${gen}
     CMAKE_ARGS
+      -Wno-dev
+      --no-warn-unused-cli
       ${CMAKE_OSX_EXTERNAL_PROJECT_ARGS}
       ${COMMON_EXTERNAL_PROJECT_ARGS}
       -DBUILD_EXAMPLES:BOOL=OFF
       -DBUILD_TESTING:BOOL=OFF
       ${${proj}_CMAKE_OPTIONS}
-    INSTALL_COMMAND ""
+## We really do want to install in order to limit # of include paths INSTALL_COMMAND ""
     DEPENDS
       ${${proj}_DEPENDENCIES}
     BUILD_COMMAND ${VTK_BUILD_STEP}
     )
-  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-build)
+
+  set(VTKPatchScript ${CMAKE_CURRENT_LIST_DIR}/VTKPatch.cmake)
+  ExternalProject_Add_Step(${proj} VTKPatch
+    COMMENT "get rid of obsolete C/CXX flags"
+    DEPENDEES download
+    DEPENDERS configure
+    COMMAND ${CMAKE_COMMAND}
+    -DVTKSource=<SOURCE_DIR>
+    -P ${VTKPatchScript}
+    )
+
+  set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install/lib/vtk-5.10)
 else()
   if(${USE_SYSTEM_${extProjName}})
+    set(VTK_VERSION_MAJOR 5)
     find_package(${extProjName} REQUIRED)
     if(NOT ${extProjName}_DIR)
       message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
     endif()
+    message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
   endif()
   # The project is provided using ${extProjName}_DIR, nevertheless since other
   # project may depend on ${extProjName}v4, let's add an 'empty' one
@@ -177,3 +197,4 @@ else()
 endif()
 
 list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS ${extProjName}_DIR:PATH)
+
