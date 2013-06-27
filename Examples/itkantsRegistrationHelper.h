@@ -807,8 +807,19 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
 
       typedef typename RegistrationHelperType::TransformType TransformType;
-      typename TransformType::Pointer initialTransform = itk::ants::ReadTransform<T, VImageDimension>(
-												   initialTransformName , useStaticCastForR );
+      typename TransformType::Pointer initialTransform;
+      if( std::strcmp( initialTransformName.c_str(), "identity" ) == 0 || std::strcmp( initialTransformName.c_str(), "Identity" ) == 0 )
+        {
+        typedef itk::MatrixOffsetTransformBase<T, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+        typename MatrixOffsetTransformType::Pointer identityTransform = MatrixOffsetTransformType::New();
+        identityTransform->SetIdentity();
+
+        initialTransform = identityTransform;
+        }
+      else
+        {
+        initialTransform = itk::ants::ReadTransform<T, VImageDimension>( initialTransformName, useStaticCastForR );
+        }
       if( initialTransform.IsNull() )
         {
         ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;

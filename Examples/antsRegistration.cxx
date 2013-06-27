@@ -1512,36 +1512,41 @@ private:
       return EXIT_FAILURE;
       }
 
-    std::string Type = "double";
+    std::string precisionType;
     OptionType::Pointer typeOption = parser->GetOption( "float" );
     if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
       {
       antscout << "Using single precision for computations." << std::endl;
-      Type = "float";
+      precisionType = "float";
+      }
+    else
+      {
+      antscout << "Using double precision for computations." << std::endl;
+      precisionType = "double";
       }
 
     switch( dimension )
       {
       case 2:
         {
-        if( strcmp(Type.c_str(), "float") == 0 )
+        if( strcmp( precisionType.c_str(), "float" ) == 0 )
           {
-          return DoRegistration<float, 2>(parser);
+          return DoRegistration<float, 2>( parser );
           }
         else
           {
-          return DoRegistration<double, 2>(parser);
+          return DoRegistration<double, 2>( parser );
           }
         }
       case 3:
         {
-        if( strcmp(Type.c_str(), "float") == 0 )
+        if( strcmp( precisionType.c_str(), "float" ) == 0 )
           {
-          return DoRegistration<float, 3>(parser);
+          return DoRegistration<float, 3>( parser );
           }
         else
           {
-          return DoRegistration<double, 3>(parser);
+          return DoRegistration<double, 3>( parser );
           }
         }
       default:
