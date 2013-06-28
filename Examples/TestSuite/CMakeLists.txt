@@ -58,7 +58,7 @@ MakeTestDriverFromANTSbinary(WarpImageMultiTransform WarpImageMultiTransformTest
 MakeTestDriverFromANTSbinary(simpleSynRegistrationTest simpleSynRegistrationTest.cxx simpleSynRegistration)
 MakeTestDriverFromANTSbinary(antsApplyTransformsTest antsApplyTransformsTest.cxx antsApplyTransforms)
 MakeTestDriverFromANTSbinary(CompositeTransformUtilTest CompositeTransformUtilTest.cxx CompositeTransformUtil)
-MakeTestDriverFromANTSbinary(compareTwoCompositeTransformsTest compareTwoCompositeTransformsTest.cxx compareTwoCompositeTransforms)
+MakeTestDriverFromANTSbinary(compareTwoTransformsTest compareTwoTransformsTest.cxx compareTwoTransforms)
 
 
 
@@ -746,9 +746,9 @@ ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${CompositeTransformUtilTes
 # Compare the results of the CompositeTransformUtil with the baseline file
 set(CompositeTransformUtilTestName CompositeTransformUtil_ComparisonTesting)
 ExternalData_add_test( ${PROJECT_NAME}FetchData NAME ${CompositeTransformUtilTestName}
-  COMMAND ${LAUNCH_EXE} compareTwoCompositeTransformsTestDriver
+  COMMAND ${LAUNCH_EXE} compareTwoTransformsTestDriver
 
-  compareTwoCompositeTransformsTest
+  compareTwoTransformsTest
   ${CMAKE_CURRENT_BINARY_DIR}/CompositeTransformUtilTest.test.h5
   DATA{${TestDataMD5_DIR}/CompositeTransformUtilTest.result.h5}
   )

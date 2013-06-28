@@ -125,7 +125,7 @@ set(BASE_ANTS_APPS
   AtroposMin
   Atropos
   ConvertTransformFile
-  compareTwoCompositeTransforms
+  compareTwoTransforms
   TimeSCCAN
 )
 foreach(ANTS_APP ${BASE_ANTS_APPS})
