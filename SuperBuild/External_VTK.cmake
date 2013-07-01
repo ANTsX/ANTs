@@ -1,4 +1,3 @@
-
 # Make sure this file is included only once
 get_filename_component(CMAKE_CURRENT_LIST_FILENAME ${CMAKE_CURRENT_LIST_FILE} NAME_WE)
 if(${CMAKE_CURRENT_LIST_FILENAME}_FILE_INCLUDED)
@@ -174,11 +173,11 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   set(VTKPatchScript ${CMAKE_CURRENT_LIST_DIR}/VTKPatch.cmake)
   ExternalProject_Add_Step(${proj} VTKPatch
     COMMENT "get rid of obsolete C/CXX flags"
-    DEPENDEES download
-    DEPENDERS configure
-    COMMAND ${CMAKE_COMMAND}
-    -DVTKSource=<SOURCE_DIR>
-    -P ${VTKPatchScript}
+#    DEPENDEES download
+#    DEPENDERS configure
+#    COMMAND ${CMAKE_COMMAND}
+#    -DVTKSource=<SOURCE_DIR>
+#    -P ${VTKPatchScript}  # BA - likely someone forgot to add file VTKPatch.cmake to git 
     )
 
   set(${extProjName}_DIR ${CMAKE_BINARY_DIR}/${proj}-install/lib/vtk-5.10)
