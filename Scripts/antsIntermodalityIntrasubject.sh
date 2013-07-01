@@ -287,13 +287,13 @@ time_start=`date +%s`
 #
 ################################################################################
 
-BRAIN_EXTRACTION_MASK=${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
-BRAIN_SEGMENTATION=${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
-CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
+#BRAIN_EXTRACTION_MASK=${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
+#BRAIN_SEGMENTATION=${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX}
+#CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 
 ################################################################################
 #
-# Brain extraction
+# Intermodality matching
 #
 ################################################################################
 
@@ -303,6 +303,17 @@ globalparams="-z 1 --winsorize-image-intensities [0.005, 0.995] -b 0"
 
 cmd="${ANTSPATH}/antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
 $cmd
+
+# warp input image to template
+
+# warp auxiliary images to template
+
+# warp DT image to template
+
+# warp brainmask to subject
+
+# warp Labels to subject (if passed)
+
 
 ################################################################################
 #
