@@ -37,7 +37,7 @@ namespace itk
  *
  */
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT AlternatingValueSimpleSubtractionImageFilter :
+class AlternatingValueSimpleSubtractionImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

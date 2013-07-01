@@ -22,7 +22,7 @@
 
 include(CheckCSourceCompiles)
 
-macro(ITK_CHECK_C_COMPILER_FLAG _FLAG _RESULT)
+macro (ITK_CHECK_C_COMPILER_FLAG _FLAG _RESULT)
    set(SAFE_CMAKE_REQUIRED_DEFINITIONS "${CMAKE_REQUIRED_DEFINITIONS}")
    set(CMAKE_REQUIRED_DEFINITIONS "${_FLAG}")
    CHECK_C_SOURCE_COMPILES("int main(void) { return 0; }" ${_RESULT}
@@ -38,5 +38,5 @@ macro(ITK_CHECK_C_COMPILER_FLAG _FLAG _RESULT)
      FAIL_REGEX "command option .* is not recognized"       # XL
      FAIL_REGEX "warning #10156: ignoring option"       # INTEL compilers
      )
-   set(CMAKE_REQUIRED_DEFINITIONS "${SAFE_CMAKE_REQUIRED_DEFINITIONS}")
-endmacro(ITK_CHECK_C_COMPILER_FLAG)
+   set (CMAKE_REQUIRED_DEFINITIONS "${SAFE_CMAKE_REQUIRED_DEFINITIONS}")
+endmacro ()

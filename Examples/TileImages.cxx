@@ -144,6 +144,14 @@ private:
   if( argc < 4 )
     {
     antscout << argv[0] << " imageDimension outputImage layout inputImage1 ... inputImageN" << std::endl;
+    antscout << "  The layout has the same dimension as the output image. If all entries of " << std::endl;
+    antscout << "  the layout are positive, the tiled output will contain the exact number  " << std::endl;
+    antscout << "  of tiles. If the layout contains a 0 in the last dimension, the filter " << std::endl;
+    antscout << "  will compute a size that will accommodate all of the images. " << std::endl;
+    antscout << "  The input images must have a dimension less than or equal to the output " << std::endl;
+    antscout << "  image. The output image could have a larger dimension than the input. " << std::endl;
+    antscout << "  For example, This filter can be used to create a 3-d volume from a series " << std::endl;
+    antscout << "  of 2-d inputs by specifying a layout of 1x1x0. " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {

@@ -3801,6 +3801,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       curdir = p_k;
       }
     VectorType x_k1  = x_k + alpha_k * curdir;
+    for ( unsigned int vp = 0; vp < this->m_VariatesP.cols(); vp++ )
+      x_k1 = this->Orthogonalize( x_k1, this->m_VariatesP.get_column( vp ) );
     VectorType gradvec;
     if( isp )
       {

@@ -26,6 +26,10 @@ if(NOT DEFINED Uncrustify_EXE AND NOT ${USE_SYSTEM_Uncrustify})
   ExternalProject_add(${proj}
     GIT_REPOSITORY ${Uncrustify_REPOSITORY}
     GIT_TAG ${Uncrustify_GIT_TAG}
+    LOG_CONFIGURE 0  # Wrap configure in script to ignore log output from dashboards
+    LOG_BUILD     0  # Wrap build in script to to ignore log output from dashboards
+    LOG_TEST      0  # Wrap test in script to to ignore log output from dashboards
+    LOG_INSTALL   0  # Wrap install in script to to ignore log output from dashboards
     ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
     SOURCE_DIR ${proj}
     BINARY_DIR ${proj}-build
@@ -42,6 +46,7 @@ else()
     if(NOT Uncrustify_EXE)
       message(FATAL_ERROR "To use the system uncrustify, set Uncrustify_EXE")
     endif()
+    message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
   endif()
 
   # The project is provided using Uncrustify_EXE, nevertheless since other
@@ -51,3 +56,4 @@ else()
 endif()
 
 list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS Uncrustify_EXE:FILEPATH)
+

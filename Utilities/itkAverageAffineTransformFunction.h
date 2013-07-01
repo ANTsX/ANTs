@@ -121,7 +121,7 @@ public:
 }
 
 template <class TTransform>
-class ITK_EXPORT AverageAffineTransformFunction
+class AverageAffineTransformFunction
 {
 public:
 

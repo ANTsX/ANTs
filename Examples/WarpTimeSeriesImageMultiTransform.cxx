@@ -1,4 +1,3 @@
-
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include "itkImageFileReader.h"
@@ -793,7 +792,8 @@ private:
   else
     {
     antscout << "Input error!" << std::endl;
+    return EXIT_FAILURE;
     }
-  return EXIT_FAILURE;
+  return EXIT_SUCCESS;
 }
 } // namespace ants

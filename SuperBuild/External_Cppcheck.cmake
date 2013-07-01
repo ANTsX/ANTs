@@ -27,8 +27,12 @@ if(NOT DEFINED Cppcheck_EXE AND NOT ${USE_SYSTEM_Cppcheck})
     GIT_REPOSITORY ${Cppcheck_REPOSITORY}
     GIT_TAG ${Cppcheck_GIT_TAG}
     SOURCE_DIR ${proj}
-    BUILD_IN_SOURCE 1
+    LOG_CONFIGURE 0  # Wrap configure in script to ignore log output from dashboards
+    LOG_BUILD     0  # Wrap build in script to to ignore log output from dashboards
+    LOG_TEST      0  # Wrap test in script to to ignore log output from dashboards
+    LOG_INSTALL   0  # Wrap install in script to to ignore log output from dashboards
     ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
+    BUILD_IN_SOURCE 1
     CONFIGURE_COMMAND ""
     BUILD_COMMAND HAVE_RULES=no ${CMAKE_MAKE_PROGRAM}
     INSTALL_COMMAND HAVE_RULES=no DESTDIR=${CMAKE_BINARY_DIR}/ PREFIX=Utils ${CMAKE_MAKE_PROGRAM} install

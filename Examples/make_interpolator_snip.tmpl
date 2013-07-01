@@ -74,37 +74,38 @@ typename InterpolatorType::Pointer interpolator = NULL;
     gaussianInterpolator->SetParameters( sigma, alpha );
     interpolator = gaussianInterpolator;
     }
-  else if( !std::strcmp( whichInterpolator.c_str(), "cosinewindowedsinc" ) )
+  else if( !std::strcmp( whichInterpolator.c_str(), "CosineWindowedSinc" ) )
     {
-    typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-	    itk::Function::CosineWindowFunction<3> > CosineInterpolatorType;
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::CosineWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType> CosineInterpolatorType;
     typename CosineInterpolatorType::Pointer cosineInterpolator = CosineInterpolatorType::New();
     interpolator = cosineInterpolator;
     }
   else if( !std::strcmp( whichInterpolator.c_str(), "hammingwindowedsinc" ) )
     {
-    typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3> HammingInterpolatorType;
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::HammingWindowFunction<3, RealType, RealType >, itk::ConstantBoundaryCondition< ImageType >, RealType> HammingInterpolatorType;
     typename HammingInterpolatorType::Pointer hammingInterpolator = HammingInterpolatorType::New();
     interpolator = hammingInterpolator;
     }
   else if( !std::strcmp( whichInterpolator.c_str(), "lanczoswindowedsinc" ) )
     {
-    typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-	    itk::Function::LanczosWindowFunction<3> > LanczosInterpolatorType;
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::LanczosWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > LanczosInterpolatorType;
     typename LanczosInterpolatorType::Pointer lanczosInterpolator = LanczosInterpolatorType::New();
     interpolator = lanczosInterpolator;
     }
   else if( !std::strcmp( whichInterpolator.c_str(), "blackmanwindowedsinc" ) )
     {
-    typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-	    itk::Function::BlackmanWindowFunction<3> > BlackmanInterpolatorType;
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::BlackmanWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > BlackmanInterpolatorType;
     typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
     interpolator = blackmanInterpolator;
     }
   else if( !std::strcmp( whichInterpolator.c_str(), "welchwindowedsinc" ) )
     {
-    typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-	    itk::Function::WelchWindowFunction<3> > WelchInterpolatorType;
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::WelchWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > WelchInterpolatorType;
     typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
     interpolator = welchInterpolator;
     }

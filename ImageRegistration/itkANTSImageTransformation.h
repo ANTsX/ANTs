@@ -36,7 +36,7 @@
 namespace itk
 {
 template <unsigned int TDimension = 3, class TReal = float>
-class ITK_EXPORT ANTSImageTransformation
+class ANTSImageTransformation
   : public       Object
 {
 public:

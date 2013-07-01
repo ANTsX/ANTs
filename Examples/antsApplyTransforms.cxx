@@ -87,7 +87,7 @@ CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageTyp
       {
       VectorType vector = It.Get();
 
-      vnl_vector<ComponentType> internalVector( dimension );
+      vnl_vector<double> internalVector( dimension );
       for( unsigned int d = 0; d < dimension; d++ )
         {
         internalVector[d] = vector[d];
@@ -104,11 +104,11 @@ CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageTyp
     }
 }
 
-template <unsigned int Dimension>
+template <class T, unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
-  typedef double                           RealType;
-  typedef float                            PixelType;
+  typedef T                                RealType;
+  typedef T                                PixelType;
   typedef itk::Vector<RealType, Dimension> VectorType;
 
   // typedef unsigned int                     LabelPixelType;
@@ -261,12 +261,12 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
    */
   // Register the matrix offset transform base class to the
   // transform factory for compatibility with the current ANTs.
-  typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
+  typedef itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension> MatrixOffsetTransformType;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
-  typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
+  typedef itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension> MatrixOffsetTransformType;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
 
-  typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
+  typedef itk::CompositeTransform<RealType, Dimension> CompositeTransformType;
   typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
   bool useStaticCastForR = false;
@@ -279,7 +279,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   std::vector<bool> isDerivedTransform;
   typename CompositeTransformType::Pointer compositeTransform =
-    GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
+    GetCompositeTransformFromParserOption<RealType, Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
   if( compositeTransform.IsNull() )
     {
     return EXIT_FAILURE;
@@ -357,7 +357,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       antscout << "Output composite transform displacement field: "
                << outputOption->GetFunction( 0 )->GetParameter( 0 ) << std::endl;
 
-      typedef typename itk::TransformToDisplacementFieldSource<DisplacementFieldType> ConverterType;
+      typedef typename itk::TransformToDisplacementFieldSource<DisplacementFieldType, RealType> ConverterType;
       typename ConverterType::Pointer converter = ConverterType::New();
       converter->SetOutputParametersFromImage( referenceImage );
       converter->SetTransform( compositeTransform );
@@ -676,6 +676,16 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "float" );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -741,8 +751,7 @@ private:
 
   antscout->set_stream( out_stream );
 
-  itk::ants::CommandLineParser::Pointer parser =
-    itk::ants::CommandLineParser::New();
+  itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
 
   parser->SetCommand( argv[0] );
 
@@ -801,6 +810,12 @@ private:
   itk::ants::CommandLineParser::OptionType::Pointer inputImageTypeOption =
     parser->GetOption( "input-image-type" );
 
+  std::string inputImageType;
+  if( inputImageTypeOption )
+    {
+    inputImageType = inputImageTypeOption->GetFunction( 0 )->GetName();
+    }
+
   unsigned int dimension = 3;
 
   // BA - code below creates problems in ANTsR
@@ -815,107 +830,112 @@ private:
     dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
     }
 
+  bool useDoublePrecision = true;
+
+  std::string precisionType;
+  OptionType::Pointer typeOption = parser->GetOption( "float" );
+  if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
+    {
+    antscout << "Using single precision for computations." << std::endl;
+    precisionType = "float";
+    useDoublePrecision = false;
+    }
+  else
+    {
+    antscout << "Using double precision for computations." << std::endl;
+    precisionType = "double";
+    useDoublePrecision = true;
+    }
+
+  enum InputImageType
+    {
+    SCALAR = 0,
+    VECTOR,
+    TENSOR,
+    TIME_SERIES
+    };
+
+  InputImageType imageType = SCALAR;
+
+  if( inputImageTypeOption )
+    {
+    if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
+      {
+      imageType = SCALAR;
+      }
+    else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
+      {
+      imageType = VECTOR;
+      }
+    else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
+      {
+      imageType = TENSOR;
+      }
+    else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
+      {
+      imageType = TIME_SERIES;
+      }
+    else
+      {
+      antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
   switch( dimension )
     {
     case 2:
       {
-      if( inputImageTypeOption )
+      if( imageType == TENSOR )
         {
-        std::string inputImageType = inputImageTypeOption->GetFunction( 0 )->GetName();
-
-        if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
-          {
-          antsApplyTransforms<2>( parser, 0 );
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
-          {
-          antsApplyTransforms<2>( parser, 1 );
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
-          {
-          antscout << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
-          {
-          antsApplyTransforms<2>( parser, 3 );
-          }
-        else
-          {
-          antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
-          return EXIT_FAILURE;
-          }
+        antscout << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
+        return EXIT_FAILURE;
         }
       else
         {
-        antsApplyTransforms<2>( parser, 0 );
+        if( useDoublePrecision )
+          {
+          antsApplyTransforms<double, 2>( parser, imageType );
+          }
+        else
+          {
+          antsApplyTransforms<float, 2>( parser, imageType );
+          }
         }
       }
       break;
     case 3:
       {
-      if( inputImageTypeOption )
+      if( useDoublePrecision )
         {
-        std::string inputImageType = inputImageTypeOption->GetFunction( 0 )->GetName();
-
-        if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
-          {
-          antsApplyTransforms<3>( parser, 0 );
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
-          {
-          antsApplyTransforms<3>( parser, 1 );
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
-          {
-          antsApplyTransforms<3>( parser, 2 );
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
-          {
-          antsApplyTransforms<3>( parser, 3 );
-          }
-        else
-          {
-          antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
-          return EXIT_FAILURE;
-          }
+        antsApplyTransforms<double, 3>( parser, imageType );
         }
       else
         {
-        antsApplyTransforms<3>( parser, 0 );
+        antsApplyTransforms<float, 3>( parser, imageType );
         }
       }
       break;
     case 4:
       {
-      if( inputImageTypeOption )
+      if( imageType == TENSOR )
         {
-        std::string inputImageType = inputImageTypeOption->GetFunction( 0 )->GetName();
-
-        if( !std::strcmp( inputImageType.c_str(), "scalar" ) || !std::strcmp( inputImageType.c_str(), "0" ) )
-          {
-          antsApplyTransforms<4>( parser, 0 );
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "vector" ) || !std::strcmp( inputImageType.c_str(), "1" ) )
-          {
-          antsApplyTransforms<4>( parser, 1 );
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "tensor" ) || !std::strcmp( inputImageType.c_str(), "2" ) )
-          {
-          antscout << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
-          }
-        else if( !std::strcmp( inputImageType.c_str(), "time-series" ) || !std::strcmp( inputImageType.c_str(), "3" ) )
-          {
-          antscout << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
-          }
-        else
-          {
-          antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
-          return EXIT_FAILURE;
-          }
+        antscout << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
+        }
+      else if( imageType == TIME_SERIES )
+        {
+        antscout << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
         }
       else
         {
-        antsApplyTransforms<3>( parser, 0 );
+        if( useDoublePrecision )
+          {
+          antsApplyTransforms<double, 4>( parser, imageType );
+          }
+        else
+          {
+          antsApplyTransforms<float, 4>( parser, imageType );
+          }
         }
       }
       break;

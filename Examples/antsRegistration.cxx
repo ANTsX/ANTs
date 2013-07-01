@@ -368,6 +368,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
+    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "float" );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -468,11 +478,11 @@ RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVel
   return "BOGUS.XXXX";
 }
 
-template <unsigned VImageDimension>
+template <class T, unsigned VImageDimension>
 int
 DoRegistration(typename ParserType::Pointer & parser)
 {
-  typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
+  typedef typename ants::RegistrationHelper<T, VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::ImageType              ImageType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
 
@@ -560,7 +570,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     std::vector<bool> isDerivedInitialMovingTransform;
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<VImageDimension>( parser, initialMovingTransformOption,
+      GetCompositeTransformFromParserOption<T, VImageDimension>( parser, initialMovingTransformOption,
                                                               isDerivedInitialMovingTransform );
 
     if( compositeTransform.IsNull() )
@@ -579,7 +589,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
-        itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+        itk::ants::WriteTransform<T, VImageDimension>( curTransform, curFileName.str() );
         }
       }
     }
@@ -590,7 +600,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     std::vector<bool> isDerivedInitialFixedTransform;
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<VImageDimension>( parser, initialFixedTransformOption,
+      GetCompositeTransformFromParserOption<T, VImageDimension>( parser, initialFixedTransformOption,
                                                               isDerivedInitialFixedTransform );
     if( compositeTransform.IsNull() )
       {
@@ -608,7 +618,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
-        itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+        itk::ants::WriteTransform<T, VImageDimension>( curTransform, curFileName.str() );
         }
       }
     }
@@ -1211,13 +1221,13 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
       resultTransform.GetPointer();
-    itk::ants::WriteTransform<VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
+    itk::ants::WriteTransform<T, VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
 
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCompositeTransform =
       compositeTransform->GetInverseTransform();
     if( inverseCompositeTransform.IsNotNull() )
       {
-      itk::ants::WriteTransform<VImageDimension>( inverseCompositeTransform,
+      itk::ants::WriteTransform<T, VImageDimension>( inverseCompositeTransform,
                                                   inverseCompositeTransformFileName.c_str() );
       }
     }
@@ -1300,7 +1310,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     // WriteTransform will spit all sorts of error messages if it
     // fails, and we want to keep going even if it does so ignore its
     // return value.
-    itk::ants::WriteTransform<VImageDimension>( curTransform, curFileName.str() );
+    itk::ants::WriteTransform<T, VImageDimension>( curTransform, curFileName.str() );
 
     typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
     typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
@@ -1336,7 +1346,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
         VelocityFieldTransformType;
 
-      typedef itk::Image<itk::Vector<double, VImageDimension>, VImageDimension + 1> VelocityFieldType;
+      typedef itk::Image<itk::Vector<T, VImageDimension>, VImageDimension + 1> VelocityFieldType;
       typename VelocityFieldTransformType::Pointer velocityFieldTransform =
         dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
       if( !velocityFieldTransform.IsNull() )
@@ -1363,7 +1373,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
-  typedef double RealType;
+  typedef T RealType;
   std::string whichInterpolator( "linear" );
   typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
   if( interpolationOption && interpolationOption->GetNumberOfFunctions() )
@@ -1502,15 +1512,42 @@ private:
       return EXIT_FAILURE;
       }
 
+    std::string precisionType;
+    OptionType::Pointer typeOption = parser->GetOption( "float" );
+    if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
+      {
+      antscout << "Using single precision for computations." << std::endl;
+      precisionType = "float";
+      }
+    else
+      {
+      antscout << "Using double precision for computations." << std::endl;
+      precisionType = "double";
+      }
+
     switch( dimension )
       {
       case 2:
         {
-        return DoRegistration<2>(parser);
+        if( strcmp( precisionType.c_str(), "float" ) == 0 )
+          {
+          return DoRegistration<float, 2>( parser );
+          }
+        else
+          {
+          return DoRegistration<double, 2>( parser );
+          }
         }
       case 3:
         {
-        return DoRegistration<3>(parser);
+        if( strcmp( precisionType.c_str(), "float" ) == 0 )
+          {
+          return DoRegistration<float, 3>( parser );
+          }
+        else
+          {
+          return DoRegistration<double, 3>( parser );
+          }
         }
       default:
         antscout << "bad image dimension " << dimension << std::endl;
