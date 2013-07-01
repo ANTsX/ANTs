@@ -291,23 +291,29 @@ time_start=`date +%s`
 ################################################################################
 
 stage1="-m ${ANTS_LINEAR_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
-stage2="-m ${ANTS_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANS2} -f 6x4x2x1 -s 3x2x1x0 -u 1"
+
+stage2=""
+if ( ${TRANSFORM_TYPE} -gt 1 ); 
+then
+    stage2="-m ${ANTS_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANS2} -f 6x4x2x1 -s 3x2x1x0 -u 1"
+fi
 globalparams="-z 1 --winsorize-image-intensities [0.005, 0.995] -b 0"
 
 cmd="${ANTSPATH}/antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
+echo $cmd
 $cmd
 
 # warp input image to template
 ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}deformed.nii.gz -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 
 # warp auxiliary images to template
-for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
-  do
+#for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
+#  do
     # FIXME - how to name these reasonably
-    AUXO=`basename ${AUX_IMAGES[$i]`
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i] -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}deformed_${AUXO}
+    #AUXO=`basename ${AUX_IMAGES[$i]`
+    #${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}deformed_${AUXO}
 
-done
+#done
 
 # warp DT image to template
 if [[ -f $DTI ]]; 
