@@ -84,7 +84,7 @@ echoParameters() {
     ANTs parameters:
       metric                  = ${ANTS_METRIC}[fixedImage,movingImage,${ANTS_METRIC_PARAMS}]
       regularization          = ${ANTS_REGULARIZATION}
-      transformation          = ${ANTS_TRANS1} ${ANTS_TRANS2}
+      transformations         = ${ANTS_TRANS1} ${ANTS_TRANS2}
       max iterations          = ${ANTS_MAX_ITERATIONS}
 
 PARAMETERS
@@ -245,12 +245,16 @@ if [[ ! -d $OUTPUT_DIR ]];
   fi
 
 ANTS=${ANTSPATH}antsRegistration
+
 ANTS_MAX_ITERATIONS="100x100x70x20"
 ANTS_TRANSFORMATION="SyN[0.1,3,0]"
+
+ANTS_LINEAR_METRIC="MI"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
 ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
-ANTS_METRIC="CC"
-ANTS_METRIC_PARAMS="1,4"
+
+ANTS_METRIC="MI"
+ANTS_METRIC_PARAMS="1,32,Regular,0.25"
 
 ANTS_TRANS1=""
 ANTS_TRANS2=""
@@ -277,9 +281,6 @@ echo "---------------------  Running `basename $0` on $HOSTNAME  ---------------
 
 time_start=`date +%s`
 
-exit 0
-
-
 ################################################################################
 #
 # Output images
@@ -296,9 +297,12 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 #
 ################################################################################
 
-        stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
-        stage2="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+stage1="-m ${ANTS_LINEAR_METRIC}[${TEMPLATE_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
+stage2="-m ${ANTS_METRIC}[${TEMPLATE_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANS2} -f 6x4x2x1 -s 3x2x1x0 -u 1"
+globalparams="-z 1 --winsorize-image-intensities [0.005, 0.995] -b 0"
 
+cmd="${ANTSPATH}/antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
+$cmd
 
 ################################################################################
 #
