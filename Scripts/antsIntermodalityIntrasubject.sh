@@ -74,7 +74,7 @@ echoParameters() {
     Using antsIntramodalityInterSubject with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${BRAIN}
-      brain template          = ${TEMPLATE_BRAIN}
+      brain template          = ${ANATOMICAL_BRAIN}
       brain template mask     = ${TEMPLATE_MASK}
       output prefix           = ${OUTPUT_PREFIX}
       template labels         = ${TEMPLATE_LABELS}
@@ -122,7 +122,7 @@ DIMENSION=3
 BRAIN=""
 AUX_IMAGES=()
 TEMPLATE_TRANSFORM=""
-TEMPLATE_BRAIN=""
+ANATOMICAL_BRAIN=""
 TEMPLATE_MASK=""
 TEMPLATE_LABELS=""
 TRANSFORM_TYPE="0"
@@ -168,7 +168,7 @@ else
               fi
               ;;
           r) #brain extraction anatomical image
-              TEMPLATE_BRAIN=$OPTARG
+              ANATOMICAL_BRAIN=$OPTARG
               ;;
           x) #brain extraction registration mask
               TEMPLATE_MASK=$OPTARG
@@ -218,10 +218,10 @@ for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
     fi
 done
 
-if [[ ! -f ${TEMPLATE_BRAIN} ]];
+if [[ ! -f ${ANATOMICAL_BRAIN} ]];
   then
     echo "The extraction template doesn't exist:"
-    echo "   $TEMPLATE_BRAIN"
+    echo "   $ANATOMICAL_BRAIN"
     exit 1
   fi
 if [[ ! -f ${TEMPLATE_MASK} ]];
@@ -297,14 +297,15 @@ time_start=`date +%s`
 #
 ################################################################################
 
-stage1="-m ${ANTS_LINEAR_METRIC}[${TEMPLATE_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
-stage2="-m ${ANTS_METRIC}[${TEMPLATE_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANS2} -f 6x4x2x1 -s 3x2x1x0 -u 1"
+stage1="-m ${ANTS_LINEAR_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
+stage2="-m ${ANTS_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANS2} -f 6x4x2x1 -s 3x2x1x0 -u 1"
 globalparams="-z 1 --winsorize-image-intensities [0.005, 0.995] -b 0"
 
 cmd="${ANTSPATH}/antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
 $cmd
 
 # warp input image to template
+${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}deformed.nii.gz -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 
 # warp auxiliary images to template
 
