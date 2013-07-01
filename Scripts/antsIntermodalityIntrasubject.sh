@@ -84,7 +84,7 @@ echoParameters() {
     ANTs parameters:
       metric                  = ${ANTS_METRIC}[fixedImage,movingImage,${ANTS_METRIC_PARAMS}]
       regularization          = ${ANTS_REGULARIZATION}
-      transformation          = ${ANTS_TRANSFORMATION}
+      transformation          = ${ANTS_TRANS1} ${ANTS_TRANS2}
       max iterations          = ${ANTS_MAX_ITERATIONS}
 
 PARAMETERS
@@ -252,9 +252,23 @@ ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
 ANTS_METRIC="CC"
 ANTS_METRIC_PARAMS="1,4"
 
-if [ ${TRANFORM_TYPE} -eq 0 ];
+ANTS_TRANS1=""
+ANTS_TRANS2=""
+
+if [ ${TRANSFORM_TYPE} -eq 0 ];
 then
-    echo "=========== RIGID =============="
+    ANTS_TRANS1="Rigid[0.1]"
+elif [ ${TRANSFORM_TYPE} -eq 1 ];
+then
+   ANTS_TRANS1="Affine[0.1]"
+elif [ ${TRANSFORM_TYPE} -eq 2 ];
+then
+    ANTS_TRANS1="Rigid[0.1]"
+    ANTS_TRANS2="SyN[0.1,3,0]"
+elif [ ${TRANSFORM_TYPE} -eq 3 ];
+then
+   ANTS_TRANS1="Affine[0.1]"
+   ANTS_TRANS2="SyN[0.1,3,0]"
 fi
 
 echoParameters >&2
