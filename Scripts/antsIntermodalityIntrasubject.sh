@@ -209,14 +209,7 @@ fi
 #
 ################################################################################
 
-for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
-  do
-  if [[ ! -f ${AUX_IMAGES[$i]} ]];
-    then
-      echo "The specified auxiliary image \"${AUX_IMAGES[$i]}\" does not exist."
-      exit 1
-    fi
-done
+
 
 if [[ ! -f ${ANATOMICAL_BRAIN} ]];
   then
@@ -308,13 +301,31 @@ $cmd
 ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}deformed.nii.gz -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 
 # warp auxiliary images to template
+for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
+  do
+    # FIXME - how to name these reasonably
+    AUXO=`basename ${AUX_IMAGES[$i]`
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i] -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}deformed_${AUXO}
+
+done
 
 # warp DT image to template
+if [[ -f $DTI ]]; 
+then
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_deformed.nii.gz -e 2
+fi
 
 # warp brainmask to subject
+if [[ -f $TEMPLATE_MASK ]];
+then
+${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_MASK -o ${OUTPUT_PREFIX}brainmask.nii.gz -r $BRAIN -t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1] -t ${OUTPUT_PREFIX}1InverseWarp.nii.gz -t [ ${TEMPLATE_TRANSFORM}0GenericAffine.mat, 1] -t  ${TEMPLATE_TRANSFORM}1InverseWarp -n Linear
+fi
 
 # warp Labels to subject (if passed)
-
+if [[ -f $TEMPLATE_LABELS ]];
+then
+${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz -r $BRAIN -t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1] -t ${OUTPUT_PREFIX}1InverseWarp.nii.gz -t [ ${TEMPLATE_TRANSFORM}0GenericAffine.mat, 1] -t  ${TEMPLATE_TRANSFORM}1InverseWarp -n NearestNeighbor
+fi
 
 ################################################################################
 #
