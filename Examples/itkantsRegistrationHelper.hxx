@@ -1609,7 +1609,7 @@ RegistrationHelper<T, VImageDimension>
         {
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
+        //typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
         // ORIENTATION ALERT: Original code set image size to
         // fixedImage buffered region, & if fixedImage BufferedRegion
@@ -1744,7 +1744,7 @@ RegistrationHelper<T, VImageDimension>
         {
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
+        //typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
         // ORIENTATION ALERT -- see comment above.
 
@@ -2428,7 +2428,7 @@ RegistrationHelper<T, VImageDimension>
         {
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
+        //typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
         typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
             preprocessedFixedImagesPerStage[0], zeroVector );
@@ -2576,7 +2576,7 @@ RegistrationHelper<T, VImageDimension>
         {
         typedef itk::Vector<RealType, VImageDimension> VectorType;
         VectorType zeroVector( 0.0 );
-        typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
+        //typedef itk::Image<VectorType, VImageDimension> DisplacementFieldType;
 
         typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
             preprocessedFixedImagesPerStage[0], zeroVector );
