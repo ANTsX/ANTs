@@ -398,7 +398,6 @@ public:
 
     // Now this output transform is copied to another instance to prevent undesired changes.
 
-    typedef itk::ImageDuplicator<DisplacementFieldType> DisplacementFieldDuplicatorType;
     typename DisplacementFieldDuplicatorType::Pointer disDuplicator = DisplacementFieldDuplicatorType::New();
     disDuplicator->SetInputImage( OutputTransformAtCurrentIteration->GetDisplacementField() );
     disDuplicator->Update();
