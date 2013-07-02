@@ -219,8 +219,8 @@ int compareTwoTransforms( std::vector<std::string> args, std::ostream* out_strea
   if( firstTransform.IsNotNull() && secondTransform.IsNotNull() )
     {
     typedef itk::BSplineDeformableTransform< double, 2, 2>     BSplineTransformType;
-    typename BSplineTransformType::Pointer bsplineInput1 = dynamic_cast<BSplineTransformType *>( firstTransform.GetPointer() );
-    typename BSplineTransformType::Pointer bsplineInput2 = dynamic_cast<BSplineTransformType *>( secondTransform.GetPointer() );
+    BSplineTransformType::Pointer bsplineInput1 = dynamic_cast<BSplineTransformType *>( firstTransform.GetPointer() );
+    BSplineTransformType::Pointer bsplineInput2 = dynamic_cast<BSplineTransformType *>( secondTransform.GetPointer() );
     if( bsplineInput1.IsNull() && bsplineInput2.IsNull() )
       {
       return compareTransforms<2>(firstTransform, secondTransform);
@@ -238,8 +238,8 @@ int compareTwoTransforms( std::vector<std::string> args, std::ostream* out_strea
   if( firstTransform.IsNotNull() && secondTransform.IsNotNull() )
     {
     typedef itk::BSplineDeformableTransform< double, 3, 3>     BSplineTransformType;
-    typename BSplineTransformType::Pointer bsplineInput1 = dynamic_cast<BSplineTransformType *>(firstTransform.GetPointer() );
-    typename BSplineTransformType::Pointer bsplineInput2 = dynamic_cast<BSplineTransformType *>(secondTransform.GetPointer() );
+    BSplineTransformType::Pointer bsplineInput1 = dynamic_cast<BSplineTransformType *>(firstTransform.GetPointer() );
+    BSplineTransformType::Pointer bsplineInput2 = dynamic_cast<BSplineTransformType *>(secondTransform.GetPointer() );
     if( bsplineInput1.IsNull() && bsplineInput2.IsNull() )
       {
       return compareTransforms<3>(firstTransform, secondTransform);
