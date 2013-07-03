@@ -70,8 +70,13 @@ aal2fmri<-antsImageRead( opt$labels, 3 )
 mask<-antsImageRead( opt$mask, 3 )
 if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASLBOLD" )
   {
-    filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=F )
-    xideal<-rep( c(1,2) , nrow( filterpcasl$matrixTimeSeries)/2 )
+    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE )
+    pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
+    cbf <- quantifyCBF( pcasl.perfusion, pcaslmask, pcasl.parameters )
+    fn<-paste( opt$output,"_kcbf.nii.gz",sep='')
+    antsImageWrite( cbf$kmeancbf , fn )
+    filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
+    xideal<-pcasl.processing$xideal
     tsResid<-residuals( lm( filterpcasl$matrixTimeSeries ~ filterpcasl$nuisancevariables + xideal ))
     mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=4, mask=mask ,cbfnetwork = opt$modality, labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
   }
@@ -81,12 +86,10 @@ if ( as.character(opt$modality) == "BOLD" )
     tsResid<-residuals( lm( dd$matrixTimeSeries ~ dd$nuisancevariables + dd$globalsignal ))
     mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=2.2, mask=dd$mask ,cbfnetwork = "BOLD", labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
   }
-print("Network")
 print( names( mynetwork ) )
 fn<-paste( opt$output,opt$modality,"_corrmat.mha",sep='')
 print( paste( "write correlation matrix",fn ) )
 antsImageWrite( as.antsImage( mynetwork$corrmat ) , fn )
-print("Graph")
 g<-mynetwork$graph
 print( names( g ) )
 fn<-paste( opt$output,opt$modality,"_graph_metrics.csv",sep='')
@@ -96,3 +99,4 @@ graphmetrics<-data.frame( degree =      g$degree   ,           closeness = g$clo
                           localtransitivity = g$localtransitivity ,
                           modularity        = g$walktrapcomm$modularity )
 write.csv( graphmetrics , fn, row.names = F , quote = F )
+ 
