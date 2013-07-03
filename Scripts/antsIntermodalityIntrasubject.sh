@@ -319,6 +319,8 @@ done
 if [[ -f $DTI ]]; 
 then
     ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_BRAIN -t ${OUTPUT_PREFIX}1Warp.nii.gz -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_deformed.nii.gz -e 2
+
+   # FIXME - reorientation
 fi
 
 # warp brainmask from anatomy to subject
