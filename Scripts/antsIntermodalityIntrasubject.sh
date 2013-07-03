@@ -298,12 +298,13 @@ fi
 # warp input image to t1
 warp=""
 iwarp=""
-if [ -s  ${OUTPUT_PREFIX}1Warp.nii.gz ];
+if [[ -s  ${OUTPUT_PREFIX}1Warp.nii.gz ]];
 then
   warp="-t ${OUTPUT_PREFIX}1Warp.nii.gz"
   iwarp="-t ${OUTPUT_PREFIX}1InverseWarp.nii.gz"
 fi
 ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}anatomical.nii.gz -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
+${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}template.nii.gz -r ${TEMPLATE_MASK} -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 
 echo "AUX IMAGES"
 # warp auxiliary images to t1
@@ -314,6 +315,8 @@ for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
     #AUXO=${OUTPUT_PREFIX}_aux_${i}_warped.nii.gz
     ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_BRAIN $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_anatomical.nii.gz $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
 
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r ${TEMPLATE_MASK} $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat 
+
 done
 
 echo "DTI"
@@ -321,7 +324,7 @@ echo "DTI"
 if [[ -f $DTI ]]; 
 then
     ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
-
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r ${TEMPLATE_MASK} $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
    # FIXME - reorientation
 fi
 
