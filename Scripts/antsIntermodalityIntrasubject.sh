@@ -136,15 +136,7 @@ DTI=""
 ################################################################################
 
 ANTS=${ANTSPATH}antsRegistration
-ANTS_MAX_ITERATIONS="100x100x70x20"
-ANTS_TRANSFORMATION="SyN[0.1,3,0]"
-ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
-ANTS_METRIC="CC"
-ANTS_METRIC_PARAMS="1,4"
-
 WARP=${ANTSPATH}antsApplyTransforms
-
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
@@ -237,18 +229,15 @@ if [[ ! -d $OUTPUT_DIR ]];
     mkdir -p $OUTPUT_DIR
   fi
 
-ANTS=${ANTSPATH}antsRegistration
 
-ANTS_MAX_ITERATIONS="100x100x70x20"
+
+ANTS_MAX_ITERATIONS="50x50x0"
 ANTS_TRANSFORMATION="SyN[0.1,3,0]"
-
 ANTS_LINEAR_METRIC="MI"
 ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
-
-ANTS_METRIC="MI"
-ANTS_METRIC_PARAMS="1,32,Regular,0.25"
-
+ANTS_LINEAR_CONVERGENCE="[1000x500x250x0,1e-7,5]"
+ANTS_METRIC="mattes"
+ANTS_METRIC_PARAMS="1,32"
 ANTS_TRANS1=""
 ANTS_TRANS2=""
 
@@ -293,56 +282,67 @@ time_start=`date +%s`
 stage1="-m ${ANTS_LINEAR_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t ${ANTS_TRANS1} -f 8x4x2x1 -s 4x2x1x0 -u 1"
 
 stage2=""
-if [ ${TRANSFORM_TYPE} -gt 1 ]; 
-then
-    stage2="-m ${ANTS_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANS2} -f 6x4x2x1 -s 3x2x1x0 -u 1"
+if [[ ${TRANSFORM_TYPE} -gt 1 ]] ; then 
+    stage2="-m ${ANTS_METRIC}[${ANATOMICAL_BRAIN},${BRAIN},${ANTS_METRIC_PARAMS}] -c [${ANTS_MAX_ITERATIONS},1e-7,5] -t ${ANTS_TRANS2} -f 4x2x1 -s 2x1x0mm -u 1"
 fi
-globalparams="-z 1 --winsorize-image-intensities [0.005, 0.995] -b 0"
+globalparams=" -z 1 --winsorize-image-intensities [0.005, 0.995] "
 
 cmd="${ANTSPATH}/antsRegistration -d $DIMENSION $stage1 $stage2 $globalparams -o ${OUTPUT_PREFIX}"
 echo $cmd
-$cmd
+if [[ ! -s ${OUTPUT_PREFIX}0GenericAffine.mat ]] ; then 
+  $cmd
+else 
+  echo we already have ${OUTPUT_PREFIX}0GenericAffine.mat
+fi 
 
-# warp input image to template
+# warp input image to t1
 warp=""
 iwarp=""
-if [ -f  ${OUTPUT_PREFIX}1Warp.nii.gz ];
+if [ -s  ${OUTPUT_PREFIX}1Warp.nii.gz ];
 then
   warp="-t ${OUTPUT_PREFIX}1Warp.nii.gz"
   iwarp="-t ${OUTPUT_PREFIX}1InverseWarp.nii.gz"
 fi
-${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}deformed.nii.gz -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
+${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}anatomical.nii.gz -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 
 echo "AUX IMAGES"
-# warp auxiliary images to template
+# warp auxiliary images to t1
 for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
   do
     # FIXME - how to name these reasonably
     AUXO=`basename ${AUX_IMAGES[$i]} .nii.gz`
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}${AUXO}deformed.nii.gz
+    #AUXO=${OUTPUT_PREFIX}_aux_${i}_warped.nii.gz
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_BRAIN $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_anatomical.nii.gz $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
+
 done
 
 echo "DTI"
-# warp DT image to template
+# warp DT image to t1
 if [[ -f $DTI ]]; 
 then
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_deformed.nii.gz -e 2
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
 
    # FIXME - reorientation
 fi
 
-echo "MASKING"
-# warp brainmask to subject
-if [[ -f $TEMPLATE_MASK ]];
-then
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_MASK -o ${OUTPUT_PREFIX}brainmask.nii.gz -r $BRAIN -t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1] $iwarp -t [ ${TEMPLATE_TRANSFORM}0GenericAffine.mat, 1] -t ${TEMPLATE_TRANSFORM}1InverseWarp.nii.gz -n Linear
+# warp brainmask from anatomy to subject
+if [[ -f $TEMPLATE_MASK ]]; then
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_MASK -o ${OUTPUT_PREFIX}brainmask.nii.gz \
+	-r $BRAIN  -n NearestNeighbor \
+	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1]       \
+	$iwarp 
 fi
 
-echo "LABELS"
-# warp Labels to subject (if passed)
-if [[ -f $TEMPLATE_LABELS ]];
-then
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz -r $BRAIN -t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1] -$iwarp -t [ ${TEMPLATE_TRANSFORM}0GenericAffine.mat, 1] -t  ${TEMPLATE_TRANSFORM}1InverseWarp.nii.gz -n NearestNeighbor
+# warp Labels from template to subject (if passed)
+if [[ -f $TEMPLATE_LABELS ]]; then
+
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz \
+	-r $ANATOMICAL_BRAIN  -n NearestNeighbor \
+	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1]       \
+	$iwarp           \
+	-t [ ${TEMPLATE_TRANSFORM}0GenericAffine.mat, 1]  \
+	-t   ${TEMPLATE_TRANSFORM}1InverseWarp.nii.gz 
+
 fi
 
 ################################################################################
@@ -356,10 +356,9 @@ time_elapsed=$((time_end - time_start))
 
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Done with ANTs processing pipeline"
+echo " Done with ANTs intermodality intrasubject processing pipeline"
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
 echo "--------------------------------------------------------------------------------------"
 
 exit 0
-
