@@ -25,6 +25,7 @@ spec = c(
 'modality' , 'w', "BOLD", "character" ," which modality ASLCBF, ASLBOLD or BOLD ",
 'freq'     , 'q', "0.01x0.1", "character" ," low x high frequency for filtering",
 'gdens'    , 'g', 0.25, "numeric","graph density",
+'tr'       , 't', "2x4", "character","TR for BOLD and ASL e.g. 2.2x4",
 'help'     , 'h', 0, "logical" ," print the help ", 
 'output'   , 'o', "1", "character"," the output prefix ")
 # ............................................. #
@@ -63,10 +64,16 @@ for ( myfn in c( opt$mask, opt$fmri, opt$labels ) )
   }
 freqLo<-0.01
 freqHi<-0.1
+trASL<-4
+trBOLD<-2.2
 if ( is.null( opt$gdens ) ) opt$gdens<-0.25
 if ( ! is.null( opt$freq ) ) {
   freqLo<-as.numeric( strsplit(opt$freq,"x")[[1]][1] )
   freqHi<-as.numeric( strsplit(opt$freq,"x")[[1]][2] )
+}
+if ( ! is.null( opt$tr ) ) {
+  trASL<-as.numeric( strsplit(opt$tr,"x")[[1]][2] )
+  trBOLD<-as.numeric( strsplit(opt$tr,"x")[[1]][1] )
 }
 print( paste( "fLo",freqLo,"fHi", freqHi ,"modality",opt$modality,"graphdensity", opt$gdens ) )
 suppressMessages( library(ANTsR) )
@@ -83,13 +90,13 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
     xideal<-pcasl.processing$xideal
     tsResid<-residuals( lm( filterpcasl$matrixTimeSeries ~ filterpcasl$nuisancevariables + xideal ))
-    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=4, mask=mask ,cbfnetwork = opt$modality, labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
+    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=trASL, mask=mask ,cbfnetwork = opt$modality, labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
   }
 if ( as.character(opt$modality) == "BOLD" )
   {
     dd<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=F )
     tsResid<-residuals( lm( dd$matrixTimeSeries ~ dd$nuisancevariables + dd$globalsignal ))
-    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=2.2, mask=dd$mask ,cbfnetwork = "BOLD", labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
+    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=trBOLD, mask=dd$mask ,cbfnetwork = "BOLD", labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
   }
 print( names( mynetwork ) )
 fn<-paste( opt$output,opt$modality,"_corrmat.mha",sep='')
