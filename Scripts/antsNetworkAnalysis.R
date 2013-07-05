@@ -77,7 +77,7 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
   {
     pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE )
     pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
-    cbf <- quantifyCBF( pcasl.perfusion, pcaslmask, pcasl.parameters )
+    cbf <- quantifyCBF( pcasl.processing$perfusion, pcaslmask, pcasl.parameters )
     fn<-paste( opt$output,"_kcbf.nii.gz",sep='')
     antsImageWrite( cbf$kmeancbf , fn )
     filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
