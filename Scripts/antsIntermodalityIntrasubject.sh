@@ -340,7 +340,7 @@ fi
 if [[ -f $TEMPLATE_LABELS ]]; then
 
     ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz \
-	-r $ANATOMICAL_BRAIN  -n NearestNeighbor \
+	-r $BRAIN  -n NearestNeighbor \
 	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1]       \
 	$iwarp           \
 	-t [ ${TEMPLATE_TRANSFORM}0GenericAffine.mat, 1]  \
