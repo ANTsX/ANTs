@@ -10,6 +10,11 @@ cat("Installing 'getopt' from CRAN\n")
 getPckg("getopt")
 require("getopt")
 }
+pckg = try(require(igraph))
+if(!pckg) {
+  getPckg("igraph")
+}
+library(igraph)
 #
 #
 #
