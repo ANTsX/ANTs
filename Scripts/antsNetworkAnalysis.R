@@ -20,7 +20,8 @@ library(igraph)
 #
 spec = c( 
 'labels'   , 'l', "0", "character" ," name of (aal) label image ", 
-'mask'     , 'x', "0", "character" ," name of brain mask image ", 
+'mask'     , 'x', "0", "character" ," name of brain mask image ",
+'seg'      , 's', "0", "character" ," name of 3-tissue segmentation image 2 == gm ", 
 'fmri'     , 'f', "0", "character" ," name of fmri (ASL or BOLD)", 
 'modality' , 'w', "BOLD", "character" ," which modality ASLCBF, ASLBOLD or BOLD ",
 'freq'     , 'q', "0.01x0.1", "character" ," low x high frequency for filtering",
@@ -77,12 +78,14 @@ if ( ! is.null( opt$tr ) ) {
 }
 print( paste( "fLo",freqLo,"fHi", freqHi ,"modality",opt$modality,"graphdensity", opt$gdens ) )
 suppressMessages( library(ANTsR) )
+seg<-NA
+if ( ! is.null( opt$seg ) ) seg<-antsImageRead( opt$seg , 3 )
 fmri<-antsImageRead( opt$fmri, 4 )
 aal2fmri<-antsImageRead( opt$labels, 3 )
 mask<-antsImageRead( opt$mask, 3 )
 if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASLBOLD" )
   {
-    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE )
+    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = 0.85 )
     pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
     cbf <- quantifyCBF( pcasl.processing$perfusion, mask, pcasl.parameters )
     fn<-paste( opt$output,"_kcbf.nii.gz",sep='')
@@ -90,13 +93,13 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
     xideal<-pcasl.processing$xideal
     tsResid<-residuals( lm( filterpcasl$matrixTimeSeries ~ filterpcasl$nuisancevariables + xideal ))
-    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=trASL, mask=mask ,cbfnetwork = opt$modality, labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
+    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=trASL, mask=mask ,cbfnetwork = opt$modality, labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi , seg = seg )
   }
 if ( as.character(opt$modality) == "BOLD" )
   {
-    dd<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=F )
-    tsResid<-residuals( lm( dd$matrixTimeSeries ~ dd$nuisancevariables + dd$globalsignal ))
-    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=trBOLD, mask=dd$mask ,cbfnetwork = "BOLD", labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi )
+    dd<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
+    tsResid<-residuals( lm( dd$matrixTimeSeries ~ dd$nuisancevariables  ))  # see http://www.ncbi.nlm.nih.gov/pubmed/21889994
+    mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=trBOLD, mask=dd$mask ,cbfnetwork = "BOLD", labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi , seg = seg )
   }
 print( names( mynetwork ) )
 fn<-paste( opt$output,opt$modality,"_corrmat.mha",sep='')
