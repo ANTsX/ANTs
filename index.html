@@ -1,0 +1,258 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+
+<head>
+     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+     <title>Advanced Normalization Tools</title>
+
+     <style type="text/css">
+        * { margin: 0; padding: 0; }
+        body { font: 16px Helvetica, Sans-Serif; line-height: 24px; background: url(forhtml/nazca-1.jpg); }
+        .clear { clear: both; }
+        #page-wrap { width: 800px; margin: 40px auto 60px; }
+        #pic { float: right; margin: -30px 0 0 0; }
+        h1 { margin: 0 0 16px 0; padding: 0 0 16px 0; font-size: 42px; font-weight: bold; letter-spacing: -2px; border-bottom: 1px solid #999; }
+        h2 { font-size: 20px; margin: 0 0 6px 0; position: relative; }
+        h2 span { position: absolute; bottom: 0; right: 0; font-style: italic; font-family: Georgia, Serif; font-size: 16px; color: #00006E; font-weight: normal; }
+        p { margin: 0 0 16px 0; }
+        a { color: #980000 ; text-decoration: none; border-bottom: 1px dotted #00006E; }
+        a:hover { border-bottom-style: solid; color: black; }
+        ul { margin: 0 0 32px 17px; }
+        #objective { width: 500px; float: left; }
+        #objective p { font-family: Georgia, Serif; font-style: italic; color: #00006E; }
+        dt { font-style: italic; font-weight: bold; font-size: 18px; text-align: right; padding: 0 26px 0 0; width: 150px; float: left; height: 100px; border-right: 1px solid #999;  }
+        dd { width: 600px; float: right; }
+        dd.clear { float: none; margin: 0; height: 15px; }
+     </style>
+</head>
+
+<body>
+
+    <div id="page-wrap">
+   
+        <div id="contact-info" class="vcard">
+        
+            <!-- Microformats! -->
+        
+            <h1 class="fn">Advanced Normalization Tools</h1>
+        
+            <p>
+                Questions: <a
+                href="http://sourceforge.net/p/advants/discussion/">Discussion
+                Site</a><br />
+                Email: <a class="email" href="mailto:antsr.me@gmail.com">antsr.me at gmail
+                dot com</a><br />
+	        Install ANTs via pre-built: <a href="http://sourceforge.net/projects/advants/files/ANTS/">Packages</a><br />
+	        Build <a href="https://github.com/stnava/ANTs">ANTs</a> from: <a href="http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/">Source-Code</a> (recommended)
+           </p>
+        </div>
+                
+        <div id="objective">
+            <p>
+            ANTs extracts information from
+            complex datasets that include imaging (<a
+            href="http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg">Word
+            Cloud</a>).  Paired with <a
+            href="http://stnava.github.com/ANTsR/">ANTsR</a> (answer),
+            ANTs is useful for managing, interpreting and
+            visualizing multidimensional data. ANTs is <a href="https://sourceforge.net/projects/advants/files/ANTS/stats/timeline?dates=2010-07-19+to+2099-05-25">popularly</a> considered
+            a state-of-the-art medical image registration and segmentation toolkit. ANTsR is an emerging tool supporting standardized
+            multimodality image analysis.  ANTs depends on the Insight
+            ToolKit  <a href="http://www.itk.org">(ITK)</a>, a widely used  
+            medical image processing library to which ANTs developers contribute.
+            </p>
+        </div>
+        
+        <div class="clear"></div>
+        
+        <dl>
+            <dd class="clear"></dd>
+            
+            <dt>Authors</dt>
+            <dd>
+                <h2>Brian B. Avants - UPENN</h2>
+                <p><strong>Role:</strong> Creator, Algorithm Design,
+            Implementation, <a href="http://stnava.github.io/Resume/">more</a><br /></p>
+           </dd>
+           <dd>
+                <h2>Nicholas J. Tustison - UVA</h2>
+                <p><strong>Role:</strong> Compeller, Algorithm Design,
+            Implementation Guru<br /></p>
+            </dd>
+	     <dd>
+               <p><strong>Team:</strong> Gang Song (Originator),
+            Jeffrey T. Duda (DTI), Hans J. Johnson (Large-Scale
+            Application, Testing)<br /></p>
+            </dd>
+            <dd class="clear"></dd>
+            
+            <dt>Methods References</dt>
+            <dd>
+                <h2>Image Registration</h2>
+                <p>Diffeomorphisms: <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/17659998">SyN</a>,
+            Independent Evaluation: <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/19195496">Klein</a>,
+	      <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/21632295">Murphy</a>,
+	      Template Construction
+	      <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/15501083">(2004)</a><a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/19818860"> (2010)</a>,
+	      <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/20851191">Similarity
+            Metrics</a>,
+	      <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/18995188">Multivariate
+            registration</a>,
+	      <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/23151955">Multiple
+            modality analysis and statistical bias</a>
+            </p>
+               <h2>Image Segmentation</h2>
+                <p>Atropos Multivar-EM Segmentation <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/21373993">(link)</a>,
+            Multi-atlas methods <a href="http://www.ncbi.nlm.nih.gov/pubmed/21237273N4">(link)</a>, Bias
+                Correction <a
+                href="http://www.ncbi.nlm.nih.gov/pubmed/20378467">(link)</a>,
+                DiReCT cortical thickness <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/19150502">(link)</a>,
+            DiReCT in
+            <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/23516289">chimpanzees</a>
+            </p>
+	      
+	      <h2>Multivariate Analysis <span>Eigenanatomy <a
+                href="http://www.ncbi.nlm.nih.gov/pubmed/23286132">(1)</a>
+                <a
+                href="http://www.ncbi.nlm.nih.gov/pubmed/23475817">(2)</a>
+                </span></h2>
+                <p>Prior-Based Eigenanatomy <a
+                href="http://www.ncbi.nlm.nih.gov/pubmed/?">(in
+                prep)</a>,
+                Sparse CCA <a
+                href="http://www.ncbi.nlm.nih.gov/pubmed/20083207">(1)</a>,
+	      <a
+                href="http://www.ncbi.nlm.nih.gov/pubmed/20879247">(2)</a>,
+                Sparse Regression <a
+                href="http://link.springer.com/chapter/10.1007%2F978-3-642-38868-2_8">(link)</a>
+                </p>
+
+	      <h2>ImageMath <span>Useful!</span></h2>
+                <p>morphology, GetLargestComponent, CCA, FillHoles
+                ... much more!</p>
+          </dd>
+            
+            <dd class="clear"></dd>
+            
+            <dt>Application Domains</dt>
+            <dd>
+	       <h2>Frontotemporal degeneration <span><a href="http://ftd.med.upenn.edu">PENN
+            FTD center</a></span>
+               <h2>Neuroimaging <span>Multimodality</span></h2>
+                <ul>
+                    <li>Structural MRI</li>
+                    <li>Functional MRI</li>
+                    <li>Network Analysis</li>
+                </ul> 
+               <h2>Lung imaging <span>Translational</span></h2>
+                <ul>
+                    <li>Structure</li>
+                    <li>Perfusion MRI</li>
+                    <li>Branching</li>
+                </ul> 
+           </dd>
+
+	    <dd class="clear"></dd>
+ 
+            <dt>Background & Theory</dt>
+            <dd>
+               <ul>
+		 <li>The <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22SyN%22)+AND+%22Avants+B%22">
+            SyN</a> and <a
+            href="http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22N4%22)+AND+%22Tustison+N4ITK%22">
+            N4 bias correction</a> papers and other relevant references in <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22Tustison+N%22)+AND+%22Avants+B%22">Pubmed</a></li>            
+		 <li>Visualization: e.g. <a href="http://vimeo.com/66781467">a gource of ANTs development</a></li>
+                 <li><a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22DIRECT%22)+AND+%22Avants%22+AND+DAS">DiReCT</a> cortical thickness <a href="http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22Cortical+Thickness%22)+AND+%22Avants%22">papers</a></li>
+		 
+		   <li>A <a
+            href="https://sourceforge.net/projects/advants/files/Documentation/">folder</a>
+            of relevant docs: <a
+            href="http://sourceforge.net/projects/advants/files/Documentation/atropos.pdf/download">segmentation</a>,
+            <a
+            href="http://sourceforge.net/projects/advants/files/Documentation/antstheory.pdf/download">registration</a>,
+            <a
+            href="http://sourceforge.net/projects/advants/files/Documentation/ants.pdf/download">usage(old)</a>,
+            <a
+            href="http://sourceforge.net/projects/advants/files/Documentation/ANTSMethodologySummary.docx/download">for
+            clinical apps</a></li>
+                   <li>ANTs redesigned for generality, automation,
+                multi-core computation with ITKv4</li>
+                    <li>Dev'd ITKv4 with Kitware, GE, Natl. Lib of
+                Medicine & Academia</li>
+               </ul>
+            </dd>
+
+	    <dd class="clear"></dd>
+ 
+            <dt>Acclaim for Robustness & Other News</dt>
+            <dd>
+	       <h2>ANTs has won several competitions<span>
+	         Unbiased & international</span></h2>
+                <ul>
+                   <li>New <i>antsRegistration</i> <a href="https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh">bash example</a></li>
+                   <li>New <i>Eigenanatomy</i> for <a
+	         href="http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595">multivariate
+	         neuroimage analysis</a> via <a
+	         href="http://www.ncbi.nlm.nih.gov/pubmed/23286132">PCA</a> &
+	         <a href="http://www.ncbi.nlm.nih.gov/pubmed/20083207">CCA</a> </a></li>
+                    <li>ANTs finished in 1st rank in <a href="http://www.ncbi.nlm.nih.gov/pubmed/19195496">Klein
+	         2009 intl. brain mapping competition</a></li>
+                    <li>ANTs finished 1st overall in <a href="http://www.ncbi.nlm.nih.gov/pubmed/21632295">
+	         EMPIRE10 intl. lung mapping competition</a></li>
+                    <li>ANTs is the standard registration for
+	         <a href="http://www.miccai2013.org/">MICCAI-2013</a> segmentation competitions</li>
+                    <li>Conducting ANTs-based R tutorial @ MICCAI-2013</li>
+                    <li>ITK-focused Frontiers in
+	         Neuroinformatics research topic <a href="http://www.frontiersin.org/neuroinformatics/researchtopics/neuroinformatics_with_the_insi/1580">here</a></li>
+               </ul>
+          </dd>
+            
+            <dd class="clear"></dd>
+            
+            <dt>Learning about ANTs</dt>
+            <dd>
+	      <li>Presentations: e.g. <a
+	      href="http://prezi.com/mwrmcm-h9-w4/ants/?kw=view-mwrmcm-h9-w4&rc=ref-40024395">a
+	      Prezi about ANTs</a> (WIP)</li>
+	      <li>Reproducible science as a teaching tool: e.g. <a
+	      href="https://github.com/stnava/ANTS_MultiModality"> compilable ANTs tutorial</a> (WIP)</li>
+	      <li>Other examples <a
+	      href="http://brianavants.wordpress.com"> slideshow</a> </li>
+              <li>Landmark-based mapping for e.g. hippocampus <a
+            href="https://sourceforge.net/p/advants/discussion/840261/thread/1cb7b165/?limit=50">
+            discussed here</a></li>
+	    <li>Brief ANTs segmentation <a href="http://vimeo.com/67814201"> video</a></li>
+	    </dd>
+
+            <dd class="clear"></dd>
+            
+            <dt>References</dt>
+            <dd><li><a href="http://scholar.google.com/scholar?q=Advanced+Normalization+Tools+%22ANTs%22+-ant&hl=en&as_sdt=1%2C39&as_ylo=2008&as_yhi=">Google Scholar</a></li>            
+            <li><a href="http://www.ncbi.nlm.nih.gov/pubmed?term=(%22Avants%20B%22)%20OR%20%22Tustison%20N%22">Pubmed</a></li>            
+            <li>ANTs was supported by: R01-EB006266-01</li>
+            <dd class="clear"></dd>
+        </dl>
+        
+        <div class="clear"></div>
+    
+    </div>
+
+</body>
+
+</html>

@@ -1,0 +1,17 @@
+  git checkout master 
+
+  git branch -D gh-pages
+
+  git push origin --delete  gh-pages
+
+  git checkout --orphan gh-pages
+
+  git add index.html .htaccess 
+
+  git add forhtml/
+
+  git commit -m "pages commit"
+
+  git push origin gh-pages
+
+  git checkout master

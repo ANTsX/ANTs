@@ -1,0 +1,34 @@
+#!/bin/bash
+#
+# an example of unbiased longitudinal registration performed with ANTs.
+#
+DIM=2 # set the image dimensionality
+#
+# the images below are available in ANTS/Examples/Data/
+# you should link them to a local directory and then run this script from that directory.
+#
+REFSPACE=B2.tiff
+I=B3.tiff
+J=B4.tiff
+K=B5.tiff
+AFFITS="  --number-of-affine-iterations 10000x10000x10000x10000 "
+ ANTS $DIM -m MI[$REFSPACE,$I,1,16] -o I_init -i 0 $AFFITS
+ WarpImageMultiTransform $DIM $I  temp.nii.gz -R $REFSPACE I_initAffine.txt
+ ANTS $DIM -m MI[temp.nii.gz,$J,1,16] -o J_init -i 0   $AFFITS
+TRAN=" -i 100x100 -t SyN[0.1] "
+TRAN=" -i 100x100x1000 -t SyN[0.1] "
+# this will initialize the registration with the affine maps computed above
+# gaussian
+# ANTS $DIM -m CC[$I,$J,1,4] -o J_to_I_diff $TRAN -r Gauss[3,0] $AFFITS   -F I_initAffine.txt -a J_initAffine.txt
+# dmffd
+ ANTS $DIM -m CC[$I,$J,1,4] -o J_to_I_diff $TRAN -r DMFFD[10x10x10,0,3] $AFFITS  --fixed-image-initial-affine $REFSPACE  -F I_initAffine.txt -a J_initAffine.txt  --fixed-image-initial-affine $REFSPACE
+# now warp J to I just to check correctness
+ WarpImageMultiTransform $DIM $J J_to_I.nii.gz -R $I   -i I_initAffine.txt J_to_I_diffWarp.nii.gz J_initAffine.txt
+#
+# note that the reference space is also the space where the warp is computed.
+# if you want to analyze the mapping in another space, then you would have to warp it there. e.g.
+# this will deform the map to the space of I.
+ WarpImageMultiTransform $DIM  J_to_I_diffWarp.nii.gz  J_to_I_diffWarp_in_I_space.nii.gz -R $I   -i I_initAffine.txt
+#
+# cleanup
+ rm temp.nii.gz

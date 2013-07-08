@@ -1,0 +1,90 @@
+#!/bin/bash
+PATHTOSCCAN=${1}/
+PATHTODATA=${2}/
+VERBOSE=$3
+if [[ ${#1} -lt 2 ]] || [[ ${#2} -lt 2 ]]  ; then
+  echo define the path to the sccan executable
+  echo usage
+  echo $0 path_to_sccan_bin_directory path_to_data
+  echo path_to_data is the sccan/scripts directory
+  exit 1
+fi
+if [[ ! -s ${1}/sccan ]] ; then
+    echo  ${1}/sccan does not exist
+    exit 1
+fi
+if [[ ! -s ${PATHTODATA}/myview1.csv ]] ; then
+    echo  ${PATHTODATA}/myview1.csv test data does not exist
+    exit 1
+fi
+OUT=${PATHTOSCCAN}/SCCAN_TEST
+params=" -e 0 -n 2 -i 20 -r 0 -p 0  " # most common parameters
+t1=`${PATHTOSCCAN}/sccan --scca two-view[ ${PATHTODATA}myview1.csv , ${PATHTODATA}myview_mismatch.csv , na , na , 0.5 , 0.5 ] -o ${OUT}.nii.gz $params `
+test1=$?
+t2=`${PATHTOSCCAN}/sccan --svd sparse[ ${PATHTODATA}myview3.csv , na , -0.15 ] -o ${OUT}.nii.gz -n 15 -i 500 `
+# ${PATHTOSCCAN}/sccan --svd  sparse[ ${PATHTODATA}myview3.csv , na , -0.15 ] -o ${OUT}.nii.gz -n 15 -i 500
+test2=$?
+paramsb=" -e 0 -n 2 -i 50 -r 0 -p 0  --partial-scca-option PQminusR " # most common parameters
+t3=`${PATHTOSCCAN}/sccan --scca partial[ ${PATHTODATA}myview2.csv , ${PATHTODATA}myview3.csv , ${PATHTODATA}myview4.csv , na , na , na , -0.4 , -0.9 , 1] -o ${OUT}.nii.gz $paramsb `
+test3=$?
+t4=`${PATHTOSCCAN}/sccan --svd sparse[ ${PATHTODATA}myview1.csv , na , 0.5 ] -o ${OUT}.nii.gz `
+# ${PATHTOSCCAN}/sccan --sparse-svd [ ${PATHTODATA}myview1.csv , na , -1] -o ${OUT}.nii.gz -n 25 -i 1000
+# exit
+test4=$?
+t5a=`${PATHTOSCCAN}/sccan --scca partial[ ${PATHTODATA}myview2.csv , ${PATHTODATA}myview3.csv , ${PATHTODATA}myview4.csv , na , na , na , -0.05 , 0.1 , 1] -o ${OUT}.nii.gz $paramsb`
+t5b=`${PATHTOSCCAN}/sccan --scca partial[ ${PATHTODATA}myview2.csv , ${PATHTODATA}myview3.csv , ${PATHTODATA}myview4.csv , na , na , na , -0.05 ,  0.1 , 1] -o ${OUT}.nii.gz $paramsb`
+echo $t5a > tempa.txt
+echo $t5b > tempb.txt
+if diff tempa.txt tempb.txt >/dev/null ; then
+  test5=0  # they are the same and should be !!
+else
+  test5=1
+fi
+rm tempa.txt tempb.txt
+t5a=`${PATHTOSCCAN}/sccan --scca partial[ ${PATHTODATA}myview2.csv , ${PATHTODATA}myview3.csv , ${PATHTODATA}myview4.csv , na , na , na ,  0.05 , 0.1 , 1] -o ${OUT}.nii.gz $paramsb`
+t5b=`${PATHTOSCCAN}/sccan --scca partial[ ${PATHTODATA}myview2.csv , ${PATHTODATA}myview3.csv , ${PATHTODATA}myview4.csv , na , na , na , -0.05 ,  0.1 , 1] -o ${OUT}.nii.gz $paramsb`
+echo $t5a > tempa.txt
+echo $t5b > tempb.txt
+if diff tempa.txt tempb.txt >/dev/null ; then
+  test6=1
+else
+  test6=0  # they are different and should be !!
+fi
+rm tempa.txt tempb.txt
+if [[ $test1 != 1 ]] ; then
+  echo $test1
+  echo test1 failed --- two-view scca
+  exit 1
+fi
+if [[ $test2 != 0 ]] ; then
+  echo $t2
+  echo test2 failed --- sparse svd no sparseness
+  exit 1
+fi
+if [[ $test3 != 0 ]] ; then
+  echo $t3
+  echo test3 failed --- partial scca
+  exit 1
+fi
+if [[ $test4 != 0 ]] ; then
+  echo $t4
+  echo test4 failed --- sparse svd
+  exit 1
+fi
+if [[ $test5 != 0 ]] ; then
+  echo test5 failed --- this test verifies that two runs of pscca should produce the same numerical results
+  exit 1
+fi
+if [[ $test6 != 0 ]] ; then
+  echo test6 failed --- this test verifies that two different parameter sets for pscca should have different results
+  exit 1
+fi
+if [[ $VERBOSE -eq 1 ]] ; then
+  echo $t1
+  echo $t2
+  echo $t3
+  echo $t4
+fi
+echo all tests passed
+rm ${OUT}*
+exit 0

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<executable>
+  <category>Registration</category>
+  <title>ANTS Registration)</title>
+  <description>ANTS (Advanced Normalization Tools) Registration</description>
+  <version> 1.0</version>
+  <documentation-url></documentation-url>
+  <license>http://www.apache.org/licenses/LICENSE-2.0.txt</license>
+  <contributor>Brian Avants, Jeff Duda, Gang Song, Sandhitsu Das, Jon Pluta, Nick Tustison, Hans Johnson, Kent Williams</contributor>
+  <acknowledgements></acknowledgements>
+ <parameters>
+   <integer>
+     <name>Dimensionality</name>
+     <label>Dimensionality</label>
+     <longflag>dimensionality</longflag>
+     <description>This option forces the image to be treated as a
+     specified-dimensional image.  If not specified, N4 tries to infer
+     the dimensionality from the input image.</description>
+     <default>3</default>
+   </integer>
+   <file>
+     <name>OutputTransformPrefix</name>
+     <longflag>outputTransformPrefix</longflag>
+     <label>Output Transform Prefix</label>
+     <channel>input</channel>
+     <description>Specify the output transform prefix (output format
+     is .nii.gz ). Optionally, one can choose to warp the moving image
+     to the fixed space and, if the inverse transform exists, one can
+     also output the warped fixed image.</description>
+     <default></default>
+   </file>
+   <file multiple="true" >
+     <name>InitialTransform</name>
+     <longflag>initial-transform</longflag>
+     <label>Initial Transforms</label>
+     <channel>input</channel>
+     <description>Specify the initial transform(s) which get
+     immediately incorporated into the composite transform.  The order
+     of the transforms is stack-esque in that the last transform
+     specified on the command line is the first to be applied.  See
+     antsApplyTransforms.  + std::string( "for additional
+     information.</description>
+     <default></default>
+   </file>
+   <string-enumeration multiple="true" >
+    <name>ImageMetric</name>
+    <label>Image Metrics</label>
+    <longflag>metric</longflag>
+    <description>These image metrics are available--- CC: ANTS
+    neighborhood cross correlation, MI: Mutual information, and
+    Demons: Thirion's Demons (modified mean-squares). GC, Global
+    Correlation. Note that the metricWeight is currently not used.
+    Rather, it is a temporary place holder until multivariate metrics
+    are available for a single stage. The metrics can also employ a
+    sampling strategy defined by a sampling percentage. The sampling
+    strategy defaults to dense, otherwise it defines a point set over
+    which to optimize the metric. The point set can be on a regular
+    lattice or a random lattice of points slightly perturbed to
+    minimize aliasing artifacts. samplingPercentage defines the
+    fraction of points to select from the domain. </description>
+    <element>CC</element>
+    <element>MI</element>
+    <element>Mattes</element>
+    <element>Demons</element>
+    <element>GC</element>
+    <default></default>
+  </string-enumeration>
+   <string-enumeration multiple="true" >
+    <name>Transform</name>
+    <label>Transform</label>
+    <longflag>transform</longflag>
+    <description>Several transform options are available.  The
+    gradientStep or learningRate characterizes the gradient descent
+    optimization and is scaled appropriately for each transform using
+    the shift scales estimator.  Subsequent parameters are
+    transform-specific and can be determined from the
+    usage.</description>
+    <element>Rigid</element>
+    <element>Affine</element>
+    <element>CompositeAffine</element>
+    <element>Similarity</element>
+    <element>Translation</element>
+    <element>GaussianDisplacementField</element>
+    <element>BSplineDisplacementField</element>
+    <element>TimeVaryingVelocityField</element>
+    <element>Syn</element>
+    <default></default>
+  </string-enumeration>
+  <float-vector>
+    <name>SmoothingSigmas</name>
+    <description>Specify the amount of smoothing at each level.</description>
+    <longflag>smoothingSigmas</longflag>
+    <default></default>
+  </float-vector>
+  <integer-vector>
+    <name>ShrinkFactors</name>
+    <description>Specify the shrink factor for the virtual domain
+    (typically the fixed image) at each level.</description>
+    <longflag>shrinkFactors</longflag>
+    <default></default>
+  </integer-vector>
+  <boolean>
+    <name>UseHistogramMatch</name>
+    <longflag>useHistogramMatch</longflag>
+    <description>Histogram match the images before registration.</description>
+    <default>false</default>
+  </boolean>
+  <float-vector>
+    <name>WinsorizeImageIntensities</name>
+    <longflag>winsorizeImageIntensities</longflag>
+    <description>Winsorize data based on specified quantiles.</description>
+    <default></default>
+  </float-vector>
+
+</parameters>
+</executable>

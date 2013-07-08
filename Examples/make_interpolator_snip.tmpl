@@ -1,0 +1,155 @@
+/*  HACK:  THIS IS COMMON CODE FOUND THAT WAS SHARED BETWEEN TWO PROGRAMS
+ *  IT SHOULD BE A TEMPLATED FUNCTION, but I don't have time to do that
+ *  right now.
+ *  In merging the two programs, it was found that there were missing
+ *  and inconsistent functions between the two sets of copied and pasted
+ *  code.
+ */
+
+//static int ConfigureInterpolatorFromString( const std::string & whichInterpolator, cache_spacing_for_smoothing_sigmas)
+//{
+
+/**
+ * Interpolation option
+ */
+typedef itk::InterpolateImageFunction<ImageType, RealType> InterpolatorType;
+typename InterpolatorType::Pointer interpolator = NULL;
+
+  if( !std::strcmp( whichInterpolator.c_str(), "linear" ) )
+    {
+    typedef itk::LinearInterpolateImageFunction<ImageType, RealType> LinearInterpolatorType;
+    typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
+    interpolator = linearInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "nearestneighbor" ) )
+    {
+    typedef itk::NearestNeighborInterpolateImageFunction<ImageType, RealType> NearestNeighborInterpolatorType;
+    typename NearestNeighborInterpolatorType::Pointer nearestNeighborInterpolator = NearestNeighborInterpolatorType::New();
+    interpolator = nearestNeighborInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "bspline" ) )
+    {
+    typedef itk::BSplineInterpolateImageFunction<ImageType, RealType> BSplineInterpolatorType;
+    typename BSplineInterpolatorType::Pointer bSplineInterpolator = BSplineInterpolatorType::New();
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      unsigned int bsplineOrder = parser->Convert<unsigned int>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
+      bSplineInterpolator->SetSplineOrder( bsplineOrder );
+      }
+    interpolator = bSplineInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "gaussian" ) )
+    {
+    typedef itk::GaussianInterpolateImageFunction<ImageType, RealType> GaussianInterpolatorType;
+    typename GaussianInterpolatorType::Pointer gaussianInterpolator = GaussianInterpolatorType::New();
+    double sigma[VImageDimension];
+    for( unsigned int d = 0; d < VImageDimension; d++ )
+      {
+      sigma[d] = cache_spacing_for_smoothing_sigmas[d];
+      }
+    double alpha = 1.0;
+
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
+      if( s.size() == VImageDimension )
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[d];
+          }
+        }
+      else
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[0];
+          }
+        }
+      }
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+      {
+      alpha = parser->Convert<double>( interpolationOption->GetFunction( 0 )->GetParameter( 1 ) );
+      }
+    gaussianInterpolator->SetParameters( sigma, alpha );
+    interpolator = gaussianInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "CosineWindowedSinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::CosineWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType> CosineInterpolatorType;
+    typename CosineInterpolatorType::Pointer cosineInterpolator = CosineInterpolatorType::New();
+    interpolator = cosineInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "hammingwindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::HammingWindowFunction<3, RealType, RealType >, itk::ConstantBoundaryCondition< ImageType >, RealType> HammingInterpolatorType;
+    typename HammingInterpolatorType::Pointer hammingInterpolator = HammingInterpolatorType::New();
+    interpolator = hammingInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "lanczoswindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::LanczosWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > LanczosInterpolatorType;
+    typename LanczosInterpolatorType::Pointer lanczosInterpolator = LanczosInterpolatorType::New();
+    interpolator = lanczosInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "blackmanwindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::BlackmanWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > BlackmanInterpolatorType;
+    typename BlackmanInterpolatorType::Pointer blackmanInterpolator = BlackmanInterpolatorType::New();
+    interpolator = blackmanInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "welchwindowedsinc" ) )
+    {
+    typedef itk::WindowedSincInterpolateImageFunction
+                 <ImageType, 3, itk::Function::WelchWindowFunction<3, RealType, RealType>, itk::ConstantBoundaryCondition< ImageType >, RealType > WelchInterpolatorType;
+    typename WelchInterpolatorType::Pointer welchInterpolator = WelchInterpolatorType::New();
+    interpolator = welchInterpolator;
+    }
+  else if( !std::strcmp( whichInterpolator.c_str(), "multilabel" ) )
+    {
+    const unsigned int NVectorComponents = 1;
+    typedef VectorPixelCompare<RealType, NVectorComponents> CompareType;
+    typedef typename itk::LabelImageGaussianInterpolateImageFunction<ImageType, RealType,
+	    CompareType> MultiLabelInterpolatorType;
+    typename MultiLabelInterpolatorType::Pointer multiLabelInterpolator = MultiLabelInterpolatorType::New();
+    double sigma[VImageDimension];
+    for( unsigned int d = 0; d < VImageDimension; d++ )
+      {
+      sigma[d] = cache_spacing_for_smoothing_sigmas[d];
+      }
+    double alpha = 4.0;
+
+    if( interpolationOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+      {
+      std::vector<double> s = parser->ConvertVector<double>( interpolationOption->GetFunction( 0 )->GetParameter( 0 ) );
+      if( s.size() == VImageDimension )
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[d];
+          }
+        }
+      else
+        {
+        for( unsigned int d = 0; d < VImageDimension; d++ )
+          {
+          sigma[d] = s[0];
+          }
+        }
+      }
+    multiLabelInterpolator->SetParameters( sigma, alpha );
+    interpolator = multiLabelInterpolator;
+    }
+   //sanity check thtat this function MUST return a valid interpolator
+   if ( interpolator.IsNull() )
+    {
+    antscout << "Error:  Unrecognized interpolation option. " << whichInterpolator << std::endl;
+    //return NULL;
+    return EXIT_FAILURE;
+    }
+//return interpolator;
+//    }
