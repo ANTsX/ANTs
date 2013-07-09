@@ -249,12 +249,12 @@ Optional arguments:
           In case a template is specified (-z option), all inputs are registered to that template. If
           no template is specified, the inputs will be registered to the averaged input.
 
-     -s:  Type of similarity metric used for registration.
+     -s:  Type of similarity metric used for registration (can specify a metric per modality).
 
 	     For intramodal image registration, use:
-	     CC = cross-correlation
+	     CC = cross-correlation (default)
 	     MI = mutual information
-	     PR = probability mapping (default)
+	     PR = probability mapping
 	     MSQ = mean square difference (Demons-like)
 	     SSD = sum of squared differences
 
@@ -276,7 +276,7 @@ Optional arguments:
 	     S2 = SyN with time optimized specifically for 2 time points in the time discretization
 	     GR = Greedy SyN
 	     EX = Exponential
-             DD = Diffeomorphic Demons style exponential mapping
+      DD = Diffeomorphic Demons style exponential mapping
 
      -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
 
@@ -511,7 +511,7 @@ nargs=$#
 
 MAXITERATIONS=30x90x20
 LABELIMAGE=0 # initialize optional parameter
-METRICTYPE=CC # initialize optional parameter
+METRICTYPE=()
 TRANSFORMATIONTYPE="GR" # initialize optional parameter
 if [[ $dim == 4 ]]; then
   # we use a more constrained regularization for 4D mapping b/c we expect deformations to be relatively small and local
@@ -608,7 +608,7 @@ while getopts "c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:z:" OPT
 	  SCRIPTPREPEND=$OPTARG
 	  ;;
       s) #similarity model
-	  METRICTYPE=$OPTARG
+	  METRICTYPE[${#METRICTYPE[@]}]=$OPTARG
 	  ;;
       r) #start with rigid-body registration
 	  RIGID=$OPTARG
@@ -643,34 +643,53 @@ elif [[ $nargs -lt 6 ]]
 fi
 
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
-    then
+  then
     qq=`which  qsub`
     if [[  ${#qq} -lt 1 ]];
-        then
+      then
         echo "do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ..."
         exit
-    fi
-fi
+      fi
+  fi
 
 for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
-    do
+  do
 	   TEMPLATES[$i]=${TEMPLATENAME}${i}.nii.gz
-done
+  done
+
+if [[ ${#METRICTYPE[@]} -eq 0 ]];
+  then
+    METRICTYPE[0]=CC
+  fi
+
+if [[ ${#METRICTYPE[@]} -eq 1 ]];
+  then
+    for (( i = 1; i < $NUMBEROFMODALITIES; i++ ))
+      do
+        METRICTYPE[${#METRICTYPE[@]}]=${METRICTYPE[0]}
+      done
+  fi
+
+if [[ ${#METRICTYPE[@]} -ne $NUMBEROFMODALITIES ]];
+  then
+    echo "The number of similarity metrics does not match the number of specified modalities (see -s option)"
+    exit
+  fi
 
 if [[ ! -n "$MODALITYWEIGHTSTRING" ]];
-    then
-    for (( $i = 0; $i < $NUMBEROFMODALITIES; $i++ ))
-        do
+  then
+    for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
+      do
         MODALITYWEIGHTS[$i]=1
-    done
+      done
 else
-    MODALITYWEIGHTS=(`echo $MODALITYWEIGHTSTRING | tr 'x' "\n"`)
-    if [[ ${#MODALITYWEIGHTS[@]} -ne $NUMBEROFMODALITIES ]];
-        then
-        echo "The number of weights (specified e.g. -w 1x1x1) does not match the number of specified modalities (see -k option)";
-        exit
+  MODALITYWEIGHTS=(`echo $MODALITYWEIGHTSTRING | tr 'x' "\n"`)
+  if [[ ${#MODALITYWEIGHTS[@]} -ne $NUMBEROFMODALITIES ]];
+    then
+      echo "The number of weights (specified e.g. -w 1x1x1) does not match the number of specified modalities (see -k option)";
+      exit
     fi
-fi
+  fi
 
 # Creating the file list of images to make a template from.
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
@@ -1197,26 +1216,26 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         warppexe=''
 
         for (( k = 0; k < $NUMBEROFMODALITIES; k++ ))
-            do
+          do
             l=0
             let l=$j+$k
 
-            if [[ "${METRICTYPE}" == "PR" ]];
+            if [[ "${METRICTYPE[$k]}" == "PR" ]];
                 then
                 # Mapping Parameters
                 METRIC=PR[
                 METRICPARAMS="${MODALITYWEIGHTS[$k]},4]"
-            elif [[ "${METRICTYPE}" == "CC"  ]];
+            elif [[ "${METRICTYPE[$k]}" == "CC"  ]];
                 then
                 # Mapping Parameters
                 METRIC=CC[
                 METRICPARAMS="${MODALITYWEIGHTS[$k]},5]"
-            elif [[ "${METRICTYPE}" == "MI" ]];
+            elif [[ "${METRICTYPE[$k]}" == "MI" ]];
                 then
                 # Mapping Parameters
                 METRIC=MI[
                 METRICPARAMS="${MODALITYWEIGHTS[$k]},32]"
-            elif [[ "${METRICTYPE}" == "MSQ" ]];
+            elif [[ "${METRICTYPE[$k]}" == "MSQ" ]];
                 then
                 # Mapping Parameters
                 METRIC=MSQ[
