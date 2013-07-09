@@ -1528,7 +1528,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_MatrixPriorROI.rows();
     for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
-      {
+	{
       VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
       RealType fnz = 0;
       for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
@@ -1610,10 +1610,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   matrix then x is a good approximation of the $n^th$ eigenvector.
 
     **/
+	//::ants::antscout <<"Max Iter: " <<this->m_MaximumNumberOfIterations <<" " <<overit << std::endl;	
+		
     VectorType zero( this->m_MatrixP.cols(), 0 );
     VectorType zerob( this->m_MatrixP.rows(), 0 );
     for(  unsigned int a = 0; a < n_vecs; a++ )
       {
+		  
+	  ::ants::antscout <<"a=: " <<a << std::endl;	  
       this->m_FractionNonZeroP = sparsenessparams( a );
       VectorType bvec = matrixB.get_column( a );
       matrixB.set_column( a, zerob );  //  if  X =  U V^T  + Error   then   matrixB = U 
@@ -1637,6 +1641,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
         {
         this->SparsifyP( evec );
         }
+		  //::ants::antscout <<"here " << std::endl;
       priorVec = priorVec / priorVec.two_norm();
       this->m_CanonicalCorrelations[a] = this->IHTPowerIterationPrior(  partialmatrix,  evec, priorVec , 5, a, lambda );
       this->m_VariatesP.set_column( a, evec );
