@@ -83,7 +83,7 @@ public:
 }
 
 template <class TInputImage, class TConstant, class TOutputImage>
-class ITK_EXPORT AddConstantToImageFilter :
+class AddConstantToImageFilter :
   public
   UnaryFunctorImageFilter<TInputImage, TOutputImage,
                           Functor::AddConstantTo<

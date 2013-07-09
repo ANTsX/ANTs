@@ -6,7 +6,7 @@
 
 namespace ants
 {
-int antsImageWrite( itk::Image<float, 3>::Pointer, // image to write
+extern int antsImageWrite( itk::Image<float, 3>::Pointer, // image to write
                     std::string                    // filename of the target file
                     );
 } // namespace ants

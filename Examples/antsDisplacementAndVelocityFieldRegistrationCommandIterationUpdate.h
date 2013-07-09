@@ -33,7 +33,8 @@ public:
 
   typedef typename TFilter::OutputTransformType                          OutputTransformType;
   typedef typename TFilter::OutputTransformType::ScalarType              RealType;
-  typedef itk::ImageToImageMetricv4<FixedImageType, MovingImageType>     MetricType;
+  typedef itk::ImageToImageMetricv4
+           <FixedImageType, MovingImageType, FixedImageType, RealType>   MetricType;
   typedef typename MetricType::MeasureType                               MeasureType;
   typedef typename MetricType::VirtualImageType                          VirtualImageType;
   typedef itk::CompositeTransform<RealType, VImageDimension>             CompositeTransformType;
@@ -99,7 +100,7 @@ public:
       this->m_lastTotalTime = now;
       m_clock.Start();
 
-      typedef itk::GradientDescentOptimizerv4 GradientDescentOptimizerType;
+      typedef itk::GradientDescentOptimizerTemplatev4<RealType> GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
           const_cast<typename TFilter::OptimizerType *>( const_cast<TFilter *>( filter )->GetOptimizer() ) );
 
@@ -220,7 +221,7 @@ public:
     // This metric type is used to measure the general similarity metric between the original input fixed and moving
     // images.
     typename MetricType::Pointer metric;
-    typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, MovingImageType> CorrelationMetricType;
+    typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType, MovingImageType, FixedImageType, MeasureType> CorrelationMetricType;
     typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
       {
       typename CorrelationMetricType::RadiusType radius;
@@ -309,7 +310,7 @@ public:
       */
       if( filter->GetDownsampleImagesForMetricDerivatives() )
         {
-        typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> FixedResamplerType;
+        typedef itk::ResampleImageFilter<FixedImageType, FixedImageType, RealType> FixedResamplerType;
         typename FixedResamplerType::Pointer fixedResampler = FixedResamplerType::New();
         fixedResampler->SetTransform( fixedComposite );
         fixedResampler->SetInput( this->m_origFixedImage );
@@ -317,7 +318,7 @@ public:
         fixedResampler->SetDefaultPixelValue( 0 );
         fixedResampler->Update();
 
-        typedef itk::ResampleImageFilter<MovingImageType, MovingImageType> MovingResamplerType;
+        typedef itk::ResampleImageFilter<MovingImageType, MovingImageType, RealType> MovingResamplerType;
         typename MovingResamplerType::Pointer movingResampler = MovingResamplerType::New();
         movingResampler->SetTransform( movingComposite );
         movingResampler->SetInput( this->m_origMovingImage );
@@ -397,7 +398,6 @@ public:
 
     // Now this output transform is copied to another instance to prevent undesired changes.
 
-    typedef itk::ImageDuplicator<DisplacementFieldType> DisplacementFieldDuplicatorType;
     typename DisplacementFieldDuplicatorType::Pointer disDuplicator = DisplacementFieldDuplicatorType::New();
     disDuplicator->SetInputImage( OutputTransformAtCurrentIteration->GetDisplacementField() );
     disDuplicator->Update();
@@ -423,7 +423,7 @@ public:
     typedef itk::LinearInterpolateImageFunction<MovingImageType, RealType> LinearInterpolatorType;
     typename LinearInterpolatorType::Pointer linearInterpolator = LinearInterpolatorType::New();
 
-    typedef itk::ResampleImageFilter<FixedImageType, MovingImageType> ResampleFilterType;
+    typedef itk::ResampleImageFilter<FixedImageType, MovingImageType, RealType> ResampleFilterType;
     typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
     resampler->SetTransform( outputCompositTransform );
     resampler->SetInput( this->m_origMovingImage );

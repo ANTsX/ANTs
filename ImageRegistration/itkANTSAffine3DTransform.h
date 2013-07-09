@@ -15,7 +15,7 @@ namespace itk
  */
 template <class TScalarType = double>
 // Data type for scalars (float or double)
-class ITK_EXPORT ANTSAffine3DTransform :
+class ANTSAffine3DTransform :
   public         MatrixOffsetTransformBase<TScalarType, 3, 3>
   //        public Rigid3DTransform< TScalarType >
 {

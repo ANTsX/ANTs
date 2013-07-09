@@ -36,7 +36,7 @@ namespace Statistics
  */
 
 template <class TScalarListSample>
-class ITK_EXPORT GrubbsRosnerListSampleFilter
+class GrubbsRosnerListSampleFilter
   : public       ListSampleToListSampleFilter<TScalarListSample, TScalarListSample>
 {
 public:

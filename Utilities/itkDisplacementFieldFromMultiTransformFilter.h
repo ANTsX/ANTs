@@ -10,7 +10,7 @@ template <
   class TDisplacementField,
   class TTransform
   >
-class ITK_EXPORT DisplacementFieldFromMultiTransformFilter :
+class DisplacementFieldFromMultiTransformFilter :
   public         WarpImageMultiTransformFilter<TOutputImage, TOutputImage, TDisplacementField, TTransform>
 {
 public:

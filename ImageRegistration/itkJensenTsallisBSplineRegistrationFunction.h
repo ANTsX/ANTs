@@ -33,7 +33,7 @@ namespace itk
 template <class TFixedImage, class TFixedPointSet,
           class TMovingImage, class TMovingPointSet,
           class TDisplacementField>
-class ITK_EXPORT JensenTsallisBSplineRegistrationFunction :
+class JensenTsallisBSplineRegistrationFunction :
   public         AvantsPDEDeformableRegistrationFunction<TFixedImage,
                                                          TMovingImage, TDisplacementField>
 {

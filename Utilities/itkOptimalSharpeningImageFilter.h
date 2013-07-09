@@ -46,7 +46,7 @@ namespace itk
  *
  * \ingroup ImageFeatureExtraction */
 template <class TInputImage, class TOutputImage>
-class ITK_EXPORT OptimalSharpeningImageFilter :
+class OptimalSharpeningImageFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

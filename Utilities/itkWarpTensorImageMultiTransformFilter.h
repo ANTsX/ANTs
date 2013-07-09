@@ -85,7 +85,7 @@ template <
   class TDisplacementField,
   class TTransform
   >
-class ITK_EXPORT WarpTensorImageMultiTransformFilter :
+class WarpTensorImageMultiTransformFilter :
   public         ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:

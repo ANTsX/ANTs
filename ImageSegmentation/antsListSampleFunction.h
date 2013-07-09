@@ -44,7 +44,7 @@ namespace Statistics
  * \ingroup ListSampleFunctions
  */
 template <class TInputListSample, class TOutput, class TCoordRep = float>
-class ITK_EXPORT ListSampleFunction :
+class ListSampleFunction :
   public         FunctionBase<typename TInputListSample::MeasurementVectorType, TOutput>
 {
 public:

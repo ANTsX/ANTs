@@ -85,7 +85,7 @@ public:
 }
 
 template <class TInputImage, class TConstantVector, class TOutputImage>
-class ITK_EXPORT MultiplyByConstantVectorImageFilter :
+class MultiplyByConstantVectorImageFilter :
   public
   UnaryFunctorImageFilter<TInputImage, TOutputImage,
                           Functor::MultiplyByConstantVector<

@@ -39,7 +39,7 @@ namespace Statistics
  *
  */
 template <class TInputListSample, class TOutputListSample = TInputListSample>
-class ITK_EXPORT ListSampleToListSampleFilter : public ProcessObject
+class ListSampleToListSampleFilter : public ProcessObject
 {
 public:
   /** Standard class typedefs. */

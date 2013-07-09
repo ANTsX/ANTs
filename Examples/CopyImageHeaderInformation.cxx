@@ -210,6 +210,11 @@ private:
       CopyImageHeaderInformation<3>(argc, argv);
       }
       break;
+    case 4:
+      {
+      CopyImageHeaderInformation<4>(argc, argv);
+      }
+      break;
     default:
       antscout << "Unsupported dimension : " << dim << std::endl;
       return EXIT_FAILURE;

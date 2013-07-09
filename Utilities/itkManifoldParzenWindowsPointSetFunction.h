@@ -39,7 +39,7 @@ namespace itk
  */
 
 template <class TPointSet, class TOutput = double, class TCoordRep = double>
-class ITK_EXPORT ManifoldParzenWindowsPointSetFunction
+class ManifoldParzenWindowsPointSetFunction
   : public       PointSetFunction<TPointSet, TOutput, TCoordRep>
 {
 public:

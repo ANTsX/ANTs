@@ -47,7 +47,7 @@ namespace ants
       -m mutualinformation[parameter1] --optimization gradientdescent"
 */
 
-class ITK_EXPORT OptionFunction
+class OptionFunction
   : public       DataObject
 {
 public:
@@ -116,7 +116,7 @@ private:
   ParameterStackType m_Parameters;
 };
 
-class ITK_EXPORT CommandLineOption
+class CommandLineOption
   : public       DataObject
 {
 public:

@@ -1573,7 +1573,10 @@ private:
     + std::string( "of a prior label image, prior probability images " )
     + std::string( "(one for each class), and/or an MRF prior to " )
     + std::string( "enforce spatial smoothing of the labels.  Similar algorithms " )
-    + std::string( "include FAST and SPM.  " );
+    + std::string( "include FAST and SPM.  Reference:  Avants BB, Tustison NJ, Wu " )
+    + std::string( "J, Cook PA, Gee JC. An open source multivariate framework for " )
+    + std::string( "n-tissue segmentation with evaluation on public data. " )
+    + std::string( "Neuroinformatics. 2011 Dec;9(4):381-400." );
 
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
