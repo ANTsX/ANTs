@@ -59,8 +59,8 @@ if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}
   ### --- End Project specific additions
 # SVN is too slow SVN_REPOSITORY http://svn.boost.org/svn/boost/trunk
 # SVN is too slow SVN_REVISION -r "82586"
-  set(${proj}_URL http://sourceforge.net/projects/boost/files/boost/1.53.0/boost_1_53_0.tar.gz )
-  set(${proj}_MD5 57a9e2047c0f511c4dfcf00eb5eb2fbb )
+  set(${proj}_URL http://sourceforge.net/projects/boost/files/boost/1.54.0/boost_1_54_0.tar.gz )
+  set(${proj}_MD5 efbfbff5a85a9330951f243d0a46e4b9 )
   ExternalProject_Add(${proj}
     URL ${${proj}_URL}
     URL_MD5 ${${proj}_MD5}
