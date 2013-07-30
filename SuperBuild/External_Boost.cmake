@@ -90,7 +90,7 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
   set(BOOST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost-install/include)
 else()
   if(${USE_SYSTEM_${extProjName}})
-    find_package(${extProjName} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
+    find_package(${proj} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
     if(NOT ${extProjName}_DIR)
       message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
     endif()
