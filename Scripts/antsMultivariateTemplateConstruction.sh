@@ -130,6 +130,8 @@ Optional arguments:
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
 
+     -b:  Boolean for saving iteration output to directories (default = 0).
+
 Example:
 
 `basename $0` -d 3 -m 30x50x20 -t GR -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz
@@ -282,6 +284,9 @@ Optional arguments:
 
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
+
+     -b:  Save output files for each iteration to a separate directory (e.g. GR_iteration_0/).
+          Creates a large amount of data (default = 0).
 
 Requirements:
 
@@ -538,6 +543,8 @@ SCRIPTPREPEND=""
 QSUBOPTS="" # EDIT THIS
 OUTPUTNAME=antsBTP
 
+BACKUP_EACH_ITERATION=0
+
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
 # RAMfree=`cat /proc/meminfo | sed -n -e '/MemFree/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -558,12 +565,15 @@ if [[ "$1" == "-h" ]];
 fi
 
 # reading command line arguments
-while getopts "c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:z:" OPT
+while getopts "b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:z:" OPT
   do
   case $OPT in
       h) #help
 	  echo "$USAGE"
 	  exit 0
+	  ;;
+      b) #backup each iteration (default = 0)
+	  BACKUP_EACH_ITERATION=$OPTARG
 	  ;;
       c) #use SGE cluster
 	  DOQSUB=$OPTARG
@@ -1391,33 +1401,36 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
     echo "--------------------------------------------------------------------------------------"
     echo " Backing up results from iteration $itdisplay"
     echo "--------------------------------------------------------------------------------------"
-    mkdir ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
-    cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
-    # backup logs
-    if [[ $DOQSUB -eq 1 ]];
-        then
-        mv ${outdir}/antsBuildTemplate_deformable_* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
-    elif [[ $DOQSUB -eq 4 ]];
-        then
-        mv ${outdir}/antsdef* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
-    elif [[ $DOQSUB -eq 2 ]];
-        then
-        mv ${outdir}/job*.txt ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
-    elif [[ $DOQSUB -eq 3 ]];
-        then
-        rm -f ${outdir}/job_*.sh
-    fi
+    if [[ BACKUP_EACH_ITERATION -eq 1 ]];
+      then
+        mkdir ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+        cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
+        # backup logs
+        if [[ $DOQSUB -eq 1 ]];
+            then
+            mv ${outdir}/antsBuildTemplate_deformable_* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+        elif [[ $DOQSUB -eq 4 ]];
+            then
+            mv ${outdir}/antsdef* ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+        elif [[ $DOQSUB -eq 2 ]];
+            then
+            mv ${outdir}/job*.txt ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
+        elif [[ $DOQSUB -eq 3 ]];
+            then
+            rm -f ${outdir}/job_*.sh
+        fi
+      fi
     ((i++))
 done
 end main loop
 rm -f job*.sh
 #cleanup of 4D files
 if [[ "${range}" -gt 1 && "${TDIM}" -eq 4 ]];
-    then
+  then
     mv ${tmpdir}/selection/${TEMPLATES[@]} ${currentdir}/
     cd ${currentdir}
     rm -rf ${tmpdir}/
-fi
+  fi
 time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
 echo
