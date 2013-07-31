@@ -51,17 +51,10 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
       -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET})
   endif()
 
-  configure_file(${CMAKE_CURRENT_LIST_DIR}/External_Boost_configureboost.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/External_Boost_configureboost.cmake @ONLY)
-
-  configure_file(${CMAKE_CURRENT_LIST_DIR}/External_Boost_buildboost.cmake.in
-    ${CMAKE_CURRENT_BINARY_DIR}/External_Boost_buildboost.cmake @ONLY)
-
   ### --- Project specific additions here
   set(Boost_Install_Dir ${CMAKE_CURRENT_BINARY_DIR}/${proj}-install)
-
-  set(Boost_Configure_Script ${CMAKE_CURRENT_BINARY_DIR}/External_Boost_configureboost.cmake)
-  set(Boost_Build_Script ${CMAKE_CURRENT_BINARY_DIR}/External_Boost_buildboost.cmake)
+  set(Boost_Configure_Script ${CMAKE_CURRENT_LIST_DIR}/External_Boost_configureboost.cmake)
+  set(Boost_Build_Script ${CMAKE_CURRENT_LIST_DIR}/External_Boost_buildboost.cmake)
 
   ### --- End Project specific additions
 # SVN is too slow SVN_REPOSITORY http://svn.boost.org/svn/boost/trunk
@@ -77,12 +70,13 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
     SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/${proj}
     ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
     CONFIGURE_COMMAND ${CMAKE_COMMAND}
+    ${CLANG_ARG}
     -DBUILD_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/${proj}
     -DBOOST_INSTALL_DIR:PATH=${Boost_Install_Dir}
     -P ${Boost_Configure_Script}
+    INSTALL_COMMAND ""
     BUILD_IN_SOURCE 1
     BUILD_COMMAND ${CMAKE_COMMAND}
-    ${CLANG_ARG}
     -DBUILD_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/Boost
     -DBOOST_INSTALL_DIR:PATH=${Boost_Install_Dir} -P ${Boost_Build_Script}
   )
@@ -91,9 +85,6 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
 else()
   if(${USE_SYSTEM_${extProjName}})
     find_package(${proj} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
-    if(NOT ${extProjName}_DIR)
-      message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
-    endif()
     message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
   endif()
   # The project is provided using ${extProjName}_DIR, nevertheless since other
