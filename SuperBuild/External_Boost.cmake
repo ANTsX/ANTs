@@ -39,7 +39,7 @@ set(${proj}_DEPENDENCIES "")
 # Include dependent projects if any
 SlicerMacroCheckExternalProjectDependency(${proj})
 
-if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}" AND NOT "${USE_SYSTEM_${extProjName}}" ) ) )
+if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" ) )
   #message(STATUS "${__indent}Adding project ${proj}")
 
   # Set CMake OSX variable to pass down the external project
@@ -52,7 +52,7 @@ if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}
   endif()
 
   ### --- Project specific additions here
-  set(Boost_Install_Dir ${CMAKE_CURRENT_BINARY_DIR}/boost-install)
+  set(Boost_Install_Dir ${CMAKE_CURRENT_BINARY_DIR}/${proj}-install)
   set(Boost_Configure_Script ${CMAKE_CURRENT_LIST_DIR}/External_Boost_configureboost.cmake)
   set(Boost_Build_Script ${CMAKE_CURRENT_LIST_DIR}/External_Boost_buildboost.cmake)
 
@@ -61,13 +61,17 @@ if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}
 # SVN is too slow SVN_REVISION -r "82586"
   set(${proj}_URL http://sourceforge.net/projects/boost/files/boost/1.54.0/boost_1_54_0.tar.gz )
   set(${proj}_MD5 efbfbff5a85a9330951f243d0a46e4b9 )
+  if(CMAKE_COMPILER_IS_CLANGXX)
+    set(CLANG_ARG -DCMAKE_COMPILER_IS_CLANGXX:BOOL=ON)
+  endif()
   ExternalProject_Add(${proj}
     URL ${${proj}_URL}
     URL_MD5 ${${proj}_MD5}
-    SOURCE_DIR Boost
+    SOURCE_DIR ${CMAKE_CURRENT_BINARY_DIR}/${proj}
     ${cmakeversion_external_update} "${cmakeversion_external_update_value}"
     CONFIGURE_COMMAND ${CMAKE_COMMAND}
-    -DBUILD_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/Boost
+    ${CLANG_ARG}
+    -DBUILD_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/${proj}
     -DBOOST_INSTALL_DIR:PATH=${Boost_Install_Dir}
     -P ${Boost_Configure_Script}
     INSTALL_COMMAND ""
@@ -76,14 +80,11 @@ if(NOT ( DEFINED "${extProjName}_DIR" OR ( DEFINED "${USE_SYSTEM_${extProjName}}
     -DBUILD_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/Boost
     -DBOOST_INSTALL_DIR:PATH=${Boost_Install_Dir} -P ${Boost_Build_Script}
   )
-  set(BOOST_ROOT ${CMAKE_CURRENT_BINARY_DIR}/boost-install)
-  set(BOOST_INCLUDE_DIR} ${CMAKE_CURRENT_BINARY_DIR}/boost-install/include)
+  set(BOOST_ROOT        ${CMAKE_CURRENT_BINARY_DIR}/boost-install)
+  set(BOOST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost-install/include)
 else()
   if(${USE_SYSTEM_${extProjName}})
-    find_package(${extProjName} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
-    if(NOT ${extProjName}_DIR)
-      message(FATAL_ERROR "To use the system ${extProjName}, set ${extProjName}_DIR")
-    endif()
+    find_package(${proj} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
     message("USING the system ${extProjName}, set ${extProjName}_DIR=${${extProjName}_DIR}")
   endif()
   # The project is provided using ${extProjName}_DIR, nevertheless since other
