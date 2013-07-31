@@ -2472,7 +2472,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
         "try to make the decomposition cover the whole domain, if possible " );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "covering" );
-    option->SetShortName( 'q' );
+    option->SetShortName( 'c' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
     parser->AddOption( option );
