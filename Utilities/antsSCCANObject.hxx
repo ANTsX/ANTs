@@ -381,16 +381,18 @@ template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::SpatiallySmoothVector( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
-                         typename TInputImage::Pointer mask )
+                         typename TInputImage::Pointer mask, bool surface  )
 {
-  unsigned int sigma = ( unsigned int ) this->m_Smoother;
-  if (  this->m_Smoother > 0.0001 )
-    if ( sigma < 1 ) sigma = 1;
-  if( mask.IsNull() || sigma < 1.e-9 )
+  if( mask.IsNull() || this->m_Smoother < 1.e-9 )
     {
     return vec;
     } 
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
+  if ( surface ) 
+    {
+  unsigned int sigma = ( unsigned int ) this->m_Smoother;
+  if (  this->m_Smoother > 0.0001 )
+    if ( sigma < 1 ) sigma = 1;
   typedef itk::SurfaceImageCurvature<TInputImage> ParamType;
   typename ParamType::Pointer Parameterizer = ParamType::New();
   Parameterizer->SetInputImage(mask);
@@ -407,22 +409,26 @@ antsSCCANObject<TInputImage, TRealType>
     }
   VectorType svec = this->ConvertImageToVariate( Parameterizer->GetFunctionImage(),  mask );
   return svec;
-  RealType     spacingsize = 0;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
-    RealType sp = mask->GetSpacing()[d];
-    spacingsize += sp * sp;
     }
-  spacingsize = sqrt( spacingsize );
-  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
-  typename dgf::Pointer filter = dgf::New();
-  filter->SetUseImageSpacingOff();
-  filter->SetVariance( sigma ); // sigma * sigma * spacingsize );
-  filter->SetMaximumError( .01f );
-  filter->SetInput( image );
-  filter->Update();
-  VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
-  return gradvec;
+  else 
+    {
+      RealType     spacingsize = 0;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+	{
+	  RealType sp = mask->GetSpacing()[d];
+	  spacingsize += sp * sp;
+	}
+      spacingsize = sqrt( spacingsize );
+      typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
+      typename dgf::Pointer filter = dgf::New();
+      filter->SetUseImageSpacingOn();
+      filter->SetVariance(  this->m_Smoother * spacingsize );
+      filter->SetMaximumError( .01f );
+      filter->SetInput( image );
+      filter->Update();
+      VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
+      return gradvec;
+    }
 }
 
 template <class TInputImage, class TRealType>
@@ -1814,8 +1820,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_CanonicalCorrelations.set_size( n_vecs );
   this->m_CanonicalCorrelations.fill( 0 );
-  ::ants::antscout << " sparse recon " << this->m_MinClusterSizeP << " UseL1 " << this->m_UseL1 <<  " Keep+ "
-                   <<  this->m_KeepPositiveP << std::endl;
+  ::ants::antscout << " sparse recon : clust " << this->m_MinClusterSizeP << " UseL1 " << this->m_UseL1 <<  " Keep+ "
+                   <<  this->m_KeepPositiveP << " covering " << this->m_Covering << " smooth " << this->m_Smoother << std::endl;
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP  );
@@ -4580,8 +4586,10 @@ bool antsSCCANObject<TInputImage, TRealType>
       {
       VectorType qj = this->m_VariatesP.get_column( j );
       pveck = this->Orthogonalize( pveck, qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
       qveck = this->Orthogonalize( qveck, qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
     RealType sclp = ( static_cast<RealType>( pveck.size() )  * this->m_FractionNonZeroP );
     RealType sclq = ( static_cast<RealType>( qveck.size() )  * this->m_FractionNonZeroQ );
@@ -4597,8 +4605,10 @@ bool antsSCCANObject<TInputImage, TRealType>
       {
       VectorType qj = this->m_VariatesP.get_column( j );
       pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm()  , qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
       qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
     //    pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP );
     //    qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ );

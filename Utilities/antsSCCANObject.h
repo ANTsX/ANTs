@@ -128,7 +128,7 @@ public:
   {
     for( unsigned int i = 0; i < v1.size(); i++ )
       {
-      if( fabs( v2( i ) ) > 0 )
+      if( fabs( v2( i ) ) > 1.e-9 )
         {
         v1( i ) = 0;
         }
@@ -397,7 +397,7 @@ public:
 
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
-  VectorType SpatiallySmoothVector( VectorType, ImagePointer );
+  VectorType SpatiallySmoothVector( VectorType, ImagePointer, bool surface = false );
 
   void SetSortFinalLocArray(VectorType locArray)
   {
@@ -731,7 +731,7 @@ protected:
 // for pscca
   void UpdatePandQbyR();
 
-  void PositivePart( VectorType& x_k1 , bool takemin = true )
+  void PositivePart( VectorType& x_k1 , bool takemin = false )
   {
     if ( takemin )
       {
@@ -808,16 +808,25 @@ protected:
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
     unsigned int its = 0;
-    while ( eng > 1.e-3 && vnl_math_abs( high - low ) > 1.e-3 && its < 100 )
+    RealType fnm = 0;
+    RealType lastfnm = 1;
+    while ( ( ( eng > 1.e-3 )  &&  
+	      ( vnl_math_abs( high - low ) > 1.e-3  )  && 
+	      ( its < 25 ) &&  
+	      ( vnl_math_abs( fnm - lastfnm ) > 1.e-8  ) )
+	     || its < 5
+	    )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
       this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
       searcherm = this->SpatiallySmoothVector( searcherm, mask );
-      RealType fnm = this->CountNonZero( searcherm );
+      lastfnm = fnm;
+      fnm = this->CountNonZero( searcherm );
       if ( fnm > fnp ) { low = mid;  }
       if ( fnm < fnp ) { high = mid; }
       eng = vnl_math_abs( fnp - fnm );
+      // if ( mask )      std::cout <<" its " << its << " spar " << fnm << std::endl;
       its++;
       }
     this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
