@@ -1397,12 +1397,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         do
         shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j}
     done
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo " Backing up results from iteration $itdisplay"
-    echo "--------------------------------------------------------------------------------------"
     if [[ BACKUP_EACH_ITERATION -eq 1 ]];
       then
+        echo
+        echo "--------------------------------------------------------------------------------------"
+        echo " Backing up results from iteration $itdisplay"
+        echo "--------------------------------------------------------------------------------------"
         mkdir ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}
         cp ${TEMPLATENAME}${j}warplog.txt ${outdir}/*.cfg ${OUTPUTNAME}*.nii.gz ${outdir}/${TRANSFORMATIONTYPE}_iteration_${i}/
         # backup logs
