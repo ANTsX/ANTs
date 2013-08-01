@@ -826,7 +826,7 @@ protected:
       if ( fnm > fnp ) { low = mid;  }
       if ( fnm < fnp ) { high = mid; }
       eng = vnl_math_abs( fnp - fnm );
-      if ( mask )      std::cout <<" its " << its << " spar " << fnm << std::endl;
+      //  if ( mask ) ::ants::antscout <<" its " << its << " spar " << fnm << std::endl;
       its++;
       }
     this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
