@@ -1158,11 +1158,8 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   PixelType gradstep = vnl_math_abs( usel1 );
- if( covering > 0 )
-    {
-    sccanobj->SetCovering( true );
-    }
-  else
+  sccanobj->SetCovering( true );
+ if ( covering < 0.1 )
     { 
     sccanobj->SetCovering( false );
     }
@@ -2109,7 +2106,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     uselong = parser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
     }
 
-  matPixelType                                      covering = 0;
+  matPixelType                                      covering = 1;
   itk::ants::CommandLineParser::OptionType::Pointer covering_option =
     parser->GetOption( "covering" );
   if( !covering_option || covering_option->GetNumberOfFunctions() == 0 )
