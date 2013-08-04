@@ -128,7 +128,7 @@ public:
   {
     for( unsigned int i = 0; i < v1.size(); i++ )
       {
-      if( fabs( v2( i ) ) > 0 )
+      if( fabs( v2( i ) ) > 1.e-9 )
         {
         v1( i ) = 0;
         }
@@ -266,6 +266,7 @@ public:
       matrix.rows(), matrix.cols() ); this->m_OriginalMatrixQ.update(matrix); this->m_MatrixQ.update(matrix);
   }
 
+  itkSetMacro( Covering, bool );
   itkSetMacro( UseL1, bool );
   itkSetMacro( GradStep, RealType );
   itkSetMacro( FractionNonZeroR, RealType );
@@ -396,7 +397,7 @@ public:
 
   VectorType ComputeVectorLaplacian( VectorType, ImagePointer );
   VectorType ComputeVectorGradMag( VectorType, ImagePointer );
-  VectorType SpatiallySmoothVector( VectorType, ImagePointer );
+  VectorType SpatiallySmoothVector( VectorType, ImagePointer, bool surface = true );
 
   void SetSortFinalLocArray(VectorType locArray)
   {
@@ -807,18 +808,29 @@ protected:
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
     unsigned int its = 0;
-    while ( eng > 1.e-4 && vnl_math_abs( high - low ) > 1.e-9 && its < 100 )
+    RealType fnm = 0;
+    RealType lastfnm = 1;
+    while ( ( ( eng > 1.e-3 )  &&  
+	      ( vnl_math_abs( high - low ) > 1.e-3  )  && 
+	      ( its < 25 ) &&  
+	      ( vnl_math_abs( fnm - lastfnm ) > 1.e-8  ) )
+	     || its < 5
+	    )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
       this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
-      RealType fnm = this->CountNonZero( searcherm );
+      searcherm = this->SpatiallySmoothVector( searcherm, mask );
+      lastfnm = fnm;
+      fnm = this->CountNonZero( searcherm );
       if ( fnm > fnp ) { low = mid;  }
       if ( fnm < fnp ) { high = mid; }
       eng = vnl_math_abs( fnp - fnm );
+      //  if ( mask ) ::ants::antscout <<" its " << its << " spar " << fnm << std::endl;
       its++;
       }
     this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
+    x_k1 = this->SpatiallySmoothVector( x_k1, mask );
     if( negate )
       {
       x_k1 = x_k1 * ( -1 );
@@ -1074,6 +1086,7 @@ private:
 
   /** softer = true will compute the update  : if ( beta > thresh )  beta <- beta - thresh
    *     rather than the default update      : if ( beta > thresh )  beta <- beta  */
+  bool     m_Covering;
   bool     m_UseL1;
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;

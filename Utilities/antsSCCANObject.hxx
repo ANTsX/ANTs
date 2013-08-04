@@ -71,6 +71,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_UseLongitudinalFormulation = 0;
   this->m_RowSparseness = 0;
   this->m_Smoother = 0;
+  this->m_Covering = false;
 }
 
 template <class TInputImage, class TRealType>
@@ -380,46 +381,54 @@ template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
 antsSCCANObject<TInputImage, TRealType>
 ::SpatiallySmoothVector( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
-                         typename TInputImage::Pointer mask )
+                         typename TInputImage::Pointer mask, bool surface  )
 {
-  RealType sigma = this->m_Smoother;
-  if( mask.IsNull() || sigma < 1.e-9 )
+  if( mask.IsNull() || this->m_Smoother < 1.e-9 )
     {
     return vec;
-    }
+    } 
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
+  if ( surface ) 
+    {
+  unsigned int sigma = ( unsigned int ) this->m_Smoother;
+  if (  this->m_Smoother > 0.0001 )
+    if ( sigma < 1 ) sigma = 1;
   typedef itk::SurfaceImageCurvature<TInputImage> ParamType;
   typename ParamType::Pointer Parameterizer = ParamType::New();
   Parameterizer->SetInputImage(mask);
   Parameterizer->SetFunctionImage(image);
   Parameterizer->SetNeighborhoodRadius( 2 );
-  Parameterizer->SetSigma( sigma );
+  Parameterizer->SetSigma( 1.0 );
   Parameterizer->SetUseGeodesicNeighborhood(false);
   Parameterizer->SetUseLabel(false);
   Parameterizer->SetThreshold(0.5);
   Parameterizer->IntegrateFunctionOverSurface(true);
-  for( unsigned int i = 0; i < 2; i++ )
+  for( unsigned int i = 0; i < sigma; i++ )
     {
     Parameterizer->IntegrateFunctionOverSurface(true);
     }
   VectorType svec = this->ConvertImageToVariate( Parameterizer->GetFunctionImage(),  mask );
   return svec;
-  RealType     spacingsize = 0;
-  for( unsigned int d = 0; d < ImageDimension; d++ )
-    {
-    RealType sp = mask->GetSpacing()[d];
-    spacingsize += sp * sp;
     }
-  spacingsize = sqrt( spacingsize );
-  typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
-  typename dgf::Pointer filter = dgf::New();
-  filter->SetUseImageSpacingOff();
-  filter->SetVariance( sigma ); // sigma * sigma * spacingsize );
-  filter->SetMaximumError( .01f );
-  filter->SetInput( image );
-  filter->Update();
-  VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
-  return gradvec;
+  else 
+    {
+      RealType     spacingsize = 0;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+	{
+	  RealType sp = mask->GetSpacing()[d];
+	  spacingsize += sp * sp;
+	}
+      spacingsize = sqrt( spacingsize );
+      typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
+      typename dgf::Pointer filter = dgf::New();
+      filter->SetUseImageSpacingOn();
+      filter->SetVariance(  this->m_Smoother * spacingsize );
+      filter->SetMaximumError( .01f );
+      filter->SetInput( image );
+      filter->Update();
+      VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
+      return gradvec;
+    }
 }
 
 template <class TInputImage, class TRealType>
@@ -1737,7 +1746,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
       }
-    evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
+    //    evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
     this->SparsifyP( evec  );
     if( evec.two_norm() > 0 )
       {
@@ -1777,8 +1786,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
                   typename antsSCCANObject<TInputImage,
                                            TRealType>::VectorType& icept )
 {
-  RealType reconerr = 0;
-  RealType onenorm = 0;
   MatrixType temp( this->m_MatrixP );
   icept.fill( 0 );
   RealType meancorr = 0;
@@ -1790,15 +1797,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 100 ); // A x = b
     VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
+    //    VectorType x_recon = ( this->m_VariatesP * lmsolv );
     icept( a ) = this->m_Intercept;
-    onenorm += x_i.one_norm() / this->m_MatrixP.cols();
-    reconerr += ( x_i - x_recon ).one_norm() / this->m_MatrixP.cols();
     matrixB.set_row( a, lmsolv );
     RealType localcorr = this->PearsonCorr( x_recon, x_i  );
     temp.set_row( a, x_recon );
     meancorr += localcorr;
     }
-  //  ::ants::antscout << "Corr: " << meancorr / this->m_MatrixP.rows()  << std::endl;
   if( false )
     {
     std::vector<std::string> ColumnHeaders;
@@ -1821,8 +1826,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   RealType rr = ( temp - this->m_MatrixP ).frobenius_norm();
   return ( 1.0 - rr * rr / ( matpfrobnorm * matpfrobnorm ) );
-  //  RealType rr = ( onenorm - reconerr ) *  ( onenorm - reconerr ) / ( onenorm * onenorm );
-  return rr;
 }
 
 template <class TInputImage, class TRealType>
@@ -1834,8 +1837,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   this->m_CanonicalCorrelations.set_size( n_vecs );
   this->m_CanonicalCorrelations.fill( 0 );
-  ::ants::antscout << " sparse recon " << this->m_MinClusterSizeP << " UseL1 " << this->m_UseL1 <<  " Keep+ "
-                   <<  this->m_KeepPositiveP << std::endl;
+  ::ants::antscout << " sparse recon : clust " << this->m_MinClusterSizeP << " UseL1 " << this->m_UseL1 <<  " Keep+ "
+                   <<  this->m_KeepPositiveP << " covering " << this->m_Covering << " smooth " << this->m_Smoother << std::endl;
   MatrixType matrixB( this->m_OriginalMatrixP.rows(), n_vecs );
   matrixB.fill( 0 );
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP  );
@@ -1891,7 +1894,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = 1 - ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       VectorType evec = this->m_VariatesP.get_column( a );
       this->m_VariatesP.set_column( a, zero );
-      if ( overit == 0 ) ( void ) this->PowerIteration(  partialmatrix,  evec, 5, true );
+      //      if ( overit == 0 ) ( void ) this->PowerIteration(  partialmatrix,  evec, 5, true );
       this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 5, a );    // 0 => a
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
@@ -3077,7 +3080,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     VectorType nvec = At * proj;
     RealType gamma = 0.1;
-    nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP );
+    //    nvec = this->SpatiallySmoothVector( nvec, this->m_MaskImageP );
     if ( powerits == 0 ) di = nvec;
     if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
       {
@@ -3087,10 +3090,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     evec = ( evec * gamma + nvec ) * relfac ;
     VectorType diplus1 =  nvec + di * gamma;
     evec = evec + diplus1 * relfac ;
-    evec = this->SpatiallySmoothVector( evec, this->m_MaskImageP );
     for( unsigned int orth = 0; orth < maxorth; orth++ )
       {
-      evec = this->Orthogonalize( evec, this->m_VariatesP.get_column( orth ) );
+      VectorType zv = this->m_VariatesP.get_column( orth );
+      evec = this->Orthogonalize( evec, zv );
+      if ( this->m_Covering ) this->ZeroProduct( evec,  zv );
       /** alternative --- orthogonalize in n-space 
       VectorType v = A * this->m_VariatesP.get_column( orth );
       RealType ip1 = inner_product( A * evec,  v );
@@ -3823,18 +3827,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType gradvec;
     if( isp )
       {
+	//      x_k1 = this->SpatiallySmoothVector(  x_k1, this->m_MaskImageP );
       this->SparsifyP( x_k1 );
       gradvec = this->ComputeVectorLaplacian( x_k1, this->m_MaskImageP );
       }
     else
       {
+	//      x_k1 = this->SpatiallySmoothVector(  x_k1, this->m_MaskImageQ );
       this->SparsifyQ( x_k1 );
       gradvec = this->ComputeVectorLaplacian( x_k1, this->m_MaskImageQ );
       }
     VectorType update = At * (A * x_k1 ) - mudiag * x_k1;
     RealType   dataterm =  (b - update ).two_norm();
     lastgrad = p_k;
-    p_k =  b - update - x_k1 * lambda + gradvec * 1.e4; // ridge
+    p_k =  b - update - x_k1 * lambda + gradvec * 0.e4; // ridge
     approxerr = dataterm + x_k1.two_norm() * lambda;
     if( approxerr < minerr )
       {
@@ -4597,8 +4603,10 @@ bool antsSCCANObject<TInputImage, TRealType>
       {
       VectorType qj = this->m_VariatesP.get_column( j );
       pveck = this->Orthogonalize( pveck, qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
       qveck = this->Orthogonalize( qveck, qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
     RealType sclp = ( static_cast<RealType>( pveck.size() )  * this->m_FractionNonZeroP );
     RealType sclq = ( static_cast<RealType>( qveck.size() )  * this->m_FractionNonZeroQ );
@@ -4614,11 +4622,13 @@ bool antsSCCANObject<TInputImage, TRealType>
       {
       VectorType qj = this->m_VariatesP.get_column( j );
       pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm()  , qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
       qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
+      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
-    pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP );
-    qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ );
+    //    pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP );
+    //    qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ );
     if ( ( this->m_UseLongitudinalFormulation > 1.e-9 ) && ( pveck.size() == qveck.size() ) )
       {
       VectorType lpveck = pveck + ( qveck - pveck ) * this->m_UseLongitudinalFormulation;
@@ -4738,8 +4748,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
-    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
+    //    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
+    //    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
     qvec = qvec / qvec.two_norm();
     vec = vec / vec.two_norm();
     if ( this->m_UseLongitudinalFormulation > 1.e-9 )
@@ -4779,8 +4789,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
-    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
+    //    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
+    //    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
     qvec = qvec / qvec.two_norm();
     vec = vec / vec.two_norm();
     this->SparsifyP( vec );    this->SparsifyQ( qvec );

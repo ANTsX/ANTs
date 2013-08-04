@@ -1133,7 +1133,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
 template <unsigned int ImageDimension, class PixelType>
 int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec ,
                   unsigned int robustify , unsigned int p_cluster_thresh , unsigned int iterct ,
-                  unsigned int svd_option , PixelType usel1  , PixelType row_sparseness, PixelType smoother  )
+                  unsigned int svd_option , PixelType usel1  , PixelType row_sparseness, PixelType smoother , PixelType covering )
 {
   if( svd_option == 1 )
     {
@@ -1158,7 +1158,12 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   PixelType gradstep = vnl_math_abs( usel1 );
-  if( usel1 > 0 )
+  sccanobj->SetCovering( true );
+ if ( covering < 0.1 )
+    { 
+    sccanobj->SetCovering( false );
+    }
+   if( usel1 > 0 )
     {
     sccanobj->SetUseL1( true );
     }
@@ -2101,6 +2106,17 @@ int sccan( itk::ants::CommandLineParser *parser )
     uselong = parser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
     }
 
+  matPixelType                                      covering = 1;
+  itk::ants::CommandLineParser::OptionType::Pointer covering_option =
+    parser->GetOption( "covering" );
+  if( !covering_option || covering_option->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    covering = parser->Convert<matPixelType>( covering_option->GetFunction()->GetName() );
+    }
+
   matPixelType                                      usel1 = 0.1;
   itk::ants::CommandLineParser::OptionType::Pointer l1_option =
     parser->GetOption( "l1" );
@@ -2262,35 +2278,35 @@ int sccan( itk::ants::CommandLineParser *parser )
     std::string initializationStrategy = svdOption->GetFunction()->GetName();
     if(  !initializationStrategy.compare( std::string( "sparse" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 0, usel1, row_sparseness, smoother );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 0, usel1, row_sparseness, smoother , covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "cgspca" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2, usel1, row_sparseness, smoother);
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2, usel1, row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "network" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4, usel1, row_sparseness, smoother );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4, usel1, row_sparseness, smoother , covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "lasso" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 5, usel1, row_sparseness, smoother );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 5, usel1, row_sparseness, smoother , covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "recon" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1, row_sparseness, smoother );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1, row_sparseness, smoother , covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1, row_sparseness, smoother );
+      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1, row_sparseness, smoother , covering );
       return EXIT_SUCCESS;
       }
-    SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1, usel1, row_sparseness, smoother );
+    SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1, usel1, row_sparseness, smoother , covering );
     return EXIT_SUCCESS;
     }
 
@@ -2446,6 +2462,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetDescription( description );
     parser->AddOption( option );
     }
+
+    {
+    std::string description =
+      std::string(
+        "try to make the decomposition cover the whole domain, if possible " );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "covering" );
+    option->SetShortName( 'c' );
+    option->SetUsageOption( 0, "0" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
 
     {
     std::string description =
