@@ -1532,8 +1532,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   if( prior )
     {
-    ::ants::antscout << "prior " << this->m_OriginalMatrixPriorROI.rows() << " c "
-                     << this->m_OriginalMatrixPriorROI.cols()  << std::endl;
+   // ::ants::antscout << "prior " << this->m_OriginalMatrixPriorROI.rows() << " c "
+    //                 << this->m_OriginalMatrixPriorROI.cols()  << std::endl;
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_MatrixPriorROI.rows();
     for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
@@ -1554,7 +1554,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       priorrow = priorrow/priorrow.two_norm();
       this->m_MatrixPriorROI.set_row( x , priorrow );
       }
-    ::ants::antscout <<"sparseness: " <<sparsenessparams << std::endl;
+    //::ants::antscout <<"sparseness: " <<sparsenessparams << std::endl;
     }
 	
   RealType reconerr = 0;
@@ -1576,10 +1576,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 		
 	}		*/
 	
+ 
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
   this->m_VariatesP.fill( 0 );
   VectorType icept( this->m_MatrixP.rows(), 0 );
-
+ 	
   if( prior )
     {
     for( unsigned int i = 0; i < n_vecs; i++ )
@@ -1587,6 +1588,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType initvec = this->m_MatrixPriorROI.get_row(i);
       initvec = initvec / initvec.two_norm();
       this->SparsifyP( initvec );
+		  
       this->m_VariatesP.set_column( i, initvec );
       }
     }
@@ -1626,7 +1628,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for(  unsigned int a = 0; a < n_vecs; a++ )
       {
 		  
-	  ::ants::antscout <<"a=: " <<a << std::endl;	  
+	  //::ants::antscout <<"a=: " <<a << std::endl;	  
       this->m_FractionNonZeroP = sparsenessparams( a );
       VectorType bvec = matrixB.get_column( a );
       matrixB.set_column( a, zerob );  //  if  X =  U V^T  + Error   then   matrixB = U 
@@ -1705,6 +1707,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparsifyP( evec  );
     }
   VectorType mgrad = this->FastOuterProductVectorMultiplication( prior, evec );
+
+	::ants::antscout << " recompute " << std::endl;	
   VectorType proj = ( A * prior );
   VectorType lastgrad = evec;
   VectorType mlastgrad = mgrad;

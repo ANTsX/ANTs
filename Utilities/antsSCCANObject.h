@@ -582,9 +582,13 @@ public:
 
   VectorType FastOuterProductVectorMultiplication( VectorType& p, VectorType& v )
   {     // computes  outer_product( p , p ) * v
+	  
+	//::ants::antscout << p.size() <<v.size() <<std::endl;  
     if( p.size() != v.size() )
       {
-      ::ants::antscout << "FastOuterProductVectorMultiplication Usage Error " << std::endl; return v;
+      ::ants::antscout << "FastOuterProductVectorMultiplication Usage Error " << std::endl;
+		::ants::antscout <<"Size 1: " <<p.size()<<"Size 2: " <<v.size() <<std::endl;   
+		  return v;
       }
     RealType   ip = inner_product( p, v );
     VectorType vout( p );
@@ -784,6 +788,7 @@ protected:
 
   void Sparsify( VectorType& x_k1 , RealType fnp, bool keeppos, unsigned int clust, ImagePointer mask  )
   {
+	  
     if ( x_k1.size() <= 1 ) return;
     if (  fnp >= 1 &&  keeppos )
       {

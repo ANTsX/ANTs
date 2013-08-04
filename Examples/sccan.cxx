@@ -1192,14 +1192,14 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   vMatrix priorScaleMat;
   if( svd_option == 7 )
     {
-    FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
+    FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
     std::string imagelistPrior = option->GetFunction( 0 )->GetParameter( 2 );
-    std::string priorScaleFile = option->GetFunction( 0 )->GetParameter( 3 );
+    //std::string priorScaleFile = option->GetFunction( 0 )->GetParameter( 3 );
     std::string outname = "prior.mhd";
     ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, option->GetFunction( 0 )->GetParameter(
                                                         1 ), outname );
     ReadMatrixFromCSVorImageSet<Scalar>(outname, priorROIMat);
-    ReadMatrixFromCSVorImageSet<Scalar>(priorScaleFile, priorScaleMat);
+   // ReadMatrixFromCSVorImageSet<Scalar>(priorScaleFile, priorScaleMat);
     }
   antscout << " frac nonzero " << FracNonZero1 << std::endl;
 
@@ -1302,11 +1302,11 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
   else if( svd_option == 7 )
     {
-    sccanobj->SetPriorScaleMat( priorScaleMat);
+    //sccanobj->SetPriorScaleMat( priorScaleMat);
     sccanobj->SetMatrixPriorROI( priorROIMat);
     sccanobj->SetFlagForSort();
-    sccanobj->SetLambda(parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) ) );
-    truecorr = sccanobj->SparseReconPrior(n_evec, true);  // Prior
+    sccanobj->SetLambda(parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 3 ) ) );
+	truecorr = sccanobj->SparseReconPrior(n_evec, true);  // Prior
     }
   else
     {
