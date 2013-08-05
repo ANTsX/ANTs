@@ -788,7 +788,7 @@ protected:
 
   void Sparsify( VectorType& x_k1 , RealType fnp, bool keeppos, unsigned int clust, ImagePointer mask  )
   {
-	  
+    
     if ( x_k1.size() <= 1 ) return;
     if (  fnp >= 1 &&  keeppos )
       {
@@ -808,8 +808,10 @@ protected:
       {
       x_k1 = x_k1 * ( -1 );
       }
-    RealType low  = x_k1.min_value();
-    RealType high = x_k1.max_value();
+    RealType initmax = x_k1.max_value();
+    x_k1 = x_k1 / initmax;
+    RealType low  = 0;
+    RealType high = 1;
     RealType eng = fnp;
     RealType mid = low + 0.5 * ( high - low );
     unsigned int its = 0;
@@ -831,7 +833,7 @@ protected:
       if ( fnm > fnp ) { low = mid;  }
       if ( fnm < fnp ) { high = mid; }
       eng = vnl_math_abs( fnp - fnm );
-      //  if ( mask ) ::ants::antscout <<" its " << its << " spar " << fnm << std::endl;
+      //      if ( mask ) ::ants::antscout <<" its " << its << " spar " << fnm << " initmax " << initmax << std::endl;
       its++;
       }
     this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
