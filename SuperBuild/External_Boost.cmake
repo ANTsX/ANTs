@@ -80,8 +80,8 @@ if(NOT ( DEFINED "USE_SYSTEM_${extProjName}" AND "${USE_SYSTEM_${extProjName}}" 
     -DBUILD_DIR:PATH=${CMAKE_CURRENT_BINARY_DIR}/Boost
     -DBOOST_INSTALL_DIR:PATH=${Boost_Install_Dir} -P ${Boost_Build_Script}
   )
-  set(BOOST_ROOT        ${CMAKE_CURRENT_BINARY_DIR}/boost-install)
-  set(BOOST_INCLUDE_DIR ${CMAKE_CURRENT_BINARY_DIR}/boost-install/include)
+  set(BOOST_ROOT        ${Boost_Install_Dir})
+  set(BOOST_INCLUDE_DIR ${Boost_Install_Dir}/include)
 else()
   if(${USE_SYSTEM_${extProjName}})
     find_package(${proj} ${${extProjName}_REQUIRED_VERSION} REQUIRED)
