@@ -129,6 +129,8 @@ ANATOMICAL_IMAGES=()
 
 ATROPOS_SEGMENTATION_PRIORS=""
 
+CHECK_3_TISSUE_LABELING=0
+
 ################################################################################
 #
 # Programs and their parameters
@@ -157,7 +159,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:" OPT
+  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:z:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -213,6 +215,9 @@ else
        ;;
           x) #atropos segmentation mask
        ATROPOS_SEGMENTATION_MASK=$OPTARG
+       ;;
+          z) #check 3 tissue labeling
+       CHECK_3_TISSUE_LABELING=$OPTARG
        ;;
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
@@ -427,6 +432,15 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
       fi
 
     logCmd $exe_segmentation
+
+    if [[ CHECK_3_TISSUE_LABELING -eq 1 ]];
+      then
+        # check to make sure that labels haven't permuted.
+        # for use primarily with antsCorticalThickness.sh.
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${ATROPOS_SEGMENTATION} \
+          Check3TissueLabeling ${PRIOR_IMAGE_FILENAMES[0]} ${PRIOR_IMAGE_FILENAMES[1]} ${PRIOR_IMAGE_FILENAMES[2]} \
+          ${POSTERIOR_IMAGE_FILENAMES[0]} ${POSTERIOR_IMAGE_FILENAMES[1]} ${POSTERIOR_IMAGE_FILENAMES[2]}
+      fi
 
     if [[ $i -eq 0 ]];
       then

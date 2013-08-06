@@ -573,6 +573,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
       -n 5 \
       -c 3 \
+      -z 1 \
       -l 3 \
       -l 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
@@ -594,6 +595,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -m 2 \
       -n 5 \
       -c 3 \
+      -z 1 \
       -l 3 \
       -l 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
