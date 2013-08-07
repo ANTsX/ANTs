@@ -11554,7 +11554,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
 
         typename LabelImageType::Pointer permutedLabelImage = duplicator->GetModifiableOutput();
 
-        itk::ImageRegionIterator<LabelImageType> ItP( permutedLabelImage, permutedLabelImage->GetRequestedRegion() );
+        itk::ImageRegionIteratorWithIndex<LabelImageType> ItP( permutedLabelImage, permutedLabelImage->GetRequestedRegion() );
         for( ItP.GoToBegin(); !ItP.IsAtEnd(); ++ItP )
           {
           LabelType permutedLabel = ItP.Get();
@@ -11566,7 +11566,7 @@ int Check3TissueLabeling( int argc, char *argv[] )
           }
 
         antscout << "Relabeling segmentation image." << std::endl;
-        WriteImage<LabelImageType>( labelImage, argv[2] );
+        WriteImage<LabelImageType>( permutedLabelImage, argv[2] );
         }
       }
     }
@@ -11741,10 +11741,10 @@ int BlobDetector( int argc, char *argv[] )
   RealType     uniqfeat_thresh = 0.01;
   RealType smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   bool dosinkhorn = false;
-  RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference 
+  RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference
   RealType kneighborhoodval = 3; // IMPORTANT - defines how many nhood nodes to use in k-hood definition
   unsigned int radval = 20;         // IMPORTANT radius for correlation
-  RealType dthresh = 0.02; // IMPORTANT distance preservation threshold 
+  RealType dthresh = 0.02; // IMPORTANT distance preservation threshold
   // sensitive parameters are set here - end
   int          argct = 2;
   const std::string  outname = std::string(argv[argct]);
@@ -11986,9 +11986,9 @@ int MatchBlobs( int argc, char *argv[] )
   RealType     gradsig = 1.0;       // sigma for gradient filter
   RealType smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   bool dosinkhorn = false;
-  RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference 
+  RealType     maxradiusdiffallowed = 0.25; // IMPORTANT feature size difference
   unsigned int radval = 5;         // IMPORTANT radius for correlation
-  RealType dthresh = 0.02; // IMPORTANT distance preservation threshold 
+  RealType dthresh = 0.02; // IMPORTANT distance preservation threshold
   // sensitive parameters are set here - end
   int          argct = 2;
   const std::string  outname = std::string(argv[argct]);
@@ -12033,7 +12033,7 @@ int MatchBlobs( int argc, char *argv[] )
   for(  cIter.GoToBegin(); !cIter.IsAtEnd(); ++cIter )
     {
     RealType val = imageLM->GetPixel( cIter.GetIndex() );
-    if ( val > 0 ) 
+    if ( val > 0 )
       {
       typename BlobType::PointType centerPoint;
       image->TransformIndexToPhysicalPoint(  cIter.GetIndex(), centerPoint );
@@ -12046,7 +12046,7 @@ int MatchBlobs( int argc, char *argv[] )
       blob->ComputeBoundingBox();
       blobs1.push_back( blob );
       }
-    }  
+    }
 
   typedef itk::ImageRandomConstIteratorWithIndex<ImageType>               randIterator;
   randIterator mIter( image2, image2->GetLargestPossibleRegion() );
@@ -12067,7 +12067,7 @@ int MatchBlobs( int argc, char *argv[] )
     blob->GetObjectToParentTransform()->SetOffset(centerVector);
     blob->ComputeBoundingBox();
     blobs2.push_back( blob );
-    }  
+    }
 
   getBlobCorrespondenceMatrix<ImageDimension,ImageType,BlobsListType >
     ( radval, image, image2, correspondencematrix, blobs1, blobs2, gradsig, dosinkhorn );
@@ -12082,7 +12082,7 @@ int MatchBlobs( int argc, char *argv[] )
   while( ( matchpt < ( corrthresh + 1 ) )  )
       {
       unsigned int maxpair = correspondencematrix_hard.arg_max();
-      if ( maxpair < 1.e-9 ) 
+      if ( maxpair < 1.e-9 )
 	{
 	correspondencematrix_hard.update(  correspondencematrix_soft );
         maxpair = correspondencematrix_hard.arg_max();
@@ -12163,10 +12163,10 @@ int MatchBlobs( int argc, char *argv[] )
       kVectorType kLog1( kneighborhoodval , 0 );
       for( unsigned int bp2 = 0; bp2 < blobpairs.size(); bp2++ )
 	{
-	if ( ( bp2 != bp ) && ( vnl_math_abs( distratiomat( bp2, bp ) - 1 ) <  dthresh )  
-	     //	  &&   ( blobpairs[bp2].first->GetScaleSpaceValue() != blobpairs[bp].first->GetScaleSpaceValue() )   
-	     //   &&   ( blobpairs[bp2].second->GetScaleSpaceValue() != blobpairs[bp].second->GetScaleSpaceValue() )  
-	     ) 
+	if ( ( bp2 != bp ) && ( vnl_math_abs( distratiomat( bp2, bp ) - 1 ) <  dthresh )
+	     //	  &&   ( blobpairs[bp2].first->GetScaleSpaceValue() != blobpairs[bp].first->GetScaleSpaceValue() )
+	     //   &&   ( blobpairs[bp2].second->GetScaleSpaceValue() != blobpairs[bp].second->GetScaleSpaceValue() )
+	     )
 	  {
 	  kct++;
 	  kLog1(  blobpairs[bp2].first->GetScaleSpaceValue() - 1 ) = 1;
@@ -12176,13 +12176,13 @@ int MatchBlobs( int argc, char *argv[] )
       if ( ( kct >= kneighborhoodval ) )
 	{
 	labimg->SetPixel(  blobind, blobpairs[bp].first->GetScaleSpaceValue() );     // ( int ) ( 0.5 +   ( *i )->GetObjectRadius() ) );
-	labimg2->SetPixel( blobpairind, blobpairs[bp].first->GetScaleSpaceValue() ); 
-	confimg2->SetPixel( blobpairind, blobpairs[bp].second->GetScaleSpaceValue() ); 
+	labimg2->SetPixel( blobpairind, blobpairs[bp].first->GetScaleSpaceValue() );
+	confimg2->SetPixel( blobpairind, blobpairs[bp].second->GetScaleSpaceValue() );
 	//	antscout << " blob " << bp << " keep " <<  distratiomat.get_row( bp ) << " LM " << blobpairs[bp].first->GetScaleSpaceValue() <<  std::endl;
 	}
       }
     } // if false
-    if ( true ) 
+    if ( true )
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
@@ -12190,7 +12190,7 @@ int MatchBlobs( int argc, char *argv[] )
       writer->SetInput( &correspondencematrix );
       writer->Write();
       }
-    if ( true ) 
+    if ( true )
       {
       typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
