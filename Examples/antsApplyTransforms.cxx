@@ -2,7 +2,7 @@
 #include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
 #include "ReadWriteImage.h"
-
+#include "TensorFunctions.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkExtractImageFilter.h"
@@ -33,8 +33,8 @@ void
 CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * referenceImage )
 {
   typedef typename TensorImageType::DirectionType DirectionType;
-
-  typename DirectionType::InternalMatrixType direction =
+  typedef typename DirectionType::InternalMatrixType MatrixType;
+  MatrixType direction =
     movingTensorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
 
   if( !direction.is_identity( 0.00001 ) )
@@ -42,24 +42,17 @@ CorrectImageTensorDirection( TensorImageType * movingTensorImage, ImageType * re
     itk::ImageRegionIterator<TensorImageType> It( movingTensorImage, movingTensorImage->GetBufferedRegion() );
     for( It.GoToBegin(); !It.IsAtEnd(); ++It )
       {
-      typename TensorImageType::PixelType tensor = It.Get();
+      typedef typename TensorImageType::PixelType TensorType;
+      typedef typename TensorImageType::DirectionType::InternalMatrixType TensorMatrixType;
 
-      typename TensorImageType::DirectionType::InternalMatrixType dt;
-      dt(0, 0) = tensor[0];
-      dt(0, 1) = dt(1, 0) = tensor[1];
-      dt(0, 2) = dt(2, 0) = tensor[2];
-      dt(1, 1) = tensor[3];
-      dt(1, 2) = dt(2, 1) = tensor[4];
-      dt(2, 2) = tensor[5];
+      TensorType tensor = It.Get();
+      TensorMatrixType dt;
+
+      Vector2Matrix<TensorType,TensorMatrixType>(tensor,dt);
 
       dt = direction * dt * direction.transpose();
 
-      tensor[0] = dt(0, 0);
-      tensor[1] = dt(0, 1);
-      tensor[2] = dt(0, 2);
-      tensor[3] = dt(1, 1);
-      tensor[4] = dt(1, 2);
-      tensor[5] = dt(2, 2);
+      tensor = Matrix2Vector<TensorType,TensorMatrixType>(dt);
 
       It.Set( tensor );
       }
@@ -104,6 +97,18 @@ CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageTyp
     }
 }
 
+template <unsigned int NDim>
+unsigned int numTensorElements()
+{
+  return NDim + numTensorElements<NDim-1>();
+}
+
+template <>
+unsigned int numTensorElements<0>()
+{
+  return 0;
+}
+
 template <class T, unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
@@ -122,7 +127,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
   typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
 
-  const unsigned int NumberOfTensorElements = 6;
+  const unsigned int NumberOfTensorElements = numTensorElements<Dimension>();
 
   typename TimeSeriesImageType::Pointer timeSeriesImage = NULL;
   typename TensorImageType::Pointer tensorImage = NULL;
