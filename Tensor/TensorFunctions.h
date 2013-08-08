@@ -13,31 +13,72 @@
 #include "itkRotationMatrixFromVectors.h"
 #include "vnl/algo/vnl_matrix_inverse.h"
 #include "vnl/algo/vnl_symmetric_eigensystem.h"
+#include "itkMatrix.h"
+#include "itkVariableSizeMatrix.h"
+namespace matHelper
+{
+template <typename TFloat, unsigned int dim>
+unsigned int Rows(const vnl_matrix_fixed<TFloat,dim,dim> &)
+{
+  return dim;
+}
+template <typename TFloat, unsigned int dim>
+unsigned int Columns(const vnl_matrix_fixed<TFloat,dim,dim> &)
+{
+  return dim;
+}
+
+template <typename TFloat,unsigned int rows, unsigned int columns>
+unsigned int Rows(const itk::Matrix<TFloat,rows,columns> &)
+{
+  return rows;
+}
+
+template <typename TFloat,unsigned int rows, unsigned int columns>
+unsigned int Columns(const itk::Matrix<TFloat,rows,columns> &)
+{
+  return columns;
+}
+template <typename TFloat>
+unsigned int Rows(const itk::VariableSizeMatrix<TFloat> &mat)
+{
+  return mat.Rows();
+}
+
+template <typename TFloat>
+unsigned int Columns(const itk::VariableSizeMatrix<TFloat> &mat)
+{
+  return mat.Cols();
+}
+}
+
+template <class TensorType, class MatrixType>
+void Vector2Matrix( TensorType & dtv, MatrixType & dtm )
+{
+  // dtm(0, 0) = dtv[0];
+  // dtm(0, 1) = dtm(1, 0) = dtv[1];
+  // dtm(0, 2) = dtm(2, 0) = dtv[2];
+  // dtm(1, 1) = dtv[3];
+  // dtm(1, 2) = dtm(2, 1) = dtv[4];
+  // dtm(2, 2) = dtv[5];
+  unsigned int tensorIndex = 0;
+  for(unsigned i = 0; i < matHelper::Rows(dtm); ++i)
+    {
+    for(unsigned j = i; matHelper::Columns(dtm); ++j, ++tensorIndex)
+      {
+      dtm(i,j) = dtm(j,i) = dtv[tensorIndex];
+      }
+    }
+}
 
 template <class TensorType, class MatrixType>
 MatrixType Vector2Matrix( TensorType dtv )
 {
   MatrixType dtm(3, 3);
 
-  dtm(0, 0) = dtv[0];
-  dtm(0, 1) = dtm(1, 0) = dtv[1];
-  dtm(0, 2) = dtm(2, 0) = dtv[2];
-  dtm(1, 1) = dtv[3];
-  dtm(1, 2) = dtm(2, 1) = dtv[4];
-  dtm(2, 2) = dtv[5];
+  Vector2Matrix<TensorType,MatrixType>(dtv,dtm);
 
   return dtm;
-}
-
-template <class TensorType, class MatrixType>
-void Vector2Matrix( TensorType & dtv, MatrixType & dtm )
-{
-  dtm(0, 0) = dtv[0];
-  dtm(0, 1) = dtm(1, 0) = dtv[1];
-  dtm(0, 2) = dtm(2, 0) = dtv[2];
-  dtm(1, 1) = dtv[3];
-  dtm(1, 2) = dtm(2, 1) = dtv[4];
-  dtm(2, 2) = dtv[5];
 }
 
 template <class TensorType, class MatrixType>
@@ -45,13 +86,20 @@ TensorType Matrix2Vector( MatrixType dtm )
 {
   TensorType dtv;
 
-  dtv[0] = dtm(0, 0);
-  dtv[1] = dtm(0, 1);
-  dtv[2] = dtm(0, 2);
-  dtv[3] = dtm(1, 1);
-  dtv[4] = dtm(1, 2);
-  dtv[5] = dtm(2, 2);
-
+  // dtv[0] = dtm(0, 0);
+  // dtv[1] = dtm(0, 1);
+  // dtv[2] = dtm(0, 2);
+  // dtv[3] = dtm(1, 1);
+  // dtv[4] = dtm(1, 2);
+  // dtv[5] = dtm(2, 2);
+  unsigned int tensorIndex = 0;
+  for(unsigned i = 0; i < dtm.rows(); ++i)
+    {
+    for(unsigned j = i; dtm.cols(); ++j, ++tensorIndex)
+      {
+      dtv[tensorIndex] = dtm(i,j);
+      }
+    }
   return dtv;
 }
 
@@ -92,12 +140,28 @@ float DiffusionCoefficient( TensorType dtv, VectorType direction, bool normalize
   return fdd;
 }
 
+namespace tensorHelper
+{
+
+template<typename TFloat, unsigned int NDim>
+unsigned int size(const itk::SymmetricSecondRankTensor<TFloat,NDim> &)
+{
+  return NDim;
+}
+
+template<typename TFloat, unsigned int NDim>
+unsigned int size(const itk::Vector<TFloat,NDim> &)
+{
+  return NDim;
+}
+
+}
 template <class TensorType>
 TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
 {
   float eps = 1.e-12, mag = 0;
 
-  for( unsigned int jj = 0; jj < 6; jj++ )
+  for( unsigned int jj = 0; jj < tensorHelper::size(dtv); jj++ )
     {
     float ff = dtv[jj];
     mag += ff * ff;
@@ -110,17 +174,34 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
     }
   mag = sqrt(mag);
 
-  if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
+  // if(  dtv[1] == 0 && dtv[2] == 0 && dtv[4] == 0 )
+  //   {
+  //   success = false;
+  //   return dtv;
+  //   }
+  // rewrite above to avoid going beyond tensor array bounds.
+  {
+  unsigned int indices[3] = { 1, 2, 4 };
+  unsigned int jj;
+  for(jj = 0; indices[jj] < tensorHelper::size(dtv); ++jj)
+    {
+    if(dtv[indices[jj]] != 0.0)
+      {
+      break;
+      }
+    }
+  if(jj == 3)
     {
     success = false;
     return dtv;
     }
+  }
+
   if( mag < eps )
     {
     success = false;
     return dtv;
     }
-
   // typedef vnl_matrix<double>        MatrixType;
   typedef itk::VariableSizeMatrix<typename TensorType::ValueType> MatrixType;
 
