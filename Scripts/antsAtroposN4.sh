@@ -433,15 +433,6 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
 
     logCmd $exe_segmentation
 
-    if [[ CHECK_3_TISSUE_LABELING -eq 1 ]];
-      then
-        # check to make sure that labels haven't permuted.
-        # for use primarily with antsCorticalThickness.sh.
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${ATROPOS_SEGMENTATION} \
-          Check3TissueLabeling ${PRIOR_IMAGE_FILENAMES[0]} ${PRIOR_IMAGE_FILENAMES[1]} ${PRIOR_IMAGE_FILENAMES[2]} \
-          ${POSTERIOR_IMAGE_FILENAMES[0]} ${POSTERIOR_IMAGE_FILENAMES[1]} ${POSTERIOR_IMAGE_FILENAMES[2]}
-      fi
-
     if [[ $i -eq 0 ]];
       then
         if [[ ! -f ${SEGMENTATION_CONVERGENCE_FILE} ]];
@@ -460,6 +451,16 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           done <<< "$logCmdOutput"
 
         echo "${i},${POSTERIOR_PROBABILITY}" >> ${SEGMENTATION_CONVERGENCE_FILE}
+
+        if [[ CHECK_3_TISSUE_LABELING -eq 1 ]];
+          then
+            # check to make sure that labels haven't permuted.
+            # for use primarily with antsCorticalThickness.sh.
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${ATROPOS_SEGMENTATION} \
+              Check3TissueLabeling ${PRIOR_IMAGE_FILENAMES[0]} ${PRIOR_IMAGE_FILENAMES[1]} ${PRIOR_IMAGE_FILENAMES[2]} \
+              ${POSTERIOR_IMAGE_FILENAMES[0]} ${POSTERIOR_IMAGE_FILENAMES[1]} ${POSTERIOR_IMAGE_FILENAMES[2]}
+          fi
+
       fi
 
     if [[ $i -gt 0 && -f ${SEGMENTATION_PREVIOUS_ITERATION} ]];
@@ -476,6 +477,15 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
                 POSTERIOR_PROBABILITY=${tokens[7]}
               fi
           done <<< "$logCmdOutput"
+
+        if [[ CHECK_3_TISSUE_LABELING -eq 1 ]];
+          then
+            # check to make sure that labels haven't permuted.
+            # for use primarily with antsCorticalThickness.sh.
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${ATROPOS_SEGMENTATION} \
+              Check3TissueLabeling ${PRIOR_IMAGE_FILENAMES[0]} ${PRIOR_IMAGE_FILENAMES[1]} ${PRIOR_IMAGE_FILENAMES[2]} \
+              ${POSTERIOR_IMAGE_FILENAMES[0]} ${POSTERIOR_IMAGE_FILENAMES[1]} ${POSTERIOR_IMAGE_FILENAMES[2]}
+          fi
 
         if [[ $( echo "${POSTERIOR_PROBABILITY} < ${POSTERIOR_PROBABILITY_PREVIOUS_ITERATION}"|bc ) -eq 1 ]];
           then
