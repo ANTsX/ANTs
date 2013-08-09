@@ -129,8 +129,6 @@ ANATOMICAL_IMAGES=()
 
 ATROPOS_SEGMENTATION_PRIORS=""
 
-CHECK_3_TISSUE_LABELING=0
-
 ################################################################################
 #
 # Programs and their parameters
@@ -159,7 +157,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:z:" OPT
+  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -215,9 +213,6 @@ else
        ;;
           x) #atropos segmentation mask
        ATROPOS_SEGMENTATION_MASK=$OPTARG
-       ;;
-          z) #check 3 tissue labeling
-       CHECK_3_TISSUE_LABELING=$OPTARG
        ;;
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
@@ -401,18 +396,6 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
         ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${SEGMENTATION_N4_IMAGES[$j]}"
       done
 
-#     INITIALIZATION="PriorProbabilityImages[${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_POSTERIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}]"
-#     if [[ $i -eq 0 ]];
-#       then
-#         if [[ INITIALIZE_WITH_KMEANS -eq 1 ]];
-#           then
-#             INITIALIZATION="kmeans[${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES}]"
-#             INITIALIZE_WITH_KMEANS=0
-#           else
-#             INITIALIZATION="PriorProbabilityImages[${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_PRIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}]"
-#           fi
-#       fi
-
     INITIALIZATION="PriorProbabilityImages[${ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES},${ATROPOS_SEGMENTATION_PRIORS},${ATROPOS_SEGMENTATION_PRIOR_WEIGHT}]"
     if [[ INITIALIZE_WITH_KMEANS -eq 1 ]];
       then
@@ -466,16 +449,6 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           done <<< "$logCmdOutput"
 
         echo "${i},${POSTERIOR_PROBABILITY}" >> ${SEGMENTATION_CONVERGENCE_FILE}
-
-        if [[ CHECK_3_TISSUE_LABELING -eq 1 ]];
-          then
-            # check to make sure that labels haven't permuted.
-            # for use primarily with antsCorticalThickness.sh.
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${ATROPOS_SEGMENTATION} \
-              Check3TissueLabeling ${PRIOR_IMAGE_FILENAMES[0]} ${PRIOR_IMAGE_FILENAMES[1]} ${PRIOR_IMAGE_FILENAMES[2]} \
-              ${POSTERIOR_IMAGE_FILENAMES[0]} ${POSTERIOR_IMAGE_FILENAMES[1]} ${POSTERIOR_IMAGE_FILENAMES[2]}
-          fi
-
       fi
 
     if [[ $i -gt 0 && -f ${SEGMENTATION_PREVIOUS_ITERATION} ]];
@@ -492,15 +465,6 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
                 POSTERIOR_PROBABILITY=${tokens[7]}
               fi
           done <<< "$logCmdOutput"
-
-        if [[ CHECK_3_TISSUE_LABELING -eq 1 ]];
-          then
-            # check to make sure that labels haven't permuted.
-            # for use primarily with antsCorticalThickness.sh.
-            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${ATROPOS_SEGMENTATION} \
-              Check3TissueLabeling ${PRIOR_IMAGE_FILENAMES[0]} ${PRIOR_IMAGE_FILENAMES[1]} ${PRIOR_IMAGE_FILENAMES[2]} \
-              ${POSTERIOR_IMAGE_FILENAMES[0]} ${POSTERIOR_IMAGE_FILENAMES[1]} ${POSTERIOR_IMAGE_FILENAMES[2]}
-          fi
 
         if [[ $( echo "${POSTERIOR_PROBABILITY} < ${POSTERIOR_PROBABILITY_PREVIOUS_ITERATION}"|bc ) -eq 1 ]];
           then

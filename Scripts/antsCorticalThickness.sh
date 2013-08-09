@@ -69,7 +69,11 @@ We use *label* to denote a label image with values in range 0 to N.
                                                 averaged resulting in a probability image.
      -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
                                                 with the -e option.  Specified using c-style formatting, e.g.
-                                                -p labelsPriors%02d.nii.gz.
+                                                -p labelsPriors%02d.nii.gz.  We assume priors are ordered as follows
+                                                  1:  csf
+                                                  2:  cortical gm
+                                                  3:  wm
+                                                  4:  deep gm
      -o:  Output prefix                         The following images are created:
                                                   * ${OUTPUT_PREFIX}N4Corrected.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}ExtractedBrain.${OUTPUT_SUFFIX}
@@ -381,9 +385,9 @@ CSF_MATTER_LABEL_FORMAT=${ROOT}${CSF_MATTER_LABEL}
 SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_PRIOR_WARPED}\%${FORMAT}d.${OUTPUT_SUFFIX}
 NUMBER_OF_PRIOR_IMAGES=${#WARPED_PRIOR_IMAGE_FILENAMES[*]}
 
-if [[ ${NUMBER_OF_PRIOR_IMAGES} -ne 3 ]];
+if [[ ${NUMBER_OF_PRIOR_IMAGES} -ne 4 ]];
   then
-    echo "Expected 3 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
+    echo "Expected 4 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
     exit 1
   fi
 
@@ -493,11 +497,6 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
         echo "   ${EXTRACTED_SEGMENTATION_BRAIN}"
         exit 1
       fi
-    if [[ ${NUMBER_OF_PRIOR_IMAGES} -ne 3 ]];
-      then
-        echo "Expected 3 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
-        exit 1
-      fi
 
     time_start_brain_segmentation=`date +%s`
 
@@ -572,8 +571,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
       -n 5 \
-      -c 3 \
-      -z 1 \
+      -c 4 \
+      -l 4 \
       -l 3 \
       -l 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
@@ -594,8 +593,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -x ${BRAIN_EXTRACTION_MASK} \
       -m 2 \
       -n 5 \
-      -c 3 \
-      -z 1 \
+      -c 4 \
+      -l 4 \
       -l 3 \
       -l 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
