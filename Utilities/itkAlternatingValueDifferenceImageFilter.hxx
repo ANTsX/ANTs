@@ -181,6 +181,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
     }
 }
 
+/*
 template <class TInputImage, class TOutputImage>
 void
 AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
@@ -224,6 +225,7 @@ AlternatingValueDifferenceImageFilter<TInputImage, TOutputImage>
     inputPtr->SetRequestedRegion(inputRegion);
     }
 }
+*/
 
 /**
  * Set up state of filter before multi-threading.

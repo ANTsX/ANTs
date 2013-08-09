@@ -105,7 +105,7 @@ protected:
    * the pipeline execution model of different input requested regions
    * than the output requested region.
    * \sa ImageToImageFilter::GenerateInputRequestedRegion() */
-  virtual void GenerateInputRequestedRegion();
+  //virtual void GenerateInputRequestedRegion();
 
   /** AlternatingValueSimpleSubtractionImageFilter can be implemented as a multithreaded filter.
    * \sa ImageSource::ThreadedGenerateData(),

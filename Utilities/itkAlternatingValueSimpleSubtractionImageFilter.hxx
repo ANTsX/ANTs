@@ -174,6 +174,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
     }
 }
 
+/*
 template <class TInputImage, class TOutputImage>
 void
 AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
@@ -218,6 +219,7 @@ AlternatingValueSimpleSubtractionImageFilter<TInputImage, TOutputImage>
     inputPtr->SetRequestedRegion(inputRegion);
     }
 }
+*/
 
 template <class TInputImage, class TOutputImage>
 void
