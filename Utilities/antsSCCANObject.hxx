@@ -3078,7 +3078,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
       }
     lastgrad = nvec;
-    evec = ( evec * gamma + nvec ) * relfac ;
     VectorType diplus1 =  nvec + di * gamma;
     evec = evec + diplus1 * relfac ;
     for( unsigned int orth = 0; orth < maxorth; orth++ )
