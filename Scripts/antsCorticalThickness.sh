@@ -45,7 +45,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -i t1.nii.gz -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -a t1.nii.gz -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
