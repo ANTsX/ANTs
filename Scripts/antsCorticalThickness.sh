@@ -439,26 +439,29 @@ CORTICAL_THICKNESS_IMAGE=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 #
 ################################################################################
 
-if [[ -f ${EXTRACTION_REGISTRATION_MASK} && ! -f ${BRAIN_EXTRACTION_MASK} ]];
+if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
   then
-    bash ${ANTSPATH}/antsBrainExtraction.sh \
-      -d ${DIMENSION} \
-      -a ${ANATOMICAL_IMAGES[0]} \
-      -e ${BRAIN_TEMPLATE} \
-      -f ${EXTRACTION_REGISTRATION_MASK} \
-      -m ${EXTRACTION_PRIOR} \
-      -o ${OUTPUT_PREFIX} \
-      -k ${KEEP_TMP_IMAGES} \
-      -s ${OUTPUT_SUFFIX}
-  else
-    bash ${ANTSPATH}/antsBrainExtraction.sh \
-      -d ${DIMENSION} \
-      -a ${ANATOMICAL_IMAGES[0]} \
-      -e ${BRAIN_TEMPLATE} \
-      -m ${EXTRACTION_PRIOR} \
-      -o ${OUTPUT_PREFIX} \
-      -k ${KEEP_TMP_IMAGES} \
-      -s ${OUTPUT_SUFFIX}
+    if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]]
+      then
+        bash ${ANTSPATH}/antsBrainExtraction.sh \
+          -d ${DIMENSION} \
+          -a ${ANATOMICAL_IMAGES[0]} \
+          -e ${BRAIN_TEMPLATE} \
+          -f ${EXTRACTION_REGISTRATION_MASK} \
+          -m ${EXTRACTION_PRIOR} \
+          -o ${OUTPUT_PREFIX} \
+          -k ${KEEP_TMP_IMAGES} \
+          -s ${OUTPUT_SUFFIX}
+      else
+        bash ${ANTSPATH}/antsBrainExtraction.sh \
+          -d ${DIMENSION} \
+          -a ${ANATOMICAL_IMAGES[0]} \
+          -e ${BRAIN_TEMPLATE} \
+          -m ${EXTRACTION_PRIOR} \
+          -o ${OUTPUT_PREFIX} \
+          -k ${KEEP_TMP_IMAGES} \
+          -s ${OUTPUT_SUFFIX}
+      fi
   fi
 
 EXTRACTED_SEGMENTATION_BRAIN=${OUTPUT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
@@ -668,7 +671,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 
     logCmd cp ${BRAIN_SEGMENTATION_GM} ${CORTICAL_THICKNESS_GM}
     logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${BRAIN_SEGMENTATION_WM} ${BRAIN_SEGMENTATION_DEEP_GM}
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} DEEP_GRAY_MATTER_LABEL DEEP_GRAY_MATTER_LABEL WHITE_MATTER_LABEL
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${DEEP_GRAY_MATTER_LABEL} ${DEEP_GRAY_MATTER_LABEL} ${WHITE_MATTER_LABEL}
 
     # Check inputs
     if [[ ! -f ${CORTICAL_THICKNESS_SEGMENTATION} ]];
@@ -694,7 +697,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 
     TMP_FILES=( $CORTICAL_THICKNESS_GM $CORTICAL_THICKNESS_WM $CORTICAL_THICKNESS_SEGMENTATION )
 
-    exe_direct="${DIRECT} -d ${DIMENSION} -s [${BRAIN_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}]"
+    exe_direct="${DIRECT} -d ${DIMENSION} -s [${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}]"
     exe_direct="${exe_direct} -g ${CORTICAL_THICKNESS_GM} -w ${CORTICAL_THICKNESS_WM} -o ${CORTICAL_THICKNESS_IMAGE}"
     exe_direct="${exe_direct} -c ${DIRECT_CONVERGENCE} -t ${DIRECT_THICKNESS_PRIOR} -r ${DIRECT_GRAD_STEP_SIZE}"
     exe_direct="${exe_direct} -m ${DIRECT_SMOOTHING_SIGMA} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS}"
