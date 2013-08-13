@@ -8127,6 +8127,54 @@ RemoveLabelInterfaces(int argc, char *argv[])
 
 template <unsigned int ImageDimension>
 void
+ReplaceVoxelValue( int argc, char *argv[] )
+{
+  // Usage:  ImageMath 3 output.nii.gz ReplaceVoxelValue input.nii.gz a b c
+
+  if( argc < 8 )
+    {
+    antscout << " too few options " << std::endl; return;
+    }
+
+  typedef float                                  PixelType;
+  typedef itk::Image<PixelType, ImageDimension>  ImageType;
+
+  const std::string outputFile = std::string( argv[2] );
+  const std::string inputFile = std::string( argv[4] );
+  const PixelType lowThreshold = atof( argv[5] );
+  const PixelType highThreshold = atof( argv[6] );
+  const PixelType replacementValue = atof( argv[7] );
+
+  typename ImageType::Pointer inputImage = NULL;
+  ReadImage<ImageType>( inputImage, inputFile.c_str() );
+
+  typename ImageType::Pointer outputImage = ImageType::New();
+  outputImage->CopyInformation( inputImage );
+  outputImage->SetRegions( inputImage->GetRequestedRegion() );
+  outputImage->Allocate();
+  outputImage->FillBuffer( 0 );
+
+  typename itk::ImageRegionIterator<ImageType> ItI( inputImage, inputImage->GetRequestedRegion() );
+  typename itk::ImageRegionIterator<ImageType> ItO( outputImage, outputImage->GetRequestedRegion() );
+
+  for( ItI.GoToBegin(), ItO.GoToBegin(); !ItI.IsAtEnd(); ++ItI, ++ItO )
+    {
+    PixelType inputVoxel = ItI.Get();
+    if( inputVoxel >= lowThreshold && inputVoxel <= highThreshold )
+      {
+      ItO.Set( replacementValue );
+      }
+    else
+      {
+      ItO.Set( inputVoxel );
+      }
+    }
+
+  WriteImage<ImageType>( outputImage, outputFile.c_str() );
+}
+
+template <unsigned int ImageDimension>
+void
 EnumerateLabelInterfaces(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
@@ -12645,6 +12693,8 @@ private:
     antscout << "\n  RemoveLabelInterfaces: " << std::endl;
     antscout << "      Usage        : RemoveLabelInterfaces ImageIn" << std::endl;
 
+    antscout << "\n  ReplaceVoxelValue: replace voxels in the range [a,b] in the input image with c" << std::endl;
+    antscout << "      Usage        : ReplaceVoxelValue inputImage a b c" << std::endl;
     antscout
       <<
       "\n  ROIStatistics        : computes anatomical locations, cluster size and mass of a stat image which should be in the same physical space (but not nec same resolution) as the label image."
@@ -12927,6 +12977,10 @@ private:
       else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
         {
         RemoveLabelInterfaces<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ReplaceVoxelValue") == 0 )
+        {
+        ReplaceVoxelValue<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
         {
@@ -13232,6 +13286,10 @@ private:
       else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
         {
         RemoveLabelInterfaces<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ReplaceVoxelValue") == 0 )
+        {
+        ReplaceVoxelValue<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
         {
@@ -13681,6 +13739,10 @@ private:
       else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
         {
         RemoveLabelInterfaces<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ReplaceVoxelValue") == 0 )
+        {
+        ReplaceVoxelValue<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
         {
