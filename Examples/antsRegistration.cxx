@@ -365,16 +365,6 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "float" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
-
-    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -486,43 +476,12 @@ private:
       return EXIT_FAILURE;
       }
 
-    std::string precisionType;
-    OptionType::Pointer typeOption = parser->GetOption( "float" );
-    if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
-      {
-      antscout << "Using single precision for computations." << std::endl;
-      precisionType = "float";
-      }
-    else
-      {
-      antscout << "Using double precision for computations." << std::endl;
-      precisionType = "double";
-      }
-
     switch( dimension )
       {
       case 2:
-        {
-        if( strcmp( precisionType.c_str(), "float" ) == 0 )
-          {
-          return antsRegistration2DFloat( parser );
-          }
-        else
-          {
-          return antsRegistration2DDouble( parser );
-          }
-        }
+        return antsRegistration2DDouble( parser );
       case 3:
-        {
-        if( strcmp( precisionType.c_str(), "float" ) == 0 )
-          {
-          return antsRegistration3DFloat( parser );
-          }
-        else
-          {
-          return antsRegistration3DDouble( parser );
-          }
-        }
+        return antsRegistration3DDouble( parser );
       default:
         antscout << "bad image dimension " << dimension << std::endl;
         return EXIT_FAILURE;

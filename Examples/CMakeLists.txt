@@ -19,8 +19,8 @@ set(UI_SOURCES "../Utilities/antsCommandLineParser" "../Utilities/antsCommandLin
 ## Directly into the other libraries.
 add_library(antsUtilities STATIC antsUtilities.cxx ../Utilities/ReadWriteImage.cxx
 		antsRegistrationTemplateHeader.cxx
-	      	antsRegistration2DDouble.cxx antsRegistration2DFloat.cxx
-		antsRegistration3DDouble.cxx antsRegistration3DFloat.cxx)
+	      	antsRegistration2DDouble.cxx
+		antsRegistration3DDouble.cxx)
 target_link_libraries(antsUtilities ${ITK_LIBRARIES} )
 
 macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)

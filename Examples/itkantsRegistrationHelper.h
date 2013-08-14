@@ -95,7 +95,7 @@ namespace ants
 typedef itk::ants::CommandLineParser ParserType;
 typedef ParserType::OptionType       OptionType;
 
-template <class T, unsigned VImageDimension>
+template <unsigned VImageDimension>
 class RegistrationHelper : public itk::Object
 {
 public:
@@ -106,13 +106,13 @@ public:
   typedef itk::SmartPointer<const Self> ConstPointer;
   typedef itk::WeakPointer<const Self>  ConstWeakPointer;
 
-  typedef T                                      RealType;
-  typedef T                                      PixelType;
+  typedef double                                 RealType;
+  typedef double                                 PixelType;
   typedef itk::Image<PixelType, VImageDimension> ImageType;
   typedef typename ImageType::Pointer            ImagePointer;
   typedef itk::ImageBase<VImageDimension>        ImageBaseType;
 
-  typedef itk::Transform<T, VImageDimension, VImageDimension>                        TransformType;
+  typedef itk::Transform<double, VImageDimension, VImageDimension>                   TransformType;
   typedef itk::AffineTransform<RealType, VImageDimension>                            AffineTransformType;
   typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, AffineTransformType>  AffineRegistrationType;
   typedef typename AffineRegistrationType::ShrinkFactorsPerDimensionContainerType    ShrinkFactorsPerDimensionContainerType;
@@ -124,9 +124,8 @@ public:
   typedef typename DisplacementFieldTransformType::Pointer                           DisplacementFieldTransformPointer;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType             DisplacementFieldType;
   typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension>          TimeVaryingVelocityFieldTransformType;
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       MetricType;
-  typedef itk::ObjectToObjectMultiMetricv4
-                     <VImageDimension, VImageDimension, ImageType, RealType>         MultiMetricType;
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType>                            MetricType;
+  typedef itk::ObjectToObjectMultiMetricv4<VImageDimension, VImageDimension>         MultiMetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
   typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;
@@ -666,13 +665,13 @@ private:
 // ##########################################################################
 
 // Provide common way of reading transforms.
-template <class T, unsigned VImageDimension>
-typename ants::RegistrationHelper<T, VImageDimension>::CompositeTransformType::Pointer
+template <unsigned VImageDimension>
+typename ants::RegistrationHelper<VImageDimension>::CompositeTransformType::Pointer
 GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,
                                        std::vector<bool> & derivedTransforms, bool useStaticCastForR = false )
 {
-  typedef typename ants::RegistrationHelper<T, VImageDimension>      RegistrationHelperType;
+  typedef typename ants::RegistrationHelper<VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
@@ -713,8 +712,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       unsigned short initializationFeature = parser->Convert<unsigned short>(
         initialTransformOption->GetFunction( n )->GetParameter( 2 ) );
 
-      typedef itk::AffineTransform<T, VImageDimension> TransformType;
-
+      typedef itk::AffineTransform<double, VImageDimension> TransformType;
       typename TransformType::Pointer transform = TransformType::New();
 
       if( initializationFeature == 0 || initializationFeature == 1 )
@@ -761,7 +759,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 0 )
         + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
 
-      typedef itk::TranslationTransform<T, VImageDimension> TranslationTransformType;
+      typedef itk::TranslationTransform<double, VImageDimension> TranslationTransformType;
       typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
       translationTransform->SetOffset( transform->GetTranslation() );
 
@@ -797,20 +795,20 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       MatOffRegistered = true;
       // Register the matrix offset transform base class to the
       // transform factory for compatibility with the current ANTs.
-      typedef itk::MatrixOffsetTransformBase<T, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+      typedef itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension> MatrixOffsetTransformType;
       itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
       }
 
     if( !calculatedTransformFromImages )
       {
-      typedef ants::RegistrationHelper<T, VImageDimension>                       RegistrationHelperType;
+      typedef ants::RegistrationHelper<VImageDimension>                       RegistrationHelperType;
       typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
 
       typedef typename RegistrationHelperType::TransformType TransformType;
       typename TransformType::Pointer initialTransform;
       if( std::strcmp( initialTransformName.c_str(), "identity" ) == 0 || std::strcmp( initialTransformName.c_str(), "Identity" ) == 0 )
         {
-        typedef itk::MatrixOffsetTransformBase<T, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+        typedef itk::MatrixOffsetTransformBase<double, VImageDimension, VImageDimension> MatrixOffsetTransformType;
         typename MatrixOffsetTransformType::Pointer identityTransform = MatrixOffsetTransformType::New();
         identityTransform->SetIdentity();
 
@@ -818,7 +816,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       else
         {
-        initialTransform = itk::ants::ReadTransform<T, VImageDimension>( initialTransformName, useStaticCastForR );
+        initialTransform = itk::ants::ReadTransform<VImageDimension>( initialTransformName, useStaticCastForR );
         }
       if( initialTransform.IsNull() )
         {
@@ -838,8 +836,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       static const std::string CompositeTransformID("CompositeTransform");
       if( initialTransform->GetNameOfClass() == CompositeTransformID )
         {
-        const typename itk::CompositeTransform<T, VImageDimension>::ConstPointer tempComp =
-          dynamic_cast<const itk::CompositeTransform<T, VImageDimension> *>( initialTransform.GetPointer() );
+        const typename itk::CompositeTransform<double, VImageDimension>::ConstPointer tempComp =
+          dynamic_cast<const itk::CompositeTransform<double, VImageDimension> *>( initialTransform.GetPointer() );
         for( unsigned int i = 0; i < tempComp->GetNumberOfTransforms(); ++i )
           {
           std::stringstream tempstream;

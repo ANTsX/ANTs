@@ -168,16 +168,16 @@ int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* 
   
   antscout->set_stream( out_stream );
   {
-  itk::Transform<double, 2, 2>::Pointer firstTransform = itk::ants::ReadTransform<double, 2>(args[0]);
-  itk::Transform<double, 2, 2>::Pointer secondTransform = itk::ants::ReadTransform<double, 2>(args[1]);
+  itk::Transform<double, 2, 2>::Pointer firstTransform = itk::ants::ReadTransform<2>(args[0]);
+  itk::Transform<double, 2, 2>::Pointer secondTransform = itk::ants::ReadTransform<2>(args[1]);
   if( firstTransform.IsNotNull() && secondTransform.IsNotNull() )
     {
     return compareComposites<2>(firstTransform, secondTransform);
     }
   }
   {
-  itk::Transform<double, 3, 3>::Pointer firstTransform = itk::ants::ReadTransform<double, 3>(args[0]);
-  itk::Transform<double, 3, 3>::Pointer secondTransform = itk::ants::ReadTransform<double, 3>(args[1]);
+  itk::Transform<double, 3, 3>::Pointer firstTransform = itk::ants::ReadTransform<3>(args[0]);
+  itk::Transform<double, 3, 3>::Pointer secondTransform = itk::ants::ReadTransform<3>(args[1]);
   if( firstTransform.IsNotNull() && secondTransform.IsNotNull() )
     {
     return compareComposites<3>(firstTransform, secondTransform);

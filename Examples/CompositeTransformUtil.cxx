@@ -48,7 +48,7 @@ static void PrintGenericUsageStatement()
  */
 template <unsigned int VImageDimension>
 int
-Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & transformName, const std::string & prefix)
+Disassemble(itk::TransformBase *transform, const std::string & transformName, const std::string & prefix)
 {
   typedef itk::CompositeTransform<double, VImageDimension>                  CompositeTransformType;
   typedef typename CompositeTransformType::TransformTypePointer             TransformPointer;
@@ -82,7 +82,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
       {
       fname << ".mat";  //  .txt does not have enough precision!
       }
-    itk::ants::WriteTransform<double, VImageDimension>(curXfrm, fname.str() );
+    itk::ants::WriteTransform<VImageDimension>(curXfrm, fname.str() );
     }
   return EXIT_SUCCESS;
 }
@@ -90,11 +90,11 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
 static int Disassemble(const std::string & CompositeName,
                        const std::string & Prefix)
 {
-  itk::TransformBaseTemplate<double>::Pointer transform = itk::ants::ReadTransform<double, 2>(CompositeName).GetPointer();
+  itk::TransformBase::Pointer transform = itk::ants::ReadTransform<2>(CompositeName).GetPointer();
 
   if( transform.IsNull() )
     {
-    transform = itk::ants::ReadTransform<double, 3>(CompositeName).GetPointer();
+    transform = itk::ants::ReadTransform<3>(CompositeName).GetPointer();
     if( transform.IsNull() )
       {
       return EXIT_FAILURE; // ReadTransform prints error messages on
@@ -135,7 +135,7 @@ Assemble(const std::string & CompositeName,
   composite->AddTransform(firstTransform);
   for( unsigned int i = 1; i < transformNames.size(); ++i )
     {
-    typename TransformType::Pointer curXfrm = itk::ants::ReadTransform<double, VImageDimension>(transformNames[i]);
+    typename TransformType::Pointer curXfrm = itk::ants::ReadTransform<VImageDimension>(transformNames[i]);
     if( curXfrm.IsNull() )
       {
       return EXIT_FAILURE; // ReadTransform will complain if anything goes wrong.
@@ -143,21 +143,21 @@ Assemble(const std::string & CompositeName,
     composite->AddTransform(curXfrm);
     }
   typename TransformType::Pointer genericXfrmPtr = composite.GetPointer();
-  return itk::ants::WriteTransform<double, VImageDimension>(genericXfrmPtr, CompositeName);
+  return itk::ants::WriteTransform<VImageDimension>(genericXfrmPtr, CompositeName);
 }
 
 static int Assemble(const std::string & CompositeName,
                     const std::vector<std::string> & transformNames)
 {
     {
-    itk::Transform<double, 2, 2>::Pointer FirstTransform = itk::ants::ReadTransform<double, 2>(transformNames[0]);
+    itk::Transform<double, 2, 2>::Pointer FirstTransform = itk::ants::ReadTransform<2>(transformNames[0]);
     if( FirstTransform.IsNotNull() )
       {
       return Assemble<2>(CompositeName, transformNames, FirstTransform);
       }
     }
     {
-    itk::Transform<double, 3, 3>::Pointer FirstTransform = itk::ants::ReadTransform<double, 3>(transformNames[0]);
+    itk::Transform<double, 3, 3>::Pointer FirstTransform = itk::ants::ReadTransform<3>(transformNames[0]);
     if( FirstTransform.IsNotNull() )
       {
       return Assemble<3>(CompositeName, transformNames, FirstTransform);

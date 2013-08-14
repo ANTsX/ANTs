@@ -330,7 +330,7 @@ int ConvertTransformFile(int argc, char* argv[])
   typename TransformType::Pointer transform;
   typedef itk::MatrixOffsetTransformBase<double, ImageDimension, ImageDimension> baseTransformType;
   itk::TransformFactory<baseTransformType>::RegisterTransform();
-  transform = itk::ants::ReadTransform<double, ImageDimension>( inputFilename );
+  transform = itk::ants::ReadTransform<ImageDimension>( inputFilename );
   if( transform.IsNull() )
     {
     antscout << "Error while reading transform file. Did you specify the correct dimension?" << std::endl;
@@ -418,7 +418,7 @@ int ConvertTransformFile(int argc, char* argv[])
       antscout << "Unexpected error casting from affine transform to transform type." << std::endl;
       return EXIT_FAILURE;
       }
-    int result = itk::ants::WriteTransform<double, ImageDimension>( transform, outFilename );
+    int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
     if( result == EXIT_FAILURE )
       {
       antscout << "Failed writing converted transform to binary format." << std::endl;
@@ -436,7 +436,7 @@ int ConvertTransformFile(int argc, char* argv[])
              << std::endl;
     return EXIT_FAILURE;
     }
-  int result = itk::ants::WriteTransform<double, ImageDimension>( transform, outFilename );
+  int result = itk::ants::WriteTransform<ImageDimension>( transform, outFilename );
   if( result == EXIT_FAILURE )
     {
     antscout << "Failed writing transform to text format." << std::endl;

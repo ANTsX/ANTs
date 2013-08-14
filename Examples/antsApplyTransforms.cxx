@@ -109,11 +109,11 @@ unsigned int numTensorElements<0>()
   return 0;
 }
 
-template <class T, unsigned int Dimension>
+template <unsigned int Dimension>
 int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigned int inputImageType = 0 )
 {
-  typedef T                                RealType;
-  typedef T                                PixelType;
+  typedef double                           RealType;
+  typedef double                           PixelType;
   typedef itk::Vector<RealType, Dimension> VectorType;
 
   // typedef unsigned int                     LabelPixelType;
@@ -284,7 +284,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   std::vector<bool> isDerivedTransform;
   typename CompositeTransformType::Pointer compositeTransform =
-    GetCompositeTransformFromParserOption<RealType, Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
+    GetCompositeTransformFromParserOption<Dimension>( parser, transformOption, isDerivedTransform, useStaticCastForR );
   if( compositeTransform.IsNull() )
     {
     return EXIT_FAILURE;
@@ -682,16 +682,6 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     }
 
     {
-    std::string description = std::string( "Use 'float' instead of 'double' for computations." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "float" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
-
-    {
     std::string description = std::string( "Print the help menu (short version)." );
 
     OptionType::Pointer option = OptionType::New();
@@ -836,23 +826,6 @@ private:
     dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
     }
 
-  bool useDoublePrecision = true;
-
-  std::string precisionType;
-  OptionType::Pointer typeOption = parser->GetOption( "float" );
-  if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
-    {
-    antscout << "Using single precision for computations." << std::endl;
-    precisionType = "float";
-    useDoublePrecision = false;
-    }
-  else
-    {
-    antscout << "Using double precision for computations." << std::endl;
-    precisionType = "double";
-    useDoublePrecision = true;
-    }
-
   enum InputImageType
     {
     SCALAR = 0,
@@ -899,27 +872,13 @@ private:
         }
       else
         {
-        if( useDoublePrecision )
-          {
-          antsApplyTransforms<double, 2>( parser, imageType );
-          }
-        else
-          {
-          antsApplyTransforms<float, 2>( parser, imageType );
-          }
+        antsApplyTransforms<2>( parser, imageType );
         }
       }
       break;
     case 3:
       {
-      if( useDoublePrecision )
-        {
-        antsApplyTransforms<double, 3>( parser, imageType );
-        }
-      else
-        {
-        antsApplyTransforms<float, 3>( parser, imageType );
-        }
+      antsApplyTransforms<3>( parser, imageType );
       }
       break;
     case 4:
@@ -934,14 +893,7 @@ private:
         }
       else
         {
-        if( useDoublePrecision )
-          {
-          antsApplyTransforms<double, 4>( parser, imageType );
-          }
-        else
-          {
-          antsApplyTransforms<float, 4>( parser, imageType );
-          }
+        antsApplyTransforms<4>( parser, imageType );
         }
       }
       break;

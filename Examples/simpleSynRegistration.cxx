@@ -16,7 +16,7 @@ output prefix file name
 
 namespace ants
 {
-typedef  ants::RegistrationHelper<double, 3>                    RegistrationHelperType;
+typedef  ants::RegistrationHelper<3>                    RegistrationHelperType;
 typedef  RegistrationHelperType::ImageType              ImageType;
 typedef  RegistrationHelperType::CompositeTransformType CompositeTransformType;
 
@@ -150,7 +150,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
 
   // ===========Read the initial transform and write that in a composite transform
   typedef RegistrationHelperType::TransformType TransformType;
-  TransformType::Pointer initialTransform = itk::ants::ReadTransform<double, 3>( args[2] );
+  TransformType::Pointer initialTransform = itk::ants::ReadTransform<3>( args[2] );
   if( initialTransform.IsNull() )
     {
     antscout << "Can't read initial transform " << std::endl;
@@ -171,7 +171,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
   antscout << "***** Ready to write the results ...\n" << std::endl;
   std::stringstream outputFileName;
   outputFileName << args[3] << "Warp.nii.gz";
-  itk::ants::WriteTransform<double, 3>( outputTransform, outputFileName.str() );
+  itk::ants::WriteTransform<3>( outputTransform, outputFileName.str() );
 
   // compute and write the inverse of the output transform
   const bool writeInverse(true);
