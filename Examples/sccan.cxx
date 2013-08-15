@@ -1392,7 +1392,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
 template <unsigned int ImageDimension, class PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
-              PixelType usel1 , PixelType uselong, PixelType row_sparseness , PixelType smoother )
+              PixelType usel1 , PixelType uselong, PixelType row_sparseness , PixelType smoother, bool positiveWeights )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -1456,18 +1456,23 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typename ImageType::Pointer mask2 = NULL;
   bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
 
+  if ( positiveWeights ) 
+    {
+    antscout << "PositivityConstraint is ON" << std::endl;
+    }
+
   /** the penalties define the fraction of non-zero values for each view */
   double FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
-    sccanobj->SetKeepPositiveP(false);
+    sccanobj->SetKeepPositiveP(positiveWeights);
     }
   double FracNonZero2 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
-    sccanobj->SetKeepPositiveQ(false);
+    sccanobj->SetKeepPositiveQ(positiveWeights);
     }
 
   sccanobj->SetFractionNonZeroP(FracNonZero1);
@@ -2193,6 +2198,21 @@ int sccan( itk::ants::CommandLineParser *parser )
     q_cluster_thresh = parser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
     }
 
+  bool positiveWeights = false;
+   itk::ants::CommandLineParser::OptionType::Pointer positivity_option = 
+     parser->GetOption( "PositivityConstraint" );
+  if( !positivity_option || positivity_option->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    unsigned int positivityValue = parser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
+    if (positivityValue > 0 ) 
+      {
+      positiveWeights = true;
+      }
+    }
+
   bool                                              eigen_imp = false;
   itk::ants::CommandLineParser::OptionType::Pointer eigen_option =
     parser->GetOption( "ridge_cca" );
@@ -2330,7 +2350,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       antscout << " scca 2-view " << std::endl;
       exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
                                                     q_cluster_thresh,
-                                                    iterct, usel1 , uselong , row_sparseness, smoother);
+                                                    iterct, usel1 , uselong , row_sparseness, smoother, positiveWeights );
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
@@ -2515,6 +2535,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "QClusterThresh" );
     option->SetUsageOption( 0, "1" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "keep weights positive for two-view" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "PositivityConstraint" );
+    option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
