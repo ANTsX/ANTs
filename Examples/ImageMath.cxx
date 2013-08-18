@@ -95,6 +95,7 @@
 #include "itkShrinkImageFilter.h"
 #include "itkSigmoidImageFilter.h"
 #include "itkSize.h"
+#include "itkSliceTimingCorrectionImageFilter.h"
 #include "itkSphereSpatialFunction.h"
 #include "itkSplitAlternatingTimeSeriesImageFilter.h"
 #include "itkSTAPLEImageFilter.h"
@@ -2327,6 +2328,93 @@ int SplitAlternatingTimeSeries(int argc, char *argv[])
   return 0;
 
 }
+
+template <unsigned int ImageDimension>
+int SliceTimingCorrection(int argc, char *argv[])
+{
+  typedef float                                     PixelType;
+  typedef itk::Image<PixelType, ImageDimension>     InputImageType;
+  typedef itk::Image<PixelType, ImageDimension>     OutputImageType;
+
+  typedef itk::SliceTimingCorrectionImageFilter<InputImageType, OutputImageType> ImageFilterType;
+
+  typedef itk::BSplineInterpolateImageFunction<InputImageType, double > BSplineInterpolatorType;
+  typedef typename BSplineInterpolatorType::Pointer                     BSplineInterpolatorPointerType;
+
+  typedef itk::WindowedSincInterpolateImageFunction<InputImageType, ImageDimension-1>   SincInterpolatorType;
+  typedef typename SincInterpolatorType::Pointer                         SincInterpolatorPointerType;
+
+  if ( argc < 6 ) 
+    {
+    std::cout << "Usage: ImageMath 4 out.nii.gz SliceTimingCorrection input.nii.gz sliceTiming [sinc/bspline] [sincRadius=4/bsplineOrder=3]" << std::endl;
+    return( 1 );
+    }
+
+  int         argct = 2;
+  const std::string outname = std::string(argv[argct++]);
+  argct++;
+  std::string fn1 = std::string(argv[argct++]);
+  float sliceTiming = atof( argv[argct++] );
+
+  typename ImageFilterType::Pointer filter = ImageFilterType::New();
+  filter->SetTimeDimension( ImageDimension - 1 );
+  filter->SetSliceTiming( sliceTiming );
+
+  if( argc >= 7 )
+    {
+    std::string interp = argv[argct++];
+    if( strcmp( "sinc", interp.c_str() ) == 0 )
+      {
+      unsigned int sincRadius = 4;
+      if ( argc >= 8 )
+        {
+        sincRadius = atoi( argv[argct++] );
+        }
+      antscout << "Using sinc interpolation of radius " << sincRadius << std::endl;
+
+      SincInterpolatorPointerType sInterp = SincInterpolatorType::New();
+      filter->SetInterpolator( sInterp );
+      filter->SetIndexPadding( sincRadius );
+      }
+    else if ( strcmp( "bspline", interp.c_str() ) == 0 )
+      {
+      unsigned int order = 3;
+      if ( argc >= 8 )
+        {
+        order = atoi( argv[argct++] );
+        }
+      antscout << "Using bspline interpolation of order " << order << std::endl;
+
+      BSplineInterpolatorPointerType interpB = BSplineInterpolatorType::New();
+      interpB->SetSplineOrder( order );
+
+      filter->SetInterpolator( interpB );
+      filter->SetIndexPadding( 1 );
+      }
+    else
+      {
+      antscout << "Using linear interpolation" << std::endl;
+      }
+    }
+
+  typename InputImageType::Pointer image1 = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<InputImageType>(image1, fn1.c_str() );
+    }
+  else
+    {
+    return 1;
+    }
+
+  filter->SetInput( image1 );
+  filter->Update();
+
+  WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
+
+  return 0;
+}
+
 
 template <unsigned int ImageDimension>
 int AverageOverDimension(int argc, char *argv[])
@@ -12411,6 +12499,11 @@ private:
     antscout << "    Usage        : ComputeTimeSeriesLeverage 4D_TimeSeries.nii.gz k_neighbors " << std::endl;
 
     antscout
+      << " SliceTimingCorrection : Outputs a slice-timing corrected 4D time series"
+      << std::endl;
+    antscout << "    Usage        : SliceTimingCorrection image.nii.gz sliceTiming [sinc / bspline] [sincRadius=4 / bsplineOrder=3]" << std::endl;
+
+    antscout
       <<
       " PASL : computes the PASL model of CBF  "     << std::endl <<  "f =  \frac{      lambda DeltaM        } "
       << std::endl
@@ -13900,6 +13993,10 @@ private:
         {
         SplitAlternatingTimeSeries<4>(argc, argv);
         }
+      else if ( strcmp(operation.c_str(), "SliceTimingCorrection") == 0 )
+        {
+        SliceTimingCorrection<4>(argc, argv);
+        }      
       else if ( strcmp(operation.c_str(), "AverageOverDimension") == 0 )
         {
         AverageOverDimension<4>(argc, argv);

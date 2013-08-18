@@ -1461,13 +1461,14 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
-    sccanobj->SetKeepPositiveP(false);
+    sccanobj->SetKeepPositiveP(false);  // true if P sparsity > 0
+                                        
     }
   double FracNonZero2 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
-    sccanobj->SetKeepPositiveQ(false);
+    sccanobj->SetKeepPositiveQ(false);  // true if Q sparsity > 0
     }
 
   sccanobj->SetFractionNonZeroP(FracNonZero1);
@@ -2193,6 +2194,21 @@ int sccan( itk::ants::CommandLineParser *parser )
     q_cluster_thresh = parser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
     }
 
+  bool positiveWeights = false;
+   itk::ants::CommandLineParser::OptionType::Pointer positivity_option = 
+     parser->GetOption( "PositivityConstraint" );
+  if( !positivity_option || positivity_option->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    unsigned int positivityValue = parser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
+    if (positivityValue > 0 ) 
+      {
+      positiveWeights = true;
+      }
+    }
+
   bool                                              eigen_imp = false;
   itk::ants::CommandLineParser::OptionType::Pointer eigen_option =
     parser->GetOption( "ridge_cca" );
@@ -2327,10 +2343,9 @@ int sccan( itk::ants::CommandLineParser *parser )
     unsigned int exitvalue = EXIT_FAILURE;
     if(  !initializationStrategy.compare( std::string( "two-view" ) )  )
       {
-      antscout << " scca 2-view " << std::endl;
       exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
                                                     q_cluster_thresh,
-                                                    iterct, usel1 , uselong , row_sparseness, smoother);
+                                                    iterct, usel1 , uselong , row_sparseness, smoother );
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
