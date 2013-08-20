@@ -100,7 +100,7 @@ public:
       this->m_lastTotalTime = now;
       m_clock.Start();
 
-      typedef itk::GradientDescentOptimizerTemplatev4<RealType> GradientDescentOptimizerType;
+      typedef itk::GradientDescentOptimizerv4Template<RealType> GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
           const_cast<typename TFilter::OptimizerType *>( const_cast<TFilter *>( filter )->GetOptimizer() ) );
 

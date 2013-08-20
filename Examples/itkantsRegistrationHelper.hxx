@@ -1160,7 +1160,7 @@ RegistrationHelper<T, VImageDimension>
     scalesEstimator->SetMetric( singleMetric );
     scalesEstimator->SetTransformForward( true );
 
-    typedef itk::ConjugateGradientLineSearchOptimizerTemplatev4<T> ConjugateGradientDescentOptimizerType;
+    typedef itk::ConjugateGradientLineSearchOptimizerv4Template<T> ConjugateGradientDescentOptimizerType;
     typename ConjugateGradientDescentOptimizerType::Pointer optimizer = ConjugateGradientDescentOptimizerType::New();
     optimizer->SetLowerLimit( 0 );
     optimizer->SetUpperLimit( 2 );
@@ -1193,8 +1193,8 @@ RegistrationHelper<T, VImageDimension>
       optimizerObserver->SetCurrentStageNumber( currentStageNumber );
       }
 
-    typedef itk::GradientDescentLineSearchOptimizerTemplatev4<T> GradientDescentLSOptimizerType;
-    typedef itk::GradientDescentOptimizerTemplatev4<T>           GradientDescentOptimizerType;
+    typedef itk::GradientDescentLineSearchOptimizerv4Template<T> GradientDescentLSOptimizerType;
+    typedef itk::GradientDescentOptimizerv4Template<T>           GradientDescentOptimizerType;
     typename GradientDescentOptimizerType::Pointer optimizer2 = GradientDescentOptimizerType::New();
     //    optimizer2->SetLowerLimit( 0 );
     //    optimizer2->SetUpperLimit( 2 );
