@@ -130,6 +130,7 @@ set(BASE_ANTS_APPS
   ConvertTransformFile
   compareTwoCompositeTransforms
   TimeSCCAN
+  GetConnectedComponentsFeatureImages
 )
 foreach(ANTS_APP ${BASE_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "")

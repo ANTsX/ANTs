@@ -171,4 +171,6 @@
 
 #include "compareTwoCompositeTransforms.h"
 
+#include "GetConnectedComponentsFeatureImages.h"
+
 #endif // ants_h

@@ -42,6 +42,7 @@
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
 #include "itkDanielssonDistanceMapImageFilter.h"
+#include "itkSignedMaurerDistanceMapImageFilter.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkExpImageFilter.h"
 #include "itkExtractImageFilter.h"
@@ -83,6 +84,7 @@
 #include "itkNeighborhood.h"
 #include "itkNeighborhoodAlgorithm.h"
 #include "itkNeighborhoodIterator.h"
+#include "itkNeighborhoodFirstOrderStatisticsImageFilter.h"
 #include "itkNormalVariateGenerator.h"
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkPseudoContinuousArterialSpinLabeledCerebralBloodFlowImageFilter.h"
@@ -1610,6 +1612,125 @@ int HistogramMatching(int argc, char * argv[])
   return 0;
 }
 
+template<unsigned int ImageDimension>
+int RescaleImage( int argc, char * argv[] )
+{
+  if( argc < 7 )
+    {
+    antscout << " need more args -- see usage   " << std::endl;
+    throw std::exception();
+    }
+
+  typedef float                                                   PixelType;
+  typedef itk::Image<PixelType, ImageDimension>                   ImageType;
+  typedef itk::RescaleIntensityImageFilter<ImageType, ImageType>  RescalerType;
+
+  // Usage:  ImageMath 3 output.nii.gz RescaleImage input.nii.gz min max
+
+  const std::string outputName = std::string( argv[2] );
+  const std::string inputName = std::string( argv[4] );
+  const PixelType min = static_cast<PixelType>( atof( argv[5] ) );
+  const PixelType max = static_cast<PixelType>( atof( argv[6] ) );
+
+  typename ImageType::Pointer input;
+  ReadImage<ImageType>( input, inputName.c_str() );
+
+  typedef itk::RescaleIntensityImageFilter<ImageType, ImageType> RescaleFilterType;
+  typename RescaleFilterType::Pointer rescaler = RescaleFilterType::New();
+  rescaler->SetOutputMinimum( min );
+  rescaler->SetOutputMaximum( max );
+  rescaler->SetInput( input );
+  rescaler->Update();
+
+  WriteImage<ImageType>( rescaler->GetOutput(), outputName.c_str() );
+  return 0;
+}
+
+template<unsigned int ImageDimension>
+int NeighborhoodStats( int itkNotUsed( argc ), char * argv[] )
+{
+  typedef float                                   PixelType;
+  typedef itk::Image<PixelType, ImageDimension>   ImageType;
+
+  typedef itk::VectorImage<PixelType, ImageDimension> VectorImageType;
+  typedef itk::FlatStructuringElement<ImageDimension> KernelType;
+  typedef itk::NeighborhoodFirstOrderStatisticsImageFilter<ImageType, VectorImageType, KernelType> TextureFilterType;
+
+  const std::string outputName = std::string( argv[2] );
+  const std::string inputName = std::string( argv[4] );
+  const unsigned int whichStat = static_cast<unsigned int>( atoi( argv[5] ) );
+  const unsigned int rad = static_cast<unsigned int>( atoi( argv[6] ) );
+
+  typename ImageType::Pointer input;
+  ReadImage<ImageType>( input, inputName.c_str() );
+
+  typename KernelType::SizeType radius;
+  radius.Fill( rad );
+  KernelType kernel = KernelType::Box( radius );
+
+  typename TextureFilterType::Pointer filter = TextureFilterType::New();
+  filter->SetKernel( kernel );
+  filter->SetInput( input );
+  filter->Update();
+
+  typedef itk::VectorIndexSelectionCastImageFilter<VectorImageType, ImageType> IndexSelectionType;
+  typename IndexSelectionType::Pointer indexSelectionFilter = IndexSelectionType::New();
+  indexSelectionFilter->SetInput( filter->GetOutput() );
+
+  switch( whichStat )
+    {
+    case 0:
+      {
+      indexSelectionFilter->SetIndex( 0 );
+      break;
+      }
+    case 1:
+      {
+      indexSelectionFilter->SetIndex( 1 );
+      break;
+      }
+    case 2:
+      {
+      indexSelectionFilter->SetIndex( 2 );
+      break;
+      }
+    case 3:
+      {
+      indexSelectionFilter->SetIndex( 3 );
+      break;
+      }
+    case 4:
+      {
+      indexSelectionFilter->SetIndex( 4 );
+      break;
+      }
+    case 5:
+      {
+      indexSelectionFilter->SetIndex( 5 );
+      break;
+      }
+    case 6:
+      {
+      indexSelectionFilter->SetIndex( 6 );
+      break;
+      }
+    case 7:
+      {
+      indexSelectionFilter->SetIndex( 7 );
+      break;
+      }
+    default:
+      {
+      std::cerr << "Unrecognized option: " << whichStat << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+  indexSelectionFilter->Update();
+
+  WriteImage<ImageType>( indexSelectionFilter->GetOutput(), outputName.c_str() );
+
+  return 0;
+}
 template <unsigned int ImageDimension>
 int PadImage(int /*argc */, char *argv[])
 {
@@ -2344,7 +2465,7 @@ int SliceTimingCorrection(int argc, char *argv[])
   typedef itk::WindowedSincInterpolateImageFunction<InputImageType, ImageDimension-1>   SincInterpolatorType;
   typedef typename SincInterpolatorType::Pointer                         SincInterpolatorPointerType;
 
-  if ( argc < 6 ) 
+  if ( argc < 6 )
     {
     std::cout << "Usage: ImageMath 4 out.nii.gz SliceTimingCorrection input.nii.gz sliceTiming [sinc/bspline] [sincRadius=4/bsplineOrder=3]" << std::endl;
     return( 1 );
@@ -7584,6 +7705,47 @@ int DistanceMap(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int GenerateMaurerDistanceImage( int argc, char *argv[] )
+{
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+
+  // Usage:  ImageMath 3 output.nii.gz MaurerDistance input.nii.gz {foreground=1}
+
+  const std::string outputName = std::string( argv[2] );
+  const std::string inputName = std::string( argv[4] );
+
+  typename ImageType::Pointer input = NULL;
+  ReadImage<ImageType>( input, inputName.c_str() );
+
+  PixelType foreground = 1;
+  if( argc > 5 )
+    {
+    foreground = static_cast<PixelType>( atof( argv[5] ) );
+    }
+
+  typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+  typename ThresholderType::Pointer thresholder = ThresholderType::New();
+  thresholder->SetInput( input );
+  thresholder->SetLowerThreshold( foreground );
+  thresholder->SetUpperThreshold( foreground );
+  thresholder->SetInsideValue( 1 );
+  thresholder->SetOutsideValue( 0 );
+
+  typedef itk::SignedMaurerDistanceMapImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( thresholder->GetOutput() );
+  filter->SetSquaredDistance( false );
+  filter->SetUseImageSpacing( true );
+  filter->SetInsideIsPositive( false );
+  filter->Update();
+
+  WriteImage<ImageType>( filter->GetOutput(), outputName.c_str() );
+
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int FillHoles(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
@@ -12662,7 +12824,11 @@ private:
     antscout << "\n  CorruptImage        : " << std::endl;
     antscout << "      Usage        : CorruptImage Image NoiseLevel Smoothing" << std::endl;
 
-    antscout << "\n  D            : DistanceTransform" << std::endl;
+    antscout << "\n  D             : Danielson Distance Transform" << std::endl;
+
+    antscout << "\n  MaurerDistance : Maurer distance transform (much faster than Danielson)" << std::endl;
+    antscout << "      Usage        : MaurerDistance inputImage {foreground=1}"
+             << std::endl;
 
     antscout
       <<
@@ -12722,6 +12888,17 @@ private:
       <<
       "      Usage        : HistogramMatch SourceImage ReferenceImage {NumberBins-Default=255} {NumberPoints-Default=64}"
       << std::endl;
+
+    antscout << "\n  RescaleImage    : " << std::endl;
+    antscout
+      <<
+      "      Usage        : RescaleImage InputImage min max"
+      << std::endl;
+    antscout << "\n  NeighborhoodStats    : " << std::endl;
+    antscout
+      <<
+      "      Usage        : NeighborhoodStats inputImage whichStat radius"
+      "             whichStat:  1 = min, 2 = max, 3 = variance, 4 = sigma, 5 = skewness, 6 = kurtosis, 7 = entropy" << std::endl;
 
     antscout
       <<
@@ -12954,6 +13131,10 @@ private:
         {
         DistanceMap<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
+        {
+        GenerateMaurerDistanceImage<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "Normalize") == 0 )
         {
         NormalizeImage<2>(argc, argv);
@@ -13037,6 +13218,14 @@ private:
       else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
         {
         HistogramMatching<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "RescaleImage") == 0 )
+        {
+        RescaleImage<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NeighborhoodStats") == 0 )
+        {
+        NeighborhoodStats<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
@@ -13312,6 +13501,10 @@ private:
         {
         DistanceMap<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
+        {
+        GenerateMaurerDistanceImage<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "Normalize") == 0 )
         {
         NormalizeImage<3>(argc, argv);
@@ -13487,6 +13680,14 @@ private:
       else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
         {
         HistogramMatching<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "RescaleImage") == 0 )
+        {
+        RescaleImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NeighborhoodStats") == 0 )
+        {
+        NeighborhoodStats<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
@@ -13760,11 +13961,14 @@ private:
         {
         DistanceMap<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
+        {
+        GenerateMaurerDistanceImage<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "Normalize") == 0 )
         {
         NormalizeImage<4>(argc, argv);
         }
-
       else if( strcmp(operation.c_str(), "Grad") == 0 )
         {
         GradientImage<4>(argc, argv);
@@ -13879,6 +14083,14 @@ private:
       else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
         {
         HistogramMatching<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "RescaleImage") == 0 )
+        {
+        RescaleImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "NeighborhoodStats") == 0 )
+        {
+        NeighborhoodStats<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "PadImage") == 0 )
         {
@@ -13996,7 +14208,7 @@ private:
       else if ( strcmp(operation.c_str(), "SliceTimingCorrection") == 0 )
         {
         SliceTimingCorrection<4>(argc, argv);
-        }      
+        }
       else if ( strcmp(operation.c_str(), "AverageOverDimension") == 0 )
         {
         AverageOverDimension<4>(argc, argv);
