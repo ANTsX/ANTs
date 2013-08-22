@@ -154,16 +154,11 @@ private:
 
   antscout->set_stream( out_stream );
 
-//   if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") )
-// )
-//     {
-//     ants::PrintCommandLineHelp(argv[0]);
-//     if( argc < 2 )
-//       {
-//       return EXIT_FAILURE;
-//       }
-//     return EXIT_SUCCESS;
-//     }
+  if( argc < 2 )
+    {
+    ::ants::antscout << " call ANTS -h or ANTS --help " << std::endl;
+    return EXIT_FAILURE;
+    }
 
   int dim = 0;
   if( argc > 1 )

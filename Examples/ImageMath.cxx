@@ -102,6 +102,9 @@
 #include "itkSplitAlternatingTimeSeriesImageFilter.h"
 #include "itkSTAPLEImageFilter.h"
 #include "itkSubtractImageFilter.h"
+#include "itkSumProjectionImageFilter.h"
+#include "itkMaximumProjectionImageFilter.h"
+#include "itkMinimumProjectionImageFilter.h"
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
 #include "itkTransformFileReader.h"
@@ -11333,6 +11336,57 @@ int PearsonCorrelation( int argc, char *argv[] )
   return 0;
 }
 
+
+template <unsigned int ImageDimension>
+int Project( int argc, char *argv[] )
+{
+  typedef float                                            PixelType;
+  typedef itk::Image<PixelType, ImageDimension>            ImageType;
+  if ( argc < 5 )
+    {
+    antscout << "Not enough input parameters" << std::endl;
+    return EXIT_FAILURE;
+    }
+  int         argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  unsigned int axis = atoi(argv[argct]);   argct++;
+  unsigned int which = atoi(argv[argct]);   argct++;
+  typename ImageType::Pointer imagein;
+  typename ImageType::Pointer imageout;
+  ReadImage<ImageType>( imagein, fn1.c_str() );
+  if ( which == 0 ) {
+    typedef itk::SumProjectionImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetProjectionDimension( axis );
+    filter->SetInput( imagein );
+    filter->Update();
+    imageout = filter->GetOutput();
+    WriteImage<ImageType>( imageout , outname.c_str() );
+  } 
+  if ( which == 1 ) {
+    typedef itk::MaximumProjectionImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetProjectionDimension( axis );
+    filter->SetInput( imagein );
+    filter->Update();
+    imageout = filter->GetOutput();
+    WriteImage<ImageType>( imageout , outname.c_str() );
+  }
+  if ( which == 2 ) {
+    typedef itk::MinimumProjectionImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetProjectionDimension( axis );
+    filter->SetInput( imagein );
+    filter->Update();
+    imageout = filter->GetOutput();
+    WriteImage<ImageType>( imageout , outname.c_str() );
+  }
+  return EXIT_SUCCESS;
+}
+
+
 template <unsigned int ImageDimension>
 int Translate( int argc, char *argv[] )
 {
@@ -12588,6 +12642,7 @@ private:
     antscout << "  Neg            : Produce image negative" << std::endl;
 
     antscout << "\nSpatial Filtering:" <<  std::endl;
+    antscout << "  Project Image1.ext a    : Project an image along axis a" << std::endl;
     antscout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s" << std::endl;
     antscout << "  MD Image1.ext s    : Morphological Dilation with radius s" << std::endl;
     antscout << "  ME Image1.ext s    : Morphological Erosion with radius s" << std::endl;
@@ -13392,6 +13447,10 @@ private:
         {
         TimeSeriesRegionCorr<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "Project") == 0 )
+        {
+        Project<2>(argc, argv);
+        }
       //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
       else
         {
@@ -13853,6 +13912,10 @@ private:
         {
         PureTissueN4WeightMask<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "Project") == 0 )
+        {
+        Project<3>(argc, argv);
+        }
       else
         {
         antscout << " cannot find operation : " << operation << std::endl;
@@ -14280,6 +14343,10 @@ private:
       else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
         {
         MinMaxMean<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Project") == 0 )
+        {
+        Project<4>(argc, argv);
         }
       else
         {
