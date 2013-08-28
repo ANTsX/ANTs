@@ -101,8 +101,8 @@ Optional arguments:
                                                 for brain extraction.
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
-     -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0)
-     -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 15)
+     -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0.25)
+     -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 3)
 
 USAGE
     exit 1
@@ -178,7 +178,7 @@ GRAY_MATTER_LABEL=2
 WHITE_MATTER_LABEL=3
 DEEP_GRAY_MATTER_LABEL=4
 
-ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
+ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 
 ################################################################################
 #
@@ -209,7 +209,7 @@ ATROPOS_SEGMENTATION_INITIALIZATION="PriorProbabilityImages"
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_CONVERGENCE="[5,0.0]"
 ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates"
-ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=15
+ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=3
 
 DIRECT=${ANTSPATH}KellyKapowski
 DIRECT_CONVERGENCE="[45,0.0,10]";
