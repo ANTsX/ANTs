@@ -11364,7 +11364,7 @@ int Project( int argc, char *argv[] )
     filter->Update();
     imageout = filter->GetOutput();
     WriteImage<ImageType>( imageout , outname.c_str() );
-  } 
+  }
   if ( which == 1 ) {
     typedef itk::MaximumProjectionImageFilter< ImageType, ImageType > FilterType;
     typename FilterType::Pointer filter = FilterType::New();
@@ -12799,7 +12799,7 @@ private:
     antscout << "    Usage: STAPLE confidence-weighting LabelImages*" << std::endl;
     antscout << "    Note:  Gives probabilistic output (float)" << std::endl;
     antscout << "  MostLikely : Select label from from maximum probabilistic segmentations" << std::endl;
-    antscout << "    Usage: MostLikely ProbabilityImages*" << std::endl;
+    antscout << "    Usage: MostLikely probabilityThreshold ProbabilityImages*" << std::endl;
     antscout << "  AverageLabels : Select label using STAPLE method" << std::endl;
     antscout << "    Usage: STAPLE LabelImages*" << std::endl;
     antscout << "    Note:  Gives probabilistic output (float)" << std::endl;
