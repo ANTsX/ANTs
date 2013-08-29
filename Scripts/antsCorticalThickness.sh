@@ -101,8 +101,8 @@ Optional arguments:
                                                 for brain extraction.
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
-     -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0)
-     -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 15)
+     -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0.25)
+     -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 3)
 
 USAGE
     exit 1
@@ -178,7 +178,7 @@ GRAY_MATTER_LABEL=2
 WHITE_MATTER_LABEL=3
 DEEP_GRAY_MATTER_LABEL=4
 
-ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
+ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 
 ################################################################################
 #
@@ -209,7 +209,7 @@ ATROPOS_SEGMENTATION_INITIALIZATION="PriorProbabilityImages"
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_CONVERGENCE="[5,0.0]"
 ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates"
-ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=15
+ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=3
 
 DIRECT=${ANTSPATH}KellyKapowski
 DIRECT_CONVERGENCE="[45,0.0,10]";
@@ -218,11 +218,13 @@ DIRECT_GRAD_STEP_SIZE="0.025";
 DIRECT_SMOOTHING_SIGMA="1.5";
 DIRECT_NUMBER_OF_DIFF_COMPOSITIONS="10";
 
+USE_FLOAT_PRECISION=0
+
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:d:e:f:h:i:k:l:m:n:p:o:s:t:w:" OPT
+  while getopts "a:d:e:f:h:i:k:l:m:n:p:q:o:s:t:w:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -260,6 +262,9 @@ else
        ;;
           p) #brain segmentation label prior image
        SEGMENTATION_PRIOR=$OPTARG
+       ;;
+          q) #use floating point precision
+       USE_FLOAT_PRECISION=$OPTARG
        ;;
           o) #output prefix
        OUTPUT_PREFIX=$OPTARG
@@ -451,7 +456,8 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
           -m ${EXTRACTION_PRIOR} \
           -o ${OUTPUT_PREFIX} \
           -k ${KEEP_TMP_IMAGES} \
-          -s ${OUTPUT_SUFFIX}
+          -s ${OUTPUT_SUFFIX} \
+          -q ${USE_FLOAT_PRECISION}
       else
         bash ${ANTSPATH}/antsBrainExtraction.sh \
           -d ${DIMENSION} \
@@ -460,7 +466,8 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
           -m ${EXTRACTION_PRIOR} \
           -o ${OUTPUT_PREFIX} \
           -k ${KEEP_TMP_IMAGES} \
-          -s ${OUTPUT_SUFFIX}
+          -s ${OUTPUT_SUFFIX} \
+          -q ${USE_FLOAT_PRECISION}
       fi
   fi
 
@@ -521,9 +528,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       then
         logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX}"
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION}"
         images="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
-
         if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
           then
             basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
@@ -564,7 +570,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
             exit 1
           fi
 
-        exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE}"
+        exe_brain_segmentation_2="${WARP} -d ${DIMENSION} -i ${PRIOR_IMAGE_FILENAMES[$i]} -o ${WARPED_PRIOR_IMAGE_FILENAMES[$i]} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian  -t ${SEGMENTATION_WARP} -t ${SEGMENTATION_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}"
+
         logCmd $exe_brain_segmentation_2
       done
 
@@ -773,7 +780,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
 
             time_start_template_registration=`date +%s`
 	           images="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}"
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${images},1]"
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${images},1] --float ${USE_FLOAT_PRECISION}"
             stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
             stage2="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
             stage3="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
@@ -815,7 +822,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
         echo "Compute summary measurements"
         echo "--------------------------------------------------------------------------------------"
         logCmd ${ANTSPATH}/ANTSJacobian ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${OUTPUT_PREFIX} 1
-        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE}  "
+        exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}"
         logCmd $exe_template_registration_3
         ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}`
         bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
