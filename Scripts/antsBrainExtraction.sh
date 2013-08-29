@@ -58,6 +58,7 @@ Optional arguments:
                                                 a specific region.
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
+     -q:  use floating point precision          Use antsRegistration with floating point precision.
 
 USAGE
     exit 1
@@ -152,11 +153,13 @@ N4_SHRINK_FACTOR_1=4
 N4_SHRINK_FACTOR_2=2
 N4_BSPLINE_PARAMS="[200]"
 
+USE_FLOAT_PRECISION=0
+
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:d:e:f:h:k:m:o:s:" OPT
+  while getopts "a:d:e:f:h:k:m:o:q:s:" OPT
     do
       case $OPT in
           d) #dimensions
@@ -188,6 +191,9 @@ else
        ;;
           o) #output prefix
        OUTPUT_PREFIX=$OPTARG
+       ;;
+          q)
+       USE_FLOAT_PRECISION=$OPTARG
        ;;
           s) #output suffix
        OUTPUT_SUFFIX=$OPTARG
@@ -368,7 +374,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
               fi
             logCmd $exe_initial_align
 
-            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1"
+            basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1 --float ${USE_FLOAT_PRECISION}"
             if [[ -f ${EXTRACTION_REGISTRATION_MASK} ]];
               then
                 basecall="${basecall} -x [${EXTRACTION_REGISTRATION_MASK}]"
@@ -398,7 +404,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
           fi
 
         ## Step 2 ##
-        exe_brain_extraction_2="${WARP} -d ${DIMENSION} -i ${EXTRACTION_PRIOR} -o ${EXTRACTION_MASK_PRIOR_WARPED} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian -t [${EXTRACTION_GENERIC_AFFINE},1] -t ${EXTRACTION_INVERSE_WARP}"
+        exe_brain_extraction_2="${WARP} -d ${DIMENSION} -i ${EXTRACTION_PRIOR} -o ${EXTRACTION_MASK_PRIOR_WARPED} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian -t [${EXTRACTION_GENERIC_AFFINE},1] -t ${EXTRACTION_INVERSE_WARP} --float ${USE_FLOAT_PRECISION}"
         logCmd $exe_brain_extraction_2
 
         ## superstep 1b ##
