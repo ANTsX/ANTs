@@ -1871,7 +1871,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	}
       for( unsigned int i = 0; i < n_vecs; i++ )
 	{
-	sparsenessparams( i ) = 1.1 * ( sparsenessparams( i ) / this->m_MatrixP.cols() );
+	sparsenessparams( i ) = 1.2 * ( sparsenessparams( i ) / this->m_MatrixP.cols() );
 	this->m_FractionNonZeroP = sparsenessparams( i );
 	VectorType vec = this->m_VariatesP.get_column( i );
 	this->SparsifyP( vec );
