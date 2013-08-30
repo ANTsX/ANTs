@@ -1823,11 +1823,13 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseRecon(unsigned int n_vecs)
 {
+  bool prior = false;
   RealType   reconerr = 0;
   VectorType sparsenessparams( n_vecs, this->m_FractionNonZeroP );
   if ( ( this->m_OriginalMatrixPriorROI.rows() > 0  ) &&
        ( this->m_OriginalMatrixPriorROI.cols() > 0  ) )
     {
+    prior = true;
     ::ants::antscout << " image-driven initialization " << std::endl;
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_OriginalMatrixPriorROI.rows();
@@ -2009,7 +2011,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     ::ants::antscout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
-  this->SortResults( n_vecs );
+  if ( ! prior ) this->SortResults( n_vecs );
   for( unsigned int i = 0; i < n_vecs; i++ )
     {
     VectorType v = this->m_VariatesP.get_column( i );
