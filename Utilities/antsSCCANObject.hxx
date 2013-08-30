@@ -1825,6 +1825,34 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 {
   RealType   reconerr = 0;
   VectorType sparsenessparams( n_vecs, this->m_FractionNonZeroP );
+  if ( ( this->m_OriginalMatrixPriorROI.rows() > 0  ) &&
+       ( this->m_OriginalMatrixPriorROI.cols() > 0  ) )
+    {
+    ::ants::antscout << " image-driven initialization " << std::endl;
+    this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
+    n_vecs = this->m_OriginalMatrixPriorROI.rows();
+    for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
+      {
+      VectorType   priorrow = this->m_OriginalMatrixPriorROI.get_row( x );
+      RealType fnz = 0;
+      for( unsigned int y = 0; y < this->m_OriginalMatrixPriorROI.cols(); y++ )
+	{
+	if(vnl_math_abs( priorrow( y ) ) > 1.e-8 )
+          {
+	  fnz += 1;
+	  }
+	}
+      if( this->m_FractionNonZeroP <  1.e-8  )
+	{
+        sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
+	}
+      priorrow = priorrow/priorrow.two_norm();
+      this->m_MatrixPriorROI.set_row( x , priorrow );
+      }
+    this->m_FractionNonZeroP = sparsenessparams.mean();
+    ::ants::antscout <<"sparseness: " << sparsenessparams << std::endl;
+    this->m_VariatesP = this->m_MatrixPriorROI.transpose();
+    }
   this->m_CanonicalCorrelations.set_size( n_vecs );
   this->m_CanonicalCorrelations.fill( 0 );
   ::ants::antscout << " sparse recon : clust " << this->m_MinClusterSizeP << " UseL1 " << this->m_UseL1 <<  " Keep+ "
@@ -1835,6 +1863,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType icept( this->m_MatrixP.rows(), 0 );
   if ( this->m_FractionNonZeroP < 1.e-11 ) 
     { // estimate sparseness from PCA 
+      ::ants::antscout << " data-driven initialization from PCA " << std::endl;
       VectorType maxvals( this->m_MatrixP.cols() , 0 );
       MatrixType        cov = this->m_MatrixP * this->m_MatrixP.transpose();
       vnl_svd<RealType> eig( cov, 1.e-6 );
@@ -1871,7 +1900,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	}
       for( unsigned int i = 0; i < n_vecs; i++ )
 	{
-	sparsenessparams( i ) = 1.2 * ( sparsenessparams( i ) / this->m_MatrixP.cols() );
+	sparsenessparams( i ) = 1.25 * ( sparsenessparams( i ) / this->m_MatrixP.cols() );
 	this->m_FractionNonZeroP = sparsenessparams( i );
 	VectorType vec = this->m_VariatesP.get_column( i );
 	this->SparsifyP( vec );
@@ -1880,7 +1909,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	}
       ::ants::antscout <<" Estimated-Sparseness Sum "  << sparsenessparams.sum() << std::endl;
     } // done estimate sparseness 
-  else {
+  else if ( this->m_VariatesP.rows() < 1  ) {
+  ::ants::antscout << " data-driven initialization " << std::endl;
   this->m_VariatesP.set_size( this->m_MatrixP.cols(), n_vecs );
   this->m_VariatesP.fill( 0 );
   for( unsigned int i = 0; i < n_vecs; i++ )

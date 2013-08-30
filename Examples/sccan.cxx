@@ -544,11 +544,13 @@ ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
 }
 
 template <unsigned int ImageDimension, class PixelType>
-void
+itk::Array2D<double>
 ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string outname  )
 {
   std::string ext = itksys::SystemTools::GetFilenameExtension( outname );
-
+  typedef itk::Array2D<double> MatrixType;
+  std::vector<std::string> ColumnHeaders;
+  MatrixType zmat(1,1);
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<PixelType, 2>              MatrixImageType;
   typedef itk::ImageFileReader<ImageType>       ReaderType;
@@ -576,7 +578,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
     if( !inputStreamA.is_open() )
       {
       antscout << "Can't open image list file: " << imagelist << std::endl;
-      return;
+      return zmat;
       }
     while( !inputStreamA.eof() )
       {
@@ -605,11 +607,6 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
   //      antscout <<" have voxct " << voxct << " and nsub " << filecount << " or " << image_fn_list.size()<<
   // std::endl;
 
-  if( strcmp(ext.c_str(), ".csv") == 0 )
-    {
-    typedef itk::Array2D<double> MatrixType;
-    std::vector<std::string> ColumnHeaders;
-
     MatrixType matrix(xsize, ysize);
     matrix.Fill(0);
     for( unsigned int j = 0; j < image_fn_list.size(); j++ )
@@ -634,6 +631,9 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
           }
         }
       }
+
+  if( strcmp(ext.c_str(), ".csv") == 0 )
+    {
     // write out the array2D object
     typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
@@ -648,11 +648,12 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       {
       antscout << "Exception caught!" << std::endl;
       antscout << exp << std::endl;
-      return;
+      return matrix;
       }
-    return;
+    return matrix;
     }
-  else
+
+  if( strcmp(ext.c_str(), ".mha") == 0 )
     {
     typename MatrixImageType::RegionType region;
     region.SetSize( tilesize );
@@ -685,7 +686,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
     writer->SetInput( matimage );
     writer->Update();
     }
-  return;
+  return matrix;
 }
 
 template <class PixelType>
@@ -1135,6 +1136,17 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
                   unsigned int robustify , unsigned int p_cluster_thresh , unsigned int iterct ,
                   unsigned int svd_option , PixelType usel1  , PixelType row_sparseness, PixelType smoother , PixelType covering )
 {
+  antscout << "SVD_One_View" << std::endl;
+  typedef itk::Image<PixelType, ImageDimension>         ImageType;
+  typedef double                                        Scalar;
+  typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
+  typedef itk::Image<Scalar, 2>                         MatrixImageType;
+  typedef itk::ImageFileReader<ImageType>               imgReaderType;
+  typedef typename SCCANType::MatrixType         vMatrix;
+  typedef typename SCCANType::VectorType         vVector;
+  typedef typename SCCANType::DiagonalMatrixType dMatrix;
+  typename SCCANType::Pointer sccanobj = SCCANType::New();
+  vMatrix priorROIMat;
   if( svd_option == 1 )
     {
     antscout << " basic-svd " << std::endl;
@@ -1143,6 +1155,24 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     {
     antscout << " sparse-svd " << std::endl;   // note: 2 (in options) is for svd implementation
     }
+
+  itk::ants::CommandLineParser::OptionType::Pointer initOpt =
+    parser->GetOption( "initialization" );
+  itk::ants::CommandLineParser::OptionType::Pointer maskOpt =
+    parser->GetOption( "mask" );
+  if( !initOpt || initOpt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
+    {
+    antscout << "Warning:  no initialization set, will use data-driven approach." << std::endl;
+    } else {
+    std::string maskfn = maskOpt->GetFunction( 0 )->GetName();
+    std::string imagelistPrior = initOpt->GetFunction( 0 )->GetName();
+    antscout << "you will initialize with " << imagelistPrior << std::endl;
+    std::string outname = "none";
+    priorROIMat = ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, maskfn, outname );
+    antscout << priorROIMat.rows() << " " << priorROIMat.cols() << std::endl;
+    sccanobj->SetMatrixPriorROI( priorROIMat);
+  }
+
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
@@ -1151,12 +1181,6 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
   itk::ants::CommandLineParser::OptionType::Pointer option =
     parser->GetOption( "svd" );
-  typedef itk::Image<PixelType, ImageDimension>         ImageType;
-  typedef double                                        Scalar;
-  typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
-  typedef itk::Image<Scalar, 2>                         MatrixImageType;
-  typedef itk::ImageFileReader<ImageType>               imgReaderType;
-  typename SCCANType::Pointer sccanobj = SCCANType::New();
   PixelType gradstep = vnl_math_abs( usel1 );
   sccanobj->SetCovering( true );
  if ( covering < 0.1 )
@@ -1175,9 +1199,6 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   sccanobj->SetMaximumNumberOfIterations(iterct);
   sccanobj->SetRowSparseness( row_sparseness );
   sccanobj->SetSmoother( smoother );
-  typedef typename SCCANType::MatrixType         vMatrix;
-  typedef typename SCCANType::VectorType         vVector;
-  typedef typename SCCANType::DiagonalMatrixType dMatrix;
   /** read the matrix images */
   /** we refer to the two view matrices as P and Q */
 
@@ -1188,7 +1209,6 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   bool have_p_mask = false;
   have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
   double  FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
-  vMatrix priorROIMat;
   vMatrix priorScaleMat;
   if( svd_option == 7 )
     {
@@ -2173,6 +2193,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     row_sparseness = parser->Convert<matPixelType>( row_option->GetFunction()->GetName() );
     }
 
+
   unsigned int                                      p_cluster_thresh = 1;
   itk::ants::CommandLineParser::OptionType::Pointer clust_option =
     parser->GetOption( "PClusterThresh" );
@@ -2544,6 +2565,27 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetDescription( description );
     parser->AddOption( option );
     }
+
+    {
+    std::string description =
+      std::string( "Initialization file list for Eigenanatomy - must also pass mask option" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initialization" );
+    option->SetUsageOption( 0, "NA" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Mask file for Eigenanatomy initialization" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "mask" );
+    option->SetUsageOption( 0, "NA" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
 
     {
     std::string description =
