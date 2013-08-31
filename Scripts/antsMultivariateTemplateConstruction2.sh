@@ -334,18 +334,16 @@ function reportMappingParameters {
 --------------------------------------------------------------------------------------
  ANTSPATH is $ANTSPATH
 
- Dimensionality:			$DIM
- N4BiasFieldCorrection:			$N4CORRECT
- Similarity Metric:			$METRICTYPE
- Transformation:			$TRANSFORMATIONTYPE
- Regularization:			$REGULARIZATION
- MaxIterations:				$MAXITERATIONS
- Smoothing Factors:  $SMOOTHINGFACTORS
- Shrink Factors:  $SHRINKFACTORS
- Number Of MultiResolution Levels:	$NUMLEVELS
- OutputName prefix:			$OUTPUTNAME
- Template:  				$TEMPLATENAME
- Template Update Steps:			$ITERATIONLIMIT
+ Dimensionality:			        $DIM
+ N4BiasFieldCorrection:			 $N4CORRECT
+ Similarity Metric:			     $METRICTYPE
+ Transformation:			        $TRANSFORMATIONTYPE
+ Max Iterations:				       $MAXITERATIONS
+ Smoothing Factors:        $SMOOTHINGFACTORS
+ Shrink Factors:           $SHRINKFACTORS
+ OutputName prefix:			     $OUTPUTNAME
+ Template:  				           $TEMPLATENAME
+ Template Update Steps:			 $ITERATIONLIMIT
  Template population:	   		$IMAGESETVARIABLE
  Number of Modalities:     $NUMBEROFMODALITIES
  Madality weights:         $MODALITYWEIGHTSTRING
@@ -418,7 +416,7 @@ function shapeupdatetotemplate() {
     echo "   ${WARP} -d ${dim} --float 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
     echo "--------------------------------------------------------------------------------------"
 
-    ${WARP} -d ${dim} -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
+    ${WARP} -d ${dim} --float 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
 }
 
 function jobfnamepadding {
@@ -1118,7 +1116,7 @@ reportMappingParameters
 #
 
 TRANSFORMATION=''
-REGULARIZATION=''
+
 if [[ "${TRANSFORMATIONTYPE}" == "BSplineSyN" ]];
   then
     # Mapping Parameters
