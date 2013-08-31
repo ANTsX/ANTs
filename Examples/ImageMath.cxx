@@ -71,6 +71,7 @@
 #include "itkLabeledPointSetFileReader.h"
 #include "itkLabeledPointSetFileWriter.h"
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
+#include "itkLaplacianSharpeningImageFilter.h"
 #include "itkListSample.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMRFImageFilter.h"
@@ -1883,6 +1884,35 @@ int SigmoidImage(int argc, char *argv[])
   filter->Update();
 
   WriteImage<ImageType>( filter->GetOutput(), outname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
+int SharpenImage(int argc, char *argv[])
+{
+  if( argc < 5 )
+    {
+    antscout << "Error.  Not enough arguments.  See help menu." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  typedef float                                 PixelType;
+  typedef itk::Image<PixelType, ImageDimension> ImageType;
+  typedef itk::ImageFileReader<ImageType>       ReaderType;
+  typedef itk::ImageFileWriter<ImageType>       WriterType;
+
+  const std::string outputFilename = std::string( argv[2] );
+  const std::string inputFilename = std::string( argv[4] );
+
+  typename ImageType::Pointer inputImage = NULL;
+  ReadImage<ImageType>( inputImage, inputFilename.c_str() );
+
+  typedef itk::LaplacianSharpeningImageFilter<ImageType, ImageType> FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( inputImage );
+  filter->Update();
+
+  WriteImage<ImageType>( filter->GetOutput(), outputFilename.c_str() );
   return 0;
 }
 
@@ -12990,6 +13020,9 @@ private:
     antscout << "\n  SigmoidImage   : " << std::endl;
     antscout << "      Usage        : SigmoidImage ImageIn [alpha=1.0] [beta=0.0]" << std::endl;
 
+    antscout << "\n  Sharpen   : " << std::endl;
+    antscout << "      Usage        : Sharpen ImageIn" << std::endl;
+
     antscout << "\n  CenterImage2inImage1        : " << std::endl;
     antscout << "      Usage       : ReferenceImageSpace ImageToCenter " << std::endl;
 
@@ -13289,6 +13322,10 @@ private:
       else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
         {
         SigmoidImage<2>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Sharpen") == 0 )
+        {
+        SharpenImage<2>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
         {
@@ -13756,6 +13793,10 @@ private:
         {
         SigmoidImage<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "Sharpen") == 0 )
+        {
+        SharpenImage<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
         {
         SetOrGetPixel<3>(argc, argv);
@@ -14162,6 +14203,10 @@ private:
       else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
         {
         SigmoidImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "Sharpen") == 0 )
+        {
+        SharpenImage<4>(argc, argv);
         }
       //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
       else if( strcmp(operation.c_str(), "MakeImage") == 0 )
