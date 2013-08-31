@@ -1079,9 +1079,7 @@ if [[ "$RIGID" -eq 1 ]];
             rm -f ${outdir}/job_${count}_qsub.sh
         elif [[ $DOQSUB -eq 4 ]];
           then
-            mv ${outdir}/antsrigid* ${outdir}/rigid/
-            # Remove qsub scripts
-            rm -f ${outdir}/job_${count}_qsub.sh
+            mv ${outdir}/antsrigid* ${outdir}/job* ${outdir}/rigid/
         elif [[ $DOQSUB -eq 2 ]];
           then
             mv ${outdir}/job*.txt ${outdir}/rigid/
