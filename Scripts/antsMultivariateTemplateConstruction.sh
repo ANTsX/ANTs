@@ -1061,7 +1061,7 @@ if [[ "$RIGID" -eq 1 ]];
     fi
 
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
-        do
+      do
         IMAGERIGIDSET=()
         for (( i = $j; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
             do
@@ -1080,26 +1080,37 @@ if [[ "$RIGID" -eq 1 ]];
     done
 
     # cleanup and save output in seperate folder
-    mkdir ${outdir}/rigid
-    mv ${outdir}/*.cfg ${outdir}/rigid*.nii.gz ${outdir}/*Affine.txt ${outdir}/rigid/
-    # backup logs
-    if [[ $DOQSUB -eq 1 ]];
-	       then
-	       mv ${outdir}/antsBuildTemplate_rigid* ${outdir}/rigid/
-        # Remove qsub scripts
-	rm -f ${outdir}/job_${count}_qsub.sh
-    elif [[ $DOQSUB -eq 4 ]];
-        then
-	       mv ${outdir}/antsrigid* ${outdir}/rigid/
-        # Remove qsub scripts
-	  rm -f ${outdir}/job_${count}_qsub.sh
-    elif [[ $DOQSUB -eq 2 ]];
-	       then
-	       mv ${outdir}/job*.txt ${outdir}/rigid/
-    elif [[ $DOQSUB -eq 3 ]];
-	       then
-	       rm -f ${outdir}/job_*_qsub.sh
-    fi
+    if [[ BACKUP_EACH_ITERATION -eq 1 ]];
+      then
+
+        echo
+        echo "--------------------------------------------------------------------------------------"
+        echo " Backing up results from rigid iteration"
+        echo "--------------------------------------------------------------------------------------"
+
+        mkdir ${outdir}/rigid
+        mv ${outdir}/rigid*.nii.gz ${outdir}/*GenericAffine.mat ${outdir}/rigid/
+        # backup logs
+        if [[ $DOQSUB -eq 1 ]];
+          then
+            mv ${outdir}/antsBuildTemplate_rigid* ${outdir}/rigid/
+            # Remove qsub scripts
+            rm -f ${outdir}/job_${count}_qsub.sh
+        elif [[ $DOQSUB -eq 4 ]];
+          then
+            mv ${outdir}/antsrigid* ${outdir}/rigid/
+            # Remove qsub scripts
+            rm -f ${outdir}/job_${count}_qsub.sh
+        elif [[ $DOQSUB -eq 2 ]];
+          then
+            mv ${outdir}/job*.txt ${outdir}/rigid/
+        elif [[ $DOQSUB -eq 3 ]];
+          then
+            rm -f ${outdir}/job_*_qsub.sh
+        fi
+      else
+        rm -f  ${outdir}/rigid*.* ${outdir}/job*.txt
+      fi
 fi # endif RIGID
 
 ##########################################################################
@@ -1273,18 +1284,18 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             OUTWARPFN="${OUTWARPFN}${j}"
 
             if [[ $N4CORRECT -eq 1 ]];
-                then
+              then
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
                 exe=" $exe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -s 2\n"
                 pexe=" $pexe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -s 2  >> ${outdir}/job_${count}_metriclog.txt\n"
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
                 warpexe=" $warpexe ${WARP} ${DIM} ${REPAIRED} ${DEFORMED} -R ${TEMPLATES[$k]} ${outdir}/${OUTWARPFN}Warp.nii.gz ${outdir}/${OUTWARPFN}Affine.txt\n"
                 warppexe=" $warppexe ${WARP} ${DIM} ${REPAIRED} ${DEFORMED} -R ${TEMPLATES[$k]} ${outdir}/${OUTWARPFN}Warp.nii.gz ${outdir}/${OUTWARPFN}Affine.txt >> ${outdir}/job_${count}_metriclog.txt\n"
-            else
+              else
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${METRICPARAMS}";
                 warpexe=" $warpexe ${WARP} ${DIM} ${IMAGESETARRAY[$l]} ${DEFORMED} -R ${TEMPLATES[$k]} ${outdir}/${OUTWARPFN}Warp.nii.gz ${outdir}/${OUTWARPFN}Affine.txt\n"
                 warppexe=" $warppexe ${WARP} ${DIM} ${IMAGESETARRAY[$l]} ${DEFORMED} -R ${TEMPLATES[$k]} ${outdir}/${OUTWARPFN}Warp.nii.gz ${outdir}/${OUTWARPFN}Affine.txt >> ${outdir}/job_${count}_metriclog.txt\n"
-            fi
+              fi
 
         done
 
@@ -1422,7 +1433,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
       fi
     ((i++))
 done
-end main loop
+# end main loop
 rm -f job*.sh
 #cleanup of 4D files
 if [[ "${range}" -gt 1 && "${TDIM}" -eq 4 ]];

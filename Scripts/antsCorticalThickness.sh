@@ -2,26 +2,37 @@
 
 VERSION="0.0"
 
-if [[ ! -s ${ANTSPATH}/antsRegistration ]]; then
-  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
+if [[ ! -x ${ANTSPATH}/antsRegistration ]];
+  then
+    echo antsRegistration does not exist or is not executable.  Please check \$ANTSPATH.
+    exit
 fi
-if [[ ! -s ${ANTSPATH}/antsApplyTransforms ]]; then
-  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
+if [[ ! -x ${ANTSPATH}/antsApplyTransforms ]];
+  then
+    echo antsApplyTransforms does not exist or is not executable.  Please check \$ANTSPATH.
+    exit
 fi
-if [[ ! -s ${ANTSPATH}/N4BiasFieldCorrection ]]; then
-  echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
+if [[ ! -x ${ANTSPATH}/N4BiasFieldCorrection ]];
+  then
+    echo N4BiasFieldCorrection does not exist or is not executable.  Please check \$ANTSPATH.
+    exit
 fi
-if [[ ! -s ${ANTSPATH}/Atropos ]]; then
-  echo we cant find the Atropos program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
+if [[ ! -x ${ANTSPATH}/Atropos ]];
+  then
+    echo Atropos does not exist or is not executable.  Please check \$ANTSPATH.
+    exit
 fi
-if [[ ! -s ${ANTSPATH}/KellyKapowski ]]; then
-  echo we cant find the DiReCT \(aka KellyKapowski\) program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
+if [[ ! -x ${ANTSPATH}/KellyKapowski ]];
+  then
+    echo DiReCT \(aka KellyKapowski\) does not exist or is not executable.  Please check \$ANTSPATH.
+    exit
 fi
+if [[ ! -x ${ANTSPATH}/ImageMath ]];
+  then
+    echo ImageMath does not exist or is not executable.  Please check \$ANTSPATH.
+    exit
+fi
+
 
 function Usage {
     cat <<USAGE
