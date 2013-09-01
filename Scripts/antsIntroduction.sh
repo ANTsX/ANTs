@@ -415,11 +415,9 @@ fi
 echo "input files: checking"
 compareheaders=`${ANTSPATH}ImageMath $DIM ${OUTPUTNAME}repaired.nii.gz CompareHeadersAndImages $FIXED $MOVING  | grep FailureState | cut -d ' ' -f 4 `
 
-if [ $compareheaders -ne 0 ]
-then
+if [[ $compareheaders -ne 0 ]] ; then
   dataCheck
-  if [ $IGNORE_HDR_WARNING -eq 0 ]
-  then
+  if [[ $IGNORE_HDR_WARNING -eq 0 ]] ; then
       exit 1
   fi
 else
