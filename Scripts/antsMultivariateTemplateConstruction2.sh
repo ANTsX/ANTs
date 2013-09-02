@@ -960,7 +960,7 @@ if [[ "$RIGID" -eq 1 ]];
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
           then
-            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
+            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=20:00:00 -l mem=10gb $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1165,17 +1165,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
       do
         basecall="${ANTS} -d ${DIM} --float 1 -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
 
-        IMAGEMETRICSET=""
-        for (( k = 0; k < $NUMBEROFMODALITIES; k++ ))
-          do
-            l=0
-            let l=$i+$k
-            IMAGEMETRICSET="$IMAGEMETRICSET -m MI[${TEMPLATES[$k]},${IMAGESETARRAY[$j]},${MODALITYWEIGHTS[$k]},32,Regular,0.1]"
-          done
-
-        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        stage2="-t Affine[0.1] ${IMAGEMETRICSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-
+        IMAGEMETRICLINEARSET=''
         IMAGEMETRICSET=''
         exe=''
         warpexe=''
@@ -1234,11 +1224,16 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
                 exe=" $exe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -s 2\n"
                 pexe=" $pexe $N4 -d ${DIM} -b [200] -c [50x50x40x30,0.00000001] -i ${IMAGESETARRAY[$l]} -o ${REPAIRED} -s 2  >> ${outdir}/job_${count}_metriclog.txt >> ${outdir}/job_${count}_metriclog.txt\n"
+
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
+                IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${REPAIRED},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
+
                 warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat\n"
                 warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat >> ${outdir}/job_${count}_metriclog.txt\n"
               else
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${METRICPARAMS}"
+                IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
+
                 warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat\n"
                 warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat >> ${outdir}/job_${count}_metriclog.txt\n"
               fi
@@ -1250,6 +1245,8 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         OUTWARPFN=${POO%.*.*}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
+        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
 
         exe="$exe ${basecall} ${stage1} ${stage2} ${stage3}\n"
@@ -1272,7 +1269,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           then
             echo -e "$SCRIPTPREPEND" > $qscript
             echo -e "$exe" >> $qscript
-            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
+            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=20:00:00 -l mem=10gb $QSUBOPTS $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1289,8 +1286,6 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             echo -e $exe > $qscript
             bash $qscript
         fi
-
-
 
         # counter updated, but not directly used in this loop
         count=`expr $count + 1`;
