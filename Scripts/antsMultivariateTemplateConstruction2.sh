@@ -402,11 +402,11 @@ function shapeupdatetotemplate() {
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
         echo "   ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
-        echo "   ${WARP} -d ${dim} --float 1 -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}"
+        echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}"
         echo "--------------------------------------------------------------------------------------"
 
         ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
-        ${WARP} -d ${dim} -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
+        ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
 
         ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
       fi
@@ -960,7 +960,7 @@ if [[ "$RIGID" -eq 1 ]];
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
           then
-            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=20:00:00 -l mem=10gb $qscript | awk '{print $1}'`
+            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1269,7 +1269,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           then
             echo -e "$SCRIPTPREPEND" > $qscript
             echo -e "$exe" >> $qscript
-            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=20:00:00 -l mem=10gb $QSUBOPTS $qscript | awk '{print $1}'`
+            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l walltime=4:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
