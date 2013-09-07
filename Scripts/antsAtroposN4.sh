@@ -30,7 +30,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -i t1.nii.gz -x mask.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -a t1.nii.gz -x mask.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
@@ -70,6 +70,8 @@ Optional arguments:
                                                 Intuitively, smaller lambda values will increase the spatial capture
                                                 range of the distance prior.  To apply to all label values, simply omit
                                                 specifying the label, i.e. -l [lambda,boundaryProbability].
+     -y:  N4 labels for pure tissue mask        Specifies one or more labels to construct the pure tissue weight mask
+                                                for improved N4 bias correction
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
      -k:  keep temporary files                  Keep temporary files on disk (default = false).
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
@@ -378,8 +380,10 @@ if [[ $INITIALIZE_WITH_KMEANS -eq 0 ]]
         N4_WEIGHT_MASK_IMAGES=( ${N4_WEIGHT_MASK_IMAGES[@]} ${PRIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$i]}]} )
       done
 
-    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
-
+    if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
+      then
+        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+      fi
   fi
 
 if [[ -f ${SEGMENTATION_CONVERGENCE_FILE} ]];
@@ -513,7 +517,10 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
         N4_WEIGHT_MASK_IMAGES=( ${N4_WEIGHT_MASK_IMAGES[@]} ${POSTERIOR_IMAGE_FILENAMES[${N4_WEIGHT_MASK_POSTERIOR_IDXS[$j]}]} )
       done
 
-    logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+    if [[ ${#N4_WEIGHT_MASK_IMAGES[@]} -gt 0 ]];
+      then
+        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_WEIGHT_MASK} PureTissueN4WeightMask ${N4_WEIGHT_MASK_IMAGES[@]}
+      fi
 
   done
 
