@@ -30,7 +30,7 @@ Usage:
 
 Example:
 
-  bash $0 -d 3 -a t1.nii.gz -x mask.nii.gz -l segmentationTemplate.nii.gz -p segmentationPriors%d.nii.gz -o output
+  bash $0 -d 3 -a t1.nii.gz -x mask.nii.gz -c 4 -p segmentationPriors%d.nii.gz -o output
 
 Required arguments:
 
@@ -38,13 +38,8 @@ Required arguments:
      -a:  input image                           Anatomical image, typically T1.  If more than one
                                                 anatomical image is specified, subsequently specified
                                                 images are used during the segmentation process.
-     -x:  mask image                            Mask defining the region of interest.
-     -m:  max. N4 <-> Atropos iterations        Maximum number of (outer loop) iterations between N4 <-> Atropos.
-     -n:  max. Atropos iterations               Maximum number of (inner loop) iterations in Atropos.
+     -x:  mask image                            Binary mask defining the region of interest.
      -c:  number of segmentation classes        Number of classes defining the segmentation
-     -l:  posterior label for N4 weight mask    Which posterior probability image should be used to define the
-                                                N4 weight mask.  Can also specify multiple posteriors in which
-                                                case the chosen posteriors are added.
      -o:  output prefix                         The following images are created:
                                                   * ${OUTPUT_PREFIX}N4Corrected.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}Segmentation.${OUTPUT_SUFFIX}
@@ -52,6 +47,8 @@ Required arguments:
 
 Optional arguments:
 
+     -m:  max. N4 <-> Atropos iterations        Maximum number of (outer loop) iterations between N4 <-> Atropos.
+     -n:  max. Atropos iterations               Maximum number of (inner loop) iterations in Atropos.
      -p:  segmentation priors                   Prior probability images initializing the segmentation.
                                                 Specified using c-style formatting, e.g. -p labelsPriors%02d.nii.gz.
      -r:  mrf                                   Specifies MRF prior (of the form '[weight,neighborhood]', e.g.
@@ -70,8 +67,9 @@ Optional arguments:
                                                 Intuitively, smaller lambda values will increase the spatial capture
                                                 range of the distance prior.  To apply to all label values, simply omit
                                                 specifying the label, i.e. -l [lambda,boundaryProbability].
-     -y:  N4 labels for pure tissue mask        Specifies one or more labels to construct the pure tissue weight mask
-                                                for improved N4 bias correction
+     -y:  posterior label for N4 weight mask    Which posterior probability image should be used to define the
+                                                N4 weight mask.  Can also specify multiple posteriors in which
+                                                case the chosen posteriors are combined.
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
      -k:  keep temporary files                  Keep temporary files on disk (default = false).
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
