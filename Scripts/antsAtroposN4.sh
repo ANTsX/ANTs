@@ -56,7 +56,20 @@ Optional arguments:
                                                 Specified using c-style formatting, e.g. -p labelsPriors%02d.nii.gz.
      -r:  mrf                                   Specifies MRF prior (of the form '[weight,neighborhood]', e.g.
                                                 '[0.1,1x1x1]' which is default).
-     -b:  posterior formulation                 'Posterior formulation and whether or not to use mixture model proportions.'
+     -b:  posterior formulation                 Posterior formulation and whether or not to use mixture model proportions.
+                                                e.g 'Socrates[1]' (default) or 'Aristotle[1]'.  Choose the latter if you
+                                                want use the distance priors (see also the -l option for label propagation
+                                                control).
+     -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
+                                                of the form 'label[lambda,boundaryProbability]' where label is a value
+                                                of 1,2,3,... denoting label ID.  The label probability for anything
+                                                outside the current label
+
+                                                  = boundaryProbability * exp( -lambda * distanceFromBoundary )
+
+                                                Intuitively, smaller lambda values will increase the spatial capture
+                                                range of the distance prior.  To apply to all label values, simply omit
+                                                specifying the label, i.e. -l [lambda,boundaryProbability].
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
      -k:  keep temporary files                  Keep temporary files on disk (default = false).
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
@@ -152,12 +165,13 @@ ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=3
 ATROPOS_SEGMENTATION_MRF=''
+ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:" OPT
+  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:y:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -184,8 +198,8 @@ else
           k) #keep tmp images
        KEEP_TMP_IMAGES=$OPTARG
        ;;
-          l) #
-       N4_WEIGHT_MASK_POSTERIOR_LABELS[${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}]=$OPTARG
+          l)
+       ATROPOS_SEGMENTATION_LABEL_PROPAGATION[${#ATROPOS_SEGMENTATION_LABEL_PROPAGATION[@]}]=$OPTARG
        ;;
           m) #atropos segmentation iterations
        N4_ATROPOS_NUMBER_OF_ITERATIONS=$OPTARG
@@ -213,6 +227,9 @@ else
        ;;
           x) #atropos segmentation mask
        ATROPOS_SEGMENTATION_MASK=$OPTARG
+       ;;
+          y) #
+       N4_WEIGHT_MASK_POSTERIOR_LABELS[${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}]=$OPTARG
        ;;
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
@@ -407,7 +424,13 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
           fi
       fi
 
-    exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE}"
+    ATROPOS_LABEL_PROPAGATION_COMMAND_LINE=''
+    for (( j = 0; j < ${#ATROPOS_SEGMENTATION_LABEL_PROPAGATION[@]}; j++ ))
+      do
+        ATROPOS_LABEL_PROPAGATION_COMMAND_LINE="${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} -l ${ATROPOS_SEGMENTATION_LABEL_PROPAGATION[$j]}";
+      done
+
+    exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE}"
     exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
 
     if [[ $i -eq 0 ]];

@@ -2,37 +2,26 @@
 
 VERSION="0.0"
 
-if [[ ! -x ${ANTSPATH}/antsRegistration ]];
-  then
-    echo antsRegistration does not exist or is not executable.  Please check \$ANTSPATH.
-    exit
+if [[ ! -s ${ANTSPATH}/antsRegistration ]]; then
+  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
 fi
-if [[ ! -x ${ANTSPATH}/antsApplyTransforms ]];
-  then
-    echo antsApplyTransforms does not exist or is not executable.  Please check \$ANTSPATH.
-    exit
+if [[ ! -s ${ANTSPATH}/antsApplyTransforms ]]; then
+  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
 fi
-if [[ ! -x ${ANTSPATH}/N4BiasFieldCorrection ]];
-  then
-    echo N4BiasFieldCorrection does not exist or is not executable.  Please check \$ANTSPATH.
-    exit
+if [[ ! -s ${ANTSPATH}/N4BiasFieldCorrection ]]; then
+  echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
 fi
-if [[ ! -x ${ANTSPATH}/Atropos ]];
-  then
-    echo Atropos does not exist or is not executable.  Please check \$ANTSPATH.
-    exit
+if [[ ! -s ${ANTSPATH}/Atropos ]]; then
+  echo we cant find the Atropos program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
 fi
-if [[ ! -x ${ANTSPATH}/KellyKapowski ]];
-  then
-    echo DiReCT \(aka KellyKapowski\) does not exist or is not executable.  Please check \$ANTSPATH.
-    exit
+if [[ ! -s ${ANTSPATH}/KellyKapowski ]]; then
+  echo we cant find the DiReCT \(aka KellyKapowski\) program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
 fi
-if [[ ! -x ${ANTSPATH}/ImageMath ]];
-  then
-    echo ImageMath does not exist or is not executable.  Please check \$ANTSPATH.
-    exit
-fi
-
 
 function Usage {
     cat <<USAGE
@@ -114,6 +103,20 @@ Optional arguments:
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
      -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0.25)
      -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 3)
+     -b:  posterior formulation                 Atropos posterior formulation and whether or not to use mixture model proportions.
+                                                e.g 'Socrates[1]' (default) or 'Aristotle[1]'.  Choose the latter if you
+                                                want use the distance priors (see also the -l option for label propagation
+                                                control).
+     -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
+                                                of the form 'label[lambda,boundaryProbability]' where label is a value
+                                                of 1,2,3,... denoting label ID.  The label probability for anything
+                                                outside the current label
+
+                                                  = boundaryProbability * exp( -lambda * distanceFromBoundary )
+
+                                                Intuitively, smaller lambda values will increase the spatial capture
+                                                range of the distance prior.  To apply to all label values, simply omit
+                                                specifying the label, i.e. -l [lambda,boundaryProbability].
 
 USAGE
     exit 1
@@ -219,8 +222,9 @@ ATROPOS=${ANTSPATH}Atropos
 ATROPOS_SEGMENTATION_INITIALIZATION="PriorProbabilityImages"
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_CONVERGENCE="[5,0.0]"
-ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates"
+ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=3
+ATROPOS_SEGMENTATION_LABEL_PROPAGATION=()
 
 DIRECT=${ANTSPATH}KellyKapowski
 DIRECT_CONVERGENCE="[45,0.0,10]";
@@ -235,11 +239,14 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:d:e:f:h:i:k:l:m:n:p:q:o:s:t:w:" OPT
+  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:o:s:t:w:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
        ANATOMICAL_IMAGES[${#ANATOMICAL_IMAGES[@]}]=$OPTARG
+       ;;
+          b) # posterior formulation
+       ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION=$OPTARG
        ;;
           d) #dimensions
        DIMENSION=$OPTARG
@@ -264,6 +271,9 @@ else
        ;;
           k) #keep tmp images
        KEEP_TMP_IMAGES=$OPTARG
+       ;;
+          l)
+       ATROPOS_SEGMENTATION_LABEL_PROPAGATION[${#ATROPOS_SEGMENTATION_LABEL_PROPAGATION[@]}]=$OPTARG
        ;;
           m) #brain extraction prior probability mask
        EXTRACTION_PRIOR=$OPTARG
@@ -596,26 +606,34 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
         ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${ANATOMICAL_IMAGES[$j]}"
       done
 
+    ATROPOS_LABEL_PROPAGATION_COMMAND_LINE=''
+    for (( j = 0; j < ${#ATROPOS_SEGMENTATION_LABEL_PROPAGATION[@]}; j++ ))
+      do
+        ATROPOS_LABEL_PROPAGATION_COMMAND_LINE="${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} -l ${ATROPOS_SEGMENTATION_LABEL_PROPAGATION[$j]}";
+      done
+
     # this is a hack because the extraction mask header info is randomly getting changed for a couple data sets
     logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK} ${BRAIN_EXTRACTION_MASK} 1 1 1
 
     bash ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
+      -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
+      ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
       -n 5 \
       -c 4 \
-      -l 4 \
-      -l 3 \
-      -l 2 \
+      -y 4 \
+      -y 3 \
+      -y 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
       -k ${KEEP_TMP_IMAGES} \
       -s ${OUTPUT_SUFFIX}
 
-    ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE='';
+    ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE=''
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
         ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${OUTPUT_PREFIX}BrainSegmentation${j}N4.${OUTPUT_SUFFIX}";
@@ -623,14 +641,16 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
 
     bash ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
+      -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
       ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} \
+      ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE} \
       -x ${BRAIN_EXTRACTION_MASK} \
       -m 2 \
       -n 5 \
       -c 4 \
-      -l 4 \
-      -l 3 \
-      -l 2 \
+      -y 4 \
+      -y 3 \
+      -y 2 \
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
