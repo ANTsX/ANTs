@@ -16,6 +16,37 @@ if(!pckg) {
 }
 library(igraph)
 #
+# helper functions
+#
+avgimg <- function(  mylist , mask )
+{
+avg<-antsImageClone( mylist[[1]] )
+avg[ mask == 1 ]<-0
+for ( i in 1:length(mylist) ) 
+  {
+  avg[ mask == 1 ] <- avg[ mask == 1 ] + mylist[[i]][ mask == 1 ] * 1/length(mylist)
+  }
+ return( avg )
+}
+#
+sdimg <- function(  mylist , mask )
+{
+avg<-avgimg( mylist , mask )
+sdi<-antsImageClone( avg )
+sdi[ mask == 1 ]<-0
+for ( i in 1:length(mylist) ) 
+  {
+  sdi[ mask == 1 ] <- sdi[ mask == 1 ] + abs( mylist[[i]][ mask == 1 ] - avg[ mask == 1 ] )  * 1/length(mylist)
+  }
+ return( sdi )
+}
+#
+interleave <- function(v1,v2)
+{
+ord1 <- 2*(1:length(v1))-1
+ord2 <- 2*(1:length(v2))
+c(v1,v2)[order(c(ord1,ord2))]
+}
 #
 #
 spec = c( 
@@ -85,11 +116,31 @@ aal2fmri<-antsImageRead( opt$labels, 3 )
 mask<-antsImageRead( opt$mask, 3 )
 if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASLBOLD" )
   {
-    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = 0.85 )
-    pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
-    cbf <- quantifyCBF( pcasl.processing$perfusion, mask, pcasl.parameters )
+    mat<-timeseries2matrix( fmri, mask )
+    cbflist<-list( ) 
+    for ( i in 1:20 ) {
+      timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*0.35 ) 
+      timeinds<-( timeinds %% 2 )+timeinds
+      timeinds<-interleave( timeinds-1, timeinds )
+      aslarr<-as.array( fmri ) 
+      aslarr2<-aslarr[,,,timeinds]
+      aslsub<-as.antsImage( aslarr2 )
+      antsSetSpacing( aslsub , antsGetSpacing( fmri ) )
+      proc <- aslPerfusion( aslsub, mask=mask, moreaccurate=TRUE ,  dorobust=0.95 )
+      param <- list( sequence="pcasl", m0=proc$m0 )
+      cbf <- quantifyCBF( proc$perfusion, mask, param )
+      cbflist<-lappend( cbflist, cbf$kmeancbf )
+    }
+    cbfout<-antsImageClone( mask )
+    avgcbf<-avgimg( cbflist , mask )
+    sdi<-sdimg( cbflist , mask )
+    cbfout[ sdi > 25 ] <- 0
+    cbfout[ sdi <= 25 ] <- avgcbf[ sdi <= 25 ]
+#    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = 0.85 )
+#    pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
+#    cbf <- quantifyCBF( pcasl.processing$perfusion, mask, pcasl.parameters )
     fn<-paste( opt$output,"_kcbf.nii.gz",sep='')
-    antsImageWrite( cbf$kmeancbf , fn )
+    antsImageWrite( cbfout , fn )
     filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
     xideal<-pcasl.processing$xideal
     tsResid<-residuals( lm( filterpcasl$matrixTimeSeries ~ filterpcasl$nuisancevariables + xideal ))
