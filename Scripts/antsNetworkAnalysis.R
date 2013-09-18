@@ -136,11 +136,11 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     sdi<-sdimg( cbflist , mask )
     cbfout[ sdi > 25 ] <- 0
     cbfout[ sdi <= 25 ] <- avgcbf[ sdi <= 25 ]
-#    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = 0.85 )
-#    pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
-#    cbf <- quantifyCBF( pcasl.processing$perfusion, mask, pcasl.parameters )
     fn<-paste( opt$output,"_kcbf.nii.gz",sep='')
     antsImageWrite( cbfout , fn )
+    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = 0.85 )
+    pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
+    cbf <- quantifyCBF( pcasl.processing$perfusion, mask, pcasl.parameters )
     filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
     xideal<-pcasl.processing$xideal
     tsResid<-residuals( lm( filterpcasl$matrixTimeSeries ~ filterpcasl$nuisancevariables + xideal ))
