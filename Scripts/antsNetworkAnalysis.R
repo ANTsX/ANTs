@@ -134,8 +134,9 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     cbfout<-antsImageClone( mask )
     avgcbf<-avgimg( cbflist , mask )
     sdi<-sdimg( cbflist , mask )
-    cbfout[ sdi > 25 ] <- 0
-    cbfout[ sdi <= 25 ] <- avgcbf[ sdi <= 25 ]
+    thresh <- 75
+    cbfout[ sdi > thresh ] <- 0
+    cbfout[ sdi <= thresh ] <- avgcbf[ sdi <= thresh ]
     fn<-paste( opt$output,"_kcbf.nii.gz",sep='')
     antsImageWrite( cbfout , fn )
     pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = 0.85 )
