@@ -13599,7 +13599,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
         {
-        GenerateMaurerDistanceImage<2>(argc, argv);
+        GenerateMaurerDistanceImage<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "Normalize") == 0 )
         {
@@ -14067,7 +14067,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
         {
-        GenerateMaurerDistanceImage<2>(argc, argv);
+        GenerateMaurerDistanceImage<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "Normalize") == 0 )
         {
