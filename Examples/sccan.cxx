@@ -653,7 +653,7 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
     return matrix;
     }
 
-  if( strcmp(ext.c_str(), ".mha") == 0 )
+  if( strcmp(ext.c_str(), ".mha") == 0 || strcmp(ext.c_str(), ".mhd") == 0 )
     {
     typename MatrixImageType::RegionType region;
     region.SetSize( tilesize );
