@@ -454,7 +454,7 @@ private:
       + std::string( "any number of \"stages\" where a stage consists of a transform; an image metric; " )
       + std::string( "and iterations, shrink factors, and smoothing sigmas for each level." )
       + std::string( "Note that dimensionality, metric, transform, output, convergence, shrink-factors ")
-      + std::string( " and smoothing-sigmas parameters are mandatory.")
+      + std::string( "and smoothing-sigmas parameters are mandatory." );
 
     parser->SetCommandDescription( commandDescription );
     InitializeCommandLineOptions( parser );
