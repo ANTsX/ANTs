@@ -4791,20 +4791,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     qrowmean( i ) = this->m_MatrixQ.get_row( i ).mean();
     }
-  prowmean = prowmean / prowmean.two_norm();
-  qrowmean = qrowmean / qrowmean.two_norm();
+  if ( prowmean.two_norm() > 0 ) prowmean = prowmean / prowmean.two_norm();
+  if ( qrowmean.two_norm() > 0 ) qrowmean = qrowmean / qrowmean.two_norm();
   VectorType ipvec = ( prowmean + qrowmean ) * this->m_MatrixP;
   VectorType iqvec = ( prowmean + qrowmean ) * this->m_MatrixQ;
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
     VectorType qvec = ( this->m_MatrixP * ipvec ) * this->m_MatrixQ;
-    qvec = qvec / qvec.two_norm();
+    if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
     VectorType vec  = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
-    vec = vec / vec.two_norm();
+    if (  vec.two_norm() > 0 ) vec = vec / vec.two_norm();
     VectorType vec2  = ( this->m_MatrixQ * iqvec ) * this->m_MatrixP;
-    vec2 = vec2 / vec2.two_norm();
+    if (  vec2.two_norm() > 0 ) vec2 = vec2 / vec2.two_norm();
     VectorType qvec2 = ( this->m_MatrixP * vec2 ) * this->m_MatrixQ;
-    qvec2 = qvec2 / qvec2.two_norm();
+    if (  qvec2.two_norm() > 0 ) qvec2 = qvec2 / qvec2.two_norm();
     if ( vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec2,  this->m_MatrixQ * qvec2 )  ) >
 	 vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec )  ) )
       {
@@ -4820,8 +4820,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     //    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     //    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
-    qvec = qvec / qvec.two_norm();
-    vec = vec / vec.two_norm();
+    if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
+    if (  vec.two_norm()  > 0 ) vec = vec / vec.two_norm();
     if ( this->m_UseLongitudinalFormulation > 1.e-9 )
       {
       vec = ( vec + qvec ) * 0.5; 
