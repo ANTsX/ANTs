@@ -4781,20 +4781,22 @@ TRealType antsSCCANObject<TInputImage, TRealType>
    *  for 2nd,3rd,etc evecs, orthogonalize initial vector against sparsified.
    */
   RealType totalcorr = 0;
-  VectorType prowmean( this->m_MatrixP.rows(), 0 );
-  for( unsigned long i = 0; i < this->m_MatrixP.rows(); i++ )
+  unsigned int pmax = this->m_MatrixP.rows(); 
+  unsigned int qmax = this->m_MatrixQ.rows(); 
+  VectorType prowmean( pmax , 0 );
+  for( unsigned long i = 0; i < pmax; i++ )
     {
     prowmean( i ) = this->m_MatrixP.get_row( i ).mean();
     }
-  VectorType qrowmean( this->m_MatrixQ.rows(), 0 );
-  for( unsigned long i = 0; i < this->m_MatrixQ.rows(); i++ )
+  VectorType qrowmean( qmax, 0 );
+  for( unsigned long i = 0; i < qmax; i++ )
     {
     qrowmean( i ) = this->m_MatrixQ.get_row( i ).mean();
     }
   if ( prowmean.two_norm() > 0 ) prowmean = prowmean / prowmean.two_norm();
   if ( qrowmean.two_norm() > 0 ) qrowmean = qrowmean / qrowmean.two_norm();
-  VectorType ipvec = ( prowmean + qrowmean ) * this->m_MatrixP;
-  VectorType iqvec = ( prowmean + qrowmean ) * this->m_MatrixQ;
+  VectorType ipvec = ( prowmean  ) * this->m_MatrixP;
+  VectorType iqvec = ( qrowmean ) * this->m_MatrixQ;
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
     VectorType qvec = ( this->m_MatrixP * ipvec ) * this->m_MatrixQ;
@@ -4821,17 +4823,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     //    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     //    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
     if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
-    if (  vec.two_norm()  > 0 ) vec = vec / vec.two_norm();
+    if (  vec.two_norm()  > 0 ) vec  =  vec / vec.two_norm();
     if ( this->m_UseLongitudinalFormulation > 1.e-9 )
       {
       vec = ( vec + qvec ) * 0.5; 
       qvec = vec;
       }
-    this->SparsifyP( vec );    this->SparsifyQ( qvec );
-    this->m_VariatesP.set_column( kk, vec );
+    this->SparsifyP( vec );    
+    this->SparsifyQ( qvec );
+    this->m_VariatesP.set_column( kk, vec  );
     this->m_VariatesQ.set_column( kk, qvec );
-    this->NormalizeWeightsByCovariance( kk, 1, 1 );
-    totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
+    this->NormalizeWeightsByCovariance( kk, 0.05, 0.05 );
+    RealType locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
+    totalcorr += locor;
     }
   return totalcorr;
 }
@@ -4930,7 +4934,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType     bestcorr = this->InitializeSCCA_simple( n_vecs );
   RealType     totalcorr = 0;
   int bestseed = -1;
-  for( unsigned int seeder = 0; seeder < 35; seeder++ )
+  for( unsigned int seeder = 0; seeder < 1100; seeder++ )
     {
     totalcorr = this->InitializeSCCA( n_vecs, seeder );
     if( totalcorr > bestcorr )

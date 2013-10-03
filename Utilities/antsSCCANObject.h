@@ -802,7 +802,7 @@ protected:
     bool negate = false;
     if( x_k1.mean() <= 0 )
       {
-      negate = false;
+      negate = true;
       }
     if( negate )
       {
