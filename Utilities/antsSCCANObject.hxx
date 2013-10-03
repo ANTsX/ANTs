@@ -4930,11 +4930,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     ::ants::antscout << "Initialization: " << initReturn << std::endl;
     }
-  /*
-  RealType     bestcorr = this->InitializeSCCA_simple( n_vecs );
+  /* 
+  RealType     bestcorr = initReturn;
   RealType     totalcorr = 0;
   int bestseed = -1;
-  for( unsigned int seeder = 0; seeder < 1100; seeder++ )
+  for( unsigned int seeder = 0; seeder < 35; seeder++ )
     {
     totalcorr = this->InitializeSCCA( n_vecs, seeder );
     if( totalcorr > bestcorr )
@@ -4947,7 +4947,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     ::ants::antscout << " Best initial corr " << bestcorr << std::endl;
     }
-  if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed ); */
+  if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed ); 
+  */
 
   const unsigned int maxloop = this->m_MaximumNumberOfIterations;
   unsigned int       loop = 0;
