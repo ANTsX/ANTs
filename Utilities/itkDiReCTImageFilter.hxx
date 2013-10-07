@@ -153,25 +153,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 
   InputImagePointer thresholdedRegion = this->ExtractRegion( const_cast<const InputImageType *>( adder->GetOutput() ), 1 );
 
-  typedef BinaryBallStructuringElement<InputPixelType, ImageDimension> StructuringElementType;
-  typedef BinaryDilateImageFilter<InputImageType, InputImageType,
-                                  StructuringElementType> DilatorType;
-
-  StructuringElementType structuringElement;
-  structuringElement.SetRadius( 1 );
-  structuringElement.CreateStructuringElement();
-
-  typename DilatorType::Pointer dilator = DilatorType::New();
-  dilator->SetInput( thresholdedRegion );
-  dilator->SetKernel( structuringElement );
-  dilator->SetDilateValue( 1 );
-  dilator->Update();
-
-  InputImagePointer dilatedMatters = dilator->GetOutput();
-
   // Extract the white and gm/wm matter contours
 
-  InputImagePointer dilatedMatterContours = this->ExtractRegionalContours( dilatedMatters, 1 );
+  InputImagePointer matterContours = this->ExtractRegionalContours( thresholdedRegion, 1 );
   InputImagePointer whiteMatterContoursTmp = this->ExtractRegionalContours( segmentationImage, this->m_WhiteMatterLabel );
 
   typedef CastImageFilter<InputImageType, RealImageType> CasterType;
@@ -251,9 +235,9 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   ImageRegionIterator<DisplacementFieldType> ItForwardIncrementalField(
     forwardIncrementalField,
     forwardIncrementalField->GetRequestedRegion() );
-  ImageRegionConstIterator<InputImageType> ItDilatedMatterContours(
-    dilatedMatterContours,
-    dilatedMatterContours->GetRequestedRegion() );
+  ImageRegionConstIterator<InputImageType> ItMatterContours(
+    matterContours,
+    matterContours->GetRequestedRegion() );
   ImageRegionIterator<DisplacementFieldType> ItInverseIncrementalField(
     inverseIncrementalField,
     inverseIncrementalField->GetRequestedRegion() );
@@ -445,7 +429,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         }
 
       ItSegmentationImage.GoToBegin();
-      ItDilatedMatterContours.GoToBegin();
+      ItMatterContours.GoToBegin();
       ItWhiteMatterContours.GoToBegin();
       ItVelocityField.GoToBegin();
       ItInverseIncrementalField.GoToBegin();
@@ -457,10 +441,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           ItSegmentationImage.Get();
         typename InputImageType::PixelType whiteMatterContoursValue =
           static_cast<typename InputImageType::PixelType>( ItWhiteMatterContours.Get() );
-        typename InputImageType::PixelType dilatedMatterContoursValue = ItDilatedMatterContours.Get();
+        typename InputImageType::PixelType matterContoursValue = ItMatterContours.Get();
 
         if( segmentationValue == 0 ||
-          ( whiteMatterContoursValue == 0 && dilatedMatterContoursValue == 0 && segmentationValue != this->m_GrayMatterLabel ) )
+          ( whiteMatterContoursValue == 0 && matterContoursValue == 0 && segmentationValue != this->m_GrayMatterLabel ) )
           {
           ItInverseField.Set( zeroVector );
           ItVelocityField.Set( zeroVector );
@@ -470,7 +454,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
         ItInverseIncrementalField.Set( ItVelocityField.Get() );
 
         ++ItSegmentationImage;
-        ++ItDilatedMatterContours;
+        ++ItMatterContours;
         ++ItWhiteMatterContours;
         ++ItVelocityField;
         ++ItInverseIncrementalField;
