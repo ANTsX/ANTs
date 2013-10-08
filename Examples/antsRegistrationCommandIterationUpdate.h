@@ -88,7 +88,7 @@ public:
 
       m_clock.Stop();
       const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
-      this->Logger() << "DIAGNOSTIC, "
+      this->Logger() << "WDIAGNOSTIC, "
                      << std::setw(5) << lCurrentIteration << ", "
                      << std::scientific << std::setprecision(12) << filter->GetCurrentMetricValue() << ", "
                      << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "
