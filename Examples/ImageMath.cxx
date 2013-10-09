@@ -9571,8 +9571,106 @@ std::map<unsigned int, std::string> RoiList(std::string file)
   return RoiList; // returns the maximum index
 }
 
-// now words can be accessed like this WordList[n]; where 'n' is the index
 
+
+template <unsigned int ImageDimension>
+int LabelThickness(      int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::Image<unsigned char, ImageDimension>                       ByteImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ByteImageType>                             writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  if( argc < 5 )
+    {
+    antscout << " Not enough inputs " << std::endl;
+    return EXIT_FAILURE;
+    }
+  int         argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  typename ImageType::Pointer image = NULL;
+  typename ImageType::Pointer eimage = NULL;
+  ReadImage<ImageType>(image, fn1.c_str() );
+  ReadImage<ImageType>(eimage, fn1.c_str() );
+  // typename TImage::Pointer  Morphological( typename TImage::Pointer input, float rad, unsigned int option,
+  //                                       float dilateval)
+  eimage = ants::Morphological<ImageType>(image, 1, 4, 1);
+  typedef float                  PixelType;
+  typedef std::vector<PixelType> LabelSetType;
+  LabelSetType myLabelSet;
+  /** count the labels in the image */
+  unsigned long maxlab = 0;
+  Iterator      It( image, image->GetLargestPossibleRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    PixelType label = It.Get();
+    if( fabs(label) > 0 )
+      {
+      if( find( myLabelSet.begin(), myLabelSet.end(), label )
+          == myLabelSet.end() )
+        {
+        myLabelSet.push_back( label );
+        }
+      if( label > maxlab )
+        {
+        maxlab = (unsigned long)label;
+        }
+      }
+    }
+
+  std::sort(myLabelSet.begin(), myLabelSet.end() );
+  typename LabelSetType::const_iterator it;
+  unsigned long labelcount = 0;
+  for( it = myLabelSet.begin(); it != myLabelSet.end(); ++it )
+    {
+    labelcount++;
+    }
+
+  typename ImageType::SpacingType spacing = image->GetSpacing();
+  float volumeelement = 1.0;
+  for( unsigned int i = 0;  i < spacing.Size(); i++ )
+    {
+    volumeelement *= spacing[i];
+    }
+
+  vnl_vector<double> surface(maxlab + 1, 0);
+  vnl_vector<double> volume(maxlab + 1, 0);
+
+  // iterate over the label image and index into the stat image
+  Iterator      iIt( image, image->GetLargestPossibleRegion() );
+  for( iIt.GoToBegin(); !iIt.IsAtEnd(); ++iIt )
+    {
+    PixelType label = iIt.Get();
+    if(  label > 0 )
+      {
+      volume[(unsigned long) label] = volume[(unsigned long) label] + 1;
+      }
+    label = label - eimage->GetPixel( iIt.GetIndex() );
+    if(  label > 0 )
+      {
+      surface[(unsigned long) label] = surface[(unsigned long) label] + 1;
+      }
+    }
+  for ( unsigned int i = 0; i < surface.size(); i++ ) 
+    {
+    if ( surface[i] > 0 ) 
+    ::ants::antscout << " S " << surface[i] << " V " << volume[i] << " T " << volume[i] / surface[i] * 2.0 <<  std::endl;
+    }      
+  return EXIT_SUCCESS;
+}
+
+// now words can be accessed like this WordList[n]; where 'n' is the index
 template <unsigned int ImageDimension>
 int ROIStatistics(      int argc, char *argv[])
 {
@@ -13255,6 +13353,10 @@ private:
         {
         ROIStatistics<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
+        {
+        LabelThickness<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
         DiceAndMinDistSum<2>(argc, argv);
@@ -13632,6 +13734,10 @@ private:
       else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
         {
         ROIStatistics<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
+        {
+        LabelThickness<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
@@ -14104,6 +14210,10 @@ private:
       else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
         {
         ROIStatistics<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
+        {
+        LabelThickness<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
