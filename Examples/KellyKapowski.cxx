@@ -68,11 +68,11 @@ int DiReCT( itk::ants::CommandLineParser *parser )
 
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
   typename LabelImageType::Pointer segmentationImage;
-  typename LabelImageType::Pointer labelPriorImage;
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
   typename ImageType::Pointer grayMatterProbabilityImage;
   typename ImageType::Pointer whiteMatterProbabilityImage;
+  typename ImageType::Pointer thicknessPriorImage;
 
   typedef itk::DiReCTImageFilter<LabelImageType, ImageType> DiReCTFilterType;
   typename DiReCTFilterType::Pointer direct = DiReCTFilterType::New();
@@ -200,18 +200,18 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   // label priors
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-  labelOption = parser->GetOption( "labelFileName" );
-  if( labelOption && labelOption->GetNumberOfFunctions() )
+  tpOption = parser->GetOption( "thickness-prior-image" );
+  if( tpOption && tpOption->GetNumberOfFunctions() )
     {
-    std::string labFile = labelOption->GetFunction( 0 )->GetName();
-    ReadImage<LabelImageType>( labelPriorImage, labFile.c_str()   );
+    std::string labFile = tpOption->GetFunction( 0 )->GetName();
+    ReadImage<ImageType>( thicknessPriorImage, labFile.c_str()   );
     }
   else
     {
     antscout << "  White matter probability image not specified. "
              << "Creating one from the segmentation image." << std::endl << std::endl;
     }
-  direct->SetLabelPriorImage( labelPriorImage );
+  direct->SetThicknessPriorImage( thicknessPriorImage );
   //
   // convergence options
   //
@@ -512,12 +512,12 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Cortical labels to guide thickness." );
+      std::string( "An image containing spatially varying prior thickness values." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "labelpriors" );
+    option->SetLongName( "thickness-prior-image" );
     option->SetShortName( 'a' );
-    option->SetUsageOption( 0, "labelFileName" );
+    option->SetUsageOption( 0, "thicknessPriorFileName" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

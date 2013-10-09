@@ -105,16 +105,16 @@ public:
   /**
    * Get the label image.
    */
-  const InputImageType * GetLabelPriorImage() const
+  const RealImageType * GetThicknessPriorImage() const
   {
-    return this->m_LabelPriorImage;
+    return this->m_ThicknessPriorImage;
   }
   /**
    * Set the label image.
    */
-  void SetLabelPriorImage( InputImagePointer seg )
+  void SetThicknessPriorImage( RealImagePointer seg )
   {
-    this->m_LabelPriorImage = seg;
+    this->m_ThicknessPriorImage = seg;
   }
 
 
@@ -370,7 +370,7 @@ private:
   RealType     m_ConvergenceThreshold;
   unsigned int m_ConvergenceWindowSize;
 
-  InputImagePointer  m_LabelPriorImage;
+  RealImagePointer  m_ThicknessPriorImage;
 
 };
 } // end namespace itk
