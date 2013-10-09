@@ -9643,6 +9643,7 @@ int LabelThickness(      int argc, char *argv[])
     {
     volumeelement *= spacing[i];
     }
+  volumeelement = pow( volumeelement , 0.3333 );
 
   vnl_vector<double> surface(maxlab + 1, 0);
   vnl_vector<double> volume(maxlab + 1, 0);
@@ -9684,8 +9685,8 @@ int LabelThickness(      int argc, char *argv[])
     PixelType label = iIt.Get();
     if ( label > 0 )
       {
-      PixelType thicknessprior = 1;
-      if ( surface[ label ] > 0 ) thicknessprior = volume[ label ] / surface[ label ] * 2.0 ;
+      PixelType thicknessprior = volumeelement;
+      if ( surface[ label ] > 0 ) thicknessprior = volume[ label ] / surface[ label ] * 2.0 * volumeelement;
       eimage->SetPixel( iIt.GetIndex() , thicknessprior );
       }
     }
