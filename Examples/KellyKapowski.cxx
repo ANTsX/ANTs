@@ -68,6 +68,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
 
   typedef itk::Image<LabelType, ImageDimension> LabelImageType;
   typename LabelImageType::Pointer segmentationImage;
+  typename LabelImageType::Pointer labelPriorImage;
 
   typedef itk::Image<RealType, ImageDimension> ImageType;
   typename ImageType::Pointer grayMatterProbabilityImage;
@@ -195,6 +196,22 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     whiteMatterProbabilityImage = smoother->GetOutput();
     }
   direct->SetWhiteMatterProbabilityImage( whiteMatterProbabilityImage );
+  //
+  // label priors
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+  labelOption = parser->GetOption( "labelFileName" );
+  if( labelOption && labelOption->GetNumberOfFunctions() )
+    {
+    std::string labFile = labelOption->GetFunction( 0 )->GetName();
+    ReadImage<LabelImageType>( labelPriorImage, labFile.c_str()   );
+    }
+  else
+    {
+    antscout << "  White matter probability image not specified. "
+             << "Creating one from the segmentation image." << std::endl << std::endl;
+    }
+  direct->SetLabelPriorImage( labelPriorImage );
   //
   // convergence options
   //
@@ -492,6 +509,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetDescription( description );
     parser->AddOption( option );
     }
+
+    {
+    std::string description =
+      std::string( "Cortical labels to guide thickness." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "labelpriors" );
+    option->SetShortName( 'a' );
+    option->SetUsageOption( 0, "labelFileName" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
 
     {
     std::string description =

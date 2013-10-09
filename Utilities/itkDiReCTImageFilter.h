@@ -101,6 +101,23 @@ public:
     return this->GetInput( 0 );
   }
 
+
+  /**
+   * Get the label image.
+   */
+  const InputImageType * GetLabelPriorImage() const
+  {
+    return this->m_LabelPriorImage;
+  }
+  /**
+   * Set the label image.
+   */
+  void SetLabelPriorImage( InputImagePointer seg )
+  {
+    this->m_LabelPriorImage = seg;
+  }
+
+
   /**
    * Set the grey matter probability image.
    */
@@ -352,6 +369,9 @@ private:
   RealType     m_CurrentConvergenceMeasurement;
   RealType     m_ConvergenceThreshold;
   unsigned int m_ConvergenceWindowSize;
+
+  InputImagePointer  m_LabelPriorImage;
+
 };
 } // end namespace itk
 
