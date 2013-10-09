@@ -68,6 +68,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_ConvergenceThreshold( 0.001 ),
   m_ConvergenceWindowSize( 10 )
 {
+  this->m_ThicknessPriorImage = NULL;
   this->SetNumberOfRequiredInputs( 3 );
 }
 
@@ -358,6 +359,14 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             ItGradientImage.Set( zeroVector );
             }
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
+	  
+	  if ( this->m_ThicknessPriorImage )
+	    {
+	    typename RealImageType::IndexType index = ItGrayMatterProbabilityMap.GetIndex();
+	    RealType thicknessprior = this->m_ThicknessPriorImage->GetPixel( index );
+            RealType thicknessvalue = thicknessImage->GetPixel( index );
+	    delta *= ( thicknessprior - thicknessvalue );
+	    }
 
           currentEnergy += vnl_math_abs( delta );
           numberOfGrayMatterVoxels++;
