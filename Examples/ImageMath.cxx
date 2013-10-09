@@ -9611,10 +9611,10 @@ int LabelThickness(      int argc, char *argv[])
   LabelSetType myLabelSet;
   /** count the labels in the image */
   unsigned long maxlab = 0;
-  Iterator      It( image, image->GetLargestPossibleRegion() );
-  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+  Iterator      iIt( image, image->GetLargestPossibleRegion() );
+  for( iIt.GoToBegin(); !iIt.IsAtEnd(); ++iIt )
     {
-    PixelType label = It.Get();
+    PixelType label = iIt.Get();
     if( fabs(label) > 0 )
       {
       if( find( myLabelSet.begin(), myLabelSet.end(), label )
@@ -9647,8 +9647,13 @@ int LabelThickness(      int argc, char *argv[])
   vnl_vector<double> surface(maxlab + 1, 0);
   vnl_vector<double> volume(maxlab + 1, 0);
 
+  typedef itk::NeighborhoodIterator<ImageType> iteratorType;
+  typename iteratorType::RadiusType rad;
+  rad.Fill( 1 );
+  iteratorType GHood(rad, image, image->GetLargestPossibleRegion() );
+  float        Gsz = (float)GHood.Size();
+
   // iterate over the label image and index into the stat image
-  Iterator      iIt( image, image->GetLargestPossibleRegion() );
   for( iIt.GoToBegin(); !iIt.IsAtEnd(); ++iIt )
     {
     PixelType label = iIt.Get();
@@ -9659,7 +9664,13 @@ int LabelThickness(      int argc, char *argv[])
     label = label - eimage->GetPixel( iIt.GetIndex() );
     if(  label > 0 )
       {
-      surface[(unsigned long) label] = surface[(unsigned long) label] + 1;
+      GHood.SetLocation( iIt.GetIndex() );
+      bool isedge = false;
+      for( unsigned int ii = 0; ii < Gsz; ii++ )
+	{
+	if ( GHood.GetPixel( ii ) == 0 ) isedge = true;
+	}
+      if ( isedge ) surface[(unsigned long) label] = surface[(unsigned long) label] + 1;
       }
     }
   for ( unsigned int i = 0; i < surface.size(); i++ ) 
@@ -9667,6 +9678,18 @@ int LabelThickness(      int argc, char *argv[])
     if ( surface[i] > 0 ) 
     ::ants::antscout << " S " << surface[i] << " V " << volume[i] << " T " << volume[i] / surface[i] * 2.0 <<  std::endl;
     }      
+
+  for( iIt.GoToBegin(); !iIt.IsAtEnd(); ++iIt )
+    {
+    PixelType label = iIt.Get();
+    if ( label > 0 )
+      {
+      PixelType thicknessprior = 1;
+      if ( surface[ label ] > 0 ) thicknessprior = volume[ label ] / surface[ label ] * 2.0 ;
+      eimage->SetPixel( iIt.GetIndex() , thicknessprior );
+      }
+    }
+  WriteImage<ImageType>( eimage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
