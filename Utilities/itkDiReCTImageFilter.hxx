@@ -365,7 +365,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 	    typename RealImageType::IndexType index = ItGrayMatterProbabilityMap.GetIndex();
 	    RealType thicknessprior = this->m_ThicknessPriorImage->GetPixel( index );
             RealType thicknessvalue = thicknessImage->GetPixel( index );
-	    delta *= ( thicknessprior - thicknessvalue );
+	    if ( thicknessprior > NumericTraits<RealType>::min() ) delta *= ( thicknessprior - thicknessvalue );
 	    }
 
           currentEnergy += vnl_math_abs( delta );
