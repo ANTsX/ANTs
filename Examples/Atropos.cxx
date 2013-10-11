@@ -1231,7 +1231,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "initialization.  Suppose the user also wanted to model the " )
       + std::string( "partial voluming effects between csf/gm and gm/wm. " )
       + std::string( "The user would specify it using -i kmeans[3] " )
-      + std::string( "and -t 1x2 -t 2x3.  So, for this example, there would be 3 " )
+      + std::string( "and -s 1x2 -s 2x3.  So, for this example, there would be 3 " )
       + std::string( "tissue classes and 2 partial volume classes.  Optionally," )
       + std::string( "the user can limit partial volume handling to mrf considerations " )
       + std::string( "only whereby the output would only be the three tissues." );
