@@ -4660,15 +4660,19 @@ bool antsSCCANObject<TInputImage, TRealType>
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
     VectorType pveck = this->m_MatrixQ * qtemp;
+    this->SparsifyOther( pveck ); 
     VectorType qveck = this->m_MatrixP * ptemp;
+    this->SparsifyOther( qveck ); 
     /** the gradient of     ( x X ,  y Y ) * ( x X , x X )^{-1}  * ( y Y  , y Y )^{-1}
      *  where we constrain ( x X , x X ) = ( y Y , y Y ) = 1
      */
     RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
-    pveck = pveck - this->m_MatrixP.transpose() * ( this->m_MatrixP * ptemp ) *  ccafactor;
+    VectorType tempp = ( this->m_MatrixP * ptemp ); this->SparsifyOther( tempp );
+    pveck = pveck - this->m_MatrixP.transpose() * tempp *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
-    qveck = qveck - this->m_MatrixQ.transpose() * ( this->m_MatrixQ * qtemp ) *  ccafactor;
+    VectorType tempq = ( this->m_MatrixQ * qtemp ); this->SparsifyOther( tempq );
+    qveck = qveck - this->m_MatrixQ.transpose() * ( tempq ) *  ccafactor;
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j );
