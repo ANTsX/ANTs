@@ -4668,11 +4668,11 @@ bool antsSCCANObject<TInputImage, TRealType>
      */
     RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
-    VectorType tempp = ( this->m_MatrixP * ptemp ); this->SparsifyOther( tempp );
-    pveck = pveck - this->m_MatrixP.transpose() * tempp *  ccafactor;
+    VectorType pproj = ( this->m_MatrixP * ptemp ); this->SparsifyOther( pproj );
+    pveck = pveck - this->m_MatrixP.transpose() * pproj *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
-    VectorType tempq = ( this->m_MatrixQ * qtemp ); this->SparsifyOther( tempq );
-    qveck = qveck - this->m_MatrixQ.transpose() * ( tempq ) *  ccafactor;
+    VectorType qproj = ( this->m_MatrixQ * qtemp ); this->SparsifyOther( qproj );
+    qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j );
@@ -4694,11 +4694,13 @@ bool antsSCCANObject<TInputImage, TRealType>
     qveck = qtemp + qveck * ( this->m_GradStep / sclq );
     for( unsigned int j = 0; j < k; j++ )
       {
-      VectorType qj = this->m_VariatesP.get_column( j );
-      pveck = this->Orthogonalize( pveck / ( this->m_MatrixP * pveck ).two_norm()  , qj );
+      VectorType qj = this->m_VariatesP.get_column( j ); 
+      pproj = ( this->m_MatrixP * pveck ); this->SparsifyOther( pproj );
+      pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
       if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
-      qveck = this->Orthogonalize( qveck / ( this->m_MatrixQ * qveck ).two_norm()  , qj );
+      qproj = ( this->m_MatrixQ * qveck ); this->SparsifyOther( qproj );
+      qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
       if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
     //    pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP );
@@ -4728,10 +4730,14 @@ bool antsSCCANObject<TInputImage, TRealType>
       this->IHTRegression(  this->m_MatrixQ,  qtemp, qveck, 0, 1, muq, false, false );   qveck = qtemp;
       }
     // test 4 cases of updates
-    RealType corr0 = this->PearsonCorr( this->m_MatrixP * ptemp, this->m_MatrixQ * qtemp  );
-    RealType corr1 = this->PearsonCorr( this->m_MatrixP * pveck, this->m_MatrixQ * qveck  );
-    RealType corr2 = this->PearsonCorr( this->m_MatrixP * ptemp, this->m_MatrixQ * qveck  );
-    RealType corr3 = this->PearsonCorr( this->m_MatrixP * pveck, this->m_MatrixQ * qtemp  );
+    pproj =  this->m_MatrixP * ptemp;  this->SparsifyOther( pproj );
+    VectorType pproj2 = this->m_MatrixP * pveck;  this->SparsifyOther( pproj2 );
+    qproj =  this->m_MatrixQ * qtemp;  this->SparsifyOther( qproj );
+    VectorType qproj2 = this->m_MatrixQ * qveck;  this->SparsifyOther( qproj2 );
+    RealType corr0 = this->PearsonCorr( pproj , qproj  );
+    RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
+    RealType corr2 = this->PearsonCorr( pproj, qproj );
+    RealType corr3 = this->PearsonCorr( pproj2, qproj2  );
     if( corr1 > corr0 )
       {
       this->m_VariatesP.set_column( k, pveck  );
@@ -4769,7 +4775,9 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
     else this->NormalizeWeights( k );
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
+    this->SparsifyOther( proj1 );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
+    this->SparsifyOther( proj2 );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
   this->SortResults( n_vecs );
