@@ -4668,10 +4668,10 @@ bool antsSCCANObject<TInputImage, TRealType>
      */
     RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
-    VectorType pproj = ( this->m_MatrixP * ptemp ); this->SparsifyOther( pproj );
+    VectorType pproj = ( this->m_MatrixP * ptemp ); // this->SparsifyOther( pproj );
     pveck = pveck - this->m_MatrixP.transpose() * pproj *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
-    VectorType qproj = ( this->m_MatrixQ * qtemp ); this->SparsifyOther( qproj );
+    VectorType qproj = ( this->m_MatrixQ * qtemp ); // this->SparsifyOther( qproj );
     qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
     for( unsigned int j = 0; j < k; j++ )
       {
@@ -4695,11 +4695,11 @@ bool antsSCCANObject<TInputImage, TRealType>
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j ); 
-      pproj = ( this->m_MatrixP * pveck ); this->SparsifyOther( pproj );
+      pproj = ( this->m_MatrixP * pveck ); // this->SparsifyOther( pproj );
       pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
       if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
-      qproj = ( this->m_MatrixQ * qveck ); this->SparsifyOther( qproj );
+      qproj = ( this->m_MatrixQ * qveck ); // this->SparsifyOther( qproj );
       qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
       if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
@@ -4730,10 +4730,10 @@ bool antsSCCANObject<TInputImage, TRealType>
       this->IHTRegression(  this->m_MatrixQ,  qtemp, qveck, 0, 1, muq, false, false );   qveck = qtemp;
       }
     // test 4 cases of updates
-    pproj =  this->m_MatrixP * ptemp;  this->SparsifyOther( pproj );
-    VectorType pproj2 = this->m_MatrixP * pveck;  this->SparsifyOther( pproj2 );
-    qproj =  this->m_MatrixQ * qtemp;  this->SparsifyOther( qproj );
-    VectorType qproj2 = this->m_MatrixQ * qveck;  this->SparsifyOther( qproj2 );
+    pproj =  this->m_MatrixP * ptemp;  // this->SparsifyOther( pproj );
+    VectorType pproj2 = this->m_MatrixP * pveck; // this->SparsifyOther( pproj2 );
+    qproj =  this->m_MatrixQ * qtemp; // this->SparsifyOther( qproj );
+    VectorType qproj2 = this->m_MatrixQ * qveck; // this->SparsifyOther( qproj2 );
     RealType corr0 = this->PearsonCorr( pproj , qproj  );
     RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
     RealType corr2 = this->PearsonCorr( pproj, qproj );
@@ -4770,14 +4770,14 @@ bool antsSCCANObject<TInputImage, TRealType>
       if( this->m_Debug )
         {
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
-        }
+        } 
       }
     if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
     else this->NormalizeWeights( k );
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
-    this->SparsifyOther( proj1 );
+    //    this->SparsifyOther( proj1 );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
-    this->SparsifyOther( proj2 );
+    //    this->SparsifyOther( proj2 );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
   this->SortResults( n_vecs );
@@ -4886,7 +4886,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     //    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     }
-  return totalcorr;
+  return totalcorr*0.5;
   //  this->CCAUpdate( n_vecs , false );
   return this->m_CanonicalCorrelations.sum();
 }
