@@ -53,6 +53,7 @@
 #include "itkQuasiNewtonOptimizerv4.h"
 
 #include "itkHistogramMatchingImageFilter.h"
+#include "itkMinimumMaximumImageCalculator.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 #include "itkMacro.h"
@@ -185,7 +186,6 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
 
   float lowerFunction = histogramFilter->GetOutput()->Quantile( 0, winsorizeLowerQuantile );
   float upperFunction = histogramFilter->GetOutput()->Quantile( 0, winsorizeUpperQuantile );
-
   typedef itk::IntensityWindowingImageFilter<ImageType, ImageType> IntensityWindowingImageFilterType;
 
   typename IntensityWindowingImageFilterType::Pointer windowingFilter = IntensityWindowingImageFilterType::New();
@@ -211,6 +211,17 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     outputImage = matchingFilter->GetOutput();
     outputImage->Update();
     outputImage->DisconnectPipeline();
+
+    typedef itk::MinimumMaximumImageCalculator<ImageType> CalculatorType;
+    typename CalculatorType::Pointer calc = CalculatorType::New();
+    calc->SetImage( inputImage );
+    calc->ComputeMaximum();
+    calc->ComputeMinimum();
+    if ( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 ) 
+      {
+      ::ants::antscout <<"Warning: bad time point - too little intensity variation" << std::endl;
+      return histogramMatchSourceImage;
+      }
     }
   else
     {
@@ -218,7 +229,6 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     outputImage->Update();
     outputImage->DisconnectPipeline();
     }
-
   return outputImage;
 }
 
