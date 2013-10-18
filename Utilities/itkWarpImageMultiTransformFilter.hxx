@@ -47,7 +47,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
   this->SetNumberOfRequiredInputs( 1 );
 
   PixelType zeropix;
-  zeropix.Fill( 0 );
+  zeropix.Fill( NumericTraits<PixelType>::Zero );
   m_EdgePaddingValue = zeropix;
 
   // Setup default interpolator
