@@ -157,7 +157,7 @@ public:
         std::cout << " "; // if the output of current iteration is written to disk, and star
         }                 // will appear before line, else a free space will be printed to keep visual alignment.
 
-      this->Logger() << "DIAGNOSTIC, "
+      this->Logger() << "1DIAGNOSTIC, "
                      << std::setw(5) << lCurrentIteration << ", "
                      << std::scientific << std::setprecision(12) << filter->GetCurrentMetricValue() << ", "
                      << std::scientific << std::setprecision(12) << filter->GetCurrentConvergenceValue() << ", "

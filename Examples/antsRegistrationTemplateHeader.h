@@ -24,11 +24,12 @@ namespace ants {
 
 extern const char * RegTypeToFileName(const std::string & type, bool & writeInverse, bool & writeVelocityField);
 
-template <class T, unsigned VImageDimension>
+template <class TComputeType, unsigned VImageDimension>
 int
 DoRegistration(typename ParserType::Pointer & parser)
 {
-  typedef typename ants::RegistrationHelper<T, VImageDimension>      RegistrationHelperType;
+  typedef TComputeType RealType;
+  typedef typename ants::RegistrationHelper<TComputeType, VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::ImageType              ImageType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
 
@@ -116,7 +117,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     std::vector<bool> isDerivedInitialMovingTransform;
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<T, VImageDimension>( parser, initialMovingTransformOption,
+      GetCompositeTransformFromParserOption<TComputeType, VImageDimension>( parser, initialMovingTransformOption,
                                                               isDerivedInitialMovingTransform );
 
     if( compositeTransform.IsNull() )
@@ -135,7 +136,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
-        itk::ants::WriteTransform<T, VImageDimension>( curTransform, curFileName.str() );
+        itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
         }
       }
     }
@@ -146,7 +147,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     std::vector<bool> isDerivedInitialFixedTransform;
     typename CompositeTransformType::Pointer compositeTransform =
-      GetCompositeTransformFromParserOption<T, VImageDimension>( parser, initialFixedTransformOption,
+      GetCompositeTransformFromParserOption<TComputeType, VImageDimension>( parser, initialFixedTransformOption,
                                                               isDerivedInitialFixedTransform );
     if( compositeTransform.IsNull() )
       {
@@ -164,7 +165,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
         typename RegistrationHelperType::CompositeTransformType::TransformTypePointer curTransform =
           compositeTransform->GetNthTransform( n );
-        itk::ants::WriteTransform<T, VImageDimension>( curTransform, curFileName.str() );
+        itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
         }
       }
     }
@@ -270,7 +271,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   std::vector<std::vector<unsigned int> > iterationList;
-  std::vector<double>                     convergenceThresholdList;
+  std::vector<RealType>                     convergenceThresholdList;
   std::vector<unsigned int>               convergenceWindowSizeList;
   std::vector<std::vector<unsigned int> > shrinkFactorsList;
   std::vector<std::vector<float> >        smoothingSigmasList;
@@ -296,7 +297,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     // Get the number of iterations and use that information to specify the number of levels
 
     std::vector<unsigned int> iterations;
-    double                    convergenceThreshold = 1e-6;
+    RealType                    convergenceThreshold = 1e-6;
     unsigned int              convergenceWindowSize = 10;
     if( convergenceOption.IsNotNull() && convergenceOption->GetNumberOfFunctions() )
       {
@@ -311,7 +312,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 1 )
         {
-        convergenceThreshold = parser->Convert<double>( convergenceOption->GetFunction( currentStage )->GetParameter(
+        convergenceThreshold = parser->Convert<RealType>( convergenceOption->GetFunction( currentStage )->GetParameter(
                                                           1 ) );
         }
       if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
@@ -767,13 +768,13 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
       resultTransform.GetPointer();
-    itk::ants::WriteTransform<T, VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
+    itk::ants::WriteTransform<TComputeType, VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
 
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCompositeTransform =
       compositeTransform->GetInverseTransform();
     if( inverseCompositeTransform.IsNotNull() )
       {
-      itk::ants::WriteTransform<T, VImageDimension>( inverseCompositeTransform,
+      itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCompositeTransform,
                                                   inverseCompositeTransformFileName.c_str() );
       }
     }
@@ -856,7 +857,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     // WriteTransform will spit all sorts of error messages if it
     // fails, and we want to keep going even if it does so ignore its
     // return value.
-    itk::ants::WriteTransform<T, VImageDimension>( curTransform, curFileName.str() );
+    itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
 
     typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
     typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
@@ -892,7 +893,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       typedef typename RegistrationHelperType::TimeVaryingVelocityFieldTransformType
         VelocityFieldTransformType;
 
-      typedef itk::Image<itk::Vector<T, VImageDimension>, VImageDimension + 1> VelocityFieldType;
+      typedef itk::Image<itk::Vector<TComputeType, VImageDimension>, VImageDimension + 1> VelocityFieldType;
       typename VelocityFieldTransformType::Pointer velocityFieldTransform =
         dynamic_cast<VelocityFieldTransformType *>(curTransform.GetPointer() );
       if( !velocityFieldTransform.IsNull() )
@@ -919,7 +920,6 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
-  typedef T RealType;
   std::string whichInterpolator( "linear" );
   typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
   if( interpolationOption && interpolationOption->GetNumberOfFunctions() )

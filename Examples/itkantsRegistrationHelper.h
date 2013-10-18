@@ -95,7 +95,7 @@ namespace ants
 typedef itk::ants::CommandLineParser ParserType;
 typedef ParserType::OptionType       OptionType;
 
-template <class T, unsigned VImageDimension>
+template <class TComputeType, unsigned VImageDimension>
 class RegistrationHelper : public itk::Object
 {
 public:
@@ -106,13 +106,13 @@ public:
   typedef itk::SmartPointer<const Self> ConstPointer;
   typedef itk::WeakPointer<const Self>  ConstWeakPointer;
 
-  typedef T                                      RealType;
-  typedef T                                      PixelType;
+  typedef TComputeType                                      RealType;
+  typedef TComputeType                                      PixelType;
   typedef itk::Image<PixelType, VImageDimension> ImageType;
   typedef typename ImageType::Pointer            ImagePointer;
   typedef itk::ImageBase<VImageDimension>        ImageBaseType;
 
-  typedef itk::Transform<T, VImageDimension, VImageDimension>                        TransformType;
+  typedef itk::Transform<TComputeType, VImageDimension, VImageDimension>             TransformType;
   typedef itk::AffineTransform<RealType, VImageDimension>                            AffineTransformType;
   typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, AffineTransformType>  AffineRegistrationType;
   typedef typename AffineRegistrationType::ShrinkFactorsPerDimensionContainerType    ShrinkFactorsPerDimensionContainerType;
@@ -152,9 +152,9 @@ public:
   {
 public:
     Metric( MetricEnumeration metricType, typename ImageType::Pointer & fixedImage,
-            typename ImageType::Pointer & movingImage, unsigned int stageID, double weighting,
+            typename ImageType::Pointer & movingImage, unsigned int stageID, RealType weighting,
             SamplingStrategy samplingStrategy, int numberOfBins, unsigned int radius,
-            double samplingPercentage ) :
+            RealType samplingPercentage ) :
       m_MetricType( metricType ),
       m_FixedImage( fixedImage ),
       m_MovingImage( movingImage ),
@@ -207,11 +207,11 @@ public:
     typename ImageType::Pointer m_FixedImage;
     typename ImageType::Pointer m_MovingImage;
     unsigned int     m_StageID;
-    double           m_Weighting;
+    RealType           m_Weighting;
     SamplingStrategy m_SamplingStrategy;
     int              m_NumberOfBins;
     unsigned int     m_Radius;
-    double           m_SamplingPercentage;
+    RealType           m_SamplingPercentage;
   };
 
   typedef std::deque<Metric> MetricListType;
@@ -318,25 +318,25 @@ public:
 
     XfrmMethod m_XfrmMethod;
     // all transforms
-    double m_GradientStep;
+    RealType m_GradientStep;
     // BSPline
     std::vector<unsigned int> m_MeshSizeAtBaseLevel;
     // GaussianDisplacementField
-    double m_UpdateFieldVarianceInVarianceSpace;
-    double m_TotalFieldVarianceInVarianceSpace;
+    RealType m_UpdateFieldVarianceInVarianceSpace;
+    RealType m_TotalFieldVarianceInVarianceSpace;
     // BSplineDisplacementField
     std::vector<unsigned int> m_TotalFieldMeshSizeAtBaseLevel;
     std::vector<unsigned int> m_UpdateFieldMeshSizeAtBaseLevel;
     unsigned int              m_SplineOrder; // also anything B-spline
     // TimeVaryingVelocityField
-    double       m_UpdateFieldTimeSigma;
-    double       m_TotalFieldTimeSigma;
+    RealType       m_UpdateFieldTimeSigma;
+    RealType       m_TotalFieldTimeSigma;
     unsigned int m_NumberOfTimeIndices;
     // TimeVaryingBSplineVelocityField
     std::vector<unsigned int> m_VelocityFieldMeshSize;
     unsigned int              m_NumberOfTimePointSamples;
     // Exponential
-    double m_VelocityFieldVarianceInVarianceSpace;
+    RealType m_VelocityFieldVarianceInVarianceSpace;
     // BSplineExponential
     std::vector<unsigned int> m_VelocityFieldMeshSizeAtBaseLevel;
   };
@@ -361,11 +361,11 @@ public:
                   typename ImageType::Pointer & fixedImage,
                   typename ImageType::Pointer & movingImage,
                   unsigned int stageID,
-                  double weighting,
+                  RealType weighting,
                   SamplingStrategy samplingStrategy,
                   int numberOfBins,
                   unsigned int radius,
-                  double samplingPercentage );
+                  RealType samplingPercentage );
 
   /**
    * Get set of metrics per stage.  If we have more than one, we have
@@ -396,43 +396,43 @@ public:
   /**
    * add a rigid transform
    */
-  void AddRigidTransform( double GradientStep );
+  void AddRigidTransform( RealType GradientStep );
 
   /**
    * add an affine transform
    */
-  void AddAffineTransform( double GradientStep );
+  void AddAffineTransform( RealType GradientStep );
 
   /**
    * add a composite affine transform
    */
-  void AddCompositeAffineTransform( double GradientStep );
+  void AddCompositeAffineTransform( RealType GradientStep );
 
   /**
    * add a similarity transform
    */
-  void AddSimilarityTransform( double GradientStep );
+  void AddSimilarityTransform( RealType GradientStep );
 
   /**
    * add a translation transform
    */
-  void AddTranslationTransform( double GradientStep );
+  void AddTranslationTransform( RealType GradientStep );
 
   /**
    * add a spline transform
    */
-  void AddBSplineTransform( double GradientStep, std::vector<unsigned int> & MeshSizeAtBaseLevel );
+  void AddBSplineTransform( RealType GradientStep, std::vector<unsigned int> & MeshSizeAtBaseLevel );
 
   /**
    * add gaussian displacement transform
    */
-  void AddGaussianDisplacementFieldTransform( double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                                              double TotalFieldVarianceInVarianceSpace );
+  void AddGaussianDisplacementFieldTransform( RealType GradientStep, RealType UpdateFieldVarianceInVarianceSpace,
+                                              RealType TotalFieldVarianceInVarianceSpace );
 
   /**
    * add bspline displacement transform
    */
-  void AddBSplineDisplacementFieldTransform( double GradientStep,
+  void AddBSplineDisplacementFieldTransform( RealType GradientStep,
                                              std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
                                              std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel,
                                              unsigned int SplineOrder );
@@ -440,39 +440,39 @@ public:
   /**
    * add a time varying velocity field transform
    */
-  void AddTimeVaryingVelocityFieldTransform( double GradientStep, unsigned int NumberOfTimeIndices,
-                                             double UpdateFieldVarianceInVarianceSpace, double UpdateFieldTimeSigma,
-                                             double TotalFieldVarianceInVarianceSpace, double TotalFieldTimeSigma );
+  void AddTimeVaryingVelocityFieldTransform( RealType GradientStep, unsigned int NumberOfTimeIndices,
+                                             RealType UpdateFieldVarianceInVarianceSpace, RealType UpdateFieldTimeSigma,
+                                             RealType TotalFieldVarianceInVarianceSpace, RealType TotalFieldTimeSigma );
 
   /**
    * add a time varying b spline velocity field transform
    */
-  void AddTimeVaryingBSplineVelocityFieldTransform( double GradientStep,
+  void AddTimeVaryingBSplineVelocityFieldTransform( RealType GradientStep,
                                                     std::vector<unsigned int> VelocityFieldMeshSize,
                                                     unsigned int NumberOfTimePointSamples, unsigned int SplineOrder );
 
   /**
    * add a SyN transform
    */
-  void AddSyNTransform( double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                        double TotalFieldVarianceInVarianceSpace );
+  void AddSyNTransform( RealType GradientStep, RealType UpdateFieldVarianceInVarianceSpace,
+                        RealType TotalFieldVarianceInVarianceSpace );
 
   /**
    * add a B-spline SyN transform
    */
-  void AddBSplineSyNTransform( double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+  void AddBSplineSyNTransform( RealType GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
                                std::vector<unsigned int> & TotalFieldMeshSizeAtBaseLevel, unsigned int SplineOrder );
 
   /**
    * add an exponential transform
    */
-  void AddExponentialTransform( double GradientStep, double UpdateFieldVarianceInVarianceSpace,
-                                double VelocityFieldVarianceInVarianceSpace, unsigned int NumberOfIntegrationSteps );
+  void AddExponentialTransform( RealType GradientStep, RealType UpdateFieldVarianceInVarianceSpace,
+                                RealType VelocityFieldVarianceInVarianceSpace, unsigned int NumberOfIntegrationSteps );
 
   /**
    * add a B-spline exponential transform
    */
-  void AddBSplineExponentialTransform( double GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
+  void AddBSplineExponentialTransform( RealType GradientStep, std::vector<unsigned int> & UpdateFieldMeshSizeAtBaseLevel,
                                        std::vector<unsigned int> & VelocityFieldMeshSizeAtBaseLevel,
                                        unsigned int NumberOfIntegrationSteps, unsigned int SplineOrder );
 
@@ -484,7 +484,7 @@ public:
   /**
    * Add the collected convergence thresholds
    */
-  void SetConvergenceThresholds( const std::vector<double> & thresholds );
+  void SetConvergenceThresholds( const std::vector<RealType> & thresholds );
 
   /**
    * Add the collected convergence window sizes
@@ -634,7 +634,7 @@ private:
   MetricListType                          m_Metrics;
   TransformMethodListType                 m_TransformMethods;
   std::vector<std::vector<unsigned int> > m_Iterations;
-  std::vector<double>                     m_ConvergenceThresholds;
+  std::vector<RealType>                   m_ConvergenceThresholds;
   std::vector<unsigned int>               m_ConvergenceWindowSizes;
   std::vector<std::vector<float> >        m_SmoothingSigmas;
   std::vector<bool>                       m_SmoothingSigmasAreInPhysicalUnits;
@@ -642,8 +642,8 @@ private:
   bool                                    m_UseHistogramMatching;
   bool                                    m_WinsorizeImageIntensities;
   bool                                    m_DoEstimateLearningRateAtEachIteration;
-  double                                  m_LowerQuantile;
-  double                                  m_UpperQuantile;
+  RealType                                m_LowerQuantile;
+  RealType                                m_UpperQuantile;
   std::ostream *                          m_LogStream;
 
   void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const,
@@ -666,13 +666,13 @@ private:
 // ##########################################################################
 
 // Provide common way of reading transforms.
-template <class T, unsigned VImageDimension>
-typename ants::RegistrationHelper<T, VImageDimension>::CompositeTransformType::Pointer
+template <class TComputeType, unsigned VImageDimension>
+typename ants::RegistrationHelper<TComputeType, VImageDimension>::CompositeTransformType::Pointer
 GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
                                        typename ParserType::OptionType::Pointer initialTransformOption,
                                        std::vector<bool> & derivedTransforms, bool useStaticCastForR = false )
 {
-  typedef typename ants::RegistrationHelper<T, VImageDimension>      RegistrationHelperType;
+  typedef typename ants::RegistrationHelper<TComputeType, VImageDimension>      RegistrationHelperType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
   typename CompositeTransformType::Pointer compositeTransform = CompositeTransformType::New();
 
@@ -713,7 +713,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       unsigned short initializationFeature = parser->Convert<unsigned short>(
         initialTransformOption->GetFunction( n )->GetParameter( 2 ) );
 
-      typedef itk::AffineTransform<T, VImageDimension> TransformType;
+      typedef itk::AffineTransform<TComputeType, VImageDimension> TransformType;
 
       typename TransformType::Pointer transform = TransformType::New();
 
@@ -761,7 +761,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 0 )
         + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
 
-      typedef itk::TranslationTransform<T, VImageDimension> TranslationTransformType;
+      typedef itk::TranslationTransform<TComputeType, VImageDimension> TranslationTransformType;
       typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
       translationTransform->SetOffset( transform->GetTranslation() );
 
@@ -797,20 +797,20 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       MatOffRegistered = true;
       // Register the matrix offset transform base class to the
       // transform factory for compatibility with the current ANTs.
-      typedef itk::MatrixOffsetTransformBase<T, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+      typedef itk::MatrixOffsetTransformBase<TComputeType, VImageDimension, VImageDimension> MatrixOffsetTransformType;
       itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
       }
 
     if( !calculatedTransformFromImages )
       {
-      typedef ants::RegistrationHelper<T, VImageDimension>                       RegistrationHelperType;
+      typedef ants::RegistrationHelper<TComputeType, VImageDimension>                       RegistrationHelperType;
       typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
 
       typedef typename RegistrationHelperType::TransformType TransformType;
       typename TransformType::Pointer initialTransform;
       if( std::strcmp( initialTransformName.c_str(), "identity" ) == 0 || std::strcmp( initialTransformName.c_str(), "Identity" ) == 0 )
         {
-        typedef itk::MatrixOffsetTransformBase<T, VImageDimension, VImageDimension> MatrixOffsetTransformType;
+        typedef itk::MatrixOffsetTransformBase<TComputeType, VImageDimension, VImageDimension> MatrixOffsetTransformType;
         typename MatrixOffsetTransformType::Pointer identityTransform = MatrixOffsetTransformType::New();
         identityTransform->SetIdentity();
 
@@ -818,7 +818,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       else
         {
-        initialTransform = itk::ants::ReadTransform<T, VImageDimension>( initialTransformName, useStaticCastForR );
+        initialTransform = itk::ants::ReadTransform<TComputeType, VImageDimension>( initialTransformName, useStaticCastForR );
         }
       if( initialTransform.IsNull() )
         {
@@ -838,8 +838,8 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       static const std::string CompositeTransformID("CompositeTransform");
       if( initialTransform->GetNameOfClass() == CompositeTransformID )
         {
-        const typename itk::CompositeTransform<T, VImageDimension>::ConstPointer tempComp =
-          dynamic_cast<const itk::CompositeTransform<T, VImageDimension> *>( initialTransform.GetPointer() );
+        const typename itk::CompositeTransform<TComputeType, VImageDimension>::ConstPointer tempComp =
+          dynamic_cast<const itk::CompositeTransform<TComputeType, VImageDimension> *>( initialTransform.GetPointer() );
         for( unsigned int i = 0; i < tempComp->GetNumberOfTransforms(); ++i )
           {
           std::stringstream tempstream;
