@@ -86,7 +86,7 @@ set(BASE_ANTS_APPS
   LabelOverlapMeasures
   MeasureMinMaxMean
   WarpImageMultiTransform
-  ComposeMultiTransform
+  # ComposeMultiTransform
   StackSlices
   MemoryTest
   # ANTSOrientImage
