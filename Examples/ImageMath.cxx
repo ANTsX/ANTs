@@ -845,8 +845,7 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
   //  antscout << " Mask " << std::endl;
   if( mask.IsNull() )
     {
-    mask = AllocImage<ImageType>( image,
-                                  itk::NumericTraits<PixelType>::One);
+    mask = AllocImage<ImageType>( image, itk::NumericTraits<PixelType>::One);
     }
 
   //  antscout << " iterate " << std::endl;
@@ -876,11 +875,11 @@ int TruncateImageIntensity( unsigned int argc, char *argv[] )
       }
     else
       {
-      ItM.Set( itk::NumericTraits<PixelType>::Zero );
+      ItM.Set( 0 );
       }
     if( vnl_math_isnan( ItI.Get() ) || vnl_math_isinf( ItI.Get() ) )
       {
-      ItM.Set( itk::NumericTraits<PixelType>::Zero );
+      ItM.Set( 0 );
       }
     ++ItM;
     }
@@ -5274,7 +5273,7 @@ int VImageMath(int argc, char *argv[])
     volumeelement *= varimage->GetSpacing()[i];
     }
 
-  PixelType result = itk::NumericTraits<PixelType>::Zero;
+  PixelType result = 0;
   Iterator  vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {

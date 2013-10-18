@@ -46,7 +46,8 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
   // Setup the number of required inputs
   this->SetNumberOfRequiredInputs( 1 );
 
-  m_EdgePaddingValue = NumericTraits<PixelType>::Zero;
+  PixelType zeropix = 0;
+  m_EdgePaddingValue = zeropix;
 
   // Setup default interpolator
   typename DefaultInterpolatorType::Pointer interp = DefaultInterpolatorType::New();
