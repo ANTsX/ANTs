@@ -5273,7 +5273,8 @@ int VImageMath(int argc, char *argv[])
     volumeelement *= varimage->GetSpacing()[i];
     }
 
-  PixelType result = 0;
+  PixelType result;
+  result.Fill( 0 );
   Iterator  vfIter2( varimage,  varimage->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
