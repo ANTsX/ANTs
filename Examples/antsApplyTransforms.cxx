@@ -210,11 +210,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
     ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
     }
-  else
-    {
-    antscout << "Error:  No reference image specified." << std::endl;
-    return EXIT_FAILURE;
-    }
 
   if( inputImageType == 1 )
     {
