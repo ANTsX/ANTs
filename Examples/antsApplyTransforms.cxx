@@ -200,15 +200,32 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   /**
    * Reference image option
    */
+  bool needReferenceImage = true;
+  if( outputOption && outputOption->GetNumberOfFunctions() )
+    {
+				std::string outputOptionName = outputOption->GetFunction( 0 )->GetName();
+				ConvertToLowerCase( outputOptionName );
+    if( !std::strcmp( outputOptionName.c_str(), "linear" ) )
+      {
+      needReferenceImage = false;
+      }
+    }
+
   typedef ImageType ReferenceImageType;
   typename ReferenceImageType::Pointer referenceImage;
 
   typename itk::ants::CommandLineParser::OptionType::Pointer referenceOption =
     parser->GetOption( "reference-image" );
+
   if( referenceOption && referenceOption->GetNumberOfFunctions() )
     {
     antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
     ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
+    }
+  else if( needReferenceImage == true )
+    {
+				antscout << "A reference image is required." << std::endl;
+				return EXIT_FAILURE;
     }
 
   if( inputImageType == 1 )
