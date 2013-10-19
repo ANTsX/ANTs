@@ -1534,8 +1534,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 
   if( prior )
     {
-   // ::ants::antscout << "prior " << this->m_OriginalMatrixPriorROI.rows() << " c "
-    //                 << this->m_OriginalMatrixPriorROI.cols()  << std::endl;
     this->m_MatrixPriorROI = this->m_OriginalMatrixPriorROI;
     n_vecs = this->m_MatrixPriorROI.rows();
     for( unsigned int x = 0; x < this->m_OriginalMatrixPriorROI.rows(); x++ )
@@ -4961,7 +4959,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed ); 
   */
-
+  if ( ( this->m_OriginalMatrixPriorROI.rows() > 0  ) &&
+       ( this->m_OriginalMatrixPriorROI.cols() > 0  ) )
+    {
+    ::ants::antscout << " image-driven initialization " << std::endl;
+    n_vecs = this->m_OriginalMatrixPriorROI.rows();
+    this->m_VariatesP = this->m_MatrixPriorROI.transpose();
+    }
+  if ( ( this->m_MatrixPriorROI2.rows() > 0  ) &&
+       ( this->m_MatrixPriorROI2.cols() > 0  ) )
+    {
+    this->m_VariatesQ = this->m_MatrixPriorROI2.transpose();
+    }
+ 
   const unsigned int maxloop = this->m_MaximumNumberOfIterations;
   unsigned int       loop = 0;
   bool               energyincreases = true;

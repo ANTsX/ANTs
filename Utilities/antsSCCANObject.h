@@ -333,6 +333,12 @@ public:
     return this->m_MatrixPriorROI;
   }
 
+  // Prior Constrained PCA
+  MatrixType GetMatrixPriorROI2()
+  {
+    return this->m_MatrixPriorROI2;
+  }
+
   void SetFlagForSort()
   {
     this->flagForSort = true;
@@ -521,6 +527,13 @@ public:
       matrix.rows(), matrix.cols() ); this->m_OriginalMatrixPriorROI.update(matrix); this->m_MatrixPriorROI.update(
       matrix);
   }
+
+  void SetMatrixPriorROI2(  MatrixType matrix )
+  {
+   this->m_MatrixPriorROI2.set_size( matrix.rows(), matrix.cols() );
+   this->m_MatrixPriorROI2.update( matrix);
+  }
+
 
   // itkSetMacro( priorScale, RealType );
   // itkGetMacro( priorScale, RealType );
@@ -1048,6 +1061,7 @@ private:
 
   // Prior constrained PCA --Refer to notation in the paper
   MatrixType m_MatrixPriorROI;
+  MatrixType m_MatrixPriorROI2;
   MatrixType m_SortedIndicesAll;
   VectorType sortedIndicesLoop;
   MatrixType m_Ip;

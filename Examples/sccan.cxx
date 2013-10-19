@@ -554,12 +554,11 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef itk::Image<PixelType, 2>              MatrixImageType;
   typedef itk::ImageFileReader<ImageType>       ReaderType;
-  typename ReaderType::Pointer reader1 = ReaderType::New();
-  reader1->SetFileName( maskfn );
-  reader1->Update();
+  typename ImageType::Pointer mask;
+  ReadImage<ImageType>( mask, maskfn.c_str() );
   unsigned long voxct = 0;
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
-  Iterator mIter( reader1->GetOutput(), reader1->GetOutput()->GetLargestPossibleRegion() );
+  Iterator mIter( mask, mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
     if( mIter.Get() >= 0.5 )
@@ -1172,6 +1171,23 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     antscout << priorROIMat.rows() << " " << priorROIMat.cols() << std::endl;
     sccanobj->SetMatrixPriorROI( priorROIMat);
   }
+
+
+  itk::ants::CommandLineParser::OptionType::Pointer init2Opt =
+    parser->GetOption( "initialization2" );
+  if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
+    {
+    antscout << "Warning:  no initialization set, will use data-driven approach." << std::endl;
+    } else {
+    std::string maskfn = maskOpt->GetFunction( 0 )->GetName();
+    std::string imagelistPrior = init2Opt->GetFunction( 0 )->GetName();
+    antscout << "you will initialize Q with " << imagelistPrior << std::endl;
+    std::string outname = "none";
+    priorROIMat = ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, maskfn, outname );
+    antscout << priorROIMat.rows() << " " << priorROIMat.cols() << std::endl;
+    sccanobj->SetMatrixPriorROI2( priorROIMat );
+  }
+
 
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -2571,6 +2587,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       std::string( "Initialization file list for Eigenanatomy - must also pass mask option" );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "initialization" );
+    option->SetUsageOption( 0, "NA" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Initialization file list for SCCAN-Eigenanatomy - must also pass mask option" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initialization2" );
     option->SetUsageOption( 0, "NA" );
     option->SetDescription( description );
     parser->AddOption( option );
