@@ -1452,6 +1452,9 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
   typedef itk::Image<Scalar, 2>                         MatrixImageType;
   typedef itk::ImageFileReader<ImageType>               imgReaderType;
+  typedef typename SCCANType::MatrixType         vMatrix;
+  typedef typename SCCANType::VectorType         vVector;
+  typedef typename SCCANType::DiagonalMatrixType dMatrix;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetMaximumNumberOfIterations(iterct);
   if ( uselong > 0 ) sccanobj->SetUseLongitudinalFormulation( uselong );
@@ -1464,12 +1467,44 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     {
     sccanobj->SetUseL1( false );
     }
+  vMatrix priorROIMat;
+  vMatrix priorROIMat2;
+  itk::ants::CommandLineParser::OptionType::Pointer initOpt =
+    parser->GetOption( "initialization" );
+  itk::ants::CommandLineParser::OptionType::Pointer maskOpt =
+    parser->GetOption( "mask" );
+  if( !initOpt || initOpt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
+    {
+    antscout << "Warning:  no P initialization set, will use data-driven approach." << std::endl;
+    } else {
+    std::string maskfn = maskOpt->GetFunction( 0 )->GetName();
+    std::string imagelistPrior = initOpt->GetFunction( 0 )->GetName();
+    antscout << "you will initialize with " << imagelistPrior << std::endl;
+    std::string outname = "none";
+    priorROIMat = ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, maskfn, outname );
+    antscout << priorROIMat.rows() << " " << priorROIMat.cols() << std::endl;
+    sccanobj->SetMatrixPriorROI( priorROIMat);
+  }
+
+  itk::ants::CommandLineParser::OptionType::Pointer init2Opt =
+    parser->GetOption( "initialization2" );
+  itk::ants::CommandLineParser::OptionType::Pointer mask2Opt =
+    parser->GetOption( "mask2" );
+  if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !mask2Opt || mask2Opt->GetNumberOfFunctions() == 0 )
+    {
+    antscout << "Warning:  no Q initialization set, will use data-driven approach." << std::endl;
+    } else {
+    std::string maskfn = mask2Opt->GetFunction( 0 )->GetName();
+    std::string imagelistPrior = init2Opt->GetFunction( 0 )->GetName();
+    antscout << "you will initialize Q with " << imagelistPrior << std::endl;
+    std::string outname = "none";
+    priorROIMat2 = ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, maskfn, outname );
+    antscout << priorROIMat2.rows() << " " << priorROIMat2.cols() << std::endl;
+    sccanobj->SetMatrixPriorROI2( priorROIMat2 );
+  }
   sccanobj->SetGradStep( gradstep );
   sccanobj->SetSmoother( smoother );
   sccanobj->SetRowSparseness( row_sparseness );
-  typedef typename SCCANType::MatrixType         vMatrix;
-  typedef typename SCCANType::VectorType         vVector;
-  typedef typename SCCANType::DiagonalMatrixType dMatrix;
   Scalar pinvtoler = 1.e-6;
   /** read the matrix images */
   /** we refer to the two view matrices as P and Q */
