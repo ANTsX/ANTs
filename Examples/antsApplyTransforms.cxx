@@ -124,6 +124,11 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typedef itk::Image<VectorType, Dimension>    DisplacementFieldType;
   typedef ImageType                            ReferenceImageType;
 
+  typedef typename ants::RegistrationHelper<T, Dimension>         RegistrationHelperType;
+		typedef typename RegistrationHelperType::AffineTransformType    AffineTransformType;
+  typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
+  typedef typename CompositeTransformType::TransformType          TransformType;
+
   typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
   typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
 
@@ -268,8 +273,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   // transform factory for compatibility with the current ANTs.
   typedef itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension> MatrixOffsetTransformType;
   itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
-  typedef itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension> MatrixOffsetTransformType;
-  itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
 
   typedef itk::CompositeTransform<RealType, Dimension> CompositeTransformType;
   typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
@@ -357,7 +360,42 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
    */
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
-    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
+				std::string outputOptionName = outputOption->GetFunction( 0 )->GetName();
+				ConvertToLowerCase( outputOptionName );
+    if( !std::strcmp( outputOptionName.c_str(), "linear" ) )
+      {
+      if( !compositeTransform->IsLinear() )
+        {
+								std::cerr << "The transform or set of transforms is not linear." << std::endl;
+								return EXIT_FAILURE;
+        }
+      else
+        {
+        typename RegistrationHelperType::Pointer helper = RegistrationHelperType::New();
+
+        typename AffineTransformType::Pointer transform = helper->CollapseLinearTransforms( compositeTransform );
+
+        typedef itk::TransformFileWriterTemplate<T> TransformWriterType;
+        typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+								transformWriter->SetFileName( ( outputOption->GetFunction( 0 )->GetParameter( 0 ) ).c_str() );
+
+        if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
+            parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) != 0 )
+          {
+										typename AffineTransformType::Pointer inverseTransform = AffineTransformType::New();
+										inverseTransform->SetMatrix(
+										  dynamic_cast<MatrixOffsetTransformType*>( transform->GetInverseTransform().GetPointer() )->GetMatrix() );
+										inverseTransform->SetOffset( -( inverseTransform->GetMatrix() * transform->GetOffset() ) );
+  								transformWriter->SetInput( inverseTransform );
+          }
+        else
+          {
+          transformWriter->SetInput( transform );
+          }
+								transformWriter->Update();
+        }
+      }
+    else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) != 0 )
       {
       antscout << "Output composite transform displacement field: "
@@ -595,14 +633,17 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "One can either output the warped image or, if the boolean " )
-      + std::string( "is set, one can print out the displacement field based on the" )
-      + std::string( "composite transform and the reference image." );
+      + std::string( "is set, one can print out the displacement field based on the " )
+      + std::string( "composite transform and the reference image.  A third option " )
+      + std::string( "is to compose all affine transforms and (if boolean is set) " )
+      + std::string( "calculate its inverse which is then written to an ITK file ");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "warpedOutputFileName" );
-    option->SetUsageOption( 1, "[compositeDisplacementField,<printOutCompositeWarpFile=0>]" );
+    option->SetUsageOption( 1, "[warpedOutputFileName or compositeDisplacementField,<printOutCompositeWarpFile=0>]" );
+    option->SetUsageOption( 2, "Linear[genericAffineTransformFile,<calculateInverse=0>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
