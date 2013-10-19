@@ -1175,11 +1175,13 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
 
   itk::ants::CommandLineParser::OptionType::Pointer init2Opt =
     parser->GetOption( "initialization2" );
-  if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
+  itk::ants::CommandLineParser::OptionType::Pointer mask2Opt =
+    parser->GetOption( "mask2" );
+  if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !mask2Opt || mask2Opt->GetNumberOfFunctions() == 0 )
     {
     antscout << "Warning:  no initialization set, will use data-driven approach." << std::endl;
     } else {
-    std::string maskfn = maskOpt->GetFunction( 0 )->GetName();
+    std::string maskfn = mask2Opt->GetFunction( 0 )->GetName();
     std::string imagelistPrior = init2Opt->GetFunction( 0 )->GetName();
     antscout << "you will initialize Q with " << imagelistPrior << std::endl;
     std::string outname = "none";
@@ -2607,6 +2609,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       std::string( "Mask file for Eigenanatomy initialization" );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "mask" );
+    option->SetUsageOption( 0, "NA" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Mask file for Eigenanatomy initialization 2" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "mask2" );
     option->SetUsageOption( 0, "NA" );
     option->SetDescription( description );
     parser->AddOption( option );
