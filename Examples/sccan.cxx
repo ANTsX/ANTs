@@ -1479,7 +1479,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     } else {
     std::string maskfn = maskOpt->GetFunction( 0 )->GetName();
     std::string imagelistPrior = initOpt->GetFunction( 0 )->GetName();
-    antscout << "you will initialize with " << imagelistPrior << std::endl;
+    antscout << "you will initialize P with " << imagelistPrior << " and " << maskfn << std::endl;
     std::string outname = "none";
     priorROIMat = ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, maskfn, outname );
     antscout << priorROIMat.rows() << " " << priorROIMat.cols() << std::endl;
@@ -1496,7 +1496,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     } else {
     std::string maskfn = mask2Opt->GetFunction( 0 )->GetName();
     std::string imagelistPrior = init2Opt->GetFunction( 0 )->GetName();
-    antscout << "you will initialize Q with " << imagelistPrior << std::endl;
+    antscout << "you will initialize Q with " << imagelistPrior << " and " << maskfn << std::endl;
     std::string outname = "none";
     priorROIMat2 = ConvertImageListToMatrix<ImageDimension, double>( imagelistPrior, maskfn, outname );
     antscout << priorROIMat2.rows() << " " << priorROIMat2.cols() << std::endl;
