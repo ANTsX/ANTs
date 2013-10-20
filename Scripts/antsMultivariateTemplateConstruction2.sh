@@ -664,7 +664,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
 
 if [[ ! -n "$MODALITYWEIGHTSTRING" ]];
   then
-    for (( $i = 0; $i < $NUMBEROFMODALITIES; $i++ ))
+    for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
       do
         MODALITYWEIGHTS[$i]=1
       done
