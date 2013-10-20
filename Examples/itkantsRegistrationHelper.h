@@ -596,6 +596,13 @@ public:
    */
   CompositeTransformPointer CollapseCompositeTransform( const CompositeTransformType * );
 
+  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const,
+                                                   const bool applyInverse );
+
+  DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
+
+  typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
+
   /**
    * Do the registration. Will return EXIT_FAILURE if there is any
    * problem completing the registration.
@@ -645,13 +652,6 @@ private:
   RealType                                m_LowerQuantile;
   RealType                                m_UpperQuantile;
   std::ostream *                          m_LogStream;
-
-  void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const,
-                                                   const bool applyInverse );
-
-  DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
-
-  typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
 
   bool         m_ApplyLinearTransformsToFixedImageHeader;
   unsigned int m_PrintSimilarityMeasureInterval;
