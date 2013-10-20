@@ -136,9 +136,9 @@ Optional arguments:
 
 Example:
 
-`basename $0` -d 3 -m 30x50x20 -t SyN -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz
+`basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN  -m CC -c 0 -o MY   sub*avg.nii.gz
 
-- In this example 30x50x20 iterations per registration are used for template creation (that is the default)
+- In this example 30x20x4 iterations per registration are used for template creation (that is the default)
 - Greedy-SyN and CC are the metrics to guide the mapping.
 - Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
 - The -c option is set to 1, which will result in using the Sun Grid Engine (SGE) to distribute the computation.
