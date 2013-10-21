@@ -186,7 +186,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
 
       colormap->SetBlueChannel( channel );
       }
-//    rgbfilter->SetColormap( colormap );
+    rgbfilter->SetColormap( colormap );
     }
 
   if( maskImage )
