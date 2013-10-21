@@ -4671,15 +4671,24 @@ bool antsSCCANObject<TInputImage, TRealType>
     qveck = qveck * this->m_MatrixQ;
     VectorType qproj = ( this->m_MatrixQ * qtemp ); // this->SparsifyOther( qproj );
     qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
+    if ( this->m_Covering ) 
+    {
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j );
-      pveck = this->Orthogonalize( pveck, qj );
-      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+      if ( j <= this->m_MatrixP.cols() ) 
+	{
+        pveck = this->Orthogonalize( pveck, qj );
+	if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+	}
       qj = this->m_VariatesQ.get_column( j );
-      qveck = this->Orthogonalize( qveck, qj );
-      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+      if ( j <= this->m_MatrixQ.cols() ) 
+	{
+        qveck = this->Orthogonalize( qveck, qj );
+	if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+	}
       }
+    }
     RealType sclp = ( static_cast<RealType>( pveck.size() )  * this->m_FractionNonZeroP );
     RealType sclq = ( static_cast<RealType>( qveck.size() )  * this->m_FractionNonZeroQ );
     bool     genomics = false;
@@ -4690,6 +4699,8 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     pveck = ptemp + pveck * ( this->m_GradStep / sclp );
     qveck = qtemp + qveck * ( this->m_GradStep / sclq );
+    if ( this->m_Covering ) 
+    {
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j ); 
@@ -4701,8 +4712,7 @@ bool antsSCCANObject<TInputImage, TRealType>
       qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
       if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
-    //    pveck = this->SpatiallySmoothVector( pveck, this->m_MaskImageP );
-    //    qveck = this->SpatiallySmoothVector( qveck, this->m_MaskImageQ );
+    }
     if ( ( this->m_UseLongitudinalFormulation > 1.e-9 ) && ( pveck.size() == qveck.size() ) )
       {
       VectorType lpveck = pveck + ( qveck - pveck ) * this->m_UseLongitudinalFormulation;
@@ -4907,7 +4917,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   if ( ! m_Silent )
     {
     ::ants::antscout << " arnoldi sparse partial cca : L1?" << this->m_UseL1 << " GradStep " << this->m_GradStep
-                     <<  "  p+ " << this->GetKeepPositiveP() << " q+ " << this->GetKeepPositiveQ() << std::endl;
+		   <<  "  p+ " << this->GetKeepPositiveP() << " q+ " << this->GetKeepPositiveQ() << " covering " << this->m_Covering << std::endl;
     }
   this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
   this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
@@ -4950,7 +4960,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     if( totalcorr > bestcorr )
       {
       bestseed = seeder;  bestcorr = totalcorr;
-      ::ants::antscout << " seed " << seeder << " corr " << bestcorr << std::endl;
+      ::ants::antscout << " seed " << seeder << " corr " << bestcorr << std::endl; 
       }
     }
   if( this->m_Debug )
@@ -4965,11 +4975,25 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     ::ants::antscout << " image-driven initialization " << std::endl;
     n_vecs = this->m_OriginalMatrixPriorROI.rows();
     this->m_VariatesP = this->m_MatrixPriorROI.transpose();
+    for ( unsigned int i = 0; i < n_vecs; i++ )
+      {
+      VectorType vec = this->m_VariatesP.get_column( i );
+      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
+      vec = vec / vec.two_norm();
+      this->m_VariatesP.set_column( i , vec );
+      }
     }
   if ( ( this->m_MatrixPriorROI2.rows() > 0  ) &&
        ( this->m_MatrixPriorROI2.cols() > 0  ) )
     {
     this->m_VariatesQ = this->m_MatrixPriorROI2.transpose();
+    for ( unsigned int i = 0; i < n_vecs; i++ )
+      {
+      VectorType vec = this->m_VariatesQ.get_column( i );
+      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageQ );
+      vec = vec / vec.two_norm();
+      this->m_VariatesQ.set_column( i , vec );
+      }
     }
  
   const unsigned int maxloop = this->m_MaximumNumberOfIterations;
@@ -5104,7 +5128,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   this->m_CanonicalCorrelations.set_size(n_vecs);
   this->m_CanonicalCorrelations.fill(0);
-  ::ants::antscout << " arnoldi sparse partial cca " << std::endl;
+  ::ants::antscout << " iht cca " << std::endl;
   ::ants::antscout << "  pos-p " << this->GetKeepPositiveP() << " pos-q " << this->GetKeepPositiveQ() << std::endl;
   this->m_MatrixP = this->NormalizeMatrix( this->m_OriginalMatrixP, false );
   this->m_MatrixQ = this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
