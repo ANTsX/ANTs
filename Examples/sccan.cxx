@@ -1430,7 +1430,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
 template <unsigned int ImageDimension, class PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
-              PixelType usel1 , PixelType uselong, PixelType row_sparseness , PixelType smoother )
+              PixelType usel1 , PixelType uselong, PixelType row_sparseness , PixelType smoother , PixelType covering )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
@@ -1456,6 +1456,11 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typedef typename SCCANType::VectorType         vVector;
   typedef typename SCCANType::DiagonalMatrixType dMatrix;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
+  sccanobj->SetCovering( true );
+  if ( covering < 0.1 )
+    { 
+    sccanobj->SetCovering( false );
+    }
   sccanobj->SetMaximumNumberOfIterations(iterct);
   if ( uselong > 0 ) sccanobj->SetUseLongitudinalFormulation( uselong );
   PixelType gradstep = vnl_math_abs( usel1 );
@@ -2419,7 +2424,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       {
       exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
                                                     q_cluster_thresh,
-                                                    iterct, usel1 , uselong , row_sparseness, smoother );
+                                                    iterct, usel1 , uselong , row_sparseness, smoother, covering );
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
