@@ -2497,9 +2497,9 @@ int SliceTimingCorrection(int argc, char *argv[])
   typedef itk::WindowedSincInterpolateImageFunction<InputImageType, ImageDimension-1>   SincInterpolatorType;
   typedef typename SincInterpolatorType::Pointer                         SincInterpolatorPointerType;
 
-  if ( argc < 6 )
+  if ( argc < 5 )
     {
-    std::cout << "Usage: ImageMath 4 out.nii.gz SliceTimingCorrection input.nii.gz sliceTiming [sinc/bspline] [sincRadius=4/bsplineOrder=3]" << std::endl;
+    std::cout << "Usage: ImageMath 4 out.nii.gz SliceTimingCorrection input.nii.gz [sliceTiming] [sinc/bspline] [sincRadius=4/bsplineOrder=3]" << std::endl;
     return( 1 );
     }
 
@@ -2507,11 +2507,16 @@ int SliceTimingCorrection(int argc, char *argv[])
   const std::string outname = std::string(argv[argct++]);
   argct++;
   std::string fn1 = std::string(argv[argct++]);
-  float sliceTiming = atof( argv[argct++] );
 
+  float sliceTiming = 0;
+
+  if ( argc > 5 ) 
+    {
+    sliceTiming = atof( argv[argct++] );
+    }
+  
   typename ImageFilterType::Pointer filter = ImageFilterType::New();
   filter->SetTimeDimension( ImageDimension - 1 );
-  filter->SetSliceTiming( sliceTiming );
 
   if( argc >= 7 )
     {
@@ -2560,6 +2565,13 @@ int SliceTimingCorrection(int argc, char *argv[])
     return 1;
     }
 
+  if ( sliceTiming == 0 )
+    {
+    sliceTiming = image1->GetSpacing()[ImageDimension-1] / image1->GetLargestPossibleRegion().GetSize()[ImageDimension-2];
+    antscout << "Using default slice timing = " << sliceTiming << std::endl;
+    }
+
+  filter->SetSliceTiming( sliceTiming );
   filter->SetInput( image1 );
   filter->Update();
 

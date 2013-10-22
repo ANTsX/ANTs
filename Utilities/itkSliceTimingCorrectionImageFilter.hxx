@@ -35,6 +35,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
   m_TimeDimension = InputImageDimension-1;
   m_SliceDimension = InputImageDimension-2;
   m_SliceTiming = 0.0;
+  m_ExtrapolateEdges = true;
 }
 
 template <class TInputImage, class TOutputImage>
@@ -124,7 +125,9 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
   TimingType timingCoverage =  inputPtr->GetLargestPossibleRegion().GetSize()[m_SliceDimension] *
     m_SliceTiming;
 
-  if ( timingCoverage > inputPtr->GetSpacing()[m_TimeDimension] ) 
+  itkDebugMacro( "Timing coverage = " << timingCoverage );
+
+  if ( timingCoverage - inputPtr->GetSpacing()[m_TimeDimension] ) 
     {
     itkExceptionMacro( << "SliceTiming * Dim[SliceDimension] should not be greater than Spacing[TimeDimension]" );
     }
@@ -135,8 +138,10 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
     itkExceptionMacro( << "IndexPadding is too large for this input image" );
     }
 
-  unsigned int nTimePointsOut = this->GetInput()->GetLargestPossibleRegion().GetSize()[m_TimeDimension]
-    - 2 * m_IndexPadding;
+  //unsigned int nTimePointsOut = this->GetInput()->GetLargestPossibleRegion().GetSize()[m_TimeDimension]
+  //  - 2 * m_IndexPadding;
+  unsigned int nTimePointsOut = this->GetInput()->GetLargestPossibleRegion().GetSize()[m_TimeDimension];
+
   outputLargestPossibleRegion.SetSize( m_TimeDimension, nTimePointsOut );
 
   outputPtr->SetLargestPossibleRegion(outputLargestPossibleRegion);
@@ -167,7 +172,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
       outputSpacing[ii] = inputSpacing[ii];
       outputOrigin[ii] = inputOrigin[ii];
       }
-    outputOrigin[ m_TimeDimension ] += outputSpacing[ m_TimeDimension ]*m_IndexPadding;
+    //outputOrigin[ m_TimeDimension ] += outputSpacing[ m_TimeDimension ]*m_IndexPadding;
 
     // set the spacing and origin
     outputPtr->SetSpacing(outputSpacing);
@@ -257,11 +262,34 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
     {
     
     typename InputImageType::IndexType idx = outIt.GetIndex();
- 
+    unsigned int maxDim = this->GetOutput()->GetLargestPossibleRegion().GetSize()[m_TimeDimension] - 1;
+    //std::cout << pt << std::endl;
+
+    if ( this->m_ExtrapolateEdges ) 
+      {
+      if ( idx[m_TimeDimension] < m_IndexPadding )
+        {
+        idx[m_TimeDimension] = m_IndexPadding;
+        }
+      else if ( idx[m_TimeDimension] > ( maxDim - m_IndexPadding ) )
+        {
+        idx[m_TimeDimension] = maxDim - m_IndexPadding;
+        }
+      }
+
     this->GetOutput()->TransformIndexToPhysicalPoint( idx, pt );
     pt[m_TimeDimension] -= idx[m_SliceDimension] * m_SliceTiming;
-    float oValue = this->m_Interpolator->Evaluate( pt );
-    outIt.Set( oValue );
+
+    if ( this->m_Interpolator->IsInsideBuffer( pt ) ) 
+      {
+      float oValue = this->m_Interpolator->Evaluate( pt );
+      outIt.Set( oValue );
+      }
+
+    else 
+      {
+      outIt.Set(0.0);
+      }
     
     ++outIt;
     }

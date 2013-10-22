@@ -71,7 +71,8 @@ public:
   typedef InterpolateImageFunction< InputImageType, double >  InterpolatorType;
   typedef typename InterpolatorType::Pointer                  InterpolatorPointerType;
 
-  typedef typename InputImageType::SpacingType::ValueType     TimingType;
+  //typedef typename InputImageType::SpacingType::ValueType     TimingType;
+  typedef float TimingType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
   itkStaticConstMacro(InputImageDimension, unsigned int,
@@ -90,6 +91,9 @@ public:
 
   itkSetMacro( SliceTiming, TimingType );
   itkGetMacro( SliceTiming, TimingType );
+
+  itkSetMacro( ExtrapolateEdges, bool );
+  itkGetMacro( ExtrapolateEdges, bool );
 
   /** Set the interpolator function.  The default is
    * LinearInterpolateImageFunction<InputImageType,
@@ -169,6 +173,8 @@ private:
 
   InterpolatorPointerType m_Interpolator;           // Image function for
                                                     // interpolation
+
+  bool m_ExtrapolateEdges;
 
   // ExtrapolatorPointerType m_Extrapolator;      // Image function for
   // extrapolation
