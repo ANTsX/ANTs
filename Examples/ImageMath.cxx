@@ -2510,11 +2510,11 @@ int SliceTimingCorrection(int argc, char *argv[])
 
   float sliceTiming = 0;
 
-  if ( argc > 5 ) 
+  if ( argc > 5 )
     {
     sliceTiming = atof( argv[argct++] );
     }
-  
+
   typename ImageFilterType::Pointer filter = ImageFilterType::New();
   filter->SetTimeDimension( ImageDimension - 1 );
 
@@ -4689,13 +4689,12 @@ LabelSurface(typename TImage::Pointer input, typename TImage::Pointer input2  )
     {
     typename TImage::PixelType p = GHood.GetCenterPixel();
     typename TImage::IndexType ind = GHood.GetIndex();
-    typename TImage::IndexType ind2;
     if( p >= 0.5 )
       {
       bool atedge = false;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
         {
-        ind2 = GHood.GetIndex(i);
+        const typename TImage::IndexType & ind2 = GHood.GetIndex(i);
         float dist = 0.0;
         for( int j = 0; j < ImageDimension; j++ )
           {
@@ -5882,14 +5881,14 @@ int TensorFunctions(int argc, char *argv[])
       typename TensorType::EigenVectorsMatrixType eigenValuesMatrix;
       eigenValuesMatrix.Fill( 0.0 );
       tIter.Value().ComputeEigenAnalysis( eigenValues, eigenVectors );
-      bool hasNeg = false;
+      //NOT USED bool hasNeg = false;
       for( unsigned int i = 0; i < 3; i++ )
         {
-        if ( eigenValues[i] < 0 )
-          {
-          hasNeg = true;
-          }
-        eigenValuesMatrix(i, i) = fabs( eigenValues[i] );
+        //NOT USED if ( eigenValues[i] < 0 )
+        //NOT USED   {
+        //NOT USED   hasNeg = true;
+        //NOT USED   }
+        HROM
         }
 
       typename TensorType::MatrixType::InternalMatrixType lclTensor
@@ -8395,13 +8394,11 @@ RemoveLabelInterfaces(int argc, char *argv[])
     {
     typename ImageType::PixelType p = GHood.GetCenterPixel();
     typename ImageType::IndexType ind = GHood.GetIndex();
-    typename ImageType::IndexType ind2;
     if( p > 0  )
       {
       bool atedge = false;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
         {
-        ind2 = GHood.GetIndex(i);
         if( GHood.GetPixel(i) > 0 && GHood.GetPixel(i)  != p )
           {
           atedge = true;
@@ -8561,9 +8558,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
 //  antscout << " foreg " << (int) foreground;
   while( !GHood.IsAtEnd() )
     {
-    typename ImageType::PixelType p = GHood.GetCenterPixel();
-    typename ImageType::IndexType ind = GHood.GetIndex();
-    typename ImageType::IndexType ind2;
+    const typename ImageType::PixelType & p = GHood.GetCenterPixel();
     if( p > 0  )
       {
       bool atedge = false;
@@ -8571,7 +8566,6 @@ EnumerateLabelInterfaces(int argc, char *argv[])
       unsigned long linearinda = 0, linearindb = 0, linearind = 0;
       for( unsigned int i = 0; i < GHood.Size(); i++ )
         {
-        ind2 = GHood.GetIndex(i);
         if( GHood.GetPixel(i) > 0 && GHood.GetPixel(i)  != p )
           {
           atedge = true;
@@ -8594,6 +8588,7 @@ EnumerateLabelInterfaces(int argc, char *argv[])
         }
       if( atedge )
         {
+        const typename ImageType::IndexType &ind = GHood.GetIndex();
         output->SetPixel(ind, linearind);
         }
       }
@@ -9686,11 +9681,11 @@ int LabelThickness(      int argc, char *argv[])
       if ( isedge ) surface[(unsigned long) label] = surface[(unsigned long) label] + 1;
       }
     }
-  for ( unsigned int i = 0; i < surface.size(); i++ ) 
+  for ( unsigned int i = 0; i < surface.size(); i++ )
     {
-    if ( surface[i] > 0 ) 
+    if ( surface[i] > 0 )
     ::ants::antscout << " S " << surface[i] << " V " << volume[i] << " T " << volume[i] / surface[i] * 2.0 <<  std::endl;
-    }      
+    }
 
   for( iIt.GoToBegin(); !iIt.IsAtEnd(); ++iIt )
     {
@@ -10804,12 +10799,11 @@ int CorrelationUpdate(      int argc, char *argv[])
       {
       if( image1->GetPixel(ind) > 0 || image2->GetPixel(ind) > 0 )
         {
-        typename ImageType::IndexType ind2;
         // compute mean difference
         float diff = 0.0;
         for( unsigned int i = 0; i < GHood.Size(); i++ )
           {
-          ind2 = GHood.GetIndex(i);
+          const typename ImageType::IndexType & ind2 = GHood.GetIndex(i);
           diff += (image1->GetPixel(ind2) - image2->GetPixel(ind2) );
           }
         diff /= Gsz;
@@ -11703,7 +11697,6 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
   vnl_symmetric_eigensystem<RealType> eig2( cov2 );
   unsigned int                        eigind0 = 1; // biggest eigenvalue
   unsigned int                        eigind1 = 0;
-  RealType                            evsum = 0, wt0 = 0, wt1 = 0;
   if( ImageDimension == 3 )
     {
     eigind0 = 2; // biggest eigenvalue
@@ -11714,9 +11707,9 @@ TRealType PatchCorrelation(  itk::NeighborhoodIterator<TImageType> GHood,  itk::
   vnl_vector<RealType> evec2_2ndary = eig2.get_eigenvector( eigind1 );
   vnl_vector<RealType> evec2_primary = eig2.get_eigenvector( eigind0 );
   /** Solve Wahba's problem --- http://en.wikipedia.org/wiki/Wahba%27s_problem */
-  wt0 = fabs( eig1.get_eigenvalue( eigind0 ) ) + fabs( eig2.get_eigenvalue( eigind0 ) );
-  wt1 = fabs( eig1.get_eigenvalue( eigind1 ) ) + fabs( eig2.get_eigenvalue( eigind1 ) );
-  evsum = wt0 + wt1;
+  // NOT USED RealType wt0 = fabs( eig1.get_eigenvalue( eigind0 ) ) + fabs( eig2.get_eigenvalue( eigind0 ) );
+  // NOT USED RealType wt1 = fabs( eig1.get_eigenvalue( eigind1 ) ) + fabs( eig2.get_eigenvalue( eigind1 ) );
+  // NOT USED RealType evsum = wt0 + wt1;
   vnl_matrix<RealType> B = outer_product( evec2_primary, evec1_primary );
   if( ImageDimension == 3 )
     {
@@ -14545,11 +14538,10 @@ private:
         }
       }
       break;
-
     default:
       antscout << " Dimension Not supported " << atoi(argv[1]) << std::endl;
-      return EXIT_FAILURE;
+      returnvalue=EXIT_FAILURE;
     }
-  return EXIT_SUCCESS;
+  return returnvalue;
 }
 } // namespace ants
