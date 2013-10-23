@@ -623,7 +623,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -x ${BRAIN_EXTRACTION_MASK} \
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
       -n 5 \
-      -c 4 \
+      -c ${NUMBER_OF_PRIOR_IMAGES} \
       -y 4 \
       -y 3 \
       -y 2 \
@@ -647,7 +647,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -x ${BRAIN_EXTRACTION_MASK} \
       -m 2 \
       -n 5 \
-      -c 4 \
+      -c ${NUMBER_OF_PRIOR_IMAGES} \
       -y 4 \
       -y 3 \
       -y 2 \
