@@ -333,6 +333,11 @@ private:
   InputImagePointer ExtractRegionalContours( const InputImageType *, LabelType );
 
   /**
+   * Private function for making thickness image.
+   */
+  void MakeThicknessImage( RealImagePointer, RealImagePointer, InputImageType*, RealImagePointer );
+
+  /**
    * Private function for warping an image.
    */
   RealImagePointer WarpImage( const RealImageType *, const DisplacementFieldType * );

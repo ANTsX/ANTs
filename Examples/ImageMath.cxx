@@ -5882,14 +5882,6 @@ int TensorFunctions(int argc, char *argv[])
       eigenValuesMatrix.Fill( 0.0 );
       tIter.Value().ComputeEigenAnalysis( eigenValues, eigenVectors );
       //NOT USED bool hasNeg = false;
-      for( unsigned int i = 0; i < 3; i++ )
-        {
-        //NOT USED if ( eigenValues[i] < 0 )
-        //NOT USED   {
-        //NOT USED   hasNeg = true;
-        //NOT USED   }
-        HROM
-        }
 
       typename TensorType::MatrixType::InternalMatrixType lclTensor
         = eigenVectors.GetTranspose() * eigenValuesMatrix.GetVnlMatrix() * eigenVectors.GetVnlMatrix();
