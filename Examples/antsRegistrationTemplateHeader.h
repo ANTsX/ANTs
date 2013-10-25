@@ -245,7 +245,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       doHistogramMatch = true;
       }
     }
-  regHelper->SetUseHistogramMatching( doHistogramMatch);
+  regHelper->SetUseHistogramMatching( doHistogramMatch );
 
   bool doEstimateLearningRateAtEachIteration = true;
 
@@ -271,7 +271,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
 
   std::vector<std::vector<unsigned int> > iterationList;
-  std::vector<RealType>                     convergenceThresholdList;
+  std::vector<RealType>                   convergenceThresholdList;
   std::vector<unsigned int>               convergenceWindowSizeList;
   std::vector<std::vector<unsigned int> > shrinkFactorsList;
   std::vector<std::vector<float> >        smoothingSigmasList;
@@ -294,11 +294,12 @@ DoRegistration(typename ParserType::Pointer & parser)
   // in last out).
   for( int currentStage = numberOfTransforms - 1; currentStage >= 0; currentStage-- )
     {
-    // Get the number of iterations and use that information to specify the number of levels
 
+    // Get the number of iterations and use that information to specify the number of levels
     std::vector<unsigned int> iterations;
-    RealType                    convergenceThreshold = 1e-6;
+    RealType                  convergenceThreshold = 1e-6;
     unsigned int              convergenceWindowSize = 10;
+
     if( convergenceOption.IsNotNull() && convergenceOption->GetNumberOfFunctions() )
       {
       if( convergenceOption->GetFunction( currentStage )->GetNumberOfParameters() == 0 )
@@ -341,8 +342,21 @@ DoRegistration(typename ParserType::Pointer & parser)
     unsigned int numberOfLevels = iterations.size();
     antscout << "  number of levels = " << numberOfLevels << std::endl;
 
-    // Get shrink factors
+    // Get the first metricOption for the currentStage (for use with the B-spline transforms)
+				unsigned int numberOfMetrics = metricOption->GetNumberOfFunctions();
+				std::string fixedImageFileName;
+				for( int currentMetricNumber = numberOfMetrics; currentMetricNumber >= 0; currentMetricNumber-- )
+						{
+						// Get the fixed filename to read later in the case of a B-spline transform
+						unsigned int stageID = metricOption->GetFunction( currentMetricNumber )->GetStageID();
+      if( stageID == currentStage )
+        {
+    				fixedImageFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
+        break;
+        }
+      }
 
+    // Get shrink factors
     std::vector<unsigned int> factors =
       parser->ConvertVector<unsigned int>( shrinkFactorsOption->GetFunction( currentStage )->GetName() );
     shrinkFactorsList.push_back( factors );
@@ -423,14 +437,40 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       case RegistrationHelperType::BSplineDisplacementField:
         {
+        unsigned int splineOrder = 3;
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
+          {
+          splineOrder =
+            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
+          }
+
         std::vector<unsigned int> meshSizeForTheUpdateField =
           parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
+
+        if( meshSizeForTheUpdateField.size() == 1 )
+          {
+										typename ImageType::Pointer fixedImage;
+										ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
+										fixedImage->DisconnectPipeline();
+
+          meshSizeForTheUpdateField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
+            fixedImage, meshSizeForTheUpdateField[0], splineOrder );
+          }
 
         std::vector<unsigned int> meshSizeForTheTotalField;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
           meshSizeForTheTotalField =
             parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
+										if( meshSizeForTheTotalField.size() == 1 )
+												{
+												typename ImageType::Pointer fixedImage;
+												ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
+												fixedImage->DisconnectPipeline();
+
+												meshSizeForTheTotalField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
+														fixedImage, meshSizeForTheTotalField[0], splineOrder );
+												}
           }
         else
           {
@@ -440,12 +480,6 @@ DoRegistration(typename ParserType::Pointer & parser)
             }
           }
 
-        unsigned int splineOrder = 3;
-        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
-          {
-          splineOrder =
-            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
-          }
 
         regHelper->AddBSplineDisplacementFieldTransform( learningRate, meshSizeForTheUpdateField,
                                                          meshSizeForTheTotalField,
@@ -456,6 +490,15 @@ DoRegistration(typename ParserType::Pointer & parser)
         {
         std::vector<unsigned int> meshSizeAtBaseLevel =
           parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
+								if( meshSizeAtBaseLevel.size() == 1 )
+										{
+										typename ImageType::Pointer fixedImage;
+										ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
+										fixedImage->DisconnectPipeline();
+
+										meshSizeAtBaseLevel = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
+												fixedImage, meshSizeAtBaseLevel[0], 3 );
+										}
         regHelper->AddBSplineTransform( learningRate, meshSizeAtBaseLevel );
         }
         break;
@@ -515,24 +558,52 @@ DoRegistration(typename ParserType::Pointer & parser)
         float varianceForTotalField = 0.0;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
-          varianceForTotalField = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter(
-                                                            2 ) );
+          varianceForTotalField = parser->Convert<float>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
           }
         regHelper->AddSyNTransform( learningRate, varianceForUpdateField, varianceForTotalField );
         }
         break;
       case RegistrationHelperType::BSplineSyN:
         {
-        std::vector<unsigned int> meshSizeForTheUpdateField =
-          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
-        std::vector<unsigned int> meshSizeForTheTotalField =
-          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
-
         unsigned int splineOrder = 3;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 3 )
           {
           splineOrder =
             parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 3 ) );
+          }
+
+        std::vector<unsigned int> meshSizeForTheUpdateField =
+          parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
+        if( meshSizeForTheUpdateField.size() == 1 )
+          {
+										typename ImageType::Pointer fixedImage;
+										ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
+										fixedImage->DisconnectPipeline();
+
+          meshSizeForTheUpdateField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
+            fixedImage, meshSizeForTheUpdateField[0], splineOrder );
+          }
+
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
+          {
+          meshSizeForTheTotalField =
+            parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
+										if( meshSizeForTheTotalField.size() == 1 )
+												{
+												typename ImageType::Pointer fixedImage;
+												ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
+												fixedImage->DisconnectPipeline();
+
+												meshSizeForTheTotalField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
+														fixedImage, meshSizeForTheTotalField[0], splineOrder );
+												}
+          }
+        else
+          {
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            meshSizeForTheTotalField.push_back( 0 );
+            }
           }
 
         regHelper->AddBSplineSyNTransform( learningRate, meshSizeForTheUpdateField,
@@ -559,14 +630,39 @@ DoRegistration(typename ParserType::Pointer & parser)
         break;
       case RegistrationHelperType::BSplineExponential:
         {
+        unsigned int splineOrder = 3;
+        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 4 )
+          {
+          splineOrder =
+            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 4 ) );
+          }
+
         std::vector<unsigned int> meshSizeForTheUpdateField =
           parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 1 ) );
+								if( meshSizeForTheUpdateField.size() == 1 )
+										{
+										typename ImageType::Pointer fixedImage;
+										ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
+										fixedImage->DisconnectPipeline();
+
+										meshSizeForTheUpdateField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
+												fixedImage, meshSizeForTheUpdateField[0], splineOrder );
+										}
 
         std::vector<unsigned int> meshSizeForTheVelocityField;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
           meshSizeForTheVelocityField =
             parser->ConvertVector<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 2 ) );
+										if( meshSizeForTheVelocityField.size() == 1 )
+												{
+												typename ImageType::Pointer fixedImage;
+												ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
+												fixedImage->DisconnectPipeline();
+
+												meshSizeForTheVelocityField = regHelper->CalculateMeshSizeForSpecifiedKnotSpacing(
+														fixedImage, meshSizeForTheVelocityField[0], splineOrder );
+												}
           }
         else
           {
@@ -582,13 +678,6 @@ DoRegistration(typename ParserType::Pointer & parser)
           {
           numberOfIntegrationSteps = parser->Convert<unsigned int>( transformOption->GetFunction(
                                                                       currentStage )->GetParameter( 3 ) );
-          }
-
-        unsigned int splineOrder = 3;
-        if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 4 )
-          {
-          splineOrder =
-            parser->Convert<unsigned int>( transformOption->GetFunction( currentStage )->GetParameter( 4 ) );
           }
 
         regHelper->AddBSplineExponentialTransform( learningRate, meshSizeForTheUpdateField,
