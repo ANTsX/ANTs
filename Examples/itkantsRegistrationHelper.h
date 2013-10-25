@@ -599,9 +599,22 @@ public:
   void ApplyCompositeLinearTransformToImageHeader( const CompositeTransformType *, ImageBaseType * const,
                                                    const bool applyInverse );
 
+  /**
+   * Collapse a composite transform composed of displacement field transforms to a single displacement field transform.
+   */
   DisplacementFieldTransformPointer CollapseDisplacementFieldTransforms( const CompositeTransformType * );
 
+  /**
+   * Collapse a composite linear transform to a generic affine transform.
+   */
   typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
+
+  /**
+   * Compute approximate mesh size for a specified isotropic knot spacing
+   */
+  std::vector<unsigned int> CalculateMeshSizeForSpecifiedKnotSpacing( ImageBaseType * const,
+                                                                       const RealType,
+                                                                       const unsigned int );
 
   /**
    * Do the registration. Will return EXIT_FAILURE if there is any
