@@ -345,11 +345,11 @@ DoRegistration(typename ParserType::Pointer & parser)
     // Get the first metricOption for the currentStage (for use with the B-spline transforms)
 				unsigned int numberOfMetrics = metricOption->GetNumberOfFunctions();
 				std::string fixedImageFileName;
-				for( int currentMetricNumber = numberOfMetrics; currentMetricNumber >= 0; currentMetricNumber-- )
+				for( int currentMetricNumber = numberOfMetrics - 1; currentMetricNumber >= 0; currentMetricNumber-- )
 						{
 						// Get the fixed filename to read later in the case of a B-spline transform
 						unsigned int stageID = metricOption->GetFunction( currentMetricNumber )->GetStageID();
-      if( stageID == currentStage )
+      if( stageID == static_cast<unsigned int>( currentStage ) )
         {
     				fixedImageFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
         break;
@@ -584,6 +584,7 @@ DoRegistration(typename ParserType::Pointer & parser)
             fixedImage, meshSizeForTheUpdateField[0], splineOrder );
           }
 
+        std::vector<unsigned int> meshSizeForTheTotalField;
         if( transformOption->GetFunction( currentStage )->GetNumberOfParameters() > 2 )
           {
           meshSizeForTheTotalField =

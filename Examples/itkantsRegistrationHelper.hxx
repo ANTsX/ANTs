@@ -3137,7 +3137,7 @@ std::vector<unsigned int>
 RegistrationHelper<TComputeType, VImageDimension>
 ::CalculateMeshSizeForSpecifiedKnotSpacing( ImageBaseType * const inputImage,
                                             const RealType knotSpacing,
-                                            const unsigned int SplineOrder )
+                                            const unsigned int itkNotUsed( splineOrder ) )
 {
   // The commented code is for use with itk::ConstantPadImageFilter.  Right now
   // the mesh size is simply an approximation.
@@ -3151,7 +3151,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     RealType domain = static_cast<RealType>(
       inputImage->GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputImage->GetSpacing()[d];
-    meshSize.push_back( static_cast<unsigned int>( vcl_ceil( domain / splineDistance ) ) );
+    meshSize.push_back( static_cast<unsigned int>( vcl_ceil( domain / knotSpacing ) ) );
 //     unsigned long extraPadding = static_cast<unsigned long>(
 //       ( numberOfSpans * splineDistance - domain ) / inputImage->GetSpacing()[d] + 0.5 );
 //     lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );
