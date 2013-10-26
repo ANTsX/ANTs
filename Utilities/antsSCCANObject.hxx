@@ -4815,17 +4815,27 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   if ( prowmean.two_norm() > 0 ) prowmean = prowmean / prowmean.two_norm();
   if ( qrowmean.two_norm() > 0 ) qrowmean = qrowmean / qrowmean.two_norm();
+  this->SparsifyOther( prowmean ); 
+  this->SparsifyOther( qrowmean ); 
   VectorType ipvec = ( prowmean  ) * this->m_MatrixP;
   VectorType iqvec = ( qrowmean ) * this->m_MatrixQ;
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
-    VectorType qvec = ( this->m_MatrixP * ipvec ) * this->m_MatrixQ;
+    VectorType qvec = ( this->m_MatrixP * ipvec );
+    this->SparsifyOther( qvec ); 
+    qvec = qvec * this->m_MatrixQ;
     if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
-    VectorType vec  = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
+    VectorType vec  = ( this->m_MatrixQ * qvec ) 
+    this->SparsifyOther( vec ); 
+    vec = vec * this->m_MatrixP;
     if (  vec.two_norm() > 0 ) vec = vec / vec.two_norm();
-    VectorType vec2  = ( this->m_MatrixQ * iqvec ) * this->m_MatrixP;
+    VectorType vec2  = ( this->m_MatrixQ * iqvec );
+    this->SparsifyOther( vec2 ); 
+    vec2 = vec2 * this->m_MatrixP;
     if (  vec2.two_norm() > 0 ) vec2 = vec2 / vec2.two_norm();
-    VectorType qvec2 = ( this->m_MatrixP * vec2 ) * this->m_MatrixQ;
+    VectorType qvec2 = ( this->m_MatrixP * vec2 );
+    this->SparsifyOther( qvec2 ); 
+    qvec2 = qvec2 * this->m_MatrixQ;
     if (  qvec2.two_norm() > 0 ) qvec2 = qvec2 / qvec2.two_norm();
     if ( vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec2,  this->m_MatrixQ * qvec2 )  ) >
 	 vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec )  ) )
