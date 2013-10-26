@@ -4840,8 +4840,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    //    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
-    //    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
+    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
+    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
     if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
     if (  vec.two_norm()  > 0 ) vec  =  vec / vec.two_norm();
     if ( this->m_UseLongitudinalFormulation > 1.e-9 )
@@ -4853,7 +4853,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparsifyQ( qvec );
     this->m_VariatesP.set_column( kk, vec  );
     this->m_VariatesQ.set_column( kk, qvec );
-    this->NormalizeWeightsByCovariance( kk, 0.05, 0.05 );
+    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     RealType locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     totalcorr += locor;
     }
