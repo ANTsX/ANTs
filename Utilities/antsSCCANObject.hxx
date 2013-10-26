@@ -4825,8 +4825,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparsifyOther( qvec ); 
     qvec = qvec * this->m_MatrixQ;
     if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
-    VectorType vec  = ( this->m_MatrixQ * qvec ) 
-    this->SparsifyOther( vec ); 
+    VectorType vec  = ( this->m_MatrixQ * qvec );
+    this->SparsifyOther( vec );
     vec = vec * this->m_MatrixP;
     if (  vec.two_norm() > 0 ) vec = vec / vec.two_norm();
     VectorType vec2  = ( this->m_MatrixQ * iqvec );
