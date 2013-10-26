@@ -3133,6 +3133,36 @@ RegistrationHelper<TComputeType, VImageDimension>
 }
 
 template <class TComputeType, unsigned VImageDimension>
+std::vector<unsigned int>
+RegistrationHelper<TComputeType, VImageDimension>
+::CalculateMeshSizeForSpecifiedKnotSpacing( ImageBaseType * const inputImage,
+                                            const RealType knotSpacing,
+                                            const unsigned int itkNotUsed( splineOrder ) )
+{
+  // The commented code is for use with itk::ConstantPadImageFilter.  Right now
+  // the mesh size is simply an approximation.
+
+  std::vector<unsigned int> meshSize;
+
+//   unsigned long lowerBound[VImageDimension];
+//   unsigned long upperBound[VImageDimension];
+
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    RealType domain = static_cast<RealType>(
+      inputImage->GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputImage->GetSpacing()[d];
+    meshSize.push_back( static_cast<unsigned int>( vcl_ceil( domain / knotSpacing ) ) );
+//     unsigned long extraPadding = static_cast<unsigned long>(
+//       ( numberOfSpans * splineDistance - domain ) / inputImage->GetSpacing()[d] + 0.5 );
+//     lowerBound[d] = static_cast<unsigned long>( 0.5 * extraPadding );
+//     upperBound[d] = extraPadding - lowerBound[d];
+//     numberOfControlPoints[d] = meshSize[d] + splineOrder;
+    }
+
+  return meshSize;
+}
+
+template <class TComputeType, unsigned VImageDimension>
 typename RegistrationHelper<TComputeType, VImageDimension>::AffineTransformType::Pointer
 RegistrationHelper<TComputeType, VImageDimension>
 ::CollapseLinearTransforms( const CompositeTransformType * compositeTransform )

@@ -245,7 +245,8 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description = std::string( "Several transform options are available.  The gradientStep or " )
       + std::string( "learningRate characterizes the gradient descent optimization and is scaled appropriately " )
       + std::string( "for each transform using the shift scales estimator.  Subsequent parameters are " )
-      + std::string( "transform-specific and can be determined from the usage. " );
+      + std::string( "transform-specific and can be determined from the usage. For the B-spline transforms " )
+      + std::string( "one can also specify the smoothing in terms of spline distance (i.e. knot spacing). " );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "transform" );
