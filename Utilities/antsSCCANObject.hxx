@@ -2721,7 +2721,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       ::ants::antscout << " alpha_k " << alpha_k << std::endl;
       }
     VectorType x_k1  = x_k + alpha_k * p_k; // this adds the scaled residual to the current solution
-    this->SparsifyOther( x_k1 ); // this can be used to approximate NMF
+    //    this->SparsifyOther( x_k1 ); // this can be used to approximate NMF
     VectorType r_k1 =  b - At * (A * x_k1 );
     approxerr = r_k1.two_norm();
     if( approxerr < minerr )
@@ -2754,6 +2754,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
 
   x_k = bestsol;
+  this->SparsifyOther( x_k ); // this can be used to approximate NMF
   this->m_Intercept = this->ComputeIntercept( A, x_k, b_in );
   VectorType soln = A * x_k + this->m_Intercept;
   return ( soln - b_in).one_norm() / b_in.size();
@@ -4826,7 +4827,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     qvec = qvec * this->m_MatrixQ;
     if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
     VectorType vec  = ( this->m_MatrixQ * qvec );
-    this->SparsifyOther( vec );
+    this->SparsifyOther( vec ); 
     vec = vec * this->m_MatrixP;
     if (  vec.two_norm() > 0 ) vec = vec / vec.two_norm();
     VectorType vec2  = ( this->m_MatrixQ * iqvec );
@@ -4881,8 +4882,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     unsigned int theseed = ( kk + 1 ) * seeder;
     VectorType   vec = this->InitializeV( this->m_MatrixP, theseed  );
+    vec = this->m_MatrixP * vec;
+    this->SparsifyOther( vec );
+    vec = vec * this->m_MatrixP;
     vec = vec / vec.two_norm();
-    VectorType qvec = ( this->m_MatrixP * vec ) * this->m_MatrixQ;
+    VectorType qvec = ( this->m_MatrixP * vec );
+    this->SparsifyOther( qvec );
+    qvec = qvec * this->m_MatrixQ;
     qvec = qvec / qvec.two_norm();
     vec = ( this->m_MatrixQ * qvec ) * this->m_MatrixP;
     vec = vec / vec.two_norm();
@@ -4893,15 +4899,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       qj = this->m_VariatesQ.get_column(j);
       qvec = this->Orthogonalize( qvec, qj );
       }
-    //    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
-    //    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
+    vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
+    qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
     qvec = qvec / qvec.two_norm();
     vec = vec / vec.two_norm();
     this->SparsifyP( vec );    this->SparsifyQ( qvec );
     this->m_VariatesP.set_column( kk, vec );
     this->m_VariatesQ.set_column( kk, qvec );
     this->NormalizeWeights( kk );
-    //    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     totalcorr += vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     }
   return totalcorr*0.5;
@@ -4960,8 +4965,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     ::ants::antscout << "Initialization: " << initReturn << std::endl;
     }
-  /* 
-  RealType     bestcorr = initReturn;
+  /*  RealType     bestcorr = initReturn;
   RealType     totalcorr = 0;
   int bestseed = -1;
   for( unsigned int seeder = 0; seeder < 35; seeder++ )
