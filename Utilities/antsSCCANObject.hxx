@@ -4853,8 +4853,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
-    if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
-    if (  vec.two_norm()  > 0 ) vec  =  vec / vec.two_norm();
+    if (  qvec.two_norm() > 1.e-9 ) qvec = qvec / qvec.two_norm();
+    if (  vec.two_norm()  > 1.e-9 ) vec  =  vec / vec.two_norm();
     if ( this->m_UseLongitudinalFormulation > 1.e-9 )
       {
       vec = ( vec + qvec ) * 0.5; 
