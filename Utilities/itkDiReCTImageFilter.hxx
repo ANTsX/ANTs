@@ -278,6 +278,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   while( this->m_ElapsedIterations++ < this->m_MaximumNumberOfIterations && isConverged == false )
     {
     RealType priorenergy = 0;
+    unsigned long priorenergyct = 0;
     this->MakeThicknessImage(  hitImage,  totalImage,   segmentationImage,  thicknessImage );
     RealType currentEnergy = 0.0;
     RealType numberOfGrayMatterVoxels = 0.0;
@@ -358,7 +359,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
           if( norm > 1e-3 && !vnl_math_isnan( norm ) && !vnl_math_isinf( norm ) )
             {
-            ItGradientImage.Set( ItGradientImage.Get() / norm );
+	    if ( ! this->m_ThicknessPriorImage  )  ItGradientImage.Set( ItGradientImage.Get() / norm );
             }
           else
             {
@@ -371,15 +372,17 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 	    typename RealImageType::IndexType index = ItGrayMatterProbabilityMap.GetIndex();
 	    RealType thicknessprior = this->m_ThicknessPriorImage->GetPixel( index );
             RealType thicknessvalue = thicknessImage->GetPixel( index );
-	    priorenergy += vnl_math_abs( thicknessprior - thicknessvalue );
-	    if ( thicknessprior > NumericTraits<RealType>::min() ) delta *= ( this->m_ThicknessPriorEstimate / thicknessprior );
-	    //	    if ( ( thicknessprior - thicknessvalue ) < 0 ) delta *= ( -1 );
-	    currentEnergy = priorenergy;
+	    if ( thicknessvalue > thicknessprior ) { priorenergy += vnl_math_abs( thicknessprior - thicknessvalue ); priorenergyct++; }
+	    if ( ( thicknessprior > NumericTraits<RealType>::min() ) && 
+		 ( thicknessvalue > thicknessprior ) ) 
+	      {
+	      RealType downscale = vnl_math_abs( thicknessprior / thicknessvalue ) * this->m_ThicknessPriorEstimate;
+	      if ( integrationPoint > 0 ) 
+	        velocityField->SetPixel( index , velocityField->GetPixel( index ) * downscale );
+	      }
 	    }
-
           numberOfGrayMatterVoxels++;
-
-          RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep; // + delta2 * ItGrayMatterProbabilityMap.Get();
+          RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep; 
           if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
             {
             speedValue = 0.0;
@@ -610,6 +613,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     // Calculate current energy and current convergence measurement
 
     currentEnergy /= numberOfGrayMatterVoxels;
+    priorenergy /= priorenergyct;
+    if ( this->m_ThicknessPriorImage ) ::ants::antscout << "  priorenergy: " << priorenergy << std::endl;
     this->m_CurrentEnergy = currentEnergy;
 
     convergenceMonitoring->AddEnergyValue( this->m_CurrentEnergy );
