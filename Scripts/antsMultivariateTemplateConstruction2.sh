@@ -1120,9 +1120,9 @@ if [[ "${TRANSFORMATIONTYPE}" == "BSplineSyN" ]];
     # Mapping Parameters
     if [[ $DIM -eq 3 ]];
       then
-        TRANSFORMATION=BSplineSyN[0.1,10x10x11,0x0x0,3]
+        TRANSFORMATION=BSplineSyN[0.1,26,0x0x0,3]
       else
-        TRANSFORMATION=BSplineSyN[0.1,10x10,0x0,3]
+        TRANSFORMATION=BSplineSyN[0.1,26,0x0,3]
       fi
 elif [[ "${TRANSFORMATIONTYPE}" == "SyN" ]];
   then
