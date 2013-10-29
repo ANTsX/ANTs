@@ -114,9 +114,9 @@ Optional arguments:
 
      -q:  Max iterations for each registration
 
-     -f shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -f: shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
 
-     -s smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -s: smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
 
      -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
 
@@ -1140,7 +1140,8 @@ i=0
 while [[ $i -lt ${ITERATIONLIMIT} ]];
   do
     itdisplay=$((i+1))
-    rm -f ${OUTPUTNAME}*Warp*.nii*
+    rm -f ${OUTPUTNAME}*Warp.nii*
+    rm -f ${OUTPUTNAME}*GenericAffine.mat
     rm -f ${outdir}/job*.sh
     # Used to save time by only running coarse registration for the first couple of iterations
     # But with decent initialization, this is probably not worthwhile.
@@ -1352,12 +1353,30 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           fi
       fi
 
+    WARPFILES=`ls ${OUTPUTNAME}*Warp.nii.gz | grep -v "InverseWarp"`
+    AFFINEFILES=`ls ${OUTPUTNAME}*GenericAffine.mat`
+
+    if [[ ${#WARPFILES[@]} -eq 0 || ${#AFFINEFILES[@]} -eq 0 ]];
+      then
+        echo "The registrations did not terminate properly.  There are no warp files"
+        echo "or affine files."
+        exit 1
+    fi
+
+    if [[ ${#WARPFILES[@]} -ne ${#AFFINEFILES[@]} ]];
+      then
+        echo "The registrations did not terminate properly.  The number of warp files"
+        echo "does not match the number of affine files."
+        exit 1
+    fi
+
+
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
       do
         shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j}
       done
 
-    if [[ BACKUP_EACH_ITERATION -eq 1 ]];
+    if [[ $BACKUP_EACH_ITERATION -eq 1 ]];
       then
         echo
         echo "--------------------------------------------------------------------------------------"
