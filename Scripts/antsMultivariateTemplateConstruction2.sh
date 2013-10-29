@@ -1118,12 +1118,7 @@ TRANSFORMATION=''
 if [[ "${TRANSFORMATIONTYPE}" == "BSplineSyN" ]];
   then
     # Mapping Parameters
-    if [[ $DIM -eq 3 ]];
-      then
-        TRANSFORMATION=BSplineSyN[0.1,26,0x0x0,3]
-      else
-        TRANSFORMATION=BSplineSyN[0.1,26,0x0,3]
-      fi
+    TRANSFORMATION=BSplineSyN[0.1,26,0,3]
 elif [[ "${TRANSFORMATIONTYPE}" == "SyN" ]];
   then
     # Mapping Parameters for the greedy gradient descent (fast) version of SyN -- only needs GradientStepLength
