@@ -59,7 +59,7 @@ dtx="syn[ 0.25, 3, 0. ]"
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=2
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 #####################################################
-ImageMath $dim ${prefix}_reflection.mat ReflectionMatrix $a $A
+ImageMath $dim ${prefix}_reflection.mat ReflectionMatrix $A $a
 antsApplyTransforms -d $dim -t ${prefix}_reflection.mat -i $B -o ${prefix}_reflect.nii.gz -r $B
 imgs=" $A, $B "
 antsAffineInitializer ${dim} $A $B ${prefix}_init.mat 5 0.25 0 3
