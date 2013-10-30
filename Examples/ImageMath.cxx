@@ -19,6 +19,8 @@
 #include "antsUtilities.h"
 #include <algorithm>
 #include <vnl/vnl_inverse.h>
+#include "itkTransformFileReader.h"
+#include "itkTransformFileWriter.h"
 #include "antsAllocImage.h"
 #include "antsSCCANObject.h"
 #include "itkAlternatingValueDifferenceImageFilter.h"
@@ -108,7 +110,6 @@
 #include "itkMinimumProjectionImageFilter.h"
 #include "itkTDistribution.h"
 #include "itkTimeProbe.h"
-#include "itkTransformFileReader.h"
 #include "itkTranslationTransform.h"
 #include "itkVariableSizeMatrix.h"
 #include "itkVectorLinearInterpolateImageFunction.h"
@@ -244,6 +245,64 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
   ::ants::antscout << diffmat.frobenius_norm() << std::endl;
   return 0;
 }
+
+template <unsigned int ImageDimension>
+void ReflectionMatrix(int argc, char *argv[])
+{
+  if( argc < 4 )
+    {
+    antscout << " need more args -- see usage   " << std::endl;
+    }
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  int           argct = 2;
+  const std::string   outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  unsigned int axis = atoi(argv[argct]);  argct++;
+  typename ImageType::Pointer image1 = NULL;
+  ReadImage<ImageType>( image1, fn1.c_str() );
+  // compute center of mass
+  typedef typename itk::ImageMomentsCalculator<ImageType>                 ImageCalculatorType;
+  typename ImageCalculatorType::Pointer calculator1 = ImageCalculatorType::New();
+  calculator1->SetImage(  image1 );
+  typename ImageCalculatorType::VectorType fixed_center;
+  fixed_center.Fill(0);
+  try
+    {
+    calculator1->Compute();
+    fixed_center = calculator1->GetCenterOfGravity();
+    }
+    catch( ... )
+      {
+      antscout << " zero image2 error ";
+      fixed_center.Fill(0);
+      }
+  ::ants::antscout << " CenterOfMass " << fixed_center << std::endl;
+  typename AffineTransformType::Pointer aff = AffineTransformType::New();  
+  aff->SetIdentity();
+  typename AffineTransformType::ParametersType myoff = aff->GetFixedParameters();
+  for ( unsigned int i = 0; i < ImageDimension; i++ ) myoff[ i ] = fixed_center[i];
+  typename AffineTransformType::MatrixType mymat = aff->GetMatrix();
+  if ( axis < ImageDimension ) mymat[axis][axis] = ( -1.0 );
+  aff->SetFixedParameters( myoff );
+  aff->SetMatrix( mymat );
+  typedef itk::TransformFileWriter                                        TransformWriterType;
+  typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
+  transformWriter->SetInput( aff );
+  transformWriter->SetFileName( outname.c_str() );
+  transformWriter->Update();
+  return;
+}
+
 
 template <unsigned int ImageDimension>
 int GetLargestComponent(int argc, char *argv[])
@@ -12967,6 +13026,9 @@ private:
 
     antscout << "\nUnclassified Operators:" << std::endl;
 
+    antscout << "  ReflectionMatrix : Create a reflection matrix about an axis" << std::endl;
+    antscout << " out.mat ReflectionMatrix axis " << std::endl << std::endl;
+
     antscout << "  Byte            : Convert to Byte image in [0,255]" << std::endl;
 
     antscout
@@ -13366,6 +13428,10 @@ private:
         {
         ByteImage<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ReflectionMatrix") == 0 )
+        {
+        ReflectionMatrix<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<2>(argc, argv);
@@ -13747,6 +13813,10 @@ private:
       else if( strcmp(operation.c_str(), "Byte") == 0 )
         {
         ByteImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ReflectionMatrix") == 0 )
+        {
+        ReflectionMatrix<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
@@ -14223,6 +14293,10 @@ private:
       else if( strcmp(operation.c_str(), "Byte") == 0 )
         {
         ByteImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "ReflectionMatrix") == 0 )
+        {
+        ReflectionMatrix<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
