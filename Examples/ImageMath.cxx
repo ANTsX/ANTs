@@ -3983,16 +3983,16 @@ int CompCorrAuto(int argc, char *argv[])
   var_image->FillBuffer(0);
   outimage->FillBuffer(0);
   outimage2->FillBuffer(0);
-  antscout << " read images " << std::endl;
+  //  antscout << " read images " << std::endl;
   unsigned int timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
-  antscout << "timedims " << timedims << " size " << image1->GetLargestPossibleRegion().GetSize() << std::endl;
+  //  antscout << "timedims " << timedims << " size " << image1->GetLargestPossibleRegion().GetSize() << std::endl;
 
   // first, count the label numbers
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> labIterator;
   labIterator   vfIter2( label_image,  label_image->GetLargestPossibleRegion() );
   unsigned long ct_nuis = 0;
   unsigned long ct_vox = 0;
-  antscout << " verify input " << std::endl;
+  //  antscout << " verify input " << std::endl;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     if( vfIter2.Get() == 1 )      // in brain
@@ -4000,7 +4000,7 @@ int CompCorrAuto(int argc, char *argv[])
       ct_vox++;
       }
     }
-  antscout << " counted " << ct_vox << " voxels " <<  std::endl;
+  //  antscout << " counted " << ct_vox << " voxels " <<  std::endl;
   if( ct_vox == 0 )
     {
     antscout << ct_vox << " not enough voxels labeled as gm (or brain) " << std::endl;
@@ -4050,7 +4050,7 @@ int CompCorrAuto(int argc, char *argv[])
       var_image->SetPixel(ind, var);
       }
     }
-  antscout << " got var " << std::endl;
+  //  antscout << " got var " << std::endl;
   // now build the histogram
   unsigned int   histsize = 50;
   float          binsize = maxvar / histsize;
@@ -4072,14 +4072,12 @@ int CompCorrAuto(int argc, char *argv[])
       }
     }
   varhist = varhist / varhistsum;
-  antscout << " got var hist " << std::endl;
+  //  antscout << " got var hist " << std::endl;
   float temp = 0;
   float varval_csf = 0;
   for( unsigned int j = 0; j < histsize; j++ )
     {
     temp += varhist(j);
-    float varth = (float)j / (float)histsize * maxvar;
-    antscout << " j " << j << " temp " << temp << " varth " << varth << std::endl;
     if( temp >= 0.95 && varval_csf <=  0 )
       {
       varval_csf = (float)j * binsize;

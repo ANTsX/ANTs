@@ -182,16 +182,28 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
 
     target = reffilter->GetOutput();
     }
-  NiftiDTICheck<ImageType>(target, file, false);
 
+  //NiftiDTICheck<ImageType>(target, file, false);
+  
   if( takelog )
     {
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
     logFilter->SetInput( reffilter->GetOutput() );
-    logFilter->Update();
+    try
+      {
+      logFilter->Update();
+      }
+    catch( itk::ExceptionObject & e )
+      {
+      ::ants::antscout << "Exception caught during log tensor filter " << std::endl;
+      ::ants::antscout << e << " file " << file << std::endl;
+      target = NULL;
+      return;
+      }
     target = logFilter->GetOutput();
     ::ants::antscout << "Returning Log(D) for log-euclidean math ops" << std::endl;
     }
+  
 }
 
 template <class TImageType>

@@ -291,12 +291,12 @@ will terminate prematurely if these files are not present or are not executable.
 --------------------------------------------------------------------------------------
 Get the latest ANTS version at:
 --------------------------------------------------------------------------------------
-http://sourceforge.net/projects/advants/
+https://github.com/stnava/ANTs/
 
 --------------------------------------------------------------------------------------
 Read the ANTS documentation at:
 --------------------------------------------------------------------------------------
-http://picsl.upenn.edu/ANTS/
+http://stnava.github.io/ANTs/
 
 --------------------------------------------------------------------------------------
 ANTS was created by:
