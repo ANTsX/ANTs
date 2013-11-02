@@ -101,7 +101,7 @@ option(USE_SYSTEM_SlicerExecutionModel "Build using an externally defined versio
 option(USE_VTK "Build tools that depend on VTK" OFF)
 CMAKE_DEPENDENT_OPTION(
      USE_SYSTEM_VTK "Build using an externally defined version of VTK" OFF
-     "USE_ITK" OFF
+     "USE_VTK" OFF
      )
 
 option(RUN_SHORT_TESTS    "Run the quick unit tests."                                   ON  )
