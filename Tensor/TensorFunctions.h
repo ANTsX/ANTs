@@ -64,7 +64,7 @@ void Vector2Matrix( TensorType & dtv, MatrixType & dtm )
   unsigned int tensorIndex = 0;
   for(unsigned i = 0; i < matHelper::Rows(dtm); ++i)
     {
-    for(unsigned j = i; matHelper::Columns(dtm); ++j, ++tensorIndex)
+    for(unsigned j = i; j < matHelper::Columns(dtm); ++j, ++tensorIndex)
       {
       dtm(i,j) = dtm(j,i) = dtv[tensorIndex];
       }
@@ -95,7 +95,7 @@ TensorType Matrix2Vector( MatrixType dtm )
   unsigned int tensorIndex = 0;
   for(unsigned i = 0; i < dtm.rows(); ++i)
     {
-    for(unsigned j = i; dtm.cols(); ++j, ++tensorIndex)
+    for(unsigned j = i; j < dtm.cols(); ++j, ++tensorIndex)
       {
       dtv[tensorIndex] = dtm(i,j);
       }
