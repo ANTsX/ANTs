@@ -4847,9 +4847,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int j = 0; j < kk; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column(j);
-      vec = this->Orthogonalize( vec, qj );
+      if ( this->m_Covering ) vec = this->Orthogonalize( vec, qj );
       qj = this->m_VariatesQ.get_column(j);
-      qvec = this->Orthogonalize( qvec, qj );
+      if ( this->m_Covering ) qvec = this->Orthogonalize( qvec, qj );
       }
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
