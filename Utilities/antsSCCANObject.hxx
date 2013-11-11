@@ -4653,6 +4653,7 @@ bool antsSCCANObject<TInputImage, TRealType>
 {
   this->m_Debug = false;
   bool changedgrad = false;
+  unsigned int changegradct = 0;
 
   for( unsigned int k = 0; k < n_vecs; k++ )
     {
@@ -4775,7 +4776,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     else if( allowchange )
       {
       changedgrad = true;
-      this->m_GradStep *= 0.9;
+      //      this->m_GradStep *= 0.99;
       if( this->m_Debug )
         {
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
@@ -5028,7 +5029,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
       }
-    if( this->m_GradStep < 1.e-12 || ( vnl_math_abs( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
+    if( this->m_GradStep < 1.e-12 ) // || ( vnl_math_abs( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
       {
       energyincreases = false;
       ::ants::antscout << " this->m_GradStep : " << this->m_GradStep << " energy : " << energy << " changedgrad : " << changedgrad << std::endl;
