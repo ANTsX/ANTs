@@ -452,6 +452,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
+      std::string( "An image containing spatially varying prior thickness values." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "thickness-prior-image" );
+    option->SetShortName( 'a' );
+    option->SetUsageOption( 0, "thicknessPriorFileName" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
       std::string( "Gradient step size for the optimization.  Default = 0.025." );
 
     OptionType::Pointer option = OptionType::New();
@@ -509,19 +521,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetDescription( description );
     parser->AddOption( option );
     }
-
-    {
-    std::string description =
-      std::string( "An image containing spatially varying prior thickness values." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "thickness-prior-image" );
-    option->SetShortName( 'a' );
-    option->SetUsageOption( 0, "thicknessPriorFileName" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
 
     {
     std::string description =

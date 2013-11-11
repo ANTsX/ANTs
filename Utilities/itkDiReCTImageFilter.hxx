@@ -277,9 +277,11 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   this->m_ElapsedIterations = 0;
   while( this->m_ElapsedIterations++ < this->m_MaximumNumberOfIterations && isConverged == false )
     {
-    RealType priorenergy = 0;
-    unsigned long priorenergyct = 0;
-    this->MakeThicknessImage(  hitImage,  totalImage,   segmentationImage,  thicknessImage );
+    this->MakeThicknessImage( hitImage, totalImage, segmentationImage, thicknessImage );
+
+    RealType priorEnergy = 0;
+    unsigned long priorEnergyCount = 0;
+
     RealType currentEnergy = 0.0;
     RealType numberOfGrayMatterVoxels = 0.0;
 
@@ -359,7 +361,10 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
           if( norm > 1e-3 && !vnl_math_isnan( norm ) && !vnl_math_isinf( norm ) )
             {
-	    if ( ! this->m_ThicknessPriorImage  )  ItGradientImage.Set( ItGradientImage.Get() / norm );
+	           if( ! this->m_ThicknessPriorImage  )
+	             {
+	             ItGradientImage.Set( ItGradientImage.Get() / norm );
+	             }
             }
           else
             {
@@ -367,22 +372,29 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             }
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
           currentEnergy += vnl_math_abs( delta );
-	  if ( this->m_ThicknessPriorImage )
-	    {
-	    typename RealImageType::IndexType index = ItGrayMatterProbabilityMap.GetIndex();
-	    RealType thicknessprior = this->m_ThicknessPriorImage->GetPixel( index );
-            RealType thicknessvalue = thicknessImage->GetPixel( index );
-	    if ( thicknessvalue > thicknessprior ) { priorenergy += vnl_math_abs( thicknessprior - thicknessvalue ); priorenergyct++; }
-	    if ( ( thicknessprior > NumericTraits<RealType>::min() ) && 
-		 ( thicknessvalue > thicknessprior ) ) 
-	      {
-	      RealType downscale = vnl_math_abs( thicknessprior / thicknessvalue ) * this->m_ThicknessPriorEstimate;
-	      if ( integrationPoint > 0 ) 
-	        velocityField->SetPixel( index , velocityField->GetPixel( index ) * downscale );
-	      }
-	    }
+
+										if( this->m_ThicknessPriorImage )
+												{
+												typename RealImageType::IndexType index = ItGrayMatterProbabilityMap.GetIndex();
+												RealType thicknessPrior = this->m_ThicknessPriorImage->GetPixel( index );
+												RealType thicknessValue = thicknessImage->GetPixel( index );
+												if( thicknessValue > thicknessPrior )
+												  {
+												  priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );
+												  priorEnergyCount++;
+												  }
+												if( ( thicknessPrior > NumericTraits<RealType>::min() ) &&
+										      ( thicknessValue > thicknessPrior ) )
+														{
+														RealType downScale = vnl_math_abs( thicknessPrior / thicknessValue ) * this->m_ThicknessPriorEstimate;
+														if( integrationPoint > 0 )
+														  {
+																velocityField->SetPixel( index , velocityField->GetPixel( index ) * downScale );
+																}
+														}
+												}
           numberOfGrayMatterVoxels++;
-          RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep; 
+          RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
           if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
             {
             speedValue = 0.0;
@@ -586,14 +598,12 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             {
             thicknessValue = 0.0;
             }
-	  /*
-          if( thicknessValue > this->m_ThicknessPriorEstimate )
-            {
-//             thicknessValue = this->m_ThicknessPriorEstimate;
-            RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
-            ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
-            }
-	  */
+//           if( thicknessValue > this->m_ThicknessPriorEstimate )
+//             {
+// //             thicknessValue = this->m_ThicknessPriorEstimate;
+//             RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
+//             ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+//             }
           }
 
         ItCorticalThicknessImage.Set( thicknessValue );
@@ -613,8 +623,12 @@ DiReCTImageFilter<TInputImage, TOutputImage>
     // Calculate current energy and current convergence measurement
 
     currentEnergy /= numberOfGrayMatterVoxels;
-    priorenergy /= priorenergyct;
-    if ( this->m_ThicknessPriorImage ) ::ants::antscout << "  priorenergy: " << priorenergy << std::endl;
+    priorEnergy /= priorEnergyCount;
+
+    if( this->m_ThicknessPriorImage )
+      {
+      itkDebugMacro( "   PriorEnergy = " << priorEnergy );
+      }
     this->m_CurrentEnergy = currentEnergy;
 
     convergenceMonitoring->AddEnergyValue( this->m_CurrentEnergy );
@@ -689,20 +703,21 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 void
 DiReCTImageFilter<TInputImage, TOutputImage>
-::MakeThicknessImage( RealImagePointer hitImage, RealImagePointer totalImage,  InputImageType* segmentationImage, RealImagePointer corticalThicknessImage )
+::MakeThicknessImage( RealImagePointer hitImage, RealImagePointer totalImage,
+  InputImagePointer segmentationImage, RealImagePointer corticalThicknessImage )
 {
-    RealImagePointer smoothHitImage;
-    RealImagePointer smoothTotalImage;
-    if( this->m_SmoothingVariance > 0.0 )
-      {
-      smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
-      smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
-      }
-    else
-      {
-      smoothHitImage = hitImage;
-      smoothTotalImage = totalImage;
-      }
+		RealImagePointer smoothHitImage;
+		RealImagePointer smoothTotalImage;
+		if( this->m_SmoothingVariance > 0.0 )
+				{
+				smoothHitImage = this->SmoothImage( hitImage, this->m_SmoothingVariance );
+				smoothTotalImage = this->SmoothImage( totalImage, this->m_SmoothingVariance );
+				}
+		else
+				{
+				smoothHitImage = hitImage;
+				smoothTotalImage = totalImage;
+				}
 
   ImageRegionIterator<RealImageType> ItCorticalThicknessImage(
     corticalThicknessImage,
@@ -710,44 +725,43 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   ImageRegionConstIteratorWithIndex<InputImageType> ItSegmentationImage(
     segmentationImage,
     segmentationImage->GetRequestedRegion() );
-  
-    ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
-      smoothHitImage->GetRequestedRegion() );
-    ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
-      smoothTotalImage->GetRequestedRegion() );
 
-    ItCorticalThicknessImage.GoToBegin();
-    ItSegmentationImage.GoToBegin();
-    ItSmoothHitImage.GoToBegin();
-    ItSmoothTotalImage.GoToBegin();
+		ImageRegionConstIterator<RealImageType> ItSmoothHitImage( smoothHitImage,
+				smoothHitImage->GetRequestedRegion() );
+		ImageRegionConstIterator<RealImageType> ItSmoothTotalImage( smoothTotalImage,
+				smoothTotalImage->GetRequestedRegion() );
 
-    RealType meanthick = 0;
-    unsigned long ct = 0;
-    while( !ItSegmentationImage.IsAtEnd() )
-      {
-      const typename InputImageType::PixelType grayMatterPixel =
-        static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
-      if(  ItSegmentationImage.Get() == grayMatterPixel )
-        {
-        RealType thicknessValue = 0.0;
-        if( ItSmoothHitImage.Get() > 0.001 )
-          {
-          thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
-	  meanthick += thicknessValue;
-	  ct++;
-          if( thicknessValue < 0.0 )
-            {
-            thicknessValue = 0.0;
-            }
-          }
-        ItCorticalThicknessImage.Set( thicknessValue );
-        }
+		ItCorticalThicknessImage.GoToBegin();
+		ItSegmentationImage.GoToBegin();
+		ItSmoothHitImage.GoToBegin();
+		ItSmoothTotalImage.GoToBegin();
 
-      ++ItCorticalThicknessImage;
-      ++ItSmoothHitImage;
-      ++ItSegmentationImage;
-      ++ItSmoothTotalImage;
-      }
+		RealType meanThickness = 0;
+		unsigned long count = 0;
+		while( !ItSegmentationImage.IsAtEnd() )
+				{
+				const typename InputImageType::PixelType grayMatterPixel =
+						static_cast<typename InputImageType::PixelType>( this->m_GrayMatterLabel );
+				if(  ItSegmentationImage.Get() == grayMatterPixel )
+						{
+						RealType thicknessValue = 0.0;
+						if( ItSmoothHitImage.Get() > 0.001 )
+								{
+								thicknessValue = ItSmoothTotalImage.Get() / ItSmoothHitImage.Get();
+       	meanThickness += thicknessValue;
+	       count++;
+								if( thicknessValue < 0.0 )
+										{
+										thicknessValue = 0.0;
+										}
+								}
+						ItCorticalThicknessImage.Set( thicknessValue );
+						}
+				++ItCorticalThicknessImage;
+				++ItSmoothHitImage;
+				++ItSegmentationImage;
+				++ItSmoothTotalImage;
+				}
 }
 
 template <class TInputImage, class TOutputImage>

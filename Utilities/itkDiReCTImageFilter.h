@@ -34,17 +34,10 @@ namespace itk
  *
  * \author Nicholas J. Tustison
  *
- * Contributed by Nicholas J. Tustison, Brian B. Avants
- * in the Insight Journal paper:
- *
  * \par REFERENCE
  * S. R. Das, B. B. Avants, M. Grossman, and J. C. Gee, "Registration based
  * cortical thickness measurement," Neuroimage 2009, 45:867--879.
  *
- * \par REFERENCE
- * S. E. Jones, B. R. Buchbinder, and I Aharon, "Three-dimensional mapping
- * of Cortical thickness using Laplace's Equation." Human Brian Mapping 2000,
- * 11:12-32.
  */
 
 template <class TInputImage, class TOutputImage>
@@ -335,7 +328,7 @@ private:
   /**
    * Private function for making thickness image.
    */
-  void MakeThicknessImage( RealImagePointer, RealImagePointer, InputImageType*, RealImagePointer );
+  void MakeThicknessImage( RealImagePointer, RealImagePointer, InputImagePointer, RealImagePointer );
 
   /**
    * Private function for warping an image.
