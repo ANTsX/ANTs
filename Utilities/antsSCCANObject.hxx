@@ -4776,7 +4776,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     else if( allowchange )
       {
       changedgrad = true;
-      //      this->m_GradStep *= 0.99;
+      changegradct++;
       if( this->m_Debug )
         {
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
@@ -4790,6 +4790,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     //    this->SparsifyOther( proj2 );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
+  if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.9;
   this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
