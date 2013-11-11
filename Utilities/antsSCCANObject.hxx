@@ -4655,7 +4655,7 @@ bool antsSCCANObject<TInputImage, TRealType>
   bool changedgrad = false;
   unsigned int changegradct = 0;
 
-  for( unsigned int k = 0; k < n_vecs; k++ )
+  for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
@@ -4790,7 +4790,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     //    this->SparsifyOther( proj2 );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
-  if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.9;
+  if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.5;
   this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
