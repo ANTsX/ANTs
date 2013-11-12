@@ -217,7 +217,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     calc->SetImage( inputImage );
     calc->ComputeMaximum();
     calc->ComputeMinimum();
-    if ( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 ) 
+    if ( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
       {
       ::ants::antscout <<"Warning: bad time point - too little intensity variation" << std::endl;
       return histogramMatchSourceImage;
@@ -1353,7 +1353,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, N4 tries to " )
+      + std::string( "dimensional image.  If not specified, the program tries to " )
       + std::string( "infer the dimensionality from the input image." );
 
     OptionType::Pointer option = OptionType::New();
