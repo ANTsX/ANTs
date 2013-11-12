@@ -65,7 +65,7 @@ Compulsory arguments:
 
      -m:  Moving image or target image
 
-     -o:  OutputPrefix; A prefix that is prepended to all output files.
+     -o:  OutputPrefix: A prefix that is prepended to all output files.
 
 Optional arguments:
 
@@ -114,7 +114,7 @@ Compulsory arguments:
 
      -m:  Moving image or target image
 
-     -o:  OutputPrefix; A prefix that is prepended to all output files.
+     -o:  OutputPrefix: A prefix that is prepended to all output files.
 
 Optional arguments:
 
