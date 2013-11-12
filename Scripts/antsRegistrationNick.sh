@@ -229,7 +229,7 @@ while getopts "d:f:h:m:n:o:s:" OPT
   do
   case $OPT in
       h) #help
-   echo "$USAGE"
+   Help
    exit 0
    ;;
       d)  # dimensions
@@ -261,12 +261,12 @@ done
 
 if [[ ! -f "$FIXEDIMAGE" ]];
   then
-    echo "Fixed image '$FIXEDIMAGE' does not exist."
+    echo "Fixed image '$FIXEDIMAGE' does not exist.  See usage: '$0 -h 1'"
     exit
   fi
 if [[ ! -f "$MOVINGIMAGE" ]];
   then
-    echo "Moving image '$MOVINGIMAGE' does not exist."
+    echo "Moving image '$MOVINGIMAGE' does not exist.  See usage: '$0 -h 1'"
     exit
   fi
 
@@ -279,6 +279,13 @@ if [[ ! -f "$MOVINGIMAGE" ]];
 ORIGINALNUMBEROFTHREADS=${ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS}
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$NUMBEROFTHREADS
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
+
+##############################
+#
+# Print out options
+#
+##############################
+reportMappingParameters
 
 ${ANTSPATH}/antsRegistration --dimensionality $DIM \
                              --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
