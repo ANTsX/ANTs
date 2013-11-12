@@ -4653,8 +4653,9 @@ bool antsSCCANObject<TInputImage, TRealType>
 {
   this->m_Debug = false;
   bool changedgrad = false;
+  unsigned int changegradct = 0;
 
-  for( unsigned int k = 0; k < n_vecs; k++ )
+  for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
@@ -4775,7 +4776,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     else if( allowchange )
       {
       changedgrad = true;
-      this->m_GradStep *= 0.9;
+      changegradct++;
       if( this->m_Debug )
         {
         ::ants::antscout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
@@ -4789,6 +4790,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     //    this->SparsifyOther( proj2 );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
+  if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.5;
   this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
@@ -4814,8 +4816,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     qrowmean( i ) = this->m_MatrixQ.get_row( i ).mean();
     }
-  if ( prowmean.two_norm() > 0 ) prowmean = prowmean / prowmean.two_norm();
-  if ( qrowmean.two_norm() > 0 ) qrowmean = qrowmean / qrowmean.two_norm();
+  if ( prowmean.two_norm() > this->m_Epsilon ) prowmean = prowmean / prowmean.two_norm();
+  if ( qrowmean.two_norm() > this->m_Epsilon ) qrowmean = qrowmean / qrowmean.two_norm();
   this->SparsifyOther( prowmean ); 
   this->SparsifyOther( qrowmean ); 
   VectorType ipvec = ( prowmean  ) * this->m_MatrixP;
@@ -4825,19 +4827,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType qvec = ( this->m_MatrixP * ipvec );
     this->SparsifyOther( qvec ); 
     qvec = qvec * this->m_MatrixQ;
-    if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
+    if (  qvec.two_norm() > this->m_Epsilon ) qvec = qvec / qvec.two_norm();
     VectorType vec  = ( this->m_MatrixQ * qvec );
     this->SparsifyOther( vec ); 
     vec = vec * this->m_MatrixP;
-    if (  vec.two_norm() > 0 ) vec = vec / vec.two_norm();
+    if (  vec.two_norm() > this->m_Epsilon ) vec = vec / vec.two_norm();
     VectorType vec2  = ( this->m_MatrixQ * iqvec );
     this->SparsifyOther( vec2 ); 
     vec2 = vec2 * this->m_MatrixP;
-    if (  vec2.two_norm() > 0 ) vec2 = vec2 / vec2.two_norm();
+    if (  vec2.two_norm() > this->m_Epsilon ) vec2 = vec2 / vec2.two_norm();
     VectorType qvec2 = ( this->m_MatrixP * vec2 );
     this->SparsifyOther( qvec2 ); 
     qvec2 = qvec2 * this->m_MatrixQ;
-    if (  qvec2.two_norm() > 0 ) qvec2 = qvec2 / qvec2.two_norm();
+    if (  qvec2.two_norm() > this->m_Epsilon ) qvec2 = qvec2 / qvec2.two_norm();
     if ( vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec2,  this->m_MatrixQ * qvec2 )  ) >
 	 vnl_math_abs(  this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec )  ) )
       {
@@ -4847,9 +4849,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int j = 0; j < kk; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column(j);
-      if ( this->m_Covering ) vec = this->Orthogonalize( vec, qj );
+      if ( this->m_Covering  &&  ( j < this->m_MatrixP.cols() ) ) vec = this->Orthogonalize( vec, qj );
       qj = this->m_VariatesQ.get_column(j);
-      if ( this->m_Covering ) qvec = this->Orthogonalize( qvec, qj );
+      if ( ( this->m_Covering ) && ( j < this->m_MatrixQ.cols() ) ) qvec = this->Orthogonalize( qvec, qj );
       }
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
@@ -4866,6 +4868,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_VariatesQ.set_column( kk, qvec );
     this->NormalizeWeightsByCovariance( kk, 1, 1 );
     RealType locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
+    if ( vnl_math_isnan( qvec.two_norm() ) )
+      {
+      qvec = this->InitializeV( this->m_MatrixQ, 10  );
+      locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
+      }
+    if ( vnl_math_isnan( vec.two_norm() ) )
+      {
+      vec = this->InitializeV( this->m_MatrixP, 10  );
+      locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
+      }
     totalcorr += locor;
     }
   return totalcorr;
@@ -5028,7 +5040,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       ::ants::antscout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
       }
-    if( this->m_GradStep < 1.e-12 || ( vnl_math_abs( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
+    if( this->m_GradStep < 1.e-12 ) // || ( vnl_math_abs( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
       {
       energyincreases = false;
       ::ants::antscout << " this->m_GradStep : " << this->m_GradStep << " energy : " << energy << " changedgrad : " << changedgrad << std::endl;
