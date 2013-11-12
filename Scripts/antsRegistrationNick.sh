@@ -69,9 +69,14 @@ Compulsory arguments:
 
 Optional arguments:
 
-     -n:  Number of threads
+     -n:  Number of threads (default = 1)
 
-     -s:  spline distance for deformable B-spline SyN transform
+     -t:  transform type (default = 'd')
+        r: rigid
+        a: rigid + affine
+        d: rigid + affine + deformable
+
+     -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
 Example:
 
@@ -113,9 +118,14 @@ Compulsory arguments:
 
 Optional arguments:
 
-     -n:  Number of threads
+     -n:  Number of threads (default = 1)
 
-     -s:  spline distance for deformable B-spline SyN transform
+     -t:  transform type (default = 'd')
+        r: rigid
+        a: rigid + affine
+        d: rigid + affine + deformable
+
+     -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
 --------------------------------------------------------------------------------------
 Get the latest ANTS version at:
@@ -166,6 +176,7 @@ function reportMappingParameters {
  Moving image:             $MOVINGIMAGE
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
+ Transform type:           $TRANSFORMTYPE
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
@@ -223,9 +234,10 @@ MOVINGIMAGE=''
 OUTPUTNAME=output
 NUMBEROFTHREADS=1
 SPLINEDISTANCE=26
+TRANSFORMTYPE=1
 
 # reading command line arguments
-while getopts "d:f:h:m:n:o:s:" OPT
+while getopts "d:f:h:m:n:o:s:t:" OPT
   do
   case $OPT in
       h) #help
@@ -244,11 +256,14 @@ while getopts "d:f:h:m:n:o:s:" OPT
       n)  # number of threads
    NUMBEROFTHREADS=$OPTARG
    ;;
+      o) #output name prefix
+   OUTPUTNAME=$OPTARG
+   ;;
       s)  # spline distance
    SPLINEDISTANCE=$OPTARG
    ;;
-      o) #output name prefix
-   OUTPUTNAME=$OPTARG
+      t)  # transform type
+   TRANSFORMTYPE=$OPTARG
    ;;
   esac
 done
@@ -270,6 +285,12 @@ if [[ ! -f "$MOVINGIMAGE" ]];
     exit
   fi
 
+if [[ $TRANSFORMTYPE != 'r' && $TRANSFORMTYPE != 'a' && $TRANSFORMTYPE != 'd' ]];
+  then
+    echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
+    exit
+  fi
+
 ###############################
 #
 # Set number of threads
@@ -287,27 +308,46 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 ##############################
 reportMappingParameters
 
+##############################
+#
+# Construct mapping stages
+#
+##############################
+
+RIGIDSTAGE="--initial-moving-transform [$FIXEDIMAGE,$MOVINGIMAGE,1] \
+            --transform Rigid[0.1] \
+            --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
+            --convergence 1000x500x250x100 \
+            --shrink-factors 8x4x2x1 \
+            --smoothing-sigmas 3x2x1x0"
+
+AFFINESTAGE="--transform Affine[0.1] \
+             --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
+             --convergence 1000x500x250x100 \
+             --shrink-factors 8x4x2x1 \
+             --smoothing-sigmas 3x2x1x0"
+
+SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
+          --metric CC[$FIXEDIMAGE,$MOVINGIMAGE,1,4] \
+          --convergence 100x70x50x20 \
+          --shrink-factors 6x4x2x1 \
+          --smoothing-sigmas 3x2x1x0"
+
+STAGES=$RIGIDSTAGE
+if [[ $TRANSFORMTYPE == 'a' ]];
+  then
+    STAGES="$STAGES $AFFINESTAGE"
+  fi
+if [[ $TRANSFORMTYPE == 'd' ]];
+  then
+    STAGES="$STAGES $AFFINESTAGE $SYNSTAGE"
+  fi
+
 ${ANTSPATH}/antsRegistration --dimensionality $DIM \
                              --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
                              --interpolation Linear \
                              --winsorize-image-intensities [0.005,0.995] \
-                             --initial-moving-transform [$FIXEDIMAGE,$MOVINGIMAGE,1] \
-                             --transform Rigid[0.1] \
-                             --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
-                             --convergence 1000x500x250x100 \
-                             --shrink-factors 8x4x2x1 \
-                             --smoothing-sigmas 3x2x1x0 \
-                             --transform Affine[0.1] \
-                             --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
-                             --convergence 1000x500x250x100 \
-                             --shrink-factors 8x4x2x1 \
-                             --smoothing-sigmas 3x2x1x0 \
-                             --transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
-                             --metric CC[$FIXEDIMAGE,$MOVINGIMAGE,1,4] \
-                             --convergence 100x70x50x20 \
-                             --shrink-factors 6x4x2x1 \
-                             --smoothing-sigmas 3x2x1x0
-
+                             $STAGES
 
 ###############################
 #
