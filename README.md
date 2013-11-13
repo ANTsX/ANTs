@@ -134,17 +134,23 @@ ANTs has won several competitions Unbiased & international
 
 -   New *antsRegistration* [bash
     example](https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh)
+
 -   New *Eigenanatomy* for [multivariate neuroimage
     analysis](http://www.ncbi</a>.nlm.nih.gov/pubmed/23269595) via
     [PCA](http://www.ncbi.nlm.nih.gov/pubmed/23286132) &
     [CCA](http://www.ncbi.nlm.nih.gov/pubmed/20083207)
+
 -   ANTs finished in 1st rank in [Klein 2009 intl. brain mapping
     competition](http://www.ncbi.nlm.nih.gov/pubmed/19195496)
+
 -   ANTs finished 1st overall in [EMPIRE10 intl. lung mapping
     competition](http://www.ncbi.nlm.nih.gov/pubmed/21632295)
+
 -   ANTs is the standard registration for
     [MICCAI-2013](http://www.miccai2013.org/) segmentation competitions
+
 -   Conducting ANTs-based R tutorial @ MICCAI-2013
+
 -   ITK-focused Frontiers in Neuroinformatics research topic
     [here](http://www.frontiersin.org/neuroinformatics/researchtopics/neuroinformatics_with_the_insi/1580)
 
@@ -165,6 +171,7 @@ here](https://sourceforge.net/p/advants/discussion/840261/thread/1cb7b165/?limit
 Brief ANTs segmentation [video](http://vimeo.com/67814201)
 
 References
+----------------------------------------------------------
 
 [Google
 Scholar](http://scholar.google.com/scholar?q=Advanced+Normalization+Tools+%22ANTs%22+-ant&hl=en&as_sdt=1%2C39&as_ylo=2008&as_yhi=)
