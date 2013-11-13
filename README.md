@@ -107,14 +107,14 @@ Background & Theory
 -   The
     [SyN](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22SyN%22+AND+%22Avants+B%22)
     and [N4 bias
-    correction](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22N4%22)+AND+%22Tustison+N4ITK%22)
+    correction](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22N4%22+AND+%22Tustison+N4ITK%22)
     papers and other relevant references in
-    [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22Tustison+N%22)+AND+%22Avants+B%22)
+    [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Tustison+N%22+AND+%22Avants+B%22)
 -   Visualization: e.g. [a gource of ANTs
     development](http://vimeo.com/66781467)
--   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22DIRECT%22)+AND+%22Avants%22+AND+DAS)
+-   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22DIRECT%22+AND+%22Avants%22+AND+DAS)
     cortical thickness
-    [papers](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22Cortical+Thickness%22)+AND+%22Avants%22)
+    [papers](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Cortical+Thickness%22+AND+%22Avants%22)
 -   A
     [folder](https://sourceforge.net/projects/advants/files/Documentation/)
     of relevant docs:
