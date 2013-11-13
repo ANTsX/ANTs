@@ -88,14 +88,14 @@ Application Domains
 Frontotemporal degeneration [PENN FTD center](http://ftd.med.upenn.edu)
 -----------------------------------------------------------------------
 
-Neuroimaging Multimodality
+Multimodality Neuroimaging 
 --------------------------
 
--   Structural MRI
+-   [Structural MRI](http://jeffduda.github.io/NeuroBattery/)
 -   Functional MRI
 -   Network Analysis
 
-Lung imaging Translational
+Lung Imaging 
 --------------------------
 
 -   Structure
@@ -111,11 +111,14 @@ Background & Theory
     correction](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22N4%22+AND+%22Tustison+N4ITK%22)
     papers and other relevant references in
     [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Tustison+N%22+AND+%22Avants+B%22)
+
 -   Visualization: e.g. [a gource of ANTs
     development](http://vimeo.com/66781467)
+
 -   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22DIRECT%22+AND+%22Avants%22+AND+DAS)
     cortical thickness
     [papers](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22Cortical+Thickness%22+AND+%22Avants%22)
+
 -   A
     [folder](https://sourceforge.net/projects/advants/files/Documentation/)
     of relevant docs:
@@ -124,11 +127,12 @@ Background & Theory
     [usage(old)](http://sourceforge.net/projects/advants/files/Documentation/ants.pdf/download),
     [for clinical
     apps](http://sourceforge.net/projects/advants/files/Documentation/ANTSMethodologySummary.docx/download)
+
 -   ANTs redesigned for generality, automation, multi-core computation
     with ITKv4
+
 -   Dev'd ITKv4 with Kitware, GE, Natl. Lib of Medicine & Academia
 
-Acclaim for Robustness & Other News
 
 ANTs has won several competitions Unbiased & international
 ----------------------------------------------------------
