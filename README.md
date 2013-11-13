@@ -169,6 +169,6 @@ References
 [Google
 Scholar](http://scholar.google.com/scholar?q=Advanced+Normalization+Tools+%22ANTs%22+-ant&hl=en&as_sdt=1%2C39&as_ylo=2008&as_yhi=)
 
-[Pubmed](http://www.ncbi.nlm.nih.gov/pubmed?term=(%22Avants%20B%22)%20OR%20%22Tustison%20N%22)
+[Pubmed](http://www.ncbi.nlm.nih.gov/pubmed?term=%22Avants%20B%22%20OR%20%22Tustison%20N%22)
 
 ANTs was supported by: R01-EB006266-01
