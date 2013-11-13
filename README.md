@@ -37,7 +37,9 @@ Authors
 
 **Role:** Compeller, Algorithm Design, Implementation Guru
 
-### Team: Gang Song (Originator), Jeffrey T. Duda (DTI), Hans J. Johnson
+### Team Members 
+
+**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Hans J. Johnson
 (Large-Scale Application, Testing)
 
 
