@@ -26,22 +26,20 @@ multimodality image analysis. ANTs depends on the Insight ToolKit
 library to which ANTs developers contribute.
 
 Authors
+-------
 
-Brian B. Avants - UPENN
------------------------
+### Brian B. Avants - UPENN
 
 **Role:** Creator, Algorithm Design, Implementation,
 [more](http://stnava.github.io/Resume/)
 
-Nicholas J. Tustison - UVA
---------------------------
+### Nicholas J. Tustison - UVA
 
 **Role:** Compeller, Algorithm Design, Implementation Guru
 
-**Team:** Gang Song (Originator), Jeffrey T. Duda (DTI), Hans J. Johnson
+### Team: Gang Song (Originator), Jeffrey T. Duda (DTI), Hans J. Johnson
 (Large-Scale Application, Testing)
 
-Methods References
 
 Image Registration
 ------------------
