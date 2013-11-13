@@ -155,6 +155,7 @@ ANTs has won several competitions Unbiased & international
     [here](http://www.frontiersin.org/neuroinformatics/researchtopics/neuroinformatics_with_the_insi/1580)
 
 Learning about ANTs
+----------------------------------------------------------
 
 Presentations: e.g. [a Prezi about
 ANTs](http://prezi.com/mwrmcm-h9-w4/ants/?kw=view-mwrmcm-h9-w4&rc=ref-40024395)
