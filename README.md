@@ -43,7 +43,7 @@ Authors
 
 ### Team Members 
 
-**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Ben T. Kandel (Perfusion, multivariate analysis), Kent Williams (software engineer, UIowa) 
+**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), Kent Williams (software engineer, UIowa) 
 
 
 Image Registration
@@ -170,6 +170,8 @@ Learning about ANTs
 **Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
 
 **Large deformation** [example](http://stnava.github.io/C/)
+
+**Template construction** [example](https://github.com/ntustison/TemplateBuildingExample)
 
 **Automobile** [example](http://stnava.github.io/cars/)
 
