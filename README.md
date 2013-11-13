@@ -1,22 +1,20 @@
----
-title: Advanced Normalization Tools
-...
-
-Advanced Normalization Tools {.fn}
+============================
+Advanced Normalization Tools 
 ============================
 
-Questions: [Discussion
-Site](http://sourceforge.net/p/advants/discussion/)\
- Email: [antsr.me at gmail dot com](mailto:antsr.me@gmail.com)\
+Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/)
+
+ Email: [antsr.me at gmail dot com](mailto:antsr.me@gmail.com)
+
  Install ANTs via pre-built:
-[Packages](http://sourceforge.net/projects/advants/files/ANTS/)\
+[Packages](http://sourceforge.net/projects/advants/files/ANTS/)
+
  Build [ANTs](https://github.com/stnava/ANTs) from:
 [Source-Code](http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/)
 (recommended)
 
 ANTs extracts information from complex datasets that include imaging
-([Word
-Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
+([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
 Paired with [ANTsR](http://stnava.github.com/ANTsR/) (answer), ANTs is
 useful for managing, interpreting and visualizing multidimensional data.
 ANTs is
@@ -33,15 +31,15 @@ Brian B. Avants - UPENN
 -----------------------
 
 **Role:** Creator, Algorithm Design, Implementation,
-[more](http://stnava.github.io/Resume/)\
+[more](http://stnava.github.io/Resume/)
 
 Nicholas J. Tustison - UVA
 --------------------------
 
-**Role:** Compeller, Algorithm Design, Implementation Guru\
+**Role:** Compeller, Algorithm Design, Implementation Guru
 
 **Team:** Gang Song (Originator), Jeffrey T. Duda (DTI), Hans J. Johnson
-(Large-Scale Application, Testing)\
+(Large-Scale Application, Testing)
 
 Methods References
 
@@ -107,16 +105,16 @@ Lung imaging Translational
 Background & Theory
 
 -   The
-    [SyN](http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22SyN%22)+AND+%22Avants+B%22)
+    [SyN](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22SyN%22+AND+%22Avants+B%22)
     and [N4 bias
-    correction](http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22N4%22)+AND+%22Tustison+N4ITK%22)
+    correction](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22N4%22)+AND+%22Tustison+N4ITK%22)
     papers and other relevant references in
-    [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22Tustison+N%22)+AND+%22Avants+B%22)
+    [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22Tustison+N%22)+AND+%22Avants+B%22)
 -   Visualization: e.g. [a gource of ANTs
     development](http://vimeo.com/66781467)
--   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22DIRECT%22)+AND+%22Avants%22+AND+DAS)
+-   [DiReCT](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22DIRECT%22)+AND+%22Avants%22+AND+DAS)
     cortical thickness
-    [papers](http://www.ncbi.nlm.nih.gov/pubmed/?term=((%22Cortical+Thickness%22)+AND+%22Avants%22)
+    [papers](http://www.ncbi.nlm.nih.gov/pubmed/?term=(%22Cortical+Thickness%22)+AND+%22Avants%22)
 -   A
     [folder](https://sourceforge.net/projects/advants/files/Documentation/)
     of relevant docs:
