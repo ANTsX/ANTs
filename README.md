@@ -37,10 +37,13 @@ Authors
 
 **Role:** Compeller, Algorithm Design, Implementation Guru
 
+### Hans J. Johnson
+
+**Role:** Large-Scale Application, Testing
+
 ### Team Members 
 
-**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Hans J. Johnson
-(Large-Scale Application, Testing)
+**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Ben T. Kandel (Perfusion, multivariate analysis)
 
 
 Image Registration
