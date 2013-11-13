@@ -103,6 +103,7 @@ Lung imaging Translational
 -   Branching
 
 Background & Theory
+----------------------------------------------------------
 
 -   The
     [SyN](http://www.ncbi.nlm.nih.gov/pubmed/?term=%22SyN%22+AND+%22Avants+B%22)
