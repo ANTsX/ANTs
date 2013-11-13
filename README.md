@@ -134,7 +134,7 @@ Background & Theory
 -   Dev'd ITKv4 with Kitware, GE, Natl. Lib of Medicine & Academia
 
 
-ANTs has won several competitions Unbiased & international
+ANTs has won several unbiased & international competitions 
 ----------------------------------------------------------
 
 -   New *antsRegistration* [bash
@@ -159,7 +159,7 @@ ANTs has won several competitions Unbiased & international
 -   ITK-focused Frontiers in Neuroinformatics research topic
     [here](http://www.frontiersin.org/neuroinformatics/researchtopics/neuroinformatics_with_the_insi/1580)
 
--   Nick led our "win" at the [BRATS 2013 challenge](http://martinos.org/qtim/miccai2013/) with [ANTsR](http://stnava.github.io/ANTsR/)
+-   Nick led us to a win at the [BRATS 2013 challenge](http://martinos.org/qtim/miccai2013/) with [ANTsR](http://stnava.github.io/ANTsR/)
 
 Learning about ANTs
 ----------------------------------------------------------
