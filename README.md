@@ -189,7 +189,7 @@ Learning about ANTs
 
 **fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
 
-**fMRI prediction** [example](http://stnava.github.io/Haxby2001/)
+**fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
 
 **Cardiac** [example](http://stnava.github.io/LabelMyHeart)
 
