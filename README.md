@@ -37,13 +37,13 @@ Authors
 
 **Role:** Compeller, Algorithm Design, Implementation Guru
 
-### Hans J. Johnson
+### Hans J. Johnson - UIowa
 
-**Role:** Large-Scale Application, Testing
+**Role:** Large-Scale Application, Testing, Software design
 
 ### Team Members 
 
-**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Ben T. Kandel (Perfusion, multivariate analysis)
+**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Ben T. Kandel (Perfusion, multivariate analysis), Kent Williams (software engineer, UIowa) 
 
 
 Image Registration
