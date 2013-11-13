@@ -167,6 +167,36 @@ ANTs has won several unbiased & international competitions
 Learning about ANTs
 ----------------------------------------------------------
 
+**Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
+
+**Large deformation** [example](http://stnava.github.io/C/)
+
+**Automobile** [example](http://stnava.github.io/cars/)
+
+**Asymmetry** [example](http://stnava.github.io/asymmetry/)
+
+**Point-set** [mapping](http://stnava.github.io/chicken/)
+
+**Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
+
+**Chimpanzee cortical thickness** [example](http://stnava.github.io/WHopkinsNHP/)
+
+**Global optimization** [example](http://stnava.github.io/butterfly/)
+
+**Morphing** [example](http://stnava.github.io/Morpheus/)
+
+**fMRI or Motion Correction** [example](http://stnava.github.io/fMRIANTs/)
+
+**fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
+
+**fMRI prediction** [example](http://stnava.github.io/Haxby2001/)
+
+**Cardiac** [example](http://stnava.github.io/LabelMyHeart)
+
+**Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
+
+**ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
+
 Presentations: e.g. [a Prezi about
 ANTs](http://prezi.com/mwrmcm-h9-w4/ants/?kw=view-mwrmcm-h9-w4&rc=ref-40024395)
 (WIP)
