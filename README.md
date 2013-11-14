@@ -87,19 +87,17 @@ ImageMath Useful!
 morphology, GetLargestComponent, CCA, FillHoles ... much more!
 
 Application Domains
+-------------------
 
-Frontotemporal degeneration [PENN FTD center](http://ftd.med.upenn.edu)
------------------------------------------------------------------------
+### Frontotemporal degeneration [PENN FTD center](http://ftd.med.upenn.edu)
 
-Multimodality Neuroimaging 
---------------------------
+### Multimodality Neuroimaging 
 
 -   [Structural MRI](http://jeffduda.github.io/NeuroBattery/)
 -   Functional MRI
 -   Network Analysis
 
-Lung Imaging 
---------------------------
+### Lung Imaging 
 
 -   Structure
 -   Perfusion MRI
