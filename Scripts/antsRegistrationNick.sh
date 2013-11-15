@@ -223,7 +223,7 @@ MOVINGIMAGE=''
 OUTPUTNAME=output
 NUMBEROFTHREADS=1
 SPLINEDISTANCE=26
-TRANSFORMTYPE=1
+TRANSFORMTYPE='d'
 
 # reading command line arguments
 while getopts "d:f:h:m:n:o:s:t:" OPT
