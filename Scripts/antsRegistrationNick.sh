@@ -35,20 +35,12 @@ if [[ ${#ANTSPATH} -le 3 ]];
   fi
 
 ANTS=${ANTSPATH}/antsRegistration
-WARP=${ANTSPATH}/antsApplyTransforms
 
 if [[ ! -s ${ANTS} ]];
   then
     echo "antsRegistration program can't be found. Please (re)define \$ANTSPATH in your environment."
     exit
   fi
-
-if [[ ! -s ${WARP} ]];
-  then
-    echo "antsRegistration program can't be found. Please (re)define \$ANTSPATH in your environment."
-    exit
-  fi
-
 
 function Usage {
     cat <<USAGE
@@ -151,9 +143,6 @@ brain image registration:
 * Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
 
 Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.
-
-The script has been updated and improved since this publication.
-
 --------------------------------------------------------------------------------------
 script by Nick Tustison
 --------------------------------------------------------------------------------------
@@ -217,7 +206,7 @@ control_c()
 
 
 # Provide output for Help
-if [[ "$1" == "-h" ]];
+if [[ "$1" == "-h" || $# -eq 0 ]];
   then
     Help >&2
   fi
@@ -343,11 +332,11 @@ if [[ $TRANSFORMTYPE == 'd' ]];
     STAGES="$STAGES $AFFINESTAGE $SYNSTAGE"
   fi
 
-${ANTSPATH}/antsRegistration --dimensionality $DIM \
-                             --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
-                             --interpolation Linear \
-                             --winsorize-image-intensities [0.005,0.995] \
-                             $STAGES
+${ANTS} --dimensionality $DIM \
+								--output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
+								--interpolation Linear \
+								--winsorize-image-intensities [0.005,0.995] \
+								$STAGES
 
 ###############################
 #
