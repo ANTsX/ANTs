@@ -139,7 +139,7 @@ int GetConnectedComponentsFeatureImages(int itkNotUsed( argc ), char* argv[] )
   WriteImage<RealImageType>( outputImages[3], filename.c_str() );
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -152,7 +152,7 @@ int GetConnectedComponentsFeatureImages( std::vector<std::string> args, std::ost
   // which the parser should handle
   args.insert( args.begin(), "GetConnectedComponentsFeatureImages" );
 
-  int     argc = args.size();
+  const int argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
     {
@@ -192,20 +192,21 @@ private:
     {
     antscout << "Usage: " << argv[0] << " imageDimension "
               << "inputSegmentationImage outputImagePrefix" << std::endl;
-    exit( 1 );
+    return EXIT_FAILURE;
     }
 
+  int returnStatus=EXIT_FAILURE;
   switch( atoi( argv[1] ) )
    {
    case 2:
-     GetConnectedComponentsFeatureImages<2>( argc, argv );
+     returnStatus = GetConnectedComponentsFeatureImages<2>( argc, argv );
      break;
    case 3:
-     GetConnectedComponentsFeatureImages<3>( argc, argv );
+     returnStatus = GetConnectedComponentsFeatureImages<3>( argc, argv );
      break;
    default:
       antscout << "Unsupported dimension" << std::endl;
-      exit( EXIT_FAILURE );
    }
+  return returnStatus;
 }
 } // namespace ants
