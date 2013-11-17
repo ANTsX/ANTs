@@ -143,9 +143,9 @@ public:
     };
   enum SamplingStrategy
     {
-    none = 0,
-    regular = 1,
-    random = 2,
+    none = 0,     // aka dense
+    regular = 1,  // regularly spaced sub-sampling
+    random = 2,   // irregularly spaced sub-sampling
     invalid = 17
     };
   class Metric
