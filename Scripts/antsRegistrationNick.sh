@@ -63,10 +63,11 @@ Optional arguments:
 
      -n:  Number of threads (default = 1)
 
-     -t:  transform type (default = 'd')
+     -t:  transform type (default = 's')
         r: rigid
         a: rigid + affine
-        d: rigid + affine + deformable
+        s: rigid + affine + deformable syn
+        b: rigid + affine + deformable b-spline syn
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
