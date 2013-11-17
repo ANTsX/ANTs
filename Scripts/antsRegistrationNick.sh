@@ -112,10 +112,11 @@ Optional arguments:
 
      -n:  Number of threads (default = 1)
 
-     -t:  transform type (default = 'd')
+     -t:  transform type (default = 's')
         r: rigid
         a: rigid + affine
-        d: rigid + affine + deformable
+        s: rigid + affine + deformable syn
+        b: rigid + affine + deformable b-spline syn
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
@@ -223,7 +224,7 @@ MOVINGIMAGE=''
 OUTPUTNAME=output
 NUMBEROFTHREADS=1
 SPLINEDISTANCE=26
-TRANSFORMTYPE='d'
+TRANSFORMTYPE='s'
 
 # reading command line arguments
 while getopts "d:f:h:m:n:o:s:t:" OPT
@@ -274,12 +275,6 @@ if [[ ! -f "$MOVINGIMAGE" ]];
     exit
   fi
 
-if [[ $TRANSFORMTYPE != 'r' && $TRANSFORMTYPE != 'a' && $TRANSFORMTYPE != 'd' ]];
-  then
-    echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
-    exit
-  fi
-
 ###############################
 #
 # Set number of threads
@@ -316,21 +311,38 @@ AFFINESTAGE="--transform Affine[0.1] \
              --shrink-factors 8x4x2x1 \
              --smoothing-sigmas 3x2x1x0"
 
-SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
-          --metric CC[$FIXEDIMAGE,$MOVINGIMAGE,1,4] \
+SYNSTAGE="--metric CC[$FIXEDIMAGE,$MOVINGIMAGE,1,4] \
           --convergence 100x70x50x20 \
           --shrink-factors 6x4x2x1 \
           --smoothing-sigmas 3x2x1x0"
 
-STAGES=$RIGIDSTAGE
-if [[ $TRANSFORMTYPE == 'a' ]];
+if [[ $TRANSFORMTYPE == 'b' ]];
   then
-    STAGES="$STAGES $AFFINESTAGE"
+    SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
+             $SYNSTAGE"
   fi
-if [[ $TRANSFORMTYPE == 'd' ]];
+if [[ $TRANSFORMTYPE == 's' ]];
   then
-    STAGES="$STAGES $AFFINESTAGE $SYNSTAGE"
+    SYNSTAGE="--transform SyN[0.1,3,0] \
+             $SYNSTAGE"
   fi
+
+STAGES=''
+case "$TRANSFORMTYPE" in
+"r")
+  STAGES="$RIGIDSTAGE"
+  ;;
+"a")
+  STAGES="$RIGIDSTAGE $AFFINESTAGE"
+  ;;
+"b" | "s")
+  STAGES="$RIGIDSTAGE $AFFINESTAGE $SYNSTAGE"
+  ;;
+*)
+  echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
+  exit
+  ;;
+esac
 
 ${ANTS} --dimensionality $DIM \
 								--output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
@@ -346,8 +358,3 @@ ${ANTS} --dimensionality $DIM \
 
 ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS=$ORIGINALNUMBEROFTHREADS
 export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
-
-
-
-
-
