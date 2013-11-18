@@ -28,7 +28,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
-  // short names in use-  a:b:c:d:f:h:l:m:n:o:q:r:s:t:u::w:x:z
+  // short names in use-  a:b:c:d:f:g:h:l:m:n:o:q:r:s:t:u::w:x:z
 
     {
     std::string description =
@@ -71,51 +71,6 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 0, "1/(0)" );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
-
-    {
-    std::string description =
-      std::string( "Several interpolation options are available in ITK. " )
-      + std::string( "These have all been made available.  Currently the interpolator " )
-      + std::string( "choice is only used to warp (and possibly inverse warp) the final " )
-      + std::string( "output image(s)." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "interpolation" );
-    option->SetShortName( 'n' );
-    option->SetUsageOption( 0, "Linear" );
-    option->SetUsageOption( 1, "NearestNeighbor" );
-    option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
-    option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
-    option->SetUsageOption( 4, "BSpline[<order=3>]" );
-    option->SetUsageOption( 5, "CosineWindowedSinc" );
-    option->SetUsageOption( 6, "WelchWindowedSinc" );
-    option->SetUsageOption( 7, "HammingWindowedSinc" );
-    option->SetUsageOption( 8, "LanczosWindowedSinc" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-  // Although this option will eventually be used, it is not needed now.
-
-    {
-    std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
-      + std::string( "incorporated into the composite transform.  The order of the " )
-      + std::string( "transforms is stack-esque in that the last transform specified on " )
-      + std::string( "the command line is the first to be applied.  In addition to initialization " )
-      + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
-      + std::string( "by specifying the fixed and moving images and selecting an initialization " )
-      + std::string( "feature.  These features include using the geometric center of the images (=0), " )
-      + std::string( "the image intensities (=1), or the origin of the images (=2)." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "initial-fixed-transform" );
-    option->SetShortName( 'q' );
-    option->SetUsageOption( 0, "initialTransform" );
-    option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
-    option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
-    option->SetDescription( description );
     parser->AddOption( option );
     }
 
@@ -180,6 +135,64 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 0, "(1)/0" );
     option->SetDescription( description );
     option->AddFunction( std::string( "1" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Several interpolation options are available in ITK. " )
+      + std::string( "These have all been made available.  Currently the interpolator " )
+      + std::string( "choice is only used to warp (and possibly inverse warp) the final " )
+      + std::string( "output image(s)." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "interpolation" );
+    option->SetShortName( 'n' );
+    option->SetUsageOption( 0, "Linear" );
+    option->SetUsageOption( 1, "NearestNeighbor" );
+    option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
+    option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
+    option->SetUsageOption( 4, "BSpline[<order=3>]" );
+    option->SetUsageOption( 5, "CosineWindowedSinc" );
+    option->SetUsageOption( 6, "WelchWindowedSinc" );
+    option->SetUsageOption( 7, "HammingWindowedSinc" );
+    option->SetUsageOption( 8, "LanczosWindowedSinc" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "This option allows the user to restrict the " )
+      + std::string( "optimization of the displacement field transform on a per-component " )
+      + std::string( "basis.  For example, if one wants to limit the deformation of a " )
+      + std::string( "3-D volume to the first two dimensions, this is possible by specifying " )
+      + std::string( "a weight vector of \'1x1x0\'." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "restrict-deformation" );
+    option->SetShortName( 'g' );
+    option->SetUsageOption( 0, "PxQxR" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Specify the initial fixed transform(s) which get immediately " )
+      + std::string( "incorporated into the composite transform.  The order of the " )
+      + std::string( "transforms is stack-esque in that the last transform specified on " )
+      + std::string( "the command line is the first to be applied.  In addition to initialization " )
+      + std::string( "with ITK transforms, the user can perform an initial translation alignment " )
+      + std::string( "by specifying the fixed and moving images and selecting an initialization " )
+      + std::string( "feature.  These features include using the geometric center of the images (=0), " )
+      + std::string( "the image intensities (=1), or the origin of the images (=2)." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initial-fixed-transform" );
+    option->SetShortName( 'q' );
+    option->SetUsageOption( 0, "initialTransform" );
+    option->SetUsageOption( 1, "[initialTransform,<useInverse>]" );
+    option->SetUsageOption( 2, "[fixedImage,movingImage,initializationFeature]" );
+    option->SetDescription( description );
     parser->AddOption( option );
     }
 
