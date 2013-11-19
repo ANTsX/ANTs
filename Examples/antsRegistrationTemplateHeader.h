@@ -29,12 +29,11 @@ int
 DoRegistration(typename ParserType::Pointer & parser)
 {
   typedef TComputeType RealType;
-  typedef typename ants::RegistrationHelper<TComputeType, VImageDimension>      RegistrationHelperType;
-  typedef typename RegistrationHelperType::ImageType              ImageType;
-  typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
+  typedef typename ants::RegistrationHelper<TComputeType, VImageDimension>   RegistrationHelperType;
+  typedef typename RegistrationHelperType::ImageType                         ImageType;
+  typedef typename RegistrationHelperType::CompositeTransformType            CompositeTransformType;
 
-  typename RegistrationHelperType::Pointer regHelper =
-    RegistrationHelperType::New();
+  typename RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
 
   OptionType::Pointer transformOption = parser->GetOption( "transform" );
 
@@ -45,6 +44,8 @@ DoRegistration(typename ParserType::Pointer & parser)
   OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrink-factors" );
 
   OptionType::Pointer smoothingSigmasOption = parser->GetOption( "smoothing-sigmas" );
+
+  OptionType::Pointer restrictDeformationOption = parser->GetOption( "restrict-deformation" );
 
   OptionType::Pointer outputOption = parser->GetOption( "output" );
 
@@ -260,6 +261,19 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
   regHelper->SetDoEstimateLearningRateAtEachIteration( doEstimateLearningRateAtEachIteration );
+
+  if( restrictDeformationOption && restrictDeformationOption->GetNumberOfFunctions() )
+    {
+    std::vector<RealType> restrictDeformationWeights =
+      parser->ConvertVector<RealType>( restrictDeformationOption->GetFunction( 0 )->GetName() );
+    if( restrictDeformationWeights.size() != VImageDimension )
+      {
+      antscout << "The restrict deformation weights vector should be the same as the "
+        << "number of local parameters (=ImageDimension)." << std::endl;
+      }
+
+    regHelper->SetRestrictDeformationOptimizerWeights( restrictDeformationWeights );
+    }
 
   // We find both the number of transforms and the number of metrics
 

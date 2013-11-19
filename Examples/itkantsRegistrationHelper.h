@@ -479,7 +479,7 @@ public:
   /**
    * Add the collected iterations list
    */
-  void SetIterations(const std::vector<std::vector<unsigned int> > & Iterations);
+  void SetIterations( const std::vector<std::vector<unsigned int> > & Iterations );
 
   /**
    * Add the collected convergence thresholds
@@ -495,6 +495,11 @@ public:
    * Add the collected smoothing sigmas list
    */
   void SetSmoothingSigmas( const std::vector<std::vector<float> > & SmoothingSigmas );
+
+  /**
+   * Add the restrict deformation optimizer weights
+   */
+  void SetRestrictDeformationOptimizerWeights( const std::vector<RealType> & restrictDeformationWeights );
 
   /**
    * Add the collected bool smoothing sigmas in voxel units list
@@ -658,6 +663,7 @@ private:
   std::vector<unsigned int>               m_ConvergenceWindowSizes;
   std::vector<std::vector<float> >        m_SmoothingSigmas;
   std::vector<bool>                       m_SmoothingSigmasAreInPhysicalUnits;
+  std::vector<RealType>                   m_RestrictDeformationOptimizerWeights;
   std::vector<std::vector<unsigned int> > m_ShrinkFactors;
   bool                                    m_UseHistogramMatching;
   bool                                    m_WinsorizeImageIntensities;

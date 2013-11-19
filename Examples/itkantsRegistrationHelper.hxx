@@ -141,6 +141,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_TransformMethods(),
   m_Iterations(),
   m_SmoothingSigmas(),
+  m_RestrictDeformationOptimizerWeights(),
   m_ShrinkFactors(),
   m_UseHistogramMatching( true ),
   m_WinsorizeImageIntensities( false ),
@@ -614,6 +615,14 @@ RegistrationHelper<TComputeType, VImageDimension>
 ::SetSmoothingSigmas( const std::vector<std::vector<float> > & SmoothingSigmas )
 {
   this->m_SmoothingSigmas = SmoothingSigmas;
+}
+
+template <class TComputeType, unsigned VImageDimension>
+void
+RegistrationHelper<TComputeType, VImageDimension>
+::SetRestrictDeformationOptimizerWeights( const std::vector<RealType> & restrictDeformationWeights )
+{
+  this->m_RestrictDeformationOptimizerWeights = restrictDeformationWeights;
 }
 
 template <class TComputeType, unsigned VImageDimension>
@@ -1618,15 +1627,23 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
             preprocessedFixedImagesPerStage[0], zeroVector );
 
-        typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType,
-                                                                         VImageDimension>
+        typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           GaussianDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               GaussianDisplacementFieldTransformType>
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, GaussianDisplacementFieldTransformType>
           DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
           const_cast<GaussianDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
@@ -1634,7 +1651,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         // Create the transform adaptors
 
         typedef itk::GaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-            GaussianDisplacementFieldTransformType> DisplacementFieldTransformAdaptorType;
+          GaussianDisplacementFieldTransformType> DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters
@@ -1751,14 +1768,23 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldType::Pointer displacementField = AllocImage<DisplacementFieldType>(
             preprocessedFixedImagesPerStage[0], zeroVector );
 
-        typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType,
-                                                                        VImageDimension>
+        typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               BSplineDisplacementFieldTransformType> DisplacementFieldRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineDisplacementFieldTransformType>
+          DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
           const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
@@ -1900,6 +1926,16 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineTransformType> BSplineRegistrationType;
         typename BSplineRegistrationType::Pointer bsplineRegistration = BSplineRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename BSplineRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          bsplineRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typename BSplineTransformType::Pointer outputBSplineTransform =
           const_cast<BSplineTransformType *>( bsplineRegistration->GetOutput()->Get() );
@@ -2082,6 +2118,16 @@ RegistrationHelper<TComputeType, VImageDimension>
                                                                                             VelocityFieldRegistrationType;
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename VelocityFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          velocityFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
         typename OutputTransformType::Pointer outputTransform =
@@ -2276,10 +2322,20 @@ RegistrationHelper<TComputeType, VImageDimension>
           TimeVaryingBSplineVelocityFieldOutputTransformType;
 
         typedef itk::TimeVaryingBSplineVelocityFieldImageRegistrationMethod<ImageType, ImageType,
-                                                                            TimeVaryingBSplineVelocityFieldOutputTransformType>
+          TimeVaryingBSplineVelocityFieldOutputTransformType>
           VelocityFieldRegistrationType;
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename VelocityFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          velocityFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
         typename OutputTransformType::Pointer outputTransform =
@@ -2441,6 +2497,16 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
+
         typename DisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
           const_cast<DisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
 
@@ -2584,15 +2650,23 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldType::Pointer inverseDisplacementField = AllocImage<DisplacementFieldType>(
             preprocessedFixedImagesPerStage[0], zeroVector );
 
-        typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType,
-                                                                        VImageDimension>
+        typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransform<RealType, VImageDimension>
           BSplineDisplacementFieldTransformType;
 
-        typedef itk::BSplineSyNImageRegistrationMethod<ImageType, ImageType,
-                                                       BSplineDisplacementFieldTransformType>
+        typedef itk::BSplineSyNImageRegistrationMethod<ImageType, ImageType, BSplineDisplacementFieldTransformType>
           DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
           const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
@@ -2753,11 +2827,20 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::GaussianExponentialDiffeomorphicTransform<RealType,
                                                                VImageDimension> GaussianDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               GaussianDisplacementFieldTransformType>
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, GaussianDisplacementFieldTransformType>
           DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
           const_cast<GaussianDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
@@ -2891,13 +2974,23 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename ConstantVelocityFieldType::Pointer constantVelocityField = AllocImage<ConstantVelocityFieldType>(
             preprocessedFixedImagesPerStage[0], zeroVector );
 
-        typedef itk::BSplineExponentialDiffeomorphicTransform<RealType,
-                                                              VImageDimension> BSplineDisplacementFieldTransformType;
+        typedef itk::BSplineExponentialDiffeomorphicTransform<RealType, VImageDimension>
+          BSplineDisplacementFieldTransformType;
 
-        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType,
-                                               BSplineDisplacementFieldTransformType> DisplacementFieldRegistrationType;
+        typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineDisplacementFieldTransformType>
+          DisplacementFieldRegistrationType;
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
+          }
 
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
           const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
@@ -3459,7 +3552,8 @@ RegistrationHelper<TComputeType, VImageDimension>
                  << "Winsorize Image Intensities "
                  << ( this->m_WinsorizeImageIntensities ? "true" : "false" ) << std::endl
                  << "Lower Quantile = " << this->m_LowerQuantile << std::endl
-                 << "Upper Quantile = " << this->m_UpperQuantile << std::endl;;
+                 << "Upper Quantile = " << this->m_UpperQuantile << std::endl;
+
   for( unsigned i = 0; i < this->m_NumberOfStages; i++ )
     {
     this->Logger() << "Stage " << i + 1 << " State" << std::endl; // NOTE: + 1 for consistency.
