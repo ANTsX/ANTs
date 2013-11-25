@@ -156,10 +156,8 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
   typename FileSourceType::Pointer reffilter = NULL;
   if( file[0] == '0' && file[1] == 'x' )
     {
-    std::stringstream strstream;
-    strstream << file;
     void* ptr;
-    strstream >> ptr;
+    sscanf(file, "%p", (void **)&ptr);
     target = *( static_cast<typename TImageType::Pointer *>( ptr ) );
     }
   else
@@ -224,10 +222,8 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
   if(  comparetype1 == comparetype2  )
     {
     typedef TImageType RImageType;
-    std::stringstream strstream;
-    strstream << file;
     void* ptr;
-    strstream >> ptr;
+    sscanf(file, "%p", (void **)&ptr);
     typename RImageType::Pointer Rimage = *( static_cast<typename RImageType::Pointer *>( ptr ) );
     /** more needs to be done here to cast the pointer to an image type --- this is a work-around */
     typedef itk::CastImageFilter<RImageType, TImageType> CastFilterType;
@@ -357,10 +353,8 @@ bool WriteImage(itk::SmartPointer<TImageType> image, const char *file)
 
   if( file[0] == '0' && file[1] == 'x' )
     {
-    std::stringstream strstream;
-    strstream << file;
     void* ptr;
-    strstream >> ptr;
+    sscanf(file, "%p", (void **)&ptr);
     *( static_cast<typename TImageType::Pointer *>( ptr ) ) = image;
     }
   else
