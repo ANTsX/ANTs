@@ -8,6 +8,8 @@
 
 namespace ants
 {
+
+/*
 class ants_Sink : public boost::iostreams::sink
 {
 public:
@@ -36,6 +38,7 @@ private:
   // user provided output stream; defaults to NULL
   std::ostream* os_;
 };
+*/
 } // namespace ants
 
 #endif // ANTSCOUT_HXX
