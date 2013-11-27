@@ -166,7 +166,7 @@ int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* 
     return EXIT_FAILURE;
     }
   
-  std::cout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
   {
   itk::Transform<double, 2, 2>::Pointer firstTransform = itk::ants::ReadTransform<double, 2>(args[0]);
   itk::Transform<double, 2, 2>::Pointer secondTransform = itk::ants::ReadTransform<double, 2>(args[1]);

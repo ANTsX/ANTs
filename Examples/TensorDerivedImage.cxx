@@ -76,7 +76,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  std::cout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   // Pixel and Image typedefs
   typedef float                                 PixelType;

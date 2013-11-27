@@ -444,7 +444,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  std::cout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
   if( argc < 3 )
     {
     std::cout << "Usage:   " << argv[0]

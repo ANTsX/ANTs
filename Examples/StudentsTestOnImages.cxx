@@ -603,7 +603,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  std::cout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   std::cout <<  " df     P = 0.05  P = 0.01   P = 0.001  " << std::endl;
   std::cout << " 1             12.71     63.66     636.61  " << std::endl;

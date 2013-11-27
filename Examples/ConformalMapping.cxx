@@ -909,7 +909,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  std::cout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   // Define the dimension of the images
   const unsigned int Dimension = 3;

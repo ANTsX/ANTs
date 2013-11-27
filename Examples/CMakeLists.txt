@@ -46,7 +46,91 @@ endmacro()
 #target_link_libraries(${PROG_WITH_NO_FLAG} antsUtilities ${ITK_LIBRARIES})
 
 set(BASE_ANTS_APPS
+  ANTS
+  ANTSJacobian
+  PrintHeader
+  ResetDirection
+  # ResetDirection2
+  # BoykovGraphCutFilter
+  # GeneralLinearModel
+  ANTSUseLandmarkImagesToGetAffineTransform
+  ANTSUseLandmarkImagesToGetBSplineDisplacementField
+  ANTSUseDeformationFieldToGetAffineTransform
+  # FDR
+  antsAffineInitializer
+  ImageMath
+  SurfaceCurvature
+  SurfaceBasedSmoothing
+  # test
+  # WarpImage
+  LaplacianThickness
+  SetOrigin
+  SetSpacing
+  SetDirectionByMatrix
+  # WarpFunctionalImage
+  ConvertScalarImageToRGB
+  CreateWarpedGridImage
+  # CreateJacobianDeterminantImage
+  MeasureImageSimilarity
+  ConvertToJpg
+  ConvertImagePixelType
+  AverageImages
+  AverageTensorImages
+  ImageSetStatistics
+  ThresholdImage
+  MultiplyImages
+  SmoothImage
+  ClusterImageStatistics
+  LabelClustersUniquely
+  # StudentsTestOnImages
+  LabelOverlapMeasures
+  MeasureMinMaxMean
+  WarpImageMultiTransform
+  ComposeMultiTransform
+  StackSlices
+  MemoryTest
+  # ANTSOrientImage
+  PermuteFlipImageOrientationAxes
+  ImageCompare
+  ResampleImageBySpacing
+  # ResampleImageByOtherImage
+  CopyImageHeaderInformation
+  WarpTimeSeriesImageMultiTransform
+  ResampleImage
+  ExtractSliceFromImage
+  ExtractRegionFromImage
+  ExtractRegionFromImageByMask
+  LabelGeometryMeasures
+  PasteImageIntoImage
+  TileImages
+  CreateImage
+  WarpTensorImageMultiTransform
+  ReorientTensorImage
+  RebaseTensorImage
+  N3BiasFieldCorrection
+  N4BiasFieldCorrection
+  KellySlater
+  KellyKapowski
+  CreateDTICohort
+  AverageAffineTransform
+  AverageAffineTransformNoRigid
+  antsAlignOrigin
   antsRegistration
+  simpleSynRegistration
+  antsApplyTransforms
+  antsApplyTransformsToPoints
+  CompositeTransformUtil
+  antsMotionCorr
+  sccan
+  CreateDisplacementField
+  ANTSIntegrateVectorField
+  ANTSIntegrateVelocityField
+  AtroposMin
+  Atropos
+  ConvertTransformFile
+  compareTwoCompositeTransforms
+  TimeSCCAN
+  GetConnectedComponentsFeatureImages
 )
 foreach(ANTS_APP ${BASE_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "")

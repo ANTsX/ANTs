@@ -371,7 +371,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  std::cout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 2  || ( (argc == 2) && ( strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0 ) ) )
     {

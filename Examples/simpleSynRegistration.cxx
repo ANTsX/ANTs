@@ -111,7 +111,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
     return EXIT_FAILURE;
     }
 
-  std::cout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   ImageType::Pointer fixedImage;
   ImageType::Pointer movingImage;
