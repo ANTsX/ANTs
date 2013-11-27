@@ -457,7 +457,7 @@ private:
     };
     Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-    antscout->set_stream( out_stream );
+    std::cout->set_stream( out_stream );
 
     ParserType::Pointer parser = ParserType::New();
 
@@ -477,7 +477,7 @@ private:
 
     if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
       {
-      parser->PrintMenu( antscout, 5, false );
+      parser->PrintMenu( std::cout, 5, false );
       if( argc < 2 )
         {
         return EXIT_FAILURE;
@@ -486,7 +486,7 @@ private:
       }
     else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
       {
-      parser->PrintMenu( antscout, 5, true );
+      parser->PrintMenu( std::cout, 5, true );
       return EXIT_SUCCESS;
       }
     unsigned int dimension = 3;
@@ -498,7 +498,7 @@ private:
       }
     else
       {
-      antscout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+      std::cout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -506,12 +506,12 @@ private:
     OptionType::Pointer typeOption = parser->GetOption( "float" );
     if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
       {
-      antscout << "Using single precision for computations." << std::endl;
+      std::cout << "Using single precision for computations." << std::endl;
       precisionType = "float";
       }
     else
       {
-      antscout << "Using double precision for computations." << std::endl;
+      std::cout << "Using double precision for computations." << std::endl;
       precisionType = "double";
       }
 
@@ -540,14 +540,14 @@ private:
           }
         }
       default:
-        antscout << "bad image dimension " << dimension << std::endl;
+        std::cout << "bad image dimension " << dimension << std::endl;
         return EXIT_FAILURE;
       }
     }
   catch( itk::ExceptionObject & err )
     {
-    antscout << "Exception Object caught: " << std::endl;
-    antscout << err << std::endl;
+    std::cout << "Exception Object caught: " << std::endl;
+    std::cout << err << std::endl;
     return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

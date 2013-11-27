@@ -35,12 +35,12 @@ AverageAffineTransformNoRigidFunction<TTransform>::AverageAffineTransformNoRigid
 template <class TTransform>
 void AverageAffineTransformNoRigidFunction<TTransform>::PrintTransformList()
 {
-  ::ants::antscout << "transform list: " << std::endl;
+  std::cout << "transform list: " << std::endl;
 
   typename TransformListType::iterator it = (m_TransformList.begin() );
   for( int ii = 0; it != m_TransformList.end(); it++, ii++ )
     {
-    ::ants::antscout << '[' << ii << ":" << it->weight << "]:" << it->aff
+    std::cout << '[' << ii << ":" << it->weight << "]:" << it->aff
                      << std::endl;
     }
 }
@@ -75,7 +75,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTra
   const PointType & reference_center,
   GenericAffineTransformPointerType & affine_output)
 {
-//    ::ants::antscout << "test " ;
+//    std::cout << "test " ;
 //    TransformTypePointer affine_output = TransformType::New();
 
   affine_output->SetIdentity();
@@ -85,7 +85,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTra
 
   number_of_affine--;
 
-//    ::ants::antscout << affine_output;
+//    std::cout << affine_output;
 
   typename TransformListType::iterator it = m_TransformList.begin();
 
@@ -104,7 +104,7 @@ void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTra
     internal_item.weight = it->weight;
     m_InternalTransformList.push_back(internal_item);
 
-    ::ants::antscout << "internal_transform: " << internal_item.aff << std::endl;
+    std::cout << "internal_transform: " << internal_item.aff << std::endl;
     }
 
   HelperType::ComputeAverageScaleParameters(m_InternalTransformList,
@@ -119,11 +119,11 @@ void AverageAffineTransformNoRigidFunction<TTransform>::AverageMultipleAffineTra
   average_iaff->SetParameters(average_parameters);
   average_iaff->SetCenter(reference_center);
 
-  ::ants::antscout << "average_iaff" << average_iaff << std::endl;
+  std::cout << "average_iaff" << average_iaff << std::endl;
 
   ConvertInternalAffineToGenericAffine(average_iaff, affine_output);
 
-  ::ants::antscout << "affine_output" << affine_output << std::endl;
+  std::cout << "affine_output" << affine_output << std::endl;
   return;
 }
 
@@ -174,40 +174,40 @@ void HelperCommonType<TAffine>::ComputeAveragePartialParameters(
     ParametersType current_parameters = it->aff->GetParameters();
     w += it->weight;
 
-    ::ants::antscout << "[" << cnt++ << "]:" << it->weight << "\t";
+    std::cout << "[" << cnt++ << "]:" << it->weight << "\t";
     for( unsigned int k = istart; k <= iend; k++ )
       {
       average_parameters[k] += it->weight * current_parameters[k];
 
-      ::ants::antscout << current_parameters[k] << " ";
+      std::cout << current_parameters[k] << " ";
       }
 
-    ::ants::antscout << std::endl;
+    std::cout << std::endl;
     }
 
   if( w <= 0.0 )
     {
-    ::ants::antscout << "Total weight smaller than 0!!!" << std::endl;
+    std::cout << "Total weight smaller than 0!!!" << std::endl;
     std::exception();
     }
 
   // normalize by weight
-  ::ants::antscout << "sum:w=" << w <<  "\t";
+  std::cout << "sum:w=" << w <<  "\t";
   for( unsigned int k = istart; k <= iend; k++ )
     {
-    ::ants::antscout << average_parameters[k] << " ";
+    std::cout << average_parameters[k] << " ";
     }
-  ::ants::antscout << std::endl;
+  std::cout << std::endl;
 
   // normalize by weight
-  ::ants::antscout << "average" << "\t";
+  std::cout << "average" << "\t";
   for( unsigned int k = istart; k <= iend; k++ )
     {
     average_parameters[k] /= w;
-    ::ants::antscout << average_parameters[k] << " ";
+    std::cout << average_parameters[k] << " ";
     }
 
-  ::ants::antscout << std::endl;
+  std::cout << std::endl;
   return;
 }
 
@@ -218,7 +218,7 @@ void HelperType<Dispatcher<2> >::ComputeAverageScaleParameters(
   unsigned int istart = 1;
   unsigned int iend = 2;
 
-  ::ants::antscout << "average 2D scale parameter " << std::endl;
+  std::cout << "average 2D scale parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);
@@ -231,7 +231,7 @@ void HelperType<Dispatcher<2> >::ComputeAverageShearingParameters(
   unsigned int istart = 3;
   unsigned int iend = 3;
 
-  ::ants::antscout << "average 2D shearing parameter " << std::endl;
+  std::cout << "average 2D shearing parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);
@@ -244,7 +244,7 @@ void HelperType<Dispatcher<2> >::ComputeAverageRotationParameters(
   unsigned int istart = 0;
   unsigned int iend = 0;
 
-  ::ants::antscout << "average 2D rotation parameter " << std::endl;
+  std::cout << "average 2D rotation parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);
@@ -257,7 +257,7 @@ void HelperType<Dispatcher<2> >::ComputeAverageTranslationParameters(
   unsigned int istart = 6;
   unsigned int iend = 7;
 
-  ::ants::antscout << "average 2D translation parameter " << std::endl;
+  std::cout << "average 2D translation parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);
@@ -270,7 +270,7 @@ void HelperType<Dispatcher<3> >::ComputeAverageScaleParameters(
   unsigned int istart = 4;
   unsigned int iend = 6;
 
-  ::ants::antscout << "average 3D scale parameter " << std::endl;
+  std::cout << "average 3D scale parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);
@@ -283,7 +283,7 @@ void HelperType<Dispatcher<3> >::ComputeAverageShearingParameters(
   unsigned int istart = 7;
   unsigned int iend = 9;
 
-  ::ants::antscout << "average 3D shearing parameter " << std::endl;
+  std::cout << "average 3D shearing parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);
@@ -296,7 +296,7 @@ void HelperType<Dispatcher<3> >::ComputeAverageRotationParameters(
   unsigned int istart = 0;
   unsigned int iend = 3;
 
-  ::ants::antscout << "average 3D rotation parameter " << std::endl;
+  std::cout << "average 3D rotation parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);
@@ -322,7 +322,7 @@ void HelperType<Dispatcher<3> >::ComputeAverageTranslationParameters(
   unsigned int istart = 10;
   unsigned int iend = 12;
 
-  ::ants::antscout << "average 3D translation parameter " << std::endl;
+  std::cout << "average 3D translation parameter " << std::endl;
 
   HelperCommonType<InternalAffineTransformType>::ComputeAveragePartialParameters(
     transform_list, average_parameters, istart, iend);

@@ -147,7 +147,7 @@ typename InterpolatorType::Pointer interpolator = NULL;
    //sanity check thtat this function MUST return a valid interpolator
    if ( interpolator.IsNull() )
     {
-    antscout << "Error:  Unrecognized interpolation option. " << whichInterpolator << std::endl;
+    std::cout << "Error:  Unrecognized interpolation option. " << whichInterpolator << std::endl;
     //return NULL;
     return EXIT_FAILURE;
     }

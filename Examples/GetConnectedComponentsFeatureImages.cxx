@@ -186,11 +186,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  std::cout->set_stream( out_stream );
 
   if ( argc < 4 )
     {
-    antscout << "Usage: " << argv[0] << " imageDimension "
+    std::cout << "Usage: " << argv[0] << " imageDimension "
               << "inputSegmentationImage outputImagePrefix" << std::endl;
     return EXIT_FAILURE;
     }
@@ -205,7 +205,7 @@ private:
      returnStatus = GetConnectedComponentsFeatureImages<3>( argc, argv );
      break;
    default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
    }
   return returnStatus;
 }

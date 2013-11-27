@@ -841,7 +841,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       if( initialTransform.IsNull() )
         {
-        ::ants::antscout << "Can't read initial transform " << initialTransformName << std::endl;
+        std::cout << "Can't read initial transform " << initialTransformName << std::endl;
         return NULL;
         }
       if( useInverse )
@@ -849,7 +849,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         initialTransform = dynamic_cast<TransformType *>( initialTransform->GetInverseTransform().GetPointer() );
         if( initialTransform.IsNull() )
           {
-          ::ants::antscout << "Inverse does not exist for " << initialTransformName << std::endl;
+          std::cout << "Inverse does not exist for " << initialTransformName << std::endl;
           return NULL;
           }
         initialTransformName = std::string( "inverse of " ) + initialTransformName;
@@ -877,13 +877,13 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
         }
       }
     }
-  antscout << "=============================================================================" << std::endl;
-  antscout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
+  std::cout << "=============================================================================" << std::endl;
+  std::cout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
   for( unsigned int n = 0; n < transformNames.size(); n++ )
     {
-    antscout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
+    std::cout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
     }
-  antscout << "=============================================================================" << std::endl;
+  std::cout << "=============================================================================" << std::endl;
   return compositeTransform;
 }
 

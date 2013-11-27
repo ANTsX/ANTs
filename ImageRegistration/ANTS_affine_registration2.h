@@ -168,7 +168,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
                      << "Exception in writing tranform file: " << std::endl
                      << filename << std::endl;
     return;
@@ -196,8 +196,8 @@ void ReadAffineTransformFile(const std::string & filename, typename CastTransfor
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << err << std::endl;
-    ::ants::antscout << "Exception caught in reading tran para file: "
+    std::cout << err << std::endl;
+    std::cout << "Exception caught in reading tran para file: "
                      << filename << std::endl;
     return;
     }
@@ -247,7 +247,7 @@ void InitializeAffineOptmizationParameters(OptAffine & opt, double translationSc
       break;
     }
 
-  ::ants::antscout << opt;
+  std::cout << opt;
 }
 
 template <class TMaskObjectType, class TImagePyramid, class TMetricType, class TInterpolatorType>
@@ -308,7 +308,7 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
 
   if( opt.use_rotation_header )
     {
-    ::ants::antscout << "===================>initialize from rotation header ... " << std::endl;
+    std::cout << "===================>initialize from rotation header ... " << std::endl;
     // use the rotation header to initialize the affine: inv(Tm) * Tf
     typename AffineTransformType::Pointer aff_Im = AffineTransformType::New();
     GetAffineTransformFromImage(movingImage, aff_Im);
@@ -322,14 +322,14 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
     aff_combined->Compose(aff_Im_inv, 0);
     opt.transform_initial = aff_combined;
 
-    //            ::ants::antscout << "aff_If: " << aff_If << std::endl;
-    //            ::ants::antscout << "aff_Im: " << aff_Im << std::endl;
-    //            ::ants::antscout << "aff_combined: " << aff_combined << std::endl;
+    //            std::cout << "aff_If: " << aff_If << std::endl;
+    //            std::cout << "aff_Im: " << aff_Im << std::endl;
+    //            std::cout << "aff_combined: " << aff_combined << std::endl;
     }
 
   if( !opt.use_rotation_header && opt.ignore_void_orgin )
     {
-    ::ants::antscout
+    std::cout
       << "===================> ignore void origins which are too far away to be possible alignments: use 0 instead."
       << std::endl;
     typename AffineTransformType::Pointer aff_Im = AffineTransformType::New();
@@ -371,7 +371,7 @@ inline void PreConversionInAffine(ImagePointerType & fixedImage, RunningImagePoi
                                                                                                               GetTranslation() ) ) ) ) );
     }
 
-  // ::ants::antscout << "R_opt.transform_initial" << R_opt.transform_initial << std::endl;
+  // std::cout << "R_opt.transform_initial" << R_opt.transform_initial << std::endl;
 
   if( opt.mask_fixed.IsNotNull() )
     {
@@ -425,8 +425,8 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
                          (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
 
-  // ::ants::antscout << "transform_running" << transform_running << std::endl;
-  // ::ants::antscout << "transform" << transform << std::endl;
+  // std::cout << "transform_running" << transform_running << std::endl;
+  // std::cout << "transform" << transform << std::endl;
 }
 
 // /////////////////////////////////////////////////////////////////////////////
@@ -448,12 +448,12 @@ void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
 
   InitializeAffineOptmizationParameters(opt, opt.translation_scales);
 
-  // ::ants::antscout << "DEBUG: opt.gradient_scales.size() = " << opt.gradient_scales.size() << std::endl;
+  // std::cout << "DEBUG: opt.gradient_scales.size() = " << opt.gradient_scales.size() << std::endl;
 
   InitializeAffineTransform(fixed_image, moving_image, opt);
 
-  ::ants::antscout << "input affine center: " << opt.transform_initial->GetCenter() << std::endl;
-  ::ants::antscout << "input affine para: " << opt.transform_initial->GetParameters() << std::endl;
+  std::cout << "input affine center: " << opt.transform_initial->GetCenter() << std::endl;
+  std::cout << "input affine para: " << opt.transform_initial->GetParameters() << std::endl;
 
   transform = TransformType::New();
   ParaType para_final(TransformType::ParametersDimension);
@@ -557,16 +557,16 @@ void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
                                       opt.transform_initial->GetParameters(),
                                       opt.transform_initial->GetCenter(), transform);
 
-  // ::ants::antscout << "ABCDABCD: " << transform << std::endl;
+  // std::cout << "ABCDABCD: " << transform << std::endl;
 
   double rval_final = TestCostValueMMI(fixed_image, moving_image, para_final,
                                        opt.transform_initial->GetCenter(), transform);
 
-  ::ants::antscout << "outputput affine center: " << transform->GetCenter() << std::endl;
-  ::ants::antscout << "output affine para: " << transform->GetParameters() << std::endl;
-  ::ants::antscout << "initial measure value (MMI): rval = " << rval_init << std::endl;
-  ::ants::antscout << "final measure value (MMI): rval = " << rval_final << std::endl;
-  ::ants::antscout << "finish affine registeration..."  <<  std::endl;
+  std::cout << "outputput affine center: " << transform->GetCenter() << std::endl;
+  std::cout << "output affine para: " << transform->GetParameters() << std::endl;
+  std::cout << "initial measure value (MMI): rval = " << rval_init << std::endl;
+  std::cout << "final measure value (MMI): rval = " << rval_final << std::endl;
+  std::cout << "finish affine registeration..."  <<  std::endl;
 }
 
 // /////////////////////////////////////////////////////////////////////////
@@ -582,7 +582,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
 
   typedef typename ImageType::IOPixelType PixelType;
 
-  ::ants::antscout << "transform_initial: IsNotNull():" << opt.transform_initial.IsNotNull() << std::endl;
+  std::cout << "transform_initial: IsNotNull():" << opt.transform_initial.IsNotNull() << std::endl;
 
   if( ImageDimension == 2 )
     {
@@ -628,7 +628,7 @@ void ComputeSingleAffineTransform(typename ImageType::Pointer & fixedImage,
     }
   else
     {
-    ::ants::antscout << "Unsupported, not 2D/ 3D" << std::endl;
+    std::cout << "Unsupported, not 2D/ 3D" << std::endl;
     return;
     }
 }
@@ -716,7 +716,7 @@ void ComputeInitialPosition(ImagePointerType & I_fixed, ImagePointerType & I_mov
   catch( ... )
     {
     // try to add a small amount of noise to avoid exception from computing moments
-    ::ants::antscout << "try to add a small amount of noise to avoid exception"
+    std::cout << "try to add a small amount of noise to avoid exception"
       " from computing moments" << std::endl;
     ImagePointerType If1 = AddRandomNoise(I_fixed);
     ImagePointerType Im1 = AddRandomNoise(I_moving);
@@ -837,7 +837,7 @@ double TestCostValueMMI(ImagePointerType fixedImage, ImagePointerType movingImag
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << err << std::endl
                      << "Exception caught in computing mattesMutualInfo after registration" << std::endl
                      << "Maybe: Too many samples map outside moving image buffer" << std::endl
                      << "Set the cost value = 0 (max for MutualInfo) " << std::endl;
@@ -899,7 +899,7 @@ ImagePointer  ShrinkImageToScale(ImagePointer image,  float scalingFactor )
 
   image = resampler->GetOutput();
 
-  // ::ants::antscout << "DEBUG: " << outputSize << std::endl;
+  // std::cout << "DEBUG: " << outputSize << std::endl;
 
   return image;
 }
@@ -918,7 +918,7 @@ void BuildImagePyramid(const ImagePointerType & image, int number_of_levels, Ima
     }
 
   //    for(int i=0; i < number_of_levels; i++)
-  //        ::ants::antscout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() <<
+  //        std::cout << "level " << i << ": size: " << image_pyramid[i]->GetLargestPossibleRegion().GetSize() <<
   // std::endl;
 }
 
@@ -949,15 +949,15 @@ void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType
   typedef typename TransformType::InputPointType      PointType;
   typedef typename TransformType::OutputVectorType    VectorType;
 
-  ::ants::antscout << "opt.transform_initial.IsNull(): " << opt.transform_initial.IsNull() << std::endl;
-  ::ants::antscout << " opt.use_rotation_header: " << opt.use_rotation_header << std::endl;
-  ::ants::antscout << " opt.ignore_void_orgin: " << opt.ignore_void_orgin << std::endl;
+  std::cout << "opt.transform_initial.IsNull(): " << opt.transform_initial.IsNull() << std::endl;
+  std::cout << " opt.use_rotation_header: " << opt.use_rotation_header << std::endl;
+  std::cout << " opt.ignore_void_orgin: " << opt.ignore_void_orgin << std::endl;
 
   if( opt.transform_initial.IsNull() )
     {
     PointType  center;
     VectorType translation_vec;
-    // ::ants::antscout << "GS: debug: fake a all zero translation_vec" << std::endl;
+    // std::cout << "GS: debug: fake a all zero translation_vec" << std::endl;
     // ComputeInitialPosition_tmp(fixed_image, moving_image, center, translation_vec);
     ComputeInitialPosition(fixed_image, moving_image, center, translation_vec);
     opt.transform_initial = TransformType::New();
@@ -1094,8 +1094,8 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
         }
       catch( itk::ExceptionObject & err )
         {
-        ::ants::antscout << "ExceptionObject caught !" << std::endl;
-        ::ants::antscout << err << std::endl;
+        std::cout << "ExceptionObject caught !" << std::endl;
+        std::cout << err << std::endl;
         return false;
         }
 
@@ -1188,20 +1188,20 @@ bool SymmRegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheT
       invlast_gradient = invcurrent_gradient;
       }
 
-    ::ants::antscout << "level " << i << ", iter " << used_iterations
+    std::cout << "level " << i << ", iter " << used_iterations
                      << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
                      << "-mov" << moving_image->GetRequestedRegion().GetSize();
 
-    ::ants::antscout << ", affine para: " << current_para << std::endl;
+    std::cout << ", affine para: " << current_para << std::endl;
 
     if( is_converged )
       {
-      ::ants::antscout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
+      std::cout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
                        << std::endl;
       }
     else
       {
-      ::ants::antscout << "    does not reach oscillation, current step: " << current_step_length << ">"
+      std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
                        << minimum_step_length << std::endl;
       }
     }
@@ -1296,8 +1296,8 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         }
       catch( itk::ExceptionObject & err )
         {
-        ::ants::antscout << "ExceptionObject caught !" << std::endl;
-        ::ants::antscout << err << std::endl;
+        std::cout << "ExceptionObject caught !" << std::endl;
+        std::cout << err << std::endl;
         return false;
         }
 
@@ -1367,20 +1367,20 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
       last_gradient = current_gradient;
       }
 
-    ::ants::antscout << "level " << i << ", iter " << used_iterations
+    std::cout << "level " << i << ", iter " << used_iterations
                      << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
                      << "-mov" << moving_image->GetRequestedRegion().GetSize();
 
-    ::ants::antscout << ", affine para: " << current_para << std::endl;
+    std::cout << ", affine para: " << current_para << std::endl;
 
     if( is_converged )
       {
-      ::ants::antscout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
+      std::cout << "    reach oscillation, current step: " << current_step_length << "<" << minimum_step_length
                        << std::endl;
       }
     else
       {
-      ::ants::antscout << "    does not reach oscillation, current step: " << current_step_length << ">"
+      std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
                        << minimum_step_length << std::endl;
       }
     }
@@ -1443,8 +1443,8 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
           }
         catch( itk::ExceptionObject & err )
           {
-          ::ants::antscout << "ExceptionObject caught !" << std::endl;
-          ::ants::antscout << err << std::endl;
+          std::cout << "ExceptionObject caught !" << std::endl;
+          std::cout << err << std::endl;
           // don't have to return here if got anything from the previous forward direction
 //          return false;
           break;
@@ -1516,38 +1516,38 @@ bool RegisterImageAffineMutualInformationMultiResolution(RunningAffineCacheType 
         last_gradient = current_gradient;
         }
 
-      ::ants::antscout << "level " << i << ", iter " << used_iterations
+      std::cout << "level " << i << ", iter " << used_iterations
                        << ", size: fix" << fixed_image->GetRequestedRegion().GetSize()
                        << "-mov" << moving_image->GetRequestedRegion().GetSize();
 
-      ::ants::antscout << ", affine para: " << current_para2 << std::endl;
+      std::cout << ", affine para: " << current_para2 << std::endl;
 
       if( is_converged )
         {
-        ::ants::antscout << "    reach oscillation, current step: " << current_step_length << "<"
+        std::cout << "    reach oscillation, current step: " << current_step_length << "<"
                          << minimum_step_length
                          << std::endl;
         }
       else
         {
-        ::ants::antscout << "    does not reach oscillation, current step: " << current_step_length << ">"
+        std::cout << "    does not reach oscillation, current step: " << current_step_length << ">"
                          << minimum_step_length << std::endl;
         }
       }
-    ::ants::antscout << " v1 " << value1 << " v2 " << value << std::endl;
+    std::cout << " v1 " << value1 << " v2 " << value << std::endl;
     if( value < value1 )
       {
-      ::ants::antscout << " last params " << transform->GetParameters() << std::endl;
-      ::ants::antscout << " my params " << transform2->GetParameters() << std::endl;
+      std::cout << " last params " << transform->GetParameters() << std::endl;
+      std::cout << " my params " << transform2->GetParameters() << std::endl;
       transform2->GetInverse(transform);
-      ::ants::antscout << " new params " << transform->GetParameters() << std::endl;
+      std::cout << " new params " << transform->GetParameters() << std::endl;
       para_final = transform->GetParameters();
       return true;
       }
     }
 
   para_final = current_para;
-  ::ants::antscout << "final " << para_final << std::endl;
+  std::cout << "final " << para_final << std::endl;
   return true;
 }
 

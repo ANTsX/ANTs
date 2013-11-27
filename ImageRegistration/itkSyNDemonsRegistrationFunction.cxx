@@ -131,7 +131,7 @@ void
 SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
 {
-  //  ::ants::antscout << " INIT ITER " << std::endl;
+  //  std::cout << " INIT ITER " << std::endl;
   if( !this->GetMovingImage() || !this->GetFixedImage() || !m_MovingImageInterpolator )
     {
     itkExceptionMacro( << "MovingImage, FixedImage and/or Interpolator not set" );
@@ -189,7 +189,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   fixedValue = (double) this->GetFixedImage()->GetPixel( index );
   double movingValue = (double)this->GetMovingImage()->GetPixel( index );
 
-  //  if (fixedValue > 0)::ants::antscout << " fxv  " << fixedValue << " movingValue " << movingValue << std::endl;
+  //  if (fixedValue > 0)std::cout << " fxv  " << fixedValue << " movingValue " << movingValue << std::endl;
 
   gradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
 
@@ -281,7 +281,7 @@ SyNDemonsRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
   fixedValue = (double) this->GetFixedImage()->GetPixel( index );
   double movingValue = (double)this->GetMovingImage()->GetPixel( index );
 
-  //  if (fixedValue > 0)::ants::antscout << " fxv  " << fixedValue << " movingValue " << movingValue << std::endl;
+  //  if (fixedValue > 0)std::cout << " fxv  " << fixedValue << " movingValue " << movingValue << std::endl;
 
   //    gradient = m_FixedImageGradientCalculator->EvaluateAtIndex( index );
 

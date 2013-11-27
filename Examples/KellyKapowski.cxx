@@ -44,19 +44,19 @@ public:
       {
       return;
       }
-    antscout << "  Iteration " << filter->GetElapsedIterations()
+    std::cout << "  Iteration " << filter->GetElapsedIterations()
              << " (of "
              << filter->GetMaximumNumberOfIterations()
              << ").  ";
-    antscout << "Current energy = " << filter->GetCurrentEnergy() << ".  ";
+    std::cout << "Current energy = " << filter->GetCurrentEnergy() << ".  ";
     if( filter->GetElapsedIterations() >= filter->GetConvergenceWindowSize() )
       {
-      antscout << "(convergence value = "
+      std::cout << "(convergence value = "
                << filter->GetCurrentConvergenceMeasurement()
                << ", threshold = " << filter->GetConvergenceThreshold()
                << ")";
       }
-    antscout << std::endl;
+    std::cout << std::endl;
   }
 };
 
@@ -123,7 +123,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "Segmentation image not specified." << std::endl;
+    std::cout << "Segmentation image not specified." << std::endl;
     return EXIT_FAILURE;
     }
   direct->SetSegmentationImage( segmentationImage );
@@ -139,7 +139,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "  Grey matter probability image not specified. "
+    std::cout << "  Grey matter probability image not specified. "
              << "Creating one from the segmentation image." << std::endl;
 
     typedef itk::BinaryThresholdImageFilter<LabelImageType, LabelImageType> ThresholderType;
@@ -173,7 +173,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "  White matter probability image not specified. "
+    std::cout << "  White matter probability image not specified. "
              << "Creating one from the segmentation image." << std::endl << std::endl;
 
     typedef itk::BinaryThresholdImageFilter<LabelImageType, ImageType>
@@ -208,7 +208,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "  White matter probability image not specified. "
+    std::cout << "  White matter probability image not specified. "
              << "Creating one from the segmentation image." << std::endl << std::endl;
     }
   direct->SetThicknessPriorImage( thicknessPriorImage );
@@ -314,13 +314,13 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
   catch( itk::ExceptionObject & e )
     {
-    antscout << "Exception caught: " << e << std::endl;
+    std::cout << "Exception caught: " << e << std::endl;
     return EXIT_FAILURE;
     }
 
-  direct->Print( antscout, 3 );
+  direct->Print( std::cout, 3 );
 
-  antscout << "DiReCT elapsed time: " << timer.GetMean() << std::endl;
+  std::cout << "DiReCT elapsed time: " << timer.GetMean() << std::endl;
 
   /**
    * output
@@ -601,7 +601,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  std::cout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -621,7 +621,7 @@ private:
   parser->Parse( argc, argv );
   if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction( 0 )->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -630,7 +630,7 @@ private:
     }
   else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction( 0 )->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 
@@ -663,7 +663,7 @@ private:
       }
     else
       {
-      antscout << "No input images were specified.  Specify an input "
+      std::cout << "No input images were specified.  Specify an input "
                << " segmentation image with the -s option" << std::endl;
       return EXIT_FAILURE;
       }
@@ -672,7 +672,7 @@ private:
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  antscout << std::endl << "Running DiReCT for " << dimension << "-dimensional images." << std::endl << std::endl;
+  std::cout << std::endl << "Running DiReCT for " << dimension << "-dimensional images." << std::endl << std::endl;
 
   switch( dimension )
     {
@@ -692,7 +692,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

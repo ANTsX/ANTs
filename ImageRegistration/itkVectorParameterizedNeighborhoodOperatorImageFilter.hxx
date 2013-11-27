@@ -132,7 +132,7 @@ VectorParameterizedNeighborhoodOperatorImageFilter<TInputImage, TOutputImage, TP
 //      if (param < 1./max && param > 0 ) param = 1./max;
 //      if (param > max  && param > 0 ) param = max;
 //      if (param < 1.0  && param > 0) param=1.0/param;
-//      ::ants::antscout << " param " << param ;
+//      std::cout << " param " << param ;
 
         if( param <= 0 )
           {

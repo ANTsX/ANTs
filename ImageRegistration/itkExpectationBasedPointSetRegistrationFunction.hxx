@@ -147,7 +147,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   float inweight = weight;
   this->m_LandmarkEnergy = 0.0;
 
-  ::ants::antscout << " sz1 " << sz1 << " sz2 " << sz2 << std::endl;
+  std::cout << " sz1 " << sz1 << " sz2 " << sz2 << std::endl;
   // if whichdirection is true, then the fixed direction, else moving
   for( unsigned long ii = 0; ii < sz1; ii++ )
     {
@@ -181,7 +181,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     convok = this->GetFixedImage()->TransformPhysicalPointToIndex(fpt, oindex);
     if( !convok )
       {
-      ::ants::antscout << " fpt " << fpt << std::endl;
+      std::cout << " fpt " << fpt << std::endl;
       }
     // if whichdirection is true, then the fixed direction, else moving
     for( unsigned long jj = 0; jj < sz2; jj++ )
@@ -207,7 +207,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 
       if( ii == sz1 - 2 && jj == sz2 - 2 )
         {
-        ::ants::antscout << " fpt " << fpt << " mpt " << mpt << std::endl;
+        std::cout << " fpt " << fpt << " mpt " << mpt << std::endl;
         }
 
       this->GetMovingImage()->TransformPhysicalPointToIndex(mpt, movingindex);
@@ -239,7 +239,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
           {
           this->m_FixedPointSet->GetPointData(jj, &movinglabel);
           }
-//        if (ii == 2 && jj==2) ::ants::antscout << "_prob " << _prob << " sigma " << sigma << "  " << mag << " fl " <<
+//        if (ii == 2 && jj==2) std::cout << "_prob " << _prob << " sigma " << sigma << "  " << mag << " fl " <<
 // fixedlabel << " ml " << movinglabel << std::endl;
         if( fixedlabel != movinglabel )
           {
@@ -360,7 +360,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     {
     float tot=0;
     for (int k=0; k < sz2; k++) { tot+=sinkhorn(ii,k); }
-    ::ants::antscout << "TOT " << tot << std::endl;
+    std::cout << "TOT " << tot << std::endl;
     force.Fill(0);
     mag=0;
     }
@@ -370,13 +370,13 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
         maxerr = mag;
         }
       energy += mag;
-      ::ants::antscout << " ii " << ii << " force " << force << " mag " << sqrt(mag) << " mpt " << mpt << " fpt "
+      std::cout << " ii " << ii << " force " << force << " mag " << sqrt(mag) << " mpt " << mpt << " fpt "
                        << fixedpoint <<  " nrg " << energy / (float)ii << std::endl;
       lmField->SetPixel(fixedindex, force + lmField->GetPixel(fixedindex) );
       }
 //    lmField->SetPixel(fixedindex,sforce);
     }
-//  ::ants::antscout <<  " max " << maxerr << std::endl;
+//  std::cout <<  " max " << maxerr << std::endl;
   this->m_LandmarkEnergy = energy / (float)sz1;
   this->m_Energy = this->m_LandmarkEnergy;
 }
@@ -389,7 +389,7 @@ void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::InitializeIteration()
 {
-  //  ::ants::antscout << " INIT ITER " << std::endl;
+  //  std::cout << " INIT ITER " << std::endl;
   if( !this->GetMovingImage() || !this->GetFixedImage()  )
     {
     itkExceptionMacro( << "MovingImage, FixedImage  not set" );
@@ -431,7 +431,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     {
     this->m_LabelSet.clear();
     unsigned long sz1 = this->m_FixedPointSet->GetNumberOfPoints();
-    ::ants::antscout << " NPTS " << sz1 << std::endl;
+    std::cout << " NPTS " << sz1 << std::endl;
     for( unsigned long ii = 0; ii < sz1; ii++ )
       {
       PointType     fixedpoint;
@@ -450,7 +450,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     }
   else
     {
-    ::ants::antscout << " #of Label Values to match " << this->m_LabelSet.size() << std::endl;
+    std::cout << " #of Label Values to match " << this->m_LabelSet.size() << std::endl;
     }
 
   this->m_bpoints = BSplinePointSetType::New();
@@ -465,7 +465,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     {
     lct++;
     PointDataType label = (PointDataType) * it;
-//     ::ants::antscout << " doing label " << label << std::endl;
+//     std::cout << " doing label " << label << std::endl;
     this->SetUpKDTrees(label);
     bool dobsp = false;
 //    if (lct ==  this->m_LabelSet.size()  ) dobsp=true;
@@ -549,7 +549,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   MeasurementVectorType mv;
   unsigned int          bucketsize = 4;
   unsigned int          npts = this->m_FixedPointSet->GetNumberOfPoints();
-//  ::ants::antscout << " NP MOV " << npts << std::endl;
+//  std::cout << " NP MOV " << npts << std::endl;
   for( unsigned int i = 0; i < npts; i++ )
     {
     PointType  fixedpoint;
@@ -581,7 +581,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   this->m_MovingSamplePoints = SampleType::New();
   this->m_MovingSamplePoints->SetMeasurementVectorSize( ImageDimension );
   npts = this->m_MovingPointSet->GetNumberOfPoints();
-//  ::ants::antscout << " NP MOV " << npts << std::endl;
+//  std::cout << " NP MOV " << npts << std::endl;
   for( unsigned int i = 0; i < npts; i++ )
     {
     PointType  movingpoint;
@@ -650,7 +650,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   unsigned long sz1 = fkdtree->GetOutput()->Size();
   unsigned long sz2 = mkdtree->GetOutput()->Size();
 
-//  ::ants::antscout << " s1 " << sz1 << " s2 " << sz2 << std::endl;
+//  std::cout << " s1 " << sz1 << " s2 " << sz2 << std::endl;
 
   if( sz1 <= 0  || sz2 <= 0 )
     {
@@ -693,7 +693,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
     bool      convok = false;
     IndexType fixedindex;
     convok = this->GetFixedImage()->TransformPhysicalPointToIndex(fpt, fixedindex);
-//    ::ants::antscout << " Orig " << this->GetFixedImage()->GetOrigin() << " ind " << fixedindex << " pt " << fpt <<
+//    std::cout << " Orig " << this->GetFixedImage()->GetOrigin() << " ind " << fixedindex << " pt " << fpt <<
 // std::endl;
     if( convok )
       {
@@ -737,7 +737,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
               }
             }
           //
-//    if (ii % 245 && pp > 1.e-3) ::ants::antscout << " prob " << pp <<  " mpt " << mpt << " dd " << dd <<" wpt " << wpt
+//    if (ii % 245 && pp > 1.e-3) std::cout << " prob " << pp <<  " mpt " << mpt << " dd " << dd <<" wpt " << wpt
 // << "
 // movinpoint " << movingpoint << " ptot " << probtotal <<  std::endl;
           }
@@ -777,7 +777,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
       lmField->SetPixel(fixedindex, force + lmField->GetPixel(fixedindex) );
       }
     }
-//  ::ants::antscout <<  " max " << maxerr << std::endl;
+//  std::cout <<  " max " << maxerr << std::endl;
   this->m_LandmarkEnergy = energy / (float)sz1;
   this->m_Energy = this->m_LandmarkEnergy;
 
@@ -787,7 +787,7 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
      * Calculate derivative field with respect to the moving points
      */
       {
-// ::ants::antscout << " start bsp " << std::endl;
+// std::cout << " start bsp " << std::endl;
 
       typename BSplineFilterType::ArrayType nlevels;
       typename BSplineFilterType::ArrayType ncps;

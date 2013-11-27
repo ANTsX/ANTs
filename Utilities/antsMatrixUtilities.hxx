@@ -56,7 +56,7 @@ antsMatrixUtilities<TInputImage, TRealType>
       {
       if( this->m_Debug )
         {
-        ::ants::antscout << " bad-row " << i <<  wpcol << std::endl;
+        std::cout << " bad-row " << i <<  wpcol << std::endl;
         }
       for( unsigned long j = 0; j < wpcol.size(); j++ )
         {
@@ -120,7 +120,7 @@ antsMatrixUtilities<TInputImage, TRealType>
   vnl_svd<RealType> eig(cov, pinvTolerance);
   VectorType        vec1 = eig.U().get_column(which);
   VectorType        vec2 = eig.V().get_column(which);
-//  ::ants::antscout <<" W 1 " << eig.W(0,0) << " W 2 " << eig.W(1,1) << std::endl;
+//  std::cout <<" W 1 " << eig.W(0,0) << " W 2 " << eig.W(1,1) << std::endl;
   if( vec2.size() == rin.rows() )
     {
     return vec2;
@@ -151,9 +151,9 @@ antsMatrixUtilities<TInputImage, TRealType>
   for( unsigned int i = 0; i < cov.rows(); i++ )
     {
     evalsum += eig.W(i, i);
-    ::ants::antscout << " variance-explained-eval " << i << " = " << evalsum / trace * 100  << std::endl;
+    std::cout << " variance-explained-eval " << i << " = " << evalsum / trace * 100  << std::endl;
     }
-//  ::ants::antscout <<" W 1 " << eig.W(0,0) << " W 2 " << eig.W(1,1) << std::endl;
+//  std::cout <<" W 1 " << eig.W(0,0) << " W 2 " << eig.W(1,1) << std::endl;
   if( vec2.size() == rin.rows() )
     {
     return eig.V();

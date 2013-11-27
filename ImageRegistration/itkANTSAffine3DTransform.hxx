@@ -600,7 +600,7 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
 //   VnlQuaternionType quat(this->GetMatrix().GetVnlMatrix());
 //   m_Rotation = quat;
 
-//     ::ants::antscout << "compute para: to be done!" << std::endl;
+//     std::cout << "compute para: to be done!" << std::endl;
 
 //     InternalMatrixType A, Q, R;
 
@@ -714,15 +714,15 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
     r = (Q(0, 1) - Q(1, 0) ) / s;
     }
 
-  ::ants::antscout << "A=" << A << std::endl;
-  ::ants::antscout << "rotation R" << Q << std::endl;
-  ::ants::antscout << "upper R" << R << std::endl;
-  ::ants::antscout << "s=" << s << " u=" << u << " v=" << v << " w" << w << " r="
+  std::cout << "A=" << A << std::endl;
+  std::cout << "rotation R" << Q << std::endl;
+  std::cout << "upper R" << R << std::endl;
+  std::cout << "s=" << s << " u=" << u << " v=" << v << " w" << w << " r="
                    << r << std::endl;
 
   m_Rotation = VnlQuaternionType(u, v, w, r);
 
-  ::ants::antscout << "m_Rotation from vnl" << VnlQuaternionType(u, v, w, r)
+  std::cout << "m_Rotation from vnl" << VnlQuaternionType(u, v, w, r)
                    << std::endl;
 
   m_S1 = R(0, 0);
@@ -733,16 +733,16 @@ void ANTSAffine3DTransform<TScalarType>::ComputeMatrixParameters()
   m_K2 = R(0, 2) / R(0, 0);
   m_K3 = R(1, 2) / R(1, 1);
 
-  // ::ants::antscout << "before: this->GetMatrix(): " << this->GetMatrix();
+  // std::cout << "before: this->GetMatrix(): " << this->GetMatrix();
 
   this->ComputeMatrix();
 
-  // ::ants::antscout << "after: this->GetMatrix(): " << this->GetMatrix();
+  // std::cout << "after: this->GetMatrix(): " << this->GetMatrix();
 
-//     ::ants::antscout << "A=" << A << std::endl;
-//     ::ants::antscout << "R=" << R << std::endl;
-//     ::ants::antscout << "R=" << R << std::endl;
-//     ::ants::antscout << "dq=" << dq << std::endl;
+//     std::cout << "A=" << A << std::endl;
+//     std::cout << "R=" << R << std::endl;
+//     std::cout << "R=" << R << std::endl;
+//     std::cout << "dq=" << dq << std::endl;
 }
 } // namespace
 

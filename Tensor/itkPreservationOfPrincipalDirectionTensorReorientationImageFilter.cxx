@@ -315,7 +315,7 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
   jMatrixAvg.SetSize(ImageDimension, ImageDimension);
   jMatrixAvg.Fill(0.0);
 
-  ::ants::antscout << "Iterating over image" << std::endl;
+  std::cout << "Iterating over image" << std::endl;
   // for all voxels
   for( outputIt.GoToBegin(); !outputIt.IsAtEnd(); ++outputIt )
     {
@@ -376,9 +376,9 @@ PreservationOfPrincipalDirectionTensorReorientationImageFilter<TTensorImage, TVe
         }
 
       /*
-     ::ants::antscout << "apply";
+     std::cout << "apply";
       outTensor = this->ApplyReorientation( localDeformation, inTensor );
-     ::ants::antscout << " ok" << std::endl;
+     std::cout << " ok" << std::endl;
       */
       }
     // valid values?

@@ -22,7 +22,7 @@ protected:
     const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
     this->m_lastTotalTime = now;
     m_clock.Start();
-    this->m_LogStream = &::ants::antscout;
+    this->m_LogStream = &std::cout;
   }
 
 public:

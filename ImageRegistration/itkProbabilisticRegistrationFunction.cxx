@@ -877,7 +877,7 @@ ProbabilisticRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
     }
 
 //  if ( localProbabilistic*(-1.0) < this->m_RobustnessParameter) {
-//  ::ants::antscout << " localC " << localProbabilistic << std::endl; }
+//  std::cout << " localC " << localProbabilistic << std::endl; }
 
   this->m_Energy -= localProbabilistic;
   return deriv; // localProbabilistic;

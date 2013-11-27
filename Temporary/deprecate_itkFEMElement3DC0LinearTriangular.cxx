@@ -271,7 +271,7 @@ Element3DC0LinearTriangular
 
   Float det=0.5*c.magnitude();
   */
-//  ::::ants::antscout << " area " << det << std::endl;
+//  ::std::cout << " area " << det << std::endl;
   return det;
 }
 
@@ -307,14 +307,14 @@ invJ2[1][0]=idet*((*pJ)[2][0]-(*pJ)[1][0]);
 invJ2[1][1]=idet*((*pJ)[0][0]-(*pJ)[2][0]);
 invJ2[1][2]=idet*((*pJ)[1][0]-(*pJ)[0][0]);
 
-::::ants::antscout << " pJ " << std::endl;
-::::ants::antscout << (*pJ) << std::endl;
+::std::cout << " pJ " << std::endl;
+::std::cout << (*pJ) << std::endl;
 
-::::ants::antscout << " invJ " << std::endl;
-::::ants::antscout << (invJ) << std::endl;
+::std::cout << " invJ " << std::endl;
+::std::cout << (invJ) << std::endl;
 
-::::ants::antscout << " invJ2 " << std::endl;
-::::ants::antscout << (invJ2) << std::endl;*/
+::std::cout << " invJ2 " << std::endl;
+::std::cout << (invJ2) << std::endl;*/
 
   delete pJlocal;
 }

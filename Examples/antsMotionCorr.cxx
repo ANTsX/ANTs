@@ -84,7 +84,7 @@ public:
 protected:
   antsRegistrationCommandIterationUpdate()
   {
-    this->m_LogStream = &::ants::antscout;
+    this->m_LogStream = &std::cout;
   }
 
 public:
@@ -219,7 +219,7 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
     calc->ComputeMinimum();
     if ( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
       {
-      ::ants::antscout <<"Warning: bad time point - too little intensity variation" << std::endl;
+      std::cout <<"Warning: bad time point - too little intensity variation" << std::endl;
       return histogramMatchSourceImage;
       }
     }
@@ -281,11 +281,11 @@ public:
     typename TFilter::TransformParametersAdaptorsContainerType adaptors =
       filter->GetTransformParametersAdaptorsPerLevel();
 
-    antscout << "  Current level = " << currentLevel << std::endl;
-    antscout << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
-    antscout << "    shrink factor = " << shrinkFactors[currentLevel] << std::endl;
-    antscout << "    smoothing sigma = " << smoothingSigmas[currentLevel] << std::endl;
-    antscout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
+    std::cout << "  Current level = " << currentLevel << std::endl;
+    std::cout << "    number of iterations = " << this->m_NumberOfIterations[currentLevel] << std::endl;
+    std::cout << "    shrink factor = " << shrinkFactors[currentLevel] << std::endl;
+    std::cout << "    smoothing sigma = " << smoothingSigmas[currentLevel] << std::endl;
+    std::cout << "    required fixed parameters = " << adaptors[currentLevel]->GetRequiredFixedParameters()
              << std::endl;
 
     typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
@@ -401,7 +401,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
       timelist.push_back(timedim);
       }
     }
-  antscout << " averaging with " << timelist.size() << " images of " <<  timedims <<  " timedims " << std::endl;
+  std::cout << " averaging with " << timelist.size() << " images of " <<  timedims <<  " timedims " << std::endl;
   Iterator vfIter2(  image_avg, image_avg->GetLargestPossibleRegion() );
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
@@ -420,7 +420,7 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
     fval /= (double)timelist.size();
     image_avg->SetPixel(spind, fval);
     }
-  antscout << " averaging images done " << std::endl;
+  std::cout << " averaging images done " << std::endl;
   return;
 }
 
@@ -451,7 +451,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     typename OptionType::Pointer outputOption = parser->GetOption( "output" );
     if( !outputOption )
       {
-      antscout << "Output option not specified.  Should be the output average image name." << std::endl;
+      std::cout << "Output option not specified.  Should be the output average image name." << std::endl;
       return EXIT_FAILURE;
       }
     std::string outputPrefix = outputOption->GetFunction( 0 )->GetParameter( 0 );
@@ -477,7 +477,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     avgImage = extractFilter->GetOutput();
     std::vector<unsigned int> timelist;
     AverageTimeImages<MovingIOImageType, FixedIOImageType>( movingImage, avgImage, timelist );
-    antscout << "average out " << outputPrefix <<  std::endl;
+    std::cout << "average out " << outputPrefix <<  std::endl;
     WriteImage<FixedIOImageType>( avgImage, outputPrefix.c_str() );
     return EXIT_SUCCESS;
     }
@@ -489,44 +489,44 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "No transformations are specified." << std::endl;
+    std::cout << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
     }
 
-  antscout << "Registration using " << numberOfStages << " total stages." << std::endl;
+  std::cout << "Registration using " << numberOfStages << " total stages." << std::endl;
 
   typename OptionType::Pointer metricOption = parser->GetOption( "metric" );
   if( !metricOption || metricOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    antscout << "The number of metrics specified does not match the number of stages." << std::endl;
+    std::cout << "The number of metrics specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer iterationsOption = parser->GetOption( "iterations" );
   if( !iterationsOption || iterationsOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    antscout << "The number of iteration sets specified does not match the number of stages." << std::endl;
+    std::cout << "The number of iteration sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrinkFactors" );
   if( !shrinkFactorsOption || shrinkFactorsOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    antscout << "The number of shrinkFactor sets specified does not match the number of stages." << std::endl;
+    std::cout << "The number of shrinkFactor sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer smoothingSigmasOption = parser->GetOption( "smoothingSigmas" );
   if( !smoothingSigmasOption || smoothingSigmasOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    antscout << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
+    std::cout << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( !outputOption )
     {
-    antscout << "Output option not specified." << std::endl;
+    std::cout << "Output option not specified." << std::endl;
     return EXIT_FAILURE;
     }
   std::string outputPrefix = outputOption->GetFunction( 0 )->GetParameter( 0 );
@@ -540,7 +540,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   if( navgOption && navgOption->GetNumberOfFunctions() )
     {
     nimagestoavg = parser->Convert<unsigned int>( navgOption->GetFunction( 0 )->GetName() );
-    antscout << " nimagestoavg " << nimagestoavg << std::endl;
+    std::cout << " nimagestoavg " << nimagestoavg << std::endl;
     }
 
   bool                doEstimateLearningRateOnce(false);
@@ -565,7 +565,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
-    antscout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
+    std::cout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
     std::stringstream currentStageString;
     currentStageString << currentStage;
 
@@ -573,8 +573,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     std::string fixedImageFileName = metricOption->GetFunction( currentStage )->GetParameter(  0 );
     std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter(  1 );
-    antscout << "  fixed image: " << fixedImageFileName << std::endl;
-    antscout << "  moving image: " << movingImageFileName << std::endl;
+    std::cout << "  fixed image: " << fixedImageFileName << std::endl;
+    std::cout << "  moving image: " << movingImageFileName << std::endl;
     typename FixedImageType::Pointer fixed_time_slice = NULL;
     typename FixedImageType::Pointer moving_time_slice = NULL;
     typename FixedIOImageType::Pointer fixedInImage;
@@ -601,7 +601,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     std::vector<unsigned int> iterations =
       parser->ConvertVector<unsigned int>( iterationsOption->GetFunction( currentStage )->GetName()  );
     unsigned int numberOfLevels = iterations.size();
-    antscout << "  number of levels = " << numberOfLevels << std::endl;
+    std::cout << "  number of levels = " << numberOfLevels << std::endl;
 
     // Get shrink factors
 
@@ -612,7 +612,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     if( factors.size() != numberOfLevels )
       {
-      antscout << "ERROR:  The number of shrink factors does not match the number of levels." << std::endl;
+      std::cout << "ERROR:  The number of shrink factors does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
     else
@@ -621,7 +621,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         shrinkFactorsPerLevel[n] = factors[n];
         }
-      antscout << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
+      std::cout << "  shrink factors per level: " << shrinkFactorsPerLevel << std::endl;
       }
 
     // Get smoothing sigmas
@@ -633,7 +633,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     if( sigmas.size() != numberOfLevels )
       {
-      antscout << "ERROR:  The number of smoothing sigmas does not match the number of levels." << std::endl;
+      std::cout << "ERROR:  The number of smoothing sigmas does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
     else
@@ -642,7 +642,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         smoothingSigmasPerLevel[n] = sigmas[n];
         }
-      antscout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
+      std::cout << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
       }
 
     // the fixed image is a reference image in 3D while the moving is a 4D image
@@ -668,7 +668,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       else if( CompositeTransformVector.size() == timedims && !CompositeTransformVector[timedim].IsNull() )
         {
         compositeTransform = CompositeTransformVector[timedim];
-        if ( timedim == 0 ) antscout << " use existing transform " << compositeTransform->GetParameters() << std::endl;
+        if ( timedim == 0 ) std::cout << " use existing transform " << compositeTransform->GetParameters() << std::endl;
         }
       typedef itk::IdentityTransform<RealType, ImageDimension> IdentityTransformType;
       typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
@@ -686,7 +686,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           {
           if( timedim == 0 )
             {
-            antscout << "using fixed reference image for all frames " << std::endl;
+            std::cout << "using fixed reference image for all frames " << std::endl;
             }
           fixed_time_slice = fixedImage;
           extractRegion.SetIndex(ImageDimension, timedim );
@@ -740,13 +740,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
       if ( ( !directionmatricesok ) && ( timedim == 0 )   )
         {
-        antscout << " WARNING!" << std::endl;
-        antscout << " fixed and moving DirectionMatrices not the same " << std::endl;
-        antscout << " Fixed Dir " << fixed_time_slice->GetDirection()  << std::endl;
-        antscout << " Moving Dir " << moving_time_slice->GetDirection()  << std::endl;
-        antscout << " setting moving direction matrix to equal fixed matrix " << std::endl;
-        antscout << " WARNING END!" << std::endl;
-        antscout <<  std::endl;
+        std::cout << " WARNING!" << std::endl;
+        std::cout << " fixed and moving DirectionMatrices not the same " << std::endl;
+        std::cout << " Fixed Dir " << fixed_time_slice->GetDirection()  << std::endl;
+        std::cout << " Moving Dir " << moving_time_slice->GetDirection()  << std::endl;
+        std::cout << " setting moving direction matrix to equal fixed matrix " << std::endl;
+        std::cout << " WARNING END!" << std::endl;
+        std::cout <<  std::endl;
         moving_time_slice->SetDirection(  fixed_time_slice->GetDirection()  );
         }
 
@@ -782,12 +782,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typename AffineRegistrationType::MetricSamplingStrategyType metricSamplingStrategy = AffineRegistrationType::NONE;
       if( std::strcmp( samplingStrategy.c_str(), "random" ) == 0 )
         {
-        if ( timedim == 0 ) antscout << "  random sampling (percentage = " << samplingPercentage << ")" << std::endl;
+        if ( timedim == 0 ) std::cout << "  random sampling (percentage = " << samplingPercentage << ")" << std::endl;
         metricSamplingStrategy = AffineRegistrationType::RANDOM;
         }
       if( std::strcmp( samplingStrategy.c_str(), "regular" ) == 0 )
         {
-        if ( timedim == 0 ) antscout << "  regular sampling (percentage = " << samplingPercentage << ")" << std::endl;
+        if ( timedim == 0 ) std::cout << "  regular sampling (percentage = " << samplingPercentage << ")" << std::endl;
         metricSamplingStrategy = AffineRegistrationType::REGULAR;
         }
 
@@ -796,7 +796,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
                                                                      currentStage )->GetParameter(  3 ) );
 
-        if ( timedim == 0 ) antscout << "  using the CC metric (radius = " << radiusOption << ")." << std::endl;
+        if ( timedim == 0 ) std::cout << "  using the CC metric (radius = " << radiusOption << ")." << std::endl;
         typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<FixedImageType,
                                                                      FixedImageType> CorrelationMetricType;
         typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
@@ -823,7 +823,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
         {
-        if ( timedim == 0 ) antscout << "  using the Demons metric." << std::endl;
+        if ( timedim == 0 ) std::cout << "  using the Demons metric." << std::endl;
         typedef itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType> DemonsMetricType;
         typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
         demonsMetric = demonsMetric;
@@ -831,15 +831,15 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else if( std::strcmp( whichMetric.c_str(), "gc" ) == 0 )
         {
-        if ( timedim == 0 ) antscout << "  using the global correlation metric." << std::endl;
+        if ( timedim == 0 ) std::cout << "  using the global correlation metric." << std::endl;
         typedef itk::CorrelationImageToImageMetricv4<FixedImageType, FixedImageType> corrMetricType;
         typename corrMetricType::Pointer corrMetric = corrMetricType::New();
         metric = corrMetric;
-        antscout << " global corr metric set " << std::endl;
+        std::cout << " global corr metric set " << std::endl;
         }
       else
         {
-        antscout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
+        std::cout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
         }
       metric->SetVirtualDomainFromImage(  fixed_time_slice );
       // Set up the optimizer.  To change the iteration number for each level we rely
@@ -870,12 +870,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         ConvertToLowerCase( scalesFunction );
         if( scalesFunction.compare( "1" ) == 0 || scalesFunction.compare( "true" ) == 0 )
           {
-	  if ( timedim == 0 ) antscout << " employing scales estimator " << std::endl;
+	  if ( timedim == 0 ) std::cout << " employing scales estimator " << std::endl;
           optimizer->SetScalesEstimator( scalesEstimator );
           }
         else
           {
-          if ( timedim == 0 ) antscout << " not employing scales estimator " << scalesFunction << std::endl;
+          if ( timedim == 0 ) std::cout << " not employing scales estimator " << scalesFunction << std::endl;
           }
         }
       optimizer->SetMaximumStepSizeInPhysicalUnits( learningRate );
@@ -926,12 +926,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
         try
           {
-          antscout << std::endl << "*** Running affine registration ***" << timedim << std::endl << std::endl;
+          std::cout << std::endl << "*** Running affine registration ***" << timedim << std::endl << std::endl;
           affineRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
-          antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( const_cast<AffineTransformType *>( affineRegistration->GetOutput()->Get() ) );
@@ -993,12 +993,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         rigidRegistration->AddObserver( itk::IterationEvent(), rigidObserver );
         try
           {
-          antscout << std::endl << "*** Running rigid registration ***" << timedim  << std::endl << std::endl;
+          std::cout << std::endl << "*** Running rigid registration ***" << timedim  << std::endl << std::endl;
           rigidRegistration->Update();
           }
         catch( itk::ExceptionObject & e )
           {
-          antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->Get() ) );
@@ -1097,7 +1097,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( outputDisplacementFieldTransform );
@@ -1169,13 +1169,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         // Extract parameters
         typename DisplacementFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
         numberOfIterationsPerLevel.SetSize( numberOfLevels );
-        if( timedim == 0 ) ::ants::antscout << "SyN iterations:";
+        if( timedim == 0 ) std::cout << "SyN iterations:";
         for( unsigned int d = 0; d < numberOfLevels; d++ )
           {
 	  numberOfIterationsPerLevel[d] = iterations[d]; // currentStageIterations[d];
-	  if( timedim == 0 ) ::ants::antscout << numberOfIterationsPerLevel[d] << " ";
+	  if( timedim == 0 ) std::cout << numberOfIterationsPerLevel[d] << " ";
           }
-	if( timedim == 0 ) ::ants::antscout << std::endl;
+	if( timedim == 0 ) std::cout << std::endl;
 
         const RealType varianceForUpdateField = sigmaForUpdateField;
 	const RealType varianceForTotalField = sigmaForTotalField;
@@ -1209,7 +1209,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -1222,7 +1222,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        antscout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+        std::cout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
       if( currentStage == static_cast<int>(numberOfStages) - 1 )
@@ -1239,7 +1239,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       resampler->SetOutputParametersFromImage( fixed_time_slice );
       resampler->SetDefaultPixelValue( 0 );
       resampler->Update();
-      antscout << " done resampling timepoint : " << timedim << std::endl;
+      std::cout << " done resampling timepoint : " << timedim << std::endl;
 
       typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
       Iterator vfIter2(  resampler->GetOutput(), resampler->GetOutput()->GetLargestPossibleRegion() );
@@ -1267,7 +1267,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         {
         outputPrefix = outputOption->GetFunction( 0 )->GetName();
         }
-      antscout << "motion corrected out " << fileName <<  std::endl;
+      std::cout << "motion corrected out " << fileName <<  std::endl;
       WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 && outputImage && currentStage ==
@@ -1296,15 +1296,15 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       for( unsigned int i = 0; i < nimagestoavg; i++ )
         {
 	if ( i < timelist.size() ) timelistsort.push_back(timelist[i]);
-        antscout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
+        std::cout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
         }
       AverageTimeImages<MovingIOImageType, FixedIOImageType>( outputImage, avgImage, timelistsort );
-      antscout << " write average post " << fileName << std::endl;
+      std::cout << " write average post " << fileName << std::endl;
       WriteImage<FixedIOImageType>( avgImage, fileName.c_str() );
       }
     }
   totalTimer.Stop();
-  antscout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << " averagemetric " << metricmean
+  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << " averagemetric " << metricmean
            << std::endl;
     {
     std::vector<std::string> ColumnHeaders;
@@ -1321,7 +1321,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
     WriterType::Pointer writer = WriterType::New();
     std::string         fnmp;
-    antscout << " get motion corr params " << outputPrefix << std::endl;
+    std::cout << " get motion corr params " << outputPrefix << std::endl;
     if( outputPrefix[0] == '0' && outputPrefix[1] == 'x' )
       {
       std::stringstream strstream;
@@ -1330,12 +1330,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       strstream >> ptr;
       ( static_cast<std::pair<std::vector<std::string>, vnl_matrix<float> > *>( ptr ) )->first = ColumnHeaders;
       ( static_cast<std::pair<std::vector<std::string>, vnl_matrix<double> > *>( ptr ) )->second = param_values;
-      antscout << "motion-correction params written" << std::endl;
+      std::cout << "motion-correction params written" << std::endl;
       }
     else
       {
       fnmp = outputPrefix + std::string("MOCOparams.csv");
-      antscout << " write " << fnmp << std::endl;
+      std::cout << " write " << fnmp << std::endl;
       writer->SetFileName( fnmp.c_str() );
       writer->SetColumnHeaders(ColumnHeaders);
       writer->SetInput( &param_values );
@@ -1573,7 +1573,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  std::cout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
 
@@ -1593,7 +1593,7 @@ private:
 
   if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -1602,7 +1602,7 @@ private:
     }
   else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 
@@ -1616,11 +1616,11 @@ private:
     }
   else
     {
-    antscout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+    std::cout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
     return EXIT_FAILURE;
     }
 
-  antscout << std::endl << "Running " << argv[0] << "  for " << dimension << "-dimensional images." << std::endl
+  std::cout << std::endl << "Running " << argv[0] << "  for " << dimension << "-dimensional images." << std::endl
            << std::endl;
 
   switch( dimension )
@@ -1636,7 +1636,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return 0;

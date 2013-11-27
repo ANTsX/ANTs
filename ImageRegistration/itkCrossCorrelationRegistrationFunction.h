@@ -199,7 +199,7 @@ public:
           {
           this->m_MetricImage->SetPixel(oindex, cc);
           // if ( fabs(cc) > 0)
-          //     ::ants::antscout << " set cc " << cc << std::endl;
+          //     std::cout << " set cc " << cc << std::endl;
           }
         totalcc += cc;
         }

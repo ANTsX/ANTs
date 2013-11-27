@@ -420,7 +420,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
       wt = exp(-1. * wts[tt] / sigma);
       dists[tt] *= wt;
       totwt += wt;
-//      ::ants::antscout << " wt " << wt << std::endl;
+//      std::cout << " wt " << wt << std::endl;
       }
     if( totwt > 0 )
       {
@@ -431,7 +431,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
   vnl_svd<double>    svd(D);
   vnl_vector<double> a = svd.solve(dists);
 
-//  ::ants::antscout << " a vec " << a << std::endl;
+//  std::cout << " a vec " << a << std::endl;
 
 //  for (int tt=0; tt<6; tt++)
 //    if (a[tt] < 1.e-6) a[tt]=0.0;
@@ -458,13 +458,13 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
   if( origin[0] == 20 && origin[1] == 65 && origin[2] == 39 )
     {
-    ::ants::antscout << " surf params " << a << std::endl;
-    ::ants::antscout << " k1 " << m_Kappa1 << " k2 " << m_Kappa2 << std::endl;
+    std::cout << " surf params " << a << std::endl;
+    std::cout << " k1 " << m_Kappa1 << " k2 " << m_Kappa2 << std::endl;
     this->PrintFrame();
     for( unsigned int jj = 0; jj < npts; jj++ )
       {
-      ::ants::antscout << " point " << m_PointList[jj];
-      ::ants::antscout << " dist " << dists[jj] << std::endl;
+      std::cout << " point " << m_PointList[jj];
+      std::cout << " dist " << dists[jj] << std::endl;
       }
     }
 
@@ -480,7 +480,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 //  m_MeanKappa=0.5*(m_Kappa1+m_Kappa2);
 //  m_GaussianKappa = m_Kappa1*m_Kappa2;
 //
-//  ::ants::antscout << " eval 0 " << m_Kappa1 << " eval 1 " << m_Kappa2 << std::endl;
+//  std::cout << " eval 0 " << m_Kappa1 << " eval 1 " << m_Kappa2 << std::endl;
 
   return;
 }
@@ -572,7 +572,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
   m_MeanKappa = 0.5 * (m_Kappa1 + m_Kappa2);
   m_GaussianKappa = m_Kappa1 * m_Kappa2;
-//  ::ants::antscout << " eval 0 " << m_Kappa1 << " eval 1 " << m_Kappa2 << std::endl;
+//  std::cout << " eval 0 " << m_Kappa1 << " eval 1 " << m_Kappa2 << std::endl;
 }
 
 template <typename TSurface, unsigned int TDimension>
@@ -719,7 +719,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
   // Read points from stdin
   MatrixType pts;
 
-  ::ants::antscout << " input points " << std::endl;
+  std::cout << " input points " << std::endl;
 
   vcl_cin >> pts;
 
@@ -744,7 +744,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::TestEstimateTangentPlane(Point
   avgpt /= count;
   if( m_Debug )
     {
-    ::ants::antscout << " avg " << avgpt << std::endl;
+    std::cout << " avg " << avgpt << std::endl;
     }
 
   origin = avgpt;
@@ -785,7 +785,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::FindNeighborhood(unsigned int 
   // Read points from stdin
   MatrixType pts;
 
-  ::ants::antscout << " input points " << std::endl;
+  std::cout << " input points " << std::endl;
 
   vcl_cin >> pts;
 
@@ -812,12 +812,12 @@ void  SurfaceCurvatureBase<TSurface, TDimension>::FindNeighborhood(unsigned int 
   m_AveragePoint /= (RealType)npts;
   if( m_Debug )
     {
-    ::ants::antscout << " point list size " << m_PointList.size() << std::endl;
+    std::cout << " point list size " << m_PointList.size() << std::endl;
     for( unsigned int i = 0; i < m_PointList.size(); i++ )
       {
-      ::ants::antscout << " point  " << m_PointList[i];
+      std::cout << " point  " << m_PointList[i];
       }
-    ::ants::antscout << std::endl;
+    std::cout << std::endl;
     }
 }
 
@@ -835,7 +835,7 @@ void   SurfaceCurvatureBase<TSurface, TDimension>::ChooseReferenceTangent()
   m_ArbitraryTangent /= m_ArbitraryTangent.magnitude();
   if( m_Debug )
     {
-    ::ants::antscout << " arb tan " << m_ArbitraryTangent << std::endl;
+    std::cout << " arb tan " << m_ArbitraryTangent << std::endl;
     }
 }
 
@@ -907,7 +907,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
     if( m_Origin[0] == 95 && m_Origin[1] == 94 && m_Origin[2] == 63 )
       {
-      ::ants::antscout << " tdk " << m_TotalDKap << " nor " << m_Normal << " dk "
+      std::cout << " tdk " << m_TotalDKap << " nor " << m_Normal << " dk "
                        << m_DirectionalKappa << " dif " << Dif << " mpv " << m_PlaneVector << std::endl;
       // m_Debug=true;
       }
@@ -921,7 +921,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
   if( m_Origin[0] == 54 && m_Origin[1] == 54 && m_Origin[2] == 63 )
     {
-    ::ants::antscout << m_Origin << " tdk " << m_TotalDKap << " nor " << m_Normal << std::endl;
+    std::cout << m_Origin << " tdk " << m_TotalDKap << " nor " << m_Normal << std::endl;
     // m_Debug=true;
     }
   // Now compute A, B, C
@@ -932,10 +932,10 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
   if( m_Debug )
     {
-    ::ants::antscout << " weight " << m_WeightVector << std::endl;
-    ::ants::antscout << " theta " << m_ThetaVector << std::endl;
-    ::ants::antscout << " dkap  " << m_DirectionalKappaVector << std::endl;
-    ::ants::antscout << " A " << m_A << " B " << m_B << " C " << m_C << std::endl;
+    std::cout << " weight " << m_WeightVector << std::endl;
+    std::cout << " theta " << m_ThetaVector << std::endl;
+    std::cout << " dkap  " << m_DirectionalKappaVector << std::endl;
+    std::cout << " A " << m_A << " B " << m_B << " C " << m_C << std::endl;
     }
 }
 
@@ -986,9 +986,9 @@ typename SurfaceCurvatureBase<TSurface, TDimension>::RealType   SurfaceCurvature
   RealType tot = 1; // fabs(u1)+fabs(u2);
 //   if (tot ==0)
     {
-//    ::ants::antscout << " tan1 " << m_Tangent1 << " tan2 " << m_Tangent2 << std::endl;
-//    ::ants::antscout << " norm " << m_Normal << " u1 " << u1 << " u2 " << u2 << std::endl;
-//    ::ants::antscout << " Origin " << m_Origin << " Q " << Q << std::endl;
+//    std::cout << " tan1 " << m_Tangent1 << " tan2 " << m_Tangent2 << std::endl;
+//    std::cout << " norm " << m_Normal << " u1 " << u1 << " u2 " << u2 << std::endl;
+//    std::cout << " Origin " << m_Origin << " Q " << Q << std::endl;
 //    tot=1.;
     }
   RealType pvMag = 0;
@@ -1008,7 +1008,7 @@ typename SurfaceCurvatureBase<TSurface, TDimension>::RealType   SurfaceCurvature
 
   if( m_Debug )
     {
-    ::ants::antscout << " m_PlaneVector " << m_PlaneVector << " dif " << Dif << std::endl;
+    std::cout << " m_PlaneVector " << m_PlaneVector << " dif " << Dif << std::endl;
     }
 
   float temp = (sqrt(pvMag) * sqrt(arbMag) );
@@ -1074,8 +1074,8 @@ void     SurfaceCurvatureBase<TSurface, TDimension>
   m_MeanKappa = 0.5 * (m_Kappa1 + m_Kappa2);
   m_GaussianKappa = m_Kappa1 * m_Kappa2;
 
-//  ::ants::antscout << " eval test " << w1*m_Kappa1 + w2*m_Kappa2 << " e1 " << m_Eval1 << std::endl;
-//  ::ants::antscout << " eval test " << w3*m_Kappa1 + w4*m_Kappa2 << " e2 " << m_Eval2 << std::endl;
+//  std::cout << " eval test " << w1*m_Kappa1 + w2*m_Kappa2 << " e1 " << m_Eval1 << std::endl;
+//  std::cout << " eval test " << w3*m_Kappa1 + w4*m_Kappa2 << " e2 " << m_Eval2 << std::endl;
 }
 
 /** */
@@ -1083,13 +1083,13 @@ template <typename TSurface, unsigned int TDimension>
 void     SurfaceCurvatureBase<TSurface, TDimension>
 ::PrintFrame()
 {
-  ::ants::antscout << " normal " << m_Normal << std::endl;
-  ::ants::antscout << " t1 " << m_Tangent1 << std::endl;
-  ::ants::antscout << " t2 " << m_Tangent2 << std::endl;
-  ::ants::antscout << " k1 " << m_Kappa1 << " k2 " << m_Kappa2 << std::endl;
-  ::ants::antscout << " e0 " << m_Eval0 << " e1 " << m_Eval1 << " e2 " << m_Eval2 << std::endl;
-  ::ants::antscout << " A " << m_A << " B " <<  m_B << " C " << m_C << std::endl;
-  ::ants::antscout << std::endl;
+  std::cout << " normal " << m_Normal << std::endl;
+  std::cout << " t1 " << m_Tangent1 << std::endl;
+  std::cout << " t2 " << m_Tangent2 << std::endl;
+  std::cout << " k1 " << m_Kappa1 << " k2 " << m_Kappa2 << std::endl;
+  std::cout << " e0 " << m_Eval0 << " e1 " << m_Eval1 << " e2 " << m_Eval2 << std::endl;
+  std::cout << " A " << m_A << " B " <<  m_B << " C " << m_C << std::endl;
+  std::cout << std::endl;
 }
 
 /** */
@@ -1165,8 +1165,8 @@ SurfaceCurvatureBase<TSurface, TDimension>
       }
     }
   if (m_Debug){
-      ::ants::antscout << " single point error " << minrel << " mins " << s<< std::endl;
-      ::ants::antscout << " est pt " << est << " pt " << qp << std::endl << std::endl;
+      std::cout << " single point error " << minrel << " mins " << s<< std::endl;
+      std::cout << " est pt " << est << " pt " << qp << std::endl << std::endl;
     }
     toterror+=minrel;
 */
@@ -1176,7 +1176,7 @@ SurfaceCurvatureBase<TSurface, TDimension>
 
   if( m_Debug )
     {
-    ::ants::antscout << " tot error " << 1. / ( (float)npts + 1) * toterror << std::endl;
+    std::cout << " tot error " << 1. / ( (float)npts + 1) * toterror << std::endl;
     }
 
   return 1. / ( (float)npts + 1) * toterror;
@@ -1212,7 +1212,7 @@ void  SurfaceCurvatureBase<TSurface, TDimension>
 
   if( m_MetricTensorDeterminant < 0.0 )
     {
-    ::ants::antscout << "bad metric tensor ";
+    std::cout << "bad metric tensor ";
     }
 }
 
@@ -1325,12 +1325,12 @@ float  SurfaceCurvatureBase<TSurface, TDimension>
   m_MetricTensor[2] = cc;
   float denom = sqrt(aa * cc - bb * bb);
 //  denom=1.0;
-//  ::ants::antscout << " denom " << denom << " dx " << dx << " dy " << dy << std::endl;
-// ::ants::antscout << " a " << aa << " b " << bb << " c " << cc << std::endl;
+//  std::cout << " denom " << denom << " dx " << dx << " dy " << dy << std::endl;
+// std::cout << " a " << aa << " b " << bb << " c " << cc << std::endl;
 
   float dstarU = 1.0 / denom * (  (bb * Ux - aa * Uy) * dx + (cc * Ux - bb * Uy) * dy );
 
-// ::ants::antscout << " dstarU " << dstarU << std::endl;
+// std::cout << " dstarU " << dstarU << std::endl;
 
   return dstarU;
 }

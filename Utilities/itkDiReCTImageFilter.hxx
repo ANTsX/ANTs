@@ -86,7 +86,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 {
   if ( this->m_ThicknessPriorImage )
     {
-    ::ants::antscout << "Using prior thickness image." << std::endl;
+    std::cout << "Using prior thickness image." << std::endl;
     }
   this->m_CurrentGradientStep = this->m_InitialGradientStep;
 
@@ -902,29 +902,29 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 {
   Superclass::PrintSelf( os, indent );
 
-  ::ants::antscout << indent << "Gray matter label = "
+  std::cout << indent << "Gray matter label = "
                    << this->m_GrayMatterLabel << std::endl;
-  ::ants::antscout << indent << "White matter label = "
+  std::cout << indent << "White matter label = "
                    << this->m_WhiteMatterLabel << std::endl;
-  ::ants::antscout << indent << "Maximum number of iterations = "
+  std::cout << indent << "Maximum number of iterations = "
                    << this->m_MaximumNumberOfIterations << std::endl;
-  ::ants::antscout << indent << "Thickness prior estimate = "
+  std::cout << indent << "Thickness prior estimate = "
                    << this->m_ThicknessPriorEstimate << std::endl;
-  ::ants::antscout << indent << "Smoothing sigma = "
+  std::cout << indent << "Smoothing sigma = "
                    << this->m_SmoothingVariance << std::endl;
-  ::ants::antscout << indent << "Smoothing velocity field sigma = "
+  std::cout << indent << "Smoothing velocity field sigma = "
                    << this->m_SmoothingVelocityFieldVariance << std::endl;
-  ::ants::antscout << indent << "Number of integration points = "
+  std::cout << indent << "Number of integration points = "
                    << this->m_NumberOfIntegrationPoints << std::endl;
-  ::ants::antscout << indent << "Maximum number of invert displacement field iterations = "
+  std::cout << indent << "Maximum number of invert displacement field iterations = "
                    << this->m_MaximumNumberOfInvertDisplacementFieldIterations << std::endl;
-  ::ants::antscout << indent << "Initial gradient step = "
+  std::cout << indent << "Initial gradient step = "
                    << this->m_InitialGradientStep << std::endl;
-  ::ants::antscout << indent << "Current gradient step = "
+  std::cout << indent << "Current gradient step = "
                    << this->m_CurrentGradientStep << std::endl;
-  ::ants::antscout << indent << "Convergence threshold = "
+  std::cout << indent << "Convergence threshold = "
                    << this->m_ConvergenceThreshold << std::endl;
-  ::ants::antscout << indent << "Convergence window size = "
+  std::cout << indent << "Convergence window size = "
                    << this->m_ConvergenceWindowSize << std::endl;
 }
 } // end namespace itk

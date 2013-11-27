@@ -87,7 +87,7 @@ void write_transform_file(TransformPointerType & transform, StringType filename)
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
                      << "Exception in writing tranform file: " << std::endl
                      << filename << std::endl;
     return;
@@ -116,8 +116,8 @@ void read_transform_file(StringType filename, CastTransformPointerType & transfo
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << err << std::endl;
-    ::ants::antscout << "Exception caught in reading tran para file: "
+    std::cout << err << std::endl;
+    std::cout << "Exception caught in reading tran para file: "
                      << filename << std::endl;
     return;
     }
@@ -213,12 +213,12 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
   // TODO: need to fix here
   bool b_use_mask = 0;   // (mask_fixed == NULL);
 
-  ::ants::antscout << "number_of_seeds: " << number_of_seeds << std::endl;
-  ::ants::antscout << "rand_time_seed: " << time_seed << std::endl;
-  ::ants::antscout << "number_of_iteration: " << number_of_iteration << std::endl;
-  ::ants::antscout << "MI_bins: " << MI_bins << std::endl;
-  ::ants::antscout << "MI_samples: " << MI_samples << std::endl;
-  ::ants::antscout << "use mask: " << b_use_mask << std::endl;
+  std::cout << "number_of_seeds: " << number_of_seeds << std::endl;
+  std::cout << "rand_time_seed: " << time_seed << std::endl;
+  std::cout << "number_of_iteration: " << number_of_iteration << std::endl;
+  std::cout << "MI_bins: " << MI_bins << std::endl;
+  std::cout << "MI_samples: " << MI_samples << std::endl;
+  std::cout << "use mask: " << b_use_mask << std::endl;
 
   // memory of searched results
   typedef SEARCH_POINT_TYPE<ParaType, ImageDimension> SEARCH_POINT;
@@ -265,7 +265,7 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
     is_ok = register_image_cxyz(I_fixed, I_moving, para_cxy, rval);
     if( !is_ok )
       {
-      ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
                        << "initial affine registeration falied" << std::endl;
       std::exception();
       }
@@ -280,7 +280,7 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
     center[2] = transform_initial->GetCenter()[2];
     }
 
-  ::ants::antscout << std::endl;
+  std::cout << std::endl;
   for( int n = 0; (number_of_seeds > 0) ? (n < number_of_seeds) : (n <= number_of_seeds); n++ )
     {
     if( n == 0 )
@@ -313,7 +313,7 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
                                         rval);
     if( !is_ok )
       {
-      ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
                        << "affine registration failed!" << std::endl
                        << "use the initial parameters" << std::endl;
       // return -1;
@@ -326,41 +326,41 @@ void compute_single_affine_transform_3d(ImagePointerType I_fixed, ImagePointerTy
     spt.index = n;
     spt.number_of_iteration = number_of_iteration;
 
-    ::ants::antscout << "para0: " << para0 << std::endl;
-    ::ants::antscout << "para1: " << para1 << std::endl;
-    ::ants::antscout << "center: " << center << std::endl;
-    ::ants::antscout << "rval: " << rval << std::endl;
-    ::ants::antscout << "add the search result to the list ... seed [" << n << "]" << std::endl << std::endl;
+    std::cout << "para0: " << para0 << std::endl;
+    std::cout << "para1: " << para1 << std::endl;
+    std::cout << "center: " << center << std::endl;
+    std::cout << "rval: " << rval << std::endl;
+    std::cout << "add the search result to the list ... seed [" << n << "]" << std::endl << std::endl;
 
     add_search_point(search_list, spt);
     }
   get_best_search_point(search_list, spt);
 
-  ::ants::antscout << std::endl << "History: " << std::endl;
+  std::cout << std::endl << "History: " << std::endl;
   for( int ii = 0; ii < search_list.size(); ii++ )
     {
-    ::ants::antscout << "[" << ii << "]: " << search_list[ii].rval << std::endl;
-    ::ants::antscout << "center: "  << search_list[ii].center << std::endl;
-    ::ants::antscout << "para0: " << search_list[ii].para0 << std::endl;
-    ::ants::antscout << "para1: " << search_list[ii].para1 << std::endl;
+    std::cout << "[" << ii << "]: " << search_list[ii].rval << std::endl;
+    std::cout << "center: "  << search_list[ii].center << std::endl;
+    std::cout << "para0: " << search_list[ii].para0 << std::endl;
+    std::cout << "para1: " << search_list[ii].para1 << std::endl;
     }
 
   typename TransformType::Pointer transform_final = TransformType::New();
   transform_final->SetParameters(spt.para1);
   transform_final->SetCenter(center);
 
-  ::ants::antscout << "final transform  parameters = " << transform_final->GetParameters() << std::endl;
+  std::cout << "final transform  parameters = " << transform_final->GetParameters() << std::endl;
 
   transform = transform_final;
 }
 
 double myrand(double l, double u)
 {
-  //  ::ants::antscout<<"in myrand" << std::endl;
+  //  std::cout<<"in myrand" << std::endl;
   double r = l + (u - l) * rand() / (RAND_MAX + 1.0);
 
   return r;
-  // ::ants::antscout<<"out myrand" << std::endl;
+  // std::cout<<"out myrand" << std::endl;
 }
 
 template <class ParaType>
@@ -431,7 +431,7 @@ void generate_search_seed_3d(SEARCH_LIST & search_list, ParaType & para)
     para[9] = k3;
 
     //
-    ::ants::antscout << "test rand: " << para << " iteration " << iteration <<  std::endl;
+    std::cout << "test rand: " << para << " iteration " << iteration <<  std::endl;
 
     // search nearby search points
     bool bfar = 1;
@@ -442,14 +442,14 @@ void generate_search_seed_3d(SEARCH_LIST & search_list, ParaType & para)
       double   d0 = dist2_search_point(para0, para);
       double   d1 = dist2_search_point(para1, para);
 
-      // ::ants::antscout << "compare with para0: " << d0 << para0 << std::endl;
-      // ::ants::antscout << "compare with para1: " << d1 << para1 << std::endl;
+      // std::cout << "compare with para0: " << d0 << para0 << std::endl;
+      // std::cout << "compare with para1: " << d1 << para1 << std::endl;
 
       bfar = bfar & (d0 > dist2_thres) & (d1 > dist2_thres);
       }
 
     b_found = bfar;
-    // ::ants::antscout << "b_found = " << b_found << " bfar = " << bfar << std::endl;
+    // std::cout << "b_found = " << b_found << " bfar = " << bfar << std::endl;
     }
 
   // ret = para;
@@ -476,7 +476,7 @@ void generate_search_seed_2d(SEARCH_LIST & search_list, ParaType & para)
   while( b_found == 0 &&  iteration < maxiteration )
     {
     //  for(;~b_found; ){
-    // ::ants::antscout << "b_found = " << b_found << std::endl;
+    // std::cout << "b_found = " << b_found << std::endl;
     iteration++;
     r1 = myrand(theta_lower, theta_upper);
     s1 = myrand(scale_lower, scale_upper);
@@ -489,7 +489,7 @@ void generate_search_seed_2d(SEARCH_LIST & search_list, ParaType & para)
     para[3] = k;
 
     //
-    // ::ants::antscout << "test rand: " << para << " iteration " << iteration <<  std::endl;
+    // std::cout << "test rand: " << para << " iteration " << iteration <<  std::endl;
 
     // search nearby search points
     bool bfar = 1;
@@ -500,14 +500,14 @@ void generate_search_seed_2d(SEARCH_LIST & search_list, ParaType & para)
       double   d0 = dist2_search_point(para0, para);
       double   d1 = dist2_search_point(para1, para);
 
-      // ::ants::antscout << "compare with para0: " << d0 << para0 << std::endl;
-      // ::ants::antscout << "compare with para1: " << d1 << para1 << std::endl;
+      // std::cout << "compare with para0: " << d0 << para0 << std::endl;
+      // std::cout << "compare with para1: " << d1 << para1 << std::endl;
 
       bfar = bfar & (d0 > dist2_thres) & (d1 > dist2_thres);
       }
 
     b_found = bfar;
-    // ::ants::antscout << "b_found = " << b_found << " bfar = " << bfar << std::endl;
+    // std::cout << "b_found = " << b_found << " bfar = " << bfar << std::endl;
     }
 }
 
@@ -561,7 +561,7 @@ double get_cost_value_mmi(ImagePointerType fixedImage, ImagePointerType movingIm
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
                      << "Exception caught in computing mattesMutualInfo after registration" << std::endl
                      << "Maybe: Too many samples map outside moving image buffer" << std::endl
                      << "Set the cost value = 0 (max for MutualInfo) " << std::endl;
@@ -581,15 +581,15 @@ double get_cost_value_mmi(ImagePointerType fixedImage, ImagePointerType movingIm
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
                      << "Exception caught in computing mattesMutualInfo before registration" << std::endl
                      << "Maybe: Too many samples map outside moving image buffer" << std::endl
                      << "Set the cost value = 0 (max for MutualInfo) " << std::endl;
     rval0 = 0;
     }
 
-  ::ants::antscout << "in cost: before register: cost = " << rval0 << std::endl;
-  ::ants::antscout << "in cost: after register: cost = " << rval << std::endl;
+  std::cout << "in cost: before register: cost = " << rval0 << std::endl;
+  std::cout << "in cost: after register: cost = " << rval << std::endl;
 
   return rval;
 }
@@ -622,15 +622,15 @@ bool register_image_cxy(ImagePointerType fixed_image, ImagePointerType moving_im
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl
                      << "Exception in InitializeTransform" << std::endl;
     return false;
     }
 
   para1 = transform->GetParameters();
 
-  ::ants::antscout << "finish initialize cx/cy/cz ..." << std::endl;
-  ::ants::antscout << "cx/cy parameters (Euler3D): " << para1 << std::endl;
+  std::cout << "finish initialize cx/cy/cz ..." << std::endl;
+  std::cout << "cx/cy parameters (Euler3D): " << para1 << std::endl;
 
   return true;
 }
@@ -663,15 +663,15 @@ bool register_image_cxyz(ImagePointerType fixed_image, ImagePointerType moving_i
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl
                      << "Exception in InitializeTransform" << std::endl;
     return false;
     }
 
   para1 = transform->GetParameters();
 
-  ::ants::antscout << "finish initialize cx/cy/cz ..." << std::endl;
-  ::ants::antscout << "cx/cy parameters (Euler3D): " << para1 << std::endl;
+  std::cout << "finish initialize cx/cy/cz ..." << std::endl;
+  std::cout << "cx/cy parameters (Euler3D): " << para1 << std::endl;
 
   return true;
 }
@@ -697,8 +697,8 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
   if( mask_fixed_object )
     {
     metric->SetFixedImageMask(mask_fixed_object);
-    ::ants::antscout << mask_fixed_object << std::endl;
-    ::ants::antscout << mask_fixed_object->GetImage() << std::endl;
+    std::cout << mask_fixed_object << std::endl;
+    std::cout << mask_fixed_object->GetImage() << std::endl;
     }
 
   // typedef TransformType_Rigid2D TransformType_Pre;
@@ -724,12 +724,12 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
   /*******************************************/
   /* translate to para0 here */
 
-  ::ants::antscout << "pre registration para :" << para0 << std::endl;
+  std::cout << "pre registration para :" << para0 << std::endl;
 
   typedef itk::ANTSAffine3DTransform<double> TransformType_ANTSAffine3D;
   typename TransformType_ANTSAffine3D::Pointer  transform_a = TransformType_ANTSAffine3D::New();
   transform_a->SetCenter(center);
-  ::ants::antscout << "initial center: " << transform_a->GetCenter() << std::endl;
+  std::cout << "initial center: " << transform_a->GetCenter() << std::endl;
 
   //  typedef OptimizerType::ScalesType       OptimizerScalesType;
   OptimizerScalesType optimizerScales_a( transform_a->GetNumberOfParameters() );
@@ -776,12 +776,12 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
   //  registration->SetInitialTransformParameters(para_pre );
   registration->SetInitialTransformParameters(para0 );
 
-  ::ants::antscout << "reset initial transform parameters" << std::endl;
-  ::ants::antscout << "para_pre: " << para0 << std::endl;
-  // ::ants::antscout << "transform_a: " << transform_a << std::endl;
+  std::cout << "reset initial transform parameters" << std::endl;
+  std::cout << "para_pre: " << para0 << std::endl;
+  // std::cout << "transform_a: " << transform_a << std::endl;
 
   rval = get_cost_value_mmi(fixed_image, moving_image, para0, center, transform_a);
-  ::ants::antscout << "init measure value: rval = " << rval << std::endl;
+  std::cout << "init measure value: rval = " << rval << std::endl;
 
   // rval = optimizer->GetValue(para0);
   // rval = metric->GetValue(para0);
@@ -793,8 +793,8 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "ExceptionObject caught !" << std::endl;
-    ::ants::antscout << err << std::endl;
+    std::cout << "ExceptionObject caught !" << std::endl;
+    std::cout << err << std::endl;
     bsuc = 0;
     // std::exception();
     }
@@ -811,7 +811,7 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
 
     rval = get_cost_value_mmi(fixed_image, moving_image, para1, center, transform_a);
     // double rval2 = optimizer->GetValue();
-    // ::ants::antscout << "measure value: rval2 = " << rval2 << std::endl;
+    // std::cout << "measure value: rval2 = " << rval2 << std::endl;
     }
   else
     {
@@ -820,10 +820,10 @@ bool register_image_affine3d_mres_mask(ImagePointerType fixed_image,
     rval = get_cost_value_mmi(fixed_image, moving_image, para1, center, transform_a);
     }
 
-  ::ants::antscout << "final affine3d registration para :" << para1 << std::endl;
-  ::ants::antscout << "use iteration: " << optimizer->GetNumberOfIterations() << std::endl;
-  ::ants::antscout << "measure value: rval = " << rval << std::endl;
-  ::ants::antscout << "finish register..."  <<  std::endl;
+  std::cout << "final affine3d registration para :" << para1 << std::endl;
+  std::cout << "use iteration: " << optimizer->GetNumberOfIterations() << std::endl;
+  std::cout << "measure value: rval = " << rval << std::endl;
+  std::cout << "finish register..."  <<  std::endl;
 
   return bsuc;
 }
@@ -849,8 +849,8 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
   if( mask_fixed_object )
     {
     metric->SetFixedImageMask(mask_fixed_object);
-    ::ants::antscout << mask_fixed_object << std::endl;
-    ::ants::antscout << mask_fixed_object->GetImage() << std::endl;
+    std::cout << mask_fixed_object << std::endl;
+    std::cout << mask_fixed_object->GetImage() << std::endl;
     }
 
   // typedef TransformType_Rigid2D TransformType_Pre;
@@ -876,7 +876,7 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
   /*******************************************/
   /* translate to para0 here */
 
-  ::ants::antscout << "pre registration para :" << para0 << std::endl;
+  std::cout << "pre registration para :" << para0 << std::endl;
 
   // typedef itk::CenteredAffine2DTransform<double> TransformType;
 //    typedef itk::CenteredAffine2DTransform<double> TransformType_GSAffine2D;
@@ -884,7 +884,7 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
   typedef itk::ANTSCenteredAffine2DTransform<double> TransformType_ANTSAffine2D;
   typename TransformType_ANTSAffine2D::Pointer  transform_a = TransformType_ANTSAffine2D::New();
   // transform_a->SetCenter(center);
-  // ::ants::antscout<<"initial center: " << transform_a->GetCenter() << std::endl;
+  // std::cout<<"initial center: " << transform_a->GetCenter() << std::endl;
 
   OptimizerScalesType optimizerScales_a( transform_a->GetNumberOfParameters() );
   const double        translationScale = 1.0 / 1000.0;
@@ -923,12 +923,12 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
   //  registration->SetInitialTransformParameters(para_pre );
   registration->SetInitialTransformParameters(para0 );
 
-  ::ants::antscout << "reset initial transform parameters" << std::endl;
-  ::ants::antscout << "para_pre: " << para0 << std::endl;
-  // ::ants::antscout << "transform_a: " << transform_a << std::endl;
+  std::cout << "reset initial transform parameters" << std::endl;
+  std::cout << "para_pre: " << para0 << std::endl;
+  // std::cout << "transform_a: " << transform_a << std::endl;
 
   rval = get_cost_value_mmi(fixed_image, moving_image, para0, center, transform_a);
-  ::ants::antscout << "init measure value: rval = " << rval << std::endl;
+  std::cout << "init measure value: rval = " << rval << std::endl;
 
   // rval = optimizer->GetValue(para0);
   // rval = metric->GetValue(para0);
@@ -940,8 +940,8 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
     }
   catch( itk::ExceptionObject & err )
     {
-    ::ants::antscout << "ExceptionObject caught !" << std::endl;
-    ::ants::antscout << err << std::endl;
+    std::cout << "ExceptionObject caught !" << std::endl;
+    std::cout << err << std::endl;
     bsuc = 0;
     // std::exception();
     }
@@ -958,7 +958,7 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
 
     rval = get_cost_value_mmi(fixed_image, moving_image, para1, center, transform_a);
     // double rval2 = optimizer->GetValue();
-    // ::ants::antscout << "measure value: rval2 = " << rval2 << std::endl;
+    // std::cout << "measure value: rval2 = " << rval2 << std::endl;
     }
   else
     {
@@ -967,10 +967,10 @@ bool register_image_affine2d_mres_mask(ImagePointerType fixed_image,
     rval = get_cost_value_mmi(fixed_image, moving_image, para1, center, transform_a);
     }
 
-  ::ants::antscout << "final affine2d registration para :" << para1 << std::endl;
-  ::ants::antscout << "use iteration: " << optimizer->GetNumberOfIterations() << std::endl;
-  ::ants::antscout << "measure value: rval = " << rval << std::endl;
-  ::ants::antscout << "finish register..."  <<  std::endl;
+  std::cout << "final affine2d registration para :" << para1 << std::endl;
+  std::cout << "use iteration: " << optimizer->GetNumberOfIterations() << std::endl;
+  std::cout << "measure value: rval = " << rval << std::endl;
+  std::cout << "finish register..."  <<  std::endl;
 
   return bsuc;
 }
@@ -1004,12 +1004,12 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
   // TODO: need to fix here
   bool b_use_mask = 0;   // (mask_fixed == NULL);
 
-  ::ants::antscout << "number_of_seeds: " << number_of_seeds << std::endl;
-  ::ants::antscout << "rand_time_seed: " << time_seed << std::endl;
-  ::ants::antscout << "number_of_iteration: " << number_of_iteration << std::endl;
-  ::ants::antscout << "MI_bins: " << MI_bins << std::endl;
-  ::ants::antscout << "MI_samples: " << MI_samples << std::endl;
-  ::ants::antscout << "use mask: " << b_use_mask << std::endl;
+  std::cout << "number_of_seeds: " << number_of_seeds << std::endl;
+  std::cout << "rand_time_seed: " << time_seed << std::endl;
+  std::cout << "number_of_iteration: " << number_of_iteration << std::endl;
+  std::cout << "MI_bins: " << MI_bins << std::endl;
+  std::cout << "MI_samples: " << MI_samples << std::endl;
+  std::cout << "use mask: " << b_use_mask << std::endl;
 
   // memory of searched results
   typedef SEARCH_POINT_TYPE<ParaType, ImageDimension> SEARCH_POINT;
@@ -1057,7 +1057,7 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
     is_ok = register_image_cxy(I_fixed, I_moving, para_cxy, rval);
     if( !is_ok )
       {
-      ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
                        << "initial affine registeration falied" << std::endl;
       std::exception();
       }
@@ -1065,16 +1065,16 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
     center[0] = para_cxy[1];
     center[1] = para_cxy[2];
 
-    ::ants::antscout << "is_ok=" << is_ok << "para_cxy:" << para_cxy << std::endl;
+    std::cout << "is_ok=" << is_ok << "para_cxy:" << para_cxy << std::endl;
     }
   else
     {
     center[0] = transform_initial->GetCenter()[0];
     center[1] = transform_initial->GetCenter()[1];
-    ::ants::antscout << "input transform: " << transform_initial << std::endl;
+    std::cout << "input transform: " << transform_initial << std::endl;
     }
 
-  ::ants::antscout << "initial center: (" << center[0] << "," << center[1] << ")" << std::endl;
+  std::cout << "initial center: (" << center[0] << "," << center[1] << ")" << std::endl;
   for( int n = 0; (number_of_seeds > 0) ? (n < number_of_seeds) : (n <= number_of_seeds); n++ )
     {
     if( n == 0 )
@@ -1091,7 +1091,7 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
         para0[6] = para_cxy[3]; // 0;//para1[3]; //t1
         para0[7] = para_cxy[4]; // 0; //para1[4]; //t2
 
-        ::ants::antscout << "ABC: " << std::endl;
+        std::cout << "ABC: " << std::endl;
         }
       else
         {
@@ -1099,7 +1099,7 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
           {
           para0[i] = transform_initial->GetParameters()[i];
           }
-        ::ants::antscout << "DEF: " << std::endl;
+        std::cout << "DEF: " << std::endl;
         }
       }
     else
@@ -1112,7 +1112,7 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
                                               center, number_of_iteration, MI_bins, MI_samples, para1, rval);
     if( !is_ok )
       {
-      ::ants::antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+      std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
                        << "affine registration failed!" << std::endl
                        << "use the initial parameters" << std::endl;
       // return -1;
@@ -1125,30 +1125,30 @@ void compute_single_affine_transform_2d(ImagePointerType I_fixed, ImagePointerTy
     spt.index = n;
     spt.number_of_iteration = number_of_iteration;
 
-    ::ants::antscout << "para0: " << para0 << std::endl;
-    ::ants::antscout << "para1: " << para1 << std::endl;
-    ::ants::antscout << "center: " << center << std::endl;
-    ::ants::antscout << "rval: " << rval << std::endl;
-    ::ants::antscout << "add the search result to the list ... seed [" << n << "]" << std::endl << std::endl;
+    std::cout << "para0: " << para0 << std::endl;
+    std::cout << "para1: " << para1 << std::endl;
+    std::cout << "center: " << center << std::endl;
+    std::cout << "rval: " << rval << std::endl;
+    std::cout << "add the search result to the list ... seed [" << n << "]" << std::endl << std::endl;
 
     add_search_point(search_list, spt);
     }
   get_best_search_point(search_list, spt);
 
-  ::ants::antscout << std::endl << "History: " << std::endl;
+  std::cout << std::endl << "History: " << std::endl;
   for( int ii = 0; ii < search_list.size(); ii++ )
     {
-    ::ants::antscout << "[" << ii << "]: " << search_list[ii].rval << std::endl;
-    ::ants::antscout << "center: "  << search_list[ii].center << std::endl;
-    ::ants::antscout << "para0: " << search_list[ii].para0 << std::endl;
-    ::ants::antscout << "para1: " << search_list[ii].para1 << std::endl;
+    std::cout << "[" << ii << "]: " << search_list[ii].rval << std::endl;
+    std::cout << "center: "  << search_list[ii].center << std::endl;
+    std::cout << "para0: " << search_list[ii].para0 << std::endl;
+    std::cout << "para1: " << search_list[ii].para1 << std::endl;
     }
 
   typename TransformType::Pointer transform_final = TransformType::New();
   transform_final->SetParameters(spt.para1);
   transform_final->SetCenter(center);
 
-  ::ants::antscout << "final transform  parameters = " << transform_final->GetParameters() << std::endl;
+  std::cout << "final transform  parameters = " << transform_final->GetParameters() << std::endl;
 
   transform = transform_final;
 }
@@ -1166,7 +1166,7 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
   typedef typename MaskImageType::IOPixelType       MaskPixelType;
   typedef typename TransformPointerType::ObjectType TransformType;
 
-  ::ants::antscout << "transform_initial: IsNotNull():" << transform_initial.IsNotNull() << std::endl;
+  std::cout << "transform_initial: IsNotNull():" << transform_initial.IsNotNull() << std::endl;
 
   if( ImageDimension == 2 )
     {
@@ -1174,7 +1174,7 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
     RunningAffineTransformType::Pointer transform_running = RunningAffineTransformType::New();
     RunningAffineTransformType::Pointer transform_running_initial;     // = RunningAffineTransformType::New();
 
-    ::ants::antscout << "1: transform_running_initial: IsNotNull():" << transform_running_initial.IsNotNull()
+    std::cout << "1: transform_running_initial: IsNotNull():" << transform_running_initial.IsNotNull()
                      << std::endl;
 
     if( transform_initial.IsNotNull() )
@@ -1199,7 +1199,7 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
     R_ImagePointerType & R_movingImage = reinterpret_cast<R_ImagePointerType &>(movingImage);
     R_ImagePointerType & R_maskImage = reinterpret_cast<R_ImagePointerType &>(maskImage);
 
-    ::ants::antscout << "2: transform_running_initial: IsNotNull():" << transform_running_initial.IsNotNull()
+    std::cout << "2: transform_running_initial: IsNotNull():" << transform_running_initial.IsNotNull()
                      << std::endl;
 
     compute_single_affine_transform_2d(R_fixedImage, R_movingImage, R_maskImage, transform_running,
@@ -1269,7 +1269,7 @@ void compute_single_affine_transform(ImagePointerType fixedImage, ImagePointerTy
     }
   else
     {
-    ::ants::antscout << "Unsupported, not 2D/ 3D" << std::endl;
+    std::cout << "Unsupported, not 2D/ 3D" << std::endl;
     return;
     }
 }
@@ -1315,10 +1315,10 @@ void compose_affine_with_field(const TransformPointerType & aff, const Displacem
 
   // iterate through field_output finding the points that it maps to via field.
   // then take the difference from the original point and put it in the output field.
-  // ::ants::antscout << " begin iteration " << std::endl;
+  // std::cout << " begin iteration " << std::endl;
   FieldIterator iter_field(field, field->GetLargestPossibleRegion() );
 
-  // ::ants::antscout << field_output->GetLargestPossibleRegion() << std::endl;
+  // std::cout << field_output->GetLargestPossibleRegion() << std::endl;
 
   int cnt = 0;
   for( iter_field.GoToBegin(); !iter_field.IsAtEnd(); ++iter_field )
@@ -1343,7 +1343,7 @@ void compose_affine_with_field(const TransformPointerType & aff, const Displacem
     field_output->SetPixel(iter_field.GetIndex(), out);
     }
 
-  // ::ants::antscout << " end iteration " << std::endl;
+  // std::cout << " end iteration " << std::endl;
 }
 
 // this is obsolet, use itkWarpImageWAffineFilter
