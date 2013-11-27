@@ -12,7 +12,7 @@
 namespace ants
 {
 // We need to ensure that only one of these exists!
-boost::iostreams::stream<ants_Sink> std::cout( ( ants_Sink() ) );
+// boost::iostreams::stream<ants_Sink> std::cout( ( ants_Sink() ) );
 }
 
 TRAN_FILE_TYPE CheckFileType(const char * const str)
