@@ -4947,7 +4947,7 @@ int FitSphere(int argc, char *argv[])
         }
       cmdist=sqrt(cmdist);
       //          std::cout << " GMT " << gmtotal << " WMT " << wmtotal << " dist " << cmdist << std::endl;
-  float gmrad=pow( 3.*gvol/(4.*pi) , 1./3.);
+  float gmrad=vcl_pow( 3.*gvol/(4.*pi) , 1./3.);
   float gwrat=0,gvrat=0;
   if (warea > 0) gwrat=garea/warea;
   if (wvol > 0) gvrat=gvol/wvol;
@@ -5198,7 +5198,7 @@ int ImageMath(int argc, char *argv[])
       }
     else if( strcmp(operation.c_str(), "^") == 0 )
       {
-      result = pow(pix1, pix2);
+      result = vcl_pow(pix1, pix2);
       }
     else if( strcmp(operation.c_str(), "exp") == 0 )
       {
@@ -9699,7 +9699,7 @@ int LabelThickness(      int argc, char *argv[])
     {
     volumeelement *= spacing[i];
     }
-  volumeelement = pow( volumeelement , 0.3333 );
+  volumeelement = vcl_pow( volumeelement , 0.3333 );
 
   vnl_vector<double> surface(maxlab + 1, 0);
   vnl_vector<double> volume(maxlab + 1, 0);
