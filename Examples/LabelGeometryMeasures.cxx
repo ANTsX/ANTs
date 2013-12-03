@@ -1,10 +1,10 @@
-
 #include "antsUtilities.h"
 #include <algorithm>
 
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkLabelGeometryImageFilter.h"
+#include "itkLabelPerimeterEstimationCalculator.h"
 
 #include <iomanip>
 #include <iostream>
@@ -51,12 +51,19 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 //   filter->CalculateOrientedLabelRegionsOn();
   filter->Update();
 
+  typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
+  typename AreaFilterType::Pointer areafilter = AreaFilterType::New();
+  areafilter->SetImage( labelReader->GetOutput() );
+  areafilter->Compute();
+
+
   typename FilterType::LabelsType allLabels = filter->GetLabels();
   typename FilterType::LabelsType::iterator allLabelsIt;
 //   antscout << "Number of labels: " << labelGeometryFilter->GetNumberOfLabels() << std::endl;
 //   antscout << "Label geometry measures." << std::endl;
   antscout << std::left << std::setw( 7 )  << "Label"
            << std::left << std::setw( 10 ) << "Volume"
+           << std::left << std::setw( 15 ) << "SurfArea(mm^2)"
            << std::left << std::setw( 15 ) << "Eccentricity"
            << std::left << std::setw( 15 ) << "Elongation"
            << std::left << std::setw( 15 ) << "Orientation"
@@ -77,6 +84,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
       }
     antscout << std::setw( 7 ) << *allLabelsIt;
     antscout << std::setw( 10 ) << filter->GetVolume( *allLabelsIt );
+    antscout << std::setw( 15 ) << areafilter->GetPerimeter( *allLabelsIt );
     antscout << std::setw( 15 ) << filter->GetEccentricity( *allLabelsIt );
     antscout << std::setw( 15 ) << filter->GetElongation( *allLabelsIt );
     antscout << std::setw( 15 ) << filter->GetOrientation( *allLabelsIt );
