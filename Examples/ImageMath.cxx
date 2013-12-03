@@ -65,7 +65,9 @@
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkLabelGeometryImageFilter.h"
 #include "itkLabelOverlapMeasuresImageFilter.h"
+#include "itkLabelPerimeterEstimationCalculator.h"
 #include "itkKdTree.h"
 #include "itkKdTreeBasedKmeansEstimator.h"
 #include "itkLabelContourImageFilter.h"
@@ -287,7 +289,7 @@ void ReflectionMatrix(int argc, char *argv[])
       fixed_center.Fill(0);
       }
   std::cout << " CenterOfMass " << fixed_center << std::endl;
-  typename AffineTransformType::Pointer aff = AffineTransformType::New();  
+  typename AffineTransformType::Pointer aff = AffineTransformType::New();
   aff->SetIdentity();
   typename AffineTransformType::ParametersType myoff = aff->GetFixedParameters();
   for ( unsigned int i = 0; i < ImageDimension; i++ ) myoff[ i ] = fixed_center[i];
@@ -9627,8 +9629,6 @@ std::map<unsigned int, std::string> RoiList(std::string file)
   return RoiList; // returns the maximum index
 }
 
-
-
 template <unsigned int ImageDimension>
 int LabelThickness(      int argc, char *argv[])
 {
@@ -9747,6 +9747,93 @@ int LabelThickness(      int argc, char *argv[])
       }
     }
   WriteImage<ImageType>( eimage, outname.c_str() );
+  return EXIT_SUCCESS;
+}
+
+template <unsigned int ImageDimension>
+int LabelThickness2( int argc, char *argv[] )
+{
+  typedef unsigned int                               LabelType;
+  typedef itk::Image<LabelType, ImageDimension>      LabelImageType;
+  typedef float                                      RealType;
+  typedef itk::Image<RealType, ImageDimension>       RealImageType;
+
+  if( argc < 5 )
+    {
+    std::cout << " Not enough inputs " << std::endl;
+    return EXIT_FAILURE;
+    }
+  int argct = 2;
+  const std::string outname = std::string( argv[argct] );
+  argct += 2;
+
+  std::string fn = std::string( argv[argct++] );
+
+  typename LabelImageType::Pointer labelImage = NULL;
+  ReadImage<LabelImageType>( labelImage, fn.c_str() );
+
+  typename LabelImageType::SpacingType spacing = labelImage->GetSpacing();
+  float volumeElement = 1.0;
+  for( unsigned int i = 0;  i < spacing.Size(); i++ )
+    {
+    volumeElement *= spacing[i];
+    }
+
+  typedef itk::LabelGeometryImageFilter<LabelImageType, RealImageType> GeometryFilterType;
+  typename GeometryFilterType::Pointer geometryFilter = GeometryFilterType::New();
+  geometryFilter->SetInput( labelImage );
+  geometryFilter->CalculatePixelIndicesOff();
+  geometryFilter->CalculateOrientedBoundingBoxOff();
+  geometryFilter->CalculateOrientedLabelRegionsOff();
+  geometryFilter->Update();
+
+  typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
+  typename AreaFilterType::Pointer areaFilter = AreaFilterType::New();
+  areaFilter->SetImage( labelImage );
+  areaFilter->SetFullyConnected( true );
+  areaFilter->Compute();
+
+  typename GeometryFilterType::LabelsType allLabels = geometryFilter->GetLabels();
+  typename GeometryFilterType::LabelsType::iterator allLabelsIt;
+
+  for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
+    {
+    if( *allLabelsIt == 0 )
+      {
+      continue;
+      }
+    RealType volume = geometryFilter->GetVolume( *allLabelsIt ) * volumeElement;
+    RealType perimeter = areaFilter->GetPerimeter( *allLabelsIt );
+    RealType thicknessPrior = volume / perimeter  * 2.0 * volumeElement;
+
+    std::cout << "Label "  << *allLabelsIt << ": ";
+    std::cout << "volume = " << volume << ", ";
+    std::cout << "area = " << perimeter << ", ";
+    std::cout << "thickness prior = " << thicknessPrior << std::endl;
+    }
+
+  typename RealImageType::Pointer thicknessPriorImage = RealImageType::New();
+  thicknessPriorImage->CopyInformation( labelImage );
+  thicknessPriorImage->SetRegions( labelImage->GetLargestPossibleRegion() );
+  thicknessPriorImage->Allocate();
+  thicknessPriorImage->FillBuffer( 0 );
+
+  itk::ImageRegionIteratorWithIndex<LabelImageType> It( labelImage, labelImage->GetLargestPossibleRegion() );
+  for( It.GoToBegin(); !It.IsAtEnd(); ++It )
+    {
+    LabelType label = It.Get();
+    if( label == 0 )
+      {
+      continue;
+      }
+    RealType volume = geometryFilter->GetVolume( label ) * volumeElement;
+    RealType perimeter = areaFilter->GetPerimeter( label );
+
+    RealType thicknessPrior = volume / perimeter;
+    thicknessPriorImage->SetPixel( It.GetIndex(), thicknessPrior );
+    }
+
+  WriteImage<RealImageType>( thicknessPriorImage, outname.c_str() );
   return EXIT_SUCCESS;
 }
 
@@ -12768,7 +12855,7 @@ int MatchBlobs( int argc, char *argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ImageMath( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int ImageMath( std::vector<std::string> args, std::ostream* itkNotUsed( out_stream ) )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -13442,6 +13529,10 @@ private:
         {
         LabelThickness<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "LabelThickness2") == 0 )
+        {
+        LabelThickness2<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
         DiceAndMinDistSum<2>(argc, argv);
@@ -13827,6 +13918,10 @@ private:
       else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
         {
         LabelThickness<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "LabelThickness2") == 0 )
+        {
+        LabelThickness2<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
@@ -14307,6 +14402,10 @@ private:
       else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
         {
         LabelThickness<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "LabelThickness2") == 0 )
+        {
+        LabelThickness2<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
         {
