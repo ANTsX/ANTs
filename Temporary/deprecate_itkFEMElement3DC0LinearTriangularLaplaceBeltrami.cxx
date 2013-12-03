@@ -60,7 +60,7 @@ void Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType& 
 
   this->GetMaterialMatrix( D );
   //
-  // ::::ants::antscout<< " Nip " << Nip << " w " << w << std::endl;
+  // ::std::cout<< " Nip " << Nip << " w " << w << std::endl;
   this->GetMaterialMatrix(D);
 
   cot.set_size(3, 3);
@@ -101,8 +101,8 @@ void Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType& 
        this->GetNode(1)->GetDegreeOfFreedom(0)==53 ||
        this->GetNode(2)->GetDegreeOfFreedom(0)==53 )
   {
-  ::::ants::antscout << " cot " << this->GetNode(0)->GetDegreeOfFreedom(0) << "  " <<this->GetNode(1)->GetDegreeOfFreedom(0) << "  " <<this->GetNode(2)->GetDegreeOfFreedom(0) <<std::endl;
-  ::::ants::antscout <<  cot <<std::endl;
+  ::std::cout << " cot " << this->GetNode(0)->GetDegreeOfFreedom(0) << "  " <<this->GetNode(1)->GetDegreeOfFreedom(0) << "  " <<this->GetNode(2)->GetDegreeOfFreedom(0) <<std::endl;
+  ::std::cout <<  cot <<std::endl;
   }
 
  */
@@ -152,8 +152,8 @@ void Element3DC0LinearTriangularLaplaceBeltrami::GetStiffnessMatrix(MatrixType& 
     Ke = cot;
     }
 
-//  ::::ants::antscout << " Ke in elt " <<std::endl;
-//  ::::ants::antscout <<  Ke <<std::endl;
+//  ::std::cout << " Ke in elt " <<std::endl;
+//  ::std::cout <<  Ke <<std::endl;
 }
 
 /*
@@ -169,7 +169,7 @@ MatrixType shapeDgl;
 MatrixType shapeD;
 
 //
-//::::ants::antscout<< " Nip " << Nip << " w " << w << std::endl;
+//::std::cout<< " Nip " << Nip << " w " << w << std::endl;
 this->GetMaterialMatrix(D);
 
 cot.set_size(3,3);
@@ -231,7 +231,7 @@ float cottheta2=cemag/bemag;
 float cottheta3=1.0/tan(theta3);
 
 //  if (fabs(cottheta1-1) < 1.e-6 && fabs(cottheta2-1) < 1.e-6) cottheta3=1.0;
-//  ::::ants::antscout <<" ct0 " << cottheta1 <<" ct1 " << cottheta2 <<" ct2 " << cottheta3  << std::endl;
+//  ::std::cout <<" ct0 " << cottheta1 <<" ct1 " << cottheta2 <<" ct2 " << cottheta3  << std::endl;
 
 cot[na][na]=(cottheta3+cottheta2)*D[0][0];
 cot[nb][nb]=(cottheta3+cottheta1)*D[0][0];
@@ -251,8 +251,8 @@ if ( this->GetNode(0)->GetDegreeOfFreedom(0)==909 ||
      this->GetNode(1)->GetDegreeOfFreedom(0)==909 ||
      this->GetNode(2)->GetDegreeOfFreedom(0)==909 )
 {
-::::ants::antscout << " cot " << std::endl;
-::::ants::antscout <<  cot <<std::endl;
+::std::cout << " cot " << std::endl;
+::std::cout <<  cot <<std::endl;
 }
 
 Ke.set_size(9,9);
@@ -270,8 +270,8 @@ for(int dd=0; dd<3; dd++) Ke[6][dd*3]=cot[2][dd];
 for(int dd=0; dd<3; dd++) Ke[7][dd*3+1]=cot[2][dd];
 for(int dd=0; dd<3; dd++) Ke[8][dd*3+2]=cot[2][dd];
 
-//  ::::ants::antscout << " Ke in elt " <<std::endl;
-//  ::::ants::antscout <<  Ke <<std::endl;
+//  ::std::cout << " Ke in elt " <<std::endl;
+//  ::std::cout <<  Ke <<std::endl;
 
 }
 */

@@ -50,7 +50,7 @@ int SetOrigin(int argc, char *argv[])
   typename OutImageType::Pointer outim = reader->GetOutput();
   typename OutImageType::PointType orig = outim->GetOrigin();
 
-  antscout << " Old Orig " <<  outim->GetOrigin();
+  std::cout << " Old Orig " <<  outim->GetOrigin();
   if( argc > 3 )
     {
     orig[0] = atof(argv[3]);
@@ -63,7 +63,7 @@ int SetOrigin(int argc, char *argv[])
     {
     orig[2] = atof(argv[5]);
     }
-  antscout << "  New Orig " << orig << std::endl;
+  std::cout << "  New Orig " << orig << std::endl;
 
   outim->SetOrigin(orig);
 
@@ -133,11 +133,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage:   " << argv[0] << "  Dimension infile.hdr outfile.nii  OriginX OriginY {OriginZ} "
+    std::cout << "Usage:   " << argv[0] << "  Dimension infile.hdr outfile.nii  OriginX OriginY {OriginZ} "
              << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -161,7 +161,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

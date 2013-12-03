@@ -52,7 +52,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     const std::string temp(argv[1]);
     if( !( ( temp == "2" ) || ( temp == "3" ) || ( temp == "4" ) ) )
       {
-      antscout << "ERROR:  Dimension option must be 2 or 3 or 4, " << temp << "given" << std::endl;
+      std::cout << "ERROR:  Dimension option must be 2 or 3 or 4, " << temp << "given" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -60,7 +60,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     const std::string temp(argv[3]);
     if( !( ( temp == "0" ) || ( temp == "1" )  ) )
       {
-      antscout << "ERROR:  Normalize option must be 0 or 1, " << temp << "given" << std::endl;
+      std::cout << "ERROR:  Normalize option must be 0 or 1, " << temp << "given" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -87,23 +87,23 @@ int AverageImages1(unsigned int argc, char *argv[])
         bigimage = j;
         }
       }
-    antscout << " fn " << fn << std::endl;
-    antscout << " bigimage " << bigimage << " curr_image " << j << " size " << size << std::endl;
+    std::cout << " fn " << fn << std::endl;
+    std::cout << " bigimage " << bigimage << " curr_image " << j << " size " << size << std::endl;
     }
 
   typename ImageFileReader::Pointer reader = ImageFileReader::New();
   reader->SetFileName(argv[bigimage]);
   reader->Update();
   typename ImageType::Pointer averageimage = reader->GetOutput();
-  antscout << " Setting physcal space of output average image based on largest image " << std::endl;
+  std::cout << " Setting physcal space of output average image based on largest image " << std::endl;
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
-  antscout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
+  std::cout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
            << vectorlength << std::endl;
   PixelType meanval = 0;
   averageimage->FillBuffer(meanval);  // Reset all images to a mean of zero on the accumulator buffer.
   for( unsigned int j = 4; j < argc; j++ )
     {
-    antscout << " reading " << std::string(argv[j]) << std::endl;
+    std::cout << " reading " << std::string(argv[j]) << std::endl;
     typename ImageFileReader::Pointer rdr = ImageFileReader::New();
     rdr->SetFileName(argv[j]);
     rdr->Update();
@@ -159,7 +159,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     averageimage =  shFilter->GetOutput();
     }
 
-  antscout << " writing output ";
+  std::cout << " writing output ";
     {
     typename writertype::Pointer writer = writertype::New();
     writer->SetFileName(argv[2]);
@@ -191,7 +191,7 @@ int AverageImages(unsigned int argc, char *argv[])
     {
     // Get the image dimension
     std::string fn = std::string(argv[j]);
-    antscout << " fn " << fn << " " << ImageDimension << " " << NVectorComponents << std::endl;
+    std::cout << " fn " << fn << " " << ImageDimension << " " << NVectorComponents << std::endl;
     typename itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetFileName( fn.c_str() );
@@ -202,18 +202,18 @@ int AverageImages(unsigned int argc, char *argv[])
         {
         size[i] = imageIO->GetDimensions(i);
         bigimage = j;
-        antscout << " bigimage " << j << " size " << size << std::endl;
+        std::cout << " bigimage " << j << " size " << size << std::endl;
         }
       }
     }
 
-  antscout << " largest image " << size << std::endl;
+  std::cout << " largest image " << size << std::endl;
   typename ImageFileReader::Pointer reader = ImageFileReader::New();
   reader->SetFileName(argv[bigimage]);
   reader->Update();
   averageimage = reader->GetOutput();
   unsigned int vectorlength = reader->GetImageIO()->GetNumberOfComponents();
-  antscout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
+  std::cout << " Averaging " << numberofimages << " images with dim = " << ImageDimension << " vector components "
            << vectorlength << std::endl;
   typename ImageType::IndexType zindex; zindex.Fill(0);
   PixelType meanval = reader->GetOutput()->GetPixel(zindex);
@@ -221,7 +221,7 @@ int AverageImages(unsigned int argc, char *argv[])
   averageimage->FillBuffer(meanval);
   for( unsigned int j = 4; j < argc; j++ )
     {
-    antscout << " reading " << std::string(argv[j]) << " for average " << std::endl;
+    std::cout << " reading " << std::string(argv[j]) << " for average " << std::endl;
     typename ImageFileReader::Pointer rdr = ImageFileReader::New();
     rdr->SetFileName(argv[j]);
     rdr->Update();
@@ -292,23 +292,23 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "\n" << std::endl;
-    antscout << "Usage: \n" << std::endl;
-    antscout << argv[0] << " ImageDimension Outputfname.nii.gz Normalize <images> \n" << std::endl;
-    antscout << " Compulsory arguments: \n" << std::endl;
-    antscout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional input).\n " << std::endl;
-    antscout << " Outputfname.nii.gz: the name of the resulting image.\n" << std::endl;
-    antscout
+    std::cout << "\n" << std::endl;
+    std::cout << "Usage: \n" << std::endl;
+    std::cout << argv[0] << " ImageDimension Outputfname.nii.gz Normalize <images> \n" << std::endl;
+    std::cout << " Compulsory arguments: \n" << std::endl;
+    std::cout << " ImageDimension: 2 or 3 (for 2 or 3 dimensional input).\n " << std::endl;
+    std::cout << " Outputfname.nii.gz: the name of the resulting image.\n" << std::endl;
+    std::cout
       <<
       " Normalize: 0 (false) or 1 (true); if true, the 2nd image is divided by its mean. This will select the largest image to average into.\n"
       << std::endl;
-    antscout << " Example Usage:\n" << std::endl;
-    antscout << argv[0] << " 3 average.nii.gz  1  *.nii.gz \n" << std::endl;
-    antscout << " \n" << std::endl;
+    std::cout << " Example Usage:\n" << std::endl;
+    std::cout << argv[0] << " 3 average.nii.gz  1  *.nii.gz \n" << std::endl;
+    std::cout << " \n" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -409,7 +409,7 @@ private:
       }
       break;
     default:
-      antscout << " You passed ImageDimension: " << dim << " . Please use only image domains of 2, 3 or 4  "
+      std::cout << " You passed ImageDimension: " << dim << " . Please use only image domains of 2, 3 or 4  "
                << std::endl;
       return EXIT_FAILURE;
     }

@@ -549,25 +549,25 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout << "Usage:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
              << " fixedImageWithLabeledLandmarks  movingImageWithLabeledLandmarks outputDisplacementField "
              <<
       "meshSize[0]xmeshSize[1]x... numberOfLevels [order=3] [enforceStationaryBoundaries=1] [landmarkWeights]"
              << std::endl;
-    antscout
+    std::cout
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "
       << std::endl;
-    antscout << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
-    antscout << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
-    antscout << " You can use ITK-snap to generate the label images. " << std::endl;
-    antscout << " The optional landmarks weights are read from a text file where each row is either:" << std::endl;
-    antscout << " \"label,labelWeight\" or " << std::endl;
-    antscout << " \"labelWeight\" or " << std::endl;
-    antscout
+    std::cout << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
+    std::cout << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
+    std::cout << " You can use ITK-snap to generate the label images. " << std::endl;
+    std::cout << " The optional landmarks weights are read from a text file where each row is either:" << std::endl;
+    std::cout << " \"label,labelWeight\" or " << std::endl;
+    std::cout << " \"labelWeight\" or " << std::endl;
+    std::cout
       << " If the latter format is used, the label weights are assumed to be arranged in ascending order by label."
       << std::endl;
     if( argc >= 2 &&
@@ -598,7 +598,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

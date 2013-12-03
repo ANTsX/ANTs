@@ -43,17 +43,17 @@ int MultiplyImages(int argc, char *argv[])
 
   if( argc < 3 )
     {
-    antscout << "missing 1st filename" << std::endl;
+    std::cout << "missing 1st filename" << std::endl;
     throw;
     }
   if( argc < 4 )
     {
-    antscout << "missing 2nd filename" << std::endl;
+    std::cout << "missing 2nd filename" << std::endl;
     throw;
     }
   if( argc < 5 )
     {
-    antscout << "missing output filename" << std::endl;
+    std::cout << "missing output filename" << std::endl;
     throw;
     }
 
@@ -75,7 +75,7 @@ int MultiplyImages(int argc, char *argv[])
     }
   catch( ... )
     {
-    antscout << " Rather than opening " << fn2
+    std::cout << " Rather than opening " << fn2
              <<
       " as an image file, this program has decided, in its great wisdom, to consider it to be a floating point numerical value, and has acted accordingly -- i.e. read this as a number. "
              << std::endl;
@@ -100,7 +100,7 @@ int MultiplyImages(int argc, char *argv[])
     }
   catch( ... )
     {
-    antscout << " read 1 error ";
+    std::cout << " read 1 error ";
     }
 
   varimage = AllocImage<ImageType>(image1);
@@ -171,12 +171,12 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout << "Usage:  " << std::endl;
-    antscout << argv[0] << " ImageDimension img1.nii img2.nii product.nii {smoothing}" << std::endl;
+    std::cout << "Usage:  " << std::endl;
+    std::cout << argv[0] << " ImageDimension img1.nii img2.nii product.nii {smoothing}" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -304,7 +304,7 @@ private:
       }
       break;
     default:
-      antscout << " not supported " << dim  << std::endl;
+      std::cout << " not supported " << dim  << std::endl;
       return EXIT_FAILURE;
     }
 

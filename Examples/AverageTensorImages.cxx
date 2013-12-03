@@ -23,7 +23,7 @@ int AverageTensorImages(unsigned int argc, char *argv[])
   int    mathtype = atoi(argv[3]);
   float  numberofimages = (float)argc - 4.0;
 
-  antscout << "Averaging " << numberofimages << " images " << std::endl;
+  std::cout << "Averaging " << numberofimages << " images " << std::endl;
 
   typename ImageType::Pointer averageimage = NULL;
   typename ImageType::Pointer image2 = NULL;
@@ -35,7 +35,7 @@ int AverageTensorImages(unsigned int argc, char *argv[])
     {
     // Get the image dimension
     std::string fn = std::string(argv[j]);
-    antscout << " fn " << fn << std::endl;
+    std::cout << " fn " << fn << std::endl;
     typename itk::ImageIOBase::Pointer imageIO =
       itk::ImageIOFactory::CreateImageIO(fn.c_str(), itk::ImageIOFactory::ReadMode);
     imageIO->SetFileName(fn.c_str() );
@@ -46,12 +46,12 @@ int AverageTensorImages(unsigned int argc, char *argv[])
         {
         size[i] = imageIO->GetDimensions(i);
         bigimage = j;
-        antscout << " bigimage " << j << " size " << size << std::endl;
+        std::cout << " bigimage " << j << " size " << size << std::endl;
         }
       }
     }
 
-  antscout << " largest image " << size << std::endl;
+  std::cout << " largest image " << size << std::endl;
 
   bool logeuc = true;
   if( mathtype == 1 )
@@ -128,16 +128,16 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   try
     {
     if( argc - 4 < 1 )
       {
-      antscout << "Basic useage ex: " << std::endl;
-      antscout << argv[0] << " ImageDimension  average.nii mathtype list-of-files-via-wildcard " << std::endl;
-      antscout << " e.g. \n   AverageTensorImages 3  average.nii  1  *registered.nii " << std::endl;
-      antscout << " mathtype=[0=log-euclidean, 1=euclidean] " << std::endl;
+      std::cout << "Basic useage ex: " << std::endl;
+      std::cout << argv[0] << " ImageDimension  average.nii mathtype list-of-files-via-wildcard " << std::endl;
+      std::cout << " e.g. \n   AverageTensorImages 3  average.nii  1  *registered.nii " << std::endl;
+      std::cout << " mathtype=[0=log-euclidean, 1=euclidean] " << std::endl;
       if( argc >= 2 &&
           ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
         {
@@ -165,7 +165,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
 
@@ -173,8 +173,8 @@ private:
     }
   catch( itk::ExceptionObject & err )
     {
-    antscout << "ExceptionObject caught !" << std::endl;
-    antscout << err << std::endl;
+    std::cout << "ExceptionObject caught !" << std::endl;
+    std::cout << err << std::endl;
     return EXIT_FAILURE;
     }
 }

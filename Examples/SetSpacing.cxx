@@ -57,7 +57,7 @@ int SetSpacing(int argc, char *argv[])
   typename OutImageType::Pointer outim = reader->GetOutput();
   typename OutImageType::SpacingType spacing = outim->GetSpacing();
 
-  antscout << " Old Spacing " <<  outim->GetSpacing();
+  std::cout << " Old Spacing " <<  outim->GetSpacing();
   if( argc > 3 )
     {
     spacing[0] = atof(argv[3]);
@@ -70,7 +70,7 @@ int SetSpacing(int argc, char *argv[])
     {
     spacing[2] = atof(argv[5]);
     }
-  antscout << "  New Spacing " << spacing << std::endl;
+  std::cout << "  New Spacing " << spacing << std::endl;
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
   typename ImageType::Pointer varimage = AllocImage<ImageType>(outim);
@@ -135,11 +135,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage:   " << argv[0] << "  Dimension infile.hdr outfile.nii  SpacingX SpacingY {SpacingZ} "
+    std::cout << "Usage:   " << argv[0] << "  Dimension infile.hdr outfile.nii  SpacingX SpacingY {SpacingZ} "
              << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -163,7 +163,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
 

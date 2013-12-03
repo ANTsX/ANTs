@@ -183,7 +183,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     antsjacobiansplit(projvec, 'x', v);
     for( std::vector<std::string>::size_type i = 0; i < v.size(); ++i )
       {
-      antscout << v[i] << '\n';
+      std::cout << v[i] << '\n';
       }
     }
 
@@ -201,7 +201,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
       pvec[i] = atof(v[i].c_str() );
       }
     pvec = pvec / pvec.GetNorm();
-    antscout << " using projection vector " << pvec << std::endl;
+    std::cout << " using projection vector " << pvec << std::endl;
     }
   mask = ReadAnImage<FloatImageType>(maskfn);
 
@@ -233,7 +233,7 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
     writer->SetFileName(fng.c_str() );
     writer->SetInput(NULL);
     writer->Write();
-    antscout << " Grid done ";
+    std::cout << " Grid done ";
     }
   typename FloatImageType::SizeType m_FieldSize = field->GetLargestPossibleRegion().GetSize();
 
@@ -365,14 +365,14 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
             {
             val = dPix[col] / sp[col];
             }
-          //        antscout << " row " << row << " col " << col << " val " << val << std::endl;
+          //        std::cout << " row " << row << " col " << col << " val " << val << std::endl;
           jMatrix.put(col, row, val);
           avgMatrix.put(col, row, avgMatrix.get(col, row) + val);
           }
         }
 
       // the determinant of the jacobian matrix
-      // antscout << " get det " << std::endl;
+      // std::cout << " get det " << std::endl;
       det = vnl_determinant(jMatrix);
       //    float prodval = m_FloatImage->GetPixel(rindex);
       if( det < 0.0 )
@@ -385,11 +385,11 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
       // totaljac+=det;
       } // oktosample if
     }
-  antscout << " avg Mat " << avgMatrix / (float)ct << std::endl;
+  std::cout << " avg Mat " << avgMatrix / (float)ct << std::endl;
 
   if( norm && mask )
     {
-    antscout << " using mask && normalizing " << std::endl;
+    std::cout << " using mask && normalizing " << std::endl;
     /*
     typedef itk::DiscreteGaussianImageFilter<TImage, TImage> dgf;
     float sig=2.0;
@@ -480,12 +480,12 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
 template <unsigned int ImageDimension>
 int Jacobian(int argc, char *argv[])
 {
-  //  antscout << " enter " << ImageDimension << std::endl;
+  //  std::cout << " enter " << ImageDimension << std::endl;
   if( argc < 3 )
     {
-    antscout << "Usage:   Jacobian gWarp outfile uselog maskfn normbytotalbool VectorToProjectWarpAgainst "
+    std::cout << "Usage:   Jacobian gWarp outfile uselog maskfn normbytotalbool VectorToProjectWarpAgainst "
              << std::endl;
-    antscout
+    std::cout
       << " VectorToProjectWarpAgainst should be in the form 1.0x0.0x0.0 where x separates vector components "
       << std::endl;
     if( argc >= 2 &&
@@ -507,21 +507,21 @@ int Jacobian(int argc, char *argv[])
   typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
 
   typedef itk::ImageFileReader<FieldType> ReaderType;
-  // antscout << "read warp " << std::string(argv[1]) << std::endl;
+  // std::cout << "read warp " << std::string(argv[1]) << std::endl;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[1] );
   //  reader->SetUseAvantsNamingConvention( true );
   reader->Update();
   typename FieldType::Pointer gWarp = reader->GetOutput();
   //
-  // antscout << "read warp 2 " << std::endl;
+  // std::cout << "read warp 2 " << std::endl;
   // typename FieldType::Pointer gWarp = ReadWarpFromFile<ImageType,FieldType>(argv[1],"vec.nii");
 
   // here hWarp is changed in place to be fWarp
 //  Jacobian<ImageType,FieldType>(gWarp,argv[2]);
-//  antscout << " vecanidiff " << std::endl;
+//  std::cout << " vecanidiff " << std::endl;
 //  gWarp = VectorAniDiff<FieldType>(gWarp , atoi(argv[3]) );
-//  antscout << " vecanidiffdone " << std::endl;
+//  std::cout << " vecanidiffdone " << std::endl;
   bool uselog = false;
   if( argc > 3 )
     {
@@ -543,7 +543,7 @@ int Jacobian(int argc, char *argv[])
     maskfn = std::string( argv[4] );
     }
 
-  //  antscout << " name "<< argv[2] <<  " mask " << argv[4] << " norm " << norm << " Log " << uselog << std::endl;
+  //  std::cout << " name "<< argv[2] <<  " mask " << argv[4] << " norm " << norm << " Log " << uselog << std::endl;
   ComputeJacobian<ImageType, FieldType>(gWarp, argv[2], const_cast<char *>( maskfn.c_str() ), uselog, norm, projvec);
 //  DiffeomorphicJacobian<ImageType,ImageType,FieldType>(gWarp,1,argv[2]);
 //  if (argc > 3) DiffeomorphicMetric<ImageType,ImageType,FieldType>(gWarp,argv[2]);
@@ -594,15 +594,15 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage: " << argv[0] << " ImageDim gWarp outfile uselog maskfn normbytotalbool projectionvector "
+    std::cout << "Usage: " << argv[0] << " ImageDim gWarp outfile uselog maskfn normbytotalbool projectionvector "
              << std::endl;
-    antscout << " for example " << std::endl
+    std::cout << " for example " << std::endl
              << " ANTSJacobian 3  myWarp.nii   Output  1   templatebrainmask.nii   1 1x0 " << std::endl;
-    antscout
+    std::cout
       <<
       " the last 1 normalizes the jacobian by the total in the mask.  use this to adjust for head size. 1x0 will project the warp along direction 1,0 --- don't add this option if you dont want to do this "
       << std::endl;
@@ -627,7 +627,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
 

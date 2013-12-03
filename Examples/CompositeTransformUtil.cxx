@@ -35,7 +35,7 @@ void RegisterMatOff()
  */
 static void PrintGenericUsageStatement()
 {
-  antscout << "Usage: CompositeTransformUtil --disassemble <CompositeTransform FileName>"
+  std::cout << "Usage: CompositeTransformUtil --disassemble <CompositeTransform FileName>"
            << " <transform name prefix>" << std::endl
            << "or" << std::endl
            << "CompositeTransformUtil  --assemble <CompositeTransform> "
@@ -58,7 +58,7 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
   CompositeTransformType *composite = dynamic_cast<CompositeTransformType *>(transform);
   if( composite == 0 )
     {
-    antscout << "Transform File " << transformName << " is a "
+    std::cout << "Transform File " << transformName << " is a "
              << transform->GetNameOfClass() << " not a Composite Transform."
              << std::endl;
     return EXIT_FAILURE;
@@ -105,7 +105,7 @@ static int Disassemble(const std::string & CompositeName,
   const unsigned int outDim(transform->GetOutputSpaceDimension() );
   if( inDim != outDim )
     {
-    antscout << "Can't handle mixed input & output dimension: input("
+    std::cout << "Can't handle mixed input & output dimension: input("
              << inDim << ") output (" << outDim << ")" << std::endl;
     return EXIT_FAILURE;
     }
@@ -117,7 +117,7 @@ static int Disassemble(const std::string & CompositeName,
     case 3:
       return Disassemble<3>(transform, CompositeName, Prefix);
     default:
-      antscout << "Unknown dimension " << inDim << std::endl;
+      std::cout << "Unknown dimension " << inDim << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
@@ -209,7 +209,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
   if( argc >= 2 && ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
     {
     PrintGenericUsageStatement();
@@ -226,7 +226,7 @@ private:
   ++argv; --argc;
   if( argc == 0 )
     {
-    antscout << "Missing CompositeTransformName" << std::endl;
+    std::cout << "Missing CompositeTransformName" << std::endl;
     PrintGenericUsageStatement();
     return EXIT_FAILURE;
     }
@@ -240,7 +240,7 @@ private:
     {
     if( argc == 0 )
       {
-      antscout << "Missing output transforms prefix" << std::endl;
+      std::cout << "Missing output transforms prefix" << std::endl;
       PrintGenericUsageStatement();
       return EXIT_FAILURE;
       }
@@ -249,7 +249,7 @@ private:
     }
   else if( action != "--assemble" )
     {
-    antscout << "Unknown action " << action << std::endl;
+    std::cout << "Unknown action " << action << std::endl;
     PrintGenericUsageStatement();
     return EXIT_FAILURE;
     }
@@ -265,7 +265,7 @@ private:
 
   if( transformNames.size() < 1 )
     {
-    antscout << "Missing transform names to "
+    std::cout << "Missing transform names to "
              << "assemble into a composite transform"
              << std::endl;
     PrintGenericUsageStatement();

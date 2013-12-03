@@ -43,7 +43,7 @@ int ResetDirection(int argc, char *argv[])
 {
   if( argc < 3 )
     {
-    antscout << "Usage:   " << argv[0] << "  infile.nii outfile.nii direction matrix in a row " << std::endl;
+    std::cout << "Usage:   " << argv[0] << "  infile.nii outfile.nii direction matrix in a row " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -77,7 +77,7 @@ int ResetDirection(int argc, char *argv[])
     for( unsigned int j = 0; j < ImageDimension; j++ )
       {
       direction[i][j] = atof(dtext[i * ImageDimension + j]);
-      antscout << "direction[" << i << "][" << j << "]=" << direction[i][j] << std::endl;
+      std::cout << "direction[" << i << "][" << j << "]=" << direction[i][j] << std::endl;
       }
     }
 
@@ -143,11 +143,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage:   " << argv[0] << "  infile.nii outfile.nii  d01 d02 d03 d10 .... " << std::endl;
+    std::cout << "Usage:   " << argv[0] << "  infile.nii outfile.nii  d01 d02 d03 d10 .... " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -177,7 +177,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

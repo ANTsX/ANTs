@@ -153,7 +153,7 @@ int CreateJacobianDeterminantImage( int argc, char *argv[] )
       }
     }
   timer.Stop();
-//  antscout << "Elapsed time: " << timer.GetMeanTime() << std::endl;
+//  std::cout << "Elapsed time: " << timer.GetMeanTime() << std::endl;
 
   typedef itk::ImageFileWriter<ImageType> RealImageWriterType;
   typename RealImageWriterType::Pointer realwriter = RealImageWriterType::New();
@@ -207,11 +207,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage: " << argv[0] << " ImageDimension deformationField outputImage log-jac?(default-false)"
+    std::cout << "Usage: " << argv[0] << " ImageDimension deformationField outputImage log-jac?(default-false)"
              << std::endl;
     return EXIT_FAILURE;
     }
@@ -229,7 +229,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
 }

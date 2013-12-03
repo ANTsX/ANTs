@@ -53,14 +53,14 @@ public:
       }
     if( filter->GetElapsedIterations() == 1 )
       {
-      antscout << "Current level = " << filter->GetCurrentLevel() + 1
+      std::cout << "Current level = " << filter->GetCurrentLevel() + 1
                << std::endl;
       }
-    antscout << "  Iteration " << filter->GetElapsedIterations()
+    std::cout << "  Iteration " << filter->GetElapsedIterations()
              << " (of "
              << filter->GetMaximumNumberOfIterations()[filter->GetCurrentLevel()]
              << ").  ";
-    antscout << " Current convergence value = "
+    std::cout << " Current convergence value = "
              << filter->GetCurrentConvergenceMeasurement()
              << " (threshold = " << filter->GetConvergenceThreshold()
              << ")" << std::endl;
@@ -93,7 +93,7 @@ int N4( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "Input image not specified." << std::endl;
+    std::cout << "Input image not specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -112,7 +112,7 @@ int N4( itk::ants::CommandLineParser *parser )
     }
   if( !maskImage )
     {
-    antscout << "Mask not read.  Creating Otsu mask." << std::endl;
+    std::cout << "Mask not read.  Creating Otsu mask." << std::endl;
     typedef itk::OtsuThresholdImageFilter<ImageType, MaskImageType>
       ThresholderType;
     typename ThresholderType::Pointer otsu = ThresholderType::New();
@@ -275,7 +275,7 @@ int N4( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        antscout << "Incorrect mesh resolution" << std::endl;
+        std::cout << "Incorrect mesh resolution" << std::endl;
         return EXIT_FAILURE;
         }
       correcter->SetNumberOfControlPoints( numberOfControlPoints );
@@ -356,14 +356,14 @@ int N4( itk::ants::CommandLineParser *parser )
     }
   catch( itk::ExceptionObject & e )
     {
-    antscout << "Exception caught: " << e << std::endl;
+    std::cout << "Exception caught: " << e << std::endl;
     return EXIT_FAILURE;
     }
 
-  correcter->Print( antscout, 3 );
+  correcter->Print( std::cout, 3 );
 
   timer.Stop();
-  antscout << "Elapsed time: " << timer.GetMean() << std::endl;
+  std::cout << "Elapsed time: " << timer.GetMean() << std::endl;
 
   /**
    * output
@@ -681,7 +681,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -709,7 +709,7 @@ private:
 
   if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction( 0 )->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -718,7 +718,7 @@ private:
     }
   else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction( 0 )->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 
@@ -751,7 +751,7 @@ private:
       }
     else
       {
-      antscout << "No input images were specified.  Specify an input image"
+      std::cout << "No input images were specified.  Specify an input image"
                << " with the -i option" << std::endl;
       return EXIT_FAILURE;
       }
@@ -760,7 +760,7 @@ private:
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  antscout << std::endl << "Running N4 for "
+  std::cout << std::endl << "Running N4 for "
            << dimension << "-dimensional images." << std::endl << std::endl;
 
   switch( dimension )
@@ -781,7 +781,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

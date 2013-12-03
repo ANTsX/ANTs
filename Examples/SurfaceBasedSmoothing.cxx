@@ -52,15 +52,15 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << " usage :  " << argv[0] << " ImageToSmooth  sigma SurfaceImage  outname  {numrepeatsofsmoothing}"
+    std::cout << " usage :  " << argv[0] << " ImageToSmooth  sigma SurfaceImage  outname  {numrepeatsofsmoothing}"
              << std::endl;
-    antscout << " We assume the SurfaceImage has a label == 1 that defines the surface " << std::endl;
-    antscout <<   " sigma  defines the geodesic n-hood radius --- numrepeats allows one to use " << std::endl;
-    antscout << " a small geodesic n-hood repeatedly applied many times -- faster computation, same effect "
+    std::cout << " We assume the SurfaceImage has a label == 1 that defines the surface " << std::endl;
+    std::cout <<   " sigma  defines the geodesic n-hood radius --- numrepeats allows one to use " << std::endl;
+    std::cout << " a small geodesic n-hood repeatedly applied many times -- faster computation, same effect "
              << std::endl;
     return 0;
     }
@@ -99,7 +99,7 @@ private:
     {
     sig = 1.0;
     }
-  antscout << " sigma " << sig << " thresh " << opt << std::endl;
+  std::cout << " sigma " << sig << " thresh " << opt << std::endl;
   Parameterizer->SetSigma(sig);
   Parameterizer->SetUseGeodesicNeighborhood(true);
   Parameterizer->SetUseLabel(true);
@@ -108,13 +108,13 @@ private:
   //  Parameterizer->IntegrateFunctionOverSurface();
 
   Parameterizer->SetNeighborhoodRadius( sig );
-  antscout << " begin integration NOW " << std::endl;
+  std::cout << " begin integration NOW " << std::endl;
   Parameterizer->IntegrateFunctionOverSurface(true);
   for( unsigned int i = 0; i < numrepeats; i++ )
     {
     Parameterizer->IntegrateFunctionOverSurface(true);
     }
-  antscout << " end integration  " << std::endl;
+  std::cout << " end integration  " << std::endl;
   // Parameterizer->PostProcessGeometry();
 
   //  double mn=0.0;
@@ -123,11 +123,11 @@ private:
   smooth = Parameterizer->GetFunctionImage();
 
   std::string ofn = std::string(argv[4]);
-  antscout << " writing result " << ofn <<  std::endl;
+  std::cout << " writing result " << ofn <<  std::endl;
   // writer->SetFileName(ofn.c_str());
   //  writer->SetInput( smooth );
   WriteImage<ImageType>(smooth, ofn.c_str() );
-  antscout << " done writing ";
+  std::cout << " done writing ";
 
   return 1;
 }

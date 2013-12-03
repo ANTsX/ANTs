@@ -75,11 +75,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage: " << argv[0]
+    std::cout << "Usage: " << argv[0]
              << " inputDisplacementField outputVTKFile maskImage(optional) slice(optional) whichAxis(optional)"
              << std::endl;
     return EXIT_FAILURE;

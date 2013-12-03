@@ -148,7 +148,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_DoEstimateLearningRateAtEachIteration( true ),
   m_LowerQuantile( 0.0 ),
   m_UpperQuantile( 1.0 ),
-  m_LogStream( &::ants::antscout ),
+  m_LogStream( &std::cout ),
   m_ApplyLinearTransformsToFixedImageHeader( true ),
   m_PrintSimilarityMeasureInterval( 0 ),
   m_WriteIntervalVolumes( 0 ),
@@ -710,28 +710,28 @@ RegistrationHelper<TComputeType, VImageDimension>
 {
   if( this->m_NumberOfStages == 0 )
     {
-    ::ants::antscout << "No transformations are specified." << std::endl;
+    std::cout << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_Iterations.size() != this->m_NumberOfStages )
     {
-    ::ants::antscout << "The number of iteration sets specified does not match the number of stages." << std::endl;
+    std::cout << "The number of iteration sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_ShrinkFactors.size() != this->m_NumberOfStages )
     {
-    ::ants::antscout << "The number of shrinkFactors specified does not match the number of stages." << std::endl;
+    std::cout << "The number of shrinkFactors specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_SmoothingSigmas.size() != this->m_NumberOfStages )
     {
-    ::ants::antscout << "The number of smoothing sigma sets specified does not match the number of stages."
+    std::cout << "The number of smoothing sigma sets specified does not match the number of stages."
                      << std::endl;
     return EXIT_FAILURE;
     }
   if( this->m_SmoothingSigmasAreInPhysicalUnits.size() != this->m_NumberOfStages )
     {
-    ::ants::antscout
+    std::cout
       << "The number of smoothing sigma in physical units bool values does not match the number of stages."
       << std::endl;
     return EXIT_FAILURE;
@@ -741,7 +741,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     if( this->m_Metrics[i].m_FixedImage.IsNull() ||
         this->m_Metrics[i].m_MovingImage.IsNull() )
       {
-      ::ants::antscout << "Must either add Metrics with filenames, or pointers to images" << std::endl;
+      std::cout << "Must either add Metrics with filenames, or pointers to images" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -912,7 +912,7 @@ RegistrationHelper<TComputeType, VImageDimension>
     const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
     if( factors.size() != numberOfLevels )
       {
-      ::ants::antscout << "\n\n\n"
+      std::cout << "\n\n\n"
                        << "ERROR:  The number of shrink factors does not match the number of levels."
                        << "\nShrink Factors: " << factors.size()
                        << "\nNumber Of Levels: " << numberOfLevels
@@ -937,7 +937,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     if( sigmas.size() != numberOfLevels )
       {
-      ::ants::antscout << "ERROR:  The number of smoothing sigmas "
+      std::cout << "ERROR:  The number of smoothing sigmas "
                        << "does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
@@ -1100,7 +1100,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
           break;
         default:
-          ::ants::antscout << "ERROR: Unrecognized image metric: " << std::endl;
+          std::cout << "ERROR: Unrecognized image metric: " << std::endl;
         }
       metric->SetVirtualDomainFromImage( fixedImage );
       metric->SetUseMovingImageGradientFilter( gradientfilter );
@@ -1148,7 +1148,7 @@ RegistrationHelper<TComputeType, VImageDimension>
       }
     else if( samplingStrategy == none )
       {
-      ::ants::antscout << "  Using default NONE metricSamplingStrategy " << std::endl;
+      std::cout << "  Using default NONE metricSamplingStrategy " << std::endl;
       }
     else
       {
@@ -1292,7 +1292,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1367,7 +1367,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1443,7 +1443,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1519,7 +1519,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1595,7 +1595,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1747,7 +1747,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1807,7 +1807,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
-          ::ants::antscout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          std::cout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -1909,7 +1909,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2041,7 +2041,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2253,7 +2253,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2273,7 +2273,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           this->m_TransformMethods[currentStageNumber].m_VelocityFieldMeshSize;
         if( meshSize.size() != VImageDimension + 1 )
           {
-          ::ants::antscout << "The transform domain mesh size does not have the correct number of elements."
+          std::cout << "The transform domain mesh size does not have the correct number of elements."
                            << "For image dimension = " << VImageDimension << ", you need " << VImageDimension + 1
                            << "elements. " << std::endl;
           return EXIT_FAILURE;
@@ -2471,7 +2471,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -2629,7 +2629,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2688,7 +2688,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheTotalField.size() != VImageDimension )
           {
-          ::ants::antscout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          std::cout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2804,7 +2804,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -2955,7 +2955,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3024,7 +3024,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() !=
             VImageDimension )
           {
-          ::ants::antscout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
+          std::cout << "ERROR:  The mesh size(s) don't match the ImageDimension." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3126,7 +3126,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         catch( itk::ExceptionObject & e )
           {
-          ::ants::antscout << "Exception caught: " << e << std::endl;
+          std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -3137,7 +3137,7 @@ RegistrationHelper<TComputeType, VImageDimension>
         }
         break;
       default:
-        ::ants::antscout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+        std::cout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
       }
     timer.Stop();

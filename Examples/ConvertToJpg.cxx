@@ -45,12 +45,12 @@ int ConvertType(int argc, char *argv[])
   typename readertype::Pointer reader = readertype::New();
   if( argc < 2 )
     {
-    antscout << "Missing input filename" << std::endl;
+    std::cout << "Missing input filename" << std::endl;
     throw;
     }
   reader->SetFileName(argv[1]);
   reader->Update();
-  antscout << " Updated reader " << std::endl;
+  std::cout << " Updated reader " << std::endl;
 
   typedef itk::CastImageFilter<ImageType, IntermediateType> castertype;
   typename   castertype::Pointer caster = castertype::New();
@@ -75,12 +75,12 @@ int ConvertType(int argc, char *argv[])
   typename   OutImageType::Pointer outim = caster2->GetOutput();
   typename   OutImageType::SpacingType spc = outim->GetSpacing();
   outim->SetSpacing(spc);
-  antscout << " Dire in " << reader->GetOutput()->GetDirection() << std::endl;
-  antscout << " Dire out " << outim->GetDirection() << std::endl;
+  std::cout << " Dire in " << reader->GetOutput()->GetDirection() << std::endl;
+  std::cout << " Dire out " << outim->GetDirection() << std::endl;
   typename   writertype::Pointer writer = writertype::New();
   if( argc < 3 )
     {
-    antscout << "Missing output filename" << std::endl;
+    std::cout << "Missing output filename" << std::endl;
     throw;
     }
   writer->SetFileName(argv[2]);
@@ -135,11 +135,11 @@ private:
     };
     Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-    antscout->set_stream( out_stream );
+    // antscout->set_stream( out_stream );
 
     if( argc < 3 )
       {
-      antscout << "Usage:   ConvertToJpg infile.nii out.jpg " << std::endl;
+      std::cout << "Usage:   ConvertToJpg infile.nii out.jpg " << std::endl;
       if( argc >= 2 &&
           ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
         {
@@ -169,7 +169,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
     }

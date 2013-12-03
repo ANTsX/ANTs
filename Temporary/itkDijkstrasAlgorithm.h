@@ -535,14 +535,14 @@ public:
     for( int i = 0; i < GraphDimension; i++ )
       {
       m_GraphIndex[i] = (long int)(G->GetLocation()[i] + 0.5);
-//      ::::ants::antscout << " mgi " << m_GraphIndex[i];
+//      ::std::cout << " mgi " << m_GraphIndex[i];
       }
     m_Graph->SetPixel(m_GraphIndex, G);
   };
 
   typename TGraphSearchNode::Pointer GetGraphNode(   IndexType index)
   {
-    //    ::::ants::antscout << " get node "  << index << std::endl;
+    //    ::std::cout << " get node "  << index << std::endl;
     return m_Graph->GetPixel(index);
   };
 

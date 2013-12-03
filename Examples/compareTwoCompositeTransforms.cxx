@@ -146,7 +146,7 @@ int compareComposites( const typename itk::Transform<double, VImageDimension, VI
     std::cerr << "The input transforms MUST be composite transforms." << std::endl;
     return EXIT_FAILURE;
     }
-  antscout << "Two input composite transforms are the same!" << std::endl;
+  std::cout << "Two input composite transforms are the same!" << std::endl;
   return EXIT_SUCCESS;
 }
 
@@ -166,7 +166,7 @@ int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* 
     return EXIT_FAILURE;
     }
   
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
   {
   itk::Transform<double, 2, 2>::Pointer firstTransform = itk::ants::ReadTransform<double, 2>(args[0]);
   itk::Transform<double, 2, 2>::Pointer secondTransform = itk::ants::ReadTransform<double, 2>(args[1]);

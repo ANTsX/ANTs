@@ -51,7 +51,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   typedef itk::PICSLAdvancedNormalizationToolKit<3> RegistrationType;
   RegistrationType::Pointer registration = RegistrationType::New();
@@ -96,23 +96,23 @@ private:
 
   if( !parser->GetOption( "directionality" ) )
     {
-    antscout << "N ULL" << std::endl;
+    std::cout << "N ULL" << std::endl;
     }
   else
     {
     for( unsigned int j = 0; j < 3; j++ )
       {
-      antscout << parser->ConvertVector<bool>(
+      std::cout << parser->ConvertVector<bool>(
         parser->GetOption( "directionality" )->GetValue( 0 ) )[j] << " x ";
       }
     }
 
-  parser->PrintMenu( antscout, 7 );
+  parser->PrintMenu( std::cout, 7 );
 
-  //  antscout << std::endl << std::endl << "--------------------------------------------"
+  //  std::cout << std::endl << std::endl << "--------------------------------------------"
   //            << std::endl << std::endl;
 
-  //  parser->Print( antscout << 7 );
+  //  parser->Print( std::cout << 7 );
 
   return 0;
 };

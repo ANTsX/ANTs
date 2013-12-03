@@ -152,24 +152,24 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   if( inputImageType == 3 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    antscout << "Input time-series image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    std::cout << "Input time-series image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
     ReadImage<TimeSeriesImageType>( timeSeriesImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str() );
     }
   else if( inputImageType == 2 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    antscout << "Input tensor image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    std::cout << "Input tensor image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
     ReadTensorImage<TensorImageType>( tensorImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str(), false );
     }
   else if( inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    antscout << "Input scalar image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    std::cout << "Input scalar image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
     typename ImageType::Pointer image;
     ReadImage<ImageType>( image, ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
     inputImages.push_back( image );
     }
   else if( inputImageType == 1 && inputOption && inputOption->GetNumberOfFunctions() )
     {
-    antscout << "Input vector image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    std::cout << "Input vector image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
 
     typedef itk::ImageFileReader<DisplacementFieldType> ReaderType;
     typename ReaderType::Pointer reader = ReaderType::New();
@@ -192,7 +192,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
       {
-      antscout << "An input image is required." << std::endl;
+      std::cout << "An input image is required." << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -219,12 +219,12 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   if( referenceOption && referenceOption->GetNumberOfFunctions() )
     {
-    antscout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
+    std::cout << "Reference image: " << referenceOption->GetFunction( 0 )->GetName() << std::endl;
     ReadImage<ReferenceImageType>( referenceImage,  ( referenceOption->GetFunction( 0 )->GetName() ).c_str() );
     }
   else if( needReferenceImage == true )
     {
-				antscout << "A reference image is required." << std::endl;
+				std::cout << "A reference image is required." << std::endl;
 				return EXIT_FAILURE;
     }
 
@@ -306,7 +306,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
   if( !compositeTransform->GetNumberOfParameters() )
     {
-    antscout << "WARNING: No transforms found, using identify transform" << std::endl;
+    std::cout << "WARNING: No transforms found, using identify transform" << std::endl;
     typename MatrixOffsetTransformType::Pointer idTransform = MatrixOffsetTransformType::New();
     idTransform->SetIdentity();
     compositeTransform->AddTransform( idTransform );
@@ -342,7 +342,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     {
     defaultValue = parser->Convert<PixelType>( defaultOption->GetFunction( 0 )->GetName() );
     }
-  antscout << "Default pixel value: " << defaultValue << std::endl;
+  std::cout << "Default pixel value: " << defaultValue << std::endl;
   for( unsigned int n = 0; n < inputImages.size(); n++ )
     {
     typedef itk::ResampleImageFilter<ImageType, ImageType, RealType> ResamplerType;
@@ -356,11 +356,11 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     resampleFilter->SetInterpolator( interpolator );
     if( n == 0 )
       {
-      antscout << "Interpolation type: " << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
+      std::cout << "Interpolation type: " << resampleFilter->GetInterpolator()->GetNameOfClass() << std::endl;
       }
     if( inputImageType == 3 )
       {
-      antscout << "  Applying transform(s) to time point " << n << " (out of " << inputImages.size() << ")." << std::endl;
+      std::cout << "  Applying transform(s) to time point " << n << " (out of " << inputImages.size() << ")." << std::endl;
       }
     resampleFilter->Update();
     outputImages.push_back( resampleFilter->GetOutput() );
@@ -409,7 +409,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     else if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) != 0 )
       {
-      antscout << "Output composite transform displacement field: "
+      std::cout << "Output composite transform displacement field: "
                << outputOption->GetFunction( 0 )->GetParameter( 0 ) << std::endl;
 
       typedef typename itk::TransformToDisplacementFieldSource<DisplacementFieldType, RealType> ConverterType;
@@ -435,13 +435,13 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         {
         outputFileName = outputOption->GetFunction( 0 )->GetName();
         }
-      antscout << "Output warped image: " << outputFileName << std::endl;
+      std::cout << "Output warped image: " << outputFileName << std::endl;
 
       if( inputImageType == 1 )
         {
         if( outputImages.size() != Dimension )
           {
-          antscout << "The number of output images does not match the number of vector components." << std::endl;
+          std::cout << "The number of output images does not match the number of vector components." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -475,7 +475,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         {
         if( outputImages.size() != NumberOfTensorElements )
           {
-          antscout << "The number of output images does not match the number of tensor elements." << std::endl;
+          std::cout << "The number of output images does not match the number of tensor elements." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -507,7 +507,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
         if( outputImages.size() != numberOfTimePoints )
           {
-          antscout << "The number of output images does not match the number of image time points." << std::endl;
+          std::cout << "The number of output images does not match the number of image time points." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -807,7 +807,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
 
@@ -826,7 +826,7 @@ private:
   if( argc < 2 || ( parser->GetOption( "help" ) &&
                     ( parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) ) ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -836,7 +836,7 @@ private:
   else if( parser->GetOption( 'h' ) &&
            ( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 
@@ -860,7 +860,7 @@ private:
     }
   else
     {
-    antscout << "No reference image was specified." << std::endl;
+    std::cout << "No reference image was specified." << std::endl;
     return EXIT_FAILURE;
     }
 #endif
@@ -894,13 +894,13 @@ private:
   OptionType::Pointer typeOption = parser->GetOption( "float" );
   if( typeOption && parser->Convert<bool>( typeOption->GetFunction( 0 )->GetName() ) )
     {
-    antscout << "Using single precision for computations." << std::endl;
+    std::cout << "Using single precision for computations." << std::endl;
     precisionType = "float";
     useDoublePrecision = false;
     }
   else
     {
-    antscout << "Using double precision for computations." << std::endl;
+    std::cout << "Using double precision for computations." << std::endl;
     precisionType = "double";
     useDoublePrecision = true;
     }
@@ -935,7 +935,7 @@ private:
       }
     else
       {
-      antscout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+      std::cout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -946,7 +946,7 @@ private:
       {
       if( imageType == TENSOR )
         {
-        antscout << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
+        std::cout << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
         return EXIT_FAILURE;
         }
       else
@@ -978,11 +978,11 @@ private:
       {
       if( imageType == TENSOR )
         {
-        antscout << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
+        std::cout << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
         }
       else if( imageType == TIME_SERIES )
         {
-        antscout << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
+        std::cout << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
         }
       else
         {
@@ -998,7 +998,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

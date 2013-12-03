@@ -23,6 +23,18 @@ include(CMakeDependentOption)
 option(BUILD_SHARED_LIBS "Build ITK with shared libraries." OFF)
 set(ANTS_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 
+######################################################################################################
+# BA - add this stuff to help installation of ANTsR
+# SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+# SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+# SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+# SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+# LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+# IF("${isSystemDir}" STREQUAL "-1")
+#   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+# ENDIF("${isSystemDir}" STREQUAL "-1")
+#####################################################################################################
+
 option(BUILD_EXTERNAL_APPLICATIONS "Build applications that are bundled with ANTs for convenience." ON)
 set(BUILD_EXTERNAL_APPLICATIONS ${BUILD_EXTERNAL_APPLICATIONS})
 

@@ -39,7 +39,7 @@ typedef itk::SurfaceCurvatureBase<ImageType>  ParamType;
   }
 
   Parameterizer->ComputeJoshiFrame(Parameterizer->GetOrigin());  Parameterizer->PrintFrame();
-  antscout << " err 1 " << Parameterizer->ErrorEstimate(Parameterizer->GetOrigin()) <<
+  std::cout << " err 1 " << Parameterizer->ErrorEstimate(Parameterizer->GetOrigin()) <<
     " err 2 " << Parameterizer->ErrorEstimate(Parameterizer->GetOrigin(),-1) << std::endl;
 
 }
@@ -91,31 +91,31 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << " This implements The Shape Operator for Differential Analysis of Images (google for the pdf)" << std::endl;
-    antscout << " By B. Avants and J.C. Gee " << std::endl;
-    antscout << " Documentation is on demand --- if there is enough interest, documentation will improve." << std::endl;
-    antscout << " There are several modes of operation and you must try parameters and input either binary or gray scale images to see the different effects ---- experimentation or reading the (minimal) documentation /  paper / code is needed to understand the program " << std::endl;
-    antscout << " usage :  SurfaceCurvature FileNameIn FileNameOut sigma option  " << std::endl;
-    antscout << " e.g  :   SurfaceCurvature    BrainIn.nii BrainOut.nii   3  0 " << std::endl;
-    antscout << " option 0 means just compute mean curvature from intensity " << std::endl;
-    antscout << " option 5 means characterize surface from intensity " << std::endl;
-    antscout << " option 6 means compute gaussian curvature " << std::endl;
-    antscout << " ... " << std::endl;
-    antscout << " for surface characterization " << std::endl;
-    antscout << " 1 == (+) bowl " << std::endl;
-    antscout << " 2 == (-) bowl  " << std::endl;
-    antscout << " 3 == (+) saddle " << std::endl;
-    antscout << " 4 == (-) saddle " << std::endl;
-    antscout << " 5 == (+) U " << std::endl;
-    antscout << " 6 == (-) U " << std::endl;
-    antscout << " 7 == flat " << std::endl;
-    antscout << " 8 == a perfectly even saddle (rare) " << std::endl;
-    antscout << " " << std::endl;
-    antscout << " we add 128 to mean curvature results s.t. they are differentiated from background (zero) "
+    std::cout << " This implements The Shape Operator for Differential Analysis of Images (google for the pdf)" << std::endl;
+    std::cout << " By B. Avants and J.C. Gee " << std::endl;
+    std::cout << " Documentation is on demand --- if there is enough interest, documentation will improve." << std::endl;
+    std::cout << " There are several modes of operation and you must try parameters and input either binary or gray scale images to see the different effects ---- experimentation or reading the (minimal) documentation /  paper / code is needed to understand the program " << std::endl;
+    std::cout << " usage :  SurfaceCurvature FileNameIn FileNameOut sigma option  " << std::endl;
+    std::cout << " e.g  :   SurfaceCurvature    BrainIn.nii BrainOut.nii   3  0 " << std::endl;
+    std::cout << " option 0 means just compute mean curvature from intensity " << std::endl;
+    std::cout << " option 5 means characterize surface from intensity " << std::endl;
+    std::cout << " option 6 means compute gaussian curvature " << std::endl;
+    std::cout << " ... " << std::endl;
+    std::cout << " for surface characterization " << std::endl;
+    std::cout << " 1 == (+) bowl " << std::endl;
+    std::cout << " 2 == (-) bowl  " << std::endl;
+    std::cout << " 3 == (+) saddle " << std::endl;
+    std::cout << " 4 == (-) saddle " << std::endl;
+    std::cout << " 5 == (+) U " << std::endl;
+    std::cout << " 6 == (-) U " << std::endl;
+    std::cout << " 7 == flat " << std::endl;
+    std::cout << " 8 == a perfectly even saddle (rare) " << std::endl;
+    std::cout << " " << std::endl;
+    std::cout << " we add 128 to mean curvature results s.t. they are differentiated from background (zero) "
              << std::endl;
     return 0;
     }
@@ -133,7 +133,7 @@ private:
     {
     sig = atof( argv[3]);
     }
-  antscout << " sigma " << sig << std::endl;
+  std::cout << " sigma " << sig << std::endl;
   if( argc > 4 )
     {
     opt = (int) atoi(argv[4]);
@@ -141,13 +141,13 @@ private:
 
   if( opt < 0 )
     {
-    antscout << " error " << std::endl;
+    std::cout << " error " << std::endl;
     return 0;
     }
 
   ImageType::Pointer input;
   ReadImage<ImageType>(input, argv[1]);
-  antscout << " done reading " << std::string(argv[1]) << std::endl;
+  std::cout << " done reading " << std::string(argv[1]) << std::endl;
 
   //  float ballradius = 2.0;
   // if (argc >= 6) ballradius = (float) atof(argv[5]);
@@ -157,12 +157,12 @@ private:
 
   //  Parameterizer->ProcessLabelImage();
   Parameterizer->SetNeighborhoodRadius( 1. );
-//  antscout << " set sig " ;  std::cin >> sig;
+//  std::cout << " set sig " ;  std::cin >> sig;
   if( sig <= 0.5 )
     {
     sig = 1.66;
     }
-  antscout << " sigma " << sig << " option " << opt << std::endl;
+  std::cout << " sigma " << sig << " option " << opt << std::endl;
   Parameterizer->SetSigma(sig);
 
   if( opt == 1 )
@@ -179,7 +179,7 @@ private:
       {
       sign = -1.0;
       }
-    antscout << " setting outward direction as " << sign;
+    std::cout << " setting outward direction as " << sign;
     Parameterizer->SetkSign(sign);
     Parameterizer->SetThreshold(0);
     }
@@ -187,7 +187,7 @@ private:
 //  Parameterizer->IntegrateFunctionOverSurface();
 //  Parameterizer->IntegrateFunctionOverSurface(true);
 
-  antscout << " computing frame " << std::endl;
+  std::cout << " computing frame " << std::endl;
   if( opt != 5 && opt != 6 )
     {
     Parameterizer->ComputeFrameOverDomain( 3 );
@@ -217,7 +217,7 @@ private:
 
   WriteImage<floatImageType>(Parameterizer->GetFunctionImage(), argv[2]);
 
-  antscout << " done writing ";
+  std::cout << " done writing ";
 
   return 1;
 }

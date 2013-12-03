@@ -81,7 +81,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   // Pixel and Image typedefs
   typedef float PixelType;
@@ -104,11 +104,11 @@ private:
   // Check for valid input parameters
   if( argc < 5 )
     {
-    antscout << "Usage: " << argv[0] << " outputvolume x y z inputvolume(s)" << std::endl;
-    antscout << "  The specific slice is chosen by specifying the index for x, y, xor z." << std::endl;
-    antscout << "  For example, an \"x y z\" selection of \"30 -1 -1\" will stack slice 30 " << std::endl;
-    antscout << "  along the first dimension.  Also note that input 4-D volumes are treated " << std::endl;
-    antscout << "  as a series of 3-D volumes." << std::endl;
+    std::cout << "Usage: " << argv[0] << " outputvolume x y z inputvolume(s)" << std::endl;
+    std::cout << "  The specific slice is chosen by specifying the index for x, y, xor z." << std::endl;
+    std::cout << "  For example, an \"x y z\" selection of \"30 -1 -1\" will stack slice 30 " << std::endl;
+    std::cout << "  along the first dimension.  Also note that input 4-D volumes are treated " << std::endl;
+    std::cout << "  as a series of 3-D volumes." << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -132,7 +132,7 @@ private:
       {
       if( (dim > -1) || (slice > -1) )
         {
-        antscout << "Can only choose slice from 1 dimension" << std::endl;
+        std::cout << "Can only choose slice from 1 dimension" << std::endl;
         return EXIT_FAILURE;
         }
       dim = i;
@@ -153,18 +153,18 @@ private:
   if( argc > 6 )
     {
     inputIsA4DImage = false;
-    antscout << "  Input is a set of 3-D volumes." << std::endl;
+    std::cout << "  Input is a set of 3-D volumes." << std::endl;
     }
   else
     {
-    antscout << "  Input is a 4-D image." << std::endl;
+    std::cout << "  Input is a 4-D image." << std::endl;
     }
 
   if( !inputIsA4DImage )  // input is a set of 3-D volumes
     {
     nSlices = argc - 5;
 
-    // antscout << nSlices << std::endl;
+    // std::cout << nSlices << std::endl;
 
     ReaderType::Pointer firstReader = ReaderType::New();
     firstReader->SetFileName( argv[5] );
@@ -235,7 +235,7 @@ private:
       }
     }
 
-  antscout << "  Output region size = " << region3D.GetSize() << std::endl;
+  std::cout << "  Output region size = " << region3D.GetSize() << std::endl;
 
   ImageType::Pointer stack = AllocImage<ImageType>( region3D );
 
@@ -247,7 +247,7 @@ private:
 
     if( !inputIsA4DImage )
       {
-      antscout << " Slice " << i << " :: " << std::string(argv[5 + i]) << std::endl;
+      std::cout << " Slice " << i << " :: " << std::string(argv[5 + i]) << std::endl;
 
       ReaderType::Pointer reader = ReaderType::New();
       reader->SetFileName( argv[5 + i] );
@@ -268,7 +268,7 @@ private:
       }
     else
       {
-      antscout << " Slice " << i << " :: " << std::endl;
+      std::cout << " Slice " << i << " :: " << std::endl;
 
       ImageSeriesType::RegionType extractRegion = imageSeries->GetLargestPossibleRegion();
       extractRegion.SetSize( dim, 0 );

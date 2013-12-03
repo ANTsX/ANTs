@@ -51,7 +51,7 @@ void CreateDisplacementField( int argc, char *argv[] )
     componentImage = reader->GetOutput();
     if( componentImage->GetLargestPossibleRegion() != regionOfFirstComponent )
       {
-      antscout << "LargestPossibleRegion of component " << n << " does not match 1st component image." << std::endl;
+      std::cout << "LargestPossibleRegion of component " << n << " does not match 1st component image." << std::endl;
       throw std::exception();
       }
     // Walk the images
@@ -107,28 +107,28 @@ void CreateDisplacementField( int argc, char *argv[] )
   typename VectorImageType::IndexType index;
   index[0] = col;
   index[1] = 0;
-  antscout << "Debug output of field: " << std::endl;
-  antscout << "Middle column: " << std::endl;
+  std::cout << "Debug output of field: " << std::endl;
+  std::cout << "Middle column: " << std::endl;
   while( it.GetIndex()[1] < row * 2 )
     {
     it.SetIndex( index );
-    antscout << it.Get() << " ";
+    std::cout << it.Get() << " ";
     index[1]++;
     }
 
-  antscout << std::endl;
+  std::cout << std::endl;
 
   index[0] = 0;
   index[1] = row;
-  antscout << "Middle row: " << std::endl;
+  std::cout << "Middle row: " << std::endl;
   while( it.GetIndex()[0] < col * 2 )
     {
     it.SetIndex( index );
-    antscout << it.Get() << " ";
+    std::cout << it.Get() << " ";
     index[0]++;
     }
 
-  antscout << std::endl;
+  std::cout << std::endl;
 #endif   // debug
 }
 
@@ -176,15 +176,15 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout
+    std::cout
       <<
       "Create an itkImage of itkVector pixels (NOT an itkVectorImage), using each scalar input component image for each vector component. An itkImage of itkVectors is the standard type for displacement fields in ITK. All component images (up to 8) are assumed to have the same size, offset, origin, and spacing. The 'EnforceZeroBoundaryFlag' option will create zero-valued vectors along the borders when enabled (pass 1), and is recommended for better displacement field behavior."
       << std::endl;
-    antscout << "Usage: " << argv[0]
+    std::cout << "Usage: " << argv[0]
              <<
       " ImageDimension EnforceZeroBoundaryFlag{0/1} ComponentImage1 [ ComponentImage2 [...ComponentImageN] ] OutputImage "
              << std::endl;
@@ -246,7 +246,7 @@ private:
           }
           break;
         default:
-          antscout << "Unsupported number of components: " << numberOfComponents << std::endl;
+          std::cout << "Unsupported number of components: " << numberOfComponents << std::endl;
           return EXIT_FAILURE;
         }
       }
@@ -296,13 +296,13 @@ private:
           }
           break;
         default:
-          antscout << "Unsupported number of components: " << numberOfComponents << std::endl;
+          std::cout << "Unsupported number of components: " << numberOfComponents << std::endl;
           return EXIT_FAILURE;
         }
       }
       break;
     default:
-      antscout << "Unsupported number of dimensions: " << imageDimension << std::endl;
+      std::cout << "Unsupported number of dimensions: " << imageDimension << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

@@ -48,7 +48,7 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
 
   std::vector<unsigned int> iterations(3);
   iterations[0] = 100; iterations[1] = 70; iterations[2] = 20;
-  antscout << "  number of levels = 3 " << std::endl;
+  std::cout << "  number of levels = 3 " << std::endl;
   iterationList.push_back(iterations);
 
   const double convergenceThreshold = 1e-6;
@@ -90,7 +90,7 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
     CompositeTransformType::TransformTypePointer resultTransform = outputCompositeTransform->GetNthTransform( 1 );
     return resultTransform;
     }
-  antscout << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
+  std::cout << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
   CompositeTransformType::TransformTypePointer invalidTransform = NULL;
   return invalidTransform;      // Return an empty registration type.
 }
@@ -111,7 +111,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
     return EXIT_FAILURE;
     }
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   ImageType::Pointer fixedImage;
   ImageType::Pointer movingImage;
@@ -127,7 +127,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
     }
   catch( itk::ExceptionObject & excp )
     {
-    antscout << excp << std::endl;
+    std::cout << excp << std::endl;
     return EXIT_FAILURE;
     }
   // ==========read the moving image
@@ -141,19 +141,19 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
     }
   catch( itk::ExceptionObject & excp )
     {
-    antscout << excp << std::endl;
+    std::cout << excp << std::endl;
     return EXIT_FAILURE;
     }
 
-  antscout << "  fixed image: " << args[0] << std::endl;
-  antscout << "  moving image: " << args[1] << std::endl;
+  std::cout << "  fixed image: " << args[0] << std::endl;
+  std::cout << "  moving image: " << args[1] << std::endl;
 
   // ===========Read the initial transform and write that in a composite transform
   typedef RegistrationHelperType::TransformType TransformType;
   TransformType::Pointer initialTransform = itk::ants::ReadTransform<double, 3>( args[2] );
   if( initialTransform.IsNull() )
     {
-    antscout << "Can't read initial transform " << std::endl;
+    std::cout << "Can't read initial transform " << std::endl;
     return EXIT_FAILURE;
     }
   CompositeTransformType::Pointer compositeInitialTransform = CompositeTransformType::New();
@@ -165,10 +165,10 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* out_stre
                                                                                compositeInitialTransform );
   if( outputTransform.IsNull() )
     {
-    antscout << "ERROR: Registration FAILED TO PRODUCE VALID TRANSFORM ...\n" << std::endl;
+    std::cout << "ERROR: Registration FAILED TO PRODUCE VALID TRANSFORM ...\n" << std::endl;
     return EXIT_FAILURE;
     }
-  antscout << "***** Ready to write the results ...\n" << std::endl;
+  std::cout << "***** Ready to write the results ...\n" << std::endl;
   std::stringstream outputFileName;
   outputFileName << args[3] << "Warp.nii.gz";
   itk::ants::WriteTransform<double, 3>( outputTransform, outputFileName.str() );

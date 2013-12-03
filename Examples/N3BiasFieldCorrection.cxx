@@ -43,9 +43,9 @@ public:
       return;
       }
 
-    antscout << "Iteration " << filter->GetElapsedIterations()
+    std::cout << "Iteration " << filter->GetElapsedIterations()
              << " (of " << filter->GetMaximumNumberOfIterations() << ").  ";
-    antscout << " Current convergence value = "
+    std::cout << " Current convergence value = "
              << filter->GetCurrentConvergenceMeasurement()
              << " (threshold = " << filter->GetConvergenceThreshold()
              << ")" << std::endl;
@@ -124,11 +124,11 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
     }
   catch( ... )
     {
-    antscout << "Exception caught." << std::endl;
+    std::cout << "Exception caught." << std::endl;
     return EXIT_FAILURE;
     }
 
-//  correcter->Print( antscout, 3 );
+//  correcter->Print( std::cout, 3 );
 
   /**
    * Reconstruct the bias field at full image resolution.  Divide
@@ -176,7 +176,7 @@ int N3BiasFieldCorrection( int argc, char *argv[] )
   typename WriterType::Pointer writer = WriterType::New();
   if( argc < 4 )
     {
-    antscout << "missing divider image filename" << std::endl;
+    std::cout << "missing divider image filename" << std::endl;
     throw;
     }
   WriteImage<ImageType>( divider->GetOutput(), argv[3] );
@@ -233,11 +233,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout << "Usage: " << argv[0] << " imageDimension inputImage "
+    std::cout << "Usage: " << argv[0] << " imageDimension inputImage "
              << "outputImage [shrinkFactor] [maskImage] [numberOfIterations] "
              << "[numberOfFittingLevels] [outputBiasField] " << std::endl;
     if( argc >= 2 &&
@@ -261,7 +261,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

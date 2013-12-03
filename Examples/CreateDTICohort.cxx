@@ -132,7 +132,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "ERROR:  Input DTI atlas not specified." << std::endl;
+    std::cout << "ERROR:  Input DTI atlas not specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -168,7 +168,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "ERROR:  No output specified." << std::endl;
+    std::cout << "ERROR:  No output specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -197,7 +197,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     }
   if( !maskImage->GetBufferPointer() )
     {
-    antscout << "Mask not read.  Creating mask by thresholding "
+    std::cout << "Mask not read.  Creating mask by thresholding "
              << "the FA of the DTI atlas at >= " << lowerThresholdFunction
              << "." << std::endl << std::endl;
 
@@ -357,7 +357,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
       "registered-population" );
   if( populationOption && populationOption->GetNumberOfFunctions() )
     {
-    antscout << "--- Modeling intersubject variability ---" << std::endl
+    std::cout << "--- Modeling intersubject variability ---" << std::endl
              << std::endl;
 
     std::vector<std::string> imageNames;
@@ -382,7 +382,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     M.Fill( 0 );
     for( unsigned int k = 0; k < imageNames.size(); k++ )
       {
-      antscout << "Processing " << imageNames[k] << " (" << k + 1 << " of "
+      std::cout << "Processing " << imageNames[k] << " (" << k + 1 << " of "
                << imageNames.size() << ")." << std::endl;
       typename TensorReaderType::Pointer tensorReader = TensorReaderType::New();
       tensorReader->SetFileName( imageNames[k].c_str() );
@@ -429,7 +429,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         }
       }
 
-    antscout << std::endl;
+    std::cout << std::endl;
     // Now that the matrix M has been calculated, we need to subtract out
     // the longitudinal mean before performing PCA
     for( unsigned int i = 0; i < M.Cols(); i++ )
@@ -519,14 +519,14 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
     if( numberOfDirections != directions.size() - 1 )
       {
-      antscout << "ERROR:  Number of directions does not match the data file."
+      std::cout << "ERROR:  Number of directions does not match the data file."
                << std::endl;
       return EXIT_FAILURE;
       }
     }
   else
     {
-    antscout << "ERROR:  No DWI parameters specified." << std::endl;
+    std::cout << "ERROR:  No DWI parameters specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -561,21 +561,21 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
     {
     if( n == 0 )
       {
-      antscout << "--- Calculating regional average FA and MD values (original and "
+      std::cout << "--- Calculating regional average FA and MD values (original and "
                << "pathology) ---" << std::endl << std::endl;
       }
     else if( n <= numberOfControls )
       {
       if( n == 1 )
         {
-        antscout << std::endl << "--- Writing images ---" << std::endl << std::endl;
+        std::cout << std::endl << "--- Writing images ---" << std::endl << std::endl;
         }
-      antscout << "Writing control " << n
+      std::cout << "Writing control " << n
                << " (of " << numberOfControls << ") DWI images." << std::endl;
       }
     else
       {
-      antscout << "Writing experimental " << n - numberOfControls
+      std::cout << "Writing experimental " << n - numberOfControls
                << " (of " << numberOfExperimentals << ") DWI images." << std::endl;
       }
 
@@ -632,7 +632,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
                                                              labels.end(), label );
       if( it == labels.end() )
         {
-        antscout << "ERROR:  unknown label." << std::endl;
+        std::cout << "ERROR:  unknown label." << std::endl;
         }
       unsigned int labelIndex = it - labels.begin();
 
@@ -752,7 +752,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
 
     if( n == 0 )
       {
-      antscout << "   " << std::left << std::setw( 7 ) << "Region"
+      std::cout << "   " << std::left << std::setw( 7 ) << "Region"
                << std::left << std::setw( 15 ) << "FA (original)"
                << std::left << std::setw( 15 ) << "FA (pathology)"
                << std::left << std::setw( 15 ) << "FA (% change)"
@@ -762,7 +762,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
                << std::endl;
       for( unsigned int l = 1; l < labels.size(); l++ )
         {
-        antscout << "   " << std::left << std::setw( 7 ) << labels[l]
+        std::cout << "   " << std::left << std::setw( 7 ) << labels[l]
                  << std::left << std::setw( 15 ) << meanFAandMD(l, 0) / meanFAandMD(l, 4)
                  << std::left << std::setw( 15 ) << meanFAandMD(l, 2) / meanFAandMD(l, 4)
                  << std::left << std::setw( 15 )
@@ -809,7 +809,7 @@ int CreateDTICohort( itk::ants::CommandLineParser *parser )
         vnl_vector<RealType> bk = directions[d];
         RealType             bvalue = bvalues[d];
 
-        antscout << "  Applying direction " << d << " (of "
+        std::cout << "  Applying direction " << d << " (of "
                  << directions.size() - 1 << "): [" << bk << "]"
                  << ", bvalue = " << bvalue << std::endl;
 
@@ -1096,7 +1096,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -1120,7 +1120,7 @@ private:
 
   if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -1129,7 +1129,7 @@ private:
     }
   else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 
@@ -1162,7 +1162,7 @@ private:
       }
     else
       {
-      antscout << "No input atlas was specified.  Specify a dti atlas"
+      std::cout << "No input atlas was specified.  Specify a dti atlas"
                << " with the -a option" << std::endl;
       return EXIT_FAILURE;
       }
@@ -1171,7 +1171,7 @@ private:
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  antscout << std::endl << "Creating DTI cohort for "
+  std::cout << std::endl << "Creating DTI cohort for "
            << dimension << "-dimensional images." << std::endl << std::endl;
 
   switch( dimension )
@@ -1187,7 +1187,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

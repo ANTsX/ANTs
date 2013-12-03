@@ -93,11 +93,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc != 6 )
     {
-    antscout << "Usage: " << argv[0]
+    std::cout << "Usage: " << argv[0]
              << " imageDimension inputImage outputSlice direction(e.g. 0, 1, 2) slice_number" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -125,7 +125,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

@@ -71,11 +71,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 5 )
     {
-    antscout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <PHYSICAL/LOCAL/reference.nii.gz> "
+    std::cout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <PHYSICAL/LOCAL/reference.nii.gz> "
              << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -91,7 +91,7 @@ private:
 
   if( dim != 3 )
     {
-    antscout << "RebaseTensorImage only supports 3D image volumes" << std::endl;
+    std::cout << "RebaseTensorImage only supports 3D image volumes" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -108,24 +108,24 @@ private:
   TensorImageType::DirectionType::InternalMatrixType direction = img_mov->GetDirection().GetVnlMatrix();
   direction.set_identity();
 
-  antscout << "Transforming space of " << moving_image_filename;
+  std::cout << "Transforming space of " << moving_image_filename;
 
-  // antscout << i << " = " << argv[i-1] << std::endl;
+  // std::cout << i << " = " << argv[i-1] << std::endl;
   char * convert = argv[4];
 
   if( strcmp( convert, "PHYSICAL" ) == 0 )
     {
-    antscout << " -> physical space";
+    std::cout << " -> physical space";
     direction = img_mov->GetDirection().GetVnlMatrix();
     }
   else if( strcmp( convert, "LOCAL" ) == 0 )
     {
-    antscout << " -> local space";
+    std::cout << " -> local space";
     direction = img_mov->GetDirection().GetTranspose();
     }
   else
     {
-    antscout << " -> " << convert << " space";
+    std::cout << " -> " << convert << " space";
     ImageType::Pointer target;
     ReadImage<ImageType>( target, convert );
     direction =  img_mov->GetDirection().GetTranspose() * target->GetDirection().GetVnlMatrix();
@@ -134,8 +134,8 @@ private:
   // direction = direction.transpose(); // to accomodate for how
   // eigenvectors are stored
 
-  antscout << std::endl;
-  antscout << "Final rebasing matrix: " << std::endl << direction << std::endl;
+  std::cout << std::endl;
+  std::cout << "Final rebasing matrix: " << std::endl << direction << std::endl;
 
   if( !direction.is_identity(0.00001) )
     {
@@ -187,7 +187,7 @@ private:
     }
   else
     {
-    antscout << "Identity transform detected.. image unmodified" << std::endl;
+    std::cout << "Identity transform detected.. image unmodified" << std::endl;
     }
 
   // No reason to use log-euclidean space here

@@ -76,7 +76,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
   float       clusterthresh = atof(argv[5]);
   float       minSize = clusterthresh;
   float       valuethresh = atof(argv[6]);
-  //  antscout << " Cth " << clusterthresh << " Vth " << valuethresh << std::endl;
+  //  std::cout << " Cth " << clusterthresh << " Vth " << valuethresh << std::endl;
   typename ImageType::Pointer valimage = NULL;
   typename ImageType::Pointer roiimage = NULL;
   typename ImageType::Pointer labelimage = NULL;
@@ -93,7 +93,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
   double range = max - min;
   for( unsigned int filecount = 7;  filecount < argc; filecount++ )
     {
-    //    antscout <<" doing " << std::string(argv[filecount]) << std::endl;
+    //    std::cout <<" doing " << std::string(argv[filecount]) << std::endl;
 
     ReadImage<ImageType>(valimage, argv[filecount]);
 
@@ -135,8 +135,8 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
       }
     catch( itk::ExceptionObject & excep )
       {
-      antscout << "Relabel: exception caught !" << std::endl;
-      antscout << excep << std::endl;
+      std::cout << "Relabel: exception caught !" << std::endl;
+      std::cout << excep << std::endl;
       }
 
     typename ImageType::Pointer Clusters = MakeNewImage<ImageType>(valimage, 0);
@@ -145,7 +145,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     Iterator vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
 
     float maximum = relabel->GetNumberOfObjects();
-    //    antscout << " #object " << maximum << std::endl;
+    //    std::cout << " #object " << maximum << std::endl;
 //    float maxtstat=0;
     std::vector<unsigned long> histogram( (int)maximum + 1);
     std::vector<long>          maxlabel( (int)maximum + 1);
@@ -208,7 +208,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
         maximgval = Clusters->GetPixel( vfIter.GetIndex() );
         }
       }
-    //  antscout << " max size " << maximgval << std::endl;
+    //  std::cout << " max size " << maximgval << std::endl;
     for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
       {
       if( Clusters->GetPixel( vfIter.GetIndex() ) < minSize )
@@ -224,7 +224,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
     WriteImage<ImageType>(Clusters, (outname + "sizes.nii.gz").c_str() );
 
     // now begin output
-    //  antscout << " Writing Text File " << outname << std::endl;
+    //  std::cout << " Writing Text File " << outname << std::endl;
     std::string   outname2 = outname + std::string("average.csv");
     std::string   outname3 = outname + std::string("volume.csv");
     std::ofstream outf( (outname2).c_str(), std::ofstream::out);
@@ -238,7 +238,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
           {
           //          outf << " Cluster " << i << " size  " << histogram[i] <<  " average " <<
           // sumofvalues[i]/(float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
-          antscout << " Cluster " << i << " size  " << histogram[i] <<  " average " << sumofvalues[i]
+          std::cout << " Cluster " << i << " size  " << histogram[i] <<  " average " << sumofvalues[i]
             / (float)histogram[i] << " max " << maxvalue[i] << " label " <<  maxlabel[i] <<  std::endl;
           }
         }
@@ -251,7 +251,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
             countinlabel[i] = 1;
             }
           //          outf << " Label " << i+min <<   " average " << suminlabel[i]/(float)countinlabel[i] <<  std::endl;
-          antscout << " Label " << i + min <<   " average " << suminlabel[i] / (float)countinlabel[i] <<  std::endl;
+          std::cout << " Label " << i + min <<   " average " << suminlabel[i] / (float)countinlabel[i] <<  std::endl;
           if( i < range )
             {
             outf <<  suminlabel[i] / (float)countinlabel[i] << ",";
@@ -265,7 +265,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
       }
     else
       {
-      antscout << " File No Good! " << outname << std::endl;
+      std::cout << " File No Good! " << outname << std::endl;
       }
     outf.close();
 
@@ -289,7 +289,7 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
       }
     else
       {
-      antscout << " File No Good! " << outname << std::endl;
+      std::cout << " File No Good! " << outname << std::endl;
       }
     outf2.close();
     }
@@ -340,20 +340,20 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout
+    std::cout
       <<
       " Given an ROI and Label Image, find the max and average value   \n in a value image  where the value > some user-defined threshold \n and the cluster size  is larger than some min size. \n "
       << std::endl;
-    antscout << "Usage: \n  " << std::endl;
-    antscout << argv[0]
+    std::cout << "Usage: \n  " << std::endl;
+    std::cout << argv[0]
              <<
       "  ImageDimension ROIMask.ext LabelImage.ext  OutPrefix   MinimumClusterSize  ValueImageThreshold  Image1WithValuesOfInterest.ext ...  ImageNWithValuesOfInterest.ext  \n \n "
              << std::endl;
-    antscout
+    std::cout
       <<
       " ROIMask.ext -- overall region of interest \n  \n LabelImage.ext -- labels for the sub-regions, e.g. Brodmann or just unique labels (see  LabelClustersUniquely ) \n \n  OutputPrefix -- all output  has this prefix  \n \n  MinimumClusterSize -- the minimum size of clusters of interest  \n  \n ValueImageThreshold -- minimum value of interest \n \n   Image*WithValuesOfInterest.ext  ---  image(s) that define the values you want to measure \n ";
     if( argc >= 2 &&
@@ -377,7 +377,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

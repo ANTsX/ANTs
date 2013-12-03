@@ -41,7 +41,7 @@ template <class TImage>
 typename TImage::Pointer
 MultiplyImage(typename TImage::Pointer image1, typename TImage::Pointer image2)
 {
-  antscout << " Multiply " << std::endl;
+  std::cout << " Multiply " << std::endl;
   // Begin Multiply Images
   typedef TImage tImageType;
   //  output will be the speed image for FMM
@@ -64,7 +64,7 @@ typename TImage::Pointer BinaryThreshold_AltInsideOutside_threashold(
   typename TImage::PixelType insideval, typename TImage::PixelType outsideval,
   typename TImage::Pointer input )
 {
-  antscout << " Binary Thresh " << std::endl;
+  std::cout << " Binary Thresh " << std::endl;
 
   typedef typename TImage::PixelType PixelType;
   // Begin Threshold Image
@@ -93,7 +93,7 @@ typename TImage::Pointer
 LabelSurface(typename TImage::PixelType foreground,
              typename TImage::PixelType newval, typename TImage::Pointer input)
 {
-  antscout << " Label Surf " << std::endl;
+  std::cout << " Label Surf " << std::endl;
   typedef TImage ImageType;
   enum { ImageDimension = ImageType::ImageDimension };
   // ORIENTATION ALERT: Original code set spacing & origin without
@@ -111,7 +111,7 @@ LabelSurface(typename TImage::PixelType foreground,
 
   GHood.GoToBegin();
 
-//  antscout << " foreg " << (int) foreground;
+//  std::cout << " foreg " << (int) foreground;
   while( !GHood.IsAtEnd() )
     {
     typename TImage::PixelType p = GHood.GetCenterPixel();
@@ -153,7 +153,7 @@ template <class TImage>
 typename TImage::Pointer OtsuThreshold(
   int NumberOfThresholds, typename TImage::Pointer input)
 {
-  antscout << " Otsu Thresh with " << NumberOfThresholds << " thresholds" << std::endl;
+  std::cout << " Otsu Thresh with " << NumberOfThresholds << " thresholds" << std::endl;
 
   typedef typename TImage::PixelType PixelType;
   // Begin Threshold Image
@@ -256,16 +256,16 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage: " << argv[0];
-    antscout << "   ImageDimension ImageIn.ext outImage.ext  threshlo threshhi <insideValue> <outsideValue>"
+    std::cout << "Usage: " << argv[0];
+    std::cout << "   ImageDimension ImageIn.ext outImage.ext  threshlo threshhi <insideValue> <outsideValue>"
              << std::endl;
-    antscout << "   ImageDimension ImageIn.ext outImage.ext  Otsu NumberofThresholds " << std::endl;
+    std::cout << "   ImageDimension ImageIn.ext outImage.ext  Otsu NumberofThresholds " << std::endl;
 
-    antscout << " Inclusive thresholds " << std::endl;
+    std::cout << " Inclusive thresholds " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -294,7 +294,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
 

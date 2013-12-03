@@ -55,7 +55,7 @@ int IntegrateVelocityField(int argc, char *argv[])
     dT = atof(argv[argct]);
     }
   argct++;
-  antscout << " time-0 " << timezero << " dt " << dT << " time-1 " << timeone << std::endl;
+  std::cout << " time-0 " << timezero << " dt " << dT << " time-1 " << timeone << std::endl;
   PixelType starttime = timezero;
   PixelType finishtime = timeone;
   typedef float                                       PixelType;
@@ -81,7 +81,7 @@ int IntegrateVelocityField(int argc, char *argv[])
 
   if( !timeVaryingVelocity )
     {
-    antscout << " No TV Field " << std::endl;  return EXIT_FAILURE;
+    std::cout << " No TV Field " << std::endl;  return EXIT_FAILURE;
     }
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
@@ -163,11 +163,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout << "Usage:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
              << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -176,14 +176,14 @@ private:
       }
     return EXIT_FAILURE;
     }
-  antscout << " start " << std::endl;
+  std::cout << " start " << std::endl;
   std::string               ifn = std::string(argv[1]);
   itk::ImageIOBase::Pointer imageIO =
     itk::ImageIOFactory::CreateImageIO(ifn.c_str(), itk::ImageIOFactory::ReadMode);
   imageIO->SetFileName(ifn.c_str() );
   imageIO->ReadImageInformation();
   unsigned int dim =  imageIO->GetNumberOfDimensions();
-  antscout << " dim " << dim << std::endl;
+  std::cout << " dim " << dim << std::endl;
 
   switch( dim )
     {
@@ -203,7 +203,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
 

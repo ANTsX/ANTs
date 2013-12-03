@@ -29,54 +29,54 @@ namespace ants
 {
 void PrintCommandLineHelp( const std::string & progName )
 {
-  antscout <<  " \n " << std::endl;
-  antscout <<  "Example usage: \n " << std::endl;
-  antscout << progName
+  std::cout <<  " \n " << std::endl;
+  std::cout <<  "Example usage: \n " << std::endl;
+  std::cout << progName
            <<
     " ImageDimension -m MI[fixedimage.nii.gz,movingimage.nii.gz,1,32] -o Outputfname.nii.gz -i 30x20x0 -r Gauss[3,1] -t Elast[3] \n \n "
            << std::endl;
-  antscout << " Compulsory arguments:\n " << std::endl;
-  antscout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
-  antscout << " -m:    Type of similarity model used for registration. \n " << std::endl;
-  antscout << "    For intramodal image registration, use: " << std::endl;
-  antscout << "        CC = cross-correlation " << std::endl;
-  antscout << "        MI = mutual information " << std::endl;
-  antscout << "        PR = probability mapping " << std::endl;
-  antscout << "        MSQ = mean square difference " << std::endl;
-  antscout << " \n " << std::endl;
-  antscout << "    For intermodal image registration, use: " << std::endl;
-  antscout << "        MI = mutual information " << std::endl;
-  antscout << "        PR = probability mapping " << std::endl;
-  antscout << " \n " << std::endl;
-  antscout << " -o     Outputfname.nii.gz: the name of the resulting image.\n " << std::endl;
-  antscout << " -i     Max-iterations in format: JxKxL, where: " << std::endl;
-  antscout << "        J = max iterations at coarsest resolution (here, reduce by power of 2^2) " << std::endl;
-  antscout << "        K = middle resolution iterations (here,reduce by power of 2) " << std::endl;
-  antscout
+  std::cout << " Compulsory arguments:\n " << std::endl;
+  std::cout << " ImageDimension: 2 or 3 (for 2 or 3 Dimensional registration)\n " << std::endl;
+  std::cout << " -m:    Type of similarity model used for registration. \n " << std::endl;
+  std::cout << "    For intramodal image registration, use: " << std::endl;
+  std::cout << "        CC = cross-correlation " << std::endl;
+  std::cout << "        MI = mutual information " << std::endl;
+  std::cout << "        PR = probability mapping " << std::endl;
+  std::cout << "        MSQ = mean square difference " << std::endl;
+  std::cout << " \n " << std::endl;
+  std::cout << "    For intermodal image registration, use: " << std::endl;
+  std::cout << "        MI = mutual information " << std::endl;
+  std::cout << "        PR = probability mapping " << std::endl;
+  std::cout << " \n " << std::endl;
+  std::cout << " -o     Outputfname.nii.gz: the name of the resulting image.\n " << std::endl;
+  std::cout << " -i     Max-iterations in format: JxKxL, where: " << std::endl;
+  std::cout << "        J = max iterations at coarsest resolution (here, reduce by power of 2^2) " << std::endl;
+  std::cout << "        K = middle resolution iterations (here,reduce by power of 2) " << std::endl;
+  std::cout
     <<
     "        L = fine resolution iterations (here, full resolution). This level takes much more time per iteration!\n "
     << std::endl;
-  antscout
+  std::cout
     << "        Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another iteration level.\n "
     << std::endl;
-  antscout << " -r     Regularization \n" << std::endl;
-  antscout << " -t     Type of transformation model used for registration \n" << std::endl;
-  antscout << "    For elastic image registration, use: " << std::endl;
-  antscout << "        Elast = elastic transformation model (less deformation possible)\n " << std::endl;
-  antscout << "    For diffeomorphic image registration, use: " << std::endl;
-  antscout
+  std::cout << " -r     Regularization \n" << std::endl;
+  std::cout << " -t     Type of transformation model used for registration \n" << std::endl;
+  std::cout << "    For elastic image registration, use: " << std::endl;
+  std::cout << "        Elast = elastic transformation model (less deformation possible)\n " << std::endl;
+  std::cout << "    For diffeomorphic image registration, use: " << std::endl;
+  std::cout
     <<
     "        Syn[GradStep,TimePoints,IntegrationStep] --geodesic 2 = SyN with time with arbitrary number of time points in time discretization  "
     << std::endl;
-  antscout
+  std::cout
     <<
     "        SyN[GradStep,2,IntegrationStep] = SyN with time optimized specifically for 2 time points in the time discretization "
     << std::endl;
-  antscout << "        SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  " << std::endl;
-  antscout << "        Exp[GradStep,TimePoints] = Exponential " << std::endl;
-  antscout << "        GreedyExp = Diffeomorphic Demons style exponential mapping " << std::endl;
-  antscout << " \n " << std::endl;
-  antscout
+  std::cout << "        SyN[GradStep] = Greedy SyN, typicall GradStep=0.25  " << std::endl;
+  std::cout << "        Exp[GradStep,TimePoints] = Exponential " << std::endl;
+  std::cout << "        GreedyExp = Diffeomorphic Demons style exponential mapping " << std::endl;
+  std::cout << " \n " << std::endl;
+  std::cout
     <<
     " Please use the `ANTS -h ` call or refer to the ANTS.pdf manual or antsIntroduction.sh script for additional information and typical values for transformation models\n "
     << std::endl;
@@ -88,19 +88,19 @@ int ANTSex(int argc, char *argv[])
   typedef itk::PICSLAdvancedNormalizationToolKit<ImageDimension, float> RegistrationType;
   typename RegistrationType::Pointer registration = RegistrationType::New();
   registration->ParseCommandLine( argc, argv );
-  antscout << " Run Reg " << std::endl;
+  std::cout << " Run Reg " << std::endl;
   try
     {
     registration->RunRegistration();
     }
   catch( std::exception const& e )
     {
-    antscout << "Exception caught in ANTS: " << std::endl << e.what() << std::endl;
+    std::cout << "Exception caught in ANTS: " << std::endl << e.what() << std::endl;
     return EXIT_FAILURE;
     }
   catch( ... )
     {
-    antscout << "Non-standard exception caught in ANTS. No more information available." << std::endl;
+    std::cout << "Non-standard exception caught in ANTS. No more information available." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -152,11 +152,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 2 )
     {
-    ::ants::antscout << " call ANTS -h or ANTS --help " << std::endl;
+    std::cout << " call ANTS -h or ANTS --help " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -168,7 +168,7 @@ private:
 
 //   if( dim <= 1 || dim > 3 )
 //     {
-//     antscout << " You passed ImageDimension: " << dim
+//     std::cout << " You passed ImageDimension: " << dim
 //              << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
 //     ants::PrintCommandLineHelp(argv[0]);
 //     return EXIT_FAILURE;
@@ -183,14 +183,14 @@ private:
       = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );
     if( fixedImageIO.IsNull() )
       {
-      antscout << "Invalid fixed image: " << argv[1] << std::endl;
+      std::cout << "Invalid fixed image: " << argv[1] << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer movingImageIO
       = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::ReadMode );
     if( movingImageIO.IsNull() )
       {
-      antscout << "Invalid moving image: " << argv[2] << std::endl;
+      std::cout << "Invalid moving image: " << argv[2] << std::endl;
       return EXIT_FAILURE;
       }
     fixedImageIO->SetFileName( argv[1] );
@@ -202,14 +202,14 @@ private:
     const unsigned int mdim = movingImageIO->GetNumberOfDimensions();
     if( fdim != mdim )
       {
-      antscout << "Fixed image dimension does not equal "
+      std::cout << "Fixed image dimension does not equal "
                << "the moving image dimension (" << fdim << " != " << mdim << ")"
                << std::endl;
       return EXIT_FAILURE;
       }
     if( fdim != 2 && fdim != 3 )
       {
-      antscout << "Unsupported image dimension" << std::endl;
+      std::cout << "Unsupported image dimension" << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -256,7 +256,7 @@ private:
 
     dim = fdim;
 
-    antscout << arguments << std::endl;
+    std::cout << arguments << std::endl;
 
     unsigned int           my_argc = 0;
     std::string::size_type delimPos = 0;
@@ -344,7 +344,7 @@ private:
       }
     }
 
-  antscout << "Shoudln't have gotten here." << std::endl;
+  std::cout << "Shoudln't have gotten here." << std::endl;
   return EXIT_FAILURE;
 }
 } // namespace ants

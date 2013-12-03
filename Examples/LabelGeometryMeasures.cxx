@@ -54,14 +54,14 @@ int LabelGeometryMeasures( int argc, char * argv[] )
   typedef itk::LabelPerimeterEstimationCalculator<LabelImageType> AreaFilterType;
   typename AreaFilterType::Pointer areafilter = AreaFilterType::New();
   areafilter->SetImage( labelReader->GetOutput() );
+  areafilter->SetFullyConnected( false );
   areafilter->Compute();
-
 
   typename FilterType::LabelsType allLabels = filter->GetLabels();
   typename FilterType::LabelsType::iterator allLabelsIt;
-//   antscout << "Number of labels: " << labelGeometryFilter->GetNumberOfLabels() << std::endl;
-//   antscout << "Label geometry measures." << std::endl;
-  antscout << std::left << std::setw( 7 )  << "Label"
+//   std::cout << "Number of labels: " << labelGeometryFilter->GetNumberOfLabels() << std::endl;
+//   std::cout << "Label geometry measures." << std::endl;
+  std::cout << std::left << std::setw( 7 )  << "Label"
            << std::left << std::setw( 10 ) << "Volume"
            << std::left << std::setw( 15 ) << "SurfArea(mm^2)"
            << std::left << std::setw( 15 ) << "Eccentricity"
@@ -72,49 +72,49 @@ int LabelGeometryMeasures( int argc, char * argv[] )
            << std::left << std::setw( 30 ) << "Bounding Box";
   if( filter->GetIntensityInput() )
     {
-    antscout << std::left << std::setw( 20 )  << "Integrated Int."
+    std::cout << std::left << std::setw( 20 )  << "Integrated Int."
              << std::left << std::setw( 30 ) << "Weighted Centroid";
     }
-  antscout << std::endl;
+  std::cout << std::endl;
   for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
     {
     if( *allLabelsIt == 0 )
       {
       continue;
       }
-    antscout << std::setw( 7 ) << *allLabelsIt;
-    antscout << std::setw( 10 ) << filter->GetVolume( *allLabelsIt );
-    antscout << std::setw( 15 ) << areafilter->GetPerimeter( *allLabelsIt );
-    antscout << std::setw( 15 ) << filter->GetEccentricity( *allLabelsIt );
-    antscout << std::setw( 15 ) << filter->GetElongation( *allLabelsIt );
-    antscout << std::setw( 15 ) << filter->GetOrientation( *allLabelsIt );
+    std::cout << std::setw( 7 ) << *allLabelsIt;
+    std::cout << std::setw( 10 ) << filter->GetVolume( *allLabelsIt );
+    std::cout << std::setw( 15 ) << areafilter->GetPerimeter( *allLabelsIt );
+    std::cout << std::setw( 15 ) << filter->GetEccentricity( *allLabelsIt );
+    std::cout << std::setw( 15 ) << filter->GetElongation( *allLabelsIt );
+    std::cout << std::setw( 15 ) << filter->GetOrientation( *allLabelsIt );
 
     std::stringstream oss;
     oss << filter->GetCentroid( *allLabelsIt );
-    antscout << std::setw( 30 ) << ( oss.str() ).c_str();
+    std::cout << std::setw( 30 ) << ( oss.str() ).c_str();
     oss.str( "" );
 
     oss << filter->GetAxesLength( *allLabelsIt );
-    antscout << std::setw( 30 ) << ( oss.str() ).c_str();
+    std::cout << std::setw( 30 ) << ( oss.str() ).c_str();
     oss.str( "" );
 
     oss << filter->GetBoundingBox( *allLabelsIt );
-    antscout << std::setw( 30 ) << ( oss.str() ).c_str();
+    std::cout << std::setw( 30 ) << ( oss.str() ).c_str();
     oss.str( "" );
 
-//     antscout << filter->GetMajorAxisLength( *allLabelsIt ) << "\t";
-//     antscout << filter->GetMinorAxisLength( *allLabelsIt ) << "\t";
+//     std::cout << filter->GetMajorAxisLength( *allLabelsIt ) << "\t";
+//     std::cout << filter->GetMinorAxisLength( *allLabelsIt ) << "\t";
     if( filter->GetIntensityInput() )
       {
       oss << filter->GetIntegratedIntensity( *allLabelsIt );
-      antscout << std::setw( 20 ) << ( oss.str() ).c_str();
+      std::cout << std::setw( 20 ) << ( oss.str() ).c_str();
       oss.str( "" );
 
       oss << filter->GetWeightedCentroid( *allLabelsIt );
-      antscout << std::setw( 30 ) << ( oss.str() ).c_str();
+      std::cout << std::setw( 30 ) << ( oss.str() ).c_str();
       oss.str( "" );
       }
-    antscout << std::endl;
+    std::cout << std::endl;
     }
 
   return EXIT_SUCCESS;
@@ -122,7 +122,7 @@ int LabelGeometryMeasures( int argc, char * argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LabelGeometryMeasures( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int LabelGeometryMeasures( std::vector<std::string> args, std::ostream* itkNotUsed( out_stream ) )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -164,11 +164,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage: " << argv[0] << " imageDimension labelImage [intensityImage]"
+    std::cout << "Usage: " << argv[0] << " imageDimension labelImage [intensityImage]"
              << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -191,7 +191,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

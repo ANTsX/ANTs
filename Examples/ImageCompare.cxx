@@ -64,7 +64,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
@@ -116,20 +116,20 @@ private:
     }
   catch( const itk::ExceptionObject& e )
     {
-    antscout << "ITK test driver caught an ITK exception:\n";
-    antscout << e.GetFile() << ":" << e.GetLine() << ":\n"
+    std::cout << "ITK test driver caught an ITK exception:\n";
+    std::cout << e.GetFile() << ":" << e.GetLine() << ":\n"
              << e.GetDescription() << "\n";
     bestBaselineStatus = -1;
     }
   catch( const std::exception& e )
     {
-    antscout << "ITK test driver caught an exception:\n";
-    antscout << e.what() << "\n";
+    std::cout << "ITK test driver caught an exception:\n";
+    std::cout << e.what() << "\n";
     bestBaselineStatus = -1;
     }
   catch( ... )
     {
-    antscout << "ITK test driver caught an unknown exception!!!\n";
+    std::cout << "ITK test driver caught an unknown exception!!!\n";
     bestBaselineStatus = -1;
     }
   cout << bestBaselineStatus << endl;
@@ -155,7 +155,7 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
     }
   catch( itk::ExceptionObject& e )
     {
-    antscout << "Exception detected while reading " << baselineImageFilename << " : "  << e.GetDescription();
+    std::cout << "Exception detected while reading " << baselineImageFilename << " : "  << e.GetDescription();
     return 1000;
     }
 
@@ -168,7 +168,7 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
     }
   catch( itk::ExceptionObject& e )
     {
-    antscout << "Exception detected while reading " << testImageFilename << " : "  << e.GetDescription() << std::endl;
+    std::cout << "Exception detected while reading " << testImageFilename << " : "  << e.GetDescription() << std::endl;
     return 1000;
     }
 
@@ -180,10 +180,10 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
 
   if( baselineSize != testSize )
     {
-    antscout << "The size of the Baseline image and Test image do not match!" << std::endl;
-    antscout << "Baseline image: " << baselineImageFilename
+    std::cout << "The size of the Baseline image and Test image do not match!" << std::endl;
+    std::cout << "Baseline image: " << baselineImageFilename
              << " has size " << baselineSize << std::endl;
-    antscout << "Test image:     " << testImageFilename
+    std::cout << "Test image:     " << testImageFilename
              << " has size " << testSize << std::endl;
     return EXIT_FAILURE;
     }
@@ -232,9 +232,9 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
     if( differences )
       {
       // if there are discrepencies, create an diff image
-      antscout << "<DartMeasurement name=\"ImageError\" type=\"numeric/double\">";
-      antscout << status;
-      antscout <<  "</DartMeasurement>" << std::endl;
+      std::cout << "<DartMeasurement name=\"ImageError\" type=\"numeric/double\">";
+      std::cout << status;
+      std::cout <<  "</DartMeasurement>" << std::endl;
 
       std::ostringstream diffName;
       diffName << testImageFilename << ".diff.png";
@@ -245,7 +245,7 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
         }
       catch( ... )
         {
-        antscout << "Error during rescale of " << diffName.str() << std::endl;
+        std::cout << "Error during rescale of " << diffName.str() << std::endl;
         }
       writer->SetFileName(diffName.str().c_str() );
       try
@@ -254,12 +254,12 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
         }
       catch( ... )
         {
-        antscout << "Error during write of " << diffName.str() << std::endl;
+        std::cout << "Error during write of " << diffName.str() << std::endl;
         }
 
-      antscout << "<DartMeasurementFile name=\"DifferenceImage\" type=\"image/png\">";
-      antscout << diffName.str();
-      antscout << "</DartMeasurementFile>" << std::endl;
+      std::cout << "<DartMeasurementFile name=\"DifferenceImage\" type=\"image/png\">";
+      std::cout << diffName.str();
+      std::cout << "</DartMeasurementFile>" << std::endl;
       }
     std::ostringstream baseName;
     baseName << testImageFilename << ".base.png";
@@ -270,7 +270,7 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
       }
     catch( ... )
       {
-      antscout << "Error during rescale of " << baseName.str() << std::endl;
+      std::cout << "Error during rescale of " << baseName.str() << std::endl;
       }
     try
       {
@@ -279,12 +279,12 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
       }
     catch( ... )
       {
-      antscout << "Error during write of " << baseName.str() << std::endl;
+      std::cout << "Error during write of " << baseName.str() << std::endl;
       }
 
-    antscout << "<DartMeasurementFile name=\"BaselineImage\" type=\"image/png\">";
-    antscout << baseName.str();
-    antscout << "</DartMeasurementFile>" << std::endl;
+    std::cout << "<DartMeasurementFile name=\"BaselineImage\" type=\"image/png\">";
+    std::cout << baseName.str();
+    std::cout << "</DartMeasurementFile>" << std::endl;
 
     std::ostringstream testName;
     testName << testImageFilename << ".test.png";
@@ -295,7 +295,7 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
       }
     catch( ... )
       {
-      antscout << "Error during rescale of " << testName.str()
+      std::cout << "Error during rescale of " << testName.str()
                << std::endl;
       }
     try
@@ -305,12 +305,12 @@ int RegressionTestImage(const char *testImageFilename, const char *baselineImage
       }
     catch( ... )
       {
-      antscout << "Error during write of " << testName.str() << std::endl;
+      std::cout << "Error during write of " << testName.str() << std::endl;
       }
 
-    antscout << "<DartMeasurementFile name=\"TestImage\" type=\"image/png\">";
-    antscout << testName.str();
-    antscout << "</DartMeasurementFile>" << std::endl;
+    std::cout << "<DartMeasurementFile name=\"TestImage\" type=\"image/png\">";
+    std::cout << testName.str();
+    std::cout << "</DartMeasurementFile>" << std::endl;
     }
   return (status != EXIT_SUCCESS) ? EXIT_FAILURE : EXIT_SUCCESS;
 }

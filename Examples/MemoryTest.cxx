@@ -67,7 +67,7 @@ int MemoryTest(unsigned int argc, char *argv[])
   std::vector<typename FieldType::Pointer> fieldvec;
   for( unsigned int i = 0; i < numberoffields; i++ )
     {
-    antscout << " NFields " << i << " of " << numberoffields << std::endl;
+    std::cout << " NFields " << i << " of " << numberoffields << std::endl;
     VectorType zero;
     zero.Fill(0);
     // ORIENTATION ALERT: Original code set spacing/origin without
@@ -172,14 +172,14 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Basic useage ex: " << std::endl;
-    antscout << argv[0] << " ImageDimension whichmetric image1.ext image2.ext NumberOfFieldsToAllocate " << std::endl;
-    antscout << "  outimage and logfile are optional  " << std::endl;
-    antscout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information  " << std::endl;
+    std::cout << "Basic useage ex: " << std::endl;
+    std::cout << argv[0] << " ImageDimension whichmetric image1.ext image2.ext NumberOfFieldsToAllocate " << std::endl;
+    std::cout << "  outimage and logfile are optional  " << std::endl;
+    std::cout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information  " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -202,7 +202,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

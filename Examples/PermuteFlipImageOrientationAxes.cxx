@@ -180,24 +180,24 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage: " << std::endl;
-    antscout << argv[0]
+    std::cout << "Usage: " << std::endl;
+    std::cout << argv[0]
              <<
       " ImageDimension  inputImageFile  outputImageFile xperm yperm {zperm}  xflip yflip {zflip}  {FlipAboutOrigin}"
              << std::endl;
-    antscout << " for 3D:  " << argv[0]
+    std::cout << " for 3D:  " << argv[0]
              << " 3  in.nii out.nii   2 0 1  1 1 1  \n would map z=>x, x=>y, y=>z and flip each " << std::endl;
-    antscout << " for 2D:  " << argv[0] << " 2  in.nii out.nii   1 0  1 0  \n would map x=>y, y=>x and flip x  "
+    std::cout << " for 2D:  " << argv[0] << " 2  in.nii out.nii   1 0  1 0  \n would map x=>y, y=>x and flip x  "
              << std::endl;
-    antscout << std::endl;
-    antscout << " 0 1 2 for permute factors gives no axis permutation " << std::endl;
-    antscout << " 1 2 0 maps y to x,  z to y and x to z " << std::endl;
-    antscout << " the flip values are boolean -  0 1 0 would flip the y-axis only " << std::endl;
-    antscout <<  std::endl << " The FlipAboutOrigin boolean lets you flip about the coordinate set in the origin "
+    std::cout << std::endl;
+    std::cout << " 0 1 2 for permute factors gives no axis permutation " << std::endl;
+    std::cout << " 1 2 0 maps y to x,  z to y and x to z " << std::endl;
+    std::cout << " the flip values are boolean -  0 1 0 would flip the y-axis only " << std::endl;
+    std::cout <<  std::endl << " The FlipAboutOrigin boolean lets you flip about the coordinate set in the origin "
              << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -221,7 +221,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

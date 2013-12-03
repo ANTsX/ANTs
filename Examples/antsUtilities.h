@@ -30,7 +30,7 @@
 // We need to ensure that only one of these exists!
 namespace ants
 {
-extern boost::iostreams::stream<ants_Sink> antscout;
+// extern boost::iostreams::stream<ants_Sink> std::cout;
 
 template <class TImage>
 bool IsInside( typename TImage::Pointer input, typename TImage::IndexType index )
@@ -68,35 +68,35 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
 
   if( option == 0 )
     {
-    antscout << " binary eroding the image " << std::endl;
+    std::cout << " binary eroding the image " << std::endl;
     }
   else if( option == 1 )
     {
-    antscout << " binary dilating the image " << std::endl;
+    std::cout << " binary dilating the image " << std::endl;
     }
   else if( option == 2 )
     {
-    antscout << " binary opening the image " << std::endl;
+    std::cout << " binary opening the image " << std::endl;
     }
   else if( option == 3 )
     {
-    antscout << " binary closing the image " << std::endl;
+    std::cout << " binary closing the image " << std::endl;
     }
   else if( option == 4 )
     {
-    antscout << " grayscale eroding the image " << std::endl;
+    std::cout << " grayscale eroding the image " << std::endl;
     }
   else if( option == 5 )
     {
-    antscout << " grayscale dilating the image " << std::endl;
+    std::cout << " grayscale dilating the image " << std::endl;
     }
   else if( option == 6 )
     {
-    antscout << " grayscale opening the image " << std::endl;
+    std::cout << " grayscale opening the image " << std::endl;
     }
   else if( option == 7 )
     {
-    antscout << " grayscale closing the image " << std::endl;
+    std::cout << " grayscale closing the image " << std::endl;
     }
 
   typedef itk::BinaryBallStructuringElement<
@@ -153,14 +153,14 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   typename TImage::Pointer temp;
   if( option == 1 )
     {
-    antscout << " Dilate " << rad << std::endl;
+    std::cout << " Dilate " << rad << std::endl;
     binaryDilate->SetInput( input );
     binaryDilate->Update();
     temp = binaryDilate->GetOutput();
     }
   else if( option == 0 )
     {
-    antscout << " Erode " << rad << std::endl;
+    std::cout << " Erode " << rad << std::endl;
     binaryErode->SetInput( input );  // binaryDilate->GetOutput() );
     binaryErode->Update();
     temp = binaryErode->GetOutput();
@@ -168,7 +168,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
   else if( option == 2 )
     {
     // dilate(erode(img))
-    antscout << " Binary Open " << rad << std::endl;
+    std::cout << " Binary Open " << rad << std::endl;
     // binaryOpen->SetInput( input );//binaryDilate->GetOutput() );
     // binaryOpen->Update();
     binaryErode->SetInput( input );
@@ -178,7 +178,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     }
   else if( option == 3 )
     {
-    antscout << " Binary Close " << rad << std::endl;
+    std::cout << " Binary Close " << rad << std::endl;
     // binaryClose->SetInput( input );//binaryDilate->GetOutput() );
     // binaryClose->Update();
     binaryDilate->SetInput( input );
@@ -188,22 +188,22 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     }
   else if( option == 4 )
     {
-    antscout << " Grayscale Erode " << rad << std::endl;
+    std::cout << " Grayscale Erode " << rad << std::endl;
     grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleErode->Update();
     temp = grayscaleErode->GetOutput();
     }
   else if( option == 5 )
     {
-    antscout << " Grayscale Dilate " << rad << std::endl;
+    std::cout << " Grayscale Dilate " << rad << std::endl;
     grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleDilate->Update();
     temp = grayscaleDilate->GetOutput();
-    antscout << " Grayscale Dilate Done " << temp << std::endl;
+    std::cout << " Grayscale Dilate Done " << temp << std::endl;
     }
   else if( option == 6 )
     {
-    antscout << " Grayscale Open " << rad << std::endl;
+    std::cout << " Grayscale Open " << rad << std::endl;
     grayscaleErode->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleErode->Update();
     grayscaleDilate->SetInput( grayscaleErode->GetOutput() );
@@ -212,7 +212,7 @@ typename TImage::Pointer  Morphological( typename TImage::Pointer input, float r
     }
   else if( option == 7 )
     {
-    antscout << " Grayscale Close " << rad << std::endl;
+    std::cout << " Grayscale Close " << rad << std::endl;
     grayscaleDilate->SetInput( input ); // binaryDilate->GetOutput() );
     grayscaleDilate->Update();
     grayscaleErode->SetInput( grayscaleDilate->GetOutput() );
@@ -256,11 +256,11 @@ typename TImage::Pointer  MorphologicalBinary( typename TImage::Pointer input, f
 
   if( !option )
     {
-    antscout << " eroding the image " << std::endl;
+    std::cout << " eroding the image " << std::endl;
     }
   else
     {
-    antscout << " dilating the image " << std::endl;
+    std::cout << " dilating the image " << std::endl;
     }
   typedef itk::BinaryBallStructuringElement<
       PixelType,
@@ -409,7 +409,7 @@ void GetAffineTransformFromImage(const typename ImageType::Pointer& img,
   aff->SetOffset(translation);
   aff->SetCenter(pt);
 
-  antscout << "aff from image:" << aff << std::endl;
+  std::cout << "aff from image:" << aff << std::endl;
 }
 
 template <class WarperType, class ImageType>
@@ -490,11 +490,11 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
       if( warper->MultiInverseAffineOnlySinglePoint(pt_orig, pt_warped) == false )
         {
-        antscout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
+        std::cout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
         throw std::exception();
         }
       pts_warped.push_back(pt_warped);
-      antscout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
+      std::cout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
       }
     }
   else if( ImageDimension == 2 )
@@ -530,16 +530,16 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
       img->TransformIndexToPhysicalPoint(ind, pt_orig);
       if( warper->MultiInverseAffineOnlySinglePoint(pt_orig, pt_warped) == false )
         {
-        antscout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
+        std::cout << "ERROR: outside of numeric boundary with affine transform." << std::endl;
         throw std::exception();
         }
       pts_warped.push_back(pt_warped);
-      antscout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
+      std::cout << '[' << i << ']' << ind << ',' << pt_orig << "->" << pt_warped << std::endl;
       }
     }
   else
     {
-    antscout << "could not determine the dimension after warping for non 2D/3D volumes" << std::endl;
+    std::cout << "could not determine the dimension after warping for non 2D/3D volumes" << std::endl;
     throw std::exception();
     }
 
@@ -560,8 +560,8 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
     }
 
   origin_warped = pt_min;
-  antscout << "origin_warped: " << origin_warped << std::endl;
-  antscout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
+  std::cout << "origin_warped: " << origin_warped << std::endl;
+  std::cout << "pt_min: " << pt_min << " pt_max:" << pt_max << " largest_size:" << largest_size << std::endl;
 }
 
 template <class TImageIn, class TImageOut>

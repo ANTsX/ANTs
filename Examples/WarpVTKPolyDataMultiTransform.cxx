@@ -106,7 +106,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
       opt.filename = argv[ind];
       if( CheckFileType(opt.filename) != AFFINE_FILE )
         {
-        antscout << "file: " << opt.filename
+        std::cout << "file: " << opt.filename
                  << " is not an affine .txt file. Invalid to use '-i' "
                  << std::endl;
         return false;
@@ -127,7 +127,7 @@ static bool WarpVTKPolyDataMultiTransform_ParseInput(int argc, char * *argv, cha
     }
 
 //    if (reference_image_filename == NULL) {
-//        antscout << "the reference image file (-R) must be given!!!"
+//        std::cout << "the reference image file (-R) must be given!!!"
 //        << std::endl;
 //        return false;
 //    }
@@ -167,7 +167,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
     }
   else
     {
-    antscout << "the reference image file (-R) must be given!!!"
+    std::cout << "the reference image file (-R) must be given!!!"
              << std::endl;
     return;
     }
@@ -204,7 +204,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
           {
           aff->GetInverse(aff);
           }
-        // antscout << aff << std::endl;
+        // std::cout << aff << std::endl;
         warper->PushBackAffineTransform(aff);
         break;
         }
@@ -216,19 +216,19 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
         field_reader->Update();
         typename DisplacementFieldType::Pointer field =
           field_reader->GetOutput();
-        // antscout << field << std::endl;
+        // std::cout << field << std::endl;
         warper->PushBackDisplacementFieldTransform(field);
         break;
         }
       default:
-        antscout << "Unknown file type!" << std::endl;
+        std::cout << "Unknown file type!" << std::endl;
       }
     }
 
   warper->SetOutputParametersFromImage( img_ref );
 
-  antscout << "output size: " << warper->GetOutputSize() << std::endl;
-  antscout << "output spacing: " << warper->GetOutputSpacing() << std::endl;
+  std::cout << "output size: " << warper->GetOutputSize() << std::endl;
+  std::cout << "output spacing: " << warper->GetOutputSpacing() << std::endl;
 
   // warper->PrintTransformList();
   warper->DetermineFirstDeformNoInterp();
@@ -310,10 +310,10 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
     ind[1] = x_ijk[1];
     ind[2] = x_ijk[2];
     field_output->TransformContinuousIndexToPhysicalPoint(ind, point);
-    //      antscout << " point " << point << std::endl;
-    // antscout << " point-t " << point << std::endl;
+    //      std::cout << " point " << point << std::endl;
+    // std::cout << " point-t " << point << std::endl;
     bool isInside = warper->MultiTransformSinglePoint( point, warpedPoint );
-    // if ( isInside ) antscout << " point-w " << warpedPoint << std::endl;
+    // if ( isInside ) std::cout << " point-w " << warpedPoint << std::endl;
     if( isInside )
       {
       typename MeshType::PointType newPoint;
@@ -351,7 +351,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
 //            - 1);
 //    filePrefix = std::string(filePrefix, 0, pos);
 //
-//    antscout << "output extension is: " << extension << std::endl;
+//    std::cout << "output extension is: " << extension << std::endl;
 //
 //    if (extension != std::string(".mha")) {
 //        typedef itk::VectorImageFileWriter<DisplacementFieldType, ImageType>
@@ -428,19 +428,19 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
           {
           aff->GetInverse(aff);
           }
-        // antscout << aff << std::endl;
+        // std::cout << aff << std::endl;
         warper->PushBackAffineTransform(aff);
         cnt_affine++;
         break;
         }
       case DEFORMATION_FILE:
         {
-        antscout << "Compose affine only files: ignore "
+        std::cout << "Compose affine only files: ignore "
                  << opt.filename << std::endl;
         break;
         }
       default:
-        antscout << "Unknown file type!" << std::endl;
+        std::cout << "Unknown file type!" << std::endl;
       }
     }
 
@@ -459,18 +459,18 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
     {
     if( cnt_affine > 0 )
       {
-      antscout << "the reference affine file for center is selected as the first affine!" << std::endl;
+      std::cout << "the reference affine file for center is selected as the first affine!" << std::endl;
       aff_ref_tmp = ( (warper->GetTransformList() ).begin() )->second.aex.aff;
       }
     else
       {
-      antscout << "No affine input is given. nothing to do ......" << std::endl;
+      std::cout << "No affine input is given. nothing to do ......" << std::endl;
       return;
       }
     }
 
   aff_center = aff_ref_tmp->GetCenter();
-  antscout << "new center is : " << aff_center << std::endl;
+  std::cout << "new center is : " << aff_center << std::endl;
 
   // warper->PrintTransformList();
 
@@ -483,7 +483,7 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
   tran_writer->SetInput(aff_output);
   tran_writer->Update();
 
-  antscout << "wrote file to : " << output_affine_txt << std::endl;
+  std::cout << "wrote file to : " << output_affine_txt << std::endl;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -530,11 +530,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc <= 4 )
     {
-    antscout
+    std::cout
       << "WarpLabeledPointSetFileMultiTransform ImageDimension inputVTKFile "
       << "outputVTKFile [-R reference_image] "
       << "{[deformation_field | [-i] affine_transform_txt ]}"
@@ -561,21 +561,21 @@ private:
         {
         if( reference_image_filename == NULL )
           {
-          antscout << "the reference image file (-R) must be given!!!"
+          std::cout << "the reference image file (-R) must be given!!!"
                    << std::endl;
           return false;
           }
 
-        antscout << "output_vtk_filename: " << output_vtk_filename
+        std::cout << "output_vtk_filename: " << output_vtk_filename
                  << std::endl;
-        antscout << "reference_image_filename: ";
+        std::cout << "reference_image_filename: ";
         if( reference_image_filename )
           {
-          antscout << reference_image_filename << std::endl;
+          std::cout << reference_image_filename << std::endl;
           }
         else
           {
-          antscout << "NULL" << std::endl;
+          std::cout << "NULL" << std::endl;
           }
         DisplayOptQueue(opt_queue);
 
@@ -601,16 +601,16 @@ private:
 
       case AFFINE_FILE:
         {
-        antscout << "output_affine_txt: " << output_vtk_filename
+        std::cout << "output_affine_txt: " << output_vtk_filename
                  << std::endl;
-        antscout << "reference_affine_txt: ";
+        std::cout << "reference_affine_txt: ";
         if( reference_image_filename )
           {
-          antscout << reference_image_filename << std::endl;
+          std::cout << reference_image_filename << std::endl;
           }
         else
           {
-          antscout << "NULL" << std::endl;
+          std::cout << "NULL" << std::endl;
           }
         DisplayOptQueue(opt_queue);
 
@@ -633,13 +633,13 @@ private:
         }
 
       default:
-        antscout << "Unknow output file format: " << output_vtk_filename << std::endl;
+        std::cout << "Unknow output file format: " << output_vtk_filename << std::endl;
         break;
       }
     }
   else
     {
-    antscout << "Input error!" << std::endl;
+    std::cout << "Input error!" << std::endl;
     }
 
   return EXIT_FAILURE;

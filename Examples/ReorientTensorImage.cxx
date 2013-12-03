@@ -49,7 +49,7 @@ static bool ReorientTensorImage_ParseInput(int argc, char * *argv, char *& movin
 
     if( strcmp(argv[ind], "-i") == 0 )
       {
-      antscout << "ERROR - inverse transforms not yet supported\n" << std::endl;
+      std::cout << "ERROR - inverse transforms not yet supported\n" << std::endl;
       return false;
       }
     else
@@ -63,8 +63,8 @@ static bool ReorientTensorImage_ParseInput(int argc, char * *argv, char *& movin
         {
         if( opt.file_type == DEFORMATION_FILE && set_current_affine_inv )
           {
-          antscout << "Ignore inversion of non-affine file type! " << std::endl;
-          antscout << "opt.do_affine_inv:" << opt.do_affine_inv << std::endl;
+          std::cout << "Ignore inversion of non-affine file type! " << std::endl;
+          std::cout << "opt.do_affine_inv:" << opt.do_affine_inv << std::endl;
           }
         }
 
@@ -108,7 +108,7 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
 
   if( kOptQueueSize > 1 )
     {
-    antscout << "ERROR: Only 1 input transform is permitted" << std::endl;
+    std::cout << "ERROR: Only 1 input transform is permitted" << std::endl;
     return;
     }
 
@@ -128,7 +128,7 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
       tran_reader->Update();
       aff = dynamic_cast<AffineTransformType *>( (tran_reader->GetTransformList() )->front().GetPointer() );
       reo->SetAffineTransform( aff );
-      antscout << "Affine transform" << std::endl;
+      std::cout << "Affine transform" << std::endl;
       }
       break;
     case DEFORMATION_FILE:
@@ -138,12 +138,12 @@ void ReorientTensorImage(char *moving_image_filename, char *output_image_filenam
       field_reader->Update();
       // field = field_reader->GetOutput();
       reo->SetDisplacementField( field_reader->GetOutput() );
-      antscout << "Warp transform" << std::endl;
+      std::cout << "Warp transform" << std::endl;
       }
       break;
     default:
       {
-      antscout << "Unknown file type!" << std::endl;
+      std::cout << "Unknown file type!" << std::endl;
       }
     }
   reo->Update();
@@ -196,11 +196,11 @@ private:
     unsigned int argc_plus_one;
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <warp.nii/affine.txt> " << std::endl;
+    std::cout << "Usage: " << argv[0] << " Dimension infile.nii outfile.nii <warp.nii/affine.txt> " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -218,7 +218,7 @@ private:
 
   if( dim != 3 )
     {
-    antscout << "ReorientTensorImage only supports 3D image volumes" << std::endl;
+    std::cout << "ReorientTensorImage only supports 3D image volumes" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -227,15 +227,15 @@ private:
 
   if( is_parsing_ok )
     {
-    antscout << "moving_image_filename: " << moving_image_filename << std::endl;
-    antscout << "output_image_filename: " << output_image_filename << std::endl;
+    std::cout << "moving_image_filename: " << moving_image_filename << std::endl;
+    std::cout << "output_image_filename: " << output_image_filename << std::endl;
     DisplayOptQueue(opt_queue);
 
     ReorientTensorImage<3>(moving_image_filename, output_image_filename, opt_queue);
     }
   else
     {
-    antscout << "Input error!" << std::endl;
+    std::cout << "Input error!" << std::endl;
     return EXIT_FAILURE;
     }
   // ReorientTensorImage<3>(argc,argv);

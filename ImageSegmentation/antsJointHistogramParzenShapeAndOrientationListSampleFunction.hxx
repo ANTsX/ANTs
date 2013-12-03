@@ -545,7 +545,7 @@ JointHistogramParzenShapeAndOrientationListSampleFunction<TListSample, TOutput, 
     eigenvalue1 /= ( this->m_MaximumEigenvalue1 - this->m_MinimumEigenvalue1 );
     eigenvalue2 /= ( this->m_MaximumEigenvalue2 - this->m_MinimumEigenvalue2 );
 
-    //    ::ants::antscout << " ev1 " << eigenvalue1 << " oev1 " << W(2,2) << " ev2 " << eigenvalue2 << " oev2 " <<
+    //    std::cout << " ev1 " << eigenvalue1 << " oev1 " << W(2,2) << " ev2 " << eigenvalue2 << " oev2 " <<
     // W(1,1) <<
     // std::endl;
 

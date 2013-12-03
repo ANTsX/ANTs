@@ -74,17 +74,17 @@ int  LabelUniquely(int argc, char *argv[])
 
   if( argc < 2 )
     {
-    antscout << "missing 1st filename" << std::endl;
+    std::cout << "missing 1st filename" << std::endl;
     throw;
     }
   if( argc < 3 )
     {
-    antscout << "missing 2nd filename" << std::endl;
+    std::cout << "missing 2nd filename" << std::endl;
     throw;
     }
   if( argc < 4 )
     {
-    antscout << "missing cluster thresholod" << std::endl;
+    std::cout << "missing cluster thresholod" << std::endl;
     throw;
     }
   std::string fn1 = std::string(argv[1]);
@@ -114,8 +114,8 @@ int  LabelUniquely(int argc, char *argv[])
     }
   catch( itk::ExceptionObject & excep )
     {
-    antscout << "Relabel: exception caught !" << std::endl;
-    antscout << excep << std::endl;
+    std::cout << "Relabel: exception caught !" << std::endl;
+    std::cout << excep << std::endl;
     }
 
 //  float maximum=relabel->GetNumberOfObjects();
@@ -171,12 +171,12 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage:  " << std::endl;
-    antscout << argv[0] << " ImageDimension clustersin.hdr labeledclustersout.hdr   sizethresh " << std::endl;
+    std::cout << "Usage:  " << std::endl;
+    std::cout << argv[0] << " ImageDimension clustersin.hdr labeledclustersout.hdr   sizethresh " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -198,7 +198,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

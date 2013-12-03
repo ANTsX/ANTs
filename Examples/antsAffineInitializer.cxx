@@ -231,13 +231,13 @@ int antsAffineInitializerImp(int argc, char *argv[])
       }
     catch( ... )
       {
-      antscout << " zero image2 error ";
+      std::cout << " zero image2 error ";
       fixed_center.Fill(0);
       }
     }
   catch( ... )
     {
-    antscout << " zero image1 error ";
+    std::cout << " zero image1 error ";
     }
   unsigned int eigind1 = 1;
   unsigned int eigind2 = 1;
@@ -262,7 +262,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   RealType det = vnl_determinant( A_solution  );
   if( det < 0 )
     {
-    antscout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
+    std::cout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
              <<   vnl_determinant( wahba.U() )  << std::endl;
     vnl_matrix<RealType> id( A_solution );
     id.set_identity();
@@ -274,7 +274,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
         }
       }
     A_solution =  A_solution * id.transpose();
-    antscout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
+    std::cout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
              <<   vnl_determinant( wahba.U() )  << " new " << vnl_determinant( A_solution  ) << std::endl;
     }
   typename AffineType::Pointer affine1 = AffineType::New(); // translation to center
@@ -355,7 +355,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
     movingScales( affinesearch->GetNumberOfParameters() );
   shiftScaleEstimator->EstimateScales( movingScales );
   mstartOptimizer->SetScales( movingScales );
-  antscout << " Scales: " << movingScales << std::endl;
+  std::cout << " Scales: " << movingScales << std::endl;
   mstartOptimizer->SetMetric( mimetric );
   typename OptimizerType::ParametersListType parametersList = mstartOptimizer->GetParametersList();
   affinesearch->SetIdentity();
@@ -410,14 +410,14 @@ int antsAffineInitializerImp(int argc, char *argv[])
   localoptimizer->SetMinimumConvergenceValue( 1.e-6 );
   localoptimizer->SetConvergenceWindowSize( 3 );
 
-  antscout << "Begin MultiStart: " << parametersList.size() << " searches between -/+ " << piover4 / pi
+  std::cout << "Begin MultiStart: " << parametersList.size() << " searches between -/+ " << piover4 / pi
            << " radians " << std::endl;
   if( localoptimizeriterations > 0 )
     {
     mstartOptimizer->SetLocalOptimizer( localoptimizer );
     }
   mstartOptimizer->StartOptimization();
-  antscout << "done" << std::endl;
+  std::cout << "done" << std::endl;
   typename AffineType::Pointer bestaffine = AffineType::New();
   bestaffine->SetCenter( trans2 );
   bestaffine->SetParameters( mstartOptimizer->GetBestParameters() );
@@ -473,22 +473,22 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "\nUsage: " << argv[0]
+    std::cout << "\nUsage: " << argv[0]
              <<
       " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction Optional-bool-UsePrincipalAxes Optional-uint-UseLocalSearch Optional-Image1Mask "
              << std::endl;
-    antscout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
-    antscout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis."
+    std::cout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
+    std::cout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis."
              << std::endl;
-    antscout
+    std::cout
       <<
       " Optional-bool-UsePrincipalAxes determines whether the rotation is searched around an initial principal axis alignment.  Default = false. "
       << std::endl;
-    antscout
+    std::cout
       <<
       " Optional-uint-UseLocalSearch determines if a local optimization is run at each search point for the set number of iterations. Default = 20."
       << std::endl;

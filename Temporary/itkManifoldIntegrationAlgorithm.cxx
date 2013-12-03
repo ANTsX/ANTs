@@ -106,9 +106,9 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
       {
       myLabelSet.push_back( label );
       }
-    //    ::ants::antscout << " label " <<      scs->GetTuple1(i) << std::endl;
-    // ::ants::antscout << " set3 " <<      scs->GetTuple3(i) << std::endl;
-    // ::ants::antscout << " set4 " <<      scs->GetTuple4(i) << std::endl;
+    //    std::cout << " label " <<      scs->GetTuple1(i) << std::endl;
+    // std::cout << " set3 " <<      scs->GetTuple3(i) << std::endl;
+    // std::cout << " set4 " <<      scs->GetTuple4(i) << std::endl;
     for( int j = 0; j < GraphDimension; j++ )
       {
       loc[j] = pt[j];
@@ -119,12 +119,12 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
     G->SetIdentity(i);
     m_GraphX[i] = G;
     }
-  ::ants::antscout << " you have " << myLabelSet.size() << " labels " << std::endl;
+  std::cout << " you have " << myLabelSet.size() << " labels " << std::endl;
   for( unsigned int i = 0; i < myLabelSet.size(); i++ )
     {
-    ::ants::antscout << " label " << myLabelSet[i] << std::endl;
+    std::cout << " label " << myLabelSet[i] << std::endl;
     }
-  ::ants::antscout << " allocation of graph done ";
+  std::cout << " allocation of graph done ";
 
 // now loop through the cells to get triangles and also edges
 
@@ -142,7 +142,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
   for( int i = 0; i < numPoints; i++ )
     {
     m_GraphX[i]->m_Neighbors.resize(m_GraphX[i]->m_NumberOfNeighbors);
-//    ::ants::antscout <<" Num Neigh " << i << " is " << m_GraphX[i]->m_NumberOfNeighbors << std::endl;
+//    std::cout <<" Num Neigh " << i << " is " << m_GraphX[i]->m_NumberOfNeighbors << std::endl;
     m_GraphX[i]->m_NumberOfNeighbors = 0;
     }
   for( vtkcells->InitTraversal(); vtkcells->GetNextCell(npts, pts); )
@@ -175,7 +175,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph3()
     std::vector<unsigned int>::iterator new_end_pos;
     new_end_pos = std::unique( neighlist.begin(), neighlist.end() );
     neighlist.erase( new_end_pos, neighlist.end() );
-    //      ::ants::antscout << " new leng " << neighlist.size() << " old " << len1 << std::endl;
+    //      std::cout << " new leng " << neighlist.size() << " old " << len1 << std::endl;
     }
 }
 
@@ -259,7 +259,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
     m_GraphX[i] = G;
     }
 
-  ::ants::antscout << " allocation of graph done ";
+  std::cout << " allocation of graph done ";
 
   vtkIdType nPoints = 0; vtkIdType *xPoints = NULL;
   for( unsigned int i = 0; i < nEdges; i++ )
@@ -270,13 +270,13 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph2()
     // Place the edge into the Edge structure
     assert(nPoints == 2);
     // Place the edge into the Edge structure
-//    ::ants::antscout << " nPoints " << nPoints << std::endl;
-//    ::ants::antscout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
+//    std::cout << " nPoints " << nPoints << std::endl;
+//    std::cout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
     assert(nPoints == 2);
     m_GraphX[xPoints[0]]->m_NumberOfNeighbors++;
     }
 
-  ::ants::antscout << " counting nhood done ";
+  std::cout << " counting nhood done ";
   // second, resize the vector for each G
   for( int i = 0; i < numPoints; i++ )
     {
@@ -307,7 +307,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
     {
     return;
     }
-  ::ants::antscout << " Generate graph from surface mesh " << std::endl;
+  std::cout << " Generate graph from surface mesh " << std::endl;
 // get size of the surface mesh
 
   vtkExtractEdges* edgeex = vtkExtractEdges::New();
@@ -318,7 +318,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
   vtkIdType    vers = m_SurfaceMesh->GetNumberOfPoints();
   int          nfac = m_SurfaceMesh->GetNumberOfPolys();
   float        g = 0.5 * (2.0 - vers + nedg - nfac);
-  ::ants::antscout << " Genus " << g << std::endl;
+  std::cout << " Genus " << g << std::endl;
   edg1->BuildCells();
 
   // now cruise through all edges and add to each node's neighbor list
@@ -345,9 +345,9 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
     G->m_NumberOfNeighbors = 0;
     m_GraphX[i] = G;
     }
-  ::ants::antscout << " allocation of graph done ";
+  std::cout << " allocation of graph done ";
 
-  ::ants::antscout << " begin edg iter ";
+  std::cout << " begin edg iter ";
   vtkIdType  nPoints = 0;
   vtkIdType *xPoints = NULL;
   for( unsigned int i = 0; i < nedg; i++ )
@@ -355,13 +355,13 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::InitializeGraph()
     // Get the next edge
     edg1->GetCellPoints(i, nPoints, xPoints);
     // Place the edge into the Edge structure
-//    ::ants::antscout << " nPoints " << nPoints << std::endl;
-//    ::ants::antscout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
+//    std::cout << " nPoints " << nPoints << std::endl;
+//    std::cout << " pt " << xPoints[0] << " connects " << xPoints[1] << std::endl;
     assert(nPoints == 2);
     m_GraphX[xPoints[0]]->m_NumberOfNeighbors++;
     }
 
-  ::ants::antscout << " counting nhood done ";
+  std::cout << " counting nhood done ";
   // second, resize the vector for each G
   for( int i = 0; i < numPoints; i++ )
     {
@@ -472,7 +472,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>
     this->m_BoundaryList.assign(neighborlist.begin(), neighborlist.end() );
     }
 
-  // if ( ct > 0 && canparam)  ::ants::antscout <<" qfrac " << this->m_BoundaryList.size()  << " canp  "<< canparam <<
+  // if ( ct > 0 && canparam)  std::cout <<" qfrac " << this->m_BoundaryList.size()  << " canp  "<< canparam <<
   // " qsz "
   // << qsz << " cost " << m_CurrentCost << std::endl;
   return canparam;
@@ -519,7 +519,7 @@ bool ManifoldIntegrationAlgorithm<TGraphSearchNode>::TerminationCondition()
     {
     if( m_NeighborNode == m_QS->m_SinkNodes[0] && !m_SearchFinished  )
       {
-      //      ::ants::antscout << " FOUND SINK ";
+      //      std::cout << " FOUND SINK ";
       m_SearchFinished = true;
       m_NeighborNode->SetTotalCost( m_CurrentCost + MyLocalCost() );
       m_NeighborNode->SetPredecessor(m_CurrentNode);
@@ -540,8 +540,8 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::SearchEdgeSet()
   for( i = 0; i < m_CurrentNode->m_NumberOfNeighbors; i++ )
     {
     m_NeighborNode = m_CurrentNode->m_Neighbors[i];
-    //        ::ants::antscout << " i " << i << " position " << m_NeighborNode->GetLocation() << endl;
-    //        ::ants::antscout << " i " << i << " position " << m_NeighborNode->GetLocation() << " label " <<
+    //        std::cout << " i " << i << " position " << m_NeighborNode->GetLocation() << endl;
+    //        std::cout << " i " << i << " position " << m_NeighborNode->GetLocation() << " label " <<
     // m_CurrentNode->GetValue() << endl;
     TerminationCondition();
     if( !m_SearchFinished && m_CurrentNode != m_NeighborNode &&
@@ -578,7 +578,7 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
 {
   NodeLocationType dif = m_CurrentNode->GetLocation() - m_NeighborNode->GetLocation();
 
-//    ::ants::antscout << " visited? " << m_NeighborNode->GetVisited() <<
+//    std::cout << " visited? " << m_NeighborNode->GetVisited() <<
 //        " old cost " << m_NeighborNode->GetTotalCost() << " new cost " <<m_NewCost << std::endl;
   if( !m_NeighborNode->GetVisited() && !m_NeighborNode->GetUnVisitable() )
     {
@@ -603,11 +603,11 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::CheckNodeStatus()
     //  m_NeighborNode->SetUnVisitable();
     // }
 
-    //    ::ants::antscout << " Pushing new node on " << m_NewCost << std::endl;
+    //    std::cout << " Pushing new node on " << m_NewCost << std::endl;
     }
   else if( m_NewCost < m_NeighborNode->GetTotalCost() && !m_NeighborNode->GetUnVisitable()  )
     {
-    //      ::ants::antscout << " Updating " << std::endl;
+    //      std::cout << " Updating " << std::endl;
     float delt = fabs(m_CurrentNode->GetValue() - m_NeighborNode->GetValue() ); // *dif.magnitude();
     m_NeighborNode->SetValue(m_CurrentNode->GetValue() + delt);
     m_NeighborNode->SetTotalCost(m_NewCost);
@@ -629,11 +629,11 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
 {
   if( m_QS->m_SourceNodes.empty() )
     {
-    ::ants::antscout << "ERROR !! DID NOT SET SOURCE!!\n";
+    std::cout << "ERROR !! DID NOT SET SOURCE!!\n";
     return;
     }
 
-  //  ::ants::antscout << "MI start find path " << " Q size " << m_QS->m_Q.size() << " \n";
+  //  std::cout << "MI start find path " << " Q size " << m_QS->m_Q.size() << " \n";
 
   while( !m_SearchFinished && !m_QS->m_Q.empty()  )
     {
@@ -647,19 +647,19 @@ void ManifoldIntegrationAlgorithm<TGraphSearchNode>::FindPath()
     if( !m_CurrentNode->GetDelivered() )
       {
       m_QS->IncrementTimer();
-      // /::ants::antscout << " searching " << m_CurrentNode->GetLocation()   << " \n";
+      // /std::cout << " searching " << m_CurrentNode->GetLocation()   << " \n";
       this->SearchEdgeSet();
       // if ( (m_CurrentNode->GetTimer() % 1.e5 ) == 0)
-      // ::ants::antscout << " searched  " << m_CurrentNode->GetTimer()   << " \n";
+      // std::cout << " searched  " << m_CurrentNode->GetTimer()   << " \n";
       }
     m_CurrentNode->SetDelivered();
     }  // end of while
 
   m_NumberSearched = (unsigned long) m_QS->GetTimer();
-  //  ::ants::antscout << "Done with find path " << " Q size " << m_QS->m_Q.size() <<
+  //  std::cout << "Done with find path " << " Q size " << m_QS->m_Q.size() <<
   // " num searched " << m_NumberSearched << " \n";
 
-  //  ::ants::antscout << " Max Distance " << m_CurrentCost << std::endl;
+  //  std::cout << " Max Distance " << m_CurrentCost << std::endl;
   if( !this->m_ParamWhileSearching )
     {
     this->GetSearchBoundary();

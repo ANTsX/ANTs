@@ -89,7 +89,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
     }
 
   unsigned int N = labelset.size();
-  antscout << "Network Size = " << N << " x " << N << std::endl;
+  std::cout << "Network Size = " << N << " x " << N << std::endl;
 
   typename NetworkType::RegionType region;
   typename NetworkType::RegionType::SizeType size;
@@ -105,7 +105,7 @@ bool RegionSCCA(typename NetworkType::Pointer network, typename NetworkType::Poi
 
   if ( nVoxels != time->GetLargestPossibleRegion().GetSize()[1] )
     {
-    antscout << "number of labels does not match number of voxels" << std::endl;
+    std::cout << "number of labels does not match number of voxels" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -295,7 +295,7 @@ bool RegionAveraging(typename NetworkType::Pointer network, typename NetworkType
     }
 
   unsigned int N = labelset.size();
-  antscout << "Network Size = " << N << " x " << N << std::endl;
+  std::cout << "Network Size = " << N << " x " << N << std::endl;
 
   typename NetworkType::RegionType region;
   typename NetworkType::RegionType::SizeType size;
@@ -311,7 +311,7 @@ bool RegionAveraging(typename NetworkType::Pointer network, typename NetworkType
 
   if ( nVoxels != time->GetLargestPossibleRegion().GetSize()[1] )
     {
-    antscout << "number of labels does not match number of voxels" << std::endl;
+    std::cout << "number of labels does not match number of voxels" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -400,12 +400,12 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "output" );
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
-    antscout << "Warning:  no output option set." << std::endl;
+    std::cout << "Warning:  no output option set." << std::endl;
     }
   else
     {
     outname = outputOption->GetFunction()->GetName();
-    antscout << "Writing output to: " << outname << std::endl;
+    std::cout << "Writing output to: " << outname << std::endl;
     }
 
   unsigned int                                      nLabels = 0;
@@ -413,7 +413,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "number-consecutive-labels" );
   if( !labels_option || labels_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -425,7 +425,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "minimum-region-size" );
   if( !size_option || size_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -437,7 +437,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "minimum-cluster-size" );
   if( !clust_option || clust_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -449,7 +449,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "n_eigenvectors" );
   if( !evec_option || evec_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -461,7 +461,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "iterations" );
   if( !iter_option || iter_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -473,7 +473,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "sparsity" );
   if( !sparse_option || sparse_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -485,7 +485,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "keep-positive" );
   if( !pos_option || pos_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -497,7 +497,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "l1" );
   if( !l1_option || l1_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -509,7 +509,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "robustify" );
   if( !robust_option || robust_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -532,7 +532,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
     parser->GetOption( "ridge_cca" );
   if( !eigen_option || eigen_option->GetNumberOfFunctions() == 0 )
     {
-    //    antscout << "Warning:  no permutation option set." << std::endl;
+    //    std::cout << "Warning:  no permutation option set." << std::endl;
     }
   else
     {
@@ -544,22 +544,22 @@ int timesccan( itk::ants::CommandLineParser *parser )
   itk::ants::CommandLineParser::OptionType::Pointer netOption = parser->GetOption( "network" );
   if( netOption && netOption->GetNumberOfFunctions() > 0 )
     {
-    antscout << "Build network" << std::endl;
+    std::cout << "Build network" << std::endl;
     if( netOption && netOption->GetFunction( 0 )->GetNumberOfParameters() < 2 )
       {
-      antscout << "  Incorrect number of parameters." <<  std::endl;
+      std::cout << "  Incorrect number of parameters." <<  std::endl;
       return EXIT_FAILURE;
       }
     std::string connectivityStrategy = netOption->GetFunction()->GetName();
     std::string timeMatrixName = std::string(netOption->GetFunction( 0 )->GetParameter( 0 ) );
     std::string labelMatrixName = std::string(netOption->GetFunction( 0 )->GetParameter( 1 ) );    
 
-    antscout << "Method: " << connectivityStrategy << std::endl;
+    std::cout << "Method: " << connectivityStrategy << std::endl;
 
     if ( connectivityStrategy == "scca" )
       {
-      antscout << "Time Series Data: " << timeMatrixName << std::endl;
-      antscout << "Time Series Labels: " << labelMatrixName << std::endl;
+      std::cout << "Time Series Data: " << timeMatrixName << std::endl;
+      std::cout << "Time Series Labels: " << labelMatrixName << std::endl;
 
       NetworkType::Pointer timeMat = NULL;
       ReadImage<NetworkType>( timeMat, timeMatrixName.c_str() );
@@ -574,8 +574,8 @@ int timesccan( itk::ants::CommandLineParser *parser )
       }
     else if ( connectivityStrategy == "region-averaging" )
       {
-      antscout << "Time Series Data: " << timeMatrixName << std::endl;
-      antscout << "Time Series Labels: " << labelMatrixName << std::endl;
+      std::cout << "Time Series Data: " << timeMatrixName << std::endl;
+      std::cout << "Time Series Labels: " << labelMatrixName << std::endl;
 
       NetworkType::Pointer timeMat = NULL;
       ReadImage<NetworkType>( timeMat, timeMatrixName.c_str() );
@@ -587,7 +587,7 @@ int timesccan( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      antscout << "Unknown method:" << connectivityStrategy << std::endl;
+      std::cout << "Unknown method:" << connectivityStrategy << std::endl;
       return EXIT_FAILURE;
       }
     
@@ -831,7 +831,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -854,7 +854,7 @@ private:
   if( argc < 2 || ( shortHelpOption &&
                     parser->Convert<unsigned int>( shortHelpOption->GetFunction()->GetName() ) == 1 ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -863,7 +863,7 @@ private:
     }
   if( longHelpOption && parser->Convert<unsigned int>( longHelpOption->GetFunction()->GetName() ) == 1 )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     return EXIT_SUCCESS;
     }
 
@@ -882,7 +882,7 @@ private:
         const char *longName = ( ( *it )->GetLongName() ).c_str();
         if( strstr( longName, value.c_str() ) == longName  )
           {
-          parser->PrintMenu( antscout, 5, false );
+          parser->PrintMenu( std::cout, 5, false );
           }
         }
       }

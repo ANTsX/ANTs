@@ -64,18 +64,18 @@ private:
     unsigned int argc_plus_one;
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 5 )
     {
-    antscout << "Usage: " << std::endl;
-    antscout << argv[0]
+    std::cout << "Usage: " << std::endl;
+    std::cout << argv[0]
              <<
       "  ImageDimension inputImageFile  outputImageFile outxspc outyspc {outzspacing}  {dosmooth?}  {addvox} {nn-interp?}"
              << std::endl;
-    antscout << " addvox pads each dimension by addvox " << std::endl;
-    antscout << "  " << std::endl;
-//    antscout << " interp 0 = linear, 1 = nn " << std::endl;
+    std::cout << " addvox pads each dimension by addvox " << std::endl;
+    std::cout << "  " << std::endl;
+//    std::cout << " interp 0 = linear, 1 = nn " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -107,7 +107,7 @@ private:
       spacing[i] = inputSpacing[i];
       }
 
-    antscout <<  " spacing " << spacing << " dim " << 2 << std::endl;
+    std::cout <<  " spacing " << spacing << " dim " << 2 << std::endl;
 
     bool dosmooth = 1;
     if( argc > 4 )
@@ -133,7 +133,7 @@ private:
       nn = atoi(argv[7]);
       }
 
-    antscout <<  " spacing2 " << spacing << std::endl;
+    std::cout <<  " spacing2 " << spacing << std::endl;
 
     InternalImageType::Pointer smoothedImage = inputImage;
     if( dosmooth )
@@ -147,7 +147,7 @@ private:
         GaussianFilterType::Pointer smootherX = GaussianFilterType::New();
         smootherX->SetInput( smoothedImage );
         const float sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
-        antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
+        std::cout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );
         smootherX->SetNormalizeAcrossScale( false );
@@ -159,8 +159,8 @@ private:
             }
           catch( itk::ExceptionObject & excep )
             {
-            antscout << "Exception catched !" << std::endl;
-            antscout << excep << std::endl;
+            std::cout << "Exception catched !" << std::endl;
+            std::cout << excep << std::endl;
             }
           smoothedImage = smootherX->GetOutput();
           }
@@ -200,7 +200,7 @@ private:
     // Use the inputImage as initial template
     resampler->SetOutputParametersFromImage( inputImage );
     // Reset spacing by explicit specification
-    antscout << " out space " << spacing << std::endl;
+    std::cout << " out space " << spacing << std::endl;
     resampler->SetOutputSpacing( spacing );
 
     InputImageType::SizeType inputSize = inputImage->GetLargestPossibleRegion().GetSize();
@@ -211,7 +211,7 @@ private:
       size[i] = static_cast<SizeValueType>(inputSize[i] * inputSpacing[i] / spacing[i] + addvox);
       }
 
-    antscout << " output size " << size << " spc " << spacing << std::endl;
+    std::cout << " output size " << size << " spc " << spacing << std::endl;
     resampler->SetSize( size );
     resampler->SetInput( smoothedImage );
     TransformType::Pointer transform = TransformType::New();
@@ -241,7 +241,7 @@ private:
       spacing[i] = inputSpacing[i];
       }
 
-    antscout <<  " spacing " << spacing << " dim " << 3 << std::endl;
+    std::cout <<  " spacing " << spacing << " dim " << 3 << std::endl;
 
     bool dosmooth = 1;
     if( argc > 4 )
@@ -271,7 +271,7 @@ private:
       nn = atoi(argv[9]);
       }
 
-    antscout <<  " spacing2 " << spacing << std::endl;
+    std::cout <<  " spacing2 " << spacing << std::endl;
 
     InternalImageType::Pointer smoothedImage = inputImage;
     if( dosmooth )
@@ -285,7 +285,7 @@ private:
         GaussianFilterType::Pointer smootherX = GaussianFilterType::New();
         smootherX->SetInput( smoothedImage );
         const float sig = atof(argv[4 + sm]) / inputSpacing[sm] - 1.0;
-        antscout << " smoothing by : " << sig << " dir " << sm << std::endl;
+        std::cout << " smoothing by : " << sig << " dir " << sm << std::endl;
         smootherX->SetSigma( sig );
         smootherX->SetDirection( sm );
         smootherX->SetNormalizeAcrossScale( false );
@@ -297,8 +297,8 @@ private:
             }
           catch( itk::ExceptionObject & excep )
             {
-            antscout << "Exception catched !" << std::endl;
-            antscout << excep << std::endl;
+            std::cout << "Exception catched !" << std::endl;
+            std::cout << excep << std::endl;
             }
           smoothedImage = smootherX->GetOutput();
           }
@@ -338,7 +338,7 @@ private:
     // Use the inputImage as initial template
     resampler->SetOutputParametersFromImage( inputImage );
     // Reset spacing by explicit specification
-    antscout << " out space " << spacing << std::endl;
+    std::cout << " out space " << spacing << std::endl;
     resampler->SetOutputSpacing( spacing );
 
     InputImageType::SizeType inputSize = inputImage->GetLargestPossibleRegion().GetSize();
@@ -349,7 +349,7 @@ private:
       size[i] = static_cast<SizeValueType>(inputSize[i] * inputSpacing[i] / spacing[i] + addvox);
       }
 
-    antscout << " output size " << size << " spc " << spacing << std::endl;
+    std::cout << " output size " << size << " spc " << spacing << std::endl;
     resampler->SetSize( size );
     resampler->SetInput( smoothedImage );
     TransformType::Pointer transform = TransformType::New();

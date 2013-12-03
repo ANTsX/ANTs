@@ -53,7 +53,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "An image mask is required.  Specify a mask image"
+    std::cout << "An image mask is required.  Specify a mask image"
              << " with the -x option." << std::endl;
     return EXIT_FAILURE;
     }
@@ -95,7 +95,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << "No input images were specified.  Specify an input image"
+    std::cout << "No input images were specified.  Specify an input image"
              << " with the -a option." << std::endl;
     return EXIT_FAILURE;
     }
@@ -114,9 +114,9 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       if( segmenter->GetNumberOfIntensityImages() !=
           static_cast<unsigned int>( ImageDimension * ( ImageDimension + 1 ) / 2 ) )
         {
-        antscout << " Expect images in upper triangular order " << std::endl;
-        antscout << " xx xy xz yy yz zz " << std::endl;
-        antscout << "Incorrect number of intensity images specified." << std::endl;
+        std::cout << " Expect images in upper triangular order " << std::endl;
+        std::cout << " xx xy xz yy yz zz " << std::endl;
+        std::cout << "Incorrect number of intensity images specified." << std::endl;
         return EXIT_FAILURE;
         }
       typedef typename SegmentationFilterType::SampleType SampleType;
@@ -161,12 +161,12 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      antscout << "Unrecognized likelihood model request." << std::endl;
+      std::cout << "Unrecognized likelihood model request." << std::endl;
       return EXIT_FAILURE;
       }
     }
 
-//  antscout << std::endl << "Writing output:" << std::endl;
+//  std::cout << std::endl << "Writing output:" << std::endl;
 //  typename itk::ants::CommandLineParser::OptionType::Pointer outputOption =
 //    parser->GetOption( "output" );
 //  if( outputOption && outputOption->GetNumberOfFunctions() > 0 )
@@ -178,8 +178,8 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
 //    writer->Update();
 //    }
 
-  antscout << std::endl;
-  segmenter->Print( antscout, 2 );
+  std::cout << std::endl;
+  segmenter->Print( std::cout, 2 );
 
   return EXIT_SUCCESS;
 }
@@ -341,7 +341,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -365,7 +365,7 @@ private:
   if( argc < 2 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetFunction()->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -375,7 +375,7 @@ private:
   else if( parser->GetOption( 'h' ) &&
            parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 
@@ -408,7 +408,7 @@ private:
       }
     else
       {
-      antscout << "No input images were specified.  Specify an input image"
+      std::cout << "No input images were specified.  Specify an input image"
                << " with the -a option" << std::endl;
       return EXIT_FAILURE;
       }
@@ -417,7 +417,7 @@ private:
     dimension = imageIO->GetNumberOfDimensions();
     }
 
-  antscout << std::endl << "Running Atropos for "
+  std::cout << std::endl << "Running Atropos for "
            << dimension << "-dimensional images." << std::endl;
 
   switch( dimension )
@@ -438,7 +438,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

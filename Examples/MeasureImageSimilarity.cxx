@@ -198,7 +198,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
         }
       metricimg->SetPixel(index, val);
       // if (ct % 10000 == 0)
-      //        antscout << val << " index " << index << std::endl;
+      //        std::cout << val << " index " << index << std::endl;
       //      asamIt.SetLocation(index);
       //      totval+=met->localProbabilistic;
       ccval += val;
@@ -213,7 +213,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
       metricvalue = 0;
       }
     /*
-    antscout << metricname << std::endl;
+    std::cout << metricname << std::endl;
     ccmet->InitializeIteration();
     metricimg=ccmet->MakeImage();
     metricvalue=ccmet->ComputeCrossCorrelation()*(1.0);
@@ -233,7 +233,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
     metricvalue = smimet->ComputeSpatialMutualInformation();
     metricname = "SMI ";
     }
-  antscout << fn1 << " : " << fn2 << " => " <<  metricname << metricvalue << std::endl;
+  std::cout << fn1 << " : " << fn2 << " => " <<  metricname << metricvalue << std::endl;
   if( logfilename.length() > 3 )
     {
     std::ofstream logfile;
@@ -244,14 +244,14 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
       }
     else
       {
-      antscout << " cant open file ";
+      std::cout << " cant open file ";
       }
     logfile.close();
     }
 
   if( imgfilename.length() > 3 )
     {
-    antscout << "Only Implemented for MSQ and CC " << std::endl;
+    std::cout << "Only Implemented for MSQ and CC " << std::endl;
     typename writertype::Pointer w = writertype::New();
     w->SetInput(metricimg);
     w->SetFileName(imgfilename.c_str() );
@@ -270,21 +270,21 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
       met->ComputeMetricAtPairB(index,  zero);
       metricimg->SetPixel(index, val);
       //if (ct % 10000 == 0)
-      //        antscout << val << " index " << index << std::endl;
+      //        std::cout << val << " index " << index << std::endl;
       //      asamIt.SetLocation(index);
       //      totval+=met->localProbabilistic;
       ct++;
     }
 
-  antscout << " AvantsMI : " << totval/(double)ct << " E " <<  met->GetEnergy() <<  std::endl;
-  antscout << " write begin " << std::endl;
+  std::cout << " AvantsMI : " << totval/(double)ct << " E " <<  met->GetEnergy() <<  std::endl;
+  std::cout << " write begin " << std::endl;
 
-  antscout << " write end " << std::endl;
+  std::cout << " write end " << std::endl;
 */
     }
 
   double diff = ( (double)metricvalue - (double) targetvalue);
-  antscout << " targetvalue " << targetvalue << " metricvalue " << metricvalue << " diff " << diff << " toler "
+  std::cout << " targetvalue " << targetvalue << " metricvalue " << metricvalue << " diff " << diff << " toler "
            << epsilontolerance << std::endl;
 
   if( diff < epsilontolerance )
@@ -343,21 +343,21 @@ private:
     };
     Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-    antscout->set_stream( out_stream );
+    // antscout->set_stream( out_stream );
 
     if( argc < 3 )
       {
-      antscout << "Basic useage ex: " << std::endl;
-      antscout << argv[0]
+      std::cout << "Basic useage ex: " << std::endl;
+      std::cout << argv[0]
                <<
         " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}"
                << std::endl;
-      antscout << "  outimage (Not Implemented for MI yet)  and logfile are optional  " << std::endl;
-      antscout
+      std::cout << "  outimage (Not Implemented for MI yet)  and logfile are optional  " << std::endl;
+      std::cout
         <<
         " target-value and epsilon-tolerance set goals for the metric value -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds "
         << std::endl;
-      antscout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information , 3-SMI "
+      std::cout << "  Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information , 3-SMI "
                << std::endl;
       if( argc >= 2 &&
           ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -383,11 +383,11 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
 
-    antscout << " Failure? " << metricsuccess << std::endl;
+    std::cout << " Failure? " << metricsuccess << std::endl;
     return metricsuccess;
     }
   catch( const itk::ExceptionObject & e )

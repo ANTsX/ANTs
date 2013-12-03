@@ -12,7 +12,7 @@
 namespace ants
 {
 // We need to ensure that only one of these exists!
-boost::iostreams::stream<ants_Sink> antscout( ( ants_Sink() ) );
+// boost::iostreams::stream<ants_Sink> std::cout( ( ants_Sink() ) );
 }
 
 TRAN_FILE_TYPE CheckFileType(const char * const str)
@@ -135,41 +135,41 @@ void DisplayOptQueue(const TRAN_OPT_QUEUE & opt_queue)
 
   for( int i = 0; i < kQueueSize; i++ )
     {
-    ants::antscout << "[" << i << "/" << kQueueSize << "]: ";
+    std::cout << "[" << i << "/" << kQueueSize << "]: ";
 
     switch( opt_queue[i].file_type )
       {
       case AFFINE_FILE:
         {
-        ants::antscout << "AFFINE";
+        std::cout << "AFFINE";
         }
         break;
       case DEFORMATION_FILE:
         {
-        ants::antscout << "FIELD";
+        std::cout << "FIELD";
         }
         break;
       case IDENTITY_TRANSFORM:
         {
-        ants::antscout << "IDENTITY";
+        std::cout << "IDENTITY";
         }
         break;
       case IMAGE_AFFINE_HEADER:
         {
-        ants::antscout << "HEADER";
+        std::cout << "HEADER";
         }
         break;
       default:
         {
-        ants::antscout << "Invalid Format!!!";
+        std::cout << "Invalid Format!!!";
         }
         break;
       }
     if( opt_queue[i].do_affine_inv )
       {
-      ants::antscout << "-INV";
+      std::cout << "-INV";
       }
-    ants::antscout << ": " << opt_queue[i].filename << std::endl;
+    std::cout << ": " << opt_queue[i].filename << std::endl;
     }
 }
 
@@ -179,35 +179,35 @@ void DisplayOpt(const TRAN_OPT & opt)
     {
     case AFFINE_FILE:
       {
-      ants::antscout << "AFFINE";
+      std::cout << "AFFINE";
       }
       break;
     case DEFORMATION_FILE:
       {
-      ants::antscout << "FIELD";
+      std::cout << "FIELD";
       }
       break;
     case IDENTITY_TRANSFORM:
       {
-      ants::antscout << "IDENTITY";
+      std::cout << "IDENTITY";
       }
       break;
     case IMAGE_AFFINE_HEADER:
       {
-      ants::antscout << "HEADER";
+      std::cout << "HEADER";
       }
       break;
     default:
       {
-      ants::antscout << "Invalid Format!!!";
+      std::cout << "Invalid Format!!!";
       }
       break;
     }
   if( opt.do_affine_inv )
     {
-    ants::antscout << "-INV";
+    std::cout << "-INV";
     }
-  ants::antscout << ": " << opt.filename << std::endl;
+  std::cout << ": " << opt.filename << std::endl;
 }
 
 std::string GetPreferredTransformFileType(void)

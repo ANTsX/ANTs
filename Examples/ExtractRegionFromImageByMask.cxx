@@ -119,23 +119,23 @@ int ExtractRegionFromImageByMask(int argc, char *argv[])
     const unsigned int label = (argc >= 6) ? atoi(argv[5]) : 1;
     region = stats->GetRegion(label);
 
-    antscout << "bounding box of label=" << label
+    std::cout << "bounding box of label=" << label
              << " : " << region << std::endl;
 
     const unsigned int padWidth = (argc >= 7) ? atoi(argv[6]) : 0;
 
     region.PadByRadius(padWidth);
 
-    antscout << "padding radius = " << padWidth
+    std::cout << "padding radius = " << padWidth
              << " : " << region << std::endl;
 
     region.Crop(reader->GetOutput()->GetBufferedRegion() );
 
-    antscout << "crop with original image region " << reader->GetOutput()->GetBufferedRegion()
+    std::cout << "crop with original image region " << reader->GetOutput()->GetBufferedRegion()
              << " : " << region << std::endl;
     }
 
-  antscout << "final cropped region: " << region << std::endl;
+  std::cout << "final cropped region: " << region << std::endl;
 
   typedef itk::ExtractImageFilter<ImageType, ImageType> CropperType;
   typename CropperType::Pointer cropper = CropperType::New();
@@ -197,11 +197,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 6 || argc > 7 )
     {
-    antscout << "Extract a sub-region from image using the bounding"
+    std::cout << "Extract a sub-region from image using the bounding"
       " box from a label image, with optional padding radius."
              << std::endl << "Usage : " << argv[0] << " ImageDimension "
              << "inputImage outputImage labelMaskImage [label=1] [padRadius=0]"
@@ -227,7 +227,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

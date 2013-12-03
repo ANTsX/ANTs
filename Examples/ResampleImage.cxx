@@ -156,7 +156,7 @@ int ResampleImage( int argc, char *argv[] )
       }
     else
       {
-      antscout << "Invalid spacing." << std::endl;
+      std::cout << "Invalid spacing." << std::endl;
       }
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
@@ -180,7 +180,7 @@ int ResampleImage( int argc, char *argv[] )
       }
     else
       {
-      antscout << "Invalid size." << std::endl;
+      std::cout << "Invalid size." << std::endl;
       }
     for( unsigned int i = 0; i < ImageDimension; i++ )
       {
@@ -343,18 +343,18 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 5 )
     {
-    antscout << "Usage: " << argv[0] << " imageDimension inputImage "
+    std::cout << "Usage: " << argv[0] << " imageDimension inputImage "
              << "outputImage MxNxO [size=1,spacing=0] [interpolate type]" << std::endl;
-    antscout << "  Interpolation type: " << std::endl;
-    antscout << "    0. linear (default)" << std::endl;
-    antscout << "    1. nn " << std::endl;
-    antscout << "    2. gaussian [sigma=imageSpacing] [alpha=1.0]" << std::endl;
-    antscout << "    3. windowedSinc [type = 'c'osine, 'w'elch, 'b'lackman, 'l'anczos, 'h'amming]" << std::endl;
-    antscout << "    4. B-Spline [order=3]" << std::endl;
+    std::cout << "  Interpolation type: " << std::endl;
+    std::cout << "    0. linear (default)" << std::endl;
+    std::cout << "    1. nn " << std::endl;
+    std::cout << "    2. gaussian [sigma=imageSpacing] [alpha=1.0]" << std::endl;
+    std::cout << "    3. windowedSinc [type = 'c'osine, 'w'elch, 'b'lackman, 'l'anczos, 'h'amming]" << std::endl;
+    std::cout << "    4. B-Spline [order=3]" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -381,7 +381,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

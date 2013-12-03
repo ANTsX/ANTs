@@ -78,7 +78,7 @@ OPEN QUESTIONS:
 void Display(vtkUnstructuredGrid* vtkgrid, bool secondwin = false, bool delinter = true)
 {
 // Create the renderer and window stuff
-  antscout << " second win " << secondwin << std::endl;
+  std::cout << " second win " << secondwin << std::endl;
   vtkRenderer*     ren1 = vtkRenderer::New();
   vtkRenderer*     ren2 = vtkRenderer::New();
   vtkRenderWindow* renWin = vtkRenderWindow::New();
@@ -150,7 +150,7 @@ void vtkCompositeManagerExitInteractor(vtkObject *vtkNotUsed(o),
       int X, Y;
       char keypressed = *(inter -> GetKeySym());
       inter -> GetMousePosition(&X, &Y);
-      antscout <<" X Y " << X << " " << Y << std::endl;
+      std::cout <<" X Y " << X << " " << Y << std::endl;
   renWin->Render();
   inter->Start();*/
 
@@ -161,7 +161,7 @@ void vtkCompositeManagerExitInteractor(vtkObject *vtkNotUsed(o),
   float y = inter->GetEventPosition()[1];
   float z = 0.0;
   picker->Pick(x,y,z,ren1);
-  antscout <<" picked " << (*picker->GetPickedPositions()) << std::endl;*/
+  std::cout <<" picked " << (*picker->GetPickedPositions()) << std::endl;*/
 
   mapper->Delete();
   actor->Delete();
@@ -194,13 +194,13 @@ void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
     }
   catch( itk::ExceptionObject & exp )
     {
-    antscout << "Exception thrown during Update() " << std::endl;
-    antscout << exp << std::endl;
+    std::cout << "Exception thrown during Update() " << std::endl;
+    std::cout << exp << std::endl;
     return;
     }
   meshSource->GetOutput();
-  antscout << meshSource->GetNumberOfNodes() << std::endl;
-  antscout << meshSource->GetNumberOfCells() << std::endl;
+  std::cout << meshSource->GetNumberOfNodes() << std::endl;
+  std::cout << meshSource->GetNumberOfCells() << std::endl;
 
   typedef itk::FEMConformalMap<MeshType, ImageType> ParamType;
   typename ParamType::Pointer Parameterizer = ParamType::New();
@@ -210,20 +210,20 @@ void MapToSphere(typename TImage::Pointer image, int fixdir, float e)
   Parameterizer->SetReadFromFile(false);
   Parameterizer->SetParameterFileName("");
   Parameterizer->SetImage(image);
-  antscout <<  " fixdir " << fixdir << " e " << e << " best e ~ 3.e-3 " << std::endl;
+  std::cout <<  " fixdir " << fixdir << " e " << e << " best e ~ 3.e-3 " << std::endl;
 
   Parameterizer->SetNorthPole(fixdir);
   Parameterizer->SetSigma(e);
   Parameterizer->SetSurfaceMesh(meshSource->GetOutput() );
 //  Parameterizer->GenerateSystemFromSurfaceMesh();
-  antscout << std::endl;
+  std::cout << std::endl;
 
   Parameterizer->ConformalMap();
   Parameterizer->ComputeStereographicCoordinates();
 
   if( Parameterizer->GetImage() )
     {
-    antscout << " writing param images " << std::endl;
+    std::cout << " writing param images " << std::endl;
       {
       Parameterizer->MapCheckerboardToImage(0.05);
       typename itk::ImageFileWriter<ImageType>::Pointer writer;
@@ -275,9 +275,9 @@ float ComputeGenus(vtkPolyData* pd1)
   int       nfac = pd1->GetNumberOfPolys();
 
   float g = 0.5 * (2.0 - vers + nedg - nfac);
-  antscout << " Genus " << g << std::endl;
+  std::cout << " Genus " << g << std::endl;
 
-  antscout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
+  std::cout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
 
   return g;
 }
@@ -285,14 +285,14 @@ float ComputeGenus(vtkPolyData* pd1)
 float vtkComputeTopology(vtkPolyData* pd)
 {
   // Marching cubes
-//    antscout << " Marching Cubes ";
+//    std::cout << " Marching Cubes ";
 //    vtkMarchingCubes *marchingCubes = vtkMarchingCubes::New();
 //    vtkContourFilter *marchingCubes = vtkContourFilter::New();
 //    vtkKitwareContourFilter *marchingCubes = vtkKitwareContourFilter::New();
 //    marchingCubes->SetInput((vtkDataSet*) vds);
 //    marchingCubes->SetValue(0, hithresh);
 //    int nc;
-//    antscout << " Input #conts "; std::cin >> nc;
+//    std::cout << " Input #conts "; std::cin >> nc;
 //    marchingCubes->SetNumberOfContours(2);
 //    marchingCubes->SetComputeScalars(false);
 //    marchingCubes->SetComputeGradients(false);
@@ -330,7 +330,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
 // assign scalars to the original surface mesh
 //  Display((vtkUnstructuredGrid*)vtkmesh);
 
-  antscout << " Genus " << vtkComputeTopology(vtkmesh) << std::endl;
+  std::cout << " Genus " << vtkComputeTopology(vtkmesh) << std::endl;
 
   typedef itk::SurfaceImageCurvature<ImageType> surfktype;
   typename surfktype::Pointer surfk = surfktype::New();
@@ -387,7 +387,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
       }
     meank += fabs(temp);
     }
-  antscout << " max kap " << mx << " mn k " << mn <<  std::endl;
+  std::cout << " max kap " << mx << " mn k " << mn <<  std::endl;
   meank /= numPoints;
 //  mx=1.3;
 //  mx=2.0;
@@ -412,7 +412,7 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
 //    float temp=surfk->CurvatureAtIndex(index);
       if( i % 1000 == 0 )
         {
-        antscout << " kappa " << temp << std::endl;
+        std::cout << " kappa " << temp << std::endl;
         }
       // =fabs(manifoldIntegrator->GetGraphNode(i)->GetTotalCost());
       temp = fabs(temp);
@@ -420,19 +420,19 @@ void GetMeshAndCurvature(typename TImage::Pointer image, float e, const char* fi
       }
     vtkmesh->GetPointData()->SetScalars(param);
     //  Display((vtkUnstructuredGrid*)vtkmesh);
-//  antscout<<"DOne? "; std::cin >> done;
+//  std::cout<<"DOne? "; std::cin >> done;
     }
-  antscout << " done with curvature map ";
+  std::cout << " done with curvature map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(vtkmesh);
   std::string outnm = std::string(filename);
   outnm = outnm.substr(0, outnm.length() - 4) + ".vtk";
-  antscout << " writing " << outnm << std::endl;
+  std::cout << " writing " << outnm << std::endl;
   // outnm="C:\\temp\\mesh.vtk";
   writer->SetFileName(outnm.c_str() );
   writer->SetFileTypeToBinary();
   writer->Update();
-  antscout << " done writing ";
+  std::cout << " done writing ";
   return;
 }
 
@@ -454,7 +454,7 @@ float GetImageTopology(typename TImage::Pointer image, float e, const char* file
 //  Display((vtkUnstructuredGrid*)vtkmesh);
 
   float genus =  vtkComputeTopology(vtkmesh);
-  antscout << " Genus " << genus << std::endl;
+  std::cout << " Genus " << genus << std::endl;
 
   return genus;
 }
@@ -478,20 +478,20 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
   ComputeGenus( (vtkPolyData *)Parameterizer->GetSurfaceMesh() );
 //  Display((vtkUnstructuredGrid*)Parameterizer->GetSurfaceMesh());
 
-  antscout << " begin conformal mapping ";
+  std::cout << " begin conformal mapping ";
   Parameterizer->ConformalMap();
 
-  antscout << " display patch ";
+  std::cout << " display patch ";
   //  ComputeGenus((vtkPolyData*)Parameterizer->m_ExtractedSurfaceMesh);
   // Display((vtkUnstructuredGrid*)Parameterizer->m_ExtractedSurfaceMesh);
 
-//  antscout << " display flattened patch ";
+//  std::cout << " display flattened patch ";
 
 //   float step  = 0.1;
 //   float maxt=0.0;
 //  for (float tt = 0.0; tt<=maxt; tt=tt+step)
     {
-    //      antscout <<" Building at : " << tt << std::endl;
+    //      std::cout <<" Building at : " << tt << std::endl;
     // /  Parameterizer->BuildOutputMeshes(tt);
 
     //      if (tt == 0.)
@@ -501,7 +501,7 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
       std::string outnm; // =std::string(filename);
       // outnm=outnm.substr(0,outnm.length()-4)+".vtk";
       outnm = outfn + "mapspace.vtk";
-      antscout << " writing " << outnm << std::endl;
+      std::cout << " writing " << outnm << std::endl;
       writer->SetFileName(outnm.c_str() );
       writer->SetFileTypeToBinary();
       writer->Update();
@@ -512,7 +512,7 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
       writer->SetInput(Parameterizer->m_DiskSurfaceMesh);
       std::string        outnm;
       outnm = outfn + "mapflat.vtk";
-      antscout << " writing " << outnm << std::endl;
+      std::cout << " writing " << outnm << std::endl;
       writer->SetFileName(outnm.c_str() );
       writer->SetFileTypeToBinary();
       writer->Update();
@@ -539,7 +539,7 @@ void MapToDisc(vtkPolyData* vtkmesh, float e, std::string outfn)
     writer->Write();
     }
 
-  antscout << " done writing ";
+  std::cout << " done writing ";
 }
 
 /*
@@ -558,7 +558,7 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
 
     int numVertices = vtkmesh->GetNumberOfPoints();
     vtkmesh->GetPointData()->SetActiveScalars( dataname );
-    antscout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
+    std::cout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
 
     typedef itk::PointSet<FunctionalDataType, Dimension> FunctionalMapType;
     typedef itk::BSplineScatteredDataPointSetToImageFilter
@@ -586,10 +586,10 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
 
         funcdataPoints->SetPointData( ID, data);
         funcdataPoints->SetPoint( ID, point);
-        //antscout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
+        //std::cout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
     }
 
-    antscout << "Read all mesh data" << std::endl;
+    std::cout << "Read all mesh data" << std::endl;
 
     typename FunctionalImageType::PointType origin;
     typename FunctionalImageType::SpacingType spacing;
@@ -599,7 +599,7 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
        minX = static_cast<float>(bounds[0]);
        maxY = static_cast<float>(bounds[3]);
        minY = static_cast<float>(bounds[2]);
-    antscout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
+    std::cout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
 
     size[0] = imagesize;
     size[1] = imagesize;
@@ -614,7 +614,7 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
         spacing[0] = 1.1*((((maxX-minX)>(maxY-minY))?(maxX-minX):(maxY-minY)))/imagesize;
     spacing[1] = spacing[0];
 
-    antscout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
+    std::cout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
         typename BSplineFilterType::ArrayType ncps;
     ncps.Fill(  splineOrder + 1 );
 
@@ -624,7 +624,7 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
       typename BSplineFilterType::ArrayType close;
      close.Fill( false );
 
-    antscout << "No. of levels " << numLevels << " splineOrder " << splineOrder << " #control points " << ncps << std::endl;
+    std::cout << "No. of levels " << numLevels << " splineOrder " << splineOrder << " #control points " << ncps << std::endl;
 
         bspliner->SetOrigin( origin );
         bspliner->SetSpacing( spacing );
@@ -638,9 +638,9 @@ void MeshToImage(vtkPolyData* vtkmesh, int imagesize, std::string outfn)
     bspliner->DebugOn();
 
 
-    antscout << "Entering BSpline" << std::endl;
+    std::cout << "Entering BSpline" << std::endl;
     bspliner->Update();
-    antscout << "BSpline fitting done" << std::endl;
+    std::cout << "BSpline fitting done" << std::endl;
 
     // ORIENTATION ALERT  -- the original code here
     // set the region, spacing, and origin without setting directions.
@@ -729,7 +729,7 @@ void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::stri
 
     int numVertices = vtkmesh->GetNumberOfPoints();
     vtkmesh->GetPointData()->SetActiveScalars( dataname );
-    antscout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
+    std::cout << "#of vertices " << numVertices << " Fitting variable " << vtkmesh->GetPointData()->GetScalars()->GetName( ) << std::endl;
 
     typedef itk::PointSet<FunctionalDataType, Dimension> FunctionalMapType;
     typedef itk::BSplineScatteredDataPointSetToImageFilter
@@ -757,10 +757,10 @@ void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::stri
 
         funcdataPoints->SetPointData( ID, data);
         funcdataPoints->SetPoint( ID, point);
-        //antscout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
+        //std::cout << ID << " " << point[0] << " " << point[1] << " " << data[0] << std::endl;
     }
 
-    antscout << "Read all mesh data" << std::endl;
+    std::cout << "Read all mesh data" << std::endl;
 
     // Create new data array
     vtkFloatArray *newdata;
@@ -775,7 +775,7 @@ void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::stri
        minX = static_cast<float>(bounds[0]);
        maxY = static_cast<float>(bounds[3]);
        minY = static_cast<float>(bounds[2]);
-    antscout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
+    std::cout << "minX " << minX << " maxX " << maxX << " minY " << minY << " maxY " << maxY << std::endl;
 
     size[0] = imagesize;
     size[1] = imagesize;
@@ -790,7 +790,7 @@ void ImageToMesh(vtkPolyData* vtkmesh, typename TImage::Pointer image, std::stri
         spacing[0] = 1.1*((((maxX-minX)>(maxY-minY))?(maxX-minX):(maxY-minY)))/imagesize;
     spacing[1] = spacing[0];
 
-    antscout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
+    std::cout << "size " << size << " origin " << origin << " spacing " << spacing << std::endl;
 */
 /* bspline code -- not doing b-spline now
 
@@ -803,7 +803,7 @@ const int numLevels = 13;
   typename BSplineFilterType::ArrayType close;
  close.Fill( false );
 
-antscout << "No. of levels " << numLevels << " splineOrder " << splineOrder << " #control points " << ncps << std::endl;
+std::cout << "No. of levels " << numLevels << " splineOrder " << splineOrder << " #control points " << ncps << std::endl;
 
     bspliner->SetOrigin( origin );
     bspliner->SetSpacing( spacing );
@@ -817,9 +817,9 @@ bspliner->SetInput( funcdataPoints );
 bspliner->DebugOn();
 
 
-antscout << "Entering BSpline" << std::endl;
+std::cout << "Entering BSpline" << std::endl;
 bspliner->Update();
-antscout << "BSpline fitting done" << std::endl;
+std::cout << "BSpline fitting done" << std::endl;
 
 typename ImageType::Pointer outimage = ImageType::New();
 outimage->SetSpacing( bspliner->GetOutput()->GetSpacing() );
@@ -909,7 +909,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   // Define the dimension of the images
   const unsigned int Dimension = 3;
@@ -934,16 +934,16 @@ private:
   float       param = 2.e-4;
   std::string outfn;
 
-  antscout << "to get mesh: ConformalMapping   image.nii 1 255 1.e-3 0 outname " << std::endl;
-  antscout << "to flatten mesh: ConformalMapping   mesh.vtk 1 2 3 4 outname " << std::endl;
-  antscout << "to view mesh: ConformalMapping   mesh.vtk 1 2 3 1 outname " << std::endl;
-  antscout << "to get image topology: ConformalMapping   image.nii 1 255 1.e-3 5 outname " << std::endl;
-  antscout << "to convert flattened mesh to image : ConformalMapping   mesh.vtk 1 2 3 6 outname " << std::endl;
-  antscout
+  std::cout << "to get mesh: ConformalMapping   image.nii 1 255 1.e-3 0 outname " << std::endl;
+  std::cout << "to flatten mesh: ConformalMapping   mesh.vtk 1 2 3 4 outname " << std::endl;
+  std::cout << "to view mesh: ConformalMapping   mesh.vtk 1 2 3 1 outname " << std::endl;
+  std::cout << "to get image topology: ConformalMapping   image.nii 1 255 1.e-3 5 outname " << std::endl;
+  std::cout << "to convert flattened mesh to image : ConformalMapping   mesh.vtk 1 2 3 6 outname " << std::endl;
+  std::cout
     <<
     "to interpolate data in flattened image domain to original mesh: ConformalMapping   image.nii 1 2 3 7 outname originalflatmesh.vtk"
     << std::endl;
-  antscout << " to smooth a mesh --- ConformalMapping mesh.vtk 1 2 NumSmoothIts 8 outname " << std::endl;
+  std::cout << " to smooth a mesh --- ConformalMapping mesh.vtk 1 2 NumSmoothIts 8 outname " << std::endl;
   if( argc >= 2 )
     {
     filename = argv[1];
@@ -971,8 +971,8 @@ private:
       }
     catch( itk::ExceptionObject & e )
       {
-      antscout << "Exception caught during reference file reading " << std::endl;
-      antscout << e << std::endl;
+      std::cout << "Exception caught during reference file reading " << std::endl;
+      std::cout << e << std::endl;
       return -1;
       }
 
@@ -996,8 +996,8 @@ private:
       }
     catch( itk::ExceptionObject & e )
       {
-      antscout << "Exception caught during reference file reading " << std::endl;
-      antscout << e << std::endl;
+      std::cout << "Exception caught during reference file reading " << std::endl;
+      std::cout << e << std::endl;
       return -1;
       }
 
@@ -1035,7 +1035,7 @@ private:
   else if( fixdir == 8 )
   /*************** flat map to mesh *****************/
     {
-    antscout << " read " << std::string(filename) << " write " << outfn << std::endl;
+    std::cout << " read " << std::string(filename) << " write " << outfn << std::endl;
     vtkPolyDataReader *fltReader = vtkPolyDataReader::New();
     fltReader->SetFileName(filename);
     fltReader->Update();
@@ -1057,7 +1057,7 @@ private:
     writer->SetFileName(outfn.c_str() );
     writer->SetFileTypeToBinary();
     writer->Update();
-    antscout << " done writing ";
+    std::cout << " done writing ";
     }
   /*************** flat map to mesh ****************/
   else
@@ -1077,7 +1077,7 @@ private:
       Display( static_cast<vtkUnstructuredGrid *>(polydata) );
       }
     //    if ( fixdir == 1 )  Display((vtkUnstructuredGrid*)fltReader->GetOutput());
-    antscout << " m_Smooth " << param << std::endl;
+    std::cout << " m_Smooth " << param << std::endl;
     MapToDisc<ImageType>(fltReader->GetOutput(), param, outfn);
     }
   return 0;

@@ -63,7 +63,7 @@ void
 ANTSImageTransformation<TDimension, TReal>
 ::Write()
 {
-  ::ants::antscout << " begin writing " << m_NamingConvention << std::endl;
+  std::cout << " begin writing " << m_NamingConvention << std::endl;
 
   std::string            filePrefix = this->m_NamingConvention;
   std::string::size_type pos = filePrefix.rfind( "." );
@@ -97,7 +97,7 @@ ANTSImageTransformation<TDimension, TReal>
       IOBaseType * io = dynamic_cast<IOBaseType *>( itr->GetPointer() );
       if( !io )
         {
-        ::ants::antscout << "Got a null pointer in the array" << std::endl;
+        std::cout << "Got a null pointer in the array" << std::endl;
         }
       else
         {
@@ -106,12 +106,12 @@ ANTSImageTransformation<TDimension, TReal>
         while( writeItr != writeExtensions.end() )
           {
           std::string test_ext = *writeItr;
-          //        ::ants::antscout <<" compare " << extension << " to " << test_ext << std::endl;
+          //        std::cout <<" compare " << extension << " to " << test_ext << std::endl;
           if( extension == test_ext )
             {
             is_supported = true;
             }
-          //        else ::ants::antscout <<" not the same " << std::endl;
+          //        else std::cout <<" not the same " << std::endl;
           ++writeItr;
           }
         }
@@ -120,7 +120,7 @@ ANTSImageTransformation<TDimension, TReal>
 
     if( !is_supported )
       {
-      ::ants::antscout << " WARNING! we are guessing you want nii.gz for your image output instead of: " << extension
+      std::cout << " WARNING! we are guessing you want nii.gz for your image output instead of: " << extension
                        << std::endl;
       filePrefix = this->m_NamingConvention;
       extension = std::string(".nii.gz");
@@ -133,7 +133,7 @@ ANTSImageTransformation<TDimension, TReal>
   // Added by songgang
   if( this->m_AffineTransform )
     {
-    ::ants::antscout << " writing " << filePrefix << " affine " << std::endl;
+    std::cout << " writing " << filePrefix << " affine " << std::endl;
     const std::string filename = filePrefix + std::string( "Affine.txt" );
     WriteAffineTransformFile<AffineTransformType>(this->m_AffineTransform,
                                                   filename);
@@ -141,7 +141,7 @@ ANTSImageTransformation<TDimension, TReal>
 
   if( this->m_DisplacementField )
     {
-    ::ants::antscout << " writing " << filePrefix << " def " <<  std::endl;
+    std::cout << " writing " << filePrefix << " def " <<  std::endl;
     if( extension != std::string( ".mha" ) )
       {
       std::string filename = filePrefix + std::string( "Warp" )
@@ -149,7 +149,7 @@ ANTSImageTransformation<TDimension, TReal>
 
       typedef ImageFileWriter<DisplacementFieldType> WriterType;
       typename WriterType::Pointer writer = WriterType::New();
-      ::ants::antscout << "filename " << filename << std::endl;
+      std::cout << "filename " << filename << std::endl;
       writer->SetFileName( filename );
       //            writer->SetUseAvantsNamingConvention( true );
       writer->SetInput( this->m_DisplacementField );

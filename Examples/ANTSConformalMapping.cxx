@@ -53,9 +53,9 @@ public:
       return;
       }
 
-    antscout << "Iteration " << filter->GetElapsedIterations()
+    std::cout << "Iteration " << filter->GetElapsedIterations()
              << " (of " << filter->GetMaximumNumberOfIterations() << "): ";
-    antscout << filter->GetCurrentConvergenceMeasurement()
+    std::cout << filter->GetCurrentConvergenceMeasurement()
              << " (threshold = " << filter->GetConvergenceThreshold()
              << ")" << std::endl;
   }
@@ -226,13 +226,13 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       {
       inflate_param = parser->Convert<float>(infOption->GetParameter( 0 ) );
       inflate_iterations = parser->Convert<unsigned int>(infOption->GetParameter( 1 ) );
-      antscout << " you will inflate before flattening with params " << inflate_param << " applied over  "
+      std::cout << " you will inflate before flattening with params " << inflate_param << " applied over  "
                << inflate_iterations << " iterations. " <<  std::endl;
       }
     else
       {
-      antscout << " wrong params for inflation. ignoring. " << std::endl;
-      antscout << "   " << infOption->GetDescription() << std::endl;
+      std::cout << " wrong params for inflation. ignoring. " << std::endl;
+      std::cout << "   " << infOption->GetDescription() << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -250,8 +250,8 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      antscout << " wrong params for cost weights. " << std::endl;
-      antscout << "   " << costOption->GetDescription() << std::endl;
+      std::cout << " wrong params for cost weights. " << std::endl;
+      std::cout << "   " << costOption->GetDescription() << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -262,7 +262,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     if( displayOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
       std::string dispm = displayOption->GetParameter( 0 );
-      antscout << " render " << dispm << std::endl;
+      std::cout << " render " << dispm << std::endl;
       // read the vtk file ...
       vtkPolyDataReader *fltReader = vtkPolyDataReader::New();
       fltReader->SetFileName(dispm.c_str() );
@@ -320,9 +320,9 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     vtkDataArray* labels = labelmesh->GetPointData()->GetArray("Label");
     if( !labels )
       {
-      antscout << "  Cannot find vtk Array named 'Label' in " << innm << std::endl;
-      antscout << "  This could cause problems " << std::endl;
-      //      antscout <<" exiting " << std::endl;
+      std::cout << "  Cannot find vtk Array named 'Label' in " << innm << std::endl;
+      std::cout << "  This could cause problems " << std::endl;
+      //      std::cout <<" exiting " << std::endl;
       // throw std::exception();
       }
     innm = inOption->GetParameter( 1 );
@@ -333,8 +333,8 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     vtkDataArray* feats = featuremesh->GetPointData()->GetArray("Feature");
     if( !feats )
       {
-      antscout << "  Cannot find vtk Array named 'Feature' in " << innm << std::endl;
-      antscout << " continuing " << std::endl;
+      std::cout << "  Cannot find vtk Array named 'Feature' in " << innm << std::endl;
+      std::cout << " continuing " << std::endl;
       }
 
     /** inflation */
@@ -353,7 +353,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       smoother->NormalizeCoordinatesOff();
       smoother->Update();
       inflatedmesh = vtkSmartPointer<vtkPolyData>(smoother->GetOutput() );
-      antscout << " done smoothing " << std::endl;
+      std::cout << " done smoothing " << std::endl;
       flattener->SetSurfaceMesh(inflatedmesh);
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
@@ -364,7 +364,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
             vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
             writer->SetInput(inflatedmesh);
             std::string outnm = outputOption->GetParameter( 2 );
-            antscout << " writing " << outnm << std::endl;
+            std::cout << " writing " << outnm << std::endl;
             writer->SetFileName(outnm.c_str() );
             writer->SetFileTypeToBinary();
             writer->Update();
@@ -387,7 +387,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
   flattener->SetLabelToFlatten(labeltoflatten);
   std::string canonicaldomain = parser->GetOption( "canonical-domain" )->GetFunction();
   //    canonicaldomain=ConvertToLowerCase( canonicaldomain );
-  antscout << " you will map label " << labeltoflatten << " to a " << canonicaldomain << std::endl;
+  std::cout << " you will map label " << labeltoflatten << " to a " << canonicaldomain << std::endl;
   if( canonicaldomain == std::string("circle") )
     {
     flattener->SetMapToCircle();
@@ -398,22 +398,22 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    antscout << " that domain is not an option -- exiting. " << std::endl;
+    std::cout << " that domain is not an option -- exiting. " << std::endl;
     return EXIT_FAILURE;
     }
 
   // do stuff -- but not implemented yet
   //   flattener->SetDiscBoundaryList(NULL);
 
-  antscout << " you will flatten " << labeltoflatten << ".  param while searching? " << paramws << std::endl;
+  std::cout << " you will flatten " << labeltoflatten << ".  param while searching? " << paramws << std::endl;
   flattener->SetSigma(1);
 
   flattener->SetMaxCost(maxCost);
   flattener->SetDistanceCostWeight(distCostW);
   flattener->SetLabelCostWeight(labelCostW);
-  antscout << " MC " << maxCost << " DW " << distCostW << " LW " << labelCostW << std::endl;
+  std::cout << " MC " << maxCost << " DW " << distCostW << " LW " << labelCostW << std::endl;
   flattener->ExtractSurfaceDisc();
-  antscout << " begin conformal mapping ";
+  std::cout << " begin conformal mapping ";
   flattener->ConformalMap();
 
   /**
@@ -430,7 +430,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
           vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
           writer->SetInput(flattener->m_DiskSurfaceMesh);
           std::string outnm = outputOption->GetParameter( p );
-          antscout << " writing " << outnm << std::endl;
+          std::cout << " writing " << outnm << std::endl;
           writer->SetFileName(outnm.c_str() );
           writer->SetFileTypeToBinary();
           if( flattener->m_DiskSurfaceMesh )
@@ -443,7 +443,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
           vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
           writer->SetInput(flattener->m_ExtractedSurfaceMesh);
           std::string outnm = outputOption->GetParameter( 1 );
-          antscout << " writing " << outnm << std::endl;
+          std::cout << " writing " << outnm << std::endl;
           writer->SetFileName(outnm.c_str() );
           writer->SetFileTypeToBinary();
           if( flattener->m_ExtractedSurfaceMesh )
@@ -456,7 +456,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
           vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
           writer->SetInput(inflatedmesh);
           std::string outnm = outputOption->GetParameter( 2 );
-          antscout << " writing " << outnm << std::endl;
+          std::cout << " writing " << outnm << std::endl;
           writer->SetFileName(outnm.c_str() );
           writer->SetFileTypeToBinary();
           writer->Update();
@@ -511,7 +511,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser = itk::ants::CommandLineParser::New();
   parser->SetCommand( argv[0] );
@@ -530,7 +530,7 @@ private:
   if( argc < 2 || parser->Convert<bool>(
         parser->GetOption( "help" )->GetFunction() ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -540,7 +540,7 @@ private:
   else if( parser->Convert<bool>(
              parser->GetOption( 'h' )->GetFunction() ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 

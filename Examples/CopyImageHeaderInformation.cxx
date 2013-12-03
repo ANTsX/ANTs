@@ -47,10 +47,10 @@ int CopyImageHeaderInformation(int argc, char *argv[])
   typename readertype::Pointer reader = readertype::New();
   reader->SetFileName(argv[1]);
   reader->Update();
-  //  antscout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
-  // antscout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
-  // antscout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
-  // antscout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
+  //  std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
+  // std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
+  // std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
+  // std::cout << " Size " << std::endl << reader->GetOutput()->GetLargestPossibleRegion().GetSize() << std::endl;
 
   bool istensor = false;
   if( argc > 7 )
@@ -66,7 +66,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
     typedef itk::Image<TensorType, ImageDimension> TensorFieldType;
     typename TensorFieldType::Pointer timage;
     ReadTensorImage<TensorFieldType>(timage, argv[2], false);
-    //      antscout<< " tim dir " << timage->GetDirection() << std::endl;
+    //      std::cout<< " tim dir " << timage->GetDirection() << std::endl;
     if( argc > 6 )
       {
       if( atoi(argv[6]) )
@@ -89,7 +89,7 @@ int CopyImageHeaderInformation(int argc, char *argv[])
         }
       }
 
-    //      antscout<< " tim dir " << timage->GetDirection() << std::endl;
+    //      std::cout<< " tim dir " << timage->GetDirection() << std::endl;
     WriteTensorImage<TensorFieldType>( timage, argv[3], false);
 
     return EXIT_SUCCESS;
@@ -173,11 +173,11 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4  )
     {
-    antscout << "Usage:  " << argv[0]
+    std::cout << "Usage:  " << argv[0]
              <<
       " refimage.ext imagetocopyrefimageinfoto.ext imageout.ext   boolcopydirection  boolcopyorigin boolcopyspacing  {bool-Image2-IsTensor}"
              << std::endl;
@@ -216,7 +216,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension : " << dim << std::endl;
+      std::cout << "Unsupported dimension : " << dim << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

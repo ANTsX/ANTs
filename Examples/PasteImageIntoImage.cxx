@@ -177,22 +177,22 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 6 )
     {
-    antscout << argv[0] << " imageDimension inputCanvasImage inputImage "
+    std::cout << argv[0] << " imageDimension inputCanvasImage inputImage "
              << "outputImage startIndex [backgroundLabel=0] [paintOverNonBackgroundVoxels=0] [conflictLabel=-1]"
              << std::endl;
-    antscout
+    std::cout
       <<
       "   If the current painting image voxel is nonbackground and corresponds to a background voxel in the canvas image "
       << std::endl;
-    antscout << "     paintOverNonBackgroundVoxels = 0 -> leave the canvas voxel as is." << std::endl;
-    antscout
+    std::cout << "     paintOverNonBackgroundVoxels = 0 -> leave the canvas voxel as is." << std::endl;
+    std::cout
       << "     paintOverNonBackgroundVoxels = 1 -> replace canvas voxel value with painting image voxel value"
       << std::endl;
-    antscout << "     paintOverNonBackgroundVoxels = 2 -> replace canvas voxel walue with conflictLabel"  << std::endl;
+    std::cout << "     paintOverNonBackgroundVoxels = 2 -> replace canvas voxel walue with conflictLabel"  << std::endl;
 
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -220,7 +220,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

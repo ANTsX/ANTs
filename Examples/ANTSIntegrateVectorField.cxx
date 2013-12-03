@@ -135,7 +135,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
   while( !timedone )
     {
     float scale = 1;  // *m_DT[timeind]/m_DS[timeind];
-    //     antscout << " scale " << scale << std::endl;
+    //     std::cout << " scale " << scale << std::endl;
     double itimetn1 = itime - timesign * deltaTime * scale;
     double itimetn1h = itime - timesign * deltaTime * 0.5 * scale;
     if( itimetn1h < 0 )
@@ -159,7 +159,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       {
       pointIn1[jj] = velind[jj] * lapgrad->GetSpacing()[jj];
       }
-    //      antscout << " ind " << index  << std::endl;
+    //      std::cout << " ind " << index  << std::endl;
     // now index the time varying field at that position.
     typename DefaultInterpolatorType::OutputType f1;  f1.Fill(0);
     typename DefaultInterpolatorType::OutputType f2;  f2.Fill(0);
@@ -268,7 +268,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
       }
     if( ct >  1000 )
       {
-      antscout << " stopping b/c exceed 1000 points " << voxmag <<  std::endl;  timedone = true;
+      std::cout << " stopping b/c exceed 1000 points " << voxmag <<  std::endl;  timedone = true;
       }
     if( voxmag < 0.1 )
       {
@@ -397,7 +397,7 @@ int IntegrateVectorField(int argc, char *argv[])
       thickimage->SetPixel(velind, totalength);
       if( (totalength) > 0 )
         {
-        antscout << " len1 " << len1 << " len2 " << len2 << " ind " << velind << std::endl;
+        std::cout << " len1 " << len1 << " len2 " << len2 << " ind " << velind << std::endl;
         }
       }
     ++Iterator;
@@ -451,20 +451,20 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4 )
     {
-    antscout << "Usage:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
              << "  VecImageIN.nii.gz ROIMaskIN.nii.gz FibersOUT.vtk  LengthImageOUT.nii.gz   " << std::endl;
-    antscout
+    std::cout
       <<
       " The vector field should have vectors as voxels , the ROI is an integer image, fibers out will be vtk text files .... "
       << std::endl;
-    antscout << "  ROI-Mask controls where the integration is performed and the start point region ... " << std::endl;
-    antscout << " e.g. the brain will have value 1 , the ROI has value 2 , then all starting seed points "
+    std::cout << "  ROI-Mask controls where the integration is performed and the start point region ... " << std::endl;
+    std::cout << " e.g. the brain will have value 1 , the ROI has value 2 , then all starting seed points "
              << std::endl;
-    antscout
+    std::cout
       << " for the integration will start in the region labeled 2 and be constrained to the region labeled 1. "
       << std::endl;
     if( argc >= 2 &&
@@ -500,7 +500,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

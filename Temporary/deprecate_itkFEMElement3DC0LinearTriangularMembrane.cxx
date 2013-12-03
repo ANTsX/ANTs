@@ -62,7 +62,7 @@ void Element3DC0LinearTriangularMembrane::GetStiffnessMatrix(MatrixType& Ke) con
   Float w;
   this->GetIntegrationPointAndWeight(0,ip,w,0);
   //
-  //::::ants::antscout<< " Nip " << Nip << " w " << w << std::endl;
+  //::std::cout<< " Nip " << Nip << " w " << w << std::endl;
   this->GetMaterialMatrix(D);
 
   Ke.set_size(3,3);
@@ -139,8 +139,8 @@ void Element3DC0LinearTriangularMembrane::GetStiffnessMatrix(MatrixType& Ke) con
 
 
 
-//  ::::ants::antscout << " lapl belt " << std::endl;
-//  ::::ants::antscout << Ke << std::endl;
+//  ::std::cout << " lapl belt " << std::endl;
+//  ::std::cout << Ke << std::endl;
 
 }
 */

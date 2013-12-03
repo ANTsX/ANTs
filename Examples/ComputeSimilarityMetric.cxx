@@ -159,7 +159,7 @@ int ComputeSimilarityMetric(int argc, char *argv[])
     metricvalue = mimet->ComputeMutualInformation();
     metricname = "MI ";
     }
-  antscout << fn1 << " : " << fn2 << " => " <<  metricname << metricvalue << std::endl;
+  std::cout << fn1 << " : " << fn2 << " => " <<  metricname << metricvalue << std::endl;
   if( logfilename.length() > 3 )
     {
     std::ofstream logfile;
@@ -170,7 +170,7 @@ int ComputeSimilarityMetric(int argc, char *argv[])
       }
     else
       {
-      antscout << " cant open file ";
+      std::cout << " cant open file ";
       }
     logfile.close();
     }
@@ -190,21 +190,21 @@ int ComputeSimilarityMetric(int argc, char *argv[])
       met->ComputeMetricAtPairB(index,  zero);
       metricimg->SetPixel(index, val);
       //if (ct % 10000 == 0)
-      //        antscout << val << " index " << index << std::endl;
+      //        std::cout << val << " index " << index << std::endl;
       //      asamIt.SetLocation(index);
       //      totval+=met->localProbabilistic;
       ct++;
     }
 
-  antscout << " AvantsMI : " << totval/(double)ct << " E " <<  met->GetEnergy() <<  std::endl;
-  antscout << " write begin " << std::endl;
+  std::cout << " AvantsMI : " << totval/(double)ct << " E " <<  met->GetEnergy() <<  std::endl;
+  std::cout << " write begin " << std::endl;
   typedef itk::ImageFileWriter<ImageType> writertype;
   writertype::Pointer w= writertype::New();
   w->SetInput(metricimg);
   w->SetFileName(outname.c_str());
   w->Write();  //  met->WriteImages();
 
-  antscout << " write end " << std::endl;
+  std::cout << " write end " << std::endl;
 */
     }
 
@@ -254,13 +254,13 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Basic useage ex: " << std::endl;
-    antscout << argv[0] << " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  " << std::endl;
-    antscout << "  outimage and logfile are optional  " << std::endl;
+    std::cout << "Basic useage ex: " << std::endl;
+    std::cout << argv[0] << " ImageDimension whichmetric image1.ext image2.ext {logfile} {outimage.ext}  " << std::endl;
+    std::cout << "  outimage and logfile are optional  " << std::endl;
     return 1;
     }
 
@@ -278,7 +278,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
 

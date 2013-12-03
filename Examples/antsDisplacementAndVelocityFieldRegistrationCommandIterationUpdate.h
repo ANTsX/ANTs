@@ -51,7 +51,7 @@ protected:
     const itk::RealTimeClock::TimeStampType now = m_clock.GetTotal();
     this->m_lastTotalTime = now;
     m_clock.Start();
-    this->m_LogStream = &::ants::antscout;
+    this->m_LogStream = &std::cout;
     this->m_ComputeFullScaleCCInterval = 0;
     this->m_WriteInterationsOutputsInIntervals = 0;
     this->m_CurrentStageNumber = 0;
@@ -466,9 +466,9 @@ public:
       }
     catch( itk::ExceptionObject & err )
       {
-      antscout << "Can't write warped image " << currentFileName.str().c_str() << std::endl;
-      antscout << "Exception Object caught: " << std::endl;
-      antscout << err << std::endl;
+      std::cout << "Can't write warped image " << currentFileName.str().c_str() << std::endl;
+      std::cout << "Exception Object caught: " << std::endl;
+      std::cout << err << std::endl;
       }
   }
 

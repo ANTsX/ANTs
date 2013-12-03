@@ -65,8 +65,8 @@ float ComputeGenus(vtkPolyData* pd1)
   vtkIdType    vers = pd1->GetNumberOfPoints();
   int          nfac = pd1->GetNumberOfPolys();
   float        g = 0.5 * (2.0 - vers + nedg - nfac);
-  antscout << " Genus " << g << std::endl;
-  antscout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
+  std::cout << " Genus " << g << std::endl;
+  std::cout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
 
   // edg1->Delete(); //caused malloc err
   edgeex->Delete();   // should be deleted b/c of New() above !!
@@ -98,9 +98,9 @@ float GetImageTopology(typename TImage::Pointer image)
   fltMesh->SetSmoothingIterations(0);
   fltMesh->Update();
   vtkPolyData* vtkmesh = fltMesh->GetMesh();
-  antscout << " start topo " << std::endl;
+  std::cout << " start topo " << std::endl;
   float genus =  vtkComputeTopology(vtkmesh);
-  antscout << " Genus " << genus << std::endl;
+  std::cout << " Genus " << genus << std::endl;
   //  vtkmesh->Delete();
   return genus;
 }
@@ -179,7 +179,7 @@ GetLargestComponent(typename TImage::Pointer image)
     }
   relabel->SetInput( filter->GetOutput() );
   unsigned int minSize = 50;
-  antscout << " min Size " << minSize << std::endl;
+  std::cout << " min Size " << minSize << std::endl;
   relabel->SetMinimumObjectSize( minSize );
   //    relabel->SetUseHistograms(true);
 
@@ -189,8 +189,8 @@ GetLargestComponent(typename TImage::Pointer image)
     }
   catch( itk::ExceptionObject & excep )
     {
-    antscout << "Relabel: exception caught !" << std::endl;
-    antscout << excep << std::endl;
+    std::cout << "Relabel: exception caught !" << std::endl;
+    std::cout << excep << std::endl;
     }
 
   typename TImage::Pointer Clusters = AllocImage<TImage>(image, 0);
@@ -243,7 +243,7 @@ GetLargestComponent(typename TImage::Pointer image)
       }
     }
 
-  antscout << " max size " << maximgval << std::endl;
+  std::cout << " max size " << maximgval << std::endl;
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     if( Clusters->GetPixel( vfIter.GetIndex() ) >= maximgval )
@@ -257,7 +257,7 @@ GetLargestComponent(typename TImage::Pointer image)
     }
 
   //  for (int i=0; i<=maximum; i++)
-  //  antscout << " label " << i << " ct is: " << histogram[i] << std::endl;
+  //  std::cout << " label " << i << " ct is: " << histogram[i] << std::endl;
 
   return Clusters;
 }
@@ -305,14 +305,14 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 2 )
     {
-    antscout << "Parameter  missing" << std::endl;
-    antscout << std::endl;
-    antscout << "Usage:" << argv[0] << "  image.nii  {g0image.nii}  {threshold}" << std::endl;
-    antscout
+    std::cout << "Parameter  missing" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Usage:" << argv[0] << "  image.nii  {g0image.nii}  {threshold}" << std::endl;
+    std::cout
       <<
       " If you put an arg for g0image then image will be smoothed and thresholded \n until it has genus zero or the smoothing kernel gets too large "
       << std::endl;
@@ -336,7 +336,7 @@ private:
 
   if( initG < 0 && argc > 2 )
     {
-    antscout <<  "smoothing into a Genus Zero image with thresh " << thresh <<  std::endl;
+    std::cout <<  "smoothing into a Genus Zero image with thresh " << thresh <<  std::endl;
     float              G = 1;
     float              smooth = 1;
     ImageType::Pointer simage;
@@ -349,10 +349,10 @@ private:
       G = GetImageTopology<ImageType>(bigimage);
       smooth = smooth + 1;
       simage = bigimage;
-      antscout << " G " <<  G << " at smoothing " << smooth << std::endl;
+      std::cout << " G " <<  G << " at smoothing " << smooth << std::endl;
       }
 
-    antscout << " Final G " <<  G << " at smoothing " << smooth << std::endl;
+    std::cout << " Final G " <<  G << " at smoothing " << smooth << std::endl;
 
     float        G2 = 0;
     unsigned int mct = 0;
@@ -377,7 +377,7 @@ private:
 
       mct++;
       derr = lasterr - err;
-      antscout << " G2 " <<  G2 << " at morph " << mct << " err " << err << std::endl;
+      std::cout << " G2 " <<  G2 << " at morph " << mct << " err " << err << std::endl;
       if( G2 == 0 && derr > 0 )
         {
         simage = GetLargestComponent<ImageType>(out);

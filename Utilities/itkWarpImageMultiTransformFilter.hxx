@@ -67,7 +67,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
 // ::SetInterpolator1(InterpolatorPointer interp)
 // {
 //    m_Interpolator = static_cast<InterpolatorType*> (interp.GetPointer());
-//    ::ants::antscout << "set interpolator in WarpImage:" << interp << std::endl;
+//    std::cout << "set interpolator in WarpImage:" << interp << std::endl;
 // }
 
 template <class TInputImage, class TOutputImage, class TDisplacementField, class TTransform>
@@ -75,7 +75,7 @@ void
 WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTransform>
 ::PrintTransformList()
 {
-  ::ants::antscout << "transform list: " << std::endl;
+  std::cout << "transform list: " << std::endl;
 
   typename TransformListType::iterator it = (m_TransformList.begin() );
   for( int ii = 0; it != m_TransformList.end(); it++, ii++ )
@@ -84,12 +84,12 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
       {
       case EnumAffineType:
         {
-        ::ants::antscout << '[' << ii << "]: EnumAffineType" << std::endl;
-        ::ants::antscout << it->second.aex.aff << std::endl;
+        std::cout << '[' << ii << "]: EnumAffineType" << std::endl;
+        std::cout << it->second.aex.aff << std::endl;
         }
         break;
       case EnumDisplacementFieldType:
-        ::ants::antscout << '[' << ii << "]: EnumDisplacementFieldType: size"
+        std::cout << '[' << ii << "]: EnumDisplacementFieldType: size"
                          << it->second.dex.field->GetLargestPossibleRegion().GetSize() << std::endl;
       }
     }
@@ -253,7 +253,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
     if (m_SmoothScale != scale){
         // compute the new cached
 
-//        ::ants::antscout << "change smooth scale: " << m_SmoothScale << " ---> " << scale << std::endl;
+//        std::cout << "change smooth scale: " << m_SmoothScale << " ---> " << scale << std::endl;
 
         m_SmoothScale = scale;
 
@@ -288,7 +288,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
             smoother->SetDirection( d );
             smoother->SetNormalizeAcrossScale( false );
 
-//            ::ants::antscout << "scale = " << scale << " => " << "sigma of dim " << d << ": " << sigma << " out size " << outputSize <<  " spc1 " << outputSpacing << " in " << inputSpacing << std::endl;
+//            std::cout << "scale = " << scale << " => " << "sigma of dim " << d << ": " << sigma << " out size " << outputSize <<  " spc1 " << outputSpacing << " in " << inputSpacing << std::endl;
 
             smoother->SetSigma( sigma );
             if ( smoother->GetSigma() > 0.0 )
@@ -324,8 +324,8 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
   InputImageConstPointer inputPtr = this->GetInput();
   OutputImagePointer     outputPtr = this->GetOutput();
 
-  // ::ants::antscout << "inputPtr->GetOrigin():" << inputPtr->GetOrigin() << std::endl;
-  // ::ants::antscout << "outputPtr->GetOrigin():" << outputPtr->GetOrigin() << std::endl;
+  // std::cout << "inputPtr->GetOrigin():" << inputPtr->GetOrigin() << std::endl;
+  // std::cout << "outputPtr->GetOrigin():" << outputPtr->GetOrigin() << std::endl;
 
   // std::exception();
 
@@ -350,7 +350,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
 
     bool isinside = MultiTransformPoint(point1, point2, m_bFirstDeformNoInterp, _index);
 
-    // ::ants::antscout << "point1:" << point1 << "  point2:" << point2 << " index:" << index << std::endl;
+    // std::cout << "point1:" << point1 << "  point2:" << point2 << " index:" << index << std::endl;
     // std::exception();
 
     // warp the image
@@ -362,7 +362,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
       }
     else
       {
-      // ::ants::antscout << "OUTSIDE" << " isinside:" << isinside << " m_Interpolator->IsInsideBuffer( point2 ):" <<
+      // std::cout << "OUTSIDE" << " isinside:" << isinside << " m_Interpolator->IsInsideBuffer( point2 ):" <<
       // m_Interpolator->IsInsideBuffer( point2 ) <<  std::endl;
       outputIt.Set( m_EdgePaddingValue );
       }
@@ -477,7 +477,7 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
         }
       case EnumDisplacementFieldType:
         {
-        ::ants::antscout << " Ignore deformation type ... " << std::endl;
+        std::cout << " Ignore deformation type ... " << std::endl;
         itkExceptionMacro(<< "Affine Only Sequence must only contain Affine Transforms, DisplacementField Found!");
         }
         break;
@@ -508,10 +508,10 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
         {
         TransformTypePointer aff = it->second.aex.aff;
         TransformTypePointer aff_inv = TransformTypePointer::ObjectType::New();
-        // ::ants::antscout << "aff before:" << aff << std::endl;
+        // std::cout << "aff before:" << aff << std::endl;
         aff->GetInverse(aff_inv);
-        // ::ants::antscout << "aff after:" << aff << std::endl;
-        // ::ants::antscout << "aff_inv after:" << aff_inv << std::endl;
+        // std::cout << "aff after:" << aff << std::endl;
+        // std::cout << "aff_inv after:" << aff_inv << std::endl;
 
         point2 = aff_inv->TransformPoint(point1);
         point1 = point2;
@@ -627,10 +627,10 @@ WarpImageMultiTransformFilter<TInputImage, TOutputImage, TDisplacementField, TTr
         & (this->GetOutputSpacing() == field->GetSpacing() )
         & (this->GetOutputOrigin() == field->GetOrigin() );
 
-//            ::ants::antscout << "in set: field size: " << field->GetLargestPossibleRegion().GetSize()
+//            std::cout << "in set: field size: " << field->GetLargestPossibleRegion().GetSize()
 //            << "output spacing: " << this->GetOutputSize() << std::endl;
-//            ::ants::antscout << field->GetSpacing() << " | " << this->GetOutputSpacing() << std::endl;
-//            ::ants::antscout << field->GetOrigin() << " | " << this->GetOutputOrigin() << std::endl;
+//            std::cout << field->GetSpacing() << " | " << this->GetOutputSpacing() << std::endl;
+//            std::cout << field->GetOrigin() << " | " << this->GetOutputOrigin() << std::endl;
       }
     }
 }

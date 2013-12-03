@@ -297,19 +297,19 @@ int ConvertTransformFile(int argc, char* argv[])
         }
       else
         {
-        antscout << "Unrecognized option: " << argv[n] << std::endl;
+        std::cout << "Unrecognized option: " << argv[n] << std::endl;
         return EXIT_FAILURE;
         }
       }
     if( outputRAS && !outputMatrix && !outputHomogeneousMatrix )
       {
-      antscout << " '--RAS' option must be used with either of 'matrix' or 'homongeneousMatrix' options." << std::endl;
+      std::cout << " '--RAS' option must be used with either of 'matrix' or 'homongeneousMatrix' options." << std::endl;
       return EXIT_FAILURE;
       }
     if( (outputMatrix &&
          outputHomogeneousMatrix) || (outputMatrix && outputAffine) || (outputHomogeneousMatrix && outputAffine) )
       {
-      antscout << "Only one primary output option allowed at once." << std::endl;
+      std::cout << "Only one primary output option allowed at once." << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -318,7 +318,7 @@ int ConvertTransformFile(int argc, char* argv[])
   std::string inputFilename = std::string( argv[inputFilenamePos] );
   if( !FileExists(inputFilename) )
     {
-    antscout << " file " << inputFilename << " does not exist . " << std::endl;
+    std::cout << " file " << inputFilename << " does not exist . " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -333,7 +333,7 @@ int ConvertTransformFile(int argc, char* argv[])
   transform = itk::ants::ReadTransform<double, ImageDimension>( inputFilename );
   if( transform.IsNull() )
     {
-    antscout << "Error while reading transform file. Did you specify the correct dimension?" << std::endl;
+    std::cout << "Error while reading transform file. Did you specify the correct dimension?" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -347,7 +347,7 @@ int ConvertTransformFile(int argc, char* argv[])
     if( outputStream.fail() )
       {
       outputStream.close();
-      antscout << "Failed opening the output file " << outFilename << std::endl;
+      std::cout << "Failed opening the output file " << outFilename << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -361,7 +361,7 @@ int ConvertTransformFile(int argc, char* argv[])
         }
       else
         {
-        antscout << "Error. Transform type is unsupported for getting matrix: " << transform->GetNameOfClass()
+        std::cout << "Error. Transform type is unsupported for getting matrix: " << transform->GetNameOfClass()
                  << std::endl;
         return EXIT_FAILURE;
         }
@@ -378,7 +378,7 @@ int ConvertTransformFile(int argc, char* argv[])
         }
       else
         {
-        antscout << "Error. Transform type is unsupported for getting matrix: " << transform->GetNameOfClass()
+        std::cout << "Error. Transform type is unsupported for getting matrix: " << transform->GetNameOfClass()
                  << std::endl;
         return EXIT_FAILURE;
         }
@@ -398,14 +398,14 @@ int ConvertTransformFile(int argc, char* argv[])
       dynamic_cast<CastTransformType *>(transform.GetPointer() );
     if( matrixOffsetTransform.IsNull() )
       {
-      antscout
+      std::cout
         << "The transfrom read from file is not derived from MatrixOffsetTransformBase. Cannot convert to Affine."
         << std::endl;
       return EXIT_FAILURE;
       }
     if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".mat" )
       {
-      antscout << "Output filename '" << outFilename << "' must end in '.mat' for binary output." << std::endl;
+      std::cout << "Output filename '" << outFilename << "' must end in '.mat' for binary output." << std::endl;
       return EXIT_FAILURE;
       }
     typedef itk::AffineTransform<typename TransformType::ScalarType, ImageDimension> AffineTransformType;
@@ -415,13 +415,13 @@ int ConvertTransformFile(int argc, char* argv[])
     transform = dynamic_cast<TransformType *>(newAffineTransform.GetPointer() );
     if( transform.IsNull() )
       {
-      antscout << "Unexpected error casting from affine transform to transform type." << std::endl;
+      std::cout << "Unexpected error casting from affine transform to transform type." << std::endl;
       return EXIT_FAILURE;
       }
     int result = itk::ants::WriteTransform<double, ImageDimension>( transform, outFilename );
     if( result == EXIT_FAILURE )
       {
-      antscout << "Failed writing converted transform to binary format." << std::endl;
+      std::cout << "Failed writing converted transform to binary format." << std::endl;
       return EXIT_FAILURE;
       }
     return EXIT_SUCCESS;
@@ -432,14 +432,14 @@ int ConvertTransformFile(int argc, char* argv[])
   if( itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".txt" &&
       itksys::SystemTools::GetFilenameLastExtension(outFilename) != ".tfm" )
     {
-    antscout << "Output filename '" << outFilename << "' must end in '.txt' or '.tfm' for text-format output."
+    std::cout << "Output filename '" << outFilename << "' must end in '.txt' or '.tfm' for text-format output."
              << std::endl;
     return EXIT_FAILURE;
     }
   int result = itk::ants::WriteTransform<double, ImageDimension>( transform, outFilename );
   if( result == EXIT_FAILURE )
     {
-    antscout << "Failed writing transform to text format." << std::endl;
+    std::cout << "Failed writing transform to text format." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -493,14 +493,14 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 4  || ( strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0 ) )
     {
-    antscout << "USAGE:  " << std::endl
+    std::cout << "USAGE:  " << std::endl
              << " " << argv[0] << " dimensions inputTransfromFile.ext outputTransformFile.ext [OPTIONS]" << std::endl
              << std::endl;
-    antscout << "COMMAND: " << std::endl
+    std::cout << "COMMAND: " << std::endl
              << " Utility to read in a transform file (presumed to be in binary format) " << std::endl
              << " and output it in various formats. Default output is legacy human-readable" << std::endl
              << " text format.  Without any options, the output filename extension must be " << std::endl
@@ -541,7 +541,7 @@ private:
     }
   if( argc > 6 )
     {
-    antscout << "Too many arguments." << std::endl;
+    std::cout << "Too many arguments." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -571,7 +571,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension " <<  dimension << "." << std::endl;
+      std::cout << "Unsupported dimension " <<  dimension << "." << std::endl;
       return EXIT_FAILURE;
     }
 

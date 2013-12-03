@@ -99,24 +99,24 @@ int CreateZeroImage( int argc, char *argv[] )
       }
     if( values.size() > numberOfPixels )
       {
-      antscout << "Number of specified pixel values is greater than "
+      std::cout << "Number of specified pixel values is greater than "
                << "the size of the image." << std::endl;
       return EXIT_FAILURE;
       }
 
     if( og.size() != ImageDimension )
       {
-      antscout << "Invalid origin size." << std::endl;
+      std::cout << "Invalid origin size." << std::endl;
       return EXIT_FAILURE;
       }
     if( sp.size() != ImageDimension )
       {
-      antscout << "Invalid spacing size." << std::endl;
+      std::cout << "Invalid spacing size." << std::endl;
       return EXIT_FAILURE;
       }
     if( sz.size() != ImageDimension )
       {
-      antscout << "Invalid Size size." << std::endl;
+      std::cout << "Invalid Size size." << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -193,7 +193,7 @@ int CreateZeroImage( int argc, char *argv[] )
 //          break;
 //          }
 //        default:
-//          antscout << "Incorrect choice" << std::endl;
+//          std::cout << "Incorrect choice" << std::endl;
 //          return EXIT_FAILURE;
 //          break;
         }
@@ -213,17 +213,17 @@ int CreateZeroImage( int argc, char *argv[] )
 
     if( og.size() != ImageDimension )
       {
-      antscout << "Invalid origin size." << std::endl;
+      std::cout << "Invalid origin size." << std::endl;
       return EXIT_FAILURE;
       }
     if( sp.size() != ImageDimension )
       {
-      antscout << "Invalid spacing size." << std::endl;
+      std::cout << "Invalid spacing size." << std::endl;
       return EXIT_FAILURE;
       }
     if( sz.size() != ImageDimension )
       {
-      antscout << "Invalid Size size." << std::endl;
+      std::cout << "Invalid Size size." << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -272,7 +272,7 @@ int CreateZeroImage( int argc, char *argv[] )
 //          }
 //        default:
 //          {
-//          antscout << "Incorrect choice" << std::endl;
+//          std::cout << "Incorrect choice" << std::endl;
 //          return EXIT_FAILURE;
 //          break;
 //          }
@@ -333,14 +333,14 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 5 )
     {
-    antscout << "Usage 1: " << argv[0] << " imageDimension referenceImage outputImage constant [random?]" << std::endl;
-    antscout << "Usage 2: " << argv[0] << " imageDimension outputImage origin spacing size constant [random?]"
+    std::cout << "Usage 1: " << argv[0] << " imageDimension referenceImage outputImage constant [random?]" << std::endl;
+    std::cout << "Usage 2: " << argv[0] << " imageDimension outputImage origin spacing size constant [random?]"
              << std::endl;
-    antscout << "Usage 3: " << argv[0] << " imageDimension outputImage origin spacing size pixelValues" << std::endl;
+    std::cout << "Usage 3: " << argv[0] << " imageDimension outputImage origin spacing size pixelValues" << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
@@ -367,7 +367,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

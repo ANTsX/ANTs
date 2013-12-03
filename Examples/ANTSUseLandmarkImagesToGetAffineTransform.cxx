@@ -35,7 +35,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
     }
   catch( itk::ExceptionObject & err )
     {
-    antscout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
              << "Exception in writing tranform file: " << std::endl
              << filename << std::endl;
     return;
@@ -62,8 +62,8 @@ inline void PostConversionInAffine(RunningAffineTransformPointerType& transform_
   transform->SetMatrix(*(reinterpret_cast<typename AffineTransformType::MatrixType *>
                          (const_cast<typename RunningAffineTransformType::MatrixType *>(&(transform_running->GetMatrix() ) ) ) ) );
 
-  // antscout << "transform_running" << transform_running << std::endl;
-  // antscout << "transform" << transform << std::endl;
+  // std::cout << "transform_running" << transform_running << std::endl;
+  // std::cout << "transform" << transform << std::endl;
 }
 
 template <class TransformA>
@@ -77,12 +77,12 @@ void DumpTransformForANTS3D(typename TransformA::Pointer & transform, const std:
 
   //    typedef TransformAPointer::ObjectType TransformA;
 
-  // antscout << " writing " << ANTS_prefix << " affine " << std::endl;
+  // std::cout << " writing " << ANTS_prefix << " affine " << std::endl;
   // std::string ANTS_affine_filename = ANTS_prefix + std::string( "Affine.txt" );
 
   std::string ANTS_affine_filename = ANTS_prefix;
 
-  antscout << " writing ANTS affine file:" << ANTS_affine_filename << std::endl;
+  std::cout << " writing ANTS affine file:" << ANTS_affine_filename << std::endl;
   PostConversionInAffine(transform, transform_ANTS);
   WriteAffineTransformFile<AffineTransformType>(transform_ANTS,
                                                 ANTS_affine_filename);
@@ -154,12 +154,12 @@ void GetAffineTransformFromTwoPointSets3D(PointContainerType & fixedLandmarks, P
   vnl_matrix<double> A(Dim, Dim);
   A = A11.extract(Dim, Dim, 0, 0);
 
-  antscout << "y=" << y << std::endl;
-  antscout << "x=" << x << std::endl;
+  std::cout << "y=" << y << std::endl;
+  std::cout << "x=" << x << std::endl;
 
-  antscout << "y1=" << y1 << std::endl;
-  antscout << "x11=" << x11 << std::endl;
-  antscout << "A11=" << A11 << std::endl;
+  std::cout << "y1=" << y1 << std::endl;
+  std::cout << "x11=" << x11 << std::endl;
+  std::cout << "A11=" << A11 << std::endl;
 
   vnl_vector<double> t = A11.get_column(Dim);
 
@@ -222,7 +222,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
       if( find( myFixLabelSet.begin(), myFixLabelSet.end(), label )
           == myFixLabelSet.end() )
         {
-        //          antscout <<" f-label " << label << std::endl;
+        //          std::cout <<" f-label " << label << std::endl;
         myFixLabelSet.push_back( label );
         }
       }
@@ -236,7 +236,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
       if( find( myMovLabelSet.begin(), myMovLabelSet.end(), label )
           == myMovLabelSet.end() )
         {
-        //          antscout <<" m-label " << label << std::endl;
+        //          std::cout <<" m-label " << label << std::endl;
         myMovLabelSet.push_back( label );
         }
       }
@@ -251,10 +251,10 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
     {
     float fixlabel = *fit;
     float movlabel = *mit;
-    antscout << " fix-label " << fixlabel << " movlabel " << movlabel << std::endl;
+    std::cout << " fix-label " << fixlabel << " movlabel " << movlabel << std::endl;
     if( movlabel != fixlabel )
       {
-      antscout << " labels do not match -- exiting " << std::endl;
+      std::cout << " labels do not match -- exiting " << std::endl;
       exit(1);
       }
     ++mit;
@@ -293,14 +293,14 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
           {
           myCenterOfMass[i] += point[i];
           }
-        antscout << " point " << point << std::endl;
+        std::cout << " point " << point << std::endl;
         }
       }
     for( unsigned int i = 0; i < spacing.Size(); i++ )
       {
       myCenterOfMass[i] /= (float)totalct;
       }
-    // antscout << " pushing-fix " <<  myCenterOfMass << std::endl;
+    // std::cout << " pushing-fix " <<  myCenterOfMass << std::endl;
     fixedLandmarks.push_back( myCenterOfMass );
     }
 
@@ -331,7 +331,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
       {
       myCenterOfMass[i] /= (float)totalct;
       }
-    //    antscout << " pushing-mov " <<  myCenterOfMass << std::endl;
+    //    std::cout << " pushing-mov " <<  myCenterOfMass << std::endl;
     movingLandmarks.push_back( myCenterOfMass );
     }
 
@@ -341,7 +341,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
     mitr = movingLandmarks.begin();
   while( mitr != movingLandmarks.end() )
     {
-    antscout << "  Fixed Landmark: " << *fitr << " Moving landmark " << *mitr << std::endl;
+    std::cout << "  Fixed Landmark: " << *fitr << " Moving landmark " << *mitr << std::endl;
     ++fitr;
     ++mitr;
     }
@@ -354,7 +354,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
   initializer->SetTransform( transform );
   initializer->InitializeTransform();
 
-  transform->Print(antscout);
+  transform->Print(std::cout);
   // to transform a point
   //         transform->TransformPoint( *fitr ) << std::endl;
 
@@ -366,7 +366,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
 
   GetAffineTransformFromTwoPointSets3D<PointsContainerType, AffineTransformType>(fixedLandmarks, movingLandmarks, aff);
 
-  antscout << "affine:" << aff;
+  std::cout << "affine:" << aff;
 
   if( bRigid )
     {
@@ -382,7 +382,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
 
 int LandmarkBasedTransformInitializer2D(int, char * [])
 {
-  antscout << " not implemented " << std::endl;
+  std::cout << " not implemented " << std::endl;
   return EXIT_FAILURE;
 
   /*
@@ -444,19 +444,19 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
   if( argc < 3 )
     {
-    antscout << "Usage:   " << argv[0]
+    std::cout << "Usage:   " << argv[0]
              <<
       " FixedImageWithLabeledLandmarks.nii.gz  MovingImageWithLabeledLandmarks.nii.gz [rigid | affine] OutAffine.txt "
              << std::endl;
-    antscout
+    std::cout
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "
       << std::endl;
-    antscout << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
-    antscout << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
-    antscout << " You can use ITK-snap to generate the label images. " << std::endl;
+    std::cout << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
+    std::cout << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
+    std::cout << " You can use ITK-snap to generate the label images. " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {

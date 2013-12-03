@@ -96,9 +96,9 @@ float ComputeGenus(vtkPolyData* pd1)
   int       nfac = pd1->GetNumberOfPolys();
 
   float g = 0.5 * (2.0 - vers + nedg - nfac);
-  antscout << " Genus " << g << std::endl;
+  std::cout << " Genus " << g << std::endl;
 
-  antscout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
+  std::cout << " face " << nfac << " edg " << nedg <<  " vert " << vers << std::endl;
 
   return g;
 }
@@ -206,14 +206,14 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
 float vtkComputeTopology(vtkPolyData* pd)
 {
   // Marching cubes
-//    antscout << " Marching Cubes ";
+//    std::cout << " Marching Cubes ";
 //    vtkMarchingCubes *marchingCubes = vtkMarchingCubes::New();
 //    vtkContourFilter *marchingCubes = vtkContourFilter::New();
 //    vtkKitwareContourFilter *marchingCubes = vtkKitwareContourFilter::New();
 //    marchingCubes->SetInput((vtkDataSet*) vds);
 //    marchingCubes->SetValue(0, hithresh);
 //    int nc;
-//    antscout << " Input #conts "; std::cin >> nc;
+//    std::cout << " Input #conts "; std::cin >> nc;
 //    marchingCubes->SetNumberOfContours(2);
 //    marchingCubes->SetComputeScalars(false);
 //    marchingCubes->SetComputeGradients(false);
@@ -260,8 +260,8 @@ float vtkComputeTopology(vtkPolyData* pd)
   double genus = 0.5 * ( 2 * connectivityNumberOfExtractedRegions
                          - EulerCharacteristic );
 
-  antscout << "EulerCharacteristic " << EulerCharacteristic << std::endl;
-  antscout << "genus " << genus << std::endl;
+  std::cout << "EulerCharacteristic " << EulerCharacteristic << std::endl;
+  std::cout << "genus " << genus << std::endl;
 
   return genus;
 #endif
@@ -272,7 +272,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
                   const char* paramname, float scaledata,
                   float aaParm, std::string offscreen , unsigned int inflate )
 {
-  //  antscout << " parname " << std::string(paramname) << std::endl;
+  //  std::cout << " parname " << std::string(paramname) << std::endl;
   typedef TImage      ImageType;
   typedef ImageType   itype;
   typedef vtkPolyData MeshType;
@@ -300,7 +300,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
   smoother->Update();
   vtkmesh = smoother->GetOutput();
 
-  antscout << " Genus " << vtkComputeTopology(vtkmesh) << std::endl;
+  std::cout << " Genus " << vtkComputeTopology(vtkmesh) << std::endl;
 
   vtkPoints* vtkpoints = vtkmesh->GetPoints();
   int        numPoints = vtkpoints->GetNumberOfPoints();
@@ -325,7 +325,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       }
     meank += fabs(temp);
     }
-  antscout << " max kap " << mx << " mn k " << mn <<  std::endl;
+  std::cout << " max kap " << mx << " mn k " << mn <<  std::endl;
   meank /= numPoints;
 //  mx=1.3;
 //  mx=2.0;
@@ -352,7 +352,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       //    float temp=surfk->CurvatureAtIndex(index);
       if( i % 1000 == 0 )
         {
-        antscout << " kappa " << temp << std::endl;
+        std::cout << " kappa " << temp << std::endl;
         }
       // =fabs(manifoldIntegrator->GetGraphNode(i)->GetTotalCost());
 
@@ -373,7 +373,7 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
       }
     vtkmesh->GetPointData()->SetScalars(param);
     }
-  antscout <<" Now display to " << offscreen << std::endl;
+  std::cout <<" Now display to " << offscreen << std::endl;
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   inflater->SetInput(vtkmesh);
@@ -390,14 +390,14 @@ void GetValueMesh(typename TImage::Pointer image, typename TImage::Pointer image
     vtkmesh = inflater->GetOutput();
   }
   if ( offscreen.length() > 2 ) Display((vtkUnstructuredGrid*)vtkmesh, offscreen );
-  antscout << " done with mesh map ";
+  std::cout << " done with mesh map ";
   vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
   writer->SetInput(vtkmesh);
-  antscout << " writing " << outfn << std::endl;
+  std::cout << " writing " << outfn << std::endl;
   writer->SetFileName(outfn.c_str() );
   writer->SetFileTypeToBinary();
   writer->Update();
-  antscout << " done writing ";
+  std::cout << " done writing ";
   return;
 }
 
@@ -419,7 +419,7 @@ float GetImageTopology(typename TImage::Pointer image)
 //  Display((vtkUnstructuredGrid*)vtkmesh);
 
   float genus =  vtkComputeTopology(vtkmesh);
-  antscout << " Genus " << genus << std::endl;
+  std::cout << " Genus " << genus << std::endl;
 
   return genus;
 }
@@ -468,16 +468,16 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 2 )
     {
-    antscout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001 offscreen.png  inflation-interations " << std::endl;
-    antscout << " outputs vtk version of input image -- assumes object is defined by non-zero values " << std::endl;
-    antscout << " mesh is colored by the value of the image voxel " << std::endl;
-    antscout <<  " the AntiaAliasParm could cause topo problems but makes nicer meshes  " << std::endl;
-    antscout <<  " the offscreen param will render to screen if set to win, 0 means no rendering " << std::endl;
-    antscout << " ValueScale controls contrast in image appearance - lower increaseses contrast -- should be <= 1 "
+    std::cout << argv[0] << " binaryimage valueimage  out paramname ValueScale AntiaAliasParm=0.001 offscreen.png  inflation-interations " << std::endl;
+    std::cout << " outputs vtk version of input image -- assumes object is defined by non-zero values " << std::endl;
+    std::cout << " mesh is colored by the value of the image voxel " << std::endl;
+    std::cout <<  " the AntiaAliasParm could cause topo problems but makes nicer meshes  " << std::endl;
+    std::cout <<  " the offscreen param will render to screen if set to win, 0 means no rendering " << std::endl;
+    std::cout << " ValueScale controls contrast in image appearance - lower increaseses contrast -- should be <= 1 "
              << std::endl;
     return EXIT_FAILURE;
     }
@@ -525,7 +525,7 @@ private:
     {
     aaParm = atof(argv[6]);
     }
-  antscout << "aaParm " << aaParm << std::endl;
+  std::cout << "aaParm " << aaParm << std::endl;
   std::string offscreen="win";
   if( argc > 7 )
     {

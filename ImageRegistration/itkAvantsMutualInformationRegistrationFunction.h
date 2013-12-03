@@ -488,7 +488,7 @@ public:
 
         mival += mi;
         }
-      //      ::ants::antscout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
+      //      std::cout << " II " << ii << " JJ " << ii << " pxy " << pxy << " px " << px << std::endl;
       }
     // GS: temp edit to make sure if this is decreasing (should be )
     // this->m_Energy = -1.0*mival/vcl_log((double)2.0);
@@ -529,7 +529,7 @@ public:
     fixedGradient = m_FixedImageGradientCalculator->EvaluateAtIndex( oindex );
     double nccm1 = 0;
     const double loce = this->GetValueAndDerivative(oindex, nccm1, fdvec1, fdvec2);
-    //    if ( loce > 1.5 ) ::ants::antscout << " loce " << loce << " ind " << oindex << std::endl;
+    //    if ( loce > 1.5 ) std::cout << " loce " << loce << " ind " << oindex << std::endl;
     for( int imd = 0; imd < ImageDimension; imd++ )
       {
       update[imd] = loce * fixedGradient[imd] * spacing[imd] * (1);

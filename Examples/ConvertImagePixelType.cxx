@@ -46,12 +46,12 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   typename readertype::Pointer reader = readertype::New();
   if( argc < 2 )
     {
-    antscout << "Missing input filename" << std::endl;
+    std::cout << "Missing input filename" << std::endl;
     throw;
     }
   reader->SetFileName(argv[1]);
   reader->Update();
-  antscout << " Updated reader " << std::endl;
+  std::cout << " Updated reader " << std::endl;
 
   typedef itk::CastImageFilter<ImageType, IntermediateType> castertype;
   typename   castertype::Pointer caster = castertype::New();
@@ -76,12 +76,12 @@ int ConvertType(int argc, char *argv[], double MINVAL, double MAXVAL)
   typename   OutImageType::Pointer outim = caster2->GetOutput();
   typename   OutImageType::SpacingType spc = outim->GetSpacing();
   outim->SetSpacing(spc);
-  antscout << " Dire in " << reader->GetOutput()->GetDirection() << std::endl;
-  antscout << " Dire out " << outim->GetDirection() << std::endl;
+  std::cout << " Dire in " << reader->GetOutput()->GetDirection() << std::endl;
+  std::cout << " Dire out " << outim->GetDirection() << std::endl;
   typename   writertype::Pointer writer = writertype::New();
   if( argc < 3 )
     {
-    antscout << "Missing output filename" << std::endl;
+    std::cout << "Missing output filename" << std::endl;
     throw;
     }
   writer->SetFileName(argv[2]);
@@ -135,26 +135,26 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   if( argc < 3 )
     {
-    antscout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
-    antscout << " ext is the extension you want, e.g. tif.  " << std::endl;
-    antscout << " TYPE-OPTION  :  TYPE " << std::endl;
-    antscout << "  0  :  char   " << std::endl;
-    antscout << "  1  :  unsigned char   " << std::endl;
-    antscout << "  2  :  short   " << std::endl;
-    antscout << "  3  :  unsigned short   " << std::endl;
-    antscout << "  4  :  int   " << std::endl;
-    antscout << "  5  :  unsigned int   " << std::endl;
-    antscout
+    std::cout << "Usage:   " << argv[0] << " infile.nii out.ext TYPE-OPTION " << std::endl;
+    std::cout << " ext is the extension you want, e.g. tif.  " << std::endl;
+    std::cout << " TYPE-OPTION  :  TYPE " << std::endl;
+    std::cout << "  0  :  char   " << std::endl;
+    std::cout << "  1  :  unsigned char   " << std::endl;
+    std::cout << "  2  :  short   " << std::endl;
+    std::cout << "  3  :  unsigned short   " << std::endl;
+    std::cout << "  4  :  int   " << std::endl;
+    std::cout << "  5  :  unsigned int   " << std::endl;
+    std::cout
       << " Note that some pixel types are not supported by some image formats. e.g.  int is not supported by jpg. "
       << std::endl;
-    antscout
+    std::cout
       << " You can easily extend this for other pixel types with a few lines of code and adding usage info. "
       << std::endl;
-    antscout
+    std::cout
       <<
       " The image intensity will be scaled to the dynamic range of the pixel type.  E.g. uchar => 0  (min), 255 (max). "
       << std::endl;
@@ -193,7 +193,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -212,7 +212,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -231,7 +231,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -250,7 +250,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -269,7 +269,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
     }
@@ -288,7 +288,7 @@ private:
         }
         break;
       default:
-        antscout << "Unsupported dimension" << std::endl;
+        std::cout << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
     }

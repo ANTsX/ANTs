@@ -45,7 +45,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
     {
-    antscout << "Input csv file: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
+    std::cout << "Input csv file: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
     std::string ext =
       itksys::SystemTools::GetFilenameExtension(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
     if( strcmp(ext.c_str(), ".csv") == 0 )
@@ -63,14 +63,14 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         }
       catch( itk::ExceptionObject& exp )
         {
-        antscout << "Exception caught!" << std::endl;
-        antscout << exp << std::endl;
+        std::cout << "Exception caught!" << std::endl;
+        std::cout << exp << std::endl;
         }
       DataFrameObjectType::Pointer dfo = reader->GetOutput();
       colheadernames = dfo->GetColumnHeaders();
       if ( colheadernames.size() < Dimension ) 
 	{
-	antscout << "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D." << std::endl;
+	std::cout << "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D." << std::endl;
 	return EXIT_FAILURE;
 	}
       points_in = dfo->GetMatrix();
@@ -78,13 +78,13 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       }
     else
       {
-      antscout << "An input csv file is required." << std::endl;
+      std::cout << "An input csv file is required." << std::endl;
       return EXIT_FAILURE;
       }
 
     if(  points_in.cols() < Dimension )
       {
-      antscout << "The number of columns in the input point set is fewer than " << Dimension << " Exiting."
+      std::cout << "The number of columns in the input point set is fewer than " << Dimension << " Exiting."
                << std::endl;
       return EXIT_FAILURE;
       }
@@ -94,7 +94,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
           parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
         {
-        antscout << "An input csv file is required." << std::endl;
+        std::cout << "An input csv file is required." << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -165,7 +165,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         {
         outputFileName = outputOption->GetFunction( 0 )->GetName();
         }
-      antscout << "Output warped points to csv file: " << outputFileName << std::endl;
+      std::cout << "Output warped points to csv file: " << outputFileName << std::endl;
       StringVectorType ColumnHeaders = colheadernames;
       typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
       WriterType::Pointer writer = WriterType::New();
@@ -178,8 +178,8 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         }
       catch( itk::ExceptionObject& exp )
         {
-        antscout << "Exception caught!" << std::endl;
-        antscout << exp << std::endl;
+        std::cout << "Exception caught!" << std::endl;
+        std::cout << exp << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -323,7 +323,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
@@ -344,7 +344,7 @@ private:
   if( argc < 2 || ( parser->GetOption( "help" ) &&
                     ( parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) ) ) )
     {
-    parser->PrintMenu( antscout, 5, false );
+    parser->PrintMenu( std::cout, 5, false );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
@@ -354,7 +354,7 @@ private:
   else if( parser->GetOption( 'h' ) &&
            ( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) ) )
     {
-    parser->PrintMenu( antscout, 5, true );
+    parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
 
@@ -378,7 +378,7 @@ private:
     }
   else
     {
-    antscout << "No csv file point set was specified." << std::endl;
+    std::cout << "No csv file point set was specified." << std::endl;
     return EXIT_FAILURE;
     }
 #endif
@@ -392,7 +392,7 @@ private:
     }
   else
     {
-    antscout << "No -d ( dimensionality ) option is specified.  Exiting." << std::endl;
+    std::cout << "No -d ( dimensionality ) option is specified.  Exiting." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -414,7 +414,7 @@ private:
       }
       break;
     default:
-      antscout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

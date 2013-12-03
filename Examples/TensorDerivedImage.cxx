@@ -76,7 +76,7 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  antscout->set_stream( out_stream );
+  // antscout->set_stream( out_stream );
 
   // Pixel and Image typedefs
   typedef float                                 PixelType;
@@ -94,7 +94,7 @@ private:
   // Check for valid input paramters
   if( argc < 3 )
     {
-    antscout << "Usage: " << argv[0] << " tensorvolume outputvolume outputtype" << std::endl;
+    std::cout << "Usage: " << argv[0] << " tensorvolume outputvolume outputtype" << std::endl;
     return 1;
     }
 
@@ -106,8 +106,8 @@ private:
   TensorImageType::Pointer dtimg = TensorImageType::New();
   ReadTensorImage<TensorImageType>(dtimg, inputName, false);
 
-  antscout << "tensor_image: " << inputName << std::endl;
-  antscout << "output_image: " << outputName << std::endl;
+  std::cout << "tensor_image: " << inputName << std::endl;
+  std::cout << "output_image: " << outputName << std::endl;
 
   ScalarImageType::Pointer outImage;
   ColorImageType::Pointer  colorImage;
@@ -149,7 +149,7 @@ private:
     outType = "5";
     }
 
-  antscout << "Calculating output..." << std::flush;
+  std::cout << "Calculating output..." << std::flush;
 
   while( !inputIt.IsAtEnd() )
     {
@@ -187,7 +187,7 @@ private:
         current = 0;
         }
       outImage->SetPixel(inputIt.GetIndex(), current);
-      // antscout << "Found " << invalids << " invalid tensors" << std::endl;
+      // std::cout << "Found " << invalids << " invalid tensors" << std::endl;
       }
     else if( outType == "FA" )
       {
@@ -202,21 +202,21 @@ private:
       }
     }
 
-  antscout << "Done. " << std::endl;
+  std::cout << "Done. " << std::endl;
 
   if( outType == "DEC" )
     {
-    antscout << "output origin: " << colorImage->GetOrigin() << std::endl;
-    antscout << "output size: " << colorImage->GetLargestPossibleRegion().GetSize() << std::endl;
-    antscout << "output spacing: " << colorImage->GetSpacing() << std::endl;
-    antscout << "output direction: " << colorImage->GetDirection() << std::endl;
+    std::cout << "output origin: " << colorImage->GetOrigin() << std::endl;
+    std::cout << "output size: " << colorImage->GetLargestPossibleRegion().GetSize() << std::endl;
+    std::cout << "output spacing: " << colorImage->GetSpacing() << std::endl;
+    std::cout << "output direction: " << colorImage->GetDirection() << std::endl;
     }
   else
     {
-    antscout << "output origin: " << outImage->GetOrigin() << std::endl;
-    antscout << "output size: " << outImage->GetLargestPossibleRegion().GetSize() << std::endl;
-    antscout << "output spacing: " << outImage->GetSpacing() << std::endl;
-    antscout << "output direction: " << outImage->GetDirection() << std::endl;
+    std::cout << "output origin: " << outImage->GetOrigin() << std::endl;
+    std::cout << "output size: " << outImage->GetLargestPossibleRegion().GetSize() << std::endl;
+    std::cout << "output spacing: " << outImage->GetSpacing() << std::endl;
+    std::cout << "output direction: " << outImage->GetDirection() << std::endl;
     }
 
   if( outType == "DEC" )
