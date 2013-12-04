@@ -9796,6 +9796,7 @@ int LabelThickness2( int argc, char *argv[] )
   typename GeometryFilterType::LabelsType allLabels = geometryFilter->GetLabels();
   typename GeometryFilterType::LabelsType::iterator allLabelsIt;
 
+  std::sort( allLabels.begin(), allLabels.end() );
   for( allLabelsIt = allLabels.begin(); allLabelsIt != allLabels.end(); allLabelsIt++ )
     {
     if( *allLabelsIt == 0 )
@@ -9809,7 +9810,7 @@ int LabelThickness2( int argc, char *argv[] )
     std::cout << "Label "  << *allLabelsIt << ": ";
     std::cout << "volume = " << volume << ", ";
     std::cout << "area = " << perimeter << ", ";
-    std::cout << "thickness prior = " << thicknessPrior << std::endl;
+    std::cout << "thickness = " << thicknessPrior << std::endl;
     }
 
   typename RealImageType::Pointer thicknessPriorImage = RealImageType::New();
