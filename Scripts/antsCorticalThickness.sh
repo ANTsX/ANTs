@@ -29,7 +29,7 @@ function Usage {
 `basename $0` performs T1 anatomical brain processing where the following steps are currently applied:
 
   1. Brain extraction
-  2. Brain 3-tissue segmentation
+  2. Brain n-tissue segmentation
   3. Cortical thickness
   4. (Optional) registration to a template
 
@@ -69,7 +69,8 @@ We use *label* to denote a label image with values in range 0 to N.
                                                 averaged resulting in a probability image.
      -p:  Brain segmentation priors             Tissue *probability* priors corresponding to the image specified
                                                 with the -e option.  Specified using c-style formatting, e.g.
-                                                -p labelsPriors%02d.nii.gz.  We assume priors are ordered as follows
+                                                -p labelsPriors%02d.nii.gz.  We assume that the first four priors
+                                                are ordered as follows
                                                   1:  csf
                                                   2:  cortical gm
                                                   3:  wm
@@ -420,9 +421,9 @@ CSF_MATTER_LABEL_FORMAT=${ROOT}${CSF_MATTER_LABEL}
 SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_PRIOR_WARPED}\%${FORMAT}d.${OUTPUT_SUFFIX}
 NUMBER_OF_PRIOR_IMAGES=${#WARPED_PRIOR_IMAGE_FILENAMES[*]}
 
-if [[ ${NUMBER_OF_PRIOR_IMAGES} -ne 4 ]];
+if [[ ${NUMBER_OF_PRIOR_IMAGES} -lt 4 ]];
   then
-    echo "Expected 4 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
+    echo "Expected at least 4 prior images (${NUMBER_OF_PRIOR_IMAGES} are specified).  Check the command line specification."
     exit 1
   fi
 
@@ -615,6 +616,13 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     # this is a hack because the extraction mask header info is randomly getting changed for a couple data sets
     logCmd ${ANTSPATH}/CopyImageHeaderInformation ${ANATOMICAL_IMAGES[0]} ${BRAIN_EXTRACTION_MASK} ${BRAIN_EXTRACTION_MASK} 1 1 1
 
+    # include everything but the csf
+    N4_INCLUDE_PRIORS_COMMAND_LINE=''
+    for (( j = 2; j <= ${NUMBER_OF_PRIOR_IMAGES}; j++ ))
+      do
+        N4_INCLUDE_PRIORS_COMMAND_LINE="${N4_INCLUDE_PRIORS_COMMAND_LINE} -y $j";
+      done
+
     bash ${ANTSPATH}/antsAtroposN4.sh \
       -d ${DIMENSION} \
       -b ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION} \
@@ -624,9 +632,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -m ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS} \
       -n 5 \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
-      -y 4 \
-      -y 3 \
-      -y 2 \
+      ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
@@ -648,9 +654,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -m 2 \
       -n 5 \
       -c ${NUMBER_OF_PRIOR_IMAGES} \
-      -y 4 \
-      -y 3 \
-      -y 2 \
+      ${N4_INCLUDE_PRIORS_COMMAND_LINE} \
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
