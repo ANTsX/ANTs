@@ -9699,7 +9699,7 @@ int LabelThickness(      int argc, char *argv[])
     {
     volumeelement *= spacing[i];
     }
-  volumeelement = vcl_pow( volumeelement , 0.3333 );
+  volumeelement = vcl_pow( static_cast<double>(  volumeelement ), static_cast<double>( 0.3333 ) );
 
   vnl_vector<double> surface(maxlab + 1, 0);
   vnl_vector<double> volume(maxlab + 1, 0);
