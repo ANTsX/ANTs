@@ -1325,7 +1325,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     if( outputPrefix[0] == '0' && outputPrefix[1] == 'x' )
       {
       void* ptr;
-      sscanf(outputPrefix, "%p", (void **)&ptr);
+      std::sscanf(outputPrefix, "%p", (void **)&ptr);
       //      std::stringstream strstream;
       //      strstream << outputPrefix;
       //      void* ptr;
