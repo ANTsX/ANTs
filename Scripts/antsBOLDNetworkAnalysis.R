@@ -1,6 +1,5 @@
 #!/usr/bin/env Rscript
-dotest<-TRUE 
-# dotest<-FALSE 
+dotest<-FALSE 
 options(digits=3)
 Args <- commandArgs()
 self<-Args[4]
