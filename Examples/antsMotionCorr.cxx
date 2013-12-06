@@ -1324,10 +1324,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     std::cout << " get motion corr params " << outputPrefix << std::endl;
     if( outputPrefix[0] == '0' && outputPrefix[1] == 'x' )
       {
-      std::stringstream strstream;
-      strstream << outputPrefix;
       void* ptr;
-      strstream >> ptr;
+      sscanf(outputPrefix, "%p", (void **)&ptr);
+      target = *( static_cast<typename TImageType::Pointer *>( ptr ) );
+      //      std::stringstream strstream;
+      //      strstream << outputPrefix;
+      //      void* ptr;
+      //      strstream >> ptr;
       ( static_cast<std::pair<std::vector<std::string>, vnl_matrix<float> > *>( ptr ) )->first = ColumnHeaders;
       ( static_cast<std::pair<std::vector<std::string>, vnl_matrix<double> > *>( ptr ) )->second = param_values;
       std::cout << "motion-correction params written" << std::endl;
