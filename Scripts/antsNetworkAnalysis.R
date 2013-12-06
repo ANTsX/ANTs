@@ -150,6 +150,20 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
 if ( as.character(opt$modality) == "BOLD" )
   {
     dd<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
+    ###### do a simple thing instead
+    mask<-dd$mask
+    negmask<-antsImageClone( mask )
+    backgroundvoxels <-  negmask == 0
+    neginds<-which( backgroundvoxels )
+    neginds<-sample(neginds,length(neginds)/25)
+    negmask[ negmask >= 0 ] <- 0
+    backgroundvoxels[  ]<-FALSE
+    backgroundvoxels[ neginds ]<-TRUE
+    negmask[ backgroundvoxels ]<-1
+    mynuis<-svd(  timeseries2matrix( fmri, negmask ) )$u[, 1:8]
+    colnames(mynuis)<-paste("bgdNuis",1:8,sep='')
+    dd$nuisancevariables<-cbind(dd$nuisancevariables[,1:4],mynuis)
+    
     tsResid<-residuals( lm( dd$matrixTimeSeries ~ dd$nuisancevariables  ))  # see http://www.ncbi.nlm.nih.gov/pubmed/21889994
     mynetwork<-filterfMRIforNetworkAnalysis( tsResid , tr=trBOLD, mask=dd$mask ,cbfnetwork = "BOLD", labels = aal2fmri , graphdensity = opt$gdens, freqLo = freqLo, freqHi = freqHi , seg = seg )
   }
