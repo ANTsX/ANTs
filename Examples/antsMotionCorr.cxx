@@ -1326,7 +1326,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       {
       void* ptr;
       sscanf(outputPrefix, "%p", (void **)&ptr);
-      target = *( static_cast<typename TImageType::Pointer *>( ptr ) );
       //      std::stringstream strstream;
       //      strstream << outputPrefix;
       //      void* ptr;
