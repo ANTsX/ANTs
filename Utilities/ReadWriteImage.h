@@ -398,10 +398,8 @@ void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, boo
 
   if( file[0] == '0' && file[1] == 'x' )
     {
-    std::stringstream strstream;
-    strstream << file;
     void* ptr;
-    strstream >> ptr;
+    sscanf(file, "%p", (void **)&ptr);
     *( static_cast<typename TImageType::Pointer *>( ptr ) ) = writeImage;
     }
   else
