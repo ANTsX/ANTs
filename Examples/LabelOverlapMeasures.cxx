@@ -14,6 +14,7 @@
 
 namespace ants
 {
+
 template <unsigned int ImageDimension>
 int LabelOverlapMeasures( int argc, char * argv[] )
 {
@@ -27,13 +28,13 @@ int LabelOverlapMeasures( int argc, char * argv[] )
     std::cout << "missing 2nd filename" << std::endl;
     throw;
     }
-    
+
   bool outputCSVFormat = false;
-  if( argc == 5 && atoi( argv[4] ) == 1 )  
+  if( argc == 5 && atoi( argv[4] ) == 1 )
     {
     outputCSVFormat = true;
     }
-    
+
   typedef unsigned int                          PixelType;
   typedef itk::Image<PixelType, ImageDimension> ImageType;
 
@@ -49,6 +50,25 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   filter->SetTargetImage( reader2->GetOutput() );
   filter->Update();
 
+ 	typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
+		typename FilterType::MapType::const_iterator it;
+
+  std::vector<int> allLabels;
+  allLabels.clear();
+
+  unsigned int index = 0;
+  for( it = labelMap.begin(); it != labelMap.end(); ++it )
+    {
+    if( (*it).first == 0 )
+      {
+      continue;
+      }
+
+				int label = (*it).first;
+    allLabels.push_back( label );
+    }
+  std::sort( allLabels.begin(), allLabels.end() );
+
   if( outputCSVFormat )
     {
 				std::cout << "Label,Total/Target,Jaccard,Dice,VolumeSimilarity,FalseNegative,FalsePositive" << std::endl;
@@ -61,16 +81,10 @@ int LabelOverlapMeasures( int argc, char * argv[] )
 				std::cout << filter->GetFalsePositiveError();
 				std::cout << std::endl;
 
-				typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
-				typename FilterType::MapType::const_iterator it;
-				for( it = labelMap.begin(); it != labelMap.end(); ++it )
-						{
-						if( (*it).first == 0 )
-								{
-								continue;
-								}
 
-						int label = (*it).first;
+				for( unsigned int i = 0; i < allLabels.size(); i++ )
+						{
+						int label = allLabels[i];
 
 						std::cout << label << ",";
 						std::cout << filter->GetTargetOverlap( label ) << ",";
@@ -113,16 +127,9 @@ int LabelOverlapMeasures( int argc, char * argv[] )
 													<< std::setw( 17 ) << "False positive"
 													<< std::endl;
 
-				typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
-				typename FilterType::MapType::const_iterator it;
-				for( it = labelMap.begin(); it != labelMap.end(); ++it )
+				for( unsigned int i = 0; i < allLabels.size(); i++ )
 						{
-						if( (*it).first == 0 )
-								{
-								continue;
-								}
-
-						int label = (*it).first;
+						int label = allLabels[i];
 
 						std::cout << std::setw( 10 ) << label;
 						std::cout << std::setw( 17 ) << filter->GetTargetOverlap( label );
@@ -133,7 +140,7 @@ int LabelOverlapMeasures( int argc, char * argv[] )
 						std::cout << std::setw( 17 ) << filter->GetFalsePositiveError( label );
       std::cout << std::endl;
       }
-   }    
+   }
 
   return EXIT_SUCCESS;
 }
@@ -188,7 +195,7 @@ private:
     {
     std::cout << "Usage: " << argv[0] << " imageDimension sourceImage "
              << "targetImage [outputCSVFormat=0]" << std::endl;
-    std::cout << "   If output format should be csv-compatible, set outputCSVFormat to 1." << std::endl;      
+    std::cout << "   If output format should be csv-compatible, set outputCSVFormat to 1." << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
