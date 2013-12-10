@@ -126,9 +126,11 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description = std::string( "Collapse output transforms. " )
-      + std::string( "Specifically, enabling this option combines all adjacent linear transforms " )
-      + std::string( "and composes all adjacent displacement field transforms before writing the " )
-      + std::string( "results to disk in the form of an itk affine transform (called xxxGenericAffine.mat). " );
+      + std::string( "Specifically, enabling this option combines all adjacent transforms where" )
+      + std::string( "possible.  All adjacent linear transforms are written to disk in the form" )
+      + std::string( "an itk affine transform (called xxxGenericAffine.mat).  Similarly, all " )
+      + std::string( "adjacent displacement field transforms are combined when written to disk " )
+      + std::string( "(e.g. xxxWarp.nii.gz and xxxInverseWarp.nii.gz (if available))." );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "collapse-output-transforms" );
     option->SetShortName( 'z' );
