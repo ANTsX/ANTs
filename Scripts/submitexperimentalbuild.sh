@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # request Bourne shell as shell for job
 
 ctest -D ExperimentalStart

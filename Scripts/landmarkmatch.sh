@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [ $# -lt 6  ]
 then
 echo " USAGE \n  sh $0  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii  ITERATIONS LandmarkWeight "

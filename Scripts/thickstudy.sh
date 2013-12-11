@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 count=0
 for x in  phantomA phantomB phantomC phantomD phantomE phantomF phantomG phantomH
