@@ -9805,7 +9805,7 @@ int LabelThickness2( int argc, char *argv[] )
       }
     RealType volume = geometryFilter->GetVolume( *allLabelsIt ) * volumeElement;
     RealType perimeter = areaFilter->GetPerimeter( *allLabelsIt );
-    RealType thicknessPrior = volume / perimeter  * 2.0 * volumeElement;
+    RealType thicknessPrior = volume / perimeter;
 
     std::cout << "Label "  << *allLabelsIt << ": ";
     std::cout << "volume = " << volume << ", ";
