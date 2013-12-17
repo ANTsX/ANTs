@@ -30,7 +30,7 @@
     on Pattern Analysis and Machine Intelligence, 35(3), 611-623, 2013
 
   =================================================================== */
-  
+   
 #include <itkNeighborhoodIterator.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <vnl/vnl_matrix.h>
@@ -367,11 +367,11 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 
       for (int i1=0;i1<m_Modality;i1++)
       {
-        int toff = i1*nPatch;
+        int loff = i1*nPatch;
         for(unsigned int m = 0; m < nPatch; m++)
         {
         InputImagePixelType x = *(bestMatchPtr[i1] + offPatch[m]);
-        apd[i][toff+m] = fabs(xNormTargetPatch[toff+m] - (x - bestMatchMean[i1]) / bestMatchSD[i1]);
+        apd[i][loff+m] = fabs(xNormTargetPatch[loff+m] - (x - bestMatchMean[i1]) / bestMatchSD[i1]);
         }
       }
 

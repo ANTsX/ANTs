@@ -200,9 +200,9 @@ int lfapp(int argc, char *argv[])
   cout << "segAdapter PARAMETERS:" << endl;
   p.Print(cout);
 
-  std::vector<ImageType::Pointer> ims;
-  std::vector<IteratorType> imits;
-  std::vector<NeighborhoodIteratorType> imnits;
+//  std::vector<ImageType::Pointer> ims;
+//  std::vector<IteratorType> imits;
+//  std::vector<NeighborhoodIteratorType> imnits;
 
   ifstream imfile;
   string imstr;

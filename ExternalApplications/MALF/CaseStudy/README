@@ -1,0 +1,17 @@
+This folder contains scripts for applying joint label fusion and corrective learning on the MICCAI 2012 multi-atlas labeling challenge data.
+To apply these scripts, you will need to download the data from https://masi.vuse.vanderbilt.edu/workshop2012/index.php/Main_Page. Training 
+and Testing data should be copied to the folder "Training"  and "Testing", respectively. You will also need to download the standard 
+registration transforms from http://placid.nlm.nih.gov/user/48. These files should be copied to the folder "displacement-fields".
+
+Here are brief description for the main scripts
+
+warpAtlas.sh    -- apply the standard transforms to generate warped atlas images and segmentations
+label_fusion.sh -- apply joint label fusion 
+bl.sh           -- apply corrective learning 
+sa.sh           -- apply corrective learning to make corrections
+
+To apply these scripts, you will also need to modify the folder path within each script to your local path.
+
+Hongzhi Wang
+08/29/2013
+

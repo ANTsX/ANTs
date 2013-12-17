@@ -1,7 +1,7 @@
 /*
 segAdaptor: this algorithm corrects segmentation errors produced by a host segmentation method. 
 The learning is performed by the program, bl (BiasLearn.cxx)
-
+ 
 Hongzhi Wang, 07/18/2010
 */
 
@@ -180,7 +180,7 @@ int main( int argc, char ** argv )
     IndexIteratorType csegit(cseg, cseg->GetRequestedRegion());
     IndexIteratorType nsegit(nseg, nseg->GetRequestedRegion());
     IndexIteratorType segmaskit(segmask, segmask->GetRequestedRegion());
-    IndexIteratorType posteriorit(posterior, posterior->GetRequestedRegion());
+//    IndexIteratorType posteriorit(posterior, posterior->GetRequestedRegion());
     
     char tfn[1024];
     sprintf(tfn,"%s-AdaBoostResults-param-Tlabel0",argv[2]);
@@ -244,7 +244,7 @@ int main( int argc, char ** argv )
 	// load AdaBoost learning parameters 
         cout<<"Tlabel  "<<Tlabel<<endl;
         sprintf(tfn,"%s-AdaBoostResults-param-Tlabel%d",argv[2],Tlabel);
-        ifstream ifs ( tfn , ifstream::in );
+        ifs.open( tfn , ifstream::in );
         if (!ifs.good())
           continue;
         cout<<tfn<<endl;
@@ -335,7 +335,6 @@ int main( int argc, char ** argv )
         int NFeature;
         NFeature = ((1+ims.size())*(DX*2+1)*(DY*2+1)*(DZ*2+1)+3)*4-3;
         cout<<"NFeature: "<<NFeature<<endl;
-        int tc=0;;
 
         cout<<"preparing data..."<<endl;
         IndexIteratorType imaskit(mask, mask->GetRequestedRegion());
@@ -385,7 +384,7 @@ int main( int argc, char ** argv )
           }
         }      
  
-        tc=0;
+        int tc=0;
         double mx=0,my=0,mz=0,totalval=0;
         for (segmaskit.GoToBegin(),autosegit.GoToBegin(); !segmaskit.IsAtEnd(); ++segmaskit,++autosegit)
         {

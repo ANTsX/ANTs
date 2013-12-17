@@ -364,10 +364,11 @@ cout<<999<<endl;
 //  voter->SetGroupID(p.AtlasGroupID);
 //  voter->SetGroupWeight(p.GroupWeight);
 
+  char buffer[4096];
+
   // Check the posterior filename pattern
   if(p.fnPosterior.size())
     {
-    char buffer[4096];
     sprintf(buffer, p.fnPosterior.c_str(), 100);
     if(strcmp(buffer, p.fnPosterior.c_str()) == 0)
       {
@@ -378,7 +379,6 @@ cout<<999<<endl;
   // Check the voting weight filename pattern
   if(p.fnWeight.size())
     {
-    char buffer[4096];
     sprintf(buffer, p.fnWeight.c_str(), 100);
     if(strcmp(buffer, p.fnWeight.c_str()) == 0)
       {
@@ -419,7 +419,6 @@ cout<<999<<endl;
   voter->SetTargetImage(targetl);
   typename ImageType::Pointer target = targetl[0];
 
-cout<<110<<endl;
   cout<<p.GroupWeight.size()<<endl;
   for (size_t i=0;i<p.GroupWeight.size();i++)
     cout<<p.GroupWeight[i]<<" ";
@@ -547,7 +546,6 @@ cout<<110<<endl;
     for(it = pm.begin(); it != pm.end(); it++)
       {
       // Get the filename
-      char buffer[4096];
       sprintf(buffer, p.fnPosterior.c_str(), (int) it->first);
 
       // Initialize to zeros
@@ -561,10 +559,10 @@ cout<<110<<endl;
         }
 
       // Create writer
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput(pout);
-      writer->SetFileName(buffer);
-      writer->Update();
+      typename WriterType::Pointer lwriter = WriterType::New();
+      lwriter->SetInput(pout);
+      lwriter->SetFileName(buffer);
+      lwriter->Update();
       }
     }
 
@@ -585,8 +583,6 @@ cout<<110<<endl;
     for(it = pm.begin(); it != pm.end(); it++)
       {
       // Get the filename
-      char buffer[4096];
-
       sprintf(buffer, p.fnWeight.c_str(), (int) it->first);
 
       // Initialize to zeros
@@ -600,10 +596,10 @@ cout<<110<<endl;
         }
 
       // Create writer
-      typename WriterType::Pointer writer = WriterType::New();
-      writer->SetInput(pout);
-      writer->SetFileName(buffer);
-      writer->Update();
+      typename WriterType::Pointer lwriter = WriterType::New();
+      lwriter->SetInput(pout);
+      lwriter->SetFileName(buffer);
+      lwriter->Update();
       }
     }
 

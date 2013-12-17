@@ -204,11 +204,11 @@ int AdaBoostTrain(double* X, int* Y, int NSample, int NFeature, int iterN, char*
         for (i=0;i<NFeature;i++){
             
             // Pointer to all the samples for the i-th feature
-            double *xpos = X + i * NSample;
+            double *lxpos = X + i * NSample;
 
             for (j=0;j<NSample;j++){
                 int si = *ipos++;
-                tX[j].x = xpos[si];
+                tX[j].x = lxpos[si];
                 tX[j].y = Y[si];
                 tX[j].w = W[si];
             }
@@ -219,7 +219,7 @@ int AdaBoostTrain(double* X, int* Y, int NSample, int NFeature, int iterN, char*
                bwl.weightedRate=wl.weightedRate;
                bwl.threshold=wl.threshold;
                bwl.featureID=i;
-               bwl_xpos = xpos;
+               bwl_xpos = lxpos;
             }
         }
         alpha = 0.5 * log(bwl.weightedRate/(1-bwl.weightedRate));
