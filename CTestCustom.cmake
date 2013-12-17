@@ -312,7 +312,6 @@ set(CTEST_CUSTOM_WARNING_EXCEPTION
   "note: expanded from macro"
   ": note:"
   "vrscanl.c.* warning: unused parameter"
-  "boost/archive/iterators/transform_width.hpp"
   "/usr/bin/libtool: warning same member name"
   )
 

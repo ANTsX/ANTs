@@ -13,12 +13,6 @@ set(CMAKE_MODULE_PATH
 set (CMAKE_INCLUDE_DIRECTORIES_BEFORE ON)
 
 # Set up ITK
-find_package(Boost REQUIRED)
-if(Boost_FOUND)
-  include_directories(${Boost_INCLUDE_DIRS})
-endif()
-
-# Set up ITK
 find_package(ITK 4 REQUIRED)
 include(${ITK_USE_FILE})
 
