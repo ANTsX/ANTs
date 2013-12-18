@@ -180,7 +180,7 @@ if [[ ! -f $LABELS ]]
 then 
   echo "ERROR: Template label image $LABELS does not exist."
 fi
-if [[ ! -f ${TRANSFORM_PREFIX}Warp.nii.gz ]]
+if [[ ! -f ${TRANSFORM_PREFIX}1Warp.nii.gz ]]
 then 
   echo "ERROR: Warp ${TRANSFORM_PREFIX}Warp.nii.gz does not exist."
   exit 1
