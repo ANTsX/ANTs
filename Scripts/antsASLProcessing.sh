@@ -230,7 +230,7 @@ ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.nii.gz 1
 ${ANTSPATH}ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
 ${ANTSPATH}MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
 
-${ANTSPATH}antsNetworkAnalysis.R \
+logCmd ${ANTSPATH}antsNetworkAnalysis.R \
   -o $OUTNAME \
   --freq 0.01x0.1 \
   --mask ${OUTNAME}OtsuMask.nii.gz \
