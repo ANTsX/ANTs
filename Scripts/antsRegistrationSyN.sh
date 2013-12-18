@@ -71,6 +71,10 @@ Optional arguments:
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
+     -p:  precision type (default = 'd')
+        f: float
+        d: double
+
 Example:
 
 `basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -o output
@@ -120,6 +124,10 @@ Optional arguments:
         b: rigid + affine + deformable b-spline syn
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
+
+     -p:  precision type (default = 'd')
+        f: float
+        d: double
 
 --------------------------------------------------------------------------------------
 Get the latest ANTS version at:
@@ -226,9 +234,10 @@ OUTPUTNAME=output
 NUMBEROFTHREADS=1
 SPLINEDISTANCE=26
 TRANSFORMTYPE='s'
+PRECISIONTYPE='d'
 
 # reading command line arguments
-while getopts "d:f:h:m:n:o:s:t:" OPT
+while getopts "d:f:h:m:n:o:p:s:t:" OPT
   do
   case $OPT in
       h) #help
@@ -249,6 +258,9 @@ while getopts "d:f:h:m:n:o:s:t:" OPT
    ;;
       o) #output name prefix
    OUTPUTNAME=$OPTARG
+   ;;
+      p)  # precision type
+   PRECISIONTYPE=$OPTARG
    ;;
       s)  # spline distance
    SPLINEDISTANCE=$OPTARG
@@ -345,7 +357,23 @@ case "$TRANSFORMTYPE" in
   ;;
 esac
 
-${ANTS} --dimensionality $DIM \
+PRECISION=''
+case "$PRECISIONTYPE" in
+"f")
+  PRECISION="--float 1"
+  ;;
+"d")
+  PRECISION="--float 0"
+  ;;
+*)
+  echo "Precision type '$PRECISIONTYPE' is not an option.  See usage: '$0 -h 1'"
+  exit
+  ;;
+esac
+
+
+
+${ANTS} --dimensionality $DIM $PRECISION \
 								--output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
 								--interpolation Linear \
 								--winsorize-image-intensities [0.005,0.995] \
