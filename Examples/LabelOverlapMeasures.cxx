@@ -50,104 +50,99 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   filter->SetTargetImage( reader2->GetOutput() );
   filter->Update();
 
- 	typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
-		typename FilterType::MapType::const_iterator it;
+  typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
 
   std::vector<int> allLabels;
   allLabels.clear();
-
-  unsigned int index = 0;
-  for( it = labelMap.begin(); it != labelMap.end(); ++it )
+  for( typename FilterType::MapType::const_iterator it = labelMap.begin();
+       it != labelMap.end(); ++it )
     {
     if( (*it).first == 0 )
       {
       continue;
       }
 
-				int label = (*it).first;
+    const int label = (*it).first;
     allLabels.push_back( label );
     }
   std::sort( allLabels.begin(), allLabels.end() );
 
   if( outputCSVFormat )
     {
-				std::cout << "Label,Total/Target,Jaccard,Dice,VolumeSimilarity,FalseNegative,FalsePositive" << std::endl;
-				std::cout << "All,";
-				std::cout << filter->GetTotalOverlap() << ",";
-				std::cout << filter->GetUnionOverlap() << ",";
-				std::cout << filter->GetMeanOverlap() << ",";
-				std::cout << filter->GetVolumeSimilarity() << ",";
-				std::cout << filter->GetFalseNegativeError() << ",";
-				std::cout << filter->GetFalsePositiveError();
-				std::cout << std::endl;
+    std::cout << "Label,Total/Target,Jaccard,Dice,VolumeSimilarity,FalseNegative,FalsePositive" << std::endl;
+    std::cout << "All,";
+    std::cout << filter->GetTotalOverlap() << ",";
+    std::cout << filter->GetUnionOverlap() << ",";
+    std::cout << filter->GetMeanOverlap() << ",";
+    std::cout << filter->GetVolumeSimilarity() << ",";
+    std::cout << filter->GetFalseNegativeError() << ",";
+    std::cout << filter->GetFalsePositiveError();
+    std::cout << std::endl;
+    for( unsigned int i = 0; i < allLabels.size(); i++ )
+      {
+      int label = allLabels[i];
 
-
-				for( unsigned int i = 0; i < allLabels.size(); i++ )
-						{
-						int label = allLabels[i];
-
-						std::cout << label << ",";
-						std::cout << filter->GetTargetOverlap( label ) << ",";
-						std::cout << filter->GetUnionOverlap( label ) << ",";
-						std::cout << filter->GetMeanOverlap( label ) << ",";
-						std::cout << filter->GetVolumeSimilarity( label ) << ",";
-						std::cout << filter->GetFalseNegativeError( label ) << ",";
-						std::cout << filter->GetFalsePositiveError( label );
+      std::cout << label << ",";
+      std::cout << filter->GetTargetOverlap( label ) << ",";
+      std::cout << filter->GetUnionOverlap( label ) << ",";
+      std::cout << filter->GetMeanOverlap( label ) << ",";
+      std::cout << filter->GetVolumeSimilarity( label ) << ",";
+      std::cout << filter->GetFalseNegativeError( label ) << ",";
+      std::cout << filter->GetFalsePositiveError( label );
       std::cout << std::endl;
       }
     }
   else
-   {
-				std::cout << "                                          "
-													<< "************ All Labels *************" << std::endl;
-				std::cout << std::setw( 10 ) << "   "
-													<< std::setw( 17 ) << "Total"
-													<< std::setw( 17 ) << "Union (jaccard)"
-													<< std::setw( 17 ) << "Mean (dice)"
-													<< std::setw( 17 ) << "Volume sim."
-													<< std::setw( 17 ) << "False negative"
-													<< std::setw( 17 ) << "False positive" << std::endl;
-				std::cout << std::setw( 10 ) << "   ";
-				std::cout << std::setw( 17 ) << filter->GetTotalOverlap();
-				std::cout << std::setw( 17 ) << filter->GetUnionOverlap();
-				std::cout << std::setw( 17 ) << filter->GetMeanOverlap();
-				std::cout << std::setw( 17 ) << filter->GetVolumeSimilarity();
-				std::cout << std::setw( 17 ) << filter->GetFalseNegativeError();
-				std::cout << std::setw( 17 ) << filter->GetFalsePositiveError();
-				std::cout << std::endl;
+    {
+    std::cout << "                                          "
+              << "************ All Labels *************" << std::endl;
+    std::cout << std::setw( 10 ) << "   "
+              << std::setw( 17 ) << "Total"
+              << std::setw( 17 ) << "Union (jaccard)"
+              << std::setw( 17 ) << "Mean (dice)"
+              << std::setw( 17 ) << "Volume sim."
+              << std::setw( 17 ) << "False negative"
+              << std::setw( 17 ) << "False positive" << std::endl;
+    std::cout << std::setw( 10 ) << "   ";
+    std::cout << std::setw( 17 ) << filter->GetTotalOverlap();
+    std::cout << std::setw( 17 ) << filter->GetUnionOverlap();
+    std::cout << std::setw( 17 ) << filter->GetMeanOverlap();
+    std::cout << std::setw( 17 ) << filter->GetVolumeSimilarity();
+    std::cout << std::setw( 17 ) << filter->GetFalseNegativeError();
+    std::cout << std::setw( 17 ) << filter->GetFalsePositiveError();
+    std::cout << std::endl;
 
-				std::cout << "                                       "
-													<< "************ Individual Labels *************" << std::endl;
-				std::cout << std::setw( 10 ) << "Label"
-													<< std::setw( 17 ) << "Target"
-													<< std::setw( 17 ) << "Union (jaccard)"
-													<< std::setw( 17 ) << "Mean (dice)"
-													<< std::setw( 17 ) << "Volume sim."
-													<< std::setw( 17 ) << "False negative"
-													<< std::setw( 17 ) << "False positive"
-													<< std::endl;
+    std::cout << "                                       "
+              << "************ Individual Labels *************" << std::endl;
+    std::cout << std::setw( 10 ) << "Label"
+              << std::setw( 17 ) << "Target"
+              << std::setw( 17 ) << "Union (jaccard)"
+              << std::setw( 17 ) << "Mean (dice)"
+              << std::setw( 17 ) << "Volume sim."
+              << std::setw( 17 ) << "False negative"
+              << std::setw( 17 ) << "False positive"
+              << std::endl;
+    for( unsigned int i = 0; i < allLabels.size(); i++ )
+      {
+      int label = allLabels[i];
 
-				for( unsigned int i = 0; i < allLabels.size(); i++ )
-						{
-						int label = allLabels[i];
-
-						std::cout << std::setw( 10 ) << label;
-						std::cout << std::setw( 17 ) << filter->GetTargetOverlap( label );
-						std::cout << std::setw( 17 ) << filter->GetUnionOverlap( label );
-						std::cout << std::setw( 17 ) << filter->GetMeanOverlap( label );
-						std::cout << std::setw( 17 ) << filter->GetVolumeSimilarity( label );
-						std::cout << std::setw( 17 ) << filter->GetFalseNegativeError( label );
-						std::cout << std::setw( 17 ) << filter->GetFalsePositiveError( label );
+      std::cout << std::setw( 10 ) << label;
+      std::cout << std::setw( 17 ) << filter->GetTargetOverlap( label );
+      std::cout << std::setw( 17 ) << filter->GetUnionOverlap( label );
+      std::cout << std::setw( 17 ) << filter->GetMeanOverlap( label );
+      std::cout << std::setw( 17 ) << filter->GetVolumeSimilarity( label );
+      std::cout << std::setw( 17 ) << filter->GetFalseNegativeError( label );
+      std::cout << std::setw( 17 ) << filter->GetFalsePositiveError( label );
       std::cout << std::endl;
       }
-   }
+    }
 
   return EXIT_SUCCESS;
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LabelOverlapMeasures( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int LabelOverlapMeasures( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -194,7 +189,7 @@ private:
   if( argc < 4 )
     {
     std::cout << "Usage: " << argv[0] << " imageDimension sourceImage "
-             << "targetImage [outputCSVFormat=0]" << std::endl;
+              << "targetImage [outputCSVFormat=0]" << std::endl;
     std::cout << "   If output format should be csv-compatible, set outputCSVFormat to 1." << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -222,4 +217,5 @@ private:
     }
   return EXIT_SUCCESS;
 }
+
 } // namespace ants

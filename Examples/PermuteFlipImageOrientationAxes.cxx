@@ -138,7 +138,7 @@ int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int PermuteFlipImageOrientationAxes( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int PermuteFlipImageOrientationAxes( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

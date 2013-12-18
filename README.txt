@@ -126,7 +126,7 @@ Documentation -- pdf / tex describing ANTS
 Examples    -- the executable programs and test data in Examples/Data
 Scripts -- user-friendly scripts for template building and running studies
 Utilities --- basic utilities
-ImageRegistration	-- base code for ImageRegistration
+ImageRegistration    -- base code for ImageRegistration
 Temporary  -- where temporary code lives
 Tensor  -- base code for diffusion tensor operations
 
@@ -331,6 +331,6 @@ ANTs-related Studies
   Neuroimage. 2008 Feb 1;39(3):1014-26. Epub 2007 Oct 13.
 
 
-# gource visualization 
+# gource visualization
 gource ./ -s 0.05 --stop-at-end --output-ppm-stream ants.ppm
 ffmpeg -y  -f image2pipe -vcodec ppm -i ants.ppm -vcodec mpeg4 -preset slow -crf 2 -b:v 4M ./ants_gource.mp4

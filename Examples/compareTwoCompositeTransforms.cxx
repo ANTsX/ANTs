@@ -28,38 +28,38 @@ class CompareFloat{
     //   Either value of NaN returns false.
     //   -Infinity and +Infinity are not "close".
     //   -0 and +0 are equal.
-    
+
 public:
   union{
     float          m_f32;
     unsigned int   m_u32;
   };
-  
+
   static bool Is_Close( float A, float B, unsigned int unitsDelta = 4 )
   {
   unsigned int a = GetBiased( A );
   unsigned int b = GetBiased( B );
-  
+
   if( (a > 0xFF000000) || (b > 0xFF000000) )
     {
     return false;
     }
   return( (static_cast<unsigned int>(abs( long(a - b) ))) < unitsDelta );
   }
-  
+
 protected:
 
   static unsigned int GetBiased( float f )
   {
   unsigned int r = ((CompareFloat*)&f)->m_u32;
-  
+
   if( r & 0x80000000 )
     {
     return( ~r - 0x007FFFFF );
     }
   return( r + 0x7F800000 );
   }
-  
+
 };
 
 template <unsigned int VImageDimension>
@@ -68,12 +68,12 @@ int compareComposites( const typename itk::Transform<double, VImageDimension, VI
 {
   typedef typename itk::CompositeTransform<double, VImageDimension>            CompositeTransformType;
   typedef typename CompositeTransformType::ScalarType                          RealType;
-  
+
   typedef typename itk::DisplacementFieldTransform<RealType, VImageDimension>  DisplacementFieldTransformType;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType       DisplacementFieldType;
-  
+
   const std::string CompositeTransformID ("CompositeTransform");
-  
+
   if( firstTransform->GetNameOfClass() == CompositeTransformID && secondTransform->GetNameOfClass() == CompositeTransformID )
     {
     const typename CompositeTransformType::ConstPointer Comp1 =
@@ -102,17 +102,17 @@ int compareComposites( const typename itk::Transform<double, VImageDimension, VI
              // compare two displacement field transforms by considering a tolerance
              const typename DisplacementFieldTransformType::ConstPointer DispTrans1 = dynamic_cast<DisplacementFieldTransformType *>( Comp1->GetNthTransform(i).GetPointer() );
              const typename DisplacementFieldTransformType::ConstPointer DispTrans2 = dynamic_cast<DisplacementFieldTransformType *>( Comp2->GetNthTransform(i).GetPointer() );
-             
+
              const typename DisplacementFieldType::ConstPointer DispField1 = DispTrans1->GetDisplacementField();
              const typename DisplacementFieldType::ConstPointer DispField2 = DispTrans2->GetDisplacementField();
-             
+
              typedef itk::ImageRegionConstIteratorWithIndex<DisplacementFieldType> DispIteratorType;
              DispIteratorType dit1( DispField1, DispField1->GetLargestPossibleRegion() );
              DispIteratorType dit2( DispField2, DispField2->GetLargestPossibleRegion() );
-             
+
              dit1.GoToBegin();
              dit2.GoToBegin();
-             
+
              while( !dit1.IsAtEnd() && !dit2.IsAtEnd() )
                   {
                   typename DisplacementFieldType::PixelType v1 = dit1.Get();
@@ -150,13 +150,13 @@ int compareComposites( const typename itk::Transform<double, VImageDimension, VI
   return EXIT_SUCCESS;
 }
 
-int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   // the arguments coming in as 'args' is a replacement for the standard (argc,argv) format
   // Just notice that the argv[i] equals to args[i-1]
   // and the argc equals:
   int argc = args.size() + 1;
-  
+
   if( argc != 3 )
     {
     std::cerr << "Usage: compareTwoCompositeTransform\n"
@@ -165,7 +165,7 @@ int compareTwoCompositeTransforms( std::vector<std::string> args, std::ostream* 
     << std::endl;
     return EXIT_FAILURE;
     }
-  
+
   // antscout->set_stream( out_stream );
   {
   itk::Transform<double, 2, 2>::Pointer firstTransform = itk::ants::ReadTransform<double, 2>(args[0]);

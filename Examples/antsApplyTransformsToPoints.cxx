@@ -32,8 +32,8 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
   typedef vnl_matrix<PixelType> MatrixType;
   MatrixType points_out;
   MatrixType points_in;
-  typedef itk::CSVArray2DFileReader<double> ReaderType;
-  typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
+  typedef itk::CSVArray2DFileReader<double>              ReaderType;
+  typedef itk::CSVArray2DDataObject<double>              DataFrameObjectType;
   typedef typename DataFrameObjectType::StringVectorType StringVectorType;
   StringVectorType colheadernames;
   //  bool input_points_are_indices = false;
@@ -68,11 +68,14 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         }
       DataFrameObjectType::Pointer dfo = reader->GetOutput();
       colheadernames = dfo->GetColumnHeaders();
-      if ( colheadernames.size() < Dimension ) 
-	{
-	std::cout << "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D." << std::endl;
-	return EXIT_FAILURE;
-	}
+      if( colheadernames.size() < Dimension )
+        {
+        std::cout
+          <<
+          "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D."
+          << std::endl;
+        return EXIT_FAILURE;
+        }
       points_in = dfo->GetMatrix();
       points_out.set_size( points_in.rows(),  points_in.cols() );
       }
@@ -85,7 +88,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
     if(  points_in.cols() < Dimension )
       {
       std::cout << "The number of columns in the input point set is fewer than " << Dimension << " Exiting."
-               << std::endl;
+                << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -146,7 +149,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         }
       for( unsigned int p = Dimension; p < points_in.cols(); p++ )
         {
-	points_out( pointct, p ) = points_in( pointct, p );
+        points_out( pointct, p ) = points_in( pointct, p );
         }
       }
 
@@ -282,7 +285,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -330,7 +333,16 @@ private:
 
   parser->SetCommand( argv[0] );
 
-  std::string examplestring = std::string( "reads in a csv file with the first D columns defining the spatial location where the spatial location is defined in physical coordinates.    the csv file should have a header row.   here is an example") + std::string("\n") + std::string("cat chicken-3.csv ") + std::string("x,y,z,t,label,comment")+std::string("\n")+std::string("82.5,116.5,0,0,1,this is the breast")+std::string("\n")+std::string("137.5,35.5,0,0,2,this is the beak")+std::string("\n")+std::string("antsApplyTransformsToPoints -d 2 -i chicken-3.csv -o test.csv -t [chicken3to4.mat ,1 ]")+std::string("\n")+std::string("cat test.csv ")+std::string("\n")+std::string("x,y,z,t,label,comment")+std::string("\n")+std::string("10.8945447481644,162.082675013049,0,0,1,nan")+std::string("\n")+std::string("7.5367085472988,52.099713111629,0,0,2,nan")+std::string("\n")+std::string("the nan appears in the last column until the ITK CSV I/O can handle mixed numeric / string types.  if your input is fully numeric, all is well.");
+  std::string examplestring = std::string(
+      "reads in a csv file with the first D columns defining the spatial location where the spatial location is defined in physical coordinates.    the csv file should have a header row.   here is an example")
+    + std::string("\n") + std::string("cat chicken-3.csv ") + std::string("x,y,z,t,label,comment") + std::string("\n")
+    + std::string("82.5,116.5,0,0,1,this is the breast") + std::string("\n") + std::string(
+      "137.5,35.5,0,0,2,this is the beak") + std::string("\n") + std::string(
+      "antsApplyTransformsToPoints -d 2 -i chicken-3.csv -o test.csv -t [chicken3to4.mat ,1 ]") + std::string("\n")
+    + std::string("cat test.csv ") + std::string("\n") + std::string("x,y,z,t,label,comment") + std::string("\n")
+    + std::string("10.8945447481644,162.082675013049,0,0,1,nan") + std::string("\n") + std::string(
+      "7.5367085472988,52.099713111629,0,0,2,nan") + std::string("\n") + std::string(
+      "the nan appears in the last column until the ITK CSV I/O can handle mixed numeric / string types.  if your input is fully numeric, all is well.");
   std::string commandDescription =
     std::string( "antsApplyTransformsToPoints, applied to an input image, transforms it " )
     + std::string( "according to a reference image and a transform " )
@@ -359,10 +371,10 @@ private:
     }
 
 #if 0 // HACK This makes no sense here, filename is never used.
-  //Perhaps the "input" option is not needed in this program
-  //but is a copy/paste error from another program.
+  // Perhaps the "input" option is not needed in this program
+  // but is a copy/paste error from another program.
   // Read in the first intensity image to get the image dimension.
-  std::string filename;
+  std::string                                       filename;
   itk::ants::CommandLineParser::OptionType::Pointer inputOption =
     parser->GetOption( "input" );
   if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
@@ -383,7 +395,7 @@ private:
     }
 #endif
 
-  unsigned int dimension = 3;
+  unsigned int                                      dimension = 3;
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
     parser->GetOption( "dimensionality" );
   if( dimOption && dimOption->GetNumberOfFunctions() > 0 )
@@ -419,4 +431,5 @@ private:
     }
   return EXIT_SUCCESS;
 }
+
 } // namespace ants

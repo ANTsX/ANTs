@@ -18,38 +18,41 @@
 namespace matHelper
 {
 template <typename TFloat, unsigned int dim>
-unsigned int Rows(const vnl_matrix_fixed<TFloat,dim,dim> &)
-{
-  return dim;
-}
-template <typename TFloat, unsigned int dim>
-unsigned int Columns(const vnl_matrix_fixed<TFloat,dim,dim> &)
+unsigned int Rows(const vnl_matrix_fixed<TFloat, dim, dim> &)
 {
   return dim;
 }
 
-template <typename TFloat,unsigned int rows, unsigned int columns>
-unsigned int Rows(const itk::Matrix<TFloat,rows,columns> &)
+template <typename TFloat, unsigned int dim>
+unsigned int Columns(const vnl_matrix_fixed<TFloat, dim, dim> &)
+{
+  return dim;
+}
+
+template <typename TFloat, unsigned int rows, unsigned int columns>
+unsigned int Rows(const itk::Matrix<TFloat, rows, columns> &)
 {
   return rows;
 }
 
-template <typename TFloat,unsigned int rows, unsigned int columns>
-unsigned int Columns(const itk::Matrix<TFloat,rows,columns> &)
+template <typename TFloat, unsigned int rows, unsigned int columns>
+unsigned int Columns(const itk::Matrix<TFloat, rows, columns> &)
 {
   return columns;
 }
+
 template <typename TFloat>
-unsigned int Rows(const itk::VariableSizeMatrix<TFloat> &mat)
+unsigned int Rows(const itk::VariableSizeMatrix<TFloat> & mat)
 {
   return mat.Rows();
 }
 
 template <typename TFloat>
-unsigned int Columns(const itk::VariableSizeMatrix<TFloat> &mat)
+unsigned int Columns(const itk::VariableSizeMatrix<TFloat> & mat)
 {
   return mat.Cols();
 }
+
 }
 
 template <class TensorType, class MatrixType>
@@ -62,11 +65,12 @@ void Vector2Matrix( TensorType & dtv, MatrixType & dtm )
   // dtm(1, 2) = dtm(2, 1) = dtv[4];
   // dtm(2, 2) = dtv[5];
   unsigned int tensorIndex = 0;
-  for(unsigned i = 0; i < matHelper::Rows(dtm); ++i)
+
+  for( unsigned i = 0; i < matHelper::Rows(dtm); ++i )
     {
-    for(unsigned j = i; j < matHelper::Columns(dtm); ++j, ++tensorIndex)
+    for( unsigned j = i; j < matHelper::Columns(dtm); ++j, ++tensorIndex )
       {
-      dtm(i,j) = dtm(j,i) = dtv[tensorIndex];
+      dtm(i, j) = dtm(j, i) = dtv[tensorIndex];
       }
     }
 }
@@ -76,7 +80,7 @@ MatrixType Vector2Matrix( TensorType dtv )
 {
   MatrixType dtm(3, 3);
 
-  Vector2Matrix<TensorType,MatrixType>(dtv,dtm);
+  Vector2Matrix<TensorType, MatrixType>(dtv, dtm);
 
   return dtm;
 }
@@ -93,11 +97,12 @@ TensorType Matrix2Vector( MatrixType dtm )
   // dtv[4] = dtm(1, 2);
   // dtv[5] = dtm(2, 2);
   unsigned int tensorIndex = 0;
-  for(unsigned i = 0; i < dtm.rows(); ++i)
+
+  for( unsigned i = 0; i < dtm.rows(); ++i )
     {
-    for(unsigned j = i; j < dtm.cols(); ++j, ++tensorIndex)
+    for( unsigned j = i; j < dtm.cols(); ++j, ++tensorIndex )
       {
-      dtv[tensorIndex] = dtm(i,j);
+      dtv[tensorIndex] = dtm(i, j);
       }
     }
   return dtv;
@@ -143,14 +148,14 @@ float DiffusionCoefficient( TensorType dtv, VectorType direction, bool normalize
 namespace tensorHelper
 {
 
-template<typename TFloat, unsigned int NDim>
-unsigned int size(const itk::SymmetricSecondRankTensor<TFloat,NDim> &)
+template <typename TFloat, unsigned int NDim>
+unsigned int size(const itk::SymmetricSecondRankTensor<TFloat, NDim> &)
 {
   return NDim;
 }
 
-template<typename TFloat, unsigned int NDim>
-unsigned int size(const itk::Vector<TFloat,NDim> &)
+template <typename TFloat, unsigned int NDim>
+unsigned int size(const itk::Vector<TFloat, NDim> &)
 {
   return NDim;
 }
@@ -180,22 +185,22 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
   //   return dtv;
   //   }
   // rewrite above to avoid going beyond tensor array bounds.
-  {
-  unsigned int indices[3] = { 1, 2, 4 };
-  unsigned int jj;
-  for(jj = 0; indices[jj] < tensorHelper::size(dtv); ++jj)
     {
-    if(dtv[indices[jj]] != 0.0)
+    unsigned int indices[3] = { 1, 2, 4 };
+    unsigned int jj;
+    for( jj = 0; indices[jj] < tensorHelper::size(dtv); ++jj )
       {
-      break;
+      if( dtv[indices[jj]] != 0.0 )
+        {
+        break;
+        }
+      }
+    if( jj == 3 )
+      {
+      success = false;
+      return dtv;
       }
     }
-  if(jj == 3)
-    {
-    success = false;
-    return dtv;
-    }
-  }
 
   if( mag < eps )
     {
@@ -216,9 +221,9 @@ TensorType TensorLogAndExp( TensorType dtv, bool takelog, bool & success)
 
   if( fabs(e3) < eps )
     {
-    //success = false;
-    //std::cout << "-4" << std::flush;
-    //return dtv;
+    // success = false;
+    // std::cout << "-4" << std::flush;
+    // return dtv;
     }
 
   MatrixType eigmat(3, 3);
@@ -276,9 +281,10 @@ template <class TensorType>
 bool IsRealTensor( TensorType dtv )
 {
   bool isreal = true;
-  for ( unsigned int i=0; i<6; i++ )
+
+  for( unsigned int i = 0; i < 6; i++ )
     {
-    if ( !vnl_math_isfinite( dtv[i] ) )
+    if( !vnl_math_isfinite( dtv[i] ) )
       {
       isreal = false;
       }
@@ -503,8 +509,7 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     {
     return ( dtv[0] + dtv[3] + dtv[5] ) / 3.0;
     }
-   float eps = 1.e-9, mag = 0;
-
+  float eps = 1.e-9, mag = 0;
   for( unsigned int jj = 0; jj < 6; jj++ )
     {
     float ff = dtv[jj];
@@ -525,7 +530,7 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     return 0;
     }
 
-   //  typedef itk::Vector<float, 6> TensorTypeIn;
+  //  typedef itk::Vector<float, 6> TensorTypeIn;
   typedef itk::Vector<float, 6> TensorType;
   typedef itk::Vector<float, 6> TensorTypeOut;
   typedef itk::Vector<float, 6> TensorTypeIn;
@@ -565,14 +570,12 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
   double                            e3 = (eig.D(2, 2) );
 
   /*
-
-  opt	return
-  1	ADC
-  2   radial diffusion
-  3	e1
-  4	e2
-  5	e3
-
+  opt  return
+  1    ADC
+  2    radial diffusion
+  3    e1
+  4    e2
+  5    e3
   */
 
   if( opt <= 1 )
