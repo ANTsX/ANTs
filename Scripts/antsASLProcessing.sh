@@ -196,6 +196,8 @@ if [[ ! -d `dirname $OUTNAME` ]]
 then 
   mkdir -p `dirname $OUTNAME`
 fi
+
+${ANTSPATH}antsMotionCorr -d 3 -a $PCASL -o ${OUTPATH}AveragePCASL.nii.gz
 ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz 600 999999
 ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 1
 ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz GetLargestComponent ${OUTNAME}tmp.nii.gz
