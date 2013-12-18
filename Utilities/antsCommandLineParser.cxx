@@ -23,15 +23,14 @@ namespace itk
 namespace ants
 {
 CommandLineParser
-::CommandLineParser()
+::CommandLineParser():
+  m_LeftDelimiter  ( '[' ),
+  m_RightDelimiter ( ']' )
 {
   this->m_Options.clear();
   this->m_Command.clear();
   this->m_CommandDescription.clear();
   this->m_UnknownOptions.clear();
-
-  this->m_LeftDelimiter = '[';
-  this->m_RightDelimiter = ']';
 }
 
 void
