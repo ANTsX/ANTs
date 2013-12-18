@@ -59,6 +59,17 @@ echoParameters() {
 PARAMETERS
 }
 
+function logCmd() {
+  cmd="$*"
+  echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
+  echo $cmd
+  $cmd
+  echo "END   <<<<<<<<<<<<<<<<<<<<"
+  echo
+  echo
+}
+
+
 if [[ $# -lt 3 ]] 
 then 
   Usage >&2
@@ -197,12 +208,12 @@ then
   mkdir -p `dirname $OUTNAME`
 fi
 
-${ANTSPATH}antsMotionCorr -d 3 -a $PCASL -o ${OUTNAME}AveragePCASL.nii.gz
-${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz 600 999999
-${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 1
-${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz GetLargestComponent ${OUTNAME}tmp.nii.gz
-${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz MD ${OUTNAME}tmp.nii.gz 2
-${ANTSPATH}ImageMath 3 ${OUTNAME}pCASLBrain.nii.gz m ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz
+logCmd ${ANTSPATH}antsMotionCorr -d 3 -a $PCASL -o ${OUTNAME}AveragePCASL.nii.gz
+logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz 600 999999
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 1
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz GetLargestComponent ${OUTNAME}tmp.nii.gz
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz MD ${OUTNAME}tmp.nii.gz 2
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}pCASLBrain.nii.gz m ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz
 
 INTERSUBJECT_PARAMS=" -d 3 -i ${OUTNAME}pCASLBrain.nii.gz -r $ANATOMICAL_IMAGE -x $BRAINMASK -w $TRANSFORM_PREFIX -t 3 -o $OUTNAME "
 if [[ -n $LABELS ]]
@@ -210,7 +221,7 @@ then
   ${INTERSUBJECT_PARAMS}=" ${INTERSUBJECT_PARAMS} -l $LABELS "
 fi
 
-${ANTSPATH}/antsIntermodalityIntrasubject.sh $INTERSUBJECT_PARAMS
+logCmd ${ANTSPATH}/antsIntermodalityIntrasubject.sh $INTERSUBJECT_PARAMS
 
 ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}OtsuMask.nii.gz Otsu 4
 ${ANTSPATH}ThresholdImage 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}OtsuMask.nii.gz 2 4
