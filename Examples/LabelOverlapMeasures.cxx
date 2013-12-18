@@ -50,21 +50,20 @@ int LabelOverlapMeasures( int argc, char * argv[] )
   filter->SetTargetImage( reader2->GetOutput() );
   filter->Update();
 
- 	typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
-		typename FilterType::MapType::const_iterator it;
+  typename FilterType::MapType labelMap = filter->GetLabelSetMeasures();
 
   std::vector<int> allLabels;
   allLabels.clear();
 
-  unsigned int index = 0;
-  for( it = labelMap.begin(); it != labelMap.end(); ++it )
+  for( typename FilterType::MapType::const_iterator it = labelMap.begin();
+       it != labelMap.end(); ++it )
     {
     if( (*it).first == 0 )
       {
       continue;
       }
 
-				int label = (*it).first;
+    const int label = (*it).first;
     allLabels.push_back( label );
     }
   std::sort( allLabels.begin(), allLabels.end() );
@@ -147,7 +146,7 @@ int LabelOverlapMeasures( int argc, char * argv[] )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int LabelOverlapMeasures( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int LabelOverlapMeasures( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

@@ -68,7 +68,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         }
       DataFrameObjectType::Pointer dfo = reader->GetOutput();
       colheadernames = dfo->GetColumnHeaders();
-      if ( colheadernames.size() < Dimension ) 
+      if ( colheadernames.size() < Dimension )
 	{
 	std::cout << "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D." << std::endl;
 	return EXIT_FAILURE;
@@ -282,7 +282,7 @@ static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int antsApplyTransformsToPoints( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

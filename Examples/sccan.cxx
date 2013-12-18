@@ -348,7 +348,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       }
     }
 
-  if ( u_mat.size() > 0 ) 
+  if ( u_mat.size() > 0 )
     {
     // write out the array2D object for U matrix
     ColumnHeaders.clear();
@@ -364,7 +364,7 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     writer->SetInput( &u_mat );
     try
       {
-      writer->Write(); 
+      writer->Write();
       }
     catch( itk::ExceptionObject& exp )
       {
@@ -1202,7 +1202,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   PixelType gradstep = vnl_math_abs( usel1 );
   sccanobj->SetCovering( true );
  if ( covering < 0.1 )
-    { 
+    {
     sccanobj->SetCovering( false );
     }
    if( usel1 > 0 )
@@ -1210,7 +1210,7 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     sccanobj->SetUseL1( true );
     }
   else
-    { 
+    {
     sccanobj->SetUseL1( false );
     }
   sccanobj->SetGradStep( gradstep );
@@ -1458,7 +1458,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetCovering( true );
   if ( covering < 0.1 )
-    { 
+    {
     sccanobj->SetCovering( false );
     }
   sccanobj->SetMaximumNumberOfIterations(iterct);
@@ -1540,7 +1540,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);  // true if P sparsity > 0
-                                        
+
     }
   double FracNonZero2 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
@@ -1640,7 +1640,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
           }
         }
       // end solve cca permutation
-      if ( pct == permct ) 
+      if ( pct == permct )
 	{
 	std::cout << "final_p_values" << ",";
 	for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
@@ -2274,7 +2274,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     }
 
   bool positiveWeights = false;
-   itk::ants::CommandLineParser::OptionType::Pointer positivity_option = 
+   itk::ants::CommandLineParser::OptionType::Pointer positivity_option =
      parser->GetOption( "PositivityConstraint" );
   if( !positivity_option || positivity_option->GetNumberOfFunctions() == 0 )
     {
@@ -2282,7 +2282,7 @@ int sccan( itk::ants::CommandLineParser *parser )
   else
     {
     unsigned int positivityValue = parser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
-    if (positivityValue > 0 ) 
+    if (positivityValue > 0 )
       {
       positiveWeights = true;
       }
@@ -2771,7 +2771,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int sccan( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int sccan( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

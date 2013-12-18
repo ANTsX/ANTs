@@ -92,7 +92,7 @@ int ConvertType(int argc, char *argv[])
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int ConvertToJpg( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int ConvertToJpg( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   try
     {
