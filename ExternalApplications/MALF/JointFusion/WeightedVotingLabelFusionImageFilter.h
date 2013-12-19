@@ -83,10 +83,20 @@ public:
   itkSetMacro(Beta, double);
   itkGetMacro(Beta, double);
 
-  itkSetMacro(GroupID, std::vector<int>);
+  //itkSetMacro(GroupID, std::vector<int>);
+  virtual void SetGroupID(const std::vector<int> _arg)
+    {
+      this->m_GroupID = _arg;
+      this->Modified();
+    }
   itkGetMacro(GroupID, std::vector<int>);
 
-  itkSetMacro(GroupWeight, std::vector<double>);
+  // itkSetMacro(GroupWeight, std::vector<double>);
+  virtual void SetGroupWeight(const std::vector<double> _arg)
+    {
+      this->m_GroupWeight = _arg;
+      this->Modified();
+    }
   itkGetMacro(GroupWeight, std::vector<double>);
 
 
