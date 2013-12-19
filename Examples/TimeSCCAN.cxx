@@ -516,27 +516,18 @@ int timesccan( itk::ants::CommandLineParser *parser )
     robustify = parser->Convert<unsigned int>( robust_option->GetFunction()->GetName() );
     }
 
-  unsigned int                                      evecgradientpenalty = 1;
   itk::ants::CommandLineParser::OptionType::Pointer evecg_option =
     parser->GetOption( "EvecGradPenalty" );
-  if( !evecg_option || evecg_option->GetNumberOfFunctions() == 0 )
+  if( evecg_option && evecg_option->GetNumberOfFunctions() != 0 )
     {
-    }
-  else
-    {
-    evecgradientpenalty = parser->Convert<unsigned int>( evecg_option->GetFunction()->GetName() );
+    parser->Convert<unsigned int>( evecg_option->GetFunction()->GetName() );
     }
 
-  bool                                              eigen_imp = false;
   itk::ants::CommandLineParser::OptionType::Pointer eigen_option =
     parser->GetOption( "ridge_cca" );
-  if( !eigen_option || eigen_option->GetNumberOfFunctions() == 0 )
+  if( eigen_option && eigen_option->GetNumberOfFunctions() != 0 )
     {
-    //    std::cout << "Warning:  no permutation option set." << std::endl;
-    }
-  else
-    {
-    eigen_imp = parser->Convert<bool>( eigen_option->GetFunction()->GetName() );
+    parser->Convert<bool>( eigen_option->GetFunction()->GetName() );
     }
 
   NetworkType::Pointer network = NetworkType::New();

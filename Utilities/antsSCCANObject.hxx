@@ -3403,11 +3403,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType   b = this->m_Eigenvectors.get_column( colind );
       unsigned int baseind = colind * repspervec;
-      unsigned int lastbaseind = colind * repspervec;
-      if( colind % 2 == 1 )
-        {
-        lastbaseind = ( colind - 1 ) * repspervec;
-        }
+      // unsigned int lastbaseind = colind * repspervec;
+      // if( colind % 2 == 1 )
+      //   {
+      //   lastbaseind = ( colind - 1 ) * repspervec;
+      //   }
       unsigned int locind = baseind + whichevec;
       VectorType   x_k = this->InitializeV( this->m_MatrixP, false );
       this->m_FractionNonZeroP = fnp + fnp * whichevec;
@@ -4652,7 +4652,6 @@ bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov )
 {
   this->m_Debug = false;
-  bool changedgrad = false;
   unsigned int changegradct = 0;
 
   for( unsigned int k = 0; k < n_vecs; k++ ) 
@@ -4775,7 +4774,6 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     else if( allowchange )
       {
-      changedgrad = true;
       changegradct++;
       if( this->m_Debug )
         {

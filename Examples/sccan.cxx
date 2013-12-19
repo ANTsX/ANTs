@@ -251,7 +251,6 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
       std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
       ColumnHeaders.push_back( colname );
       }
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( fnmp.c_str() );
     writer->SetColumnHeaders(ColumnHeaders);
@@ -1575,8 +1574,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sccanobj->SetMatrixQ( q );
   sccanobj->SetMaskImageP( mask1 );
   sccanobj->SetMaskImageQ( mask2 );
-  double truecorr = 0;
-  truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
+  //double truecorr = 0;
+  /* truecorr = */ sccanobj->SparsePartialArnoldiCCA(n_evec );
   vVector w_p = sccanobj->GetVariateP(0);
   vVector w_q = sccanobj->GetVariateQ(0);
   vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
@@ -1622,8 +1621,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
       vMatrix q_perm = PermuteMatrix<Scalar>( q );
       sccanobj->SetMatrixQ( q_perm );
-      double permcorr = 0;
-      permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
+      // double permcorr = 0;
+      /* permcorr = */ sccanobj->SparsePartialArnoldiCCA(n_evec );
       vVector permcorrs = sccanobj->GetCanonicalCorrelations();
       std::cout << " perm-corr " << permcorrs << " ct " << pct << " p-values ";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
@@ -2231,7 +2230,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     robustify = parser->Convert<unsigned int>( robust_option->GetFunction()->GetName() );
     }
 
-  matPixelType                                      evecgradientpenalty = 1;
+  // matPixelType                                      evecgradientpenalty = 1;
   itk::ants::CommandLineParser::OptionType::Pointer evecg_option =
     parser->GetOption( "EvecGradPenalty" );
   if( !evecg_option || evecg_option->GetNumberOfFunctions() == 0 )
@@ -2239,7 +2238,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    evecgradientpenalty = parser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
+    /* evecgradientpenalty = */ parser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      smoother = 0;
@@ -2285,7 +2284,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     q_cluster_thresh = parser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
     }
 
-  bool                                              positiveWeights = false;
+//  bool                                              positiveWeights = false;
   itk::ants::CommandLineParser::OptionType::Pointer positivity_option =
     parser->GetOption( "PositivityConstraint" );
   if( !positivity_option || positivity_option->GetNumberOfFunctions() == 0 )
@@ -2296,7 +2295,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     unsigned int positivityValue = parser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
     if( positivityValue > 0 )
       {
-      positiveWeights = true;
+//      positiveWeights = true;
       }
     }
 

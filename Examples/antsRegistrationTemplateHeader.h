@@ -965,7 +965,6 @@ DoRegistration(typename ParserType::Pointer & parser)
     // return value.
     itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
 
-    typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
     typedef typename DisplacementFieldTransformType::DisplacementFieldType  DisplacementFieldType;
     typename DisplacementFieldTransformType::Pointer dispTransform =
       dynamic_cast<DisplacementFieldTransformType *>(curTransform.GetPointer() );

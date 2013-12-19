@@ -47,7 +47,7 @@ WeightedVotingLabelFusionImageFilter<TInputImage, TOutputImage>
 ::UpdateInputs()
 {
   // Set all the inputs
-  this->SetNumberOfInputs(m_Target.size() + 1 + (m_Target.size()+2) * m_Atlases.size() + m_Exclusions.size());
+  this->SetNumberOfIndexedInputs(m_Target.size() + 1 + (m_Target.size()+2) * m_Atlases.size() + m_Exclusions.size());
 //  this->SetNumberOfInputs(1 + 2 * m_Atlases.size() + m_Exclusions.size());
 
   size_t kInput = 0;

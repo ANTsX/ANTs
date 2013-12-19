@@ -394,7 +394,7 @@ int lfapp(int argc, char *argv[])
 
       //compute the spatial center of the specific label
       double mx=0,my=0,mz=0,totalval=0;
-      int counter=0,tc=0;
+      int tc=0;
 //      int sampleFlag=0;
       for (segmaskit.GoToBegin(),autosegit.GoToBegin(); !segmaskit.IsAtEnd(); ++segmaskit,++autosegit)
       {
@@ -421,7 +421,6 @@ int lfapp(int argc, char *argv[])
       NeighborhoodIteratorType imnit;
       NeighborhoodIteratorType autosegnit(radius, autoSeg->GetOutput(), autoSeg->GetOutput()->GetRequestedRegion());
       NeighborhoodIteratorType::OffsetType offset;
-      counter=0;
       cout<<"computing features..."<<endl;
       tc=0;
       for (segmaskit.GoToBegin();!segmaskit.IsAtEnd(); ++segmaskit)

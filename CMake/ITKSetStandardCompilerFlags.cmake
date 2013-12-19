@@ -120,6 +120,7 @@ function(check_compiler_warning_flags c_warning_flags_var cxx_warning_flags_var)
     -Wno-invalid-offsetof
     -Woverloaded-virtual
     -Wstrict-null-sentinel
+    -Wno-unused-local-typedefs
   )
 ##-Wno-c++0x-static-nonintegral-init
     ## Clang compiler likes to warn about this feature that is technically only in

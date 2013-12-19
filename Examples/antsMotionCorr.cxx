@@ -927,7 +927,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
-        typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
         nparams = affineTransform->GetNumberOfParameters() + 2;
