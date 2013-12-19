@@ -822,7 +822,6 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
 
     if( !calculatedTransformFromImages )
       {
-      typedef ants::RegistrationHelper<TComputeType, VImageDimension>                       RegistrationHelperType;
       typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
 
       typedef typename RegistrationHelperType::TransformType TransformType;
