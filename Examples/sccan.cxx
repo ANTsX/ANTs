@@ -34,6 +34,8 @@
 
 namespace ants
 {
+namespace antssccan
+{
 template <class TComp>
 double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 {
@@ -251,6 +253,7 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
       std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
       ColumnHeaders.push_back( colname );
       }
+    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( fnmp.c_str() );
     writer->SetColumnHeaders(ColumnHeaders);
@@ -1131,7 +1134,7 @@ void ConvertImageVecListToProjection( std::string veclist, std::string imagelist
 }
 
 template <unsigned int ImageDimension, class PixelType>
-int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec,
+int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec,
                   unsigned int robustify, unsigned int p_cluster_thresh, unsigned int iterct,
                   unsigned int svd_option, PixelType usel1, PixelType row_sparseness, PixelType smoother,
                   PixelType covering )
@@ -1158,9 +1161,9 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
 
   itk::ants::CommandLineParser::OptionType::Pointer initOpt =
-    parser->GetOption( "initialization" );
+    sccanparser->GetOption( "initialization" );
   itk::ants::CommandLineParser::OptionType::Pointer maskOpt =
-    parser->GetOption( "mask" );
+    sccanparser->GetOption( "mask" );
   if( !initOpt || initOpt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Warning:  no initialization set, will use data-driven approach." << std::endl;
@@ -1177,9 +1180,9 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
 
   itk::ants::CommandLineParser::OptionType::Pointer init2Opt =
-    parser->GetOption( "initialization2" );
+    sccanparser->GetOption( "initialization2" );
   itk::ants::CommandLineParser::OptionType::Pointer mask2Opt =
-    parser->GetOption( "mask2" );
+    sccanparser->GetOption( "mask2" );
   if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !mask2Opt || mask2Opt->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Warning:  no initialization set, will use data-driven approach." << std::endl;
@@ -1196,13 +1199,13 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
 
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
-    parser->GetOption( "output" );
+    sccanparser->GetOption( "output" );
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Warning:  no output option set." << std::endl;
     }
   itk::ants::CommandLineParser::OptionType::Pointer option =
-    parser->GetOption( "svd" );
+    sccanparser->GetOption( "svd" );
   PixelType gradstep = vnl_math_abs( usel1 );
   sccanobj->SetCovering( true );
   if( covering < 0.1 )
@@ -1230,11 +1233,11 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
   typename ImageType::Pointer mask1 = NULL;
   bool have_p_mask = false;
   have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 1 ).c_str() );
-  double  FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
+  double  FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 2 ) );
   vMatrix priorScaleMat;
   if( svd_option == 7 )
     {
-    FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
+    FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
     std::string imagelistPrior = option->GetFunction( 0 )->GetParameter( 2 );
     // std::string priorScaleFile = option->GetFunction( 0 )->GetParameter( 3 );
     std::string outname = "prior.mhd";
@@ -1272,14 +1275,14 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
         return EXIT_FAILURE;
         }
       itk::ants::CommandLineParser::OptionType::Pointer partialccaOpt =
-        parser->GetOption( "partial-scca-option" );
+        sccanparser->GetOption( "partial-scca-option" );
       std::string partialccaoption = std::string("PQ");
       if( partialccaOpt )
         {
         //  enum SCCANFormulationType{ PQ , PminusRQ ,  PQminusR ,  PminusRQminusR , PQR  };
         if( partialccaOpt->GetNumberOfFunctions() > 0 )
           {
-          partialccaoption = parser->Convert<std::string>( partialccaOpt->GetFunction()->GetName() );
+          partialccaoption = sccanparser->Convert<std::string>( partialccaOpt->GetFunction()->GetName() );
           }
         std::cout << " Partial SCCA option " << partialccaoption << std::endl;
         if( !partialccaoption.compare( std::string( "PQ" ) ) )
@@ -1340,15 +1343,15 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
     }
   else if( svd_option == 6 )
     {
-    truecorr = sccanobj->SparseRecon(n_evec);  // sparse (default)
+    truecorr = sccanobj->Ssccanparserecon(n_evec);  // sparse (default)
     }
   else if( svd_option == 7 )
     {
     // sccanobj->SetPriorScaleMat( priorScaleMat);
     sccanobj->SetMatrixPriorROI( priorROIMat);
     sccanobj->SetFlagForSort();
-    sccanobj->SetLambda(parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 3 ) ) );
-    truecorr = sccanobj->SparseReconPrior(n_evec, true); // Prior
+    sccanobj->SetLambda(sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 3 ) ) );
+    truecorr = sccanobj->SsccanparsereconPrior(n_evec, true); // Prior
     }
   else
     {
@@ -1432,12 +1435,12 @@ int SVD_One_View( itk::ants::CommandLineParser *parser, unsigned int permct, uns
 }
 
 template <unsigned int ImageDimension, class PixelType>
-int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
+int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
               PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, PixelType covering )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
-    parser->GetOption( "output" );
+    sccanparser->GetOption( "output" );
   bool writeoutput = true;
 
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
@@ -1450,7 +1453,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     std::cout << "New imp irrelevant " << std::endl;
     }
   itk::ants::CommandLineParser::OptionType::Pointer option =
-    parser->GetOption( "scca" );
+    sccanparser->GetOption( "scca" );
   typedef itk::Image<PixelType, ImageDimension>         ImageType;
   typedef double                                        Scalar;
   typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
@@ -1482,9 +1485,9 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   vMatrix                                           priorROIMat;
   vMatrix                                           priorROIMat2;
   itk::ants::CommandLineParser::OptionType::Pointer initOpt =
-    parser->GetOption( "initialization" );
+    sccanparser->GetOption( "initialization" );
   itk::ants::CommandLineParser::OptionType::Pointer maskOpt =
-    parser->GetOption( "mask" );
+    sccanparser->GetOption( "mask" );
   if( !initOpt || initOpt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Warning:  no P initialization set, will use data-driven approach." << std::endl;
@@ -1501,9 +1504,9 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
     }
 
   itk::ants::CommandLineParser::OptionType::Pointer init2Opt =
-    parser->GetOption( "initialization2" );
+    sccanparser->GetOption( "initialization2" );
   itk::ants::CommandLineParser::OptionType::Pointer mask2Opt =
-    parser->GetOption( "mask2" );
+    sccanparser->GetOption( "mask2" );
   if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !mask2Opt || mask2Opt->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Warning:  no Q initialization set, will use data-driven approach." << std::endl;
@@ -1546,14 +1549,14 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
 
   /** the penalties define the fraction of non-zero values for each view */
-  double FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
+  double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);  // true if P sparsity > 0
 
     }
-  double FracNonZero2 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
+  double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
@@ -1574,8 +1577,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
   sccanobj->SetMatrixQ( q );
   sccanobj->SetMaskImageP( mask1 );
   sccanobj->SetMaskImageQ( mask2 );
-  //double truecorr = 0;
-  /* truecorr = */ sccanobj->SparsePartialArnoldiCCA(n_evec );
+  double truecorr = 0;
+  truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
   vVector w_p = sccanobj->GetVariateP(0);
   vVector w_q = sccanobj->GetVariateQ(0);
   vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
@@ -1621,8 +1624,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
       ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
       vMatrix q_perm = PermuteMatrix<Scalar>( q );
       sccanobj->SetMatrixQ( q_perm );
-      // double permcorr = 0;
-      /* permcorr = */ sccanobj->SparsePartialArnoldiCCA(n_evec );
+      double permcorr = 0;
+      permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
       vVector permcorrs = sccanobj->GetCanonicalCorrelations();
       std::cout << " perm-corr " << permcorrs << " ct " << pct << " p-values ";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
@@ -1734,14 +1737,14 @@ int SCCA_vnl( itk::ants::CommandLineParser *parser, unsigned int permct, unsigne
 }
 
 template <unsigned int ImageDimension, class PixelType>
-int mSCCA_vnl( itk::ants::CommandLineParser *parser,
+int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
                unsigned int permct, bool run_partial_scca = false, unsigned int n_e_vecs = 3, unsigned int newimp = 0,
                unsigned int robustify = 0, unsigned int p_cluster_thresh = 100, unsigned int q_cluster_thresh = 1,
                unsigned int iterct = 20 )
 {
   std::cout << " Entering MSCCA --- computing " << n_e_vecs << " canonical variates by default. " << std::endl;
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
-    parser->GetOption( "output" );
+    sccanparser->GetOption( "output" );
 
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
@@ -1749,7 +1752,7 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
     }
   std::cout << " newimp " << newimp << std::endl;
   itk::ants::CommandLineParser::OptionType::Pointer option =
-    parser->GetOption( "scca" );
+    sccanparser->GetOption( "scca" );
   typedef itk::Image<PixelType, ImageDimension>         ImageType;
   typedef double                                        Scalar;
   typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
@@ -1799,19 +1802,19 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
   typename ImageType::Pointer mask3 = NULL;
 
   /** the penalties define the fraction of non-zero values for each view */
-  double FracNonZero1 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 6 ) );
+  double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 6 ) );
   if( FracNonZero1 < 0 )
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);
     }
-  double FracNonZero2 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 7 ) );
+  double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 7 ) );
   if( FracNonZero2 < 0 )
     {
     FracNonZero2 = fabs(FracNonZero2);
     sccanobj->SetKeepPositiveQ(false);
     }
-  double FracNonZero3 = parser->Convert<double>( option->GetFunction( 0 )->GetParameter( 8 ) );
+  double FracNonZero3 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 8 ) );
   if( FracNonZero3 < 0 )
     {
     FracNonZero3 = fabs(FracNonZero3);
@@ -1856,14 +1859,14 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
       sccanobjCovar->SetMinClusterSizeQ( q_cluster_thresh );
 
       itk::ants::CommandLineParser::OptionType::Pointer partialccaOpt =
-        parser->GetOption( "partial-scca-option" );
+        sccanparser->GetOption( "partial-scca-option" );
       std::string partialccaoption = std::string("PQ");
       if( partialccaOpt )
         {
         //  enum SCCANFormulationType{ PQ , PminusRQ ,  PQminusR ,  PminusRQminusR , PQR  };
         if( partialccaOpt->GetNumberOfFunctions() > 0 )
           {
-          partialccaoption = parser->Convert<std::string>( partialccaOpt->GetFunction()->GetName() );
+          partialccaoption = sccanparser->Convert<std::string>( partialccaOpt->GetFunction()->GetName() );
           }
         std::cout << " Partial SCCA option " << partialccaoption << std::endl;
         if( !partialccaoption.compare( std::string( "PQ" ) ) )
@@ -2140,7 +2143,7 @@ int mSCCA_vnl( itk::ants::CommandLineParser *parser,
   return EXIT_SUCCESS;
 }
 
-int sccan( itk::ants::CommandLineParser *parser )
+int sccan( itk::ants::CommandLineParser *sccanparser )
 {
   // Define dimensionality
   typedef double PixelType;
@@ -2151,168 +2154,168 @@ int sccan( itk::ants::CommandLineParser *parser )
   typedef itk::ImageFileReader<MatrixImageType> ReaderType;
 
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
-    parser->GetOption( "output" );
+    sccanparser->GetOption( "output" );
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Warning:  no output option set." << std::endl;
     }
   unsigned int                                      permct = 0;
   itk::ants::CommandLineParser::OptionType::Pointer permoption =
-    parser->GetOption( "n_permutations" );
+    sccanparser->GetOption( "n_permutations" );
   if( !permoption || permoption->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    permct = parser->Convert<unsigned int>( permoption->GetFunction()->GetName() );
+    permct = sccanparser->Convert<unsigned int>( permoption->GetFunction()->GetName() );
     }
 
   unsigned int iterct = 20;
-  permoption = parser->GetOption( "iterations" );
+  permoption = sccanparser->GetOption( "iterations" );
   if( permoption && permoption->GetNumberOfFunctions() > 0 )
     {
-    iterct = parser->Convert<unsigned int>( permoption->GetFunction()->GetName() );
+    iterct = sccanparser->Convert<unsigned int>( permoption->GetFunction()->GetName() );
     }
   //  if (iterct < 20 ) iterct=20;
 
   unsigned int                                      evec_ct = 1;
   itk::ants::CommandLineParser::OptionType::Pointer evec_option =
-    parser->GetOption( "n_eigenvectors" );
+    sccanparser->GetOption( "n_eigenvectors" );
   if( !evec_option || evec_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    evec_ct = parser->Convert<unsigned int>( evec_option->GetFunction()->GetName() );
+    evec_ct = sccanparser->Convert<unsigned int>( evec_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      uselong = 0;
   itk::ants::CommandLineParser::OptionType::Pointer long_option =
-    parser->GetOption( "uselong" );
+    sccanparser->GetOption( "uselong" );
   if( !long_option || long_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    uselong = parser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
+    uselong = sccanparser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      covering = 1;
   itk::ants::CommandLineParser::OptionType::Pointer covering_option =
-    parser->GetOption( "covering" );
+    sccanparser->GetOption( "covering" );
   if( !covering_option || covering_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    covering = parser->Convert<matPixelType>( covering_option->GetFunction()->GetName() );
+    covering = sccanparser->Convert<matPixelType>( covering_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      usel1 = 0.1;
   itk::ants::CommandLineParser::OptionType::Pointer l1_option =
-    parser->GetOption( "l1" );
+    sccanparser->GetOption( "l1" );
   if( !l1_option || l1_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    usel1 = parser->Convert<matPixelType>( l1_option->GetFunction()->GetName() );
+    usel1 = sccanparser->Convert<matPixelType>( l1_option->GetFunction()->GetName() );
     }
 
   unsigned int                                      robustify = 0;
   itk::ants::CommandLineParser::OptionType::Pointer robust_option =
-    parser->GetOption( "robustify" );
+    sccanparser->GetOption( "robustify" );
   if( !robust_option || robust_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    robustify = parser->Convert<unsigned int>( robust_option->GetFunction()->GetName() );
+    robustify = sccanparser->Convert<unsigned int>( robust_option->GetFunction()->GetName() );
     }
 
-  // matPixelType                                      evecgradientpenalty = 1;
+  matPixelType                                      evecgradientpenalty = 1;
   itk::ants::CommandLineParser::OptionType::Pointer evecg_option =
-    parser->GetOption( "EvecGradPenalty" );
+    sccanparser->GetOption( "EvecGradPenalty" );
   if( !evecg_option || evecg_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    /* evecgradientpenalty = */ parser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
+    evecgradientpenalty = sccanparser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      smoother = 0;
   itk::ants::CommandLineParser::OptionType::Pointer smooth_option =
-    parser->GetOption( "smoother" );
+    sccanparser->GetOption( "smoother" );
   if( !smooth_option || smooth_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    smoother = parser->Convert<matPixelType>( smooth_option->GetFunction()->GetName() );
+    smoother = sccanparser->Convert<matPixelType>( smooth_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      row_sparseness = 0;
   itk::ants::CommandLineParser::OptionType::Pointer row_option =
-    parser->GetOption( "row_sparseness" );
+    sccanparser->GetOption( "row_sparseness" );
   if( !row_option || row_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    row_sparseness = parser->Convert<matPixelType>( row_option->GetFunction()->GetName() );
+    row_sparseness = sccanparser->Convert<matPixelType>( row_option->GetFunction()->GetName() );
     }
 
   unsigned int                                      p_cluster_thresh = 1;
   itk::ants::CommandLineParser::OptionType::Pointer clust_option =
-    parser->GetOption( "PClusterThresh" );
+    sccanparser->GetOption( "PClusterThresh" );
   if( !clust_option || clust_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    p_cluster_thresh = parser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
+    p_cluster_thresh = sccanparser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
     }
 
   unsigned int q_cluster_thresh = 1;
-  clust_option = parser->GetOption( "QClusterThresh" );
+  clust_option = sccanparser->GetOption( "QClusterThresh" );
   if( !clust_option || clust_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    q_cluster_thresh = parser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
+    q_cluster_thresh = sccanparser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
     }
 
-//  bool                                              positiveWeights = false;
+  bool                                              positiveWeights = false;
   itk::ants::CommandLineParser::OptionType::Pointer positivity_option =
-    parser->GetOption( "PositivityConstraint" );
+    sccanparser->GetOption( "PositivityConstraint" );
   if( !positivity_option || positivity_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    unsigned int positivityValue = parser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
+    unsigned int positivityValue = sccanparser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
     if( positivityValue > 0 )
       {
-//      positiveWeights = true;
+      positiveWeights = true;
       }
     }
 
   bool                                              eigen_imp = false;
   itk::ants::CommandLineParser::OptionType::Pointer eigen_option =
-    parser->GetOption( "ridge_cca" );
+    sccanparser->GetOption( "ridge_cca" );
   if( !eigen_option || eigen_option->GetNumberOfFunctions() == 0 )
     {
     }
   else
     {
-    eigen_imp = parser->Convert<bool>( eigen_option->GetFunction()->GetName() );
+    eigen_imp = sccanparser->Convert<bool>( eigen_option->GetFunction()->GetName() );
     }
 
   //  operations on individual matrices
   itk::ants::CommandLineParser::OptionType::Pointer matrixOption =
-    parser->GetOption( "imageset-to-matrix" );
+    sccanparser->GetOption( "imageset-to-matrix" );
   if( matrixOption && matrixOption->GetNumberOfFunctions() > 0 )
     {
     std::string outname =  outputOption->GetFunction( 0 )->GetName();
@@ -2324,7 +2327,7 @@ int sccan( itk::ants::CommandLineParser *parser )
 
   //  operations on individual matrices
   itk::ants::CommandLineParser::OptionType::Pointer matrixOptionTimeSeries =
-    parser->GetOption( "timeseriesimage-to-matrix" );
+    sccanparser->GetOption( "timeseriesimage-to-matrix" );
   if( matrixOptionTimeSeries && matrixOptionTimeSeries->GetNumberOfFunctions() > 0 )
     {
     std::string outname = outputOption->GetFunction( 0 )->GetName();
@@ -2333,12 +2336,12 @@ int sccan( itk::ants::CommandLineParser *parser )
     double      smoother_space = 0;
     if( matrixOptionTimeSeries->GetFunction( 0 )->GetNumberOfParameters() > 2 )
       {
-      smoother_space = parser->Convert<double>( matrixOptionTimeSeries->GetFunction( 0 )->GetParameter( 2 ) );
+      smoother_space = sccanparser->Convert<double>( matrixOptionTimeSeries->GetFunction( 0 )->GetParameter( 2 ) );
       }
     double smoother_time = 0;
     if( matrixOptionTimeSeries->GetFunction( 0 )->GetNumberOfParameters() > 3 )
       {
-      smoother_time = parser->Convert<double>( matrixOptionTimeSeries->GetFunction( 0 )->GetParameter( 3 ) );
+      smoother_time = sccanparser->Convert<double>( matrixOptionTimeSeries->GetFunction( 0 )->GetParameter( 3 ) );
       }
     typedef itk::Image<double, 2> MyImageType;
     ConvertTimeSeriesImageToMatrix<double>( imagefn,  maskfn, outname, smoother_space, smoother_time );
@@ -2348,13 +2351,13 @@ int sccan( itk::ants::CommandLineParser *parser )
 
   //  operations on individual matrices
   itk::ants::CommandLineParser::OptionType::Pointer matrixOptionV2I =
-    parser->GetOption( "vector-to-image" );
+    sccanparser->GetOption( "vector-to-image" );
   if( matrixOptionV2I && matrixOptionV2I->GetNumberOfFunctions() > 0 )
     {
     std::string   outname = outputOption->GetFunction( 0 )->GetName();
     std::string   csvfn = matrixOptionV2I->GetFunction( 0 )->GetParameter( 0 );
     std::string   maskfn = matrixOptionV2I->GetFunction( 0 )->GetParameter( 1 );
-    unsigned long rowOrCol = parser->Convert<unsigned long>( matrixOptionV2I->GetFunction( 0 )->GetParameter( 2 ) );
+    unsigned long rowOrCol = sccanparser->Convert<unsigned long>( matrixOptionV2I->GetFunction( 0 )->GetParameter( 2 ) );
     ConvertCSVVectorToImage<double>( csvfn,  maskfn, outname, rowOrCol );
     std::cout << " V2I done " << outname << std::endl;
     return EXIT_SUCCESS;
@@ -2362,13 +2365,13 @@ int sccan( itk::ants::CommandLineParser *parser )
 
   // p.d.
   itk::ants::CommandLineParser::OptionType::Pointer matrixProjectionOption =
-    parser->GetOption( "imageset-to-projections" );
+    sccanparser->GetOption( "imageset-to-projections" );
   if( matrixProjectionOption && matrixProjectionOption->GetNumberOfFunctions() > 0 )
     {
     std::string outFilename =  outputOption->GetFunction( 0 )->GetName();
     std::string vecList = matrixProjectionOption->GetFunction( 0 )->GetParameter( 0 );
     std::string imageList = matrixProjectionOption->GetFunction( 0 )->GetParameter( 1 );
-    bool        average = parser->Convert<bool>( matrixProjectionOption->GetFunction( 0 )->GetParameter( 2 ) );
+    bool        average = sccanparser->Convert<bool>( matrixProjectionOption->GetFunction( 0 )->GetParameter( 2 ) );
     // std::cout <<"here" << outFilename << " " << vecList << " " <<imageList << std::endl;
     if( average )
       {
@@ -2378,47 +2381,47 @@ int sccan( itk::ants::CommandLineParser *parser )
     return EXIT_SUCCESS;
     }
 
-  itk::ants::CommandLineParser::OptionType::Pointer svdOption = parser->GetOption( "svd" );
+  itk::ants::CommandLineParser::OptionType::Pointer svdOption = sccanparser->GetOption( "svd" );
   if( svdOption && svdOption->GetNumberOfFunctions() > 0 )
     {
     std::string initializationStrategy = svdOption->GetFunction()->GetName();
     if(  !initializationStrategy.compare( std::string( "sparse" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 0, usel1,
+      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 0, usel1,
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "cgspca" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2, usel1,
+      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 2, usel1,
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "network" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4, usel1,
+      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 4, usel1,
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "lasso" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 5, usel1,
+      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 5, usel1,
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "recon" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1,
+      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1,
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
-      SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1,
+      SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1,
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
-    SVD_One_View<ImageDimension, double>(  parser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1, usel1,
+    SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 1, usel1,
                                            row_sparseness, smoother, covering );
     return EXIT_SUCCESS;
     }
@@ -2427,7 +2430,7 @@ int sccan( itk::ants::CommandLineParser *parser )
             << " permutations." << std::endl;
   //  operations on pairs of matrices
   itk::ants::CommandLineParser::OptionType::Pointer matrixPairOption =
-    parser->GetOption( "scca" );
+    sccanparser->GetOption( "scca" );
   if( matrixPairOption && matrixPairOption->GetNumberOfFunctions() > 0 )
     {
     if( matrixPairOption && matrixPairOption->GetFunction( 0 )->GetNumberOfParameters() < 2 )
@@ -2440,7 +2443,7 @@ int sccan( itk::ants::CommandLineParser *parser )
     unsigned int exitvalue = EXIT_FAILURE;
     if(  !initializationStrategy.compare( std::string( "two-view" ) )  )
       {
-      exitvalue = SCCA_vnl<ImageDimension, double>( parser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
+      exitvalue = SCCA_vnl<ImageDimension, double>( sccanparser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
                                                     q_cluster_thresh,
                                                     iterct, usel1, uselong, row_sparseness, smoother, covering );
       }
@@ -2448,7 +2451,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       {
       std::cout << " mscca 3-view " << std::endl;
       exitvalue =
-        mSCCA_vnl<ImageDimension, double>( parser, permct,  false, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
+        mSCCA_vnl<ImageDimension, double>( sccanparser, permct,  false, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
                                            q_cluster_thresh,
                                            iterct);
       }
@@ -2456,7 +2459,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       {
       std::cout << " pscca " << std::endl;
       exitvalue =
-        mSCCA_vnl<ImageDimension, double>( parser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
+        mSCCA_vnl<ImageDimension, double>( sccanparser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
                                            q_cluster_thresh,
                                            iterct);
       }
@@ -2467,7 +2470,7 @@ int sccan( itk::ants::CommandLineParser *parser )
       }
     std::cout << " exit value " << exitvalue << std::endl;
     return exitvalue;
-    }
+    } // matrixPairOption
   else
     {
     std::cout << " no option specified " << std::endl;
@@ -2475,7 +2478,7 @@ int sccan( itk::ants::CommandLineParser *parser )
   return EXIT_FAILURE;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void InitializeCommandLineOptions( itk::ants::CommandLineParser *sccanparser )
 {
   /** in this function, list all the operations you will perform */
 
@@ -2486,7 +2489,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'h' );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2495,7 +2498,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "help" );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2506,7 +2509,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "outputImage" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2517,7 +2520,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'p' );
     option->SetUsageOption( 0, "500" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2528,7 +2531,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 's' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2539,7 +2542,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'z' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2550,7 +2553,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'i' );
     option->SetUsageOption( 0, "20" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2561,7 +2564,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'n' );
     option->SetUsageOption( 0, "2" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2572,7 +2575,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'r' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2584,7 +2587,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'c' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2596,7 +2599,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'g' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2608,7 +2611,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'l' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2618,7 +2621,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "PClusterThresh" );
     option->SetUsageOption( 0, "1" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
     {
     std::string description =
@@ -2627,7 +2630,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "QClusterThresh" );
     option->SetUsageOption( 0, "1" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2638,7 +2641,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'e' );
     option->SetUsageOption( 0, "0" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2648,7 +2651,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "initialization" );
     option->SetUsageOption( 0, "NA" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2658,7 +2661,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "initialization2" );
     option->SetUsageOption( 0, "NA" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2668,7 +2671,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "mask" );
     option->SetUsageOption( 0, "NA" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2678,7 +2681,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "mask2" );
     option->SetUsageOption( 0, "NA" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2688,7 +2691,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "partial-scca-option" );
     option->SetUsageOption( 0, "PminusRQ" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2700,7 +2703,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "imageset-to-matrix" );
     option->SetUsageOption( 0, "[list.txt,mask.nii.gz]" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2715,7 +2718,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       0,
       "[four_d_image.nii.gz,three_d_mask.nii.gz, optional-spatial-smoothing-param-in-spacing-units-default-zero, optional-temporal-smoothing-param-in-time-series-units-default-zero  ]" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2726,7 +2729,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "vector-to-image" );
     option->SetUsageOption( 0, "[vector.csv,three_d_mask.nii.gz, which-row-or-col ]" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
 // p.d.
@@ -2738,7 +2741,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "imageset-to-projections" );
     option->SetUsageOption( 0, "[list_projections.txt,list_images.txt, bool do-average-not-real-projection ]" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2756,7 +2759,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       2,
       "partial[matrix-view1.mhd,matrix-view2.mhd,matrix-view3.mhd,mask1,mask2,mask3,FracNonZero1,FracNonZero2,FracNonZero3]" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 
     {
@@ -2781,7 +2784,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 5, "lasso[matrix-view1.mhd,mask1,Lambda,guidance-matrix]" );
     option->SetUsageOption( 6, "recon[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix]" );
     option->SetDescription( description );
-    parser->AddOption( option );
+    sccanparser->AddOption( option );
     }
 }
 
@@ -2792,7 +2795,7 @@ int sccan( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ 
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
-  // which the parser should handle
+  // which the sccanparser should handle
   args.insert( args.begin(), "sccan" );
 
   std::remove( args.begin(), args.end(), std::string( "" ) );
@@ -2800,6 +2803,7 @@ int sccan( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ 
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
     {
+      std::cout << args[i] << std::endl;
     // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
     std::strncpy( argv[i], args[i].c_str(), args[i].length() );
@@ -2832,48 +2836,48 @@ private:
 
   // antscout->set_stream( out_stream );
 
-  itk::ants::CommandLineParser::Pointer parser =
+  itk::ants::CommandLineParser::Pointer sccanparser =
     itk::ants::CommandLineParser::New();
 
-  parser->SetCommand( argv[0] );
+  sccanparser->SetCommand( argv[0] );
 
   std::string commandDescription =
     std::string( "A tool for sparse statistical analysis on images : " )
     + std::string(
       " scca, pscca (with options), mscca.  Can also convert an imagelist/mask pair to a binary matrix image.  " );
 
-  parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  sccanparser->SetCommandDescription( commandDescription );
+  InitializeCommandLineOptions( sccanparser );
 
-  parser->Parse( argc, argv );
+  sccanparser->Parse( argc, argv );
 
   // Print the entire help menu
   itk::ants::CommandLineParser::OptionType::Pointer shortHelpOption =
-    parser->GetOption( 'h' );
+    sccanparser->GetOption( 'h' );
   itk::ants::CommandLineParser::OptionType::Pointer longHelpOption =
-    parser->GetOption( "help" );
+    sccanparser->GetOption( "help" );
   if( argc < 2 || ( shortHelpOption &&
-                    parser->Convert<unsigned int>( shortHelpOption->GetFunction()->GetName() ) == 1 ) )
+                    sccanparser->Convert<unsigned int>( shortHelpOption->GetFunction()->GetName() ) == 1 ) )
     {
-    parser->PrintMenu( std::cout, 5, true );
+    sccanparser->PrintMenu( std::cout, 5, true );
     if( argc < 2 )
       {
       return EXIT_FAILURE;
       }
     return EXIT_SUCCESS;
     }
-  if( longHelpOption && parser->Convert<unsigned int>( longHelpOption->GetFunction()->GetName() ) == 1 )
+  if( longHelpOption && sccanparser->Convert<unsigned int>( longHelpOption->GetFunction()->GetName() ) == 1 )
     {
-    parser->PrintMenu( std::cout, 5, false );
+    sccanparser->PrintMenu( std::cout, 5, false );
     return EXIT_SUCCESS;
     }
 
   // Print the long help menu for specific items
   if( longHelpOption && longHelpOption->GetNumberOfFunctions() > 0
-      && parser->Convert<unsigned int>( longHelpOption->GetFunction()->GetName() ) != 0 )
+      && sccanparser->Convert<unsigned int>( longHelpOption->GetFunction()->GetName() ) != 0 )
     {
     itk::ants::CommandLineParser::OptionListType options =
-      parser->GetOptions();
+      sccanparser->GetOptions();
     for( unsigned int n = 0; n < longHelpOption->GetNumberOfFunctions(); n++ )
       {
       std::string                                                  value = longHelpOption->GetFunction( n )->GetName();
@@ -2883,7 +2887,7 @@ private:
         const char *longName = ( ( *it )->GetLongName() ).c_str();
         if( strstr( longName, value.c_str() ) == longName  )
           {
-          parser->PrintMenu( std::cout, 5, false );
+          sccanparser->PrintMenu( std::cout, 5, false );
           }
         }
       }
@@ -2891,7 +2895,7 @@ private:
     }
 
   // Call main routine
-  return sccan( parser );
+  return sccan( sccanparser );
 }
 
 // now compute covariance matrices
@@ -3047,4 +3051,5 @@ end;
 
 return;
 */
+// } // namespace antssccan
 } // namespace ants
