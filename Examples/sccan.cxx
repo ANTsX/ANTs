@@ -34,8 +34,7 @@
 
 namespace ants
 {
-namespace antssccan
-{
+// namespace antssccan {
 template <class TComp>
 double vnl_pearson_corr( vnl_vector<TComp> v1, vnl_vector<TComp> v2 )
 {
@@ -3051,5 +3050,5 @@ end;
 
 return;
 */
-} // namespace antssccan
+// } // namespace antssccan
 } // namespace ants
