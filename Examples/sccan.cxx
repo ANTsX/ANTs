@@ -1343,7 +1343,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
     }
   else if( svd_option == 6 )
     {
-    truecorr = sccanobj->Ssccanparserecon(n_evec);  // sparse (default)
+    truecorr = sccanobj->SparseRecon(n_evec);  // sparse (default)
     }
   else if( svd_option == 7 )
     {
@@ -3051,5 +3051,5 @@ end;
 
 return;
 */
-// } // namespace antssccan
+} // namespace antssccan
 } // namespace ants
