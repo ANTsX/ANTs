@@ -1351,7 +1351,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
     sccanobj->SetMatrixPriorROI( priorROIMat);
     sccanobj->SetFlagForSort();
     sccanobj->SetLambda(sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 3 ) ) );
-    truecorr = sccanobj->SsccanparsereconPrior(n_evec, true); // Prior
+    truecorr = sccanobj->SparseReconPrior(n_evec, true); // Prior
     }
   else
     {
