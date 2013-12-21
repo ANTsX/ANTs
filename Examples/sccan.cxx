@@ -2477,8 +2477,66 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
   return EXIT_FAILURE;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *sccanparser )
+// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
+// 'main()'
+int sccan( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
 {
+  // put the arguments coming in as 'args' into standard (argc,argv) format;
+  // 'args' doesn't have the command name as first, argument, so add it manually;
+  // 'args' may have adjacent arguments concatenated into one argument,
+  // which the sccanparser should handle
+  args.insert( args.begin(), "sccan" );
+
+  std::remove( args.begin(), args.end(), std::string( "" ) );
+  int     argc = args.size();
+  char* * argv = new char *[args.size() + 1];
+  for( unsigned int i = 0; i < args.size(); ++i )
+    {
+      std::cout << args[i] << std::endl;
+    // allocate space for the string plus a null character
+    argv[i] = new char[args[i].length() + 1];
+    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
+    // place the null character in the end
+    argv[i][args[i].length()] = '\0';
+    }
+  argv[argc] = 0;
+  // class to automatically cleanup argv upon destruction
+  class Cleanup_argv
+  {
+public:
+    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
+    {
+    }
+
+    ~Cleanup_argv()
+    {
+      for( unsigned int i = 0; i < argc_plus_one; ++i )
+        {
+        delete[] argv[i];
+        }
+      delete[] argv;
+    }
+
+private:
+    char* *      argv;
+    unsigned int argc_plus_one;
+  };
+  Cleanup_argv cleanup_argv( argv, argc + 1 );
+
+  // antscout->set_stream( out_stream );
+
+  itk::ants::CommandLineParser::Pointer sccanparser =
+    itk::ants::CommandLineParser::New();
+
+  sccanparser->SetCommand( argv[0] );
+
+  std::string commandDescription =
+    std::string( "A tool for sparse statistical analysis on images : " )
+    + std::string(
+      " scca, pscca (with options), mscca.  Can also convert an imagelist/mask pair to a binary matrix image.  " );
+
+  sccanparser->SetCommandDescription( commandDescription );
+
   /** in this function, list all the operations you will perform */
 
   typedef itk::ants::CommandLineParser::OptionType OptionType;
@@ -2785,68 +2843,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *sccanparser )
     option->SetDescription( description );
     sccanparser->AddOption( option );
     }
-}
-
-// entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
-// 'main()'
-int sccan( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ )
-{
-  // put the arguments coming in as 'args' into standard (argc,argv) format;
-  // 'args' doesn't have the command name as first, argument, so add it manually;
-  // 'args' may have adjacent arguments concatenated into one argument,
-  // which the sccanparser should handle
-  args.insert( args.begin(), "sccan" );
-
-  std::remove( args.begin(), args.end(), std::string( "" ) );
-  int     argc = args.size();
-  char* * argv = new char *[args.size() + 1];
-  for( unsigned int i = 0; i < args.size(); ++i )
-    {
-      std::cout << args[i] << std::endl;
-    // allocate space for the string plus a null character
-    argv[i] = new char[args[i].length() + 1];
-    std::strncpy( argv[i], args[i].c_str(), args[i].length() );
-    // place the null character in the end
-    argv[i][args[i].length()] = '\0';
-    }
-  argv[argc] = 0;
-  // class to automatically cleanup argv upon destruction
-  class Cleanup_argv
-  {
-public:
-    Cleanup_argv( char* * argv_, int argc_plus_one_ ) : argv( argv_ ), argc_plus_one( argc_plus_one_ )
-    {
-    }
-
-    ~Cleanup_argv()
-    {
-      for( unsigned int i = 0; i < argc_plus_one; ++i )
-        {
-        delete[] argv[i];
-        }
-      delete[] argv;
-    }
-
-private:
-    char* *      argv;
-    unsigned int argc_plus_one;
-  };
-  Cleanup_argv cleanup_argv( argv, argc + 1 );
-
-  // antscout->set_stream( out_stream );
-
-  itk::ants::CommandLineParser::Pointer sccanparser =
-    itk::ants::CommandLineParser::New();
-
-  sccanparser->SetCommand( argv[0] );
-
-  std::string commandDescription =
-    std::string( "A tool for sparse statistical analysis on images : " )
-    + std::string(
-      " scca, pscca (with options), mscca.  Can also convert an imagelist/mask pair to a binary matrix image.  " );
-
-  sccanparser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( sccanparser );
 
   sccanparser->Parse( argc, argv );
 

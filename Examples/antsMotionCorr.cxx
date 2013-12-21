@@ -1400,7 +1400,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -1641,7 +1641,7 @@ private:
       " Specialized for 4D time series data: fixed image is 3D, moving image should be the 4D time series. ")
     + std::string( " Fixed image is a reference space or time slice.");
   parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  antsMotionCorrInitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
 
