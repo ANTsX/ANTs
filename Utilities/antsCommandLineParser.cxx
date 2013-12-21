@@ -78,9 +78,12 @@ CommandLineParser
   unsigned int n = 0;
   unsigned int order = 0;
 
-  this->m_Command = arguments[n++];
+  if ( arguments.size() > (n+1) )
+    {
+    this->m_Command = arguments[n++];
+    }
 
-  while( n < arguments.size() )
+  while( n < ( arguments.size() - 1 ) )
     {
     std::string argument = arguments[n++];
     std::string name;
