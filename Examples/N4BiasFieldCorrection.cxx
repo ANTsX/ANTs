@@ -460,7 +460,7 @@ int N4( itk::ants::CommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -703,7 +703,7 @@ private:
     + std::string( "IEEE Transactions on Medical Imaging, 29(6):1310-1320, June 2010." );
 
   parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  N4InitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
 

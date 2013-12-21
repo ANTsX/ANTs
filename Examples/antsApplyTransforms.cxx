@@ -582,7 +582,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   return EXIT_SUCCESS;
 }
 
-static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -821,7 +821,7 @@ private:
     + std::string( "(or a set of transforms)." );
 
   parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  antsApplyTransformsInitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
 
