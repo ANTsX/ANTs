@@ -2492,7 +2492,6 @@ int sccan( std::vector<std::string> args, std::ostream * /*out_stream = NULL */ 
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
     {
-      std::cout << args[i] << std::endl;
     // allocate space for the string plus a null character
     argv[i] = new char[args[i].length() + 1];
     std::strncpy( argv[i], args[i].c_str(), args[i].length() );
