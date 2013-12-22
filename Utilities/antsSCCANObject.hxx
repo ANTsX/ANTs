@@ -3678,7 +3678,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   std::vector<TRealType> post( beta_lasso.size() , 0 );
   for( unsigned long  j = 0; j < beta_lasso.size(); ++j ) post[ j ] = fabs( beta_lasso( j ) );
   // sort and reindex the values
-  sort( post.begin(), post.end(), my_sccan_sort_object);
+  sort( post.begin(), post.end() );
   RealType thresh = 0;
   for( unsigned long j = 0; ( ( j < beta_lasso.size() ) && ( j < n_vecs ) ); ++j )
     {
@@ -5613,7 +5613,7 @@ antsSCCANObject<TInputImage, TRealType>
       }
 
 // sort and reindex the eigenvectors/values
-    sort(evals.begin(), evals.end(), my_sccan_sort_object);
+    sort(evals.begin(), evals.end());
     std::vector<int> sorted_indices(n_vecs, -1);
     for( unsigned int i = 0; i < evals.size(); i++ )
       {
