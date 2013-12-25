@@ -1162,8 +1162,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
       }
     std::sort( estimatorParameters2.begin(), estimatorParameters2.end() );
 
-    typedef itk::Statistics::DistanceToCentroidMembershipFunction
-      <MeasurementVectorType> MembershipFunctionType;
     typename ClassifierType::MembershipFunctionVectorObjectType::Pointer
     membershipFunctions2 = ClassifierType::MembershipFunctionVectorObjectType::New();
     typename ClassifierType::MembershipFunctionVectorType & membershipFunctionsVector2 =
@@ -1195,9 +1193,6 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
     //
     // Classify the voxels
     //
-    typedef typename ClassifierType::MembershipSampleType ClassifierOutputType;
-    typedef typename ClassifierOutputType::ConstIterator  LabelIterator;
-
     ItO.GoToBegin();
     LabelIterator it2 = classifier->GetOutput()->Begin();
     while( it2 != classifier->GetOutput()->End() )

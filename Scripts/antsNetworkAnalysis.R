@@ -59,7 +59,9 @@ spec = c(
 'gdens'    , 'g', 0.25, "numeric","graph density",
 'tr'       , 't', "2x4", "character","TR for BOLD and ASL e.g. 2.2x4",
 'help'     , 'h', 0, "logical" ," print the help ", 
-'output'   , 'o', "1", "character"," the output prefix ")
+'output'   , 'o', "1", "character"," the output prefix ", 
+'bloodt1'  , 'b', 2, "numeric", "blood relaxation (inv of t1, defaults to 0.67 s^-1", 
+'robust'   , 'r', 2, "numeric", "robustness parameter")
 # ............................................. #
 spec=matrix(spec,ncol=5,byrow=TRUE)
 # get the options
@@ -86,6 +88,9 @@ cat(ex)
 q(status=1);
 }
 #
+# take care of optional parameters
+if(is.null(opt$bloodt1)) opt$bloodt1 <- 0.67
+if(is.null(opt$robust)) opt$robust <- 0.95
 for ( myfn in c( opt$mask, opt$fmri, opt$labels ) )
   {
     if ( !file.exists(myfn) ) 
@@ -139,8 +144,8 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     cbfout[ sdi <= thresh ] <- avgcbf[ sdi <= thresh ]
     fn<-paste( opt$output,"_kcbf.nii.gz",sep='')
     antsImageWrite( cbfout , fn )
-    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = 0.85 )
-    pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0 )
+    pcasl.processing <- aslPerfusion( fmri, mask=mask, moreaccurate=TRUE , dorobust = opt$robust )
+    pcasl.parameters <- list( sequence="pcasl", m0=pcasl.processing$m0, T1b=opt$bloodt1)
     cbf <- quantifyCBF( pcasl.processing$perfusion, mask, pcasl.parameters )
     filterpcasl<-getfMRInuisanceVariables( fmri, mask = mask , moreaccurate=TRUE )
     xideal<-pcasl.processing$xideal

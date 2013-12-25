@@ -1125,7 +1125,7 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void AtroposInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -1579,7 +1579,7 @@ private:
     + std::string( "Neuroinformatics. 2011 Dec;9(4):381-400." );
 
   parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  AtroposInitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
 

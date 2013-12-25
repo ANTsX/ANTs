@@ -361,7 +361,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -616,7 +616,7 @@ private:
     + std::string( "45:867--879." );
 
   parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  KellyKapowskiInitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
   if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction( 0 )->GetName() ) )

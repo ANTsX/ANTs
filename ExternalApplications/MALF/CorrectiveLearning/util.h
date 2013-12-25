@@ -23,6 +23,8 @@ Hongzhi Wang 07/19/2010
 #include <algorithm>
 using namespace std;
 
+namespace
+{
 const unsigned int Dimension = 3;
 typedef float PixelType;
 typedef itk::Image< PixelType, Dimension >  ImageType;
@@ -38,7 +40,7 @@ typedef ImageType::RegionType RegionType;
 typedef itk::Image<float, Dimension> PosteriorImage;
 typedef PosteriorImage::Pointer PosteriorImagePtr;
 typedef std::map<float, PosteriorImagePtr> PosteriorMap;
-
+}
 
 // perform thresholding and dilation to obtain region of interest for some segmentation label
 // im: input image

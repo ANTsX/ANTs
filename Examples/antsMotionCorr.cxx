@@ -927,7 +927,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       if( std::strcmp( whichTransform.c_str(), "affine" ) == 0 )
         {
         typename AffineRegistrationType::Pointer affineRegistration = AffineRegistrationType::New();
-        typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
         typename AffineTransformType::Pointer affineTransform = AffineTransformType::New();
         affineTransform->SetIdentity();
         nparams = affineTransform->GetNumberOfParameters() + 2;
@@ -1401,7 +1400,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   return EXIT_SUCCESS;
 }
 
-void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -1642,7 +1641,7 @@ private:
       " Specialized for 4D time series data: fixed image is 3D, moving image should be the 4D time series. ")
     + std::string( " Fixed image is a reference space or time slice.");
   parser->SetCommandDescription( commandDescription );
-  InitializeCommandLineOptions( parser );
+  antsMotionCorrInitializeCommandLineOptions( parser );
 
   parser->Parse( argc, argv );
 

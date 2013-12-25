@@ -24,7 +24,7 @@
 namespace ants
 {
 
-static void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
+static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
@@ -473,7 +473,7 @@ private:
       + std::string( "and smoothing-sigmas parameters are mandatory." );
 
     parser->SetCommandDescription( commandDescription );
-    InitializeCommandLineOptions( parser );
+    antsRegistrationInitializeCommandLineOptions( parser );
 
     parser->Parse( argc, argv );
 
