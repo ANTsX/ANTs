@@ -108,6 +108,7 @@ Optional arguments:
                                                 e.g 'Socrates[1]' (default) or 'Aristotle[1]'.  Choose the latter if you
                                                 want use the distance priors (see also the -l option for label propagation
                                                 control).
+     -r:  cortical label image                  Cortical ROI labels to use as a prior for ATITH.
      -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
                                                 of the form 'label[lambda,boundaryProbability]' where label is a value
                                                 of 1,2,3,... denoting label ID.  The label probability for anything
