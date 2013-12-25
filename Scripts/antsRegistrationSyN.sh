@@ -374,10 +374,10 @@ esac
 
 
 ${ANTS} --dimensionality $DIM $PRECISION \
-								--output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
-								--interpolation Linear \
-								--winsorize-image-intensities [0.005,0.995] \
-								$STAGES
+        --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
+        --interpolation Linear \
+        --winsorize-image-intensities [0.005,0.995] \
+        $STAGES
 
 ###############################
 #
