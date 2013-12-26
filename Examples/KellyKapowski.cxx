@@ -196,6 +196,7 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     whiteMatterProbabilityImage = smoother->GetOutput();
     }
   direct->SetWhiteMatterProbabilityImage( whiteMatterProbabilityImage );
+
   //
   // label priors
   //
@@ -205,13 +206,9 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     {
     std::string labFile = tpOption->GetFunction( 0 )->GetName();
     ReadImage<ImageType>( thicknessPriorImage, labFile.c_str()   );
+    direct->SetThicknessPriorImage( thicknessPriorImage );
     }
-  else
-    {
-    std::cout << "  White matter probability image not specified. "
-             << "Creating one from the segmentation image." << std::endl << std::endl;
-    }
-  direct->SetThicknessPriorImage( thicknessPriorImage );
+
   //
   // convergence options
   //
