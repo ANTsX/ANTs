@@ -131,6 +131,74 @@ int PrintHeader(int argc, char *argv[])
     }
   reader->SetFileName(argv[1]);
   reader->Update();
+
+  // Print only specific header information
+
+  if( argc > 2 )
+    {
+    switch( atoi( argv[2] ) )
+      {
+      case 0:
+        {
+        for( int d = 0; d < static_cast<int>( ImageDimension )-1; d++ )
+          {
+          std::cout << reader->GetOutput()->GetOrigin()[d] << 'x';
+          }
+        std::cout << reader->GetOutput()->GetOrigin()[static_cast<int>( ImageDimension )-1] << std::endl;
+        break;
+        }
+      case 1:
+        {
+        for( int d = 0; d < static_cast<int>( ImageDimension )-1; d++ )
+          {
+          std::cout << reader->GetOutput()->GetSpacing()[d] << 'x';
+          }
+        std::cout << reader->GetOutput()->GetSpacing()[static_cast<int>( ImageDimension )-1] << std::endl;
+        break;
+        }
+      case 2:
+        {
+        for( int d = 0; d < static_cast<int>( ImageDimension )-1; d++ )
+          {
+          std::cout << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[d] << 'x';
+          }
+        std::cout << reader->GetOutput()->GetLargestPossibleRegion().GetSize()[static_cast<int>( ImageDimension )-1] << std::endl;
+        break;
+        }
+      case 3:
+        {
+        for( int d = 0; d < static_cast<int>( ImageDimension )-1; d++ )
+          {
+          std::cout << reader->GetOutput()->GetLargestPossibleRegion().GetIndex()[d] << 'x';
+          }
+        std::cout << reader->GetOutput()->GetLargestPossibleRegion().GetIndex()[static_cast<int>( ImageDimension )-1] << std::endl;
+        break;
+        }
+      case 4:
+        {
+        for( int di = 0; di < static_cast<int>( ImageDimension ); di++ )
+          {
+          for( int dj = 0; dj < static_cast<int>( ImageDimension ); dj++ )
+            {
+            std::cout << reader->GetOutput()->GetDirection()[di][dj];
+            if( di == dj && di == static_cast<int>( ImageDimension )-1 )
+              {
+              std::cout << std::endl;
+              }
+            else
+              {
+              std::cout << 'x';
+              }
+            }
+          }
+        break;
+        }
+      }
+    return EXIT_SUCCESS;
+    }
+
+  // else print out entire header information
+
   std::cout << " Spacing " << reader->GetOutput()->GetSpacing() << std::endl;
   std::cout << " Origin " << reader->GetOutput()->GetOrigin() << std::endl;
   std::cout << " Direction " << std::endl << reader->GetOutput()->GetDirection() << std::endl;
@@ -375,7 +443,13 @@ private:
 
   if( argc < 2  || ( (argc == 2) && ( strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0 ) ) )
     {
-    std::cout << "Usage:  " << argv[0] << " image.ext " << std::endl;
+    std::cout << "Usage:  " << argv[0] << " image.ext [whatInformation]" << std::endl;
+    std::cout << "  whatInformation:  " << std::endl;
+    std::cout << "    0 = origin" << std::endl;
+    std::cout << "    1 = spacing" << std::endl;
+    std::cout << "    2 = size" << std::endl;
+    std::cout << "    3 = index" << std::endl;
+    std::cout << "    4 = direction" << std::endl;
     if( argc < 2 )
       {
       return EXIT_FAILURE;

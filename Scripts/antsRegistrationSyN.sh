@@ -176,7 +176,7 @@ function reportMappingParameters {
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
  Transform type:           $TRANSFORMTYPE
---------------------------------------------------------------------------------------
+======================================================================================
 REPORTMAPPINGPARAMETERS
 }
 
@@ -196,10 +196,10 @@ runningANTSpids=( `ps -C antsRegistration | awk '{ printf "%s\n", $1 ; }'` )
   #echo list 1: ${runningANTSpids[@]}
 
 # kill these processes, skip the first since it is text and not a PID
-for ((i = 1; i < ${#runningANTSpids[@]} ; i++))
+for (( i = 1; i < ${#runningANTSpids[@]}; i++ ))
   do
-  echo "killing:  ${runningANTSpids[${i}]}"
-  kill ${runningANTSpids[${i}]}
+    echo "killing:  ${runningANTSpids[${i}]}"
+    kill ${runningANTSpids[${i}]}
 done
 
   return $?
@@ -303,7 +303,30 @@ export ITK_GLOBAL_DEFAULT_NUMBER_OF_THREADS
 # Print out options
 #
 ##############################
+
 reportMappingParameters
+
+##############################
+#
+# Infer the number of levels based on
+# the size of the input fixed image.
+#
+##############################
+
+ISLARGEIMAGE=0
+
+SIZESTRING=$( ${ANTSPATH}/PrintHeader $FIXEDIMAGE 2 )
+SIZESTRING="${SIZESTRING%\\n}"
+SIZE=( `echo $SIZESTRING | tr 'x' ' '` )
+
+for (( i = 0; i < ${#SIZE[@]}; i++ ))
+  do
+    if [[ ${SIZE[$i]} -gt 256 ]];
+      then
+        ISLARGEIMAGE=1
+        break
+      fi
+  done
 
 ##############################
 #
@@ -311,23 +334,50 @@ reportMappingParameters
 #
 ##############################
 
+RIGIDCONVERGENCE="[1000x500x250x100,1e-6,10]"
+RIGIDSHRINKFACTORS="8x4x2x1"
+RIGIDSMOOTHINGSIGMAS="3x2x1x0vox"
+
+AFFINECONVERGENCE="[1000x500x250x100,1e-6,10]"
+AFFINESHRINKFACTORS="8x4x2x1"
+AFFINESMOOTHINGSIGMAS="3x2x1x0vox"
+
+SYNCONVERGENCE="[100x70x50x20,1e-6,10]"
+SYNSHRINKFACTORS="8x4x2x1"
+SYNSMOOTHINGSIGMAS="3x2x1x0vox"
+
+if [[ $ISLARGEIMAGE -eq 1 ]];
+  then
+    RIGIDCONVERGENCE="[1000x500x250x100x0,1e-6,10]"
+    RIGIDSHRINKFACTORS="12x8x4x2x1"
+    RIGIDSMOOTHINGSIGMAS="4x3x2x1x0vox"
+
+    AFFINECONVERGENCE="[1000x500x250x100x0,1e-6,10]"
+    AFFINESHRINKFACTORS="12x8x4x2x1"
+    AFFINESMOOTHINGSIGMAS="4x3x2x1x0vox"
+
+    SYNCONVERGENCE="[100x100x70x50x20,1e-6,10]"
+    SYNSHRINKFACTORS="10x6x4x2x1"
+    SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
+  fi
+
 RIGIDSTAGE="--initial-moving-transform [$FIXEDIMAGE,$MOVINGIMAGE,1] \
             --transform Rigid[0.1] \
             --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
-            --convergence 1000x500x250x100 \
-            --shrink-factors 8x4x2x1 \
-            --smoothing-sigmas 3x2x1x0"
+            --convergence $RIGIDCONVERGENCE \
+            --shrink-factors $RIGIDSHRINKFACTORS \
+            --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
 AFFINESTAGE="--transform Affine[0.1] \
              --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
-             --convergence 1000x500x250x100 \
-             --shrink-factors 8x4x2x1 \
-             --smoothing-sigmas 3x2x1x0"
+             --convergence $AFFINECONVERGENCE \
+             --shrink-factors $AFFINESHRINKFACTORS \
+             --smoothing-sigmas $AFFINESMOOTHINGSIGMAS"
 
 SYNSTAGE="--metric CC[$FIXEDIMAGE,$MOVINGIMAGE,1,4] \
-          --convergence 100x70x50x20 \
-          --shrink-factors 6x4x2x1 \
-          --smoothing-sigmas 3x2x1x0"
+          --convergence $SYNCONVERGENCE \
+          --shrink-factors $SYNSHRINKFACTORS \
+          --smoothing-sigmas $SYNSMOOTHINGSIGMAS"
 
 if [[ $TRANSFORMTYPE == 'b' ]];
   then
@@ -371,13 +421,18 @@ case "$PRECISIONTYPE" in
   ;;
 esac
 
+COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
+                 --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
+                 --interpolation Linear \
+                 --winsorize-image-intensities [0.005,0.995] \
+                 $STAGES"
 
+echo " antsRegistration call:"
+echo "--------------------------------------------------------------------------------------"
+echo ${COMMAND}
+echo "--------------------------------------------------------------------------------------"
 
-${ANTS} --dimensionality $DIM $PRECISION \
-        --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
-        --interpolation Linear \
-        --winsorize-image-intensities [0.005,0.995] \
-        $STAGES
+$COMMAND
 
 ###############################
 #
