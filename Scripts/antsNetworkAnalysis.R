@@ -131,8 +131,8 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
   {
     mat<-timeseries2matrix( fmri, mask )
     cbflist<-list( ) 
-    for ( i in 1:nboot ) {
-      timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(pctboot/2) ) 
+    for ( i in 1:opt$nboot ) {
+      timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(opt$pctboot/2) ) 
       timeinds<-( timeinds %% 2 )+timeinds
       timeinds<-interleave( timeinds-1, timeinds )
       aslarr<-as.array( fmri ) 
