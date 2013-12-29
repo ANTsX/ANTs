@@ -61,7 +61,9 @@ spec = c(
 'help'     , 'h', 0, "logical" ," print the help ", 
 'output'   , 'o', "1", "character"," the output prefix ", 
 'bloodt1'  , 'b', 2, "numeric", "blood relaxation (inv of t1, defaults to 0.67 s^-1", 
-'robust'   , 'r', 2, "numeric", "robustness parameter")
+'robust'   , 'r', 2, "numeric", "robustness parameter", 
+'nboot'    , 'n', 2, "numeric", "number of bootstrap runs", 
+'pctboot'  , 'p', 2, "numeric", "percent to sample per bootstrap run")
 # ............................................. #
 spec=matrix(spec,ncol=5,byrow=TRUE)
 # get the options
@@ -91,6 +93,12 @@ q(status=1);
 # take care of optional parameters
 if(is.null(opt$bloodt1)) opt$bloodt1 <- 0.67
 if(is.null(opt$robust)) opt$robust <- 0.95
+if(is.null(opt$nboot)) opt$nboot <- 20
+if(is.null(opt$pctboot)) opt$pctboot <- 0.70
+if(opt$pctboot > 1.0) {
+  cat('pctboot was greater than 1; setting to 70%.\n')
+  opt$pctboot <- 0.70 
+}
 for ( myfn in c( opt$mask, opt$fmri, opt$labels ) )
   {
     if ( !file.exists(myfn) ) 
@@ -123,15 +131,15 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
   {
     mat<-timeseries2matrix( fmri, mask )
     cbflist<-list( ) 
-    for ( i in 1:20 ) {
-      timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*0.35 ) 
+    for ( i in 1:nboot ) {
+      timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(pctboot/2) ) 
       timeinds<-( timeinds %% 2 )+timeinds
       timeinds<-interleave( timeinds-1, timeinds )
       aslarr<-as.array( fmri ) 
       aslarr2<-aslarr[,,,timeinds]
       aslsub<-as.antsImage( aslarr2 )
       antsSetSpacing( aslsub , antsGetSpacing( fmri ) )
-      proc <- aslPerfusion( aslsub, mask=mask, moreaccurate=TRUE ,  dorobust=0.95 )
+      proc <- aslPerfusion( aslsub, mask=mask, moreaccurate=TRUE ,  dorobust=opt$robust )
       param <- list( sequence="pcasl", m0=proc$m0 )
       cbf <- quantifyCBF( proc$perfusion, mask, param )
       cbflist<-lappend( cbflist, cbf$kmeancbf )
