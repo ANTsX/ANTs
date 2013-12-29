@@ -263,7 +263,7 @@ ${ANTSPATH}antsApplyTransforms -d 3 \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}SegmentationWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t [${OUTNAME}0GenericAffine.mat, 1]
+  -t [${OUTNAME}0GenericAffine.mat, 1] \
   -t ${OUTNAME}1InverseWarp.nii.gz
 
 ${ANTSPATH}antsApplyTransforms -d 3 \
