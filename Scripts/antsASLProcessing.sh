@@ -27,6 +27,7 @@ Usage:
 Required arguments: 
 `basename $0` -a anatomical image (skull stripped)  
               -p brain segmentation priors (C-style, e.g. priors%d.nii.gz) 
+              -g hard brain segmentation
               -x t1 brain mask
               -s raw pCASL image 
               -e brain template
@@ -190,6 +191,10 @@ fi
 if [[ ! -f $LABELS ]]
 then 
   echo "ERROR: Template label image $LABELS does not exist."
+fi
+if [[ ! -f $SEGMENTATION ]]
+then 
+  echo "ERROR: Segmentation image $SEGMENTATION does not exist."
 fi
 if [[ ! -f ${TRANSFORM_PREFIX}1Warp.nii.gz ]]
 then 
