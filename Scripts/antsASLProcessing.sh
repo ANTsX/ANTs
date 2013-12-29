@@ -195,6 +195,7 @@ fi
 if [[ ! -f $SEGMENTATION ]]
 then 
   echo "ERROR: Segmentation image $SEGMENTATION does not exist."
+  exit 1
 fi
 if [[ ! -f ${TRANSFORM_PREFIX}1Warp.nii.gz ]]
 then 
