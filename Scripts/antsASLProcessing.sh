@@ -27,6 +27,7 @@ Usage:
 Required arguments: 
 `basename $0` -a anatomical image (skull stripped)  
               -p brain segmentation priors (C-style, e.g. priors%d.nii.gz) 
+              -g hard brain segmentation
               -x t1 brain mask
               -s raw pCASL image 
               -e brain template
@@ -191,6 +192,11 @@ if [[ ! -f $LABELS ]]
 then 
   echo "ERROR: Template label image $LABELS does not exist."
 fi
+if [[ ! -f $SEGMENTATION ]]
+then 
+  echo "ERROR: Segmentation image $SEGMENTATION does not exist."
+  exit 1
+fi
 if [[ ! -f ${TRANSFORM_PREFIX}1Warp.nii.gz ]]
 then 
   echo "ERROR: Warp ${TRANSFORM_PREFIX}Warp.nii.gz does not exist."
@@ -263,7 +269,7 @@ ${ANTSPATH}antsApplyTransforms -d 3 \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}SegmentationWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t [${OUTNAME}0GenericAffine.mat, 1]
+  -t [${OUTNAME}0GenericAffine.mat, 1] \
   -t ${OUTNAME}1InverseWarp.nii.gz
 
 ${ANTSPATH}antsApplyTransforms -d 3 \
