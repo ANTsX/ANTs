@@ -38,6 +38,8 @@ Optional arguments:
               -b blood T1 value (defaults to 0.67 s^-1) 
 	      -r robustness parameter (defaults to 0.95)             
 	      -h print help and exit
+	      -n number of bootstrap samples (defaults to 20)
+	      -c percent to sample per bootstrap run (defaults to 70)
 USAGE
   exit 1 
 }
@@ -57,6 +59,8 @@ echoParameters() {
    output prefix:      $OUTNAME  
    blood relaxation:   $BLOODT1 s^-1
    robustness:         $ROBUST
+   num bootstraps:     $NBOOTSTRAP
+   pct per bootstrap:  $PCTBOOTSTRAP
 PARAMETERS
 }
 
@@ -112,6 +116,12 @@ else
       r) # robustness
     ROBUST=$OPTARG
     ;;
+      n) # number of bootstrap runs
+    NBOOTSTRAP=$OPTARG
+    ;;
+      c) # pct to sample per bootstrap
+    PCTBOOTSTRAP=$OPTARG
+    ;;
       h) # help
     Usage >&2
     exit 0
@@ -132,7 +142,14 @@ if [[ -z $ROBUST ]]
 then 
   ROBUST=0.95
 fi
-
+if [[ -z $NBOOTSTRAP ]]
+then 
+  NBOOTSTRAP=20
+fi
+if [[ -z $PCTBOOTSTRAP ]]
+then 
+  PCTBOOTSTRAP=0.35
+fi
 echoParameters >&2
 
 # parse prior syntax
@@ -244,7 +261,9 @@ logCmd ${ANTSPATH}antsNetworkAnalysis.R \
   --fmri $PCASL \
   --modality ASLCBF \
   --bloodt1 $BLOODT1 \
-  --robust $ROBUST
+  --robust $ROBUST \
+  --nboot $NBOOTSTRAP \
+  --pctboot $PCTBOOTSTRAP
 
 ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
