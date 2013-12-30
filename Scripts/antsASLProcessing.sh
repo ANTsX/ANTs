@@ -80,7 +80,7 @@ then
   Usage >&2
   exit 1
 else 
-  while getopts "a:s:e:p:t:o:x:l:b:r:g:h" OPT
+  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:h" OPT
   do 
     case $OPT in 
       a) #anatomical t1 image
