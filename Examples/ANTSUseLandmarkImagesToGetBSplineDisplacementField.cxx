@@ -340,7 +340,6 @@ int LandmarkBasedDisplacementFieldTransformInitializer( int argc, char *argv[] )
           fixedPhysicalPoint[i] = fpoint[i];
           vector[i] = mpoint[i] - fpoint[i];
           }
-        std::cout << vector << std::endl;
 
         itk::ContinuousIndex<double, ImageDimension> fixedCidx;
         fixedImage->TransformPhysicalPointToContinuousIndex( fixedPhysicalPoint, fixedCidx );
