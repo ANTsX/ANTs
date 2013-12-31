@@ -225,6 +225,9 @@ then
   echo "       Check that you defined prior file names correctly."
 fi
 
+time_start=`date +%s`
+
+
 # Do processing. 
 if [[ ! -d `dirname $OUTNAME` ]]
 then 
@@ -246,12 +249,12 @@ fi
 
 logCmd ${ANTSPATH}/antsIntermodalityIntrasubject.sh $INTERSUBJECT_PARAMS
 
-${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}OtsuMask.nii.gz Otsu 4
-${ANTSPATH}ThresholdImage 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}OtsuMask.nii.gz 2 4
-${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz ME ${OUTNAME}OtsuMask.nii.gz 1
-${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.nii.gz 1
-${ANTSPATH}ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
-${ANTSPATH}MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
+logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}OtsuMask.nii.gz Otsu 4
+logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}OtsuMask.nii.gz 2 4
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz ME ${OUTNAME}OtsuMask.nii.gz 1
+logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.nii.gz 1
+logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
+logCmd ${ANTSPATH}MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
 
 logCmd ${ANTSPATH}antsNetworkAnalysis.R \
   -o $OUTNAME \
@@ -265,7 +268,7 @@ logCmd ${ANTSPATH}antsNetworkAnalysis.R \
   --nboot $NBOOTSTRAP \
   --pctboot $PCTBOOTSTRAP
 
-${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
   -r $TEMPLATE \
   -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
@@ -275,7 +278,7 @@ ${ANTSPATH}antsApplyTransforms -d 3 \
   -t ${OUTNAME}1Warp.nii.gz \
   -t ${OUTNAME}0GenericAffine.mat
 
-${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
   -r $ANATOMICAL_IMAGE \
   -o ${OUTNAME}MeanCBFWarpedToT1.nii.gz \
@@ -283,7 +286,7 @@ ${ANTSPATH}antsApplyTransforms -d 3 \
   -t ${OUTNAME}1Warp.nii.gz \
   -t ${OUTNAME}0GenericAffine.mat
 
-${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i $SEGMENTATION \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}SegmentationWarpedToPCASL.nii.gz \
@@ -291,7 +294,7 @@ ${ANTSPATH}antsApplyTransforms -d 3 \
   -t [${OUTNAME}0GenericAffine.mat, 1] \
   -t ${OUTNAME}1InverseWarp.nii.gz
 
-${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i $LABELS \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
@@ -300,4 +303,17 @@ ${ANTSPATH}antsApplyTransforms -d 3 \
   -t [${OUTNAME}0GenericAffine.mat,1] \
   -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
   -t ${TRANSFORM_PREFIX}0GenericAffine.mat
+
+
+time_end=`date +%s`
+time_elapsed=$((time_end - time_start))
+
+echo
+echo "--------------------------------------------------------------------------------------"
+echo " Done with ANTs intermodality intrasubject processing pipeline"
+echo " Script executed in $time_elapsed seconds"
+echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
+echo "--------------------------------------------------------------------------------------"
+
+exit 0
 
