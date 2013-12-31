@@ -40,6 +40,7 @@ Optional arguments:
 	      -h print help and exit
 	      -n number of bootstrap samples (defaults to 20)
 	      -c percent to sample per bootstrap run (defaults to 70)
+	      -k keep tmp files, including warps (defaults to false--takes lots of space to save)
 USAGE
   exit 1 
 }
@@ -61,6 +62,7 @@ echoParameters() {
    robustness:         $ROBUST
    num bootstraps:     $NBOOTSTRAP
    pct per bootstrap:  $PCTBOOTSTRAP
+   keep tmp files:     $KEEP_TMP_FILES
 PARAMETERS
 }
 
@@ -74,13 +76,13 @@ function logCmd() {
   echo
 }
 
-
+KEEP_TMP_FILES=false 
 if [[ $# -lt 3 ]] 
 then 
   Usage >&2
   exit 1
 else 
-  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:h" OPT
+  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:kh" OPT
   do 
     case $OPT in 
       a) #anatomical t1 image
@@ -121,6 +123,9 @@ else
     ;;
       c) # pct to sample per bootstrap
     PCTBOOTSTRAP=$OPTARG
+    ;;
+      k) # keep tmp files 
+    KEEP_TMP_FILES=true
     ;;
       h) # help
     Usage >&2
@@ -303,6 +308,14 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -t [${OUTNAME}0GenericAffine.mat,1] \
   -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
   -t ${TRANSFORM_PREFIX}0GenericAffine.mat
+
+if ! $KEEP_TMP_FILES
+then
+  for FILE in 0GenericAffine.mat 1Warp.nii.gz 1InverseWarp.nii.gz anatomical.nii.gz template.nii.gz tmp.nii.gz
+  do
+    logCmd rm ${OUTNAME}${FILE}
+  done
+fi
 
 
 time_end=`date +%s`
