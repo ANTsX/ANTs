@@ -148,7 +148,7 @@ then
 fi
 if [[ -z $PCTBOOTSTRAP ]]
 then 
-  PCTBOOTSTRAP=0.35
+  PCTBOOTSTRAP=0.70
 fi
 echoParameters >&2
 
