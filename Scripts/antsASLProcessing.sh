@@ -323,8 +323,8 @@ time_elapsed=$((time_end - time_start))
 
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Done with ANTs intermodality intrasubject processing pipeline"
-echo " Script executed in $time_elapsed seconds"
+echo " Done with ANTs ASL processing pipeline."
+echo " Script executed in $time_elapsed seconds."
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
 echo "--------------------------------------------------------------------------------------"
 
