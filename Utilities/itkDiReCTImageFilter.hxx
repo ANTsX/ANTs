@@ -361,10 +361,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
           RealType norm = ( ItGradientImage.Get() ).GetNorm();
           if( norm > 1e-3 && !vnl_math_isnan( norm ) && !vnl_math_isinf( norm ) )
             {
-	           if( ! this->m_ThicknessPriorImage  )
-	             {
-	             ItGradientImage.Set( ItGradientImage.Get() / norm );
-	             }
+            ItGradientImage.Set( ItGradientImage.Get() / norm );
             }
           else
             {
@@ -372,27 +369,6 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             }
           RealType delta = ( ItWarpedWhiteMatterProbabilityMap.Get() - ItGrayMatterProbabilityMap.Get() );
           currentEnergy += vnl_math_abs( delta );
-
-										if( this->m_ThicknessPriorImage )
-												{
-												typename RealImageType::IndexType index = ItGrayMatterProbabilityMap.GetIndex();
-												RealType thicknessPrior = this->m_ThicknessPriorImage->GetPixel( index );
-												RealType thicknessValue = thicknessImage->GetPixel( index );
-												if( thicknessValue > thicknessPrior )
-												  {
-												  priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );
-												  priorEnergyCount++;
-												  }
-												if( ( thicknessPrior > NumericTraits<RealType>::min() ) &&
-										      ( thicknessValue > thicknessPrior ) )
-														{
-														RealType downScale = vnl_math_abs( thicknessPrior / thicknessValue ) * this->m_ThicknessPriorEstimate;
-														if( integrationPoint > 0 )
-														  {
-																velocityField->SetPixel( index , velocityField->GetPixel( index ) * downScale );
-																}
-														}
-												}
           numberOfGrayMatterVoxels++;
           RealType speedValue = -1.0 * delta * ItGrayMatterProbabilityMap.Get() * this->m_CurrentGradientStep;
           if( vnl_math_isnan( speedValue ) || vnl_math_isinf( speedValue ) )
@@ -598,14 +574,29 @@ DiReCTImageFilter<TInputImage, TOutputImage>
             {
             thicknessValue = 0.0;
             }
-//           if( thicknessValue > this->m_ThicknessPriorEstimate )
-//             {
-// //             thicknessValue = this->m_ThicknessPriorEstimate;
-//             RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
-//             ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
-//             }
+          if( ! this->m_ThicknessPriorImage && ( thicknessValue > this->m_ThicknessPriorEstimate ) )
+            {
+            RealType fraction = this->m_ThicknessPriorEstimate / thicknessValue;
+            ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+            }
+          else if( this->m_ThicknessPriorImage )
+            {
+            typename RealImageType::IndexType index = ItSegmentationImage.GetIndex();
+            RealType thicknessPrior = this->m_ThicknessPriorImage->GetPixel( index );
+            if( ( thicknessPrior > NumericTraits<RealType>::Zero ) &&
+                ( thicknessValue > thicknessPrior ) )
+              {
+              priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );
+              priorEnergyCount++;
+              }
+            if( ( thicknessPrior > NumericTraits<RealType>::Zero ) &&
+                ( thicknessValue > thicknessPrior ) )
+              {
+              RealType fraction = thicknessPrior / thicknessValue;
+              ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
+              }
+            }
           }
-
         ItCorticalThicknessImage.Set( thicknessValue );
         }
 
