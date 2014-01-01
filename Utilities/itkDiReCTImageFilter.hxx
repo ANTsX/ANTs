@@ -588,10 +588,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
               {
               priorEnergy += vnl_math_abs( thicknessPrior - thicknessValue );
               priorEnergyCount++;
-              }
-            if( ( thicknessPrior > NumericTraits<RealType>::Zero ) &&
-                ( thicknessValue > thicknessPrior ) )
-              {
+
               RealType fraction = thicknessPrior / thicknessValue;
               ItVelocityField.Set( ItVelocityField.Get() * vnl_math_sqr( fraction ) );
               }
