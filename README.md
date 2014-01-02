@@ -35,7 +35,8 @@ Authors
 
 ### Nicholas J. Tustison - UVA
 
-**Role:** Compeller, Algorithm Design, Implementation Guru
+**Role:** Compeller, Algorithm Design, Implementation Guru,
+[more](http://ntustison.github/io/CV/)
 
 ### Hans J. Johnson - UIowa
 
