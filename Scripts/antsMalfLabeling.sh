@@ -377,6 +377,9 @@ jobIDs=""
 
 WARPED_ATLAS_IMAGES=()
 WARPED_ATLAS_LABELS=()
+AFFINE_FILES=()
+WARP_FIELDS=()
+INVERSE_WARP_FIELDS=()
 
 for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
   do
@@ -402,6 +405,9 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 
     WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}Warped.nii.gz"
     WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz"
+    WARP_FIELDS[${#WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz"
+    INVERSE_WARP_FIELDS[${#INVERSE_WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1InverseWarp.nii.gz"
+    AFFINE_FILES[${#AFFINE_FILES[@]}]="${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat"
 
     qscript="${OUTPUT_DIR}/job_${BASENAME}.sh"
 
@@ -429,7 +435,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
       fi
 done
 
-malfCall="${ANTSPATH}/jointfusion ${DIM} -m Joint[0.1,2] 1 -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
 qscript2="${OUTPUT_PREFIX}MALF.sh"
 echo "$malfCall" > $qscript2
@@ -442,14 +448,15 @@ if [[ $DOQSUB -eq 1 ]];
     echo " Starting MALF on SGE cluster. Submitted $count jobs "
     echo "--------------------------------------------------------------------------------------"
     # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-    ${ANTSPATH}waitForSGEQJobs.pl 1 60 $jobIDs
+    ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
       then
         echo "qsub submission failed - jobs went into error state"
         exit 1;
       fi
-    `qsub -cwd -S /bin/bash -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
+    jobIDs=`qsub -cwd -S /bin/bash -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
+    ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
   fi
 if [[ $DOQSUB -eq 4 ]];
   then
@@ -466,7 +473,8 @@ if [[ $DOQSUB -eq 4 ]];
         echo "qsub submission failed - jobs went into error state"
         exit 1;
       fi
-    `qsub -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
+    jobIDs=`qsub -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
+    ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
   fi
 
 if [[ $DOQSUB -eq 2 ]];
@@ -503,6 +511,9 @@ if [[ $KEEP_ALL_IMAGES -eq 0 ]];
   then
     rm -f ${WARPED_ATLAS_IMAGES[@]}
     rm -f ${WARPED_ATLAS_LABELS[@]}
+    rm -f ${AFFINE_FILES[@]}
+    rm -f ${WARP_FIELDS[@]}
+    rm -f ${INVERSE_WARP_FIELDS[@]}
   fi
 
 time_end=`date +%s`
