@@ -97,9 +97,9 @@ Optional arguments:
 
 Example:
 
-`basename $0` -d 3 -t target.nii.gz -o malf \\n
-              -g atlas1.nii.gz -l labels1.nii.gz \\n
-              -g atlas2.nii.gz -l labels2.nii.gz \\n
+`basename $0` -d 3 -t target.nii.gz -o malf \
+              -g atlas1.nii.gz -l labels1.nii.gz \
+              -g atlas2.nii.gz -l labels2.nii.gz \
               -g atlas3.nii.gz -l labels3.nii.gz
 
 --------------------------------------------------------------------------------------
@@ -135,9 +135,9 @@ Usage:
 
 Example Case:
 
-`basename $0` -d 3 -t target.nii.gz -o malf \\n
-              -g atlas1.nii.gz -l labels1.nii.gz \\n
-              -g atlas2.nii.gz -l labels2.nii.gz \\n
+`basename $0` -d 3 -t target.nii.gz -o malf \
+              -g atlas1.nii.gz -l labels1.nii.gz \
+              -g atlas2.nii.gz -l labels2.nii.gz \
               -g atlas3.nii.gz -l labels3.nii.gz
 
 
@@ -349,6 +349,12 @@ if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
         echo "do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ..."
         exit 1
       fi
+  fi
+
+if [[ ! -f "$TARGET_IMAGE" ]];
+  then
+    echo "Target image '$TARGET_IMAGE' does not exist.  See usage: '$0 -h 1'"
+    exit
   fi
 
 if [[ ${#ATLAS_IMAGES[@]} -ne ${#ATLAS_LABELS[@]} ]];
