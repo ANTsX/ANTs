@@ -388,24 +388,25 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -p f \
                           -f ${TARGET_IMAGE} \
                           -m ${ATLAS_IMAGES[$i]} \
-                          -o ${OUTPUT_PREFIX}_${BASENAME}"
+                          -o ${OUTPUT_PREFIX}${BASENAME}"
 
     labelXfrmCall="${ANTSPATH}/antsApplyTransforms \
                           -d ${DIM} \
                           --float 1 \
                           -i ${ATLAS_LABELS[$i]} \
                           -r ${TARGET_IMAGE} \
-                          -o ${OUTPUT_PREFIX}_${BASENAME}WarpedLabels.nii.gz \
+                          -o ${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz \
                           -n NearestNeighbor \
-                          -t ${OUTPUT_PREFIX}_${BASENAME}1Warp.nii.gz \
-                          -t ${OUTPUT_PREFIX}_${BASENAME}0GenericAffine.mat"
+                          -t ${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz \
+                          -t ${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat"
 
-    WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}_${BASENAME}Warped.nii.gz"
-    WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}_${BASENAME}WarpedLabels.nii.gz"
+    WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}Warped.nii.gz"
+    WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz"
 
     qscript="${OUTPUT_DIR}/job_${BASENAME}.sh"
 
-    echo "$registrationCall\n\n$labelXfrmCall" > $qscript
+    echo "$registrationCall" > $qscript
+    echo "$labelXfrmCall" >> $qscript
 
     if [[ $DOQSUB -eq 1 ]];
       then
@@ -430,7 +431,7 @@ done
 
 malfCall="${ANTSPATH}/jointfusion ${DIM} -m Joint[0.1,2] 1 -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
-qscript2="${OUTPUT_PREFIX}_MALF.sh"
+qscript2="${OUTPUT_PREFIX}MALF.sh"
 echo "$malfCall" > $qscript2
 
 if [[ $DOQSUB -eq 1 ]];
