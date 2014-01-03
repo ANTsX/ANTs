@@ -268,6 +268,10 @@ while getopts "d:f:h:m:n:o:p:s:t:" OPT
       t)  # transform type
    TRANSFORMTYPE=$OPTARG
    ;;
+     \?) # getopts issues an error message
+   echo "$USAGE" >&2
+   exit 1
+   ;;
   esac
 done
 
