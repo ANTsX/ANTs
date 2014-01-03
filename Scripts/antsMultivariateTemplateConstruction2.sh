@@ -106,7 +106,7 @@ Optional arguments:
 
      -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
 
-     -j: Number of cpu cores to use (default 2; -- requires "-c 2" or "-c 4")
+     -j:  Number of cpu cores to use (default 2; -- requires "-c 2")
 
      -k:  Number of modalities used to construct the template (default 1)
 
@@ -114,9 +114,9 @@ Optional arguments:
 
      -q:  Max iterations for each registration
 
-     -f: shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -f:  Shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
 
-     -s: smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -s:  Smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
 
      -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
 
@@ -193,7 +193,7 @@ Example Case:
  - With Greedy-SyN and CC metrics to guide the mapping.
  - Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
  - The -c option is set to 1 which will try to use SGE to distribute the computation.
- - If you do not have SGE, use -c 0 or -c 2 combined with -j.
+ - If you do not have SGE or PBS, use -c 0 or -c 2 combined with -j.
 
  - Continue reading this help file if things are not yet clear.
 

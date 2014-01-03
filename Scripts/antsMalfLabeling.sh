@@ -93,7 +93,7 @@ Optional arguments:
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
 
-     -j: Number of cpu cores to use (default 2; -- requires "-c 2" or "-c 4")
+     -j: Number of cpu cores to use (default 2; -- requires "-c 2")
 
 Example:
 
@@ -149,7 +149,7 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
      -t:  TargetImage:    Target image to be labeled.
 
-     -g:  Atlas:          Atlas to be wapred to target image.
+     -g:  Atlas:          Atlas to be warped to target image.
 
      -l:  Labels:         Labels corresponding to atlas (cf -g).
 
@@ -160,7 +160,7 @@ Optional arguments:
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
           2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
 
-     -j: Number of cpu cores to use (default 2; -- requires "-c 2" or "-c 4")
+     -j: Number of cpu cores to use (default 2; -- requires "-c 2")
 
 Requirements:
 
@@ -324,7 +324,7 @@ while getopts "c:d:g:h:j:k:l:o:t:" OPT
       k)
    KEEP_ALL_IMAGES=$OPTARG
    ;;
-      g)
+      l)
    ATLAS_LABELS[${#ATLAS_LABELS[@]}]=$OPTARG
    ;;
       o)
