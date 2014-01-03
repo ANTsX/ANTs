@@ -457,8 +457,8 @@ if [[ $DOQSUB -eq 4 ]];
     echo "--------------------------------------------------------------------------------------"
     echo " Starting MALF on PBS cluster. Submitted $count jobs "
     echo "--------------------------------------------------------------------------------------"
-           # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-    ${ANTSPATH}waitForPBSQJobs.pl 1 60 $jobIDs
+           # now wait for the jobs to finish. Poll every 10 minutes.
+    ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
       then
