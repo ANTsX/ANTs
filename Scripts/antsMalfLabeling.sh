@@ -97,9 +97,9 @@ Optional arguments:
 
 Example:
 
-`basename $0` -d 3 -t target.nii.gz -o malf \
-              -g atlas1.nii.gz -l labels1.nii.gz \
-              -g atlas2.nii.gz -l labels2.nii.gz \
+`basename $0` -d 3 -t target.nii.gz -o malf \\n
+              -g atlas1.nii.gz -l labels1.nii.gz \\n
+              -g atlas2.nii.gz -l labels2.nii.gz \\n
               -g atlas3.nii.gz -l labels3.nii.gz
 
 --------------------------------------------------------------------------------------
@@ -135,9 +135,9 @@ Usage:
 
 Example Case:
 
-`basename $0` -d 3 -t target.nii.gz -o malf \
-              -g atlas1.nii.gz -l labels1.nii.gz \
-              -g atlas2.nii.gz -l labels2.nii.gz \
+`basename $0` -d 3 -t target.nii.gz -o malf \\n
+              -g atlas1.nii.gz -l labels1.nii.gz \\n
+              -g atlas2.nii.gz -l labels2.nii.gz \\n
               -g atlas3.nii.gz -l labels3.nii.gz
 
 
@@ -356,6 +356,8 @@ if [[ ${#ATLAS_IMAGES[@]} -ne ${#ATLAS_LABELS[@]} ]];
     echo "The number of atlas images does not equal the number of labels.  Ensure that a corresponding set of labels exist for each image."
     exit 1
   fi
+
+mkdir ${OUTPUT_DIR}
 
 ##########################################################################
 #
