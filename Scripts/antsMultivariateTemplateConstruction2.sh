@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="0.0.15 test"
+VERSION="0.0.0"
 
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
@@ -51,7 +51,7 @@ PBS=${ANTSPATH}waitForPBSQJobs.pl
 XGRID=${ANTSPATH}waitForXGridJobs.pl
 
 fle_error=0
-for FLE in $N4 $PEXEC $SGE $XGRID $PBS
+for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS
   do
   if [[ ! -x $FLE ]];
     then
@@ -78,21 +78,21 @@ function Usage {
 
 Usage:
 
-`basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
+`basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
 
 Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
    ImageDimension: 4 (for template generation of time-series data)
 
-     -o:  OUTPREFIX; A prefix that is prepended to all output files.
+     -o:  OutputPrefix; A prefix that is prepended to all output files.
 
 <images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
           of the command.  Optionally, one can specify a .csv or .txt file where each
           line is the location of the input image.  One can also specify more than
           one file for each image for multi-modal template construction (e.g. t1 and t2).
           For the multi-modal case, the templates will be consecutively numbered (e.g.
-          ${OUTPUTPREFIX}template0.nii.gz, ${OUTPUTPREFIX}template1.nii.gz, ...).
+          ${OutputPrefix}template0.nii.gz, ${OutputPrefix}template1.nii.gz, ...).
 
 NB: All images to be added to the template should be in the same directory, and this script
 should be invoked from that directory.
@@ -114,9 +114,9 @@ Optional arguments:
 
      -q:  Max iterations for each registration
 
-     -f: shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -f:  Shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
 
-     -s: smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -s:  Smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
 
      -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
 
@@ -182,7 +182,7 @@ parallelize the registration of each subject to the template.
 
 Usage:
 
-`basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
+`basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
 
 Example Case:
 
@@ -193,7 +193,7 @@ Example Case:
  - With Greedy-SyN and CC metrics to guide the mapping.
  - Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
  - The -c option is set to 1 which will try to use SGE to distribute the computation.
- - If you do not have SGE, use -c 0 or -c 2 combined with -j.
+ - If you do not have SGE or PBS, use -c 0 or -c 2 combined with -j.
 
  - Continue reading this help file if things are not yet clear.
 
@@ -202,14 +202,14 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
    ImageDimension: 4 (for template generation of time-series data)
 
-     -o:  OUTPREFIX; A prefix that is prepended to all output files.
+     -o:  OutputPrefix; A prefix that is prepended to all output files.
 
 <images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
           of the command.  Optionally, one can specify a .csv or .txt file where each
           line is the location of the input image.  One can also specify more than
           one file for each image for multi-modal template construction (e.g. t1 and t2).
           For the multi-modal case, the templates will be consecutively numbered (e.g.
-          ${OUTPUTPREFIX}template0.nii.gz, ${OUTPUTPREFIX}template1.nii.gz, ...).
+          ${OutputPrefix}template0.nii.gz, ${OutputPrefix}template1.nii.gz, ...).
 
 NB: All files to be added to the template should be in the same directory.
 
@@ -564,7 +564,7 @@ while getopts "b:c:d:f:g:h:i:j:k:m:n:o:p:q:s:r:t:w:x:z:" OPT
    ;;
       c) #use SGE cluster
    DOQSUB=$OPTARG
-   if [[ ${#DOQSUB} -gt 2 ]];
+   if [[ $DOQSUB -gt 4 ]];
      then
        echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
        exit 1
