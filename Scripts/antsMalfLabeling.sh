@@ -1,0 +1,508 @@
+#!/bin/bash
+
+VERSION="0.0.0"
+
+# trap keyboard interrupt (control-c)
+trap control_c SIGINT
+
+function setPath {
+    cat <<SETPATH
+
+--------------------------------------------------------------------------------------
+Error locating ANTS
+--------------------------------------------------------------------------------------
+It seems that the ANTSPATH environment variable is not set. Please add the ANTSPATH
+variable. This can be achieved by editing the .bash_profile in the home directory.
+Add:
+
+ANTSPATH=/home/yourname/bin/ants/
+
+Or the correct location of the ANTS binaries.
+
+Alternatively, edit this script ( `basename $0` ) to set up this parameter correctly.
+
+SETPATH
+    exit 1
+}
+
+# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
+# export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
+
+#ANTSPATH=YOURANTSPATH
+if [[ ${#ANTSPATH} -le 3 ]];
+  then
+    setPath >&2
+  fi
+
+# Test availability of helper scripts.
+# No need to test this more than once. Can reside outside of the main loop.
+ANTS=${ANTSPATH}/antsRegistration
+WARP=${ANTSPATH}/antsApplyTransforms
+MALF=${ANTSPATH}/jointfusion
+fPEXEC=${ANTSPATH}ANTSpexec.sh
+SGE=${ANTSPATH}waitForSGEQJobs.pl
+PBS=${ANTSPATH}waitForPBSQJobs.pl
+XGRID=${ANTSPATH}waitForXGridJobs.pl
+
+fle_error=0
+for FLE in $MALF $ANTS $WARP $PEXEC $SGE $XGRID $PBS
+  do
+  if [[ ! -x $FLE ]];
+    then
+      echo
+      echo "--------------------------------------------------------------------------------------"
+      echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
+      echo "--------------------------------------------------------------------------------------"
+      echo " if the file is not executable, please change its permissions. "
+      fle_error=1
+    fi
+  done
+
+if [[ $fle_error = 1 ]];
+  then
+    echo "missing helper script"
+    exit 1
+  fi
+
+
+#assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
+
+function Usage {
+    cat <<USAGE
+
+Usage:
+
+`basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
+
+Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
+
+     -d:  ImageDimension: 2 or 3
+
+     -o:  OutputPrefix:   A prefix that is prepended to all output files.
+
+     -t:  TargetImage:    Target image to be labeled.
+
+     -g:  Atlas:          Atlas to be warped to target image.
+
+     -l:  Labels:         Labels corresponding to atlas (cf -g).
+
+Optional arguments:
+
+     -k:  Keep files:     Keep warped atlas and label files (default = 0)
+
+     -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
+
+     -j: Number of cpu cores to use (default 2; -- requires "-c 2" or "-c 4")
+
+Example:
+
+`basename $0` -d 3 -t target.nii.gz -o malf \
+              -g atlas1.nii.gz -l labels1.nii.gz \
+              -g atlas2.nii.gz -l labels2.nii.gz \
+              -g atlas3.nii.gz -l labels3.nii.gz
+
+--------------------------------------------------------------------------------------
+MALF was created by:
+--------------------------------------------------------------------------------------
+Hongzhi Wang and Paul Yushkevich
+Penn Image Computing And Science Laboratory
+University of Pennsylvania
+
+Please reference http://www.ncbi.nlm.nih.gov/pubmed/22732662 when employing this script
+in your studies.
+
+Wang H, Suh JW, Das SR, Pluta J, Craige C, Yushkevich PA.
+Multi-Atlas Segmentation with Joint Label Fusion.
+IEEE Trans Pattern Anal Mach Intell.
+--------------------------------------------------------------------------------------
+script by Nick Tustison
+--------------------------------------------------------------------------------------
+
+USAGE
+    exit 1
+}
+
+function Help {
+    cat <<HELP
+
+`basename $0` will propagate labels from a set of pre-labeled atlases using the MALF
+algorithm.
+
+Usage:
+
+`basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
+
+Example Case:
+
+`basename $0` -d 3 -t target.nii.gz -o malf \
+              -g atlas1.nii.gz -l labels1.nii.gz \
+              -g atlas2.nii.gz -l labels2.nii.gz \
+              -g atlas3.nii.gz -l labels3.nii.gz
+
+
+Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
+
+     -d:  ImageDimension: 2 or 3
+
+     -o:  OutputPrefix:   A prefix that is prepended to all output files.
+
+     -t:  TargetImage:    Target image to be labeled.
+
+     -g:  Atlas:          Atlas to be wapred to target image.
+
+     -l:  Labels:         Labels corresponding to atlas (cf -g).
+
+Optional arguments:
+
+     -k:  Keep files:     Keep warped atlas and label files (default = 0)
+
+     -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
+
+     -j: Number of cpu cores to use (default 2; -- requires "-c 2" or "-c 4")
+
+Requirements:
+
+This scripts relies on the following scripts in your $ANTSPATH directory. The script
+will terminate prematurely if these files are not present or are not executable.
+- pexec.sh
+- waitForSGEQJobs.pl (only for use with Sun Grid Engine)
+- waitForPBSQJobs.pl  (only for use with Portable Batch System)
+- ANTSpexec.sh (only for use with localhost parallel execution)
+- waitForXGridJobs.pl (only for use with Apple XGrid)
+- antsRegistrationSyN.sh
+
+--------------------------------------------------------------------------------------
+Get the latest ANTS version at:
+--------------------------------------------------------------------------------------
+https://github.com/stnava/ANTs/
+--------------------------------------------------------------------------------------
+Read the ANTS documentation at:
+--------------------------------------------------------------------------------------
+http://stnava.github.io/ANTs/
+
+--------------------------------------------------------------------------------------
+MALF was created by:
+--------------------------------------------------------------------------------------
+Hongzhi Wang and Paul Yushkevich
+Penn Image Computing And Science Laboratory
+University of Pennsylvania
+
+Please reference http://www.ncbi.nlm.nih.gov/pubmed/22732662 when employing this script
+in your studies.
+
+Wang H, Suh JW, Das SR, Pluta J, Craige C, Yushkevich PA.
+Multi-Atlas Segmentation with Joint Label Fusion.
+IEEE Trans Pattern Anal Mach Intell.
+--------------------------------------------------------------------------------------
+script by Nick Tustison
+--------------------------------------------------------------------------------------
+
+HELP
+    exit 1
+}
+
+function reportMappingParameters {
+    cat <<REPORTPARAMETERS
+
+--------------------------------------------------------------------------------------
+ Parameters
+--------------------------------------------------------------------------------------
+ ANTSPATH is $ANTSPATH
+
+ Dimensionality:           $DIM
+ Output prefix:            $OUTPUT_PREFIX
+ Target image:             $TARGET_IMAGE
+ Atlas images:             ${ATLAS_IMAGES[@]}
+ Atlas labels:             ${ATLAS_LABELS[@]}
+
+ Keep all images:          $KEEP_ALL_IMAGES
+ Processing type:          $DO_QSUB
+ Number of cpu cores:      $CORES
+--------------------------------------------------------------------------------------
+REPORTPARAMETERS
+}
+
+cleanup()
+{
+  echo "\n*** Performing cleanup, please wait ***\n"
+
+# 1st attempt to kill all remaining processes
+# put all related processes in array
+runningANTSpids=( `ps -C antsRegistration -C ImageMath| awk '{ printf "%s\n", $1 ; }'` )
+
+# kill these processes, skip the first since it is text and not a PID
+for ((i = 1; i < ${#runningANTSpids[@]} ; i++))
+  do
+  echo "killing:  ${runningANTSpids[${i}]}"
+  kill ${runningANTSpids[${i}]}
+done
+
+  return $?
+}
+
+control_c()
+# run if user hits control-c
+{
+  echo -en "\n*** User pressed CTRL + C ***\n"
+  cleanup
+  exit $?
+  echo -en "\n*** Script cancelled by user ***\n"
+}
+
+#initializing variables with global scope
+time_start=`date +%s`
+CURRENT_DIR=`pwd`/
+
+DIM=3
+
+OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
+OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
+OUTPUT_SUFFIX="nii.gz"
+
+TARGET_IMAGE=''
+ATLAS_IMAGES=()
+ATLAS_LABELS=()
+
+KEEP_ALL_IMAGES=0
+DO_QSUB=0
+CORES=1
+
+XGRID_OPTS=""
+SCRIPT_PREPEND=""
+QSUB_OPTS=""
+
+##Getting system info from linux can be done with these variables.
+# RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
+# RAMfree=`cat /proc/meminfo | sed -n -e '/MemFree/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
+# cpu_free_ram=$((${RAMfree}/${cpu_count}))
+
+if [[ ${OSTYPE:0:6} == 'darwin' ]];
+  then
+    cpu_count=`sysctl -n hw.physicalcpu`
+  else
+    cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
+  fi
+
+# Provide output for Help
+if [[ "$1" == "-h" ]];
+  then
+    Help >&2
+  fi
+
+# reading command line arguments
+while getopts "c:d:g:h:j:k:l:o:t:" OPT
+  do
+  case $OPT in
+      h) #help
+   echo "$USAGE"
+   exit 0
+   ;;
+      c) #use SGE cluster
+   DOQSUB=$OPTARG
+   if [[ $DOQSUB -gt 4 ]];
+     then
+       echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
+       exit 1
+     fi
+   ;;
+      d) #dimensions
+   DIM=$OPTARG
+   if [[ ${DIM} -ne 2 && $DIM -ne 3 ]];
+     then
+       echo " Dimensionality is only valid for 2 or 3.  You passed -d $DIM."
+       exit 1
+     fi
+   ;;
+      g)
+   ATLAS_IMAGES[${#ATLAS_IMAGES[@]}]=$OPTARG
+   ;;
+      j) #number of cpu cores to use
+   CORES=$OPTARG
+   ;;
+      k)
+   KEEP_ALL_IMAGES=$OPTARG
+   ;;
+      g)
+   ATLAS_LABELS[${#ATLAS_LABELS[@]}]=$OPTARG
+   ;;
+      o)
+   OUTPUT_PREFIX=$OPTARG
+   OUTPUT_DIR=`dirname ${OUTPUT_PREFIX}`
+   ;;
+      t)
+   TARGET_IMAGE=$OPTARG
+   ;;
+      \?) # getopts issues an error message
+      echo "$USAGE" >&2
+      exit 1
+      ;;
+  esac
+done
+
+if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
+  then
+    qq=`which  qsub`
+    if [[  ${#qq} -lt 1 ]];
+      then
+        echo "do you have qsub?  if not, then choose another c option ... if so, then check where the qsub alias points ..."
+        exit 1
+      fi
+  fi
+
+if [[ ${#ATLAS_IMAGES[@]} -ne ${#ATLAS_LABELS[@]} ]];
+  then
+    echo "The number of atlas images does not equal the number of labels.  Ensure that a corresponding set of labels exist for each image."
+    exit 1
+  fi
+
+##########################################################################
+#
+# Perform MALF labeling by
+#  1) registering all atlases to target image
+#  2) call 'jointfusion'
+#
+##########################################################################
+
+jobIDs=""
+
+WARPED_ATLAS_IMAGES=()
+WARPED_ATLAS_LABELS=()
+
+for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
+  do
+    IMG_BASE=`basename ${ATLAS_IMAGES[$i]}`
+    BASENAME=` echo ${IMG_BASE} | cut -d '.' -f 1 `
+
+    registrationCall="${ANTSPATH}/antsRegistrationSyN.sh \
+                          -d ${DIM} \
+                          -p f \
+                          -f ${TARGET_IMAGE} \
+                          -m ${ATLAS_IMAGES[$i]} \
+                          -o ${OUTPUTPREFIX}_${BASENAME}"
+
+    labelXfrmCall="${ANTSPATH}/antsApplyTransforms \
+                          -d ${DIM} \
+                          --float 1 \
+                          -i ${ATLAS_LABELS[$i]} \
+                          -r ${TARGET_IMAGE} \
+                          -o ${OUTPUTPREFIX}_${BASENAME}WarpedLabels.nii.gz \
+                          -n NearestNeighbor \
+                          -t ${OUTPUTPREFIX}_${BASENAME}1Warp.nii.gz \
+                          -t ${OUTPUTPREFIX}_${BASENAME}0GenericAffine.mat"
+
+    WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUTPREFIX}_${BASENAME}Warped.nii.gz"
+    WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUTPREFIX}_${BASENAME}WarpedLabels.nii.gz"
+
+    qscript="${OUTPUT_DIR}/job_${BASENAME}.sh"
+
+    echo "$registrationCall\n\n$labelXfrmCall" > $qscript
+
+    if [[ $DOQSUB -eq 1 ]];
+      then
+        id=`qsub -cwd -S /bin/bash -N antsMalfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript | awk '{print $3}'`
+        jobIDs="$jobIDs $id"
+        sleep 0.5
+    elif [[ $DOQSUB -eq 4 ]];
+      then
+        id=`qsub -N antsMalfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=20:00:00 $qscript | awk '{print $1}'`
+        jobIDs="$jobIDs $id"
+        sleep 0.5
+    elif [[ $DOQSUB -eq 3 ]];
+      then
+        id=`xgrid $XGRID_OPTS -job submit /bin/bash $qscript | awk '{sub(/;/,"");print $3}' | tr '\n' ' ' | sed 's:  *: :g'`
+        jobIDs="$jobIDs $id"
+    elif [[ $DOQSUB -eq 0 ]];
+      then
+        echo $qscript
+        bash $qscript
+      fi
+done
+
+malfCall="${ANTSPATH}/jointfusion ${DIM} -m Joint[0.1,2] 1 -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+
+qscript2="${OUTPUT_PREFIX}_MALF.sh"
+echo "$malfCall" > $qscript2
+
+if [[ $DOQSUB -eq 1 ]];
+  then
+    # Run jobs on SGE and wait to finish
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting MALF on SGE cluster. Submitted $count jobs "
+    echo "--------------------------------------------------------------------------------------"
+    # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+    ${ANTSPATH}waitForSGEQJobs.pl 1 60 $jobIDs
+    # Returns 1 if there are errors
+    if [[ ! $? -eq 0 ]];
+      then
+        echo "qsub submission failed - jobs went into error state"
+        exit 1;
+      fi
+    `qsub -cwd -S /bin/bash -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
+  fi
+if [[ $DOQSUB -eq 4 ]];
+  then
+    # Run jobs on PBS and wait to finish
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting MALF on PBS cluster. Submitted $count jobs "
+    echo "--------------------------------------------------------------------------------------"
+           # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+    ${ANTSPATH}waitForPBSQJobs.pl 1 60 $jobIDs
+    # Returns 1 if there are errors
+    if [[ ! $? -eq 0 ]];
+      then
+        echo "qsub submission failed - jobs went into error state"
+        exit 1;
+      fi
+    `qsub -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
+  fi
+
+if [[ $DOQSUB -eq 2 ]];
+  then
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting MALF on max ${CORES} cpucores. "
+    echo "--------------------------------------------------------------------------------------"
+    chmod +x ${OUTPUT_DIR}/job_*.sh
+    $PEXEC -j ${CORES} "sh" ${OUTPUT_DIR}/job_*.sh
+    sh $qscript2
+  fi
+if [[ $DOQSUB -eq 3 ]];
+  then
+    # Run jobs on XGrid and wait to finish
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting MALF on XGrid cluster. Submitted $count jobs "
+    echo "--------------------------------------------------------------------------------------"
+    # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+    ${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRID_OPTS" -verbose -delay 30 $jobIDs
+    # Returns 1 if there are errors
+    if [[ ! $? -eq 0 ]];
+      then
+        echo "XGrid submission failed - jobs went into error state"
+        exit 1;
+      fi
+    sh $qscript2
+  fi
+
+# clean up
+rm -f ${OUTPUT_DIR}/job_*.sh
+if [[ $KEEP_ALL_IMAGES -eq 0 ]];
+  then
+    rm -f ${WARPED_ATLAS_IMAGES[@]}
+    rm -f ${WARPED_ATLAS_LABELS[@]}
+  fi
+
+time_end=`date +%s`
+time_elapsed=$((time_end - time_start))
+echo
+echo "--------------------------------------------------------------------------------------"
+echo " Done creating: ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+echo " Script executed in $time_elapsed seconds"
+echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
+echo "--------------------------------------------------------------------------------------"
+
+exit 0
