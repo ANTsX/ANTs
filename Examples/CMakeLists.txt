@@ -114,7 +114,7 @@ set(BASE_ANTS_APPS
   CreateDTICohort
   AverageAffineTransform
   AverageAffineTransformNoRigid
-  antsAlignOrigin
+#  antsAlignOrigin
   antsRegistration
   simpleSynRegistration
   antsApplyTransforms
