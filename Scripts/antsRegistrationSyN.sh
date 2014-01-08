@@ -69,6 +69,8 @@ Optional arguments:
         s: rigid + affine + deformable syn
         b: rigid + affine + deformable b-spline syn
 
+     -r:  radius for cross correlation metric used during SyN stage (default = 4)
+
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
      -p:  precision type (default = 'd')
@@ -123,6 +125,8 @@ Optional arguments:
         s: rigid + affine + deformable syn
         b: rigid + affine + deformable b-spline syn
 
+     -r:  radius for cross correlation metric used during SyN stage (default = 4)
+
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
 
      -p:  precision type (default = 'd')
@@ -171,11 +175,13 @@ function reportMappingParameters {
 
  Dimensionality:           $DIM
  Output name prefix:       $OUTPUTNAME
- Fixed image:              $FIXEDIMAGE
- Moving image:             $MOVINGIMAGE
+ Fixed images:             ${FIXEDIMAGES[@]}
+ Moving images:            ${MOVINGIMAGES[@]}
  Number of threads:        $NUMBEROFTHREADS
  Spline distance:          $SPLINEDISTANCE
  Transform type:           $TRANSFORMTYPE
+ CC radius:                $CCRADIUS
+ Precision:                $PRECISIONTYPE
 ======================================================================================
 REPORTMAPPINGPARAMETERS
 }
@@ -228,16 +234,17 @@ if [[ "$1" == "-h" || $# -eq 0 ]];
 #################
 
 DIM=3
-FIXEDIMAGE=''
-MOVINGIMAGE=''
+FIXEDIMAGES=()
+MOVINGIMAGES=()
 OUTPUTNAME=output
 NUMBEROFTHREADS=1
 SPLINEDISTANCE=26
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
+CCRADIUS=4
 
 # reading command line arguments
-while getopts "d:f:h:m:n:o:p:s:t:" OPT
+while getopts "d:f:h:m:n:o:p:r:s:t:" OPT
   do
   case $OPT in
       h) #help
@@ -248,10 +255,10 @@ while getopts "d:f:h:m:n:o:p:s:t:" OPT
    DIM=$OPTARG
    ;;
       f)  # fixed image
-   FIXEDIMAGE=$OPTARG
+   FIXEDIMAGES[${#FIXEDIMAGES[@]}]=$OPTARG
    ;;
       m)  # moving image
-   MOVINGIMAGE=$OPTARG
+   MOVINGIMAGES[${#MOVINGIMAGES[@]}]=$OPTARG
    ;;
       n)  # number of threads
    NUMBEROFTHREADS=$OPTARG
@@ -261,6 +268,9 @@ while getopts "d:f:h:m:n:o:p:s:t:" OPT
    ;;
       p)  # precision type
    PRECISIONTYPE=$OPTARG
+   ;;
+      r)  # cc radius
+   CCRADIUS=$OPTARG
    ;;
       s)  # spline distance
    SPLINEDISTANCE=$OPTARG
@@ -280,17 +290,25 @@ done
 # Check inputs
 #
 ###############################
+if [[ ${#FIXEDIMAGES[@]} -ne ${#MOVINGIMAGES[@]} ]];
+  then
+    echo "Number of fixed images is not equal to the number of moving images."
+    exit 1
+  fi
 
-if [[ ! -f "$FIXEDIMAGE" ]];
-  then
-    echo "Fixed image '$FIXEDIMAGE' does not exist.  See usage: '$0 -h 1'"
-    exit
-  fi
-if [[ ! -f "$MOVINGIMAGE" ]];
-  then
-    echo "Moving image '$MOVINGIMAGE' does not exist.  See usage: '$0 -h 1'"
-    exit
-  fi
+for(( i = 0; i < ${#FIXEDIMAGES[@]}; $i++ ))
+  do
+    if [[ ! -f "${FIXEDIMAGES[$i]}" ]];
+      then
+        echo "Fixed image '${FIXEDIMAGES[$i]}' does not exist.  See usage: '$0 -h 1'"
+        exit 1
+      fi
+    if [[ ! -f "${MOVINGIMAGES[$i]}" ]];
+      then
+        echo "Moving image '${MOVINGIMAGES[$i]}' does not exist.  See usage: '$0 -h 1'"
+        exit 1
+      fi
+  done
 
 ###############################
 #
@@ -319,11 +337,11 @@ reportMappingParameters
 
 ISLARGEIMAGE=0
 
-SIZESTRING=$( ${ANTSPATH}/PrintHeader $FIXEDIMAGE 2 )
+SIZESTRING=$( ${ANTSPATH}/PrintHeader ${FIXEDIMAGES[0]} 2 )
 SIZESTRING="${SIZESTRING%\\n}"
 SIZE=( `echo $SIZESTRING | tr 'x' ' '` )
 
-for (( i = 0; i < ${#SIZE[@]}; i++ ))
+for (( i=0; i<${#SIZE[@]}; i++ ))
   do
     if [[ ${SIZE[$i]} -gt 256 ]];
       then
@@ -352,33 +370,39 @@ SYNSMOOTHINGSIGMAS="3x2x1x0vox"
 
 if [[ $ISLARGEIMAGE -eq 1 ]];
   then
-    RIGIDCONVERGENCE="[1000x500x250x100x0,1e-6,10]"
-    RIGIDSHRINKFACTORS="12x8x4x2x1"
-    RIGIDSMOOTHINGSIGMAS="4x3x2x1x0vox"
+    RIGIDCONVERGENCE="[1000x500x250x100,1e-6,10]"
+    RIGIDSHRINKFACTORS="12x8x4x2"
+    RIGIDSMOOTHINGSIGMAS="4x3x2x1vox"
 
-    AFFINECONVERGENCE="[1000x500x250x100x0,1e-6,10]"
-    AFFINESHRINKFACTORS="12x8x4x2x1"
-    AFFINESMOOTHINGSIGMAS="4x3x2x1x0vox"
+    AFFINECONVERGENCE="[1000x500x250x100,1e-6,10]"
+    AFFINESHRINKFACTORS="12x8x4x2"
+    AFFINESMOOTHINGSIGMAS="4x3x2x1vox"
 
     SYNCONVERGENCE="[100x100x70x50x20,1e-6,10]"
     SYNSHRINKFACTORS="10x6x4x2x1"
     SYNSMOOTHINGSIGMAS="5x3x2x1x0vox"
   fi
 
-RIGIDSTAGE="--initial-moving-transform [$FIXEDIMAGE,$MOVINGIMAGE,1] \
+RIGIDSTAGE="--initial-moving-transform [${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1] \
             --transform Rigid[0.1] \
-            --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
+            --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
             --convergence $RIGIDCONVERGENCE \
             --shrink-factors $RIGIDSHRINKFACTORS \
             --smoothing-sigmas $RIGIDSMOOTHINGSIGMAS"
 
 AFFINESTAGE="--transform Affine[0.1] \
-             --metric MI[$FIXEDIMAGE,$MOVINGIMAGE,1,32,Regular,0.25] \
+             --metric MI[${FIXEDIMAGES[0]},${MOVINGIMAGES[0]},1,32,Regular,0.25] \
              --convergence $AFFINECONVERGENCE \
              --shrink-factors $AFFINESHRINKFACTORS \
              --smoothing-sigmas $AFFINESMOOTHINGSIGMAS"
 
-SYNSTAGE="--metric CC[$FIXEDIMAGE,$MOVINGIMAGE,1,4] \
+SYNMETRICS=''
+for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
+  do
+    SYNMETRICS="$SYNMETRICS --metric CC[${FIXEDIMAGES[$i]},${MOVINGIMAGES[$i]},1,${CCRADIUS}]"
+  done
+
+SYNSTAGE="${SYNMETRICS} \
           --convergence $SYNCONVERGENCE \
           --shrink-factors $SYNSHRINKFACTORS \
           --smoothing-sigmas $SYNSMOOTHINGSIGMAS"
