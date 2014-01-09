@@ -1221,7 +1221,7 @@ void antsSCCANObject<TInputImage, TRealType>
     {
     std::cout << "sort-b" << std::endl;
     }
-  sort(evals.begin(), evals.end() );
+  sort(evals.begin(), evals.end() , std::greater<TRealType>() );
   std::vector<int> sorted_indices( n_vecs, n_vecs - 1 );
   for( unsigned int i = 0; i < evals.size(); i++ )
     {
@@ -5613,7 +5613,7 @@ antsSCCANObject<TInputImage, TRealType>
       }
 
 // sort and reindex the eigenvectors/values
-    sort(evals.begin(), evals.end());
+    sort(evals.begin(), evals.end() , std::greater<TRealType>() );
     std::vector<int> sorted_indices(n_vecs, -1);
     for( unsigned int i = 0; i < evals.size(); i++ )
       {
