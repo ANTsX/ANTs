@@ -25,10 +25,10 @@ SETPATH
     exit 1
 }
 
-# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
+# Uncomment the line below in case you have not set the ANTSPATH variable in your
+# environment.
 # export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 
-#ANTSPATH=YOURANTSPATH
 if [[ ${#ANTSPATH} -le 3 ]];
   then
     setPath >&2
@@ -36,12 +36,13 @@ if [[ ${#ANTSPATH} -le 3 ]];
 
 if [[ ! -s ${ANTSPATH}/antsRegistration ]];
   then
-    echo "antsRegistration program can't be found. Please (re)define \$ANTSPATH in your environment."
+    echo "antsRegistration program can't be found. Please (re)define \$ANTSPATH in your \
+          environment."
     exit
   fi
 
-# Test availability of helper scripts.
-# No need to test this more than once. Can reside outside of the main loop.
+# Test availability of helper scripts.  No need to test this more than once. Can reside
+# outside of the main loop.
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
 N4=${ANTSPATH}N4BiasFieldCorrection
@@ -56,9 +57,9 @@ for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS
   if [[ ! -x $FLE ]];
     then
       echo
-      echo "--------------------------------------------------------------------------------------"
+      echo "-----------------------------------------------------------------------------"
       echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
-      echo "--------------------------------------------------------------------------------------"
+      echo "-----------------------------------------------------------------------------"
       echo " if the file is not executable, please change its permissions. "
       fle_error=1
     fi
@@ -70,9 +71,6 @@ if [[ $fle_error = 1 ]];
     exit 1
   fi
 
-
-#assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
-
 function Usage {
     cat <<USAGE
 
@@ -80,7 +78,8 @@ Usage:
 
 `basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
 
-Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
+Compulsory arguments (minimal command line requires SGE/PBS cluster, otherwise use -c and
+  -j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
    ImageDimension: 4 (for template generation of time-series data)
@@ -94,55 +93,82 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
           For the multi-modal case, the templates will be consecutively numbered (e.g.
           ${OutputPrefix}template0.nii.gz, ${OutputPrefix}template1.nii.gz, ...).
 
-NB: All images to be added to the template should be in the same directory, and this script
-should be invoked from that directory.
+NB: All images to be added to the template should be in the same directory, and this
+    script should be invoked from that directory.
 
 Optional arguments:
 
-     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
+     -b:  Backup images and results from all iterations (default = 0):  Boolean to save
+          the transform files, bias corrected, and warped images for each iteration.
 
-     -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
+     -c:  Control for parallel computation (default 0):
+          0 = run serially
+          1 = SGE qsub
+          2 = use PEXEC (localhost)
+          3 = Apple XGrid
+          4 = PBS qsub
 
-     -i:  Iteration limit (default 4) -- iterations of the template construction (Iteration limit)*NumImages registrations.
+     -g:  Gradient step size (default 0.25): smaller in magnitude results in more
+          cautious steps.
 
-     -j:  Number of cpu cores to use (default 2; -- requires "-c 2")
+     -i:  Iteration limit (default 4): iterations of the template construction
+          (Iteration limit)*NumImages registrations.
 
-     -k:  Number of modalities used to construct the template (default 1)
+     -j:  Number of cpu cores to use locally for pexec option (default 2; requires "-c 2")
 
-     -w:  Modality weights used in the similarity metric (default = 1) --- specified as e.g. 1x0.5x0.75
+     -k:  Number of modalities used to construct the template (default 1):  For example,
+          if one wanted to create a multimodal template consisting of T1,T2,and FA
+          components ("-k 3").
 
-     -q:  Max iterations for each registration
+     -w:  Modality weights used in the similarity metric (default = 1): specified as
+          e.g. 1x0.5x0.75.
 
-     -f:  Shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -q:  Max iterations for each pairwise registration (default = 100x100x70x20):
+          specified in the form ...xJxKxL where
+            J = max iterations at coarsest resolution (here, reduced by power of 2^2)
+            K = middle resolution iterations (here, reduced by power of 2)
+            L = fine resolution iteratioxns (here, full resolution).
+          Finer resolutions take much more time per iteration than coarser resolutions.
 
-     -s:  Smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
+     -f:  Shrink factors (default = 6x4x2x1):  Also in the same form as -q max iterations.  
+          Needs to have the same number of components.
 
-     -n:  N4BiasFieldCorrection of moving image (default 1) -- 0 == off, 1 == on
+     -s:  Smoothing factors (default = 3x2x1x0):  Also in the same form as -q max
+          iterations.  Needs to have the same number of components.
 
-     -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
+     -n:  N4BiasFieldCorrection of moving image: 0 == off, 1 == on (default 1).
 
-     -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
-          you do not have an initial template
+     -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set
+          paths, etc)
 
-     -m:  Type of similarity metric used for registration.
+     -r:  Do rigid-body registration of inputs before creating template (default 0):
+          0 == off 1 == on. Only useful when you do not have an initial template
 
-     -t:  Type of transformation model used for registration.
+     -m:  Type of similarity metric used for registration (default = CC):  Options are
+            CC = cross-correlation
+            MI = mutual information
+            MSQ = mean square difference
+            DEMONS = demon's metric
+
+     -t:  Type of transformation model used for registration (default = SyN):  Options are
+            SyN = Greedy SyN
+            BSplineSyN = Greedy B-spline SyN
+
+     -u:  Walltime (default = 20:00:00):  Option for PBS qsub specifying requested time
+          per pairwise registration.
+
+     -v:  Memory limit (default = 8gb):  Option for PBS qsub specifying requested memory
+          per pairwise registration.
 
      -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
 
      -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs. Use the full path!
+          will create an unbiased starting point by averaging all inputs. Use the full
+          path.
 
 Example:
 
-`basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN  -m CC -c 0 -o MY   sub*avg.nii.gz
-
-- In this example 30x20x4 iterations per registration are used for template creation (that is the default)
-- Greedy-SyN and CC are the metrics to guide the mapping.
-- Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
-- The -c option is set to 1, which will result in using the Sun Grid Engine (SGE) to distribute the computation.
-- if you do not have SGE, read the help for multi-core computation on the local machine, or Apple X-grid options.
+`basename $0` -d 3 -i 3 -k 1 -f 4x2x1 -s 2x1x0vox -q 30x20x4 -t SyN  -m CC -c 0 -o MY sub*avg.nii.gz
 
 --------------------------------------------------------------------------------------
 ANTS was created by:
@@ -162,167 +188,12 @@ Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.
 The script has been updated and improved since this publication.
 
 --------------------------------------------------------------------------------------
-script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
-multivariate template adaption by Nick Tustison
+Script by Nick Tustison
 --------------------------------------------------------------------------------------
 Apple XGrid support by Craig Stark
 --------------------------------------------------------------------------------------
 
 USAGE
-    exit 1
-}
-
-function Help {
-    cat <<HELP
-
-`basename $0` will make a template out of the input files using an elastic
-or diffeomorphic transformation. This script builds a template iteratively from the input
-images and uses Sun Grid Engine (SGE) or multiple cpu cores on the localhost (min 2) to
-parallelize the registration of each subject to the template.
-
-Usage:
-
-`basename $0` -d ImageDimension -o OutputPrefix <other options> <images>
-
-Example Case:
-
- bash `basename $0` -d 3 -m 30x50x20 -t SyN  -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz
-
- - In this case you use 30x50x20 iterations per registration
- - 4 iterations over template creation (that is the default)
- - With Greedy-SyN and CC metrics to guide the mapping.
- - Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
- - The -c option is set to 1 which will try to use SGE to distribute the computation.
- - If you do not have SGE or PBS, use -c 0 or -c 2 combined with -j.
-
- - Continue reading this help file if things are not yet clear.
-
-Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
-
-     -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-   ImageDimension: 4 (for template generation of time-series data)
-
-     -o:  OutputPrefix; A prefix that is prepended to all output files.
-
-<images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
-          of the command.  Optionally, one can specify a .csv or .txt file where each
-          line is the location of the input image.  One can also specify more than
-          one file for each image for multi-modal template construction (e.g. t1 and t2).
-          For the multi-modal case, the templates will be consecutively numbered (e.g.
-          ${OutputPrefix}template0.nii.gz, ${OutputPrefix}template1.nii.gz, ...).
-
-NB: All files to be added to the template should be in the same directory.
-
-Optional arguments:
-
-     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
-
-     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
-
-     -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
-
-     -j:  Number of cpu cores to use (default: 2; --- set -c option to 2 to use this.
-
-     -k:  Number of modalities used to construct the template.
-
-     -w:  Modality weights used in the similarity metric (default = 1) --- specified as e.g. 1x0.5x0.75
-
-   The optimal number of cpu cores to use for template generation depends on the availability of cores, the amount of
-   free working memory (RAM) and the resolution of the data. High resolution datasets typically require more RAM during
-   processing. Running out of RAM during a calculation will slow down all processing on your computer.
-
-     -q:  max iterations
-          max Iterations in form: JxKxL where
-      J = max iterations at coarsest resolution (here, reduce by power of 2^2)
-      K = middle resolution iterations (here,reduce by power of 2)
-      L = fine resolution iterations (here, full resolution) !!this level takes much
-                 more time per iteration!!
-
-      -f shrink factors (also in the same form as -q max iterations, needs to have the same number of components)
-      -s smoothing factors (also in the same form as -q max iterations, needs to have the same number of components)
-
-   Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another
-   iteration level.
-
-     -n:  N4BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
-
-     -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
-
-     -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
-          you do not have an initial template
-
-          In case a template is specified (-z option), all inputs are registered to that template. If
-          no template is specified, the inputs will be registered to the averaged input.
-
-     -m:  Type of similarity metric used for registration.
-
-      CC = cross-correlation
-      MI = mutual information
-      MSQ = mean square difference
-      DEMONS = demon's metric
-
-     -t:  Type of transformation model used for registration.
-
-      For rigid image registration, use:
-      RI = Purely rigid
-      RA = Affine rigid
-
-      For diffeomorphic image registration, use:
-      SyN = Greedy SyN
-      BSplineSyN = Greedy B-spline SyN
-
-     -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
-
-     -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs. Use the full path!
-
-Requirements:
-
-This scripts relies on the following scripts in your $ANTSPATH directory. The script
-will terminate prematurely if these files are not present or are not executable.
-- antsIntroduction.sh
-- pexec.sh
-- waitForSGEQJobs.pl (only for use with Sun Grid Engine)
-- waitForPBSQJobs.pl  (only for use with Portable Batch System)
-- ANTSpexec.sh (only for use with localhost parallel execution)
-- waitForXGridJobs.pl (only for use with Apple XGrid)
-
---------------------------------------------------------------------------------------
-Get the latest ANTS version at:
---------------------------------------------------------------------------------------
-https://github.com/stnava/ANTs/
-
---------------------------------------------------------------------------------------
-Read the ANTS documentation at:
---------------------------------------------------------------------------------------
-http://stnava.github.io/ANTs/
-
---------------------------------------------------------------------------------------
-ANTS was created by:
---------------------------------------------------------------------------------------
-Brian B. Avants, Nick Tustison and Gang Song
-Penn Image Computing And Science Laboratory
-University of Pennsylvania
-
-Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script
-in your studies. A reproducible evaluation of ANTs similarity metric performance in
-brain image registration:
-
-* Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
-
-Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.
-
-The script has been updated and improved since this publication.
-
---------------------------------------------------------------------------------------
-script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
-multivariate template adaption by Nick Tustison
---------------------------------------------------------------------------------------
-Apple XGrid support by Craig Stark
---------------------------------------------------------------------------------------
-
-HELP
     exit 1
 }
 
@@ -335,17 +206,19 @@ function reportMappingParameters {
  ANTSPATH is $ANTSPATH
 
  Dimensionality:           $DIM
- N4BiasFieldCorrection:    $N4CORRECT
- Similarity Metric:        $METRICTYPE
+ Do N4 bias correction:    $N4CORRECT
+ Back up each iteration:   $BACKUPEACHITERATION
+ Similarity metric:        $METRICTYPE
+ Gradient step:            $GRADIENTSTEP
  Transformation:           $TRANSFORMATIONTYPE
- Max Iterations:           $MAXITERATIONS
- Smoothing Factors:        $SMOOTHINGFACTORS
- Shrink Factors:           $SHRINKFACTORS
- OutputName prefix:        $OUTPUTNAME
+ Max iterations:           $MAXITERATIONS
+ Smoothing factors:        $SMOOTHINGFACTORS
+ Shrink factors:           $SHRINKFACTORS
+ Output prefix:            $OUTPUTNAME
  Template:                 $TEMPLATENAME
- Template Update Steps:    $ITERATIONLIMIT
+ Template update steps:    $ITERATIONLIMIT
  Template population:      $IMAGESETVARIABLE
- Number of Modalities:     $NUMBEROFMODALITIES
+ Number of modalities:     $NUMBEROFMODALITIES
  Madality weights:         $MODALITYWEIGHTSTRING
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
@@ -504,34 +377,34 @@ time_start=`date +%s`
 currentdir=`pwd`
 nargs=$#
 
+BACKUPEACHITERATION=0
 MAXITERATIONS=100x100x70x20
 SMOOTHINGFACTORS=3x2x1x0
 SHRINKFACTORS=6x4x2x1
-LABELIMAGE=0 # initialize optional parameter
-METRICTYPE=CC # initialize optional parameter
-TRANSFORMATIONTYPE="SyN" # initialize optional parameter
+METRICTYPE=CC
+TRANSFORMATIONTYPE="SyN"
 NUMBEROFMODALITIES=1
 MODALITYWEIGHTSTRING=""
-N4CORRECT=1 # initialize optional parameter
-DOQSUB=1 # By default, antsMultivariateTemplateConstruction tries to do things in parallel
-GRADIENTSTEP=0.25 # Gradient step size, smaller in magnitude means more smaller (more cautious) steps
+N4CORRECT=1
+DOQSUB=0
+GRADIENTSTEP=0.25
 ITERATIONLIMIT=4
 CORES=2
 TDIM=0
 RIGID=0
-RIGIDTYPE="" # set to an empty string to use affine initialization
 range=0
 REGTEMPLATES=()
 TEMPLATES=()
 CURRENTIMAGESET=()
 XGRIDOPTS=""
 SCRIPTPREPEND=""
+PBSWALLTIME="20:00:00"
+PBSMEMORY="8gb"
 # System specific queue options, eg "-q name" to submit to a specific queue
 # It can be set to an empty string if you do not need any special cluster options
 QSUBOPTS="" # EDIT THIS
 OUTPUTNAME=antsBTP
 
-BACKUP_EACH_ITERATION=0
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -548,19 +421,19 @@ if [[ ${OSTYPE:0:6} == 'darwin' ]];
 # Provide output for Help
 if [[ "$1" == "-h" ]];
   then
-    Help >&2
+    Usage >&2
   fi
 
 # reading command line arguments
-while getopts "b:c:d:f:g:h:i:j:k:m:n:o:p:q:s:r:t:w:x:z:" OPT
+while getopts "b:c:d:f:g:h:i:j:k:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
   do
   case $OPT in
       h) #help
-   echo "$USAGE"
+   Usage >&2
    exit 0
    ;;
-      b) #backup each iteration (default = 0)
-   BACKUP_EACH_ITERATION=$OPTARG
+      b) #backup each iteration
+   BACKUPEACHITERATION=$OPTARG
    ;;
       c) #use SGE cluster
    DOQSUB=$OPTARG
@@ -620,6 +493,12 @@ while getopts "b:c:d:f:g:h:i:j:k:m:n:o:p:q:s:r:t:w:x:z:" OPT
    ;;
       t) #transformation model
    TRANSFORMATIONTYPE=$OPTARG
+   ;;
+      u)
+   PBSWALLTIME=$OPTARG
+   ;;
+      v)
+   PBSMEMORY=$OPTARG
    ;;
       x) #initialization template
    XGRIDOPTS=$XGRIDOPTS
@@ -960,7 +839,7 @@ if [[ "$RIGID" -eq 1 ]];
             sleep 0.5
         elif [[ $DOQSUB -eq 4 ]];
           then
-            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=20:00:00 $qscript | awk '{print $1}'`
+            id=`qsub -N antsrigid -v ANTSPATH=$ANTSPATH $QSUBOPTS -q nopreempt -l nodes=1:ppn=1 -l mem=${PBSMEMORY} -l walltime=${WALLTIME} $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1062,7 +941,7 @@ if [[ "$RIGID" -eq 1 ]];
       done
 
     # cleanup and save output in seperate folder
-    if [[ BACKUP_EACH_ITERATION -eq 1 ]];
+    if [[ BACKUPEACHITERATION -eq 1 ]];
       then
         echo
         echo "--------------------------------------------------------------------------------------"
@@ -1273,7 +1152,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
           then
             echo -e "$SCRIPTPREPEND" > $qscript
             echo -e "$exe" >> $qscript
-            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=20:00:00 $QSUBOPTS $qscript | awk '{print $1}'`
+            id=`qsub -N antsdef${i} -v ANTSPATH=$ANTSPATH -q nopreempt -l nodes=1:ppn=1 -l mem=${PBSMEMORY} -l walltime=${WALLTIME} $QSUBOPTS $qscript | awk '{print $1}'`
             jobIDs="$jobIDs $id"
             sleep 0.5
         elif [[ $DOQSUB -eq 2 ]];
@@ -1376,7 +1255,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j}
       done
 
-    if [[ $BACKUP_EACH_ITERATION -eq 1 ]];
+    if [[ $BACKUPEACHITERATION -eq 1 ]];
       then
         echo
         echo "--------------------------------------------------------------------------------------"
