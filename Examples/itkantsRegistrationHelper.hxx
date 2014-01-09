@@ -2870,6 +2870,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           outputDisplacementFieldTransform->SetNumberOfIntegrationSteps( numberOfIntegrationSteps );
           }
         outputDisplacementFieldTransform->SetConstantVelocityField( constantVelocityField );
+        outputDisplacementFieldTransform->SetDisplacementField( constantVelocityField );
         // Create the transform adaptors
         // For the gaussian displacement field, the specified variances are in image spacing terms
         // and, in normal practice, we typically don't change these values at each level.  However,
@@ -3020,6 +3021,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         outputDisplacementFieldTransform->SetSplineOrder( this->m_TransformMethods[currentStageNumber].m_SplineOrder );
         outputDisplacementFieldTransform->SetConstantVelocityField( constantVelocityField );
+        outputDisplacementFieldTransform->SetDisplacementField( constantVelocityField );
 
         if( meshSizeForTheUpdateField.size() != VImageDimension || meshSizeForTheVelocityField.size() !=
             VImageDimension )
