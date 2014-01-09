@@ -4672,10 +4672,10 @@ bool antsSCCANObject<TInputImage, TRealType>
       if ( j <= this->m_MatrixP.cols() ) 
 	{
         pveck = this->Orthogonalize( pveck, qj );
-	if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+	if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
 	}
       qj = this->m_VariatesQ.get_column( j );
-      if ( j <= this->m_MatrixQ.cols() ) 
+      if ( j <= this->m_MatrixQ.cols() )
 	{
         qveck = this->Orthogonalize( qveck, qj );
 	if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
