@@ -4699,7 +4699,7 @@ bool antsSCCANObject<TInputImage, TRealType>
       VectorType qj = this->m_VariatesP.get_column( j ); 
       pproj = ( this->m_MatrixP * pveck ); // this->SparsifyOther( pproj );
       pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
-      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+      if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
       qproj = ( this->m_MatrixQ * qveck ); // this->SparsifyOther( qproj );
       qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
