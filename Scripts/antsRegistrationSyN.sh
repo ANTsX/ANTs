@@ -77,12 +77,18 @@ Optional arguments:
         f: float
         d: double
 
+     NB:  Multiple image pairs can be specified for registration during the SyN stage.
+          Specify additional images using the '-m' and '-f' options.  Note that image
+          pair correspondence is given by the order specified on the command line.
+          Only the first fixed and moving image pair is used for the linear resgitration
+          stages.
+
 Example:
 
 `basename $0` -d 3 -f fixedImage.nii.gz -m movingImage.nii.gz -o output
 
 --------------------------------------------------------------------------------------
-ANTS was created by:
+ANTs was created by:
 --------------------------------------------------------------------------------------
 Brian B. Avants, Nick Tustison and Gang Song
 Penn Image Computing And Science Laboratory
@@ -133,8 +139,14 @@ Optional arguments:
         f: float
         d: double
 
+     NB:  Multiple image pairs can be specified for registration during the SyN stage.
+          Specify additional images using the '-m' and '-f' options.  Note that image
+          pair correspondence is given by the order specified on the command line.
+          Only the first fixed and moving image pair is used for the linear resgitration
+          stages.
+
 --------------------------------------------------------------------------------------
-Get the latest ANTS version at:
+Get the latest ANTs version at:
 --------------------------------------------------------------------------------------
 https://github.com/stnava/ANTs/
 
@@ -150,13 +162,9 @@ Brian B. Avants, Nick Tustison and Gang Song
 Penn Image Computing And Science Laboratory
 University of Pennsylvania
 
-Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script
-in your studies. A reproducible evaluation of ANTs similarity metric performance in
-brain image registration:
-
-* Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
-
-Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.
+Relevent references for this script include:
+   * http://www.ncbi.nlm.nih.gov/pubmed/20851191
+   * http://www.frontiersin.org/Journal/10.3389/fninf.2013.00039/abstract
 --------------------------------------------------------------------------------------
 script by Nick Tustison
 --------------------------------------------------------------------------------------
