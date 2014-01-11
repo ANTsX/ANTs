@@ -15,7 +15,7 @@ Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/)
 
 ANTs extracts information from complex datasets that include imaging
 ([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
-Paired with [ANTsR](http://stnava.github.com/ANTsR/) (answer), ANTs is
+Paired with [ANTsR](http://stnava.github.io/software/2014/01/08/antsr/) (answer), ANTs is
 useful for managing, interpreting and visualizing multidimensional data.
 ANTs is
 [popularly](https://sourceforge.net/projects/advants/files/ANTS/stats/timeline?dates=2010-07-19+to+2099-05-25)
