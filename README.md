@@ -172,7 +172,7 @@ Learning about ANTs
 
 **Template construction** [example](https://github.com/ntustison/TemplateBuildingExample)
 
-**Automobile** [example](https://github.com/stnava/cars/)
+**Automobile** [example](http://stnava.github.io/cars/)
 
 **Asymmetry** [example](https://github.com/stnava/asymmetry/)
 
