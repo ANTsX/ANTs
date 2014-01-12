@@ -166,33 +166,33 @@ ANTs has won several unbiased & international competitions
 Learning about ANTs
 ----------------------------------------------------------
 
-**Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
+**Basic Brain Mapping** [example](https://github.com/stnava/BasicBrainMapping/)
 
-**Large deformation** [example](http://stnava.github.io/C/)
+**Large deformation** [example](https://github.com/stnava/C/)
 
 **Template construction** [example](https://github.com/ntustison/TemplateBuildingExample)
 
-**Automobile** [example](http://stnava.github.io/cars/)
+**Automobile** [example](https://github.com/stnava/cars/)
 
-**Asymmetry** [example](http://stnava.github.io/asymmetry/)
+**Asymmetry** [example](https://github.com/stnava/asymmetry/)
 
-**Point-set** [mapping](http://stnava.github.io/chicken/)
+**Point-set** [mapping](https://github.com/stnava/chicken/)
 
-**Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
+**Feature matching** [example](https://github.com/stnava/featureMatching/) ... not up to date ...
 
-**Chimpanzee cortical thickness** [example](http://stnava.github.io/WHopkinsNHP/)
+**Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
 
-**Global optimization** [example](http://stnava.github.io/butterfly/)
+**Global optimization** [example](https://github.com/stnava/butterfly/)
 
-**Morphing** [example](http://stnava.github.io/Morpheus/)
+**Morphing** [example](https://github.com/stnava/Morpheus/)
 
-**fMRI or Motion Correction** [example](http://stnava.github.io/fMRIANTs/)
+**fMRI or Motion Correction** [example](https://github.com/stnava/fMRIANTs/)
 
-**fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
+**fMRI reproducibility** [example](https://github.com/stnava/RfMRI/)
 
-**fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
+**fMRI prediction** [example](https://github.com/stnava/Haxby2001/) ... WIP ...
 
-**Cardiac** [example](http://stnava.github.io/LabelMyHeart)
+**Cardiac** [example](https://github.com/stnava/LabelMyHeart)
 
 **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
 
