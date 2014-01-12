@@ -304,7 +304,7 @@ if [[ ${#FIXEDIMAGES[@]} -ne ${#MOVINGIMAGES[@]} ]];
     exit 1
   fi
 
-for(( i = 0; i < ${#FIXEDIMAGES[@]}; $i++ ))
+for(( i=0; i<${#FIXEDIMAGES[@]}; i++ ))
   do
     if [[ ! -f "${FIXEDIMAGES[$i]}" ]];
       then
