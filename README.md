@@ -180,7 +180,7 @@ Learning about ANTs
 
 **Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
 
-**Chimpanzee cortical thickness** [example](https://github.com/WHopkinsNHP/)
+**Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
 
 **Global optimization** [example](http://stnava.github.io/butterfly/)
 
