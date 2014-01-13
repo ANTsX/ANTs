@@ -168,31 +168,31 @@ Learning about ANTs
 
 **Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
 
-**Large deformation** [example](http://stnava.github.io/stnava/C/)
+**Large deformation** [example](http://stnava.github.io/C/)
 
 **Template construction** [example](http://stnava.github.io/ntustison/TemplateBuildingExample)
 
 **Automobile** [example](http://stnava.github.io/cars/)
 
-**Asymmetry** [example](http://stnava.github.io/stnava/asymmetry/)
+**Asymmetry** [example](http://stnava.github.io/asymmetry/)
 
-**Point-set** [mapping](http://stnava.github.io/stnava/chicken/)
+**Point-set** [mapping](http://stnava.github.io/chicken/)
 
-**Feature matching** [example](http://stnava.github.io/stnava/featureMatching/) ... not up to date ...
+**Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
 
-**Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
+**Chimpanzee cortical thickness** [example](https://github.com/WHopkinsNHP/)
 
-**Global optimization** [example](http://stnava.github.io/stnava/butterfly/)
+**Global optimization** [example](http://stnava.github.io/butterfly/)
 
-**Morphing** [example](http://stnava.github.io/stnava/Morpheus/)
+**Morphing** [example](http://stnava.github.io/Morpheus/)
 
-**fMRI or Motion Correction** [example](http://stnava.github.io/stnava/fMRIANTs/)
+**fMRI or Motion Correction** [example](http://stnava.github.io/fMRIANTs/)
 
-**fMRI reproducibility** [example](http://stnava.github.io/stnava/RfMRI/)
+**fMRI reproducibility** [example](http://stnava.github.io/RfMRI/)
 
-**fMRI prediction** [example](http://stnava.github.io/stnava/Haxby2001/) ... WIP ...
+**fMRI prediction** [example](http://stnava.github.io/Haxby2001/) ... WIP ...
 
-**Cardiac** [example](http://stnava.github.io/stnava/LabelMyHeart)
+**Cardiac** [example](http://stnava.github.io/LabelMyHeart)
 
 **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
 
