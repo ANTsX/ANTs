@@ -170,7 +170,7 @@ Learning about ANTs
 
 **Large deformation** [example](http://stnava.github.io/C/)
 
-**Template construction** [example](https://github.com/ntustison/TemplateBuildingExample)
+**Template construction** [example](http://stnava.github.io/ntustison/TemplateBuildingExample)
 
 **Automobile** [example](http://stnava.github.io/cars/)
 
@@ -180,7 +180,7 @@ Learning about ANTs
 
 **Feature matching** [example](http://stnava.github.io/featureMatching/) ... not up to date ...
 
-**Chimpanzee cortical thickness** [example](http://stnava.github.io/WHopkinsNHP/)
+**Chimpanzee cortical thickness** [example](https://github.com/stnava/WHopkinsNHP/)
 
 **Global optimization** [example](http://stnava.github.io/butterfly/)
 

@@ -122,6 +122,8 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
 {
   enum { ImageDimension = TImage::ImageDimension };
   typename TDisplacementField::PixelType vec = field->GetPixel(index);
+  return vec;
+  /* buggy code from before 
   typename TDisplacementField::PixelType newvec;
   newvec.Fill(0);
   for( unsigned int row = 0; row < ImageDimension; row++ )
@@ -131,8 +133,8 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
       newvec[row] += vec[col] * field->GetDirection()[row][col];
       }
     }
-
   return newvec;
+  */
 }
 
 template <class TImage, class TDisplacementField>
