@@ -278,8 +278,8 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -r $TEMPLATE \
   -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
   -n Linear \
-  -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-  -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+  -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
+  -t ${TRANSFORM_PREFIX}0GenericAffine.mat \
   -t ${OUTNAME}1Warp.nii.gz \
   -t ${OUTNAME}0GenericAffine.mat
 
@@ -296,16 +296,16 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}SegmentationWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t [${OUTNAME}0GenericAffine.mat, 1] \
-  -t ${OUTNAME}1InverseWarp.nii.gz
+  -t ${OUTNAME}1Warp.nii.gz \
+  -t ${OUTNAME}0GenericAffine.mat 
 
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i $LABELS \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t ${OUTNAME}1InverseWarp.nii.gz \
-  -t [${OUTNAME}0GenericAffine.mat,1] \
+  -t ${OUTNAME}1Warp.nii.gz \
+  -t ${OUTNAME}0GenericAffine.mat \
   -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
   -t ${TRANSFORM_PREFIX}0GenericAffine.mat
 
