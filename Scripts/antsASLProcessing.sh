@@ -261,17 +261,20 @@ logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.ni
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
 logCmd ${ANTSPATH}MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
 
-logCmd ${ANTSPATH}antsNetworkAnalysis.R \
-  -o $OUTNAME \
-  --freq 0.01x0.1 \
-  --mask ${OUTNAME}OtsuMask.nii.gz \
-  --labels ${OUTNAME}labels.nii.gz \
-  --fmri $PCASL \
-  --modality ASLCBF \
-  --bloodt1 $BLOODT1 \
-  --robust $ROBUST \
-  --nboot $NBOOTSTRAP \
-  --pctboot $PCTBOOTSTRAP
+if [ ! -f ${OUTNAME}_kcbf.nii.gz ]
+then 
+  logCmd ${ANTSPATH}antsNetworkAnalysis.R \
+    -o $OUTNAME \
+    --freq 0.01x0.1 \
+    --mask ${OUTNAME}OtsuMask.nii.gz \
+    --labels ${OUTNAME}labels.nii.gz \
+    --fmri $PCASL \
+    --modality ASLCBF \
+    --bloodt1 $BLOODT1 \
+    --robust $ROBUST \
+    --nboot $NBOOTSTRAP \
+    --pctboot $PCTBOOTSTRAP
+fi
 
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
