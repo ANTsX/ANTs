@@ -261,27 +261,30 @@ logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.ni
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
 logCmd ${ANTSPATH}MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
 
-logCmd ${ANTSPATH}antsNetworkAnalysis.R \
-  -o $OUTNAME \
-  --freq 0.01x0.1 \
-  --mask ${OUTNAME}OtsuMask.nii.gz \
-  --labels ${OUTNAME}labels.nii.gz \
-  --fmri $PCASL \
-  --modality ASLCBF \
-  --bloodt1 $BLOODT1 \
-  --robust $ROBUST \
-  --nboot $NBOOTSTRAP \
-  --pctboot $PCTBOOTSTRAP
+if [ ! -f ${OUTNAME}_kcbf.nii.gz ]
+then 
+  logCmd ${ANTSPATH}antsNetworkAnalysis.R \
+    -o $OUTNAME \
+    --freq 0.01x0.1 \
+    --mask ${OUTNAME}OtsuMask.nii.gz \
+    --labels ${OUTNAME}labels.nii.gz \
+    --fmri $PCASL \
+    --modality ASLCBF \
+    --bloodt1 $BLOODT1 \
+    --robust $ROBUST \
+    --nboot $NBOOTSTRAP \
+    --pctboot $PCTBOOTSTRAP
+fi
 
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
   -r $TEMPLATE \
   -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
   -n Linear \
-  -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-  -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+  -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
+  -t ${TRANSFORM_PREFIX}0GenericAffine.mat \
   -t ${OUTNAME}1Warp.nii.gz \
-  -t ${OUTNAME}0GenericAffine.mat
+  -t ${OUTNAME}0GenericAffine.mat \
 
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
@@ -289,25 +292,25 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -o ${OUTNAME}MeanCBFWarpedToT1.nii.gz \
   -n Linear \
   -t ${OUTNAME}1Warp.nii.gz \
-  -t ${OUTNAME}0GenericAffine.mat
+  -t ${OUTNAME}0GenericAffine.mat \
 
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i $SEGMENTATION \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}SegmentationWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t [${OUTNAME}0GenericAffine.mat, 1] \
-  -t ${OUTNAME}1InverseWarp.nii.gz
+  -t [${OUTNAME}0GenericAffine.mat,1] \
+  -t ${OUTNAME}1InverseWarp.nii.gz \
 
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i $LABELS \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t ${OUTNAME}1InverseWarp.nii.gz \
+  -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
+  -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
   -t [${OUTNAME}0GenericAffine.mat,1] \
-  -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
-  -t ${TRANSFORM_PREFIX}0GenericAffine.mat
+  -t ${OUTNAME}1InverseWarp.nii.gz \
 
 if ! $KEEP_TMP_FILES
 then
