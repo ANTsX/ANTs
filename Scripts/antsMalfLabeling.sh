@@ -446,12 +446,22 @@ malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g 
 qscript2="${OUTPUT_PREFIX}MALF.sh"
 echo "$malfCall" > $qscript2
 
+if [[ $DOQSUB -eq 0 ]];
+  then
+    # Run job locally
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting MALF"
+    echo "--------------------------------------------------------------------------------------"
+    echo $qscript2
+    bash $qscript2
+  fi
 if [[ $DOQSUB -eq 1 ]];
   then
     # Run jobs on SGE and wait to finish
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF on SGE cluster. Submitted $count jobs "
+    echo " Starting MALF on SGE cluster. "
     echo "--------------------------------------------------------------------------------------"
     # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
     ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
@@ -469,7 +479,7 @@ if [[ $DOQSUB -eq 4 ]];
     # Run jobs on PBS and wait to finish
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF on PBS cluster. Submitted $count jobs "
+    echo " Starting MALF on PBS cluster. "
     echo "--------------------------------------------------------------------------------------"
            # now wait for the jobs to finish. Poll every 10 minutes.
     ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
@@ -520,6 +530,8 @@ if [[ $KEEP_ALL_IMAGES -eq 0 ]];
     rm -f ${AFFINE_FILES[@]}
     rm -f ${WARP_FIELDS[@]}
     rm -f ${INVERSE_WARP_FIELDS[@]}
+    rm -f $qscript
+    rm -f $qscript2
   fi
 
 time_end=`date +%s`
