@@ -771,7 +771,7 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
     bool restrict = false;
     for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
       {
-      TReal temp = this->m_RestrictDeformation[jj];
+      const TReal temp = this->m_RestrictDeformation[jj];
       if(  fabs( temp - 1 ) > 1.e-5   )
         {
         restrict = true;
@@ -782,16 +782,19 @@ ANTSImageRegistrationOptimizer<TDimension, TReal>
       nU.GoToBegin();
       while( !nU.IsAtEnd() )
         {
+        const typename ImageType::IndexType & index = nU.GetIndex();
+        VectorType temp = updateField->GetPixel(index);
         for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
           {
-          typename ImageType::IndexType index = nU.GetIndex();
-          VectorType temp = updateField->GetPixel(index);
           temp[jj] *= this->m_RestrictDeformation[jj];
           updateField->SetPixel(index, temp);
-          if( updateFieldInv )
+          }
+        if( updateFieldInv )
+          {
+          VectorType tempInv = updateFieldInv->GetPixel(index);
+          for( unsigned int jj = 0; jj < this->m_RestrictDeformation.size();  jj++ )
             {
-            temp = updateFieldInv->GetPixel(index);
-            temp[jj] *= this->m_RestrictDeformation[jj];
+            tempInv[jj] *= this->m_RestrictDeformation[jj];
             updateFieldInv->SetPixel(index, temp);
             }
           }
