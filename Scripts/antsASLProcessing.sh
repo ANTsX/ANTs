@@ -307,10 +307,11 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -r ${OUTNAME}AveragePCASL.nii.gz \
   -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
   -n MultiLabel \
-  -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-  -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
   -t [${OUTNAME}0GenericAffine.mat,1] \
   -t ${OUTNAME}1InverseWarp.nii.gz \
+  -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
+  -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+
 
 if ! $KEEP_TMP_FILES
 then
