@@ -294,7 +294,7 @@ then
     -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
     -t ${TRANSFORM_PREFIX}0GenericAffine.mat \
     -t ${OUTNAME}1Warp.nii.gz \
-    -t ${OUTNAME}0GenericAffine.mat \
+    -t ${OUTNAME}0GenericAffine.mat 
   
   logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -i $LABELS \
@@ -304,7 +304,8 @@ then
     -t [${OUTNAME}0GenericAffine.mat,1] \
     -t ${OUTNAME}1InverseWarp.nii.gz \
     -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz 
+    
 else 
   logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -i ${OUTNAME}_kcbf.nii.gz \
@@ -314,7 +315,7 @@ else
     -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
     -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
     -t ${OUTNAME}1Warp.nii.gz \
-    -t ${OUTNAME}0GenericAffine.mat \
+    -t ${OUTNAME}0GenericAffine.mat 
   
   logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -i $LABELS \
@@ -324,7 +325,8 @@ else
     -t ${OUTNAME}1InverseWarp.nii.gz \
     -t ${OUTNAME}0GenericAffine.mat \
     -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz 
+    
 fi
   
 
