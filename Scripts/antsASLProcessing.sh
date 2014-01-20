@@ -324,8 +324,8 @@ else
     -n MultiLabel \
     -t ${OUTNAME}1InverseWarp.nii.gz \
     -t ${OUTNAME}0GenericAffine.mat \
-    -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz 
+    -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
+    -t ${TRANSFORM_PREFIX}0GenericAffine.mat 
     
 fi
   
