@@ -41,6 +41,9 @@ Optional arguments:
 	      -n number of bootstrap samples (defaults to 20)
 	      -c percent to sample per bootstrap run (defaults to 70)
 	      -k keep tmp files, including warps (defaults to false--takes lots of space to save)
+	      -i use inverse warps.  Warps are assumed to go in the direction of subject to template.  
+	         If you are instead using template to subject warps (e.g. the brain segmentation prior warps from 
+	         antsCorticalThickness.sh), use -i (binary switch--no arguments).  
 USAGE
   exit 1 
 }
@@ -63,6 +66,7 @@ echoParameters() {
    num bootstraps:     $NBOOTSTRAP
    pct per bootstrap:  $PCTBOOTSTRAP
    keep tmp files:     $KEEP_TMP_FILES
+   use inverse warps:  $USE_INVERSE_WARPS
 PARAMETERS
 }
 
@@ -77,12 +81,13 @@ function logCmd() {
 }
 
 KEEP_TMP_FILES=false 
+USE_INVERSE_WARPS=false
 if [[ $# -lt 3 ]] 
 then 
   Usage >&2
   exit 1
 else 
-  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:kh" OPT
+  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:kih" OPT
   do 
     case $OPT in 
       a) #anatomical t1 image
@@ -126,6 +131,9 @@ else
     ;;
       k) # keep tmp files 
     KEEP_TMP_FILES=true
+    ;;
+      i) # use inverse warps
+    USE_INVERSE_WARPS=true
     ;;
       h) # help
     Usage >&2
@@ -276,15 +284,49 @@ then
     --pctboot $PCTBOOTSTRAP
 fi
 
-logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
-  -i ${OUTNAME}_kcbf.nii.gz \
-  -r $TEMPLATE \
-  -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
-  -n Linear \
-  -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
-  -t ${TRANSFORM_PREFIX}0GenericAffine.mat \
-  -t ${OUTNAME}1Warp.nii.gz \
-  -t ${OUTNAME}0GenericAffine.mat \
+if ! $USE_INVERSE_WARPS 
+then 
+  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+    -i ${OUTNAME}_kcbf.nii.gz \
+    -r $TEMPLATE \
+    -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
+    -n Linear \
+    -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
+    -t ${TRANSFORM_PREFIX}0GenericAffine.mat \
+    -t ${OUTNAME}1Warp.nii.gz \
+    -t ${OUTNAME}0GenericAffine.mat \
+  
+  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+    -i $LABELS \
+    -r ${OUTNAME}AveragePCASL.nii.gz \
+    -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
+    -n MultiLabel \
+    -t [${OUTNAME}0GenericAffine.mat,1] \
+    -t ${OUTNAME}1InverseWarp.nii.gz \
+    -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
+    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+else 
+  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+    -i ${OUTNAME}_kcbf.nii.gz \
+    -r $TEMPLATE \
+    -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
+    -n Linear \
+    -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
+    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+    -t ${OUTNAME}1Warp.nii.gz \
+    -t ${OUTNAME}0GenericAffine.mat \
+  
+  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+    -i $LABELS \
+    -r ${OUTNAME}AveragePCASL.nii.gz \
+    -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
+    -n MultiLabel \
+    -t ${OUTNAME}1InverseWarp.nii.gz \
+    -t ${OUTNAME}0GenericAffine.mat \
+    -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
+    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+fi
+  
 
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
@@ -302,15 +344,7 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -t [${OUTNAME}0GenericAffine.mat,1] \
   -t ${OUTNAME}1InverseWarp.nii.gz \
 
-logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
-  -i $LABELS \
-  -r ${OUTNAME}AveragePCASL.nii.gz \
-  -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
-  -n MultiLabel \
-  -t [${OUTNAME}0GenericAffine.mat,1] \
-  -t ${OUTNAME}1InverseWarp.nii.gz \
-  -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-  -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
+
 
 
 if ! $KEEP_TMP_FILES
