@@ -149,6 +149,7 @@ Optional arguments:
             MI = mutual information
             MSQ = mean square difference
             DEMONS = demon's metric
+          The user can specify a similarity metric per modality.
 
      -t:  Type of transformation model used for registration (default = SyN):  Options are
             SyN = Greedy SyN
@@ -208,7 +209,7 @@ function reportMappingParameters {
  Dimensionality:           $DIM
  Do N4 bias correction:    $N4CORRECT
  Back up each iteration:   $BACKUPEACHITERATION
- Similarity metric:        $METRICTYPE
+ Similarity metric:        ${METRICTYPE[@]}
  Gradient step:            $GRADIENTSTEP
  Transformation:           $TRANSFORMATIONTYPE
  Max iterations:           $MAXITERATIONS
@@ -381,7 +382,7 @@ BACKUPEACHITERATION=0
 MAXITERATIONS=100x100x70x20
 SMOOTHINGFACTORS=3x2x1x0
 SHRINKFACTORS=6x4x2x1
-METRICTYPE=CC
+METRICTYPE=()
 TRANSFORMATIONTYPE="SyN"
 NUMBEROFMODALITIES=1
 MODALITYWEIGHTSTRING=""
@@ -486,7 +487,7 @@ while getopts "b:c:d:f:g:h:i:j:k:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
    SCRIPTPREPEND=$OPTARG
    ;;
       m) #similarity model
-   METRICTYPE=$OPTARG
+	  METRICTYPE[${#METRICTYPE[@]}]=$OPTARG
    ;;
       r) #start with rigid-body registration
    RIGID=$OPTARG
@@ -540,6 +541,25 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
   do
     TEMPLATES[$i]=${TEMPLATENAME}${i}.nii.gz
   done
+
+if [[ ${#METRICTYPE[@]} -eq 0 ]];
+  then
+    METRICTYPE[0]=CC
+  fi
+
+if [[ ${#METRICTYPE[@]} -eq 1 ]];
+  then
+    for (( i = 1; i < $NUMBEROFMODALITIES; i++ ))
+      do
+        METRICTYPE[${#METRICTYPE[@]}]=${METRICTYPE[0]}
+      done
+  fi
+
+if [[ ${#METRICTYPE[@]} -ne $NUMBEROFMODALITIES ]];
+  then
+    echo "The number of similarity metrics does not match the number of specified modalities (see -s option)"
+    exit
+  fi
 
 if [[ ! -n "$MODALITYWEIGHTSTRING" ]];
   then
@@ -1060,22 +1080,22 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             l=0
             let l=$j+$k
 
-            if [[ "${METRICTYPE}" == "DEMONS" ]];
+            if [[ "${METRICTYPE[$k]}" == "DEMONS" ]];
               then
                 # Mapping Parameters
                 METRIC=Demons[
                 METRICPARAMS="${MODALITYWEIGHTS[$k]},4]"
-            elif [[ "${METRICTYPE}" == "CC"  ]];
+            elif [[ "${METRICTYPE[$k]}" == "CC"  ]];
               then
                 # Mapping Parameters
                 METRIC=CC[
                 METRICPARAMS="${MODALITYWEIGHTS[$k]},4]"
-            elif [[ "${METRICTYPE}" == "MI" ]];
+            elif [[ "${METRICTYPE[$k]}" == "MI" ]];
               then
                 # Mapping Parameters
                 METRIC=MI[
                 METRICPARAMS="${MODALITYWEIGHTS[$k]},32]"
-            elif [[ "${METRICTYPE}" == "MSQ" ]];
+            elif [[ "${METRICTYPE[$k]}" == "MSQ" ]];
               then
                 # Mapping Parameters
                 METRIC=MeanSquares[
