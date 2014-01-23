@@ -265,7 +265,7 @@ if ( scalar(@pasllist) > 0 ) {
   }
   
   if ( ! -s "${oname}meancbf.nii.gz" ) {
-    system( "/data/jet/jtduda/bin/cbf_pasl_robust_batch.R ${opasl} ${m0avg} ${oname}meancbf.nii.gz" );
+    system( "cbf_pasl_robust_batch.R ${opasl} ${m0avg} ${oname}meancbf.nii.gz" );
   }
   
   if ( ! -s "${oname}Template_meancbf.nii.gz" ) {
