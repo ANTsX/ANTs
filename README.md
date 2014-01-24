@@ -170,7 +170,7 @@ Learning about ANTs
 
 **Large deformation** [example](http://stnava.github.io/C/)
 
-**Template construction** [example](http://stnava.github.io/ntustison/TemplateBuildingExample)
+**Template construction** [example](http://ntustison.github.io/TemplateBuildingExample/)
 
 **Automobile** [example](http://stnava.github.io/cars/)
 
