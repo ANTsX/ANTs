@@ -221,3 +221,7 @@ Scholar](http://scholar.google.com/scholar?q=Advanced+Normalization+Tools+%22ANT
 [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed?term=%22Avants%20B%22%20OR%20%22Tustison%20N%22)
 
 ANTs was supported by: R01-EB006266-01
+
+
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/a912f82c8178a07889f508871d94e77d "githalytics.com")](http://githalytics.com/stnava/ANTs)
