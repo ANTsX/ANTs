@@ -61,7 +61,7 @@ for ( myfn in c( opt$mask, opt$fmri, opt$labels , opt$motion ) )
       } # else print(paste(" have input file",myfn))
   }
 freqLo<-0.01
-freqHi<-0.1
+freqHi<-0.15
 if ( is.null( opt$gdens ) ) opt$gdens<-0.25
 if ( ! is.null( opt$freq ) ) {
   freqLo<-as.numeric( strsplit(opt$freq,"x")[[1]][1] )
@@ -162,10 +162,11 @@ if ( dotest ) {
 ##################################################
 reproval<-cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree)$est
 names(reproval)<-"boldReproval"
-mydeg<-mynetwork1$graph$degree
-names(mydeg)<-paste("Deg",1:length(mynetwork1$graph$degree),sep='')
-mypr<-mynetwork1$graph$pagerank
-names(mypr)<-paste("PR",1:length(mynetwork1$graph$degree),sep='')
+# return network values on full dataset
+mydeg<-mynetwork$graph$degree
+names(mydeg)<-paste("Deg",1:length(mynetwork$graph$degree),sep='')
+mypr<-mynetwork$graph$pagerank
+names(mypr)<-paste("PR",1:length(mynetwork$graph$degree),sep='')
 myc<-c( reproval , mydeg, mypr )
 outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
