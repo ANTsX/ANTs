@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-dotest<-FALSE 
+dotest<-F 
 options(digits=3)
 Args <- commandArgs()
 self<-Args[4]
@@ -60,8 +60,8 @@ for ( myfn in c( opt$mask, opt$fmri, opt$labels , opt$motion ) )
         q(status=1)
       } # else print(paste(" have input file",myfn))
   }
-freqLo<-0.01
-freqHi<-0.15
+freqLo<-0.02
+freqHi<-0.1
 if ( is.null( opt$gdens ) ) opt$gdens<-0.25
 if ( ! is.null( opt$freq ) ) {
   freqLo<-as.numeric( strsplit(opt$freq,"x")[[1]][1] )
@@ -69,13 +69,17 @@ if ( ! is.null( opt$freq ) ) {
 }
 if ( dotest )
   {
-    opt$motion<-"PEDS008_20101120_MOCOparams.csv"
-    opt$fmri<-"PEDS008_20101120_bold.nii.gz"
-    opt$labels<-"AAL2BoldMasked.nii.gz"
-    opt$mask<-"PEDS008_20101120_Mask.nii.gz"
-    opt$output<-"TEST"
-    opt$gdens<-0.1
-  }
+    subjid<-"PEDS008_20101120"
+    subjid<-"SZ017_20050928"
+    subjid<-"NC805_20050906"
+    print(paste("start test",subjid,freqHi,freqLo))
+    opt$motion<-paste("moco/",subjid,"_MOCOparams.csv",sep='')
+    opt$fmri<-paste("bold/",subjid,"_bold.nii.gz",sep='')
+    opt$labels<-paste("regions/",subjid,"_BoldRegions.nii.gz",sep='')
+    opt$mask<-paste("mask/",subjid,"_Mask.nii.gz",sep='')
+    opt$output<-"test/TEST"
+    opt$gdens<-0.05
+  } else print(paste("start test",opt$output,freqHi,freqLo))
 mask<-antsImageRead(opt$mask,3)
 aalm<-antsImageRead(opt$labels,3)
 bold<-antsImageRead(opt$fmri,4)
@@ -102,6 +106,7 @@ bgsvd<-svd(  timeseries2matrix( bold, negmask ) )
 mynuis<-bgsvd$u[, 1:newnuisnv]
 colnames(mynuis)<-paste("bgdNuis",1:newnuisnv,sep='')
 classiccompcor<-compcor(bold,mask=mask)
+
 mynuis<-cbind(motionnuis,classiccompcor , mynuis )
 print("My nuisance variables are:")
 print( colnames(mynuis) )
@@ -112,13 +117,19 @@ aalmask[!mylog ]<-0
 aalm[!mylog]<-0
 omat<-timeseries2matrix( bold, aalmask )
 mytimes<-dim(omat)[1]
-omat<-omat[4:mytimes,]
-mynuis<-mynuis[4:mytimes,]
+throwaway<-5
+motmag<-apply( motionnuis[throwaway:mytimes,], FUN=mean,MARGIN=2)
+matmag<-sqrt( sum(motmag[1:9]*motmag[1:9]) )
+tranmag<-sqrt( sum(motmag[10:12]*motmag[10:12]) )
+motsd<-apply( motionnuis[throwaway:mytimes,], FUN=sd,MARGIN=2)
+matsd<-sqrt( sum(motsd[1:9]*motsd[1:9]) )
+transd<-sqrt( sum(motsd[10:12]*motsd[10:12]) )
+omat<-omat[throwaway:mytimes,]
+mynuis<-mynuis[throwaway:mytimes,]
 mytimes<-dim(omat)[1]
 mat<-residuals( lm( omat ~  mynuis ) )
 flo<-freqLo
 fhi<-freqHi
-mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi )
 mytimeshalf<-mytimes/2
 # 1st half
 mat1<-omat[1:mytimeshalf,]
@@ -138,12 +149,12 @@ if ( TRUE )
     print( cor.test(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank) )
     print( cor.test(mynetwork1$graph$betweeness,mynetwork2$graph$betweeness) )
     print( cor.test(mynetwork1$graph$localtransitivity,mynetwork2$graph$localtransitivity) )
-    plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
-    plot(mynetwork1$graph$betweeness,mynetwork2$graph$betweeness)
-    plot(mynetwork1$graph$closeness,mynetwork2$graph$closeness)
-    plot(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank)
-    plot(mynetwork2$graph$localtransitivity,mynetwork1$graph$localtransitivity)
-    plot(mynetwork1$graph$centrality,mynetwork2$graph$centrality)
+#    plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
+#    plot(mynetwork1$graph$betweeness,mynetwork2$graph$betweeness)
+#    plot(mynetwork1$graph$closeness,mynetwork2$graph$closeness)
+#    plot(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank)
+#    plot(mynetwork2$graph$localtransitivity,mynetwork1$graph$localtransitivity)
+#    plot(mynetwork1$graph$centrality,mynetwork2$graph$centrality)
   }
 cor1<-cor(t(mynetwork1$network))
 cor2<-cor(t(mynetwork2$network))
@@ -151,11 +162,15 @@ cor1t<-cor1[upper.tri(cor1)]
 cor2t<-cor2[upper.tri(cor2)]
 # print(cor.test(abs(cor1t),abs(cor2t)))
 # print( cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree) )
-if ( dotest ) {
+mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi )
+if ( FALSE ) {
   par(mfrow=c(1,3))
+  pdf(paste(opt$output,'boldrepro.pdf',sep=''),width=5,height=5)
   plot( abs(cor1t),abs(cor2t))
-  plot(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank)
+#  plot(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank)
   plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
+  plot(mynetwork1$graph$centrality,mynetwork2$graph$centrality)
+  dev.off()
 }
 ##################################################
 ############## now finalize it all ###############
@@ -167,7 +182,9 @@ mydeg<-mynetwork$graph$degree
 names(mydeg)<-paste("Deg",1:length(mynetwork$graph$degree),sep='')
 mypr<-mynetwork$graph$pagerank
 names(mypr)<-paste("PR",1:length(mynetwork$graph$degree),sep='')
-myc<-c( reproval , mydeg, mypr )
+mycent<-mynetwork$graph$centrality
+names(mycent)<-paste("Cent",1:length(mynetwork$graph$degree),sep='')
+myc<-c( matmag=matmag, tranmag=tranmag, matsd=matsd, transd=transd, reproval , mydeg, mypr, mycent )
 outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
 write.csv(outmat,paste(opt$output,'boldout.csv',sep=''),row.names=F)
