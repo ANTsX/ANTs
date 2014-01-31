@@ -39,7 +39,7 @@ if [[ ${#ANTSPATH} -le 3 ]];
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
 MALF=${ANTSPATH}/jointfusion
-fPEXEC=${ANTSPATH}ANTSpexec.sh
+PEXEC=${ANTSPATH}ANTSpexec.sh
 SGE=${ANTSPATH}waitForSGEQJobs.pl
 PBS=${ANTSPATH}waitForPBSQJobs.pl
 XGRID=${ANTSPATH}waitForXGridJobs.pl
