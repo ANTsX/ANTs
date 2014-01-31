@@ -212,7 +212,13 @@ static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::
     std::string description =
       std::string( "Currently, the only input supported is a csv file with " )
       + std::string( "columns including x,y (2D), x,y,z (3D) or x,y,z,t (4D) column headers." )
-      + std::string( "The points should be defined in physical space." );
+      + std::string( "The points should be defined in physical space." )
+      + std::string( "If in doubt how to convert coordinates from your files to the space" )
+      + std::string( "required by antsApplyTransformsToPoints try creating/drawing a simple" )
+      + std::string( "label volume with only one voxel set to 1 and all others set to 0." )
+      + std::string( "Write down the voxel coordinates. Then use ImageMaths LabelStats to find" )
+      + std::string( "out what coordinates for this voxel antsApplyTransformsToPoints is" )
+      + std::string( "expecting." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "input" );
