@@ -63,7 +63,8 @@ spec = c(
 'bloodt1'  , 'b', 2, "numeric", "blood relaxation (inv of t1, defaults to 0.67 s^-1", 
 'robust'   , 'r', 2, "numeric", "robustness parameter", 
 'nboot'    , 'n', 2, "numeric", "number of bootstrap runs", 
-'pctboot'  , 'p', 2, "numeric", "percent to sample per bootstrap run")
+'pctboot'  , 'p', 2, "numeric", "percent to sample per bootstrap run", 
+'replace ' , 'e', 2, "logical", "resample with replacement during bootstrap?")
 # ............................................. #
 spec=matrix(spec,ncol=5,byrow=TRUE)
 # get the options
@@ -99,6 +100,7 @@ if(opt$pctboot > 1.0) {
   cat('pctboot was greater than 1; setting to 70%.\n')
   opt$pctboot <- 0.70 
 }
+if(is.null(opt$replace)) opt$replace <- FALSE
 for ( myfn in c( opt$mask, opt$fmri, opt$labels ) )
   {
     if ( !file.exists(myfn) ) 
@@ -132,7 +134,7 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     mat<-timeseries2matrix( fmri, mask )
     cbflist<-list( ) 
     for ( i in 1:opt$nboot ) {
-      timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(opt$pctboot/2) ) 
+      timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(opt$pctboot/2) , replace=opt$replace ) 
       timeinds<-( timeinds %% 2 )+timeinds
       timeinds<-interleave( timeinds-1, timeinds )
       aslarr<-as.array( fmri ) 

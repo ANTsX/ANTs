@@ -43,7 +43,8 @@ Optional arguments:
 	      -k keep tmp files, including warps (defaults to false--takes lots of space to save)
 	      -i use inverse warps.  Warps are assumed to go in the direction of subject to template.  
 	         If you are instead using template to subject warps (e.g. the brain segmentation prior warps from 
-	         antsCorticalThickness.sh), use -i (binary switch--no arguments).  
+	         antsCorticalThickness.sh), use -i (binary switch--no arguments). 
+	      -f bootstrap with replacement?  takes arguments "false" or "true"; defaults to false.
 USAGE
   exit 1 
 }
@@ -52,21 +53,22 @@ echoParameters() {
   cat <<PARAMETERS
   Using `basename $0` with the following parameters: 
 
-   anatomical image:   ${ANATOMICAL_IMAGE}
-   brain mask:         $BRAINMASK
-   segmentation probs: $SEGMENTATION_PROB
-   hard segmentation:  $SEGMENTATION
-   pCASL image:        $PCASL
-   template:           $TEMPLATE
-   template labels:    $LABELS
-   transform prefix:   $TRANSFORM_PREFIX
-   output prefix:      $OUTNAME  
-   blood relaxation:   $BLOODT1 s^-1
-   robustness:         $ROBUST
-   num bootstraps:     $NBOOTSTRAP
-   pct per bootstrap:  $PCTBOOTSTRAP
-   keep tmp files:     $KEEP_TMP_FILES
-   use inverse warps:  $USE_INVERSE_WARPS
+   anatomical image:      ${ANATOMICAL_IMAGE}
+   brain mask:            $BRAINMASK
+   segmentation probs:    $SEGMENTATION_PROB
+   hard segmentation:     $SEGMENTATION
+   pCASL image:           $PCASL
+   template:              $TEMPLATE
+   template labels:       $LABELS
+   transform prefix:      $TRANSFORM_PREFIX
+   output prefix:         $OUTNAME  
+   blood relaxation:      $BLOODT1 s^-1
+   robustness:            $ROBUST
+   num bootstraps:        $NBOOTSTRAP
+   pct per bootstrap:     $PCTBOOTSTRAP
+   keep tmp files:        $KEEP_TMP_FILES
+   use inverse warps:     $USE_INVERSE_WARPS
+   sample w/ replacement: $SAMPLE_WITH_REPLACEMENT
 PARAMETERS
 }
 
@@ -87,7 +89,7 @@ then
   Usage >&2
   exit 1
 else 
-  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:kih" OPT
+  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:f:kih" OPT
   do 
     case $OPT in 
       a) #anatomical t1 image
@@ -129,6 +131,9 @@ else
       c) # pct to sample per bootstrap
     PCTBOOTSTRAP=$OPTARG
     ;;
+      f) # sample with replacement? 
+    SAMPLE_WITH_REPLACEMENT=$OPTARG
+    ;;
       k) # keep tmp files 
     KEEP_TMP_FILES=true
     ;;
@@ -162,6 +167,10 @@ fi
 if [[ -z $PCTBOOTSTRAP ]]
 then 
   PCTBOOTSTRAP=0.70
+fi
+if [[ -z $SAMPLE_WITH_REPLACEMENT ]] 
+then 
+  SAMPLE_WITH_REPLACEMENT=false
 fi
 echoParameters >&2
 
@@ -281,7 +290,8 @@ then
     --bloodt1 $BLOODT1 \
     --robust $ROBUST \
     --nboot $NBOOTSTRAP \
-    --pctboot $PCTBOOTSTRAP
+    --pctboot $PCTBOOTSTRAP \
+    --replace $SAMPLE_WITH_REPLACEMENT
 fi
 
 if ! $USE_INVERSE_WARPS 
