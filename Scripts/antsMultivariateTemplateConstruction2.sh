@@ -387,6 +387,7 @@ TRANSFORMATIONTYPE="SyN"
 NUMBEROFMODALITIES=1
 MODALITYWEIGHTSTRING=""
 N4CORRECT=1
+DOLINEAR=1
 DOQSUB=0
 GRADIENTSTEP=0.25
 ITERATIONLIMIT=4
@@ -426,7 +427,7 @@ if [[ "$1" == "-h" ]];
   fi
 
 # reading command line arguments
-while getopts "b:c:d:f:g:h:i:j:k:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
+while getopts "b:c:d:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -463,6 +464,9 @@ while getopts "b:c:d:f:g:h:i:j:k:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
    ;;
       k) #number of modalities used to construct the template (default = 1)
    NUMBEROFMODALITIES=$OPTARG
+   ;;
+      l) #do linear (rigid + affine) for deformable registration
+   DOLINEAR=$OPTARG
    ;;
       w) #modality weights (default = 1)
    MODALITYWEIGHTSTRING=$OPTARG
@@ -1085,11 +1089,16 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 # Mapping Parameters
                 METRIC=Demons[
                 METRICPARAMS="${MODALITYWEIGHTS[$k]},4]"
-            elif [[ "${METRICTYPE[$k]}" == "CC"  ]];
+            elif [[ "${METRICTYPE[$k]}" == CC*  ]];
               then
-                # Mapping Parameters
                 METRIC=CC[
-                METRICPARAMS="${MODALITYWEIGHTS[$k]},4]"
+                RADIUS=4
+                if [[ "${METRICTYPE[$k]}" == CC[* ]]
+                  then
+                    RADIUS=${METRICTYPE[$k]%]*}
+                    RADIUS=${RADIUS##*[}
+                  fi
+                METRICPARAMS="${MODALITYWEIGHTS[$k]},${RADIUS}]"
             elif [[ "${METRICTYPE[$k]}" == "MI" ]];
               then
                 # Mapping Parameters
@@ -1122,6 +1131,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             OUTWARPFN=`basename ${OUTWARPFN}`
             OUTWARPFN="${OUTWARPFN}${j}"
 
+            OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}1Warp.nii.gz"
+            if [[ $DOLINEAR -ne 0 ]];
+              then
+                OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
+              fi
+
             if [[ $N4CORRECT -eq 1 ]];
               then
                 REPAIRED="${outdir}/${OUTFN}Repaired.nii.gz"
@@ -1131,14 +1146,14 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${REPAIRED},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat >> ${outdir}/job_${count}_metriclog.txt\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
               else
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} -t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat >> ${outdir}/job_${count}_metriclog.txt\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
               fi
 
         done
@@ -1152,10 +1167,15 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
 
-        exe="$exe ${basecall} ${stage1} ${stage2} ${stage3}\n"
+        if [[ $DOLINEAR -ne 0 ]];
+          then
+            exe="$exe ${basecall} ${stage1} ${stage2} ${stage3}\n"
+            pexe="$pexe ${basecall} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
+          else
+            exe="$exe ${basecall} ${stage3}\n"
+            pexe="$pexe ${basecall} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
+          fi
         exe="$exe $warpexe"
-
-        pexe="$pexe ${basecall} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
         pexe="$pexe $warppexe"
 
         qscript="${outdir}/job_${count}_${i}.sh"
