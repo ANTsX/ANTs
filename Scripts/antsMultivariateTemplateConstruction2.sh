@@ -1070,7 +1070,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
     for (( j = 0; j < ${#IMAGESETARRAY[@]}; j+=$NUMBEROFMODALITIES ))
       do
-        basecall="${ANTS} -d ${DIM} --float 1 -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
+        basecall="${ANTS} -d ${DIM} --float 1 -u 1 -w [0.01,0.99] -z 1"
 
         IMAGEMETRICLINEARSET=''
         IMAGEMETRICSET=''
@@ -1163,14 +1163,15 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         OUTWARPFN=${POO%.*.*}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
+        stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
         stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
 
         if [[ $DOLINEAR -ne 0 ]];
           then
-            exe="$exe ${basecall} ${stage1} ${stage2} ${stage3}\n"
-            pexe="$pexe ${basecall} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
+            exe="$exe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3}\n"
+            pexe="$pexe ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           else
             exe="$exe ${basecall} ${stage3}\n"
             pexe="$pexe ${basecall} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
