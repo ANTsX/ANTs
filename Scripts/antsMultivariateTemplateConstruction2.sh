@@ -144,12 +144,17 @@ Optional arguments:
      -r:  Do rigid-body registration of inputs before creating template (default 0):
           0 == off 1 == on. Only useful when you do not have an initial template
 
+     -l:  Use linear image registration stages during the pairwise (template/subject)
+          deformable registration.  Otherwise, registration is limited to SyN or
+          B-spline SyN (see '-t' option).  This is '1' by default.
+
      -m:  Type of similarity metric used for registration (default = CC):  Options are
             CC = cross-correlation
             MI = mutual information
             MSQ = mean square difference
             DEMONS = demon's metric
-          The user can specify a similarity metric per modality.
+          A similarity metric per modality can be specified.  If the CC metric is chosen,
+          one can also specify the radius in brackets, e.g. '-m CC[4]'.
 
      -t:  Type of transformation model used for registration (default = SyN):  Options are
             SyN = Greedy SyN
