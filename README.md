@@ -194,6 +194,14 @@ Learning about ANTs
 
 **Cardiac** [example](http://stnava.github.io/LabelMyHeart)
 
+**Brain extraction** [example](https://github.com/ntustison/antsBrainExtractionExample)
+
+**N4 bias correction <-> segmentation** [example](https://github.com/ntustison/antsAtroposN4Example)
+
+**Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
+
+**MALF labeling example**[example](https://github.com/ntustison/MalfLabelingExample)
+
 **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
 
 **ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
