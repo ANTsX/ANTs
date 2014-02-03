@@ -137,9 +137,8 @@ foreach(ANTS_APP ${BASE_ANTS_APPS})
 endforeach()
 
 if(USE_VTK)
-include(${CMAKE_ROOT}/Modules/FindVTK.cmake)
-if(USE_VTK_FILE)
-  include(${USE_VTK_FILE})
+find_package(VTK REQUIRED NO_MODULE)
+include(${VTK_USE_FILE})
 set(VTK_ANTS_APPS
     ConvertVectorFieldToVTK
     GetMeshAndTopology
@@ -152,7 +151,6 @@ set(VTK_ANTS_APPS
 foreach(ANTS_APP ${VTK_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "${VTK_LIBRARIES}")
 endforeach()
-endif(USE_VTK_FILE)
 endif(USE_VTK)
 
 install(PROGRAMS ../Scripts/ants.sh
