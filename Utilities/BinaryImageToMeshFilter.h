@@ -3,6 +3,7 @@
  *******************************************************************************/
 #ifndef __BinaryImageToMeshFilter_h_
 #define __BinaryImageToMeshFilter_h_
+#include <vtkSmartPointer.h>
 
 #include "itkImage.h"
 #include "itkResampleImageFilter.h"
@@ -214,7 +215,7 @@ protected:
     // Compute marching cubes
     vtkImageData *importPipeEnd = fltImport->GetOutput();
     fltMarching = vtkImageMarchingCubes::New();
-    fltMarching->SetInput(importPipeEnd);
+    fltMarching->SetInputData(importPipeEnd);
     fltMarching->ComputeScalarsOff();
     fltMarching->ComputeGradientsOff();
     fltMarching->SetNumberOfContours(1);
@@ -223,30 +224,34 @@ protected:
 
     // Keep the largest connected component
     fltConnect = vtkPolyDataConnectivityFilter::New();
-    fltConnect->SetInput(meshPipeEnd);
+    fltConnect->SetInputData(meshPipeEnd);
     fltConnect->SetExtractionModeToLargestRegion();
     meshPipeEnd = fltMarching->GetOutput();
 
-    // Clean up the data
-    //    fltClean = vtkCleanPolyData::New();
-    // fltClean->SetInput(meshPipeEnd);
-    // meshPipeEnd = fltClean->GetOutput();
-
-    // Decimate the data
-    fltDecimate = vtkDecimatePro::New();
-    fltDecimate->SetInput(meshPipeEnd);
-    fltDecimate->PreserveTopologyOn();
-    meshPipeEnd = fltDecimate->GetOutput();
+    fltClean = vtkCleanPolyData::New();
+    bool doclean = false;
+    if ( doclean ) 
+      {
+      // Clean up the data
+      fltClean->SetInputData(meshPipeEnd);
+      meshPipeEnd = fltClean->GetOutput();
+      // Decimate the data
+      fltDecimate = vtkDecimatePro::New();
+      fltDecimate->SetInputData(meshPipeEnd);
+      fltDecimate->PreserveTopologyOn();
+      meshPipeEnd = fltDecimate->GetOutput();
+      }
 
     // Smooth the data, keeping it on the contour
-    fltSmoothMesh = vtkSmoothPolyDataFilter::New();
-    fltSmoothMesh->SetInput(meshPipeEnd);
-    fltSmoothMesh->SetSource(meshPipeEnd);
-    meshPipeEnd = fltSmoothMesh->GetOutput();
+    vtkSmartPointer<vtkSmoothPolyDataFilter> smoothFilter =
+      vtkSmartPointer<vtkSmoothPolyDataFilter>::New();
+    smoothFilter->SetInputData(meshPipeEnd);
+    smoothFilter->SetNumberOfIterations(5);
+    meshPipeEnd = smoothFilter->GetOutput();
 
     // Compute triangle strips for faster display
     fltTriangle = vtkTriangleFilter::New();
-    fltTriangle->SetInput(meshPipeEnd);
+    fltTriangle->SetInputData(meshPipeEnd);
     meshPipeEnd = fltTriangle->GetOutput();
 
     // Set up progress
@@ -275,7 +280,7 @@ protected:
     fltConnect->Delete();
     fltImport->Delete();
     fltTriangle->Delete();
-    // fltClean->Delete();
+    fltClean->Delete();
     fltDecimate->Delete();
     fltSmoothMesh->Delete();
   }
@@ -290,7 +295,7 @@ protected:
       reinterpret_cast<TImage *>(this->GetInput(0) );
 
     // Pass the input to the topology filter
-    // fltTopology->SetInput(inputImage);
+    // fltTopology->SetInputData(inputImage);
 
     // Compute the max/min of the image to set fore/back
     typedef itk::MinimumMaximumImageCalculator<TImage> CalcType;
@@ -391,13 +396,17 @@ protected:
            << fltConnect->GetOutput()->GetNumberOfPoints() << " points. " << endl;
       }
 
-    // if (verbose) cout << "   cleaning the mesh " << endl;
-    // fltClean->Update();
+    bool doclean = false;
+    if ( doclean ) 
+      {
+      if (verbose) cout << "   cleaning the mesh " << endl;
+      fltClean->Update();
+      if (verbose) cout << "  after clean step mesh uses " << m_DecimateFactor << " decimation " 
+		      << fltClean->GetOutput()->GetNumberOfCells() << " cells and "
+		      << fltClean->GetOutput()->GetNumberOfPoints() << " points. " << endl;
+      }
 
-    //    if (verbose) cout << "      mesh has "
-    // << fltClean->GetOutput()->GetNumberOfCells() << " cells and "
-    //  << fltClean->GetOutput()->GetNumberOfPoints() << " points. " << endl;
-
+    std::cout << "  to decimation with factor " <<  m_DecimateFactor << std::endl;
     // If decimation is on, run it
     if( m_DecimateFactor > 0.0  )
       {
@@ -406,17 +415,17 @@ protected:
         cout << "   decimating the mesh by factor of " << m_DecimateFactor << endl;
         }
       fltDecimate->SetTargetReduction(m_DecimateFactor);
+      fltDecimate->SetInputData(fltConnect->GetOutput());
       fltDecimate->Update();
-      fltTriangle->SetInput(fltDecimate->GetOutput() );
-
+      fltTriangle->SetInputData(fltDecimate->GetOutput() );
       //      if (verbose) cout << "      mesh has "
       // << fltClean->GetOutput()->GetNumberOfCells() << " cells and "
       //  << fltClean->GetOutput()->GetNumberOfPoints() << " points. " << endl;
       }
-    // else
-    // {
-    //  fltTriangle->SetInput(fltClean->GetOutput());
-    // }
+    else
+      {
+      fltTriangle->SetInputData(fltConnect->GetOutput());
+      }
 
     if( verbose )
       {
@@ -428,8 +437,8 @@ protected:
     if( verbose )
       {
       cout << "      mesh has "
-           << fltTriangle->GetOutput()->GetNumberOfCells() << " cells and "
-           << fltTriangle->GetOutput()->GetNumberOfPoints() << " points. " << endl;
+           <<  m_Result->GetNumberOfCells() << " cells and "
+           <<  m_Result->GetNumberOfPoints() << " points. " << endl;
       }
 
     // If smoothing is on, run it
@@ -440,11 +449,10 @@ protected:
         cout << "   smoothing the mesh " << m_SmoothingIterations  << endl;
         }
       fltSmoothMesh->SetNumberOfIterations(m_SmoothingIterations);
-      fltSmoothMesh->SetInput(m_Result);
-      fltSmoothMesh->SetSource(m_Result);
+      fltSmoothMesh->SetInputData(m_Result);
+      //      fltSmoothMesh->SetInputConnection(m_Result); // BA FIXME
       fltSmoothMesh->Update();
-      // m_Result =
-      fltSmoothMesh->GetOutput();
+      m_Result = fltSmoothMesh->GetOutput();
       std::cout << " Done " << std::endl;
       }
   }
