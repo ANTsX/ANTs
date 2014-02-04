@@ -58,7 +58,7 @@ float ComputeGenus(vtkPolyData* pd1)
 {
   vtkExtractEdges* edgeex = vtkExtractEdges::New();
 
-  edgeex->SetInput(pd1);
+  edgeex->SetInputData(pd1);
   edgeex->Update();
   vtkPolyData* edg1 = edgeex->GetOutput();
   vtkIdType    nedg = edg1->GetNumberOfCells();
@@ -78,7 +78,7 @@ float vtkComputeTopology(vtkPolyData* pd)
   vtkPolyDataConnectivityFilter* con = vtkPolyDataConnectivityFilter::New();
 
   con->SetExtractionModeToLargestRegion();
-  con->SetInput(pd);
+  con->SetInputData(pd);
   float g = ComputeGenus(con->GetOutput() );
   con->Delete();   // should be deleted b/c of New() above !!
   return g;
@@ -264,7 +264,7 @@ GetLargestComponent(typename TImage::Pointer image)
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int CheckTopology( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int CheckTopology( std::vector<std::string> args, std::ostream* )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;

@@ -7,7 +7,7 @@ set(PICSL_INCLUDE_DIRS
 ../Temporary
 .
 )
-
+AN	
 include_directories( ${BOOST_INCLUDE_DIR} ) #Define where to find Boost includes
 include_directories(${PICSL_INCLUDE_DIRS})
 link_directories( ${ITK_LIBRARY_PATH}  )
@@ -140,7 +140,7 @@ if(USE_VTK)
 find_package(VTK REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 set(VTK_ANTS_APPS
-    ConvertVectorFieldToVTK
+#    ConvertVectorFieldToVTK
     GetMeshAndTopology
     CheckTopology
     WarpVTKPolyDataMultiTransform

@@ -332,7 +332,7 @@ void WarpLabeledPointSetFileMultiTransform(char *input_vtk_filename, char *outpu
     {
     vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
     writer->SetFileName(output_vtk_filename);
-    writer->SetInput(mesh);
+    writer->SetInputData(mesh);
     writer->Update();
     }
 
@@ -488,7 +488,7 @@ void ComposeMultiAffine(char * /*input_affine_txt*/, char *output_affine_txt,
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int WarpVTKPolyDataMultiTransform( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int WarpVTKPolyDataMultiTransform( std::vector<std::string> args, std::ostream* )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
