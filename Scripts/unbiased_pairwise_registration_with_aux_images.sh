@@ -339,13 +339,10 @@ echo done with aux images --- now get final jacobians
 
  
 
-<<<<<<< HEAD
 if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then 
   echo deal with auxiliary images ... here a scalar image pair 
-=======
-if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then
-  echo deal with auxiliary images ... here DTI
->>>>>>> dafbbbc56dace03666e61a8eceb654d97d7293a8
+# if [[ -s $H ]] && [[ -s $K ]] && [[ ! -s ${nm}_cbfdiff.nii.gz  ]] ; then
+#  echo deal with auxiliary images ... here DTI
   fcbf=${nm}_fcbf.nii.gz
   mcbf=${nm}_mcbf.nii.gz
   ImageMath $dim $fcbf Normalize $H
@@ -404,14 +401,9 @@ ImageMath $dim ${nm}_cbfdiff.nii.gz - ${nm}_fcbfnorm.nii.gz  ${nm}_mcbfnorm.nii.
 fi
 echo done with 2nd aux images --- now get final jacobians
 
-
-<<<<<<< HEAD
 # get final jacobian values 
-trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat  -t ${nm}_A1Warp.nii.gz  -t  $initAmat"
-=======
-# get final jacobian values
+# trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat  -t ${nm}_A1Warp.nii.gz  -t  $initAmat"
 trans=" -t ${nm}_gt_1Warp.nii.gz -t ${nm}_gt_0GenericAffine.mat                       -t  $initAmat"
->>>>>>> dafbbbc56dace03666e61a8eceb654d97d7293a8
 antsApplyTransforms -d $dim -i ${nm}_A_brain.nii.gz -o  [${nm}_A_fullWarp.nii.gz, 1 ]  -r $template $trans
 ANTSJacobian $dim ${nm}_A_fullWarp.nii.gz ${nm}_A_full 1 no 0
 #
