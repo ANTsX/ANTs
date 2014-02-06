@@ -114,12 +114,13 @@ bgsvd<-svd(  timeseries2matrix( bold, negmask ) )
 mynuis<-bgsvd$u[, 1:newnuisnv]
 colnames(mynuis)<-paste("bgdNuis",1:newnuisnv,sep='')
 classiccompcor<-compcor(bold,mask=mask,ncompcor = 6)
-
+##################################################
 mynuis<-cbind(motionnuis,classiccompcor , mynuis )
 print("My nuisance variables are:")
 print( colnames(mynuis) )
 aalmask<-antsImageClone( aalm )
-mylog<-( aalm < 91 & aalm > 0 )
+mylog<-( aalm < 91 & aalm > 0 ) # for aal  
+mylog<-( aalm > 0 )
 aalmask[ mylog ]<-1
 aalmask[!mylog ]<-0
 aalm[!mylog]<-0
