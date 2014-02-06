@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-dotest<-F 
+dotest<-F
 options(digits=3)
 Args <- commandArgs()
 self<-Args[4]
@@ -15,6 +15,11 @@ pckg = try(require(igraph))
 if(!pckg) {
   getPckg("igraph")
 }
+pckg = try(require(glasso))
+if(!pckg) {
+  getPckg("glasso")
+}
+library(glasso)
 library(igraph)
 library(ANTsR)
 spec = c( 
@@ -24,6 +29,7 @@ spec = c(
 'fmri'     , 'f', "0", "character" ," name of BOLD fmri", 
 'freq'     , 'q', "0.01x0.1", "character" ," low x high frequency for filtering",
 'gdens'    , 'g', 0.25, "numeric","graph density",
+'glass'    , 'a', NA, "numeric","graphical lasso parameter",
 'help'     , 'h', 0, "logical" ," print the help ", 
 'output'   , 'o', "1", "character"," the output prefix ")
 # ............................................. #
@@ -63,6 +69,7 @@ for ( myfn in c( opt$mask, opt$fmri, opt$labels , opt$motion ) )
 freqLo<-0.02
 freqHi<-0.1
 if ( is.null( opt$gdens ) ) opt$gdens<-0.25
+if ( is.null( opt$glass ) ) opt$glass<-NA
 if ( ! is.null( opt$freq ) ) {
   freqLo<-as.numeric( strsplit(opt$freq,"x")[[1]][1] )
   freqHi<-as.numeric( strsplit(opt$freq,"x")[[1]][2] )
@@ -78,7 +85,8 @@ if ( dotest )
     opt$labels<-paste("regions/",subjid,"_BoldRegions.nii.gz",sep='')
     opt$mask<-paste("mask/",subjid,"_Mask.nii.gz",sep='')
     opt$output<-"test/TEST"
-    opt$gdens<-0.05
+    opt$gdens<-0.5
+    opt$glass<-0.2
   } else print(paste("start test",opt$output,freqHi,freqLo))
 mask<-antsImageRead(opt$mask,3)
 aalm<-antsImageRead(opt$labels,3)
@@ -101,11 +109,11 @@ negmask[ negmask >= 0 ] <- 0
 backgroundvoxels[  ]<-FALSE
 backgroundvoxels[ neginds ]<-TRUE
 negmask[ backgroundvoxels ]<-1
-newnuisnv<-2
+newnuisnv<-4
 bgsvd<-svd(  timeseries2matrix( bold, negmask ) )
 mynuis<-bgsvd$u[, 1:newnuisnv]
 colnames(mynuis)<-paste("bgdNuis",1:newnuisnv,sep='')
-classiccompcor<-compcor(bold,mask=mask)
+classiccompcor<-compcor(bold,mask=mask,ncompcor = 6)
 
 mynuis<-cbind(motionnuis,classiccompcor , mynuis )
 print("My nuisance variables are:")
@@ -118,10 +126,11 @@ aalm[!mylog]<-0
 omat<-timeseries2matrix( bold, aalmask )
 mytimes<-dim(omat)[1]
 throwaway<-5
+motnuisshift<-ashift(motionnuis[throwaway:mytimes,],c(1,0))
 motmag<-apply( motionnuis[throwaway:mytimes,], FUN=mean,MARGIN=2)
 matmag<-sqrt( sum(motmag[1:9]*motmag[1:9]) )
 tranmag<-sqrt( sum(motmag[10:12]*motmag[10:12]) )
-motsd<-apply( motionnuis[throwaway:mytimes,], FUN=sd,MARGIN=2)
+motsd<-apply( motionnuis[throwaway:mytimes,]-motnuisshift, FUN=mean,MARGIN=2)
 matsd<-sqrt( sum(motsd[1:9]*motsd[1:9]) )
 transd<-sqrt( sum(motsd[10:12]*motsd[10:12]) )
 omat<-omat[throwaway:mytimes,]
@@ -135,7 +144,7 @@ mytimeshalf<-mytimes/2
 mat1<-omat[1:mytimeshalf,]
 mynuis1<-mynuis[1:mytimeshalf,]
 mat1<-residuals( lm( mat1 ~  mynuis1 ) )
-mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi )
+mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass )
 # 2nd half
 mat2<-omat[mytimeshalf:mytimes,]
 mynuis2<-mynuis[mytimeshalf:mytimes,]
@@ -149,12 +158,6 @@ if ( TRUE )
     print( cor.test(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank) )
     print( cor.test(mynetwork1$graph$betweeness,mynetwork2$graph$betweeness) )
     print( cor.test(mynetwork1$graph$localtransitivity,mynetwork2$graph$localtransitivity) )
-#    plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
-#    plot(mynetwork1$graph$betweeness,mynetwork2$graph$betweeness)
-#    plot(mynetwork1$graph$closeness,mynetwork2$graph$closeness)
-#    plot(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank)
-#    plot(mynetwork2$graph$localtransitivity,mynetwork1$graph$localtransitivity)
-#    plot(mynetwork1$graph$centrality,mynetwork2$graph$centrality)
   }
 cor1<-cor(t(mynetwork1$network))
 cor2<-cor(t(mynetwork2$network))
@@ -178,14 +181,32 @@ if ( FALSE ) {
 reproval<-cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree)$est
 names(reproval)<-"boldReproval"
 # return network values on full dataset
+names(matmag)<-"MatrixMotion"
+names(tranmag)<-"TransMotion"
+names(matsd)<-"DMatrixMotion"
+names(transd)<-"DTransMotion"
 mydeg<-mynetwork$graph$degree
 names(mydeg)<-paste("Deg",1:length(mynetwork$graph$degree),sep='')
 mypr<-mynetwork$graph$pagerank
 names(mypr)<-paste("PR",1:length(mynetwork$graph$degree),sep='')
 mycent<-mynetwork$graph$centrality
 names(mycent)<-paste("Cent",1:length(mynetwork$graph$degree),sep='')
-myc<-c( matmag=matmag, tranmag=tranmag, matsd=matsd, transd=transd, reproval , mydeg, mypr, mycent )
+mytrans<-mynetwork$graph$localtransitivity
+names(mytrans)<-paste("Trans",1:length(mynetwork$graph$degree),sep='')
+myclose<-mynetwork$graph$closeness
+names(myclose)<-paste("Close",1:length(mynetwork$graph$degree),sep='')
+myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose )
 outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
 write.csv(outmat,paste(opt$output,'boldout.csv',sep=''),row.names=F)
+write.csv(mynetwork$graph$adjacencyMatrix,paste(opt$output,'adjacencymatrix.csv',sep=''),row.names=F)
+if ( dotest ) {
+  par(mfrow=c(2,3))
+  plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
+  plot(mynetwork1$graph$betweeness,mynetwork2$graph$betweeness)
+  plot(mynetwork1$graph$closeness,mynetwork2$graph$closeness)
+  plot(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank)
+  plot(mynetwork2$graph$localtransitivity,mynetwork1$graph$localtransitivity)
+  plot(mynetwork1$graph$centrality,mynetwork2$graph$centrality)
+}
 ##################################################
