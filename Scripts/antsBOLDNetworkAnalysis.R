@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-dotest<-T
+dotest<-F
 options(digits=3)
 Args <- commandArgs()
 self<-Args[4]
