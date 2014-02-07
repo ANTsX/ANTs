@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-dotest<-F
+dotest<-T
 options(digits=3)
 Args <- commandArgs()
 self<-Args[4]
@@ -201,6 +201,8 @@ outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
 write.csv(outmat,paste(opt$output,'boldout.csv',sep=''),row.names=F)
 write.csv(mynetwork$graph$adjacencyMatrix,paste(opt$output,'adjacencymatrix.csv',sep=''),row.names=F)
+write.csv(mynetwork$corrmat,paste(opt$output,'corrmat.csv',sep=''),row.names=F)
+write.csv(mynetwork$corrmat,paste(opt$output,'partial_corrmat.csv',sep=''),row.names=F)
 if ( dotest ) {
   par(mfrow=c(2,3))
   plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
