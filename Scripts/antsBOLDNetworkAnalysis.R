@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-dotest<-F
+dotest<-T
 options(digits=3)
 Args <- commandArgs()
 self<-Args[4]
@@ -134,11 +134,12 @@ classiccompcor<-compcor(omat,mask=mask,ncompcor = 4 )
 mynuis<-cbind(motionnuis,classiccompcor, bgdnuis )
 print("My nuisance variables are:")
 print( colnames(mynuis) )
-motnuisshift<-ashift(motionnuis,c(1,0))
-motmag<-apply( motionnuis, FUN=mean,MARGIN=2)
+omotionnuis<-as.matrix(motion[throwinds,3:ncol(motion)] )
+motnuisshift<-ashift(omotionnuis,c(1,0))
+motmag<-apply( omotionnuis, FUN=mean,MARGIN=2)
 matmag<-sqrt( sum(motmag[1:9]*motmag[1:9]) )
 tranmag<-sqrt( sum(motmag[10:12]*motmag[10:12]) )
-motsd<-apply( motionnuis-motnuisshift, FUN=mean,MARGIN=2)
+motsd<-apply( omotionnuis-motnuisshift, FUN=mean,MARGIN=2)
 matsd<-sqrt( sum(motsd[1:9]*motsd[1:9]) )
 transd<-sqrt( sum(motsd[10:12]*motsd[10:12]) )
 mytimes<-dim(omat)[1]
@@ -150,7 +151,7 @@ mytimeshalf<-mytimes/2
 mat1<-omat[1:mytimeshalf,]
 mynuis1<-mynuis[1:mytimeshalf,]
 mat1<-residuals( lm( mat1 ~  mynuis1 ) )
-locmotnuis<-cbind( mynuis, motionnuis-motnuisshift )
+locmotnuis<-cbind( mynuis, motionnuis-ashift(motionnuis,c(1,0)) )
 mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass  , nuisancein = locmotnuis[1:mytimeshalf,])
 # 2nd half
 mat2<-omat[mytimeshalf:mytimes,]
