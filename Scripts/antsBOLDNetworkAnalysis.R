@@ -24,6 +24,7 @@ library(igraph)
 library(ANTsR)
 spec = c( 
 'labels'   , 'l', "0", "character" ," name of (aal) label image ", 
+'thresh'   , 't', "1x100000000", "character" ," lower upper thresh for label image ", 
 'motion'     , 'm', "0", "character" ," name of brain motion csv ",
 'mask'     , 'x', "0", "character" ," name of brain mask image ",
 'fmri'     , 'f', "0", "character" ," name of BOLD fmri", 
@@ -68,12 +69,18 @@ for ( myfn in c( opt$mask, opt$fmri, opt$labels , opt$motion ) )
   }
 freqLo<-0.02
 freqHi<-0.1
+threshLo<-1
+threshHi<-10000000
 throwaway<-5
 if ( is.null( opt$gdens ) ) opt$gdens<-0.25
 if ( is.null( opt$glass ) ) opt$glass<-NA
 if ( ! is.null( opt$freq ) ) {
   freqLo<-as.numeric( strsplit(opt$freq,"x")[[1]][1] )
   freqHi<-as.numeric( strsplit(opt$freq,"x")[[1]][2] )
+}
+if ( ! is.null( opt$thresh ) ) {
+  threshLo<-as.numeric( strsplit(opt$thresh,"x")[[1]][1] )
+  threshHi<-as.numeric( strsplit(opt$thresh,"x")[[1]][2] )
 }
 if ( dotest )
   {
@@ -124,10 +131,11 @@ print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
 bgdnuis<-bgsvd$u[, 1:newnuisv]
 colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
 aalmask<-antsImageClone( aalm )
-mylog<-( aalm > 0 )
+mylog<-( aalm >= threshLo & aalm <= threshHi )
 aalmask[ mylog ]<-1
 aalmask[!mylog ]<-0
 aalm[!mylog]<-0
+print(paste("You are using:",length( unique( aalm[aalmask>0] ) ) ,"unique labels."))
 omat<-timeseries2matrix( bold, aalmask )
 omat<-omat[throwinds,]
 ##################################################
@@ -188,7 +196,9 @@ if ( FALSE ) {
 ############## now finalize it all ###############
 ##################################################
 reproval<-cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree)$est
+reproval2<-cor.test(mynetwork1$graph$localtransitivity,mynetwork2$graph$localtransitivity)$est
 names(reproval)<-"boldReproval"
+names(reproval2)<-"boldReproval2"
 # return network values on full dataset
 names(matmag)<-"MatrixMotion"
 names(tranmag)<-"TransMotion"
@@ -204,7 +214,7 @@ mytrans<-mynetwork$graph$localtransitivity
 names(mytrans)<-paste("Trans",1:length(mynetwork$graph$degree),sep='')
 myclose<-mynetwork$graph$closeness
 names(myclose)<-paste("Close",1:length(mynetwork$graph$degree),sep='')
-myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose )
+myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , reproval2 )
 outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
 write.csv(outmat,paste(opt$output,'boldout.csv',sep=''),row.names=F)
