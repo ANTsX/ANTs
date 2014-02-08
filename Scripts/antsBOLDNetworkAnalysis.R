@@ -77,24 +77,26 @@ if ( ! is.null( opt$freq ) ) {
 }
 if ( dotest )
   {
-    subjid<-"PEDS008_20101120"
     subjid<-"SZ017_20050928"
     subjid<-"NC805_20050906"
+    subjid<-"PEDS045_20110208"
+#    subjid<-"PEDS008_20101120"
+    subjid<-"PEDS104_20120817"
     print(paste("start test",subjid,freqHi,freqLo))
     opt$motion<-paste("moco/",subjid,"_MOCOparams.csv",sep='')
     opt$fmri<-paste("bold/",subjid,"_bold.nii.gz",sep='')
-    opt$labels<-paste("regions/",subjid,"_BoldRegions.nii.gz",sep='')
+    opt$labels<-paste("regions/",subjid,"_AAL.nii.gz",sep='')
     opt$mask<-paste("mask/",subjid,"_Mask.nii.gz",sep='')
     opt$output<-"test/TEST"
-    opt$gdens<-0.05
+    opt$gdens<-0.1
     opt$glass<-NA
-  } else print(paste("start test",opt$output,freqHi,freqLo))
+  } else print(paste("start subject",opt$output,freqHi,freqLo))
 mask<-antsImageRead(opt$mask,3)
 aalm<-antsImageRead(opt$labels,3)
 bold<-antsImageRead(opt$fmri,4)
 mytimes<-dim(bold)[4]
 motion<-read.csv(opt$motion)
-usemotiondirectly<-FALSE
+usemotiondirectly<-TRUE
 throwinds<-throwaway:mytimes
 if ( ! usemotiondirectly ) 
   {
@@ -117,12 +119,11 @@ ImageMath(3,negmask,"ME",negmask,1)
 tempmat<-timeseries2matrix( bold, negmask )[throwinds,]
 bgsvd<-svd( tempmat )
 mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
-newnuisv<-min( c( 2, which( mysum > 0.8 )[1] ) )
+newnuisv<-min( c( 5, which( mysum > 0.8 )[1] ) )
 print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
 bgdnuis<-bgsvd$u[, 1:newnuisv]
 colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
 aalmask<-antsImageClone( aalm )
-mylog<-( aalm < 91 & aalm > 0 ) # for aal  
 mylog<-( aalm > 0 )
 aalmask[ mylog ]<-1
 aalmask[!mylog ]<-0
@@ -131,7 +132,7 @@ omat<-timeseries2matrix( bold, aalmask )
 omat<-omat[throwinds,]
 ##################################################
 classiccompcor<-compcor(omat,mask=mask,ncompcor = 4 )
-mynuis<-cbind(motionnuis,classiccompcor, bgdnuis )
+mynuis<-cbind(motionnuis-ashift(motionnuis,c(1,0)),classiccompcor, bgdnuis )
 print("My nuisance variables are:")
 print( colnames(mynuis) )
 omotionnuis<-as.matrix(motion[throwinds,3:ncol(motion)] )
