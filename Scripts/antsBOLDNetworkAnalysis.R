@@ -88,8 +88,8 @@ if ( dotest )
     subjid<-"NC805_20050906"
     subjid<-"PEDS045_20110208"
 #    subjid<-"PEDS008_20101120"
-    subjid<-"PEDS104_20120817"
-    subjid<-"PEDS007_20110903"
+#    subjid<-"PEDS104_20120817"
+#    subjid<-"PEDS007_20110903"
     print(paste("start test",subjid,freqHi,freqLo))
     opt$motion<-paste("moco/",subjid,"_MOCOparams.csv",sep='')
     opt$fmri<-paste("bold/",subjid,"_bold.nii.gz",sep='')
@@ -97,7 +97,7 @@ if ( dotest )
     opt$mask<-paste("mask/",subjid,"_Mask.nii.gz",sep='')
     opt$output<-"test/TEST"
     opt$gdens<-0.25
-    opt$glass<-0.1
+    opt$glass<-0.01
     threshLo<-1
     threshHi<-90
     freqLo<-0.01
