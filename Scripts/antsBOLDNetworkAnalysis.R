@@ -229,7 +229,7 @@ write.csv(mynetwork$graph$adjacencyMatrix,paste(opt$output,'adjacencymatrix.csv'
 write.csv(mynetwork$corrmat,paste(opt$output,'pearson_corrmat.csv',sep=''),row.names=F)
 write.csv(mynetwork$partialcorrmat,paste(opt$output,'partial_corrmat.csv',sep=''),row.names=F)
 write.csv(mynetwork$glassocormat,paste(opt$output,'glasso_corrmat.csv',sep=''),row.names=F)
-if ( dotest ) {
+if ( TRUE ) {
   require(gridExtra)
   require(ggplot2)
   dat<-data.frame(deg1=mynetwork1$graph$degree,deg2=mynetwork2$graph$degree)
@@ -244,7 +244,7 @@ if ( dotest ) {
   plot5<-ggplot(dat, aes(x=LT1, y=LT2)) + geom_point(shape=1) + geom_smooth(method=lm)
   dat<-data.frame(cent1=mynetwork1$graph$centrality,cent2=mynetwork2$graph$centrality)
   plot6<-ggplot(dat, aes(x=cent1, y=cent2)) + geom_point(shape=1) + geom_smooth(method=lm)
-  pdf(paste(subjid,"reproplot.pdf",sep=''),width=8,height=4)
+  pdf(paste(opt$output,"reproplot.pdf",sep=''),width=8,height=4)
   grid.arrange(plot1, plot2,plot3, plot4,plot5, plot6, ncol=3)
   dev.off()
 }
