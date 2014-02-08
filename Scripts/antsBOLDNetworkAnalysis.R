@@ -89,14 +89,19 @@ if ( dotest )
     subjid<-"PEDS045_20110208"
 #    subjid<-"PEDS008_20101120"
     subjid<-"PEDS104_20120817"
+    subjid<-"PEDS007_20110903"
     print(paste("start test",subjid,freqHi,freqLo))
     opt$motion<-paste("moco/",subjid,"_MOCOparams.csv",sep='')
     opt$fmri<-paste("bold/",subjid,"_bold.nii.gz",sep='')
     opt$labels<-paste("regions/",subjid,"_AAL.nii.gz",sep='')
     opt$mask<-paste("mask/",subjid,"_Mask.nii.gz",sep='')
     opt$output<-"test/TEST"
-    opt$gdens<-0.1
-    opt$glass<-NA
+    opt$gdens<-0.25
+    opt$glass<-0.1
+    threshLo<-1
+    threshHi<-90
+    freqLo<-0.01
+    freqHi<-0.1
   } else print(paste("start subject",opt$output,freqHi,freqLo))
 mask<-antsImageRead(opt$mask,3)
 aalm<-antsImageRead(opt$labels,3)
@@ -225,12 +230,22 @@ write.csv(mynetwork$corrmat,paste(opt$output,'pearson_corrmat.csv',sep=''),row.n
 write.csv(mynetwork$partialcorrmat,paste(opt$output,'partial_corrmat.csv',sep=''),row.names=F)
 write.csv(mynetwork$glassocormat,paste(opt$output,'glasso_corrmat.csv',sep=''),row.names=F)
 if ( dotest ) {
-  par(mfrow=c(2,3))
-  plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
-  plot(mynetwork1$graph$betweeness,mynetwork2$graph$betweeness)
-  plot(mynetwork1$graph$closeness,mynetwork2$graph$closeness)
-  plot(mynetwork1$graph$pagerank,mynetwork2$graph$pagerank)
-  plot(mynetwork2$graph$localtransitivity,mynetwork1$graph$localtransitivity)
-  plot(mynetwork1$graph$centrality,mynetwork2$graph$centrality)
+  require(gridExtra)
+  require(ggplot2)
+  dat<-data.frame(deg1=mynetwork1$graph$degree,deg2=mynetwork2$graph$degree)
+  plot1<-ggplot(dat, aes(x=deg1, y=deg2)) + geom_point(shape=1) + geom_smooth(method=lm)
+  dat<-data.frame(btwn1=mynetwork1$graph$betweeness,btwn2=mynetwork2$graph$betweeness)
+  plot2<-ggplot(dat, aes(x=btwn1, y=btwn2)) + geom_point(shape=1) + geom_smooth(method=lm)
+  dat<-data.frame(clos1=mynetwork1$graph$closeness,clos2=mynetwork2$graph$closeness)
+  plot3<-ggplot(dat, aes(x=clos1, y=clos2)) + geom_point(shape=1) + geom_smooth(method=lm)
+  dat<-data.frame(pr1=mynetwork1$graph$pagerank,pr2=mynetwork2$graph$pagerank)
+  plot4<-ggplot(dat, aes(x=pr1, y=pr2)) + geom_point(shape=1) + geom_smooth(method=lm)
+  dat<-data.frame(LT1=mynetwork1$graph$localtransitivity,LT2=mynetwork2$graph$localtransitivity)
+  plot5<-ggplot(dat, aes(x=LT1, y=LT2)) + geom_point(shape=1) + geom_smooth(method=lm)
+  dat<-data.frame(cent1=mynetwork1$graph$centrality,cent2=mynetwork2$graph$centrality)
+  plot6<-ggplot(dat, aes(x=cent1, y=cent2)) + geom_point(shape=1) + geom_smooth(method=lm)
+  pdf(paste(subjid,"reproplot.pdf",sep=''),width=8,height=4)
+  grid.arrange(plot1, plot2,plot3, plot4,plot5, plot6, ncol=3)
+  dev.off()
 }
 ##################################################
