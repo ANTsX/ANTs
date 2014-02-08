@@ -214,13 +214,16 @@ mytrans<-mynetwork$graph$localtransitivity
 names(mytrans)<-paste("Trans",1:length(mynetwork$graph$degree),sep='')
 myclose<-mynetwork$graph$closeness
 names(myclose)<-paste("Close",1:length(mynetwork$graph$degree),sep='')
-myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , reproval2 )
+mybtwn<-mynetwork$graph$betweeness
+names(mybtwn)<-paste("Btwn",1:length(mynetwork$graph$degree),sep='')
+myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , mybtwn, reproval2 )
 outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
 write.csv(outmat,paste(opt$output,'boldout.csv',sep=''),row.names=F)
 write.csv(mynetwork$graph$adjacencyMatrix,paste(opt$output,'adjacencymatrix.csv',sep=''),row.names=F)
-write.csv(mynetwork$corrmat,paste(opt$output,'corrmat.csv',sep=''),row.names=F)
+write.csv(mynetwork$corrmat,paste(opt$output,'pearson_corrmat.csv',sep=''),row.names=F)
 write.csv(mynetwork$partialcorrmat,paste(opt$output,'partial_corrmat.csv',sep=''),row.names=F)
+write.csv(mynetwork$glassocormat,paste(opt$output,'glasso_corrmat.csv',sep=''),row.names=F)
 if ( dotest ) {
   par(mfrow=c(2,3))
   plot(mynetwork1$graph$degree,mynetwork2$graph$degree)
