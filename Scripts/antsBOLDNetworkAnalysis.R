@@ -229,6 +229,7 @@ write.csv(mynetwork$graph$adjacencyMatrix,paste(opt$output,'adjacencymatrix.csv'
 write.csv(mynetwork$corrmat,paste(opt$output,'pearson_corrmat.csv',sep=''),row.names=F)
 write.csv(mynetwork$partialcorrmat,paste(opt$output,'partial_corrmat.csv',sep=''),row.names=F)
 write.csv(mynetwork$glassocormat,paste(opt$output,'glasso_corrmat.csv',sep=''),row.names=F)
+write.csv(mynetwork$rcormat,paste(opt$output,'r_corrmat.csv',sep=''),row.names=F)
 if ( TRUE ) {
   require(gridExtra)
   require(ggplot2)
