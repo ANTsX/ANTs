@@ -1,171 +1,131 @@
-
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include "itkConstNeighborhoodIterator.h"
-#include "itkDecomposeTensorFunction.h"
-#include "itkImageRegionIteratorWithIndex.h"
-
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
-#include "itkNeighborhoodAlgorithm.h"
-#include "itkTimeProbe.h"
-#include "itkVariableSizeMatrix.h"
-#include "itkVectorImageFileReader.h"
-#include "itkZeroFluxNeumannBoundaryCondition.h"
-#include "itkANTSImageRegistrationOptimizer.h"
+
+#include "itkDeformationFieldGradientTensorImageFilter.h"
+#include "itkDeterminantTensorImageFilter.h"
+#include "itkGeometricJacobianDeterminantImageFilter.h"
+#include "itkLogImageFilter.h"
+#include "itkMaximumImageFilter.h"
 
 namespace ants
 {
-template <class TImage, class TDisplacementField>
-typename TDisplacementField::PixelType
-TransformVector(TDisplacementField* field, typename TImage::IndexType index )
-{
-  enum { ImageDimension = TImage::ImageDimension };
-  typename TDisplacementField::PixelType vec = field->GetPixel(index);
-  typename TDisplacementField::PixelType newvec;
-  newvec.Fill(0);
-  for( unsigned int row = 0; row < ImageDimension; row++ )
-    {
-    for( unsigned int col = 0; col < ImageDimension; col++ )
-      {
-      newvec[row] += vec[col] * field->GetDirection()[row][col];
-      }
-    }
-
-  return newvec;
-}
-
 template <unsigned int ImageDimension>
 int CreateJacobianDeterminantImage( int argc, char *argv[] )
 {
-  typedef float                                  RealType;
-  typedef itk::Image<RealType, ImageDimension>   ImageType;
-  typedef itk::Vector<RealType, ImageDimension>  VectorType;
+  typedef double RealType;
+  typedef itk::Image<RealType, ImageDimension> ImageType;
+  typedef itk::Vector<RealType, ImageDimension> VectorType;
   typedef itk::Image<VectorType, ImageDimension> VectorImageType;
 
   /**
    * Read in vector field
    */
-  typedef itk::VectorImageFileReader<ImageType, VectorImageType> ReaderType;
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
   typename ReaderType::Pointer reader = ReaderType::New();
   reader->SetFileName( argv[2] );
-  reader->SetUseAvantsNamingConvention( true );
   reader->Update();
-  typename VectorImageType::Pointer vecimg = reader->GetOutput();
 
-  /** smooth before finite differencing */
-  typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, float> RegistrationOptimizerType;
-  typedef typename RegistrationOptimizerType::Pointer                RegistrationOptimizerPointer;
-  RegistrationOptimizerPointer reg = RegistrationOptimizerType::New();
-  reg->SmoothDisplacementFieldGauss(vecimg, 3);
+  typename ImageType::Pointer jacobian = NULL;
 
-  typename VectorImageType::SpacingType spacing
-    = vecimg->GetSpacing();
-
-  typename ImageType::Pointer jacobian =
-    AllocImage<ImageType>(vecimg);
-
-  itk::TimeProbe timer;
-  timer.Start();
+  typename ImageType::Pointer minimumConstantImage = ImageType::New();
+  minimumConstantImage->CopyInformation( reader->GetOutput() );
+  minimumConstantImage->SetRegions( reader->GetOutput()->GetRequestedRegion() );
+  minimumConstantImage->Allocate();
+  minimumConstantImage->FillBuffer( 0.001 );
 
   bool calculateLogJacobian = false;
-  if( argc > 4 )
+  if ( argc > 4 )
     {
     calculateLogJacobian = static_cast<bool>( atoi( argv[4] ) );
     }
 
-  typedef itk::ConstNeighborhoodIterator<VectorImageType>
-    ConstNeighborhoodIteratorType;
-  typename ConstNeighborhoodIteratorType::RadiusType radius;
-  radius.Fill( 2 );
-
-  itk::ZeroFluxNeumannBoundaryCondition<VectorImageType> nbc;
-  ConstNeighborhoodIteratorType                          bit;
-  itk::ImageRegionIterator<ImageType>                    It;
-
-  // Find the data-set boundary "faces"
-  typename itk::NeighborhoodAlgorithm
-  ::ImageBoundaryFacesCalculator<VectorImageType>::FaceListType faceList;
-  typename itk::NeighborhoodAlgorithm
-  ::ImageBoundaryFacesCalculator<VectorImageType> bC;
-  faceList = bC( vecimg,
-                 vecimg->GetLargestPossibleRegion(), radius );
-
-  typedef itk::VariableSizeMatrix<RealType>                  MatrixType;
-  typedef itk::DecomposeTensorFunction<MatrixType, RealType> DecomposerType;
-  typename DecomposerType::Pointer decomposer = DecomposerType::New();
-
-  typename itk::NeighborhoodAlgorithm::ImageBoundaryFacesCalculator
-  <VectorImageType>::FaceListType::iterator fit;
-  for( fit = faceList.begin(); fit != faceList.end(); ++fit )
+  bool calculateGeometricJacobian = false;
+  if ( argc > 5 )
     {
-    bit = ConstNeighborhoodIteratorType( radius, vecimg, *fit );
-    bit.OverrideBoundaryCondition( &nbc );
-    bit.GoToBegin();
-
-    It = itk::ImageRegionIterator<ImageType>( jacobian, *fit );
-    It.GoToBegin();
-
-    while( !bit.IsAtEnd() )
-      {
-      MatrixType J;
-      J.SetSize( ImageDimension, ImageDimension );
-      for( unsigned int i = 0; i < ImageDimension; i++ )
-        {
-        for( unsigned int j = 0; j < ImageDimension; j++ )
-          {
-          RealType x   = bit.GetCenterPixel()[j];
-          RealType xp1 = bit.GetNext( i )[j];
-          RealType xp2 = bit.GetNext( i, 2 )[j];
-          RealType xm1 = bit.GetPrevious( i )[j];
-          RealType xm2 = bit.GetPrevious( i, 2 )[j];
-
-          RealType h = 0.5;
-          xp1 = xp1 * h + x * (1.0 - h);
-          xm1 = xm1 * h + x * (1.0 - h);
-          xp2 = xp2 * h + xp1 * (1.0 - h);
-          xp2 = xm2 * h + xm1 * (1.0 - h);
-
-          J[i][j] = ( -xp2 + 8.0 * xp1 - 8.0 * xm1 + xm2 ) / ( 12.0 * spacing[i] );
-          }
-        J[i][i] += 1.0;
-        }
-      try
-        {
-        RealType jacDet = decomposer->EvaluateDeterminant( J );
-        if( jacDet < 1.e-4 && calculateLogJacobian )
-          {
-          jacDet = 1.e-4;
-          }
-        if( vnl_math_isnan(jacDet) )
-          {
-          jacDet = 1;
-          }
-        It.Set( ( calculateLogJacobian ? vcl_log( jacDet ) : jacDet ) );
-        }
-      catch( ... )
-        {
-        It.Set( itk::NumericTraits<RealType>::max() );
-        }
-      ++bit;
-      ++It;
-      }
+    calculateGeometricJacobian = static_cast<bool>( atoi( argv[5] ) );
     }
-  timer.Stop();
-//  std::cout << "Elapsed time: " << timer.GetMeanTime() << std::endl;
 
-  typedef itk::ImageFileWriter<ImageType> RealImageWriterType;
-  typename RealImageWriterType::Pointer realwriter = RealImageWriterType::New();
-  realwriter->SetFileName( argv[3] );
-  realwriter->SetInput( jacobian );
-  realwriter->Update();
-  return 0;
+  if( calculateGeometricJacobian )
+    {
+    typedef itk::GeometricJacobianDeterminantImageFilter
+      <VectorImageType, RealType, ImageType> JacobianFilterType;
+    typename JacobianFilterType::Pointer jacobianFilter = JacobianFilterType::New();
+    jacobianFilter->SetInput( reader->GetOutput() );
+
+    jacobian = jacobianFilter->GetOutput();
+    jacobian->Update();
+    jacobian->DisconnectPipeline();
+    }
+  else
+    {
+    typedef itk::DeformationFieldGradientTensorImageFilter<VectorImageType, RealType> JacobianFilterType;
+    typename JacobianFilterType::Pointer jacobianFilter = JacobianFilterType::New();
+    jacobianFilter->SetInput( reader->GetOutput() );
+    jacobianFilter->SetCalculateJacobian( true );
+    jacobianFilter->SetUseImageSpacing( true );
+    jacobianFilter->SetOrder( 2 );
+    jacobianFilter->SetUseCenteredDifference( true );
+
+    typedef itk::DeterminantTensorImageFilter<typename JacobianFilterType::OutputImageType, RealType>
+      DeterminantFilterType;
+    typename DeterminantFilterType::Pointer determinantFilter = DeterminantFilterType::New();
+    determinantFilter->SetInput( jacobianFilter->GetOutput() );
+    determinantFilter->Update();
+
+    minimumConstantImage->FillBuffer( 0.0 );
+
+    typedef itk::MaximumImageFilter<ImageType, ImageType, ImageType> MaxFilterType;
+    typename MaxFilterType::Pointer maxFilter = MaxFilterType::New();
+    maxFilter->SetInput1( determinantFilter->GetOutput() );
+    maxFilter->SetInput2( minimumConstantImage );
+
+    jacobian = maxFilter->GetOutput();
+    jacobian->Update();
+    jacobian->DisconnectPipeline();
+    }
+
+  if( calculateLogJacobian )
+    {
+    minimumConstantImage->FillBuffer( 0.001 );
+
+    typedef itk::MaximumImageFilter<ImageType, ImageType, ImageType> MaxFilterType;
+    typename MaxFilterType::Pointer maxFilter = MaxFilterType::New();
+    maxFilter->SetInput1( jacobian );
+    maxFilter->SetInput2( minimumConstantImage );
+
+    typedef itk::LogImageFilter<ImageType, ImageType> LogFilterType;
+    typename LogFilterType::Pointer logFilter = LogFilterType::New();
+    logFilter->SetInput( maxFilter->GetOutput() );
+    logFilter->Update();
+
+    typedef itk::ImageFileWriter<ImageType> ImageWriterType;
+    typename ImageWriterType::Pointer writer = ImageWriterType::New();
+    writer->SetFileName( argv[3] );
+    writer->SetInput( logFilter->GetOutput() );
+    writer->Update();
+    }
+  else
+    {
+    typedef itk::ImageFileWriter<ImageType> ImageWriterType;
+    typename ImageWriterType::Pointer writer = ImageWriterType::New();
+    writer->SetFileName( argv[3] );
+    writer->SetInput( jacobian );
+    writer->Update();
+    }
+
+  return EXIT_SUCCESS;
 }
+
+
+
+
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int CreateJacobianDeterminantImage( std::vector<std::string> args, std::ostream* out_stream = NULL )
+int CreateJacobianDeterminantImage( std::vector<std::string> args, std::ostream* itkNotUsed( out_stream ) )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
@@ -232,5 +192,6 @@ private:
       std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
+  return EXIT_SUCCESS;
 }
 } // namespace ants

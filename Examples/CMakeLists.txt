@@ -70,7 +70,7 @@ set(BASE_ANTS_APPS
   # WarpFunctionalImage
   ConvertScalarImageToRGB
   CreateWarpedGridImage
-  # CreateJacobianDeterminantImage
+  CreateJacobianDeterminantImage
   MeasureImageSimilarity
   ConvertToJpg
   ConvertImagePixelType
