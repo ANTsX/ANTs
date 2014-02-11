@@ -597,6 +597,9 @@ private:
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
   // antscout->set_stream( out_stream );
+  std::cout << "Sorry! " << argv[0] << " is deprecated " << std::endl;
+  std::cout << "Please use CreateJacobianDeterminantImage " << std::endl;  
+  return EXIT_SUCCESS;
 
   if( argc < 3 )
     {
