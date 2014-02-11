@@ -171,8 +171,7 @@ private:
 
   if( argc < 3 )
     {
-    std::cout << "Usage: " << argv[0] << " ImageDimension deformationField outputImage log-jac?(default-false)"
-             << std::endl;
+    std::cout << "Usage: " << argv[0] << " imageDimension deformationField outputImage [doLogJacobian=0] [useGeometric=0]" << std::endl;
     return EXIT_FAILURE;
     }
 
