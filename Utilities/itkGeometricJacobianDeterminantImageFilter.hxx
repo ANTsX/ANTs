@@ -148,7 +148,7 @@ void
 GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
 ::InitializeTetrahedralDeltaPoints()
 {
-  // cf http://mathworld.wolfram.com/RegularTetrahedron.html
+  // cf http://en.wikipedia.org/wiki/Tetrahedron#Formulas_for_a_regular_tetrahedron
 
   typename InputImageType::SpacingType spacing = this->m_RealValuedInputImage->GetSpacing();
 
@@ -157,15 +157,17 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
   this->m_DeltaTetrahedralPointC.Fill( 0.0 );
   this->m_DeltaTetrahedralPointD.Fill( 0.0 );
 
-  this->m_DeltaTetrahedralPointA[0] = vcl_sqrt( 3.0 ) / 3.0 * spacing[0];
+  this->m_DeltaTetrahedralPointA[0] = 0.5 * spacing[0];
+  this->m_DeltaTetrahedralPointA[2] = -0.5 / vcl_sqrt( 2.0 ) * spacing[2];
 
-  this->m_DeltaTetrahedralPointB[0] = -vcl_sqrt( 3.0 ) / 6.0 * spacing[0];
-  this->m_DeltaTetrahedralPointB[1] = 0.5 * spacing[1];
+  this->m_DeltaTetrahedralPointB[0] = -0.5 * spacing[0];
+  this->m_DeltaTetrahedralPointB[2] = -0.5 / vcl_sqrt( 2.0 ) * spacing[2];
 
-  this->m_DeltaTetrahedralPointC[0] = -vcl_sqrt( 3.0 ) / 6.0 * spacing[0];
-  this->m_DeltaTetrahedralPointC[1] = -0.5 * spacing[1];
+  this->m_DeltaTetrahedralPointC[1] = 0.5 * spacing[1];
+  this->m_DeltaTetrahedralPointC[2] = 0.5 / vcl_sqrt( 2.0 ) * spacing[2];
 
-  this->m_DeltaTetrahedralPointD[2] = vcl_sqrt( 6.0 ) / 3.0 * spacing[2];
+  this->m_DeltaTetrahedralPointD[1] = -0.5 * spacing[1];
+  this->m_DeltaTetrahedralPointD[2] = 0.5 / vcl_sqrt( 2.0 ) * spacing[2];
 }
 
 template< typename TInputImage, typename TRealType, typename TOutputImage >
