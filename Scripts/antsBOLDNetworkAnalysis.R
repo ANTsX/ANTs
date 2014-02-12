@@ -1,4 +1,8 @@
 #!/usr/bin/env Rscript
+myscale <- function(x,doscale=F) {
+    if ( doscale ) return( scale(x) )
+    return( x )
+} 
 dotest<-F
 options(digits=3)
 Args <- commandArgs()
@@ -15,6 +19,10 @@ pckg = try(require(igraph))
 if(!pckg) {
   getPckg("igraph")
 }
+pckg = try(require(psych))
+if(!pckg) {
+  getPckg("psych")
+}
 pckg = try(require(glasso))
 if(!pckg) {
   getPckg("glasso")
@@ -30,6 +38,7 @@ spec = c(
 'fmri'     , 'f', "0", "character" ," name of BOLD fmri", 
 'freq'     , 'q', "0.01x0.1", "character" ," low x high frequency for filtering",
 'gdens'    , 'g', 0.25, "numeric","graph density",
+'winsortrim' , 'w', 0.0, "numeric","winsorizing value e.g. 0.05 = 5%",
 'glass'    , 'a', NA, "numeric","graphical lasso parameter",
 'help'     , 'h', 0, "logical" ," print the help ", 
 'output'   , 'o', "1", "character"," the output prefix ")
@@ -128,7 +137,7 @@ backgroundvoxels[  ]<-FALSE
 backgroundvoxels[ neginds ]<-TRUE
 negmask[ backgroundvoxels ]<-1
 ImageMath(3,negmask,"ME",negmask,1)
-tempmat<-timeseries2matrix( bold, negmask )[throwinds,]
+tempmat<-myscale( timeseries2matrix( bold, negmask )[throwinds,] )
 bgsvd<-svd( tempmat )
 mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
 newnuisv<-min( c( 5, which( mysum > 0.8 )[1] ) )
@@ -141,7 +150,9 @@ aalmask[ mylog ]<-1
 aalmask[!mylog ]<-0
 aalm[!mylog]<-0
 print(paste("You are using:",length( unique( aalm[aalmask>0] ) ) ,"unique labels."))
-omat<-timeseries2matrix( bold, aalmask )
+omat<-myscale( timeseries2matrix( bold, aalmask ) )
+print(paste("winsorizing with trim",opt$winsortrim))
+omat<-winsor(omat,trim=opt$winsortrim)
 omat<-omat[throwinds,]
 ##################################################
 classiccompcor<-compcor(omat,mask=mask,ncompcor = 4 )
@@ -157,7 +168,7 @@ motsd<-apply( omotionnuis-motnuisshift, FUN=mean,MARGIN=2)
 matsd<-sqrt( sum(motsd[1:9]*motsd[1:9]) )
 transd<-sqrt( sum(motsd[10:12]*motsd[10:12]) )
 mytimes<-dim(omat)[1]
-mat<-residuals( lm( omat ~  mynuis ) )
+mat<-myscale( residuals( lm( omat ~  mynuis ) ) , doscale = TRUE )
 flo<-freqLo
 fhi<-freqHi
 mytimeshalf<-mytimes/2
@@ -166,12 +177,12 @@ mat1<-omat[1:mytimeshalf,]
 mynuis1<-mynuis[1:mytimeshalf,]
 mat1<-residuals( lm( mat1 ~  mynuis1 ) )
 locmotnuis<-cbind( mynuis, motionnuis-ashift(motionnuis,c(1,0)) )
-mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass  , nuisancein = locmotnuis[1:mytimeshalf,])
+mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass  ) # , nuisancein = locmotnuis[1:mytimeshalf,])
 # 2nd half
 mat2<-omat[mytimeshalf:mytimes,]
 mynuis2<-mynuis[mytimeshalf:mytimes,]
 mat2<-residuals( lm( mat2 ~  mynuis2 ) )
-mynetwork2<-filterfMRIforNetworkAnalysis( mat2 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , nuisancein = locmotnuis[mytimeshalf:mytimes,] )
+mynetwork2<-filterfMRIforNetworkAnalysis( mat2 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi   ) # , nuisancein = locmotnuis[mytimeshalf:mytimes,] )
 if ( TRUE )
   {
     print( cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree) )
@@ -187,7 +198,7 @@ cor1t<-cor1[upper.tri(cor1)]
 cor2t<-cor2[upper.tri(cor2)]
 # print(cor.test(abs(cor1t),abs(cor2t)))
 # print( cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree) )
-mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi, nuisancein = locmotnuis )
+mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi ) # , nuisancein = locmotnuis )
 if ( FALSE ) {
   par(mfrow=c(1,3))
   pdf(paste(opt$output,'boldrepro.pdf',sep=''),width=5,height=5)
