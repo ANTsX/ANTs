@@ -131,17 +131,17 @@ int CreateMosaic( unsigned int argc, char *argv[] )
 
   if( layout[0] < 0 || layout[0] > 2 )
     {
-    float minSpacing = spacing[0];
-    unsigned int minIndex = 0;
+    float maxSpacing = spacing[0];
+    unsigned int maxIndex = 0;
     for( unsigned int d = 1; d < ImageDimension; d++ )
       {
-      if( spacing[d] < minSpacing )
+      if( spacing[d] > maxSpacing )
         {
-        minSpacing = spacing[d];
-        minIndex = d;
+        maxSpacing = spacing[d];
+        maxIndex = d;
         }
       }
-    layout[0] = minIndex;
+    layout[0] = maxIndex;
     }
 
   unsigned long numberOfSlices = size[layout[0]];
@@ -162,6 +162,10 @@ int CreateMosaic( unsigned int argc, char *argv[] )
     numberOfRows = static_cast<int>( vcl_sqrt( static_cast<float>( numberOfSlices ) ) );
     numberOfColumns = vcl_ceil( static_cast<float>( numberOfSlices ) / static_cast<float>( numberOfRows ) );
     }
+
+  std::cout << "Slices[" << layout[0] << "]: " << numberOfSlices << std::endl;
+  std::cout << "Rows:  " << numberOfRows << std::endl;
+  std::cout << "Columns:  " << numberOfColumns << std::endl;
 
   typedef itk::TileImageFilter<SliceType, SliceType> FilterType;
   FilterType::LayoutArrayType array;
