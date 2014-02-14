@@ -80,7 +80,7 @@ freqLo<-0.02
 freqHi<-0.1
 threshLo<-1
 threshHi<-10000000
-throwaway<-5
+throwaway<-10
 if ( is.null( opt$gdens ) ) opt$gdens<-0.25
 if ( is.null( opt$glass ) ) opt$glass<-NA
 if ( ! is.null( opt$freq ) ) {
@@ -117,6 +117,18 @@ aalm<-antsImageRead(opt$labels,3)
 bold<-antsImageRead(opt$fmri,4)
 mytimes<-dim(bold)[4]
 motion<-read.csv(opt$motion)
+templateFD<-rep(0,nrow(motion))
+for ( i in 2:nrow(motion) ) {
+  mparams1<-c( motion[i,3:14] )
+  tmat1<-matrix( as.numeric(mparams1[1:9]), ncol = 3, nrow = 3)
+  mparams2<-c( motion[i-1,3:14] )
+  tmat2<-matrix( as.numeric(mparams2[1:9]), ncol = 3, nrow = 3)
+  pt<-t( matrix(  rep(10,3), nrow=1) )
+  newpt1<-data.matrix(tmat1) %*%  data.matrix( pt )+as.numeric(mparams1[10:12])
+  newpt2<-data.matrix(tmat2) %*%  data.matrix( pt )+as.numeric(mparams1[10:12])
+  templateFD[i]<-sum(abs(newpt2-newpt1))
+}
+names(templateFD)<-"templateFD"
 usemotiondirectly<-TRUE
 throwinds<-throwaway:mytimes
 if ( ! usemotiondirectly ) 
@@ -140,7 +152,7 @@ ImageMath(3,negmask,"ME",negmask,1)
 tempmat<-myscale( timeseries2matrix( bold, negmask )[throwinds,] )
 bgsvd<-svd( tempmat )
 mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
-newnuisv<-min( c( 5, which( mysum > 0.8 )[1] ) )
+newnuisv<-min( c( 8, which( mysum > 0.8 )[1] ) )
 print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
 bgdnuis<-bgsvd$u[, 1:newnuisv]
 colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
@@ -156,9 +168,6 @@ omat<-winsor(omat,trim=opt$winsortrim)
 omat<-omat[throwinds,]
 ##################################################
 classiccompcor<-compcor(omat,mask=mask,ncompcor = 4 )
-mynuis<-cbind(motionnuis-ashift(motionnuis,c(1,0)),classiccompcor, bgdnuis )
-print("My nuisance variables are:")
-print( colnames(mynuis) )
 omotionnuis<-as.matrix(motion[throwinds,3:ncol(motion)] )
 motnuisshift<-ashift(omotionnuis,c(1,0))
 motmag<-apply( omotionnuis, FUN=mean,MARGIN=2)
@@ -167,6 +176,15 @@ tranmag<-sqrt( sum(motmag[10:12]*motmag[10:12]) )
 motsd<-apply( omotionnuis-motnuisshift, FUN=mean,MARGIN=2)
 matsd<-sqrt( sum(motsd[1:9]*motsd[1:9]) )
 transd<-sqrt( sum(motsd[10:12]*motsd[10:12]) )
+dmatrix<-(omotionnuis-motnuisshift)[,1:9]
+dtran<-(omotionnuis-motnuisshift)[,10:12]
+dmatrixm<-apply( dmatrix * dmatrix , FUN=sum, MARGIN=1 )
+dtranm<-apply( dtran * dtran , FUN=sum, MARGIN=1 )
+mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, bgdnuis, templateFD[throwinds] )
+colnames(mynuis)[1:2]<-c("dmatrix","dtran")
+colnames(mynuis)[length(colnames(mynuis))]<-"FD"
+print("My nuisance variables are:")
+print( colnames(mynuis) )
 mytimes<-dim(omat)[1]
 mat<-myscale( residuals( lm( omat ~  mynuis ) ) , doscale = TRUE )
 flo<-freqLo
@@ -177,12 +195,12 @@ mat1<-omat[1:mytimeshalf,]
 mynuis1<-mynuis[1:mytimeshalf,]
 mat1<-residuals( lm( mat1 ~  mynuis1 ) )
 locmotnuis<-cbind( mynuis, motionnuis-ashift(motionnuis,c(1,0)) )
-mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass  ) # , nuisancein = locmotnuis[1:mytimeshalf,])
+mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass, usesvd=TRUE  ) # , nuisancein = locmotnuis[1:mytimeshalf,])
 # 2nd half
 mat2<-omat[mytimeshalf:mytimes,]
 mynuis2<-mynuis[mytimeshalf:mytimes,]
 mat2<-residuals( lm( mat2 ~  mynuis2 ) )
-mynetwork2<-filterfMRIforNetworkAnalysis( mat2 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi   ) # , nuisancein = locmotnuis[mytimeshalf:mytimes,] )
+mynetwork2<-filterfMRIforNetworkAnalysis( mat2 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi, usesvd=TRUE   ) # , nuisancein = locmotnuis[mytimeshalf:mytimes,] )
 if ( TRUE )
   {
     print( cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree) )
@@ -198,7 +216,7 @@ cor1t<-cor1[upper.tri(cor1)]
 cor2t<-cor2[upper.tri(cor2)]
 # print(cor.test(abs(cor1t),abs(cor2t)))
 # print( cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree) )
-mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi ) # , nuisancein = locmotnuis )
+mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , usesvd=TRUE ) # , nuisancein = locmotnuis )
 if ( FALSE ) {
   par(mfrow=c(1,3))
   pdf(paste(opt$output,'boldrepro.pdf',sep=''),width=5,height=5)
@@ -232,7 +250,10 @@ myclose<-mynetwork$graph$closeness
 names(myclose)<-paste("Close",1:length(mynetwork$graph$degree),sep='')
 mybtwn<-mynetwork$graph$betweeness
 names(mybtwn)<-paste("Btwn",1:length(mynetwork$graph$degree),sep='')
-myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , mybtwn, reproval2 )
+names(mytimes)<-"NTimePoints"
+meanFD<-mean(templateFD) 
+names(meanFD)<-"meanFD"
+myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , mybtwn, reproval2, mytimes, meanFD )
 outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
 write.csv(outmat,paste(opt$output,'boldout.csv',sep=''),row.names=F)
