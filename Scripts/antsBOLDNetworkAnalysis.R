@@ -195,12 +195,12 @@ mat1<-omat[1:mytimeshalf,]
 mynuis1<-mynuis[1:mytimeshalf,]
 mat1<-residuals( lm( mat1 ~  mynuis1 ) )
 locmotnuis<-cbind( mynuis, motionnuis-ashift(motionnuis,c(1,0)) )
-mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass, usesvd=TRUE  ) # , nuisancein = locmotnuis[1:mytimeshalf,])
+mynetwork1<-filterfMRIforNetworkAnalysis( mat1 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , useglasso = opt$glass, usesvd=FALSE  ) # , nuisancein = locmotnuis[1:mytimeshalf,])
 # 2nd half
 mat2<-omat[mytimeshalf:mytimes,]
 mynuis2<-mynuis[mytimeshalf:mytimes,]
 mat2<-residuals( lm( mat2 ~  mynuis2 ) )
-mynetwork2<-filterfMRIforNetworkAnalysis( mat2 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi, usesvd=TRUE   ) # , nuisancein = locmotnuis[mytimeshalf:mytimes,] )
+mynetwork2<-filterfMRIforNetworkAnalysis( mat2 , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi, usesvd=FALSE   ) # , nuisancein = locmotnuis[mytimeshalf:mytimes,] )
 if ( TRUE )
   {
     print( cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree) )
@@ -216,7 +216,7 @@ cor1t<-cor1[upper.tri(cor1)]
 cor2t<-cor2[upper.tri(cor2)]
 # print(cor.test(abs(cor1t),abs(cor2t)))
 # print( cor.test(mynetwork1$graph$degree,mynetwork2$graph$degree) )
-mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , usesvd=TRUE ) # , nuisancein = locmotnuis )
+mynetwork<-filterfMRIforNetworkAnalysis( mat , tr=antsGetSpacing(bold)[4], mask=aalmask ,cbfnetwork = "BOLD", labels= aalm , graphdensity = as.numeric(opt$gdens), freqLo = flo, freqHi = fhi , usesvd=FALSE ) # , nuisancein = locmotnuis )
 if ( FALSE ) {
   par(mfrow=c(1,3))
   pdf(paste(opt$output,'boldrepro.pdf',sep=''),width=5,height=5)
