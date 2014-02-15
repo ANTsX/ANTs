@@ -81,6 +81,7 @@ freqHi<-0.1
 threshLo<-1
 threshHi<-10000000
 throwaway<-10
+if ( is.null( opt$winsortrim ) ) opt$winsortrim<-0
 if ( is.null( opt$gdens ) ) opt$gdens<-0.25
 if ( is.null( opt$glass ) ) opt$glass<-NA
 if ( ! is.null( opt$freq ) ) {
@@ -128,9 +129,9 @@ for ( i in 2:nrow(motion) ) {
   newpt2<-data.matrix(tmat2) %*%  data.matrix( pt )+as.numeric(mparams1[10:12])
   templateFD[i]<-sum(abs(newpt2-newpt1))
 }
-names(templateFD)<-"templateFD"
-usemotiondirectly<-TRUE
+throwinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) >= throwaway ) )
 throwinds<-throwaway:mytimes
+usemotiondirectly<-TRUE
 if ( ! usemotiondirectly ) 
   {
   msvd<-svd( as.matrix(motion[throwinds,3:ncol(motion)] ) )
@@ -141,21 +142,24 @@ if ( ! usemotiondirectly )
   }
 if ( usemotiondirectly ) motionnuis <- as.matrix(motion[throwinds,3:ncol(motion)] )
 colnames(motionnuis)<-paste("mot",1:ncol(motionnuis),sep='')
-negmask<-antsImageClone( mask )
-backgroundvoxels <-  negmask == 0
-neginds<-which( backgroundvoxels )
-negmask[ negmask >= 0 ] <- 0
-backgroundvoxels[  ]<-FALSE
-backgroundvoxels[ neginds ]<-TRUE
-negmask[ backgroundvoxels ]<-1
-ImageMath(3,negmask,"ME",negmask,1)
-tempmat<-myscale( timeseries2matrix( bold, negmask )[throwinds,] )
-bgsvd<-svd( tempmat )
-mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
-newnuisv<-min( c( 8, which( mysum > 0.8 )[1] ) )
-print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
-bgdnuis<-bgsvd$u[, 1:newnuisv]
-colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
+bkgd<-TRUE
+if ( bkgd  ) {
+  negmask<-antsImageClone( mask )
+  backgroundvoxels <-  negmask == 0
+  neginds<-which( backgroundvoxels )
+  negmask[ negmask >= 0 ] <- 0
+  backgroundvoxels[  ]<-FALSE
+  backgroundvoxels[ neginds ]<-TRUE
+  negmask[ backgroundvoxels ]<-1
+  ImageMath(3,negmask,"ME",negmask,1)
+  tempmat<-myscale( timeseries2matrix( bold, negmask )[throwinds,] )
+  bgsvd<-svd( tempmat )
+  mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
+  newnuisv<-min( c( 8, which( mysum > 0.8 )[1] ) )
+  print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
+  bgdnuis<-bgsvd$u[, 1:newnuisv]
+  colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
+}
 aalmask<-antsImageClone( aalm )
 mylog<-( aalm >= threshLo & aalm <= threshHi )
 aalmask[ mylog ]<-1
@@ -164,7 +168,7 @@ aalm[!mylog]<-0
 print(paste("You are using:",length( unique( aalm[aalmask>0] ) ) ,"unique labels."))
 omat<-myscale( timeseries2matrix( bold, aalmask ) )
 print(paste("winsorizing with trim",opt$winsortrim))
-omat<-winsor(omat,trim=opt$winsortrim)
+if ( opt$winsortrim > 0 ) omat<-winsor(omat,trim=opt$winsortrim)
 omat<-omat[throwinds,]
 ##################################################
 classiccompcor<-compcor(omat,mask=mask,ncompcor = 4 )
@@ -180,7 +184,8 @@ dmatrix<-(omotionnuis-motnuisshift)[,1:9]
 dtran<-(omotionnuis-motnuisshift)[,10:12]
 dmatrixm<-apply( dmatrix * dmatrix , FUN=sum, MARGIN=1 )
 dtranm<-apply( dtran * dtran , FUN=sum, MARGIN=1 )
-mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, bgdnuis, templateFD[throwinds] )
+if ( bkgd ) 
+mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, bgdnuis, templateFD[throwinds] ) else mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, templateFD[throwinds] )
 colnames(mynuis)[1:2]<-c("dmatrix","dtran")
 colnames(mynuis)[length(colnames(mynuis))]<-"FD"
 print("My nuisance variables are:")
@@ -250,6 +255,7 @@ myclose<-mynetwork$graph$closeness
 names(myclose)<-paste("Close",1:length(mynetwork$graph$degree),sep='')
 mybtwn<-mynetwork$graph$betweeness
 names(mybtwn)<-paste("Btwn",1:length(mynetwork$graph$degree),sep='')
+mytimes<-length(throwinds)
 names(mytimes)<-"NTimePoints"
 meanFD<-mean(templateFD) 
 names(meanFD)<-"meanFD"
