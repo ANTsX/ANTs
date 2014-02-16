@@ -141,7 +141,8 @@ for ( i in 2:nrow(motion) ) {
 keepinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
 keepinds<-c(throwaway,keepinds)
 throwinds<-which( templateFD > ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
-if ( length( throwinds )  > 0 )
+doimpute<-FALSE 
+if ( length( throwinds )  > 0 & doimpute )
 for ( i in throwinds ) {
   previ <- max( keepinds[ keepinds < i ] )
   nexti <- min( keepinds[ keepinds > i ] )
