@@ -118,7 +118,15 @@ aalm<-antsImageRead(opt$labels,3)
 bold<-antsImageRead(opt$fmri,4)
 mytimes<-dim(bold)[4]
 motion<-read.csv(opt$motion)
+aalmask<-antsImageClone( aalm )
+mylog<-( aalm >= threshLo & aalm <= threshHi )
+aalmask[ mylog ]<-1
+aalmask[!mylog ]<-0
+aalm[!mylog]<-0
+print(paste("You are using:",length( unique( aalm[aalmask>0] ) ) ,"unique labels."))
+omat<-myscale( timeseries2matrix( bold, aalmask ) )
 templateFD<-rep(0,nrow(motion))
+DVARS<-rep(0,nrow(motion))
 for ( i in 2:nrow(motion) ) {
   mparams1<-c( motion[i,3:14] )
   tmat1<-matrix( as.numeric(mparams1[1:9]), ncol = 3, nrow = 3)
@@ -128,19 +136,30 @@ for ( i in 2:nrow(motion) ) {
   newpt1<-data.matrix(tmat1) %*%  data.matrix( pt )+as.numeric(mparams1[10:12])
   newpt2<-data.matrix(tmat2) %*%  data.matrix( pt )+as.numeric(mparams1[10:12])
   templateFD[i]<-sum(abs(newpt2-newpt1))
+  DVARS[i]<-sqrt( mean( ( omat[i,] - omat[i-1,] )^2 ) )
 }
-throwinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) >= throwaway ) )
-throwinds<-throwaway:mytimes
+keepinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
+keepinds<-c(throwaway,keepinds)
+throwinds<-which( templateFD > ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
+if ( length( throwinds )  > 0 )
+for ( i in throwinds ) {
+  previ <- max( keepinds[ keepinds < i ] )
+  nexti <- min( keepinds[ keepinds > i ] )
+  wt1 <-  1-abs( i - previ )/(nexti-previ)
+  wt2 <-  1-abs( i - nexti )/(nexti-previ)
+  omat[i,] <- wt1 * omat[previ,] + omat[nexti,] * wt2 
+  }
+keepinds<-throwaway:mytimes
 usemotiondirectly<-TRUE
 if ( ! usemotiondirectly ) 
   {
-  msvd<-svd( as.matrix(motion[throwinds,3:ncol(motion)] ) )
+  msvd<-svd( as.matrix(motion[keepinds,3:ncol(motion)] ) )
   mysum<-cumsum(msvd$d)/sum(msvd$d)
   nsvdcomp<-which( mysum > 0.999 )[1] 
   motionnuis <- (msvd$u[, 1:nsvdcomp])
   print(paste(" % var of motion ", mysum[nsvdcomp],'with',nsvdcomp ) )
   }
-if ( usemotiondirectly ) motionnuis <- as.matrix(motion[throwinds,3:ncol(motion)] )
+if ( usemotiondirectly ) motionnuis <- as.matrix(motion[keepinds,3:ncol(motion)] )
 colnames(motionnuis)<-paste("mot",1:ncol(motionnuis),sep='')
 bkgd<-TRUE
 if ( bkgd  ) {
@@ -152,7 +171,7 @@ if ( bkgd  ) {
   backgroundvoxels[ neginds ]<-TRUE
   negmask[ backgroundvoxels ]<-1
   ImageMath(3,negmask,"ME",negmask,1)
-  tempmat<-myscale( timeseries2matrix( bold, negmask )[throwinds,] )
+  tempmat<-myscale( timeseries2matrix( bold, negmask )[keepinds,] )
   bgsvd<-svd( tempmat )
   mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
   newnuisv<-min( c( 8, which( mysum > 0.8 )[1] ) )
@@ -160,19 +179,12 @@ if ( bkgd  ) {
   bgdnuis<-bgsvd$u[, 1:newnuisv]
   colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
 }
-aalmask<-antsImageClone( aalm )
-mylog<-( aalm >= threshLo & aalm <= threshHi )
-aalmask[ mylog ]<-1
-aalmask[!mylog ]<-0
-aalm[!mylog]<-0
-print(paste("You are using:",length( unique( aalm[aalmask>0] ) ) ,"unique labels."))
-omat<-myscale( timeseries2matrix( bold, aalmask ) )
 print(paste("winsorizing with trim",opt$winsortrim))
 if ( opt$winsortrim > 0 ) omat<-winsor(omat,trim=opt$winsortrim)
-omat<-omat[throwinds,]
+omat<-omat[keepinds,]
 ##################################################
 classiccompcor<-compcor(omat,mask=mask,ncompcor = 4 )
-omotionnuis<-as.matrix(motion[throwinds,3:ncol(motion)] )
+omotionnuis<-as.matrix(motion[keepinds,3:ncol(motion)] )
 motnuisshift<-ashift(omotionnuis,c(1,0))
 motmag<-apply( omotionnuis, FUN=mean,MARGIN=2)
 matmag<-sqrt( sum(motmag[1:9]*motmag[1:9]) )
@@ -185,7 +197,7 @@ dtran<-(omotionnuis-motnuisshift)[,10:12]
 dmatrixm<-apply( dmatrix * dmatrix , FUN=sum, MARGIN=1 )
 dtranm<-apply( dtran * dtran , FUN=sum, MARGIN=1 )
 if ( bkgd ) 
-mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, bgdnuis, templateFD[throwinds] ) else mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, templateFD[throwinds] )
+mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, bgdnuis, templateFD[keepinds], DVARS[keepinds] ) else mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, templateFD[keepinds], DVARS[keepinds] )
 colnames(mynuis)[1:2]<-c("dmatrix","dtran")
 colnames(mynuis)[length(colnames(mynuis))]<-"FD"
 print("My nuisance variables are:")
@@ -255,11 +267,13 @@ myclose<-mynetwork$graph$closeness
 names(myclose)<-paste("Close",1:length(mynetwork$graph$degree),sep='')
 mybtwn<-mynetwork$graph$betweeness
 names(mybtwn)<-paste("Btwn",1:length(mynetwork$graph$degree),sep='')
-mytimes<-length(throwinds)
+mytimes<-length(keepinds)
 names(mytimes)<-"NTimePoints"
 meanFD<-mean(templateFD) 
 names(meanFD)<-"meanFD"
-myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , mybtwn, reproval2, mytimes, meanFD )
+meanDVARS<-mean(DVARS) 
+names(meanDVARS)<-"meanDVARS"
+myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , mybtwn, reproval2, mytimes, meanFD, meanDVARS )
 outmat<-matrix(myc,nrow=1)
 colnames(outmat)<-names(myc)
 write.csv(outmat,paste(opt$output,'boldout.csv',sep=''),row.names=F)
