@@ -138,10 +138,10 @@ for ( i in 2:nrow(motion) ) {
   templateFD[i]<-sum(abs(newpt2-newpt1))
   DVARS[i]<-sqrt( mean( ( omat[i,] - omat[i-1,] )^2 ) )
 }
-keepinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
+keepinds<-which( templateFD < ( mean(templateFD) + 1.75*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
 keepinds<-c(throwaway,keepinds)
-throwinds<-which( templateFD > ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
-doimpute<-FALSE 
+throwinds<-which( templateFD > ( mean(templateFD) + 1.75*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
+doimpute<-TRUE 
 if ( length( throwinds )  > 0 & doimpute )
 for ( i in throwinds ) {
   previ <- max( keepinds[ keepinds < i ] )
@@ -149,6 +149,9 @@ for ( i in throwinds ) {
   wt1 <-  1-abs( i - previ )/(nexti-previ)
   wt2 <-  1-abs( i - nexti )/(nexti-previ)
   omat[i,] <- wt1 * omat[previ,] + omat[nexti,] * wt2 
+  DVARS[i] <- wt1 * DVARS[previ] + DVARS[nexti] * wt2 
+  templateFD[i] <- wt1 * templateFD[previ] + templateFD[nexti] * wt2 
+  motion[i,] <- wt1 * motion[previ,] + motion[nexti,] * wt2 
   }
 keepinds<-throwaway:mytimes
 usemotiondirectly<-TRUE
