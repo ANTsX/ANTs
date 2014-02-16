@@ -200,7 +200,7 @@ dtranm<-apply( dtran * dtran , FUN=sum, MARGIN=1 )
 if ( bkgd ) 
 mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, bgdnuis, templateFD[keepinds], DVARS[keepinds] ) else mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, templateFD[keepinds], DVARS[keepinds] )
 colnames(mynuis)[1:2]<-c("dmatrix","dtran")
-colnames(mynuis)[length(colnames(mynuis))]<-"FD"
+colnames(mynuis)[(length(colnames(mynuis))-1):length(colnames(mynuis))]<-c("FD","DVARS")
 print("My nuisance variables are:")
 print( colnames(mynuis) )
 mytimes<-dim(omat)[1]
