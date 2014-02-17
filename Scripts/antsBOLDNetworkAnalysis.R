@@ -96,10 +96,10 @@ if ( dotest )
   {
     subjid<-"SZ017_20050928"
     subjid<-"NC805_20050906"
-    subjid<-"PEDS045_20110208"
-    subjid<-"PEDS008_20101120"
+#    subjid<-"PEDS045_20110208"
+#    subjid<-"PEDS008_20101120"
 #    subjid<-"PEDS104_20120817"
-#    subjid<-"PEDS007_20110903"
+    subjid<-"PEDS007_20110903"
     print(paste("start test",subjid,freqHi,freqLo))
     opt$motion<-paste("moco/",subjid,"_MOCOparams.csv",sep='')
     opt$fmri<-paste("bold/",subjid,"_bold.nii.gz",sep='')
@@ -138,10 +138,11 @@ for ( i in 2:nrow(motion) ) {
   templateFD[i]<-sum(abs(newpt2-newpt1))
   DVARS[i]<-sqrt( mean( ( omat[i,] - omat[i-1,] )^2 ) )
 }
+# question - should this be a constant of 0.2 as recommended in Yan Craddock He Milham?
 keepinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
 keepinds<-c(throwaway,keepinds)
 throwinds<-which( templateFD > ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
-if ( dotest ) plot( templateFD , type='l' )
+if ( dotest ) { plot( templateFD , type='l' ); print(paste(sum( templateFD > 0.2 ),length(throwinds))) }
 doimpute<-TRUE 
 if ( length( throwinds )  > 0 & doimpute )
 for ( i in throwinds ) {
