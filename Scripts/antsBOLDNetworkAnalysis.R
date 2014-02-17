@@ -97,7 +97,7 @@ if ( dotest )
     subjid<-"SZ017_20050928"
     subjid<-"NC805_20050906"
     subjid<-"PEDS045_20110208"
-#    subjid<-"PEDS008_20101120"
+    subjid<-"PEDS008_20101120"
 #    subjid<-"PEDS104_20120817"
 #    subjid<-"PEDS007_20110903"
     print(paste("start test",subjid,freqHi,freqLo))
@@ -138,9 +138,10 @@ for ( i in 2:nrow(motion) ) {
   templateFD[i]<-sum(abs(newpt2-newpt1))
   DVARS[i]<-sqrt( mean( ( omat[i,] - omat[i-1,] )^2 ) )
 }
-keepinds<-which( templateFD < ( mean(templateFD) + 1.75*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
+keepinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
 keepinds<-c(throwaway,keepinds)
-throwinds<-which( templateFD > ( mean(templateFD) + 1.75*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
+throwinds<-which( templateFD > ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
+if ( dotest ) plot( templateFD , type='l' )
 doimpute<-TRUE 
 if ( length( throwinds )  > 0 & doimpute )
 for ( i in throwinds ) {
@@ -178,7 +179,7 @@ if ( bkgd  ) {
   tempmat<-myscale( timeseries2matrix( bold, negmask )[keepinds,] )
   bgsvd<-svd( tempmat )
   mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
-  newnuisv<-min( c( 8, which( mysum > 0.8 )[1] ) )
+  newnuisv<-min( c( 4, which( mysum > 0.8 )[1] ) )
   print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
   bgdnuis<-bgsvd$u[, 1:newnuisv]
   colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
