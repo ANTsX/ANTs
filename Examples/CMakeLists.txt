@@ -103,6 +103,7 @@ set(BASE_ANTS_APPS
   LabelGeometryMeasures
   PasteImageIntoImage
   TileImages
+  CreateTiledMosaic
   CreateImage
   WarpTensorImageMultiTransform
   ReorientTensorImage

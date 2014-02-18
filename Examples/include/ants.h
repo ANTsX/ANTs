@@ -71,6 +71,8 @@
 
 #include "CreateJacobianDeterminantImage.h"
 
+#include "CreateTiledMosaic.h"
+
 #include "CreateWarpedGridImage.h"
 
 #include "ExtractRegionFromImageByMask.h"

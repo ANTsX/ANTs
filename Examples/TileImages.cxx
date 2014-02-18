@@ -276,6 +276,14 @@ private:
     std::cout << "      C is number of cols." << std::endl;
     std::cout << "      If R < 0 and C > 0 (or vice versa), the negative value is selected based on D" << std::endl;
 
+    // Should add the following options:
+    //    * add rgb overlay (with alpha value?)
+    //    * number of slices to skip
+    //    * beginning and ending slice
+    //    * add or subtract border around each slice/tile
+    //    * if adding, set pad constant value
+
+
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
