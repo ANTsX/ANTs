@@ -132,7 +132,9 @@ mask<-antsImageRead( opt$mask, 3 )
 if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASLBOLD" )
   {
     mat<-timeseries2matrix( fmri, mask )
-    cbflist<-list( ) 
+    cbflist<-list( )
+    moco_results <- motion_correction(asl)
+    excluded <- matrix(rep(NA, opt$nboot*nrow(mat), nrow=nrow(mat))
     for ( i in 1:opt$nboot ) {
       timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(opt$pctboot/2) , replace=opt$replace ) 
       timeinds<-( timeinds %% 2 )+timeinds
@@ -141,11 +143,26 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
       aslarr2<-aslarr[,,,timeinds]
       aslsub<-as.antsImage( aslarr2 )
       antsSetSpacing( aslsub , antsGetSpacing( fmri ) )
-      proc <- aslPerfusion( aslsub, mask=mask, moreaccurate=TRUE ,  dorobust=opt$robust )
+      
+      mocoarr <- as.array(moco_results$moco_img)
+      mocoarr2<-mocoarr[,,,timeinds]
+      mocosub<-as.antsImage( mocoarr2 )
+      antsSetSpacing( mocosub , antsGetSpacing( fmri ) )
+
+      mocoparams <- as.data.frame(moco_results$moco_params)
+      mocoparams.sub <- mocoparams[timeinds, ]
+
+      moco_results <- list(moco_img=mocosub, moco_params=mocoparams.sub, moco_avg_img=moco_results$moco_avg_img)
+      
+      proc <- aslPerfusion( aslsub, mask=mask, moreaccurate=TRUE, dorobust=opt$robust, moco_results=moco_results)
+      if(!is.null(proc$included)) excluded[timeinds, i] <- proc$included
       param <- list( sequence="pcasl", m0=proc$m0 )
       cbf <- quantifyCBF( proc$perfusion, mask, param )
       cbflist<-lappend( cbflist, cbf$kmeancbf )
     }
+    names(proc$excluded) <- paste('Boot', 1:nrow(mat), sep-'')
+    write.csv(excluded, paste(opt$output, '_ExcludedTimePoints.csv')
+
     cbfout<-antsImageClone( mask )
     avgcbf<-avgimg( cbflist , mask )
     sdi<-sdimg( cbflist , mask )
