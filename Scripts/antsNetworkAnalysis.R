@@ -134,7 +134,7 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     mat<-timeseries2matrix( fmri, mask )
     cbflist<-list( )
     moco_results <- motion_correction(asl)
-    excluded <- matrix(rep(NA, opt$nboot*nrow(mat), nrow=nrow(mat))
+    excluded <- matrix(rep(NA, opt$nboot*nrow(mat)), nrow=nrow(mat))
     for ( i in 1:opt$nboot ) {
       timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(opt$pctboot/2) , replace=opt$replace ) 
       timeinds<-( timeinds %% 2 )+timeinds
