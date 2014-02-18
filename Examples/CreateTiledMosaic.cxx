@@ -194,21 +194,27 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     parser->GetOption( "slices" );
   if( slicesOption && slicesOption->GetNumberOfFunctions() )
     {
-    unsigned int numberOfSlicesToIncrement = 1;
-    unsigned int startingSlice = 0;
-    unsigned int endSlice = size[direction] - 1;
+    int numberOfSlicesToIncrement = 1;
+    int startingSlice = 0;
+    int endSlice = size[direction] - 1;
 
     bool readSlices = false;
+    bool reverseOrder = false;
 
     if( slicesOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
-      whichSlices = parser->ConvertVector<unsigned int>( slicesOption->GetFunction( 0 )->GetName() );
-      if( whichSlices.size() == 1 )
+      std::vector<int> slicesVector = parser->ConvertVector<int>( slicesOption->GetFunction( 0 )->GetName() );
+      if( slicesVector.size() == 1 )
         {
-        numberOfSlicesToIncrement = whichSlices[0];
+        numberOfSlicesToIncrement = slicesVector[0];
+        if( numberOfSlicesToIncrement < 0 )
+          {
+          reverseOrder = true;
+          }
         }
       else
         {
+        whichSlices = parser->ConvertVector<unsigned int>( slicesOption->GetFunction( 0 )->GetName() );
         readSlices = true;
         }
       }
@@ -217,7 +223,11 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
       {
       if( slicesOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
         {
-        numberOfSlicesToIncrement = parser->Convert<unsigned int>( slicesOption->GetFunction( 0 )->GetParameter( 0 ) );
+        numberOfSlicesToIncrement = parser->Convert<int>( slicesOption->GetFunction( 0 )->GetParameter( 0 ) );
+        if( numberOfSlicesToIncrement < 0 )
+          {
+          reverseOrder = true;
+          }
         }
       if( numberOfSlicesToIncrement == 0 )
         {
@@ -234,10 +244,26 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         endSlice = parser->Convert<unsigned int>( slicesOption->GetFunction( 0 )->GetParameter( 2 ) );
         }
 
+      startingSlice = vnl_math_max( itk::NumericTraits<int>::Zero, startingSlice );
+      startingSlice = vnl_math_min( startingSlice, static_cast<int>( size[direction] - 1 ) );
+
+      endSlice = vnl_math_max( itk::NumericTraits<int>::Zero, endSlice );
+      endSlice = vnl_math_min( endSlice, static_cast<int>( size[direction] - 1 ) );
+
       whichSlices.clear();
-      for( unsigned int n = startingSlice; n < endSlice; n += numberOfSlicesToIncrement )
+      if( reverseOrder )
         {
-        whichSlices.push_back( n );
+        for( int n = endSlice; n >= startingSlice; n -= vnl_math_abs( numberOfSlicesToIncrement ) )
+          {
+          whichSlices.push_back( n );
+          }
+        }
+      else
+        {
+        for( int n = startingSlice; n <= endSlice; n += numberOfSlicesToIncrement )
+          {
+          whichSlices.push_back( n );
+          }
         }
       }
     }
@@ -324,6 +350,8 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   for( unsigned int i = 0; i < whichSlices.size(); i++ )
     {
     unsigned int n = whichSlices[i];
+
+    std::cout << "Processing slice " << n << std::endl;
 
     ImageType::IndexType index;
     index.Fill( 0 );
@@ -497,15 +525,17 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       std::string( "This option gives the user more control over what slices " )
       + std::string( "to use for rendering.  The user can specify specific slices " )
       + std::string( "for a particular order.  Alternatively the user can specify " )
-      + std::string( "the number slices to skip with the optional specification of " )
-      + std::string( "which slices to start and end the sequence." );
+      + std::string( "the number slices to increment with the optional specification of " )
+      + std::string( "which slices to start and end the sequence.  A negative value " )
+      + std::string( "for the numberOfSlicesToIncrement causes rendering in the reverse " )
+      + std::string( "order.  For the third option, minSlice < maxSlice." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "slices" );
     option->SetShortName( 's' );
     option->SetUsageOption( 0, "Slice1xSlice2xSlice3..." );
     option->SetUsageOption( 1, "numberOfSlicesToIncrement" );
-    option->SetUsageOption( 2, "[numberOfSlicesToIncrement,<startingSlice=0>,<endingSlice=lastSlice>]" );
+    option->SetUsageOption( 2, "[numberOfSlicesToIncrement,<minSlice=0>,<maxSlice=lastSlice>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
