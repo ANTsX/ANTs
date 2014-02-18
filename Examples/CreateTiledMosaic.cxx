@@ -9,6 +9,7 @@
 
 #include "itkConstantPadImageFilter.h"
 #include "itkExtractImageFilter.h"
+#include "itkFlipImageFilter.h"
 #include "itkTileImageFilter.h"
 
 namespace ants
@@ -303,6 +304,24 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     numberOfColumns = vcl_ceil( static_cast<float>( numberOfSlices ) / static_cast<float>( numberOfRows ) );
     }
 
+  itk::ants::CommandLineParser::OptionType::Pointer flipOption =
+    parser->GetOption( "flip-slice" );
+
+  bool doFlipHorizontally = false;
+  bool doFlipVertically = false;
+
+  if( flipOption && flipOption->GetNumberOfFunctions() )
+    {
+    std::vector<bool> layout = parser->ConvertVector<bool>( flipOption->GetFunction( 0 )->GetName() );
+    if( layout.size() > 2 )
+      {
+      std::cerr << "Flip layout is specified as doFlipXxdoFlipY" << std::endl;
+      return EXIT_FAILURE;
+      }
+    doFlipHorizontally = layout[0];
+    doFlipVertically = layout[1];
+    }
+
   // Read in optional RGB image
 
   RGBImageType::Pointer rgbImage = NULL;
@@ -399,7 +418,17 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
       outputSlice->DisconnectPipeline();
       }
 
-    filter->SetInput( i, outputSlice );
+    typedef itk::FlipImageFilter<SliceType> FlipFilterType;
+    FlipFilterType::Pointer flipper = FlipFilterType::New();
+    FlipFilterType::FlipAxesArrayType flipArray;
+    flipArray[0] = doFlipHorizontally;
+    flipArray[1] = doFlipVertically;
+
+    flipper->SetInput( outputSlice );
+    flipper->SetFlipAxes( flipArray );
+    flipper->Update();
+
+    filter->SetInput( i, flipper->GetOutput() );
     }
   filter->Update();
 
@@ -536,6 +565,19 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetUsageOption( 0, "Slice1xSlice2xSlice3..." );
     option->SetUsageOption( 1, "numberOfSlicesToIncrement" );
     option->SetUsageOption( 2, "[numberOfSlicesToIncrement,<minSlice=0>,<maxSlice=lastSlice>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Flip individual slice images horizontally and/or vertically, specified " )
+      + std::string( "e.g. as \'0x1\' or \'1x1\'.");
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "flip-slice" );
+    option->SetShortName( 'f' );
+    option->SetUsageOption( 0, "flipXxflipY" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
