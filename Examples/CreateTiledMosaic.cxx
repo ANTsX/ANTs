@@ -524,9 +524,18 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         PixelType pixel = ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue )
           * itk::NumericTraits<RgbComponentType>::max();
 
-        rgbPixel.SetRed( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetRed() ) );
-        rgbPixel.SetGreen( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetGreen() ) );
-        rgbPixel.SetBlue( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetBlue() ) );
+        if( rgbPixel.GetRed() + rgbPixel.GetGreen() + rgbPixel.GetBlue() < 1e-4 )
+          {
+          rgbPixel.SetRed( pixel );
+          rgbPixel.SetGreen( pixel );
+          rgbPixel.SetBlue( pixel );
+          }
+        else
+          {
+          rgbPixel.SetRed( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetRed() ) );
+          rgbPixel.SetGreen( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetGreen() ) );
+          rgbPixel.SetBlue( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetBlue() ) );
+          }
 
         ItRgb.Set( rgbPixel );
         }
