@@ -10,6 +10,9 @@
 #include "itkConstantPadImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkFlipImageFilter.h"
+#include "itkImageRegionIterator.h"
+#include "itkImageRegionConstIterator.h"
+#include "itkStatisticsImageFilter.h"
 #include "itkTileImageFilter.h"
 
 namespace ants
@@ -18,14 +21,17 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 {
   const unsigned int ImageDimension = 3;
 
-  typedef float                                   PixelType;
-  typedef float                                   RealType;
-  typedef itk::Image<PixelType, ImageDimension>   ImageType;
-  typedef itk::Image<PixelType, ImageDimension-1> SliceType;
+  typedef float                                      RealType;
 
-  typedef itk::RGBPixel<unsigned char> RGBPixelType;
-//  typedef itk::RGBAPixel<unsigned char> RGBPixelType;
-  typedef itk::Image<RGBPixelType, ImageDimension> RGBImageType;
+  typedef RealType                                   PixelType;
+  typedef unsigned char                              RgbComponentType;
+  typedef itk::RGBPixel<RgbComponentType>            RgbPixelType;
+
+  typedef itk::Image<PixelType, ImageDimension>      ImageType;
+  typedef itk::Image<PixelType, ImageDimension-1>    SliceType;
+  typedef itk::Image<RgbPixelType, ImageDimension-1> RgbSliceType;
+
+  typedef itk::Image<RgbPixelType, ImageDimension> RgbImageType;
 
   // Read in input image
 
@@ -37,8 +43,6 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     {
     std::string inputFile = inputImageOption->GetFunction( 0 )->GetName();
     ReadImage<ImageType>( inputImage, inputFile.c_str() );
-    inputImage->Update();
-    inputImage->DisconnectPipeline();
     }
   else
     {
@@ -322,22 +326,33 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     doFlipVertically = layout[1];
     }
 
-  // Read in optional RGB image
+  // Read in optional Rgb image
 
-  RGBImageType::Pointer rgbImage = NULL;
+  RgbImageType::Pointer rgbImage = NULL;
 
   itk::ants::CommandLineParser::OptionType::Pointer rgbImageOption =
     parser->GetOption( "rgb-image" );
   if( rgbImageOption && rgbImageOption->GetNumberOfFunctions() )
     {
-    std::cerr << "Whoa there, Cowboy.  I haven't gotten to this part yet." << std::endl;
-    return EXIT_FAILURE;
-
     std::string rgbFile = rgbImageOption->GetFunction( 0 )->GetName();
-    ReadImage<RGBImageType>( rgbImage, rgbFile.c_str() );
+    ReadImage<RgbImageType>( rgbImage, rgbFile.c_str() );
     rgbImage->Update();
     rgbImage->DisconnectPipeline();
     }
+
+  RealType minIntensityValue = 0.0;
+  RealType maxIntensityValue = 1.0;
+  if( rgbImage )
+    {
+    typedef itk::StatisticsImageFilter<ImageType> StatisticsImageFilterType;
+    StatisticsImageFilterType::Pointer statisticsImageFilter = StatisticsImageFilterType::New();
+    statisticsImageFilter->SetInput( inputImage );
+    statisticsImageFilter->Update();
+
+    minIntensityValue = statisticsImageFilter->GetMinimum();
+    maxIntensityValue = statisticsImageFilter->GetMaximum();
+    }
+
 
   RealType alpha = 1.0;
 
@@ -346,6 +361,12 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   if( alphaOption && alphaOption->GetNumberOfFunctions() )
     {
     alpha = parser->Convert<RealType>( alphaOption->GetFunction( 0 )->GetName() );
+
+    if( alpha < 0 || alpha > 1.0 )
+      {
+      std::cerr << "The alpha parameter must be between 0 and 1." << std::endl;
+      return EXIT_FAILURE;
+      }
     }
 
   // Now do the tiling
@@ -354,8 +375,9 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   std::cout << "Rows:  " << numberOfRows << std::endl;
   std::cout << "Columns:  " << numberOfColumns << std::endl;
 
-  typedef itk::TileImageFilter<SliceType, SliceType> FilterType;
-  FilterType::LayoutArrayType array;
+
+  typedef itk::TileImageFilter<SliceType, SliceType> TileFilterType;
+  TileFilterType::LayoutArrayType array;
 
   array[0] = numberOfColumns;
   array[1] = numberOfRows;
@@ -363,8 +385,12 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
   ImageType::RegionType region;
   size[direction] = 0;
 
-  FilterType::Pointer filter = FilterType::New();
-  filter->SetLayout( array );
+  TileFilterType::Pointer tileFilter = TileFilterType::New();
+  tileFilter->SetLayout( array );
+
+  typedef itk::TileImageFilter<RgbSliceType, RgbSliceType> RgbTileFilterType;
+  RgbTileFilterType::Pointer rgbTileFilter = RgbTileFilterType::New();
+  rgbTileFilter->SetLayout( array );
 
   for( unsigned int i = 0; i < whichSlices.size(); i++ )
     {
@@ -385,6 +411,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     extracter->SetDirectionCollapseToIdentity();
 
     SliceType::Pointer outputSlice = NULL;
+    SliceType::Pointer outputSlice2 = NULL;
 
     if( paddingType == -1 )
       {
@@ -426,18 +453,107 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
     flipper->SetInput( outputSlice );
     flipper->SetFlipAxes( flipArray );
-    flipper->Update();
+    outputSlice2 = flipper->GetOutput();
+    outputSlice2->Update();
+    outputSlice2->DisconnectPipeline();
 
-    filter->SetInput( i, flipper->GetOutput() );
+    RgbSliceType::Pointer outputRgbSlice = NULL;
+    RgbSliceType::Pointer outputRgbSlice2 = NULL;
+
+    if( rgbImage )
+      {
+      typedef itk::ExtractImageFilter<RgbImageType, RgbSliceType> RgbExtracterType;
+      RgbExtracterType::Pointer rgbExtracter = RgbExtracterType::New();
+      rgbExtracter->SetInput( rgbImage );
+      rgbExtracter->SetExtractionRegion( region );
+      rgbExtracter->SetDirectionCollapseToIdentity();
+
+      if( paddingType == -1 )
+        {
+        typedef itk::ExtractImageFilter<RgbSliceType, RgbSliceType> RgbExtracterType2;
+        RgbExtracterType2::Pointer rgbExtracter2 = RgbExtracterType2::New();
+        rgbExtracter2->SetInput( rgbExtracter->GetOutput() );
+        rgbExtracter2->SetExtractionRegion( croppedSliceRegion );
+        rgbExtracter2->SetDirectionCollapseToIdentity();
+
+        outputRgbSlice = rgbExtracter2->GetOutput();
+        outputRgbSlice->Update();
+        outputRgbSlice->DisconnectPipeline();
+        }
+      else if( paddingType == 1 )
+        {
+        typedef itk::ConstantPadImageFilter<RgbSliceType, RgbSliceType> RgbPadderType;
+        RgbPadderType::Pointer rgbPadder = RgbPadderType::New();
+        rgbPadder->SetInput( rgbExtracter->GetOutput() );
+        rgbPadder->SetPadLowerBound( lowerBound );
+        rgbPadder->SetPadUpperBound( upperBound );
+        rgbPadder->SetConstant( static_cast<PixelType>( padValue ) );
+
+        outputRgbSlice = rgbPadder->GetOutput();
+        outputRgbSlice->Update();
+        outputRgbSlice->DisconnectPipeline();
+        }
+      else // paddingType == 0
+        {
+        outputRgbSlice = rgbExtracter->GetOutput();
+        outputRgbSlice->Update();
+        outputRgbSlice->DisconnectPipeline();
+        }
+
+      typedef itk::FlipImageFilter<RgbSliceType> RgbFlipFilterType;
+      RgbFlipFilterType::Pointer rgbFlipper = RgbFlipFilterType::New();
+      RgbFlipFilterType::FlipAxesArrayType rgbFlipArray;
+      rgbFlipArray[0] = doFlipHorizontally;
+      rgbFlipArray[1] = doFlipVertically;
+
+      rgbFlipper->SetInput( outputRgbSlice );
+      rgbFlipper->SetFlipAxes( rgbFlipArray );
+
+      outputRgbSlice2 = rgbFlipper->GetOutput();
+      outputRgbSlice2->Update();
+      outputRgbSlice2->DisconnectPipeline();
+
+      // combine grayscale slice and rgb slice
+      itk::ImageRegionConstIterator<SliceType> It( outputSlice2,
+        outputSlice2->GetRequestedRegion() );
+      itk::ImageRegionIterator<RgbSliceType> ItRgb( outputRgbSlice2,
+        outputRgbSlice2->GetRequestedRegion() );
+      for( It.GoToBegin(), ItRgb.GoToBegin(); !It.IsAtEnd(); ++It, ++ItRgb )
+        {
+        RgbPixelType rgbPixel = ItRgb.Get();
+        PixelType pixel = ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue )
+          * itk::NumericTraits<RgbComponentType>::max();
+
+        rgbPixel.SetRed( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetRed() ) );
+        rgbPixel.SetGreen( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetGreen() ) );
+        rgbPixel.SetBlue( static_cast<RgbComponentType>( ( 1.0 - alpha ) * pixel + alpha * rgbPixel.GetBlue() ) );
+
+        ItRgb.Set( rgbPixel );
+        }
+
+      rgbTileFilter->SetInput( i, outputRgbSlice2 );
+      }
+    else
+      {
+      tileFilter->SetInput( i, outputSlice2 );
+      }
     }
-  filter->Update();
 
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     parser->GetOption( "output" );
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     std::string outputFile = outputOption->GetFunction( 0 )->GetName();
-    WriteImage<SliceType>( filter->GetOutput(), outputFile.c_str() );
+    if( rgbImage )
+      {
+      rgbTileFilter->Update();
+      WriteImage<RgbSliceType>( rgbTileFilter->GetOutput(), outputFile.c_str() );
+      }
+    else
+      {
+      tileFilter->Update();
+      WriteImage<SliceType>( tileFilter->GetOutput(), outputFile.c_str() );
+      }
     }
   else
     {
@@ -466,7 +582,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "An optional RGB image can be added as an overlay.  ")
+      std::string( "An optional Rgb image can be added as an overlay.  ")
       + std::string( "It must have the same image geometry as the input " )
       + std::string( "grayscale image." );
 
@@ -480,7 +596,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "If an RGB image is provided, render the overlay using the specified " )
+      std::string( "If an Rgb image is provided, render the overlay using the specified " )
       + std::string( "alpha parameter." );
 
     OptionType::Pointer option = OptionType::New();
@@ -658,7 +774,7 @@ private:
   parser->SetCommand( argv[0] );
 
   std::string commandDescription =
-    std::string( "Render a 3-D image volume with optional RGB overlay." );
+    std::string( "Render a 3-D image volume with optional Rgb overlay." );
 
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
