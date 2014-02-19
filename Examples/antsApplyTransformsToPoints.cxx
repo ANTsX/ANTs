@@ -13,7 +13,6 @@
 #include "itkResampleImageFilter.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
-#include "itkTransformToDisplacementFieldSource.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"

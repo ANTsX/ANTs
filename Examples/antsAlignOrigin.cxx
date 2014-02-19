@@ -15,7 +15,7 @@
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileWriter.h"
-#include "itkTransformToDisplacementFieldSource.h"
+#include "itkTransformToDisplacementFieldFilter.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"

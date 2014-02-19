@@ -16,7 +16,7 @@
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
-#include "itkTransformToDisplacementFieldSource.h"
+#include "itkTransformToDisplacementFieldFilter.h"
 
 #include "itkBSplineInterpolateImageFunction.h"
 #include "itkLinearInterpolateImageFunction.h"
@@ -414,9 +414,9 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
       std::cout << "Output composite transform displacement field: "
                 << outputOption->GetFunction( 0 )->GetParameter( 0 ) << std::endl;
 
-      typedef typename itk::TransformToDisplacementFieldSource<DisplacementFieldType, RealType> ConverterType;
+      typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
       typename ConverterType::Pointer converter = ConverterType::New();
-      converter->SetOutputParametersFromImage( referenceImage );
+      converter->SetUseReferenceImage( referenceImage );
       converter->SetTransform( compositeTransform );
 
       typedef  itk::ImageFileWriter<DisplacementFieldType> DisplacementFieldWriterType;
