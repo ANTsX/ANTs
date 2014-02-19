@@ -524,7 +524,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         PixelType pixel = ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue )
           * itk::NumericTraits<RgbComponentType>::max();
 
-        if( rgbPixel.GetRed() + rgbPixel.GetGreen() + rgbPixel.GetBlue() < 1e-4 )
+        if( rgbPixel.GetLuminance() < 1e-4 )
           {
           rgbPixel.SetRed( pixel );
           rgbPixel.SetGreen( pixel );
