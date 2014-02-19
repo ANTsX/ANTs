@@ -178,9 +178,11 @@ if ( bkgd  ) {
   negmask[ backgroundvoxels ]<-1
   ImageMath(3,negmask,"ME",negmask,1)
   tempmat<-myscale( timeseries2matrix( bold, negmask )[keepinds,] )
+#  tempmat<-myscale( timeseries2matrix( bold, mask )[keepinds,] )
+#  tempmat<-tempmat-ashift(tempmat,c(1,0))
   bgsvd<-svd( tempmat )
   mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
-  newnuisv<-min( c( 4, which( mysum > 0.8 )[1] ) )
+  newnuisv<-min( c( 10, which( mysum > 0.8 )[1] ) )
   print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
   bgdnuis<-bgsvd$u[, 1:newnuisv]
   colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
