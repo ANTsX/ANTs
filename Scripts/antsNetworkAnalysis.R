@@ -134,7 +134,7 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
     mat<-timeseries2matrix( fmri, mask )
     cbflist<-list( )
     moco_results <- motion_correction(fmri)
-    excluded <- matrix(rep(NA, opt$nboot*nrow(mat)), nrow=nrow(mat))
+    regweights <- aslPerfusion(fmri, mask=mask, moreaccurate=T, dorobust=opt$robust, moco_results=moco_results)$regweights
     for ( i in 1:opt$nboot ) {
       timeinds<-sample( 2:nrow(mat) , round( nrow(mat) )*(opt$pctboot/2) , replace=opt$replace ) 
       timeinds<-( timeinds %% 2 )+timeinds
@@ -153,17 +153,14 @@ if ( as.character(opt$modality) == "ASLCBF" | as.character(opt$modality) == "ASL
       mocoparams.sub <- mocoparams[timeinds, ]
 
       moco_results.sub <- list(moco_img=mocosub, moco_params=mocoparams.sub, moco_avg_img=moco_results$moco_avg_img)
-      
-      proc <- aslPerfusion( aslsub, mask=mask, moreaccurate=TRUE, dorobust=opt$robust, moco_results=moco_results.sub)
-      excluded[timeinds, i] <- 0
-      if(!is.null(proc$indstozero)) excluded[timeinds[proc$indstozero], i] <- 1
+      regweights.sub <- regweights[timeinds] 
+      proc <- aslPerfusion( aslsub, mask=mask, moreaccurate=TRUE, dorobust=opt$robust, moco_results=moco_results.sub, regweights=regweights.sub)
       param <- list( sequence="pcasl", m0=proc$m0 )
       cbf <- quantifyCBF( proc$perfusion, mask, param )
       cbflist<-lappend( cbflist, cbf$kmeancbf )
     }
-    names(excluded) <- paste('Boot', 1:nrow(mat), sep='')
-    write.csv(excluded, paste(opt$output, 'ExcludedTimePoints.csv', sep=''))
-    motion <- moco_results$moco_params
+    write.csv(data.frame(Regweights=regweights), paste(opt$output, 'ExcludedTimePoints.csv', sep=''))
+    motion <- as.data.frame(moco_results$moco_params)
     templateFD<-rep(0,nrow(motion))
     DVARS<-rep(0,nrow(motion))
     omat <- mat 
