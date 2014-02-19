@@ -11,7 +11,7 @@
 #include "itkExtractImageFilter.h"
 #include "itkFlipImageFilter.h"
 #include "itkImageRegionIterator.h"
-#include "itkImageRegionConstIterator.h"
+#include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkTileImageFilter.h"
 
@@ -353,6 +353,21 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     maxIntensityValue = statisticsImageFilter->GetMaximum();
     }
 
+  // Read in optional mask image
+
+  ImageType::Pointer maskImage = NULL;
+
+  itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
+    parser->GetOption( "mask-image" );
+  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
+    {
+    std::string maskFile = maskImageOption->GetFunction( 0 )->GetName();
+    ReadImage<ImageType>( maskImage, maskFile.c_str() );
+    maskImage->Update();
+    maskImage->DisconnectPipeline();
+    }
+
+
 
   RealType alpha = 1.0;
 
@@ -457,11 +472,64 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     outputSlice2->Update();
     outputSlice2->DisconnectPipeline();
 
-    RgbSliceType::Pointer outputRgbSlice = NULL;
-    RgbSliceType::Pointer outputRgbSlice2 = NULL;
-
     if( rgbImage )
       {
+
+      SliceType::Pointer outputMaskSlice = NULL;
+      SliceType::Pointer outputMaskSlice2 = NULL;
+
+      if( maskImage )
+        {
+        ExtracterType::Pointer maskExtracter = ExtracterType::New();
+        maskExtracter->SetInput( maskImage );
+        maskExtracter->SetExtractionRegion( region );
+        maskExtracter->SetDirectionCollapseToIdentity();
+
+        if( paddingType == -1 )
+          {
+          typedef itk::ExtractImageFilter<SliceType, SliceType> ExtracterType2;
+          ExtracterType2::Pointer maskExtracter2 = ExtracterType2::New();
+          maskExtracter2->SetInput( maskExtracter->GetOutput() );
+          maskExtracter2->SetExtractionRegion( croppedSliceRegion );
+          maskExtracter2->SetDirectionCollapseToIdentity();
+
+          outputMaskSlice = maskExtracter2->GetOutput();
+          outputMaskSlice->Update();
+          outputMaskSlice->DisconnectPipeline();
+          }
+        else if( paddingType == 1 )
+          {
+          typedef itk::ConstantPadImageFilter<SliceType, SliceType> PadderType;
+          PadderType::Pointer maskPadder = PadderType::New();
+          maskPadder->SetInput( maskExtracter->GetOutput() );
+          maskPadder->SetPadLowerBound( lowerBound );
+          maskPadder->SetPadUpperBound( upperBound );
+          maskPadder->SetConstant( 0 );
+
+          outputMaskSlice = maskPadder->GetOutput();
+          outputMaskSlice->Update();
+          outputMaskSlice->DisconnectPipeline();
+          }
+        else // paddingType == 0
+          {
+          outputMaskSlice = maskExtracter->GetOutput();
+          outputMaskSlice->Update();
+          outputMaskSlice->DisconnectPipeline();
+          }
+
+        FlipFilterType::Pointer maskFlipper = FlipFilterType::New();
+
+        maskFlipper->SetInput( outputMaskSlice );
+        maskFlipper->SetFlipAxes( flipArray );
+
+        outputMaskSlice2 = maskFlipper->GetOutput();
+        outputMaskSlice2->Update();
+        outputMaskSlice2->DisconnectPipeline();
+        }
+
+      RgbSliceType::Pointer outputRgbSlice = NULL;
+      RgbSliceType::Pointer outputRgbSlice2 = NULL;
+
       typedef itk::ExtractImageFilter<RgbImageType, RgbSliceType> RgbExtracterType;
       RgbExtracterType::Pointer rgbExtracter = RgbExtracterType::New();
       rgbExtracter->SetInput( rgbImage );
@@ -514,7 +582,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
       outputRgbSlice2->DisconnectPipeline();
 
       // combine grayscale slice and rgb slice
-      itk::ImageRegionConstIterator<SliceType> It( outputSlice2,
+      itk::ImageRegionConstIteratorWithIndex<SliceType> It( outputSlice2,
         outputSlice2->GetRequestedRegion() );
       itk::ImageRegionIterator<RgbSliceType> ItRgb( outputRgbSlice2,
         outputRgbSlice2->GetRequestedRegion() );
@@ -524,7 +592,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         PixelType pixel = ( It.Get() - minIntensityValue ) / ( maxIntensityValue - minIntensityValue )
           * itk::NumericTraits<RgbComponentType>::max();
 
-        if( rgbPixel.GetLuminance() < 1e-4 )
+        if( outputMaskSlice2 && outputMaskSlice2->GetPixel( It.GetIndex() ) == 0 )
           {
           rgbPixel.SetRed( pixel );
           rgbPixel.SetGreen( pixel );
@@ -599,6 +667,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "rgb-image" );
     option->SetShortName( 'r' );
     option->SetUsageOption( 0, "rgbImageFilename" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Specifies the ROI of the RGB voxels used.  ");
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "mask-image" );
+    option->SetShortName( 'x' );
+    option->SetUsageOption( 0, "maskImageFilename" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
