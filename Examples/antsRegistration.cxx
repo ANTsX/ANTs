@@ -396,7 +396,6 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 
@@ -406,7 +405,6 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 }
@@ -477,20 +475,22 @@ private:
 
     parser->Parse( argc, argv );
 
-    if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
+    if( argc == 1 )
       {
       parser->PrintMenu( std::cout, 5, false );
-      if( argc < 2 )
-        {
-        return EXIT_FAILURE;
-        }
+      return EXIT_FAILURE;
+      }
+    else if( parser->GetOption( "help" )->GetFunction() && parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
+      {
+      parser->PrintMenu( std::cout, 5, false );
       return EXIT_SUCCESS;
       }
-    else if( parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
+    else if( parser->GetOption( 'h' )->GetFunction() && parser->Convert<bool>( parser->GetOption( 'h' )->GetFunction()->GetName() ) )
       {
       parser->PrintMenu( std::cout, 5, true );
       return EXIT_SUCCESS;
       }
+
     unsigned int dimension = 3;
 
     ParserType::OptionType::Pointer dimOption = parser->GetOption( "dimensionality" );

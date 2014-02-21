@@ -78,12 +78,12 @@ CommandLineParser
   unsigned int n = 0;
   unsigned int order = 0;
 
-  if ( arguments.size() > (n+1) )
+  if ( arguments.size() > 1 )
     {
     this->m_Command = arguments[n++];
     }
 
-  while( n < ( arguments.size() - 1 ) )
+  while( n < arguments.size() )
     {
     std::string argument = arguments[n++];
     std::string name;
@@ -210,7 +210,7 @@ CommandLineParser
       std::size_t leftDelimiterPosition = a.find( this->m_LeftDelimiter );
       if( leftDelimiterPosition != std::string::npos )
         {
-        itkExceptionMacro( "Incorrect command line specification. Missing leftDelimiterPosition? " << a);
+        itkExceptionMacro( "Incorrect command line specification. Missing leftDelimiterPosition? " << a );
         }
 
       std::size_t rightDelimiterPosition = a.find( this->m_RightDelimiter );
@@ -218,7 +218,7 @@ CommandLineParser
         {
         if( rightDelimiterPosition < a.length() - 1 )
           {
-          itkExceptionMacro( "Incorrect command line specification. Missing rightDelimiterPosition? " << a  );
+          itkExceptionMacro( "Incorrect command line specification. Missing rightDelimiterPosition? " << a );
           }
         else
           {

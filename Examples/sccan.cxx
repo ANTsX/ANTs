@@ -2544,7 +2544,6 @@ private:
     OptionType::Pointer option = OptionType::New();
     option->SetShortName( 'h' );
     option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
     sccanparser->AddOption( option );
     }
 
@@ -2553,7 +2552,6 @@ private:
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
     option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
     sccanparser->AddOption( option );
     }
 
@@ -2850,7 +2848,7 @@ private:
     sccanparser->GetOption( 'h' );
   itk::ants::CommandLineParser::OptionType::Pointer longHelpOption =
     sccanparser->GetOption( "help" );
-  if( argc < 2 || ( shortHelpOption &&
+  if( argc < 2 || ( shortHelpOption->GetFunction() &&
                     sccanparser->Convert<unsigned int>( shortHelpOption->GetFunction()->GetName() ) == 1 ) )
     {
     sccanparser->PrintMenu( std::cout, 5, true );
@@ -2860,7 +2858,7 @@ private:
       }
     return EXIT_SUCCESS;
     }
-  if( longHelpOption && sccanparser->Convert<unsigned int>( longHelpOption->GetFunction()->GetName() ) == 1 )
+  if( longHelpOption->GetFunction() && sccanparser->Convert<unsigned int>( longHelpOption->GetFunction()->GetName() ) == 1 )
     {
     sccanparser->PrintMenu( std::cout, 5, false );
     return EXIT_SUCCESS;
