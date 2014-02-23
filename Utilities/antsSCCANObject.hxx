@@ -1834,10 +1834,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	  fnz += 1;
 	  }
 	}
-      if( this->m_FractionNonZeroP <  1.e-8  )
-	{
         sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols() * 0.5;
-	}
       priorrow = priorrow/priorrow.two_norm();
       this->m_MatrixPriorROI.set_row( x , priorrow );
       }
