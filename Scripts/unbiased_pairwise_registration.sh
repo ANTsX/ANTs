@@ -132,7 +132,7 @@ antsApplyTransforms -d $dim -i $B -o ${nm}_aff.nii.gz -t [ $initAmat, 1 ] -t  $i
   fi
 # fi
 antsApplyTransforms -d $dim -i $B -o ${nm}_diff.nii.gz -t [ $initAmat, 1 ] -t ${nm}1Warp.nii.gz -t  $initBmat -r $A
-ANTSJacobian $dim ${nm}1Warp.nii.gz ${nm} 1 no 0
+CreateJacobianDeterminantImage $dim ${nm}1Warp.nii.gz ${nm}logjacobian.nii.gz 1 1 
 # antsApplyTransforms -d $dim -i ${nm}logjacobian.nii.gz -o  ${nm}logjacobian.nii.gz -t [ $initAmat, 1 ] -r $A
 # CompositeTransformUtil --assemble ${prefix}_fwd.mat $FWD
 # CompositeTransformUtil --assemble ${prefix}_inv.mat $INV
