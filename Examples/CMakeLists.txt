@@ -27,6 +27,8 @@ macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
 
   add_library(l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}.cxx ${UI_SOURCES})
+  SET_TARGET_PROPERTIES(l_${ANTS_FUNCTION_NAME} PROPERTIES 
+    SOVERSION ${LIBRARY_SOVERSION_INFO}  VERSION ${LIBRARY_VERSION_INFO})
   message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
   target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${ITK_LIBRARIES} ${EXTRA_LIBS} )
   configure_file( template_for_executables.cxx.in cli_${ANTS_FUNCTION_NAME}.cxx )
@@ -126,7 +128,6 @@ set(BASE_ANTS_APPS
   CreateDisplacementField
   ANTSIntegrateVectorField
   ANTSIntegrateVelocityField
-  AtroposMin
   Atropos
   ConvertTransformFile
   compareTwoCompositeTransforms

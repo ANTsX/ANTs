@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.5)
 cmake_policy(VERSION 2.8.5)
 
+set(LIBRARY_SOVERSION_INFO 2)
+set(LIBRARY_VERSION_INFO 2.0.0)
+
 set(LOCAL_PROJECT_NAME ANTS)
 INCLUDE(InstallRequiredSystemLibraries)
 ## NOTE THERE SHOULD BE NO PROJECT STATEMENT HERE!
