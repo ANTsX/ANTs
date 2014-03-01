@@ -22,6 +22,14 @@ if [[ ! -s ${ANTSPATH}/KellyKapowski ]]; then
   echo we cant find the DiReCT \(aka KellyKapowski\) program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
   exit
 fi
+if [[ ! -e ${ANTSPATH}/antsBrainExtraction.sh ]]; then
+  echo we cant find the antsBrainExtraction script -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
+fi
+if [[ ! -e ${ANTSPATH}/antsAtroposN4.sh ]]; then
+  echo we cant find the antsAtroposN4 script -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
+  exit
+fi
 
 function Usage {
     cat <<USAGE
