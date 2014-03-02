@@ -75,6 +75,8 @@
 
 #include "CreateWarpedGridImage.h"
 
+#include "DeNrrd.h"
+
 #include "ExtractRegionFromImageByMask.h"
 
 #include "ExtractRegionFromImage.h"
