@@ -31,8 +31,6 @@
 
 #include "Atropos.h"
 
-#include "AtroposMin.h"
-
 #include "AverageAffineTransform.h"
 
 #include "AverageAffineTransformNoRigid.h"
