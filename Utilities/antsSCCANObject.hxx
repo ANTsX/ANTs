@@ -1803,6 +1803,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     writer->SetInput( &recon );
     writer->Write();
     }
+  for ( unsigned int i = 0; i < matrixB.columns(); i++ )
+    {
+    VectorType myuvec = matrixB.get_column( i );
+    this->SparsifyOther( myuvec );
+    matrixB.set_column( i, myuvec );
+    }
   this->m_MatrixU = matrixB;
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   RealType rr = ( temp - this->m_MatrixP ).frobenius_norm();
@@ -2741,9 +2747,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     x_k = x_k1;
     ct++;
     }
-
   x_k = bestsol;
-  this->SparsifyOther( x_k ); // this can be used to approximate NMF
+  //  this->SparsifyOther( x_k );
   this->m_Intercept = this->ComputeIntercept( A, x_k, b_in );
   VectorType soln = A * x_k + this->m_Intercept;
   return ( soln - b_in).one_norm() / b_in.size();

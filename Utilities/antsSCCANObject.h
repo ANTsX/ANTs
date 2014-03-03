@@ -783,22 +783,7 @@ protected:
       {
       keeppos = true;
       }
-    VectorType x_k1_inv( x_k1 );
-    for( unsigned int i = 0; i < x_k1.size(); i++ )
-      {
-      if(  vnl_math_abs( x_k1_inv( i ) ) > 1.e-9 )
-        {
-        x_k1_inv( i ) = x_k1( i );
-        }
-      }
-    this->Sparsify( x_k1_inv, fnp, keeppos, 0, NULL );
-    for( unsigned int i = 0; i < x_k1.size(); i++ )
-      {
-      if(  vnl_math_abs( x_k1_inv( i ) ) > 1.e-9 )
-        {
-        x_k1( i ) = x_k1_inv( i );
-        }
-      }
+    this->Sparsify( x_k1, fnp, keeppos, 0, NULL );
     this->m_UseL1 = usel1;
   }
 
