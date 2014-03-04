@@ -1,4 +1,3 @@
-
 #include "antsUtilities.h"
 #include <algorithm>
 
@@ -228,7 +227,7 @@ private:
   if( argc < 4 )
     {
     std::cout << "Usage: " << argv[0] << " ImageDimension deformationField "
-             << "outputImage [directions,e.g. 1x0x0] [gridSpacing] [gridSigma]"
+             << "outputImage [directions, e.g. 1x0x0] [gridSpacing, e.g. 10x10x10] [gridSigma, e.g. 1x1x1]"
              << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
