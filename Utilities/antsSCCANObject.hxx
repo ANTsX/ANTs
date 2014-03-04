@@ -1803,12 +1803,14 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     writer->SetInput( &recon );
     writer->Write();
     }
+  /*
   for ( unsigned int i = 0; i < matrixB.columns(); i++ )
     {
     VectorType myuvec = matrixB.get_column( i );
     this->SparsifyOther( myuvec );
     matrixB.set_column( i, myuvec );
     }
+  */
   this->m_MatrixU = matrixB;
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   RealType rr = ( temp - this->m_MatrixP ).frobenius_norm();
@@ -1922,8 +1924,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   }
   /** now initialize B */
   reconerr = this->SparseReconB( matrixB, icept  );
+  this->SparseArnoldiSVD_Other( matrixB );
   std::cout << "begin : %var " << reconerr << std::endl;
-
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
     {
@@ -1962,49 +1964,19 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 5, a );    // 0 => a
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
+      //      // update B matrix by linear regression
+      //      reconerr = this->SparseReconB( matrixB, icept  );
+      //      this->SparseArnoldiSVD_Other( matrixB );
       a++;
-      // update B matrix by linear regression
-      reconerr = this->SparseReconB( matrixB, icept  );
       } // while
-
-// filter / join eigenvectors ...
-/** do here
-    MatrixType correspondencematrix(  this->m_VariatesP.cols() ,  this->m_VariatesP.cols() );
-    correspondencematrix.fill( 0 );
-    for ( unsigned int ioiner = 0; ioiner < this->m_VariatesP.cols(); ioiner++ )
-      for ( unsigned int joiner = (ioiner+1); joiner < this->m_VariatesP.cols(); joiner++ )
-        {
-        correspondencematrix( ioiner, joiner ) = this->PearsonCorr(
-          this->m_MatrixP * this->m_VariatesP.get_column( ioiner ),
-    this->m_MatrixP * this->m_VariatesP.get_column( joiner ) );
-  if ( sparsenessparams( ioiner ) > 0.1 || sparsenessparams( joiner ) > 0.1 )
-    correspondencematrix( ioiner, joiner ) = 0;
-        }
-    std::cout << " max corr " <<  correspondencematrix.max_value() << std::endl;
-    if ( ( ( overit % 4 ) == 0 ) && (  correspondencematrix.max_value() > 0.1 )  )
-    {
-    unsigned int maxpair = correspondencematrix.arg_max();
-    unsigned int maxrow = ( unsigned int )  maxpair / correspondencematrix.cols( );
-    unsigned int maxcol = maxpair - maxrow * correspondencematrix.cols();
-    if ( maxcol < maxrow ) { unsigned int temp = maxrow; maxrow = maxcol; maxcol = temp; }
-    VectorType sumvar = this->m_VariatesP.get_column( maxrow ) + this->m_VariatesP.get_column( maxcol );
-    this->m_VariatesP.set_column( maxrow , sumvar );
-    sparsenessparams( maxrow ) =  sparsenessparams( maxrow ) +  sparsenessparams( maxcol );
-    VectorType initvec = this->InitializeV( this->m_MatrixP, maxcol + 1 );
-    for( unsigned int j = 0; j < maxcol; j++ ) initvec = this->Orthogonalize( initvec, this->m_VariatesP.get_column( j ) );
-    initvec = this->SpatiallySmoothVector( initvec, this->m_MaskImageP );
-    initvec = initvec / initvec.two_norm( );
-    this->m_VariatesP.set_column( maxcol , initvec );
-    std::cout << " max corr " <<  correspondencematrix( maxrow , maxcol ) << " sp " << sparsenessparams( maxrow ) << " fusing " << maxrow << " & " << maxcol << std::endl;
-    correspondencematrix( maxrow , maxcol ) = 0;
-    correspondencematrix( maxcol , maxrow ) = 0;
-    sparsenessparams = sparsenessparams / sparsenessparams.sum();
-    }
-*/
+    // update B matrix by linear regression
+    reconerr = this->SparseReconB( matrixB, icept  );
+    this->SparseArnoldiSVD_Other( matrixB );
+    this->m_MatrixU = matrixB;
     std::cout << overit << ": %var " << reconerr << std::endl;
     }
   this->m_VariatesQ = matrixB;
-  if ( ! prior ) this->SortResults( n_vecs );
+  //  if ( ! prior ) this->SortResults( n_vecs );
   for( unsigned int i = 0; i < n_vecs; i++ )
     {
     VectorType v = this->m_VariatesP.get_column( i );
@@ -4302,6 +4274,46 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       //      pmod = pmod * this->m_Indicator;
       }
 */
+
+
+
+
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::SparseArnoldiSVD_Other( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A )
+{
+  if ( vnl_math_abs(this->m_RowSparseness) <= 1.e-9 ) return 0;
+  unsigned int maxloop = 10;
+  unsigned int loop = 0;
+  double       convcrit = 1;
+  MatrixType Asparse( A );
+  while( loop<maxloop && convcrit> 1.e-8 )
+    {
+    for( unsigned int k = 0; k < A.columns(); k++ )
+      {
+      VectorType pveck = Asparse.get_column(k);
+      pveck = ( pveck * A ) * A.transpose();
+      for( unsigned int m = 0; m < k; m++ )
+	{
+	VectorType orthagainst = Asparse.get_column( m );
+        pveck = this->Orthogonalize( pveck, orthagainst );
+	}
+      this->SparsifyOther( pveck );
+      Asparse.set_column(k,pveck);
+      }
+    loop++;
+    }
+  for( unsigned int k = 0; k < A.columns(); k++ )
+    {
+    A.set_column(k, Asparse.get_column( k ) );
+    }
+  return 0;
+}
+
+
+
+
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>

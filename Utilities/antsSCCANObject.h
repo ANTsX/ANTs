@@ -679,6 +679,8 @@ public:
 
   RealType SparseArnoldiSVDGreedy(unsigned int nvecs);
 
+  RealType SparseArnoldiSVD_Other( MatrixType & A );
+
   RealType SparseArnoldiSVD(unsigned int nvecs);
 
   RealType SparseArnoldiSVD_x(unsigned int nvecs);
