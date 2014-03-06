@@ -98,14 +98,12 @@ Optional arguments:
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
      -t:  template for t1 registration          Anatomical *intensity* template (assumed to be skull-stripped).  A common
                                                 use case would be where this would be the same template as specified in the
-                                                -e option which is not skull stripped.  If this is the case, we do not
-                                                need to find the transforms as they were found during segmentation.
-                                                Instead we simply save those (inverse) transforms as
+                                                -e option which is not skull stripped.
+                                                We perform the registration (fixed image = individual subject
+                                                and moving image = template) to produce the files.
                                                   * ${OUTPUT_PREFIX}TemplateToSubject0GenericAffine.mat
                                                   * ${OUTPUT_PREFIX}TemplateToSubject1Warp.${OUTPUT_SUFFIX}
                                                   * ${OUTPUT_PREFIX}TemplateToSubject1InverseWarp.${OUTPUT_SUFFIX}
-                                                Otherwise, we perform the registration (fixed image = template and moving image =
-                                                individual subject) to produce those files.
      -f:  extraction registration mask          Mask (defined in the template space) used during registration
                                                 for brain extraction.
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
@@ -844,7 +842,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]];
             TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} )
 
             time_start_template_registration=`date +%s`
-	           images="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}"
+	           images="${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]},${REGISTRATION_TEMPLATE}"
             basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${images},1] --float ${USE_FLOAT_PRECISION}"
             stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
             stage2="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
