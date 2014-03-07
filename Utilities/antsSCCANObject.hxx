@@ -4298,11 +4298,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       for( unsigned int m = 0; m < k; m++ )
 	{
 	VectorType orthagainst = Asparse.get_column( m );
-	pveck = this->Orthogonalize( pveck, orthagainst );
-	// this->ZeroProduct( pveck, orthagainst );
+	// pveck = this->Orthogonalize( pveck, orthagainst );
+	this->ZeroProduct( pveck, orthagainst );
 	}
       pveck = pveck / pveck.two_norm();
-      this->SparsifyOther( pveck , true );
+      this->SparsifyOther( pveck , false );
       Asparse.set_column(k,pveck);
       }
     loop++;
