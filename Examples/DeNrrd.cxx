@@ -184,6 +184,7 @@ private:
 
   gradientfile.close(); 
 
+  /*
   OutputImageType::Pointer outImage = OutputImageType::New();
   OutputImageType::SizeType outSize;
   outSize[0] = reader->GetOutput()->GetLargestPossibleRegion().GetSize()[0];
@@ -234,12 +235,13 @@ private:
           outImage->SetPixel(oIdx,reader->GetOutput()->GetPixel(dIdx)[t]);
           
           }
+*/
 
 
-  typedef itk::ImageFileWriter<OutputImageType> FileWriterType;
+  typedef itk::ImageFileWriter<DiffusionImageType> FileWriterType;
   FileWriterType::Pointer writer = FileWriterType::New();
   writer->SetFileName(output_image_filename);
-  writer->SetInput( outImage );
+  writer->SetInput( reader->GetOutput() );
   writer->Update();
 
   return EXIT_SUCCESS;
