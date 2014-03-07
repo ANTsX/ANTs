@@ -3091,7 +3091,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       we use a conjugate gradient version of this optimization.
   */
   VectorType evec = evecin;
-
+  unsigned int maxcoltoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_FractionNonZeroP ) ) - 1;
   if( evecin.two_norm() ==  0 )
     {
     evec = this->InitializeV( this->m_MatrixP, false );
@@ -3125,7 +3125,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     lastgrad = nvec;
     VectorType diplus1 =  nvec + di * gamma;
     evec = evec + diplus1 * relfac ;
-    for( unsigned int orth = 0; orth < maxorth; orth++ )
+    unsigned int startingm = 0;
+    if ( maxorth > maxcoltoorth ) startingm = maxorth - maxcoltoorth;
+    for( unsigned int orth = startingm; orth < maxorth; orth++ )
       {
       VectorType zv = this->m_VariatesP.get_column( orth );
       evec = this->Orthogonalize( evec, zv );
