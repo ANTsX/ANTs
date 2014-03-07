@@ -4284,6 +4284,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD_Other( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A )
 {
   if ( vnl_math_abs(this->m_RowSparseness) <= 1.e-9 ) return 0;
+  unsigned int maxrowtoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_RowSparseness ) ) - 1;
   unsigned int maxloop = 10;
   unsigned int loop = 0;
   double       convcrit = 1;
@@ -4295,7 +4296,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       VectorType pveck = Asparse.get_column( k );
       pveck = ( pveck * A ) * A.transpose();
       pveck = pveck / pveck.two_norm();
-      for( unsigned int m = 0; m < k; m++ )
+      unsigned int startingm = 0;
+      if ( k > maxrowtoorth ) startingm = k - maxrowtoorth;
+      for( unsigned int m = startingm; m < k; m++ )
 	{
 	VectorType orthagainst = Asparse.get_column( m );
 	// pveck = this->Orthogonalize( pveck, orthagainst );
