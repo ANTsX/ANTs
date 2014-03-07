@@ -4288,17 +4288,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   unsigned int loop = 0;
   double       convcrit = 1;
   MatrixType Asparse( A );
-  while( loop<maxloop && convcrit> 1.e-8 )
+  while( loop < maxloop && convcrit > 1.e-8 )
     {
     for( unsigned int k = 0; k < A.columns(); k++ )
       {
-      VectorType pveck = Asparse.get_column(k);
+      VectorType pveck = Asparse.get_column( k );
       pveck = ( pveck * A ) * A.transpose();
+      pveck = pveck / pveck.two_norm();
       for( unsigned int m = 0; m < k; m++ )
 	{
 	VectorType orthagainst = Asparse.get_column( m );
-        pveck = this->Orthogonalize( pveck, orthagainst );
+	//	pveck = this->Orthogonalize( pveck, orthagainst );
+	this->ZeroProduct( pveck, orthagainst );
 	}
+      pveck = pveck / pveck.two_norm();
       this->SparsifyOther( pveck );
       Asparse.set_column(k,pveck);
       }

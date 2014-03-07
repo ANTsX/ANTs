@@ -770,14 +770,38 @@ protected:
       }
   }
 
-  void SparsifyOther( VectorType& x_k1  )
+  void SparsifyOther( VectorType& x_k1 , bool doclassic = false )
   {
     RealType fnp = vnl_math_abs( this->m_RowSparseness );
-
     if( fnp < 1.e-11 )
       {
       return;
       }
+    if ( doclassic ) {
+    if ( this->m_RowSparseness < 0  ) 
+      {
+      if ( fnp > x_k1.max_value() ) fnp = x_k1.max_value() * 0.9;
+      for ( unsigned int i = 0; i < x_k1.size(); i++ )
+	{
+	RealType delta = vnl_math_abs( x_k1( i ) ) - fnp;
+	if ( delta < 0 ) delta = 0; else if ( x_k1( i ) < 0 ) delta *= ( -1 );
+	x_k1( i ) = delta;
+	}
+      return;
+      }
+    if ( this->m_RowSparseness > 0  ) 
+      {
+      if ( fnp > x_k1.max_value() ) fnp = x_k1.max_value() * 0.9;
+      for ( unsigned int i = 0; i < x_k1.size(); i++ )
+	{
+	RealType delta = vnl_math_abs( x_k1( i ) ) - fnp;
+	if ( delta < 0 ) delta = 0; 
+	x_k1( i ) = delta;
+	}
+      return;
+      }
+    }
+
     bool usel1 = this->m_UseL1;
     this->m_UseL1 = true;
     bool keeppos = false;
