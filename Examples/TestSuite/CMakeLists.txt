@@ -796,7 +796,6 @@ set(AllANTSPrograms
  ANTSUseLandmarkImagesToGetAffineTransform
  ANTSUseLandmarkImagesToGetBSplineDisplacementField
  Atropos
- AtroposMin
  AverageAffineTransform
  AverageImages
  AverageTensorImages
