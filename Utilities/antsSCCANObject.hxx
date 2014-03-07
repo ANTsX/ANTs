@@ -4302,7 +4302,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	this->ZeroProduct( pveck, orthagainst );
 	}
       pveck = pveck / pveck.two_norm();
-      this->SparsifyOther( pveck );
+      this->SparsifyOther( pveck , true );
       Asparse.set_column(k,pveck);
       }
     loop++;
