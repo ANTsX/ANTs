@@ -159,6 +159,8 @@ Optional arguments:
      -t:  Type of transformation model used for registration (default = SyN):  Options are
             SyN = Greedy SyN
             BSplineSyN = Greedy B-spline SyN
+            TimeVaryingVelocityField = Time-varying velocity field
+            TimeVaryingBSplineVelocityField = Time-varying B-spline velocity field
 
      -u:  Walltime (default = 20:00:00):  Option for PBS qsub specifying requested time
           per pairwise registration.
@@ -601,12 +603,7 @@ IMAGESETVARIABLE=$*
 NINFILES=$(($nargs - $shiftsize))
 IMAGESETARRAY=()
 
-# FSL not needed anymore, all dependent on ImageMath
-# #test if FSL is available in case of 4D, exit if not
-# if [[  ${TDIM} -eq 4 && ${#FSLDIR} -le 0 ]];
-#     then
-#     setFSLPath >&2
-# fi
+
 
 if [[ ${NINFILES} -eq 0 ]];
     then
@@ -1044,8 +1041,24 @@ elif [[ "${TRANSFORMATIONTYPE}" == SyN* ]];
       else
         TRANSFORMATION=SyN[0.1,3,0]
     fi
+elif [[ "${TRANSFORMATIONTYPE}" == TimeVaryingVelocityField* ]];
+  then
+    if [[ "${TRANSFORMATIONTYPE}" ==  TimeVaryingVelocityField[*] ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=TimeVaryingVelocityField[0.5,4,3,0,0,0]
+    fi
+elif [[ "${TRANSFORMATIONTYPE}" == TimeVaryingBSplineVelocityField* ]];
+  then
+    if [[ "${TRANSFORMATIONTYPE}" ==  TimeVaryingBSplineVelocityField[*] ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=TimeVaryingVelocityField[0.5,12x12x12x2,4,3]
+    fi
 else
-  echo "Invalid transformation metric. Use SyN or BSplineSyN or type bash `basename $0` -h for help menu."
+  echo "Invalid transformation. See `basename $0` -h for help menu."
   exit 1
 fi
 
