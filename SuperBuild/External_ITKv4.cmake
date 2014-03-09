@@ -114,11 +114,9 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DITK_BUILD_ALL_MODULES:BOOL=ON
       -DITK_USE_REVIEW:BOOL=ON
       #-DITK_INSTALL_NO_DEVELOPMENT:BOOL=ON
-      -DITK_BUILD_ALL_MODULES:BOOL=ON
+      -DTK_BUILD_DEFAULT_MODULES:BOOL=ON
       -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
       -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
-
-      -DFetch_MGHIO:BOOL=ON  # Allow building of the MGHIO classes
 
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
