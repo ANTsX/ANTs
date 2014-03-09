@@ -2057,7 +2057,8 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         // Determine the parameters (size, spacing, etc) for the time-varying velocity field
 
-        typedef itk::Image<VectorType, VImageDimension + 1> TimeVaryingVelocityFieldType;
+        typedef itk::Image<VectorType, VImageDimension + 1>  TimeVaryingVelocityFieldType;
+        typedef itk::Image<VectorType, VImageDimension>      DisplacementFieldType;
 
         typename TimeVaryingVelocityFieldType::IndexType velocityFieldIndex;
         typename TimeVaryingVelocityFieldType::SizeType velocityFieldSize;
@@ -2100,6 +2101,19 @@ RegistrationHelper<TComputeType, VImageDimension>
                                                    velocityFieldOrigin,
                                                    velocityFieldDirection,
                                                    zeroVector);
+
+        typename DisplacementFieldType::Pointer displacementField =
+          AllocImage<DisplacementFieldType>( preprocessedFixedImagesPerStage[0]->GetBufferedRegion(),
+                                                    fixedImageSpacing,
+                                                    fixedImageOrigin,
+                                                    fixedImageDirection,
+                                                    zeroVector );
+        typename DisplacementFieldType::Pointer inverseDisplacementField =
+          AllocImage<DisplacementFieldType>( preprocessedFixedImagesPerStage[0]->GetBufferedRegion(),
+                                                    fixedImageSpacing,
+                                                    fixedImageOrigin,
+                                                    fixedImageDirection,
+                                                    zeroVector );
 
         // Extract parameters
 
@@ -2169,6 +2183,8 @@ RegistrationHelper<TComputeType, VImageDimension>
         outputTransform->SetTimeVaryingVelocityField( velocityField );
         outputTransform->SetLowerTimeBound( 0.0 );
         outputTransform->SetUpperTimeBound( 1.0 );
+        outputTransform->SetDisplacementField( displacementField );
+        outputTransform->SetInverseDisplacementField( inverseDisplacementField );
 
         typename VelocityFieldRegistrationType::NumberOfIterationsArrayType numberOfIterationsPerLevel;
         numberOfIterationsPerLevel.SetSize( numberOfLevels );
