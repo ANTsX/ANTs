@@ -592,6 +592,53 @@ if [[ ! -n "$MODALITYWEIGHTSTRING" ]];
       fi
   fi
 
+
+TRANSFORMATION=''
+
+if [[ $TRANSFORMATIONTYPE == "BSplineSyN"* ]];
+  then
+    if [[ $TRANSFORMATIONTYPE == "BSplineSyN["*"]" ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=BSplineSyN[0.1,26,0,3]
+    fi
+elif [[ $TRANSFORMATIONTYPE == "SyN"* ]];
+  then
+    if [[ $TRANSFORMATIONTYPE == "SyN["*"]" ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=SyN[0.1,3,0]
+    fi
+elif [[ $TRANSFORMATIONTYPE == "TimeVaryingVelocityField"* ]];
+  then
+    if [[ $TRANSFORMATIONTYPE == "TimeVaryingVelocityField["*"]" ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=TimeVaryingVelocityField[0.5,4,3,0,0,0]
+    fi
+elif [[ $TRANSFORMATIONTYPE == "TimeVaryingBSplineVelocityField"* ]];
+  then
+    if [[ $TRANSFORMATIONTYPE == "TimeVaryingBSplineVelocityField["*"]" ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=TimeVaryingVelocityField[0.5,12x12x12x2,4,3]
+    fi
+else
+  echo "Invalid transformation. See `basename $0` -h for help menu."
+  exit 1
+fi
+
+echo $TRANSFORMATION
+exit 1
+
+
+
+
+
 # Creating the file list of images to make a template from.
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
 # The shiftsize variable will give the correct number of arguments to skip. Issuing shift $shiftsize will
@@ -1020,47 +1067,10 @@ echo
 echo "--------------------------------------------------------------------------------------"
 echo " Start to build templates: ${TEMPLATES[@]}"
 echo "--------------------------------------------------------------------------------------"
-reportMappingParameters
 #
 
-TRANSFORMATION=''
 
-if [[ "${TRANSFORMATIONTYPE}" == BSplineSyN* ]];
-  then
-    if [[ "${TRANSFORMATIONTYPE}" == BSplineSyN[*] ]]
-      then
-        TRANSFORMATION=${TRANSFORMATIONTYPE}
-      else
-        TRANSFORMATION=BSplineSyN[0.1,26,0,3]
-    fi
-elif [[ "${TRANSFORMATIONTYPE}" == SyN* ]];
-  then
-    if [[ "${TRANSFORMATIONTYPE}" == SyN[*] ]]
-      then
-        TRANSFORMATION=${TRANSFORMATIONTYPE}
-      else
-        TRANSFORMATION=SyN[0.1,3,0]
-    fi
-elif [[ "${TRANSFORMATIONTYPE}" == TimeVaryingVelocityField* ]];
-  then
-    if [[ "${TRANSFORMATIONTYPE}" ==  TimeVaryingVelocityField[*] ]]
-      then
-        TRANSFORMATION=${TRANSFORMATIONTYPE}
-      else
-        TRANSFORMATION=TimeVaryingVelocityField[0.5,4,3,0,0,0]
-    fi
-elif [[ "${TRANSFORMATIONTYPE}" == TimeVaryingBSplineVelocityField* ]];
-  then
-    if [[ "${TRANSFORMATIONTYPE}" ==  TimeVaryingBSplineVelocityField[*] ]]
-      then
-        TRANSFORMATION=${TRANSFORMATIONTYPE}
-      else
-        TRANSFORMATION=TimeVaryingVelocityField[0.5,12x12x12x2,4,3]
-    fi
-else
-  echo "Invalid transformation. See `basename $0` -h for help menu."
-  exit 1
-fi
+reportMappingParameters
 
 i=0
 while [[ $i -lt ${ITERATIONLIMIT} ]];
