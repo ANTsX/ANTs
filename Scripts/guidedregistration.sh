@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 if [ $# -lt 7  ]
 then
 echo " USAGE \n  sh command.sh  fixed.nii fixedhipp.nii  moving.nii movinghipp.nii outputname  iterations DIM "
