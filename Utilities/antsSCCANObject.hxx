@@ -1842,7 +1842,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	  fnz += 1;
 	  }
 	}
-        sparsenessparams( x ) = (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols();
+      if ( vnl_math_abs( this->m_FractionNonZeroP ) < 1.e-11 )
+        sparsenessparams( x ) = 1.0 * (RealType) fnz / (RealType) this->m_OriginalMatrixPriorROI.cols();
       priorrow = priorrow/priorrow.two_norm();
       this->m_MatrixPriorROI.set_row( x , priorrow );
       }
@@ -1953,9 +1954,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       tempMatrix.set_column( a, zero );
       MatrixType partialmatrix = matrixB * tempMatrix.transpose();
       for(  unsigned int interc = 0; interc < this->m_MatrixP.rows(); interc++ )
-        {
-        partialmatrix.set_row( interc, partialmatrix.get_row( interc ) + icept( interc ) );
-        }
+	{
+	  partialmatrix.set_row( interc, partialmatrix.get_row( interc ) + icept( interc ) );
+	}
       partialmatrix = this->m_MatrixP - partialmatrix;
       this->m_CanonicalCorrelations[a] = 1 - ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       VectorType evec = this->m_VariatesP.get_column( a );
@@ -3103,7 +3104,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   if( denom > 0 )
     {
     rayquo = inner_product( proj, proj  ) / denom;
-    }
+    } else std::cout << "Denom < 0: probable trouble." << std::endl;
   RealType     bestrayquo = 0;
   MatrixType   At = A.transpose();
   unsigned int powerits = 0;
@@ -4286,7 +4287,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparseArnoldiSVD_Other( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A )
 {
   if ( vnl_math_abs(this->m_RowSparseness) <= 1.e-9 ) return 0;
-  unsigned int maxrowtoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_RowSparseness ) ) - 1;
+  unsigned int maxrowtoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_RowSparseness ) ) - 0;
   unsigned int maxloop = 10;
   unsigned int loop = 0;
   double       convcrit = 1;
@@ -4303,8 +4304,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       for( unsigned int m = startingm; m < k; m++ )
 	{
 	VectorType orthagainst = Asparse.get_column( m );
-	// pveck = this->Orthogonalize( pveck, orthagainst );
-	this->ZeroProduct( pveck, orthagainst );
+	pveck = this->Orthogonalize( pveck, orthagainst );
+	// this->ZeroProduct( pveck, orthagainst );
 	}
       pveck = pveck / pveck.two_norm();
       this->SparsifyOther( pveck , false );
