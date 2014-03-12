@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo  " sh $0 outputprefix "
 if [ $# -lt 1 ] ; then

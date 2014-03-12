@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "Usage: \n sh  weightedaverage.sh  \"Faces*tiff\" \n "
 
