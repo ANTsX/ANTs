@@ -661,9 +661,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       {
       timelist.push_back(timedim);
       }
-    for( unsigned int timelistindex = 0;  timelistindex < timelist.size();  timelistindex++ )
+    for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
-      unsigned int timedim = timelist[timelistindex];
       typename CompositeTransformType::Pointer compositeTransform = NULL;
       if( currentStage == static_cast<int>(numberOfStages) - 1 )
         {
@@ -684,7 +683,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       typedef itk::ExtractImageFilter<MovingImageType, FixedImageType> ExtractFilterType;
       typename MovingImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
       extractRegion.SetSize(ImageDimension, 0);
-      bool maptoneighbor = true;
+      bool maptoneighbor = false;
       typename OptionType::Pointer fixedOption = parser->GetOption( "useFixedReferenceImage" );
       if( fixedOption && fixedOption->GetNumberOfFunctions() )
         {
@@ -1287,6 +1286,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       resampler->Update();
       std::cout << " done resampling timepoint : " << timedim << std::endl;
 
+      /** Here, we put the resampled 3D image into the 4D volume */
       typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
       Iterator vfIter2(  resampler->GetOutput(), resampler->GetOutput()->GetLargestPossibleRegion() );
       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
