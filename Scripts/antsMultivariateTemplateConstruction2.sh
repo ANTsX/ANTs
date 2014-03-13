@@ -632,11 +632,8 @@ else
   exit 1
 fi
 
-echo $TRANSFORMATION
-exit 1
-
-
-
+#echo $TRANSFORMATION
+#exit 1
 
 
 # Creating the file list of images to make a template from.
