@@ -109,16 +109,30 @@ PARAMETERS
 #    local  myresult='some value'
 #    echo "$myresult"
 
-# Echos a command to both stdout and stderr, then runs it
+# Echos a command to stdout, then runs it
 function logCmd() {
   cmd="$*"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  logCmdOutput=$( $cmd | tee /dev/tty )
+  $cmd
+  
+  cmdExit=$?
+
+  if [[ $cmdExit -gt 0 ]];
+    then
+      echo "ERROR: command exited with nonzero status $cmdExit"
+      echo "Command: $cmd"
+      echo
+      exit 1
+    fi
+
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
   echo
+
+  return $cmdExit
 }
+
 
 ################################################################################
 #
