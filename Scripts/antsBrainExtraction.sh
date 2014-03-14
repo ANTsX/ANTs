@@ -110,7 +110,7 @@ function logCmd() {
       echo
       exit 1
     fi
- 
+
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
   echo
@@ -445,8 +445,8 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         # Pad image here to avoid errors from dilating into the edge of the image
         padVoxels=10
 
-        logCmd ${ANTSPATH}/ImageMath 3 ${EXTRACTION_SEGMENTATION} PadImage ${EXTRACTION_SEGMENTATION} $padVoxels
-        logCmd ${ANTSPATH}/ImageMath 3 ${EXTRACTION_MASK_PRIOR_WARPED} PadImage ${EXTRACTION_MASK_PRIOR_WARPED} $padVoxels
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} PadImage ${EXTRACTION_SEGMENTATION} $padVoxels
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK_PRIOR_WARPED} PadImage ${EXTRACTION_MASK_PRIOR_WARPED} $padVoxels
 
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} 3 3 1 0
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_GM} 2 2 1 0
@@ -479,7 +479,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         # De-pad
         for img in ${EXTRACTION_SEGMENTATION} ${EXTRACTION_MASK} ${EXTRACTION_WM} ${EXTRACTION_GM} ${EXTRACTION_CSF} ${EXTRACTION_MASK_PRIOR_WARPED}
           do
-            logCmd ${ANTSPATH}/ImageMath 3 ${img} PadImage ${img} -$padVoxels
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${img} PadImage ${img} -$padVoxels
           done
 
       fi
