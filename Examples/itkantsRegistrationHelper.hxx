@@ -2058,7 +2058,6 @@ RegistrationHelper<TComputeType, VImageDimension>
         // Determine the parameters (size, spacing, etc) for the time-varying velocity field
 
         typedef itk::Image<VectorType, VImageDimension + 1>  TimeVaryingVelocityFieldType;
-        typedef itk::Image<VectorType, VImageDimension>      DisplacementFieldType;
 
         typename TimeVaryingVelocityFieldType::IndexType velocityFieldIndex;
         typename TimeVaryingVelocityFieldType::SizeType velocityFieldSize;
