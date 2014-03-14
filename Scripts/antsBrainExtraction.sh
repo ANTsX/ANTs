@@ -94,15 +94,28 @@ PARAMETERS
 #    local  myresult='some value'
 #    echo "$myresult"
 
-# Echos a command to both stdout and stderr, then runs it
+# Echos a command to stdout then runs it
 function logCmd() {
   cmd="$*"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  logCmdOutput=$( $cmd | tee /dev/tty )
+  $cmd
+
+  cmdExit=$?
+
+  if [[ $cmdExit -gt 0 ]];
+    then
+      echo "ERROR: command exited with nonzero status $cmdExit"
+      echo "Command: $cmd"
+      echo
+      exit 1
+    fi
+
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
   echo
+
+  return $cmdExit
 }
 
 ################################################################################
@@ -410,6 +423,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
           fi
 
         ## Step 2 ##
+
         exe_brain_extraction_2="${WARP} -d ${DIMENSION} -i ${EXTRACTION_PRIOR} -o ${EXTRACTION_MASK_PRIOR_WARPED} -r ${ANATOMICAL_IMAGES[0]} -n Gaussian -t [${EXTRACTION_GENERIC_AFFINE},1] -t ${EXTRACTION_INVERSE_WARP} --float ${USE_FLOAT_PRECISION}"
         logCmd $exe_brain_extraction_2
 
@@ -427,6 +441,12 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 
         exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD}"
         logCmd $exe_brain_extraction_3
+
+        # Pad image here to avoid errors from dilating into the edge of the image
+        padVoxels=10
+
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_SEGMENTATION} PadImage ${EXTRACTION_SEGMENTATION} $padVoxels
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTION_MASK_PRIOR_WARPED} PadImage ${EXTRACTION_MASK_PRIOR_WARPED} $padVoxels
 
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} 3 3 1 0
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_GM} 2 2 1 0
@@ -456,6 +476,12 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} MD ${EXTRACTION_MASK} 5
         logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${EXTRACTION_MASK} ME ${EXTRACTION_MASK} 5
 
+        # De-pad
+        for img in ${EXTRACTION_SEGMENTATION} ${EXTRACTION_MASK} ${EXTRACTION_WM} ${EXTRACTION_GM} ${EXTRACTION_CSF} ${EXTRACTION_MASK_PRIOR_WARPED}
+          do
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${img} PadImage ${img} -$padVoxels
+          done
+
       fi
 
     if [[ ! -f ${EXTRACTION_WM} ]];
@@ -472,12 +498,18 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} 3 3 1 0
       fi
 
-    logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${EXTRACTION_MASK} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_BRAIN}
+    logCmd ${ANTSPATH}/MultiplyImages ${DIMENSION} ${N4_CORRECTED_IMAGES[0]} ${EXTRACTION_MASK} ${EXTRACTION_BRAIN}
 
     if [[ ! -f ${EXTRACTION_MASK} ]];
       then
         echo "Expected output was not produced.  The brain mask doesn't exist:"
         echo "   $EXTRACTION_MASK"
+        exit 1
+      fi
+    if [[ ! -f ${EXTRACTION_BRAIN} ]];
+      then
+        echo "Expected output was not produced.  The brain extracted image doesn't exist:"
+        echo "   $EXTRACTION_BRAIN"
         exit 1
       fi
 

@@ -109,16 +109,30 @@ PARAMETERS
 #    local  myresult='some value'
 #    echo "$myresult"
 
-# Echos a command to both stdout and stderr, then runs it
+# Echos a command to stdout, then runs it
 function logCmd() {
   cmd="$*"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  logCmdOutput=$( $cmd | tee /dev/tty )
+  $cmd
+
+  cmdExit=$?
+
+  if [[ $cmdExit -gt 0 ]];
+    then
+      echo "ERROR: command exited with nonzero status $cmdExit"
+      echo "Command: $cmd"
+      echo
+      exit 1
+    fi
+
   echo "END   <<<<<<<<<<<<<<<<<<<<"
   echo
   echo
+
+  return $cmdExit
 }
+
 
 ################################################################################
 #
@@ -161,7 +175,6 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.0
 ATROPOS_SEGMENTATION_LIKELIHOOD="Gaussian"
 ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION="Socrates[1]"
 ATROPOS_SEGMENTATION_MASK=''
-ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=5
 ATROPOS_SEGMENTATION_NUMBER_OF_CLASSES=3
 ATROPOS_SEGMENTATION_MRF=''
