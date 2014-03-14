@@ -124,7 +124,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
   lut->SetNumberOfTableValues(tableSize);
   lut->Build();
   lut->SetTableRange( 0 , 1 );
-  lut->SetTableValue(0     , 0     , 0     , 0, 1);  //Black
+  lut->SetTableValue(0     , 1     , 1     , 1, 1);  //Black
   lut->SetTableValue(1, 0.8900, 0.8100, 0.3400, 1); // Banana
   lut->SetTableValue(2, 1.0000, 0.3882, 0.2784, 1); // Tomato
   lut->SetTableValue(3, 0.9608, 0.8706, 0.7020, 1); // Wheat
