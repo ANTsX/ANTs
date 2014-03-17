@@ -877,7 +877,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       }
     }
   std::cout << "=============================================================================" << std::endl;
-  std::cout << "The composite transform is comprised of the following transforms (in order): " << std::endl;
+  std::cout << "The composite transform comprises the following transforms (in order): " << std::endl;
   for( unsigned int n = 0; n < transformNames.size(); n++ )
     {
     std::cout << "  " << n + 1 << ". " << transformNames[n] << " (type = " << transformTypes[n] << ")" << std::endl;
