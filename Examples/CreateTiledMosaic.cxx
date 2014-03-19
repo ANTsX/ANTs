@@ -10,6 +10,7 @@
 #include "itkConstantPadImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkFlipImageFilter.h"
+#include "itkPermuteAxesImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkStatisticsImageFilter.h"
@@ -326,6 +327,16 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     doFlipVertically = layout[1];
     }
 
+  itk::ants::CommandLineParser::OptionType::Pointer permuteOption =
+    parser->GetOption( "permute-axes" );
+
+  bool doPermute = false;
+
+  if( permuteOption && permuteOption->GetNumberOfFunctions() )
+    {
+    doPermute = parser->Convert<bool>( permuteOption->GetFunction( 0 )->GetName() );
+    }
+
   // Read in optional Rgb image
 
   RgbImageType::Pointer rgbImage = NULL;
@@ -366,8 +377,6 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     maskImage->Update();
     maskImage->DisconnectPipeline();
     }
-
-
 
   RealType alpha = 1.0;
 
@@ -468,7 +477,21 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
     flipper->SetInput( outputSlice );
     flipper->SetFlipAxes( flipArray );
-    outputSlice2 = flipper->GetOutput();
+
+    typedef itk::PermuteAxesImageFilter<SliceType> PermuteAxesImageFilterType;
+    itk::FixedArray<unsigned int, 2> order;
+    order[0] = 0;
+    order[1] = 1;
+    if( doPermute )
+      {
+      order[0] = 1;
+      order[1] = 0;
+      }
+    PermuteAxesImageFilterType::Pointer permuteAxesFilter = PermuteAxesImageFilterType::New();
+    permuteAxesFilter->SetInput( flipper->GetOutput() );
+    permuteAxesFilter->SetOrder( order );
+
+    outputSlice2 = permuteAxesFilter->GetOutput();
     outputSlice2->Update();
     outputSlice2->DisconnectPipeline();
 
@@ -518,11 +541,14 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
           }
 
         FlipFilterType::Pointer maskFlipper = FlipFilterType::New();
-
         maskFlipper->SetInput( outputMaskSlice );
         maskFlipper->SetFlipAxes( flipArray );
 
-        outputMaskSlice2 = maskFlipper->GetOutput();
+        PermuteAxesImageFilterType::Pointer maskPermuteAxesFilter = PermuteAxesImageFilterType::New();
+        maskPermuteAxesFilter->SetInput( maskFlipper->GetOutput() );
+        maskPermuteAxesFilter->SetOrder( order );
+
+        outputMaskSlice2 = maskPermuteAxesFilter->GetOutput();
         outputMaskSlice2->Update();
         outputMaskSlice2->DisconnectPipeline();
         }
@@ -577,7 +603,20 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
       rgbFlipper->SetInput( outputRgbSlice );
       rgbFlipper->SetFlipAxes( rgbFlipArray );
 
-      outputRgbSlice2 = rgbFlipper->GetOutput();
+      typedef itk::PermuteAxesImageFilter<RgbSliceType> RgbPermuteAxesImageFilterType;
+      itk::FixedArray<unsigned int, 2> rgbOrder;
+      rgbOrder[0] = 0;
+      rgbOrder[1] = 1;
+      if( doPermute )
+        {
+        rgbOrder[0] = 1;
+        rgbOrder[1] = 0;
+        }
+      RgbPermuteAxesImageFilterType::Pointer rgbPermuteAxesFilter = RgbPermuteAxesImageFilterType::New();
+      rgbPermuteAxesFilter->SetInput( rgbFlipper->GetOutput() );
+      rgbPermuteAxesFilter->SetOrder( rgbOrder );
+
+      outputRgbSlice2 = rgbPermuteAxesFilter->GetOutput();
       outputRgbSlice2->Update();
       outputRgbSlice2->DisconnectPipeline();
 
@@ -783,6 +822,18 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "flip-slice" );
     option->SetShortName( 'f' );
     option->SetUsageOption( 0, "flipXxflipY" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Permute (or swap) the axes of the individual slice images.");
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "permute-axes" );
+    option->SetShortName( 'g' );
+    option->SetUsageOption( 0, "doPermute" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
