@@ -131,7 +131,9 @@
 #include "ReadWriteImage.h"
 #include "TensorFunctions.h"
 #include "antsMatrixUtilities.h"
-#include "itkFastMarchingImageFilter.h"
+#include "antsFastMarchingImageFilter.h"
+#include "itkFastMarchingImageFilterBase.h"
+#include "itkFastMarchingThresholdStoppingCriterion.h"
 
 namespace ants
 {
@@ -7491,132 +7493,7 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
   //  option->SetUsageOption( 0, "[speedImage,seedImage,<stoppingValue=max>,<topologyCheck=0>]" );
   unsigned int      argct = 2;
   const std::string outname = std::string(argv[argct]);
-  argct += 2;
-  std::string fn1 = std::string(argv[argct]);   argct++;
-  std::string fn2 = "";
-  if(  argc > argct )
-    {
-    fn2 = std::string(argv[argct]);   argct++;
-    }
-  else
-    {
-    std::cout << " not enough parameters -- need label image " << std::endl;  return 0;
-    }
-  float stoppingValue = 100.0;
-  if(  argc > argct )
-    {
-    stoppingValue = atof(argv[argct]);   argct++;
-    }
-  int topocheck = 0;
-  if(  argc > argct )
-    {
-    topocheck = atoi(argv[argct]);   argct++;
-    }
-
-  typename ImageType::Pointer image1;
-  ReadImage<ImageType>(image1, fn1.c_str() );
-  typedef itk::FastMarchingImageFilter<ImageType> FilterType;
-  typename FilterType::Pointer filter = FilterType::New();
-  filter->SetInput( image1 );
-
-  typedef typename FilterType::NodeContainer  NodeContainer;
-  typedef typename FilterType::NodeType       NodeType;
-  typedef typename FilterType::LabelImageType LabelImageType;
-
-  typedef itk::ImageFileReader<LabelImageType> LabelImageReaderType;
-  typename LabelImageReaderType::Pointer labelImageReader =
-    LabelImageReaderType::New();
-  labelImageReader->SetFileName( fn2.c_str() );
-  labelImageReader->Update();
-
-  typedef itk::LabelContourImageFilter<LabelImageType, LabelImageType>
-    ContourFilterType;
-  typename ContourFilterType::Pointer contour = ContourFilterType::New();
-  contour->SetInput( labelImageReader->GetOutput() );
-  contour->FullyConnectedOff();
-  contour->SetBackgroundValue(
-    itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
-  contour->Update();
-
-  typename NodeContainer::Pointer alivePoints = NodeContainer::New();
-  alivePoints->Initialize();
-  unsigned long aliveCount = 0;
-  typename NodeContainer::Pointer trialPoints = NodeContainer::New();
-  trialPoints->Initialize();
-  unsigned long trialCount = 0;
-
-  itk::ImageRegionIteratorWithIndex<LabelImageType> ItL(
-    labelImageReader->GetOutput(),
-    labelImageReader->GetOutput()->GetLargestPossibleRegion() );
-  itk::ImageRegionIteratorWithIndex<LabelImageType> ItC( contour->GetOutput(),
-                                                         contour->GetOutput()->GetLargestPossibleRegion() );
-  for( ItL.GoToBegin(), ItC.GoToBegin(); !ItL.IsAtEnd(); ++ItL, ++ItC )
-    {
-    if( vnl_math_abs( ItC.Get() - itk::NumericTraits<typename LabelImageType::PixelType>::Zero ) < 1.e-9 )
-      {
-      typename LabelImageType::IndexType position = ItC.GetIndex();
-
-      NodeType     node;
-      const double value = 0.0;
-
-      node.SetValue( value );
-      node.SetIndex( position );
-      trialPoints->InsertElement( trialCount++, node );
-      }
-    else if( vnl_math_abs( ItL.Get() - itk::NumericTraits<typename LabelImageType::PixelType>::One ) < 1.e-9 )
-      {
-      typename LabelImageType::IndexType position = ItL.GetIndex();
-
-      NodeType     node;
-      const double value = 0.0;
-
-      node.SetValue( value );
-      node.SetIndex( position );
-      alivePoints->InsertElement( aliveCount++, node );
-      }
-    }
-  filter->SetTrialPoints( trialPoints );
-  filter->SetAlivePoints( alivePoints );
-
-  filter->SetStoppingValue( stoppingValue );
-  filter->SetTopologyCheck( FilterType::None );
-  if( topocheck == 1 )  // Strict
-    {
-    std::cout << " strict " << std::endl;
-    filter->SetTopologyCheck( FilterType::Strict );
-    }
-  if( topocheck == 2 )  // No handles
-    {
-    std::cout << " no handles " << std::endl;
-    filter->SetTopologyCheck( FilterType::NoHandles );
-    }
-
-  try
-    {
-    filter->Update();
-    }
-  catch( itk::ExceptionObject & excep )
-    {
-    std::cout << "Exception caught !" << std::endl;
-    std::cout << excep << std::endl;
-    }
-
-  itk::ImageRegionIteratorWithIndex<ImageType> ItF(
-    filter->GetOutput(),
-    filter->GetOutput()->GetLargestPossibleRegion() );
-  for( ItL.GoToBegin(), ItF.GoToBegin(); !ItL.IsAtEnd(); ++ItL, ++ItF )
-    {
-    if( ItL.Get() !=
-        itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
-      {
-      ItF.Set( -ItF.Get() );
-      }
-    }
-
-  if( outname.length() > 3 )
-    {
-    WriteImage<ImageType>(filter->GetOutput(), outname.c_str() );
-    }
+  std::cout << outname << argc << " This function has been disabled --- see PropagateLabelsThroughMask " << std::endl;
   return 0;
 }
 
@@ -7691,10 +7568,30 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
         }
       }
     }
+  typedef  itk::FMarchingImageFilter<ImageType, ImageType> FastMarchingFilterType;
+  typedef  typename FastMarchingFilterType::LabelImageType LabelImageType;
+  typename FastMarchingFilterType::Pointer  fastMarching;
   for( unsigned int lab = 1; lab <= (unsigned int)maxlabel; lab++ )
     {
-    typedef  itk::FastMarchingImageFilter<ImageType, ImageType> FastMarchingFilterType;
-    typename FastMarchingFilterType::Pointer  fastMarching = FastMarchingFilterType::New();
+
+    typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( labimage );
+    thresholder->SetLowerThreshold( lab );
+    thresholder->SetUpperThreshold( lab );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::LabelContourImageFilter<ImageType, ImageType>
+      ContourFilterType;
+    typename ContourFilterType::Pointer contour = ContourFilterType::New();
+    contour->SetInput( thresholder->GetOutput() );
+    contour->FullyConnectedOff();
+    contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
+    contour->Update();
+    typename ImageType::Pointer contourimage = contour->GetOutput();
+
+    fastMarching = FastMarchingFilterType::New();
     fastMarching->SetInput( speedimage );
     fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
     if( topocheck == 1 )  // Strict
@@ -7711,27 +7608,41 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     typedef typename FastMarchingFilterType::NodeType      NodeType;
     typename NodeContainer::Pointer seeds = NodeContainer::New();
     seeds->Initialize();
+    typename NodeContainer::Pointer alivePoints = NodeContainer::New();
+    alivePoints->Initialize();
+    unsigned long aliveCount = 0;
     unsigned long ct = 0;
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
       bool   isinside = true;
-      double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
-      double labval = labimage->GetPixel(vfIter2.GetIndex() );
+      double speedval = speedimage->GetPixel( vfIter2.GetIndex() );
+      double labval = labimage->GetPixel( vfIter2.GetIndex() );
       if( speedval < thresh )
         {
         isinside = false;
         }
-      if( isinside && (unsigned int) labval == lab )
+      double contourval = contourimage->GetPixel( vfIter2.GetIndex() );
+      if(  ( isinside ) && ( (unsigned int) contourval == 1 ) && ( (unsigned int) labval == lab ) )
         {
-        NodeType     node;
-        const double seedValue = 0.0;
-        node.SetValue( seedValue );
-        node.SetIndex( vfIter2.GetIndex() );
-        seeds->InsertElement( ct, node );
-        ct++;
+	NodeType     node;
+	const double seedValue = 0.0;
+	node.SetValue( seedValue );
+	node.SetIndex( vfIter2.GetIndex() );
+	seeds->InsertElement( ct, node );
+	ct++;
+        }
+      if(  ( isinside ) && ( (unsigned int) contourval == 0 ) && ( (unsigned int) labval == lab ) )
+        {
+	NodeType     node;
+	const double seedValue = 0.0;
+	node.SetValue( seedValue );
+	node.SetIndex( vfIter2.GetIndex() );
+	alivePoints->InsertElement( aliveCount, node );
+	aliveCount++;
         }
       }
     fastMarching->SetTrialPoints(  seeds  );
+    fastMarching->SetAlivePoints( alivePoints );
     fastMarching->SetStoppingValue(  stopval );
     fastMarching->Update();
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -7764,10 +7675,198 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
   std::string tempname = outname.substr(0, idx);
   std::string extension = outname.substr(idx, outname.length() );
   std::string kname = tempname + std::string("_speed") + extension;
+  std::string lname = tempname + std::string("_label") + extension;
   WriteImage<ImageType>(fastimage, kname.c_str() );
   WriteImage<ImageType>(outlabimage, outname.c_str() );
+  WriteImage<LabelImageType>(fastMarching->GetLabelImage(), lname.c_str() );
   return 0;
 }
+
+
+
+template <unsigned int ImageDimension>
+int itkPropagateLabelsThroughMask(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  float             thresh = 0.5;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = "";
+  float       stopval = 100.0;
+  if(  argc > argct )
+    {
+    fn2 = std::string(argv[argct]);   argct++;
+    }
+  else
+    {
+    std::cout << " not enough parameters -- need label image " << std::endl;  return 0;
+    }
+  if(  argc > argct )
+    {
+    stopval = atof(argv[argct]);   argct++;
+    }
+  unsigned int topocheck = 0;
+  if(  argc > argct )
+    {
+    topocheck = atoi(argv[argct]);   argct++;
+    }
+
+  typename ImageType::Pointer speedimage = NULL;
+  ReadImage<ImageType>(speedimage, fn1.c_str() );
+  typename ImageType::Pointer labimage = NULL;
+  ReadImage<ImageType>(labimage, fn2.c_str() );
+  typename ImageType::Pointer fastimage = NULL;
+  ReadImage<ImageType>(fastimage, fn1.c_str() );
+  typename ImageType::Pointer outlabimage = NULL;
+  ReadImage<ImageType>(outlabimage, fn2.c_str() );
+  fastimage->FillBuffer(1.e9);
+  // compute max label
+  double   maxlabel = 0;
+  Iterator vfIter2( labimage,  labimage->GetLargestPossibleRegion() );
+  for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+    {
+    bool   isinside = true;
+    double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
+    double labval = labimage->GetPixel(vfIter2.GetIndex() );
+    if( speedval < thresh )
+      {
+      isinside = false;
+      }
+    if( isinside )
+      {
+      if( labval > maxlabel )
+        {
+        maxlabel = labval;
+        }
+      }
+    }
+  typedef itk::FastMarchingThresholdStoppingCriterion< ImageType, ImageType >
+      CriterionType;
+  typedef typename CriterionType::Pointer CriterionPointer;
+  CriterionPointer criterion = CriterionType::New();
+  criterion->SetThreshold( stopval );
+  typedef  itk::FastMarchingImageFilterBase<ImageType, ImageType> FastMarchingFilterType;
+  typedef  typename FastMarchingFilterType::LabelImageType LabelImageType;
+  typename FastMarchingFilterType::Pointer  fastMarching;
+  for( unsigned int lab = 1; lab <= (unsigned int)maxlabel; lab++ )
+    {
+
+    typedef itk::BinaryThresholdImageFilter<ImageType, ImageType> ThresholderType;
+    typename ThresholderType::Pointer thresholder = ThresholderType::New();
+    thresholder->SetInput( labimage );
+    thresholder->SetLowerThreshold( lab );
+    thresholder->SetUpperThreshold( lab );
+    thresholder->SetInsideValue( 1 );
+    thresholder->SetOutsideValue( 0 );
+
+    typedef itk::LabelContourImageFilter<ImageType, ImageType>
+      ContourFilterType;
+    typename ContourFilterType::Pointer contour = ContourFilterType::New();
+    contour->SetInput( thresholder->GetOutput() );
+    contour->FullyConnectedOff();
+    contour->SetBackgroundValue( itk::NumericTraits<typename LabelImageType::PixelType>::Zero );
+    contour->Update();
+    typename ImageType::Pointer contourimage = contour->GetOutput();
+
+    fastMarching = FastMarchingFilterType::New();
+    fastMarching->SetInput( speedimage );
+    fastMarching->SetStoppingCriterion( criterion );
+
+    if( topocheck == 1 )  // Strict
+      {
+      std::cout << " strict " << std::endl;
+      fastMarching->SetTopologyCheck( FastMarchingFilterType::Strict );
+      }
+    if( topocheck == 2 )  // No handles
+      {
+      std::cout << " no handles " << std::endl;
+      fastMarching->SetTopologyCheck( FastMarchingFilterType::NoHandles );
+      }
+    typedef typename FastMarchingFilterType::NodePairContainerType NodeContainer;
+    typedef typename FastMarchingFilterType::NodePairType      NodePairType;
+    typedef typename FastMarchingFilterType::NodeType      NodeType;
+    typename NodeContainer::Pointer seeds = NodeContainer::New();
+    seeds->Initialize();
+    typename NodeContainer::Pointer alivePoints = NodeContainer::New();
+    alivePoints->Initialize();
+    //    unsigned long aliveCount = 0;
+    //    unsigned long ct = 0;
+    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+      {
+      bool   isinside = true;
+      double speedval = speedimage->GetPixel( vfIter2.GetIndex() );
+      double labval = labimage->GetPixel( vfIter2.GetIndex() );
+      if( speedval < thresh )
+        {
+        isinside = false;
+        }
+      double contourval = contourimage->GetPixel( vfIter2.GetIndex() );
+      if(  ( isinside ) && ( (unsigned int) contourval == 1 ) && ( (unsigned int) labval == lab ) )
+        {
+	seeds->push_back( NodePairType(  vfIter2.GetIndex(), 0. ) );
+        }
+      if(  ( isinside ) && ( (unsigned int) contourval == 0 ) && ( (unsigned int) labval == lab ) )
+        {
+	alivePoints->push_back( NodePairType(  vfIter2.GetIndex(), 0. ) );
+        }
+      }
+    fastMarching->SetTrialPoints(  seeds  );
+    fastMarching->SetAlivePoints( alivePoints );
+    fastMarching->Update();
+    for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+      {
+      bool   isinside = true;
+      double speedval = speedimage->GetPixel(vfIter2.GetIndex() );
+      double labval = labimage->GetPixel(vfIter2.GetIndex() );
+      if( speedval < thresh )
+        {
+        isinside = false;
+        }
+      if( isinside && labval == 0 )
+        {
+        double fmarrivaltime = fastMarching->GetOutput()->GetPixel( vfIter2.GetIndex() );
+        double mmm = fastimage->GetPixel(vfIter2.GetIndex() );
+        if( fmarrivaltime < mmm )
+          {
+          fastimage->SetPixel(vfIter2.GetIndex(),  fmarrivaltime );
+          outlabimage->SetPixel(vfIter2.GetIndex(), lab );
+          }
+        }
+      else if( !isinside )
+        {
+        outlabimage->SetPixel(vfIter2.GetIndex(), 0 );
+        }
+      }
+    }
+  std::string::size_type idx;
+  idx = outname.find_first_of('.');
+  std::string tempname = outname.substr(0, idx);
+  std::string extension = outname.substr(idx, outname.length() );
+  std::string kname = tempname + std::string("_speed") + extension;
+  std::string lname = tempname + std::string("_label") + extension;
+  WriteImage<ImageType>(fastimage, kname.c_str() );
+  WriteImage<ImageType>(outlabimage, outname.c_str() );
+  WriteImage<LabelImageType>(fastMarching->GetLabelImage(), lname.c_str() );
+  return 0;
+}
+
+
+
+
 
 template <unsigned int ImageDimension>
 int DistanceMap(int argc, char *argv[])
@@ -13743,6 +13842,10 @@ private:
         {
         PropagateLabelsThroughMask<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "itkPropagateLabelsThroughMask") == 0 )
+        {
+        itkPropagateLabelsThroughMask<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
         {
         FastMarchingSegmentation<2>(argc, argv);
@@ -14211,6 +14314,10 @@ private:
       else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
         {
         PropagateLabelsThroughMask<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "itkPropagateLabelsThroughMask") == 0 )
+        {
+        itkPropagateLabelsThroughMask<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
         {

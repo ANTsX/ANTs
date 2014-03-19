@@ -1,7 +1,7 @@
 /*=========================================================================
 
 Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkFastMarchingImageFilter.h,v $
+  Module:    $RCSfile: antsFMarchingImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2009/03/10 17:30:41 $
   Version:   $Revision: 1.1 $
@@ -15,8 +15,8 @@ Program:   Advanced Normalization Tools
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkFastMarchingImageFilter_h
-#define __itkFastMarchingImageFilter_h
+#ifndef __antsFMarchingImageFilter_h
+#define __antsFMarchingImageFilter_h
 
 #include "itkArray.h"
 #include "itkImageToImageFilter.h"
@@ -31,7 +31,7 @@ Program:   Advanced Normalization Tools
 
 namespace itk
 {
-/** \class FastMarchingImageFilter
+/** \class FMarchingImageFilter
  * \brief Solve an Eikonal equation using Fast Marching
  *
  * Fast marching solves an Eikonal equation where the speed is always
@@ -67,7 +67,7 @@ namespace itk
  *
  * If the speed function is constant and of value one, fast marching results
  * in an approximate distance function from the initial alive points.
- * FastMarchingImageFilter is used in the ReinitializeLevelSetImageFilter
+ * FMarchingImageFilter is used in the ReinitializeLevelSetImageFilter
  * object to create a signed distance function from the zero level set.
  *
  * The algorithm can be terminated early by setting an appropriate stopping
@@ -104,12 +104,12 @@ namespace itk
 template <
   class TLevelSet,
   class TSpeedImage = Image<float, TLevelSet::ImageDimension> >
-class FastMarchingImageFilter :
+class FMarchingImageFilter :
   public         ImageToImageFilter<TSpeedImage, TLevelSet>
 {
 public:
   /** Standard class typdedefs. */
-  typedef FastMarchingImageFilter  Self;
+  typedef FMarchingImageFilter  Self;
   typedef ImageSource<TLevelSet>   Superclass;
   typedef SmartPointer<Self>       Pointer;
   typedef SmartPointer<const Self> ConstPointer;
@@ -118,7 +118,7 @@ public:
   itkNewMacro(Self);
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro(FastMarchingImageFilter, ImageSource);
+  itkTypeMacro(FMarchingImageFilter, ImageSource);
 
   /** Typedef support of level set method types. */
   typedef LevelSetTypeDefault<TLevelSet>              LevelSetType;
@@ -336,8 +336,8 @@ private:
   /** End concept checking */
 #endif
 protected:
-  FastMarchingImageFilter();
-  ~FastMarchingImageFilter()
+  FMarchingImageFilter();
+  ~FMarchingImageFilter()
   {
   };
   void PrintSelf( std::ostream& os, Indent indent ) const;
@@ -374,7 +374,7 @@ protected:
   itkGetConstReferenceMacro( StartIndex, LevelSetIndexType );
   itkGetConstReferenceMacro( LastIndex, LevelSetIndexType );
 private:
-  FastMarchingImageFilter(const Self &); // purposely not implemented
+  FMarchingImageFilter(const Self &); // purposely not implemented
   void operator=(const Self &);          // purposely not implemented
 
   NodeContainerPointer m_AlivePoints;
@@ -453,7 +453,7 @@ private:
 } // namespace itk
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkFastMarchingImageFilter.hxx"
+#include "antsFastMarchingImageFilter.hxx"
 #endif
 
 #endif

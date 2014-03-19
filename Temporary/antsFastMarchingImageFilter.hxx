@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Advanced Normalization Tools
-  Module:    $RCSfile: itkFastMarchingImageFilter.hxx,v $
+  Module:    $RCSfile: antsFMarchingImageFilter.hxx,v $
   Language:  C++
   Date:      $Date: 2009/03/10 17:30:41 $
   Version:   $Revision: 1.1 $
@@ -15,10 +15,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkFastMarchingImageFilter_hxx
-#define __itkFastMarchingImageFilter_hxx
+#ifndef __antsFMarchingImageFilter_hxx
+#define __antsFMarchingImageFilter_hxx
 #include "antsAllocImage.h"
-#include "itkFastMarchingImageFilter.h"
+#include "antsFastMarchingImageFilter.h"
 
 #include "itkConnectedComponentImageFilter.h"
 #include "itkImageRegionIterator.h"
@@ -32,8 +32,8 @@
 namespace itk
 {
 template <class TLevelSet, class TSpeedImage>
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
-::FastMarchingImageFilter()
+FMarchingImageFilter<TLevelSet, TSpeedImage>
+::FMarchingImageFilter()
   : m_TrialHeap()
 {
   this->ProcessObject::SetNumberOfRequiredInputs(0);
@@ -69,7 +69,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::PrintSelf(std::ostream& os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);
@@ -111,7 +111,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::GenerateOutputInformation()
 {
   // copy output information from input image
@@ -130,7 +130,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::EnlargeOutputRequestedRegion(
   DataObject *output )
 {
@@ -146,7 +146,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
   else
     {
     // Pointer could not be cast to TLevelSet *
-    itkWarningMacro(<< "itk::FastMarchingImageFilter"
+    itkWarningMacro(<< "itk::FMarchingImageFilter"
                     << "::EnlargeOutputRequestedRegion cannot cast "
                     << typeid(output).name() << " to "
                     << typeid(TLevelSet *).name() );
@@ -155,7 +155,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::Initialize( LevelSetImageType * output )
 {
   // allocate memory for the output buffer
@@ -320,7 +320,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::GenerateData()
 {
   LevelSetPointer        output      = this->GetOutput();
@@ -510,7 +510,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::UpdateNeighbors(
   const IndexType& index,
   const SpeedImageType * speedImage,
@@ -557,7 +557,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 double
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::UpdateValue(
   const IndexType& index,
   const SpeedImageType * speedImage,
@@ -678,7 +678,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
  */
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::DoesVoxelChangeViolateWellComposedness( IndexType idx )
 {
   bool isChangeWellComposed = false;
@@ -697,7 +697,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::DoesVoxelChangeViolateStrictTopology( IndexType idx )
 {
   typename NeighborhoodIteratorType::RadiusType radius;
@@ -734,7 +734,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsChangeWellComposed2D( IndexType idx )
 {
   typename NeighborhoodIteratorType::RadiusType radius;
@@ -797,7 +797,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC1Configuration2D( Array<short> neighborhood )
 {
   return !neighborhood[0] &&  neighborhood[1] &&
@@ -807,7 +807,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC2Configuration2D( Array<short> neighborhood )
 {
   return !neighborhood[0] &&  neighborhood[1] &&
@@ -818,7 +818,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC3Configuration2D( Array<short> neighborhood )
 {
   return !neighborhood[0] &&  neighborhood[1] &&
@@ -829,7 +829,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC4Configuration2D( Array<short> neighborhood )
 {
   return !neighborhood[0] &&  neighborhood[1] &&
@@ -840,7 +840,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::InitializeIndices2D()
 {
   this->m_RotationIndices[0].SetSize( 9 );
@@ -914,7 +914,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsChangeWellComposed3D( IndexType idx )
 {
   Array<short> neighborhoodPixels( 8 );
@@ -964,7 +964,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 bool
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC1Configuration3D( Array<short> neighborhood )
 {
   return (  neighborhood[0] &&  neighborhood[1] &&
@@ -975,7 +975,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 unsigned int
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::IsCriticalC2Configuration3D( Array<short> neighborhood )
 {
   // Check if Type 1 or Type 2
@@ -1012,7 +1012,7 @@ FastMarchingImageFilter<TLevelSet, TSpeedImage>
 
 template <class TLevelSet, class TSpeedImage>
 void
-FastMarchingImageFilter<TLevelSet, TSpeedImage>
+FMarchingImageFilter<TLevelSet, TSpeedImage>
 ::InitializeIndices3D()
 {
   for( unsigned int i = 0; i <  12; i++ )
