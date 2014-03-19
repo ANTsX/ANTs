@@ -416,8 +416,13 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
       typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
       typename ConverterType::Pointer converter = ConverterType::New();
-      converter->SetUseReferenceImage( referenceImage );
+      converter->SetOutputOrigin( referenceImage->GetOrigin() );
+      converter->SetOutputStartIndex( referenceImage->GetBufferedRegion().GetIndex() );
+      converter->SetSize( referenceImage->GetBufferedRegion().GetSize() );
+      converter->SetOutputSpacing( referenceImage->GetSpacing() );
+      converter->SetOutputDirection( referenceImage->GetDirection() );
       converter->SetTransform( compositeTransform );
+      converter->Update();
 
       typedef  itk::ImageFileWriter<DisplacementFieldType> DisplacementFieldWriterType;
       typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();

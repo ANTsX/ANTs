@@ -970,8 +970,8 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     logCmd $exe_template_registration_3
     ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}`
     bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-    gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-    wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${CORTICAL_THICKNESS_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+    gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+    wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
     thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
     echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}brainvols.csv
     echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}brainvols.csv
