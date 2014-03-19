@@ -894,7 +894,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
 ################################################################################
 
 # These affect output; keep them consistent with usage and checkOutputExists function
-REGISTRATION_TEMPLATE_OUTPUT_PREFIX=${OUTPUT_PREFIX}TemplateToSubject
+REGISTRATION_TEMPLATE_OUTPUT_PREFIX=${OUTPUT_PREFIX}SubjectToTemplate
 REGISTRATION_TEMPLATE_GENERIC_AFFINE=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat
 REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX}
 REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX}
@@ -903,28 +903,25 @@ REGISTRATION_LOG_JACOBIAN=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OU
 if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
   then
 
-    #TMP_FILES=( $REGISTRATION_TEMPLATE_GENERIC_AFFINE $REGISTRATION_TEMPLATE_WARP $REGISTRATION_TEMPLATE_INVERSE_WARP )
-    #Always keep template transform since that is very useful
     TMP_FILES=()
 
+    # Use first N4 corrected segmentation image, which we assume to be T1
+    HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
+
     echo
     echo "--------------------------------------------------------------------------------------"
-    echo " Registration ${REGISTRATION_TEMPLATE} to ${SEGMENTATION_BRAIN_N4_IMAGES[$j]}"
+    echo " Registration brain masked ${HEAD_N4_IMAGE} to ${REGISTRATION_TEMPLATE} "
     echo "--------------------------------------------------------------------------------------"
     echo
 
-    SEGMENTATION_BRAIN_N4_IMAGES=`ls ${OUTPUT_PREFIX}Brain*N4.nii.gz`
-    EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=()
-    for (( j = 0; j < ${#SEGMENTATION_BRAIN_N4_IMAGES[@]}; j++ ))
-      do
-        EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES=( ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} ${OUTPUT_PREFIX}ExtractedBrain${j}N4.nii.gz )
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[$j]} m ${SEGMENTATION_BRAIN_N4_IMAGES[$j]} ${BRAIN_EXTRACTION_MASK}
-      done
+    EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE=${OUTPUT_PREFIX}ExtractedBrain0N4.nii.gz
 
-    TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[@]} )
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} m ${HEAD_N4_IMAGE} ${BRAIN_EXTRACTION_MASK}
+
+    TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} )
 
     time_start_template_registration=`date +%s`
-    images="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}"
+    images="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE}"
     basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${images},1] --float ${USE_FLOAT_PRECISION}"
     stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
     stage2="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
@@ -968,7 +965,18 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
     exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}"
     logCmd $exe_template_registration_3
-    ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}`
+
+    EXTRACTED_SEGMENTATION_BRAIN_DEFORMED=${OUTPUT_PREFIX}BrainNormalizedToTemplate.${OUTPUT_SUFFIX}
+
+    REGISTRATION_TEMPLATE_BRAIN_MASK=${OUTPUT_PREFIX}RegistrationTemplateBrainMask.nii.gz
+
+    logCmd ${ANTSPATH}/ThresholdImage 3 ${REGISTRATION_TEMPLATE} ${REGISTRATION_TEMPLATE_BRAIN_MASK} 1E-6 Inf
+
+    TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK} )
+
+    logCmd ${WARP} -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} -r ${REGISTRATION_TEMPLATE} -n Linear -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}
+
+    ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK}`
     bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
     gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
     wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
