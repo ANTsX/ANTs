@@ -900,6 +900,11 @@ REGISTRATION_TEMPLATE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_
 REGISTRATION_TEMPLATE_INVERSE_WARP=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX}
 REGISTRATION_LOG_JACOBIAN=${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX}
 
+# Want to have transforms for both directions
+REGISTRATION_SUBJECT_OUTPUT_PREFIX=${OUTPUT_PREFIX}TemplateToSubject
+REGISTRATION_SUBJECT_GENERIC_AFFINE=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}1GenericAffine.mat
+REGISTRATION_SUBJECT_WARP=${REGISTRATION_SUBJECT_OUTPUT_PREFIX}0Warp.${OUTPUT_SUFFIX}
+
 if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
   then
 
@@ -948,6 +953,10 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
         echo "The transform file ${REGISTRATION_TEMPLATE_WARP} does not exist."
         exit 1
       fi
+
+    ## Create symmetric transforms for template to subject warping
+    logCmd mv ${REGISTRATION_TEMPLATE_INVERSE_WARP} ${REGISTRATION_SUBJECT_WARP}
+    logCmd ${ANTSPATH}antsApplyTransforms -d ${DIMENSION} -o Linear[$REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE
 
     time_end_template_registration=`date +%s`
     time_elapsed_template_registration=$((time_end_template_registration - time_start_template_registration))
