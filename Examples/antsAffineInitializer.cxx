@@ -117,7 +117,6 @@
 #include "ReadWriteImage.h"
 #include "TensorFunctions.h"
 #include "antsMatrixUtilities.h"
-#include "../Temporary/itkFastMarchingImageFilter.h"
 
 namespace ants
 {

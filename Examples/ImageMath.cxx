@@ -7499,7 +7499,7 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
 
 
 template <unsigned int ImageDimension>
-int oldPropagateLabelsThroughMask(int argc, char *argv[])
+int PropagateLabelsThroughMask(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -7679,7 +7679,7 @@ int oldPropagateLabelsThroughMask(int argc, char *argv[])
 
 
 template <unsigned int ImageDimension>
-int PropagateLabelsThroughMask(int argc, char *argv[])
+int itkPropagateLabelsThroughMask(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
