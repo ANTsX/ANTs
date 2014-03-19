@@ -131,7 +131,7 @@
 #include "ReadWriteImage.h"
 #include "TensorFunctions.h"
 #include "antsMatrixUtilities.h"
-#include "../Temporary/itkFastMarchingImageFilter.h"
+#include "itkFastMarchingImageFilter.h"
 
 namespace ants
 {
@@ -7552,8 +7552,7 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
                                                          contour->GetOutput()->GetLargestPossibleRegion() );
   for( ItL.GoToBegin(), ItC.GoToBegin(); !ItL.IsAtEnd(); ++ItL, ++ItC )
     {
-    if( ItC.Get() !=
-        itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
+    if( vnl_math_abs( ItC.Get() - itk::NumericTraits<typename LabelImageType::PixelType>::Zero ) < 1.e-9 )
       {
       typename LabelImageType::IndexType position = ItC.GetIndex();
 
@@ -7564,8 +7563,7 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
       node.SetIndex( position );
       trialPoints->InsertElement( trialCount++, node );
       }
-    else if( ItL.Get() !=
-             itk::NumericTraits<typename LabelImageType::PixelType>::Zero )
+    else if( vnl_math_abs( ItL.Get() - itk::NumericTraits<typename LabelImageType::PixelType>::One ) < 1.e-9 )
       {
       typename LabelImageType::IndexType position = ItL.GetIndex();
 
@@ -7619,9 +7617,9 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
     {
     WriteImage<ImageType>(filter->GetOutput(), outname.c_str() );
     }
-
   return 0;
 }
+
 
 template <unsigned int ImageDimension>
 int PropagateLabelsThroughMask(int argc, char *argv[])
@@ -7657,6 +7655,11 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
   if(  argc > argct )
     {
     stopval = atof(argv[argct]);   argct++;
+    }
+  unsigned int topocheck = 0;
+  if(  argc > argct )
+    {
+    topocheck = atoi(argv[argct]);   argct++;
     }
 
   typename ImageType::Pointer speedimage = NULL;
@@ -7694,7 +7697,16 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     typename FastMarchingFilterType::Pointer  fastMarching = FastMarchingFilterType::New();
     fastMarching->SetInput( speedimage );
     fastMarching->SetTopologyCheck( FastMarchingFilterType::None );
-
+    if( topocheck == 1 )  // Strict
+      {
+      std::cout << " strict " << std::endl;
+      fastMarching->SetTopologyCheck( FastMarchingFilterType::Strict );
+      }
+    if( topocheck == 2 )  // No handles
+      {
+      std::cout << " no handles " << std::endl;
+      fastMarching->SetTopologyCheck( FastMarchingFilterType::NoHandles );
+      }
     typedef typename FastMarchingFilterType::NodeContainer NodeContainer;
     typedef typename FastMarchingFilterType::NodeType      NodeType;
     typename NodeContainer::Pointer seeds = NodeContainer::New();
