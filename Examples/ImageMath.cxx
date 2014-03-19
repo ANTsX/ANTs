@@ -7499,7 +7499,7 @@ int FastMarchingSegmentation( unsigned int argc, char *argv[] )
 
 
 template <unsigned int ImageDimension>
-int PropagateLabelsThroughMask(int argc, char *argv[])
+int oldPropagateLabelsThroughMask(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -7679,7 +7679,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
 
 
 template <unsigned int ImageDimension>
-int itkPropagateLabelsThroughMask(int argc, char *argv[])
+int PropagateLabelsThroughMask(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -13462,7 +13462,11 @@ private:
       << std::endl;
     std::cout
       <<
-      "      Usage        : PropagateLabelsThroughMask speed/binaryimagemask.nii.gz initiallabelimage.nii.gz Optional-Stopping-Value"
+      "      Usage        : PropagateLabelsThroughMask speed/binaryimagemask.nii.gz initiallabelimage.nii.gz Optional-Stopping-Value  0/1/2"
+      << std::endl;
+    std::cout
+      <<
+      "      0/1/2  =>  0, no topology constraint, 1 - strict topology constraint, 2 - no handles "
       << std::endl;
 
     std::cout << "\n  PValueImage        : " << std::endl;
@@ -13824,11 +13828,11 @@ private:
         {
         ConvertVectorToImage<2>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
+      else if( strcmp(operation.c_str(), "oldPropagateLabelsThroughMask") == 0 )
         {
         PropagateLabelsThroughMask<2>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "itkPropagateLabelsThroughMask") == 0 )
+      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
         {
         itkPropagateLabelsThroughMask<2>(argc, argv);
         }
@@ -14297,11 +14301,11 @@ private:
         {
         ConvertVectorToImage<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
+      else if( strcmp(operation.c_str(), "oldPropagateLabelsThroughMask") == 0 )
         {
         PropagateLabelsThroughMask<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "itkPropagateLabelsThroughMask") == 0 )
+      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
         {
         itkPropagateLabelsThroughMask<3>(argc, argv);
         }
@@ -14723,7 +14727,7 @@ private:
         }
       else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
         {
-        PropagateLabelsThroughMask<4>(argc, argv);
+        itkPropagateLabelsThroughMask<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
         {
