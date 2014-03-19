@@ -7700,7 +7700,7 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
   typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
-  float             thresh = 0.5;
+  float             thresh = 1.e-9;
   int               argct = 2;
   const std::string outname = std::string(argv[argct]);
   argct += 2;
@@ -7803,23 +7803,15 @@ int itkPropagateLabelsThroughMask(int argc, char *argv[])
     seeds->Initialize();
     typename NodeContainer::Pointer alivePoints = NodeContainer::New();
     alivePoints->Initialize();
-    //    unsigned long aliveCount = 0;
-    //    unsigned long ct = 0;
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
-      bool   isinside = true;
-      double speedval = speedimage->GetPixel( vfIter2.GetIndex() );
       double labval = labimage->GetPixel( vfIter2.GetIndex() );
-      if( speedval < thresh )
-        {
-        isinside = false;
-        }
       double contourval = contourimage->GetPixel( vfIter2.GetIndex() );
-      if(  ( isinside ) && ( (unsigned int) contourval == 1 ) && ( (unsigned int) labval == lab ) )
+      if( ( (unsigned int) contourval == 1 ) && ( (unsigned int) labval == lab ) )
         {
 	seeds->push_back( NodePairType(  vfIter2.GetIndex(), 0. ) );
         }
-      if(  ( isinside ) && ( (unsigned int) contourval == 0 ) && ( (unsigned int) labval == lab ) )
+      if( ( (unsigned int) contourval == 0 ) && ( (unsigned int) labval == lab ) )
         {
 	alivePoints->push_back( NodePairType(  vfIter2.GetIndex(), 0. ) );
         }
