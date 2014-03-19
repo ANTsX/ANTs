@@ -7614,15 +7614,9 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
     unsigned long ct = 0;
     for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
       {
-      bool   isinside = true;
-      double speedval = speedimage->GetPixel( vfIter2.GetIndex() );
       double labval = labimage->GetPixel( vfIter2.GetIndex() );
-      if( speedval < thresh )
-        {
-        isinside = false;
-        }
       double contourval = contourimage->GetPixel( vfIter2.GetIndex() );
-      if(  ( isinside ) && ( (unsigned int) contourval == 1 ) && ( (unsigned int) labval == lab ) )
+      if( ( (unsigned int) contourval == 1 ) && ( (unsigned int) labval == lab ) )
         {
 	NodeType     node;
 	const double seedValue = 0.0;
@@ -7631,7 +7625,7 @@ int PropagateLabelsThroughMask(int argc, char *argv[])
 	seeds->InsertElement( ct, node );
 	ct++;
         }
-      if(  ( isinside ) && ( (unsigned int) contourval == 0 ) && ( (unsigned int) labval == lab ) )
+      if( ( (unsigned int) contourval == 0 ) && ( (unsigned int) labval == lab ) )
         {
 	NodeType     node;
 	const double seedValue = 0.0;
