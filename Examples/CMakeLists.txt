@@ -122,6 +122,7 @@ set(BASE_ANTS_APPS
   simpleSynRegistration
   antsApplyTransforms
   antsApplyTransformsToPoints
+  antsSurfaceFunction
   CompositeTransformUtil
   antsMotionCorr
   sccan

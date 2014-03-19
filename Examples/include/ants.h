@@ -23,6 +23,8 @@
 
 #include "antsRegistration.h"
 
+#include "antsSurfaceFunction.h"
+
 #include "ANTSUseDeformationFieldToGetAffineTransform.h"
 
 #include "ANTSUseLandmarkImagesToGetAffineTransform.h"
