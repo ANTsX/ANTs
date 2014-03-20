@@ -25,23 +25,33 @@
 namespace ants
 {
 
-float CalculateGenus( vtkPolyData *mesh )
+float CalculateGenus( vtkPolyData *mesh, bool verbose )
 {
-  vtkPolyDataConnectivityFilter* connectivityFilter = vtkPolyDataConnectivityFilter::New();
+  vtkSmartPointer<vtkPolyDataConnectivityFilter> connectivityFilter =
+    vtkSmartPointer<vtkPolyDataConnectivityFilter>::New();
   connectivityFilter->SetExtractionModeToLargestRegion();
   connectivityFilter->SetInputData( mesh );
   connectivityFilter->Update();
 
-  vtkExtractEdges* edgeExtractor = vtkExtractEdges::New();
+  vtkSmartPointer<vtkExtractEdges> edgeExtractor = vtkSmartPointer<vtkExtractEdges>::New();
   edgeExtractor->SetInputData( connectivityFilter->GetOutput() );
   edgeExtractor->Update();
   vtkPolyData* edges = edgeExtractor->GetOutput();
 
-  vtkIdType numberOfEdges = edges->GetNumberOfCells();
-  vtkIdType numberOfVertices = edges->GetNumberOfPoints();
-  int       numberOfFaces = edges->GetNumberOfPolys();
+  vtkIdType numberOfEdges = mesh->GetNumberOfCells();
+  vtkIdType numberOfVertices = mesh->GetNumberOfPoints();
+  vtkIdType numberOfFaces = mesh->GetNumberOfPolys();
 
   float genus = 0.5 * ( 2.0 - numberOfVertices + numberOfEdges - numberOfFaces );
+
+  if( verbose )
+    {
+    std::cout << "Genus = "  << genus << std::endl;
+    std::cout << "  number of vertices = "  << numberOfVertices << std::endl;
+    std::cout << "  number of edges = "  << numberOfEdges << std::endl;
+    std::cout << "  number of faces = "  << numberOfFaces << std::endl;
+    }
+
   return genus;
 }
 
@@ -181,8 +191,7 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
 
   vtkPolyData *vtkMesh = meshSmoother->GetOutput();
 
-  RealType genus = CalculateGenus( vtkMesh );
-  std::cout << "Genus:  " << genus << std::endl;
+  CalculateGenus( vtkMesh, true );
 
   // Add the functional overlays
 
@@ -300,6 +309,8 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
         if( isInsideImage && functionalMaskImages[i]->GetPixel( index ) != 0 )
           {
           // http://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
+          // or
+          // http://en.wikipedia.org/wiki/Alpha_compositing
 
           RgbPixelType rgbPixel = functionalRgbImages[i]->GetPixel( index );
 
@@ -337,8 +348,15 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
   itk::ants::CommandLineParser::OptionType::Pointer inflationOption = parser->GetOption( "inflation" );
   if( inflationOption && inflationOption->GetNumberOfFunctions() )
     {
-    unsigned int numberOfIterations =
-      parser->Convert<unsigned int>( inflationOption->GetFunction( 0 )->GetParameter( 0 ) );
+    unsigned int numberOfIterations = 0;
+    if( inflationOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      numberOfIterations = parser->Convert<unsigned int>( inflationOption->GetFunction( 0 )->GetName() );
+      }
+    else
+      {
+      numberOfIterations = parser->Convert<unsigned int>( inflationOption->GetFunction( 0 )->GetParameter( 0 ) );
+      }
 
     inflater->SetInputData( vtkMesh );
     inflater->SetNumberOfIterations( numberOfIterations );
@@ -436,15 +454,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "inflation" );
     option->SetShortName( 'i' );
-    option->SetUsageOption( 0, "[numberOfIterations]" );
+    option->SetUsageOption( 0, "numberOfIterations" );
+    option->SetUsageOption( 1, "[numberOfIterations]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
 
     {
-//     std::string description =
-//       std::string( "The output consists of vtk polydata file with an optional" );
-//       + std::string( "set of png files." );
     std::string description =
       std::string( "The output is a vtk polydata file." );
 
@@ -452,7 +468,6 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
     option->SetUsageOption( 0, "surface.vtk" );
-//     option->SetUsageOption( 1, "[surface.vtk,<output2dImageFileFormat>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
