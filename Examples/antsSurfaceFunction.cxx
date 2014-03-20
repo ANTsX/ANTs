@@ -236,12 +236,10 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
         point[d] = meshPoints->GetPoint( n )[d];
         }
 
-      RealType currentRed = 0.0;
-      RealType currentGreen = 0.0;
-      RealType currentBlue = 0.0;
+      RealType currentRed   = static_cast<RealType>( defaultColorRed ) / 255.0;
+      RealType currentGreen = static_cast<RealType>( defaultColorGreen ) / 255.0;
+      RealType currentBlue  = static_cast<RealType>( defaultColorBlue ) / 255.0;
       RealType currentAlpha = 1.0;
-
-      bool hasBeenColored = false;
 
       for( unsigned int i = 0; i < functionalAlphaValues.size(); i++ )
         {
@@ -249,8 +247,6 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
 
         if( isInsideImage && functionalMaskImages[i]->GetPixel( index ) != 0 )
           {
-          hasBeenColored = true;
-
           // http://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
 
           RgbPixelType rgbPixel = functionalRgbImages[i]->GetPixel( index );
@@ -270,12 +266,6 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
           currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
           currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
           }
-        }
-      if( !hasBeenColored )
-        {
-        currentRed   = static_cast<RealType>( defaultColorRed ) / 255.0;
-        currentGreen = static_cast<RealType>( defaultColorGreen ) / 255.0;
-        currentBlue  = static_cast<RealType>( defaultColorBlue ) / 255.0;
         }
 
       unsigned char currentColor[3];
