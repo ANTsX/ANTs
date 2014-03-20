@@ -58,9 +58,9 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
 
   ImageType::Pointer inputImage = NULL;
 
-  unsigned int defaultColorRed = 255;
-  unsigned int defaultColorGreen = 255;
-  unsigned int defaultColorBlue = 255;
+  RealType defaultColorRed = 255.0;
+  RealType defaultColorGreen = 255.0;
+  RealType defaultColorBlue = 255.0;
 
   itk::ants::CommandLineParser::OptionType::Pointer inputImageOption =
     parser->GetOption( "surface-image" );
@@ -78,7 +78,7 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
 
       if( inputImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        std::vector<unsigned int> defaultColors = parser->ConvertVector<unsigned int>(
+        std::vector<RealType> defaultColors = parser->ConvertVector<RealType>(
           inputImageOption->GetFunction( 0 )->GetParameter( 1 ) );
         if( defaultColors.size() == 1 )
           {
@@ -236,9 +236,9 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
         point[d] = meshPoints->GetPoint( n )[d];
         }
 
-      RealType currentRed   = static_cast<RealType>( defaultColorRed ) / 255.0;
-      RealType currentGreen = static_cast<RealType>( defaultColorGreen ) / 255.0;
-      RealType currentBlue  = static_cast<RealType>( defaultColorBlue ) / 255.0;
+      RealType currentRed   = defaultColorRed / 255.0;
+      RealType currentGreen = defaultColorGreen / 255.0;
+      RealType currentBlue  = defaultColorBlue / 255.0;
       RealType currentAlpha = 1.0;
 
       for( unsigned int i = 0; i < functionalAlphaValues.size(); i++ )
