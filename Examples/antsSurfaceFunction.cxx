@@ -1,12 +1,15 @@
 #include "antsCommandLineParser.h"
 #include "antsUtilities.h"
 #include "ReadWriteImage.h"
-#include "BinaryImageToMeshFilter.h"
 
+#include "itkAffineTransform.h"
+#include "itkAntiAliasBinaryImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "itkImageToVTKImageFilter.h"
 
 #include "vtkExtractEdges.h"
+#include "vtkMarchingCubes.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataConnectivityFilter.h"
@@ -106,6 +109,30 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
+
+  // There's a reorientation issue between itk image physical space and the mesh space
+  // for which we have to account.  See
+  // http://www.vtk.org/pipermail/vtkusers/2011-July/068595.html
+  //   and
+  // http://www.vtk.org/Wiki/VTK/ExamplesBoneYard/Cxx/VolumeRendering/itkVtkImageConvert
+
+  typedef itk::AffineTransform<RealType> RigidTransformType;
+  RigidTransformType::Pointer meshToItkImageTransform = RigidTransformType::New();
+  RigidTransformType::OutputVectorType offset;
+  offset[0] = -inputImage->GetOrigin()[0];
+  offset[1] = -inputImage->GetOrigin()[1];
+  offset[2] = -inputImage->GetOrigin()[2];
+  RigidTransformType::MatrixType matrix;
+  for( unsigned int i = 0; i < ImageDimension; i++ )
+    {
+    for( unsigned int j = 0; j < ImageDimension; j++ )
+      {
+      matrix( i, j ) = inputImage->GetDirection()( i, j );
+      }
+    }
+  meshToItkImageTransform->SetMatrix( matrix );
+  meshToItkImageTransform->SetOffset( offset );
+
   // Get anti-alias RMSE parameter
 
   RealType antiAliasRmseParameter = 0.03;
@@ -117,21 +144,32 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
     antiAliasRmseParameter = parser->Convert<RealType>( antiAliasRmseOption->GetFunction( 0 )->GetName() );
     }
 
+  typedef itk::AntiAliasBinaryImageFilter<ImageType, ImageType> AntiAliasFilterType;
+  AntiAliasFilterType::Pointer antiAlias = AntiAliasFilterType::New();
+  antiAlias->SetMaximumRMSError( antiAliasRmseParameter );
+  antiAlias->SetInput( inputImage );
+  antiAlias->Update();
+
   // Reconstruct binary surface.
 
-  typedef BinaryImageToMeshFilter<ImageType> MeshFilterType;
-  MeshFilterType::Pointer meshFilter = MeshFilterType::New();
-  meshFilter->SetInput( inputImage );
-  meshFilter->SetAntiAliasMaxRMSError( antiAliasRmseParameter );
-  meshFilter->SetSmoothingIterations( 0 );
-  meshFilter->SetDecimateFactor( 0.0 );
-  meshFilter->Update();
+  typedef itk::ImageToVTKImageFilter<ImageType> ConnectorType;
+  ConnectorType::Pointer connector = ConnectorType::New();
+  connector->SetInput( antiAlias->GetOutput() );
+  connector->Update();
+
+  vtkSmartPointer<vtkMarchingCubes> marchingCubes = vtkSmartPointer<vtkMarchingCubes>::New();
+  marchingCubes->SetInputData( connector->GetOutput() );
+  marchingCubes->ComputeScalarsOff();
+  marchingCubes->ComputeGradientsOff();
+  marchingCubes->SetNumberOfContours( 1 );
+  marchingCubes->SetValue( 0, 0.0 );
+  marchingCubes->Update();
 
   // Smooth mesh
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> meshSmoother =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-  meshSmoother->SetInputData( meshFilter->GetMesh() );
+  meshSmoother->SetInputData( marchingCubes->GetOutput() );
   meshSmoother->SetNumberOfIterations( 25 );
   meshSmoother->BoundarySmoothingOff();
   meshSmoother->FeatureEdgeSmoothingOff();
@@ -214,13 +252,27 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
       }
     }
 
+  // Reset mesh points to physical space of ITK images
+
+  vtkPoints* meshPoints = vtkMesh->GetPoints();
+  int        numberOfPoints = meshPoints->GetNumberOfPoints();
+
+  for( int n = 0; n < numberOfPoints; n++ )
+    {
+    RigidTransformType::InputPointType inputTransformPoint;
+    RigidTransformType::OutputPointType outputTransformPoint;
+
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      inputTransformPoint[d] = meshPoints->GetPoint( n )[d];
+      }
+    outputTransformPoint = meshToItkImageTransform->TransformPoint( inputTransformPoint );
+
+    meshPoints->SetPoint( n, outputTransformPoint[0], outputTransformPoint[1], outputTransformPoint[2] );
+    }
+
   if( functionalAlphaValues.size() > 0 )
     {
-    // Paint the vertices of the vtk mesh with the functional overlays
-
-    vtkPoints* meshPoints = vtkMesh->GetPoints();
-    int        numberOfPoints = meshPoints->GetNumberOfPoints();
-
     // Setup the colors array
     vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
     colors->SetNumberOfComponents( 3 );   // R, G, B, and alpha components
@@ -229,11 +281,11 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
     for( int n = 0; n < numberOfPoints; n++ )
       {
       ImageType::IndexType index;
-      ImageType::PointType point;
+      ImageType::PointType imagePoint;
 
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        point[d] = meshPoints->GetPoint( n )[d];
+        imagePoint[d] = meshPoints->GetPoint( n )[d];
         }
 
       RealType currentRed   = defaultColorRed / 255.0;
@@ -243,7 +295,7 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
 
       for( unsigned int i = 0; i < functionalAlphaValues.size(); i++ )
         {
-        bool isInsideImage = functionalMaskImages[i]->TransformPhysicalPointToIndex( point, index );
+        bool isInsideImage = functionalMaskImages[i]->TransformPhysicalPointToIndex( imagePoint, index );
 
         if( isInsideImage && functionalMaskImages[i]->GetPixel( index ) != 0 )
           {
@@ -321,7 +373,6 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
     }
 
   // Clean up
-
   return EXIT_SUCCESS;
 }
 
