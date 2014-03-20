@@ -122,7 +122,6 @@ set(BASE_ANTS_APPS
   simpleSynRegistration
   antsApplyTransforms
   antsApplyTransformsToPoints
-  antsSurfaceFunction
   CompositeTransformUtil
   antsMotionCorr
   sccan
@@ -145,6 +144,7 @@ find_package(VTK REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 set(VTK_ANTS_APPS
 #    ConvertVectorFieldToVTK
+    antsSurfaceFunction
     GetMeshAndTopology
     CheckTopology
     WarpVTKPolyDataMultiTransform
