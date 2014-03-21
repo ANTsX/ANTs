@@ -8,20 +8,32 @@
 #include "itkImageFileWriter.h"
 #include "itkImageToVTKImageFilter.h"
 
+#include "vtkActor.h"
+#include "vtkCallbackCommand.h"
 #include "vtkExtractEdges.h"
+#include "vtkGraphicsFactory.h"
 #include "vtkMarchingCubes.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataConnectivityFilter.h"
+#include "vtkPolyDataMapper.h"
 #include "vtkPolyDataNormals.h"
+#include "vtkProperty.h"
 #include "vtkSmartPointer.h"
 #include "vtkTriangleFilter.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkWindowedSincPolyDataFilter.h"
 #include "vtkPolyDataWriter.h"
-#include "vtkSTLWriter.h"
+#include "vtkPNGWriter.h"
+#include "vtkRenderer.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkWindowToImageFilter.h"
+
+#include "vnl/vnl_math.h"
 
 #include <vector>
+#include <string>
 
 namespace ants
 {
@@ -47,6 +59,65 @@ float CalculateGenus( vtkPolyData *mesh, bool verbose )
     }
 
   return genus;
+}
+
+void Display( const vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegrees,
+              const std::vector<float> backgroundColor,
+              const std::string screenCaptureFileName )
+{
+  vtkSmartPointer<vtkGraphicsFactory> graphicsFactory =
+    vtkSmartPointer<vtkGraphicsFactory>::New();
+  graphicsFactory->SetOffScreenOnlyMode( false );
+  graphicsFactory->SetUseMesaClasses( 1 );
+
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputData( vtkMesh );
+  mapper->ScalarVisibilityOn();
+
+  vtkSmartPointer<vtkActor> actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper( mapper );
+  actor->GetProperty()->SetInterpolationToFlat();
+  actor->GetProperty()->ShadingOff();
+  actor->SetSpecular( 1.0 );
+  actor->SetSpecularPower( 10 );
+
+  actor->RotateX( rotationAngleInDegrees[0] * vnl_math::pi / 180.0 );
+  actor->RotateY( rotationAngleInDegrees[1] * vnl_math::pi / 180.0 );
+  actor->RotateZ( rotationAngleInDegrees[2] * vnl_math::pi / 180.0 );
+
+  vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
+  renderer->SetBackground( backgroundColor[0] / 255.0, backgroundColor[1] / 255.0, backgroundColor[2] / 255.0 );
+
+  vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
+  renderWindow->AddRenderer( renderer );
+
+  vtkSmartPointer<vtkCallbackCommand> callback = vtkSmartPointer<vtkCallbackCommand>::New();
+  renderer->AddObserver( vtkCommand::KeyPressEvent, callback );
+
+  vtkSmartPointer<vtkRenderWindowInteractor> renderWindowInteractor =
+    vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  renderWindowInteractor->SetRenderWindow( renderWindow );
+
+  renderer->AddActor( actor );
+  renderWindow->Render();
+
+  if( screenCaptureFileName.empty() )
+    {
+    renderWindowInteractor->Start();
+    }
+  else
+    {
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
+    vtkSmartPointer<vtkWindowToImageFilter>::New();
+    windowToImageFilter->SetInput( renderWindow );
+    windowToImageFilter->SetMagnification( 4 );
+    windowToImageFilter->Update();
+
+    vtkSmartPointer<vtkPNGWriter> writer = vtkSmartPointer<vtkPNGWriter>::New();
+    writer->SetFileName( screenCaptureFileName.c_str()  );
+    writer->SetInputConnection( windowToImageFilter->GetOutputPort() );
+    writer->Write();
+    }
 }
 
 int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
@@ -393,6 +464,48 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
     return EXIT_FAILURE;
     }
 
+  // Display vtk mesh
+
+  itk::ants::CommandLineParser::OptionType::Pointer displayOption = parser->GetOption( "display" );
+  if( displayOption && displayOption->GetNumberOfFunctions() )
+    {
+    std::vector<float> rotationAnglesInDegrees;
+    rotationAnglesInDegrees.push_back( 0.0 );
+    rotationAnglesInDegrees.push_back( 0.0 );
+    rotationAnglesInDegrees.push_back( 0.0 );
+
+    std::vector<float> backgroundColor;
+    backgroundColor.push_back( 255.0 );
+    backgroundColor.push_back( 255.0 );
+    backgroundColor.push_back( 255.0 );
+
+    std::string screenCaptureFileName = std::string( "" );
+
+    if( displayOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName );
+      }
+    else
+      {
+      if( displayOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
+        {
+        rotationAnglesInDegrees = parser->ConvertVector<float>(
+          displayOption->GetFunction( 0 )->GetParameter( 0 ) );
+        }
+      if( displayOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
+        {
+        backgroundColor = parser->ConvertVector<float>(
+          displayOption->GetFunction( 0 )->GetParameter( 1 ) );
+        }
+      if( displayOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
+        {
+        shading = displayOption->GetFunction( 0 )->GetParameter( 2 );
+        }
+
+      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, shading, screenCaptureFileName );
+      }
+    }
+
   // Clean up
   return EXIT_SUCCESS;
 }
@@ -459,6 +572,22 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetShortName( 'i' );
     option->SetUsageOption( 0, "numberOfIterations" );
     option->SetUsageOption( 1, "[numberOfIterations]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Display output surface function in VTK window.  Rotation " )
+      + std::string( "angles are in degrees and the default background color " )
+      + std::string( "is white (255x255x255).  " );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "display" );
+    option->SetShortName( 'd' );
+    option->SetUsageOption( 0, "doWindowDisplay" );
+    option->SetUsageOption( 1, "filename" );
+    option->SetUsageOption( 2, "<filename>[rotateXxrotateYxrotateZ,<backgroundColor=255x255x255>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
