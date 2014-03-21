@@ -103,7 +103,7 @@ Optional arguments:
                                                 use case would be where this would be the same template as specified in the
                                                 -e option which is not skull stripped.
                                                 We perform the registration (fixed image = individual subject
-                                                and moving image = template) to produce the files. 
+                                                and moving image = template) to produce the files.
                                                 The output from this step is
                                                   * ${OUTPUT_PREFIX}TemplateToSubject0GenericAffine.mat
                                                   * ${OUTPUT_PREFIX}TemplateToSubject1Warp.${OUTPUT_SUFFIX}
@@ -141,7 +141,7 @@ function checkOutputExists() {
 
   singleOutputs=( ${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX} )
 
-  if [[ -f ${REGISTRATION_TEMPLATE} ]]; 
+  if [[ -f ${REGISTRATION_TEMPLATE} ]];
     then
       singleOutputs=( ${singleOutputs[@]} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}0GenericAffine.mat ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1Warp.${OUTPUT_SUFFIX} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}1InverseWarp.${OUTPUT_SUFFIX} ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}LogJacobian.${OUTPUT_SUFFIX} )
     fi
@@ -160,7 +160,7 @@ function checkOutputExists() {
   # Now check numbered output, numbers based on images
   for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
     do
-      if [[ ! -f ${OUTPUT_PREFIX}BrainSegmentation${i}N4.${OUTPUT_SUFFIX} ]]; 
+      if [[ ! -f ${OUTPUT_PREFIX}BrainSegmentation${i}N4.${OUTPUT_SUFFIX} ]];
         then
           echo "Missing output image ${OUTPUT_PREFIX}BrainSegmentation${i}N4.${OUTPUT_SUFFIX}"
           missingOutput=1
@@ -174,7 +174,7 @@ function checkOutputExists() {
     do
       num=$(printf "%0${segNumWidth}d" $j)
 
-      if [[ ! -f ${OUTPUT_PREFIX}BrainSegmentationPosteriors${num}.${OUTPUT_SUFFIX} ]]; 
+      if [[ ! -f ${OUTPUT_PREFIX}BrainSegmentationPosteriors${num}.${OUTPUT_SUFFIX} ]];
         then
           echo "Missing output image ${OUTPUT_PREFIX}BrainSegmentationPosteriors${num}.${OUTPUT_SUFFIX}"
           missingOutput=1
@@ -228,7 +228,7 @@ function logCmd() {
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
   $cmd
-  
+
   cmdExit=$?
 
   if [[ $cmdExit -gt 0 ]];
@@ -608,7 +608,7 @@ SEGMENTATION_CONVERGENCE_FILE=${BRAIN_SEGMENTATION_OUTPUT}Convergence.txt
 if [[ ! -f ${BRAIN_SEGMENTATION} ]];
   then
 
-    echo 
+    echo
     echo "--------------------------------------------------------------------------------------"
     echo " Brain segmentation using the following steps:"
     echo "   1) Register ${EXTRACTED_BRAIN_TEMPLATE} and ${SEGMENTATION_PRIOR} to ${ANATOMICAL_IMAGES[0]}"
@@ -652,7 +652,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
         stage2="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
 
         exe_brain_segmentation_1="${basecall} ${stage1} ${stage2}"
-    
+
 
         # Precision errors in .nii (which stores things as float) headers can cause problems, so attempt to make everything consistent.
         # Won't be perfectly consistent because we don't change ${ANATOMICAL_IMAGES[0]} and CopyImageHeaderInformation does not make
@@ -771,7 +771,10 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       then
         for f in ${TMP_FILES[@]}
           do
-            logCmd rm $f
+            if [[ -e $f ]];
+              then
+                logCmd rm $f
+              fi
           done
       fi
 
@@ -864,7 +867,10 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
       then
         for f in ${TMP_FILES[@]}
           do
-            logCmd rm $f
+            if [[ -e $f ]];
+              then
+                logCmd rm $f
+              fi
           done
       fi
 
@@ -1008,7 +1014,10 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       then
         for f in ${TMP_FILES[@]}
           do
-            logCmd rm $f
+            if [[ -e $f ]];
+              then
+                logCmd rm $f
+              fi
           done
       fi
   fi
