@@ -49,7 +49,7 @@ float CalculateGenus( vtkPolyData *mesh, bool verbose )
   return genus;
 }
 
-int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
+int antsSurf( itk::ants::CommandLineParser *parser )
 {
   const unsigned int ImageDimension = 3;
 
@@ -496,13 +496,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsSurfaceFunction( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int antsSurf( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "antsSurfaceFunction" );
+  args.insert( args.begin(), "antsSurf" );
 
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
@@ -592,7 +592,7 @@ private:
 
     if( dimension == 3 )
       {
-      antsSurfaceFunction( parser );
+      antsSurf( parser );
       }
     else
       {

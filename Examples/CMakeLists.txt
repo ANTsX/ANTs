@@ -144,7 +144,7 @@ find_package(VTK REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
 set(VTK_ANTS_APPS
 #    ConvertVectorFieldToVTK
-    antsSurfaceFunction
+    antsSurf
     GetMeshAndTopology
     CheckTopology
     WarpVTKPolyDataMultiTransform
