@@ -513,6 +513,11 @@ int antsSurf( itk::ants::CommandLineParser *parser )
         {
         backgroundColor = parser->ConvertVector<float>(
           displayOption->GetFunction( 0 )->GetParameter( 1 ) );
+        if( backgroundColor.size() == 1 )
+          {
+          backgroundColor.push_back( backgroundColor[0] );
+          backgroundColor.push_back( backgroundColor[0] );
+          }
         }
 
       Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName );
@@ -565,8 +570,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Anti-alias maximum RMSE parameter for surface reconstruction. " )
-      + std::string( "Default = 0.03, set to negative if nothing should be done. " );
+      std::string( "Anti-alias maximum RMSE parameter for surface reconstruction " )
+      + std::string( "(default = 0.03)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "anti-alias-rmse" );
@@ -578,7 +583,7 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "Inflation parameters (if desired)." );
+      std::string( "Perform inflation of the mesh." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "inflation" );
@@ -593,7 +598,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     std::string description =
       std::string( "Display output surface function in VTK window.  Rotation " )
       + std::string( "angles are in degrees and the default background color " )
-      + std::string( "is white (255x255x255).  " );
+      + std::string( "is white (255x255x255).  Note that the filename, to be " )
+      + std::string( "considered such, must have a \"png\" extension.  If the " )
+      + std::string( "filename is omitted in the third usage option, then the " )
+      + std::string( "window is displayed." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "display" );
@@ -607,7 +615,8 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "The output is a vtk polydata file." );
+      std::string( "The output is a vtk polydata file which can be viewed in programs " )
+      + std::string( "such as Paraview." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
