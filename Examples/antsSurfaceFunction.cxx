@@ -284,67 +284,66 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
     meshPoints->SetPoint( n, outputTransformPoint[0], outputTransformPoint[1], outputTransformPoint[2] );
     }
 
-  if( functionalAlphaValues.size() > 0 )
+
+  // Do the painting
+  vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
+  colors->SetNumberOfComponents( 3 );   // R, G, B, and alpha components
+  colors->SetName( "Colors" );
+
+  for( int n = 0; n < numberOfPoints; n++ )
     {
-    // Setup the colors array
-    vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
-    colors->SetNumberOfComponents( 3 );   // R, G, B, and alpha components
-    colors->SetName( "Colors" );
+    ImageType::IndexType index;
+    ImageType::PointType imagePoint;
 
-    for( int n = 0; n < numberOfPoints; n++ )
+    for( unsigned int d = 0; d < ImageDimension; d++ )
       {
-      ImageType::IndexType index;
-      ImageType::PointType imagePoint;
-
-      for( unsigned int d = 0; d < ImageDimension; d++ )
-        {
-        imagePoint[d] = meshPoints->GetPoint( n )[d];
-        }
-
-      RealType currentRed   = defaultColorRed / 255.0;
-      RealType currentGreen = defaultColorGreen / 255.0;
-      RealType currentBlue  = defaultColorBlue / 255.0;
-      RealType currentAlpha = 1.0;
-
-      for( unsigned int i = 0; i < functionalAlphaValues.size(); i++ )
-        {
-        bool isInsideImage = functionalMaskImages[i]->TransformPhysicalPointToIndex( imagePoint, index );
-
-        if( isInsideImage && functionalMaskImages[i]->GetPixel( index ) != 0 )
-          {
-          // http://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
-          // or
-          // http://en.wikipedia.org/wiki/Alpha_compositing
-
-          RgbPixelType rgbPixel = functionalRgbImages[i]->GetPixel( index );
-
-          RealType functionalRed = rgbPixel.GetRed() / 255.0;
-          RealType functionalGreen = rgbPixel.GetGreen() / 255.0;
-          RealType functionalBlue = rgbPixel.GetBlue() / 255.0;
-          RealType functionalAlpha = functionalAlphaValues[i];
-
-          RealType backgroundRed   = currentRed;
-          RealType backgroundGreen = currentGreen;
-          RealType backgroundBlue  = currentBlue;
-          RealType backgroundAlpha = currentAlpha;
-
-          currentAlpha = 1.0 - ( 1.0 - functionalAlpha ) * ( 1.0 - backgroundAlpha );
-          currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
-          currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
-          currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
-          }
-        }
-
-      unsigned char currentColor[3];
-      currentColor[0] = static_cast<unsigned char>( currentRed   * 255.0 );
-      currentColor[1] = static_cast<unsigned char>( currentGreen * 255.0 );
-      currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0 );
-
-      colors->InsertNextTupleValue( currentColor );
+      imagePoint[d] = meshPoints->GetPoint( n )[d];
       }
 
-    vtkMesh->GetPointData()->SetScalars( colors );
+    RealType currentRed   = defaultColorRed / 255.0;
+    RealType currentGreen = defaultColorGreen / 255.0;
+    RealType currentBlue  = defaultColorBlue / 255.0;
+    RealType currentAlpha = 1.0;
+
+    for( unsigned int i = 0; i < functionalAlphaValues.size(); i++ )
+      {
+      bool isInsideImage = functionalMaskImages[i]->TransformPhysicalPointToIndex( imagePoint, index );
+
+      if( isInsideImage && functionalMaskImages[i]->GetPixel( index ) != 0 )
+        {
+        // http://stackoverflow.com/questions/726549/algorithm-for-additive-color-mixing-for-rgb-values
+        // or
+        // http://en.wikipedia.org/wiki/Alpha_compositing
+
+        RgbPixelType rgbPixel = functionalRgbImages[i]->GetPixel( index );
+
+        RealType functionalRed = rgbPixel.GetRed() / 255.0;
+        RealType functionalGreen = rgbPixel.GetGreen() / 255.0;
+        RealType functionalBlue = rgbPixel.GetBlue() / 255.0;
+        RealType functionalAlpha = functionalAlphaValues[i];
+
+        RealType backgroundRed   = currentRed;
+        RealType backgroundGreen = currentGreen;
+        RealType backgroundBlue  = currentBlue;
+        RealType backgroundAlpha = currentAlpha;
+
+        currentAlpha = 1.0 - ( 1.0 - functionalAlpha ) * ( 1.0 - backgroundAlpha );
+        currentRed   = functionalRed   * functionalAlpha / currentAlpha + backgroundRed   * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+        currentGreen = functionalGreen * functionalAlpha / currentAlpha + backgroundGreen * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+        currentBlue  = functionalBlue  * functionalAlpha / currentAlpha + backgroundBlue  * backgroundAlpha * ( 1.0 - functionalAlpha ) / currentAlpha;
+        }
+      }
+
+    unsigned char currentColor[3];
+    currentColor[0] = static_cast<unsigned char>( currentRed   * 255.0 );
+    currentColor[1] = static_cast<unsigned char>( currentGreen * 255.0 );
+    currentColor[2] = static_cast<unsigned char>( currentBlue  * 255.0 );
+
+    colors->InsertNextTupleValue( currentColor );
     }
+  vtkMesh->GetPointData()->SetScalars( colors );
+
+  // Inflation
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
