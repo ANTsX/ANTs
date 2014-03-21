@@ -80,9 +80,9 @@ void Display( vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegr
   actor->GetProperty()->ShadingOff();
   actor->GetProperty()->SetSpecular( 0.0 );
   actor->GetProperty()->SetSpecularPower( 0 );
-  actor->RotateX( rotationAngleInDegrees[0] * vnl_math::pi / 180.0 );
-  actor->RotateY( rotationAngleInDegrees[1] * vnl_math::pi / 180.0 );
-  actor->RotateZ( rotationAngleInDegrees[2] * vnl_math::pi / 180.0 );
+  actor->RotateX( rotationAngleInDegrees[0] );
+  actor->RotateY( rotationAngleInDegrees[1] );
+  actor->RotateZ( rotationAngleInDegrees[2] );
 
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
   renderer->SetBackground( backgroundColor[0] / 255.0, backgroundColor[1] / 255.0, backgroundColor[2] / 255.0 );
