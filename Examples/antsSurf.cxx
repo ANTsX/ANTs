@@ -78,9 +78,8 @@ void Display( vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegr
   actor->SetMapper( mapper );
   actor->GetProperty()->SetInterpolationToFlat();
   actor->GetProperty()->ShadingOff();
-//  actor->SetSpecular( 1.0 );
-//  actor->SetSpecularPower( 10 );
-
+  actor->GetProperty()->SetSpecular( 0.0 );
+  actor->GetProperty()->SetSpecularPower( 0 );
   actor->RotateX( rotationAngleInDegrees[0] * vnl_math::pi / 180.0 );
   actor->RotateY( rotationAngleInDegrees[1] * vnl_math::pi / 180.0 );
   actor->RotateZ( rotationAngleInDegrees[2] * vnl_math::pi / 180.0 );
@@ -480,6 +479,24 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     backgroundColor.push_back( 255.0 );
 
     std::string screenCaptureFileName = std::string( "" );
+    screenCaptureFileName = displayOption->GetFunction( 0 )->GetName();
+
+    if( strcmp( screenCaptureFileName.c_str(), "false" ) == 0 ||
+        strcmp( screenCaptureFileName.c_str(), "0" ) == 0 )
+      {
+      // do not render and exit
+      return EXIT_SUCCESS;
+      }
+
+    std::size_t position = screenCaptureFileName.find( "png" );
+    if( position == std::string::npos )
+      {
+      screenCaptureFileName.clear();
+      }
+    else
+      {
+      std::cout << "Writing surface to image file " << screenCaptureFileName << "." << std::endl;
+      }
 
     if( displayOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
       {
