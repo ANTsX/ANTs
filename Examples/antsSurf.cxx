@@ -61,7 +61,7 @@ float CalculateGenus( vtkPolyData *mesh, bool verbose )
   return genus;
 }
 
-void Display( const vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegrees,
+void Display( vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegrees,
               const std::vector<float> backgroundColor,
               const std::string screenCaptureFileName )
 {
@@ -78,8 +78,8 @@ void Display( const vtkPolyData *vtkMesh, const std::vector<float> rotationAngle
   actor->SetMapper( mapper );
   actor->GetProperty()->SetInterpolationToFlat();
   actor->GetProperty()->ShadingOff();
-  actor->SetSpecular( 1.0 );
-  actor->SetSpecularPower( 10 );
+//  actor->SetSpecular( 1.0 );
+//  actor->SetSpecularPower( 10 );
 
   actor->RotateX( rotationAngleInDegrees[0] * vnl_math::pi / 180.0 );
   actor->RotateY( rotationAngleInDegrees[1] * vnl_math::pi / 180.0 );
@@ -120,7 +120,7 @@ void Display( const vtkPolyData *vtkMesh, const std::vector<float> rotationAngle
     }
 }
 
-int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
+int antsSurf( itk::ants::CommandLineParser *parser )
 {
   const unsigned int ImageDimension = 3;
 
@@ -497,12 +497,8 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
         backgroundColor = parser->ConvertVector<float>(
           displayOption->GetFunction( 0 )->GetParameter( 1 ) );
         }
-      if( displayOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
-        {
-        shading = displayOption->GetFunction( 0 )->GetParameter( 2 );
-        }
 
-      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, shading, screenCaptureFileName );
+      Display( vtkMesh, rotationAnglesInDegrees, backgroundColor, screenCaptureFileName );
       }
     }
 
@@ -625,13 +621,13 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
-int antsSurfaceFunction( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
+int antsSurf( std::vector<std::string> args, std::ostream* /*out_stream = NULL */ )
 {
   // put the arguments coming in as 'args' into standard (argc,argv) format;
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "antsSurfaceFunction" );
+  args.insert( args.begin(), "antsSurf" );
 
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
@@ -721,7 +717,7 @@ private:
 
     if( dimension == 3 )
       {
-      antsSurfaceFunction( parser );
+      antsSurf( parser );
       }
     else
       {
