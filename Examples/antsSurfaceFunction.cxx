@@ -15,6 +15,7 @@
 #include "vtkPolyDataConnectivityFilter.h"
 #include "vtkPolyDataNormals.h"
 #include "vtkSmartPointer.h"
+#include "vtkTriangleFilter.h"
 #include "vtkUnsignedCharArray.h"
 #include "vtkWindowedSincPolyDataFilter.h"
 #include "vtkPolyDataWriter.h"
@@ -27,20 +28,13 @@ namespace ants
 
 float CalculateGenus( vtkPolyData *mesh, bool verbose )
 {
-  vtkSmartPointer<vtkPolyDataConnectivityFilter> connectivityFilter =
-    vtkSmartPointer<vtkPolyDataConnectivityFilter>::New();
-  connectivityFilter->SetExtractionModeToLargestRegion();
-  connectivityFilter->SetInputData( mesh );
-  connectivityFilter->Update();
+  vtkSmartPointer<vtkExtractEdges> extractEdges = vtkSmartPointer<vtkExtractEdges>::New();
+  extractEdges->SetInputData( mesh );
+  extractEdges->Update();
 
-  vtkSmartPointer<vtkExtractEdges> edgeExtractor = vtkSmartPointer<vtkExtractEdges>::New();
-  edgeExtractor->SetInputData( connectivityFilter->GetOutput() );
-  edgeExtractor->Update();
-  vtkPolyData* edges = edgeExtractor->GetOutput();
-
-  vtkIdType numberOfEdges = mesh->GetNumberOfCells();
-  vtkIdType numberOfVertices = mesh->GetNumberOfPoints();
-  vtkIdType numberOfFaces = mesh->GetNumberOfPolys();
+  float numberOfEdges = static_cast<float>( extractEdges->GetOutput()->GetNumberOfLines() );
+  float numberOfVertices = static_cast<float>( mesh->GetNumberOfPoints() );
+  float numberOfFaces = static_cast<float>( mesh->GetNumberOfPolys() );
 
   float genus = 0.5 * ( 2.0 - numberOfVertices + numberOfEdges - numberOfFaces );
 
@@ -175,11 +169,21 @@ int antsSurfaceFunction( itk::ants::CommandLineParser *parser )
   marchingCubes->SetValue( 0, 0.0 );
   marchingCubes->Update();
 
+  vtkSmartPointer<vtkPolyDataConnectivityFilter> connectivityFilter =
+    vtkSmartPointer<vtkPolyDataConnectivityFilter>::New();
+  connectivityFilter->SetExtractionModeToLargestRegion();
+  connectivityFilter->SetInputData( marchingCubes->GetOutput() );
+  connectivityFilter->Update();
+
+  vtkSmartPointer<vtkTriangleFilter> triangularizer = vtkSmartPointer<vtkTriangleFilter>::New();
+  triangularizer->SetInputData( connectivityFilter->GetOutput() );
+  triangularizer->Update();
+
   // Smooth mesh
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> meshSmoother =
     vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-  meshSmoother->SetInputData( marchingCubes->GetOutput() );
+  meshSmoother->SetInputData( triangularizer->GetOutput() );
   meshSmoother->SetNumberOfIterations( 25 );
   meshSmoother->BoundarySmoothingOff();
   meshSmoother->FeatureEdgeSmoothingOff();
