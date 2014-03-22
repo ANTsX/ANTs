@@ -131,6 +131,9 @@ int antsSurf( itk::ants::CommandLineParser *parser )
   typedef itk::RGBPixel<RgbComponentType>            RgbPixelType;
   typedef itk::Image<RgbPixelType, ImageDimension>   RgbImageType;
 
+  ImageType::PointType zeroOrigin;
+  zeroOrigin.Fill( 0.0 );
+
   // Read in input surface image
 
   ImageType::Pointer inputImage = NULL;
@@ -152,6 +155,7 @@ int antsSurf( itk::ants::CommandLineParser *parser )
       {
       std::string inputFile = inputImageOption->GetFunction( 0 )->GetParameter( 0 );
       ReadImage<ImageType>( inputImage, inputFile.c_str() );
+      inputImage->SetOrigin( zeroOrigin );
 
       if( inputImageOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
@@ -296,6 +300,7 @@ int antsSurf( itk::ants::CommandLineParser *parser )
       try
         {
         rgbReader->Update();
+        rgbReader->GetOutput()->SetOrigin( zeroOrigin );
         }
       catch( ... )
         {
@@ -314,6 +319,7 @@ int antsSurf( itk::ants::CommandLineParser *parser )
       try
         {
         maskReader->Update();
+        maskReader->GetOutput()->SetOrigin( zeroOrigin );
         }
       catch( ... )
         {
@@ -354,7 +360,6 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     meshPoints->SetPoint( n, outputTransformPoint[0], outputTransformPoint[1], outputTransformPoint[2] );
     }
 
-
   // Do the painting
   vtkSmartPointer<vtkUnsignedCharArray> colors = vtkSmartPointer<vtkUnsignedCharArray>::New();
   colors->SetNumberOfComponents( 3 );   // R, G, B, and alpha components
@@ -378,6 +383,10 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     for( unsigned int i = 0; i < functionalAlphaValues.size(); i++ )
       {
       bool isInsideImage = functionalMaskImages[i]->TransformPhysicalPointToIndex( imagePoint, index );
+
+//       std::cout << static_cast<int>( isInsideImage ) << " -> " << imagePoint << std::endl;
+//       int q;
+//       std::cin >> q;
 
       if( isInsideImage && functionalMaskImages[i]->GetPixel( index ) != 0 )
         {
@@ -415,9 +424,6 @@ int antsSurf( itk::ants::CommandLineParser *parser )
 
   // Inflation
 
-  vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
-    vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-
   itk::ants::CommandLineParser::OptionType::Pointer inflationOption = parser->GetOption( "inflation" );
   if( inflationOption && inflationOption->GetNumberOfFunctions() )
     {
@@ -431,18 +437,24 @@ int antsSurf( itk::ants::CommandLineParser *parser )
       numberOfIterations = parser->Convert<unsigned int>( inflationOption->GetFunction( 0 )->GetParameter( 0 ) );
       }
 
-    inflater->SetInputData( vtkMesh );
-    inflater->SetNumberOfIterations( numberOfIterations );
-    inflater->BoundarySmoothingOn();
-    inflater->FeatureEdgeSmoothingOff();
-    inflater->SetFeatureAngle( 180.0 );
-    inflater->SetEdgeAngle( 180.0 );
-    inflater->SetPassBand( 0.001 );
-    inflater->NonManifoldSmoothingOn();
-    inflater->NormalizeCoordinatesOff();
-    inflater->Update();
+    if( numberOfIterations > 0 )
+      {
+      vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
+        vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
 
-    vtkMesh = inflater->GetOutput();
+      inflater->SetInputData( vtkMesh );
+      inflater->SetNumberOfIterations( numberOfIterations );
+      inflater->BoundarySmoothingOn();
+      inflater->FeatureEdgeSmoothingOff();
+      inflater->SetFeatureAngle( 180.0 );
+      inflater->SetEdgeAngle( 180.0 );
+      inflater->SetPassBand( 0.001 );
+      inflater->NonManifoldSmoothingOn();
+      inflater->NormalizeCoordinatesOff();
+      inflater->Update();
+
+      vtkMesh = inflater->GetOutput();
+      }
     }
 
   // Write the vtk mesh to file.
