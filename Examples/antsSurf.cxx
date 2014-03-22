@@ -150,6 +150,7 @@ int antsSurf( itk::ants::CommandLineParser *parser )
       {
       std::string inputFile = inputImageOption->GetFunction( 0 )->GetName();
       ReadImage<ImageType>( inputImage, inputFile.c_str() );
+      inputImage->SetOrigin( zeroOrigin );
       }
     else
       {
