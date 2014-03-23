@@ -1786,9 +1786,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     VectorType x_i = this->m_MatrixP.get_row( a );
     VectorType lmsolv = matrixB.get_row( a );
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 100 ); // A x = b
-    VectorType x_recon = ( this->m_VariatesP * lmsolv + this->m_Intercept );
-    //    VectorType x_recon = ( this->m_VariatesP * lmsolv );
     icept( a ) = this->m_Intercept;
+    VectorType x_recon = ( this->m_VariatesP * lmsolv + icept( a ) );
     matrixB.set_row( a, lmsolv );
     RealType localcorr = this->PearsonCorr( x_recon, x_i  );
     temp.set_row( a, x_recon );
@@ -1812,19 +1811,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     writer->SetInput( &recon );
     writer->Write();
     }
-  /*
-  for ( unsigned int i = 0; i < matrixB.columns(); i++ )
-    {
-    VectorType myuvec = matrixB.get_column( i );
-    this->SparsifyOther( myuvec );
-    matrixB.set_column( i, myuvec );
-    }
-  */
   this->m_MatrixU = matrixB;
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   RealType rr = ( temp - this->m_MatrixP ).frobenius_norm();
   return ( 1.0 - rr * rr / ( matpfrobnorm * matpfrobnorm ) );
 }
+
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
@@ -1907,7 +1899,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
 	}
       for( unsigned int i = 0; i < n_vecs; i++ )
 	{
-	sparsenessparams( i ) = 1.25 * ( sparsenessparams( i ) / this->m_MatrixP.cols() );
+	sparsenessparams( i ) = 1.01 * ( sparsenessparams( i ) / this->m_MatrixP.cols() );
 	this->m_FractionNonZeroP = sparsenessparams( i );
 	VectorType vec = this->m_VariatesP.get_column( i );
 	this->SparsifyP( vec );
@@ -1939,18 +1931,31 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
   for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
     {
-    // update V matrix
+    MatrixType vgrad = matrixB.transpose() * this->m_MatrixP -
+      ( matrixB.transpose() * matrixB ) * this->m_VariatesP.transpose();
+    this->m_VariatesP = this->m_VariatesP + vgrad.transpose();
+    for(  unsigned int a = 0; a < n_vecs; a++ )
+      {
+      VectorType evec = this->m_VariatesP.get_column( a );
+      this->SparsifyP( evec );
+      this->m_VariatesP.set_column( a , evec );
+      }
+    reconerr = this->SparseReconB( matrixB, icept  );
+    this->SparseArnoldiSVD_Other( matrixB );
+    this->m_MatrixU = matrixB;
+    std::cout << overit << ": %var " << reconerr << std::endl;
+    }
+  if ( false )
+  for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
+    {
     /** a power iteration  method --- depends on the following
-
        given any nonzero $z \in \mathbb{R}^n$, the Rayleigh quotient
        $x^T X x / x^T x $ minimizes the function $\| \lambda x - X x \|^2 $
        wrt $\lambda$.
-
        so, if we find the vector x ( by sparse power iteration ) then we have a vector
        that is a close approximation to the first eigenvector of X. If X is a residual
        matrix then x is a good approximation of the $n^th$ eigenvector.
-
-    **/
+    */
     VectorType   zero( this->m_MatrixP.cols(), 0 );
     VectorType   zerob( this->m_MatrixP.rows(), 0 );
     unsigned int a = 0;
@@ -1964,16 +1969,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       MatrixType partialmatrix = matrixB * tempMatrix.transpose();
       for(  unsigned int interc = 0; interc < this->m_MatrixP.rows(); interc++ )
 	{
-	  partialmatrix.set_row( interc, partialmatrix.get_row( interc ) + icept( interc ) );
+        partialmatrix.set_row( interc, partialmatrix.get_row( interc ) + icept( interc ) );
 	}
       partialmatrix = this->m_MatrixP - partialmatrix;
       this->m_CanonicalCorrelations[a] = 1 - ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       VectorType evec = this->m_VariatesP.get_column( a );
-      VectorType uvec = matrixB.get_column( a );
       this->m_VariatesP.set_column( a, zero );
-      //      if ( overit == 0 ) ( void ) this->PowerIteration(  partialmatrix,  evec, 5, true );
-      //      this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 5, a );    // 0 => a
-      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationU(  partialmatrix, uvec, 5, a );    // 0 => a
+      this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 5, a );    // 0 => a
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
       // update B matrix by linear regression
@@ -1986,9 +1988,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparseArnoldiSVD_Other( matrixB );
     this->m_MatrixU = matrixB;
     std::cout << overit << ": %var " << reconerr << std::endl;
+    if (  ( ! prior ) && ( a == ( n_vecs - 1 ) ) ) this->SortResults( n_vecs );
     }
   this->m_VariatesQ = matrixB;
-  //  if ( ! prior ) this->SortResults( n_vecs );
   for( unsigned int i = 0; i < n_vecs; i++ )
     {
     VectorType v = this->m_VariatesP.get_column( i );
@@ -1998,40 +2000,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     }
   return 1.0 / reconerr;
-
-  /*
-  // get 1st eigenvector ... how should this be done?  how about svd?
-  // if ( overit == 0 )
-  // if ( ( a % 2  ) == 0 ) this->PosNegVector( evec, true );
-  // else this->PosNegVector( evec, false );
-  this->m_CanonicalCorrelations[ a ] = 0;
-  for( unsigned int ii = 0; ii < 20; ii++ )
-{
-VectorType initvec = this->InitializeV( partialmatrix, ii + 1 );
-initvec = this->SpatiallySmoothVector( initvec, this->m_MaskImageP );
-    RealType rayquo = this->IHTPowerIteration(  partialmatrix,  initvec, 3  , a );//this->PowerIteration(  partialmatrix,  initvec, 3, true );
-if ( rayquo > this->m_CanonicalCorrelations[ a ] )
-{
-this->m_CanonicalCorrelations[ a ] = rayquo;
-evec = initvec;
-}
-}*/
-
-  /*
-  for(  unsigned int a = 0; a < n_vecs; a++ )
-    {
-    VectorType nvec = matrixB.get_column( a );
-    VectorType pvec = this->m_VariatesP.get_column( a );
-    MatrixType recon = this->m_MatrixP - outer_product( nvec , pvec );
-    RealType temp = recon.frobenius_norm();
-    this->m_CanonicalCorrelations[ a ] = 1 / ( temp + 1 );
-    }
-  for(  unsigned int a = 0; a < n_vecs; a++ )
-    {
-    VectorType nvec = matrixB.get_column( a );
-    this->m_CanonicalCorrelations[ a ] = nvec.one_norm();
-    }
-  */
   /** a regression-based method
   for(  unsigned int a = 0; a < this->m_MatrixP.cols(); a++ )
     {
@@ -2062,6 +2030,8 @@ evec = initvec;
     }
   */
 }
+
+
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
