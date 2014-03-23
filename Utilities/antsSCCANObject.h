@@ -386,6 +386,7 @@ public:
   RealType PowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, bool);
 
   RealType IHTPowerIteration( MatrixType & A,  VectorType & x_k, unsigned int, unsigned int );
+  RealType IHTPowerIterationU( MatrixType & A,  VectorType & x_k, unsigned int, unsigned int );
 
   RealType IHTPowerIterationPrior( MatrixType & A,  VectorType & x_k, VectorType & x_k_1, unsigned int, unsigned int,
                                    double );

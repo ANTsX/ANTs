@@ -1250,6 +1250,7 @@ void antsSCCANObject<TInputImage, TRealType>
   VectorType newcorrs(n_vecs, 0);
   MatrixType varp( this->m_VariatesP.rows(), this->m_VariatesP.columns(), 0);
   MatrixType varq( this->m_VariatesQ.rows(), this->m_VariatesQ.columns(), 0);
+  MatrixType varu( this->m_MatrixU.rows(), this->m_MatrixU.columns(), 0);
   if( debug )
     {
     std::cout << "sort-d" << std::endl;
@@ -1261,6 +1262,10 @@ void antsSCCANObject<TInputImage, TRealType>
     if( varq.columns() > i )
       {
       varq.set_column(i, this->m_VariatesQ.get_column( sorted_indices[i] ) );
+      }
+    if( varu.columns() > i )
+      {
+      varu.set_column(i, this->m_MatrixU.get_column( sorted_indices[i] ) );
       }
     newcorrs[i] = (this->m_CanonicalCorrelations[sorted_indices[i]]);
     // }
@@ -1288,6 +1293,10 @@ void antsSCCANObject<TInputImage, TRealType>
                          << this->m_VariatesQ.columns()  <<  std::endl;
         }
       this->m_VariatesQ.set_column( i, varq.get_column( i ) );
+      }
+    if(  this->m_MatrixU.columns() > i )
+      {
+      this->m_MatrixU.set_column( i, varu.get_column( i ) );
       }
     }
   if( debug )
@@ -1960,14 +1969,16 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       partialmatrix = this->m_MatrixP - partialmatrix;
       this->m_CanonicalCorrelations[a] = 1 - ( partialmatrix.frobenius_norm() ) / matpfrobnorm;
       VectorType evec = this->m_VariatesP.get_column( a );
+      VectorType uvec = matrixB.get_column( a );
       this->m_VariatesP.set_column( a, zero );
       //      if ( overit == 0 ) ( void ) this->PowerIteration(  partialmatrix,  evec, 5, true );
-      this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 5, a );    // 0 => a
+      //      this->m_CanonicalCorrelations[a] = this->IHTPowerIteration(  partialmatrix,  evec, 5, a );    // 0 => a
+      this->m_CanonicalCorrelations[a] = this->IHTPowerIterationU(  partialmatrix, uvec, 5, a );    // 0 => a
       this->m_VariatesP.set_column( a, evec );
       matrixB.set_column( a, bvec );
-      //      // update B matrix by linear regression
-      //      reconerr = this->SparseReconB( matrixB, icept  );
-      //      this->SparseArnoldiSVD_Other( matrixB );
+      // update B matrix by linear regression
+      reconerr = this->SparseReconB( matrixB, icept  );
+      this->SparseArnoldiSVD_Other( matrixB );
       a++;
       } // while
     // update B matrix by linear regression
@@ -3166,6 +3177,82 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   std::cout << "rayleigh-quotient: " << bestrayquo << " in " << powerits << " num " << maxorth << " fnz " << this->m_FractionNonZeroP << std::endl;
   return bestrayquo;
 }
+
+
+
+
+template <class TInputImage, class TRealType>
+TRealType antsSCCANObject<TInputImage, TRealType>
+::IHTPowerIterationU( typename antsSCCANObject<TInputImage, TRealType>::MatrixType& A,
+                     typename antsSCCANObject<TInputImage, TRealType>::VectorType& evecin,
+                     unsigned int maxits, unsigned int maxorth )
+{
+  unsigned int maxcoltoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_FractionNonZeroP ) ) - 1;
+  VectorType proj = evecin;
+  RealType   rayquo = 0;
+  RealType     bestrayquo = 0;
+  MatrixType   At = A.transpose();
+  VectorType lastgrad = At * proj;
+  VectorType evec = At * proj;
+  RealType   denom = inner_product( evec, evec );
+  if( denom > 0 )
+    {
+    rayquo = inner_product( proj, proj  ) / denom;
+    } else std::cout << "Denom < 0: probable trouble." << std::endl;
+  unsigned int powerits = 0;
+  bool         conjgrad = true;
+  VectorType   bestevec = evecin;
+  RealType     relfac = 1.0;
+  VectorType di;
+  while(  ( ( rayquo > bestrayquo ) && ( powerits < maxits ) )  || powerits < 2 )
+    {
+    VectorType nvec = At * proj;
+    RealType gamma = 0.1;
+    if ( powerits == 0 ) di = nvec;
+    if( ( lastgrad.two_norm() > 0  ) && ( conjgrad ) )
+      {
+      gamma = inner_product( nvec, nvec ) / inner_product( lastgrad, lastgrad );
+      }
+    lastgrad = nvec;
+    VectorType diplus1 =  nvec + di * gamma;
+    evec = evec + diplus1 * relfac ;
+    unsigned int startingm = 0;
+    if ( maxorth > maxcoltoorth ) startingm = maxorth - maxcoltoorth;
+    for( unsigned int orth = startingm; orth < maxorth; orth++ )
+      {
+      VectorType zv = this->m_VariatesP.get_column( orth );
+      evec = this->Orthogonalize( evec, zv );
+      if ( this->m_Covering ) this->ZeroProduct( evec,  zv );
+      }
+    this->SparsifyP( evec );
+    if( evec.two_norm() > 0 )
+      {
+      evec = evec / evec.two_norm();
+      }
+    proj = ( A * evec  );
+    denom = inner_product( evec, evec );
+    if( denom > 0 )
+      {
+      rayquo = inner_product( proj, proj  ) / denom; // - gradvec.two_norm() / gradvec.size() * 1.e2 ;
+      }
+    powerits++;
+    if( rayquo > bestrayquo )
+      {
+      bestevec = evec;
+      bestrayquo = rayquo;
+      }
+    else
+      {
+      relfac *= 0.9;
+      evec = bestevec;
+      }
+    }
+  evecin = bestevec;
+  std::cout << "rayleigh-quotient: " << bestrayquo << " in " << powerits << " num " << maxorth << " fnz " << this->m_FractionNonZeroP << std::endl;
+  return bestrayquo;
+}
+
+
 
 template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
