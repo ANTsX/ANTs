@@ -1989,7 +1989,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->SparseArnoldiSVD_Other( matrixB );
     this->m_MatrixU = matrixB;
     std::cout << overit << ": %var " << reconerr << std::endl;
-    if (  ( ! prior ) && ( a == ( n_vecs - 1 ) ) ) this->SortResults( n_vecs );
+    if (  ( ! prior ) && ( overit == ( this->m_MaximumNumberOfIterations - 1 ) ) ) this->SortResults( n_vecs );
     }
   this->m_VariatesQ = matrixB;
   for( unsigned int i = 0; i < n_vecs; i++ )
