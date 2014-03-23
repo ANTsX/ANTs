@@ -1929,6 +1929,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->SparseArnoldiSVD_Other( matrixB );
   std::cout << "begin : %var " << reconerr << std::endl;
   RealType matpfrobnorm = this->m_MatrixP.frobenius_norm();
+  if ( false )
   for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
     {
     MatrixType vgrad = matrixB.transpose() * this->m_MatrixP -
@@ -1945,7 +1946,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     this->m_MatrixU = matrixB;
     std::cout << overit << ": %var " << reconerr << std::endl;
     }
-  if ( false )
+  if ( true )
   for( unsigned int overit = 0; overit < this->m_MaximumNumberOfIterations; overit++ )
     {
     /** a power iteration  method --- depends on the following
