@@ -152,6 +152,7 @@ set(VTK_ANTS_APPS
     # ConformalMapping
     # ANTSConformalMapping
   )
+
 foreach(ANTS_APP ${VTK_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "${VTK_LIBRARIES}")
 endforeach()

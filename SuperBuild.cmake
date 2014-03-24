@@ -159,6 +159,7 @@ endmacro()
 # Common external projects CMake variables
 #-----------------------------------------------------------------------------
 list(APPEND ${CMAKE_PROJECT_NAME}_SUPERBUILD_EP_VARS
+  USE_VTK:BOOL
   CMAKE_BUILD_TYPE:PATH
   MAKECOMMAND:STRING
   CMAKE_SKIP_RPATH:BOOL
