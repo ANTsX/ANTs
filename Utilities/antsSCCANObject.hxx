@@ -1783,8 +1783,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   matrixB.fill( 0 );
   for(  unsigned int a = 0; a < this->m_MatrixP.rows(); a++ )
     {
-    VectorType x_i = this->m_MatrixP.get_row( a );
-    VectorType lmsolv = matrixB.get_row( a );
+    VectorType x_i = this->m_MatrixP.get_row( a );  // 1 by p  
+    VectorType lmsolv = matrixB.get_row( a );       // 1 by k ....   variatesp is  p by k ...
+    // solve   ( p by k ) ( k by 1 ) = ( p by 1 ) 
+    // which is    \| V U_j - X_j \|^2  where j is the j^th subject
     (void) this->ConjGrad(  this->m_VariatesP, lmsolv, x_i, 0, 100 ); // A x = b
     icept( a ) = this->m_Intercept;
     VectorType x_recon = ( this->m_VariatesP * lmsolv + icept( a ) );
