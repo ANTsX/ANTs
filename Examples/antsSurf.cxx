@@ -424,7 +424,8 @@ int antsSurf( itk::ants::CommandLineParser *parser )
   vtkMesh->GetPointData()->SetScalars( colors );
 
   // Inflation
-
+  vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
+    vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   itk::ants::CommandLineParser::OptionType::Pointer inflationOption = parser->GetOption( "inflation" );
   if( inflationOption && inflationOption->GetNumberOfFunctions() )
     {
@@ -440,9 +441,6 @@ int antsSurf( itk::ants::CommandLineParser *parser )
 
     if( numberOfIterations > 0 )
       {
-      vtkSmartPointer<vtkWindowedSincPolyDataFilter> inflater =
-        vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-
       inflater->SetInputData( vtkMesh );
       inflater->SetNumberOfIterations( numberOfIterations );
       inflater->BoundarySmoothingOn();
@@ -453,7 +451,6 @@ int antsSurf( itk::ants::CommandLineParser *parser )
       inflater->NonManifoldSmoothingOn();
       inflater->NormalizeCoordinatesOff();
       inflater->Update();
-
       vtkMesh = inflater->GetOutput();
       }
     }
