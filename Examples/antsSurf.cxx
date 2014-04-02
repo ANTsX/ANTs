@@ -381,13 +381,9 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     RealType currentBlue  = defaultColorBlue / 255.0;
     RealType currentAlpha = 1.0;
 
-    for( unsigned int i = 0; i < functionalAlphaValues.size(); i++ )
+    for( int i = functionalAlphaValues.size() - 1; i >= 0; i-- )
       {
       bool isInsideImage = functionalMaskImages[i]->TransformPhysicalPointToIndex( imagePoint, index );
-
-//       std::cout << static_cast<int>( isInsideImage ) << " -> " << imagePoint << std::endl;
-//       int q;
-//       std::cin >> q;
 
       if( isInsideImage && functionalMaskImages[i]->GetPixel( index ) != 0 )
         {
