@@ -3075,6 +3075,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       d.dx ( x^t A^t A x  ) =   A^t A x  ,   x \leftarrow  x / \| x \|
       we use a conjugate gradient version of this optimization.
   */
+  A = A - A.min_value();
   VectorType evec = evecin;
   unsigned int maxcoltoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_FractionNonZeroP ) ) - 1;
   if( evecin.two_norm() ==  0 )
