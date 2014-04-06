@@ -463,11 +463,6 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     writer->SetFileName( outputFile.c_str() );
     writer->Write();
     }
-  else
-    {
-    std::cerr << "No output filename specified." << std::endl;
-    return EXIT_FAILURE;
-    }
 
   // Display vtk mesh
 
