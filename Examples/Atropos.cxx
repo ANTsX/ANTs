@@ -683,6 +683,21 @@ int AtroposSegmentation( itk::ants::CommandLineParser *parser )
     }
 
   /**
+   * random seed
+   */
+  typename itk::ants::CommandLineParser::OptionType::Pointer seedOption =
+    parser->GetOption( "use-random-seed" );
+  if( seedOption && seedOption->GetNumberOfFunctions() )
+    {
+    bool useRandomSeed = parser->Convert<bool>( seedOption->GetFunction( 0 )->GetName() );
+    if( !useRandomSeed )
+      {
+      // assign seed from itkMersenneTwisterRandomVariateGenerator.h (line 347)
+      segmenter->SetRandomizerInitializationSeed( 19650218UL );
+      }
+    }
+
+  /**
    * euclidean distance
    */
   typename itk::ants::CommandLineParser::OptionType::Pointer distanceOption =
@@ -1400,6 +1415,19 @@ void AtroposInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "icm" );
     option->SetShortName( 'g' );
     option->SetUsageOption( 0, "[<useAsynchronousUpdate=1>,<maximumNumberOfICMIterations=1>,<icmCodeImage=''>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Initialize internal random number generator with a random seed. " ) +
+      std::string( "Otherwise, initialize with a constant seed number." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "use-random-seed" );
+    option->SetShortName( 'r' );
+    option->SetUsageOption( 0, "0/(1)" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
