@@ -57,6 +57,7 @@ Optional arguments:
      -f:  Brain extraction registration mask    Mask used for registration to limit the metric computation to
                                                 a specific region.
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
+     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -q:  use floating point precision          Use antsRegistration with floating point precision.
 
@@ -134,6 +135,8 @@ OUTPUT_SUFFIX="nii.gz"
 
 KEEP_TMP_IMAGES=0
 
+USE_RANDOM_SEEDING=1
+
 DIMENSION=3
 
 ANATOMICAL_IMAGES=()
@@ -172,7 +175,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:d:e:f:h:k:m:o:q:s:" OPT
+  while getopts "a:d:e:f:h:k:m:o:q:s:u:" OPT
     do
       case $OPT in
           d) #dimensions
@@ -210,6 +213,9 @@ else
        ;;
           s) #output suffix
        OUTPUT_SUFFIX=$OPTARG
+       ;;
+          u) #use random seeding
+       USE_RANDOM_SEEDING=$OPTARG
        ;;
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
@@ -439,7 +445,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
             ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${N4_CORRECTED_IMAGES[$i]}";
           done
 
-        exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD}"
+        exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD} -r ${USE_RANDOM_SEEDING}"
         logCmd $exe_brain_extraction_3
 
         # Pad image here to avoid errors from dilating into the edge of the image
@@ -492,7 +498,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
             ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE="${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -a ${N4_CORRECTED_IMAGES[$i]}";
           done
 
-        exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD}"
+        exe_brain_extraction_3="${ATROPOS} -d ${DIMENSION} -o ${EXTRACTION_SEGMENTATION} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} -x ${EXTRACTION_MASK} -i ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION} -c ${ATROPOS_BRAIN_EXTRACTION_CONVERGENCE} -m ${ATROPOS_BRAIN_EXTRACTION_MRF} -k ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD} -r ${USE_RANDOM_SEEDING}"
         logCmd $exe_brain_extraction_3
 
         logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${EXTRACTION_SEGMENTATION} ${EXTRACTION_WM} 3 3 1 0
