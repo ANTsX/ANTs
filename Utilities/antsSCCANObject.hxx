@@ -399,7 +399,7 @@ antsSCCANObject<TInputImage, TRealType>
   typename ParamType::Pointer Parameterizer = ParamType::New();
   Parameterizer->SetInputImage(mask);
   Parameterizer->SetFunctionImage(image);
-  Parameterizer->SetNeighborhoodRadius( 2 );
+  Parameterizer->SetNeighborhoodRadius( 1 );
   Parameterizer->SetSigma( 1.0 );
   Parameterizer->SetUseGeodesicNeighborhood(false);
   Parameterizer->SetUseLabel(false);
