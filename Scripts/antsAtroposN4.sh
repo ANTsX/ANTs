@@ -71,7 +71,8 @@ Optional arguments:
                                                 N4 weight mask.  Can also specify multiple posteriors in which
                                                 case the chosen posteriors are combined.
      -s:  image file suffix                     Any of the standard ITK IO formats e.g. nrrd, nii.gz (default), mhd
-     -k:  keep temporary files                  Keep temporary files on disk (default = false).
+     -k:  keep temporary files                  Keep temporary files on disk (default = 0).
+     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
 
 USAGE
@@ -150,6 +151,8 @@ OUTPUT_SUFFIX="nii.gz"
 
 KEEP_TMP_IMAGES=0
 
+USE_RANDOM_SEEDING=1
+
 DIMENSION=3
 
 ANATOMICAL_IMAGES=()
@@ -184,7 +187,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:w:x:y:" OPT
+  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:u:w:x:y:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -234,6 +237,9 @@ else
        ;;
           t) #n4 convergence
        N4_CONVERGENCE=$OPTARG
+       ;;
+          u) #use random seeding
+       USE_RANDOM_SEEDING=$OPTARG
        ;;
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
@@ -409,9 +415,12 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
     for(( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
       do
         SEGMENTATION_N4_IMAGES=( ${SEGMENTATION_N4_IMAGES[@]} ${ATROPOS_SEGMENTATION_OUTPUT}${j}N4.${OUTPUT_SUFFIX} )
-
-        logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0.025 0.995 256 ${ATROPOS_SEGMENTATION_MASK}
-
+        if [[ $j == 0 ]];
+          then
+            logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_N4_IMAGES[$j]} TruncateImageIntensity ${ANATOMICAL_IMAGES[$j]} 0.025 0.995 256 ${ATROPOS_SEGMENTATION_MASK}
+          else
+            cp ${ANATOMICAL_IMAGES[$j]} ${SEGMENTATION_N4_IMAGES[$j]}
+          fi
         exe_n4_correction="${N4} -d ${DIMENSION} -i ${SEGMENTATION_N4_IMAGES[$j]} -x ${ATROPOS_SEGMENTATION_MASK} -s ${N4_SHRINK_FACTOR} -c ${N4_CONVERGENCE} -b ${N4_BSPLINE_PARAMS} -o ${SEGMENTATION_N4_IMAGES[$j]}"
         if [[ -f ${SEGMENTATION_WEIGHT_MASK} ]];
           then
@@ -446,7 +455,7 @@ for (( i = 0; i < ${N4_ATROPOS_NUMBER_OF_ITERATIONS}; i++ ))
       done
 
     exe_segmentation="${ATROPOS} -d ${DIMENSION} -x ${ATROPOS_SEGMENTATION_MASK} -c ${ATROPOS_SEGMENTATION_CONVERGENCE} ${ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE} ${ATROPOS_LABEL_PROPAGATION_COMMAND_LINE}"
-    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}]"
+    exe_segmentation="${exe_segmentation} -i ${INITIALIZATION} -k ${ATROPOS_SEGMENTATION_LIKELIHOOD} -m ${ATROPOS_SEGMENTATION_MRF} -o [${ATROPOS_SEGMENTATION},${ATROPOS_SEGMENTATION_POSTERIORS}] -r ${USE_RANDOM_SEEDING}"
 
     if [[ $i -eq 0 ]];
       then

@@ -133,6 +133,7 @@ public:
   /** Randomizer typedefs */
   typedef itk::Statistics::
     MersenneTwisterRandomVariateGenerator             RandomizerType;
+  typedef RandomizerType::IntegerType                 RandomizerSeedType;
 
   /** B-spline fitting typedefs */
   typedef Vector<RealType, 1>                  ScalarType;
@@ -335,6 +336,18 @@ public:
    * raised to the number of elapsed iterations. Default value = 1.0.
    */
   itkGetConstMacro( AnnealingRate, RealType );
+
+  /**
+   * Set initialization unsigned integer for random number generator.  Default is to
+   * initialize randomly using the system clock.
+   */
+  void SetRandomizerInitializationSeed( const RandomizerSeedType );
+
+  /**
+   * Set initialization unsigned integer for random number generator.  Default is to
+   * initialize randomly using the system clock.
+   */
+  itkGetConstMacro( RandomizerInitializationSeed, RandomizerSeedType );
 
   /**
    * Set the initialization strategy.  Initialization can occur without prior
@@ -842,6 +855,7 @@ private:
   ClassifiedImagePointer m_ICMCodeImage;
   bool                   m_UseAsynchronousUpdating;
   unsigned int           m_MaximumNumberOfICMIterations;
+  RandomizerSeedType     m_RandomizerInitializationSeed;
 
   std::vector<RealType>           m_AdaptiveSmoothingWeights;
   RealType                        m_PriorProbabilityWeight;

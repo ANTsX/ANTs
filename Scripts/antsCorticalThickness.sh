@@ -111,7 +111,7 @@ Optional arguments:
                                                   * ${OUTPUT_PREFIX}TemplateToSubjectLogJacobian.${OUTPUT_SUFFIX}
      -f:  extraction registration mask          Mask (defined in the template space) used during registration
                                                 for brain extraction.
-     -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
+     -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = 0).
      -i:  max iterations for registration       ANTS registration max iterations (default = 100x100x70x20)
      -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0.25)
      -n:  number of segmentation iterations     N4 -> Atropos -> N4 iterations during segmentation (default = 3)
@@ -119,6 +119,7 @@ Optional arguments:
                                                 e.g 'Socrates[1]' (default) or 'Aristotle[1]'.  Choose the latter if you
                                                 want use the distance priors (see also the -l option for label propagation
                                                 control).
+     -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
      -r:  cortical label image                  Cortical ROI labels to use as a prior for ATITH.
      -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
                                                 of the form 'label[lambda,boundaryProbability]' where label is a value
@@ -270,6 +271,8 @@ DIMENSION=3
 ANATOMICAL_IMAGES=()
 REGISTRATION_TEMPLATE=""
 
+USE_RANDOM_SEEDING=1
+
 BRAIN_TEMPLATE=""
 EXTRACTION_PRIOR=""
 EXTRACTION_REGISTRATION_MASK=""
@@ -328,7 +331,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:r:o:s:t:w:" OPT
+  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:r:o:s:t:u:w:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -387,6 +390,9 @@ else
        ;;
           t) #template registration image
        REGISTRATION_TEMPLATE=$OPTARG
+       ;;
+          u) #use random seeding
+       USE_RANDOM_SEEDING=$OPTARG
        ;;
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
@@ -734,6 +740,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
+      -u ${USE_RANDOM_SEEDING} \
       -k ${KEEP_TMP_IMAGES} \
       -s ${OUTPUT_SUFFIX}
 
@@ -756,6 +763,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -p ${SEGMENTATION_PRIOR_WARPED} \
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -o ${OUTPUT_PREFIX}Brain \
+      -u ${USE_RANDOM_SEEDING} \
       -k ${KEEP_TMP_IMAGES} \
       -s ${OUTPUT_SUFFIX}
 

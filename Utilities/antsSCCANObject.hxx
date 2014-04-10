@@ -3075,6 +3075,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       d.dx ( x^t A^t A x  ) =   A^t A x  ,   x \leftarrow  x / \| x \|
       we use a conjugate gradient version of this optimization.
   */
+  A = A - A.min_value();
   VectorType evec = evecin;
   unsigned int maxcoltoorth = ( unsigned int ) ( 1.0 / vnl_math_abs( this->m_FractionNonZeroP ) ) - 1;
   if( evecin.two_norm() ==  0 )
@@ -4876,6 +4877,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   /** get the row mean for each matrix , then correlate the other matrix with that, then sparsify
    *  for 2nd,3rd,etc evecs, orthogonalize initial vector against sparsified.
    */
+  this->InitializeSCCA( n_vecs , 20 );// arbitrary initialization
   RealType totalcorr = 0;
   unsigned int pmax = this->m_MatrixP.rows(); 
   unsigned int qmax = this->m_MatrixQ.rows(); 
@@ -4922,9 +4924,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int j = 0; j < kk; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column(j);
-      if ( this->m_Covering  &&  ( j < this->m_MatrixP.cols() ) ) vec = this->Orthogonalize( vec, qj );
+      if ( j < this->m_MatrixP.cols() ) vec = this->Orthogonalize( vec, qj );
       qj = this->m_VariatesQ.get_column(j);
-      if ( ( this->m_Covering ) && ( j < this->m_MatrixQ.cols() ) ) qvec = this->Orthogonalize( qvec, qj );
+      if ( j < this->m_MatrixQ.cols() ) qvec = this->Orthogonalize( qvec, qj );
       }
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
@@ -4937,20 +4939,20 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     this->SparsifyP( vec );    
     this->SparsifyQ( qvec );
-    this->m_VariatesP.set_column( kk, vec  );
-    this->m_VariatesQ.set_column( kk, qvec );
-    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     RealType locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
     if ( vnl_math_isnan( qvec.two_norm() ) )
       {
-      qvec = this->InitializeV( this->m_MatrixQ, 10  );
+      qvec = this->m_VariatesQ.get_column( kk );
       locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
       }
     if ( vnl_math_isnan( vec.two_norm() ) )
       {
-      vec = this->InitializeV( this->m_MatrixP, 10  );
+      vec = this->m_VariatesP.get_column( kk );
       locor = vnl_math_abs( this->PearsonCorr(  this->m_MatrixP * vec,  this->m_MatrixQ * qvec ) );
       }
+    this->m_VariatesP.set_column( kk, vec  );
+    this->m_VariatesQ.set_column( kk, qvec );
+    this->NormalizeWeightsByCovariance( kk, 1, 1 );
     totalcorr += locor;
     }
   return totalcorr;

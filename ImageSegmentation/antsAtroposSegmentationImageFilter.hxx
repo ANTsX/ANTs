@@ -127,6 +127,15 @@ AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 template <class TInputImage, class TMaskImage, class TClassifiedImage>
 void
 AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
+::SetRandomizerInitializationSeed( const RandomizerSeedType seed )
+{
+  this->m_Randomizer->Initialize( seed );
+  this->Modified();
+}
+
+template <class TInputImage, class TMaskImage, class TClassifiedImage>
+void
+AtroposSegmentationImageFilter<TInputImage, TMaskImage, TClassifiedImage>
 ::SetMaskImage( const MaskImageType * mask )
 {
   this->SetNthInput( 1, const_cast<MaskImageType *>( mask ) );
