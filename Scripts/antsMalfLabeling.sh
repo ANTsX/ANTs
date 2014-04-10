@@ -395,6 +395,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
     registrationCall="${ANTSPATH}/antsRegistrationSyN.sh \
                           -d ${DIM} \
                           -p f \
+                          -j 1 \
                           -f ${TARGET_IMAGE} \
                           -m ${ATLAS_IMAGES[$i]} \
                           -o ${OUTPUT_PREFIX}${BASENAME}"

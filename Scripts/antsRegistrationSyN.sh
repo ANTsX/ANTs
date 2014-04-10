@@ -77,6 +77,10 @@ Optional arguments:
         f: float
         d: double
 
+     -j:  use histogram matching (default = 0)
+        0: false
+        1: true
+
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
           pair correspondence is given by the order specified on the command line.
@@ -139,6 +143,10 @@ Optional arguments:
         f: float
         d: double
 
+     -j:  use histogram matching (default = 0)
+        0: false
+        1: true
+
      NB:  Multiple image pairs can be specified for registration during the SyN stage.
           Specify additional images using the '-m' and '-f' options.  Note that image
           pair correspondence is given by the order specified on the command line.
@@ -190,6 +198,7 @@ function reportMappingParameters {
  Transform type:           $TRANSFORMTYPE
  CC radius:                $CCRADIUS
  Precision:                $PRECISIONTYPE
+ Use histogram matching    $USEHISTOGRAMMATCHING
 ======================================================================================
 REPORTMAPPINGPARAMETERS
 }
@@ -249,10 +258,11 @@ NUMBEROFTHREADS=1
 SPLINEDISTANCE=26
 TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
+USEHISTOGRAMMATCHING=0
 CCRADIUS=4
 
 # reading command line arguments
-while getopts "d:f:h:m:n:o:p:r:s:t:" OPT
+while getopts "d:f:h:j:m:n:o:p:r:s:t:" OPT
   do
   case $OPT in
       h) #help
@@ -264,6 +274,9 @@ while getopts "d:f:h:m:n:o:p:r:s:t:" OPT
    ;;
       f)  # fixed image
    FIXEDIMAGES[${#FIXEDIMAGES[@]}]=$OPTARG
+   ;;
+      j)  # histogram matching
+   USEHISTOGRAMMATCHING=$OPTARG
    ;;
       m)  # moving image
    MOVINGIMAGES[${#MOVINGIMAGES[@]}]=$OPTARG
@@ -461,6 +474,7 @@ COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
                  --interpolation Linear \
                  --winsorize-image-intensities [0.005,0.995] \
+                 --use-histogram-matching ${USEHISTOGRAMMATCHING} \
                  $STAGES"
 
 echo " antsRegistration call:"
