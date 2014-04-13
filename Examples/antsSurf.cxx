@@ -6,6 +6,7 @@
 #include "itkAntiAliasBinaryImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "vtkSTLWriter.h"
 #include "itkImageToVTKImageFilter.h"
 
 #include "vtkActor.h"
@@ -457,11 +458,23 @@ int antsSurf( itk::ants::CommandLineParser *parser )
   if( outputOption && outputOption->GetNumberOfFunctions() )
     {
     std::string outputFile = outputOption->GetFunction( 0 )->GetName();
-
-    vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
-    writer->SetInputData( vtkMesh );
-    writer->SetFileName( outputFile.c_str() );
-    writer->Write();
+    bool isSTL = false;
+    std::string ext = itksys::SystemTools::GetFilenameExtension( outputFile );
+    if ( strcmp(ext.c_str(), ".stl") == 0 )
+    if ( isSTL ) 
+      {
+      vtkSTLWriter *writer = vtkSTLWriter::New();
+      writer->SetInputData( vtkMesh );
+      writer->SetFileName( outputFile.c_str() );
+      writer->Write();
+      }
+    if ( !isSTL ) 
+      {
+      vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+      writer->SetInputData( vtkMesh );
+      writer->SetFileName( outputFile.c_str() );
+      writer->Write();
+      }
     }
 
   // Display vtk mesh
