@@ -132,6 +132,9 @@ Optional arguments:
                                                 range of the distance prior.  To apply to all label values, simply omit
                                                 specifying the label, i.e. -l [lambda,boundaryProbability].
 
+    
+     -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
+                                                Requires single thread computation for complete reproducibility.
 USAGE
     exit 1
 }
@@ -331,7 +334,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:r:o:s:t:u:w:" OPT
+  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:r:o:s:t:u:w:z:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -397,6 +400,9 @@ else
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
        ;;
+          z) #debug mode
+       DEBUG_MODE=$OPTARG
+       ;;
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
        exit 1
@@ -404,6 +410,30 @@ else
       esac
   done
 fi
+
+if [[ $DEBUG_MODE -gt 0 ]];
+  then
+
+   echo "    WARNING - Running in test / debug mode. Results will be suboptimal "
+
+   OUTPUT_PREFIX="${OUTPUT_PREFIX}testMode_"
+
+   # Speed up by doing fewer its. Careful about changing this because
+   # certain things are hard coded elsewhere, eg number of levels
+
+   ANTS_MAX_ITERATIONS="40x40x20x0"
+   ANTS_LINEAR_CONVERGENCE="[100x100x50x0,1e-8,10]"
+   ANTS_METRIC_PARAMS="1,2"
+
+   # I think this is the number of times we run the whole N4 / Atropos thing, at the cost of about 10 minutes a time
+   ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=1
+
+   DIRECT_CONVERGENCE="[5,0.0,10]"
+
+   # Fix random seed to replicate exact results on each run
+   USE_RANDOM_SEEDING=0
+
+  fi
 
 ################################################################################
 #
@@ -534,6 +564,7 @@ if [[ ! -d $OUTPUT_DIR ]];
     mkdir -p $OUTPUT_DIR
   fi
 
+
 echoParameters >&2
 
 echo "---------------------  Running `basename $0` on $HOSTNAME  ---------------------"
@@ -570,7 +601,9 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
           -o ${OUTPUT_PREFIX} \
           -k ${KEEP_TMP_IMAGES} \
           -s ${OUTPUT_SUFFIX} \
-          -q ${USE_FLOAT_PRECISION}
+          -q ${USE_FLOAT_PRECISION} \
+          -u ${USE_RANDOM_SEEDING} \
+          -z ${DEBUG_MODE}
       else
         logCmd ${ANTSPATH}/antsBrainExtraction.sh \
           -d ${DIMENSION} \
@@ -580,7 +613,9 @@ if [[ ! -f ${BRAIN_EXTRACTION_MASK} ]];
           -o ${OUTPUT_PREFIX} \
           -k ${KEEP_TMP_IMAGES} \
           -s ${OUTPUT_SUFFIX} \
-          -q ${USE_FLOAT_PRECISION}
+          -q ${USE_FLOAT_PRECISION} \
+          -u ${USE_RANDOM_SEEDING} \
+          -z ${DEBUG_MODE}
       fi
 
   fi
@@ -742,7 +777,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
       -k ${KEEP_TMP_IMAGES} \
-      -s ${OUTPUT_SUFFIX}
+      -s ${OUTPUT_SUFFIX} \
+      -z ${DEBUG_MODE}
 
     ATROPOS_ANATOMICAL_IMAGES_COMMAND_LINE=''
     for (( j = 0; j < ${#ANATOMICAL_IMAGES[@]}; j++ ))
@@ -765,7 +801,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -o ${OUTPUT_PREFIX}Brain \
       -u ${USE_RANDOM_SEEDING} \
       -k ${KEEP_TMP_IMAGES} \
-      -s ${OUTPUT_SUFFIX}
+      -s ${OUTPUT_SUFFIX} \
+      -z ${DEBUG_MODE}
 
     ## Step 3 ###
     TMP_FILES=( $EXTRACTION_GENERIC_AFFINE $EXTRACTED_SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED $EXTRACTED_BRAIN_TEMPLATE )
@@ -778,22 +815,25 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
         for f in ${TMP_FILES[@]}
-          do
+          do       
             if [[ -e $f ]];
-              then
-                logCmd rm $f
-              fi
-          done
-      fi
+          then
+            logCmd rm $f
+          else
+            echo "WARNING: expected temp file doesn't exist: $f"
+          fi
+      done
+    fi
 
-     time_end_brain_segmentation=`date +%s`
-     time_elapsed_brain_segmentation=$((time_end_brain_segmentation - time_start_brain_segmentation))
 
-     echo
-     echo "--------------------------------------------------------------------------------------"
-     echo " Done with brain segmentation:  $(( time_elapsed_brain_segmentation / 3600 ))h $(( time_elapsed_brain_segmentation %3600 / 60 ))m $(( time_elapsed_brain_segmentation % 60 ))s"
-     echo "--------------------------------------------------------------------------------------"
-     echo
+    time_end_brain_segmentation=`date +%s`
+    time_elapsed_brain_segmentation=$((time_end_brain_segmentation - time_start_brain_segmentation))
+
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Done with brain segmentation:  $(( time_elapsed_brain_segmentation / 3600 ))h $(( time_elapsed_brain_segmentation %3600 / 60 ))m $(( time_elapsed_brain_segmentation % 60 ))s"
+    echo "--------------------------------------------------------------------------------------"
+    echo
 
    fi
 
@@ -878,6 +918,8 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
             if [[ -e $f ]];
               then
                 logCmd rm $f
+              else
+                echo "WARNING: expected temp file doesn't exist: $f"
               fi
           done
       fi
@@ -1021,14 +1063,18 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
         for f in ${TMP_FILES[@]}
-          do
+          do       
             if [[ -e $f ]];
-              then
-                logCmd rm $f
-              fi
-          done
-      fi
+             then
+              logCmd rm $f
+            else
+              echo "WARNING: expected temp file doesn't exist: $f"
+            fi
+        done
+    fi
+
   fi
+
 
 ################################################################################
 #

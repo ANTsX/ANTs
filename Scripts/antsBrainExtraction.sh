@@ -61,6 +61,8 @@ Optional arguments:
      -k:  keep temporary files                  Keep brain extraction/segmentation warps, etc (default = false).
      -q:  use floating point precision          Use antsRegistration with floating point precision.
 
+     -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for debugging, results will not be good.
+
 USAGE
     exit 1
 }
@@ -87,6 +89,7 @@ echoParameters() {
        likelihood             = ${ATROPOS_BRAIN_EXTRACTION_LIKELIHOOD}
        initialization         = ${ATROPOS_BRAIN_EXTRACTION_INITIALIZATION}
        mrf                    = ${ATROPOS_BRAIN_EXTRACTION_MRF}
+       use clock random seed  = ${USE_RANDOM_SEEDING}
 
 PARAMETERS
 }
@@ -95,7 +98,10 @@ PARAMETERS
 #    local  myresult='some value'
 #    echo "$myresult"
 
-# Echos a command to stdout then runs it
+# Echos a command to stdout, then runs it
+# Will immediately exit on error unless you set debug flag here
+DEBUG_MODE=0
+
 function logCmd() {
   cmd="$*"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
@@ -109,7 +115,10 @@ function logCmd() {
       echo "ERROR: command exited with nonzero status $cmdExit"
       echo "Command: $cmd"
       echo
-      exit 1
+      if [[ ! $DEBUG_MODE -gt 0 ]];
+        then
+          exit 1
+        fi
     fi
 
   echo "END   <<<<<<<<<<<<<<<<<<<<"
@@ -118,6 +127,8 @@ function logCmd() {
 
   return $cmdExit
 }
+
+
 
 ################################################################################
 #
@@ -175,7 +186,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:d:e:f:h:k:m:o:q:s:u:" OPT
+  while getopts "a:d:e:f:h:k:m:o:q:s:u:z:" OPT
     do
       case $OPT in
           d) #dimensions
@@ -217,6 +228,9 @@ else
           u) #use random seeding
        USE_RANDOM_SEEDING=$OPTARG
        ;;
+          z) #debug mode
+       DEBUG_MODE=$OPTARG
+       ;; 
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
        exit 1
@@ -240,7 +254,6 @@ if [[ -z "$ATROPOS_SEGMENTATION_MRF" ]];
       fi
   fi
 
-ATROPOS_SEGMENTATION_CONVERGENCE="[${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS},0.0]"
 
 ################################################################################
 #
@@ -265,6 +278,22 @@ if [[ ! -d $OUTPUT_DIR ]];
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
   fi
+
+if [[ $DEBUG_MODE -gt 0 ]];
+  then
+
+   echo "    WARNING - Running in test / debug mode. Results will be suboptimal "
+
+   # Speed up by doing fewer its. Careful about changing this because
+   # certain things are hard coded elsewhere, eg number of levels
+
+   ANTS_MAX_ITERATIONS="40x40x20x0"
+   ANTS_LINEAR_CONVERGENCE="[100x100x50x10,1e-8,10]"
+
+   # Leave N4 / Atropos alone because they're pretty fast
+
+  fi
+
 
 echoParameters >&2
 
@@ -397,6 +426,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
               then
                 exe_initial_align="${exe_initial_align} ${EXTRACTION_REGISTRATION_MASK}"
               fi
+
             logCmd $exe_initial_align
 
             basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.025,0.975] -o ${EXTRACTION_WARP_OUTPUT_PREFIX} -r ${EXTRACTION_INITIAL_AFFINE} -z 1 --float ${USE_FLOAT_PRECISION}"
@@ -529,11 +559,17 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
     echo
   fi
 
+
 if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
     for f in ${TMP_FILES[@]}
-      do
-        logCmd rm $f
+      do       
+        if [[ -e $f ]];
+          then
+            logCmd rm $f
+          else
+            echo "WARNING: expected temp file doesn't exist: $f"
+          fi
       done
   fi
 
