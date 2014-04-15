@@ -189,8 +189,8 @@ GetLargestComponent(typename TImage::Pointer image)
     }
   catch( itk::ExceptionObject & excep )
     {
-    std::cout << "Relabel: exception caught !" << std::endl;
-    std::cout << excep << std::endl;
+    std::cerr << "Relabel: exception caught !" << std::endl;
+    std::cerr << excep << std::endl;
     }
 
   typename TImage::Pointer Clusters = AllocImage<TImage>(image, 0);
@@ -309,14 +309,14 @@ private:
 
   if( argc < 2 )
     {
-    std::cout << "Parameter  missing" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Usage:" << argv[0] << "  image.nii  {g0image.nii}  {threshold}" << std::endl;
-    std::cout
+    std::cerr << "Parameter  missing" << std::endl;
+    std::cerr << std::endl;
+    std::cerr << "Usage:" << argv[0] << "  image.nii  {g0image.nii}  {threshold}" << std::endl;
+    std::cerr
       <<
       " If you put an arg for g0image then image will be smoothed and thresholded \n until it has genus zero or the smoothing kernel gets too large "
       << std::endl;
-    return 1;
+    return EXIT_FAILURE;
     }
 
   float thresh = -1; // 0.0001;

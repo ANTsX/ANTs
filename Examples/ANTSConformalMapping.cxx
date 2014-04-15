@@ -231,8 +231,8 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      std::cout << " wrong params for inflation. ignoring. " << std::endl;
-      std::cout << "   " << infOption->GetDescription() << std::endl;
+      std::cerr << " wrong params for inflation. ignoring. " << std::endl;
+      std::cerr << "   " << infOption->GetDescription() << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -250,8 +250,8 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
       }
     else
       {
-      std::cout << " wrong params for cost weights. " << std::endl;
-      std::cout << "   " << costOption->GetDescription() << std::endl;
+      std::cerr << " wrong params for cost weights. " << std::endl;
+      std::cerr << "   " << costOption->GetDescription() << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -320,8 +320,8 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     vtkDataArray* labels = labelmesh->GetPointData()->GetArray("Label");
     if( !labels )
       {
-      std::cout << "  Cannot find vtk Array named 'Label' in " << innm << std::endl;
-      std::cout << "  This could cause problems " << std::endl;
+      std::cerr << "  Cannot find vtk Array named 'Label' in " << innm << std::endl;
+      std::cerr << "  This could cause problems " << std::endl;
       //      std::cout <<" exiting " << std::endl;
       // throw std::exception();
       }
@@ -333,8 +333,8 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     vtkDataArray* feats = featuremesh->GetPointData()->GetArray("Feature");
     if( !feats )
       {
-      std::cout << "  Cannot find vtk Array named 'Feature' in " << innm << std::endl;
-      std::cout << " continuing " << std::endl;
+      std::cerr << "  Cannot find vtk Array named 'Feature' in " << innm << std::endl;
+      std::cerr << " continuing " << std::endl;
       }
 
     /** inflation */
@@ -398,7 +398,7 @@ int ANTSConformalMapping( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cout << " that domain is not an option -- exiting. " << std::endl;
+    std::cerr << " that domain is not an option -- exiting. " << std::endl;
     return EXIT_FAILURE;
     }
 

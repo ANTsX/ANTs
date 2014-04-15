@@ -62,14 +62,14 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         }
       catch( itk::ExceptionObject& exp )
         {
-        std::cout << "Exception caught!" << std::endl;
-        std::cout << exp << std::endl;
+        std::cerr << "Exception caught!" << std::endl;
+        std::cerr << exp << std::endl;
         }
       DataFrameObjectType::Pointer dfo = reader->GetOutput();
       colheadernames = dfo->GetColumnHeaders();
       if( colheadernames.size() < Dimension )
         {
-        std::cout
+        std::cerr
           <<
           "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D."
           << std::endl;
@@ -80,13 +80,13 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       }
     else
       {
-      std::cout << "An input csv file is required." << std::endl;
+      std::cerr << "An input csv file is required." << std::endl;
       return EXIT_FAILURE;
       }
 
     if(  points_in.cols() < Dimension )
       {
-      std::cout << "The number of columns in the input point set is fewer than " << Dimension << " Exiting."
+      std::cerr << "The number of columns in the input point set is fewer than " << Dimension << " Exiting."
                 << std::endl;
       return EXIT_FAILURE;
       }
@@ -96,7 +96,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
           parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
         {
-        std::cout << "An input csv file is required." << std::endl;
+        std::cerr << "An input csv file is required." << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -180,8 +180,8 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         }
       catch( itk::ExceptionObject& exp )
         {
-        std::cout << "Exception caught!" << std::endl;
-        std::cout << exp << std::endl;
+        std::cerr << "Exception caught!" << std::endl;
+        std::cerr << exp << std::endl;
         return EXIT_FAILURE;
         }
       }
@@ -395,7 +395,7 @@ private:
     }
   else
     {
-    std::cout << "No csv file point set was specified." << std::endl;
+    std::cerr << "No csv file point set was specified." << std::endl;
     return EXIT_FAILURE;
     }
 #endif
@@ -409,7 +409,7 @@ private:
     }
   else
     {
-    std::cout << "No -d ( dimensionality ) option is specified.  Exiting." << std::endl;
+    std::cerr << "No -d ( dimensionality ) option is specified.  Exiting." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -431,7 +431,7 @@ private:
       }
       break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

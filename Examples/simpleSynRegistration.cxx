@@ -90,7 +90,7 @@ simpleSynReg( ImageType::Pointer & fixedImage, ImageType::Pointer & movingImage,
     CompositeTransformType::TransformTypePointer resultTransform = outputCompositeTransform->GetNthTransform( 1 );
     return resultTransform;
     }
-  std::cout << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
+  std::cerr << "FATAL ERROR: REGISTRATION PROCESS WAS UNSUCCESSFUL" << std::endl;
   CompositeTransformType::TransformTypePointer invalidTransform = NULL;
   return invalidTransform;      // Return an empty registration type.
 }
@@ -127,7 +127,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_st
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cout << excp << std::endl;
+    std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
   // ==========read the moving image
@@ -141,7 +141,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_st
     }
   catch( itk::ExceptionObject & excp )
     {
-    std::cout << excp << std::endl;
+    std::cerr << excp << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -153,7 +153,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_st
   TransformType::Pointer initialTransform = itk::ants::ReadTransform<double, 3>( args[2] );
   if( initialTransform.IsNull() )
     {
-    std::cout << "Can't read initial transform " << std::endl;
+    std::cerr << "Can't read initial transform " << std::endl;
     return EXIT_FAILURE;
     }
   CompositeTransformType::Pointer compositeInitialTransform = CompositeTransformType::New();
@@ -165,7 +165,7 @@ int simpleSynRegistration( std::vector<std::string> args, std::ostream* /*out_st
                                                                                compositeInitialTransform );
   if( outputTransform.IsNull() )
     {
-    std::cout << "ERROR: Registration FAILED TO PRODUCE VALID TRANSFORM ...\n" << std::endl;
+    std::cerr << "ERROR: Registration FAILED TO PRODUCE VALID TRANSFORM ...\n" << std::endl;
     return EXIT_FAILURE;
     }
   std::cout << "***** Ready to write the results ...\n" << std::endl;

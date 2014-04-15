@@ -566,21 +566,21 @@ private:
 
   if( argc < 4 )
     {
-    std::cout << "Usage:   " << argv[0]
+    std::cerr << "Usage:   " << argv[0]
              << " fixedImageWithLabeledLandmarks  movingImageWithLabeledLandmarks outputDisplacementField "
              <<
       "meshSize[0]xmeshSize[1]x... numberOfLevels [order=3] [enforceStationaryBoundaries=1] [landmarkWeights]"
              << std::endl;
-    std::cout
+    std::cerr
       << " we expect the input images to be (1) N-ary  (2) in the same physical space as the images you want to "
       << std::endl;
-    std::cout << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
-    std::cout << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
-    std::cout << " You can use ITK-snap to generate the label images. " << std::endl;
-    std::cout << " The optional landmarks weights are read from a text file where each row is either:" << std::endl;
-    std::cout << " \"label,labelWeight\" or " << std::endl;
-    std::cout << " \"labelWeight\" or " << std::endl;
-    std::cout
+    std::cerr << " register and (3 ) to have the same landmark points defined within them ... " << std::endl;
+    std::cerr << " landmarks will be defined from the center of mass of the labels in the input images . " << std::endl;
+    std::cerr << " You can use ITK-snap to generate the label images. " << std::endl;
+    std::cerr << " The optional landmarks weights are read from a text file where each row is either:" << std::endl;
+    std::cerr << " \"label,labelWeight\" or " << std::endl;
+    std::cerr << " \"labelWeight\" or " << std::endl;
+    std::cerr
       << " If the latter format is used, the label weights are assumed to be arranged in ascending order by label."
       << std::endl;
     if( argc >= 2 &&
@@ -611,7 +611,7 @@ private:
       }
       break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

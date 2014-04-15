@@ -135,8 +135,8 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
       }
     catch( itk::ExceptionObject & excep )
       {
-      std::cout << "Relabel: exception caught !" << std::endl;
-      std::cout << excep << std::endl;
+      std::cerr << "Relabel: exception caught !" << std::endl;
+      std::cerr << excep << std::endl;
       }
 
     typename ImageType::Pointer Clusters = MakeNewImage<ImageType>(valimage, 0);

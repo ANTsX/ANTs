@@ -192,7 +192,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     if( outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1 &&
         parser->Convert<unsigned int>( outputOption->GetFunction( 0 )->GetParameter( 1 ) ) == 0 )
       {
-      std::cout << "An input image is required." << std::endl;
+      std::cerr << "An input image is required." << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -224,7 +224,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
     }
   else if( needReferenceImage == true )
     {
-    std::cout << "A reference image is required." << std::endl;
+    std::cerr << "A reference image is required." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -448,7 +448,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         {
         if( outputImages.size() != Dimension )
           {
-          std::cout << "The number of output images does not match the number of vector components." << std::endl;
+          std::cerr << "The number of output images does not match the number of vector components." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -482,7 +482,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         {
         if( outputImages.size() != NumberOfTensorElements )
           {
-          std::cout << "The number of output images does not match the number of tensor elements." << std::endl;
+          std::cerr << "The number of output images does not match the number of tensor elements." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -514,7 +514,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
         if( outputImages.size() != numberOfTimePoints )
           {
-          std::cout << "The number of output images does not match the number of image time points." << std::endl;
+          std::cerr << "The number of output images does not match the number of image time points." << std::endl;
           return EXIT_FAILURE;
           }
 
@@ -571,13 +571,13 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
           }
         catch( itk::ExceptionObject & err )
           {
-          std::cout << "Caught an ITK exception: " << std::endl;
-          std::cout << err << " " << __FILE__ << " " << __LINE__ << std::endl;
+          std::cerr << "Caught an ITK exception: " << std::endl;
+          std::cerr << err << " " << __FILE__ << " " << __LINE__ << std::endl;
           throw &err;
           }
         catch( ... )
           {
-          std::cout << "Error while writing in image: " << outputFileName << std::endl;
+          std::cerr << "Error while writing in image: " << outputFileName << std::endl;
           throw;
           }
         }
@@ -864,7 +864,7 @@ private:
     }
   else
     {
-    std::cout << "No reference image was specified." << std::endl;
+    std::cerr << "No reference image was specified." << std::endl;
     return EXIT_FAILURE;
     }
 #endif
@@ -939,7 +939,7 @@ private:
       }
     else
       {
-      std::cout << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
+      std::cerr << "Unrecognized input image type (cf --input-image-type option)." << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -950,7 +950,7 @@ private:
       {
       if( imageType == TENSOR )
         {
-        std::cout << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
+        std::cerr << "antsApplyTransforms is not implemented for 2-D tensor images." << std::endl;
         return EXIT_FAILURE;
         }
       else
@@ -982,11 +982,11 @@ private:
       {
       if( imageType == TENSOR )
         {
-        std::cout << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
+        std::cerr << "antsApplyTransforms is not implemented for 4-D tensor images." << std::endl;
         }
       else if( imageType == TIME_SERIES )
         {
-        std::cout << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
+        std::cerr << "antsApplyTransforms is not implemented for 4-D + time images." << std::endl;
         }
       else
         {
@@ -1002,7 +1002,7 @@ private:
       }
       break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

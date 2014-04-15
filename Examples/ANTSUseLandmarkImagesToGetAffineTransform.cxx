@@ -35,7 +35,7 @@ void WriteAffineTransformFile(typename TransformType::Pointer & transform,
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cout << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
+    std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" << std::endl
              << "Exception in writing tranform file: " << std::endl
              << filename << std::endl;
     return;
@@ -382,7 +382,7 @@ int LandmarkBasedTransformInitializer3D(int, char * argv[])
 
 int LandmarkBasedTransformInitializer2D(int, char * [])
 {
-  std::cout << " not implemented " << std::endl;
+  std::cerr << " not implemented " << std::endl;
   return EXIT_FAILURE;
 
   /*

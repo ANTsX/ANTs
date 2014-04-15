@@ -453,7 +453,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     typename OptionType::Pointer outputOption = parser->GetOption( "output" );
     if( !outputOption )
       {
-      std::cout << "Output option not specified.  Should be the output average image name." << std::endl;
+      std::cerr << "Output option not specified.  Should be the output average image name." << std::endl;
       return EXIT_FAILURE;
       }
     std::string outputPrefix = outputOption->GetFunction( 0 )->GetParameter( 0 );
@@ -494,7 +494,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     }
   else
     {
-    std::cout << "No transformations are specified." << std::endl;
+    std::cerr << "No transformations are specified." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -503,35 +503,35 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typename OptionType::Pointer metricOption = parser->GetOption( "metric" );
   if( !metricOption || metricOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    std::cout << "The number of metrics specified does not match the number of stages." << std::endl;
+    std::cerr << "The number of metrics specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer iterationsOption = parser->GetOption( "iterations" );
   if( !iterationsOption || iterationsOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    std::cout << "The number of iteration sets specified does not match the number of stages." << std::endl;
+    std::cerr << "The number of iteration sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer shrinkFactorsOption = parser->GetOption( "shrinkFactors" );
   if( !shrinkFactorsOption || shrinkFactorsOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    std::cout << "The number of shrinkFactor sets specified does not match the number of stages." << std::endl;
+    std::cerr << "The number of shrinkFactor sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer smoothingSigmasOption = parser->GetOption( "smoothingSigmas" );
   if( !smoothingSigmasOption || smoothingSigmasOption->GetNumberOfFunctions() != numberOfStages  )
     {
-    std::cout << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
+    std::cerr << "The number of smoothing sigma sets specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
 
   typename OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( !outputOption )
     {
-    std::cout << "Output option not specified." << std::endl;
+    std::cerr << "Output option not specified." << std::endl;
     return EXIT_FAILURE;
     }
   std::string outputPrefix = outputOption->GetFunction( 0 )->GetParameter( 0 );
@@ -617,7 +617,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     if( factors.size() != numberOfLevels )
       {
-      std::cout << "ERROR:  The number of shrink factors does not match the number of levels." << std::endl;
+      std::cerr << "ERROR:  The number of shrink factors does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
     else
@@ -638,7 +638,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
 
     if( sigmas.size() != numberOfLevels )
       {
-      std::cout << "ERROR:  The number of smoothing sigmas does not match the number of levels." << std::endl;
+      std::cerr << "ERROR:  The number of smoothing sigmas does not match the number of levels." << std::endl;
       return EXIT_FAILURE;
       }
     else
@@ -870,7 +870,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        std::cout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
+        std::cerr << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
+        return EXIT_FAILURE;
         }
       metric->SetVirtualDomainFromImage(  fixed_time_slice );
       // Set up the optimizer.  To change the iteration number for each level we rely
@@ -967,7 +968,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( const_cast<AffineTransformType *>( affineRegistration->GetOutput()->Get() ) );
@@ -1034,7 +1035,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->Get() ) );
@@ -1133,7 +1134,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         compositeTransform->AddTransform( outputDisplacementFieldTransform );
@@ -1254,7 +1255,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         catch( itk::ExceptionObject & e )
           {
-          std::cout << "Exception caught: " << e << std::endl;
+          std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
         // Add calculated transform to the composite transform
@@ -1267,7 +1268,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        std::cout << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
+        std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
       if( currentStage == static_cast<int>(numberOfStages) - 1 )
@@ -1670,7 +1671,7 @@ private:
     }
   else
     {
-    std::cout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+    std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -1690,7 +1691,7 @@ private:
       }
       break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return 0;
