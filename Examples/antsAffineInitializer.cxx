@@ -230,13 +230,13 @@ int antsAffineInitializerImp(int argc, char *argv[])
       }
     catch( ... )
       {
-      std::cout << " zero image2 error ";
+      std::cerr << " zero image2 error ";
       fixed_center.Fill(0);
       }
     }
   catch( ... )
     {
-    std::cout << " zero image1 error ";
+    std::cerr << " zero image1 error ";
     }
   unsigned int eigind1 = 1;
   unsigned int eigind2 = 1;
@@ -261,7 +261,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
   RealType det = vnl_determinant( A_solution  );
   if( det < 0 )
     {
-    std::cout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
+    std::cerr << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
              <<   vnl_determinant( wahba.U() )  << std::endl;
     vnl_matrix<RealType> id( A_solution );
     id.set_identity();
@@ -273,7 +273,7 @@ int antsAffineInitializerImp(int argc, char *argv[])
         }
       }
     A_solution =  A_solution * id.transpose();
-    std::cout << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
+    std::cerr << " bad det " << det << " v " <<  vnl_determinant( wahba.V() ) << " u "
              <<   vnl_determinant( wahba.U() )  << " new " << vnl_determinant( A_solution  ) << std::endl;
     }
   typename AffineType::Pointer affine1 = AffineType::New(); // translation to center
@@ -476,18 +476,18 @@ private:
 
   if( argc < 3 )
     {
-    std::cout << "\nUsage: " << argv[0]
+    std::cerr << "\nUsage: " << argv[0]
              <<
       " ImageDimension <Image1.ext> <Image2.ext> TransformOutput.mat Optional-SearchFactor Optional-Radian-Fraction Optional-bool-UsePrincipalAxes Optional-uint-UseLocalSearch Optional-Image1Mask "
              << std::endl;
-    std::cout << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
-    std::cout << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis."
+    std::cerr << " Optional-SearchFactor is in degrees --- e.g. 10 = search in 10 degree increments ." << std::endl;
+    std::cerr << " Radian-Fraction should be between 0 and 1 --- will search this arc +/- around principal axis."
              << std::endl;
-    std::cout
+    std::cerr
       <<
       " Optional-bool-UsePrincipalAxes determines whether the rotation is searched around an initial principal axis alignment.  Default = false. "
       << std::endl;
-    std::cout
+    std::cerr
       <<
       " Optional-uint-UseLocalSearch determines if a local optimization is run at each search point for the set number of iterations. Default = 20."
       << std::endl;

@@ -81,7 +81,7 @@ int IntegrateVelocityField(int argc, char *argv[])
 
   if( !timeVaryingVelocity )
     {
-    std::cout << " No TV Field " << std::endl;  return EXIT_FAILURE;
+    std::cerr << " No TV Field " << std::endl;  return EXIT_FAILURE;
     }
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
   typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
@@ -167,7 +167,7 @@ private:
 
   if( argc < 4 )
     {
-    std::cout << "Usage:   " << argv[0]
+    std::cerr << "Usage:   " << argv[0]
              << " reference_image  VelocityIn.mhd DeformationOut.nii.gz  time0 time1 dT  " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -203,7 +203,7 @@ private:
       }
       break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
 

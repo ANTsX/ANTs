@@ -460,21 +460,21 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     {
     std::string outputFile = outputOption->GetFunction( 0 )->GetName();
     std::string ext = itksys::SystemTools::GetFilenameExtension( outputFile );
-    if ( strcmp(ext.c_str(), ".stl") == 0 ) 
+    if ( strcmp(ext.c_str(), ".stl") == 0 )
       {
       vtkSTLWriter *writer = vtkSTLWriter::New();
       writer->SetInputData( vtkMesh );
       writer->SetFileName( outputFile.c_str() );
       writer->Write();
       }
-    if ( strcmp(ext.c_str(), ".ply") == 0 ) 
+    if ( strcmp(ext.c_str(), ".ply") == 0 )
       {
       vtkPLYWriter *writer = vtkPLYWriter::New();
       writer->SetInputData( vtkMesh );
       writer->SetFileName( outputFile.c_str() );
       writer->Write();
       }
-    if ( strcmp(ext.c_str(), ".vtk") == 0 ) 
+    if ( strcmp(ext.c_str(), ".vtk") == 0 )
       {
       vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
       writer->SetInputData( vtkMesh );
@@ -767,13 +767,13 @@ private:
       }
     else
       {
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
       }
     }
   else
     {
-    std::cout << "Input surface image not specified." << std::endl;
+    std::cerr << "Input surface image not specified." << std::endl;
     return EXIT_FAILURE;
     }
 

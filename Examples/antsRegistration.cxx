@@ -500,7 +500,7 @@ private:
       }
     else
       {
-      std::cout << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
+      std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -542,14 +542,14 @@ private:
           }
         }
       default:
-        std::cout << "bad image dimension " << dimension << std::endl;
+        std::cerr << "bad image dimension " << dimension << std::endl;
         return EXIT_FAILURE;
       }
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cout << "Exception Object caught: " << std::endl;
-    std::cout << err << std::endl;
+    std::cerr << "Exception Object caught: " << std::endl;
+    std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

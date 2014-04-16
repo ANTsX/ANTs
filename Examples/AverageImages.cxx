@@ -52,7 +52,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     const std::string temp(argv[1]);
     if( !( ( temp == "2" ) || ( temp == "3" ) || ( temp == "4" ) ) )
       {
-      std::cout << "ERROR:  Dimension option must be 2 or 3 or 4, " << temp << "given" << std::endl;
+      std::cerr << "ERROR:  Dimension option must be 2 or 3 or 4, " << temp << "given" << std::endl;
       return EXIT_FAILURE;
       }
     }
@@ -60,7 +60,7 @@ int AverageImages1(unsigned int argc, char *argv[])
     const std::string temp(argv[3]);
     if( !( ( temp == "0" ) || ( temp == "1" )  ) )
       {
-      std::cout << "ERROR:  Normalize option must be 0 or 1, " << temp << "given" << std::endl;
+      std::cerr << "ERROR:  Normalize option must be 0 or 1, " << temp << "given" << std::endl;
       return EXIT_FAILURE;
       }
     }

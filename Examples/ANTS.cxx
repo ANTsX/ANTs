@@ -95,12 +95,12 @@ int ANTSex(int argc, char *argv[])
     }
   catch( std::exception const& e )
     {
-    std::cout << "Exception caught in ANTS: " << std::endl << e.what() << std::endl;
+    std::cerr << "Exception caught in ANTS: " << std::endl << e.what() << std::endl;
     return EXIT_FAILURE;
     }
   catch( ... )
     {
-    std::cout << "Non-standard exception caught in ANTS. No more information available." << std::endl;
+    std::cerr << "Non-standard exception caught in ANTS. No more information available." << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -156,7 +156,7 @@ private:
 
   if( argc < 2 )
     {
-    std::cout << " call ANTS -h or ANTS --help " << std::endl;
+    std::cerr << " call ANTS -h or ANTS --help " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -168,7 +168,7 @@ private:
 
 //   if( dim <= 1 || dim > 3 )
 //     {
-//     std::cout << " You passed ImageDimension: " << dim
+//     std::cerr << " You passed ImageDimension: " << dim
 //              << " . Please use only 2 or 3 (for 2 or 3 Dimensional registration)  " << std::endl;
 //     ants::PrintCommandLineHelp(argv[0]);
 //     return EXIT_FAILURE;
@@ -183,14 +183,14 @@ private:
       = itk::ImageIOFactory::CreateImageIO( argv[1], itk::ImageIOFactory::ReadMode );
     if( fixedImageIO.IsNull() )
       {
-      std::cout << "Invalid fixed image: " << argv[1] << std::endl;
+      std::cerr << "Invalid fixed image: " << argv[1] << std::endl;
       return EXIT_FAILURE;
       }
     itk::ImageIOBase::Pointer movingImageIO
       = itk::ImageIOFactory::CreateImageIO( argv[2], itk::ImageIOFactory::ReadMode );
     if( movingImageIO.IsNull() )
       {
-      std::cout << "Invalid moving image: " << argv[2] << std::endl;
+      std::cerr << "Invalid moving image: " << argv[2] << std::endl;
       return EXIT_FAILURE;
       }
     fixedImageIO->SetFileName( argv[1] );
@@ -202,14 +202,14 @@ private:
     const unsigned int mdim = movingImageIO->GetNumberOfDimensions();
     if( fdim != mdim )
       {
-      std::cout << "Fixed image dimension does not equal "
+      std::cerr << "Fixed image dimension does not equal "
                << "the moving image dimension (" << fdim << " != " << mdim << ")"
                << std::endl;
       return EXIT_FAILURE;
       }
     if( fdim != 2 && fdim != 3 )
       {
-      std::cout << "Unsupported image dimension" << std::endl;
+      std::cerr << "Unsupported image dimension" << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -344,7 +344,7 @@ private:
       }
     }
 
-  std::cout << "Shoudln't have gotten here." << std::endl;
+  std::cerr << "Shoudln't have gotten here." << std::endl;
   return EXIT_FAILURE;
 }
 } // namespace ants

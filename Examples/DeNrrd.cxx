@@ -93,7 +93,7 @@ private:
 
   if( argc < 4 )
     {
-    std::cout << "Usage: " << argv[0] << " inImage.nrrd outImage.nii gradients.txt" 
+    std::cerr << "Usage: " << argv[0] << " inImage.nrrd outImage.nii gradients.txt"
              << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
@@ -112,7 +112,7 @@ private:
   typedef DiffusionImageType::Pointer	    DiffusionImagePointer;
   typedef itk::Image<PixelType,4>           OutputImageType;
 
-  typedef itk::ImageFileReader<DiffusionImageType, 
+  typedef itk::ImageFileReader<DiffusionImageType,
   itk::DefaultConvertPixelTraits< PixelType > > FileReaderType;
   FileReaderType::Pointer reader = FileReaderType::New();
   reader->SetFileName(input_image_filename);
@@ -129,49 +129,49 @@ private:
 
   itk::MetaDataDictionary & mdd = reader->GetOutput()->GetMetaDataDictionary();
 
-  if ( mdd.HasKey("modality") ) 
+  if ( mdd.HasKey("modality") )
     {
     std::string modality;
     itk::ExposeMetaData<std::string>(mdd, "modality", modality);
-    if ( modality.compare("DWMRI") != 0 ) 
+    if ( modality.compare("DWMRI") != 0 )
       {
-      std::cout << "Data in not DWMRI" << std::endl;
+      std::cerr << "Data in not DWMRI" << std::endl;
       return EXIT_FAILURE;
       }
     }
-  else 
+  else
     {
-    std::cout << "Error: No b-value found" << std::endl;
+    std::cerr << "Error: No b-value found" << std::endl;
     return EXIT_FAILURE;
-    }  
+    }
 
 
-  if ( mdd.HasKey( "DWMRI_b-value" ) ) 
+  if ( mdd.HasKey( "DWMRI_b-value" ) )
     {
     itk::ExposeMetaData<std::string>(mdd, "DWMRI_b-value", b_string);
     //std::cout << "BValue = " << b_string << std::endl;
     }
-  else 
+  else
     {
-    std::cout << "Error: No b-value found" << std::endl;
+    std::cerr << "Error: No b-value found" << std::endl;
     return EXIT_FAILURE;
-    }  
-  
+    }
+
   std::ofstream gradientfile;
   gradientfile.open(output_gradients_filename);
   gradientfile << "VERSION: 2" << std::endl;
-  
+
   for ( unsigned int i=0; i<reader->GetOutput()->GetNumberOfComponentsPerPixel(); i++ )
     {
     char gradKey[20];
     sprintf( gradKey, "DWMRI_gradient_%04d", i );
     itk::ExposeMetaData<std::string>(mdd, gradKey, v_string);
     //std::cout << "Gradient = " << v_string << std::endl;
-    
+
     std::istringstream iss(v_string);
     double x, y, z;
     iss >> x >> y >> z;
-    
+
     if ( (x*x + y*y + z*z ) == 0 )
       {
       gradientfile << v_string << " 0" << std::endl;
@@ -182,7 +182,7 @@ private:
       }
     }
 
-  gradientfile.close(); 
+  gradientfile.close();
 
   /*
   OutputImageType::Pointer outImage = OutputImageType::New();
@@ -211,7 +211,7 @@ private:
 
   OutputImageType::DirectionType dirMat;
   for ( unsigned int i=0; i<3; i++ )
-    for ( unsigned int j=0; j<3; j++) 
+    for ( unsigned int j=0; j<3; j++)
       dirMat(i,j) = reader->GetOutput()->GetDirection()(i,j);
   dirMat(3,3) = 1.0;
   outImage->SetDirection(dirMat);
@@ -231,9 +231,9 @@ private:
           dIdx[0] = x;
           dIdx[1] = y;
           dIdx[2] = z;
-          
+
           outImage->SetPixel(oIdx,reader->GetOutput()->GetPixel(dIdx)[t]);
-          
+
           }
 */
 

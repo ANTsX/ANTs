@@ -134,10 +134,10 @@ private:
     {
     if( argc - 4 < 1 )
       {
-      std::cout << "Basic useage ex: " << std::endl;
-      std::cout << argv[0] << " ImageDimension  average.nii mathtype list-of-files-via-wildcard " << std::endl;
-      std::cout << " e.g. \n   AverageTensorImages 3  average.nii  1  *registered.nii " << std::endl;
-      std::cout << " mathtype=[0=log-euclidean, 1=euclidean] " << std::endl;
+      std::cerr << "Basic useage ex: " << std::endl;
+      std::cerr << argv[0] << " ImageDimension  average.nii mathtype list-of-files-via-wildcard " << std::endl;
+      std::cerr << " e.g. \n   AverageTensorImages 3  average.nii  1  *registered.nii " << std::endl;
+      std::cerr << " mathtype=[0=log-euclidean, 1=euclidean] " << std::endl;
       if( argc >= 2 &&
           ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
         {
@@ -165,7 +165,7 @@ private:
         }
         break;
       default:
-        std::cout << "Unsupported dimension" << std::endl;
+        std::cerr << "Unsupported dimension" << std::endl;
         return EXIT_FAILURE;
       }
 
@@ -173,8 +173,8 @@ private:
     }
   catch( itk::ExceptionObject & err )
     {
-    std::cout << "ExceptionObject caught !" << std::endl;
-    std::cout << err << std::endl;
+    std::cerr << "ExceptionObject caught !" << std::endl;
+    std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
 }

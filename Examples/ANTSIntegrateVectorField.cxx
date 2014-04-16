@@ -500,7 +500,7 @@ private:
       }
       break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cerr << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;

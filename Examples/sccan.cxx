@@ -95,8 +95,8 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
         }
       else
         {
-        std::cout << "vecind too large " << vecind << " vs " << w_p.size() << std::endl;
-        std::cout << " this is likely a mask problem --- exiting! " << std::endl;
+        std::cerr << "vecind too large " << vecind << " vs " << w_p.size() << std::endl;
+        std::cerr << " this is likely a mask problem --- exiting! " << std::endl;
         throw std::exception();
         }
       //        std::cout << " val " << val << std::endl;
@@ -309,13 +309,13 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
     }
   catch( itk::ExceptionObject& exp )
     {
-    std::cout << "Exception caught!" << std::endl;
-    std::cout << exp << std::endl;
+    std::cerr << "Exception caught!" << std::endl;
+    std::cerr << exp << std::endl;
     return;
     }
   if( have_mask )
     {
-    std::cout << " have_mask " << have_mask << std::endl;
+    std::cerr << " have_mask " << have_mask << std::endl;
     for( unsigned int vars = 0; vars < varmat.columns(); vars++  )
       {
       post2 = post + sccan_to_string<unsigned int>(vars);
@@ -343,8 +343,8 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cout << "Exception caught!" << std::endl;
-      std::cout << exp << std::endl;
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
       return;
       }
     }
@@ -369,8 +369,8 @@ void WriteVariatesToSpatialImage( std::string filename, std::string post, vnl_ma
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cout << "Exception caught!" << std::endl;
-      std::cout << exp << std::endl;
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
       return;
       }
     }
@@ -492,10 +492,10 @@ CompareMatrixSizes(  vnl_matrix<RealType> & p,  vnl_matrix<RealType> & q )
 {
   if( p.rows() != q.rows() )
     {
-    std::cout << " The number of rows must match !!" << std::endl;
-    std::cout << " matrix-1 has " << p.rows() << " rows " << std::endl;
-    std::cout << " matrix-2 has " << q.rows() << " rows " << std::endl;
-    std::cout << " returning " << EXIT_FAILURE << std::endl;
+    std::cerr << " The number of rows must match !!" << std::endl;
+    std::cerr << " matrix-1 has " << p.rows() << " rows " << std::endl;
+    std::cerr << " matrix-2 has " << q.rows() << " rows " << std::endl;
+    std::cerr << " returning " << EXIT_FAILURE << std::endl;
     //    throw std::exception();
     return EXIT_FAILURE;
     }
@@ -526,8 +526,8 @@ ReadMatrixFromCSVorImageSet( std::string matname, vnl_matrix<PixelType> & p )
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cout << "Exception caught!" << std::endl;
-      std::cout << exp << std::endl;
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
       }
     typedef itk::CSVArray2DDataObject<double> DataFrameObjectType;
     DataFrameObjectType::Pointer dfo = reader->GetOutput();
@@ -647,8 +647,8 @@ ConvertImageListToMatrix( std::string imagelist, std::string maskfn, std::string
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cout << "Exception caught!" << std::endl;
-      std::cout << exp << std::endl;
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
       return matrix;
       }
     return matrix;
@@ -713,19 +713,19 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   std::string ext = itksys::SystemTools::GetFilenameExtension( outname );
   if( strcmp(ext.c_str(), ".csv") != 0 )
     {
-    std::cout << " must use .csv as output file extension " << std::endl;
+    std::cerr << " must use .csv as output file extension " << std::endl;
     return EXIT_FAILURE;
     }
   typename ImageType::Pointer image1 = NULL;
   typename OutImageType::Pointer mask = NULL;
-  std::cout << " imagefn " << imagefn << std::endl;
+  std::cerr << " imagefn " << imagefn << std::endl;
   if( imagefn.length() > 3 )
     {
     ReadImage<ImageType>(image1, imagefn.c_str() );
     }
   else
     {
-    std::cout << " cannot read image " << imagefn << std::endl;
+    std::cerr << " cannot read image " << imagefn << std::endl;
     return 1;
     }
 
@@ -774,8 +774,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     }
   else
     {
-    std::cout << " cannot read mask " << maskfn << std::endl;
-    return 1;
+    std::cerr << " cannot read mask " << maskfn << std::endl;
+    return EXIT_FAILURE;
     }
   unsigned int  timedims = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   unsigned long voxct = 0;
@@ -807,7 +807,7 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     }
   if( maxlabel == 0 )
     {
-    std::cout << "FAILURE: Max label in input mask " << maskfn << " is 0 " << std::endl;
+    std::cerr << "FAILURE: Max label in input mask " << maskfn << " is 0 " << std::endl;
     return EXIT_FAILURE;
     }
 
@@ -889,8 +889,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
       }
     catch( itk::ExceptionObject& exp )
       {
-      std::cout << "Exception caught!" << std::endl;
-      std::cout << exp << std::endl;
+      std::cerr << "Exception caught!" << std::endl;
+      std::cerr << exp << std::endl;
       return EXIT_FAILURE;
       }
     std::cout << " done writing " << std::endl;
@@ -935,8 +935,8 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
     }
   catch( itk::ExceptionObject& exp )
     {
-    std::cout << "Exception caught!" << std::endl;
-    std::cout << exp << std::endl;
+    std::cerr << "Exception caught!" << std::endl;
+    std::cerr << exp << std::endl;
     return EXIT_FAILURE;
     }
   std::cout << " done writing " << std::endl;
@@ -2434,7 +2434,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     {
     if( matrixPairOption && matrixPairOption->GetFunction( 0 )->GetNumberOfParameters() < 2 )
       {
-      std::cout << "  Incorrect number of parameters." <<  std::endl;
+      std::cerr << "  Incorrect number of parameters." <<  std::endl;
       return EXIT_FAILURE;
       }
     std::string initializationStrategy = matrixPairOption->GetFunction()->GetName();
@@ -2464,7 +2464,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
       }
     else
       {
-      std::cout << " unrecognized option in matrixPairOperation " << std::endl;
+      std::cerr << " unrecognized option in matrixPairOperation " << std::endl;
       return exitvalue;
       }
     std::cout << " exit value " << exitvalue << std::endl;

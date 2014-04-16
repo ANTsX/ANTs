@@ -75,6 +75,8 @@ Optional arguments:
      -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
      -w:  Atropos prior segmentation weight     Atropos spatial prior probability weight for the segmentation (default = 0)
 
+     -z:  Test / debug mode                     If > 0, attempts to continue after errors.
+
 USAGE
     exit 1
 }
@@ -102,15 +104,16 @@ echoParameters() {
        posterior formulation  = ${ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION}
        mrf                    = ${ATROPOS_SEGMENTATION_MRF}
        Max N4->Atropos iters. = ${ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS}
+       use clock random seed  = ${USE_RANDOM_SEEDING}
 
 PARAMETERS
 }
 
 
-#    local  myresult='some value'
-#    echo "$myresult"
-
 # Echos a command to stdout, then runs it
+# Will immediately exit on error unless you set debug flag
+DEBUG_MODE=0
+
 function logCmd() {
   cmd="$*"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
@@ -124,7 +127,10 @@ function logCmd() {
       echo "ERROR: command exited with nonzero status $cmdExit"
       echo "Command: $cmd"
       echo
-      exit 1
+      if [[ ! $DEBUG_MODE -gt 0 ]];
+        then
+          exit 1
+        fi
     fi
 
   echo "END   <<<<<<<<<<<<<<<<<<<<"
@@ -187,7 +193,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:u:w:x:y:" OPT
+  while getopts "a:b:c:d:h:k:l:m:n:o:p:r:s:t:u:w:x:y:z:" OPT
     do
       case $OPT in
           c) #number of segmentation classes
@@ -250,6 +256,9 @@ else
           y) #
        N4_WEIGHT_MASK_POSTERIOR_LABELS[${#N4_WEIGHT_MASK_POSTERIOR_LABELS[@]}]=$OPTARG
        ;;
+          z) #debug mode
+       DEBUG_MODE=$OPTARG
+       ;; 
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
        exit 1
@@ -550,7 +559,12 @@ if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
     for f in ${TMP_FILES[@]}
       do
-        logCmd rm $f
+        if [[ -e $f ]];
+          then
+            logCmd rm $f
+          else
+            echo "WARNING: expected temp file doesn't exist: $f"
+          fi
       done
   fi
 
