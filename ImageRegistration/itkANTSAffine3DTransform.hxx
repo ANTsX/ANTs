@@ -405,7 +405,7 @@ void ANTSAffine3DTransform<TScalarType>
 
   // z1,z2,z3 is the S*K*point p
   TScalarType w1 = (x1 - c1) + k1 * (x2 - c2) + k2 * (x3 - c3);
-  TScalarType w2 = (x2 - c2) + k3 * (x3 - c2);
+  TScalarType w2 = (x2 - c2) + k3 * (x3 - c3);
   TScalarType w3 = (x3 - c3);
 
   TScalarType z1 = s1 * w1;
