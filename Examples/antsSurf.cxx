@@ -14,7 +14,10 @@
 #include "vtkCallbackCommand.h"
 #include "vtkExtractEdges.h"
 #include "vtkGraphicsFactory.h"
+#include "vtkImageData.h"
+#include "vtkImageStencil.h"
 #include "vtkMarchingCubes.h"
+#include "vtkMetaImageWriter.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
 #include "vtkPolyDataConnectivityFilter.h"
@@ -26,6 +29,8 @@
 #include "vtkUnsignedCharArray.h"
 #include "vtkWindowedSincPolyDataFilter.h"
 #include "vtkPolyDataWriter.h"
+#include "vtkPolyDataReader.h"
+#include "vtkPolyDataToImageStencil.h"
 #include "vtkPNGWriter.h"
 #include "vtkRenderer.h"
 #include "vtkRenderWindow.h"
@@ -121,7 +126,7 @@ void Display( vtkPolyData *vtkMesh, const std::vector<float> rotationAngleInDegr
     }
 }
 
-int antsSurf( itk::ants::CommandLineParser *parser )
+int antsImageToSurface( itk::ants::CommandLineParser *parser )
 {
   const unsigned int ImageDimension = 3;
 
@@ -189,7 +194,6 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     std::cerr << "Input image not specified." << std::endl;
     return EXIT_FAILURE;
     }
-
 
   // There's a reorientation issue between itk image physical space and the mesh space
   // for which we have to account.  See
@@ -460,23 +464,23 @@ int antsSurf( itk::ants::CommandLineParser *parser )
     {
     std::string outputFile = outputOption->GetFunction( 0 )->GetName();
     std::string ext = itksys::SystemTools::GetFilenameExtension( outputFile );
-    if ( strcmp(ext.c_str(), ".stl") == 0 )
+    if( strcmp( ext.c_str(), ".stl" ) == 0 )
       {
-      vtkSTLWriter *writer = vtkSTLWriter::New();
+      vtkSmartPointer<vtkSTLWriter> writer = vtkSmartPointer<vtkSTLWriter>::New();
       writer->SetInputData( vtkMesh );
       writer->SetFileName( outputFile.c_str() );
       writer->Write();
       }
-    if ( strcmp(ext.c_str(), ".ply") == 0 )
+    if( strcmp( ext.c_str(), ".ply" ) == 0 )
       {
-      vtkPLYWriter *writer = vtkPLYWriter::New();
+      vtkSmartPointer<vtkPLYWriter> writer = vtkSmartPointer<vtkPLYWriter>::New();
       writer->SetInputData( vtkMesh );
       writer->SetFileName( outputFile.c_str() );
       writer->Write();
       }
-    if ( strcmp(ext.c_str(), ".vtk") == 0 )
+    if( strcmp( ext.c_str(), ".vtk" ) == 0 )
       {
-      vtkPolyDataWriter *writer = vtkPolyDataWriter::New();
+      vtkSmartPointer<vtkPolyDataWriter> writer = vtkSmartPointer<vtkPolyDataWriter>::New();
       writer->SetInputData( vtkMesh );
       writer->SetFileName( outputFile.c_str() );
       writer->Write();
@@ -544,11 +548,136 @@ int antsSurf( itk::ants::CommandLineParser *parser )
       }
     }
 
-  // Clean up
   return EXIT_SUCCESS;
 }
 
+int antsSurfaceToImage( itk::ants::CommandLineParser *parser )
+{
+  itk::ants::CommandLineParser::OptionType::Pointer surfaceOption =
+    parser->GetOption( "mesh" );
 
+  vtkPolyData *vtkMesh;
+
+  std::string inputFile;
+  if( surfaceOption && surfaceOption->GetNumberOfFunctions() > 0 )
+    {
+    inputFile = surfaceOption->GetFunction( 0 )->GetName();
+    }
+  try
+    {
+    vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+    reader->SetFileName( inputFile.c_str() );
+    vtkMesh = reader->GetOutput();
+    }
+  catch( ... )
+    {
+    std::cerr << "Error.  Unable to read mesh input file." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  std::string outputFile;
+  std::vector<double> spacing;
+
+  itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
+  if( outputOption && outputOption->GetNumberOfFunctions() )
+    {
+    outputFile = outputOption->GetFunction( 0 )->GetName();
+
+    if( outputOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
+      {
+      spacing.push_back( 1.0 );
+      std::cout << "Warning.  No spacing is specified---defaulting to 1.0." << std::endl;
+      }
+    else
+      {
+      spacing = parser->ConvertVector<double>(
+        outputOption->GetFunction( 0 )->GetParameter( 0 ) );
+      }
+    }
+  else
+    {
+    std::cerr << "Error.  No output specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+
+  vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
+  double bounds[6];
+  vtkMesh->GetBounds( bounds );
+  double spacing2[3]; // desired volume spacing
+  if( spacing.size() == 1 )
+    {
+    spacing2[0] = spacing[0];
+    spacing2[1] = spacing[0];
+    spacing2[2] = spacing[0];
+    }
+  else if( spacing.size() == 3 )
+    {
+    spacing2[0] = spacing[0];
+    spacing2[1] = spacing[1];
+    spacing2[2] = spacing[2];
+    }
+  else
+    {
+    std::cerr << "Error. Incorrect spacing specified." << std::endl;
+    return EXIT_FAILURE;
+    }
+  whiteImage->SetSpacing( spacing2 );
+
+  // compute dimensions
+  int dim[3];
+  for( unsigned int i = 0; i < 3; i++ )
+    {
+    dim[i] = static_cast<int>( std::ceil( ( bounds[i * 2 + 1] - bounds[i * 2] ) / spacing2[i] ) );
+    }
+  whiteImage->SetDimensions( dim );
+  whiteImage->SetExtent( 0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1 );
+
+  double origin[3];
+  origin[0] = bounds[0] + spacing2[0] / 2;
+  origin[1] = bounds[2] + spacing2[1] / 2;
+  origin[2] = bounds[4] + spacing2[2] / 2;
+  whiteImage->SetOrigin( origin );
+
+  whiteImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
+
+  // fill the image with foreground voxels:
+  unsigned char inval = 255;
+  unsigned char outval = 0;
+  vtkIdType count = whiteImage->GetNumberOfPoints();
+  for( vtkIdType i = 0; i < count; ++i )
+    {
+    whiteImage->GetPointData()->GetScalars()->SetTuple1( i, inval );
+    }
+
+  // polygonal data --> image stencil:
+  vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc =
+    vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  pol2stenc->SetInputData( vtkMesh );
+  pol2stenc->SetOutputOrigin( origin );
+  pol2stenc->SetOutputSpacing( spacing2 );
+  pol2stenc->SetOutputWholeExtent( whiteImage->GetExtent() );
+  pol2stenc->Update();
+
+  // cut the corresponding white image and set the background:
+  vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
+  imgstenc->SetInputData( whiteImage );
+  imgstenc->SetStencilConnection( pol2stenc->GetOutputPort() );
+  imgstenc->ReverseStencilOff();
+  imgstenc->SetBackgroundValue( outval );
+  imgstenc->Update();
+
+  // Write the vtk mesh to image file.
+
+  if( outputOption && outputOption->GetNumberOfFunctions() )
+    {
+    vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
+    writer->SetFileName( outputFile.c_str() );
+    writer->SetInputData( imgstenc->GetOutput() );
+    writer->Write();
+    }
+
+  return EXIT_SUCCESS;
+}
 
 void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
@@ -557,13 +686,26 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     {
     std::string description =
       std::string( "Main input binary image for 3-D rendering.  One can also " )
-      + std::string( "set a default color value in the range [0,255]" );
+      + std::string( "set a default color value in the range [0,255]." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "surface-image" );
     option->SetShortName( 's' );
     option->SetUsageOption( 0, "surfaceImageFilename" );
     option->SetUsageOption( 1, "[surfaceImageFilename,<defaultColor=255x255x255>]" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "The user can also specify a vtk polydata file to be converted " )
+      + std::string( "to a binary image." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "mesh" );
+    option->SetShortName( 'm' );
+    option->SetUsageOption( 0, "meshFilename" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -635,13 +777,16 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 
     {
     std::string description =
-      std::string( "The output is a vtk polydata file which can be viewed in programs " )
-      + std::string( "such as Paraview." );
+      std::string( "Given a binary image input, the output is a vtk polydata file (possible " )
+      + std::string( "extensions include .stl, .ply, and .vtk). " )
+      + std::string( "Alternatively, if a mesh file is specified as input, the output  " )
+      + std::string( "is an itk binary image." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "output" );
     option->SetShortName( 'o' );
-    option->SetUsageOption( 0, "surface.vtk" );
+    option->SetUsageOption( 0, "surfaceFilename" );
+    option->SetUsageOption( 1, "imageFilename[spacing]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
@@ -717,7 +862,8 @@ private:
   parser->SetCommand( argv[0] );
 
   std::string commandDescription =
-    std::string( "Produce a 3-D surface rendering with optional RGB overlay." );
+    std::string( "Produce a 3-D surface rendering with optional RGB overlay.  Alternatively, " )
+     + std::string( "one can input a mesh which can then be converted to a binary image. " );
 
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
@@ -742,10 +888,12 @@ private:
 
   // Get dimensionality
 
-  std::string filename;
-
   itk::ants::CommandLineParser::OptionType::Pointer imageOption =
     parser->GetOption( "surface-image" );
+
+  itk::ants::CommandLineParser::OptionType::Pointer surfaceOption =
+    parser->GetOption( "mesh" );
+
   if( imageOption && imageOption->GetNumberOfFunctions() > 0 )
     {
     std::string inputFile;
@@ -763,7 +911,7 @@ private:
 
     if( dimension == 3 )
       {
-      antsSurf( parser );
+      antsImageToSurface( parser );
       }
     else
       {
@@ -771,9 +919,13 @@ private:
       return EXIT_FAILURE;
       }
     }
+  else if( surfaceOption && surfaceOption->GetNumberOfFunctions() > 0 )
+    {
+    antsSurfaceToImage( parser );
+    }
   else
     {
-    std::cerr << "Input surface image not specified." << std::endl;
+    std::cerr << "Input not specified.  See help menu." << std::endl;
     return EXIT_FAILURE;
     }
 
