@@ -641,7 +641,7 @@ int antsSurfaceToImage( itk::ants::CommandLineParser *parser )
   whiteImage->AllocateScalars( VTK_UNSIGNED_CHAR, 1 );
 
   // fill the image with foreground voxels:
-  unsigned char inval = 255;
+  unsigned char inval = 1;
   unsigned char outval = 0;
   vtkIdType count = whiteImage->GetNumberOfPoints();
   for( vtkIdType i = 0; i < count; ++i )
