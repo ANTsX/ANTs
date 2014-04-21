@@ -4775,15 +4775,15 @@ bool antsSCCANObject<TInputImage, TRealType>
     RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
     VectorType pproj = ( this->m_MatrixP * ptemp ); 
-    this->SparsifyOther( pproj );  // zeromatch
-    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
-      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) pproj( zm ) = 0;
+    //    this->SparsifyOther( pproj );  // zeromatch
+    //    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
+    //      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) pproj( zm ) = 0;
     pveck = pveck - this->m_MatrixP.transpose() * pproj *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
     VectorType qproj = ( this->m_MatrixQ * qtemp ); 
-    this->SparsifyOther( qproj ); // zeromatch
-    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
-      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) qproj( zm ) = 0;
+    //    this->SparsifyOther( qproj ); // zeromatch
+    //    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
+    //      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) qproj( zm ) = 0;
     qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
     if ( this->m_Covering ) 
     {
@@ -4793,13 +4793,13 @@ bool antsSCCANObject<TInputImage, TRealType>
       if ( j <= this->m_MatrixP.cols() ) 
 	{
         pveck = this->Orthogonalize( pveck, qj );
-	if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
+	//	if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
 	}
       qj = this->m_VariatesQ.get_column( j );
       if ( j <= this->m_MatrixQ.cols() )
 	{
         qveck = this->Orthogonalize( qveck, qj );
-	if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+	//	if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
 	}
       }
     }
@@ -4820,11 +4820,11 @@ bool antsSCCANObject<TInputImage, TRealType>
       VectorType qj = this->m_VariatesP.get_column( j ); 
       pproj = ( this->m_MatrixP * pveck ); // this->SparsifyOther( pproj );
       pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
-      if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
+      //      if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
       qproj = ( this->m_MatrixQ * qveck ); // this->SparsifyOther( qproj );
       qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
-      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+      //      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
     }
     if ( ( this->m_UseLongitudinalFormulation > 1.e-9 ) && ( pveck.size() == qveck.size() ) )
