@@ -350,7 +350,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
 
   // Reset mesh points to physical space of ITK images
 
-  vtkPoints* meshPoints = vtkMesh->GetPoints();
+  vtkSmartPointer<vtkPoints> meshPoints = vtkMesh->GetPoints();
   int        numberOfPoints = meshPoints->GetNumberOfPoints();
 
   for( int n = 0; n < numberOfPoints; n++ )
@@ -556,24 +556,33 @@ int antsSurfaceToImage( itk::ants::CommandLineParser *parser )
   itk::ants::CommandLineParser::OptionType::Pointer surfaceOption =
     parser->GetOption( "mesh" );
 
-  vtkPolyData *vtkMesh;
+  vtkSmartPointer<vtkPolyData> vtkMesh;
 
   std::string inputFile;
   if( surfaceOption && surfaceOption->GetNumberOfFunctions() > 0 )
     {
     inputFile = surfaceOption->GetFunction( 0 )->GetName();
+    try
+      {
+      vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+      reader->SetFileName( inputFile.c_str() );
+      reader->Update();
+      vtkMesh = reader->GetOutput();
+      }
+    catch( ... )
+      {
+      std::cerr << "Error.  Unable to read mesh input file." << std::endl;
+      return EXIT_FAILURE;
+      }
     }
-  try
+  else
     {
-    vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-    reader->SetFileName( inputFile.c_str() );
-    vtkMesh = reader->GetOutput();
-    }
-  catch( ... )
-    {
-    std::cerr << "Error.  Unable to read mesh input file." << std::endl;
+    std::cerr << "No mesh file specified." << std::endl;
     return EXIT_FAILURE;
     }
+
+  double bounds[6];
+  vtkMesh->GetBounds( bounds );
 
   std::string outputFile;
   std::vector<double> spacing;
@@ -601,8 +610,7 @@ int antsSurfaceToImage( itk::ants::CommandLineParser *parser )
     }
 
   vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
-  double bounds[6];
-  vtkMesh->GetBounds( bounds );
+
   double spacing2[3]; // desired volume spacing
   if( spacing.size() == 1 )
     {
