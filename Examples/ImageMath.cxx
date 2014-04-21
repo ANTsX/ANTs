@@ -12134,6 +12134,58 @@ int PureTissueN4WeightMask( int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
+
+template <unsigned int ImageDimension>
+int SmoothImage(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  float       sigma = 1.0;
+  if( argc > argct )
+    {
+    sigma = atof(argv[argct]);
+    }
+  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer varimage = NULL;
+  ReadImage<ImageType>(image1, fn1.c_str() );
+  RealType     spacingsize = 0;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    RealType sp = image1->GetSpacing()[d];
+    spacingsize += sp * sp;
+    }
+  spacingsize = sqrt( spacingsize );
+  typedef itk::GradientAnisotropicDiffusionImageFilter< ImageType,
+							ImageType > FilterType;
+  typename FilterType::Pointer filter = FilterType::New();
+  filter->SetInput( image1 );
+  filter->SetNumberOfIterations( sigma );
+  TRealType mytimestep = spacingsize / vcl_pow( 2 , ImageDimension+1 );
+  filter->SetTimeStep( mytimestep );
+  filter->SetConductanceParameter( 1.0 ); // might need to change this
+  filter->Update();
+  varimage = filter->GetOutput();
+  WriteImage<ImageType>( varimage, outname.c_str() );
+  return EXIT_SUCCESS;
+}
+
+
 template <unsigned int ImageDimension>
 int Check3TissueLabeling( int argc, char *argv[] )
 {
@@ -13623,6 +13675,10 @@ private:
         {
         SmoothImage<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "PeronaMalik") == 0 )
+        {
+        PMSmoothImage<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
         {
         MorphImage<2>(argc, argv);
@@ -14016,6 +14072,10 @@ private:
       else if( strcmp(operation.c_str(), "G") == 0 )
         {
         SmoothImage<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PeronaMalik") == 0 )
+        {
+        PMSmoothImage<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
         {
@@ -14500,6 +14560,10 @@ private:
       else if( strcmp(operation.c_str(), "G") == 0 )
         {
         SmoothImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "PeronaMalik") == 0 )
+        {
+        PMSmoothImage<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
         {
