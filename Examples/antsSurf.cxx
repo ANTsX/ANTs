@@ -6,7 +6,9 @@
 #include "itkAntiAliasBinaryImageFilter.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
+#include "vtkSTLReader.h"
 #include "vtkSTLWriter.h"
+#include "vtkPLYReader.h"
 #include "vtkPLYWriter.h"
 #include "itkImageToVTKImageFilter.h"
 
@@ -562,12 +564,30 @@ int antsSurfaceToImage( itk::ants::CommandLineParser *parser )
   if( surfaceOption && surfaceOption->GetNumberOfFunctions() > 0 )
     {
     inputFile = surfaceOption->GetFunction( 0 )->GetName();
+    std::string ext = itksys::SystemTools::GetFilenameExtension( inputFile );
     try
       {
-      vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
-      reader->SetFileName( inputFile.c_str() );
-      reader->Update();
-      vtkMesh = reader->GetOutput();
+      if( strcmp( ext.c_str(), ".stl" ) == 0 )
+        {
+        vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
+        reader->SetFileName( inputFile.c_str() );
+        reader->Update();
+        vtkMesh = reader->GetOutput();
+        }
+      if( strcmp( ext.c_str(), ".ply" ) == 0 )
+        {
+        vtkSmartPointer<vtkPLYReader> reader = vtkSmartPointer<vtkPLYReader>::New();
+        reader->SetFileName( inputFile.c_str() );
+        reader->Update();
+        vtkMesh = reader->GetOutput();
+        }
+      if( strcmp( ext.c_str(), ".vtk" ) == 0 )
+        {
+        vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
+        reader->SetFileName( inputFile.c_str() );
+        reader->Update();
+        vtkMesh = reader->GetOutput();
+        }
       }
     catch( ... )
       {
