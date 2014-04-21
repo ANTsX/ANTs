@@ -12136,7 +12136,7 @@ int PureTissueN4WeightMask( int argc, char *argv[] )
 
 
 template <unsigned int ImageDimension>
-int SmoothImage(int argc, char *argv[])
+int PMSmoothImage(int argc, char *argv[])
 {
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
@@ -12164,10 +12164,10 @@ int SmoothImage(int argc, char *argv[])
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer varimage = NULL;
   ReadImage<ImageType>(image1, fn1.c_str() );
-  RealType     spacingsize = 0;
+  PixelType     spacingsize = 0;
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
-    RealType sp = image1->GetSpacing()[d];
+    PixelType sp = image1->GetSpacing()[d];
     spacingsize += sp * sp;
     }
   spacingsize = sqrt( spacingsize );
@@ -12176,7 +12176,7 @@ int SmoothImage(int argc, char *argv[])
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image1 );
   filter->SetNumberOfIterations( sigma );
-  TRealType mytimestep = spacingsize / vcl_pow( 2 , ImageDimension+1 );
+  PixelType mytimestep = spacingsize / vcl_pow( 2 , ImageDimension+1 );
   filter->SetTimeStep( mytimestep );
   filter->SetConductanceParameter( 1.0 ); // might need to change this
   filter->Update();
