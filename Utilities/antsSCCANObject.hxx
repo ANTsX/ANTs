@@ -3133,8 +3133,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int orth = startingm; orth < maxorth; orth++ )
       {
       VectorType zv = this->m_VariatesP.get_column( orth );
-      if ( this->m_Covering ) evec = this->Orthogonalize( evec, zv );
-      //      if ( this->m_Covering ) this->ZeroProduct( evec,  zv );
+      evec = this->Orthogonalize( evec, zv );
+      if ( this->m_Covering ) this->ZeroProduct( evec,  zv );
       /** alternative --- orthogonalize in n-space 
       VectorType v = A * this->m_VariatesP.get_column( orth );
       RealType ip1 = inner_product( A * evec,  v );
@@ -3152,7 +3152,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       rayquo = inner_product( proj, proj  ) / denom; // - gradvec.two_norm() / gradvec.size() * 1.e2 ;
       }
-    if( rayquo > bestrayquo  ||  powerits ==  0  )
+    if( rayquo > bestrayquo )
       {
       bestevec = evec;
       bestrayquo = rayquo;
