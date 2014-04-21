@@ -384,7 +384,7 @@ antsSCCANObject<TInputImage, TRealType>
 ::SpatiallySmoothVector( typename antsSCCANObject<TInputImage, TRealType>::VectorType vec,
                          typename TInputImage::Pointer mask, bool surface  )
 {
-  if( mask.IsNull() || this->m_Smoother < 1.e-9 )
+  if( mask.IsNull() || vnl_math_abs( this->m_Smoother ) < 1.e-9 )
     {
     return vec;
     } 
@@ -3115,7 +3115,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType     relfac = 1.0;
   VectorType di;
   while(  ( ( rayquo > bestrayquo ) && ( powerits < maxits ) )  || powerits < 2 )
-  //  while ( ( relfac > 1.e-4  )  && ( powerits < maxits ) )
+  // while ( ( relfac > 1.e-4  )  && ( powerits < maxits ) )
     {
     VectorType nvec = At * proj;
     RealType gamma = 0.1;
@@ -3133,15 +3133,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int orth = startingm; orth < maxorth; orth++ )
       {
       VectorType zv = this->m_VariatesP.get_column( orth );
-      evec = this->Orthogonalize( evec, zv );
-      if ( this->m_Covering ) this->ZeroProduct( evec,  zv );
+      if ( this->m_Covering ) evec = this->Orthogonalize( evec, zv );
+      //      if ( this->m_Covering ) this->ZeroProduct( evec,  zv );
       /** alternative --- orthogonalize in n-space 
       VectorType v = A * this->m_VariatesP.get_column( orth );
       RealType ip1 = inner_product( A * evec,  v );
       RealType ip2 = inner_product( v, v );
       //      evec = evec - this->m_VariatesP.get_column( orth ) * ip1 / ip2;*/
       }
-    this->SparsifyP( evec  );
+    this->SparsifyP( evec );
     if( evec.two_norm() > 0 )
       {
       evec = evec / evec.two_norm();
@@ -3152,8 +3152,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       rayquo = inner_product( proj, proj  ) / denom; // - gradvec.two_norm() / gradvec.size() * 1.e2 ;
       }
-    powerits++;
-    if( rayquo > bestrayquo )
+    if( rayquo > bestrayquo  ||  powerits ==  0  )
       {
       bestevec = evec;
       bestrayquo = rayquo;
@@ -3163,9 +3162,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       relfac *= 0.9;
       evec = bestevec;
       }
+    powerits++;
     }
+  std::cout << "rayleigh-quotient: " << bestrayquo << " in " << powerits << " num " << maxorth << " fnz " << this->CountNonZero( evec ) << std::endl;
   evecin = bestevec;
-  std::cout << "rayleigh-quotient: " << bestrayquo << " in " << powerits << " num " << maxorth << " fnz " << this->m_FractionNonZeroP << std::endl;
   return bestrayquo;
 }
 

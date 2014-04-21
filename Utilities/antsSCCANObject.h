@@ -817,14 +817,12 @@ protected:
   void SparsifyP( VectorType& x_k1 )
   {
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroP  );
-
     this->Sparsify( x_k1, fnp, this->m_KeepPositiveP, this->m_MinClusterSizeP, this->m_MaskImageP);
   }
 
   void SparsifyQ( VectorType& x_k1 )
   {
     RealType fnp = vnl_math_abs( this->m_FractionNonZeroQ  );
-
     this->Sparsify( x_k1, fnp, this->m_KeepPositiveQ, this->m_MinClusterSizeQ, this->m_MaskImageQ);
   }
 
@@ -862,12 +860,11 @@ protected:
     unsigned int its = 0;
     RealType     fnm = 0;
     RealType     lastfnm = 1;
-    while( ( ( eng > 1.e-3 )  &&
-             ( vnl_math_abs( high - low ) > 1.e-3  )  &&
-             ( its < 25 ) &&
-             ( vnl_math_abs( fnm - lastfnm ) > 1.e-8  ) )
-           || its < 5
-           )
+    while( ( ( eng > 5.e-3 )  &&
+             ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
+             ( its < 50 ) ) || 
+	     its < 5  
+	 )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
@@ -875,6 +872,7 @@ protected:
       searcherm = this->SpatiallySmoothVector( searcherm, mask );
       lastfnm = fnm;
       fnm = this->CountNonZero( searcherm );
+      //      if ( mask ) std::cout <<" its " << its << " spar " << fnm << " low " << low << " mid " << mid << " high " << high << " eng " << eng << std::endl;
       if( fnm > fnp )
         {
         low = mid;
@@ -884,7 +882,6 @@ protected:
         high = mid;
         }
       eng = vnl_math_abs( fnp - fnm );
-      //      if ( mask ) std::cout <<" its " << its << " spar " << fnm << " initmax " << initmax << std::endl;
       its++;
       }
 
