@@ -947,10 +947,15 @@ protected:
     return (RealType)ct / (RealType)v.size();
   }
 
+  bool Close2Zero( RealType x ) 
+  {
+    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < this->m_Epsilon ) return true;
+    return false;
+  }
+
   RealType PearsonCorr(VectorType v1, VectorType v2 )
   {
     double xysum = 0;
-
     for( unsigned int i = 0; i < v1.size(); i++ )
       {
       xysum += v1(i) * v2(i);

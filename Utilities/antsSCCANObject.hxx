@@ -36,6 +36,7 @@
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkSurfaceImageCurvature.h"
 #include "itkImageFileWriter.h"
+#include "itkGradientAnisotropicDiffusionImageFilter.h"
 
 namespace itk
 {
@@ -390,6 +391,27 @@ antsSCCANObject<TInputImage, TRealType>
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
   typename TInputImage::SizeType dim =
     mask->GetLargestPossibleRegion().GetSize();
+  RealType     spacingsize = 0;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    RealType sp = mask->GetSpacing()[d];
+    spacingsize += sp * sp;
+    }
+  spacingsize = sqrt( spacingsize );
+  if ( this->m_Smoother  < 0.0  )  
+    {
+    typedef itk::GradientAnisotropicDiffusionImageFilter< TInputImage,
+      TInputImage > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetInput( image );
+    filter->SetNumberOfIterations( vnl_math_abs( this->m_Smoother ) );
+    TRealType mytimestep = spacingsize / vcl_pow( 2 , ImageDimension+1 );
+    filter->SetTimeStep( mytimestep );
+    filter->SetConductanceParameter( 1.0 ); // might need to change this
+    filter->Update();
+    VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
+    return gradvec;
+    }
   if ( ( surface )  && ( dim[2] == 3 ) )
     {
   unsigned int sigma = ( unsigned int ) this->m_Smoother;
@@ -414,13 +436,6 @@ antsSCCANObject<TInputImage, TRealType>
     }
   else 
     {
-      RealType     spacingsize = 0;
-      for( unsigned int d = 0; d < ImageDimension; d++ )
-	{
-	  RealType sp = mask->GetSpacing()[d];
-	  spacingsize += sp * sp;
-	}
-      spacingsize = sqrt( spacingsize );
       typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
       typename dgf::Pointer filter = dgf::New();
       filter->SetUseImageSpacingOn();
@@ -4735,18 +4750,38 @@ bool antsSCCANObject<TInputImage, TRealType>
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
     VectorType pveck = this->m_MatrixQ * qtemp;
-    this->SparsifyOther( pveck ); 
+    this->SparsifyOther( pveck ); // zeromatch
     VectorType qveck = this->m_MatrixP * ptemp;
-    this->SparsifyOther( qveck ); 
+    this->SparsifyOther( qveck ); // zeromatch
+    // get list of all zeroes
+    std::vector<TRealType> zeromatch( qveck.size(), 0);
+    unsigned int zct = 0;
+    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
+      {
+	if ( ( this->Close2Zero( pveck(zm) )  ||  
+	       this->Close2Zero( qveck(zm) ) ) && ( false ) ) 
+	{ 
+	zct++;
+        zeromatch[ zm ] = 1;
+	pveck(zm) = 0;
+	qveck(zm) = 0;
+	}
+      }
     /** the gradient of     ( x X ,  y Y ) * ( x X , x X )^{-1}  * ( y Y  , y Y )^{-1}
      *  where we constrain ( x X , x X ) = ( y Y , y Y ) = 1
      */
     RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
-    VectorType pproj = ( this->m_MatrixP * ptemp ); // this->SparsifyOther( pproj );
+    VectorType pproj = ( this->m_MatrixP * ptemp ); 
+    this->SparsifyOther( pproj );  // zeromatch
+    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
+      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) pproj( zm ) = 0;
     pveck = pveck - this->m_MatrixP.transpose() * pproj *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
-    VectorType qproj = ( this->m_MatrixQ * qtemp ); // this->SparsifyOther( qproj );
+    VectorType qproj = ( this->m_MatrixQ * qtemp ); 
+    this->SparsifyOther( qproj ); // zeromatch
+    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
+      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) qproj( zm ) = 0;
     qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
     if ( this->m_Covering ) 
     {
