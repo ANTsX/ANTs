@@ -4914,7 +4914,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   /** get the row mean for each matrix , then correlate the other matrix with that, then sparsify
    *  for 2nd,3rd,etc evecs, orthogonalize initial vector against sparsified.
    */
-  this->InitializeSCCA( n_vecs , 20 );// arbitrary initialization
+  //  this->InitializeSCCA( n_vecs , 20 );// arbitrary initialization
   RealType totalcorr = 0;
   unsigned int pmax = this->m_MatrixP.rows(); 
   unsigned int qmax = this->m_MatrixQ.rows(); 
