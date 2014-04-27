@@ -5214,6 +5214,10 @@ int ImageMath(int argc, char *argv[])
       {
       result = exp(pix1 * pix2);
       }
+    else if( strcmp(operation.c_str(), "max") == 0 )
+      {
+      result = vnl_math_max( pix1, pix2 );
+      }
     else if( strcmp(operation.c_str(), "abs") == 0 )
       {
       result = fabs(pix1);
@@ -13116,6 +13120,7 @@ private:
     std::cout << "  -             : Subtract ---  use v- for vector subtract " << std::endl;
     std::cout << "  /             : Divide" << std::endl;
     std::cout << "  ^            : Power" << std::endl;
+    std::cout << "  max            : voxelwise max" << std::endl;
     std::cout << "  exp            : Take exponent exp(imagevalue*value)" << std::endl;
     std::cout << "  addtozero        : add image-b to image-a only over points where image-a has zero values"
               << std::endl;
@@ -13641,6 +13646,10 @@ private:
         {
         ImageMath<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "max") == 0 )
+        {
+        ImageMath<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "abs") == 0 )
         {
         ImageMath<2>(argc, argv);
@@ -14036,6 +14045,10 @@ private:
         ImageMath<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "exp") == 0 )
+        {
+        ImageMath<3>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "max") == 0 )
         {
         ImageMath<3>(argc, argv);
         }
@@ -14526,6 +14539,10 @@ private:
       else if( strcmp(operation.c_str(), "exp") == 0 )
         {
         ImageMath<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "max") == 0 )
+        {
+        ImageMath<3>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "abs") == 0 )
         {
