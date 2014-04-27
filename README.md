@@ -202,6 +202,8 @@ Learning about ANTs
 
 **MALF labeling example**[example](https://github.com/ntustison/MalfLabelingExample)
 
+**"Cooking" tissue priors for templates**[example](https://github.com/ntustison/antsCookTemplatePriorsExample)
+
 **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
 
 **ANTs** [google scholar page](http://scholar.google.com/citations?user=ox-mhOkAAAAJ&hl=en)
