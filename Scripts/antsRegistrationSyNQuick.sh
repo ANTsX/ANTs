@@ -458,7 +458,7 @@ case "$PRECISIONTYPE" in
 esac
 
 COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
-                 --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz] \
+                 --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
                  --interpolation Linear \
                  --winsorize-image-intensities [0.005,0.995] \
                  $STAGES"
