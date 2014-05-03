@@ -2,7 +2,7 @@
 Advanced Normalization Tools 
 ============================
 
-Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/)
+Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/)
 
  Email: [antsr.me at gmail dot com](mailto:antsr.me@gmail.com)
 
