@@ -122,7 +122,7 @@ function logCmd() {
   exec 5>&1
   logCmdOutput=$( $cmd | tee >(cat - >&5) )
 
-  cmdExit=$?
+  cmdExit=${PIPESTATUS[0]}
 
   if [[ $cmdExit -gt 0 ]];
     then
