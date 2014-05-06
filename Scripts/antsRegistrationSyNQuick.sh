@@ -419,12 +419,28 @@ SYNSTAGE="${SYNMETRICS} \
           --shrink-factors $SYNSHRINKFACTORS \
           --smoothing-sigmas $SYNSMOOTHINGSIGMAS"
 
+if [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'br' ]];
+  then
+    SYNCONVERGENCE="[50x0,1e-6,10]"
+    SYNSHRINKFACTORS="2x1"
+    SYNSMOOTHINGSIGMAS="1x0vox"
+          SYNSTAGE="${SYNMETRICS} \
+          --convergence $SYNCONVERGENCE \
+          --shrink-factors $SYNSHRINKFACTORS \
+          --smoothing-sigmas $SYNSMOOTHINGSIGMAS"
+  fi
+
 if [[ $TRANSFORMTYPE == 'b' ]] || [[ $TRANSFORMTYPE == 'br' ]];
   then
     SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
              $SYNSTAGE"
   fi
-if [[ $TRANSFORMTYPE == 's' ]] || [[ $TRANSFORMTYPE == 'sr' ]];
+if [[ $TRANSFORMTYPE == 's' ]] ;
+  then
+    SYNSTAGE="--transform SyN[0.1,3,0] \
+             $SYNSTAGE"
+  fi
+if [[ $TRANSFORMTYPE == 'sr' ]] ;
   then
     SYNSTAGE="--transform SyN[0.1,3,0] \
              $SYNSTAGE"
