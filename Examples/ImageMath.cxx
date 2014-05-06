@@ -12180,8 +12180,8 @@ int PMSmoothImage(int argc, char *argv[])
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image1 );
   filter->SetNumberOfIterations( sigma );
-  PixelType mytimestep = spacingsize / vcl_pow( 2 , ImageDimension+1 );
-  PixelType reftimestep = 0.9 / vcl_pow( 2 , ImageDimension+1 );
+  PixelType mytimestep = spacingsize / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
+  PixelType reftimestep = 0.9 / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
   if ( mytimestep > reftimestep ) mytimestep = reftimestep;
   filter->SetTimeStep( mytimestep );
   filter->SetConductanceParameter( 1.0 ); // might need to change this
