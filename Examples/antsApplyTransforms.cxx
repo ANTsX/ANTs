@@ -1,4 +1,4 @@
-#include "antsUtilities.h"
+nclude "antsUtilities.h"
 #include "antsAllocImage.h"
 #include "itkantsRegistrationHelper.h"
 #include "ReadWriteImage.h"
@@ -524,11 +524,14 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         typename TimeSeriesImageType::SizeType size = timeSeriesImage->GetLargestPossibleRegion().GetSize();
         typename TimeSeriesImageType::DirectionType direction = timeSeriesImage->GetDirection();
         typename TimeSeriesImageType::IndexType index = timeSeriesImage->GetLargestPossibleRegion().GetIndex();
+        typename TimeSeriesImageType::SpacingType spacing = timeSeriesImage->GetSpacing();
+
         for( unsigned int i = 0; i < Dimension; i++ )
           {
           origin[i] = referenceImage->GetOrigin()[i];
           size[i] = referenceImage->GetRequestedRegion().GetSize()[i];
           index[i] = referenceImage->GetRequestedRegion().GetIndex()[i];
+          spacing[i] = referenceImage->GetSpacing()[i];
           for( unsigned int j = 0; j < Dimension; j++ )
             {
             direction[i][j] = referenceImage->GetDirection()[i][j];
@@ -544,6 +547,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
         outputTimeSeriesImage->CopyInformation( timeSeriesImage );
         outputTimeSeriesImage->SetOrigin( origin );
         outputTimeSeriesImage->SetDirection( direction );
+        outputTimeSeriesImage->SetSpacing( spacing );
         outputTimeSeriesImage->SetRegions( region );
         outputTimeSeriesImage->Allocate();
         outputTimeSeriesImage->FillBuffer( 0 );
@@ -1009,3 +1013,4 @@ private:
 }
 
 } // namespace ants
+
