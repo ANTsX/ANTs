@@ -67,7 +67,9 @@ Optional arguments:
         r: rigid
         a: rigid + affine
         s: rigid + affine + deformable syn
+        sr: rigid + deformable syn
         b: rigid + affine + deformable b-spline syn
+        br: rigid +  deformable b-spline syn
 
      -r:  radius for cross correlation metric used during SyN stage (default = 4)
 
