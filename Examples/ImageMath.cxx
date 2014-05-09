@@ -12273,13 +12273,14 @@ int InPaint(int argc, char *argv[])
       PixelType delt = ( locPoint[d] - centerPoint[d] );
       val += delt * delt;
       }
-    if ( sqrt( val ) > inpow ) val = 0;
+    PixelType distval = sqrt( val );
+    if ( distval > inpow ) val = 1.e8;
     if ( val > 0 ) 
       { 
       imageIterator.Set( 1.0 / val );
       totalval += imageIterator.Get( );
       }
-    if ( ct2 == static_cast<unsigned int>( vcl_floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 0 );
+    if ( ct2 == static_cast<unsigned int>( vcl_floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
     ++ct2;
     ++imageIterator;
     }
