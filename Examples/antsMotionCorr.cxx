@@ -763,7 +763,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         std::cout << " setting moving direction matrix to equal fixed matrix " << std::endl;
         std::cout << " WARNING END!" << std::endl;
         std::cout <<  std::endl;
-        moving_time_slice->SetDirection(  fixed_time_slice->GetDirection()  );
+	//        moving_time_slice->SetDirection(  fixed_time_slice->GetDirection()  );
         }
 
       typename FixedImageType::Pointer preprocessFixedImage =
