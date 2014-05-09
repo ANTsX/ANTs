@@ -12216,11 +12216,25 @@ int InPaint(int argc, char *argv[])
   float       sigma = 1.0;
   if( argc > argct )
     {
-    sigma = atof(argv[argct]);
+    sigma = atof(argv[argct]); argct++;
     }
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer varimage = NULL;
   ReadImage<ImageType>(image1, fn1.c_str() );
+  PixelType     spacingsize = 0;
+  PixelType     minsp = image1->GetSpacing()[0];
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    PixelType sp = image1->GetSpacing()[d];
+    if ( sp < minsp ) minsp = sp;
+    spacingsize += sp * sp;
+    }
+  spacingsize = sqrt( spacingsize );
+  float       inpow = spacingsize * 2.0;
+  if( argc > argct )
+    {
+    inpow = atof(argv[argct]); argct++;
+    }
   // # 1 job - create a kernel 
   typename ImageType::Pointer kernel = ImageType::New();
   typename ImageType::IndexType start;
@@ -12259,6 +12273,7 @@ int InPaint(int argc, char *argv[])
       PixelType delt = ( locPoint[d] - centerPoint[d] );
       val += delt * delt;
       }
+    if ( sqrt( val ) > inpow ) val = 0;
     if ( val > 0 ) 
       { 
       imageIterator.Set( 1.0 / val );
@@ -12674,8 +12689,8 @@ int BlobDetector( int argc, char *argv[] )
   // sensitive parameters are set here - begin
   RealType     gradsig = 1.0;      // sigma for gradient filter
   unsigned int stepsperoctave = 4; // number of steps between doubling of scale
-  RealType     minscale = vcl_pow( 1.0, 1 );
-  RealType     maxscale = vcl_pow( 2.0, 8 );
+  RealType     minscale = vcl_pow( 1.0, 1.0 );
+  RealType     maxscale = vcl_pow( 2.0, 8.0 );
   RealType     uniqfeat_thresh = 0.01;
   RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   bool         dosinkhorn = false;
