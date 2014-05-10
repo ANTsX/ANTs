@@ -409,7 +409,7 @@ antsSCCANObject<TInputImage, TRealType>
     TRealType reftimestep = 0.9 / vcl_pow( 2.0 , (double)(ImageDimension+1) );
     if ( mytimestep > reftimestep ) mytimestep = reftimestep;
     filter->SetTimeStep( mytimestep );
-    filter->SetConductanceParameter( 1.0 ); // might need to change this
+    filter->SetConductanceParameter( 0.25 ); // might need to change this
     filter->Update();
     VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
     return gradvec;
