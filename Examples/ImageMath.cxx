@@ -253,6 +253,48 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+void RemoveSmallValuesFromHeaderMatrix(int argc, char *argv[])
+{
+  if( argc < 4 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;
+    }
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
+  typedef double RealType;
+  typedef itk::Matrix<RealType, ImageDimension, ImageDimension>                           MatrixType;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  typename ImageType::Pointer image1 = NULL;
+  ReadImage<ImageType>( image1, fn1.c_str() );
+  MatrixType A_solution = image1->GetDirection();
+  //  vnl_svd<RealType>    nearestorth( image1->GetDirection().GetVnlMatrix() );
+  //  vnl_matrix<RealType> A_solution = nearestorth.V() * nearestorth.U().transpose();
+  MatrixType mydir;
+  for ( unsigned int d = 0; d < ImageDimension; d++ )
+    for ( unsigned int dd = 0; dd < ImageDimension; dd++ )
+      {
+      RealType v = A_solution(d,dd);
+      if ( vnl_math_abs( v ) < 1.e-8 ) v = 0;
+      mydir(d,dd) = v;
+      }
+  image1->SetDirection( mydir );
+  WriteImage<ImageType>( image1, outname.c_str() );
+  return;
+}
+
+
+template <unsigned int ImageDimension>
 void ReflectionMatrix(int argc, char *argv[])
 {
   if( argc < 4 )
@@ -13579,6 +13621,8 @@ private:
     std::cout << "  ReflectionMatrix : Create a reflection matrix about an axis" << std::endl;
     std::cout << " out.mat ReflectionMatrix axis " << std::endl << std::endl;
 
+    std::cout << "  RemoveSmallValuesFromHeaderMatrix : does what it says ... image-in, image-out" << std::endl;
+
     std::cout << "  Byte            : Convert to Byte image in [0,255]" << std::endl;
 
     std::cout
@@ -14005,6 +14049,10 @@ private:
         {
         ReflectionMatrix<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "RemoveSmallValuesFromHeaderMatrix") == 0 )
+        {
+	RemoveSmallValuesFromHeaderMatrix<2>(argc, argv);
+	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<2>(argc, argv);
@@ -14411,6 +14459,10 @@ private:
         {
         ReflectionMatrix<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "RemoveSmallValuesFromHeaderMatrix") == 0 )
+        {
+	RemoveSmallValuesFromHeaderMatrix<3>(argc, argv);
+	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<3>(argc, argv);
@@ -14911,6 +14963,10 @@ private:
         {
         ReflectionMatrix<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "RemoveSmallValuesFromHeaderMatrix") == 0 )
+        {
+	RemoveSmallValuesFromHeaderMatrix<4>(argc, argv);
+	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<4>(argc, argv);
