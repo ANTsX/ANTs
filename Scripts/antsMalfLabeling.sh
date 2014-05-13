@@ -401,7 +401,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
     IMG_BASE=`basename ${ATLAS_IMAGES[$i]}`
     BASENAME=` echo ${IMG_BASE} | cut -d '.' -f 1 `
     regcall=${ANTSPATH}/antsRegistrationSyN.sh
-    if [[ $RUNQUICK -eq 1 ]];
+    if [[ $RUNQUICK -eq 1 ]]; then
       regcall=${ANTSPATH}/antsRegistrationSyNQuick.sh
     fi
     registrationCall="$regcall \
