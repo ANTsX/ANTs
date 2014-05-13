@@ -255,8 +255,9 @@ TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 CCRADIUS=32
 
+USEHISTOGRAMMATCHING=0
 # reading command line arguments
-while getopts "d:f:h:m:n:o:p:r:s:t:" OPT
+while getopts "d:f:h:m:j:n:o:p:r:s:t:" OPT
   do
   case $OPT in
       h) #help
@@ -265,6 +266,9 @@ while getopts "d:f:h:m:n:o:p:r:s:t:" OPT
    ;;
       d)  # dimensions
    DIM=$OPTARG
+   ;;      
+      j)  # histogram matching
+   USEHISTOGRAMMATCHING=$OPTARG
    ;;
       f)  # fixed image
    FIXEDIMAGES[${#FIXEDIMAGES[@]}]=$OPTARG
@@ -483,6 +487,7 @@ esac
 COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
                  --interpolation Linear \
+                 --use-histogram-matching ${USEHISTOGRAMMATCHING} \
                  --winsorize-image-intensities [0.005,0.995] \
                  $STAGES"
 
