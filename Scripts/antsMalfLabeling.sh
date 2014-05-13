@@ -95,6 +95,8 @@ Optional arguments:
 
      -j: Number of cpu cores to use (default 2; -- requires "-c 2")
 
+     -q: Use quick parameters (default 0)
+
 Example:
 
 `basename $0` -d 3 -t target.nii.gz -o malf \
@@ -162,6 +164,8 @@ Optional arguments:
 
      -j: Number of cpu cores to use (default 2; -- requires "-c 2")
 
+     -q: Use quick parameters ( either 0 or 1 )
+
 Requirements:
 
 This scripts relies on the following scripts in your $ANTSPATH directory. The script
@@ -172,6 +176,7 @@ will terminate prematurely if these files are not present or are not executable.
 - ANTSpexec.sh (only for use with localhost parallel execution)
 - waitForXGridJobs.pl (only for use with Apple XGrid)
 - antsRegistrationSyN.sh
+- antsRegistrationSyNQuick.sh ( quick parameters )
 
 --------------------------------------------------------------------------------------
 Get the latest ANTS version at:
@@ -292,7 +297,7 @@ if [[ "$1" == "-h" ]];
   fi
 
 # reading command line arguments
-while getopts "c:d:g:h:j:k:l:o:t:" OPT
+while getopts "c:d:g:h:j:k:l:o:t:q:" OPT
   do
   case $OPT in
       h) #help
@@ -323,6 +328,9 @@ while getopts "c:d:g:h:j:k:l:o:t:" OPT
    ;;
       k)
    KEEP_ALL_IMAGES=$OPTARG
+   ;;
+      q)
+   RUNQUICK=$OPTARG
    ;;
       l)
    ATLAS_LABELS[${#ATLAS_LABELS[@]}]=$OPTARG
@@ -391,8 +399,11 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
   do
     IMG_BASE=`basename ${ATLAS_IMAGES[$i]}`
     BASENAME=` echo ${IMG_BASE} | cut -d '.' -f 1 `
-
-    registrationCall="${ANTSPATH}/antsRegistrationSyN.sh \
+    regcall=${ANTSPATH}/antsRegistrationSyN.sh
+    if [[ $RUNQUICK -eq 1 ]];
+      regcall=${ANTSPATH}/antsRegistrationSyNQuick.sh
+    fi
+    registrationCall="$regcall \
                           -d ${DIM} \
                           -p f \
                           -j 1 \
