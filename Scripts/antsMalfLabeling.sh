@@ -296,6 +296,7 @@ if [[ "$1" == "-h" ]];
     Help >&2
   fi
 
+RUNQUICK=0
 # reading command line arguments
 while getopts "c:d:g:h:j:k:l:o:t:q:" OPT
   do
