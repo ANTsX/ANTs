@@ -253,7 +253,7 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
-void RemoveSmallValuesFromHeaderMatrix(int argc, char *argv[])
+void ClosestSimplifiedHeaderMatrix(int argc, char *argv[])
 {
   if( argc < 4 )
     {
@@ -285,8 +285,9 @@ void RemoveSmallValuesFromHeaderMatrix(int argc, char *argv[])
     for ( unsigned int dd = 0; dd < ImageDimension; dd++ )
       {
       RealType v = A_solution(d,dd);
-      if ( vnl_math_abs( v ) < 1.e-8 ) v = 0;
-      mydir(d,dd) = v;
+      long vlong = static_cast<long>( vnl_math_abs( v ) + 0.5 );
+      if ( v < 0 ) vlong = vlong * (-1);
+      mydir(d,dd) = static_cast<RealType>( vlong );
       }
   image1->SetDirection( mydir );
   WriteImage<ImageType>( image1, outname.c_str() );
@@ -13621,7 +13622,7 @@ private:
     std::cout << "  ReflectionMatrix : Create a reflection matrix about an axis" << std::endl;
     std::cout << " out.mat ReflectionMatrix axis " << std::endl << std::endl;
 
-    std::cout << "  RemoveSmallValuesFromHeaderMatrix : does what it says ... image-in, image-out" << std::endl;
+    std::cout << "  ClosestSimplifiedHeaderMatrix : does what it says ... image-in, image-out" << std::endl;
 
     std::cout << "  Byte            : Convert to Byte image in [0,255]" << std::endl;
 
@@ -14049,9 +14050,9 @@ private:
         {
         ReflectionMatrix<2>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "RemoveSmallValuesFromHeaderMatrix") == 0 )
+      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
         {
-	RemoveSmallValuesFromHeaderMatrix<2>(argc, argv);
+	ClosestSimplifiedHeaderMatrix<2>(argc, argv);
 	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
@@ -14459,9 +14460,9 @@ private:
         {
         ReflectionMatrix<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "RemoveSmallValuesFromHeaderMatrix") == 0 )
+      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
         {
-	RemoveSmallValuesFromHeaderMatrix<3>(argc, argv);
+	ClosestSimplifiedHeaderMatrix<3>(argc, argv);
 	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
@@ -14963,9 +14964,9 @@ private:
         {
         ReflectionMatrix<4>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "RemoveSmallValuesFromHeaderMatrix") == 0 )
+      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
         {
-	RemoveSmallValuesFromHeaderMatrix<4>(argc, argv);
+	ClosestSimplifiedHeaderMatrix<4>(argc, argv);
 	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
