@@ -135,6 +135,8 @@ Optional arguments:
         b: rigid + affine + deformable b-spline syn
         br: rigid + deformable b-spline syn
 
+     -j:  use histogram matching
+
      -r:  histogram bins for mutual information in SyN stage (default = 32)
 
      -s:  spline distance for deformable B-spline SyN transform (default = 26)
