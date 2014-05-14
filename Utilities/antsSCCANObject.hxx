@@ -405,11 +405,11 @@ antsSCCANObject<TInputImage, TRealType>
     typename FilterType::Pointer filter = FilterType::New();
     filter->SetInput( image );
     filter->SetNumberOfIterations( vnl_math_abs( this->m_Smoother ) );
-    TRealType mytimestep = spacingsize / vcl_pow( 2 , ImageDimension+1 );
-    TRealType reftimestep = 0.9 / vcl_pow( 2 , ImageDimension+1 );
+    TRealType mytimestep = spacingsize / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
+    TRealType reftimestep = 0.5 / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
     if ( mytimestep > reftimestep ) mytimestep = reftimestep;
     filter->SetTimeStep( mytimestep );
-    filter->SetConductanceParameter( 1.0 ); // might need to change this
+    filter->SetConductanceParameter( 0.25 ); // might need to change this
     filter->Update();
     VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
     return gradvec;
@@ -581,7 +581,7 @@ antsSCCANObject<TInputImage, TRealType>
     /** there is a scaling problem with the pseudoinverse --- this is a cheap fix!!
             it is based on the theoretical frobenious norm of the inverse matrix */
     MatrixType pinv = ( eig.recompose() ).transpose();
-    double     a = sqrt( (double)dd.rows() );
+    double     a = sqrt( static_cast<double>(dd.rows()) );
     double     b = (pinv * dd).frobenius_norm();
     pinv = pinv * a / b;
     return pinv;

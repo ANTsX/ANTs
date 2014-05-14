@@ -118,9 +118,11 @@ function logCmd() {
   cmd="$*"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
-  $cmd
 
-  cmdExit=$?
+  exec 5>&1
+  logCmdOutput=$( $cmd | tee >(cat - >&5) )
+
+  cmdExit=${PIPESTATUS[0]}
 
   if [[ $cmdExit -gt 0 ]];
     then
@@ -258,7 +260,7 @@ else
        ;;
           z) #debug mode
        DEBUG_MODE=$OPTARG
-       ;; 
+       ;;
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
        exit 1

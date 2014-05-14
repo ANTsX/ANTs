@@ -108,6 +108,8 @@ Optional arguments:
           3 = Apple XGrid
           4 = PBS qsub
 
+     -e   use single precision ( default 1 )
+
      -g:  Gradient step size (default 0.25): smaller in magnitude results in more
           cautious steps.
 
@@ -299,10 +301,10 @@ function shapeupdatetotemplate() {
 
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---warp each template by the resulting transforms"
-    echo "   ${WARP} -d ${dim} --float 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
+    echo "   ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
     echo "--------------------------------------------------------------------------------------"
 
-    ${WARP} -d ${dim} --float 1 -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
+    ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
 }
 
 function jobfnamepadding {
@@ -390,6 +392,7 @@ time_start=`date +%s`
 currentdir=`pwd`
 nargs=$#
 
+USEFLOAT=1
 BACKUPEACHITERATION=0
 MAXITERATIONS=100x100x70x20
 SMOOTHINGFACTORS=3x2x1x0
@@ -439,7 +442,7 @@ if [[ "$1" == "-h" ]];
   fi
 
 # reading command line arguments
-while getopts "b:c:d:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
+while getopts "b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -448,6 +451,9 @@ while getopts "b:c:d:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
    ;;
       b) #backup each iteration
    BACKUPEACHITERATION=$OPTARG
+   ;;
+      e) #float boolean
+   USEFLOAT=$OPTARG
    ;;
       c) #use SGE cluster
    DOQSUB=$OPTARG
@@ -867,7 +873,7 @@ if [[ "$RIGID" -eq 1 ]];
     for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
       do
 
-        basecall="${ANTS} -d ${DIM} --float 1 -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
 
         IMAGEMETRICSET=""
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
@@ -901,8 +907,8 @@ if [[ "$RIGID" -eq 1 ]];
             RIGID="${outdir}/rigid${i}_${j}_${IMGbase}"
             IMGbaseBASE=`basename ${IMAGESETARRAY[$i]}`
             BASENAMEBASE=` echo ${IMGbaseBASE} | cut -d '.' -f 1 `
-            exe2="$exe2 ${WARP} -d $DIM --float 1 -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]}\n"
-            pexe2="$exe2 ${WARP} -d $DIM --float 1 -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]} >> ${outdir}/job_${count}_metriclog.txt\n"
+            exe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]}\n"
+            pexe2="$exe2 ${WARP} -d $DIM --float $USEFLOAT -i ${IMAGESETARRAY[$k]} -o $RIGID -t ${outdir}/rigid${i}_0GenericAffine.mat -r ${TEMPLATES[$j]} >> ${outdir}/job_${count}_metriclog.txt\n"
           done
 
         echo -e "$exe2" >> $qscript;
@@ -1100,7 +1106,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
     for (( j = 0; j < ${#IMAGESETARRAY[@]}; j+=$NUMBEROFMODALITIES ))
       do
-        basecall="${ANTS} -d ${DIM} --float 1 -u 1 -w [0.01,0.99] -z 1"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT -u 1 -w [0.01,0.99] -z 1"
 
         IMAGEMETRICLINEARSET=''
         IMAGEMETRICSET=''
@@ -1172,14 +1178,14 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${REPAIRED},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${REPAIRED},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${REPAIRED} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
               else
                 IMAGEMETRICSET="$IMAGEMETRICSET -m ${METRIC}${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${METRICPARAMS}"
                 IMAGEMETRICLINEARSET="$IMAGEMETRICLINEARSET -m MI[${TEMPLATES[$k]},${IMAGESETARRAY[$l]},${MODALITYWEIGHTS[$k]},32,Regular,0.25]"
 
-                warpexe=" $warpexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
-                warppexe=" $warppexe ${WARP} -d ${DIM} --float 1 -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
+                warpexe=" $warpexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS}\n"
+                warppexe=" $warppexe ${WARP} -d ${DIM} --float $USEFLOAT -i ${IMAGESETARRAY[$l]} -o ${DEFORMED} -r ${TEMPLATES[$k]} ${OUTPUTTRANSFORMS} >> ${outdir}/job_${count}_metriclog.txt\n"
               fi
 
         done
