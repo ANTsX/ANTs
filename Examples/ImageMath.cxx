@@ -12230,7 +12230,7 @@ int PMSmoothImage(int argc, char *argv[])
   filter->SetInput( image1 );
   filter->SetNumberOfIterations( sigma );
   PixelType mytimestep = spacingsize / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
-  PixelType reftimestep = 0.9 / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
+  PixelType reftimestep = 0.4 / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
   if ( mytimestep > reftimestep ) mytimestep = reftimestep;
   filter->SetTimeStep( mytimestep );
   filter->SetConductanceParameter( conductance ); // might need to change this
@@ -13731,7 +13731,7 @@ private:
     std::cout << "      Usage        : InPaint #iterations" << std::endl;
 
     std::cout << "\n  PeronaMalik       : anisotropic diffusion w/varying conductance param (0.25 in example below)" << std::endl;
-    std::cout << "      Usage        : PeronaMalik #iterations 0.25 " << std::endl;
+    std::cout << "      Usage        : PeronaMalik image #iterations conductance " << std::endl;
 
     std::cout << "  Finite            : replace non-finite values with finite-value (default = 0)" << std::endl;
     std::cout << "      Usage        : Finite Image.exdt {replace-value=0}" << std::endl;
