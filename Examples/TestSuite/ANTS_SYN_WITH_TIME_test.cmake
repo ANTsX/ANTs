@@ -9,7 +9,7 @@ set(INVERSEWARP_IMAGE ${CMAKE_BINARY_DIR}/${THIS_TEST_NAME}_inversewarped.nii.gz
 
 
 add_test(NAME ${THIS_TEST_NAME} COMMAND $<TARGET_FILE:ANTS> 2
- -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0.] -r Gauss[0.5,0.1]
+ -m MSQ[${CHALF_IMAGE},${C_IMAGE},1,0] -r Gauss[0.5,0.1]
  -t SyN[1,10,0.05] -i 150x100x2x2 -o ${OUTPUT_PREFIX}
  --geodesic 1 --number-of-affine-iterations 0)
 
