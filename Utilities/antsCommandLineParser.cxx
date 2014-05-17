@@ -22,6 +22,31 @@ namespace itk
 {
 namespace ants
 {
+
+  std::string ConvertToHumanReadable(const std::string input)
+    {
+    typedef std::map<std::string,std::string> TypeMapType;
+    TypeMapType cnvtMap;
+    cnvtMap[typeid(signed char).name()] = "signed int";
+    cnvtMap[typeid(unsigned char).name()] = "unsigned int";
+    cnvtMap[typeid(signed short).name()] = "signed int";
+    cnvtMap[typeid(unsigned short).name()] = "unsigned int";
+    cnvtMap[typeid(signed int).name()] = "signed int";
+    cnvtMap[typeid(unsigned int).name()] = "unsigned int";
+    cnvtMap[typeid(signed long).name()] = "signed int";
+    cnvtMap[typeid(unsigned long).name()] = "unsigned int";
+    cnvtMap[typeid(float).name()] = "float";
+    cnvtMap[typeid(double).name()] = "double";
+    cnvtMap[typeid(std::string).name()] = "std::string";
+    cnvtMap[typeid(char *).name()] = "char *";
+
+    TypeMapType::iterator mi=cnvtMap.find(input);
+    if ( mi == cnvtMap.end() )
+      {
+      return std::string("Unmapped Type");
+      }
+    return mi->second;
+    }
 CommandLineParser
 ::CommandLineParser():
   m_LeftDelimiter  ( '[' ),

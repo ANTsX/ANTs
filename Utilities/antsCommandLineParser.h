@@ -36,6 +36,12 @@ namespace itk
 {
 namespace ants
 {
+  /**
+   * A untilty function to convert internal typeid(???).name() to
+   * the human readable equivalent format.
+   */
+  extern std::string ConvertToHumanReadable(const std::string input);
+
 /** \class CommandLineParser
     \brief Simple command line parser.
     \par
@@ -105,6 +111,7 @@ public:
    */
   void AssignStages();
 
+
   template <class TValue>
   TValue Convert( std::string optionString ) const
     {
@@ -116,9 +123,10 @@ public:
       || !( iss.peek() == EOF ) // All content parsed
     )
       {
+      std::string internalTypeName( typeid(value).name() );
       itkExceptionMacro( "ERROR: Parse error occured during command line argument processing\n"
-        << "ERROR: Unable to convert " << optionString
-        << "       to type " << typeid(value).name()  << std::endl);
+        << "ERROR: Unable to convert '" << optionString
+        << "' to type '" << internalTypeName << "' as " << ConvertToHumanReadable(internalTypeName) << std::endl);
       }
     return value;
     }
