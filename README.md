@@ -13,7 +13,7 @@ Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *n
 [Source-Code](http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/)
 (recommended)
 
-[ANTs Dashboard](http://testing.psychiatry.uiowa.edu/CDash/index.php?project=ANTS) maintained by Hans I. Johnson
+[ANTs Dashboard](http://testing.psychiatry.uiowa.edu/CDash/index.php?project=ANTS) maintained by Hans J. Johnson
 
 ANTs extracts information from complex datasets that include imaging
 ([Word Cloud](http://brianavants.files.wordpress.com/2013/05/avants_wordcloud.jpg)).
