@@ -12,7 +12,7 @@ add_test(NAME ${THIS_TEST_NAME} COMMAND $<TARGET_FILE:ANTS> 2
  -r Gauss[6,0.25]
  -t SyN[1,2,0.1] -i 191x170x90x90x10
  -m PSE[${DEVIL_IMAGE},${ANGEL_IMAGE},${DEVIL_IMAGE},${ANGEL_IMAGE},0.25,0.1,100,0,10]
- -m MSQ[${DEVIL_IMAGE},${ANGEL_IMAGE},1,0.1]
+ -m MSQ[${DEVIL_IMAGE},${ANGEL_IMAGE},0.75,1]
  -o ${OUTPUT_PREFIX}.nii.gz
  --continue-affine 0 --number-of-affine-iterations 0 --geodesic 2)
 

@@ -67,7 +67,9 @@ Optional arguments:
         r: rigid
         a: rigid + affine
         s: rigid + affine + deformable syn
+        sr: rigid + deformable syn
         b: rigid + affine + deformable b-spline syn
+        br: rigid +  deformable b-spline syn
 
      -r:  radius for cross correlation metric used during SyN stage (default = 4)
 
@@ -129,7 +131,11 @@ Optional arguments:
         r: rigid
         a: rigid + affine
         s: rigid + affine + deformable syn
+        sr: rigid + deformable syn
         b: rigid + affine + deformable b-spline syn
+        br: rigid + deformable b-spline syn
+
+     -j:  use histogram matching
 
      -r:  histogram bins for mutual information in SyN stage (default = 32)
 
@@ -251,8 +257,9 @@ TRANSFORMTYPE='s'
 PRECISIONTYPE='d'
 CCRADIUS=32
 
+USEHISTOGRAMMATCHING=0
 # reading command line arguments
-while getopts "d:f:h:m:n:o:p:r:s:t:" OPT
+while getopts "d:f:h:m:j:n:o:p:r:s:t:" OPT
   do
   case $OPT in
       h) #help
@@ -261,6 +268,9 @@ while getopts "d:f:h:m:n:o:p:r:s:t:" OPT
    ;;
       d)  # dimensions
    DIM=$OPTARG
+   ;;      
+      j)  # histogram matching
+   USEHISTOGRAMMATCHING=$OPTARG
    ;;
       f)  # fixed image
    FIXEDIMAGES[${#FIXEDIMAGES[@]}]=$OPTARG
@@ -415,12 +425,28 @@ SYNSTAGE="${SYNMETRICS} \
           --shrink-factors $SYNSHRINKFACTORS \
           --smoothing-sigmas $SYNSMOOTHINGSIGMAS"
 
-if [[ $TRANSFORMTYPE == 'b' ]];
+if [[ $TRANSFORMTYPE == 'sr' ]] || [[ $TRANSFORMTYPE == 'br' ]];
+  then
+    SYNCONVERGENCE="[50x0,1e-6,10]"
+    SYNSHRINKFACTORS="2x1"
+    SYNSMOOTHINGSIGMAS="1x0vox"
+          SYNSTAGE="${SYNMETRICS} \
+          --convergence $SYNCONVERGENCE \
+          --shrink-factors $SYNSHRINKFACTORS \
+          --smoothing-sigmas $SYNSMOOTHINGSIGMAS"
+  fi
+
+if [[ $TRANSFORMTYPE == 'b' ]] || [[ $TRANSFORMTYPE == 'br' ]];
   then
     SYNSTAGE="--transform BSplineSyN[0.1,${SPLINEDISTANCE},0,3] \
              $SYNSTAGE"
   fi
-if [[ $TRANSFORMTYPE == 's' ]];
+if [[ $TRANSFORMTYPE == 's' ]] ;
+  then
+    SYNSTAGE="--transform SyN[0.1,3,0] \
+             $SYNSTAGE"
+  fi
+if [[ $TRANSFORMTYPE == 'sr' ]] ;
   then
     SYNSTAGE="--transform SyN[0.1,3,0] \
              $SYNSTAGE"
@@ -436,6 +462,9 @@ case "$TRANSFORMTYPE" in
   ;;
 "b" | "s")
   STAGES="$RIGIDSTAGE $AFFINESTAGE $SYNSTAGE"
+  ;;
+"br" | "sr")
+  STAGES="$RIGIDSTAGE  $SYNSTAGE"
   ;;
 *)
   echo "Transform type '$TRANSFORMTYPE' is not an option.  See usage: '$0 -h 1'"
@@ -460,6 +489,7 @@ esac
 COMMAND="${ANTS} --dimensionality $DIM $PRECISION \
                  --output [$OUTPUTNAME,${OUTPUTNAME}Warped.nii.gz,${OUTPUTNAME}InverseWarped.nii.gz] \
                  --interpolation Linear \
+                 --use-histogram-matching ${USEHISTOGRAMMATCHING} \
                  --winsorize-image-intensities [0.005,0.995] \
                  $STAGES"
 

@@ -39,6 +39,7 @@
 #include "itkCompositeValleyFunction.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkConstNeighborhoodIterator.h"
+#include "itkConvolutionImageFilter.h"
 #include "itkCorrelationImageToImageMetricv4.h"
 #include "itkDiffusionTensor3D.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -250,6 +251,49 @@ int FrobeniusNormOfMatrixDifference(int argc, char *argv[])
   std::cout << diffmat.frobenius_norm() << std::endl;
   return 0;
 }
+
+template <unsigned int ImageDimension>
+void ClosestSimplifiedHeaderMatrix(int argc, char *argv[])
+{
+  if( argc < 4 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;
+    }
+  typedef float                                        PixelType;
+  typedef itk::Vector<float, ImageDimension>           VectorType;
+  typedef itk::Image<VectorType, ImageDimension>       FieldType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::ImageFileReader<ImageType>              readertype;
+  typedef itk::ImageFileWriter<ImageType>              writertype;
+  typedef typename ImageType::IndexType                IndexType;
+  typedef typename ImageType::SizeType                 SizeType;
+  typedef typename ImageType::SpacingType              SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
+  typedef double RealType;
+  typedef itk::Matrix<RealType, ImageDimension, ImageDimension>                           MatrixType;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string  fn1 = std::string(argv[argct]);   argct++;
+  typename ImageType::Pointer image1 = NULL;
+  ReadImage<ImageType>( image1, fn1.c_str() );
+  MatrixType A_solution = image1->GetDirection();
+  //  vnl_svd<RealType>    nearestorth( image1->GetDirection().GetVnlMatrix() );
+  //  vnl_matrix<RealType> A_solution = nearestorth.V() * nearestorth.U().transpose();
+  MatrixType mydir;
+  for ( unsigned int d = 0; d < ImageDimension; d++ )
+    for ( unsigned int dd = 0; dd < ImageDimension; dd++ )
+      {
+      RealType v = A_solution(d,dd);
+      long vlong = static_cast<long>( vnl_math_abs( v ) + 0.5 );
+      if ( v < 0 ) vlong = vlong * (-1);
+      mydir(d,dd) = static_cast<RealType>( vlong );
+      }
+  image1->SetDirection( mydir );
+  WriteImage<ImageType>( image1, outname.c_str() );
+  return;
+}
+
 
 template <unsigned int ImageDimension>
 void ReflectionMatrix(int argc, char *argv[])
@@ -9626,7 +9670,7 @@ int LabelStats(      int argc, char *argv[])
 
   std::ofstream logfile;
   logfile.open(outname.c_str() );
-  logfile << "x,y,z,t,label" << std::endl;
+  logfile << "x,y,z,t,label,mass,volume" << std::endl;
 
   std::sort(myLabelSet.begin(), myLabelSet.end() );
   typename LabelSetType::const_iterator it;
@@ -9698,17 +9742,16 @@ int LabelStats(      int argc, char *argv[])
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
     if( ImageDimension == 2 )
       {
-      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << ",0,0," << currentlabel << std::endl;
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << ",0,0," << currentlabel << "," << totalmass << "," << totalvolume << std::endl;
       }
     if( ImageDimension == 3 )
       {
-      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ",0," << currentlabel
-              << std::endl;
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ",0," << currentlabel << "," << totalmass << "," << totalvolume << std::endl;
       }
     if( ImageDimension == 4 )
       {
       logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ","
-              << myCenterOfMass[3] << "," << currentlabel << std::endl;
+              << myCenterOfMass[3] << "," << currentlabel << "," << totalmass << "," << totalvolume << std::endl;
       }
     labelcount++;
     }
@@ -12163,7 +12206,12 @@ int PMSmoothImage(int argc, char *argv[])
   float       sigma = 1.0;
   if( argc > argct )
     {
-    sigma = atof(argv[argct]);
+    sigma = atof(argv[argct]); argct++;
+    }
+  float       conductance = 0.25;
+  if( argc > argct )
+    {
+    conductance = atof(argv[argct]); argct++;
     }
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer varimage = NULL;
@@ -12180,16 +12228,263 @@ int PMSmoothImage(int argc, char *argv[])
   typename FilterType::Pointer filter = FilterType::New();
   filter->SetInput( image1 );
   filter->SetNumberOfIterations( sigma );
-  PixelType mytimestep = spacingsize / vcl_pow( 2 , ImageDimension+1 );
-  PixelType reftimestep = 0.9 / vcl_pow( 2 , ImageDimension+1 );
+  PixelType mytimestep = spacingsize / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
+  PixelType reftimestep = 0.4 / vcl_pow( 2.0 , static_cast<double>(ImageDimension+1) );
   if ( mytimestep > reftimestep ) mytimestep = reftimestep;
   filter->SetTimeStep( mytimestep );
-  filter->SetConductanceParameter( 1.0 ); // might need to change this
+  filter->SetConductanceParameter( conductance ); // might need to change this
   filter->Update();
   varimage = filter->GetOutput();
   WriteImage<ImageType>( varimage, outname.c_str() );
   return EXIT_SUCCESS;
 }
+
+
+template <unsigned int ImageDimension>
+int InPaint(int argc, char *argv[])
+{
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  float       sigma = 1.0;
+  if( argc > argct )
+    {
+    sigma = atof(argv[argct]); argct++;
+    }
+  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer varimage = NULL;
+  ReadImage<ImageType>(image1, fn1.c_str() );
+  PixelType     spacingsize = 0;
+  PixelType     minsp = image1->GetSpacing()[0];
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    PixelType sp = image1->GetSpacing()[d];
+    if ( sp < minsp ) minsp = sp;
+    spacingsize += sp * sp;
+    }
+  spacingsize = sqrt( spacingsize );
+  float       inpow = spacingsize * 2.0;
+  if( argc > argct )
+    {
+    inpow = atof(argv[argct]); argct++;
+    }
+  // # 1 job - create a kernel 
+  typename ImageType::Pointer kernel = ImageType::New();
+  typename ImageType::IndexType start;
+  typename ImageType::SizeType size;
+  typename ImageType::RegionType region;
+  start.Fill(0);
+  size.Fill(3); 
+  region.SetSize(size);
+  region.SetIndex(start);
+  kernel->SetRegions(region);
+  kernel->Allocate();
+  kernel->SetSpacing( image1->GetSpacing() );
+  unsigned long kernelsize = region.GetNumberOfPixels();
+  itk::ImageRegionIterator<ImageType> imageIterator(kernel, region);
+  unsigned int ct = 0;
+  typename ImageType::PointType centerPoint;
+  typename ImageType::PointType locPoint;
+  while(!imageIterator.IsAtEnd())
+    {
+    if ( ct == static_cast<unsigned int>( vcl_floor( (PixelType) kernelsize / 2.0 ) ) )
+      { 
+      kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
+      }
+    ++ct;
+    ++imageIterator;
+    }
+  unsigned int ct2 = 0;
+  PixelType totalval = 0;
+  imageIterator.GoToBegin();
+  while(!imageIterator.IsAtEnd())
+    {
+    kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), locPoint );
+    PixelType val = 0;
+    for ( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      PixelType delt = ( locPoint[d] - centerPoint[d] );
+      val += delt * delt;
+      }
+    PixelType distval = sqrt( val );
+    if ( distval > inpow ) val = 1.e8;
+    if ( val > 0 ) 
+      { 
+      imageIterator.Set( 1.0 / val );
+      totalval += imageIterator.Get( );
+      }
+    if ( ct2 == static_cast<unsigned int>( vcl_floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
+    ++ct2;
+    ++imageIterator;
+    }
+  imageIterator.GoToBegin();
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set( imageIterator.Get() / totalval );
+    ++imageIterator;
+    }
+  typedef itk::ImageDuplicator<ImageType> DuplicatorType;
+  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+  duplicator->SetInputImage( image1 );
+  duplicator->Update();
+  varimage =  duplicator->GetOutput();  
+  for ( unsigned int i = 0; i < sigma; i++ ) 
+    {
+    typedef itk::ConvolutionImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetInput( varimage );
+    filter->SetKernelImage(kernel);
+    filter->Update();
+    varimage = filter->GetOutput();
+    Iterator vfIter( varimage,  varimage->GetLargestPossibleRegion() );
+    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      {
+      PixelType pixval = image1->GetPixel( vfIter.GetIndex() );
+      if ( pixval > 0 ) vfIter.Set( pixval );
+      }
+    }
+  WriteImage<ImageType>( varimage, outname.c_str() );
+  return EXIT_SUCCESS;
+}
+
+
+
+template <unsigned int ImageDimension>
+int InPaint2(int argc, char *argv[])
+{
+  //  I_t = \nabla ( \Delta I ) \cdot N   where N is \perpto the normal direction 
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef  typename ImageType::IndexType                                  IndexType;
+  typedef  typename ImageType::SizeType                                   SizeType;
+  typedef  typename ImageType::SpacingType                                SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  float       sigma = 1.0;
+  if( argc > argct )
+    {
+    sigma = atof(argv[argct]); argct++;
+    }
+  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer varimage = NULL;
+  ReadImage<ImageType>(image1, fn1.c_str() );
+  PixelType     spacingsize = 0;
+  PixelType     minsp = image1->GetSpacing()[0];
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    PixelType sp = image1->GetSpacing()[d];
+    if ( sp < minsp ) minsp = sp;
+    spacingsize += sp * sp;
+    }
+  spacingsize = sqrt( spacingsize );
+  float       inpow = spacingsize * 2.0;
+  if( argc > argct )
+    {
+    inpow = atof(argv[argct]); argct++;
+    }
+  // # 1 job - create a kernel 
+  typename ImageType::Pointer kernel = ImageType::New();
+  typename ImageType::IndexType start;
+  typename ImageType::SizeType size;
+  typename ImageType::RegionType region;
+  start.Fill(0);
+  size.Fill(3); 
+  region.SetSize(size);
+  region.SetIndex(start);
+  kernel->SetRegions(region);
+  kernel->Allocate();
+  kernel->SetSpacing( image1->GetSpacing() );
+  unsigned long kernelsize = region.GetNumberOfPixels();
+  itk::ImageRegionIterator<ImageType> imageIterator(kernel, region);
+  unsigned int ct = 0;
+  typename ImageType::PointType centerPoint;
+  typename ImageType::PointType locPoint;
+  while(!imageIterator.IsAtEnd())
+    {
+    if ( ct == static_cast<unsigned int>( vcl_floor( (PixelType) kernelsize / 2.0 ) ) )
+      { 
+      kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
+      }
+    ++ct;
+    ++imageIterator;
+    }
+  unsigned int ct2 = 0;
+  PixelType totalval = 0;
+  imageIterator.GoToBegin();
+  while(!imageIterator.IsAtEnd())
+    {
+    kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), locPoint );
+    PixelType val = 0;
+    for ( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      PixelType delt = ( locPoint[d] - centerPoint[d] );
+      val += delt * delt;
+      }
+    PixelType distval = sqrt( val );
+    if ( distval > inpow ) val = 1.e8;
+    if ( val > 0 ) 
+      { 
+      imageIterator.Set( 1.0 / val );
+      totalval += imageIterator.Get( );
+      }
+    if ( ct2 == static_cast<unsigned int>( vcl_floor( (PixelType) ct / 2.0 ) ) ) imageIterator.Set( 1.e-8 );
+    ++ct2;
+    ++imageIterator;
+    }
+  imageIterator.GoToBegin();
+  while(!imageIterator.IsAtEnd())
+    {
+    imageIterator.Set( imageIterator.Get() / totalval );
+    ++imageIterator;
+    }
+  typedef itk::ImageDuplicator<ImageType> DuplicatorType;
+  typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
+  duplicator->SetInputImage( image1 );
+  duplicator->Update();
+  varimage =  duplicator->GetOutput();  
+  for ( unsigned int i = 0; i < sigma; i++ ) 
+    {
+    typedef itk::ConvolutionImageFilter< ImageType, ImageType > FilterType;
+    typename FilterType::Pointer filter = FilterType::New();
+    filter->SetInput( varimage );
+    filter->SetKernelImage(kernel);
+    filter->Update();
+    varimage = filter->GetOutput();
+    Iterator vfIter( varimage,  varimage->GetLargestPossibleRegion() );
+    for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+      {
+      PixelType pixval = image1->GetPixel( vfIter.GetIndex() );
+      if ( pixval > 0 ) vfIter.Set( pixval );
+      }
+    }
+  WriteImage<ImageType>( varimage, outname.c_str() );
+  return EXIT_SUCCESS;
+}
+
 
 
 template <unsigned int ImageDimension>
@@ -12566,8 +12861,8 @@ int BlobDetector( int argc, char *argv[] )
   // sensitive parameters are set here - begin
   RealType     gradsig = 1.0;      // sigma for gradient filter
   unsigned int stepsperoctave = 4; // number of steps between doubling of scale
-  RealType     minscale = vcl_pow( 1.0, 1 );
-  RealType     maxscale = vcl_pow( 2.0, 8 );
+  RealType     minscale = vcl_pow( 1.0, 1.0 );
+  RealType     maxscale = vcl_pow( 2.0, 8.0 );
   RealType     uniqfeat_thresh = 0.01;
   RealType     smallval = 1.e-2; // assumes images are normalizes in [ 0, 1 ]
   bool         dosinkhorn = false;
@@ -13326,6 +13621,8 @@ private:
     std::cout << "  ReflectionMatrix : Create a reflection matrix about an axis" << std::endl;
     std::cout << " out.mat ReflectionMatrix axis " << std::endl << std::endl;
 
+    std::cout << "  ClosestSimplifiedHeaderMatrix : does what it says ... image-in, image-out" << std::endl;
+
     std::cout << "  Byte            : Convert to Byte image in [0,255]" << std::endl;
 
     std::cout
@@ -13428,6 +13725,12 @@ private:
     std::cout << "                Parameter = 1 is a definite hole bounded by object only, 0.99 is close" << std::endl;
     std::cout << "                Default of parameter > 1 will fill all holes" << std::endl;
     std::cout << "      Usage        : FillHoles Image.ext parameter" << std::endl;
+
+    std::cout << "\n  InPaint        : very simple inpainting --- assumes zero values should be inpainted  " << std::endl;
+    std::cout << "      Usage        : InPaint #iterations" << std::endl;
+
+    std::cout << "\n  PeronaMalik       : anisotropic diffusion w/varying conductance param (0.25 in example below)" << std::endl;
+    std::cout << "      Usage        : PeronaMalik image #iterations conductance " << std::endl;
 
     std::cout << "  Finite            : replace non-finite values with finite-value (default = 0)" << std::endl;
     std::cout << "      Usage        : Finite Image.exdt {replace-value=0}" << std::endl;
@@ -13690,6 +13993,10 @@ private:
         {
         PMSmoothImage<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "InPaint") == 0 )
+        {
+        InPaint<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
         {
         MorphImage<2>(argc, argv);
@@ -13742,6 +14049,10 @@ private:
         {
         ReflectionMatrix<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
+        {
+	ClosestSimplifiedHeaderMatrix<2>(argc, argv);
+	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<2>(argc, argv);
@@ -14092,6 +14403,10 @@ private:
         {
         PMSmoothImage<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "InPaint") == 0 )
+        {
+        InPaint<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
         {
         MorphImage<3>(argc, argv);
@@ -14144,6 +14459,10 @@ private:
         {
         ReflectionMatrix<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
+        {
+	ClosestSimplifiedHeaderMatrix<3>(argc, argv);
+	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<3>(argc, argv);
@@ -14584,6 +14903,10 @@ private:
         {
         PMSmoothImage<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "InPaint") == 0 )
+        {
+        InPaint<4>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
         {
         MorphImage<4>(argc, argv);
@@ -14640,6 +14963,10 @@ private:
         {
         ReflectionMatrix<4>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
+        {
+	ClosestSimplifiedHeaderMatrix<4>(argc, argv);
+	}
       else if( strcmp(operation.c_str(), "LabelStats") == 0 )
         {
         LabelStats<4>(argc, argv);
