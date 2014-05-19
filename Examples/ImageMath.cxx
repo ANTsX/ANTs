@@ -12298,7 +12298,9 @@ int InPaint(int argc, char *argv[])
   itk::ImageRegionIterator<ImageType> imageIterator(kernel, region);
   unsigned int ct = 0;
   typename ImageType::PointType centerPoint;
+  centerPoint.Fill( 0 );
   typename ImageType::PointType locPoint;
+  locPoint.Fill( 0 );
   while(!imageIterator.IsAtEnd())
     {
     if ( ct == static_cast<unsigned int>( vcl_floor( (PixelType) kernelsize / 2.0 ) ) )
