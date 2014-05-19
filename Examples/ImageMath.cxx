@@ -9670,7 +9670,7 @@ int LabelStats(      int argc, char *argv[])
 
   std::ofstream logfile;
   logfile.open(outname.c_str() );
-  logfile << "x,y,z,t,label,mass,volume" << std::endl;
+  logfile << "x,y,z,t,label,mass,volume,count" << std::endl;
 
   std::sort(myLabelSet.begin(), myLabelSet.end() );
   typename LabelSetType::const_iterator it;
@@ -9742,16 +9742,16 @@ int LabelStats(      int argc, char *argv[])
     squareimage->GetBufferPointer()[labelcount] = totalmass / totalct;
     if( ImageDimension == 2 )
       {
-      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << ",0,0," << currentlabel << "," << totalmass << "," << totalvolume << std::endl;
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << ",0,0," << currentlabel << "," << totalmass << "," << totalvolume << "," << totalct << std::endl;
       }
     if( ImageDimension == 3 )
       {
-      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ",0," << currentlabel << "," << totalmass << "," << totalvolume << std::endl;
+      logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ",0," << currentlabel << "," << totalmass << "," << totalvolume << "," << totalct << std::endl;
       }
     if( ImageDimension == 4 )
       {
       logfile << myCenterOfMass[0] << "," << myCenterOfMass[1] << "," << myCenterOfMass[2] << ","
-              << myCenterOfMass[3] << "," << currentlabel << "," << totalmass << "," << totalvolume << std::endl;
+              << myCenterOfMass[3] << "," << currentlabel << "," << totalmass << "," << totalvolume << "," << totalct << std::endl;
       }
     labelcount++;
     }
