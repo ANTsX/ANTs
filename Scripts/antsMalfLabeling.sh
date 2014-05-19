@@ -157,6 +157,8 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
 Optional arguments:
 
+     -m:  Majority Vote:  Use majority vote instead of JLF
+
      -k:  Keep files:     Keep warped atlas and label files (default = 0)
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
@@ -295,10 +297,10 @@ if [[ "$1" == "-h" ]];
   then
     Help >&2
   fi
-
+MAJVOTE=0
 RUNQUICK=0
 # reading command line arguments
-while getopts "c:d:g:h:j:k:l:o:t:q:" OPT
+while getopts "c:d:g:h:j:k:l:m:o:t:q:" OPT
   do
   case $OPT in
       h) #help
@@ -326,6 +328,9 @@ while getopts "c:d:g:h:j:k:l:o:t:q:" OPT
    ;;
       j) #number of cpu cores to use
    CORES=$OPTARG
+   ;;
+      m) #number of cpu cores to use
+   MAJVOTE=$OPTARG
    ;;
       k)
    KEEP_ALL_IMAGES=$OPTARG
@@ -455,6 +460,9 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 done
 
 malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+if [[ $MAJVOTE -eq 1 ]] ; then 
+  malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MalfLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+fi
 
 qscript2="${OUTPUT_PREFIX}MALF.sh"
 echo "$malfCall" > $qscript2
