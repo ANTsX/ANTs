@@ -168,6 +168,12 @@ ANTs has won several unbiased & international competitions
 Learning about ANTs
 ----------------------------------------------------------
 
+**The ANTs Cortical Thickness Pipeline** [example](https://github.com/ntustison/KapowskiChronicles/blob/master/paper2.pdf?raw=true)
+
+**"Cooking" tissue priors for templates**
+  [example](https://github.com/ntustison/antsCookTemplatePriorsExample)
+  (after you build your template)
+
 **Basic Brain Mapping** [example](http://stnava.github.io/BasicBrainMapping/)
 
 **Large deformation** [example](http://stnava.github.io/C/)
@@ -203,8 +209,6 @@ Learning about ANTs
 **Cortical thickness** [example](https://github.com/ntustison/antsCorticalThicknessExample)
 
 **MALF labeling example** [example](https://github.com/ntustison/MalfLabelingExample)
-
-**"Cooking" tissue priors for templates** [example](https://github.com/ntustison/antsCookTemplatePriorsExample)
 
 **Bibliography** [bibtex of ANTs-related papers](https://github.com/stnava/ANTsBibliography)
 
