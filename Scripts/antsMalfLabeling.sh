@@ -88,6 +88,8 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
 Optional arguments:
 
+     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0)
+
      -k:  Keep files:     Keep warped atlas and label files (default = 0)
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
@@ -157,7 +159,7 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
 Optional arguments:
 
-     -m:  Majority Vote:  Use majority vote instead of JLF
+     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0)
 
      -k:  Keep files:     Keep warped atlas and label files (default = 0)
 
@@ -329,7 +331,7 @@ while getopts "c:d:g:h:j:k:l:m:o:t:q:" OPT
       j) #number of cpu cores to use
    CORES=$OPTARG
    ;;
-      m) #number of cpu cores to use
+      m) #majority voting option
    MAJVOTE=$OPTARG
    ;;
       k)
@@ -460,9 +462,10 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 done
 
 malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
-if [[ $MAJVOTE -eq 1 ]] ; then 
-  malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MalfLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
-fi
+if [[ $MAJVOTE -eq 1 ]];
+  then
+    malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+  fi
 
 qscript2="${OUTPUT_PREFIX}MALF.sh"
 echo "$malfCall" > $qscript2
@@ -559,7 +562,12 @@ time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
 echo
 echo "--------------------------------------------------------------------------------------"
-echo " Done creating: ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+if [[ $MAJVOTE -eq 1 ]];
+  then
+    echo " Done creating: ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+  else
+    echo " Done creating: ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz"
+  fi
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
 echo "--------------------------------------------------------------------------------------"
