@@ -241,7 +241,10 @@ int ResampleImage( int argc, char *argv[] )
     }
   resampler->SetInput( reader->GetOutput() );
   resampler->SetSize( size );
+  resampler->SetOutputOrigin( reader->GetOutput()->GetOrigin() );
+  resampler->SetOutputDirection( reader->GetOutput()->GetDirection() );
   resampler->SetOutputSpacing( spacing );
+  resampler->SetDefaultPixelValue( 0 );
   resampler->Update();
 
   typedef itk::ImageFileWriter<ImageType> WriterType;
