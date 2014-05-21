@@ -119,6 +119,7 @@ Optional arguments:
                                                 e.g 'Socrates[1]' (default) or 'Aristotle[1]'.  Choose the latter if you
                                                 want use the distance priors (see also the -l option for label propagation
                                                 control).
+     -q:  use floating-point precision          Use floating point precision in registrations (default = 0)
      -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
      -r:  cortical label image                  Cortical ROI labels to use as a prior for ATITH.
      -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
@@ -132,7 +133,7 @@ Optional arguments:
                                                 range of the distance prior.  To apply to all label values, simply omit
                                                 specifying the label, i.e. -l [lambda,boundaryProbability].
 
-    
+
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
                                                 Requires single thread computation for complete reproducibility.
 USAGE
@@ -815,7 +816,7 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
         for f in ${TMP_FILES[@]}
-          do       
+          do
             if [[ -e $f ]];
           then
             logCmd rm $f
@@ -1063,7 +1064,7 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
         for f in ${TMP_FILES[@]}
-          do       
+          do
             if [[ -e $f ]];
              then
               logCmd rm $f
