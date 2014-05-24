@@ -121,6 +121,7 @@ Optional arguments:
                                                 control).
      -q:  use floating-point precision          Use floating point precision in registrations (default = 0)
      -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
+     -v:  use b-spline smoothing                Use B-spline SyN for registrations and B-spline exponential mapping in DiReCT.
      -r:  cortical label image                  Cortical ROI labels to use as a prior for ATITH.
      -l:  label propagation                     Incorporate a distance prior one the posterior formulation.  Should be
                                                 of the form 'label[lambda,boundaryProbability]' where label is a value
@@ -219,7 +220,7 @@ echoParameters() {
       convergence             = ${DIRECT_CONVERGENCE}
       thickness prior         = ${DIRECT_THICKNESS_PRIOR}
       gradient step size      = ${DIRECT_GRAD_STEP_SIZE}
-      smoothing sigma         = ${DIRECT_SMOOTHING_SIGMA}
+      smoothing sigma         = ${DIRECT_SMOOTHING_PARAMETER}
 
 PARAMETERS
 }
@@ -326,16 +327,17 @@ DIRECT=${ANTSPATH}KellyKapowski
 DIRECT_CONVERGENCE="[45,0.0,10]"
 DIRECT_THICKNESS_PRIOR="10"
 DIRECT_GRAD_STEP_SIZE="0.025"
-DIRECT_SMOOTHING_SIGMA="1.5"
+DIRECT_SMOOTHING_PARAMETER="1.5"
 DIRECT_NUMBER_OF_DIFF_COMPOSITIONS="10"
 
 USE_FLOAT_PRECISION=0
+USE_BSPLINE_SMOOTHING=0
 
 if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:r:o:s:t:u:w:z:" OPT
+  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:r:o:s:t:u:v:w:z:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -398,6 +400,9 @@ else
           u) #use random seeding
        USE_RANDOM_SEEDING=$OPTARG
        ;;
+          v) #use b-spline smoothing in registration and direct
+       USE_BSPLINE_SMOOTHING=$OPTARG
+       ;;
           w) #atropos prior weight
        ATROPOS_SEGMENTATION_PRIOR_WEIGHT=$OPTARG
        ;;
@@ -412,27 +417,33 @@ else
   done
 fi
 
+if [[ $USE_BSPLINE_SMOOTHING -ne 0 ]];
+  then
+    ANTS_TRANSFORMATION="BSplineSyN[0.1,26,0,3]"
+    DIRECT_SMOOTHING_PARAMETER="5.75"
+  fi
+
 if [[ $DEBUG_MODE -gt 0 ]];
   then
 
-   echo "    WARNING - Running in test / debug mode. Results will be suboptimal "
+    echo "    WARNING - Running in test / debug mode. Results will be suboptimal "
 
-   OUTPUT_PREFIX="${OUTPUT_PREFIX}testMode_"
+    OUTPUT_PREFIX="${OUTPUT_PREFIX}testMode_"
 
-   # Speed up by doing fewer its. Careful about changing this because
-   # certain things are hard coded elsewhere, eg number of levels
+    # Speed up by doing fewer its. Careful about changing this because
+    # certain things are hard coded elsewhere, eg number of levels
 
-   ANTS_MAX_ITERATIONS="40x40x20x0"
-   ANTS_LINEAR_CONVERGENCE="[100x100x50x0,1e-8,10]"
-   ANTS_METRIC_PARAMS="1,2"
+    ANTS_MAX_ITERATIONS="40x40x20x0"
+    ANTS_LINEAR_CONVERGENCE="[100x100x50x0,1e-8,10]"
+    ANTS_METRIC_PARAMS="1,2"
 
-   # I think this is the number of times we run the whole N4 / Atropos thing, at the cost of about 10 minutes a time
-   ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=1
+    # I think this is the number of times we run the whole N4 / Atropos thing, at the cost of about 10 minutes a time
+    ATROPOS_SEGMENTATION_NUMBER_OF_ITERATIONS=1
 
-   DIRECT_CONVERGENCE="[5,0.0,10]"
+    DIRECT_CONVERGENCE="[5,0.0,10]"
 
-   # Fix random seed to replicate exact results on each run
-   USE_RANDOM_SEEDING=0
+    # Fix random seed to replicate exact results on each run
+    USE_RANDOM_SEEDING=0
 
   fi
 
@@ -894,7 +905,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     exe_direct="${DIRECT} -d ${DIMENSION} -s [${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}]"
     exe_direct="${exe_direct} -g ${CORTICAL_THICKNESS_GM} -w ${CORTICAL_THICKNESS_WM} -o ${CORTICAL_THICKNESS_IMAGE}"
     exe_direct="${exe_direct} -c ${DIRECT_CONVERGENCE} -r ${DIRECT_GRAD_STEP_SIZE}"
-    exe_direct="${exe_direct} -m ${DIRECT_SMOOTHING_SIGMA} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS}"
+    exe_direct="${exe_direct} -m ${DIRECT_SMOOTHING_PARAMETER} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS} -b ${USE_BSPLINE_SMOOTHING}"
     if [[ -f ${CORTICAL_LABEL_IMAGE} ]];
       then
         # Calculate ATITH and multiply by a heuristically derived scalar factor
