@@ -154,97 +154,58 @@ public:
     }
 
   /**
-   * Set the maximum number of registration iterations.  Default = 50.
+   * Set/Get the maximum number of registration iterations.  Default = 50.
    */
   itkSetMacro( MaximumNumberOfIterations, unsigned int );
-
-  /**
-   * Get the maximum number of registration iterations.  Default = 50.
-   */
   itkGetConstMacro( MaximumNumberOfIterations, unsigned int );
 
   /**
-   * Set the maximum number of registration iterations.  Default = 20.
+   * Set/Get the maximum number of inversion iterations.  Default = 20.
    */
   itkSetMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
-
-  /**
-   * Get the maximum number of registration iterations.  Default = 20.
-   */
   itkGetConstMacro( MaximumNumberOfInvertDisplacementFieldIterations, unsigned int );
 
   /**
-   * Set the gray matter label in the segmentation image.  Default = 2.
+   * Set/Get the gray matter label in the segmentation image.  Default = 2.
    */
   itkSetMacro( GrayMatterLabel, LabelType );
-
-  /**
-   * Get the gray matter label in the segmentation image.  Default = 2.
-   */
   itkGetConstMacro( GrayMatterLabel, LabelType );
 
   /**
-   * Set the white matter label in the segmentation image.  Default = 3.
+   * Set/Get the white matter label in the segmentation image.  Default = 3.
    */
   itkSetMacro( WhiteMatterLabel, LabelType );
-
-  /**
-   * Get the white matter label in the segmentation image.  Default = 3.
-   */
   itkGetConstMacro( WhiteMatterLabel, LabelType );
 
   /**
-   * Set the convergence threshold.  Default = 0.001.
+   * Set/Get the convergence threshold.  Default = 0.001.
    */
   itkSetMacro( ConvergenceThreshold, RealType );
-
-  /**
-   * Get the convergence threshold.  Default = 0.001.
-   */
   itkGetConstMacro( ConvergenceThreshold, RealType );
 
   /**
-   * Set the convergence window size. Convergence is determined by fitting a
+   * Set/Get the convergence window size. Convergence is determined by fitting a
    * line to the normalized energy profile of the last N iterations (where
    * N is specified by the window size) and determining the slope which is
    * then compared with the convergence threshold.  Default = 10.
    */
   itkSetMacro( ConvergenceWindowSize, unsigned int );
-
-  /**
-   * Get the convergence window size. Convergence is determined by fitting a
-   * line to the normalized energy profile of the last N iterations (where
-   * N is specified by the window size) and determining the slope which is
-   * then compared with the convergence threshold. Default = 10.
-   */
   itkGetConstMacro( ConvergenceWindowSize, unsigned int );
 
   /**
-   * Set the thickness prior estimate---provides a constraint on the
+   * Set/Get the thickness prior estimate---provides a constraint on the
    * final thickness measurement.  References in the literature
    * give a normal thickness of typically 3 mm with normal range
    * from ~2 mm in the calcarine cortex to ~4 mm in the precentral
    * gyrus. Default = 10 mm.
    */
   itkSetMacro( ThicknessPriorEstimate, RealType );
-
-  /**
-   * Get the thickness prior estimate---provides a constraint on the
-   * final thickness measurement.  References in the literature
-   * give a normal thickness of typically 3 mm with normal range
-   * from ~2 mm in the calcarine cortex to ~4 mm in the precentral
-   * gyrus.  Default = 10 mm.
-   */
   itkGetConstMacro( ThicknessPriorEstimate, RealType );
 
   /**
-   * Set the gradient step size.  Default = 0.025.
+   * Set/Get the gradient step size.  Default = 0.025.
    */
   itkSetClampMacro( InitialGradientStep, RealType, 0, NumericTraits<RealType>::max() );
-
-  /**
-   * Get the gradient step.  Default = 0.025.
-   */
   itkGetConstMacro( InitialGradientStep, RealType );
 
   /**
@@ -253,34 +214,35 @@ public:
   itkGetConstMacro( CurrentGradientStep, RealType );
 
   /**
-   * Set the smoothing sigma for the velocity field (in voxels).  Default = 1.5.
-   */
-  itkSetClampMacro( SmoothingVelocityFieldVariance, RealType, 0, NumericTraits<RealType>::max() );
-
-  /**
-   * Get the smoothing sigma for the velocity field (in voxels).  Default = 1.5.
-   */
-  itkGetConstMacro( SmoothingVelocityFieldVariance, RealType );
-
-  /**
-   * Set the smoothing sigma for the total and hit images (in voxels).  Default = 1.0.
+   * Set/Get the smoothing sigma for the total and hit images (in voxels).  Default = 1.0.
    */
   itkSetClampMacro( SmoothingVariance, RealType, 0, NumericTraits<RealType>::max() );
-
-  /**
-   * Set the smoothing sigma for the total and hit images (in voxels).  Default = 1.5.
-   */
   itkGetConstMacro( SmoothingVariance, RealType );
 
   /**
-   * Set the number of integration points.  Default = 10.
+   * Set/Get the isotropic mesh spacing for smoothing the velocity field (in mm).  Default = 5.75.
    */
-  itkSetMacro( NumberOfIntegrationPoints, unsigned int  );
+  itkSetClampMacro( BSplineSmoothingIsotropicMeshSpacing, RealType, 0, NumericTraits<RealType>::max() );
+  itkGetConstMacro( BSplineSmoothingIsotropicMeshSpacing, RealType );
 
   /**
-   * Get the number of integration points.  Default = 10.
+   * Set/Get the B-spline smoothing sigma for the velocity field (in voxels).  Default = 1.5.
    */
+  itkSetClampMacro( SmoothingVelocityFieldVariance, RealType, 0, NumericTraits<RealType>::max() );
+  itkGetConstMacro( SmoothingVelocityFieldVariance, RealType );
+
+  /**
+   * Set/Get the number of integration points.  Default = 10.
+   */
+  itkSetMacro( NumberOfIntegrationPoints, unsigned int  );
   itkGetConstMacro( NumberOfIntegrationPoints, unsigned int );
+
+  /**
+   * Set/Get the option to use B-spline smoothing.  Default = false.
+   */
+  itkSetMacro( UseBSplineSmoothing, bool  );
+  itkGetConstMacro( UseBSplineSmoothing, bool  );
+  itkBooleanMacro( UseBSplineSmoothing );
 
   /**
    * Get the number of elapsed iterations.  This is a helper function for
@@ -343,7 +305,12 @@ private:
   /**
    * Private function for smoothing the deformation field.
    */
-  DisplacementFieldPointer SmoothDisplacementField( const DisplacementFieldType *, const RealType );
+  DisplacementFieldPointer GaussianSmoothDisplacementField( const DisplacementFieldType *, const RealType );
+
+  /**
+   * Private function for smoothing the deformation field.
+   */
+  DisplacementFieldPointer BSplineSmoothDisplacementField( const DisplacementFieldType *, const RealType );
 
   /**
    * Private function for smoothing the image.
@@ -353,6 +320,7 @@ private:
   RealType     m_ThicknessPriorEstimate;
   RealType     m_SmoothingVariance;
   RealType     m_SmoothingVelocityFieldVariance;
+  RealType     m_BSplineSmoothingIsotropicMeshSpacing;
   RealType     m_InitialGradientStep;
   RealType     m_CurrentGradientStep;
   unsigned int m_NumberOfIntegrationPoints;
@@ -369,6 +337,8 @@ private:
   unsigned int m_ConvergenceWindowSize;
 
   RealImagePointer  m_ThicknessPriorImage;
+
+  bool m_UseBSplineSmoothing;
 
 };
 } // end namespace itk
