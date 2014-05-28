@@ -261,7 +261,7 @@ function shapeupdatetotemplate() {
     #echo "   ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
     echo "    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
-    # ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
+    ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
 
     # Using median instead of mean
     ls ${whichtemplate}*WarpedToTemplate.nii.gz > ${whichtemplate}WarpedToTemplateList.txt
