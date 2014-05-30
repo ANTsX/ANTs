@@ -954,8 +954,8 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGEMETRICSET="$IMAGEMETRICSET -m MI[${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32,Regular,0.25]"
           done
 
-        #stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
-        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
+        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
+        #stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
         exe="${basecall} ${stage1}"
 
         qscript="${outdir}/job_${count}_qsub.sh"
