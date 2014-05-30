@@ -176,6 +176,7 @@ private:
       " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1}"
              << std::endl;
     std::cout << " if median, then sigma means radius of filtering " << std::endl;
+    std::cout << " A separate sigma can be specified for each dimension, e.g., 1.5x1x2 " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
