@@ -1273,10 +1273,10 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
-        #stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        #stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        #stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        #stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
 
         stageId="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [0,1e-8,10] -f 1 -s 0"
