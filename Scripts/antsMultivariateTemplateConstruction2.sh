@@ -109,7 +109,12 @@ Optional arguments:
           4 = PBS qsub
 
      -e   use single precision ( default 1 )
-
+     
+     -a   image statistic used to summarize images (default 2)
+          0 = mean
+          1 = mean of normalized intensities
+          2 = median
+          
      -g:  Gradient step size (default 0.25): smaller in magnitude results in more
           cautious steps.
 
@@ -230,11 +235,43 @@ function reportMappingParameters {
  Template population:      $IMAGESETVARIABLE
  Number of modalities:     $NUMBEROFMODALITIES
  Madality weights:         $MODALITYWEIGHTSTRING
+ Image statistic:          $STATSMETHOD
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
 
+function summarizeimageset() {
+  
+  local dim=$1
+  shift
+  local output=$1
+  shift
+  local method=$1
+  shift
+  local images=("${@}")
+  
+  case $method in
+    0) #mean
+      AverageImages $dim $output 0 ${images[*]}    
+      ;;
+    1) #mean of normalized images
+      AverageImages $dim $output 1 ${images[*]}
+      ;;
+    2) #median
+      for i in ${images[@]}; do
+        echo $i >> ${output}_list.txt
+      done
+      
+      ImageSetStatistics $dim ${output}_list.txt ${output} 1
+      rm ${output}_list.txt
+      ;;
+  esac
+
+  }
+
 function shapeupdatetotemplate() {
+
+  echo "shapeupdatetotemplate()"
 
     # local declaration of values
     dim=$1
@@ -243,6 +280,7 @@ function shapeupdatetotemplate() {
     outputname=$4
     gradientstep=-$5
     whichtemplate=$6
+    statsmethod=$7
 
 # debug only
 # echo $dim
@@ -258,45 +296,54 @@ function shapeupdatetotemplate() {
     echo
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
+    date
     #echo "   ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
-    echo "    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
+    #echo "    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
-    ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
-
-    # Using median instead of mean
-    ls ${whichtemplate}*WarpedToTemplate.nii.gz > ${whichtemplate}WarpedToTemplateList.txt
-    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0
+    imagelist=(`ls ${outputname}*WarpedToTemplate.nii.gz`)
+    summarizeimageset $dim $template $statsmethod ${imagelist[@]}
+    
+    WARPLIST=(`ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null`)
+    NWARPS=${#WARPLIST[*]}   
+    echo "number of warps = $NWARPS"
+    echo "$WARPLIST"
 
     if [[ $whichtemplate -eq 0 ]];
       then
-        echo
-        echo "--------------------------------------------------------------------------------------"
-        echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-        echo "   ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
-        echo "--------------------------------------------------------------------------------------"
-
-        ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
-
-        echo
-        echo "--------------------------------------------------------------------------------------"
-        echo " shapeupdatetotemplate---scale the averaged inverse warp field by the gradient step"
-        echo "   ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
-        echo "--------------------------------------------------------------------------------------"
-
-        ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
-
+           
+        if [[ $NWARPS -ne 0 ]]; then 
+          echo "$NWARPS does not equal 0"
+          echo
+          echo "--------------------------------------------------------------------------------------"
+          echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
+          echo "   ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
+          date
+          echo "--------------------------------------------------------------------------------------"
+          ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
+        
+          echo
+          echo "--------------------------------------------------------------------------------------"
+          echo " shapeupdatetotemplate---scale the averaged inverse warp field by the gradient step"
+          echo "   ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz"
+          date
+          echo "--------------------------------------------------------------------------------------"
+          ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
+        fi
+        
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
-        echo "   ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
+        echo "   ${ANTSPATH}AverageAffineTransformNoRigid ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
         echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}"
         echo "--------------------------------------------------------------------------------------"
 
-        ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
-        ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
-
-        ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
+        ${ANTSPATH}AverageAffineTransformNoRigid ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
+        
+        if [[ $NWARPS -ne 0 ]]; then 
+          ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
+          ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
+        fi
       fi
 
     echo "--------------------------------------------------------------------------------------"
@@ -304,7 +351,12 @@ function shapeupdatetotemplate() {
     echo "   ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
     echo "--------------------------------------------------------------------------------------"
 
-    ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
+    if [ -f "${templatename}0warp.nii.gz" ]; then
+      ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
+    else
+      ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -r ${template}
+    fi
+
 }
 
 function jobfnamepadding {
@@ -392,6 +444,7 @@ time_start=`date +%s`
 currentdir=`pwd`
 nargs=$#
 
+STATSMETHOD=2
 USEFLOAT=1
 BACKUPEACHITERATION=0
 MAXITERATIONS=100x100x70x20
@@ -403,6 +456,7 @@ NUMBEROFMODALITIES=1
 MODALITYWEIGHTSTRING=""
 N4CORRECT=1
 DOLINEAR=1
+NOWARP=0
 DOQSUB=0
 GRADIENTSTEP=0.25
 ITERATIONLIMIT=4
@@ -442,12 +496,15 @@ if [[ "$1" == "-h" ]];
   fi
 
 # reading command line arguments
-while getopts "b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
+while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
   do
   case $OPT in
       h) #help
-   Usage >&2
-   exit 0
+      Usage >&2
+      exit 0
+   ;;
+      a) # summarizing statisitic
+      STATSMETHOD=$OPTARG
    ;;
       b) #backup each iteration
    BACKUPEACHITERATION=$OPTARG
@@ -633,13 +690,26 @@ elif [[ $TRANSFORMATIONTYPE == "TimeVaryingBSplineVelocityField"* ]];
       else
         TRANSFORMATION=TimeVaryingVelocityField[0.5,12x12x12x2,4,3]
     fi
+elif [[ $TRANSFORMATIONTYPE == "Affine"* ]];
+  then
+    echo "Linear transforms only!!!!"
+    NOWARP=1
+    if [[ $TRANSFORMATIONTYPE == "Affine["*"]" ]]
+      then
+        TRANSFORMATION=${TRANSFORMATIONTYPE}
+      else
+        TRANSFORMATION=Affine[0.1]
+    fi
 else
   echo "Invalid transformation. See `basename $0` -h for help menu."
   exit 1
 fi
 
-#echo $TRANSFORMATION
-#exit 1
+if [[ $STATSMETHOD -gt 2 ]];
+  then  
+  echo "Invalid stats type: using median (2)"
+  STATSMETHOD=2
+fi
 
 
 # Creating the file list of images to make a template from.
@@ -657,7 +727,7 @@ IMAGESETARRAY=()
 
 if [[ ${NINFILES} -eq 0 ]];
     then
-    echo "Please provide at least 2 filenames for the template."
+    echo "Please provide at least 2 filenames for the template inputs."
     echo "Use `basename $0` -h for help"
     exit 1
 elif [[ ${NINFILES} -eq 1 ]];
@@ -842,7 +912,8 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
         echo "   ${CURRENTIMAGESET[@]}"
         echo "--------------------------------------------------------------------------------------"
-        ${ANTSPATH}AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
+        summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD ${CURRENTIMAGESET[@]}
+        #${ANTSPATH}AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
     fi
 
     if [[ ! -s ${TEMPLATES[$i]} ]];
@@ -883,7 +954,8 @@ if [[ "$RIGID" -eq 1 ]];
             IMAGEMETRICSET="$IMAGEMETRICSET -m MI[${TEMPLATES[$j]},${IMAGESETARRAY[$k]},${MODALITYWEIGHTS[$j]},32,Regular,0.25]"
           done
 
-        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
+        #stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
+        stage1="-t Rigid[0.1] ${IMAGEMETRICSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0 -o ${outdir}/rigid${i}_"
         exe="${basecall} ${stage1}"
 
         qscript="${outdir}/job_${count}_qsub.sh"
@@ -1018,7 +1090,8 @@ if [[ "$RIGID" -eq 1 ]];
         echo
         echo  "${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
 
-      ${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
+      summarizeimageset $DIM ${TEMPLATES[$j]} $STATSMETHOD ${IMAGERIGIDSET[@]}
+      #${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
       done
 
     # cleanup and save output in seperate folder
@@ -1167,7 +1240,11 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             OUTWARPFN=`basename ${OUTWARPFN}`
             OUTWARPFN="${OUTWARPFN}${j}"
 
-            OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
+            if [ -f "${outdir}/${OUTWARPFN}1Warp.nii.gz" ]; then
+              OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
+            else
+              OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
+            fi
 
             if [[ $N4CORRECT -eq 1 ]];
               then
@@ -1196,11 +1273,15 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
         stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
-        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
-        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        #stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        #stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
+        stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage3="-t ${TRANSFORMATION} ${IMAGEMETRICSET} -c [${MAXITERATIONS},1e-9,10] -f ${SHRINKFACTORS} -s ${SMOOTHINGFACTORS} -o ${outdir}/${OUTWARPFN}"
 
         stageId="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [0,1e-8,10] -f 1 -s 0"
+        exebase=$exe
+        pexebase=$pexe
 
         if [[ $DOLINEAR -ne 0 ]];
           then
@@ -1210,6 +1291,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             exe="$exe ${basecall} ${stageId} ${stage3}\n"
             pexe="$pexe ${basecall} ${stageId} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
           fi
+        if [[ $NOWARP -eq 1 ]];
+          then
+           exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}\n";
+           pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
+        fi
+        
         exe="$exe $warpexe"
         pexe="$pexe $warppexe"
 
@@ -1327,7 +1414,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
     for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
       do
-        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j}
+        shapeupdatetotemplate ${DIM} ${TEMPLATES[$j]} ${TEMPLATENAME} ${OUTPUTNAME} ${GRADIENTSTEP} ${j} ${STATSMETHOD}
       done
 
     if [[ $BACKUPEACHITERATION -eq 1 ]];
