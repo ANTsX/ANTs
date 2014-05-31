@@ -133,7 +133,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
   set(${proj}_REPOSITORY "https://github.com/InsightSoftwareConsortium/ITK.git")
-  set(${proj}_GIT_TAG 18614a74ee1232bbf5c5f1142dffc5c718ff9f63) # 10-Mar-2014
+  set(${proj}_GIT_TAG 32c0b9f0f20de3d26da1e0f5556368113707e039)
   set(ITK_VERSION_ID ITK-4.6)
 
   ExternalProject_Add(${proj}
