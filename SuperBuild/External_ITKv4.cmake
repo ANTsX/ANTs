@@ -125,15 +125,32 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
     )
 
     if( USE_VTK STREQUAL "ON" )	
-      set(${proj}_CMAKE_OPTIONS ${proj}_CMAKE_OPTIONS 
-        -DModule_ITKVtkGlue:BOOL=ON )
+      set(${proj}_CMAKE_OPTIONS
+      -DBUILD_TESTING:BOOL=OFF
+      -DBUILD_EXAMPLES:BOOL=OFF
+      -DCMAKE_INSTALL_PREFIX:PATH=${CMAKE_CURRENT_BINARY_DIR}/${proj}-install
+      -DITK_LEGACY_REMOVE:BOOL=OFF
+      -DITK_FUTURE_LEGACY_REMOVE:=BOOL=ON
+      -DITKV3_COMPATIBILITY:BOOL=ON
+      -DITK_BUILD_DEFAULT_MODULES:BOOL=ON
+      #-DITK_INSTALL_NO_DEVELOPMENT:BOOL=ON
+      -DKWSYS_USE_MD5:BOOL=ON # Required by SlicerExecutionModel
+      -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
+      -DModule_MGHIO:BOOL=ON
+      -DModule_ITKReview:BOOL=ON
+      -DModule_ITKVtkGlue:BOOL=ON	
+      ${${proj}_DCMTK_ARGS}
+      ${${proj}_WRAP_ARGS}
+      ${${proj}_FFTWF_ARGS}
+      ${${proj}_FFTWD_ARGS}
+      )
     endif()
 
 
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
   set(${proj}_REPOSITORY "https://github.com/InsightSoftwareConsortium/ITK.git")
-  set(${proj}_GIT_TAG 32c0b9f0f20de3d26da1e0f5556368113707e039)
+  set(${proj}_GIT_TAG 87dcbb4d9a16b1418369a709f91a258cf9d48ee0)
   set(ITK_VERSION_ID ITK-4.6)
 
   ExternalProject_Add(${proj}
