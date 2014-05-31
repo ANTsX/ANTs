@@ -7421,10 +7421,11 @@ int SmoothImage(int argc, char *argv[])
   const std::string outname = std::string(argv[argct]);
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
-  float       sigma = 1.0;
+
+  std::vector<float> sigmaVector;
   if( argc > argct )
     {
-    sigma = atof(argv[argct]);
+    sigmaVector = ConvertVector<float>( argv[argct] );
     }
 
   typename ImageType::Pointer image1 = NULL;
@@ -7433,7 +7434,24 @@ int SmoothImage(int argc, char *argv[])
 
   typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
   typename dgf::Pointer filter = dgf::New();
-  filter->SetVariance(sigma * sigma);
+
+  if( sigmaVector.size() == 1 )
+    {
+    filter->SetVariance( vnl_math_sqr( sigmaVector[0] ) );
+    }
+  else if( sigmaVector.size() == ImageDimension )
+    {
+    typename dgf::ArrayType varianceArray;
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      varianceArray[d] = vnl_math_sqr( sigmaVector[d] );
+      }
+    filter->SetVariance( varianceArray );
+    }
+  else
+    {
+    std::cerr << "Incorrect sigma vector size.  Must either be of size 1 or ImageDimension." << std::endl;
+    }
   bool usespacing = true;
   if( !usespacing )
     {
@@ -12282,13 +12300,13 @@ int InPaint(int argc, char *argv[])
     {
     inpow = atof(argv[argct]); argct++;
     }
-  // # 1 job - create a kernel 
+  // # 1 job - create a kernel
   typename ImageType::Pointer kernel = ImageType::New();
   typename ImageType::IndexType start;
   typename ImageType::SizeType size;
   typename ImageType::RegionType region;
   start.Fill(0);
-  size.Fill(3); 
+  size.Fill(3);
   region.SetSize(size);
   region.SetIndex(start);
   kernel->SetRegions(region);
@@ -12304,7 +12322,7 @@ int InPaint(int argc, char *argv[])
   while(!imageIterator.IsAtEnd())
     {
     if ( ct == static_cast<unsigned int>( vcl_floor( (PixelType) kernelsize / 2.0 ) ) )
-      { 
+      {
       kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
       }
     ++ct;
@@ -12324,8 +12342,8 @@ int InPaint(int argc, char *argv[])
       }
     PixelType distval = sqrt( val );
     if ( distval > inpow ) val = 1.e8;
-    if ( val > 0 ) 
-      { 
+    if ( val > 0 )
+      {
       imageIterator.Set( 1.0 / val );
       totalval += imageIterator.Get( );
       }
@@ -12343,8 +12361,8 @@ int InPaint(int argc, char *argv[])
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( image1 );
   duplicator->Update();
-  varimage =  duplicator->GetOutput();  
-  for ( unsigned int i = 0; i < sigma; i++ ) 
+  varimage =  duplicator->GetOutput();
+  for ( unsigned int i = 0; i < sigma; i++ )
     {
     typedef itk::ConvolutionImageFilter< ImageType, ImageType > FilterType;
     typename FilterType::Pointer filter = FilterType::New();
@@ -12368,7 +12386,7 @@ int InPaint(int argc, char *argv[])
 template <unsigned int ImageDimension>
 int InPaint2(int argc, char *argv[])
 {
-  //  I_t = \nabla ( \Delta I ) \cdot N   where N is \perpto the normal direction 
+  //  I_t = \nabla ( \Delta I ) \cdot N   where N is \perpto the normal direction
   typedef float                                                           PixelType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
   typedef itk::Image<VectorType, ImageDimension>                          FieldType;
@@ -12408,13 +12426,13 @@ int InPaint2(int argc, char *argv[])
     {
     inpow = atof(argv[argct]); argct++;
     }
-  // # 1 job - create a kernel 
+  // # 1 job - create a kernel
   typename ImageType::Pointer kernel = ImageType::New();
   typename ImageType::IndexType start;
   typename ImageType::SizeType size;
   typename ImageType::RegionType region;
   start.Fill(0);
-  size.Fill(3); 
+  size.Fill(3);
   region.SetSize(size);
   region.SetIndex(start);
   kernel->SetRegions(region);
@@ -12428,7 +12446,7 @@ int InPaint2(int argc, char *argv[])
   while(!imageIterator.IsAtEnd())
     {
     if ( ct == static_cast<unsigned int>( vcl_floor( (PixelType) kernelsize / 2.0 ) ) )
-      { 
+      {
       kernel->TransformIndexToPhysicalPoint(  imageIterator.GetIndex(), centerPoint );
       }
     ++ct;
@@ -12448,8 +12466,8 @@ int InPaint2(int argc, char *argv[])
       }
     PixelType distval = sqrt( val );
     if ( distval > inpow ) val = 1.e8;
-    if ( val > 0 ) 
-      { 
+    if ( val > 0 )
+      {
       imageIterator.Set( 1.0 / val );
       totalval += imageIterator.Get( );
       }
@@ -12467,8 +12485,8 @@ int InPaint2(int argc, char *argv[])
   typename DuplicatorType::Pointer duplicator = DuplicatorType::New();
   duplicator->SetInputImage( image1 );
   duplicator->Update();
-  varimage =  duplicator->GetOutput();  
-  for ( unsigned int i = 0; i < sigma; i++ ) 
+  varimage =  duplicator->GetOutput();
+  for ( unsigned int i = 0; i < sigma; i++ )
     {
     typedef itk::ConvolutionImageFilter< ImageType, ImageType > FilterType;
     typename FilterType::Pointer filter = FilterType::New();

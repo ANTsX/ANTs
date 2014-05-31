@@ -79,12 +79,12 @@ int SmoothImage(int argc, char *argv[])
       }
     else if( sigmaVector.size() == ImageDimension )
       {
-      typename dgf::ArrayType sigmaArray;
+      typename dgf::ArrayType varianceArray;
       for( unsigned int d = 0; d < ImageDimension; d++ )
         {
-        sigmaArray[d] = sigmaVector[d];
+        varianceArray[d] = vnl_math_sqr( sigmaVector[d] );
         }
-      filter->SetVariance( sigmaArray );
+      filter->SetVariance( varianceArray );
       }
     else
       {
