@@ -275,6 +275,7 @@ DIMENSION=3
 
 ANATOMICAL_IMAGES=()
 REGISTRATION_TEMPLATE=""
+DO_REGISTRATION_TO_TEMPLATE=0
 
 USE_RANDOM_SEEDING=1
 
@@ -396,6 +397,7 @@ else
        ;;
           t) #template registration image
        REGISTRATION_TEMPLATE=$OPTARG
+       DO_REGISTRATION_TO_TEMPLATE=1
        ;;
           u) #use random seeding
        USE_RANDOM_SEEDING=$OPTARG
@@ -568,6 +570,15 @@ for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
         exit 1
       fi
   done
+
+if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
+  then
+    if [[ ! -f ${REGISTRATION_TEMPLATE} ]]
+      then
+        echo "Template for registration, ${REGISTRATION_TEMPLATE}, does not exist."
+        exit 1
+      fi
+  fi
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
 if [[ ! -d $OUTPUT_DIR ]];
