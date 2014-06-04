@@ -172,13 +172,46 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
-  if( maskOption.IsNotNull() && maskOption->GetNumberOfFunctions() )
+  if( maskOption && maskOption->GetNumberOfFunctions() )
     {
     typedef typename RegistrationHelperType::MaskImageType MaskImageType;
     typedef itk::ImageFileReader<MaskImageType>            ImageReaderType;
-    for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
+
+    if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
+      for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
+        {
+        std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
+
+        typename MaskImageType::Pointer maskImage;
+        typename ImageReaderType::Pointer reader = ImageReaderType::New();
+
+        reader->SetFileName( fname.c_str() );
+        try
+          {
+          reader->Update();
+          maskImage = reader->GetOutput();
+          }
+        catch( itk::ExceptionObject & err )
+          {
+          std::cout << "Can't read specified mask image " << fname.c_str() << std::endl;
+          std::cout << "Exception Object caught: " << std::endl;
+          std::cout << err << std::endl;
+          return EXIT_FAILURE;
+          }
+        if( m == 0 )
+          {
+          regHelper->SetFixedImageMask( maskImage );
+          }
+        else if( m == 1 )
+          {
+          regHelper->SetMovingImageMask( maskImage );
+          }
+        }
+      }
+    else
+      {
+      std::string fname = maskOption->GetFunction( 0 )->GetName();
 
       typename MaskImageType::Pointer maskImage;
       typename ImageReaderType::Pointer reader = ImageReaderType::New();
@@ -196,14 +229,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         std::cout << err << std::endl;
         return EXIT_FAILURE;
         }
-      if( m == 0 )
-        {
-        regHelper->SetFixedImageMask( maskImage );
-        }
-      else if( m == 1 )
-        {
-        regHelper->SetMovingImageMask( maskImage );
-        }
+      regHelper->SetFixedImageMask( maskImage );
       }
     }
 
