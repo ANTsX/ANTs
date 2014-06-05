@@ -1381,9 +1381,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         std::cout << " i^th value " << i << "  is " << metriclist[timelist[i]] << std::endl;
         }
-      AverageTimeImages<MovingIOImageType, FixedIOImageType>( outputImage, avgImage, timelistsort );
+      AverageTimeImages<MovingIOImageType, FixedIOImageType>( outputImage, fixed_time_slice, timelistsort );
       std::cout << " write average post " << fileName << std::endl;
-      WriteImage<FixedIOImageType>( avgImage, fileName.c_str() );
+      WriteImage<FixedIOImageType>( fixed_time_slice, fileName.c_str() );
       }
     }
   totalTimer.Stop();
