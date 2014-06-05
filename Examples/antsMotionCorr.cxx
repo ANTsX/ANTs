@@ -597,7 +597,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     movingImage = arCastImage<MovingIOImageType, MovingImageType>( movingInImage );
     unsigned int              timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
 
-    typename MovingIOImageType::Pointer outputImage;
+    typename MovingIOImageType::Pointer outputImage = MovingIOImageType::New();
     typename MovingIOImageType::RegionType outRegion;
     typename MovingIOImageType::SizeType outSize;
     typename MovingIOImageType::SpacingType outSpacing;
