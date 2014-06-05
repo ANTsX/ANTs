@@ -784,18 +784,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           }
         }
 
-      if( ( !directionmatricesok ) && ( timedim == 0 )   )
-        {
-        std::cout << " WARNING!" << std::endl;
-        std::cout << " fixed and moving DirectionMatrices not the same " << std::endl;
-        std::cout << " Fixed Dir " << fixed_time_slice->GetDirection()  << std::endl;
-        std::cout << " Moving Dir " << moving_time_slice->GetDirection()  << std::endl;
-	//        std::cout << " setting moving direction matrix to equal fixed matrix " << std::endl;
-        std::cout << " WARNING END!" << std::endl;
-        std::cout <<  std::endl;
-	//        moving_time_slice->SetDirection(  fixed_time_slice->GetDirection()  );
-        }
-
       typename FixedImageType::Pointer preprocessFixedImage =
         PreprocessImage<FixedImageType>( fixed_time_slice, 0,
                                          1, 0.001, 0.999,
