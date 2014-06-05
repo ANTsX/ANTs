@@ -595,11 +595,42 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     movingInImage->Update();
     movingInImage->DisconnectPipeline();
     movingImage = arCastImage<MovingIOImageType, MovingImageType>( movingInImage );
+    unsigned int              timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
 
     typename MovingIOImageType::Pointer outputImage;
-    ReadImage<MovingIOImageType>( outputImage, movingImageFileName.c_str() );
-    outputImage->Update();
-    outputImage->DisconnectPipeline();
+    typename MovingIOImageType::RegionType outRegion;
+    typename MovingIOImageType::SizeType outSize;
+    typename MovingIOImageType::SpacingType outSpacing;
+    typename MovingIOImageType::PointType outOrigin;
+    typename MovingIOImageType::DirectionType outDirection;
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      outSize[d] = fixedImage->GetLargestPossibleRegion().GetSize()[d];
+      outSpacing[d] = fixedImage->GetSpacing()[d];
+      outOrigin[d] = fixedImage->GetOrigin()[d];
+      for( unsigned int e = 0; e < ImageDimension; e++ )
+	{
+	outDirection(e, d) = fixedImage->GetDirection() (e, d);
+	}
+      }
+    for( unsigned int d = 0; d < ImageDimension; d++ )
+      {
+      outDirection(d, ImageDimension) = 0;
+      outDirection(ImageDimension, d) = 0;
+      }
+    outDirection(ImageDimension, ImageDimension) = 1.0;
+    
+    outSize[ImageDimension] = timedims;
+    outSpacing[ImageDimension] = movingImage->GetSpacing()[ImageDimension];
+    outOrigin[ImageDimension] = movingImage->GetOrigin()[ImageDimension];
+    
+    outRegion.SetSize( outSize );
+    outputImage->SetRegions( outRegion );
+    outputImage->SetSpacing( outSpacing );
+    outputImage->SetOrigin( outOrigin );
+    outputImage->SetDirection( outDirection );
+    outputImage->Allocate();
+    outputImage->FillBuffer( 0 );
 
     // Get the number of iterations and use that information to specify the number of levels
 
@@ -654,7 +685,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     // loop over every time point and register image_i+1 to image_i
     //
     // Set up the image metric and scales estimator
-    unsigned int              timedims = movingImage->GetLargestPossibleRegion().GetSize()[ImageDimension];
     std::vector<unsigned int> timelist;
     std::vector<double>       metriclist;
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
@@ -760,7 +790,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         std::cout << " fixed and moving DirectionMatrices not the same " << std::endl;
         std::cout << " Fixed Dir " << fixed_time_slice->GetDirection()  << std::endl;
         std::cout << " Moving Dir " << moving_time_slice->GetDirection()  << std::endl;
-        std::cout << " setting moving direction matrix to equal fixed matrix " << std::endl;
+	//        std::cout << " setting moving direction matrix to equal fixed matrix " << std::endl;
         std::cout << " WARNING END!" << std::endl;
         std::cout <<  std::endl;
 	//        moving_time_slice->SetDirection(  fixed_time_slice->GetDirection()  );
