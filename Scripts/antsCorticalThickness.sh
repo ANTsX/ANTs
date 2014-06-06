@@ -1094,10 +1094,50 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
               echo "WARNING: expected temp file doesn't exist: $f"
             fi
         done
-    fi
-
+      fi
   fi
 
+################################################################################
+#
+# Create QA/QC output:
+#   - tiled mosaic of ${OUTPUT_PREFIX}BrainSegmentation0N4.nii.gz with
+#     ${OUTPUT_PREFIX}CorticalThickness.nii.gz overlay
+################################################################################
+
+HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
+CORTICAL_THICKNESS_IMAGE_RGB="${OUTPUT_PREFIX}CorticalThicknessHotRGB.nii.gz"
+CORTICAL_THICKNESS_MOSAIC="${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png"
+CORTICAL_THICKNESS_MASK="${OUTPUT_PREFIX}CorticalThicknessMask.${OUTPUT_SUFFIX}"
+
+if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} ]];
+  then
+    TMP_FILES=( $CORTICAL_THICKNESS_IMAGE_RGB $CORTICAL_THICKNESS_MASK )
+
+    mask="${ANTSPATH}/ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE} ${CORTICAL_THICKNESS_MASK} 0 0 0 1"
+    logCmd $mask
+
+    conversion="${ANTSPATH}/ConvertScalarImageToRGB ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE}"
+    conversion="${conversion} ${CORTICAL_THICKNESS_IMAGE_RGB} none hot none 0 ${DIRECT_THICKNESS_PRIOR}"
+    logCmd $conversion
+
+    mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE} -r ${CORTICAL_THICKNESS_IMAGE_RGB}"
+    mosaic="${mosaic} -o ${CORTICAL_THICKNESS_MOSAIC} -a 1.0 -t -1x-1 -d 2 -p mask+2"
+    mosaic="${mosaic} -s [2,mask-2,mask+2] -x ${CORTICAL_THICKNESS_MASK}"
+    logCmd $mosaic
+
+    if [[ $KEEP_TMP_IMAGES -eq 0 ]];
+      then
+        for f in ${TMP_FILES[@]}
+          do
+            if [[ -e $f ]];
+             then
+              logCmd rm $f
+            else
+              echo "WARNING: expected temp file doesn't exist: $f"
+            fi
+        done
+      fi
+  fi
 
 ################################################################################
 #
