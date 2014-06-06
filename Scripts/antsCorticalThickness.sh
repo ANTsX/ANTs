@@ -1108,10 +1108,15 @@ HEAD_N4_IMAGE=${OUTPUT_PREFIX}BrainSegmentation0N4.${OUTPUT_SUFFIX}
 CORTICAL_THICKNESS_IMAGE_RGB="${OUTPUT_PREFIX}CorticalThicknessHotRGB.nii.gz"
 CORTICAL_THICKNESS_MOSAIC="${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png"
 CORTICAL_THICKNESS_MASK="${OUTPUT_PREFIX}CorticalThicknessMask.${OUTPUT_SUFFIX}"
+BRAIN_SEGMENTATION_IMAGE_RGB="${OUTPUT_PREFIX}BrainSegmentationRGB.nii.gz"
+BRAIN_SEGMENTATION_MOSAIC="${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png"
+ITKSNAP_COLORMAP="${OUTPUT_PREFIX}ItkSnapColormap.txt"
 
-if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} ]];
+if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
   then
-    TMP_FILES=( $CORTICAL_THICKNESS_IMAGE_RGB $CORTICAL_THICKNESS_MASK )
+    TMP_FILES=( $CORTICAL_THICKNESS_IMAGE_RGB $CORTICAL_THICKNESS_MASK $BRAIN_SEGMENTATION_IMAGE_RGB $ITKSNAP_COLORMAP )
+
+    # Cortical thickness
 
     mask="${ANTSPATH}/ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE} ${CORTICAL_THICKNESS_MASK} 0 0 0 1"
     logCmd $mask
@@ -1124,6 +1129,22 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} ]];
     mosaic="${mosaic} -o ${CORTICAL_THICKNESS_MOSAIC} -a 1.0 -t -1x-1 -d 2 -p mask+2"
     mosaic="${mosaic} -s [2,mask-2,mask+2] -x ${CORTICAL_THICKNESS_MASK}"
     logCmd $mosaic
+
+    # Segmentation
+
+    echo "0 1 0 0 1 0 1" > $ITKSNAP_COLORMAP
+    echo "0 0 1 0 1 1 0" >> $ITKSNAP_COLORMAP
+    echo "0 0 0 1 0 1 1" >> $ITKSNAP_COLORMAP
+
+    conversion="${ANTSPATH}/ConvertScalarImageToRGB ${DIMENSION} ${BRAIN_SEGMENTATION}"
+    conversion="${conversion} ${BRAIN_SEGMENTATION_IMAGE_RGB} none custom $ITKSNAP_COLORMAP 0 6"
+    logCmd $conversion
+
+    mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE} -r ${BRAIN_SEGMENTATION_IMAGE_RGB}"
+    mosaic="${mosaic} -o ${BRAIN_SEGMENTATION_MOSAIC} -a 0.3 -t -1x-1 -d 2 -p mask+2"
+    mosaic="${mosaic} -s [2,mask-2,mask+2] -x ${BRAIN_EXTRACTION_MASK}"
+    logCmd $mosaic
+
 
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
