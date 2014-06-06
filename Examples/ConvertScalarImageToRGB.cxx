@@ -51,7 +51,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   reader->Update();
 
   typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage;
+  typename MaskImageType::Pointer maskImage = NULL;
   typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
   typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
   maskreader->SetFileName( argv[4] );
@@ -223,7 +223,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   if( argc > 7 )
     {
     std::string argvString( argv[7] );
-    if( argvString != "min" || argvString != "minimum" )
+    if( argvString != "min" && argvString != "minimum" )
       {
       rgbfilter->GetModifiableColormap()->SetMinimumInputValue(
         static_cast<RealType>( atof( argv[7] ) ) );
@@ -233,7 +233,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   if( argc > 8 )
     {
     std::string argvString( argv[8] );
-    if( argvString != "max" || argvString != "maximum" )
+    if( argvString != "max" && argvString != "maximum" )
       {
       rgbfilter->GetModifiableColormap()->SetMaximumInputValue(
         static_cast<RealType>( atof( argv[8] ) ) );
