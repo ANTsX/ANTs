@@ -146,6 +146,7 @@ USAGE
 function checkOutputExists() {
 
   singleOutputs=( ${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX} )
+  singleOutputs=( @{singleOutputs[@]} ${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png ${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png )
 
   if [[ -f ${REGISTRATION_TEMPLATE} ]];
     then
