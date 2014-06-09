@@ -119,7 +119,7 @@ Optional arguments:
                                                 e.g 'Socrates[1]' (default) or 'Aristotle[1]'.  Choose the latter if you
                                                 want use the distance priors (see also the -l option for label propagation
                                                 control).
-     -q:  use floating-point precision          Use floating point precision in registrations (default = 0)
+     -j:  use floating-point precision          Use floating point precision in registrations (default = 0)
      -u:  use random seeding                    Use random number generated from system clock in Atropos (default = 1)
      -v:  use b-spline smoothing                Use B-spline SyN for registrations and B-spline exponential mapping in DiReCT.
      -r:  cortical label image                  Cortical ROI labels to use as a prior for ATITH.
@@ -134,6 +134,9 @@ Optional arguments:
                                                 range of the distance prior.  To apply to all label values, simply omit
                                                 specifying the label, i.e. -l [lambda,boundaryProbability].
 
+     -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
+                                                during brain extraction, brain segmentation, and (optional) normalization
+                                                to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
 
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
                                                 Requires single thread computation for complete reproducibility.
@@ -146,7 +149,7 @@ USAGE
 function checkOutputExists() {
 
   singleOutputs=( ${OUTPUT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX} )
-  singleOutputs=( @{singleOutputs[@]} ${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png ${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png )
+  singleOutputs=( ${singleOutputs[@]} ${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png ${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png )
 
   if [[ -f ${REGISTRATION_TEMPLATE} ]];
     then
@@ -223,6 +226,12 @@ echoParameters() {
       gradient step size      = ${DIRECT_GRAD_STEP_SIZE}
       smoothing sigma         = ${DIRECT_SMOOTHING_PARAMETER}
 
+    Other parameters:
+      run quick               = ${RUN_QUICK}
+      debug mode              = ${DEBUG_MODE}
+      float precision         = ${USE_FLOAT_PRECISION}
+      use random seeding      = ${USE_RANDOM_SEEDING}
+
 PARAMETERS
 }
 
@@ -279,6 +288,7 @@ REGISTRATION_TEMPLATE=""
 DO_REGISTRATION_TO_TEMPLATE=0
 
 USE_RANDOM_SEEDING=1
+RUN_QUICK=0
 
 BRAIN_TEMPLATE=""
 EXTRACTION_PRIOR=""
@@ -339,7 +349,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:d:e:f:h:i:k:l:m:n:p:q:r:o:s:t:u:v:w:z:" OPT
+  while getopts "a:b:d:e:f:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:z:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -369,6 +379,9 @@ else
           i) #max_iterations
        ANTS_MAX_ITERATIONS=$OPTARG
        ;;
+          j) #use floating point precision
+       USE_FLOAT_PRECISION=$OPTARG
+       ;;
           k) #keep tmp images
        KEEP_TMP_IMAGES=$OPTARG
        ;;
@@ -387,8 +400,8 @@ else
           p) #brain segmentation label prior image
        SEGMENTATION_PRIOR=$OPTARG
        ;;
-          q) #use floating point precision
-       USE_FLOAT_PRECISION=$OPTARG
+          q) # run quick
+       RUN_QUICK=$OPTARG
        ;;
           r) #cortical label image
        CORTICAL_LABEL_IMAGE=$OPTARG
@@ -699,24 +712,40 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
     time_start_brain_segmentation=`date +%s`
 
 
+    TMP_FILES=()
     ## Step 1 ##
     if [[ ! -f ${SEGMENTATION_WARP} ]];
       then
         logCmd ${ANTSPATH}ImageMath ${DIMENSION} ${SEGMENTATION_MASK_DILATED} MD ${BRAIN_EXTRACTION_MASK} 20
 
-        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION}"
-        images="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
-        if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
+        basecall=''
+        if [[ ${RUN_QUICK} -ne 0 ]];
           then
-            basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
-          else
-            basecall="${basecall} -r [${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE},1]"
-          fi
-        basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
-        stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
-        stage2="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+            TMP_FILES=( ${TMP_FILES[@]} "${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped.nii.gz" )
 
-        exe_brain_segmentation_1="${basecall} ${stage1} ${stage2}"
+            basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${EXTRACTED_SEGMENTATION_BRAIN}"
+            basecall="${basecall} -m ${EXTRACTED_BRAIN_TEMPLATE} -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} -j 1"
+            if [[ ${USE_FLOAT_PRECISION} -ne 0 ]];
+              then
+                basecall="${basecall} -p f"
+              fi
+        else
+          basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${SEGMENTATION_WARP_OUTPUT_PREFIX} --float ${USE_FLOAT_PRECISION}"
+          IMAGES="${EXTRACTED_SEGMENTATION_BRAIN},${EXTRACTED_BRAIN_TEMPLATE}"
+          if [[ -f ${EXTRACTION_GENERIC_AFFINE} ]];
+            then
+              basecall="${basecall} -r [${EXTRACTION_GENERIC_AFFINE},1]"
+            else
+              basecall="${basecall} -r [${IMAGES},1]"
+            fi
+          basecall="${basecall} -x [${SEGMENTATION_MASK_DILATED}]"
+          stage1="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 4x2x1x0"
+          stage2="-m CC[${IMAGES},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+
+          basecall="${basecall} ${stage1} ${stage2}"
+        fi
+
+        exe_brain_segmentation_1=${basecall}
 
 
         # Precision errors in .nii (which stores things as float) headers can cause problems, so attempt to make everything consistent.
@@ -829,8 +858,8 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
       -z ${DEBUG_MODE}
 
     ## Step 3 ###
-    TMP_FILES=( $EXTRACTION_GENERIC_AFFINE $EXTRACTED_SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED $EXTRACTED_BRAIN_TEMPLATE )
-    TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]} )
+    TMP_FILES=( ${TMP_FILES[@]} $EXTRACTION_GENERIC_AFFINE $EXTRACTED_SEGMENTATION_BRAIN $SEGMENTATION_MASK_DILATED $EXTRACTED_BRAIN_TEMPLATE )
+    TMP_FILES=( ${TMP_FILES[@]} ${WARPED_PRIOR_IMAGE_FILENAMES[@]}  )
     if [[ $TEMPLATES_ARE_IDENTICAL -eq 0 ]];
       then
         TMP_FILES=( ${TMP_FILES[@]} $SEGMENTATION_WARP $SEGMENTATION_INVERSE_WARP $SEGMENTATION_GENERIC_AFFINE )
@@ -1006,13 +1035,27 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} )
 
     time_start_template_registration=`date +%s`
-    images="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE}"
-    basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${images},1] --float ${USE_FLOAT_PRECISION}"
-    stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
-    stage2="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
-    stage3="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
 
-    exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
+    basecall=''
+    if [[ ${RUN_QUICK} -ne 0 ]];
+      then
+        TMP_FILES=( ${TMP_FILES[@]} "${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}Warped.nii.gz" )
+
+        basecall="${ANTSPATH}/antsRegistrationSyNQuick.sh -d ${DIMENSION} -f ${REGISTRATION_TEMPLATE}"
+        basecall="${basecall} -m ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -j 1"
+        if [[ ${USE_FLOAT_PRECISION} -ne 0 ]];
+          then
+            basecall="${basecall} -p f"
+          fi
+      else
+        IMAGES="${REGISTRATION_TEMPLATE},${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE}"
+        basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99] -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX} -r [${IMAGES},1] --float ${USE_FLOAT_PRECISION}"
+        stage1="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1 -s 3x2x1x0"
+        stage2="-m MI[${IMAGES},${ANTS_LINEAR_METRIC_PARAMS}] -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1 -s 3x2x1x0"
+        stage3="-m CC[${IMAGES},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15] -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+        basecall="${basecall} ${stage1} ${stage2} ${stage3}"
+      fi
+    exe_template_registration_1="${basecall}"
 
     if [[ ! -f ${REGISTRATION_TEMPLATE_WARP} ]];
       then

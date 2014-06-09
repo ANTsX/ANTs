@@ -76,7 +76,7 @@ Usage:
 
 Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
 
-     -d:  ImageDimension: 2 or 3
+     -d:  ImageDimension: 2 or 3.
 
      -o:  OutputPrefix:   A prefix that is prepended to all output files.
 
@@ -88,16 +88,16 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
 Optional arguments:
 
-     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0)
+     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0).
 
-     -k:  Keep files:     Keep warped atlas and label files (default = 0)
+     -k:  Keep files:     Keep warped atlas and label files (default = 0).
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub.
 
-     -j: Number of cpu cores to use (default 2; -- requires "-c 2")
+     -j: Number of cpu cores to use (default 2; -- requires "-c 2").
 
-     -q: Use quick parameters (default 0)
+     -q: Use quick registration parameters:  Either 0 or 1 (default = 1).
 
 Example:
 
@@ -147,7 +147,7 @@ Example Case:
 
 Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
 
-     -d:  ImageDimension: 2 or 3
+     -d:  ImageDimension: 2 or 3.
 
      -o:  OutputPrefix:   A prefix that is prepended to all output files.
 
@@ -159,16 +159,16 @@ Compulsory arguments (minimal command line requires SGE cluster, otherwise use -
 
 Optional arguments:
 
-     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0)
+     -m:  Majority vote:  Use majority vote instead of joint label fusion (default = 0).
 
-     -k:  Keep files:     Keep warped atlas and label files (default = 0)
+     -k:  Keep files:     Keep warped atlas and label files (default = 0).
 
      -c:  Control for parallel computation (default 0) -- 0 == run serially,  1 == SGE qsub,
-          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub.
 
-     -j: Number of cpu cores to use (default 2; -- requires "-c 2")
+     -j: Number of cpu cores to use (default 2; -- requires "-c 2").
 
-     -q: Use quick parameters ( either 0 or 1 )
+     -q: Use quick registration parameters:  Either 0 or 1 (default = 1).
 
 Requirements:
 
@@ -299,8 +299,8 @@ if [[ "$1" == "-h" ]];
   then
     Help >&2
   fi
-MAJVOTE=0
-RUNQUICK=0
+MAJORITYVOTE=0
+RUNQUICK=1
 # reading command line arguments
 while getopts "c:d:g:h:j:k:l:m:o:t:q:" OPT
   do
@@ -332,7 +332,7 @@ while getopts "c:d:g:h:j:k:l:m:o:t:q:" OPT
    CORES=$OPTARG
    ;;
       m) #majority voting option
-   MAJVOTE=$OPTARG
+   MAJORITYVOTE=$OPTARG
    ;;
       k)
    KEEP_ALL_IMAGES=$OPTARG
@@ -462,7 +462,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 done
 
 malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
-if [[ $MAJVOTE -eq 1 ]];
+if [[ $MAJORITYVOTE -eq 1 ]];
   then
     malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
   fi
@@ -562,7 +562,7 @@ time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
 echo
 echo "--------------------------------------------------------------------------------------"
-if [[ $MAJVOTE -eq 1 ]];
+if [[ $MAJORITYVOTE -eq 1 ]];
   then
     echo " Done creating: ${OUTPUT_PREFIX}MalfLabels.nii.gz"
   else
