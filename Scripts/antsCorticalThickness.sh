@@ -1204,7 +1204,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
     echo "0 0 1 0 1 1 0" >> $ITKSNAP_COLORMAP
     echo "0 0 0 1 0 1 1" >> $ITKSNAP_COLORMAP
 
-    conversion="${ANTSPATH}/ConvertScalarImageToRGB ${DIMENSION} ${BRAIN_SEGMENTATION_RESAMPLED}"
+    conversion="${ANTSPATH}/ConvertScalarImageToRGB ${DIMENSION} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED}"
     conversion="${conversion} ${BRAIN_SEGMENTATION_IMAGE_RGB} none custom $ITKSNAP_COLORMAP 0 6"
     logCmd $conversion
 
