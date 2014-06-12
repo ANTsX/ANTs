@@ -295,6 +295,14 @@ bool IsRealTensor( TensorType dtv )
 template <class TensorType>
 float  GetTensorFA( TensorType dtv )
 {
+
+  // Check for zero diffusion (probably background) and return zero FA 
+  // if that's the case
+  if (dtv[0] + dtv[3] + dtv[5] == 0.0f) 
+    {
+      return 0.0f;
+    }
+
   typedef vnl_matrix<double> MatrixType;
   MatrixType DT(3, 3);
   DT.fill(0);
