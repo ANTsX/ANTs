@@ -258,6 +258,18 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     return GC;
     }
+  else if( str == "icp" )
+    {
+    return ICP;
+    }
+  else if( str == "pse" )
+    {
+    return PSE;
+    }
+  else if( str == "jhct" )
+    {
+    return JHCT;
+    }
   return IllegalMetric;
 }
 
@@ -1099,8 +1111,15 @@ RegistrationHelper<TComputeType, VImageDimension>
           metric = corrMetric;
           }
           break;
+        case ICP: case PSE: case JHCT:
+          {
+          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
+          return EXIT_FAILURE;
+          break;
+          }
         default:
-          std::cout << "ERROR: Unrecognized image metric: " << std::endl;
+          std::cerr << "ERROR: Unrecognized image metric. " << std::endl;
+          return EXIT_FAILURE;
         }
       metric->SetVirtualDomainFromImage( fixedImage );
       metric->SetUseMovingImageGradientFilter( gradientfilter );

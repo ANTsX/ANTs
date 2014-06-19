@@ -877,6 +877,14 @@ DoRegistration(typename ParserType::Pointer & parser)
                               samplingPercentage );
         }
         break;
+      case RegistrationHelperType::ICP:
+      case RegistrationHelperType::PSE:
+      case RegistrationHelperType::JHCT:
+        {
+        std::cerr << "Whoa, there, Cowboy---the point set metrics are not ready for prime time yet. " << std::endl;
+        return EXIT_FAILURE;
+        }
+        break;
       default:
         std::cout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
         return EXIT_FAILURE;

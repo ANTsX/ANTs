@@ -221,15 +221,16 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     {
     std::string description = std::string( "These image metrics are available--- " )
       + std::string( "CC:  ANTS neighborhood cross correlation, MI:  Mutual information, " )
-      + std::string( "Demons: (Thirion), MeanSquares, and " )
-      + std::string( "GC: Global Correlation. " )
+      + std::string( "Demons: (Thirion), MeanSquares, and GC: Global Correlation. " )
       + std::string( "The \"metricWeight\" variable is used to modulate the per stage weighting of the metrics.  " )
       + std::string( "The metrics can also employ a sampling strategy defined by a " )
-      + std::string( "sampling percentage. The sampling strategy defaults to None (aka a dense sampling of ")
+      + std::string( "sampling percentage. The sampling strategy defaults to \'None\' (aka a dense sampling of ")
       + std::string( "one sample per voxel), otherwise it defines a point set over which to optimize the metric. " )
       + std::string( "The point set can be on a regular lattice or a random lattice of points slightly " )
       + std::string( "perturbed to minimize aliasing artifacts. samplingPercentage defines the " )
-      + std::string( "fraction of points to select from the domain. " );
+      + std::string( "fraction of points to select from the domain. " )
+      + std::string( "In addition, three point set metrics are available:  Euclidean " )
+      + std::string( "(ICP), Point-set expectation (PSE), and Jensen-Havrda-Charvet-Tsallis (JHCT)." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "metric" );
@@ -252,6 +253,15 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     option->SetUsageOption(
       5,
       "GC[fixedImage,movingImage,metricWeight,radius=NA,<samplingStrategy={None,Regular,Random}>,<samplingPercentage=[0,1]>]" );
+    option->SetUsageOption(
+      6,
+      "ICP[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>]" );
+    option->SetUsageOption(
+      7,
+      "PSE[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=>,<kNeighborhood=50>]" );
+    option->SetUsageOption(
+      8,
+      "JHCT[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=>,<kNeighborhood=50>,<alpha=1.1>,<useAnisotropicCovariances=1>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
