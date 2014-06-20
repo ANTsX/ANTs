@@ -164,7 +164,8 @@ public:
   {
   public:
     Metric( MetricEnumeration metricType,
-            ImagePointer & fixedImage, ImagePointer & movingImage,
+            ImageType *fixedImage, ImageType *movingImage,
+            PointSetType *fixedPointSet, PointSetType *movingPointSet,
             unsigned int stageID, RealType weighting,
             SamplingStrategy samplingStrategy, int numberOfBins,
             unsigned int radius,
@@ -177,6 +178,8 @@ public:
       m_SamplingStrategy( samplingStrategy ),
       m_NumberOfBins( numberOfBins ),
       m_Radius( radius ),
+      m_FixedPointSet( fixedPointSet ),
+      m_MovingPointSet( movingPointSet ),
       m_SamplingPercentage( samplingPercentage )
     {
     }
@@ -401,8 +404,10 @@ public:
    * add a metric, corresponding to the registration stage
    */
   void AddMetric( MetricEnumeration metricType,
-                  typename ImageType::Pointer & fixedImage,
-                  typename ImageType::Pointer & movingImage,
+                  ImageType *fixedImage,
+                  ImageType *movingImage,
+                  PointSetType *fixedPointSet,
+                  PointSetType *movingPointSet,
                   unsigned int stageID,
                   RealType weighting,
                   SamplingStrategy samplingStrategy,

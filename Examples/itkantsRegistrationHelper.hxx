@@ -348,8 +348,10 @@ template <class TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddMetric( MetricEnumeration metricType,
-             typename ImageType::Pointer & fixedImage,
-             typename ImageType::Pointer & movingImage,
+             ImageType *fixedImage,
+             ImageType *movingImage,
+             PointSetType *fixedPointSet,
+             PointSetType *movingPointSet,
              unsigned int stageID,
              RealType weighting,
              SamplingStrategy samplingStrategy,
@@ -357,9 +359,8 @@ RegistrationHelper<TComputeType, VImageDimension>
              unsigned int  radius,
              RealType samplingPercentage )
 {
-  Metric init( metricType, fixedImage, movingImage, stageID,
-               weighting, samplingStrategy, numberOfBins,
-               radius,
+  Metric init( metricType, fixedImage, movingImage, fixedPointSet, movingPointSet,
+               stageID, weighting, samplingStrategy, numberOfBins, radius,
                samplingPercentage );
 
   this->m_Metrics.push_back( init );
