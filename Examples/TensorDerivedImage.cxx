@@ -27,7 +27,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include <string>
 #include "TensorFunctions.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkRGBPixel.h"
 
 namespace ants

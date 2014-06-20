@@ -27,7 +27,7 @@
 #include "itkImageFileReader.h"
 #include "itkCastImageFilter.h"
 #include "itkRescaleIntensityImageFilter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "TensorFunctions.h"
 
 namespace ants

@@ -27,7 +27,7 @@
 
 #include "itkExtractImageFilter.h"
 #include "itkImage.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkMultiplyImageFilter.h"

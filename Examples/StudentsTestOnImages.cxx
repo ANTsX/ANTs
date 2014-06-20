@@ -13,7 +13,7 @@
 #include <math.h>
 #include <float.h>
 #include <assert.h>
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 #include <vnl/algo/vnl_symmetric_eigensystem.h>
 

@@ -30,7 +30,7 @@
 #include "itkCSVArray2DDataObject.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkExtractImageFilter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

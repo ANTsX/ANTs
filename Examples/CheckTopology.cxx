@@ -26,7 +26,7 @@ $Revision: 1.8 $
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImage.h"
 #include "itkExceptionObject.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkRandomImageSource.h"
 #include "itkImageRandomConstIteratorWithIndex.h"
 #include "itkImageLinearIteratorWithIndex.h"

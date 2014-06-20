@@ -18,7 +18,7 @@
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkANTSAffine3DTransform.h"
 #include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"

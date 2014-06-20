@@ -27,7 +27,7 @@
 #include "itkPermuteAxesImageFilter.h"
 #include "itkFlipImageFilter.h"
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

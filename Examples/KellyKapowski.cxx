@@ -7,7 +7,7 @@
 #include "itkDiReCTImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImage.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkTimeProbe.h"
 
 #include <string>

@@ -8,7 +8,7 @@
 #include "itkConstantPadImageFilter.h"
 #include "itkExpImageFilter.h"
 #include "itkExtractImageFilter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkN4BiasFieldCorrectionImageFilter.h"

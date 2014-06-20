@@ -21,7 +21,7 @@
 
 #include "itkMedianImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

@@ -28,7 +28,7 @@
 // input image with weight 1/n.
 // The output overwrites the 1st img with the sum.
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

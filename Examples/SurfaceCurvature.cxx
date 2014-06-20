@@ -8,7 +8,7 @@
 #include "itkSurfaceCurvatureBase.h"
 #include "itkSurfaceImageCurvature.h"
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

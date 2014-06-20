@@ -1,4 +1,4 @@
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 bool ANTSFileExists(const std::string & strFilename)
 {

@@ -46,9 +46,7 @@
 #include "itkWarpImageFilter.h"
 #include "itkWindowConvergenceMonitoringFunction.h"
 
-
-#include "itkImageFileWriter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace itk
 {

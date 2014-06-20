@@ -12,7 +12,7 @@
 #include "itkImageIOFactory.h"
 #include <math.h>
 #include <iostream>
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkTransformFileWriter.h"
 
 #include <vnl/vnl_matrix.h>

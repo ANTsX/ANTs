@@ -10,7 +10,7 @@
 #include "itkWarpTensorImageMultiTransformFilter.h"
 #include "itkTransformFileReader.h"
 #include "itkVectorNearestNeighborInterpolateImageFunction.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkWarpImageMultiTransformFilter.h"
 #include "itkExpTensorImageFilter.h"
 

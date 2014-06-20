@@ -129,7 +129,7 @@
 #include <sstream>
 #include <string>
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "TensorFunctions.h"
 #include "antsMatrixUtilities.h"
 #include "antsFastMarchingImageFilter.h"

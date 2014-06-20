@@ -5,7 +5,7 @@
 #include "stdio.h"
 #include "itkImage.h"
 #include "itkImageRegionIteratorWithIndex.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "TensorFunctions.h"
 
 namespace ants

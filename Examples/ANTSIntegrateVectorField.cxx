@@ -19,7 +19,7 @@
 #include "itkLaplacianRecursiveGaussianImageFilter.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

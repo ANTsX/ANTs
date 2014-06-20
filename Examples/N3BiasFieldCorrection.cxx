@@ -2,7 +2,7 @@
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
 #include <algorithm>
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkBSplineControlPointImageFilter.h"
 #include "itkExpImageFilter.h"
 #include "itkImageFileReader.h"

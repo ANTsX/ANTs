@@ -28,7 +28,7 @@
 #include "itkMinimumMaximumImageFilter.h"
 #include "itkImage.h"
 #include "itkMacro.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkCenteredEuler3DTransform.h"
 #include "itkQuaternionRigidTransform.h"
 #include "itkANTSAffine3DTransform.h"

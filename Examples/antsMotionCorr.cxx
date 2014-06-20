@@ -17,7 +17,7 @@
 *=========================================================================*/
 #include "antsUtilities.h"
 #include "antsAllocImage.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "antsCommandLineParser.h"
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkImageRegistrationMethodv4.h"
@@ -619,11 +619,11 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       outDirection(ImageDimension, d) = 0;
       }
     outDirection(ImageDimension, ImageDimension) = 1.0;
-    
+
     outSize[ImageDimension] = timedims;
     outSpacing[ImageDimension] = movingImage->GetSpacing()[ImageDimension];
     outOrigin[ImageDimension] = movingImage->GetOrigin()[ImageDimension];
-    
+
     outRegion.SetSize( outSize );
     outputImage->SetRegions( outRegion );
     outputImage->SetSpacing( outSpacing );

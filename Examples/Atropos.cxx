@@ -3,7 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include "antsUtilities.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkImage.h"
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"

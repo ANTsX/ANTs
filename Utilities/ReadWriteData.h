@@ -1,5 +1,5 @@
-#ifndef __ReadWriteImage_h_
-#define __ReadWriteImage_h_
+#ifndef __ReadWriteData_h_
+#define __ReadWriteData_h_
 #include <antsAllocImage.h>
 #include <iostream>
 #include <fstream>
@@ -182,7 +182,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
     }
 
   //NiftiDTICheck<ImageType>(target, file, false);
-  
+
   if( takelog )
     {
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
@@ -201,7 +201,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
     target = logFilter->GetOutput();
     std::cout << "Returning Log(D) for log-euclidean math ops" << std::endl;
     }
-  
+
 }
 
 template <class TImageType>
