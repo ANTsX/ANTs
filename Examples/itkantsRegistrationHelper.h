@@ -415,6 +415,22 @@ public:
                   unsigned int radius,
                   RealType samplingPercentage );
 
+  /** For backwards compatibility */
+  inline void AddMetric( MetricEnumeration metricType,
+                  ImageType *fixedImage,
+                  ImageType *movingImage,
+                  unsigned int stageID,
+                  RealType weighting,
+                  SamplingStrategy samplingStrategy,
+                  int numberOfBins,
+                  unsigned int radius,
+                  RealType samplingPercentage )
+    {
+    this->AddMetric(metricType,fixedImage,movingImage,ITK_NULLPTR, ITK_NULLPTR,
+      stageID,weighting,samplingStrategy,numberOfBins,radius, samplingPercentage);
+    }
+
+
   /**
    * Get set of metrics per stage.  If we have more than one, we have
    * to use the MultiMetricType
