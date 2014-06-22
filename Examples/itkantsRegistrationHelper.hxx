@@ -357,11 +357,17 @@ RegistrationHelper<TComputeType, VImageDimension>
              SamplingStrategy samplingStrategy,
              int numberOfBins,
              unsigned int  radius,
+             bool useBoundaryPointsOnly,
+             RealType pointSetSigma,
+             unsigned int evaluationKNeighborhood,
+             RealType alpha,
+             bool useAnisotropicCovariances,
              RealType samplingPercentage )
 {
   Metric init( metricType, fixedImage, movingImage, fixedPointSet, movingPointSet,
                stageID, weighting, samplingStrategy, numberOfBins, radius,
-               samplingPercentage );
+               useBoundaryPointsOnly, pointSetSigma, evaluationKNeighborhood,
+               alpha, useAnisotropicCovariances, samplingPercentage );
 
   this->m_Metrics.push_back( init );
 }
@@ -965,45 +971,65 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
-      // Get the fixed and moving images
-      const typename ImageType::ConstPointer fixedImage =
-        stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
-      const typename ImageType::ConstPointer movingImage =
-        stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
+      MetricEnumeration currentMetric = stageMetricList[currentMetricNumber].m_MetricType;
+//       bool currentMetricIsPointSetType = this->IsPointSetMetric( currentMetric );
+//
+//       if( !currentMetricIsPointSetType )
+//         {
+        // Get the fixed and moving images
+        const typename ImageType::ConstPointer fixedImage =
+          stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
+        const typename ImageType::ConstPointer movingImage =
+          stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
 
-      // Preprocess images
+        // Preprocess images
 
-      std::string outputPreprocessingString = "";
+        std::string outputPreprocessingString = "";
 
-      PixelType lowerScaleValue = 0.0;
-      PixelType upperScaleValue = 1.0;
-      if( this->m_WinsorizeImageIntensities )
-        {
-        outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
-        }
+        PixelType lowerScaleValue = 0.0;
+        PixelType upperScaleValue = 1.0;
+        if( this->m_WinsorizeImageIntensities )
+          {
+          outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
+          }
 
-      typename ImageType::Pointer preprocessFixedImage =
-        PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
-                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                    NULL );
+        typename ImageType::Pointer preprocessFixedImage =
+          PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
+                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                      NULL );
 
-      preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
+        preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
 
-      typename ImageType::Pointer preprocessMovingImage =
-        PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
-                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                    NULL );
+        typename ImageType::Pointer preprocessMovingImage =
+          PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
+                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                      NULL );
 
-      if( this->m_UseHistogramMatching )
-        {
-        outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
-        preprocessMovingImage =
-          PreprocessImage<ImageType>( movingImage.GetPointer(),
-                                      lowerScaleValue, upperScaleValue,
-                                      this->m_LowerQuantile, this->m_UpperQuantile,
-                                      preprocessFixedImage.GetPointer() );
-        }
-      preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
+        if( this->m_UseHistogramMatching )
+          {
+          outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
+          preprocessMovingImage =
+            PreprocessImage<ImageType>( movingImage.GetPointer(),
+                                        lowerScaleValue, upperScaleValue,
+                                        this->m_LowerQuantile, this->m_UpperQuantile,
+                                        preprocessFixedImage.GetPointer() );
+          }
+        preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
+//        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
       if( this->m_ApplyLinearTransformsToFixedImageHeader )
         {
@@ -1026,7 +1052,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
       typename MetricType::Pointer metric;
 
-      switch( stageMetricList[currentMetricNumber].m_MetricType )
+      switch( currentMetric )
         {
         case CC:
           {

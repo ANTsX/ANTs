@@ -341,8 +341,52 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
 }
 
 template <class TPointSet>
+// void ReadImage(typename TPointSet::Pointer target, const char *file)
+bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file )
+{
+  typedef typename TPointSet::PixelType PixelType;
+  if( std::string( file ).length() < 3 )
+    {
+    std::cerr << " bad file name " << std::string(file) << std::endl;
+    target = NULL;
+    return EXIT_FAILURE;
+    }
+
+  if( !ANTSFileExists( std::string( file ) ) )
+    {
+    std::cerr << " file " << std::string( file ) << " does not exist . " << std::endl;
+    return false;
+    }
+
+  // Read the image files begin
+  typedef itk::LabeledPointSetFileReader<TPointSet>   FileSourceType;
+  typename FileSourceType::Pointer reffilter = FileSourceType::New();
+  reffilter->SetFileName( file );
+  try
+    {
+    reffilter->Update();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Exception caught during point set reference file reading " << std::endl;
+    std::cerr << e << std::endl;
+    return false;
+    }
+
+  target = reffilter->GetOutput();
+
+  return true;
+}
+
+template <class TPointSet>
 typename TPointSet::Pointer ReadPointSet( char* fn )
 {
+  if( !ANTSFileExists( std::string( fn ) ) )
+    {
+    std::cerr << " file " << std::string( fn ) << " does not exist . " << std::endl;
+    return;
+    }
+
   // Read the image files begin
   typedef itk::LabeledPointSetFileReader<TPointSet>   FileSourceType;
   typename FileSourceType::Pointer reffilter = FileSourceType::New();

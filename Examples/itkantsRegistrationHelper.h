@@ -159,6 +159,17 @@ public:
     invalid = 17
     };
 
+  bool IsPointSetMetric( MetricEnumeration metricType )
+    {
+    if( metricType == ICP || metricType == PSE || metricType == JHCT )
+      {
+      return true;
+      }
+    else
+      {
+      return false;
+      }
+    }
 
   class Metric
   {
@@ -168,7 +179,9 @@ public:
             PointSetType *fixedPointSet, PointSetType *movingPointSet,
             unsigned int stageID, RealType weighting,
             SamplingStrategy samplingStrategy, int numberOfBins,
-            unsigned int radius,
+            unsigned int radius, bool useBoundaryPointsOnly,
+            RealType pointSetSigma, unsigned int evaluationKNeighborhood,
+            RealType alpha, bool useAnisotropicCovariances,
             RealType samplingPercentage ) :
       m_MetricType( metricType ),
       m_FixedImage( fixedImage ),
@@ -180,6 +193,11 @@ public:
       m_Radius( radius ),
       m_FixedPointSet( fixedPointSet ),
       m_MovingPointSet( movingPointSet ),
+      m_UseBoundaryPointsOnly( useBoundaryPointsOnly ),
+      m_PointSetSigma( pointSetSigma ),
+      m_EvaluationKNeighborhood( evaluationKNeighborhood ),
+      m_Alpha( alpha ),
+      m_UseAnisotropicCovariances( useAnisotropicCovariances ),
       m_SamplingPercentage( samplingPercentage )
     {
     }
@@ -413,6 +431,11 @@ public:
                   SamplingStrategy samplingStrategy,
                   int numberOfBins,
                   unsigned int radius,
+                  bool useBoundaryPointsOnly,
+                  RealType pointSetSigma,
+                  unsigned int evaluationKNeighborhood,
+                  RealType alpha,
+                  bool useAnisotropicCovariances,
                   RealType samplingPercentage );
 
   /** For backwards compatibility */
@@ -426,8 +449,9 @@ public:
                   unsigned int radius,
                   RealType samplingPercentage )
     {
-    this->AddMetric(metricType,fixedImage,movingImage,ITK_NULLPTR, ITK_NULLPTR,
-      stageID,weighting,samplingStrategy,numberOfBins,radius, samplingPercentage);
+    this->AddMetric( metricType, fixedImage, movingImage, ITK_NULLPTR, ITK_NULLPTR,
+      stageID, weighting, samplingStrategy, numberOfBins, radius,
+      false, 1.0, 50, 1.1, false, samplingPercentage );
     }
 
 
@@ -781,7 +805,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
     else if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
       {
       std::string fixedImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
-      ReadImage<ImageType>( fixedImage,  fixedImageFileName.c_str() );
+      ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
       if( fixedImage )
         {
         std::string movingImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 1 );
