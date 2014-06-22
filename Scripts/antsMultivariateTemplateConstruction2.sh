@@ -907,7 +907,7 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo "--------------------------------------------------------------------------------------"
      # now move the initial registration template to OUTPUTNAME, otherwise this input gets overwritten.
         cp ${REGTEMPLATES[$i]} ${TEMPLATES[$i]}
-    else
+      else
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " Creating template ${TEMPLATES[$i]} from a population average image from the inputs."
@@ -915,17 +915,16 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         echo "--------------------------------------------------------------------------------------"
         summarizeimageset $DIM ${TEMPLATES[$i]} $STATSMETHOD ${CURRENTIMAGESET[@]}
         #${ANTSPATH}AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
-    fi
+      fi
 
-#     if [[ ! -s ${TEMPLATES[$i]} ]];
-#         then
-#         echo "Your template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
-#         exit 1
-#     fi
+    if [[ ! -s ${TEMPLATES[$i]} ]];
+      then
+        echo "Your template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+        exit 1
+      fi
 done
 
 
-exit;
 # remove old job bash scripts
 outdir=`dirname ${TEMPLATES[0]}`
 if [[ ${#outdir} -eq 0 ]];
