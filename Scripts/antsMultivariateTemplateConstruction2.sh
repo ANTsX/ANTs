@@ -109,12 +109,12 @@ Optional arguments:
           4 = PBS qsub
 
      -e   use single precision ( default 1 )
-     
+
      -a   image statistic used to summarize images (default 2)
           0 = mean
           1 = mean of normalized intensities
           2 = median
-          
+
      -g:  Gradient step size (default 0.25): smaller in magnitude results in more
           cautious steps.
 
@@ -241,27 +241,28 @@ REPORTMAPPINGPARAMETERS
 }
 
 function summarizeimageset() {
-  
+
   local dim=$1
   shift
   local output=$1
   shift
   local method=$1
   shift
-  local images=("${@}")
-  
+  local images=( "${@}" "" )
+
   case $method in
     0) #mean
-      AverageImages $dim $output 0 ${images[*]}    
+      AverageImages $dim $output 0 ${images[*]}
       ;;
     1) #mean of normalized images
       AverageImages $dim $output 1 ${images[*]}
       ;;
     2) #median
-      for i in ${images[@]}; do
-        echo $i >> ${output}_list.txt
-      done
-      
+      for i in "${images[@]}";
+        do
+          echo $i >> ${output}_list.txt
+        done
+
       ImageSetStatistics $dim ${output}_list.txt ${output} 1
       rm ${output}_list.txt
       ;;
@@ -302,16 +303,16 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
     imagelist=(`ls ${outputname}*WarpedToTemplate.nii.gz`)
     summarizeimageset $dim $template $statsmethod ${imagelist[@]}
-    
+
     WARPLIST=(`ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null`)
-    NWARPS=${#WARPLIST[*]}   
+    NWARPS=${#WARPLIST[*]}
     echo "number of warps = $NWARPS"
     echo "$WARPLIST"
 
     if [[ $whichtemplate -eq 0 ]];
       then
-           
-        if [[ $NWARPS -ne 0 ]]; then 
+
+        if [[ $NWARPS -ne 0 ]]; then
           echo "$NWARPS does not equal 0"
           echo
           echo "--------------------------------------------------------------------------------------"
@@ -320,7 +321,7 @@ function shapeupdatetotemplate() {
           date
           echo "--------------------------------------------------------------------------------------"
           ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
-        
+
           echo
           echo "--------------------------------------------------------------------------------------"
           echo " shapeupdatetotemplate---scale the averaged inverse warp field by the gradient step"
@@ -329,7 +330,7 @@ function shapeupdatetotemplate() {
           echo "--------------------------------------------------------------------------------------"
           ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
         fi
-        
+
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
@@ -339,8 +340,8 @@ function shapeupdatetotemplate() {
         echo "--------------------------------------------------------------------------------------"
 
         ${ANTSPATH}AverageAffineTransformNoRigid ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
-        
-        if [[ $NWARPS -ne 0 ]]; then 
+
+        if [[ $NWARPS -ne 0 ]]; then
           ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
           ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
         fi
@@ -706,7 +707,7 @@ else
 fi
 
 if [[ $STATSMETHOD -gt 2 ]];
-  then  
+  then
   echo "Invalid stats type: using median (2)"
   STATSMETHOD=2
 fi
@@ -895,7 +896,7 @@ fi
 
 # check for initial template images
 for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
-    do
+  do
     setCurrentImageSet $i
 
     if [[ -s ${REGTEMPLATES[$i]} ]];
@@ -916,13 +917,15 @@ for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
         #${ANTSPATH}AverageImages $DIM ${TEMPLATES[$i]} 1 ${CURRENTIMAGESET[@]}
     fi
 
-    if [[ ! -s ${TEMPLATES[$i]} ]];
-        then
-        echo "Your template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
-        exit 1
-    fi
+#     if [[ ! -s ${TEMPLATES[$i]} ]];
+#         then
+#         echo "Your template : $TEMPLATES[$i] was not created.  This indicates trouble!  You may want to check correctness of your input parameters. exiting."
+#         exit 1
+#     fi
 done
 
+
+exit;
 # remove old job bash scripts
 outdir=`dirname ${TEMPLATES[0]}`
 if [[ ${#outdir} -eq 0 ]];
@@ -1296,7 +1299,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
            exe="$exebase ${basecall} ${stage0} ${stage1} ${stage3}\n";
            pexe="$pexebase ${basecall} ${stage0} ${stage1} ${stage2} ${stage3} >> ${outdir}/job_${count}_metriclog.txt\n"
         fi
-        
+
         exe="$exe $warpexe"
         pexe="$pexe $warppexe"
 
