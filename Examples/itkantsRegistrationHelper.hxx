@@ -1327,13 +1327,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<AffineTransformType *>(
-                                                                               affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<AffineTransformType *>(
-                                                      affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1402,13 +1400,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<RigidTransformType *>(
-                                                                               rigidRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( rigidRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->
-                                                                                      Get() ) );
+          this->m_CompositeTransform->AddTransform( rigidRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1478,13 +1474,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<CompositeAffineTransformType *>(
-                                                                               affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<CompositeAffineTransformType *>( affineRegistration->
-                                                                                                GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1554,13 +1548,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<SimilarityTransformType *>(
-                                                                               similarityRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( similarityRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<SimilarityTransformType *>( similarityRegistration->
-                                                                                           GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( similarityRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1630,14 +1622,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<TranslationTransformType *>(
-                                                                               translationRegistration->GetOutput()->
-                                                                               Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( translationRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<TranslationTransformType *>( translationRegistration->
-                                                                                            GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( translationRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1672,8 +1661,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<GaussianDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -1813,8 +1801,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
         outputDisplacementFieldTransform->SetDisplacementField( displacementField );
 
         // Create the transform adaptors
@@ -1965,8 +1952,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           bsplineRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineTransformType::Pointer outputBSplineTransform =
-          const_cast<BSplineTransformType *>( bsplineRegistration->GetOutput()->Get() );
+        typename BSplineTransformType::Pointer outputBSplineTransform = bsplineRegistration->GetModifiableTransform();
 
         const std::vector<unsigned int> & size = this->m_TransformMethods[currentStageNumber].m_MeshSizeAtBaseLevel;
 
@@ -2171,8 +2157,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
-        typename OutputTransformType::Pointer outputTransform =
-          const_cast<OutputTransformType *>( velocityFieldRegistration->GetOutput()->Get() );
+        typename OutputTransformType::Pointer outputTransform = velocityFieldRegistration->GetModifiableTransform();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
           velocityFieldRegistration->SetFixedImage( n, preprocessedFixedImagesPerStage[n] );
@@ -2381,8 +2366,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
-        typename OutputTransformType::Pointer outputTransform =
-          const_cast<OutputTransformType *>( velocityFieldRegistration->GetOutput()->Get() );
+        typename OutputTransformType::Pointer outputTransform = velocityFieldRegistration->GetModifiableTransform();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
           velocityFieldRegistration->SetFixedImage( n, preprocessedFixedImagesPerStage[n] );
@@ -2550,8 +2534,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename DisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<DisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename DisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -2711,8 +2694,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -2885,8 +2867,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<GaussianDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -3036,8 +3017,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
