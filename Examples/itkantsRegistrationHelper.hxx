@@ -914,7 +914,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     MetricListType stageMetricList = this->GetMetricListPerStage( this->m_NumberOfStages - currentStageNumber - 1 );
 
-    typename MetricType::Pointer      singleMetric;
+    typename ImageMetricType::Pointer singleMetric;
     typename MultiMetricType::Pointer multiMetric;
 
     typename MultiMetricType::WeightsArrayType metricWeights( stageMetricList.size() );
@@ -971,65 +971,46 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
-      MetricEnumeration currentMetric = stageMetricList[currentMetricNumber].m_MetricType;
-//       bool currentMetricIsPointSetType = this->IsPointSetMetric( currentMetric );
-//
-//       if( !currentMetricIsPointSetType )
-//         {
-        // Get the fixed and moving images
-        const typename ImageType::ConstPointer fixedImage =
-          stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
-        const typename ImageType::ConstPointer movingImage =
-          stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
 
-        // Preprocess images
+      // Get the fixed and moving images
+      const typename ImageType::ConstPointer fixedImage =
+        stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
+      const typename ImageType::ConstPointer movingImage =
+        stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
 
-        std::string outputPreprocessingString = "";
+      // Preprocess images
 
-        PixelType lowerScaleValue = 0.0;
-        PixelType upperScaleValue = 1.0;
-        if( this->m_WinsorizeImageIntensities )
-          {
-          outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
-          }
+      std::string outputPreprocessingString = "";
 
-        typename ImageType::Pointer preprocessFixedImage =
-          PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
-                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                      NULL );
+      PixelType lowerScaleValue = 0.0;
+      PixelType upperScaleValue = 1.0;
+      if( this->m_WinsorizeImageIntensities )
+        {
+        outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
+        }
 
-        preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
+      typename ImageType::Pointer preprocessFixedImage =
+        PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
+                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                    NULL );
 
-        typename ImageType::Pointer preprocessMovingImage =
-          PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
-                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                      NULL );
+      preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
 
-        if( this->m_UseHistogramMatching )
-          {
-          outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
-          preprocessMovingImage =
-            PreprocessImage<ImageType>( movingImage.GetPointer(),
-                                        lowerScaleValue, upperScaleValue,
-                                        this->m_LowerQuantile, this->m_UpperQuantile,
-                                        preprocessFixedImage.GetPointer() );
-          }
-        preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
-//        }
+      typename ImageType::Pointer preprocessMovingImage =
+        PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
+                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                    NULL );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+      if( this->m_UseHistogramMatching )
+        {
+        outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
+        preprocessMovingImage =
+          PreprocessImage<ImageType>( movingImage.GetPointer(),
+                                      lowerScaleValue, upperScaleValue,
+                                      this->m_LowerQuantile, this->m_UpperQuantile,
+                                      preprocessFixedImage.GetPointer() );
+        }
+      preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
 
       if( this->m_ApplyLinearTransformsToFixedImageHeader )
         {
@@ -1050,9 +1031,9 @@ RegistrationHelper<TComputeType, VImageDimension>
 
       // Set up the image metric and scales estimator
 
-      typename MetricType::Pointer metric;
+      typename ImageMetricType::Pointer metric;
 
-      switch( currentMetric )
+      switch( stageMetricList[currentMetricNumber].m_MetricType )
         {
         case CC:
           {
@@ -1209,7 +1190,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     // There's a scale issue here.  Currently we are using the first metric to estimate the
     // scales but we might need to change this.
-    typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
+    typedef itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType> ScalesEstimatorType;
 
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( singleMetric );
@@ -1913,6 +1894,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           displacementFieldRegistration->SetMetric( singleMetric );
           }
+
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
         for( unsigned int level = 0; level < numberOfLevels; ++level )
           {

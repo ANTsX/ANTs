@@ -66,6 +66,7 @@
 #include "itkMeanSquaresImageToImageMetricv4.h"
 #include "itkMultiGradientOptimizerv4.h"
 #include "itkObject.h"
+#include "itkObjectToObjectMetric.h"
 #include "itkObjectToObjectMultiMetricv4.h"
 #include "itkQuaternionRigidTransform.h"
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
@@ -130,10 +131,12 @@ public:
   typedef typename DisplacementFieldTransformType::Pointer                           DisplacementFieldTransformPointer;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType             DisplacementFieldType;
   typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension>          TimeVaryingVelocityFieldTransformType;
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       MetricType;
-  typedef itk::PointSetToPointSetMetricv4<PointSetType, PointSetType>                PointSetMetricType;
+  typedef itk::ObjectToObjectMetric
+                     <VImageDimension, VImageDimension, ImageType, RealType>         SingleMetricType;
   typedef itk::ObjectToObjectMultiMetricv4
                      <VImageDimension, VImageDimension, ImageType, RealType>         MultiMetricType;
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       ImageMetricType;
+  typedef itk::PointSetToPointSetMetricv4<PointSetType, PointSetType>                PointSetMetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
   typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;

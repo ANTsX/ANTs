@@ -342,7 +342,8 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
 
 template <class TPointSet>
 // void ReadImage(typename TPointSet::Pointer target, const char *file)
-bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file )
+bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
+  bool boundaryPointsOnly = false, float samplingPercentage = 1.0 )
 {
   typedef typename TPointSet::PixelType PixelType;
   if( std::string( file ).length() < 3 )
@@ -362,6 +363,8 @@ bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file )
   typedef itk::LabeledPointSetFileReader<TPointSet>   FileSourceType;
   typename FileSourceType::Pointer reffilter = FileSourceType::New();
   reffilter->SetFileName( file );
+  reffilter->SetExtractBoundaryPoints( boundaryPointsOnly );
+  reffilter->SetRandomPercentage( samplingPercentage );
   try
     {
     reffilter->Update();
