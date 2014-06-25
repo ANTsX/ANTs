@@ -2462,6 +2462,13 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
                                            q_cluster_thresh,
                                            iterct);
       }
+    else if( !initializationStrategy.compare( std::string("dynsccan") )   )
+      {
+      std::cout << " tscca " << std::endl;
+      exitvalue = SCCA_vnl<ImageDimension+1, double>( sccanparser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
+                                                    q_cluster_thresh,
+                                                    iterct, usel1, uselong, row_sparseness, smoother, covering );
+      }
     else
       {
       std::cerr << " unrecognized option in matrixPairOperation " << std::endl;
@@ -2812,6 +2819,7 @@ private:
     option->SetUsageOption(
       2,
       "partial[matrix-view1.mhd,matrix-view2.mhd,matrix-view3.mhd,mask1,mask2,mask3,FracNonZero1,FracNonZero2,FracNonZero3]" );
+    option->SetUsageOption( 3, "dynsccan[matrix-view1.mhd,matrix-view2.mhd,mask1,mask2,FracNonZero1,FracNonZero2] ");
     option->SetDescription( description );
     sccanparser->AddOption( option );
     }

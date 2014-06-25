@@ -4753,20 +4753,29 @@ int MakeImage(int argc, char *argv[])
     sizevaly = atoi(argv[argct]); argct++;
     }
   unsigned int sizevalz = 0;
-  if( argc > argct && ImageDimension == 3 )
+  if( argc > argct && ImageDimension > 2 )
     {
     sizevalz = atoi(argv[argct]); argct++;
+    }
+
+  unsigned int sizevalt = 0;
+  if( argc > argct && ImageDimension > 3 )
+    {
+    sizevalt = atoi(argv[argct]); argct++;
     }
 
   typename ImageType::SizeType size;
   size[0] = sizevalx;
   size[1] = sizevaly;
-  if( ImageDimension == 3 )
+  if( ImageDimension > 2 )
     {
     size[2] = sizevalz;
     }
+  if( ImageDimension > 3 )
+    {
+    size[3] = sizevalt;
+    }
   typename ImageType::RegionType newregion;
-  std::cout << " size " << size << std::endl;
   newregion.SetSize(size);
 
   typename ImageType::Pointer padimage = AllocImage<ImageType>(newregion, 0);

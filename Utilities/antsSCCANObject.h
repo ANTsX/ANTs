@@ -1157,6 +1157,7 @@ private:
 
   // this->ComputeIntercept( A, x, b );
   RealType                   m_Intercept;
+  unsigned int               m_NTimeDimensions;
   unsigned int               m_MinClusterSizeP;
   unsigned int               m_MinClusterSizeQ;
   unsigned int               m_KeptClusterSize;
