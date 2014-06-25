@@ -102,7 +102,7 @@ public:
 
       typedef itk::GradientDescentOptimizerv4Template<RealType> GradientDescentOptimizerType;
       GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
-          const_cast<typename TFilter::OptimizerType *>( const_cast<TFilter *>( filter )->GetOptimizer() ) );
+                                                                      const_cast<TFilter *>( filter )->GetModifiableOptimizer() );
 
       // TODO:  This looks very wrong.  There is a const_cast above, and then the change
       //       of the number of iterations here on what should be a const object.
