@@ -79,6 +79,8 @@
 #include "itkLaplacianSharpeningImageFilter.h"
 #include "itkListSample.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
+#include "itkMaximumProjectionImageFilter.h"
+#include "itkMinimumProjectionImageFilter.h"
 #include "itkMRFImageFilter.h"
 #include "itkMRIBiasFieldCorrectionFilter.h"
 #include "itkMaskImageFilter.h"
@@ -109,9 +111,8 @@
 #include "itkSTAPLEImageFilter.h"
 #include "itkSubtractImageFilter.h"
 #include "itkSumProjectionImageFilter.h"
-#include "itkMaximumProjectionImageFilter.h"
-#include "itkMinimumProjectionImageFilter.h"
 #include "itkTDistribution.h"
+#include "itkTileImageFilter.h"
 #include "itkTimeProbe.h"
 #include "itkTranslationTransform.h"
 #include "itkVariableSizeMatrix.h"
@@ -4665,13 +4666,11 @@ int StackImage(int argc, char *argv[])
     }
 
   typename ImageType::PointType origin2 = image1->GetOrigin();
-  typename ImageType::SizeType size = image1->GetLargestPossibleRegion().GetSize();
   typename ImageType::SizeType newsize = image1->GetLargestPossibleRegion().GetSize();
   typename ImageType::RegionType newregion;
   newsize[ImageDimension - 1] = nSlices * image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
   unsigned int constantPad = image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
 
-  std::cout << " oldsize " << size <<  " newsize " << newsize << std::endl;
   newregion.SetSize(newsize);
   newregion.SetIndex(image1->GetLargestPossibleRegion().GetIndex() );
 
@@ -4709,12 +4708,10 @@ int StackImage(int argc, char *argv[])
     Iterator iter( image1,  image1->GetLargestPossibleRegion() );
     for( iter.GoToBegin(); !iter.IsAtEnd(); ++iter )
       {
-
       typename ImageType::IndexType oindex = iter.GetIndex();
       typename ImageType::IndexType padindex = iter.GetIndex();
       padindex[ImageDimension - 1] = padindex[ImageDimension - 1] + offset;
       padimage->SetPixel(padindex, image1->GetPixel(oindex) );
-
       }
 
     offset += constantPad;
@@ -4725,6 +4722,63 @@ int StackImage(int argc, char *argv[])
 
   return 0;
 }
+
+template <unsigned int ImageDimension>
+int Stack2Images(int argc, char *argv[])
+{
+  if( argc <= 2 )
+    {
+    std::cout << " too few options " << std::endl;
+    return 1;
+    }
+  typedef float                                                           PixelType;
+  typedef itk::Vector<float, ImageDimension>                              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+  typedef itk::ImageFileReader<ImageType>                                 readertype;
+  typedef itk::ImageFileWriter<ImageType>                                 writertype;
+  typedef typename ImageType::IndexType                                   IndexType;
+  typedef typename ImageType::SizeType                                    SizeType;
+  typedef typename ImageType::SpacingType                                 SpacingType;
+  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
+  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
+  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
+
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);  argct++;
+  std::string fn2 = std::string(argv[argct]);  argct++;
+  typename ImageType::Pointer image1 = NULL;
+  typename ImageType::Pointer image2 = NULL;
+  typename ImageType::Pointer tiledimage = NULL;
+  if( fn1.length() > 3 )
+    {
+    ReadImage<ImageType>(image1, fn1.c_str() );
+    }
+  if( fn2.length() > 3 )
+    {
+    ReadImage<ImageType>(image2, fn2.c_str() );
+    }
+
+  itk::FixedArray< unsigned int, ImageDimension > layout;
+  for ( unsigned int i = 0; i < (ImageDimension-1); i++ ) layout[i]=1;
+  layout[ ImageDimension ] = 0;
+  typedef itk::TileImageFilter <ImageType, ImageType >
+    TileImageFilterType;
+  typename TileImageFilterType::Pointer tileFilter
+    = TileImageFilterType::New ();
+  tileFilter->SetLayout( layout );
+  unsigned int inputImageNumber = 0;
+  tileFilter->SetInput( inputImageNumber++, image1 ); 
+  tileFilter->SetInput( inputImageNumber++, image2 ); 
+  tileFilter->SetDefaultPixelValue( 0 );
+  tiledimage = tileFilter->GetOutput();
+  WriteImage<ImageType>(tiledimage, outname.c_str() );
+  return 0;
+}
+
 
 template <unsigned int ImageDimension>
 int MakeImage(int argc, char *argv[])
@@ -14182,6 +14236,10 @@ private:
         {
         StackImage<2>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "stack2") == 0 )
+        {
+        Stack2Images<2>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
         {
         CompareHeadersAndImages<2>(argc, argv);
@@ -14684,6 +14742,10 @@ private:
         {
         StackImage<3>(argc, argv);
         }
+      else if( strcmp(operation.c_str(), "stack2") == 0 )
+        {
+        Stack2Images<3>(argc, argv);
+        }
       else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
         {
         CompareHeadersAndImages<3>(argc, argv);
@@ -15123,6 +15185,10 @@ private:
       else if( strcmp(operation.c_str(), "stack") == 0 )
         {
         StackImage<4>(argc, argv);
+        }
+      else if( strcmp(operation.c_str(), "stack2") == 0 )
+        {
+        Stack2Images<4>(argc, argv);
         }
       else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
         {
