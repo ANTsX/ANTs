@@ -2417,6 +2417,12 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
+    if(  !initializationStrategy.compare( std::string( "recon4d" ) )  )
+      {
+      SVD_One_View<ImageDimension+1, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1,
+                                             row_sparseness, smoother, covering );
+      return EXIT_SUCCESS;
+      }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
       SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1,
@@ -2848,6 +2854,7 @@ private:
     option->SetUsageOption( 4, "network[matrix-view1.mhd,mask1,FracNonZero1,guidance-matrix]" );
     option->SetUsageOption( 5, "lasso[matrix-view1.mhd,mask1,Lambda,guidance-matrix]" );
     option->SetUsageOption( 6, "recon[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix]" );
+    option->SetUsageOption( 7, "recon4d[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix]" );
     option->SetDescription( description );
     sccanparser->AddOption( option );
     }
