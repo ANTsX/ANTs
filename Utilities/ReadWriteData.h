@@ -217,7 +217,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     {
     std::cerr << " bad file name " << std::string(file) << std::endl;
     target = NULL;
-    return EXIT_FAILURE;
+    return false;
     }
 
   std::string comparetype1 = std::string( "0x" );
@@ -242,7 +242,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     if( !ANTSFileExists(std::string(file) ) )
       {
       std::cerr << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL;
-      return EXIT_FAILURE;
+      return false;
       }
     typedef TImageType                      ImageType;
     typedef itk::ImageFileReader<ImageType> FileSourceType;
@@ -260,7 +260,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
       std::cerr << e << " file " << file << std::endl;
       target = NULL;
       std::exception();
-      return EXIT_FAILURE;
+      return false;
       }
 
     // typename ImageType::DirectionType dir;
@@ -350,7 +350,7 @@ bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
     {
     std::cerr << " bad file name " << std::string(file) << std::endl;
     target = NULL;
-    return EXIT_FAILURE;
+    return false;
     }
 
   if( !ANTSFileExists( std::string( file ) ) )

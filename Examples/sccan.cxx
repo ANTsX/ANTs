@@ -108,14 +108,8 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
       mIter.Set(0);
       }
     }
-
-  typedef itk::ImageFileWriter<TImage> WriterType;
   std::string fn1 = filepre + post + extension;
-  std::cout << fn1 << std::endl;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( fn1 );
-  writer->SetInput( weights );
-  writer->Update();
+  WriteImage<TImage>( weights, fn1.c_str() );
 }
 
 template <class T>
@@ -233,7 +227,7 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
 
   if( have_mask )
     {
-    std::cout << " have_mask " << have_mask << std::endl;
+    std::cout << " have_mask WriteSortedVariatesToSpatialImage " << have_mask << std::endl;
     for( unsigned int vars = 0; vars < varmat.columns(); vars++  )
       {
       post2 = post + sccan_to_string<unsigned int>(l_array.get(vars) );
@@ -1542,10 +1536,20 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     }
 
   typename ImageType::Pointer mask1 = NULL;
-  bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 2 ).c_str() );
+  std::string mask1fn = option->GetFunction( 0 )->GetParameter( 2 );
+  bool have_p_mask = false;
+  if ( mask1fn.length() > 5 ) 
+    {
+    have_p_mask = ReadImage<ImageType>(mask1, mask1fn.c_str()  );
+    }
 
   typename ImageType::Pointer mask2 = NULL;
-  bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
+  std::string mask2fn = option->GetFunction( 0 )->GetParameter( 3 );
+  bool have_q_mask = false;
+  if ( mask2fn.length() > 5 ) 
+    {
+    have_q_mask = ReadImage<ImageType>(mask2, mask2fn.c_str() );
+    }
 
   /** the penalties define the fraction of non-zero values for each view */
   double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
@@ -1553,7 +1557,6 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);  // true if P sparsity > 0
-
     }
   double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
