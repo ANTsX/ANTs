@@ -124,7 +124,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       ${${proj}_FFTWD_ARGS}
     )
 
-    if( USE_VTK STREQUAL "ON" )	
+    if( USE_VTK STREQUAL "ON" )
       set(${proj}_CMAKE_OPTIONS
       -DBUILD_TESTING:BOOL=OFF
       -DBUILD_EXAMPLES:BOOL=OFF
@@ -138,7 +138,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
       -DITK_WRAPPING:BOOL=OFF #${BUILD_SHARED_LIBS} ## HACK:  QUICK CHANGE
       -DModule_MGHIO:BOOL=ON
       -DModule_ITKReview:BOOL=ON
-      -DModule_ITKVtkGlue:BOOL=ON	
+      -DModule_ITKVtkGlue:BOOL=ON
       ${${proj}_DCMTK_ARGS}
       ${${proj}_WRAP_ARGS}
       ${${proj}_FFTWF_ARGS}
@@ -150,7 +150,7 @@ if(NOT DEFINED ${extProjName}_DIR AND NOT ${USE_SYSTEM_${extProjName}})
   ### --- End Project specific additions
   set(${proj}_REPOSITORY ${git_protocol}://itk.org/ITK.git)
   set(${proj}_REPOSITORY "https://github.com/InsightSoftwareConsortium/ITK.git")
-  set(${proj}_GIT_TAG 87dcbb4d9a16b1418369a709f91a258cf9d48ee0)
+  set(${proj}_GIT_TAG 541bb689dfdfe72cadfabaa10bf167d6ddb31049)
   set(ITK_VERSION_ID ITK-4.6)
 
   ExternalProject_Add(${proj}
