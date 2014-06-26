@@ -946,7 +946,7 @@ if [[ "$RIGID" -eq 1 ]];
     for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
       do
 
-        basecall="${ANTS} -d ${DIM} --float $USEFLOAT -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
+        basecall="${ANTS} -d ${DIM} --float $USEFLOAT -u 1 -w [0.01,0.99] -z 1 -r [${TEMPLATES[0]},${IMAGESETARRAY[$i]},1]"
 
         IMAGEMETRICSET=""
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
@@ -1274,7 +1274,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
         OUTWARPFN=${POO%.*.*}
         OUTWARPFN=`basename ${OUTWARPFN}${j}`
 
-        stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[0]},1]"
+        stage0="-r [${TEMPLATES[0]},${IMAGESETARRAY[$j]},1]"
         stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         stage2="-t Affine[0.1] ${IMAGEMETRICLINEARSET} -c [1000x500x250x100,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
         #stage1="-t Rigid[0.1] ${IMAGEMETRICLINEARSET} -c [10x10x10x10,1e-8,10] -f 8x4x2x1 -s 4x2x1x0"
