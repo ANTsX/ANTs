@@ -83,11 +83,8 @@ public:
       m_clock.Start();
 
       typedef itk::GradientDescentOptimizerv4<ParametersValueType> GradientDescentOptimizerType;
-      GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>(
-          const_cast<typename TOptimizer::OptimizerType *>( const_cast<TOptimizer *>( this->m_Optimizer )->GetOptimizer() ) );
+      GradientDescentOptimizerType * optimizer = reinterpret_cast<GradientDescentOptimizerType *>( this->m_Optimizer->GetModifiableOptimizer() );
 
-      // TODO:  This looks very wrong.  There is a const_cast above, and then the change
-      //       of the number of iterations here on what should be a const object.
       optimizer->SetNumberOfIterations( this->m_NumberOfIterations[currentLevel] );
       }
     else
@@ -209,7 +206,7 @@ public:
                                   MeasureType & metricValue ) const
   {
     // Get the registration metric from the optimizer
-    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType const *>( myOptimizer->GetMetric() ) );
+    typename MetricType::Pointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetModifiableMetric() ) );
 
     // Define the CC metric type
     // This metric type is used to measure the general similarity metric between the original input fixed and moving
@@ -235,14 +232,12 @@ public:
       {
       typename CompositeTransformType::Pointer myFixedTransform = CompositeTransformType::New();
 
-      // Const_cast just makes it possible to cast the metric's transform to a composite transform, so we can copy each
+      // We cast the metric's transform to a composite transform, so we can copy each
       // of its sub transforms to a new instance.
       // Notice that the metric transform will not be changed inside this fuction.
-      // NOTE:  This will not be needed when ITKv4 is updated to include const versions of all get functions.
-      // TODO: Remove const_cast once ITKv4 is fixed to allow const Get Macro functions.
       typedef typename MetricType::FixedTransformType FixedTransformType;
       typename CompositeTransformType::ConstPointer inputFixedTransform =
-        dynamic_cast<CompositeTransformType *>( const_cast<FixedTransformType *>( inputMetric->GetFixedTransform() ) );
+                                          dynamic_cast<CompositeTransformType *>( inputMetric->GetModifiableFixedTransform() );
       const unsigned int N = inputFixedTransform->GetNumberOfTransforms();
       for( unsigned int i = 0; i < N; i++ )
         {
@@ -275,9 +270,9 @@ public:
     // Same procedure for the moving transform. Moving transform is always a Composite transform.
     typedef typename MetricType::MovingTransformType MovingTransformType;
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
-    // TODO: Remove const_cast once ITKv4 is fixed to allow const Get Macro functions.
+
     typename CompositeTransformType::ConstPointer inputMovingTransform =
-      dynamic_cast<CompositeTransformType *>( const_cast<MovingTransformType *>( inputMetric->GetMovingTransform() ) );
+                                                      dynamic_cast<CompositeTransformType *>( inputMetric->GetModifiableMovingTransform() );
     const unsigned int N = inputMovingTransform->GetNumberOfTransforms();
     for( unsigned int i = 0; i < N; i++ )
       {
@@ -305,14 +300,14 @@ public:
   void WriteIntervalVolumes(itk::WeakPointer<OptimizerType> myOptimizer)
   {
     // Get the registration metric from the optimizer
-    typename MetricType::ConstPointer inputMetric( dynamic_cast<MetricType const *>( myOptimizer->GetMetric() ) );
+    typename MetricType::Pointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetModifiableMetric() ) );
 
     // First, compute the moving transform
     typedef typename MetricType::MovingTransformType MovingTransformType;
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
-    // TODO: Remove const_cast once ITKv4 is fixed to allow const Get Macro functions.
+
     typename CompositeTransformType::ConstPointer inputMovingTransform =
-      dynamic_cast<CompositeTransformType *>( const_cast<MovingTransformType *>( inputMetric->GetMovingTransform() ) );
+                                                        dynamic_cast<CompositeTransformType *>( inputMetric->GetModifiableMovingTransform() );
     const unsigned int N = inputMovingTransform->GetNumberOfTransforms();
     for( unsigned int i = 0; i < N; i++ )
       {
