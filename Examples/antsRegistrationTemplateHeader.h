@@ -811,8 +811,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
       std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
-      std::cout << "  fixed image: " << fixedPointSet << std::endl;
-      std::cout << "  moving image: " << movingPointSet << std::endl;
+      std::cout << "  fixed image: " << fixedFileName << std::endl;
+      std::cout << "  moving image: " << movingFileName << std::endl;
 
       ReadImage<ImageType>( fixedImage, fixedFileName.c_str() );
       ReadImage<ImageType>( movingImage, movingFileName.c_str() );
@@ -894,8 +894,8 @@ DoRegistration(typename ParserType::Pointer & parser)
         }
       std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
       std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
-      std::cout << "  fixed point set: " << fixedPointSet << std::endl;
-      std::cout << "  moving point set: " << movingPointSet << std::endl;
+      std::cout << "  fixed point set: " << fixedFileName << std::endl;
+      std::cout << "  moving point set: " << movingFileName << std::endl;
 
       ReadPointSet<PointSetType>( fixedPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
       ReadPointSet<PointSetType>( movingPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
