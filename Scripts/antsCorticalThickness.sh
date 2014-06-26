@@ -890,111 +890,6 @@ if [[ ! -f ${BRAIN_SEGMENTATION} ]];
 
    fi
 
-################################################################################
-#
-# Cortical thickness
-#
-################################################################################
-
-BRAIN_SEGMENTATION_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-BRAIN_SEGMENTATION_WM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-BRAIN_SEGMENTATION_DEEP_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${DEEP_GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-
-CORTICAL_THICKNESS_GM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-CORTICAL_THICKNESS_WM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
-CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${OUTPUT_SUFFIX}
-CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
-CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
-
-if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
-  then
-
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo " Cortical thickness using DiReCT (KellyKapowski)"
-    echo "--------------------------------------------------------------------------------------"
-    echo
-
-    logCmd cp ${BRAIN_SEGMENTATION_GM} ${CORTICAL_THICKNESS_GM}
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${BRAIN_SEGMENTATION_WM} ${BRAIN_SEGMENTATION_DEEP_GM}
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${DEEP_GRAY_MATTER_LABEL} ${DEEP_GRAY_MATTER_LABEL} ${WHITE_MATTER_LABEL}
-
-    # Check inputs
-    if [[ ! -f ${CORTICAL_THICKNESS_SEGMENTATION} ]];
-      then
-        echo "The brain segmentation image doesn't exist:"
-        echo "   $CORTICAL_THICKNESS_SEGMENTATION"
-        exit 1
-      fi
-    if [[ ! -f ${CORTICAL_THICKNESS_GM} ]];
-      then
-        echo "The cortical gray matter probability image doesn't exist:"
-        echo "   $CORTICAL_THICKNESS_GM"
-        exit 1
-      fi
-    if [[ ! -f ${CORTICAL_THICKNESS_WM} ]]
-      then
-        echo "The cortical white matter probability image doesn't exist:"
-        echo "   $CORTICAL_THICKNESS_WM"
-        exit 1
-      fi
-
-    time_start_direct=`date +%s`
-
-    TMP_FILES=( $CORTICAL_THICKNESS_GM $CORTICAL_THICKNESS_WM $CORTICAL_THICKNESS_SEGMENTATION )
-
-    exe_direct="${DIRECT} -d ${DIMENSION} -s [${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}]"
-    exe_direct="${exe_direct} -g ${CORTICAL_THICKNESS_GM} -w ${CORTICAL_THICKNESS_WM} -o ${CORTICAL_THICKNESS_IMAGE}"
-    exe_direct="${exe_direct} -c ${DIRECT_CONVERGENCE} -r ${DIRECT_GRAD_STEP_SIZE}"
-    exe_direct="${exe_direct} -m ${DIRECT_SMOOTHING_PARAMETER} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS} -b ${USE_BSPLINE_SMOOTHING}"
-    if [[ -f ${CORTICAL_LABEL_IMAGE} ]];
-      then
-        # Calculate ATITH and multiply by a heuristically derived scalar factor
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} LabelThickness2 ${CORTICAL_LABEL_IMAGE}
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ${CORTICAL_THICKNESS_GM_SEGMENTATION} 2 2 1 0
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} ${CORTICAL_THICKNESS_GM_SEGMENTATION}
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} 2.0
-
-        exe_direct="${exe_direct} -a ${CORTICAL_LABEL_THICKNESS_PRIOR}"
-
-        TMP_FILES=( ${TMP_FILES[@]} $CORTICAL_LABEL_THICKNESS_PRIOR ${CORTICAL_THICKNESS_GM_SEGMENTATION} )
-
-      else
-        exe_direct="${exe_direct} -t ${DIRECT_THICKNESS_PRIOR}"
-      fi
-    logCmd $exe_direct
-
-    if [[ $KEEP_TMP_IMAGES -eq 0 ]];
-      then
-        for f in ${TMP_FILES[@]}
-          do
-            if [[ -e $f ]];
-              then
-                logCmd rm $f
-              else
-                echo "WARNING: expected temp file doesn't exist: $f"
-              fi
-          done
-      fi
-
-    if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
-      then
-        echo "Expected output was not produced.  The cortical thickness image doesn't exist:"
-        echo "   $CORTICAL_THICKNESS_IMAGE"
-        exit 1
-      fi
-
-    time_end_direct=`date +%s`
-    time_elapsed_direct=$((time_end_direct - time_start_direct))
-
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo " Done with cortical thickness estimation:  $(( time_elapsed_direct / 3600 ))h $(( time_elapsed_direct %3600 / 60 ))m $(( time_elapsed_direct % 60 ))s"
-    echo "--------------------------------------------------------------------------------------"
-    echo
-
-  fi
-
 
 ################################################################################
 #
@@ -1090,43 +985,6 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
     echo "--------------------------------------------------------------------------------------"
     echo
 
-    #### BA Edits Begin ####
-    echo "--------------------------------------------------------------------------------------"
-    echo "Compute summary measurements"
-    echo "--------------------------------------------------------------------------------------"
-    logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
-    exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}"
-    logCmd $exe_template_registration_3
-
-    EXTRACTED_SEGMENTATION_BRAIN_DEFORMED=${OUTPUT_PREFIX}BrainNormalizedToTemplate.${OUTPUT_SUFFIX}
-
-    REGISTRATION_TEMPLATE_BRAIN_MASK=${OUTPUT_PREFIX}RegistrationTemplateBrainMask.nii.gz
-
-    logCmd ${ANTSPATH}/ThresholdImage 3 ${REGISTRATION_TEMPLATE} ${REGISTRATION_TEMPLATE_BRAIN_MASK} 1E-6 Inf
-
-    TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK} )
-
-    logCmd ${WARP} -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} -r ${REGISTRATION_TEMPLATE} -n Linear -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}
-
-    ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK}`
-    bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-    gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-    wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-    thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
-    echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}brainvols.csv
-    echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}brainvols.csv
-    if [[ -f ${ANTSPATH}/GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
-      ${ANTSPATH}/ThresholdImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${OUTPUT_PREFIX}temp.nii.gz 3 3
-      ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz ME ${OUTPUT_PREFIX}temp.nii.gz 1
-      ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz GetLargestComponent ${OUTPUT_PREFIX}temp.nii.gz 1
-      ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz MD ${OUTPUT_PREFIX}temp.nii.gz 2
-      ${ANTSPATH}/SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.nii.gz
-#          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
-      rm ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz
-    fi
-    echo "--------------------------------------------------------------------------------------"
-    #### BA Edits End ####
-
     if [[ $KEEP_TMP_IMAGES -eq 0 ]];
       then
         for f in ${TMP_FILES[@]}
@@ -1139,7 +997,157 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
             fi
         done
       fi
+  fi # if registration template & jacobian check
+
+
+
+
+################################################################################
+#
+# Cortical thickness
+#
+################################################################################
+
+BRAIN_SEGMENTATION_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_WM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+BRAIN_SEGMENTATION_DEEP_GM=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${DEEP_GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+
+CORTICAL_THICKNESS_GM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${GRAY_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+CORTICAL_THICKNESS_WM=${OUTPUT_PREFIX}CorticalThicknessPosteriors${WHITE_MATTER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+CORTICAL_THICKNESS_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessSegmentation.${OUTPUT_SUFFIX}
+CORTICAL_THICKNESS_GM_SEGMENTATION=${OUTPUT_PREFIX}CorticalThicknessGMSegmentation.${OUTPUT_SUFFIX}
+CORTICAL_LABEL_THICKNESS_PRIOR=${OUTPUT_PREFIX}CorticalLabelThicknessPrior.${OUTPUT_SUFFIX}
+
+if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
+  then
+
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Cortical thickness using DiReCT (KellyKapowski)"
+    echo "--------------------------------------------------------------------------------------"
+    echo
+
+    logCmd cp ${BRAIN_SEGMENTATION_GM} ${CORTICAL_THICKNESS_GM}
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${BRAIN_SEGMENTATION_WM} ${BRAIN_SEGMENTATION_DEEP_GM}
+    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${DEEP_GRAY_MATTER_LABEL} ${DEEP_GRAY_MATTER_LABEL} ${WHITE_MATTER_LABEL}
+
+    # Check inputs
+    if [[ ! -f ${CORTICAL_THICKNESS_SEGMENTATION} ]];
+      then
+        echo "The brain segmentation image doesn't exist:"
+        echo "   $CORTICAL_THICKNESS_SEGMENTATION"
+        exit 1
+      fi
+    if [[ ! -f ${CORTICAL_THICKNESS_GM} ]];
+      then
+        echo "The cortical gray matter probability image doesn't exist:"
+        echo "   $CORTICAL_THICKNESS_GM"
+        exit 1
+      fi
+    if [[ ! -f ${CORTICAL_THICKNESS_WM} ]]
+      then
+        echo "The cortical white matter probability image doesn't exist:"
+        echo "   $CORTICAL_THICKNESS_WM"
+        exit 1
+      fi
+
+    time_start_direct=`date +%s`
+
+    TMP_FILES=( $CORTICAL_THICKNESS_GM $CORTICAL_THICKNESS_WM $CORTICAL_THICKNESS_SEGMENTATION )
+
+    exe_direct="${DIRECT} -d ${DIMENSION} -s [${CORTICAL_THICKNESS_SEGMENTATION},${GRAY_MATTER_LABEL},${WHITE_MATTER_LABEL}]"
+    exe_direct="${exe_direct} -g ${CORTICAL_THICKNESS_GM} -w ${CORTICAL_THICKNESS_WM} -o ${CORTICAL_THICKNESS_IMAGE}"
+    exe_direct="${exe_direct} -c ${DIRECT_CONVERGENCE} -r ${DIRECT_GRAD_STEP_SIZE}"
+    exe_direct="${exe_direct} -m ${DIRECT_SMOOTHING_PARAMETER} -n ${DIRECT_NUMBER_OF_DIFF_COMPOSITIONS} -b ${USE_BSPLINE_SMOOTHING}"
+    if [[ -f ${CORTICAL_LABEL_IMAGE} ]] && [[ -f $REGISTRATION_SUBJECT_WARP ]] && [[ -f $REGISTRATION_SUBJECT_GENERIC_AFFINE ]] ;
+      then
+        # Calculate ATITH and multiply by a heuristically derived scalar factor
+#        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} LabelThickness2 ${CORTICAL_LABEL_IMAGE}
+#        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ${CORTICAL_THICKNESS_GM_SEGMENTATION} 2 2 1 0
+#        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} ${CORTICAL_THICKNESS_GM_SEGMENTATION}
+#        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_LABEL_THICKNESS_PRIOR} m ${CORTICAL_LABEL_THICKNESS_PRIOR} 2.0
+
+	logCmd ${ANTSPATH}/antsApplyTransforms -d ${DIMENSION} -i ${CORTICAL_LABEL_IMAGE} -o ${CORTICAL_LABEL_THICKNESS_PRIOR} \
+	    -t $REGISTRATION_SUBJECT_GENERIC_AFFINE -t $REGISTRATION_SUBJECT_WARP -r  ${ANATOMICAL_IMAGES[0]}
+
+        exe_direct="${exe_direct} -a ${CORTICAL_LABEL_THICKNESS_PRIOR}"
+
+        TMP_FILES=( ${TMP_FILES[@]} $CORTICAL_LABEL_THICKNESS_PRIOR ${CORTICAL_THICKNESS_GM_SEGMENTATION} )
+
+      else
+        exe_direct="${exe_direct} -t ${DIRECT_THICKNESS_PRIOR}"
+      fi
+    logCmd $exe_direct
+
+    if [[ $KEEP_TMP_IMAGES -eq 0 ]];
+      then
+        for f in ${TMP_FILES[@]}
+          do
+            if [[ -e $f ]];
+              then
+                logCmd rm $f
+              else
+                echo "WARNING: expected temp file doesn't exist: $f"
+              fi
+          done
+      fi
+
+    if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
+      then
+        echo "Expected output was not produced.  The cortical thickness image doesn't exist:"
+        echo "   $CORTICAL_THICKNESS_IMAGE"
+        exit 1
+      fi
+
+    time_end_direct=`date +%s`
+    time_elapsed_direct=$((time_end_direct - time_start_direct))
+
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Done with cortical thickness estimation:  $(( time_elapsed_direct / 3600 ))h $(( time_elapsed_direct %3600 / 60 ))m $(( time_elapsed_direct % 60 ))s"
+    echo "--------------------------------------------------------------------------------------"
+    echo
+
   fi
+
+
+#### BA Edits Begin ####
+echo "--------------------------------------------------------------------------------------"
+echo "Compute summary measurements"
+echo "--------------------------------------------------------------------------------------"
+logCmd ${ANTSPATH}/CreateJacobianDeterminantImage ${DIMENSION} ${REGISTRATION_TEMPLATE_WARP} ${REGISTRATION_LOG_JACOBIAN} 1 1
+exe_template_registration_3="${WARP} -d ${DIMENSION} -i ${CORTICAL_THICKNESS_IMAGE} -o ${OUTPUT_PREFIX}CorticalThicknessNormalizedToTemplate.${OUTPUT_SUFFIX} -r ${REGISTRATION_TEMPLATE} -n Gaussian  -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}"
+logCmd $exe_template_registration_3
+
+EXTRACTED_SEGMENTATION_BRAIN_DEFORMED=${OUTPUT_PREFIX}BrainNormalizedToTemplate.${OUTPUT_SUFFIX}
+
+REGISTRATION_TEMPLATE_BRAIN_MASK=${OUTPUT_PREFIX}RegistrationTemplateBrainMask.nii.gz
+
+logCmd ${ANTSPATH}/ThresholdImage 3 ${REGISTRATION_TEMPLATE} ${REGISTRATION_TEMPLATE_BRAIN_MASK} 1E-6 Inf
+
+TMP_FILES=( ${TMP_FILES[@]} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK} )
+
+logCmd ${WARP} -d ${DIMENSION} -i ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGE} -o ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} -r ${REGISTRATION_TEMPLATE} -n Linear -t ${REGISTRATION_TEMPLATE_WARP}  -t ${REGISTRATION_TEMPLATE_GENERIC_AFFINE} --float ${USE_FLOAT_PRECISION}
+
+ccmetric=`${ANTSPATH}/ImageMath ${DIMENSION} a PearsonCorrelation ${REGISTRATION_TEMPLATE} ${EXTRACTED_SEGMENTATION_BRAIN_DEFORMED} ${REGISTRATION_TEMPLATE_BRAIN_MASK}`
+bvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_EXTRACTION_MASK}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+gvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_GM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+wvol=`${ANTSPATH}/ImageMath ${DIMENSION} a total ${BRAIN_SEGMENTATION_WM}  | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+thks=`${ANTSPATH}/ImageMath ${DIMENSION} a total $CORTICAL_THICKNESS_IMAGE | cut -d ':' -f 2 | cut -d ' ' -f 2 `
+echo "PearsonCorrelation,BVOL,GVol,WVol,ThicknessSum" >   ${OUTPUT_PREFIX}brainvols.csv
+echo "${ccmetric},${bvol},${gvol},${wvol},${thks}" >>  ${OUTPUT_PREFIX}brainvols.csv
+if [[ -f ${ANTSPATH}/GetMeshAndTopology ]] && [[ ${DIMENSION} -eq 3 ]] ; then
+  ${ANTSPATH}/ThresholdImage ${DIMENSION} ${BRAIN_SEGMENTATION} ${OUTPUT_PREFIX}temp.nii.gz 3 3
+  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz ME ${OUTPUT_PREFIX}temp.nii.gz 1
+  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz GetLargestComponent ${OUTPUT_PREFIX}temp.nii.gz 1
+  ${ANTSPATH}/ImageMath ${DIMENSION} ${OUTPUT_PREFIX}temp.nii.gz MD ${OUTPUT_PREFIX}temp.nii.gz 2
+  ${ANTSPATH}/SmoothImage 3 ${CORTICAL_THICKNESS_IMAGE} 1 ${OUTPUT_PREFIX}temp2.nii.gz
+  #          ${ANTSPATH}/GetMeshAndTopology ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz ${OUTPUT_PREFIX}.vtk thickness   0.3 0.001 ${OUTPUT_PREFIX}_Thickness.png
+  rm ${OUTPUT_PREFIX}temp.nii.gz ${OUTPUT_PREFIX}temp2.nii.gz
+fi
+echo "--------------------------------------------------------------------------------------"
+#### BA Edits End ####
+
 
 ################################################################################
 #
