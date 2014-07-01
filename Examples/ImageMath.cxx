@@ -13519,7 +13519,7 @@ private:
     std::cout << "  Neg            : Produce image negative" << std::endl;
 
     std::cout << "\nSpatial Filtering:" <<  std::endl;
-    std::cout << "  Project Image1.ext a    : Project an image along axis a" << std::endl;
+    std::cout << "  Project Image1.ext a which-projection   : Project an image along axis a, which-projection=0(sum, 1=max, 2=min)" << std::endl;
     std::cout << "  G Image1.ext s    : Smooth with Gaussian of sigma = s" << std::endl;
     std::cout << "  MD Image1.ext s    : Morphological Dilation with radius s" << std::endl;
     std::cout << "  ME Image1.ext s    : Morphological Erosion with radius s" << std::endl;
