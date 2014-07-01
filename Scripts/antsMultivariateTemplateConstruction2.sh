@@ -25,8 +25,7 @@ SETPATH
     exit 1
 }
 
-# Uncomment the line below in case you have not set the ANTSPATH variable in your
-# environment.
+# Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
 # export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 
 if [[ ${#ANTSPATH} -le 3 ]];
@@ -34,15 +33,8 @@ if [[ ${#ANTSPATH} -le 3 ]];
     setPath >&2
   fi
 
-if [[ ! -s ${ANTSPATH}/antsRegistration ]];
-  then
-    echo "antsRegistration program can't be found. Please (re)define \$ANTSPATH in your \
-          environment."
-    exit
-  fi
-
-# Test availability of helper scripts.  No need to test this more than once. Can reside
-# outside of the main loop.
+# Test availability of helper scripts.
+# No need to test this more than once. Can reside outside of the main loop.
 ANTS=${ANTSPATH}/antsRegistration
 WARP=${ANTSPATH}/antsApplyTransforms
 N4=${ANTSPATH}N4BiasFieldCorrection
@@ -54,15 +46,15 @@ XGRID=${ANTSPATH}waitForXGridJobs.pl
 fle_error=0
 for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS
   do
-  if [[ ! -x $FLE ]];
-    then
-      echo
-      echo "-----------------------------------------------------------------------------"
-      echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
-      echo "-----------------------------------------------------------------------------"
-      echo " if the file is not executable, please change its permissions. "
-      fle_error=1
-    fi
+    if [[ ! -x $FLE ]];
+      then
+        echo
+        echo "-----------------------------------------------------------------------------"
+        echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
+        echo "-----------------------------------------------------------------------------"
+        echo " if the file is not executable, please change its permissions. "
+        fle_error=1
+      fi
   done
 
 if [[ $fle_error = 1 ]];
@@ -272,7 +264,7 @@ function summarizeimageset() {
 
 function shapeupdatetotemplate() {
 
-  echo "shapeupdatetotemplate()"
+   echo "shapeupdatetotemplate()"
 
     # local declaration of values
     dim=$1
@@ -304,7 +296,7 @@ function shapeupdatetotemplate() {
     imagelist=(`ls ${outputname}*WarpedToTemplate.nii.gz`)
     summarizeimageset $dim $template $statsmethod ${imagelist[@]}
 
-    WARPLIST=(`ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null`)
+    WARPLIST=( `ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null` )
     NWARPS=${#WARPLIST[*]}
     echo "number of warps = $NWARPS"
     echo "$WARPLIST"
@@ -335,16 +327,17 @@ function shapeupdatetotemplate() {
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
-        echo "   ${ANTSPATH}AverageAffineTransformNoRigid ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
+        echo "   ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
         echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}"
         echo "--------------------------------------------------------------------------------------"
 
-        ${ANTSPATH}AverageAffineTransformNoRigid ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
+        ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
 
-        if [[ $NWARPS -ne 0 ]]; then
-          ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
-          ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
-        fi
+        if [[ $NWARPS -ne 0 ]];
+          then
+            ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}
+            ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
+          fi
       fi
 
     echo "--------------------------------------------------------------------------------------"
@@ -352,11 +345,12 @@ function shapeupdatetotemplate() {
     echo "   ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}"
     echo "--------------------------------------------------------------------------------------"
 
-    if [ -f "${templatename}0warp.nii.gz" ]; then
-      ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
-    else
-      ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -r ${template}
-    fi
+    if [ -f "${templatename}0warp.nii.gz" ];
+      then
+        ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -t ${templatename}0warp.nii.gz -r ${template}
+      else
+        ${WARP} -d ${dim} --float $USEFLOAT -i ${template} -o ${template} -t [${templatename}0GenericAffine.mat,1] -r ${template}
+      fi
 
 }
 
@@ -881,16 +875,16 @@ if [[ $NUMBEROFMODALITIES -gt 1 ]];
     echo " Multivariate template construction using the following ${NUMBEROFMODALITIES}-tuples:  "
     echo "--------------------------------------------------------------------------------------"
     for (( i = 0; i < ${#IMAGESETARRAY[@]}; i+=$NUMBEROFMODALITIES ))
-        do
+      do
         IMAGEMETRICSET=""
         for (( j = 0; j < $NUMBEROFMODALITIES; j++ ))
-            do
+          do
             k=0
             let k=$i+$j
             IMAGEMETRICSET="$IMAGEMETRICSET ${IMAGESETARRAY[$k]}"
-        done
+          done
         echo $IMAGEMETRICSET
-    done
+      done
     echo "--------------------------------------------------------------------------------------"
 fi
 
@@ -1242,11 +1236,12 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
             OUTWARPFN=`basename ${OUTWARPFN}`
             OUTWARPFN="${OUTWARPFN}${j}"
 
-            if [ -f "${outdir}/${OUTWARPFN}1Warp.nii.gz" ]; then
-              OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
-            else
-              OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
-            fi
+            if [ $NOWARP -eq 0 ];
+              then
+                OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}1Warp.nii.gz -t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
+              else
+                OUTPUTTRANSFORMS="-t ${outdir}/${OUTWARPFN}0GenericAffine.mat"
+              fi
 
             if [[ $N4CORRECT -eq 1 ]];
               then

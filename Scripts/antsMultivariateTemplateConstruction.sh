@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VERSION="0.0.15 test"
+VERSION="0.0.0"
 
 # trap keyboard interrupt (control-c)
 trap control_c SIGINT
@@ -28,17 +28,10 @@ SETPATH
 # Uncomment the line below in case you have not set the ANTSPATH variable in your environment.
 # export ANTSPATH=${ANTSPATH:="$HOME/bin/ants/"} # EDIT THIS
 
-#ANTSPATH=YOURANTSPATH
 if [[ ${#ANTSPATH} -le 3 ]];
-    then
+  then
     setPath >&2
-fi
-
-if [[ ! -s ${ANTSPATH}/ANTS ]];
-    then
-    echo "ANTS program can't be found. Please (re)define \$ANTSPATH in your environment."
-    exit
-fi
+  fi
 
 # Test availability of helper scripts.
 # No need to test this more than once. Can reside outside of the main loop.
@@ -51,27 +44,24 @@ PBS=${ANTSPATH}waitForPBSQJobs.pl
 XGRID=${ANTSPATH}waitForXGridJobs.pl
 
 fle_error=0
-for FLE in $N4 $PEXEC $SGE $XGRID $PBS
+for FLE in $ANTS $WARP $N4 $PEXEC $SGE $XGRID $PBS
   do
-  if [[ ! -x $FLE ]];
+    if [[ ! -x $FLE ]];
       then
-      echo
-      echo "--------------------------------------------------------------------------------------"
-      echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
-      echo "--------------------------------------------------------------------------------------"
-      echo " if the file is not executable, please change its permissions. "
-      fle_error=1
-  fi
-done
+        echo
+        echo "--------------------------------------------------------------------------------------"
+        echo " FILE $FLE DOES NOT EXIST -- OR -- IS NOT EXECUTABLE !!! $0 will terminate."
+        echo "--------------------------------------------------------------------------------------"
+        echo " if the file is not executable, please change its permissions. "
+        fle_error=1
+      fi
+  done
 
 if [[ $fle_error = 1 ]];
     then
     echo "missing helper script"
     exit 1
 fi
-
-
-#assuming .nii.gz as default file type. This is the case for ANTS 1.7 and up
 
 function Usage {
     cat <<USAGE
@@ -170,173 +160,6 @@ USAGE
     exit 1
 }
 
-function Help {
-    cat <<HELP
-
-`basename $0` will make a template out of the input files using an elastic
-or diffeomorphic transformation. This script builds a template iteratively from the input
-images and uses Sun Grid Engine (SGE) or multiple cpu cores on the localhost (min 2) to
-parallelize the registration of each subject to the template.
-
-Usage:
-
-`basename $0` -d ImageDimension -o OUTPREFIX <other options> <images>
-
-Example Case:
-
- bash `basename $0` -d 3 -m 30x50x20 -t GR  -s CC -c 1 -o MY -z InitialTemplate.nii.gz  *RF*T1x.nii.gz
-
- - In this case you use 30x50x20 iterations per registration
- - 4 iterations over template creation (that is the default)
- - With Greedy-SyN and CC metrics to guide the mapping.
- - Output is prepended with MY and the initial template is InitialTemplate.nii.gz (optional).
- - The -c option is set to 1 which will try to use SGE to distribute the computation.
- - If you do not have SGE, use -c 0 or -c 2 combined with -j.
-
- - Continue reading this help file if things are not yet clear.
-
-Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
-
-     -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-	  ImageDimension: 4 (for template generation of time-series data)
-
-     -o:  OUTPREFIX; A prefix that is prepended to all output files.
-
-<images>  List of images in the current directory, eg *_t1.nii.gz. Should be at the end
-          of the command.  Optionally, one can specify a .csv or .txt file where each
-          line is the location of the input image.  One can also specify more than
-          one file for each image for multi-modal template construction (e.g. t1 and t2).
-          For the multi-modal case, the templates will be consecutively numbered (e.g.
-          ${OUTPUTPREFIX}template0.nii.gz, ${OUTPUTPREFIX}template1.nii.gz, ...).
-
-NB: All files to be added to the template should be in the same directory.
-
-Optional arguments:
-
-     -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-	         2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
-
-     -g:  Gradient step size; smaller in magnitude results in more cautious steps (default 0.25)
-
-     -i:  Iteration limit (default = 4) for template construction. requires 4*NumImages registrations.
-
-     -j:  Number of cpu cores to use (default: 2; --- set -c option to 2 to use this.
-
-     -k:  Number of modalities used to construct the template.
-
-     -w:  Modality weights used in the similarity metric (default = 1) --- specified as e.g. 1x0.5x0.75
-
-	  The optimal number of cpu cores to use for template generation depends on the availability of cores, the amount of
-	  free working memory (RAM) and the resolution of the data. High resolution datasets typically require more RAM during
-	  processing. Running out of RAM during a calculation will slow down all processing on your computer.
-
-     -m:  Max-iterations
-
-          Max-Iterations in form: JxKxL where
-	     J = max iterations at coarsest resolution (here, reduce by power of 2^2)
-	     K = middle resolution iterations (here,reduce by power of 2)
-	     L = fine resolution iterations (here, full resolution) !!this level takes much
-                 more time per iteration!!
-
-	  Adding an extra value before JxKxL (i.e. resulting in IxJxKxL) would add another
-	  iteration level.
-
-     -n:  N4BiasFieldCorrection of moving image ( 0 = off; 1 = on (default) )
-
-     -p:  Commands to prepend to job scripts (e.g., change into appropriate directory, set paths, etc)
-
-     -r:  Do rigid-body registration of inputs before creating template (default 0) -- 0 == off 1 == on. Only useful when
-          you do not have an initial template
-
-          In case a template is specified (-z option), all inputs are registered to that template. If
-          no template is specified, the inputs will be registered to the averaged input.
-
-     -s:  Type of similarity metric used for registration (can specify a metric per modality).
-
-	     For intramodal image registration, use:
-	     CC = cross-correlation (default)
-	     MI = mutual information
-	     PR = probability mapping
-	     MSQ = mean square difference (Demons-like)
-	     SSD = sum of squared differences
-
-	     For intermodal image registration, use:
-	     MI = mutual information
-	     PR = probability mapping (default)
-
-     -t:  Type of transformation model used for registration.
-
-	     For rigid image registration, use:
-	     RI = Purely rigid
-	     RA = Affine rigid
-
-	     For elastic image registration, use:
-	     EL = elastic transformation model (less deformation possible)
-
-	     For diffeomorphic image registration, use:
-	     SY = SyN with time (default) with arbitrary number of time points in time discretization
-	     S2 = SyN with time optimized specifically for 2 time points in the time discretization
-	     GR = Greedy SyN
-	     EX = Exponential
-      DD = Diffeomorphic Demons style exponential mapping
-
-     -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
-
-     -z:  Use this this volume as the target of all inputs. When not used, the script
-          will create an unbiased starting point by averaging all inputs. Use the full path!
-
-     -b:  Save output files for each iteration to a separate directory (e.g. GR_iteration_0/).
-          Creates a large amount of data (default = 0).
-
-Requirements:
-
-This scripts relies on the following scripts in your $ANTSPATH directory. The script
-will terminate prematurely if these files are not present or are not executable.
-- antsIntroduction.sh
-- pexec.sh
-- waitForSGEQJobs.pl (only for use with Sun Grid Engine)
-- waitForPBSQJobs.pl  (only for use with Portable Batch System)
-- ANTSpexec.sh (only for use with localhost parallel execution)
-- waitForXGridJobs.pl (only for use with Apple XGrid)
-
---------------------------------------------------------------------------------------
-Get the latest ANTS version at:
---------------------------------------------------------------------------------------
-http://sourceforge.net/projects/advants/
-
---------------------------------------------------------------------------------------
-Read the ANTS documentation at:
---------------------------------------------------------------------------------------
-http://picsl.upenn.edu/ANTS/
-
---------------------------------------------------------------------------------------
-ANTS was created by:
---------------------------------------------------------------------------------------
-Brian B. Avants, Nick Tustison and Gang Song
-Penn Image Computing And Science Laboratory
-University of Pennsylvania
-
-Please reference http://www.ncbi.nlm.nih.gov/pubmed/20851191 when employing this script
-in your studies. A reproducible evaluation of ANTs similarity metric performance in
-brain image registration:
-
-* Avants BB, Tustison NJ, Song G, Cook PA, Klein A, Gee JC. Neuroimage, 2011.
-
-Also see http://www.ncbi.nlm.nih.gov/pubmed/19818860 for more details.
-
-The script has been updated and improved since this publication.
-
---------------------------------------------------------------------------------------
-script adapted by N.M. van Strien, http://www.mri-tutorial.com | NTNU MR-Center
-multivariate template adaption by Nick Tustison
---------------------------------------------------------------------------------------
-Apple XGrid support by Craig Stark
---------------------------------------------------------------------------------------
-
-HELP
-    exit 1
-}
-
 function reportMappingParameters {
     cat <<REPORTMAPPINGPARAMETERS
 
@@ -345,24 +168,26 @@ function reportMappingParameters {
 --------------------------------------------------------------------------------------
  ANTSPATH is $ANTSPATH
 
- Dimensionality:			$DIM
- N4BiasFieldCorrection:			$N4CORRECT
- Similarity Metric:			$METRICTYPE
- Transformation:			$TRANSFORMATIONTYPE
- Regularization:			$REGULARIZATION
- MaxIterations:				$MAXITERATIONS
- Number Of MultiResolution Levels:	$NUMLEVELS
- OutputName prefix:			$OUTPUTNAME
- Template:  				$TEMPLATENAME
- Template Update Steps:			$ITERATIONLIMIT
- Template population:	   		$IMAGESETVARIABLE
- Number of Modalities:     $NUMBEROFMODALITIES
- Madality weights:         $MODALITYWEIGHTSTRING
+ Dimensionality:			                 $DIM
+ N4BiasFieldCorrection:			          $N4CORRECT
+ Similarity Metric:			              $METRICTYPE
+ Transformation:			                 $TRANSFORMATIONTYPE
+ Regularization:		          	       $REGULARIZATION
+ MaxIterations:				                 $MAXITERATIONS
+ Number Of MultiResolution Levels:	 $NUMLEVELS
+ OutputName prefix:	              		$OUTPUTNAME
+ Template:  		                    		$TEMPLATENAME
+ Template Update Steps:			          $ITERATIONLIMIT
+ Template population:	   		         $IMAGESETVARIABLE
+ Number of Modalities:              $NUMBEROFMODALITIES
+ Madality weights:                  $MODALITYWEIGHTSTRING
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
 
 function shapeupdatetotemplate() {
+
+   echo "shapeupdatetotemplate()"
 
     # local declaration of values
     dim=$1
@@ -391,6 +216,7 @@ function shapeupdatetotemplate() {
 	   ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
 
     if [[ $whichtemplate -eq 0 ]] ;
+      then
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
@@ -407,7 +233,6 @@ function shapeupdatetotemplate() {
 
         ${ANTSPATH}MultiplyImages $dim ${templatename}${whichtemplate}warp.nii.gz ${gradientstep} ${templatename}${whichtemplate}warp.nii.gz
 
-        then
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
@@ -420,7 +245,7 @@ function shapeupdatetotemplate() {
         ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}0warp.nii.gz ${templatename}0warp.nii.gz -i  ${templatename}0Affine.txt -R ${template}
 
         ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
-    fi
+      fi
 
     echo "--------------------------------------------------------------------------------------"
     echo " shapeupdatetotemplate---warp each template by the resulting transforms"
@@ -560,7 +385,7 @@ fi
 # Provide output for Help
 if [[ "$1" == "-h" ]];
     then
-    Help >&2
+    Usage >&2
 
 fi
 
@@ -720,11 +545,11 @@ IMAGESETARRAY=()
 # fi
 
 if [[ ${NINFILES} -eq 0 ]];
-    then
+  then
     echo "Please provide at least 2 filenames for the template."
     echo "Use `basename $0` -h for help"
     exit 1
-elif [[ ${NINFILES} -eq 1 ]];
+  elif [[ ${NINFILES} -eq 1 ]];
     then
     extension=`echo ${IMAGESETVARIABLE#*.}`
     if [[ $extension = 'csv' || $extension = 'txt' ]];
