@@ -927,113 +927,86 @@ RegistrationHelper<TComputeType, VImageDimension>
       multiMetric = MultiMetricType::New();
       }
 
-    // Get shrink factors and adjust according to the current image
-    const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
-    if( factors.size() != numberOfLevels )
+
+
+
+
+
+
+
+
+
+
+
+
+    // Also determine if any of the metrics for the current stage are image metrics
+    bool imageMetricIsUsedDuringThisStage = false;
+    for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
-      std::cout << "\n\n\n"
-                       << "ERROR:  The number of shrink factors does not match the number of levels."
-                       << "\nShrink Factors: " << factors.size()
-                       << "\nNumber Of Levels: " << numberOfLevels
-                       << "\n\n\n"
-                       << std::endl;
-      return EXIT_FAILURE;
+      MetricEnumeration currentMetricType = stageMetricList[currentMetricNumber].m_MetricType;
+      if( !this->IsPointSetMetric( currentMetricType ) )
+        {
+        imageMetricIsUsedDuringThisStage = true;
+        break;
+        }
       }
 
+    // These two variables are specified in setting up the registration method.
+    // However, for point set metrics, they are not required.
     std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels;
-    for( unsigned int n = 0; n < numberOfLevels; n++ )
-      {
-      ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension =
-        this->CalculateShrinkFactorsPerDimension( factors[n], stageMetricList[0].m_FixedImage.GetPointer() );
-      shrinkFactorsPerDimensionForAllLevels.push_back( shrinkFactorsPerDimension );
-      this->Logger() << "  Shrink factors (level " << n+1 << " out of " << numberOfLevels << "): " << shrinkFactorsPerDimension << std::endl;
-      }
-
-    // Get smoothing sigmas
-    const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
     typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
-    smoothingSigmasPerLevel.SetSize( sigmas.size() );
 
-    if( sigmas.size() != numberOfLevels )
+    if( imageMetricIsUsedDuringThisStage )
       {
-      std::cout << "ERROR:  The number of smoothing sigmas "
-                       << "does not match the number of levels." << std::endl;
-      return EXIT_FAILURE;
+      // Get shrink factors and adjust according to the current image
+      const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
+      if( factors.size() != numberOfLevels )
+        {
+        std::cout << "\n\n\n"
+                         << "ERROR:  The number of shrink factors does not match the number of levels."
+                         << "\nShrink Factors: " << factors.size()
+                         << "\nNumber Of Levels: " << numberOfLevels
+                         << "\n\n\n"
+                         << std::endl;
+        return EXIT_FAILURE;
+        }
+
+      for( unsigned int n = 0; n < numberOfLevels; n++ )
+        {
+        ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension =
+          this->CalculateShrinkFactorsPerDimension( factors[n], stageMetricList[0].m_FixedImage.GetPointer() );
+        shrinkFactorsPerDimensionForAllLevels.push_back( shrinkFactorsPerDimension );
+        this->Logger() << "  Shrink factors (level " << n+1 << " out of " << numberOfLevels << "): " << shrinkFactorsPerDimension << std::endl;
+        }
+
+      // Get smoothing sigmas
+      const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
+      smoothingSigmasPerLevel.SetSize( sigmas.size() );
+
+      if( sigmas.size() != numberOfLevels )
+        {
+        std::cout << "ERROR:  The number of smoothing sigmas "
+                         << "does not match the number of levels." << std::endl;
+        return EXIT_FAILURE;
+        }
+      for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
+        {
+        smoothingSigmasPerLevel[n] = sigmas[n];
+        }
+      this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
       }
-    for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
-      {
-      smoothingSigmasPerLevel[n] = sigmas[n];
-      }
-    this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
 
     std::vector<typename ImageType::Pointer> preprocessedFixedImagesPerStage;
     std::vector<typename ImageType::Pointer> preprocessedMovingImagesPerStage;
 
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
+      MetricEnumeration currentMetricType = stageMetricList[currentMetricNumber].m_MetricType;
 
-      // Get the fixed and moving images
-      const typename ImageType::ConstPointer fixedImage =
-        stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
-      const typename ImageType::ConstPointer movingImage =
-        stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
+      typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+      typename PointSetMetricType::Pointer pointSetMetric = ITK_NULLPTR;
 
-      // Preprocess images
-
-      std::string outputPreprocessingString = "";
-
-      PixelType lowerScaleValue = 0.0;
-      PixelType upperScaleValue = 1.0;
-      if( this->m_WinsorizeImageIntensities )
-        {
-        outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
-        }
-
-      typename ImageType::Pointer preprocessFixedImage =
-        PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
-                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                    NULL );
-
-      preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
-
-      typename ImageType::Pointer preprocessMovingImage =
-        PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
-                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                    NULL );
-
-      if( this->m_UseHistogramMatching )
-        {
-        outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
-        preprocessMovingImage =
-          PreprocessImage<ImageType>( movingImage.GetPointer(),
-                                      lowerScaleValue, upperScaleValue,
-                                      this->m_LowerQuantile, this->m_UpperQuantile,
-                                      preprocessFixedImage.GetPointer() );
-        }
-      preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
-
-      if( this->m_ApplyLinearTransformsToFixedImageHeader )
-        {
-        this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
-                                                          dynamic_cast<ImageBaseType *>( preprocessFixedImage.
-                                                                                         GetPointer() ), false );
-
-        if( this->m_FixedImageMask.IsNotNull() )
-          {
-          this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
-                                                            dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
-                                                                                             this->m_FixedImageMask->
-                                                                                             GetImage() ) ), false );
-          }
-        }
-
-      this->Logger() << outputPreprocessingString << std::flush;
-
-      // Set up the image metric and scales estimator
-
-      typename ImageMetricType::Pointer metric;
-
-      switch( stageMetricList[currentMetricNumber].m_MetricType )
+      switch( currentMetricType )
         {
         case CC:
           {
@@ -1051,7 +1024,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           correlationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           correlationMetric->SetUseFixedImageGradientFilter( gradientfilter );
 
-          metric = correlationMetric;
+          imageMetric = correlationMetric;
           }
           break;
         case Mattes:
@@ -1067,7 +1040,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedSampledPointSet( false );
-          metric = mutualInformationMetric;
+
+          imageMetric = mutualInformationMetric;
           }
           break;
         case MI:
@@ -1085,7 +1059,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedSampledPointSet( false );
           mutualInformationMetric->SetVarianceForJointPDFSmoothing( 1.0 );
-          metric = mutualInformationMetric;
+
+          imageMetric = mutualInformationMetric;
           }
           break;
         case MeanSquares:
@@ -1096,7 +1071,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MeanSquaresMetricType;
           typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
           meanSquaresMetric = meanSquaresMetric;
-          metric = meanSquaresMetric;
+
+          imageMetric = meanSquaresMetric;
           }
           break;
         case Demons:
@@ -1106,8 +1082,8 @@ RegistrationHelper<TComputeType, VImageDimension>
 
           typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> DemonsMetricType;
           typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
-          demonsMetric = demonsMetric;
-          metric = demonsMetric;
+
+          imageMetric = demonsMetric;
           }
           break;
         case GC:
@@ -1116,39 +1092,156 @@ RegistrationHelper<TComputeType, VImageDimension>
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
           typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> corrMetricType;
           typename corrMetricType::Pointer corrMetric = corrMetricType::New();
-          metric = corrMetric;
+
+          imageMetric = corrMetric;
           }
           break;
-        case ICP: case PSE: case JHCT:
+        case ICP:
           {
+          typedef itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PointSetMetricType;
+          typename PointSetMetricType::Pointer icpMetric = PointSetMetricType::New();
+
+          pointSetMetric = icpMetric;
+
           std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
           return EXIT_FAILURE;
-          break;
           }
+          break;
+//         case PSE:
+//           {
+//           typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PointSetMetricType;
+//           typename PointSetMetricType::Pointer pseMetric = PointSetMetricType::New();
+//           pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
+//           pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
+//
+//           pointSetMetric = pseMetric;
+//
+//           std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
+//           return EXIT_FAILURE;
+//           }
+//           break;
+        case JHCT:
+          {
+          typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType, RealType> PointSetMetricType;
+          typename PointSetMetricType::Pointer jhctMetric = PointSetMetricType::New();
+          jhctMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
+          jhctMetric->SetKernelSigma( 10.0 );
+          jhctMetric->SetUseAnisotropicCovariances( stageMetricList[currentMetricNumber].m_UseAnisotropicCovariances );
+          jhctMetric->SetCovarianceKNeighborhood( 5 );
+          jhctMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
+          jhctMetric->SetAlpha( stageMetricList[currentMetricNumber].m_Alpha );
+
+          pointSetMetric = jhctMetric;
+
+          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
+          return EXIT_FAILURE;
+          }
+          break;
         default:
           std::cerr << "ERROR: Unrecognized image metric. " << std::endl;
           return EXIT_FAILURE;
         }
-      metric->SetVirtualDomainFromImage( fixedImage );
-      metric->SetUseMovingImageGradientFilter( gradientfilter );
-      metric->SetUseFixedImageGradientFilter( gradientfilter );
-      metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
-      if( this->m_FixedImageMask.IsNotNull() )
-        {
-        metric->SetFixedImageMask( this->m_FixedImageMask );
-        }
-      if( this->m_MovingImageMask.IsNotNull() )
-        {
-        metric->SetMovingImageMask( this->m_MovingImageMask );
-        }
 
-      if( useMultiMetric )
+      if( !this->IsPointSetMetric( currentMetricType ) )
         {
-        multiMetric->AddMetric( metric );
+        // Get the fixed and moving images
+        const typename ImageType::ConstPointer fixedImage =
+          stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
+        const typename ImageType::ConstPointer movingImage =
+          stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
+
+        // Preprocess images
+
+        std::string outputPreprocessingString = "";
+
+        PixelType lowerScaleValue = 0.0;
+        PixelType upperScaleValue = 1.0;
+        if( this->m_WinsorizeImageIntensities )
+          {
+          outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
+          }
+
+        typename ImageType::Pointer preprocessFixedImage =
+          PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
+                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                      NULL );
+
+        preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
+
+        typename ImageType::Pointer preprocessMovingImage =
+          PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
+                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                      NULL );
+
+        if( this->m_UseHistogramMatching )
+          {
+          outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
+          preprocessMovingImage =
+            PreprocessImage<ImageType>( movingImage.GetPointer(),
+                                        lowerScaleValue, upperScaleValue,
+                                        this->m_LowerQuantile, this->m_UpperQuantile,
+                                        preprocessFixedImage.GetPointer() );
+          }
+        preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
+
+        if( this->m_ApplyLinearTransformsToFixedImageHeader )
+          {
+          this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
+                                                            dynamic_cast<ImageBaseType *>( preprocessFixedImage.
+                                                                                           GetPointer() ), false );
+
+          if( this->m_FixedImageMask.IsNotNull() )
+            {
+            this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
+                                                              dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
+                                                                                               this->m_FixedImageMask->
+                                                                                               GetImage() ) ), false );
+            }
+          }
+
+        this->Logger() << outputPreprocessingString << std::flush;
+
+        // Set up the image metric and scales estimator
+
+        imageMetric->SetVirtualDomainFromImage( fixedImage );
+        imageMetric->SetUseMovingImageGradientFilter( gradientfilter );
+        imageMetric->SetUseFixedImageGradientFilter( gradientfilter );
+        metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
+        if( this->m_FixedImageMask.IsNotNull() )
+          {
+          imageMetric->SetFixedImageMask( this->m_FixedImageMask );
+          }
+        if( this->m_MovingImageMask.IsNotNull() )
+          {
+          imageMetric->SetMovingImageMask( this->m_MovingImageMask );
+          }
+
+        if( useMultiMetric )
+          {
+          multiMetric->AddMetric( imageMetric );
+          }
+        if( !useMultiMetric || currentMetricNumber == 0 )
+          {
+          singleMetric = imageMetric;
+          }
         }
-      if( !useMultiMetric || currentMetricNumber == 0 )
+      else
         {
-        singleMetric = metric;
+        metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
+        if( this->m_FixedImageMask.IsNotNull() )
+          {
+          pointSetMetric->SetVirtualDomainFromImage(
+            dynamic_cast<typename PointSetMetricType::VirtualImageType *>(
+              const_cast<MaskImageType *>( this->m_FixedImageMask->GetImage() ) ) );
+          }
+        if( useMultiMetric )
+          {
+          multiMetric->AddMetric( pointSetMetric );
+          }
+//         if( !useMultiMetric || currentMetricNumber == 0 )
+//           {
+//           singleMetric = pointSetMetric;
+//           }
         }
       }
     if( useMultiMetric )

@@ -136,7 +136,7 @@ public:
   typedef itk::ObjectToObjectMultiMetricv4
                      <VImageDimension, VImageDimension, ImageType, RealType>         MultiMetricType;
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       ImageMetricType;
-  typedef itk::PointSetToPointSetMetricv4<PointSetType, PointSetType>                PointSetMetricType;
+  typedef itk::PointSetToPointSetMetricv4<PointSetType, PointSetType, RealType>      PointSetMetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
   typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;
