@@ -993,6 +993,7 @@ protected:
     double xsum = 0;
     double ysum = 0;
     double xsqr = 0;
+    double ysqr = 0;
     for( unsigned int i = 0; i < v1.size(); i++ )
       {
       if ( zeromatch[i] > 0 )  
