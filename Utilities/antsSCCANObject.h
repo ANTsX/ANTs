@@ -946,7 +946,8 @@ protected:
 
   bool Close2Zero( RealType x ) 
   {
-    RealType eps = this->m_Epsilon;
+    RealType eps = this->m_Epsilon * 5.0;
+    //    eps = 0.001;
     if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < eps ) return true;
     return false;
   }
@@ -995,7 +996,7 @@ protected:
     double ysqr = 0;
     for( unsigned int i = 0; i < v1.size(); i++ )
       {
-      if ( zeromatch[i] > 0 )  
+      if ( zeromatch[i] == 0 )  
         {
 	xysum += v1(i) * v2(i);
 	xsum  += v1(i);

@@ -4820,13 +4820,13 @@ bool antsSCCANObject<TInputImage, TRealType>
       VectorType qj = this->m_VariatesP.get_column( j ); 
       pproj = ( this->m_MatrixP * pveck ); // this->SparsifyOther( pproj );
       pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
-      pveck = this->Orthogonalize( pveck, qj, &this->m_MatrixP, &this->m_MatrixP);
+      //      pveck = this->Orthogonalize( pveck, qj, &this->m_MatrixP, &this->m_MatrixP);
 
       //      if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
       qproj = ( this->m_MatrixQ * qveck ); // this->SparsifyOther( qproj );
       qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
-      qveck = this->Orthogonalize( qveck, qj, &this->m_MatrixQ, &this->m_MatrixQ);
+      //      qveck = this->Orthogonalize( qveck, qj, &this->m_MatrixQ, &this->m_MatrixQ);
       //      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
     }
@@ -4859,10 +4859,10 @@ bool antsSCCANObject<TInputImage, TRealType>
     VectorType pproj2 = this->m_MatrixP * pveck; // this->SparsifyOther( pproj2 );
     qproj =  this->m_MatrixQ * qtemp; // this->SparsifyOther( qproj );
     VectorType qproj2 = this->m_MatrixQ * qveck; // this->SparsifyOther( qproj2 );
-    RealType corr0 = this->PearsonCorr( pproj , qproj  );
-    RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
-    RealType corr2 = this->PearsonCorr( pproj, qproj );
-    RealType corr3 = this->PearsonCorr( pproj2, qproj2  );
+    RealType corr0 = this->RPearsonCorr( pproj , qproj  );
+    RealType corr1 = this->RPearsonCorr( pproj2 , qproj2  );
+    RealType corr2 = this->RPearsonCorr( pproj, qproj );
+    RealType corr3 = this->RPearsonCorr( pproj2, qproj2  );
     if( corr1 > corr0 )
       {
       this->m_VariatesP.set_column( k, pveck  );
@@ -4902,7 +4902,7 @@ bool antsSCCANObject<TInputImage, TRealType>
     //    this->SparsifyOther( proj1 );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
     //    this->SparsifyOther( proj2 );
-    this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
+    this->m_CanonicalCorrelations[k] = this->RPearsonCorr( proj1, proj2  );
     }
   if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.5;
   this->SortResults( n_vecs );
