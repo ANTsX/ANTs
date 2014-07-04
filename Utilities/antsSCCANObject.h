@@ -946,7 +946,9 @@ protected:
 
   bool Close2Zero( RealType x ) 
   {
-    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < this->m_Epsilon ) return true;
+    RealType eps = this->m_Epsilon;
+    eps = 0.001;
+    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < eps ) return true;
     return false;
   }
 
@@ -969,6 +971,48 @@ protected:
       }
     return vnl_math_abs( numer / denom );
   }
+
+  RealType RPearsonCorr(VectorType v1, VectorType v2 )
+  {
+    std::vector<TRealType> zeromatch( v1.size(), 0);
+    unsigned int zct = 0;
+    for ( unsigned int zm = 0; zm < v1.size(); zm++ )
+      {
+	if ( ( this->Close2Zero( v1(zm) )  ||  
+	       this->Close2Zero( v2(zm) ) ) ) 
+	{ 
+	zct++;
+        zeromatch[ zm ] = 1;
+	v1(zm) = 0;
+	v2(zm) = 0;
+	}
+      }
+
+    double frac = 1.0 / (double)v1.size();
+    double xysum = 0;
+    double xsum = 0;
+    double ysum = 0;
+    double xsqr = 0;
+    for( unsigned int i = 0; i < v1.size(); i++ )
+      {
+      if ( zeromatch[i] > 0 )  
+        {
+	xysum += v1(i) * v2(i);
+	xsum  += v1(i);
+	xsqr  += v1(i) * v1(i);
+	ysum  += v2(i);
+	ysqr  += v2(i) * v2(i);
+	}
+      }
+    double numer = xysum - frac * xsum * ysum;
+    double denom = sqrt( ( xsqr - frac * xsum * xsum) * ( ysqr - frac * ysum * ysum) );
+    if( denom <= 0 )
+      {
+      return 0;
+      }
+    return vnl_math_abs( numer / denom );
+  }
+
 
   RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType a, RealType b,
                           RealType c, RealType tau, RealType lambda);
