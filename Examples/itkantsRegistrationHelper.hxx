@@ -1098,8 +1098,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           break;
         case ICP:
           {
-          typedef itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PointSetMetricType;
-          typename PointSetMetricType::Pointer icpMetric = PointSetMetricType::New();
+          typedef itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> IcpPointSetMetricType;
+          typename IcpPointSetMetricType::Pointer icpMetric = IcpPointSetMetricType::New();
 
           pointSetMetric = icpMetric;
 
@@ -1109,8 +1109,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           break;
 //         case PSE:
 //           {
-//           typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PointSetMetricType;
-//           typename PointSetMetricType::Pointer pseMetric = PointSetMetricType::New();
+//           typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PsePointSetMetricType;
+//           typename PsePointSetMetricType::Pointer pseMetric = PsePointSetMetricType::New();
 //           pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
 //           pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
 //
@@ -1122,8 +1122,8 @@ RegistrationHelper<TComputeType, VImageDimension>
 //           break;
         case JHCT:
           {
-          typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType, RealType> PointSetMetricType;
-          typename PointSetMetricType::Pointer jhctMetric = PointSetMetricType::New();
+          typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType, RealType> JhctPointSetMetricType;
+          typename JhctPointSetMetricType::Pointer jhctMetric = JhctPointSetMetricType::New();
           jhctMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
           jhctMetric->SetKernelSigma( 10.0 );
           jhctMetric->SetUseAnisotropicCovariances( stageMetricList[currentMetricNumber].m_UseAnisotropicCovariances );
