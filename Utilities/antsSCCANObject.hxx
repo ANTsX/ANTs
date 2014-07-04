@@ -4751,10 +4751,11 @@ bool antsSCCANObject<TInputImage, TRealType>
   for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
     // residualize against previous vectors 
-    if ( k > 0 ) {
+    if ( ( k > 0 ) && ( this->m_Covering ) )
+      {
       this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, this->m_MatrixP * this->m_VariatesP.get_column( k-1 ) );
       this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 ) );
-    }
+      }
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
     VectorType pveck = this->m_MatrixQ * qtemp;
@@ -4791,24 +4792,6 @@ bool antsSCCANObject<TInputImage, TRealType>
     //    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
     //      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) qproj( zm ) = 0;
     qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
-    if ( this->m_Covering ) 
-    {
-    for( unsigned int j = 0; j < k; j++ )
-      {
-      VectorType qj = this->m_VariatesP.get_column( j );
-      if ( j <= this->m_MatrixP.cols() ) 
-	{
-        pveck = this->Orthogonalize( pveck, qj );
-	//	if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
-	}
-      qj = this->m_VariatesQ.get_column( j );
-      if ( j <= this->m_MatrixQ.cols() )
-	{
-        qveck = this->Orthogonalize( qveck, qj );
-	//	if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
-	}
-      }
-    }
     RealType sclp = ( static_cast<RealType>( pveck.size() )  * this->m_FractionNonZeroP );
     RealType sclq = ( static_cast<RealType>( qveck.size() )  * this->m_FractionNonZeroQ );
     bool     genomics = false;
@@ -4819,8 +4802,6 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     pveck = ptemp + pveck * ( this->m_GradStep / sclp );
     qveck = qtemp + qveck * ( this->m_GradStep / sclq );
-    if ( this->m_Covering ) 
-    {
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j ); 
@@ -4835,7 +4816,6 @@ bool antsSCCANObject<TInputImage, TRealType>
       //      qveck = this->Orthogonalize( qveck, qj, &this->m_MatrixQ, &this->m_MatrixQ);
       //      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
       }
-    }
     if ( ( this->m_UseLongitudinalFormulation > 1.e-9 ) && ( pveck.size() == qveck.size() ) )
       {
       VectorType lpveck = pveck + ( qveck - pveck ) * this->m_UseLongitudinalFormulation;
