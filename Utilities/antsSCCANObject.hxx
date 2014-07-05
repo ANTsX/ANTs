@@ -4747,7 +4747,9 @@ bool antsSCCANObject<TInputImage, TRealType>
   this->m_Debug = false;
   unsigned int changegradct = 0;
   this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
+  RealType mpfrob =  this->m_MatrixP.frobenius_norm();
   this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
+  RealType mqfrob =  this->m_MatrixQ.frobenius_norm();
   for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
     // residualize against previous vectors 
@@ -4757,9 +4759,11 @@ bool antsSCCANObject<TInputImage, TRealType>
       VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( k-1 );
       this->SparsifyOther( temp ); 
       this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
+      this->m_MatrixP = this->m_MatrixP * ( mpfrob / this->m_MatrixP.frobenius_norm() );
       temp = this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 );
       this->SparsifyOther( temp ); 
       this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
+      this->m_MatrixQ = this->m_MatrixQ * ( mqfrob / this->m_MatrixQ.frobenius_norm() );
       }
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
