@@ -4935,7 +4935,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   VectorType iqvec = ( qrowmean ) * this->m_MatrixQ;
   for( unsigned int kk = 0; kk < n_vecs; kk++ )
     {
-    if ( ( k > 0 ) && ( this->m_Covering == 0 || this->m_Covering == 2 ) ) 
+    if ( ( kk > 0 ) && ( this->m_Covering == 0 || this->m_Covering == 2 ) ) 
       {
       VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( kk-1 );
       this->SparsifyOther( temp ); 
