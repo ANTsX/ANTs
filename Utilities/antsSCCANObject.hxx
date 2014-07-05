@@ -72,7 +72,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_UseLongitudinalFormulation = 0;
   this->m_RowSparseness = 0;
   this->m_Smoother = 0;
-  this->m_Covering = false;
+  this->m_Covering = 0;
 }
 
 template <class TInputImage, class TRealType>
@@ -4751,10 +4751,15 @@ bool antsSCCANObject<TInputImage, TRealType>
   for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
     // residualize against previous vectors 
-    if ( ( k > 0 ) )
+    // 0 - vox orth + resid, 1 - only vox orth , 2 - only resid
+    if ( ( k > 0 ) && ( this->m_Covering == 0 || this->m_Covering == 2 ) ) 
       {
-      this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, this->m_MatrixP * this->m_VariatesP.get_column( k-1 ) );
-      this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 ) );
+      VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( k-1 );
+      this->SparsifyOther( temp ); 
+      this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
+      temp = this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 );
+      this->SparsifyOther( temp ); 
+      this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
       }
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
@@ -4802,7 +4807,7 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     pveck = ptemp + pveck * ( this->m_GradStep / sclp );
     qveck = qtemp + qveck * ( this->m_GradStep / sclq );
-    if ( this->m_Covering ) 
+    if ( this->m_Covering != 2 ) // 0 - vox orth + resid, 1 - only vox orth , 2 - only resid
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j ); 

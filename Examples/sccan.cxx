@@ -1130,7 +1130,7 @@ template <unsigned int ImageDimension, class PixelType>
 int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec,
                   unsigned int robustify, unsigned int p_cluster_thresh, unsigned int iterct,
                   unsigned int svd_option, PixelType usel1, PixelType row_sparseness, PixelType smoother,
-                  PixelType covering )
+                  unsigned int covering )
 {
   std::cout << "SVD_One_View" << std::endl;
 
@@ -1200,11 +1200,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   itk::ants::CommandLineParser::OptionType::Pointer option =
     sccanparser->GetOption( "svd" );
   PixelType gradstep = vnl_math_abs( usel1 );
-  sccanobj->SetCovering( true );
-  if( covering < 0.1 )
-    {
-    sccanobj->SetCovering( false );
-    }
+  sccanobj->SetCovering( covering );
   if( usel1 > 0 )
     {
     sccanobj->SetUseL1( true );
@@ -1430,7 +1426,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
 template <unsigned int ImageDimension, class PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
-              PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, PixelType covering )
+              PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, unsigned int covering )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     sccanparser->GetOption( "output" );
@@ -1456,11 +1452,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   typedef typename SCCANType::VectorType                vVector;
   typedef typename SCCANType::DiagonalMatrixType        dMatrix;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
-  sccanobj->SetCovering( true );
-  if( covering < 0.1 )
-    {
-    sccanobj->SetCovering( false );
-    }
+  sccanobj->SetCovering( covering );
   sccanobj->SetMaximumNumberOfIterations(iterct);
   if( uselong > 0 )
     {
@@ -2202,7 +2194,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     uselong = sccanparser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
     }
 
-  matPixelType                                      covering = 1;
+  unsigned int                                      covering = 1;
   itk::ants::CommandLineParser::OptionType::Pointer covering_option =
     sccanparser->GetOption( "covering" );
   if( !covering_option || covering_option->GetNumberOfFunctions() == 0 )
@@ -2210,7 +2202,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     }
   else
     {
-    covering = sccanparser->Convert<matPixelType>( covering_option->GetFunction()->GetName() );
+    covering = sccanparser->Convert<unsigned int>( covering_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      usel1 = 0.1;

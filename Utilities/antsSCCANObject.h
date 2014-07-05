@@ -267,7 +267,7 @@ public:
       matrix.rows(), matrix.cols() ); this->m_OriginalMatrixQ.update(matrix); this->m_MatrixQ.update(matrix);
   }
 
-  itkSetMacro( Covering, bool );
+  itkSetMacro( Covering, unsigned int );
   itkSetMacro( UseL1, bool );
   itkSetMacro( GradStep, RealType );
   itkSetMacro( FractionNonZeroR, RealType );
@@ -1193,7 +1193,7 @@ private:
 
   /** softer = true will compute the update  : if ( beta > thresh )  beta <- beta - thresh
    *     rather than the default update      : if ( beta > thresh )  beta <- beta  */
-  bool     m_Covering;
+  unsigned int     m_Covering;
   bool     m_UseL1;
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;
