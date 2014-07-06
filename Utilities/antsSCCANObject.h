@@ -947,7 +947,7 @@ protected:
   bool Close2Zero( RealType x ) 
   {
     RealType eps = this->m_Epsilon * 5.0;
-    eps = 0.0001;
+    //    eps = 0.0001;
     if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < eps ) return true;
     return false;
   }
