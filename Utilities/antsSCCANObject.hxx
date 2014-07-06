@@ -4759,10 +4759,12 @@ bool antsSCCANObject<TInputImage, TRealType>
       VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( k-1 );
       this->SparsifyOther( temp ); 
       this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
+      this->m_MatrixP = this->m_MatrixP - this->m_MatrixP.min_value();
       this->m_MatrixP = this->m_MatrixP * ( mpfrob / this->m_MatrixP.frobenius_norm() );
       temp = this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 );
       this->SparsifyOther( temp ); 
       this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
+      this->m_MatrixQ = this->m_MatrixQ - this->m_MatrixQ.min_value();
       this->m_MatrixQ = this->m_MatrixQ * ( mqfrob / this->m_MatrixQ.frobenius_norm() );
       }
     VectorType ptemp = this->m_VariatesP.get_column(k);
