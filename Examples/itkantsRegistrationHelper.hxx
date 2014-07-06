@@ -1107,19 +1107,19 @@ RegistrationHelper<TComputeType, VImageDimension>
           return EXIT_FAILURE;
           }
           break;
-//         case PSE:
-//           {
-//           typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PsePointSetMetricType;
-//           typename PsePointSetMetricType::Pointer pseMetric = PsePointSetMetricType::New();
-//           pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
-//           pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
-//
-//           pointSetMetric = pseMetric;
-//
-//           std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
-//           return EXIT_FAILURE;
-//           }
-//           break;
+        case PSE:
+          {
+          typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PsePointSetMetricType;
+          typename PsePointSetMetricType::Pointer pseMetric = PsePointSetMetricType::New();
+          pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
+          pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
+
+          pointSetMetric = pseMetric;
+
+          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
+          return EXIT_FAILURE;
+          }
+          break;
         case JHCT:
           {
           typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType, RealType> JhctPointSetMetricType;
