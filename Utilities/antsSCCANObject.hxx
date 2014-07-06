@@ -4791,13 +4791,13 @@ bool antsSCCANObject<TInputImage, TRealType>
     RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
     VectorType pproj = ( this->m_MatrixP * ptemp ); 
-    //    this->SparsifyOther( pproj );  // zeromatch
+    this->SparsifyOther( pproj );  // zeromatch
     //    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
     //      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) pproj( zm ) = 0;
     pveck = pveck - this->m_MatrixP.transpose() * pproj *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
     VectorType qproj = ( this->m_MatrixQ * qtemp ); 
-    //    this->SparsifyOther( qproj ); // zeromatch
+    this->SparsifyOther( qproj ); // zeromatch
     //    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
     //      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) qproj( zm ) = 0;
     qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
@@ -4851,10 +4851,14 @@ bool antsSCCANObject<TInputImage, TRealType>
       this->IHTRegression(  this->m_MatrixQ,  qtemp, qveck, 0, 1, muq, false, false );   qveck = qtemp;
       }
     // test 4 cases of updates
-    pproj =  this->m_MatrixP * ptemp;  // this->SparsifyOther( pproj );
-    VectorType pproj2 = this->m_MatrixP * pveck; // this->SparsifyOther( pproj2 );
-    qproj =  this->m_MatrixQ * qtemp; // this->SparsifyOther( qproj );
-    VectorType qproj2 = this->m_MatrixQ * qveck; // this->SparsifyOther( qproj2 );
+    pproj =  this->m_MatrixP * ptemp;  
+    this->SparsifyOther( pproj );
+    VectorType pproj2 = this->m_MatrixP * pveck; 
+    this->SparsifyOther( pproj2 );
+    qproj =  this->m_MatrixQ * qtemp; 
+    this->SparsifyOther( qproj );
+    VectorType qproj2 = this->m_MatrixQ * qveck; 
+    this->SparsifyOther( qproj2 );
     RealType corr0 = this->RPearsonCorr( pproj , qproj  );
     RealType corr1 = this->RPearsonCorr( pproj2 , qproj2  );
     RealType corr2 = this->RPearsonCorr( pproj, qproj );
@@ -4895,13 +4899,13 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
     else this->NormalizeWeights( k );
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
-    //    this->SparsifyOther( proj1 );
+    this->SparsifyOther( proj1 );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
-    //    this->SparsifyOther( proj2 );
+    this->SparsifyOther( proj2 );
     this->m_CanonicalCorrelations[k] = this->RPearsonCorr( proj1, proj2  );
     }
   if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.5;
-  // this->SortResults( n_vecs );
+  this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
 
