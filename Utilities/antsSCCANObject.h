@@ -660,7 +660,7 @@ public:
 
   RealType SparsePartialCCA(unsigned int nvecs);
 
-  bool CCAUpdate(unsigned int nvecs, bool, bool );
+  bool CCAUpdate(unsigned int nvecs, bool, bool , unsigned int );
 
   bool CCAUpdateLong(unsigned int nvecs, bool, bool );
 

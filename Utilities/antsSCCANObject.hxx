@@ -4742,15 +4742,14 @@ antsSCCANObject<TInputImage, TRealType>
 
 template <class TInputImage, class TRealType>
 bool antsSCCANObject<TInputImage, TRealType>
-::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov )
+::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
   this->m_Debug = false;
   unsigned int changegradct = 0;
   this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
-  RealType mpfrob =  this->m_MatrixP.frobenius_norm();
   this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
-  RealType mqfrob =  this->m_MatrixQ.frobenius_norm();
-  for( unsigned int k = 0; k < n_vecs; k++ ) 
+  bool secondSO = false;
+  //  for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
     // residualize against previous vectors 
     // 0 - vox orth + resid, 1 - only vox orth , 2 - only resid
@@ -4759,20 +4758,16 @@ bool antsSCCANObject<TInputImage, TRealType>
       VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( k-1 );
       this->SparsifyOther( temp ); 
       this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
-      this->m_MatrixP = this->m_MatrixP - this->m_MatrixP.min_value();
-      this->m_MatrixP = this->m_MatrixP * ( mpfrob / this->m_MatrixP.frobenius_norm() );
       temp = this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 );
       this->SparsifyOther( temp ); 
       this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
-      this->m_MatrixQ = this->m_MatrixQ - this->m_MatrixQ.min_value();
-      this->m_MatrixQ = this->m_MatrixQ * ( mqfrob / this->m_MatrixQ.frobenius_norm() );
       }
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
     VectorType pveck = this->m_MatrixQ * qtemp;
-    this->SparsifyOther( pveck ); // zeromatch
+    if ( secondSO ) this->SparsifyOther( pveck ); // zeromatch
     VectorType qveck = this->m_MatrixP * ptemp;
-    this->SparsifyOther( qveck ); // zeromatch
+    if ( secondSO ) this->SparsifyOther( qveck ); // zeromatch
     // get list of all zeroes
     std::vector<TRealType> zeromatch( qveck.size(), 0);
     unsigned int zct = 0;
@@ -4793,13 +4788,13 @@ bool antsSCCANObject<TInputImage, TRealType>
     RealType ccafactor = inner_product( pveck, qveck ) * 0.5;
     pveck = pveck * this->m_MatrixP;
     VectorType pproj = ( this->m_MatrixP * ptemp ); 
-    this->SparsifyOther( pproj );  // zeromatch
+    if ( secondSO ) this->SparsifyOther( pproj );  // zeromatch
     //    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
     //      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) pproj( zm ) = 0;
     pveck = pveck - this->m_MatrixP.transpose() * pproj *  ccafactor;
     qveck = qveck * this->m_MatrixQ;
     VectorType qproj = ( this->m_MatrixQ * qtemp ); 
-    this->SparsifyOther( qproj ); // zeromatch
+    if ( secondSO ) this->SparsifyOther( qproj ); // zeromatch
     //    for ( unsigned int zm = 0; zm < qveck.size(); zm++ )
     //      if ( this->Close2Zero( zeromatch[ zm ] - 1 ) ) qproj( zm ) = 0;
     qveck = qveck - this->m_MatrixQ.transpose() * ( qproj ) *  ccafactor;
@@ -4817,13 +4812,15 @@ bool antsSCCANObject<TInputImage, TRealType>
     for( unsigned int j = 0; j < k; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column( j ); 
-      pproj = ( this->m_MatrixP * pveck ); // this->SparsifyOther( pproj );
+      pproj = ( this->m_MatrixP * pveck ); 
+      if ( secondSO ) this->SparsifyOther( pproj );
       pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
       //      pveck = this->Orthogonalize( pveck, qj, &this->m_MatrixP, &this->m_MatrixP);
 
       //      if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
       qj = this->m_VariatesQ.get_column( j );
-      qproj = ( this->m_MatrixQ * qveck ); // this->SparsifyOther( qproj );
+      qproj = ( this->m_MatrixQ * qveck ); 
+      if ( secondSO ) this->SparsifyOther( qproj );
       qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
       //      qveck = this->Orthogonalize( qveck, qj, &this->m_MatrixQ, &this->m_MatrixQ);
       //      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
@@ -4854,13 +4851,13 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     // test 4 cases of updates
     pproj =  this->m_MatrixP * ptemp;  
-    this->SparsifyOther( pproj );
+    if ( secondSO ) this->SparsifyOther( pproj );
     VectorType pproj2 = this->m_MatrixP * pveck; 
-    this->SparsifyOther( pproj2 );
+    if ( secondSO ) this->SparsifyOther( pproj2 );
     qproj =  this->m_MatrixQ * qtemp; 
-    this->SparsifyOther( qproj );
+    if ( secondSO ) this->SparsifyOther( qproj );
     VectorType qproj2 = this->m_MatrixQ * qveck; 
-    this->SparsifyOther( qproj2 );
+    if ( secondSO ) this->SparsifyOther( qproj2 );
     RealType corr0 = this->PearsonCorr( pproj , qproj  );
     RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
     RealType corr2 = this->PearsonCorr( pproj, qproj );
@@ -4901,13 +4898,13 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( normbycov ) this->NormalizeWeightsByCovariance( k, 0, 0 );
     else this->NormalizeWeights( k );
     VectorType proj1 =  this->m_MatrixP * this->m_VariatesP.get_column( k );
-    this->SparsifyOther( proj1 );
+    if ( secondSO ) this->SparsifyOther( proj1 );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
-    this->SparsifyOther( proj2 );
+    if ( secondSO ) this->SparsifyOther( proj2 );
     this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
     }
   if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.5;
-  this->SortResults( n_vecs );
+  // this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
 
@@ -5153,12 +5150,15 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   bool               energyincreases = true;
   RealType           energy = 0;
   RealType           lastenergy = 0;
-  while( ( ( loop < maxloop )  && ( energyincreases )  ) )
+  for ( unsigned int k = 0; k < n_vecs; k++ )
+    {
+    loop=0;
+    while( ( ( loop < maxloop ) ) ) // && ( energyincreases )  ) )
     {
     // Arnoldi Iteration SCCA
     bool normbycov = true;
     if ( !normbycov && loop == 0 ) this->m_GradStep *= 1.e-8;
-    bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov );
+    bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov, k );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
     // if( this->m_Debug )
@@ -5177,7 +5177,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       }
     loop++;
     } // outer loop
-
+    }
   this->SortResults( n_vecs_in );
   //  this->RunDiagnostics(n_vecs);
   double ccasum = 0; for( unsigned int i = 0; i < this->m_CanonicalCorrelations.size(); i++ )
