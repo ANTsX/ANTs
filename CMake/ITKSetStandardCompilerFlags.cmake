@@ -97,9 +97,6 @@ function(check_compiler_warning_flags c_warning_flags_var cxx_warning_flags_var)
   # Check this list on both C and C++ compilers
   set(c_and_cxx_flags
     ${VerboseWarningsFlag}
-# -Wno-long-double is only applicable with gcc on apple, and is generating
-# warnings now on all platforms.
-#    -Wno-long-double        #Needed on APPLE
     -Wcast-align
     -Wdisabled-optimization
     -Wextra
@@ -120,7 +117,6 @@ function(check_compiler_warning_flags c_warning_flags_var cxx_warning_flags_var)
     -Wno-invalid-offsetof
     -Woverloaded-virtual
     -Wstrict-null-sentinel
-    -Wno-unused-local-typedefs
   )
 ##-Wno-c++0x-static-nonintegral-init
     ## Clang compiler likes to warn about this feature that is technically only in
@@ -192,6 +188,13 @@ macro(check_compiler_platform_flags)
   #-----------------------------------------------------------------------------
   #ITK requires special compiler flags on some platforms.
   if(CMAKE_COMPILER_IS_GNUCXX)
+    # GCC's -Warray-bounds has been shown to throw false positives with -O3 on 4.8.
+    if(UNIX AND (
+      ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_EQUAL "4.8") OR
+      ("${CMAKE_CXX_COMPILER_VERSION}" VERSION_GREATER "4.8" AND "${CMAKE_CXX_COMPILER_VERSION}" VERSION_LESS "4.9") ))
+      set(ITK_REQUIRED_CXX_FLAGS "${ITK_REQUIRED_CXX_FLAGS} -Wno-array-bounds")
+    endif()
+
    if(APPLE)
      option(ITK_USE_64BITS_APPLE_TRUNCATION_WARNING "Turn on warnings on 64bits to 32bits truncations." OFF)
      mark_as_advanced(ITK_USE_64BITS_APPLE_TRUNCATION_WARNING)
@@ -213,7 +216,6 @@ macro(check_compiler_platform_flags)
          message("-fopenmp causes incorrect compliation of HDF, removing from ${listname}")
        endif()
      endforeach()
-
    endif()
 
    # gcc must have -msse2 option to enable sse2 support
