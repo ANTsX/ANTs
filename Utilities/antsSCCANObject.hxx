@@ -50,7 +50,7 @@ antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
   this->m_MinClusterSizeQ = 1;
   this->m_KeptClusterSize = 0;
   this->m_Debug = false;
-  this->m_Silent = false;
+  this->m_Silent = true;
   this->m_CorrelationForSignificanceTest = 0;
   this->m_SpecializationForHBM2011 = false;
   this->m_AlreadyWhitened = false;
@@ -5150,6 +5150,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   RealType           energy = 0;
   RealType           lastenergy = 0;
   for ( unsigned int oo = 0; oo < maxloop; oo++ )
+  {
   for ( unsigned int k = 0; k < n_vecs; k++ )
     {
     if ( k == 0 ) this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
@@ -5165,10 +5166,6 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
     // if( this->m_Debug )
-    if ( ! m_Silent )
-      {
-      std::cout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
-      }
     if( this->m_GradStep < 1.e-12 ) // || ( vnl_math_abs( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
       {
       energyincreases = false;
@@ -5182,6 +5179,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     } // outer loop
     }
   this->SortResults( n_vecs_in );
+  if ( ! m_Silent )
+    {
+    std::cout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
+    }
+  } // oo
   //  this->RunDiagnostics(n_vecs);
   double ccasum = 0; for( unsigned int i = 0; i < this->m_CanonicalCorrelations.size(); i++ )
     {
