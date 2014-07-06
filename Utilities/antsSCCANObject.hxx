@@ -4746,8 +4746,6 @@ bool antsSCCANObject<TInputImage, TRealType>
 {
   this->m_Debug = false;
   unsigned int changegradct = 0;
-  this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
-  this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
   bool secondSO = false;
   //  for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
@@ -5056,6 +5054,7 @@ template <class TInputImage, class TRealType>
 TRealType antsSCCANObject<TInputImage, TRealType>
 ::SparsePartialArnoldiCCA(unsigned int n_vecs_in)
 {
+  RealType basegradstep = this->m_GradStep;
   this->m_Debug = false;
   unsigned int n_vecs = n_vecs_in;
   if( n_vecs < 1 )
@@ -5150,9 +5149,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   bool               energyincreases = true;
   RealType           energy = 0;
   RealType           lastenergy = 0;
+  for ( unsigned int oo = 0; oo < maxloop; oo++ )
   for ( unsigned int k = 0; k < n_vecs; k++ )
     {
+    if ( k == 0 ) this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
+    if ( k == 0 ) this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
     loop=0;
+    this->m_GradStep = basegradstep;
     while( ( ( loop < maxloop ) ) ) // && ( energyincreases )  ) )
     {
     // Arnoldi Iteration SCCA
