@@ -37,6 +37,7 @@
 #include "itkSurfaceImageCurvature.h"
 #include "itkImageFileWriter.h"
 #include "itkGradientAnisotropicDiffusionImageFilter.h"
+#include "ReadWriteData.h"
 
 namespace itk
 {
@@ -388,7 +389,10 @@ antsSCCANObject<TInputImage, TRealType>
     {
     return vec;
     } 
+  //  vec = this->m_OriginalMatrixP.get_row(0);
+  //  std::cout << " vec " << vec[1] << " " << vec[100] << " " << vec[1000] << std::endl;
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
+  // WriteImage<ImageType>( image , "ccaout.nii.gz" );
   typename TInputImage::SizeType dim =
     mask->GetLargestPossibleRegion().GetSize();
   RealType     spacingsize = 0;
@@ -438,15 +442,18 @@ antsSCCANObject<TInputImage, TRealType>
     }
   else 
     {
-      typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
-      typename dgf::Pointer filter = dgf::New();
-      filter->SetUseImageSpacingOn();
-      filter->SetVariance(  this->m_Smoother * spacingsize );
-      filter->SetMaximumError( .01f );
-      filter->SetInput( image );
-      filter->Update();
-      VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
-      return gradvec;
+    typedef itk::DiscreteGaussianImageFilter<ImageType, ImageType> dgf;
+    typename dgf::Pointer filter = dgf::New();
+    filter->SetUseImageSpacingOn();
+    filter->SetVariance(  this->m_Smoother * spacingsize );
+    filter->SetMaximumError( .01f );
+    filter->SetInput( image );
+    filter->Update();
+    typename ImageType::Pointer imgout = filter->GetOutput();
+    //    WriteImage<ImageType>( imgout , "ccaout_s.nii.gz" );
+    VectorType gradvec = this->ConvertImageToVariate( imgout,  mask );
+    //    std::cout << ImageDimension << " gvec " << gradvec[1] << " " << gradvec[100] << " " << gradvec[1000] << std::endl;
+    return gradvec;
     }
 }
 
