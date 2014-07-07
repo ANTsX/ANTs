@@ -291,6 +291,16 @@ void ClosestSimplifiedHeaderMatrix(int argc, char *argv[])
       mydir(d,dd) = static_cast<RealType>( vlong );
       }
   image1->SetDirection( mydir );
+  // also do the origin 
+  typename ImageType::PointType origin = image1->GetOrigin();
+  for ( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    RealType rndflt = origin[d] * 100.0;
+    int rndflti = static_cast<int>( rndflt + 0.5 );
+    rndflt = static_cast<RealType>( rndflti ) / 100.0;
+    origin[d] = rndflt;
+    }
+  image1->SetOrigin( origin );
   WriteImage<ImageType>( image1, outname.c_str() );
   return;
 }
