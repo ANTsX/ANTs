@@ -4773,8 +4773,8 @@ int Stack2Images(int argc, char *argv[])
     }
 
   itk::FixedArray< unsigned int, ImageDimension > layout;
-  for ( unsigned int i = 0; i < (ImageDimension-1); i++ ) layout[i]=1;
-  layout[ ImageDimension ] = 0;
+  for ( unsigned int i = 0; i < (ImageDimension-2); i++ ) layout[i]=1;
+  layout[ ImageDimension - 1 ] = 0;
   typedef itk::TileImageFilter <ImageType, ImageType >
     TileImageFilterType;
   typename TileImageFilterType::Pointer tileFilter
