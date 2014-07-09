@@ -3385,6 +3385,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>           VectorType;
   typedef itk::Image<VectorType, ImageDimension>       FieldType;
   typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::Image<PixelType, 2>                     MatrixImageType;
   typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
   typedef typename OutImageType::IndexType             OutIndexType;
   typedef itk::ImageFileReader<ImageType>              readertype;
@@ -3398,19 +3399,21 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   typedef itk::ants::antsMatrixUtilities<ImageType, Scalar> matrixOpType;
   typename matrixOpType::Pointer matrixOps = matrixOpType::New();
 
+  bool tomha = true;
   int               argct = 2;
   const std::string outname = std::string(argv[argct]); argct++;
   std::string       ext = itksys::SystemTools::GetFilenameExtension( outname );
-  if( strcmp(ext.c_str(), ".csv") != 0 )
+  if( ( strcmp(ext.c_str(), ".csv") != 0 ) || (  strcmp(ext.c_str(), ".mha") != 0 )  )
     {
-    std::cout << " must use .csv as output file extension " << std::endl;
+    std::cout << " must use .csv or .mha as output file extension " << std::endl;
     return EXIT_FAILURE;
     }
-  argct++;
+  if( ( strcmp(ext.c_str(), ".csv") == 0 )  ) tomha = false;
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string maskfn = std::string(argv[argct]);   argct++;
   typename ImageType::Pointer image1 = NULL;
   typename OutImageType::Pointer mask = NULL;
+  typename MatrixImageType::Pointer matriximage = NULL;
   if( fn1.length() > 3 )
     {
     ReadImage<ImageType>(image1, fn1.c_str() );
@@ -3439,6 +3442,13 @@ int TimeSeriesToMatrix(int argc, char *argv[])
       voxct++;
       }
     }
+  // allocate the matrix image 
+  typename MatrixImageType::SizeType size;
+  size[0] = timedims;
+  size[1] = voxct;
+  typename MatrixImageType::RegionType newregion;
+  newregion.SetSize(size);
+  if ( tomha ) matriximage = AllocImage<MatrixImageType>(newregion, 0); 
 
   typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
   extractRegion.SetSize(ImageDimension - 1, 0);
@@ -3460,8 +3470,12 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   timeVectorType mSample(timedims, 0);
   typedef itk::Array2D<double> MatrixType;
   std::vector<std::string> ColumnHeaders;
-  MatrixType               matrix(timedims, voxct);
-  matrix.Fill(0);
+  MatrixType               matrix;
+  if ( ! tomha ) 
+    {
+    matrix.set_size(timedims, voxct);
+    matrix.Fill(0);
+    }
   SliceIt vfIter2( outimage, outimage->GetLargestPossibleRegion() );
   voxct = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
@@ -3480,7 +3494,14 @@ int TimeSeriesToMatrix(int argc, char *argv[])
         tind[ImageDimension - 1] = t;
         Scalar pix = image1->GetPixel(tind);
         mSample(t) = pix;
-        matrix[t][voxct] = pix;
+        if ( ! tomha ) matrix[t][voxct] = pix;
+	else
+          {
+  	  typename MatrixImageType::IndexType matind;
+	  matind[1] = t;
+	  matind[2] = voxct;
+	  matriximage->SetPixel( matind, pix );
+	  }
         }
       std::string colname = std::string("V") + ants_to_string<unsigned int>(voxct);
       ColumnHeaders.push_back( colname );
@@ -3488,23 +3509,29 @@ int TimeSeriesToMatrix(int argc, char *argv[])
       } // check mask
     }
 
-  // write out the array2D object
-  typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
-  WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( outname );
-  writer->SetInput( &matrix );
-  writer->SetColumnHeaders( ColumnHeaders );
-  try
+  if ( ! tomha ) 
     {
-    writer->Write();
+    // write out the array2D object
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    writer->SetFileName( outname );
+    writer->SetInput( &matrix );
+    writer->SetColumnHeaders( ColumnHeaders );
+    try
+      {
+      writer->Write();
+      } 
+    catch( itk::ExceptionObject& exp )
+      {
+      std::cout << "Exception caught!" << std::endl;
+      std::cout << exp << std::endl;
+      return EXIT_FAILURE;
+      }
     }
-  catch( itk::ExceptionObject& exp )
+  if ( tomha ) 
     {
-    std::cout << "Exception caught!" << std::endl;
-    std::cout << exp << std::endl;
-    return EXIT_FAILURE;
+    WriteImage<MatrixImageType>( matriximage , outname.c_str() );
     }
-
   return 0;
 }
 
@@ -4773,7 +4800,7 @@ int Stack2Images(int argc, char *argv[])
     }
 
   itk::FixedArray< unsigned int, ImageDimension > layout;
-  for ( unsigned int i = 0; i < (ImageDimension-2); i++ ) layout[i]=1;
+  for ( unsigned int i = 0; i < (ImageDimension-1); i++ ) layout[i]=1;
   layout[ ImageDimension - 1 ] = 0;
   typedef itk::TileImageFilter <ImageType, ImageType >
     TileImageFilterType;
