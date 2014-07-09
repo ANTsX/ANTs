@@ -32,7 +32,7 @@
 namespace ants
 {
 template <unsigned int ImageDimension, class TPIXELTYPE>
-int ConvertTypeToFloat(int argc, char *argv[] )
+int ConvertTypeToFloat( int argc, char *argv[] )
 {
   typedef  TPIXELTYPE                                inPixelType;
   typedef  float                                     floatPixelType;
@@ -85,7 +85,7 @@ int ConvertInputImagePixelTypeToFloat( std::vector<std::string> args, std::ostre
   // 'args' doesn't have the command name as first, argument, so add it manually;
   // 'args' may have adjacent arguments concatenated into one argument,
   // which the parser should handle
-  args.insert( args.begin(), "ConvertImagePixelType" );
+  args.insert( args.begin(), "ConvertInputImagePixelTypeToFloat" );
   int     argc = args.size();
   char* * argv = new char *[args.size() + 1];
   for( unsigned int i = 0; i < args.size(); ++i )
@@ -193,17 +193,17 @@ private:
       {
       case 2:
         {
-        ConvertTypeToFloat<2, unsigned char>(argc, argv,  0 );
+        ConvertTypeToFloat<2, unsigned char>(argc, argv );
         }
         break;
       case 3:
         {
-        ConvertTypeToFloat<3, unsigned char>(argc, argv,  0 );
+        ConvertTypeToFloat<3, unsigned char>(argc, argv );
         }
         break;
       case 4:
         {
-        ConvertTypeToFloat<4, unsigned char>(argc, argv,  0 );
+        ConvertTypeToFloat<4, unsigned char>(argc, argv );
         }
         break;
       default:
@@ -241,17 +241,17 @@ private:
       {
       case 2:
         {
-        ConvertTypeToFloat<2, unsigned short>(argc, argv,  0 );
+        ConvertTypeToFloat<2, unsigned short>(argc, argv );
         }
         break;
       case 3:
         {
-        ConvertTypeToFloat<3, unsigned short>(argc, argv,  0 );
+        ConvertTypeToFloat<3, unsigned short>(argc, argv );
         }
         break;
       case 4:
         {
-        ConvertTypeToFloat<4, unsigned short>(argc, argv,  0 );
+        ConvertTypeToFloat<4, unsigned short>(argc, argv );
         }
         break;
       default:
