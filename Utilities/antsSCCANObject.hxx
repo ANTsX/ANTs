@@ -303,6 +303,8 @@ antsSCCANObject<TInputImage, TRealType>
 // long)(labelimage->GetPixel(vfIter.GetIndex()) - min)]
 // is < MinClusterSize
   unsigned long vecind = 0, keepct = 0;
+  for ( unsigned int k = 0; k < this->m_VecToMaskSize; k++ )
+  {
   fIterator     mIter( mask,  mask->GetLargestPossibleRegion() );
   for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
     {
@@ -326,6 +328,7 @@ antsSCCANObject<TInputImage, TRealType>
         }
       }
     }
+  }
   this->m_KeptClusterSize = histogram[1]; // only records the size of the largest cluster in the variate
   //  for (unsigned int i=0; i<histogram.size(); i++)
   //  if ( histogram[i] > minclust ) this->m_KeptClusterSize+=histogram[i];
