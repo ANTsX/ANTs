@@ -124,6 +124,7 @@ set(BASE_ANTS_APPS
   antsApplyTransformsToPoints
   CompositeTransformUtil
   antsMotionCorr
+  antsMotionCorrDiffusionDirection
   sccan
   CreateDisplacementField
   ANTSIntegrateVectorField
