@@ -1194,6 +1194,7 @@ private:
   /** softer = true will compute the update  : if ( beta > thresh )  beta <- beta - thresh
    *     rather than the default update      : if ( beta > thresh )  beta <- beta  */
   unsigned int     m_Covering;
+  unsigned int     m_VecToMaskSize;
   bool     m_UseL1;
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;

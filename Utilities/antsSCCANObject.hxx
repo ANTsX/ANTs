@@ -47,6 +47,7 @@ template <class TInputImage, class TRealType>
 antsSCCANObject<TInputImage, TRealType>::antsSCCANObject()
 {
   this->m_UseL1 = true;
+  this->m_VecToMaskSize = 1;
   this->m_MinClusterSizeP = 1;
   this->m_MinClusterSizeQ = 1;
   this->m_KeptClusterSize = 0;
@@ -100,10 +101,25 @@ antsSCCANObject<TInputImage, TRealType>
     {
     if( mIter.Get() >= 0.5 )
       {
+      vecind++;
+      }
+    }
+
+  this->m_VecToMaskSize = static_cast<unsigned int> 
+    ( static_cast<double>( w_p.size() ) / static_cast<double>( vecind ) + 0.5 );
+  RealType avgwt = 1.0 / static_cast<double>( this->m_VecToMaskSize );
+  vecind = 0;
+  for ( unsigned int k = 0; k < this->m_VecToMaskSize; k++ ) // loop begin
+  {
+  unsigned long maskct = 0;
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() >= 0.5 )
+      {
       TRealType val = 0;
       if( vecind < w_p.size() )
         {
-        val = w_p(vecind);
+	val = w_p( vecind ) * avgwt + weights->GetPixel(mIter.GetIndex());
         }
       else
         {
@@ -111,22 +127,24 @@ antsSCCANObject<TInputImage, TRealType>
         std::cout << " this is likely a mask problem --- exiting! " << std::endl;
         std::exception();
         }
-      if( threshold_at_zero && fabs(val) > 0  )
+      if ( threshold_at_zero && ( fabs(val) > this->m_Epsilon  ) )
         {
-        weights->SetPixel(mIter.GetIndex(), 1);
+        weights->SetPixel( mIter.GetIndex(), 1 );
         }
       else
         {
-        weights->SetPixel(mIter.GetIndex(), val);
+        weights->SetPixel( mIter.GetIndex(), val );
         }
       vecind++;
+      // if ( maskct % 289  == 0 ) std::cout << "k "<< k << " mval " << val << " w " << w_p( vecind ) << std::endl;
+      maskct++;
       }
     else
       {
       mIter.Set(0);
       }
     }
-
+  }// loop end
   return weights;
 }
 
@@ -329,25 +347,30 @@ antsSCCANObject<TInputImage, TRealType>
   for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
     {
     RealType maskval = vfIter.Get();
-    if( maskval > 0 )
+    if( maskval >= 0.5 )
       {
-      maskct++;
-      }
-    }
-  VectorType vec( maskct );
-  vec.fill( 0 );
-  maskct = 0;
-  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
-    {
-    RealType maskval = vfIter.Get();
-    RealType imageval = image->GetPixel( vfIter.GetIndex() );
-    if( maskval > 0 )
-      {
-      vec[maskct] = imageval;
       maskct++;
       }
     }
 
+  VectorType vec( maskct * this->m_VecToMaskSize );
+  vec.fill( 0 );
+  ULPixelType maskct2 = 0;
+  for ( unsigned int k = 0; k < this->m_VecToMaskSize; k++ ) // loop begin
+  {
+  ULPixelType maskctbase = 0;
+  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+    {
+    RealType maskval = vfIter.Get();
+    RealType imageval = image->GetPixel( vfIter.GetIndex() );
+    if( maskval >= 0.5 )
+      {
+      vec[maskct2] = imageval;
+      maskct2++;
+      maskctbase++;
+      }
+    }
+  }
   return vec;
 }
 
@@ -389,6 +412,7 @@ antsSCCANObject<TInputImage, TRealType>
     {
     return vec;
     } 
+  RealType vecnorm = vec.two_norm();
   //  vec = this->m_OriginalMatrixP.get_row(0);
   //  std::cout << " vec " << vec[1] << " " << vec[100] << " " << vec[1000] << std::endl;
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
@@ -452,6 +476,7 @@ antsSCCANObject<TInputImage, TRealType>
     typename ImageType::Pointer imgout = filter->GetOutput();
     //    WriteImage<ImageType>( imgout , "ccaout_s.nii.gz" );
     VectorType gradvec = this->ConvertImageToVariate( imgout,  mask );
+    gradvec = gradvec * vecnorm / gradvec.two_norm();
     //    std::cout << ImageDimension << " gvec " << gradvec[1] << " " << gradvec[100] << " " << gradvec[1000] << std::endl;
     return gradvec;
     }
@@ -6021,7 +6046,7 @@ antsSCCANObject<TInputImage, TRealType>
       {
       VectorType countlabels( n_vecs, 0 );
       LabelType  p = GHood.GetCenterPixel();
-      if( p >= 0.5 && this->m_MaskImageP->GetPixel( GHood.GetIndex() )  > 0.5 )
+      if( p >= 0.5 && this->m_MaskImageP->GetPixel( GHood.GetIndex() )  >= 0.5 )
         {
         for( unsigned int i = 0; i < GHood.Size(); i++ )
           {
@@ -6050,7 +6075,7 @@ antsSCCANObject<TInputImage, TRealType>
   unsigned int vecind = 0;
   for(  Itf.GoToBegin(); !Itf.IsAtEnd(); ++Itf )
     {
-    if( this->m_MaskImageP->GetPixel( Itf.GetIndex() ) > 0.5 )
+    if( this->m_MaskImageP->GetPixel( Itf.GetIndex() ) >= 0.5 )
       {
       labels( vecind ) = labelimage->GetPixel( Itf.GetIndex() );
       vecind++;
