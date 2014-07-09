@@ -21,6 +21,8 @@
 
 #include "antsMotionCorr.h"
 
+#include "antsMotionCorrDiffusionDirection.h"
+
 #include "antsRegistration.h"
 
 #include "antsSurf.h"
