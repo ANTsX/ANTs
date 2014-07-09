@@ -51,7 +51,6 @@ int ConvertTypeToFloat( int argc, char *argv[] )
     }
   reader->SetFileName(argv[1]);
   reader->Update();
-  std::cout << " Updated reader " << std::endl;
 
   typedef itk::CastImageFilter<ImageType, IntermediateType> castertype;
   typename   castertype::Pointer caster = castertype::New();
