@@ -138,10 +138,6 @@ private:
     std::cout
       << " You can easily extend this for other pixel types with a few lines of code and adding usage info. "
       << std::endl;
-    std::cout
-      <<
-      " The image intensity will be scaled to the dynamic range of the pixel type.  E.g. uchar => 0  (min), 255 (max). "
-      << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
