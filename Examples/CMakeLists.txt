@@ -76,6 +76,7 @@ set(BASE_ANTS_APPS
   MeasureImageSimilarity
   ConvertToJpg
   ConvertImagePixelType
+  ConvertInputImagePixelTypeToFloat
   AverageImages
   AverageTensorImages
   ImageSetStatistics

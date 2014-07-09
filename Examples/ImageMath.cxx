@@ -3409,6 +3409,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
     return EXIT_FAILURE;
     }
   if( ( strcmp(ext.c_str(), ".csv") == 0 )  ) tomha = false;
+  argct++;
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string maskfn = std::string(argv[argct]);   argct++;
   typename ImageType::Pointer image1 = NULL;
@@ -3478,6 +3479,8 @@ int TimeSeriesToMatrix(int argc, char *argv[])
     }
   SliceIt vfIter2( outimage, outimage->GetLargestPossibleRegion() );
   voxct = 0;
+  PixelType meanval = 0;
+  unsigned long fullct = 0;
   for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
     {
     OutIndexType ind = vfIter2.GetIndex();
@@ -3491,24 +3494,26 @@ int TimeSeriesToMatrix(int argc, char *argv[])
         }
       for( unsigned int t = 0; t < timedims; t++ )
         {
+	typename MatrixImageType::IndexType matind;
+	matind[1] = t;
+	matind[2] = voxct;
         tind[ImageDimension - 1] = t;
         Scalar pix = image1->GetPixel(tind);
         mSample(t) = pix;
         if ( ! tomha ) matrix[t][voxct] = pix;
-	else
+        if ( tomha ) 
           {
-  	  typename MatrixImageType::IndexType matind;
-	  matind[1] = t;
-	  matind[2] = voxct;
 	  matriximage->SetPixel( matind, pix );
 	  }
+	meanval += pix;
+	fullct++;
         }
       std::string colname = std::string("V") + ants_to_string<unsigned int>(voxct);
       ColumnHeaders.push_back( colname );
       voxct++;
       } // check mask
     }
-
+  //  std::cout << " Mean " << meanval / fullct << std::endl;
   if ( ! tomha ) 
     {
     // write out the array2D object
