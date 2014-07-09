@@ -48,7 +48,7 @@
 #include <vtkWindowToImageFilter.h>
 #include <vtkPNGWriter.h>
 #include <vtkGraphicsFactory.h>
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkRescaleIntensityImageFilter.h"
 #include "vtkDelaunay2D.h"
 #include "vtkFloatArray.h"
@@ -96,11 +96,11 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
   normalGenerator->ComputeCellNormalsOff();
   normalGenerator->Update();
 
-  vtkSmartPointer<vtkGraphicsFactory> graphics_factory = 
+  vtkSmartPointer<vtkGraphicsFactory> graphics_factory =
     vtkSmartPointer<vtkGraphicsFactory>::New();
   if ( offscreen.length() > 4 ) graphics_factory->SetOffScreenOnlyMode( 1);
   graphics_factory->SetUseMesaClasses( 1 );
-  
+
   vtkRenderer*     ren1 = vtkRenderer::New();
   vtkRenderer*     ren2 = vtkRenderer::New();
   vtkRenderWindow* renWin = vtkRenderWindow::New();
@@ -116,7 +116,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
 
   vtkDataSetMapper* mapper = vtkDataSetMapper::New();
   mapper->SetInputData(  normalGenerator->GetOutput() );
-  
+
  // Create a lookup table to map cell data to colors
   vtkSmartPointer<vtkLookupTable> lut =
     vtkSmartPointer<vtkLookupTable>::New();
@@ -142,7 +142,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
 
   vtkActor* actor = vtkActor::New();
   actor->SetMapper(mapper);
-  vtkSmartPointer<vtkScalarBarActor> scalarBar = 
+  vtkSmartPointer<vtkScalarBarActor> scalarBar =
     vtkSmartPointer<vtkScalarBarActor>::New();
   scalarBar->SetLookupTable(mapper->GetLookupTable());
   scalarBar->SetTitle("F(x)");
@@ -155,7 +155,7 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
   hueLut->SetSaturationRange (1, 1);
   hueLut->SetValueRange (1, 1);
   hueLut->Build();
- 
+
   //  mapper->SetLookupTable( hueLut );
   scalarBar->SetLookupTable( lut );
   vtkDataSetMapper* mapper2 = vtkDataSetMapper::New();
@@ -195,15 +195,15 @@ void Display(vtkUnstructuredGrid* vtkgrid, std::string offscreen, bool secondwin
   ren1->AddActor2D(scalarBar);
   renWin->Render();
 
-  if ( offscreen.length() > 4 ) 
+  if ( offscreen.length() > 4 )
     {
-    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter = 
+    vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
     vtkSmartPointer<vtkWindowToImageFilter>::New();
     windowToImageFilter->SetInput(renWin);
     windowToImageFilter->SetMagnification( 4 );
     windowToImageFilter->Update();
- 
-    vtkSmartPointer<vtkPNGWriter> writer = 
+
+    vtkSmartPointer<vtkPNGWriter> writer =
       vtkSmartPointer<vtkPNGWriter>::New();
     writer->SetFileName( offscreen.c_str()  );
     writer->SetInputConnection(windowToImageFilter->GetOutputPort());

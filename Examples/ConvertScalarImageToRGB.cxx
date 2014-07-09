@@ -51,7 +51,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
   reader->Update();
 
   typedef itk::Image<unsigned char, ImageDimension> MaskImageType;
-  typename MaskImageType::Pointer maskImage;
+  typename MaskImageType::Pointer maskImage = NULL;
   typedef itk::ImageFileReader<MaskImageType> MaskReaderType;
   typename MaskReaderType::Pointer maskreader = MaskReaderType::New();
   maskreader->SetFileName( argv[4] );
@@ -189,34 +189,29 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     rgbfilter->SetColormap( colormap );
     }
 
-  if( maskImage )
-    {
-    RealType maskMinimumValue = itk::NumericTraits<RealType>::max();
-    RealType maskMaximumValue = itk::NumericTraits<RealType>::NonpositiveMin();
+  RealType minimumValue = itk::NumericTraits<RealType>::max();
+  RealType maximumValue = itk::NumericTraits<RealType>::NonpositiveMin();
 
-    itk::ImageRegionIterator<MaskImageType> ItM( maskImage,
-                                                 maskImage->GetLargestPossibleRegion() );
-    itk::ImageRegionIterator<RealImageType> ItS( reader->GetOutput(),
-                                                 reader->GetOutput()->GetLargestPossibleRegion() );
-    for( ItM.GoToBegin(), ItS.GoToBegin(); !ItM.IsAtEnd(); ++ItM, ++ItS )
+  itk::ImageRegionIteratorWithIndex<RealImageType> ItS(
+    reader->GetOutput(), reader->GetOutput()->GetLargestPossibleRegion() );
+  for( ItS.GoToBegin(); !ItS.IsAtEnd(); ++ItS )
+    {
+    if( !maskImage || maskImage->GetPixel( ItS.GetIndex() ) != 0 )
       {
-      if( ItM.Get() != 0 )
+      if( minimumValue >= ItS.Get() )
         {
-        if( maskMinimumValue >= ItS.Get() )
-          {
-          maskMinimumValue = ItS.Get();
-          }
-        if( maskMaximumValue <= ItS.Get() )
-          {
-          maskMaximumValue = ItS.Get();
-          }
+        minimumValue = ItS.Get();
+        }
+      if( maximumValue <= ItS.Get() )
+        {
+        maximumValue = ItS.Get();
         }
       }
-
-    rgbfilter->SetUseInputImageExtremaForScaling( false );
-    rgbfilter->GetModifiableColormap()->SetMinimumInputValue( maskMinimumValue );
-    rgbfilter->GetModifiableColormap()->SetMaximumInputValue( maskMaximumValue );
     }
+
+  rgbfilter->SetUseInputImageExtremaForScaling( false );
+  rgbfilter->GetModifiableColormap()->SetMinimumInputValue( minimumValue );
+  rgbfilter->GetModifiableColormap()->SetMaximumInputValue( maximumValue );
 
   rgbfilter->GetModifiableColormap()->SetMinimumRGBComponentValue(
     ( argc > 9 ) ? static_cast<
@@ -225,13 +220,24 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
     ( argc > 10 ) ? static_cast<
       typename RGBPixelType::ComponentType>( atof( argv[10] ) ) : 255 );
 
+  if( argc > 7 )
+    {
+    std::string argvString( argv[7] );
+    if( argvString != "min" && argvString != "minimum" )
+      {
+      rgbfilter->GetModifiableColormap()->SetMinimumInputValue(
+        static_cast<RealType>( atof( argv[7] ) ) );
+      }
+    }
+
   if( argc > 8 )
     {
-    rgbfilter->SetUseInputImageExtremaForScaling( false );
-    rgbfilter->GetModifiableColormap()->SetMinimumInputValue(
-      static_cast<RealType>( atof( argv[7] ) ) );
-    rgbfilter->GetModifiableColormap()->SetMaximumInputValue(
-      static_cast<RealType>( atof( argv[8] ) ) );
+    std::string argvString( argv[8] );
+    if( argvString != "max" && argvString != "maximum" )
+      {
+      rgbfilter->GetModifiableColormap()->SetMaximumInputValue(
+        static_cast<RealType>( atof( argv[8] ) ) );
+      }
     }
 
   try
@@ -249,12 +255,12 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
                                                  maskImage->GetLargestPossibleRegion() );
     itk::ImageRegionIterator<RGBImageType> ItC( rgbfilter->GetOutput(),
                                                 rgbfilter->GetOutput()->GetLargestPossibleRegion() );
-    itk::ImageRegionIterator<RealImageType> ItS( reader->GetOutput(),
+    itk::ImageRegionIterator<RealImageType> ItS2( reader->GetOutput(),
                                                  reader->GetOutput()->GetLargestPossibleRegion() );
 
     ItM.GoToBegin();
     ItC.GoToBegin();
-    ItS.GoToBegin();
+    ItS2.GoToBegin();
 
     while( !ItM.IsAtEnd() )
       {
@@ -270,7 +276,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
 //        RealType maximumRGBValue
 //          = rgbfilter->GetModifiableColormap()->GetMaximumRGBComponentValue();
 //
-//        RealType ratio = ( ItS.Get() - minimumValue ) / ( maximumValue - minimumValue );
+//        RealType ratio = ( ItS2.Get() - minimumValue ) / ( maximumValue - minimumValue );
 //
 //        rgbpixel.Fill( ratio * ( maximumRGBValue - minimumRGBValue )
 //          + minimumRGBValue );
@@ -280,7 +286,7 @@ int ConvertScalarImageToRGB( int argc, char *argv[] )
         }
       ++ItM;
       ++ItC;
-      ++ItS;
+      ++ItS2;
       }
     }
 
@@ -342,7 +348,7 @@ private:
     {
     std::cout << "Usage: " << argv[0] << " imageDimension inputImage outputImage "
              << "mask colormap [customColormapFile] [minimumInput] [maximumInput] "
-             << "[minimumRGBOutput] [maximumRGBOutput]" << std::endl;
+             << "[minimumRGBOutput=0] [maximumRGBOutput=255]" << std::endl;
     std::cout << "  Possible colormaps: grey, red, green, blue, copper, jet, hsv, ";
     std::cout << "spring, summer, autumn, winter, hot, cool, overunder, custom" << std::endl;
     if( argc >= 2 &&

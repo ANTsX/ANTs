@@ -19,7 +19,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 #include <algorithm>
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkAvantsMutualInformationRegistrationFunction.h"
 #include "itkProbabilisticRegistrationFunction.h"

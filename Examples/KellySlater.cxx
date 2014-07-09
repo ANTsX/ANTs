@@ -23,7 +23,7 @@
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorCurvatureAnisotropicDiffusionImageFilter.h"
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkSignedMaurerDistanceMapImageFilter.h"
 
 #include "itkGradientRecursiveGaussianImageFilter.h"

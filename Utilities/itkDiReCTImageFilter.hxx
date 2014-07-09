@@ -21,7 +21,6 @@
 #include "itkDiReCTImageFilter.h"
 
 #include "itkAddImageFilter.h"
-// #include "itkAndImageFilter.h"
 #include "itkBinaryContourImageFilter.h"
 #include "itkBinaryThresholdImageFilter.h"
 #include "itkBinaryBallStructuringElement.h"
@@ -29,6 +28,7 @@
 #include "itkCastImageFilter.h"
 #include "itkComposeDisplacementFieldsImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
+#include "itkDisplacementFieldToBSplineImageFilter.h"
 #include "itkGaussianOperator.h"
 #include "itkGradientRecursiveGaussianImageFilter.h"
 #include "itkVectorMagnitudeImageFilter.h"
@@ -46,9 +46,7 @@
 #include "itkWarpImageFilter.h"
 #include "itkWindowConvergenceMonitoringFunction.h"
 
-
-#include "itkImageFileWriter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace itk
 {
@@ -58,6 +56,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_ThicknessPriorEstimate( 10.0 ),
   m_SmoothingVariance( 1.0 ),
   m_SmoothingVelocityFieldVariance( 1.5 ),
+  m_BSplineSmoothingIsotropicMeshSpacing( 5.75 ),
   m_InitialGradientStep( 0.025 ),
   m_CurrentGradientStep( 0.025 ),
   m_NumberOfIntegrationPoints( 10 ),
@@ -67,7 +66,8 @@ DiReCTImageFilter<TInputImage, TOutputImage>
   m_MaximumNumberOfInvertDisplacementFieldIterations( 20 ),
   m_CurrentEnergy( NumericTraits<RealType>::max() ),
   m_ConvergenceThreshold( 0.001 ),
-  m_ConvergenceWindowSize( 10 )
+  m_ConvergenceWindowSize( 10 ),
+  m_UseBSplineSmoothing( false )
 {
   this->m_ThicknessPriorImage = NULL;
   this->SetNumberOfRequiredInputs( 3 );
@@ -605,8 +605,16 @@ DiReCTImageFilter<TInputImage, TOutputImage>
       ++ItVelocityField;
       }
 
-    velocityField = this->SmoothDisplacementField( velocityField,
+    if( this->m_UseBSplineSmoothing )
+      {
+      velocityField = this->BSplineSmoothDisplacementField( velocityField,
+                                                   this->m_BSplineSmoothingIsotropicMeshSpacing );
+      }
+    else
+      {
+      velocityField = this->GaussianSmoothDisplacementField( velocityField,
                                                    this->m_SmoothingVelocityFieldVariance );
+      }
 
     // Calculate current energy and current convergence measurement
 
@@ -777,7 +785,7 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
 DiReCTImageFilter<TInputImage, TOutputImage>
-::SmoothDisplacementField( const DisplacementFieldType *inputField,
+::GaussianSmoothDisplacementField( const DisplacementFieldType *inputField,
                            const RealType variance )
 {
   typedef ImageDuplicator<DisplacementFieldType> DuplicatorType;
@@ -862,6 +870,41 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 }
 
 template <class TInputImage, class TOutputImage>
+typename DiReCTImageFilter<TInputImage, TOutputImage>::DisplacementFieldPointer
+DiReCTImageFilter<TInputImage, TOutputImage>
+::BSplineSmoothDisplacementField( const DisplacementFieldType *inputField,
+                           const RealType isotropicMeshSpacing )
+{
+  typedef itk::DisplacementFieldToBSplineImageFilter<DisplacementFieldType,
+    DisplacementFieldType> BSplineFilterType;
+
+  // calculate the number of control points based on the isotropic mesh spacing
+
+  typename BSplineFilterType::ArrayType ncps;
+
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    RealType domain = static_cast<RealType>(
+      inputField->GetLargestPossibleRegion().GetSize()[d] - 1 ) * inputField->GetSpacing()[d];
+    ncps[d] = static_cast<unsigned int>( vcl_ceil( domain / isotropicMeshSpacing ) );
+    }
+
+  typename BSplineFilterType::Pointer bspliner = BSplineFilterType::New();
+  bspliner->SetDisplacementField( inputField );
+  bspliner->SetNumberOfControlPoints( ncps );
+  bspliner->SetSplineOrder( 3 );
+  bspliner->SetNumberOfFittingLevels( 1 );
+  bspliner->SetEnforceStationaryBoundary( true );
+  bspliner->SetEstimateInverse( false );
+  bspliner->Update();
+
+  DisplacementFieldPointer outputField = bspliner->GetOutput();
+  outputField->DisconnectPipeline();
+
+  return outputField;
+}
+
+template <class TInputImage, class TOutputImage>
 typename DiReCTImageFilter<TInputImage, TOutputImage>::RealImagePointer
 DiReCTImageFilter<TInputImage, TOutputImage>
 ::SmoothImage( const RealImageType *inputImage, const RealType variance )
@@ -890,29 +933,37 @@ DiReCTImageFilter<TInputImage, TOutputImage>
 {
   Superclass::PrintSelf( os, indent );
 
-  std::cout << indent << "Gray matter label = "
+  os << indent << "Gray matter label = "
                    << this->m_GrayMatterLabel << std::endl;
-  std::cout << indent << "White matter label = "
+  os << indent << "White matter label = "
                    << this->m_WhiteMatterLabel << std::endl;
-  std::cout << indent << "Maximum number of iterations = "
+  os << indent << "Maximum number of iterations = "
                    << this->m_MaximumNumberOfIterations << std::endl;
-  std::cout << indent << "Thickness prior estimate = "
+  os << indent << "Thickness prior estimate = "
                    << this->m_ThicknessPriorEstimate << std::endl;
-  std::cout << indent << "Smoothing sigma = "
+  os << indent << "Smoothing sigma = "
                    << this->m_SmoothingVariance << std::endl;
-  std::cout << indent << "Smoothing velocity field sigma = "
-                   << this->m_SmoothingVelocityFieldVariance << std::endl;
-  std::cout << indent << "Number of integration points = "
+  if( this->m_UseBSplineSmoothing )
+    {
+    os << indent << "B-spline smoothing isotropic mesh spacing = "
+                   << this->m_BSplineSmoothingIsotropicMeshSpacing << std::endl;
+    }
+  else
+    {
+    os << indent << "Smoothing velocity field sigma = "
+                     << this->m_SmoothingVelocityFieldVariance << std::endl;
+    }
+  os << indent << "Number of integration points = "
                    << this->m_NumberOfIntegrationPoints << std::endl;
-  std::cout << indent << "Maximum number of invert displacement field iterations = "
+  os << indent << "Maximum number of invert displacement field iterations = "
                    << this->m_MaximumNumberOfInvertDisplacementFieldIterations << std::endl;
-  std::cout << indent << "Initial gradient step = "
+  os << indent << "Initial gradient step = "
                    << this->m_InitialGradientStep << std::endl;
-  std::cout << indent << "Current gradient step = "
+  os << indent << "Current gradient step = "
                    << this->m_CurrentGradientStep << std::endl;
-  std::cout << indent << "Convergence threshold = "
+  os << indent << "Convergence threshold = "
                    << this->m_ConvergenceThreshold << std::endl;
-  std::cout << indent << "Convergence window size = "
+  os << indent << "Convergence window size = "
                    << this->m_ConvergenceWindowSize << std::endl;
 }
 } // end namespace itk

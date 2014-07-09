@@ -23,7 +23,7 @@
 #include "antsCommandLineOption.h"
 #include "antsCommandLineParser.h"
 #include "antsSCCANObject.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include <vnl/vnl_vector.h>
 #include <vnl/vnl_matrix.h>

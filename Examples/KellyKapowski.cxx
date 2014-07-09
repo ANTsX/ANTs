@@ -7,7 +7,7 @@
 #include "itkDiReCTImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkImage.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkTimeProbe.h"
 
 #include <string>
@@ -255,14 +255,33 @@ int DiReCT( itk::ants::CommandLineParser *parser )
     }
 
   //
-  // smoothing variance for the velocity field
+  // do B-spline smoothing?
   //
   typename itk::ants::CommandLineParser::OptionType::Pointer
-    smoothingVelocityFieldVarianceOption = parser->GetOption( "smoothing-velocity-field-variance" );
-  if( smoothingVelocityFieldVarianceOption && smoothingVelocityFieldVarianceOption->GetNumberOfFunctions() )
+    bsplineSmoothingOption = parser->GetOption( "use-bspline-smoothing" );
+  if( bsplineSmoothingOption && bsplineSmoothingOption->GetNumberOfFunctions() )
     {
-    direct->SetSmoothingVelocityFieldVariance( parser->Convert<RealType>(
-                                               smoothingVelocityFieldVarianceOption->GetFunction( 0 )->GetName() ) );
+    direct->SetUseBSplineSmoothing( parser->Convert<bool>(
+                                 bsplineSmoothingOption->GetFunction( 0 )->GetName() ) );
+    }
+
+  //
+  // smoothing parameter for the velocity field
+  //
+  typename itk::ants::CommandLineParser::OptionType::Pointer
+    smoothingVelocityFieldParameterOption = parser->GetOption( "smoothing-velocity-field-parameter" );
+  if( smoothingVelocityFieldParameterOption && smoothingVelocityFieldParameterOption->GetNumberOfFunctions() )
+    {
+    if( direct->GetUseBSplineSmoothing() )
+      {
+      direct->SetBSplineSmoothingIsotropicMeshSpacing( parser->Convert<RealType>(
+                                                 smoothingVelocityFieldParameterOption->GetFunction( 0 )->GetName() ) );
+      }
+    else
+      {
+      direct->SetSmoothingVelocityFieldVariance( parser->Convert<RealType>(
+                                               smoothingVelocityFieldParameterOption->GetFunction( 0 )->GetName() ) );
+      }
     }
 
   //
@@ -485,12 +504,28 @@ void KellyKapowskiInitializeCommandLineOptions( itk::ants::CommandLineParser *pa
 
     {
     std::string description =
-      std::string( "Defines the Gaussian smoothing of the velocity field.  Default = 1.5." );
+      std::string( "Defines the Gaussian smoothing of the velocity field (default = 1.5)." )
+      + std::string( "If the b-spline smoothing option is chosen, then this " )
+      + std::string( "defines the isotropic mesh spacing for the smoothing spline (default = 15)." );
 
     OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "smoothing-velocity-field-variance" );
+    option->SetLongName( "smoothing-velocity-field-parameter" );
     option->SetShortName( 'm' );
     option->SetUsageOption( 0, "variance" );
+    option->SetUsageOption( 1, "isotropicMeshSpacing" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( " Sets the option for B-spline smoothing of the velocity field." )
+      + std::string( "Default = false." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "use-bspline-smoothing" );
+    option->SetShortName( 'b' );
+    option->SetUsageOption( 0, "1/(0)" );
     option->SetDescription( description );
     parser->AddOption( option );
     }

@@ -28,7 +28,7 @@
 #include "itkImageFileWriter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLabelStatisticsImageFilter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

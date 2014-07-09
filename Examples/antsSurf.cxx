@@ -1,6 +1,6 @@
 #include "antsCommandLineParser.h"
 #include "antsUtilities.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 #include "itkAffineTransform.h"
 #include "itkAntiAliasBinaryImageFilter.h"

@@ -37,7 +37,7 @@
 #include "itkRelabelComponentImageFilter.h"
 #include "itkLabelStatisticsImageFilter.h"
 #include "itkCastImageFilter.h"
-#include  "ReadWriteImage.h"
+#include  "ReadWriteData.h"
 
 namespace ants
 {

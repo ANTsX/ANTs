@@ -18,7 +18,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 #include "itkImage.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkResampleImageFilter.h"
 #include "itkIdentityTransform.h"
 #include "itkLinearInterpolateImageFunction.h"

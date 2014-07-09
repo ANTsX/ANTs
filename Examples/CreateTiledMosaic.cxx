@@ -1,18 +1,20 @@
 #include "antsCommandLineParser.h"
 #include "antsUtilities.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 #include <algorithm>
 
 #include "itkImageFileReader.h"
 #include "itkImageFileWriter.h"
 
+#include "itkCastImageFilter.h"
 #include "itkConstantPadImageFilter.h"
 #include "itkExtractImageFilter.h"
 #include "itkFlipImageFilter.h"
-#include "itkPermuteAxesImageFilter.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionConstIteratorWithIndex.h"
+#include "itkLabelStatisticsImageFilter.h"
+#include "itkPermuteAxesImageFilter.h"
 #include "itkStatisticsImageFilter.h"
 #include "itkTileImageFilter.h"
 
@@ -52,6 +54,33 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     }
   ImageType::SpacingType spacing = inputImage->GetSpacing();
   ImageType::SizeType size = inputImage->GetRequestedRegion().GetSize();
+
+  // Read in optional mask image
+
+  ImageType::Pointer maskImage = NULL;
+  ImageType::RegionType maskRegion;
+
+  itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
+    parser->GetOption( "mask-image" );
+  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
+    {
+    std::string maskFile = maskImageOption->GetFunction( 0 )->GetName();
+    ReadImage<ImageType>( maskImage, maskFile.c_str() );
+
+    typedef itk::Image<unsigned short, ImageDimension>      ShortImageType;
+    typedef itk::CastImageFilter<ImageType, ShortImageType> CasterType;
+    CasterType::Pointer caster = CasterType::New();
+    caster->SetInput( maskImage );
+    caster->Update();
+
+    typedef itk::LabelStatisticsImageFilter<ShortImageType, ShortImageType> StatsFilterType;
+    StatsFilterType::Pointer stats = StatsFilterType::New();
+    stats->SetLabelInput( caster->GetOutput() );
+    stats->SetInput( caster->GetOutput() );
+    stats->Update();
+
+    maskRegion = stats->GetRegion( 1 );
+    }
 
   // Get direction.  If not specified, pick direction with coarsest spacing.
 
@@ -151,25 +180,46 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     else
       {
       int padWidth = 0;
+      std::string padWidthString;
       if( paddingOption->GetFunction( 0 )->GetNumberOfParameters() == 0 )
         {
-        padWidth = parser->Convert<int>( paddingOption->GetFunction( 0 )->GetName() );
+        padWidthString = paddingOption->GetFunction( 0 )->GetName();
         }
       else if( paddingOption->GetFunction( 0 )->GetNumberOfParameters() <= 2 )
         {
-        padWidth = parser->Convert<int>( paddingOption->GetFunction( 0 )->GetParameter( 0 ) );
+        padWidthString = paddingOption->GetFunction( 0 )->GetParameter( 0 );
         padValue = parser->Convert<int>( paddingOption->GetFunction( 0 )->GetParameter( 1 ) );
         }
-      if( padWidth < 0 )
+
+      if( padWidthString.find( std::string( "mask" ) ) != std::string::npos )
         {
+        if( !maskImage )
+          {
+          std::cerr << "Mask image is not specified." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        int offset = 0;
+        if( padWidthString.find( std::string( "+" ) ) != std::string::npos )
+          {
+          std::string offsetString = padWidthString.substr( padWidthString.find( std::string( "+" ) ) + 1 );
+          offset = parser->Convert<int>( offsetString );
+          }
+        if( padWidthString.find( std::string( "-" ) ) != std::string::npos )
+          {
+          std::string offsetString = padWidthString.substr( padWidthString.find( std::string( "-" ) ) + 1 );
+          offset = parser->Convert<int>( offsetString );
+          offset *= -1;
+          }
+
         paddingType = -1;
         unsigned int count = 0;
         for( unsigned int d = 0; d < ImageDimension; d++ )
           {
           if( d != direction )
             {
-            croppedSliceSize[count] = size[d] - 2 * vnl_math_abs( padWidth );
-            croppedSliceIndex[count] = vnl_math_abs( padWidth );
+            croppedSliceSize[count] = maskRegion.GetSize()[d] + 2 * offset;
+            croppedSliceIndex[count] = maskRegion.GetIndex()[d] - offset;
             count++;
             }
           }
@@ -178,11 +228,32 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         }
       else
         {
-        paddingType = 1;
-        for( unsigned int d = 0; d < ImageDimension - 1; d++ )
+        padWidth = parser->Convert<int>( padWidthString );
+
+        if( padWidth < 0 )
           {
-          lowerBound[d] = padWidth;
-          upperBound[d] = padWidth;
+          paddingType = -1;
+          unsigned int count = 0;
+          for( unsigned int d = 0; d < ImageDimension; d++ )
+            {
+            if( d != direction )
+              {
+              croppedSliceSize[count] = size[d] - 2 * vnl_math_abs( padWidth );
+              croppedSliceIndex[count] = vnl_math_abs( padWidth );
+              count++;
+              }
+            }
+          croppedSliceRegion.SetSize( croppedSliceSize );
+          croppedSliceRegion.SetIndex( croppedSliceIndex );
+          }
+        else
+          {
+          paddingType = 1;
+          for( unsigned int d = 0; d < ImageDimension - 1; d++ )
+            {
+            lowerBound[d] = padWidth;
+            upperBound[d] = padWidth;
+            }
           }
         }
       }
@@ -241,13 +312,80 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
 
+      std::string startingSliceString;
+      std::string endSliceString;
+
       if( slicesOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
-        startingSlice = parser->Convert<unsigned int>( slicesOption->GetFunction( 0 )->GetParameter( 1 ) );
+        startingSliceString = slicesOption->GetFunction( 0 )->GetParameter( 1 );
         }
       if( slicesOption->GetFunction( 0 )->GetNumberOfParameters() > 2 )
         {
-        endSlice = parser->Convert<unsigned int>( slicesOption->GetFunction( 0 )->GetParameter( 2 ) );
+        endSliceString = slicesOption->GetFunction( 0 )->GetParameter( 2 );
+        }
+
+      bool isStartingSliceMaskDependent =
+        startingSliceString.find( std::string( "mask" ) ) != std::string::npos;
+      bool isEndSliceMaskDependent =
+        endSliceString.find( std::string( "mask" ) ) != std::string::npos;
+
+      if( isStartingSliceMaskDependent || isEndSliceMaskDependent )
+        {
+        if( !maskImage )
+          {
+          std::cerr << "Mask image is not specified." << std::endl;
+          return EXIT_FAILURE;
+          }
+
+        if( isStartingSliceMaskDependent )
+          {
+          startingSlice = maskRegion.GetIndex()[direction];
+          }
+        else
+          {
+          startingSlice = parser->Convert<unsigned int>( startingSliceString );
+          }
+
+        if( startingSliceString.find( std::string( "+" ) ) != std::string::npos )
+          {
+          std::string offsetString = startingSliceString.substr( startingSliceString.find( std::string( "+" ) ) + 1 );
+          int offset = parser->Convert<int>( offsetString );
+          startingSlice += offset;
+          }
+        else if( startingSliceString.find( std::string( "-" ) ) != std::string::npos )
+          {
+          std::string offsetString = startingSliceString.substr( startingSliceString.find( std::string( "-" ) ) + 1 );
+          int offset = parser->Convert<int>( offsetString );
+          startingSlice -= offset;
+          }
+
+        if( isEndSliceMaskDependent )
+          {
+          endSlice = startingSlice + maskRegion.GetSize()[direction] - 1;
+          }
+        else
+          {
+          endSlice = parser->Convert<unsigned int>( endSliceString );
+          }
+
+        if( endSliceString.find( std::string( "+" ) ) != std::string::npos )
+          {
+          std::string offsetString = endSliceString.substr( endSliceString.find( std::string( "+" ) ) + 1 );
+          int offset = parser->Convert<int>( offsetString );
+          endSlice += offset;
+          }
+        else if( endSliceString.find( std::string( "-" ) ) != std::string::npos )
+          {
+          std::string offsetString = endSliceString.substr( endSliceString.find( std::string( "-" ) ) + 1 );
+          int offset = parser->Convert<int>( offsetString );
+          endSlice -= offset;
+          }
+
+        }
+      else
+        {
+        startingSlice = parser->Convert<unsigned int>( startingSliceString );
+        endSlice = parser->Convert<unsigned int>( endSliceString );
         }
 
       startingSlice = vnl_math_max( itk::NumericTraits<int>::Zero, startingSlice );
@@ -347,8 +485,6 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
     {
     std::string rgbFile = rgbImageOption->GetFunction( 0 )->GetName();
     ReadImage<RgbImageType>( rgbImage, rgbFile.c_str() );
-    rgbImage->Update();
-    rgbImage->DisconnectPipeline();
     }
 
   RealType minIntensityValue = 0.0;
@@ -362,20 +498,6 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
     minIntensityValue = statisticsImageFilter->GetMinimum();
     maxIntensityValue = statisticsImageFilter->GetMaximum();
-    }
-
-  // Read in optional mask image
-
-  ImageType::Pointer maskImage = NULL;
-
-  itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
-    parser->GetOption( "mask-image" );
-  if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
-    {
-    std::string maskFile = maskImageOption->GetFunction( 0 )->GetName();
-    ReadImage<ImageType>( maskImage, maskFile.c_str() );
-    maskImage->Update();
-    maskImage->DisconnectPipeline();
     }
 
   RealType alpha = 1.0;
@@ -781,7 +903,9 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       std::string( "The user can specify whether to pad or crop a specified voxel-width " )
       + std::string( "boundary of each individual slice.  For this program, cropping is " )
       + std::string( "simply padding with negative voxel-widths.  If one pads (+), the " )
-      + std::string( "user can also specify a constant pad value (default = 0). " );
+      + std::string( "user can also specify a constant pad value (default = 0). If a mask is " )
+      + std::string( "specified, the user can use the mask to define the region, by using " )
+      + std::string( "the keyword \"mask\" plus an offset, e.g. \"-p mask+3\"." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "pad-or-crop" );
@@ -801,7 +925,10 @@ void InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "the number slices to increment with the optional specification of " )
       + std::string( "which slices to start and end the sequence.  A negative value " )
       + std::string( "for the numberOfSlicesToIncrement causes rendering in the reverse " )
-      + std::string( "order.  For the third option, minSlice < maxSlice." );
+      + std::string( "order.  For the third option, minSlice < maxSlice.  If a mask is " )
+      + std::string( "specified, the user can use the mask to define the region, by using " )
+      + std::string( "the keyword \"mask\" plus an offset, e.g. \"-s [1,mask-3,200]\"." )
+      + std::string( "For the third option, minSlice < maxSlice." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "slices" );

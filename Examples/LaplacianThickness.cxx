@@ -16,7 +16,7 @@
 #include "itkWarpImageFilter.h"
 #include "vnl/algo/vnl_determinant.h"
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

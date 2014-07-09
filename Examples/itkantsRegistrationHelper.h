@@ -18,7 +18,7 @@
 #ifndef __antsRegistrationHelper_h
 #define __antsRegistrationHelper_h
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkANTSAffine3DTransform.h"
 #include "itkANTSCenteredAffine2DTransform.h"
 #include "itkANTSNeighborhoodCorrelationImageToImageMetricv4.h"
@@ -39,8 +39,10 @@
 #include "itkCorrelationImageToImageMetricv4.h"
 #include "itkDemonsImageToImageMetricv4.h"
 #include "itkDisplacementFieldTransform.h"
+#include "itkEuclideanDistancePointSetToPointSetMetricv4.h"
 #include "itkEuler2DTransform.h"
 #include "itkEuler3DTransform.h"
+#include "itkExpectationBasedPointSetToPointSetMetricv4.h"
 #include "itkGaussianExponentialDiffeomorphicTransform.h"
 #include "itkGaussianExponentialDiffeomorphicTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransform.h"
@@ -55,13 +57,16 @@
 #include "itkImageToHistogramFilter.h"
 #include "itkImageToImageMetricv4.h"
 #include "itkIntensityWindowingImageFilter.h"
+#include "itkJensenHavrdaCharvatTsallisPointSetToPointSetMetricv4.h"
 #include "itkJointHistogramMutualInformationImageToImageMetricv4.h"
+#include "itkLabeledPointSetToPointSetMetricv4.h"
 #include "itkLinearInterpolateImageFunction.h"
 #include "itkMatrixOffsetTransformBase.h"
 #include "itkMattesMutualInformationImageToImageMetricv4.h"
 #include "itkMeanSquaresImageToImageMetricv4.h"
 #include "itkMultiGradientOptimizerv4.h"
 #include "itkObject.h"
+#include "itkObjectToObjectMetric.h"
 #include "itkObjectToObjectMultiMetricv4.h"
 #include "itkQuaternionRigidTransform.h"
 #include "itkRegistrationParameterScalesFromPhysicalShift.h"
@@ -106,11 +111,13 @@ public:
   typedef itk::SmartPointer<const Self> ConstPointer;
   typedef itk::WeakPointer<const Self>  ConstWeakPointer;
 
-  typedef TComputeType                                      RealType;
-  typedef TComputeType                                      PixelType;
-  typedef itk::Image<PixelType, VImageDimension> ImageType;
-  typedef typename ImageType::Pointer            ImagePointer;
-  typedef itk::ImageBase<VImageDimension>        ImageBaseType;
+  typedef TComputeType                                                               RealType;
+  typedef TComputeType                                                               PixelType;
+  typedef itk::Image<PixelType, VImageDimension>                                     ImageType;
+  typedef typename ImageType::Pointer                                                ImagePointer;
+  typedef itk::ImageBase<VImageDimension>                                            ImageBaseType;
+  typedef itk::PointSet<unsigned int, VImageDimension>                               PointSetType;
+  typedef typename PointSetType::Pointer                                             PointSetPointer;
 
   typedef itk::Transform<TComputeType, VImageDimension, VImageDimension>             TransformType;
   typedef itk::AffineTransform<RealType, VImageDimension>                            AffineTransformType;
@@ -124,9 +131,12 @@ public:
   typedef typename DisplacementFieldTransformType::Pointer                           DisplacementFieldTransformPointer;
   typedef typename DisplacementFieldTransformType::DisplacementFieldType             DisplacementFieldType;
   typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension>          TimeVaryingVelocityFieldTransformType;
-  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       MetricType;
+  typedef itk::ObjectToObjectMetric
+                     <VImageDimension, VImageDimension, ImageType, RealType>         SingleMetricType;
   typedef itk::ObjectToObjectMultiMetricv4
                      <VImageDimension, VImageDimension, ImageType, RealType>         MultiMetricType;
+  typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       ImageMetricType;
+  typedef itk::PointSetToPointSetMetricv4<PointSetType, PointSetType, RealType>      PointSetMetricType;
   typedef itk::ImageMaskSpatialObject<VImageDimension>                               ImageMaskSpatialObjectType;
   typedef typename ImageMaskSpatialObjectType::ImageType                             MaskImageType;
   typedef itk::InterpolateImageFunction<ImageType, RealType>                         InterpolatorType;
@@ -139,7 +149,10 @@ public:
     MeanSquares = 3,
     Demons = 4,
     GC = 5,
-    IllegalMetric = 6
+    ICP = 6,
+    PSE = 7,
+    JHCT = 8,
+    IllegalMetric = 9
     };
   enum SamplingStrategy
     {
@@ -148,12 +161,30 @@ public:
     random = 2,   // irregularly spaced sub-sampling
     invalid = 17
     };
+
+  bool IsPointSetMetric( MetricEnumeration metricType )
+    {
+    if( metricType == ICP || metricType == PSE || metricType == JHCT )
+      {
+      return true;
+      }
+    else
+      {
+      return false;
+      }
+    }
+
   class Metric
   {
-public:
-    Metric( MetricEnumeration metricType, typename ImageType::Pointer & fixedImage,
-            typename ImageType::Pointer & movingImage, unsigned int stageID, RealType weighting,
-            SamplingStrategy samplingStrategy, int numberOfBins, unsigned int radius,
+  public:
+    Metric( MetricEnumeration metricType,
+            ImageType *fixedImage, ImageType *movingImage,
+            PointSetType *fixedPointSet, PointSetType *movingPointSet,
+            unsigned int stageID, RealType weighting,
+            SamplingStrategy samplingStrategy, int numberOfBins,
+            unsigned int radius, bool useBoundaryPointsOnly,
+            RealType pointSetSigma, unsigned int evaluationKNeighborhood,
+            RealType alpha, bool useAnisotropicCovariances,
             RealType samplingPercentage ) :
       m_MetricType( metricType ),
       m_FixedImage( fixedImage ),
@@ -163,6 +194,13 @@ public:
       m_SamplingStrategy( samplingStrategy ),
       m_NumberOfBins( numberOfBins ),
       m_Radius( radius ),
+      m_FixedPointSet( fixedPointSet ),
+      m_MovingPointSet( movingPointSet ),
+      m_UseBoundaryPointsOnly( useBoundaryPointsOnly ),
+      m_PointSetSigma( pointSetSigma ),
+      m_EvaluationKNeighborhood( evaluationKNeighborhood ),
+      m_Alpha( alpha ),
+      m_UseAnisotropicCovariances( useAnisotropicCovariances ),
       m_SamplingPercentage( samplingPercentage )
     {
     }
@@ -173,45 +211,73 @@ public:
         {
         case CC:
           {
-          return "CC";
+          return std::string( "CC" );
           }
         case MI:
           {
-          return "MI";
+          return std::string( "MI" );
           }
         case Mattes:
           {
-          return "Mattes";;
+          return std::string( "Mattes" );
           }
         case MeanSquares:
           {
-          return "MeanSquares";
+          return std::string( "MeanSquares" );
           }
         case Demons:
           {
-          return "Demons";
+          return std::string( "Demons" );
           }
         case GC:
           {
-          return "GC";
+          return std::string( "GC" );
+          }
+        case ICP:
+          {
+          return std::string( "ICP" );
+          }
+        case PSE:
+          {
+          return std::string( "PSE" );
+          }
+        case JHCT:
+          {
+          return std::string( "JHCT" );
           }
         default:
           {
           }
           break;
         }
-      return "";
+      return std::string( "Illegal" );
     }
 
-    MetricEnumeration m_MetricType;
-    typename ImageType::Pointer m_FixedImage;
-    typename ImageType::Pointer m_MovingImage;
-    unsigned int     m_StageID;
-    RealType           m_Weighting;
-    SamplingStrategy m_SamplingStrategy;
-    int              m_NumberOfBins;
-    unsigned int     m_Radius;
-    RealType           m_SamplingPercentage;
+    MetricEnumeration   m_MetricType;
+
+    // Variables for image metrics
+
+    ImagePointer        m_FixedImage;
+    ImagePointer        m_MovingImage;
+    unsigned int        m_StageID;
+    RealType            m_Weighting;
+    SamplingStrategy    m_SamplingStrategy;
+    int                 m_NumberOfBins;
+    unsigned int        m_Radius;                    // Only for CC metric
+
+    // Variables for point-set metrics
+
+    PointSetPointer     m_FixedPointSet;
+    PointSetPointer     m_MovingPointSet;
+    bool                m_UseBoundaryPointsOnly;
+    RealType            m_PointSetSigma;             // Only for PSE,JHCT metrics
+    RealType            m_EvaluationKNeighborhood;   // Only for PSE,JHCT metrics
+    RealType            m_Alpha;                     // Only for JHCT metric
+    bool                m_UseAnisotropicCovariances; // Only for JHCT metric
+
+    // Variables for both
+
+    RealType            m_SamplingPercentage;
   };
 
   typedef std::deque<Metric> MetricListType;
@@ -237,7 +303,7 @@ public:
 
   class TransformMethod
   {
-public:
+  public:
     TransformMethod() : m_XfrmMethod( Rigid ),
       m_GradientStep( 0 ),
       m_UpdateFieldVarianceInVarianceSpace( 0.0 ),
@@ -257,69 +323,69 @@ public:
         {
         case Rigid:
           {
-          return std::string("Rigid");
+          return std::string( "Rigid" );
           }
         case Affine:
           {
-          return std::string("Affine");
+          return std::string( "Affine" );
           }
         case CompositeAffine:
           {
-          return std::string("CompositeAffine");
+          return std::string( "CompositeAffine" );
           }
         case Similarity:
           {
-          return std::string("Similarity");
+          return std::string( "Similarity" );
           }
         case Translation:
           {
-          return std::string("Translation");
+          return std::string( "Translation" );
           }
         case BSpline:
           {
-          return std::string("BSpline");
+          return std::string( "BSpline" );
           }
         case GaussianDisplacementField:
           {
-          return std::string("GaussianDisplacementField");
+          return std::string( "GaussianDisplacementField" );
           }
         case BSplineDisplacementField:
           {
-          return std::string("BSplineDisplacementField");
+          return std::string( "BSplineDisplacementField" );
           }
         case TimeVaryingVelocityField:
           {
-          return std::string("TimeVaryingVelocityField");
+          return std::string( "TimeVaryingVelocityField" );
           }
         case TimeVaryingBSplineVelocityField:
           {
-          return std::string("TimeVaryingBSplineVelocityField");
+          return std::string( "TimeVaryingBSplineVelocityField" );
           }
         case SyN:
           {
-          return std::string("SyN");
+          return std::string( "SyN" );
           }
         case BSplineSyN:
           {
-          return std::string("BSplineSyN");
+          return std::string( "BSplineSyN" );
           }
         case Exponential:
           {
-          return std::string("Exponential");
+          return std::string( "Exponential" );
           }
         case BSplineExponential:
           {
-          return std::string("BSplineExponential");
+          return std::string( "BSplineExponential" );
           }
-        case UnknownXfrm: return std::string("UnknownXfrm");
+        case UnknownXfrm: return std::string( "UnknownXfrm" );
         }
-      return std::string("Impossible");
+      return std::string( "Impossible" );
     }
 
     XfrmMethod m_XfrmMethod;
     // all transforms
     RealType m_GradientStep;
-    // BSPline
+    // BSpline
     std::vector<unsigned int> m_MeshSizeAtBaseLevel;
     // GaussianDisplacementField
     RealType m_UpdateFieldVarianceInVarianceSpace;
@@ -340,6 +406,7 @@ public:
     // BSplineExponential
     std::vector<unsigned int> m_VelocityFieldMeshSizeAtBaseLevel;
   };
+
   typedef std::deque<TransformMethod> TransformMethodListType;
 
   /** Method for creation through the object factory. */
@@ -358,14 +425,38 @@ public:
    * add a metric, corresponding to the registration stage
    */
   void AddMetric( MetricEnumeration metricType,
-                  typename ImageType::Pointer & fixedImage,
-                  typename ImageType::Pointer & movingImage,
+                  ImageType *fixedImage,
+                  ImageType *movingImage,
+                  PointSetType *fixedPointSet,
+                  PointSetType *movingPointSet,
                   unsigned int stageID,
                   RealType weighting,
                   SamplingStrategy samplingStrategy,
                   int numberOfBins,
                   unsigned int radius,
+                  bool useBoundaryPointsOnly,
+                  RealType pointSetSigma,
+                  unsigned int evaluationKNeighborhood,
+                  RealType alpha,
+                  bool useAnisotropicCovariances,
                   RealType samplingPercentage );
+
+  /** For backwards compatibility */
+  inline void AddMetric( MetricEnumeration metricType,
+                  ImageType *fixedImage,
+                  ImageType *movingImage,
+                  unsigned int stageID,
+                  RealType weighting,
+                  SamplingStrategy samplingStrategy,
+                  int numberOfBins,
+                  unsigned int radius,
+                  RealType samplingPercentage )
+    {
+    this->AddMetric( metricType, fixedImage, movingImage, ITK_NULLPTR, ITK_NULLPTR,
+      stageID, weighting, samplingStrategy, numberOfBins, radius,
+      false, 1.0, 50, 1.1, false, samplingPercentage );
+    }
+
 
   /**
    * Get set of metrics per stage.  If we have more than one, we have
@@ -717,7 +808,7 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
     else if( initialTransformOption->GetFunction( n )->GetNumberOfParameters() > 2 )
       {
       std::string fixedImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 0 );
-      ReadImage<ImageType>( fixedImage,  fixedImageFileName.c_str() );
+      ReadImage<ImageType>( fixedImage, fixedImageFileName.c_str() );
       if( fixedImage )
         {
         std::string movingImageFileName = initialTransformOption->GetFunction( n )->GetParameter( 1 );

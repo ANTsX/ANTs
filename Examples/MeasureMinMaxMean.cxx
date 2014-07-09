@@ -18,7 +18,7 @@
 #include "antsUtilities.h"
 #include <algorithm>
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {

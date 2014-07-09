@@ -23,7 +23,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <iostream>
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 #include "itkMersenneTwisterRandomVariateGenerator.h"
 #include "itkHistogramMatchingImageFilter.h"

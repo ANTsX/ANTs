@@ -258,6 +258,18 @@ RegistrationHelper<TComputeType, VImageDimension>
     {
     return GC;
     }
+  else if( str == "icp" )
+    {
+    return ICP;
+    }
+  else if( str == "pse" )
+    {
+    return PSE;
+    }
+  else if( str == "jhct" )
+    {
+    return JHCT;
+    }
   return IllegalMetric;
 }
 
@@ -336,19 +348,26 @@ template <class TComputeType, unsigned VImageDimension>
 void
 RegistrationHelper<TComputeType, VImageDimension>
 ::AddMetric( MetricEnumeration metricType,
-             typename ImageType::Pointer & fixedImage,
-             typename ImageType::Pointer & movingImage,
+             ImageType *fixedImage,
+             ImageType *movingImage,
+             PointSetType *fixedPointSet,
+             PointSetType *movingPointSet,
              unsigned int stageID,
              RealType weighting,
              SamplingStrategy samplingStrategy,
              int numberOfBins,
              unsigned int  radius,
+             bool useBoundaryPointsOnly,
+             RealType pointSetSigma,
+             unsigned int evaluationKNeighborhood,
+             RealType alpha,
+             bool useAnisotropicCovariances,
              RealType samplingPercentage )
 {
-  Metric init( metricType, fixedImage, movingImage, stageID,
-               weighting, samplingStrategy, numberOfBins,
-               radius,
-               samplingPercentage );
+  Metric init( metricType, fixedImage, movingImage, fixedPointSet, movingPointSet,
+               stageID, weighting, samplingStrategy, numberOfBins, radius,
+               useBoundaryPointsOnly, pointSetSigma, evaluationKNeighborhood,
+               alpha, useAnisotropicCovariances, samplingPercentage );
 
   this->m_Metrics.push_back( init );
 }
@@ -895,7 +914,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     MetricListType stageMetricList = this->GetMetricListPerStage( this->m_NumberOfStages - currentStageNumber - 1 );
 
-    typename MetricType::Pointer      singleMetric;
+    typename ImageMetricType::Pointer singleMetric;
     typename MultiMetricType::Pointer multiMetric;
 
     typename MultiMetricType::WeightsArrayType metricWeights( stageMetricList.size() );
@@ -908,112 +927,86 @@ RegistrationHelper<TComputeType, VImageDimension>
       multiMetric = MultiMetricType::New();
       }
 
-    // Get shrink factors and adjust according to the current image
-    const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
-    if( factors.size() != numberOfLevels )
+
+
+
+
+
+
+
+
+
+
+
+
+    // Also determine if any of the metrics for the current stage are image metrics
+    bool imageMetricIsUsedDuringThisStage = false;
+    for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
-      std::cout << "\n\n\n"
-                       << "ERROR:  The number of shrink factors does not match the number of levels."
-                       << "\nShrink Factors: " << factors.size()
-                       << "\nNumber Of Levels: " << numberOfLevels
-                       << "\n\n\n"
-                       << std::endl;
-      return EXIT_FAILURE;
+      MetricEnumeration currentMetricType = stageMetricList[currentMetricNumber].m_MetricType;
+      if( !this->IsPointSetMetric( currentMetricType ) )
+        {
+        imageMetricIsUsedDuringThisStage = true;
+        break;
+        }
       }
 
+    // These two variables are specified in setting up the registration method.
+    // However, for point set metrics, they are not required.
     std::vector<ShrinkFactorsPerDimensionContainerType> shrinkFactorsPerDimensionForAllLevels;
-    for( unsigned int n = 0; n < numberOfLevels; n++ )
-      {
-      ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension =
-        this->CalculateShrinkFactorsPerDimension( factors[n], stageMetricList[0].m_FixedImage.GetPointer() );
-      shrinkFactorsPerDimensionForAllLevels.push_back( shrinkFactorsPerDimension );
-      this->Logger() << "  Shrink factors (level " << n+1 << " out of " << numberOfLevels << "): " << shrinkFactorsPerDimension << std::endl;
-      }
-
-    // Get smoothing sigmas
-    const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
     typename AffineRegistrationType::SmoothingSigmasArrayType smoothingSigmasPerLevel;
-    smoothingSigmasPerLevel.SetSize( sigmas.size() );
 
-    if( sigmas.size() != numberOfLevels )
+    if( imageMetricIsUsedDuringThisStage )
       {
-      std::cout << "ERROR:  The number of smoothing sigmas "
-                       << "does not match the number of levels." << std::endl;
-      return EXIT_FAILURE;
+      // Get shrink factors and adjust according to the current image
+      const std::vector<unsigned int> factors( this->m_ShrinkFactors[currentStageNumber] );
+      if( factors.size() != numberOfLevels )
+        {
+        std::cout << "\n\n\n"
+                         << "ERROR:  The number of shrink factors does not match the number of levels."
+                         << "\nShrink Factors: " << factors.size()
+                         << "\nNumber Of Levels: " << numberOfLevels
+                         << "\n\n\n"
+                         << std::endl;
+        return EXIT_FAILURE;
+        }
+
+      for( unsigned int n = 0; n < numberOfLevels; n++ )
+        {
+        ShrinkFactorsPerDimensionContainerType shrinkFactorsPerDimension =
+          this->CalculateShrinkFactorsPerDimension( factors[n], stageMetricList[0].m_FixedImage.GetPointer() );
+        shrinkFactorsPerDimensionForAllLevels.push_back( shrinkFactorsPerDimension );
+        this->Logger() << "  Shrink factors (level " << n+1 << " out of " << numberOfLevels << "): " << shrinkFactorsPerDimension << std::endl;
+        }
+
+      // Get smoothing sigmas
+      const std::vector<float> sigmas( this->m_SmoothingSigmas[currentStageNumber] );
+      smoothingSigmasPerLevel.SetSize( sigmas.size() );
+
+      if( sigmas.size() != numberOfLevels )
+        {
+        std::cout << "ERROR:  The number of smoothing sigmas "
+                         << "does not match the number of levels." << std::endl;
+        return EXIT_FAILURE;
+        }
+      for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
+        {
+        smoothingSigmasPerLevel[n] = sigmas[n];
+        }
+      this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
       }
-    for( unsigned int n = 0; n < smoothingSigmasPerLevel.Size(); n++ )
-      {
-      smoothingSigmasPerLevel[n] = sigmas[n];
-      }
-    this->Logger() << "  smoothing sigmas per level: " << smoothingSigmasPerLevel << std::endl;
 
     std::vector<typename ImageType::Pointer> preprocessedFixedImagesPerStage;
     std::vector<typename ImageType::Pointer> preprocessedMovingImagesPerStage;
 
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
       {
-      // Get the fixed and moving images
-      const typename ImageType::ConstPointer fixedImage =
-        stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
-      const typename ImageType::ConstPointer movingImage =
-        stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
+      MetricEnumeration currentMetricType = stageMetricList[currentMetricNumber].m_MetricType;
 
-      // Preprocess images
+      typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
+      typename PointSetMetricType::Pointer pointSetMetric = ITK_NULLPTR;
 
-      std::string outputPreprocessingString = "";
-
-      PixelType lowerScaleValue = 0.0;
-      PixelType upperScaleValue = 1.0;
-      if( this->m_WinsorizeImageIntensities )
-        {
-        outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
-        }
-
-      typename ImageType::Pointer preprocessFixedImage =
-        PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
-                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                    NULL );
-
-      preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
-
-      typename ImageType::Pointer preprocessMovingImage =
-        PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
-                                    upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
-                                    NULL );
-
-      if( this->m_UseHistogramMatching )
-        {
-        outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
-        preprocessMovingImage =
-          PreprocessImage<ImageType>( movingImage.GetPointer(),
-                                      lowerScaleValue, upperScaleValue,
-                                      this->m_LowerQuantile, this->m_UpperQuantile,
-                                      preprocessFixedImage.GetPointer() );
-        }
-      preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
-
-      if( this->m_ApplyLinearTransformsToFixedImageHeader )
-        {
-        this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
-                                                          dynamic_cast<ImageBaseType *>( preprocessFixedImage.
-                                                                                         GetPointer() ), false );
-
-        if( this->m_FixedImageMask.IsNotNull() )
-          {
-          this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
-                                                            dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
-                                                                                             this->m_FixedImageMask->
-                                                                                             GetImage() ) ), false );
-          }
-        }
-
-      this->Logger() << outputPreprocessingString << std::flush;
-
-      // Set up the image metric and scales estimator
-
-      typename MetricType::Pointer metric;
-
-      switch( stageMetricList[currentMetricNumber].m_MetricType )
+      switch( currentMetricType )
         {
         case CC:
           {
@@ -1031,7 +1024,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           correlationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           correlationMetric->SetUseFixedImageGradientFilter( gradientfilter );
 
-          metric = correlationMetric;
+          imageMetric = correlationMetric;
           }
           break;
         case Mattes:
@@ -1047,7 +1040,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           mutualInformationMetric->SetUseMovingImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedSampledPointSet( false );
-          metric = mutualInformationMetric;
+
+          imageMetric = mutualInformationMetric;
           }
           break;
         case MI:
@@ -1065,7 +1059,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           mutualInformationMetric->SetUseFixedImageGradientFilter( gradientfilter );
           mutualInformationMetric->SetUseFixedSampledPointSet( false );
           mutualInformationMetric->SetVarianceForJointPDFSmoothing( 1.0 );
-          metric = mutualInformationMetric;
+
+          imageMetric = mutualInformationMetric;
           }
           break;
         case MeanSquares:
@@ -1076,7 +1071,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           typedef itk::MeanSquaresImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> MeanSquaresMetricType;
           typename MeanSquaresMetricType::Pointer meanSquaresMetric = MeanSquaresMetricType::New();
           meanSquaresMetric = meanSquaresMetric;
-          metric = meanSquaresMetric;
+
+          imageMetric = meanSquaresMetric;
           }
           break;
         case Demons:
@@ -1086,8 +1082,8 @@ RegistrationHelper<TComputeType, VImageDimension>
 
           typedef itk::DemonsImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> DemonsMetricType;
           typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
-          demonsMetric = demonsMetric;
-          metric = demonsMetric;
+
+          imageMetric = demonsMetric;
           }
           break;
         case GC:
@@ -1096,32 +1092,156 @@ RegistrationHelper<TComputeType, VImageDimension>
                          << stageMetricList[currentMetricNumber].m_Weighting << ")" << std::endl;
           typedef itk::CorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, TComputeType> corrMetricType;
           typename corrMetricType::Pointer corrMetric = corrMetricType::New();
-          metric = corrMetric;
+
+          imageMetric = corrMetric;
+          }
+          break;
+        case ICP:
+          {
+          typedef itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> IcpPointSetMetricType;
+          typename IcpPointSetMetricType::Pointer icpMetric = IcpPointSetMetricType::New();
+
+          pointSetMetric = icpMetric;
+
+          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
+          return EXIT_FAILURE;
+          }
+          break;
+        case PSE:
+          {
+          typedef itk::ExpectationBasedPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> PsePointSetMetricType;
+          typename PsePointSetMetricType::Pointer pseMetric = PsePointSetMetricType::New();
+          pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
+          pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
+
+          pointSetMetric = pseMetric;
+
+          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
+          return EXIT_FAILURE;
+          }
+          break;
+        case JHCT:
+          {
+          typedef itk::JensenHavrdaCharvatTsallisPointSetToPointSetMetricv4<PointSetType, RealType> JhctPointSetMetricType;
+          typename JhctPointSetMetricType::Pointer jhctMetric = JhctPointSetMetricType::New();
+          jhctMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
+          jhctMetric->SetKernelSigma( 10.0 );
+          jhctMetric->SetUseAnisotropicCovariances( stageMetricList[currentMetricNumber].m_UseAnisotropicCovariances );
+          jhctMetric->SetCovarianceKNeighborhood( 5 );
+          jhctMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
+          jhctMetric->SetAlpha( stageMetricList[currentMetricNumber].m_Alpha );
+
+          pointSetMetric = jhctMetric;
+
+          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
+          return EXIT_FAILURE;
           }
           break;
         default:
-          std::cout << "ERROR: Unrecognized image metric: " << std::endl;
-        }
-      metric->SetVirtualDomainFromImage( fixedImage );
-      metric->SetUseMovingImageGradientFilter( gradientfilter );
-      metric->SetUseFixedImageGradientFilter( gradientfilter );
-      metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
-      if( this->m_FixedImageMask.IsNotNull() )
-        {
-        metric->SetFixedImageMask( this->m_FixedImageMask );
-        }
-      if( this->m_MovingImageMask.IsNotNull() )
-        {
-        metric->SetMovingImageMask( this->m_MovingImageMask );
+          std::cerr << "ERROR: Unrecognized image metric. " << std::endl;
+          return EXIT_FAILURE;
         }
 
-      if( useMultiMetric )
+      if( !this->IsPointSetMetric( currentMetricType ) )
         {
-        multiMetric->AddMetric( metric );
+        // Get the fixed and moving images
+        const typename ImageType::ConstPointer fixedImage =
+          stageMetricList[currentMetricNumber].m_FixedImage.GetPointer();
+        const typename ImageType::ConstPointer movingImage =
+          stageMetricList[currentMetricNumber].m_MovingImage.GetPointer();
+
+        // Preprocess images
+
+        std::string outputPreprocessingString = "";
+
+        PixelType lowerScaleValue = 0.0;
+        PixelType upperScaleValue = 1.0;
+        if( this->m_WinsorizeImageIntensities )
+          {
+          outputPreprocessingString += "  preprocessing:  winsorizing the image intensities\n";
+          }
+
+        typename ImageType::Pointer preprocessFixedImage =
+          PreprocessImage<ImageType>( fixedImage.GetPointer(), lowerScaleValue,
+                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                      NULL );
+
+        preprocessedFixedImagesPerStage.push_back( preprocessFixedImage.GetPointer() );
+
+        typename ImageType::Pointer preprocessMovingImage =
+          PreprocessImage<ImageType>( movingImage.GetPointer(), lowerScaleValue,
+                                      upperScaleValue, this->m_LowerQuantile, this->m_UpperQuantile,
+                                      NULL );
+
+        if( this->m_UseHistogramMatching )
+          {
+          outputPreprocessingString += "  preprocessing:  histogram matching the images\n";
+          preprocessMovingImage =
+            PreprocessImage<ImageType>( movingImage.GetPointer(),
+                                        lowerScaleValue, upperScaleValue,
+                                        this->m_LowerQuantile, this->m_UpperQuantile,
+                                        preprocessFixedImage.GetPointer() );
+          }
+        preprocessedMovingImagesPerStage.push_back( preprocessMovingImage.GetPointer() );
+
+        if( this->m_ApplyLinearTransformsToFixedImageHeader )
+          {
+          this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
+                                                            dynamic_cast<ImageBaseType *>( preprocessFixedImage.
+                                                                                           GetPointer() ), false );
+
+          if( this->m_FixedImageMask.IsNotNull() )
+            {
+            this->ApplyCompositeLinearTransformToImageHeader( this->m_CompositeLinearTransformForFixedImageHeader,
+                                                              dynamic_cast<ImageBaseType *>( const_cast<MaskImageType *>(
+                                                                                               this->m_FixedImageMask->
+                                                                                               GetImage() ) ), false );
+            }
+          }
+
+        this->Logger() << outputPreprocessingString << std::flush;
+
+        // Set up the image metric and scales estimator
+
+        imageMetric->SetVirtualDomainFromImage( fixedImage );
+        imageMetric->SetUseMovingImageGradientFilter( gradientfilter );
+        imageMetric->SetUseFixedImageGradientFilter( gradientfilter );
+        metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
+        if( this->m_FixedImageMask.IsNotNull() )
+          {
+          imageMetric->SetFixedImageMask( this->m_FixedImageMask );
+          }
+        if( this->m_MovingImageMask.IsNotNull() )
+          {
+          imageMetric->SetMovingImageMask( this->m_MovingImageMask );
+          }
+
+        if( useMultiMetric )
+          {
+          multiMetric->AddMetric( imageMetric );
+          }
+        if( !useMultiMetric || currentMetricNumber == 0 )
+          {
+          singleMetric = imageMetric;
+          }
         }
-      if( !useMultiMetric || currentMetricNumber == 0 )
+      else
         {
-        singleMetric = metric;
+        metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
+        if( this->m_FixedImageMask.IsNotNull() )
+          {
+          pointSetMetric->SetVirtualDomainFromImage(
+            dynamic_cast<typename PointSetMetricType::VirtualImageType *>(
+              const_cast<MaskImageType *>( this->m_FixedImageMask->GetImage() ) ) );
+          }
+        if( useMultiMetric )
+          {
+          multiMetric->AddMetric( pointSetMetric );
+          }
+//         if( !useMultiMetric || currentMetricNumber == 0 )
+//           {
+//           singleMetric = pointSetMetric;
+//           }
         }
       }
     if( useMultiMetric )
@@ -1163,7 +1283,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     // There's a scale issue here.  Currently we are using the first metric to estimate the
     // scales but we might need to change this.
-    typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
+    typedef itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType> ScalesEstimatorType;
 
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( singleMetric );
@@ -1300,13 +1420,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<AffineTransformType *>(
-                                                                               affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<AffineTransformType *>(
-                                                      affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1375,13 +1493,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<RigidTransformType *>(
-                                                                               rigidRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( rigidRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<RigidTransformType *>( rigidRegistration->GetOutput()->
-                                                                                      Get() ) );
+          this->m_CompositeTransform->AddTransform( rigidRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1451,13 +1567,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<CompositeAffineTransformType *>(
-                                                                               affineRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<CompositeAffineTransformType *>( affineRegistration->
-                                                                                                GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( affineRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1527,13 +1641,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<SimilarityTransformType *>(
-                                                                               similarityRegistration->GetOutput()->Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( similarityRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<SimilarityTransformType *>( similarityRegistration->
-                                                                                           GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( similarityRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1603,14 +1715,11 @@ RegistrationHelper<TComputeType, VImageDimension>
         // which is incorporated into the fixed image header.
         if( this->m_ApplyLinearTransformsToFixedImageHeader && this->m_AllPreviousTransformsAreLinear )
           {
-          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( const_cast<TranslationTransformType *>(
-                                                                               translationRegistration->GetOutput()->
-                                                                               Get() ) );
+          this->m_CompositeLinearTransformForFixedImageHeader->AddTransform( translationRegistration->GetModifiableTransform() );
           }
         else
           {
-          this->m_CompositeTransform->AddTransform( const_cast<TranslationTransformType *>( translationRegistration->
-                                                                                            GetOutput()->Get() ) );
+          this->m_CompositeTransform->AddTransform( translationRegistration->GetModifiableTransform() );
           }
         }
         break;
@@ -1645,8 +1754,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<GaussianDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -1786,8 +1894,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
         outputDisplacementFieldTransform->SetDisplacementField( displacementField );
 
         // Create the transform adaptors
@@ -1867,6 +1974,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           displacementFieldRegistration->SetMetric( singleMetric );
           }
+
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
         for( unsigned int level = 0; level < numberOfLevels; ++level )
           {
@@ -1937,8 +2045,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           bsplineRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineTransformType::Pointer outputBSplineTransform =
-          const_cast<BSplineTransformType *>( bsplineRegistration->GetOutput()->Get() );
+        typename BSplineTransformType::Pointer outputBSplineTransform = bsplineRegistration->GetModifiableTransform();
 
         const std::vector<unsigned int> & size = this->m_TransformMethods[currentStageNumber].m_MeshSizeAtBaseLevel;
 
@@ -2143,8 +2250,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
-        typename OutputTransformType::Pointer outputTransform =
-          const_cast<OutputTransformType *>( velocityFieldRegistration->GetOutput()->Get() );
+        typename OutputTransformType::Pointer outputTransform = velocityFieldRegistration->GetModifiableTransform();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
           velocityFieldRegistration->SetFixedImage( n, preprocessedFixedImagesPerStage[n] );
@@ -2353,8 +2459,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
-        typename OutputTransformType::Pointer outputTransform =
-          const_cast<OutputTransformType *>( velocityFieldRegistration->GetOutput()->Get() );
+        typename OutputTransformType::Pointer outputTransform = velocityFieldRegistration->GetModifiableTransform();
         for( unsigned int n = 0; n < stageMetricList.size(); n++ )
           {
           velocityFieldRegistration->SetFixedImage( n, preprocessedFixedImagesPerStage[n] );
@@ -2522,8 +2627,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename DisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<DisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename DisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -2683,8 +2787,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -2857,8 +2960,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<GaussianDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 
@@ -3008,8 +3110,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
-        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform =
-          const_cast<BSplineDisplacementFieldTransformType *>( displacementFieldRegistration->GetOutput()->Get() );
+        typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
 

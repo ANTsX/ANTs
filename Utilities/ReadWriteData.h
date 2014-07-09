@@ -1,5 +1,5 @@
-#ifndef __ReadWriteImage_h_
-#define __ReadWriteImage_h_
+#ifndef __ReadWriteData_h_
+#define __ReadWriteData_h_
 #include <antsAllocImage.h>
 #include <iostream>
 #include <fstream>
@@ -9,6 +9,8 @@
 #include "itkImageFileWriter.h"
 #include "itkImageFileReader.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkLabeledPointSetFileReader.h"
+#include "itkLabeledPointSetFileWriter.h"
 #include "itkWarpImageFilter.h"
 // #include "itkInverseWarpImageFilter.h"
 #include "itkAffineTransform.h"
@@ -145,7 +147,8 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
 {
   if( !ANTSFileExists(std::string(file) ) )
     {
-    std::cout << " file " << std::string(file) << " does not exist . " << std::endl;  return;
+    std::cerr << " file " << std::string(file) << " does not exist . " << std::endl;
+    return;
     }
 
   typedef TImageType                      ImageType;
@@ -172,8 +175,8 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
       }
     catch( itk::ExceptionObject & e )
       {
-      std::cout << "Exception caught during reference file reading " << std::endl;
-      std::cout << e << " file " << file << std::endl;
+      std::cerr << "Exception caught during reference file reading " << std::endl;
+      std::cerr << e << " file " << file << std::endl;
       target = NULL;
       return;
       }
@@ -182,7 +185,7 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
     }
 
   //NiftiDTICheck<ImageType>(target, file, false);
-  
+
   if( takelog )
     {
     typename LogFilterType::Pointer logFilter = LogFilterType::New();
@@ -193,15 +196,15 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
       }
     catch( itk::ExceptionObject & e )
       {
-      std::cout << "Exception caught during log tensor filter " << std::endl;
-      std::cout << e << " file " << file << std::endl;
+      std::cerr << "Exception caught during log tensor filter " << std::endl;
+      std::cerr << e << " file " << file << std::endl;
       target = NULL;
       return;
       }
     target = logFilter->GetOutput();
     std::cout << "Returning Log(D) for log-euclidean math ops" << std::endl;
     }
-  
+
 }
 
 template <class TImageType>
@@ -212,7 +215,9 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
   enum { ImageDimension = TImageType::ImageDimension };
   if( std::string(file).length() < 3 )
     {
-    std::cout << " bad file name " << std::string(file) << std::endl;    target = NULL;  return false;
+    std::cerr << " bad file name " << std::string(file) << std::endl;
+    target = NULL;
+    return false;
     }
 
   std::string comparetype1 = std::string( "0x" );
@@ -236,7 +241,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
     {
     if( !ANTSFileExists(std::string(file) ) )
       {
-      std::cout << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL;
+      std::cerr << " file " << std::string(file) << " does not exist . " << std::endl; target = NULL;
       return false;
       }
     typedef TImageType                      ImageType;
@@ -251,8 +256,8 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
       }
     catch( itk::ExceptionObject & e )
       {
-      std::cout << "Exception caught during reference file reading " << std::endl;
-      std::cout << e << " file " << file << std::endl;
+      std::cerr << "Exception caught during reference file reading " << std::endl;
+      std::cerr << e << " file " << file << std::endl;
       target = NULL;
       std::exception();
       return false;
@@ -283,8 +288,8 @@ typename ImageType::Pointer ReadImage(char* fn )
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cout << "Exception caught during reference file reading " << std::endl;
-    std::cout << e << std::endl;
+    std::cerr << "Exception caught during image reference file reading " << std::endl;
+    std::cerr << e << std::endl;
     return NULL;
     }
 
@@ -315,8 +320,8 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
     }
   catch( itk::ExceptionObject & e )
     {
-    std::cout << "Exception caught during reference file reading " << std::endl;
-    std::cout << e << std::endl;
+    std::cerr << "Exception caught during tensor image reference file reading " << std::endl;
+    std::cerr << e << std::endl;
     return NULL;
     }
 
@@ -333,6 +338,98 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
     }
 
   return target;
+}
+
+template <class TPointSet>
+// void ReadImage(typename TPointSet::Pointer target, const char *file)
+bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
+  bool boundaryPointsOnly = false, float samplingPercentage = 1.0 )
+{
+  typedef typename TPointSet::PixelType PixelType;
+  if( std::string( file ).length() < 3 )
+    {
+    std::cerr << " bad file name " << std::string(file) << std::endl;
+    target = NULL;
+    return false;
+    }
+
+  if( !ANTSFileExists( std::string( file ) ) )
+    {
+    std::cerr << " file " << std::string( file ) << " does not exist . " << std::endl;
+    return false;
+    }
+
+  // Read the image files begin
+  typedef itk::LabeledPointSetFileReader<TPointSet>   FileSourceType;
+  typename FileSourceType::Pointer reffilter = FileSourceType::New();
+  reffilter->SetFileName( file );
+  reffilter->SetExtractBoundaryPoints( boundaryPointsOnly );
+  reffilter->SetRandomPercentage( samplingPercentage );
+  try
+    {
+    reffilter->Update();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Exception caught during point set reference file reading " << std::endl;
+    std::cerr << e << std::endl;
+    return false;
+    }
+
+  target = reffilter->GetOutput();
+
+  return true;
+}
+
+template <class TPointSet>
+typename TPointSet::Pointer ReadPointSet( char* fn )
+{
+  if( !ANTSFileExists( std::string( fn ) ) )
+    {
+    std::cerr << " file " << std::string( fn ) << " does not exist . " << std::endl;
+    return;
+    }
+
+  // Read the image files begin
+  typedef itk::LabeledPointSetFileReader<TPointSet>   FileSourceType;
+  typename FileSourceType::Pointer reffilter = FileSourceType::New();
+  reffilter->SetFileName( fn );
+  try
+    {
+    reffilter->Update();
+    }
+  catch( itk::ExceptionObject & e )
+    {
+    std::cerr << "Exception caught during point set reference file reading " << std::endl;
+    std::cerr << e << std::endl;
+    return NULL;
+    }
+
+  typename TPointSet::Pointer target = reffilter->GetOutput();
+
+  return target;
+}
+
+template <class TPointSet>
+bool WritePointSet( itk::SmartPointer<TPointSet> pointSet, const char *file )
+{
+  if( std::string(file).length() < 3 )
+    {
+    return false;
+    }
+
+  typename itk::LabeledPointSetFileWriter<TPointSet>::Pointer writer =
+    itk::LabeledPointSetFileWriter<TPointSet>::New();
+  writer->SetFileName( file );
+  if( !pointSet )
+    {
+    std::cerr << " Point set is null." << std::endl;
+    std::exception();
+    }
+  writer->SetInput( pointSet );
+  writer->Update();
+
+  return true;
 }
 
 template <class TImageType>
@@ -364,7 +461,7 @@ bool WriteImage(itk::SmartPointer<TImageType> image, const char *file)
     writer->SetFileName(file);
     if( !image )
       {
-      std::cout << " file " << file << " does not exist " << std::endl;
+      std::cerr << "Image is null." << std::endl;
       std::exception();
       }
     writer->SetInput(image);
@@ -470,6 +567,8 @@ ReadWarpFromFile( std::string warpfn, std::string ext)
 
   return field;
 }
+
+
 
 template <class TImage>
 typename TImage::Pointer

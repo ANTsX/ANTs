@@ -1,5 +1,5 @@
 #include "antsUtilities.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"

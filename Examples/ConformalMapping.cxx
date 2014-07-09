@@ -43,7 +43,7 @@
 #include "vtkCellPicker.h"
 #include "vtkPolyDataWriter.h"
 #include "vtkPolyDataReader.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkRescaleIntensityImageFilter.h"
 
 #include "itkSurfaceImageCurvature.h"

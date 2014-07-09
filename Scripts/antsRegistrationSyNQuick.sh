@@ -268,7 +268,7 @@ while getopts "d:f:h:m:j:n:o:p:r:s:t:" OPT
    ;;
       d)  # dimensions
    DIM=$OPTARG
-   ;;      
+   ;;
       j)  # histogram matching
    USEHISTOGRAMMATCHING=$OPTARG
    ;;

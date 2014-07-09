@@ -32,6 +32,7 @@ DoRegistration(typename ParserType::Pointer & parser)
   typedef TComputeType                                                     RealType;
   typedef typename ants::RegistrationHelper<TComputeType, VImageDimension> RegistrationHelperType;
   typedef typename RegistrationHelperType::ImageType                       ImageType;
+  typedef typename RegistrationHelperType::PointSetType                    PointSetType;
   typedef typename RegistrationHelperType::CompositeTransformType          CompositeTransformType;
 
   typename RegistrationHelperType::Pointer regHelper = RegistrationHelperType::New();
@@ -172,13 +173,46 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
-  if( maskOption.IsNotNull() && maskOption->GetNumberOfFunctions() )
+  if( maskOption && maskOption->GetNumberOfFunctions() )
     {
     typedef typename RegistrationHelperType::MaskImageType MaskImageType;
     typedef itk::ImageFileReader<MaskImageType>            ImageReaderType;
-    for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
+
+    if( maskOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
       {
-      std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
+      for( unsigned m = 0; m < maskOption->GetFunction( 0 )->GetNumberOfParameters(); m++ )
+        {
+        std::string fname = maskOption->GetFunction( 0 )->GetParameter( m );
+
+        typename MaskImageType::Pointer maskImage;
+        typename ImageReaderType::Pointer reader = ImageReaderType::New();
+
+        reader->SetFileName( fname.c_str() );
+        try
+          {
+          reader->Update();
+          maskImage = reader->GetOutput();
+          }
+        catch( itk::ExceptionObject & err )
+          {
+          std::cout << "Can't read specified mask image " << fname.c_str() << std::endl;
+          std::cout << "Exception Object caught: " << std::endl;
+          std::cout << err << std::endl;
+          return EXIT_FAILURE;
+          }
+        if( m == 0 )
+          {
+          regHelper->SetFixedImageMask( maskImage );
+          }
+        else if( m == 1 )
+          {
+          regHelper->SetMovingImageMask( maskImage );
+          }
+        }
+      }
+    else
+      {
+      std::string fname = maskOption->GetFunction( 0 )->GetName();
 
       typename MaskImageType::Pointer maskImage;
       typename ImageReaderType::Pointer reader = ImageReaderType::New();
@@ -196,14 +230,7 @@ DoRegistration(typename ParserType::Pointer & parser)
         std::cout << err << std::endl;
         return EXIT_FAILURE;
         }
-      if( m == 0 )
-        {
-        regHelper->SetFixedImageMask( maskImage );
-        }
-      else if( m == 1 )
-        {
-        regHelper->SetMovingImageMask( maskImage );
-        }
+      regHelper->SetFixedImageMask( maskImage );
       }
     }
 
@@ -726,20 +753,6 @@ DoRegistration(typename ParserType::Pointer & parser)
   unsigned int numberOfMetrics = metricOption->GetNumberOfFunctions();
   for( int currentMetricNumber = numberOfMetrics - 1; currentMetricNumber >= 0; currentMetricNumber-- )
     {
-    // Get the fixed and moving images
-
-    std::string fixedImageFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
-    std::string movingImageFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
-    std::cout << "  fixed image: " << fixedImageFileName << std::endl;
-    std::cout << "  moving image: " << movingImageFileName << std::endl;
-
-    typename ImageType::Pointer fixedImage;
-    typename ImageType::Pointer movingImage;
-    ReadImage<ImageType>( fixedImage,  fixedImageFileName.c_str() );
-    ReadImage<ImageType>( movingImage, movingImageFileName.c_str() );
-    fixedImage->DisconnectPipeline();
-    movingImage->DisconnectPipeline();
-
     // Get the stage ID
     unsigned int stageID = metricOption->GetFunction( currentMetricNumber )->GetStageID();
 
@@ -760,6 +773,14 @@ DoRegistration(typename ParserType::Pointer & parser)
 
     std::string whichMetric = metricOption->GetFunction( currentMetricNumber )->GetName();
     ConvertToLowerCase( whichMetric );
+    typename RegistrationHelperType::MetricEnumeration currentMetric = regHelper->StringToMetricType( whichMetric );
+
+    // Get the fixed and moving images or point sets
+
+    typename ImageType::Pointer fixedImage = ITK_NULLPTR;
+    typename ImageType::Pointer movingImage = ITK_NULLPTR;
+    typename PointSetType::Pointer fixedPointSet = ITK_NULLPTR;
+    typename PointSetType::Pointer movingPointSet = ITK_NULLPTR;
 
     float metricWeighting = 1.0;
     if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 2 )
@@ -767,94 +788,137 @@ DoRegistration(typename ParserType::Pointer & parser)
       metricWeighting = parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 2 ) );
       }
 
-    float samplingPercentage = 1.0;
-    if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
-      {
-      samplingPercentage =
-        parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
-      }
-
-    std::string strategy = "none";
-    if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 4 )
-      {
-      strategy = metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 );
-      }
-    ConvertToLowerCase( strategy );
-
+    // assign default image metric variables
     typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::invalid;
-    if( strategy == "random" )
+    unsigned int numberOfBins = 32;
+    unsigned int radius = 4;
+
+    // assign default point-set variables
+    bool useBoundaryPointsOnly = false;
+    float pointSetSigma = 1.0;
+    unsigned int evaluationKNeighborhood = 50;
+    float alpha = 1.1;
+    float useAnisotropicCovariances = false;
+
+    float samplingPercentage = 1.0;
+
+    if( !regHelper->IsPointSetMetric( currentMetric ) )
       {
-      samplingStrategy = RegistrationHelperType::random;
-      }
-    else if( strategy == "regular" )
-      {
-      samplingStrategy = RegistrationHelperType::regular;
-      }
-    else if( ( strategy == "none" ) || ( strategy == "" ) )
-      {
-      samplingStrategy = RegistrationHelperType::none;
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
+        {
+        samplingPercentage =
+          parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
+        }
+      std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
+      std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
+      std::cout << "  fixed image: " << fixedFileName << std::endl;
+      std::cout << "  moving image: " << movingFileName << std::endl;
+
+      ReadImage<ImageType>( fixedImage, fixedFileName.c_str() );
+      ReadImage<ImageType>( movingImage, movingFileName.c_str() );
+      fixedImage->DisconnectPipeline();
+      movingImage->DisconnectPipeline();
+
+      std::string strategy = "none";
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 4 )
+        {
+        strategy = metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 );
+        }
+      ConvertToLowerCase( strategy );
+
+      if( strategy == "random" )
+        {
+        samplingStrategy = RegistrationHelperType::random;
+        }
+      else if( strategy == "regular" )
+        {
+        samplingStrategy = RegistrationHelperType::regular;
+        }
+      else if( ( strategy == "none" ) || ( strategy == "" ) )
+        {
+        samplingStrategy = RegistrationHelperType::none;
+        }
+      else
+        {
+        samplingStrategy = RegistrationHelperType::invalid;
+        std::cout << "ERROR: invalid sampling strategy specified: " << strategy << std::endl;
+        return EXIT_FAILURE;
+        }
+      if( currentMetric == RegistrationHelperType::CC )
+        {
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 3 )
+          {
+          radius = parser->Convert<unsigned int>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 ) );
+          }
+        }
+      else if( currentMetric == RegistrationHelperType::Mattes || currentMetric == RegistrationHelperType::MI )
+        {
+        if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 3 )
+          {
+          numberOfBins = parser->Convert<unsigned int>( metricOption->GetFunction(
+                                                                  currentMetricNumber )->GetParameter( 3 ) );
+          }
+        }
       }
     else
       {
-      samplingStrategy = RegistrationHelperType::invalid;
-      std::cout << "ERROR: invalid sampling strategy specified: " << strategy << std::endl;
-      return EXIT_FAILURE;
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 3 )
+        {
+        samplingPercentage =
+          parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 3 ) );
+        }
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 4 )
+        {
+        useBoundaryPointsOnly =
+          parser->Convert<bool>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 4 ) );
+        }
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 5 )
+        {
+        pointSetSigma =
+          parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 5 ) );
+        }
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 6 )
+        {
+        evaluationKNeighborhood =
+          parser->Convert<unsigned int>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 6 ) );
+        }
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 7 )
+        {
+        alpha =
+          parser->Convert<float>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 7 ) );
+        }
+      if( metricOption->GetFunction( currentMetricNumber )->GetNumberOfParameters() > 8 )
+        {
+        useAnisotropicCovariances =
+          parser->Convert<bool>( metricOption->GetFunction( currentMetricNumber )->GetParameter( 8 ) );
+        }
+      std::string fixedFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 0 );
+      std::string movingFileName = metricOption->GetFunction( currentMetricNumber )->GetParameter( 1 );
+      std::cout << "  fixed point set: " << fixedFileName << std::endl;
+      std::cout << "  moving point set: " << movingFileName << std::endl;
+
+      ReadPointSet<PointSetType>( fixedPointSet, fixedFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+      ReadPointSet<PointSetType>( movingPointSet, movingFileName.c_str(), useBoundaryPointsOnly, samplingPercentage );
+      fixedPointSet->DisconnectPipeline();
+      movingPointSet->DisconnectPipeline();
       }
 
-    typename RegistrationHelperType::MetricEnumeration curMetric = regHelper->StringToMetricType( whichMetric );
-
-    switch( curMetric )
-      {
-      case RegistrationHelperType::CC:
-        {
-        unsigned int radiusOption = parser->Convert<unsigned int>( metricOption->GetFunction(
-                                                                     currentMetricNumber )->GetParameter( 3 ) );
-        regHelper->AddMetric( curMetric,
-                              fixedImage,
-                              movingImage,
-                              stageID,
-                              metricWeighting,
-                              samplingStrategy,
-                              1,
-                              radiusOption,
-                              samplingPercentage );
-        }
-        break;
-      case RegistrationHelperType::GC:
-      case RegistrationHelperType::MeanSquares:
-      case RegistrationHelperType::Demons:
-        {
-        regHelper->AddMetric( curMetric,
-                              fixedImage,
-                              movingImage,
-                              stageID,
-                              metricWeighting,
-                              samplingStrategy,
-                              1,
-                              1,
-                              samplingPercentage );
-        }
-        break;
-      case RegistrationHelperType::Mattes:
-      case RegistrationHelperType::MI:
-        {
-        unsigned int binOption = parser->Convert<unsigned int>( metricOption->GetFunction(
-                                                                  currentMetricNumber )->GetParameter( 3 ) );
-        regHelper->AddMetric( curMetric,
-                              fixedImage,
-                              movingImage,
-                              stageID,
-                              metricWeighting,
-                              samplingStrategy,
-                              binOption,
-                              1,
-                              samplingPercentage );
-        }
-        break;
-      default:
-        std::cout << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
-        return EXIT_FAILURE;
-      }
+    regHelper->AddMetric( currentMetric,
+                          fixedImage,
+                          movingImage,
+                          fixedPointSet,
+                          fixedPointSet,
+                          stageID,
+                          metricWeighting,
+                          samplingStrategy,
+                          numberOfBins,
+                          radius,
+                          useBoundaryPointsOnly,
+                          pointSetSigma,
+                          evaluationKNeighborhood,
+                          alpha,
+                          useAnisotropicCovariances,
+                          samplingPercentage );
     }
 
   // Perform the registration

@@ -267,7 +267,7 @@ public:
       matrix.rows(), matrix.cols() ); this->m_OriginalMatrixQ.update(matrix); this->m_MatrixQ.update(matrix);
   }
 
-  itkSetMacro( Covering, bool );
+  itkSetMacro( Covering, unsigned int );
   itkSetMacro( UseL1, bool );
   itkSetMacro( GradStep, RealType );
   itkSetMacro( FractionNonZeroR, RealType );
@@ -660,7 +660,7 @@ public:
 
   RealType SparsePartialCCA(unsigned int nvecs);
 
-  bool CCAUpdate(unsigned int nvecs, bool, bool );
+  bool CCAUpdate(unsigned int nvecs, bool, bool , unsigned int );
 
   bool CCAUpdateLong(unsigned int nvecs, bool, bool );
 
@@ -946,7 +946,9 @@ protected:
 
   bool Close2Zero( RealType x ) 
   {
-    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < this->m_Epsilon ) return true;
+    RealType eps = this->m_Epsilon * 5.0;
+    //    eps = 0.0001;
+    if ( vnl_math_abs( x - itk::NumericTraits<RealType>::Zero ) < eps ) return true;
     return false;
   }
 
@@ -969,6 +971,49 @@ protected:
       }
     return vnl_math_abs( numer / denom );
   }
+
+  RealType RPearsonCorr(VectorType v1, VectorType v2 )
+  {
+    std::vector<TRealType> zeromatch( v1.size(), 0);
+    unsigned int zct = 0;
+    for ( unsigned int zm = 0; zm < v1.size(); zm++ )
+      {
+	if ( ( this->Close2Zero( v1(zm) )  ||  
+	       this->Close2Zero( v2(zm) ) ) ) 
+	{ 
+	zct++;
+        zeromatch[ zm ] = 1;
+	v1(zm) = 0;
+	v2(zm) = 0;
+	}
+      }
+
+    double frac = 1.0 / (double)v1.size();
+    double xysum = 0;
+    double xsum = 0;
+    double ysum = 0;
+    double xsqr = 0;
+    double ysqr = 0;
+    for( unsigned int i = 0; i < v1.size(); i++ )
+      {
+      if ( zeromatch[i] == 0 )  
+        {
+	xysum += v1(i) * v2(i);
+	xsum  += v1(i);
+	xsqr  += v1(i) * v1(i);
+	ysum  += v2(i);
+	ysqr  += v2(i) * v2(i);
+	}
+      }
+    double numer = xysum - frac * xsum * ysum;
+    double denom = sqrt( ( xsqr - frac * xsum * xsum) * ( ysqr - frac * ysum * ysum) );
+    if( denom <= 0 )
+      {
+      return 0;
+      }
+    return vnl_math_abs( numer / denom );
+  }
+
 
   RealType GoldenSection( MatrixType& A, VectorType&  x_k, VectorType&  p_k, VectorType&  bsol, RealType a, RealType b,
                           RealType c, RealType tau, RealType lambda);
@@ -1148,7 +1193,7 @@ private:
 
   /** softer = true will compute the update  : if ( beta > thresh )  beta <- beta - thresh
    *     rather than the default update      : if ( beta > thresh )  beta <- beta  */
-  bool     m_Covering;
+  unsigned int     m_Covering;
   bool     m_UseL1;
   bool     m_AlreadyWhitened;
   bool     m_SpecializationForHBM2011;
@@ -1157,6 +1202,7 @@ private:
 
   // this->ComputeIntercept( A, x, b );
   RealType                   m_Intercept;
+  unsigned int               m_NTimeDimensions;
   unsigned int               m_MinClusterSizeP;
   unsigned int               m_MinClusterSizeQ;
   unsigned int               m_KeptClusterSize;

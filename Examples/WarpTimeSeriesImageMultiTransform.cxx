@@ -7,7 +7,7 @@
 #include "itkTransformFactory.h"
 #include "itkTransformFileReader.h"
 #include "itkVectorNearestNeighborInterpolateImageFunction.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkWarpImageMultiTransformFilter.h"
 #include "itkExtractImageFilter.h"
 

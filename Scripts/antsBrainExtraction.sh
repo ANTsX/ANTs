@@ -230,7 +230,7 @@ else
        ;;
           z) #debug mode
        DEBUG_MODE=$OPTARG
-       ;; 
+       ;;
           *) # getopts issues an error message
        echo "ERROR:  unrecognized option -$OPT $OPTARG"
        exit 1
@@ -563,7 +563,7 @@ if [[ ! -f ${EXTRACTION_MASK} || ! -f ${EXTRACTION_WM} ]];
 if [[ $KEEP_TMP_IMAGES -eq 0 ]];
   then
     for f in ${TMP_FILES[@]}
-      do       
+      do
         if [[ -e $f ]];
           then
             logCmd rm $f

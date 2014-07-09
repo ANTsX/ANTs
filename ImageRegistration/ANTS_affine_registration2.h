@@ -29,7 +29,7 @@
 #include "itkWarpImageWAffineFilter.h"
 #include "itkImageMomentsCalculator.h"
 #include <vector>
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 #include "itkMeanSquaresImageToImageMetric.h"
 #include "itkGradientDifferenceImageToImageMetric.h"
 #include "itkNormalizedCorrelationImageToImageMetric.h"

@@ -57,6 +57,8 @@
 
 #include "ConvertImagePixelType.h"
 
+#include "ConvertInputImagePixelTypeToFloat.h"
+
 #include "ConvertScalarImageToRGB.h"
 
 #include "ConvertToJpg.h"

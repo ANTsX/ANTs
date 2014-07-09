@@ -11,7 +11,7 @@
 #include "itkImageRegionIteratorWithIndex.h"
 #include "vnl/algo/vnl_determinant.h"
 
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 #include "vnl/algo/vnl_determinant.h"
 #include "itkDiscreteGaussianImageFilter.h"
@@ -123,7 +123,7 @@ TransformVector(TDisplacementField* field, typename TImage::IndexType index )
   enum { ImageDimension = TImage::ImageDimension };
   typename TDisplacementField::PixelType vec = field->GetPixel(index);
   return vec;
-  /* buggy code from before 
+  /* buggy code from before
   typename TDisplacementField::PixelType newvec;
   newvec.Fill(0);
   for( unsigned int row = 0; row < ImageDimension; row++ )
@@ -598,7 +598,7 @@ private:
 
   // antscout->set_stream( out_stream );
   std::cout << "Sorry! " << argv[0] << " is deprecated " << std::endl;
-  std::cout << "Please use CreateJacobianDeterminantImage " << std::endl;  
+  std::cout << "Please use CreateJacobianDeterminantImage " << std::endl;
   return EXIT_SUCCESS;
 
   if( argc < 3 )

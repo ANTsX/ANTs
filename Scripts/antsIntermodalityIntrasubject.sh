@@ -338,14 +338,12 @@ fi
 
 # warp Labels from template to subject (if passed)
 if [[ -f $TEMPLATE_LABELS ]]; then
-
     ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $TEMPLATE_LABELS -o ${OUTPUT_PREFIX}labels.nii.gz \
 	-r $BRAIN  -n NearestNeighbor \
 	-t [ ${OUTPUT_PREFIX}0GenericAffine.mat, 1]       \
 	$iwarp           \
-	-t [ ${TEMPLATE_TRANSFORM}0GenericAffine.mat, 1]  \
-	-t   ${TEMPLATE_TRANSFORM}1InverseWarp.nii.gz 
-
+	-t   ${TEMPLATE_TRANSFORM}1Warp.nii.gz \
+	-t   ${TEMPLATE_TRANSFORM}0GenericAffine.mat 
 fi
 
 ################################################################################

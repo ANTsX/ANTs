@@ -30,7 +30,7 @@
 #include "itkCSVArray2DDataObject.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkExtractImageFilter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {
@@ -108,14 +108,8 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
       mIter.Set(0);
       }
     }
-
-  typedef itk::ImageFileWriter<TImage> WriterType;
   std::string fn1 = filepre + post + extension;
-  std::cout << fn1 << std::endl;
-  typename WriterType::Pointer writer = WriterType::New();
-  writer->SetFileName( fn1 );
-  writer->SetInput( weights );
-  writer->Update();
+  WriteImage<TImage>( weights, fn1.c_str() );
 }
 
 template <class T>
@@ -233,7 +227,7 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
 
   if( have_mask )
     {
-    std::cout << " have_mask " << have_mask << std::endl;
+    std::cout << " have_mask WriteSortedVariatesToSpatialImage " << have_mask << std::endl;
     for( unsigned int vars = 0; vars < varmat.columns(); vars++  )
       {
       post2 = post + sccan_to_string<unsigned int>(l_array.get(vars) );
@@ -1136,7 +1130,7 @@ template <unsigned int ImageDimension, class PixelType>
 int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec,
                   unsigned int robustify, unsigned int p_cluster_thresh, unsigned int iterct,
                   unsigned int svd_option, PixelType usel1, PixelType row_sparseness, PixelType smoother,
-                  PixelType covering )
+                  unsigned int covering )
 {
   std::cout << "SVD_One_View" << std::endl;
 
@@ -1206,11 +1200,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   itk::ants::CommandLineParser::OptionType::Pointer option =
     sccanparser->GetOption( "svd" );
   PixelType gradstep = vnl_math_abs( usel1 );
-  sccanobj->SetCovering( true );
-  if( covering < 0.1 )
-    {
-    sccanobj->SetCovering( false );
-    }
+  sccanobj->SetCovering( covering );
   if( usel1 > 0 )
     {
     sccanobj->SetUseL1( true );
@@ -1436,7 +1426,7 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
 template <unsigned int ImageDimension, class PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
-              PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, PixelType covering )
+              PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, unsigned int covering )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     sccanparser->GetOption( "output" );
@@ -1462,11 +1452,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   typedef typename SCCANType::VectorType                vVector;
   typedef typename SCCANType::DiagonalMatrixType        dMatrix;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
-  sccanobj->SetCovering( true );
-  if( covering < 0.1 )
-    {
-    sccanobj->SetCovering( false );
-    }
+  sccanobj->SetCovering( covering );
   sccanobj->SetMaximumNumberOfIterations(iterct);
   if( uselong > 0 )
     {
@@ -1489,7 +1475,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     sccanparser->GetOption( "mask" );
   if( !initOpt || initOpt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
     {
-    std::cout << "Warning:  no P initialization set, will use data-driven approach." << std::endl;
+    itkDebugMacro( "Warning:  no Q initialization set, will use data-driven approach." << std::endl );
     }
   else
     {
@@ -1508,7 +1494,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     sccanparser->GetOption( "mask2" );
   if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !mask2Opt || mask2Opt->GetNumberOfFunctions() == 0 )
     {
-    std::cout << "Warning:  no Q initialization set, will use data-driven approach." << std::endl;
+    itkDebugMacro( "Warning:  no Q initialization set, will use data-driven approach." << std::endl );
     }
   else
     {
@@ -1542,10 +1528,20 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     }
 
   typename ImageType::Pointer mask1 = NULL;
-  bool have_p_mask = ReadImage<ImageType>(mask1, option->GetFunction( 0 )->GetParameter( 2 ).c_str() );
+  std::string mask1fn = option->GetFunction( 0 )->GetParameter( 2 );
+  bool have_p_mask = false;
+  if ( mask1fn.length() > 5 ) 
+    {
+    have_p_mask = ReadImage<ImageType>(mask1, mask1fn.c_str()  );
+    }
 
   typename ImageType::Pointer mask2 = NULL;
-  bool have_q_mask = ReadImage<ImageType>(mask2, option->GetFunction( 0 )->GetParameter( 3 ).c_str() );
+  std::string mask2fn = option->GetFunction( 0 )->GetParameter( 3 );
+  bool have_q_mask = false;
+  if ( mask2fn.length() > 5 ) 
+    {
+    have_q_mask = ReadImage<ImageType>(mask2, mask2fn.c_str() );
+    }
 
   /** the penalties define the fraction of non-zero values for each view */
   double FracNonZero1 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 4 ) );
@@ -1553,7 +1549,6 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     {
     FracNonZero1 = fabs(FracNonZero1);
     sccanobj->SetKeepPositiveP(false);  // true if P sparsity > 0
-
     }
   double FracNonZero2 = sccanparser->Convert<double>( option->GetFunction( 0 )->GetParameter( 5 ) );
   if( FracNonZero2 < 0 )
@@ -2199,7 +2194,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     uselong = sccanparser->Convert<matPixelType>( long_option->GetFunction()->GetName() );
     }
 
-  matPixelType                                      covering = 1;
+  unsigned int                                      covering = 1;
   itk::ants::CommandLineParser::OptionType::Pointer covering_option =
     sccanparser->GetOption( "covering" );
   if( !covering_option || covering_option->GetNumberOfFunctions() == 0 )
@@ -2207,7 +2202,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     }
   else
     {
-    covering = sccanparser->Convert<matPixelType>( covering_option->GetFunction()->GetName() );
+    covering = sccanparser->Convert<unsigned int>( covering_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      usel1 = 0.1;
@@ -2414,6 +2409,12 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
                                              row_sparseness, smoother, covering );
       return EXIT_SUCCESS;
       }
+    if(  !initializationStrategy.compare( std::string( "recon4d" ) )  )
+      {
+      SVD_One_View<ImageDimension+1, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 6, usel1,
+                                             row_sparseness, smoother, covering );
+      return EXIT_SUCCESS;
+      }
     if(  !initializationStrategy.compare( std::string( "prior" ) )  )
       {
       SVD_One_View<ImageDimension, double>(  sccanparser, permct, evec_ct, robustify, p_cluster_thresh, iterct, 7, usel1,
@@ -2461,6 +2462,13 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
         mSCCA_vnl<ImageDimension, double>( sccanparser, permct, true, evec_ct, eigen_imp, robustify,  p_cluster_thresh,
                                            q_cluster_thresh,
                                            iterct);
+      }
+    else if( !initializationStrategy.compare( std::string("dynsccan") )   )
+      {
+      std::cout << " tscca " << std::endl;
+      exitvalue = SCCA_vnl<ImageDimension+1, double>( sccanparser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
+                                                    q_cluster_thresh,
+                                                    iterct, usel1, uselong, row_sparseness, smoother, covering );
       }
     else
       {
@@ -2812,6 +2820,7 @@ private:
     option->SetUsageOption(
       2,
       "partial[matrix-view1.mhd,matrix-view2.mhd,matrix-view3.mhd,mask1,mask2,mask3,FracNonZero1,FracNonZero2,FracNonZero3]" );
+    option->SetUsageOption( 3, "dynsccan[matrix-view1.mhd,matrix-view2.mhd,mask1,mask2,FracNonZero1,FracNonZero2] ");
     option->SetDescription( description );
     sccanparser->AddOption( option );
     }
@@ -2837,6 +2846,7 @@ private:
     option->SetUsageOption( 4, "network[matrix-view1.mhd,mask1,FracNonZero1,guidance-matrix]" );
     option->SetUsageOption( 5, "lasso[matrix-view1.mhd,mask1,Lambda,guidance-matrix]" );
     option->SetUsageOption( 6, "recon[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix]" );
+    option->SetUsageOption( 7, "recon4d[matrix-view1.mhd,mask1,FracNonZero1,nuisance-matrix]" );
     option->SetDescription( description );
     sccanparser->AddOption( option );
     }

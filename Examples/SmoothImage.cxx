@@ -21,7 +21,7 @@
 
 #include "itkMedianImageFilter.h"
 #include "itkDiscreteGaussianImageFilter.h"
-#include "ReadWriteImage.h"
+#include "ReadWriteData.h"
 
 namespace ants
 {
@@ -42,7 +42,8 @@ int SmoothImage(int argc, char *argv[])
   typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
-  float       sigma = atof(argv[3]);
+  std::vector<float> sigmaVector = ConvertVector<float>( argv[3] );
+
   typename ImageType::Pointer image1 = NULL;
   typename ImageType::Pointer varimage = NULL;
   ReadImage<ImageType>(image1, argv[2]);
@@ -72,18 +73,48 @@ int SmoothImage(int argc, char *argv[])
 
   if( !usemedian )
     {
-    filter->SetVariance(sigma * sigma);
-    filter->SetMaximumError(.01f);
-    filter->SetInput(image1);
+    if( sigmaVector.size() == 1 )
+      {
+      filter->SetVariance( vnl_math_sqr( sigmaVector[0] ) );
+      }
+    else if( sigmaVector.size() == ImageDimension )
+      {
+      typename dgf::ArrayType varianceArray;
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        varianceArray[d] = vnl_math_sqr( sigmaVector[d] );
+        }
+      filter->SetVariance( varianceArray );
+      }
+    else
+      {
+      std::cerr << "Incorrect sigma vector size.  Must either be of size 1 or ImageDimension." << std::endl;
+      }
+    filter->SetMaximumError( 0.01f );
+    filter->SetInput( image1 );
     filter->Update();
     varimage = filter->GetOutput();
     }
   else
     {
     typename ImageType::SizeType rad;
-    rad.Fill( (long unsigned int) sigma);
+    if( sigmaVector.size() == 1 )
+      {
+      rad.Fill( static_cast<unsigned long>( sigmaVector[0] ) );
+      }
+    else if( sigmaVector.size() == ImageDimension )
+      {
+      for( unsigned int d = 0; d < ImageDimension; d++ )
+        {
+        rad[d] = sigmaVector[d];
+        }
+      }
+    else
+      {
+      std::cerr << "Incorrect sigma vector size.  Must either be of size 1 or ImageDimension." << std::endl;
+      }
     filter2->SetRadius(rad);
-    filter2->SetInput(image1);
+    filter2->SetInput( image1 );
     filter2->Update();
     varimage = filter2->GetOutput();
     }
@@ -145,6 +176,7 @@ private:
       " ImageDimension image.ext smoothingsigma outimage.ext {sigma-is-in-spacing-coordinates-0/1} {medianfilter-0/1}"
              << std::endl;
     std::cout << " if median, then sigma means radius of filtering " << std::endl;
+    std::cout << " A separate sigma can be specified for each dimension, e.g., 1.5x1x2 " << std::endl;
     if( argc >= 2 &&
         ( std::string( argv[1] ) == std::string("--help") || std::string( argv[1] ) == std::string("-h") ) )
       {
