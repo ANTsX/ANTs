@@ -3403,7 +3403,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   int               argct = 2;
   const std::string outname = std::string(argv[argct]); argct++;
   std::string       ext = itksys::SystemTools::GetFilenameExtension( outname );
-  if( ( strcmp(ext.c_str(), ".csv") != 0 ) || (  strcmp(ext.c_str(), ".mha") != 0 )  )
+  if( ( strcmp(ext.c_str(), ".csv") != 0 ) && (  strcmp(ext.c_str(), ".mha") != 0 )  )
     {
     std::cout << " must use .csv or .mha as output file extension " << std::endl;
     return EXIT_FAILURE;
