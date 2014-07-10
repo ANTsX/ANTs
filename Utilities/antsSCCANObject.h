@@ -65,6 +65,8 @@ public:
   typedef TRealType RealType;
   typedef Image<RealType,
                 itkGetStaticConstMacro( ImageDimension )>         RealImageType;
+  typedef Image<RealType,
+                itkGetStaticConstMacro( ImageDimension-1 )>       RealImageTypeDminus1;
 
   /** Define eigen types */
   //  typedef Eigen::Matrix<RealType, Eigen::Dynamic, Eigen::Dynamic> eMatrix;
@@ -746,6 +748,8 @@ public:
 
   void MRFFilterVariateMatrix();
 
+  ImagePointer ConvertVariateToSpatialImage( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );
+
 protected:
 
   void SortResults(unsigned int n_vecs);
@@ -1115,13 +1119,13 @@ protected:
 
   RealType CurvatureSparseness( VectorType & x, RealType sparsenessgoal, unsigned int maxit, ImagePointer );
 
-  // , MatrixType& A, VectorType& b );
 private:
 
-  ImagePointer ConvertVariateToSpatialImage( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );
+  ImagePointer ConvertVariateToSpatialImage4D( VectorType variate, ImagePointer mask, bool threshold_at_zero = false );
 
   MatrixType m_OriginalMatrixPriorROI;
   VectorType ConvertImageToVariate(  ImagePointer image, ImagePointer mask );
+  VectorType ConvertImageToVariate4D(  ImagePointer image, ImagePointer mask );
 
   VectorType ClusterThresholdVariate( VectorType &, ImagePointer mask, unsigned int);
 

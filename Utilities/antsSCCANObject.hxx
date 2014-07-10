@@ -20,6 +20,7 @@
 #include "itkMinimumMaximumImageFilter.h"
 #include "itkConnectedComponentImageFilter.h"
 #include "itkRelabelComponentImageFilter.h"
+#include "itkExtractImageFilter.h"
 #include <vnl/vnl_random.h>
 #include <vnl/vnl_trace.h>
 #include <vnl/algo/vnl_ldl_cholesky.h>
@@ -85,6 +86,7 @@ antsSCCANObject<TInputImage, TRealType>
                                  typename TInputImage::Pointer mask,
                                  bool threshold_at_zero  )
 {
+  if ( ImageDimension == 4 ) return this->ConvertVariateToSpatialImage4D( w_p, mask, threshold_at_zero );
   typename TInputImage::Pointer weights = TInputImage::New();
   weights->SetOrigin( mask->GetOrigin() );
   weights->SetSpacing( mask->GetSpacing() );
@@ -147,6 +149,90 @@ antsSCCANObject<TInputImage, TRealType>
   }// loop end
   return weights;
 }
+
+
+template <class TInputImage, class TRealType>
+typename TInputImage::Pointer
+antsSCCANObject<TInputImage, TRealType>
+::ConvertVariateToSpatialImage4D(  typename antsSCCANObject<TInputImage,
+                                                          TRealType>::VectorType w_p,
+                                 typename TInputImage::Pointer mask,
+                                 bool threshold_at_zero  )
+{
+  typename TInputImage::Pointer weights = TInputImage::New();
+  weights->SetOrigin( mask->GetOrigin() );
+  weights->SetSpacing( mask->GetSpacing() );
+  weights->SetRegions( mask->GetLargestPossibleRegion() );
+  weights->SetDirection( mask->GetDirection() );
+  weights->Allocate();
+  weights->FillBuffer( itk::NumericTraits<PixelType>::Zero );
+
+  typename RealImageTypeDminus1::Pointer maskdm1;
+  typedef itk::ExtractImageFilter<TInputImage, RealImageTypeDminus1> ExtractFilterType;
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( mask );
+  extractFilter->SetDirectionCollapseToIdentity();
+  extractFilter->SetDirectionCollapseToSubmatrix();
+  typename ImageType::RegionType extractRegion = mask->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  extractRegion.SetIndex(ImageDimension - 1, 0 );
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  maskdm1 = extractFilter->GetOutput();
+  //  WriteImage<RealImageTypeDminus1>( maskdm1, "maskdm1.nii.gz" );
+
+  // overwrite weights with vector values;
+  unsigned long vecind = 0;
+  typedef itk::ImageRegionIteratorWithIndex<RealImageTypeDminus1> Iterator;
+  Iterator mIter(maskdm1, maskdm1->GetLargestPossibleRegion() );
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() >= 0.5 )
+      {
+      vecind++;
+      }
+    }
+
+  this->m_VecToMaskSize = static_cast<unsigned int> 
+    ( static_cast<double>( w_p.size() ) / static_cast<double>( vecind ) + 0.5 );
+  //  std::cout << " this->m_VecToMaskSize " << this->m_VecToMaskSize << " mask size " << vecind << std::endl;
+  vecind = 0;
+  for ( unsigned int k = 0; k < this->m_VecToMaskSize; k++ ) 
+  { // loop begin
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() >= 0.5 )
+      {
+      typename RealImageTypeDminus1::IndexType mind = mIter.GetIndex();
+      typename ImageType::IndexType ind4d;
+      for ( unsigned int dim = 0; dim < ImageDimension-1; dim++ ) ind4d[ dim ] = mind[ dim ];
+      ind4d[ ImageDimension - 1 ] = k;
+      TRealType val = 0;
+      if( vecind < w_p.size() )
+        {
+	val = w_p( vecind );
+        }
+      else
+        {
+        std::cout << "vecind too large " << vecind << " vs " << w_p.size() << std::endl;
+        std::cout << " this is likely a mask problem --- exiting! " << std::endl;
+        std::exception();
+        }
+      if ( threshold_at_zero && ( fabs(val) > this->m_Epsilon  ) )
+        {
+        weights->SetPixel( ind4d, 1 );
+        }
+      else
+        {
+        weights->SetPixel( ind4d, val );
+        }
+      vecind++;
+      }
+    }
+  } // loop end
+  return weights;
+}
+
 
 template <class TInputImage, class TRealType>
 TRealType
@@ -344,6 +430,7 @@ antsSCCANObject<TInputImage, TRealType>
 {
   typedef unsigned long                                ULPixelType;
   typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
+  if ( ImageDimension == 4 ) return this->ConvertImageToVariate4D( image, mask );
 
   ULPixelType maskct = 0;
   Iterator    vfIter( mask, mask->GetLargestPossibleRegion() );
@@ -376,6 +463,63 @@ antsSCCANObject<TInputImage, TRealType>
   }
   return vec;
 }
+
+template <class TInputImage, class TRealType>
+typename antsSCCANObject<TInputImage, TRealType>::VectorType
+antsSCCANObject<TInputImage, TRealType>
+::ConvertImageToVariate4D(  typename TInputImage::Pointer image, typename TInputImage::Pointer mask )
+{
+  typedef unsigned long                                ULPixelType;
+  typename RealImageTypeDminus1::Pointer maskdm1;
+  typedef itk::ExtractImageFilter<TInputImage, RealImageTypeDminus1> ExtractFilterType;
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( mask );
+  extractFilter->SetDirectionCollapseToIdentity();
+  extractFilter->SetDirectionCollapseToSubmatrix();
+  typename ImageType::RegionType extractRegion = mask->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  extractRegion.SetIndex(ImageDimension - 1, 0 );
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  maskdm1 = extractFilter->GetOutput();
+
+  ULPixelType maskct = 0;
+  typedef itk::ImageRegionIteratorWithIndex<RealImageTypeDminus1> Iterator;
+  Iterator    vfIter( maskdm1, maskdm1->GetLargestPossibleRegion() );
+  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+    {
+    RealType maskval = vfIter.Get();
+    if( maskval >= 0.5 )
+      {
+      maskct++;
+      }
+    }
+
+  VectorType vec( maskct * this->m_VecToMaskSize );
+  if ( this->m_Debug ) std::cout << "I2V maskct " << maskct << " VecToMaskSize " << this->m_VecToMaskSize << std::endl;
+  vec.fill( 0 );
+  ULPixelType maskct2 = 0;
+  for ( unsigned int k = 0; k < this->m_VecToMaskSize; k++ ) // loop begin
+  {
+  ULPixelType maskctbase = 0;
+  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+    {
+    RealType maskval = vfIter.Get();
+    if( maskval >= 0.5 )
+      {
+      typename RealImageTypeDminus1::IndexType mind = vfIter.GetIndex();
+      typename ImageType::IndexType ind4d;
+      for ( unsigned int dim = 0; dim < ImageDimension-1; dim++ ) ind4d[ dim ] = mind[ dim ];
+      ind4d[ ImageDimension - 1 ] = k;
+      vec[maskct2] = image->GetPixel( ind4d );
+      maskct2++;
+      maskctbase++;
+      }
+    }
+  }
+  return vec;
+}
+
 
 template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
@@ -5214,7 +5358,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     } // outer loop
     }
   this->SortResults( n_vecs_in );
-  if ( ! m_Silent )
+  //  if ( ! m_Silent )
     {
     std::cout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
     }
