@@ -5448,15 +5448,17 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   bool               energyincreases = true;
   RealType           energy = 0;
   RealType           lastenergy = 0;
+  VectorType gradsteps( n_vecs , basegradstep );
   for ( unsigned int oo = 0; oo < maxloop; oo++ )
   {
   for ( unsigned int k = 0; k < n_vecs; k++ )
     {
+    basegradstep = gradsteps[ k ];
     if ( k == 0 ) this->m_MatrixP =  this->NormalizeMatrix( this->m_OriginalMatrixP, false );
     if ( k == 0 ) this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
     loop=0;
     this->m_GradStep = basegradstep;
-    while( ( ( loop < maxloop ) ) ) // && ( energyincreases )  ) )
+    while( ( ( loop < 5 ) ) ) // && ( energyincreases )  ) )
     {
     // Arnoldi Iteration SCCA
     bool normbycov = true;
@@ -5474,11 +5476,12 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       energyincreases = true;
       }
+    gradsteps[ k ] = this->m_GradStep;
     loop++;
     } // outer loop
     }
   this->SortResults( n_vecs_in );
-  if ( ! m_Silent )
+  //  if ( ! m_Silent )
     {
     std::cout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
     }
