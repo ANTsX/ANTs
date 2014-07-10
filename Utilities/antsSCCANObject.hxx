@@ -436,7 +436,6 @@ antsSCCANObject<TInputImage, TRealType>
     {
     return w_p;
     }
-  std::cout << " w_p in " << w_p.two_norm() << std::endl;
   typedef unsigned long                                                    ULPixelType;
   typedef itk::Image<ULPixelType, ImageDimension>                          labelimagetype;
   typedef TInputImage                                                      InternalImageType;
