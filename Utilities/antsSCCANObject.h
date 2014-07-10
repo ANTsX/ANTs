@@ -1126,8 +1126,8 @@ private:
   MatrixType m_OriginalMatrixPriorROI;
   VectorType ConvertImageToVariate(  ImagePointer image, ImagePointer mask );
   VectorType ConvertImageToVariate4D(  ImagePointer image, ImagePointer mask );
-
   VectorType ClusterThresholdVariate( VectorType &, ImagePointer mask, unsigned int);
+  VectorType ClusterThresholdVariate4D( VectorType &, ImagePointer mask, unsigned int);
 
   bool       m_Debug;
   bool       m_Silent;

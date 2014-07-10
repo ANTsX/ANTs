@@ -324,6 +324,7 @@ antsSCCANObject<TInputImage, TRealType>
     {
     return w_p;
     }
+  if ( ImageDimension == 4 ) return this->ClusterThresholdVariate4D( w_p, mask,  minclust );
   typedef unsigned long                                                    ULPixelType;
   typedef itk::Image<ULPixelType, ImageDimension>                          labelimagetype;
   typedef TInputImage                                                      InternalImageType;
@@ -422,6 +423,126 @@ antsSCCANObject<TInputImage, TRealType>
   // this->m_FractionNonZeroP   << " kept clust size " << keepct << std::endl;
   return w_p;
 }
+
+
+template <class TInputImage, class TRealType>
+typename antsSCCANObject<TInputImage, TRealType>::VectorType
+antsSCCANObject<TInputImage, TRealType>
+::ClusterThresholdVariate4D(  typename antsSCCANObject<TInputImage,
+                                                     TRealType>::VectorType& w_p, typename TInputImage::Pointer mask,
+                            unsigned int minclust )
+{
+  if( minclust <= 1 || mask.IsNull() )
+    {
+    return w_p;
+    }
+  std::cout << " w_p in " << w_p.two_norm() << std::endl;
+  typedef unsigned long                                                    ULPixelType;
+  typedef itk::Image<ULPixelType, ImageDimension>                          labelimagetype;
+  typedef TInputImage                                                      InternalImageType;
+  typedef itk::ImageRegionIteratorWithIndex<labelimagetype>                Iterator;
+  typedef itk::ConnectedComponentImageFilter<TInputImage, labelimagetype>  FilterType;
+  typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype> RelabelType;
+
+  typedef itk::ImageRegionIteratorWithIndex<RealImageTypeDminus1>          fIterator;
+  typename RealImageTypeDminus1::Pointer maskdm1;
+  typedef itk::ExtractImageFilter<TInputImage, RealImageTypeDminus1> ExtractFilterType;
+  typename ExtractFilterType::Pointer extractFilter = ExtractFilterType::New();
+  extractFilter->SetInput( mask );
+  extractFilter->SetDirectionCollapseToIdentity();
+  extractFilter->SetDirectionCollapseToSubmatrix();
+  typename ImageType::RegionType extractRegion = mask->GetLargestPossibleRegion();
+  extractRegion.SetSize(ImageDimension - 1, 0);
+  extractRegion.SetIndex(ImageDimension - 1, 0 );
+  extractFilter->SetExtractionRegion( extractRegion );
+  extractFilter->Update();
+  maskdm1 = extractFilter->GetOutput();
+
+// we assume w_p has been thresholded by another function
+  bool threshold_at_zero = true;
+  typename TInputImage::Pointer image = this->ConvertVariateToSpatialImage( w_p, mask, threshold_at_zero );
+  typename FilterType::Pointer filter = FilterType::New();
+  typename RelabelType::Pointer relabel = RelabelType::New();
+  filter->SetInput( image );
+  filter->SetFullyConnected( 0 );
+  relabel->SetInput( filter->GetOutput() );
+  relabel->SetMinimumObjectSize( 1 );
+  try
+    {
+    relabel->Update();
+    }
+  catch( itk::ExceptionObject & excep )
+    {
+    std::cout << "Relabel: exception caught !" << std::endl;
+    std::cout << excep << std::endl;
+    }
+
+  Iterator                   vfIter( relabel->GetOutput(),  relabel->GetOutput()->GetLargestPossibleRegion() );
+  float                      maximum = relabel->GetNumberOfObjects();
+  std::vector<unsigned long> histogram( (int)maximum + 1);
+  for( int i = 0; i <= maximum; i++ )
+    {
+    histogram[i] = 0;
+    }
+  for(  vfIter.GoToBegin(); !vfIter.IsAtEnd(); ++vfIter )
+    {
+    float vox = vfIter.Get();
+    if( vox > 0 )
+      {
+      if( vox > 0 )
+        {
+        histogram[(unsigned long)vox] = histogram[(unsigned long)vox] + 1;
+        }
+      }
+    }
+
+  // get the largest component's size
+  unsigned long largest_component_size = 0;
+  for( int i = 0; i <= maximum; i++ )
+    {
+    if( largest_component_size < histogram[i] )
+      {
+      largest_component_size = histogram[i];
+      }
+    }
+
+  if(  largest_component_size < minclust )
+    {
+    minclust = largest_component_size - 1;
+    }
+
+//  now create the output vector
+// iterate through the image and set the voxels where  countinlabel[(unsigned
+// long)(labelimage->GetPixel(vfIter.GetIndex()) - min)]
+// is < MinClusterSize
+  unsigned long vecind = 0;
+  for ( unsigned int k = 0; k < this->m_VecToMaskSize; k++ )
+  {
+  fIterator     mIter( maskdm1,  maskdm1->GetLargestPossibleRegion() );
+  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
+    {
+    if( mIter.Get() >= 0.5 )
+      {
+      typename RealImageTypeDminus1::IndexType mind = mIter.GetIndex();
+      typename ImageType::IndexType ind4d;
+      for ( unsigned int dim = 0; dim < ImageDimension-1; dim++ ) ind4d[ dim ] = mind[ dim ];
+      ind4d[ ImageDimension - 1 ] = k;
+      unsigned long clustersize = 0;
+      clustersize = histogram[(unsigned long)(relabel->GetOutput()->GetPixel( ind4d ) )];
+      if( clustersize < minclust )
+	{
+        w_p( vecind ) = 0;
+	}
+      vecind++;
+      }
+    }
+  }// loop
+  this->m_KeptClusterSize = histogram[1]; // only records the size of the largest cluster in the variate
+  //  std::cout << " w_p out " << w_p.two_norm() << " hist " <<  histogram[1] << " nz " << this->CountNonZero( w_p ) << std::endl;
+  return w_p;
+}
+
+
 
 template <class TInputImage, class TRealType>
 typename antsSCCANObject<TInputImage, TRealType>::VectorType
@@ -5358,7 +5479,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     } // outer loop
     }
   this->SortResults( n_vecs_in );
-  //  if ( ! m_Silent )
+  if ( ! m_Silent )
     {
     std::cout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
     }
