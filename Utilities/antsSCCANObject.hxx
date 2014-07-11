@@ -5044,7 +5044,6 @@ bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
   this->m_Debug = false;
-  unsigned int changegradct = 0;
   bool secondSO = false;
   //  for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
@@ -5155,10 +5154,10 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( secondSO ) this->SparsifyOther( qproj );
     VectorType qproj2 = this->m_MatrixQ * qveck; 
     if ( secondSO ) this->SparsifyOther( qproj2 );
-    RealType corr0 = this->PearsonCorr( pproj , qproj  );
-    RealType corr1 = this->PearsonCorr( pproj2 , qproj2  );
-    RealType corr2 = this->PearsonCorr( pproj, qproj );
-    RealType corr3 = this->PearsonCorr( pproj2, qproj2  );
+    RealType corr0 = this->RPearsonCorr( pproj , qproj  );
+    RealType corr1 = this->RPearsonCorr( pproj2 , qproj2  );
+    RealType corr2 = this->RPearsonCorr( pproj, qproj );
+    RealType corr3 = this->RPearsonCorr( pproj2, qproj2  );
     if( corr1 > corr0 )
       {
       this->m_VariatesP.set_column( k, pveck  );
@@ -5186,7 +5185,7 @@ bool antsSCCANObject<TInputImage, TRealType>
       }
     else if( allowchange )
       {
-      changegradct++;
+      this->m_GradStep *= 0.5;
       if( this->m_Debug )
         {
         std::cout << " corr0 " << corr0 <<  " v " << corr1 << " NewGrad " << this->m_GradStep <<  std::endl;
@@ -5198,9 +5197,8 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( secondSO ) this->SparsifyOther( proj1 );
     VectorType proj2 =  this->m_MatrixQ * this->m_VariatesQ.get_column( k );
     if ( secondSO ) this->SparsifyOther( proj2 );
-    this->m_CanonicalCorrelations[k] = this->PearsonCorr( proj1, proj2  );
+    this->m_CanonicalCorrelations[k] = this->RPearsonCorr( proj1, proj2  );
     }
-  if ( changegradct >= ( n_vecs )   ) this->m_GradStep *= 0.5;
   // this->SortResults( n_vecs );
   return this->m_CanonicalCorrelations.mean();
 }
@@ -5458,15 +5456,13 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     if ( k == 0 ) this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
     loop=0;
     this->m_GradStep = basegradstep;
-    while( ( ( loop < 5 ) ) ) // && ( energyincreases )  ) )
+    while( ( ( loop < 1 ) ) ) // && ( energyincreases )  ) )
     {
     // Arnoldi Iteration SCCA
     bool normbycov = true;
-    if ( !normbycov && loop == 0 ) this->m_GradStep *= 1.e-8;
     bool changedgrad = this->CCAUpdate( n_vecs_in, true , normbycov, k );
     lastenergy = energy;
     energy = this->m_CanonicalCorrelations.one_norm() / ( float ) n_vecs_in;
-    // if( this->m_Debug )
     if( this->m_GradStep < 1.e-12 ) // || ( vnl_math_abs( energy - lastenergy ) < this->m_Epsilon  && !changedgrad ) )
       {
       energyincreases = false;
@@ -5483,7 +5479,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   this->SortResults( n_vecs_in );
   //  if ( ! m_Silent )
     {
-    std::cout << " Loop " << loop << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
+    std::cout << " Loop " << oo << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
     }
   } // oo
   //  this->RunDiagnostics(n_vecs);
