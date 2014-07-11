@@ -76,6 +76,7 @@ set(BASE_ANTS_APPS
   MeasureImageSimilarity
   ConvertToJpg
   ConvertImagePixelType
+  ConvertInputImagePixelTypeToFloat
   AverageImages
   AverageTensorImages
   ImageSetStatistics
@@ -124,6 +125,7 @@ set(BASE_ANTS_APPS
   antsApplyTransformsToPoints
   CompositeTransformUtil
   antsMotionCorr
+  antsMotionCorrDiffusionDirection
   sccan
   CreateDisplacementField
   ANTSIntegrateVectorField

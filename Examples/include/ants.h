@@ -21,6 +21,8 @@
 
 #include "antsMotionCorr.h"
 
+#include "antsMotionCorrDiffusionDirection.h"
+
 #include "antsRegistration.h"
 
 #include "antsSurf.h"
@@ -54,6 +56,8 @@
 #include "ConformalMapping.h"
 
 #include "ConvertImagePixelType.h"
+
+#include "ConvertInputImagePixelTypeToFloat.h"
 
 #include "ConvertScalarImageToRGB.h"
 

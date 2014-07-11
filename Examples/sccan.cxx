@@ -77,37 +77,9 @@ void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vect
       }
     }
 
-  typename TImage::Pointer weights =
-    AllocImage<TImage>(mask, itk::NumericTraits<PixelType>::Zero);
-
-  // overwrite weights with vector values;
-  unsigned long vecind = 0;
-  typedef itk::ImageRegionIteratorWithIndex<TImage> Iterator;
-  Iterator mIter(mask, mask->GetLargestPossibleRegion() );
-  for(  mIter.GoToBegin(); !mIter.IsAtEnd(); ++mIter )
-    {
-    if( mIter.Get() >= 0.5 )
-      {
-      TComp val = 0;
-      if( vecind < w_p.size() )
-        {
-        val = w_p(vecind);
-        }
-      else
-        {
-        std::cerr << "vecind too large " << vecind << " vs " << w_p.size() << std::endl;
-        std::cerr << " this is likely a mask problem --- exiting! " << std::endl;
-        throw std::exception();
-        }
-      //        std::cout << " val " << val << std::endl;
-      weights->SetPixel(mIter.GetIndex(), val);
-      vecind++;
-      }
-    else
-      {
-      mIter.Set(0);
-      }
-    }
+  typedef itk::ants::antsSCCANObject<TImage, TComp> SCCANType;
+  typename SCCANType::Pointer sccanobj = SCCANType::New();
+  typename TImage::Pointer weights =  sccanobj->ConvertVariateToSpatialImage(  w_p,  mask );
   std::string fn1 = filepre + post + extension;
   WriteImage<TImage>( weights, fn1.c_str() );
 }
