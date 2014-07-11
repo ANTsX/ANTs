@@ -158,7 +158,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   else if( inputImageType == 2 && inputOption && inputOption->GetNumberOfFunctions() )
     {
     std::cout << "Input tensor image: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
-    ReadTensorImage<TensorImageType>( tensorImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str(), false );
+    ReadTensorImage<TensorImageType>( tensorImage, ( inputOption->GetFunction( 0 )->GetName() ).c_str(), true );
     }
   else if( inputImageType == 0 && inputOption && inputOption->GetNumberOfFunctions() )
     {
@@ -506,7 +506,7 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
             }
           It.Set( tensor );
           }
-        WriteTensorImage<TensorImageType>( outputTensorImage, ( outputFileName ).c_str(), false );
+        WriteTensorImage<TensorImageType>( outputTensorImage, ( outputFileName ).c_str(), true );
         }
       else if( inputImageType == 3 )
         {
