@@ -5437,7 +5437,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
  
   unsigned int       maxloop = this->m_MaximumNumberOfIterations;
-  unsigned ing       innerloop = 1;
+  unsigned int       innerloop = 1;
   unsigned int       loop = 0;
   bool               energyincreases = true;
   RealType           energy = 0;
@@ -5457,7 +5457,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     if ( k == 0 ) this->m_MatrixQ =  this->NormalizeMatrix( this->m_OriginalMatrixQ, false );
     loop=0;
     this->m_GradStep = basegradstep;
-    while( ( ( loop < innerloopct ) ) ) // && ( energyincreases )  ) )
+    while( ( ( loop < innerloop ) ) ) // && ( energyincreases )  ) )
     {
     // Arnoldi Iteration SCCA
     bool normbycov = true;
