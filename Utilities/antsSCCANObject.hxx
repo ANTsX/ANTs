@@ -680,12 +680,7 @@ antsSCCANObject<TInputImage, TRealType>
     return vec;
     } 
   RealType vecnorm = vec.two_norm();
-  //  vec = this->m_OriginalMatrixP.get_row(0);
-  //  std::cout << " vec " << vec[1] << " " << vec[100] << " " << vec[1000] << std::endl;
   ImagePointer image = this->ConvertVariateToSpatialImage( vec, mask, false );
-  // WriteImage<ImageType>( image , "ccaout.nii.gz" );
-  typename TInputImage::SizeType dim =
-    mask->GetLargestPossibleRegion().GetSize();
   RealType     spacingsize = 0;
   for( unsigned int d = 0; d < ImageDimension; d++ )
     {
@@ -709,7 +704,7 @@ antsSCCANObject<TInputImage, TRealType>
     VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
     return gradvec;
     }
-  if ( ( surface )  && ( dim[2] == 3 ) )
+  if ( ( surface )  && ( ImageDimension == 3 ) )
     {
   unsigned int sigma = ( unsigned int ) this->m_Smoother;
   if (  this->m_Smoother > 0.0001 )

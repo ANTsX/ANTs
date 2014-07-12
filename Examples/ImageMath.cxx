@@ -3495,6 +3495,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
       for( unsigned int t = 0; t < timedims; t++ )
         {
 	typename MatrixImageType::IndexType matind;
+	matind.Fill(0);
 	matind[1] = t;
 	matind[2] = voxct;
         tind[ImageDimension - 1] = t;
