@@ -260,6 +260,11 @@ private:
       N3BiasFieldCorrection<3>( argc, argv );
       }
       break;
+    case 4:
+      {
+      N3BiasFieldCorrection<4>( argc, argv );
+      }
+      break;
     default:
       std::cout << "Unsupported dimension" << std::endl;
       return EXIT_FAILURE;
