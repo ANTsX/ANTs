@@ -1447,7 +1447,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     sccanparser->GetOption( "mask" );
   if( !initOpt || initOpt->GetNumberOfFunctions() == 0 ||  !maskOpt || maskOpt->GetNumberOfFunctions() == 0 )
     {
-    itkDebugMacro( "Warning:  no Q initialization set, will use data-driven approach." << std::endl );
+    itkDebugStatement(std::cerr << "Warning:  no Q initialization set, will use data-driven approach." << std::endl );
     }
   else
     {
@@ -1466,7 +1466,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
     sccanparser->GetOption( "mask2" );
   if( !init2Opt || init2Opt->GetNumberOfFunctions() == 0 ||  !mask2Opt || mask2Opt->GetNumberOfFunctions() == 0 )
     {
-    itkDebugMacro( "Warning:  no Q initialization set, will use data-driven approach." << std::endl );
+    itkDebugStatement(std::cerr << "Warning:  no Q initialization set, will use data-driven approach." << std::endl );
     }
   else
     {

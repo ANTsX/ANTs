@@ -14877,7 +14877,7 @@ private:
         {
         MajorityVoting<3>(argc, argv);
         }
-      else if( strcmp(operation.c_str(), "MostLikely") == 0 )
+      if( strcmp(operation.c_str(), "MostLikely") == 0 )
         {
         MostLikely<3>(argc, argv);
         }
