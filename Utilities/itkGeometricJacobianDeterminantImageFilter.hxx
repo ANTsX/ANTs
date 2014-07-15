@@ -181,13 +181,13 @@ GeometricJacobianDeterminantImageFilter<TInputImage, TRealType, TOutputImage>
   this->m_DeltaTriangularPointB.Fill( 0.0 );
   this->m_DeltaTriangularPointC.Fill( 0.0 );
 
-  this->m_DeltaTriangularPointA[1] = 0.25 * vcl_sqrt( 3 ) * spacing[1];
+  this->m_DeltaTriangularPointA[1] = 0.25 * vcl_sqrt( 3.0 ) * spacing[1];
 
   this->m_DeltaTriangularPointB[0] = -0.5 * spacing[0];
-  this->m_DeltaTriangularPointB[1] = -0.25 * vcl_sqrt( 3 ) * spacing[1];
+  this->m_DeltaTriangularPointB[1] = -0.25 * vcl_sqrt( 3.0 ) * spacing[1];
 
   this->m_DeltaTriangularPointC[0] = 0.5 * spacing[0];
-  this->m_DeltaTriangularPointC[1] = -0.25 * vcl_sqrt( 3 ) * spacing[1];
+  this->m_DeltaTriangularPointC[1] = -0.25 * vcl_sqrt( 3.0 ) * spacing[1];
 }
 
 

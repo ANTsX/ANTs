@@ -327,7 +327,7 @@ int lfapp(int argc, char *argv[])
     cout<<"MaxV: "<<MaxV<<endl;
     if ((int)GroupSet.size()!=MaxV+1)
     {
-      int tmap[MaxV+1];
+      int *tmap = new int[MaxV+1];
       int tc=-1;
       for (set<int>::iterator it = GroupSet.begin(); it != GroupSet.end(); ++it)
       {
@@ -339,7 +339,7 @@ int lfapp(int argc, char *argv[])
         p.AtlasGroupID[i] = tmap[p.AtlasGroupID[i]];
         cout<<p.AtlasGroupID[i]<<" : ";
       }
-//      delete tmap;
+      delete [] tmap;
     }
 cout<<999<<endl;
     if (p.GroupWeight.size()!=GroupSet.size())

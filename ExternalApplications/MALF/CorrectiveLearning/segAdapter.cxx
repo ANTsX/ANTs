@@ -498,10 +498,14 @@ int main( int argc, char * * argv )
             {
             for( l = -DZ; l < DZ + 1; l++ )
               {
-              X[C++] = autosegnit.GetPixel( (NeighborhoodIteratorType::OffsetType) {{j, k, l}});
+              NeighborhoodIteratorType::OffsetType offset;
+              offset[0] = j;
+              offset[1] = k;
+              offset[2] = l;
+              X[C++] = autosegnit.GetPixel(offset);
               for( size_t it = 0; it < ims.size(); it++ )
                 {
-                X[C++] = imnits[it].GetPixel( (NeighborhoodIteratorType::OffsetType) {{j, k, l}});
+                X[C++] = imnits[it].GetPixel(offset);
                 }
               }
             }
