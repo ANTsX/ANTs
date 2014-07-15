@@ -1166,6 +1166,7 @@ CORTICAL_THICKNESS_IMAGE_RESAMPLED="${OUTPUT_PREFIX}CorticalThicknessHotResample
 CORTICAL_THICKNESS_IMAGE_RGB="${OUTPUT_PREFIX}CorticalThicknessHotRGB.nii.gz"
 CORTICAL_THICKNESS_MOSAIC="${OUTPUT_PREFIX}CorticalThicknessTiledMosaic.png"
 CORTICAL_THICKNESS_MASK="${OUTPUT_PREFIX}CorticalThicknessMask.${OUTPUT_SUFFIX}"
+BRAIN_EXTRACTION_MASK_RESAMPLED="${OUTPUT_PREFIX}BrainExtractionMaskResampled.nii.gz"
 BRAIN_SEGMENTATION_IMAGE_RESAMPLED="${OUTPUT_PREFIX}BrainSegmentationResampled.nii.gz"
 BRAIN_SEGMENTATION_IMAGE_RGB="${OUTPUT_PREFIX}BrainSegmentationRGB.nii.gz"
 BRAIN_SEGMENTATION_MOSAIC="${OUTPUT_PREFIX}BrainSegmentationTiledMosaic.png"
@@ -1174,10 +1175,12 @@ ITKSNAP_COLORMAP="${OUTPUT_PREFIX}ItkSnapColormap.txt"
 if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
   then
     TMP_FILES=( $CORTICAL_THICKNESS_IMAGE_RGB $CORTICAL_THICKNESS_MASK $BRAIN_SEGMENTATION_IMAGE_RGB $ITKSNAP_COLORMAP )
-    TMP_FILES=( ${TMP_FILES[@]} $HEAD_N4_IMAGE_RESAMPLED $CORTICAL_THICKNESS_IMAGE_RESAMPLED $BRAIN_SEGMENTATION_IMAGE_RESAMPLED )
+    TMP_FILES=( ${TMP_FILES[@]} $HEAD_N4_IMAGE_RESAMPLED $CORTICAL_THICKNESS_IMAGE_RESAMPLED $BRAIN_EXTRACTION_MASK_RESAMPLED $BRAIN_SEGMENTATION_IMAGE_RESAMPLED )
 
     # Resample images
 
+    resample0="${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${BRAIN_EXTRACTION_MASK}"
+    resample0="${resample0} ${BRAIN_EXTRACTION_MASK_RESAMPLED} 1 1"
     resample1="${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${HEAD_N4_IMAGE}"
     resample1="${resample1} ${HEAD_N4_IMAGE_RESAMPLED} 1 1"
     resample2="${ANTSPATH}/ResampleImageBySpacing ${DIMENSION} ${CORTICAL_THICKNESS_IMAGE}"
@@ -1186,12 +1189,15 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
     resample3="${resample3} ${BRAIN_SEGMENTATION_IMAGE_RESAMPLED} 1 1"
     if [[ ${DIMENSION} -eq 3 ]];
       then
+        resample0="${resample0} 1 0 0 1"
         resample1="${resample1} 1"
         resample2="${resample2} 1"
         resample3="${resample3} 1 0 0 1"
       else
+        resample0="${resample0} 0 0 1"
         resample3="${resample3} 0 0 1"
       fi
+    logCmd $resample0
     logCmd $resample1
     logCmd $resample2
     logCmd $resample3
@@ -1222,7 +1228,7 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
 
     mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${BRAIN_SEGMENTATION_IMAGE_RGB}"
     mosaic="${mosaic} -o ${BRAIN_SEGMENTATION_MOSAIC} -a 0.3 -t -1x-1 -d 2 -p mask+2"
-    mosaic="${mosaic} -s [2,mask-2,mask+2] -x ${BRAIN_EXTRACTION_MASK}"
+    mosaic="${mosaic} -s [2,mask-2,mask+2] -x ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
     logCmd $mosaic
 
 
