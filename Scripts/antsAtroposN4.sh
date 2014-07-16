@@ -114,15 +114,15 @@ PARAMETERS
 # Will immediately exit on error unless you set debug flag
 DEBUG_MODE=0
 
+DEBUG_MODE=0
+
 function logCmd() {
   cmd="$*"
   echo "BEGIN >>>>>>>>>>>>>>>>>>>>"
   echo $cmd
+  $cmd
 
-  exec 5>&1
-  logCmdOutput=$( $cmd | tee >(cat - >&5) )
-
-  cmdExit=${PIPESTATUS[0]}
+  cmdExit=$?
 
   if [[ $cmdExit -gt 0 ]];
     then
@@ -141,7 +141,6 @@ function logCmd() {
 
   return $cmdExit
 }
-
 
 ################################################################################
 #
