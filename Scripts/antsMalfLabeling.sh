@@ -430,6 +430,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -t ${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat"
 
     WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}Warped.nii.gz"
+    INVERSE_WARPED_ATLAS_IMAGES[${#INVERSE_WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}InverseWarped.nii.gz"
     WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz"
     WARP_FIELDS[${#WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz"
     INVERSE_WARP_FIELDS[${#INVERSE_WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1InverseWarp.nii.gz"
@@ -550,6 +551,7 @@ rm -f ${OUTPUT_DIR}/job_*.sh
 if [[ $KEEP_ALL_IMAGES -eq 0 ]];
   then
     rm -f ${WARPED_ATLAS_IMAGES[@]}
+    rm -f ${INVERSE_WARPED_ATLAS_IMAGES[@]}
     rm -f ${WARPED_ATLAS_LABELS[@]}
     rm -f ${AFFINE_FILES[@]}
     rm -f ${WARP_FIELDS[@]}
