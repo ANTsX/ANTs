@@ -5626,6 +5626,7 @@ int TensorFunctions(int argc, char *argv[])
   std::string       operation = std::string(argv[argct]);  argct++;
   std::string       fn1 = std::string(argv[argct]);   argct++;
   std::string       fn2 = ""; // used for whichvec and mask file name below
+  float             backgroundMD = 0.0; // mean diffusivity of isotropic background voxels 
 
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
@@ -5844,6 +5845,11 @@ int TensorFunctions(int argc, char *argv[])
     whichvec = atoi(fn2.c_str() );
     argct++;
     }
+  if ( argc > argct )
+    {
+    backgroundMD = atof( std::string(argv[argct]).c_str() );
+    argct++;
+    }
 
   ReadTensorImage<TensorImageType>(timage, fn1.c_str(), false);
 
@@ -5870,7 +5876,6 @@ int TensorFunctions(int argc, char *argv[])
   else if( strcmp(operation.c_str(), "TensorMask") == 0 )
     {
     std::cout << "Using mask image: " << fn2 << std::endl;
-
     ReadImage<ImageType>(mimage, fn2.c_str() );
 
     typename TensorImageType::PixelType zero;
@@ -5897,11 +5902,20 @@ int TensorFunctions(int argc, char *argv[])
     vimage = AllocImage<ImageType>(timage);
     }
 
-  TensorType zeroTensor;  // for masking background tensors
+  TensorType backgroundTensor;  // for masking background tensors
   for( unsigned int i = 0; i < 6; i++ )
     {
-    zeroTensor[i] = 0.0;
+    backgroundTensor[i] = 0.0;
     }
+  
+  if ( backgroundMD > 0.0 ) 
+    {
+    std::cout << "Setting background voxels to isotropic tensors with mean diffusivity " << backgroundMD << std::endl;
+    backgroundTensor[0] = backgroundMD;
+    backgroundTensor[3] = backgroundMD;
+    backgroundTensor[5] = backgroundMD;
+    }
+
 
   RGBType rgbZero;
 
@@ -6007,7 +6021,7 @@ int TensorFunctions(int argc, char *argv[])
         }
       else
         {
-        toimage->SetPixel( ind, zeroTensor );
+        toimage->SetPixel( ind, backgroundTensor );
         }
 
       }
@@ -14238,7 +14252,6 @@ ImageMathHelperAll(int argc, char **argv)
     Project<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
-  std::cout << " cannot find operation : " << operation << std::endl;
   return EXIT_FAILURE;
 }
 
@@ -14296,7 +14309,7 @@ ImageMathHelper<4>(int argc, char **argv)
     }
   if(returnval == EXIT_FAILURE)
     {
-    returnval = ImageMathHelper3DOr4D<3>(argc,argv);
+    returnval = ImageMathHelper3DOr4D<4>(argc,argv);
     }
   return returnval;
 }
@@ -14534,8 +14547,8 @@ private:
       "  TensorToVectorComponent: 0 => 2 produces component of the principal vector field (largest eigenvalue). 3 = 8 => gets values from the tensor "
       << std::endl;
     std::cout << "    Usage        : TensorToVectorComponent DTImage.ext WhichVec" << std::endl;
-    std::cout << "  TensorMask     : Mask a tensor image, sets background tensors to zero " << std::endl;
-    std::cout << "    Usage        : TensorMask DTImage.ext mask.ext" << std::endl;
+    std::cout << "  TensorMask     : Mask a tensor image, sets background tensors to zero or to isotropic tensors with specified mean diffusivity " << std::endl;
+    std::cout << "    Usage        : TensorMask DTImage.ext mask.ext [ backgroundMD = 0 ] " << std::endl;
 
     std::cout << "\nLabel Fusion:" << std::endl;
     std::cout << "  MajorityVoting : Select label with most votes from candidates" << std::endl;
@@ -14850,7 +14863,9 @@ private:
 
   std::string operation = std::string(argv[3]);
 
-  switch( atoi(argv[1]) )
+  unsigned int imageDimension = atoi(argv[1]);
+
+  switch( imageDimension )
     {
     case 2:
       returnvalue = ImageMathHelper<2>(argc,argv);
@@ -14859,12 +14874,18 @@ private:
       returnvalue = ImageMathHelper<3>(argc,argv);
       break;
     case 4:
-      returnvalue = ImageMathHelper<3>(argc,argv);
+      returnvalue = ImageMathHelper<4>(argc,argv);
       break;
     default:
-      std::cout << " Dimension Not supported " << atoi(argv[1]) << std::endl;
-      returnvalue = EXIT_FAILURE;
+      std::cout << " Dimension " << imageDimension << " is not supported " << std::endl;
+      return EXIT_FAILURE;
     }
+
+    if ( returnvalue == EXIT_FAILURE )
+      {
+      std::cout << " Operation " << operation << " not found or not supported for dimension " << imageDimension << std::endl;
+      }
+
   return returnvalue;
 }
 
