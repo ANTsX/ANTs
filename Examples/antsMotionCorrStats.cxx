@@ -320,7 +320,7 @@ private:
 
   parser->SetCommand( argv[0] );
 
-  std::string commandDescription = std::string( "antsMotionCorrStats - create summary measures of the parameters that are output by antsMotionCorr. Currently only works for linear transforms. Outputs the means and max displacements for the voxels within a provided mask, at each time points. By default the displacements are relative to the reference space, but the framewise options may be used to provide displacements between consecutive time points" );
+  std::string commandDescription = std::string( "antsMotionCorrStats - create summary measures of the parameters that are output by antsMotionCorr. Currently only works for linear transforms. Outputs the mean and max displacements for the voxels within a provided mask, at each time point. By default the displacements are relative to the reference space, but the framewise option may be used to provide displacements between consecutive time points" );
   parser->SetCommandDescription( commandDescription );
   antsMotionCorrStatsInitializeCommandLineOptions( parser );
 
