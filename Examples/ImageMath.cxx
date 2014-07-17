@@ -4806,7 +4806,10 @@ int Stack2Images(int argc, char *argv[])
     }
 
   itk::FixedArray< unsigned int, ImageDimension > layout;
-  for ( unsigned int i = 0; i < (ImageDimension-1); i++ ) layout[i]=1;
+  for ( unsigned int i = 0; i < (ImageDimension-1); i++ )
+    {
+    layout[i]=1;
+    }
   layout[ ImageDimension - 1 ] = 0;
   typedef itk::TileImageFilter <ImageType, ImageType >
     TileImageFilterType;
@@ -13478,6 +13481,826 @@ int MatchBlobs( int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
+//
+// ImageMath was a gigantic switch statement that had 3 duplicated
+// lists of 'if (operation == <op>)' clauses for 2d, 3d, and 4d. I
+// figured out which functions were 2D only, 3D only and 4D Only,
+// which were valid for all dimensions,  which were 2d and 3d, and
+// which were 3d and 4d.
+// So there's a template method for each case, and they're assembled
+// for each dimension in an Explicit Template Function below.
+template<unsigned DIM>
+int
+ImageMathHelper2DOnly(int argc, char **argv)
+{
+  std::string operation = std::string(argv[3]);
+  if( operation == "TileImages" )
+    {
+    TileImages<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesRegionCorr" )
+    {
+    TimeSeriesRegionCorr<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesRegionSCCA" )
+    {
+    TimeSeriesRegionSCCA<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  return EXIT_FAILURE;
+}
+
+template <unsigned DIM>
+int
+ImageMathHelper2DOr3D(int argc, char **argv)
+{
+  std::string operation = std::string(argv[3]);
+  if( operation == "AverageLabels" )
+    {
+    AverageLabels<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Check3TissueLabeling" )
+    {
+    Check3TissueLabeling<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "oldPropagateLabelsThroughMask" )
+    {
+    PropagateLabelsThroughMask<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "SetOrGetPixel" )
+    {
+    SetOrGetPixel<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "STAPLE" )
+    {
+    STAPLE<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  return EXIT_FAILURE;
+}
+
+template <unsigned DIM>
+int
+ImageMathHelper3DOr4D(int argc, char **argv)
+{
+  std::string operation = std::string(argv[3]);
+  if( operation == "ConvertLandmarkFile" )
+    {
+    ConvertLandmarkFile<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "FitSphere" )
+    {
+    FitSphere<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PASLQuantifyCBF" )
+    {
+    PASLQuantifyCBF<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PASL" )
+    {
+    PASL<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "pCASL" )
+    {
+    pCASL<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TriPlanarView" )
+    {
+    TriPlanarView<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  return EXIT_FAILURE;
+}
+
+template <unsigned DIM>
+int
+ImageMathHelper3DOnly(int argc, char **argv)
+{
+  std::string operation = std::string(argv[3]);
+  if( operation == "4DTensorTo3DTensor" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ComponentTo3DTensor" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ExtractComponentFrom3DTensor" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MTR" )
+    {
+    MTR<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "SmoothTensorImage" )
+    {
+    SmoothTensorImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorAxialDiffusion" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorColor" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorEigenvalue" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorFA" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorFANumerator" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorFADenominator" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorIOTest" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorMask" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorMeanDiffusion" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorRadialDiffusion" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorToLocalSpace" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorToPhysicalSpace" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorToVectorComponent" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TensorToVector" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ValidTensor" )
+    {
+    TensorFunctions<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  return EXIT_FAILURE;
+}
+
+template <unsigned DIM>
+int
+ImageMathHelper4DOnly(int argc, char **argv)
+{
+  std::string operation = std::string(argv[3]);
+  if( operation == "AverageOverDimension" )
+    {
+    AverageOverDimension<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CompCorrAuto" )
+    {
+    CompCorrAuto<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ComputeTimeSeriesLeverage" )
+    {
+    ComputeTimeSeriesLeverage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "nvols" )
+    {
+    PrintHeader<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PCASLQuantifyCBF" )
+    {
+    // PCASLQuantifyCBF<4>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "SliceTimingCorrection" )
+    {
+    SliceTimingCorrection<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "SplitAlternatingTimeSeries" )
+    {
+    SplitAlternatingTimeSeries<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ThreeTissueConfounds" )
+    {
+    ThreeTissueConfounds<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesAssemble" )
+    {
+    TimeSeriesAssemble<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesDisassemble" )
+    {
+    TimeSeriesDisassemble<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesInterpolationSubtraction" )
+    {
+    TimeSeriesInterpolationSubtraction<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesSimpleSubtraction" )
+    {
+    TimeSeriesSimpleSubtraction<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesSubset" )
+    {
+    TimeSeriesSubset<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesToMatrix" )
+    {
+    TimeSeriesToMatrix<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  return EXIT_FAILURE;
+}
+
+template <unsigned DIM>
+int
+ImageMathHelperAll(int argc, char **argv)
+{
+  std::string operation = std::string(argv[3]);
+  if( operation == "m")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "mresample")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "+")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "-")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "vm")
+    {
+    VImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "vmresample")
+    {
+    VImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "v+")
+    {
+    VImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "v-")
+    {
+    VImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "/")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "^")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "exp")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "max")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "abs")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "addtozero")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "overadd")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "total")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "vtotal")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "mean")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Decision")
+    {
+    ImageMath<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Neg")
+    {
+    NegativeImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "G")
+    {
+    SmoothImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PeronaMalik")
+    {
+    PMSmoothImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "InPaint")
+    {
+    InPaint<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MD" || operation == "ME" )
+    {
+    MorphImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MO" || operation == "MC" )
+    {
+    MorphImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "GD" || operation == "GE" )
+    {
+    MorphImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "GO" || operation == "GC" )
+    {
+    MorphImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "D" )
+    {
+    DistanceMap<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MaurerDistance"  )
+    {
+    GenerateMaurerDistanceImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Normalize" )
+    {
+    NormalizeImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Grad" )
+    {
+    GradientImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Laplacian" )
+    {
+    LaplacianImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PH" )
+    {
+    PrintHeader<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CenterImage2inImage1" )
+    {
+    CenterImage2inImage1<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Byte" )
+    {
+    ByteImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ReflectionMatrix" )
+    {
+    ReflectionMatrix<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ClosestSimplifiedHeaderMatrix" )
+    {
+    ClosestSimplifiedHeaderMatrix<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "LabelStats" )
+    {
+    LabelStats<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ROIStatistics" )
+    {
+    ROIStatistics<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "LabelThickness" )
+    {
+    LabelThickness<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "LabelThickness2" )
+    {
+    LabelThickness2<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "DiceAndMinDistSum" )
+    {
+    DiceAndMinDistSum<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Lipschitz" )
+    {
+    Lipschitz<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "InvId" )
+    {
+    InvId<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "GetLargestComponent" )
+    {
+    GetLargestComponent<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ExtractVectorComponent" )
+    {
+    ExtractVectorComponent<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ThresholdAtMean" )
+    {
+    ThresholdAtMean<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "FlattenImage" )
+    {
+    FlattenImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CorruptImage" )
+    {
+    CorruptImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Where" )
+    {
+    Where<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if(  operation == "Finite" )
+    {
+    Finite<DIM>( argc, argv );
+    return EXIT_SUCCESS;
+    }
+  if( operation == "FillHoles" )
+    {
+    FillHoles<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "HistogramMatch" )
+    {
+    HistogramMatching<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "RescaleImage" )
+    {
+    RescaleImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "NeighborhoodStats" )
+    {
+    NeighborhoodStats<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PadImage" )
+    {
+    PadImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "SigmoidImage" )
+    {
+    SigmoidImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Sharpen" )
+    {
+    SharpenImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MakeImage" )
+    {
+    MakeImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "stack" )
+    {
+    StackImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "stack2" )
+    {
+    Stack2Images<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CompareHeadersAndImages" )
+    {
+    CompareHeadersAndImages<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CountVoxelDifference" )
+    {
+    CountVoxelDifference<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "RemoveLabelInterfaces" )
+    {
+    RemoveLabelInterfaces<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ReplaceVoxelValue" )
+    {
+    ReplaceVoxelValue<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PoissonDiffusion" )
+    {
+    PoissonDiffusion<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "EnumerateLabelInterfaces" )
+    {
+    EnumerateLabelInterfaces<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ConvertImageToFile" )
+    {
+    ConvertImageToFile<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PValueImage" )
+    {
+    PValueImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CorrelationUpdate" )
+    {
+    CorrelationUpdate<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ConvertImageSetToMatrix" )
+    {
+    ConvertImageSetToMatrix<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "RandomlySampleImageSetToCSV" )
+    {
+    RandomlySampleImageSetToCSV<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ConvertImageSetToEigenvectors" )
+    {
+    ConvertImageSetToEigenvectors<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ConvertVectorToImage" )
+    {
+    ConvertVectorToImage<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PropagateLabelsThroughMask" )
+    {
+    itkPropagateLabelsThroughMask<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "FastMarchingSegmentation" )
+    {
+    FastMarchingSegmentation<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TruncateImageIntensity" )
+    {
+    TruncateImageIntensity<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ExtractSlice" )
+    {
+    ExtractSlice<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "ClusterThresholdVariate" )
+    {
+    ClusterThresholdVariate<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MajorityVoting" )
+    {
+    MajorityVoting<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MostLikely" )
+    {
+    MostLikely<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "CorrelationVoting" )
+    {
+    CorrelationVoting<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PearsonCorrelation" )
+    {
+    PearsonCorrelation<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Translate" )
+    {
+    Translate<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "NeighborhoodCorrelation" )
+    {
+    ImageMetrics<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "NormalizedCorrelation" )
+    {
+    ImageMetrics<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Demons" )
+    {
+    ImageMetrics<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Mattes" )
+    {
+    return ImageMetrics<DIM>(argc, argv);
+    }
+  if( operation == "MinMaxMean" )
+    {
+    MinMaxMean<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "PureTissueN4WeightMask" )
+    {
+    PureTissueN4WeightMask<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "BlobDetector" )
+    {
+    BlobDetector<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "MatchBlobs" )
+    {
+    MatchBlobs<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "Project" )
+    {
+    Project<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  std::cout << " cannot find operation : " << operation << std::endl;
+  return EXIT_FAILURE;
+}
+
+template <unsigned DIM>
+int
+ImageMathHelper(int argc, char **argv)
+{
+  return 1;
+}
+
+template <>
+int
+ImageMathHelper<2>(int argc, char **argv)
+{
+  int returnval = ImageMathHelperAll<2>(argc,argv);
+  if(returnval == EXIT_FAILURE)
+    {
+    returnval = ImageMathHelper2DOnly<2>(argc,argv);
+    }
+  if(returnval == EXIT_FAILURE)
+    {
+    returnval = ImageMathHelper2DOr3D<2>(argc,argv);
+    }
+  return returnval;
+}
+
+template <>
+int
+ImageMathHelper<3>(int argc, char **argv)
+{
+  int returnval = ImageMathHelperAll<3>(argc,argv);
+  if(returnval == EXIT_FAILURE)
+    {
+    returnval = ImageMathHelper3DOnly<3>(argc,argv);
+    }
+  if(returnval == EXIT_FAILURE)
+    {
+    returnval = ImageMathHelper2DOr3D<3>(argc,argv);
+    }
+  if(returnval == EXIT_FAILURE)
+    {
+    returnval = ImageMathHelper3DOr4D<3>(argc,argv);
+    }
+  return returnval;
+}
+
+template <>
+int
+ImageMathHelper<4>(int argc, char **argv)
+{
+  int returnval = ImageMathHelperAll<4>(argc,argv);
+  if(returnval == EXIT_FAILURE)
+    {
+    returnval = ImageMathHelper4DOnly<4>(argc,argv);
+    }
+  if(returnval == EXIT_FAILURE)
+    {
+    returnval = ImageMathHelper3DOr4D<3>(argc,argv);
+    }
+  return returnval;
+}
+
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
 // 'main()'
 int ImageMath( std::vector<std::string> args, std::ostream * itkNotUsed( out_stream ) )
@@ -14030,1390 +14853,13 @@ private:
   switch( atoi(argv[1]) )
     {
     case 2:
-      {
-      if( strcmp(operation.c_str(), "m") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mresample") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "+") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "-") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vm") == 0 )
-        {
-        VImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vmresample") == 0 )
-        {
-        VImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "v+") == 0 )
-        {
-        VImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "v-") == 0 )
-        {
-        VImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "/") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "^") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "exp") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "max") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "abs") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "addtozero") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "overadd") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "total") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vtotal") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mean") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Decision") == 0 )
-        {
-        ImageMath<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Neg") == 0 )
-        {
-        NegativeImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "G") == 0 )
-        {
-        SmoothImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PeronaMalik") == 0 )
-        {
-        PMSmoothImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InPaint") == 0 )
-        {
-        InPaint<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
-        {
-        MorphImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "D") == 0 )
-        {
-        DistanceMap<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
-        {
-        GenerateMaurerDistanceImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Normalize") == 0 )
-        {
-        NormalizeImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Grad") == 0 )
-        {
-        GradientImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
-        {
-        LaplacianImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PH") == 0 )
-        {
-        PrintHeader<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
-        {
-        CenterImage2inImage1<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Byte") == 0 )
-        {
-        ByteImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ReflectionMatrix") == 0 )
-        {
-        ReflectionMatrix<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
-        {
-	ClosestSimplifiedHeaderMatrix<2>(argc, argv);
-	}
-      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
-        {
-        LabelStats<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
-        {
-        ROIStatistics<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
-        {
-        LabelThickness<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelThickness2") == 0 )
-        {
-        LabelThickness2<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
-        {
-        DiceAndMinDistSum<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
-        {
-        Lipschitz<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InvId") == 0 )
-        {
-        InvId<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
-        {
-        GetLargestComponent<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
-        {
-        ExtractVectorComponent<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
-        {
-        ThresholdAtMean<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
-        {
-        FlattenImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
-        {
-        CorruptImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TileImages") == 0 )
-        {
-        TileImages<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Where") == 0 )
-        {
-        Where<2>(argc, argv);
-        }
-      else if( strcmp( operation.c_str(), "Finite") == 0 )
-        {
-        Finite<2>( argc, argv );
-        }
-      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
-        {
-        FillHoles<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
-        {
-        HistogramMatching<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RescaleImage") == 0 )
-        {
-        RescaleImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NeighborhoodStats") == 0 )
-        {
-        NeighborhoodStats<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PadImage") == 0 )
-        {
-        PadImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
-        {
-        SigmoidImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Sharpen") == 0 )
-        {
-        SharpenImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
-        {
-        SetOrGetPixel<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
-        {
-        MakeImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack") == 0 )
-        {
-        StackImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack2") == 0 )
-        {
-        Stack2Images<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
-        {
-        CompareHeadersAndImages<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
-        {
-        CountVoxelDifference<2>(argc, argv);
-        }
-      //     else if (strcmp(operation.c_str(),"AddToZero") == 0 )  AddToZero<2>(argc,argv);
-      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
-        {
-        RemoveLabelInterfaces<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ReplaceVoxelValue") == 0 )
-        {
-        ReplaceVoxelValue<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
-        {
-        PoissonDiffusion<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
-        {
-        EnumerateLabelInterfaces<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
-        {
-        ConvertImageToFile<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
-        {
-        PValueImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
-        {
-        CorrelationUpdate<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
-        {
-        ConvertImageSetToMatrix<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
-        {
-        RandomlySampleImageSetToCSV<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
-        {
-        ConvertImageSetToEigenvectors<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
-        {
-        ConvertVectorToImage<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "oldPropagateLabelsThroughMask") == 0 )
-        {
-        PropagateLabelsThroughMask<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
-        {
-        itkPropagateLabelsThroughMask<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
-        {
-        FastMarchingSegmentation<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
-        {
-        TruncateImageIntensity<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
-        {
-        ExtractSlice<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ClusterThresholdVariate") == 0 )
-        {
-        ClusterThresholdVariate<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "STAPLE") == 0 )
-        {
-        STAPLE<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "AverageLabels") == 0 )
-        {
-        AverageLabels<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
-        {
-        MajorityVoting<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MostLikely") == 0 )
-        {
-        MostLikely<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
-        {
-        CorrelationVoting<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
-        {
-        PearsonCorrelation<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Translate") == 0 )
-        {
-        Translate<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
-        {
-        ImageMetrics<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
-        {
-        ImageMetrics<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Demons") == 0 )
-        {
-        ImageMetrics<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Mattes") == 0 )
-        {
-        returnvalue = ImageMetrics<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
-        {
-        MinMaxMean<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Check3TissueLabeling") == 0 )
-        {
-        Check3TissueLabeling<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PureTissueN4WeightMask") == 0 )
-        {
-        PureTissueN4WeightMask<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
-        {
-        BlobDetector<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MatchBlobs") == 0 )
-        {
-        MatchBlobs<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesRegionSCCA") == 0 )
-        {
-        TimeSeriesRegionSCCA<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesRegionCorr") == 0 )
-        {
-        TimeSeriesRegionCorr<2>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Project") == 0 )
-        {
-        Project<2>(argc, argv);
-        }
-      //     else if (strcmp(operation.c_str(),"ConvertLandmarkFile") == 0)  ConvertLandmarkFile<2>(argc,argv);
-      else
-        {
-        std::cout << " cannot find operation : " << operation << std::endl;
-        }
-      }
+      returnvalue = ImageMathHelper<2>(argc,argv);
       break;
     case 3:
-      {
-      if( strcmp(operation.c_str(), "m") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mresample") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "+") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "-") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vm") == 0 )
-        {
-        VImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vmresample") == 0 )
-        {
-        VImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "v+") == 0 )
-        {
-        VImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "v-") == 0 )
-        {
-        VImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "/") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "^") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "exp") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "max") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "abs") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "addtozero") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "overadd") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "total") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vtotal") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mean") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Decision") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Neg") == 0 )
-        {
-        NegativeImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "G") == 0 )
-        {
-        SmoothImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PeronaMalik") == 0 )
-        {
-        PMSmoothImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InPaint") == 0 )
-        {
-        InPaint<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
-        {
-        MorphImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "D") == 0 )
-        {
-        DistanceMap<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
-        {
-        GenerateMaurerDistanceImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Normalize") == 0 )
-        {
-        NormalizeImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Grad") == 0 )
-        {
-        GradientImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
-        {
-        LaplacianImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PH") == 0 )
-        {
-        PrintHeader<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
-        {
-        CenterImage2inImage1<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Byte") == 0 )
-        {
-        ByteImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ReflectionMatrix") == 0 )
-        {
-        ReflectionMatrix<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
-        {
-	ClosestSimplifiedHeaderMatrix<3>(argc, argv);
-	}
-      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
-        {
-        LabelStats<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
-        {
-        ROIStatistics<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
-        {
-        LabelThickness<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelThickness2") == 0 )
-        {
-        LabelThickness2<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
-        {
-        DiceAndMinDistSum<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
-        {
-        Lipschitz<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InvId") == 0 )
-        {
-        InvId<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
-        {
-        GetLargestComponent<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
-        {
-        ExtractVectorComponent<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
-        {
-        ThresholdAtMean<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
-        {
-        FlattenImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
-        {
-        CorruptImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
-        {
-        RemoveLabelInterfaces<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ReplaceVoxelValue") == 0 )
-        {
-        ReplaceVoxelValue<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
-        {
-        EnumerateLabelInterfaces<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FitSphere") == 0 )
-        {
-        FitSphere<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Where") == 0 )
-        {
-        Where<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SmoothTensorImage") == 0 )
-        {
-        SmoothTensorImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorFA") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorFANumerator") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorFADenominator") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "4DTensorTo3DTensor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ComponentTo3DTensor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractComponentFrom3DTensor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorIOTest") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorMeanDiffusion") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorRadialDiffusion") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorAxialDiffusion") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorEigenvalue") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorColor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorMask") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorToVector") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorToPhysicalSpace") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorToLocalSpace") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ValidTensor") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TensorToVectorComponent") == 0 )
-        {
-        TensorFunctions<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PASLQuantifyCBF") == 0 )
-        {
-        PASLQuantifyCBF<3>(argc, argv);
-        }
-      else if( strcmp( operation.c_str(), "Finite") == 0 )
-        {
-        Finite<3>( argc, argv );
-        }
-      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
-        {
-        FillHoles<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
-        {
-        HistogramMatching<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RescaleImage") == 0 )
-        {
-        RescaleImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NeighborhoodStats") == 0 )
-        {
-        NeighborhoodStats<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PadImage") == 0 )
-        {
-        PadImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
-        {
-        SigmoidImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Sharpen") == 0 )
-        {
-        SharpenImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SetOrGetPixel") == 0 )
-        {
-        SetOrGetPixel<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
-        {
-        MakeImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack") == 0 )
-        {
-        StackImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack2") == 0 )
-        {
-        Stack2Images<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
-        {
-        CompareHeadersAndImages<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
-        {
-        CountVoxelDifference<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
-        {
-        ConvertImageToFile<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
-        {
-        PValueImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
-        {
-        CorrelationUpdate<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
-        {
-        PoissonDiffusion<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
-        {
-        ConvertImageSetToMatrix<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
-        {
-        RandomlySampleImageSetToCSV<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
-        {
-        ConvertImageSetToEigenvectors<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
-        {
-        ConvertVectorToImage<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "oldPropagateLabelsThroughMask") == 0 )
-        {
-        PropagateLabelsThroughMask<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
-        {
-        itkPropagateLabelsThroughMask<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
-        {
-        FastMarchingSegmentation<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
-        {
-        TriPlanarView<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
-        {
-        TruncateImageIntensity<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
-        {
-        ExtractSlice<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ClusterThresholdVariate") == 0 )
-        {
-        ClusterThresholdVariate<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
-        {
-        ConvertLandmarkFile<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PASL") == 0 )
-        {
-        PASL<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "pCASL") == 0 )
-        {
-        pCASL<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MTR") == 0 )
-        {
-        MTR<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
-        {
-        MajorityVoting<3>(argc, argv);
-        }
-      if( strcmp(operation.c_str(), "MostLikely") == 0 )
-        {
-        MostLikely<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
-        {
-        CorrelationVoting<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "STAPLE") == 0 )
-        {
-        STAPLE<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "AverageLabels") == 0 )
-        {
-        AverageLabels<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
-        {
-        PearsonCorrelation<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Translate") == 0 )
-        {
-        Translate<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
-        {
-        ImageMetrics<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
-        {
-        ImageMetrics<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Demons") == 0 )
-        {
-        ImageMetrics<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Mattes") == 0 )
-        {
-        returnvalue = ImageMetrics<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
-        {
-        MinMaxMean<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
-        {
-        BlobDetector<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MatchBlobs") == 0 )
-        {
-        MatchBlobs<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Check3TissueLabeling") == 0 )
-        {
-        Check3TissueLabeling<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PureTissueN4WeightMask") == 0 )
-        {
-        PureTissueN4WeightMask<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Project") == 0 )
-        {
-        Project<3>(argc, argv);
-        }
-      else
-        {
-        std::cout << " cannot find operation : " << operation << std::endl;
-        }
-      }
+      returnvalue = ImageMathHelper<3>(argc,argv);
       break;
     case 4:
-      {
-      if( strcmp(operation.c_str(), "m") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mresample") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "+") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "-") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vm") == 0 )
-        {
-        VImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vmresample") == 0 )
-        {
-        VImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "v+") == 0 )
-        {
-        VImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "v-") == 0 )
-        {
-        VImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "/") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "^") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "exp") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "max") == 0 )
-        {
-        ImageMath<3>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "abs") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "addtozero") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "overadd") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "total") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "vtotal") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "mean") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Decision") == 0 )
-        {
-        ImageMath<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Neg") == 0 )
-        {
-        NegativeImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "G") == 0 )
-        {
-        SmoothImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PeronaMalik") == 0 )
-        {
-        PMSmoothImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InPaint") == 0 )
-        {
-        InPaint<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MD") == 0 || strcmp(operation.c_str(), "ME") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MO") == 0 || strcmp(operation.c_str(), "MC") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GD") == 0 || strcmp(operation.c_str(), "GE") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GO") == 0 || strcmp(operation.c_str(), "GC") == 0 )
-        {
-        MorphImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "D") == 0 )
-        {
-        DistanceMap<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MaurerDistance" ) == 0 )
-        {
-        GenerateMaurerDistanceImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Normalize") == 0 )
-        {
-        NormalizeImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Grad") == 0 )
-        {
-        GradientImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Laplacian") == 0 )
-        {
-        LaplacianImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PH") == 0 )
-        {
-        PrintHeader<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "nvols") == 0 )
-        {
-        PrintHeader<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CenterImage2inImage1") == 0 )
-        {
-        CenterImage2inImage1<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Byte") == 0 )
-        {
-        ByteImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ReflectionMatrix") == 0 )
-        {
-        ReflectionMatrix<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ClosestSimplifiedHeaderMatrix") == 0 )
-        {
-	ClosestSimplifiedHeaderMatrix<4>(argc, argv);
-	}
-      else if( strcmp(operation.c_str(), "LabelStats") == 0 )
-        {
-        LabelStats<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ROIStatistics") == 0 )
-        {
-        ROIStatistics<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelThickness") == 0 )
-        {
-        LabelThickness<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "LabelThickness2") == 0 )
-        {
-        LabelThickness2<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "DiceAndMinDistSum") == 0 )
-        {
-        DiceAndMinDistSum<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Lipschitz") == 0 )
-        {
-        Lipschitz<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "InvId") == 0 )
-        {
-        InvId<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "GetLargestComponent") == 0 )
-        {
-        GetLargestComponent<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractVectorComponent") == 0 )
-        {
-        ExtractVectorComponent<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ThresholdAtMean") == 0 )
-        {
-        ThresholdAtMean<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FlattenImage") == 0 )
-        {
-        FlattenImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorruptImage") == 0 )
-        {
-        CorruptImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RemoveLabelInterfaces") == 0 )
-        {
-        RemoveLabelInterfaces<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ReplaceVoxelValue") == 0 )
-        {
-        ReplaceVoxelValue<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "EnumerateLabelInterfaces") == 0 )
-        {
-        EnumerateLabelInterfaces<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FitSphere") == 0 )
-        {
-        FitSphere<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Where") == 0 )
-        {
-        Where<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PureTissueN4WeightMask") == 0 )
-        {
-        PureTissueN4WeightMask<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "BlobDetector") == 0 )
-        {
-        BlobDetector<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MatchBlobs") == 0 )
-        {
-        MatchBlobs<4>(argc, argv);
-        }
-      //    else if (strcmp(operation.c_str(),"TensorFA") == 0 )  TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorIOTest") == 0 )  TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorMeanDiffusion") == 0 )  TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorColor") == 0) TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorToVector") == 0) TensorFunctions<4>(argc,argv);
-      // else if (strcmp(operation.c_str(),"TensorToVectorComponent")
-      // == 0) TensorFunctions<4>(argc,argv);
-      else if( strcmp( operation.c_str(), "Finite") == 0 )
-        {
-        Finite<4>( argc, argv );
-        }
-      else if( strcmp(operation.c_str(), "FillHoles") == 0 )
-        {
-        FillHoles<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "HistogramMatch") == 0 )
-        {
-        HistogramMatching<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RescaleImage") == 0 )
-        {
-        RescaleImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NeighborhoodStats") == 0 )
-        {
-        NeighborhoodStats<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PadImage") == 0 )
-        {
-        PadImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SigmoidImage") == 0 )
-        {
-        SigmoidImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Sharpen") == 0 )
-        {
-        SharpenImage<4>(argc, argv);
-        }
-      //  else if (strcmp(operation.c_str(),"SetOrGetPixel") == 0 )  SetOrGetPixel<4>(argc,argv);
-      else if( strcmp(operation.c_str(), "MakeImage") == 0 )
-        {
-        MakeImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack") == 0 )
-        {
-        StackImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "stack2") == 0 )
-        {
-        Stack2Images<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompareHeadersAndImages") == 0 )
-        {
-        CompareHeadersAndImages<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CountVoxelDifference") == 0 )
-        {
-        CountVoxelDifference<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageToFile") == 0 )
-        {
-        ConvertImageToFile<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PValueImage") == 0 )
-        {
-        PValueImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PoissonDiffusion") == 0 )
-        {
-        PoissonDiffusion<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationUpdate") == 0 )
-        {
-        CorrelationUpdate<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToMatrix") == 0 )
-        {
-        ConvertImageSetToMatrix<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "RandomlySampleImageSetToCSV") == 0 )
-        {
-        RandomlySampleImageSetToCSV<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertImageSetToEigenvectors") == 0 )
-        {
-        ConvertImageSetToEigenvectors<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertVectorToImage") == 0 )
-        {
-        ConvertVectorToImage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PropagateLabelsThroughMask") == 0 )
-        {
-        itkPropagateLabelsThroughMask<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "FastMarchingSegmentation") == 0 )
-        {
-        FastMarchingSegmentation<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TriPlanarView") == 0 )
-        {
-        TriPlanarView<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TruncateImageIntensity") == 0 )
-        {
-        TruncateImageIntensity<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ExtractSlice") == 0 )
-        {
-        ExtractSlice<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ClusterThresholdVariate") == 0 )
-        {
-        ClusterThresholdVariate<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ConvertLandmarkFile") == 0 )
-        {
-        ConvertLandmarkFile<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesDisassemble") == 0 )
-        {
-        TimeSeriesDisassemble<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesAssemble") == 0 )
-        {
-        TimeSeriesAssemble<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesSubset") == 0 )
-        {
-        TimeSeriesSubset<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesToMatrix") == 0 )
-        {
-        TimeSeriesToMatrix<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesSimpleSubtraction") == 0 )
-        {
-        TimeSeriesSimpleSubtraction<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "TimeSeriesInterpolationSubtraction") == 0 )
-        {
-        TimeSeriesInterpolationSubtraction<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SplitAlternatingTimeSeries") == 0 )
-        {
-        SplitAlternatingTimeSeries<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "SliceTimingCorrection") == 0 )
-        {
-        SliceTimingCorrection<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "AverageOverDimension") == 0 )
-        {
-        AverageOverDimension<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ThreeTissueConfounds") == 0 )
-        {
-        ThreeTissueConfounds<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CompCorrAuto") == 0 )
-        {
-        CompCorrAuto<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "ComputeTimeSeriesLeverage") == 0 )
-        {
-        ComputeTimeSeriesLeverage<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PASLQuantifyCBF") == 0 )
-        {
-        PASLQuantifyCBF<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PCASLQuantifyCBF") == 0 )
-        {
-        // PCASLQuantifyCBF<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PASL") == 0 )
-        {
-        PASL<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "pCASL") == 0 )
-        {
-        pCASL<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MajorityVoting") == 0 )
-        {
-        MajorityVoting<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MostLikely") == 0 )
-        {
-        MostLikely<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "CorrelationVoting") == 0 )
-        {
-        CorrelationVoting<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "PearsonCorrelation") == 0 )
-        {
-        PearsonCorrelation<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Translate") == 0 )
-        {
-        Translate<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NeighborhoodCorrelation") == 0 )
-        {
-        ImageMetrics<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "NormalizedCorrelation") == 0 )
-        {
-        ImageMetrics<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Demons") == 0 )
-        {
-        ImageMetrics<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Mattes") == 0 )
-        {
-        returnvalue = ImageMetrics<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "MinMaxMean") == 0 )
-        {
-        MinMaxMean<4>(argc, argv);
-        }
-      else if( strcmp(operation.c_str(), "Project") == 0 )
-        {
-        Project<4>(argc, argv);
-        }
-      else
-        {
-        std::cout << " cannot find 4D operation : " << operation << std::endl;
-        }
-      }
+      returnvalue = ImageMathHelper<3>(argc,argv);
       break;
     default:
       std::cout << " Dimension Not supported " << atoi(argv[1]) << std::endl;
