@@ -5409,10 +5409,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed ); 
   */
+  bool imagedriver = false;
   if ( ( this->m_OriginalMatrixPriorROI.rows() > 0  ) &&
        ( this->m_OriginalMatrixPriorROI.cols() > 0  ) )
     {
-    std::cout << " image-driven initialization " << std::endl;
+    imagedriver = true;
     n_vecs = this->m_OriginalMatrixPriorROI.rows();
     this->m_VariatesP = this->m_MatrixPriorROI.transpose();
     for ( unsigned int i = 0; i < n_vecs; i++ )
@@ -5426,6 +5427,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
   if ( ( this->m_MatrixPriorROI2.rows() > 0  ) &&
        ( this->m_MatrixPriorROI2.cols() > 0  ) )
     {
+    imagedriver = true;
     this->m_VariatesQ = this->m_MatrixPriorROI2.transpose();
     for ( unsigned int i = 0; i < n_vecs; i++ )
       {
@@ -5477,7 +5479,7 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     loop++;
     } // outer loop
     }
-  this->SortResults( n_vecs_in );
+  if ( ! imagedriver ) this->SortResults( n_vecs_in );
   //  if ( ! m_Silent )
     {
     std::cout << " Loop " << oo << " Corrs : " << this->m_CanonicalCorrelations << " CorrMean : " << energy << std::endl;
