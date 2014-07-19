@@ -417,7 +417,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -j 1 \
                           -f ${TARGET_IMAGE} \
                           -m ${ATLAS_IMAGES[$i]} \
-                          -o ${OUTPUT_PREFIX}${BASENAME}"
+                          -o ${OUTPUT_PREFIX}${BASENAME} > ${OUTPUT_PREFIX}${BASENAME}_log.txt"
 
     labelXfrmCall="${ANTSPATH}/antsApplyTransforms \
                           -d ${DIM} \
@@ -427,7 +427,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -o ${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz \
                           -n NearestNeighbor \
                           -t ${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz \
-                          -t ${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat"
+                          -t ${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_log.txt"
 
     WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}Warped.nii.gz"
     INVERSE_WARPED_ATLAS_IMAGES[${#INVERSE_WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}InverseWarped.nii.gz"
