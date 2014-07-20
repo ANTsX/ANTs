@@ -5419,7 +5419,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for ( unsigned int i = 0; i < n_vecs; i++ )
       {
       VectorType vec = this->m_VariatesP.get_column( i );
-      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
+      //      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
+      this->SparsifyP( vec  );
       vec = vec / vec.two_norm();
       this->m_VariatesP.set_column( i , vec );
       }
@@ -5432,7 +5433,8 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for ( unsigned int i = 0; i < n_vecs; i++ )
       {
       VectorType vec = this->m_VariatesQ.get_column( i );
-      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageQ );
+      this->SparsifyQ( vec  );
+      //      vec = this->SpatiallySmoothVector( vec, this->m_MaskImageQ );
       vec = vec / vec.two_norm();
       this->m_VariatesQ.set_column( i , vec );
       }
