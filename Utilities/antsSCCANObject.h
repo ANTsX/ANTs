@@ -830,7 +830,89 @@ protected:
     this->Sparsify( x_k1, fnp, this->m_KeepPositiveQ, this->m_MinClusterSizeQ, this->m_MaskImageQ);
   }
 
+
   void Sparsify( VectorType& x_k1, RealType fnp, bool keeppos, unsigned int clust, ImagePointer mask  )
+  {
+
+    if( x_k1.size() <= 1 )
+      {
+      return;
+      }
+    if(  fnp >= 1 &&  keeppos )
+      {
+      this->PositivePart( x_k1 );
+      return;
+      }
+    if( fnp >= 1 )
+      {
+      return;
+      }
+    bool negate = false;
+    if( x_k1.mean() <= 0 )
+      {
+      negate = true;
+      }
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
+    RealType initmax = x_k1.max_value();
+    x_k1 = x_k1 / initmax;
+    std::vector<RealType> x_k1sort( x_k1.size() , 0 );
+    for ( unsigned long j = 0; j < x_k1.size(); ++j ) x_k1sort[j] = ( x_k1(j) );
+    sort(x_k1sort.begin(), x_k1sort.end() , std::less<RealType>() );
+    //    std::cout << "Sorted " << x_k1sort[1] << " " << x_k1sort[x_k1.size()-1] << std::endl;
+    RealType     low  = 0;
+    RealType maxj = static_cast<RealType>(  x_k1.size() );
+    unsigned long maxjind = static_cast<unsigned long>( (1-fnp*0.5) * maxj + 0.5 );
+    unsigned long minjind = static_cast<unsigned long>( (  fnp*0.5) * maxj + 0.5 );
+    if ( maxjind > ( maxj - 1 ) ) maxjind = ( maxj - 1 );
+    RealType  maxval = x_k1sort[ maxjind ]; 
+    RealType  minval = x_k1sort[ minjind ]; 
+    RealType    high = maxval;
+    if ( vnl_math_abs( minval ) > high ) high = vnl_math_abs( minval );
+    if ( high * 0.001  > 0 ) low = high * 0.001; // hack to speed convergence
+    RealType     eng = fnp;
+    RealType     mid = low + 0.5 * ( high - low );
+    unsigned int its = 0;
+    RealType     fnm = 0;
+    RealType     lastfnm = 1;
+    while( ( ( eng > (fnp*0.1) )  &&
+             ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
+             ( its < 100 ) ) || 
+	     its < 3  
+	 )
+      {
+      mid = low + 0.5 * ( high - low );
+      VectorType searcherm( x_k1 );
+      this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
+      searcherm = this->SpatiallySmoothVector( searcherm, mask );
+      lastfnm = fnm;
+      fnm = this->CountNonZero( searcherm );
+      //      if ( mask ) std::cout <<" its " << its << " spar " << fnm << " low " << low << " mid " << mid << " high " << high << " eng " << eng << std::endl;
+      if( fnm > fnp )
+        {
+        low = mid;
+        }
+      if( fnm < fnp )
+        {
+        high = mid;
+        }
+      eng = vnl_math_abs( fnp - fnm );
+      its++;
+      }
+    this->SoftClustThreshold( x_k1, mid, keeppos,  clust, mask  );
+    x_k1 = this->SpatiallySmoothVector( x_k1, mask );
+    if( negate )
+      {
+      x_k1 = x_k1 * ( -1 );
+      }
+    return;
+  }
+
+
+
+  void SparsifyOld( VectorType& x_k1, RealType fnp, bool keeppos, unsigned int clust, ImagePointer mask  )
   {
 
     if( x_k1.size() <= 1 )
