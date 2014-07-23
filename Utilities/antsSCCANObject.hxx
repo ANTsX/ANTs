@@ -5488,8 +5488,11 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     }
   } // oo
   //  this->RunDiagnostics(n_vecs);
-  double ccasum = 0; for( unsigned int i = 0; i < this->m_CanonicalCorrelations.size(); i++ )
+  double ccasum = 0;
+  for( unsigned int i = 0; i < this->m_CanonicalCorrelations.size(); i++ )
     {
+    std::cout << i << " P: " << this->CountNonZero( this->m_VariatesP.get_column( i ) ) << " Q: " << 
+        this->CountNonZero( this->m_VariatesQ.get_column( i ) )  << std::endl;
     ccasum += fabs(this->m_CanonicalCorrelations[i]);
     }
   if( n_vecs_in > 1 )
