@@ -462,7 +462,18 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
       fi
 done
 
-malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+EXISTING_WARPED_ATLAS_IMAGES=()
+EXISTING_WARPED_ATLAS_LABELS=()
+for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
+  do
+    if [[ -f ${WARPED_ATLAS_IMAGES[$i]} && -f ${WARPED_ATLAS_LABELS[$i]} ]];
+      then
+        EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+        EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+      fi
+  done
+
+malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 if [[ $MAJORITYVOTE -eq 1 ]];
   then
     malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
