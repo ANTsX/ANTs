@@ -312,8 +312,11 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
         return EXIT_FAILURE;
         }
 
-      std::string startingSliceString;
-      std::string endSliceString;
+      std::ostringstream stream;
+      stream << startingSlice;
+      std::string startingSliceString = stream.str();
+      stream << endSlice;
+      std::string endSliceString = stream.str();
 
       if( slicesOption->GetFunction( 0 )->GetNumberOfParameters() > 1 )
         {
