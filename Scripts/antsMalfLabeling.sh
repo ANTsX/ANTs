@@ -462,11 +462,22 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
       fi
 done
 
+if [[ $DOQSUB -eq 2 ]];
+  then
+    echo
+    echo "--------------------------------------------------------------------------------------"
+    echo " Starting MALF on max ${CORES} cpucores. "
+    echo "--------------------------------------------------------------------------------------"
+    chmod +x ${OUTPUT_DIR}/job_*.sh
+    $PEXEC -j ${CORES} "sh" ${OUTPUT_DIR}/job_*.sh
+  fi
+
 EXISTING_WARPED_ATLAS_IMAGES=()
 EXISTING_WARPED_ATLAS_LABELS=()
 for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
   do
-    if [[ -f ${WARPED_ATLAS_IMAGES[$i]} && -f ${WARPED_ATLAS_LABELS[$i]} ]];
+    echo ${WARPED_ATLAS_IMAGES[$i]}
+    if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
       then
         EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
         EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
@@ -531,12 +542,6 @@ if [[ $DOQSUB -eq 4 ]];
 
 if [[ $DOQSUB -eq 2 ]];
   then
-    echo
-    echo "--------------------------------------------------------------------------------------"
-    echo " Starting MALF on max ${CORES} cpucores. "
-    echo "--------------------------------------------------------------------------------------"
-    chmod +x ${OUTPUT_DIR}/job_*.sh
-    $PEXEC -j ${CORES} "sh" ${OUTPUT_DIR}/job_*.sh
     sh $qscript2
   fi
 if [[ $DOQSUB -eq 3 ]];
