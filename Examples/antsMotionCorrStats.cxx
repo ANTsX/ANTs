@@ -23,6 +23,7 @@
 #include "itkCSVNumericObjectFileWriter.h"
 #include "itkCSVArray2DFileReader.h"
 #include "itkAffineTransform.h"
+#include "itkEuler3DTransform.h"
 #include "itkImageFileReader.h"
 
 #include <sstream>
@@ -46,6 +47,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
 
   typedef itk::ImageRegionIteratorWithIndex<ImageType>      IteratorType;
   typedef itk::AffineTransform<RealType, ImageDimension>    AffineTransformType;
+  typedef itk::Euler3DTransform<RealType>                   RigidTransformType;
 
   typedef itk::ants::CommandLineParser ParserType;
   typedef ParserType::OptionType       OptionType;
@@ -136,8 +138,33 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
         }
       }
 
-    affineTransform1->SetParameters( params1 );
-    affineTransform2->SetParameters( params2 );
+    // If rigid motion corretion
+    if ( nTransformParams == 6 )
+      {
+      RigidTransformType::Pointer rigid1 = RigidTransformType::New();
+      RigidTransformType::Pointer rigid2 = RigidTransformType::New();
+      rigid1->SetParameters( params1 );
+      rigid2->SetParameters( params2 );
+
+      affineTransform1->SetMatrix( rigid1->GetMatrix() );
+      affineTransform1->SetTranslation( rigid1->GetTranslation() );
+
+      affineTransform2->SetMatrix( rigid2->GetMatrix() );
+      affineTransform2->SetTranslation( rigid2->GetTranslation() );
+  
+      }
+    else if ( nTransformParams == 12 )
+      {
+      affineTransform1->SetParameters( params1 );
+      affineTransform2->SetParameters( params2 );
+      }
+    else 
+      {
+      std::cout << "Unknown transform type! - Exiting" << std::endl;
+      return EXIT_FAILURE;
+      }
+
+
 
     double meanDisplacement = 0.0;
     double maxDisplacement = 0.0;
