@@ -5048,7 +5048,7 @@ bool antsSCCANObject<TInputImage, TRealType>
       {
       VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( k-1 );
       this->SparsifyOther( temp ); 
-      if ( n_vecs < this->m_MatrixP.columns() ) this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
+      if ( k < (this->m_MatrixP.columns()-1) ) this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
       temp = this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 );
       this->SparsifyOther( temp ); 
       if ( n_vecs < this->m_MatrixQ.columns() ) this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
@@ -5102,19 +5102,22 @@ bool antsSCCANObject<TInputImage, TRealType>
     if ( this->m_Covering != 2 ) // 0 - vox orth + resid, 1 - only vox orth , 2 - only resid
     for( unsigned int j = 0; j < k; j++ )
       {
-      VectorType qj = this->m_VariatesP.get_column( j ); 
-      pproj = ( this->m_MatrixP * pveck ); 
-      if ( secondSO ) this->SparsifyOther( pproj );
-      pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
+      if ( j != k ) 
+        {
+        VectorType qj = this->m_VariatesP.get_column( j ); 
+	pproj = ( this->m_MatrixP * pveck ); 
+	if ( secondSO ) this->SparsifyOther( pproj );
+	pveck = this->Orthogonalize( pveck / ( pproj ).two_norm()  , qj );
       //      pveck = this->Orthogonalize( pveck, qj, &this->m_MatrixP, &this->m_MatrixP);
 
       //      if ( this->m_Covering ) this->ZeroProduct( pveck,  qj );
-      qj = this->m_VariatesQ.get_column( j );
-      qproj = ( this->m_MatrixQ * qveck ); 
-      if ( secondSO ) this->SparsifyOther( qproj );
-      qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
+	qj = this->m_VariatesQ.get_column( j );
+	qproj = ( this->m_MatrixQ * qveck ); 
+	if ( secondSO ) this->SparsifyOther( qproj );
+	qveck = this->Orthogonalize( qveck / ( qproj ).two_norm()  , qj );
       //      qveck = this->Orthogonalize( qveck, qj, &this->m_MatrixQ, &this->m_MatrixQ);
       //      if ( this->m_Covering ) this->ZeroProduct( qveck,  qj );
+        }
       }
     if ( ( this->m_UseLongitudinalFormulation > 1.e-9 ) && ( pveck.size() == qveck.size() ) )
       {
@@ -5232,10 +5235,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       {
       VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( kk-1 );
       this->SparsifyOther( temp ); 
-      this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
+      if ( n_vecs < this->m_MatrixP.columns() ) this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
       temp = this->m_MatrixQ * this->m_VariatesQ.get_column( kk-1 );
       this->SparsifyOther( temp ); 
-      this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
+      if ( n_vecs < this->m_MatrixQ.columns() ) this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
       }
     VectorType qvec = ( this->m_MatrixP * ipvec );
     this->SparsifyOther( qvec ); 
@@ -5259,17 +5262,21 @@ TRealType antsSCCANObject<TInputImage, TRealType>
       vec = vec2;
       qvec = qvec2;
       }
+    //    std::cout << " vec-y " << vec.two_norm() << std::endl;
+    //    std::cout << "qvec-y " << qvec.two_norm() << std::endl;
     for( unsigned int j = 0; j < kk; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column(j);
-      if ( j < this->m_MatrixP.cols() ) vec = this->Orthogonalize( vec, qj );
+      if ( j < (this->m_MatrixP.cols()-1) ) vec = this->Orthogonalize( vec, qj );
       qj = this->m_VariatesQ.get_column(j);
-      if ( j < this->m_MatrixQ.cols() ) qvec = this->Orthogonalize( qvec, qj );
+      if ( n_vecs < this->m_MatrixQ.columns() ) qvec = this->Orthogonalize( qvec, qj );
       }
+    //    std::cout << " vec-z " << vec.two_norm() << std::endl;
+    //    std::cout << "qvec-z " << qvec.two_norm() << std::endl;
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
-    if (  qvec.two_norm() > 1.e-9 ) qvec = qvec / qvec.two_norm();
-    if (  vec.two_norm()  > 1.e-9 ) vec  =  vec / vec.two_norm();
+    if (  qvec.two_norm() > 0 ) qvec = qvec / qvec.two_norm();
+    if (  vec.two_norm()  > 0 ) vec  =  vec / vec.two_norm();
     if ( this->m_UseLongitudinalFormulation > 1.e-9 )
       {
       vec = ( vec + qvec ) * 0.5; 
@@ -5320,9 +5327,9 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     for( unsigned int j = 0; j < kk; j++ )
       {
       VectorType qj = this->m_VariatesP.get_column(j);
-      vec = this->Orthogonalize( vec, qj );
+      if ( j < (this->m_MatrixP.columns()-1) ) vec = this->Orthogonalize( vec, qj );
       qj = this->m_VariatesQ.get_column(j);
-      qvec = this->Orthogonalize( qvec, qj );
+      if ( n_vecs < this->m_MatrixQ.columns() ) qvec = this->Orthogonalize( qvec, qj );
       }
     vec = this->SpatiallySmoothVector( vec, this->m_MaskImageP );
     qvec = this->SpatiallySmoothVector( qvec, this->m_MaskImageQ );
@@ -5391,15 +5398,17 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     std::cout << "Initialization: " << initReturn << std::endl;
     }
-  /*  RealType     bestcorr = initReturn;
+  /*  
+  RealType     bestcorr = 0;
   RealType     totalcorr = 0;
   int bestseed = -1;
-  for( unsigned int seeder = 0; seeder < 35; seeder++ )
+  for( unsigned int seeder = 0; seeder < 100; seeder++ )
     {
     totalcorr = this->InitializeSCCA( n_vecs, seeder );
     if( totalcorr > bestcorr )
       {
-      bestseed = seeder;  bestcorr = totalcorr;
+      bestseed = seeder;  
+      bestcorr = totalcorr;
       std::cout << " seed " << seeder << " corr " << bestcorr << std::endl; 
       }
     }
@@ -5407,8 +5416,10 @@ TRealType antsSCCANObject<TInputImage, TRealType>
     {
     std::cout << " Best initial corr " << bestcorr << std::endl;
     }
-  if ( bestseed >= 0 ) this->InitializeSCCA( n_vecs, bestseed ); 
+  if ( bestseed >= 0 ) totalcorr = this->InitializeSCCA( n_vecs, bestseed ); 
+  std::cout << " seed " << bestseed << " corr " << totalcorr << std::endl; 
   */
+
   bool imagedriver = false;
   if ( ( this->m_OriginalMatrixPriorROI.rows() > 0  ) &&
        ( this->m_OriginalMatrixPriorROI.cols() > 0  ) )
