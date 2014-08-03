@@ -204,7 +204,9 @@ public:
     for( unsigned int j = 0; j < M.cols(); j++ )
       {
       VectorType Mvec = M.get_column(j);
-      double     ratio = inner_product(Mvec, V) / inner_product(V, V);
+      double     vnorm = inner_product(V, V);
+      if ( vnorm < this->m_Epsilon ) vnorm = 1;
+      double     ratio = inner_product(Mvec, V) / vnorm;
       VectorType ortho = Mvec - V * ratio;
       M.set_column(j, ortho);
       }
@@ -775,7 +777,7 @@ protected:
       }
   }
 
-  void SparsifyOther( VectorType& x_k1 , bool doclassic = false )
+  void SparsifyOther( VectorType& x_k1 , bool doclassic = true )
   {
     RealType fnp = vnl_math_abs( this->m_RowSparseness );
     if( fnp < 1.e-11 )
@@ -805,7 +807,7 @@ protected:
 	}
       return;
       }
-    }
+    }//doclassic
 
     bool usel1 = this->m_UseL1;
     this->m_UseL1 = true;
@@ -871,7 +873,7 @@ protected:
     RealType  minval = x_k1sort[ minjind ]; 
     RealType    high = maxval;
     if ( vnl_math_abs( minval ) > high ) high = vnl_math_abs( minval );
-    if ( high * 0.001  > 0 ) low = high * 0.001; // hack to speed convergence
+    //    if ( high * 0.2  > 0 ) low = high * 0.2; // hack to speed convergence
     RealType     eng = fnp;
     RealType     mid = low + 0.5 * ( high - low );
     unsigned int its = 0;
@@ -879,24 +881,27 @@ protected:
     RealType     lastfnm = 1;
     while( ( ( eng > (fnp*0.1) )  &&
              ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
-             ( its < 100 ) ) || 
+             ( its < 20 ) ) || 
 	     its < 3  
 	 )
       {
       mid = low + 0.5 * ( high - low );
       VectorType searcherm( x_k1 );
+      //      if ( its > 10 & fnm > 0.99 ) std::cout << " A " << searcherm << std::endl;
       this->SoftClustThreshold( searcherm, mid, keeppos,  clust, mask );
+      //      if ( its > 10 & fnm > 0.99 ) std::cout << " B " << searcherm << std::endl;
       searcherm = this->SpatiallySmoothVector( searcherm, mask );
+      //      if ( its > 10 & fnm > 0.99 ) std::cout << " C " << searcherm << std::endl;
+      //      if ( its > 10 & fnm > 0.99 ) exit(1);
       lastfnm = fnm;
       fnm = this->CountNonZero( searcherm );
-      //      if ( mask ) std::cout <<" its " << its << " spar " << fnm << " low " << low << " mid " << mid << " high " << high << " eng " << eng << std::endl;
       if( fnm > fnp )
         {
-        low = mid;
+        low = mid; // 0.5 * ( low + mid  ); // relax this b/c it may not be a strictly quadratic space
         }
       if( fnm < fnp )
         {
-        high = mid;
+	high = mid; // 0.5 * ( high + mid  );
         }
       eng = vnl_math_abs( fnp - fnm );
       its++;

@@ -5039,7 +5039,7 @@ bool antsSCCANObject<TInputImage, TRealType>
 ::CCAUpdate( unsigned int n_vecs, bool allowchange  , bool normbycov , unsigned int k )
 {
   this->m_Debug = false;
-  bool secondSO = false;
+  bool secondSO = true;
   //  for( unsigned int k = 0; k < n_vecs; k++ ) 
     {
     // residualize against previous vectors 
@@ -5048,10 +5048,10 @@ bool antsSCCANObject<TInputImage, TRealType>
       {
       VectorType temp = this->m_MatrixP * this->m_VariatesP.get_column( k-1 );
       this->SparsifyOther( temp ); 
-      this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
+      if ( n_vecs < this->m_MatrixP.columns() ) this->m_MatrixP = this->OrthogonalizeMatrix( this->m_MatrixP, temp );
       temp = this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 );
       this->SparsifyOther( temp ); 
-      this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
+      if ( n_vecs < this->m_MatrixQ.columns() ) this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
       }
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
