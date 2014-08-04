@@ -2132,6 +2132,63 @@ int CenterImage2inImage1(int argc, char *argv[])
 }
 
 template <unsigned int ImageDimension>
+int TimeSeriesMask( int argc, char *argv[] )
+{
+
+  if ( argc <= 5 )
+    {
+    std::cout << " too few options " << std::endl;
+    return 1;
+    }
+
+  typedef float                                            PixelType;
+  typedef itk::Image<PixelType, ImageDimension>            ImageType;
+  typedef itk::Image<PixelType, ImageDimension - 1>        MaskImageType;
+  typedef itk::ImageRegionIteratorWithIndex<ImageType>     TimeIterator;
+  typedef itk::ImageRegionIteratorWithIndex<MaskImageType> Iterator;
+
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  std::string fn2 = std::string(argv[argct]);   argct++;
+  
+  typename ImageType::Pointer timeseries = ImageType::New();
+  ReadImage<ImageType>( timeseries, fn1.c_str() );
+
+  typename MaskImageType::Pointer mask = MaskImageType::New();
+  ReadImage<MaskImageType>( mask, fn2.c_str() );
+
+  Iterator it( mask, mask->GetLargestPossibleRegion() );
+  while ( ! it.IsAtEnd() ) 
+    {
+    if ( it.Value() == 0 ) 
+      {
+      typename MaskImageType::IndexType maskIdx = it.GetIndex();
+      typename ImageType::IndexType timeIdx;
+
+      for (unsigned int i=0; i<(ImageDimension-1); i++) 
+        {
+        timeIdx[i] = maskIdx[i];
+        }
+
+      for (unsigned int t=0; t<timeseries->GetLargestPossibleRegion().GetSize()[ImageDimension-1]; t++)
+        {
+        timeIdx[ImageDimension-1] = t;
+        timeseries->SetPixel(timeIdx, 0);
+        }
+      
+      }
+  
+    ++it;
+    }
+
+  WriteImage<ImageType>(timeseries, outname.c_str());
+  return 0;
+
+}
+
+template <unsigned int ImageDimension>
 int TimeSeriesDisassemble(int argc, char *argv[])
 {
   if( argc <= 4 )
@@ -13748,6 +13805,11 @@ ImageMathHelper4DOnly(int argc, char **argv)
   if( operation == "ThreeTissueConfounds" )
     {
     ThreeTissueConfounds<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
+  if( operation == "TimeSeriesMask" )
+    {
+    TimeSeriesMask<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
   if( operation == "TimeSeriesAssemble" )
