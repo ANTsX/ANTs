@@ -777,7 +777,7 @@ protected:
       }
   }
 
-  void SparsifyOther( VectorType& x_k1 , bool doclassic = true )
+  void SparsifyOther( VectorType& x_k1 , bool doclassic = false )
   {
     RealType fnp = vnl_math_abs( this->m_RowSparseness );
     if( fnp < 1.e-11 )

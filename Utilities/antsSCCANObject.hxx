@@ -704,7 +704,7 @@ antsSCCANObject<TInputImage, TRealType>
     VectorType gradvec = this->ConvertImageToVariate( filter->GetOutput(),  mask );
     return gradvec;
     }
-  if ( ( surface )  && ( ImageDimension == 3 ) )
+  if ( ( surface )  && ( ImageDimension == 3 ) && ( false ) )
     {
   unsigned int sigma = ( unsigned int ) this->m_Smoother;
   if (  this->m_Smoother > 0.0001 )
@@ -5052,6 +5052,8 @@ bool antsSCCANObject<TInputImage, TRealType>
       temp = this->m_MatrixQ * this->m_VariatesQ.get_column( k-1 );
       this->SparsifyOther( temp ); 
       if ( n_vecs < this->m_MatrixQ.columns() ) this->m_MatrixQ = this->OrthogonalizeMatrix( this->m_MatrixQ, temp );
+      this->m_MatrixP = this->NormalizeMatrix( this->m_MatrixP, false );
+      this->m_MatrixQ = this->NormalizeMatrix( this->m_MatrixQ, false );
       }
     VectorType ptemp = this->m_VariatesP.get_column(k);
     VectorType qtemp = this->m_VariatesQ.get_column(k);
