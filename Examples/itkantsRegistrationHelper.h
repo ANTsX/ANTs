@@ -871,17 +871,13 @@ GetCompositeTransformFromParserOption( typename ParserType::Pointer & parser,
       initialTransformName += std::string( "fixed image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 0 )
         + std::string( " and moving image: " ) + initialTransformOption->GetFunction( n )->GetParameter( 1 );
 
-      typedef itk::TranslationTransform<TComputeType, VImageDimension> TranslationTransformType;
-      typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
-      translationTransform->SetOffset( transform->GetTranslation() );
-
-      compositeTransform->AddTransform( translationTransform );
+      compositeTransform->AddTransform( transform );
 
       calculatedTransformFromImages = true;
       derivedTransforms[n] = true;
 
       transformNames.push_back( initialTransformName );
-      transformTypes.push_back( translationTransform->GetNameOfClass() );
+      transformTypes.push_back( transform->GetNameOfClass() );
       }
 
     if( !calculatedTransformFromImages )
