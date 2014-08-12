@@ -148,9 +148,9 @@ include(${VTK_USE_FILE})
 set(VTK_ANTS_APPS
 #    ConvertVectorFieldToVTK
     antsSurf
-    GetMeshAndTopology
-    CheckTopology
-    WarpVTKPolyDataMultiTransform
+    # GetMeshAndTopology
+    # CheckTopology
+    # WarpVTKPolyDataMultiTransform
     # FLATFEM
     # ConformalMapping
     # ANTSConformalMapping
