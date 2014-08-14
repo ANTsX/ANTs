@@ -1,4 +1,4 @@
-#!/share/apps/R/R-3.0.2/bin/Rscript --vanilla --slave
+#!Rscript --vanilla --slave
 
 library( "ANTsR" )
 library("extremevalues" )
