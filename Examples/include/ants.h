@@ -7,6 +7,8 @@
 
 #include "antsApplyTransformsToPoints.h"
 
+#include "antsTransformInfo.h"
+
 #include "ANTSConformalMapping.h"
 
 #include "ANTS_.h"

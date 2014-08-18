@@ -137,6 +137,7 @@ set(BASE_ANTS_APPS
   TimeSCCAN
   GetConnectedComponentsFeatureImages
   DeNrrd
+  antsTransformInfo
 )
 foreach(ANTS_APP ${BASE_ANTS_APPS})
   STANDARD_ANTS_BUILD(${ANTS_APP} "")
