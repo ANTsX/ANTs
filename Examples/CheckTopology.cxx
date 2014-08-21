@@ -36,8 +36,6 @@ $Revision: 1.8 $
 #include "vtkCallbackCommand.h"
 #include "vtkPointPicker.h"
 #include "vtkCellPicker.h"
-#include "vtkPolyDataWriter.h"
-#include "vtkPolyDataReader.h"
 #include "vtkExtractEdges.h"
 
 #include "itkMinimumMaximumImageFilter.h"
