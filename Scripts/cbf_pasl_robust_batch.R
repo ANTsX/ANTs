@@ -1,5 +1,4 @@
-#!/share/apps/R/R-3.0.2/bin/Rscript --vanilla --slave
-
+#!/usr/bin/env Rscript
 library( "ANTsR" )
 library("extremevalues" )
 args<-commandArgs(TRUE)
