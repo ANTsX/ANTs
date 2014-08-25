@@ -2,34 +2,30 @@
 
 VERSION="0.0"
 
-if [[ ! -s ${ANTSPATH}/antsRegistration ]]; then
-  echo we cant find the antsRegistration program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
-fi
-if [[ ! -s ${ANTSPATH}/antsApplyTransforms ]]; then
-  echo we cant find the antsApplyTransforms program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
-fi
-if [[ ! -s ${ANTSPATH}/N4BiasFieldCorrection ]]; then
-  echo we cant find the N4 program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
-fi
-if [[ ! -s ${ANTSPATH}/Atropos ]]; then
-  echo we cant find the Atropos program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
-fi
-if [[ ! -s ${ANTSPATH}/KellyKapowski ]]; then
-  echo we cant find the DiReCT \(aka KellyKapowski\) program -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
-fi
-if [[ ! -e ${ANTSPATH}/antsBrainExtraction.sh ]]; then
-  echo we cant find the antsBrainExtraction script -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
-fi
-if [[ ! -e ${ANTSPATH}/antsAtroposN4.sh ]]; then
-  echo we cant find the antsAtroposN4 script -- does not seem to exist.  please \(re\)define \$ANTSPATH in your environment.
-  exit
-fi
+# Check dependencies
+
+PROGRAM_DEPENDENCIES=( 'antsRegistration' 'antsApplyTransforms' 'N4BiasFieldCorrection' 'Atropos' 'KellyKapowski' )
+SCRIPTS_DEPENDENCIES=( 'antsBrainExtraction.sh' 'antsAtroposN4.sh' )
+
+for D in ${PROGRAM_DEPENDENCIES[@]};
+  do
+    if [[ ! -s ${ANTSPATH}/${D} ]];
+      then
+        echo "Error:  we can't find the $D program."
+        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        exit
+      fi
+  done
+
+for D in ${SCRIPT_DEPENDENCIES[@]};
+  do
+    if [[ ! -s ${ANTSPATH}/${D} ]];
+      then
+        echo "We can't find the $D script."
+        echo "Perhaps you need to \(re\)define \$ANTSPATH in your environment."
+        exit
+      fi
+  done
 
 function Usage {
     cat <<USAGE
