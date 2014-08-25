@@ -99,9 +99,13 @@ Optional arguments:
 
      -q: Use quick registration parameters:  Either 0 or 1 (default = 1).
 
+     -p: Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
+                           Need to specify output directory.
+
 Example:
 
 `basename $0` -d 3 -t target.nii.gz -o malf \
+              -p malfPosteriors%04d.nii.gz \
               -g atlas1.nii.gz -l labels1.nii.gz \
               -g atlas2.nii.gz -l labels2.nii.gz \
               -g atlas3.nii.gz -l labels3.nii.gz
@@ -140,6 +144,7 @@ Usage:
 Example Case:
 
 `basename $0` -d 3 -t target.nii.gz -o malf \
+              -p malfPosteriors%04d.nii.gz \
               -g atlas1.nii.gz -l labels1.nii.gz \
               -g atlas2.nii.gz -l labels2.nii.gz \
               -g atlas3.nii.gz -l labels3.nii.gz
@@ -169,6 +174,9 @@ Optional arguments:
      -j: Number of cpu cores to use (default 2; -- requires "-c 2").
 
      -q: Use quick registration parameters:  Either 0 or 1 (default = 1).
+
+     -p: Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
+                           Need to specify output directory.
 
 Requirements:
 
@@ -222,12 +230,13 @@ function reportParameters {
 
  Dimensionality:           $DIM
  Output prefix:            $OUTPUT_PREFIX
+ Posteriors format:        $OUTPUT_POSTERIORS_FORMAT
  Target image:             $TARGET_IMAGE
  Atlas images:             ${ATLAS_IMAGES[@]}
  Atlas labels:             ${ATLAS_LABELS[@]}
 
  Keep all images:          $KEEP_ALL_IMAGES
- Processing type:          $DO_QSUB
+ Processing type:          $DOQSUB
  Number of cpu cores:      $CORES
 --------------------------------------------------------------------------------------
 REPORTPARAMETERS
@@ -269,13 +278,14 @@ DIM=3
 OUTPUT_DIR=${CURRENT_DIR}/tmp$RANDOM/
 OUTPUT_PREFIX=${OUTPUT_DIR}/tmp
 OUTPUT_SUFFIX="nii.gz"
+OUTPUT_POSTERIORS_FORMAT=''
 
 TARGET_IMAGE=''
 ATLAS_IMAGES=()
 ATLAS_LABELS=()
 
 KEEP_ALL_IMAGES=0
-DO_QSUB=0
+DOQSUB=0
 CORES=1
 
 XGRID_OPTS=""
@@ -302,7 +312,7 @@ if [[ "$1" == "-h" ]];
 MAJORITYVOTE=0
 RUNQUICK=1
 # reading command line arguments
-while getopts "c:d:g:h:j:k:l:m:o:t:q:" OPT
+while getopts "c:d:g:h:j:k:l:m:o:p:t:q:" OPT
   do
   case $OPT in
       h) #help
@@ -331,11 +341,14 @@ while getopts "c:d:g:h:j:k:l:m:o:t:q:" OPT
       j) #number of cpu cores to use
    CORES=$OPTARG
    ;;
+      k)
+   KEEP_ALL_IMAGES=$OPTARG
+   ;;
       m) #majority voting option
    MAJORITYVOTE=$OPTARG
    ;;
-      k)
-   KEEP_ALL_IMAGES=$OPTARG
+      p)
+   OUTPUT_POSTERIORS_FORMAT=$OPTARG
    ;;
       q)
    RUNQUICK=$OPTARG
@@ -472,7 +485,13 @@ if [[ $DOQSUB -eq 2 ]];
     $PEXEC -j ${CORES} "sh" ${OUTPUT_DIR}/job_*.sh
   fi
 
-malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+malfCall="${ANTSPATH}/jointfusion ${DIM} 1 -m Joint[0.1,2] -tg $TARGET_IMAGE "
+if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
+  then
+    malfCall="${malfCall} -p ${OUTPUT_POSTERIORS_FORMAT}"
+  fi
+malfCall="${malfCall} -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+
 if [[ $MAJORITYVOTE -eq 1 ]];
   then
     malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
@@ -570,9 +589,9 @@ echo
 echo "--------------------------------------------------------------------------------------"
 if [[ $MAJORITYVOTE -eq 1 ]];
   then
-    echo " Done creating: ${OUTPUT_PREFIX}MalfLabels.nii.gz"
-  else
     echo " Done creating: ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz"
+  else
+    echo " Done creating: ${OUTPUT_PREFIX}MalfLabels.nii.gz"
   fi
 echo " Script executed in $time_elapsed seconds"
 echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elapsed % 60 ))s"
