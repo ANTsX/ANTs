@@ -477,6 +477,13 @@ elif [[ $nargs -lt 6 ]]
     Usage >&2
 fi
 
+OUTPUT_DIR=${OUTPUTNAME%\/*}
+if [[ ! -d $OUTPUT_DIR ]];
+  then
+    echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
+    mkdir -p $OUTPUT_DIR
+  fi
+
 if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
   then
     qq=`which  qsub`
