@@ -4,6 +4,10 @@ Advanced Normalization Tools
 
 Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2)
 
+[ANTsTalk - subject to change at any moment](http://stnava.github.io/ANTsTalk/)
+
+[ANTsRegistrationTalk - subject to change at any moment](http://stnava.github.io/ANTsRegistrationTalk/)
+
  Email: [antsr.me at gmail dot com](mailto:antsr.me@gmail.com)
 
  Install ANTs via pre-built:
