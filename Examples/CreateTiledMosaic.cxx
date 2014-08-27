@@ -364,7 +364,7 @@ int CreateMosaic( itk::ants::CommandLineParser *parser )
 
         if( isEndSliceMaskDependent )
           {
-          endSlice = startingSlice + maskRegion.GetSize()[direction] - 1;
+          endSlice = maskRegion.GetIndex()[direction] + maskRegion.GetSize()[direction];
           }
         else
           {
