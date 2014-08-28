@@ -129,11 +129,16 @@ Optional arguments:
                                                 Intuitively, smaller lambda values will increase the spatial capture
                                                 range of the distance prior.  To apply to all label values, simply omit
                                                 specifying the label, i.e. -l [lambda,boundaryProbability].
-
+     -c                                         Add prior combination to combined gray and white matters.  For example,
+                                                when calling KK for normal subjects, we combine the deep gray matter
+                                                segmentation/posteriors with the white matter segmentation/posteriors.
+                                                An additional example would be performing cortical thickness in the presence
+                                                of white matter lesions.  We can accommodate this by specifying a lesion mask
+                                                posterior as an additional posterior (suppose label '7'), and then combine
+                                                this with white matter by specifying '-c WM[7]' or '-c 3[7]'.
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
                                                 during brain extraction, brain segmentation, and (optional) normalization
                                                 to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
-
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
                                                 Requires single thread computation for complete reproducibility.
 USAGE
@@ -227,6 +232,7 @@ echoParameters() {
       debug mode              = ${DEBUG_MODE}
       float precision         = ${USE_FLOAT_PRECISION}
       use random seeding      = ${USE_RANDOM_SEEDING}
+      prior combinations      = ${PRIOR_COMBINATIONS[@]}
 
 PARAMETERS
 }
@@ -338,6 +344,8 @@ DIRECT_GRAD_STEP_SIZE="0.025"
 DIRECT_SMOOTHING_PARAMETER="1.5"
 DIRECT_NUMBER_OF_DIFF_COMPOSITIONS="10"
 
+PRIOR_COMBINATIONS=( 'WM[4]' )
+
 USE_FLOAT_PRECISION=0
 USE_BSPLINE_SMOOTHING=0
 
@@ -345,7 +353,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:d:e:f:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:z:" OPT
+  while getopts "a:b:c:d:e:f:h:i:j:k:l:m:n:o:p:q:r:s:t:u:v:w:z:" OPT
     do
       case $OPT in
           a) #anatomical t1 image
@@ -353,6 +361,9 @@ else
        ;;
           b) # posterior formulation
        ATROPOS_SEGMENTATION_POSTERIOR_FORMULATION=$OPTARG
+       ;;
+          c) # prior combinations
+       PRIOR_COMBINATIONS[${#PRIOR_COMBINATIONS[@]}]=$OPTARG
        ;;
           d) #dimensions
        DIMENSION=$OPTARG
@@ -580,6 +591,42 @@ for(( j=0; j < $NUMBER_OF_PRIOR_IMAGES; j++ ))
         exit 1
       fi
   done
+
+# These arrays contain the formatted labels that will be used to combine with the white
+# and gray matter posteriors for the cortical thickness section.
+
+CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS=()
+CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS=()
+
+for(( j=0; j < ${#PRIOR_COMBINATIONS[@]}; j++ ))
+  do
+    echo ${PRIOR_COMBINATIONS[$j]}
+    COMBINATION=( $( echo ${PRIOR_COMBINATIONS[$j]} | tr "[]," "\n" ) )
+
+    echo ${COMBINATION[@]}
+
+    if [[ ${COMBINATION[0]} == ${WHITE_MATTER_LABEL} || ${COMBINATION[0]} == 'WM' ]];
+      then
+        for(( k=1; k < ${#COMBINATION[@]}; k++ ))
+          do
+            OTHER_LABEL=${COMBINATION[$k]}
+            CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[${#CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[@]}]=${OTHER_LABEL}
+          done
+      elif [[ ${COMBINATION[0]} == ${GRAY_MATTER_LABEL} || ${COMBINATION[0]} == 'GM' ]];
+        then
+          for(( k=1; k < ${#COMBINATION[@]}; k++ ))
+            do
+              OTHER_LABEL=${COMBINATION[$k]}
+              CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[${#CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[@]}]=${OTHER_LABEL}
+            done
+      else
+        echo "We only combine with the gray matter or the white matter."
+        echo "The label ${COMBINATION[0]} does not correspond to the gray or white matters."
+        exit 1
+      fi
+  done
+CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS_FORMAT=( $( echo "${CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS_FORMAT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ' ) )
+CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS_FORMAT=( $( echo "${CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS_FORMAT[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ' ) )
 
 if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
   then
@@ -1023,9 +1070,41 @@ if [[ ! -f ${CORTICAL_THICKNESS_IMAGE} ]];
     echo "--------------------------------------------------------------------------------------"
     echo
 
+    # combine posteriors
+
     logCmd cp ${BRAIN_SEGMENTATION_GM} ${CORTICAL_THICKNESS_GM}
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${BRAIN_SEGMENTATION_WM} ${BRAIN_SEGMENTATION_DEEP_GM}
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${DEEP_GRAY_MATTER_LABEL} ${DEEP_GRAY_MATTER_LABEL} ${WHITE_MATTER_LABEL}
+    for(( i=0; i < ${#CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[@]}; i++ ))
+      do
+        OTHER_LABEL=${CORTICAL_THICKNESS_GRAY_MATTER_OTHER_LABELS[$i]}
+        NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#OTHER_LABEL} ))
+        ROOT='';
+        for(( l=0; l < $NUMBER_OF_REPS; l++ ))
+          do
+            ROOT=${ROOT}${REPCHARACTER}
+          done
+        OTHER_LABEL_FORMAT=${ROOT}${OTHER_LABEL}
+        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${OTHER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_GM} + ${CORTICAL_THICKNESS_GM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${GRAY_MATTER_LABEL}
+      done
+
+    logCmd cp ${BRAIN_SEGMENTATION_WM} ${CORTICAL_THICKNESS_WM}
+    for(( i=0; i < ${#CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[@]}; i++ ))
+      do
+        OTHER_LABEL=${CORTICAL_THICKNESS_WHITE_MATTER_OTHER_LABELS[$i]}
+        NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#OTHER_LABEL} ))
+        ROOT='';
+        for(( l=0; l < $NUMBER_OF_REPS; l++ ))
+          do
+            ROOT=${ROOT}${REPCHARACTER}
+          done
+        OTHER_LABEL_FORMAT=${ROOT}${OTHER_LABEL}
+        BRAIN_SEGMENTATION_OTHER_LABEL=${BRAIN_SEGMENTATION_OUTPUT}Posteriors${OTHER_LABEL_FORMAT}.${OUTPUT_SUFFIX}
+
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_WM} + ${CORTICAL_THICKNESS_WM} ${BRAIN_SEGMENTATION_OTHER_LABEL}
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${CORTICAL_THICKNESS_SEGMENTATION} ReplaceVoxelValue ${BRAIN_SEGMENTATION} ${OTHER_LABEL} ${OTHER_LABEL} ${WHITE_MATTER_LABEL}
+      done
 
     # Check inputs
     if [[ ! -f ${CORTICAL_THICKNESS_SEGMENTATION} ]];
