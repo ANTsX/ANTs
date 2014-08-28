@@ -11,6 +11,7 @@
 #include "ReadWriteData.h"
 #include "itkImageRegionIterator.h"
 #include "itkImageRegionIteratorWithIndex.h"
+#include "itkLabelStatisticsImageFilter.h"
 #include "itkN4BiasFieldCorrectionImageFilter.h"
 #include "itkOtsuThresholdImageFilter.h"
 #include "itkShrinkImageFilter.h"
@@ -416,11 +417,70 @@ int N4( itk::ants::CommandLineParser *parser )
       {
       itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
                                                         divider->GetOutput()->GetLargestPossibleRegion() );
-      for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
+      itk::ImageRegionIterator<ImageType> ItI( inputImage,
+                                               inputImage->GetLargestPossibleRegion() );
+      for( ItD.GoToBegin(), ItI.GoToBegin(); !ItD.IsAtEnd(); ++ItD, ++ItI )
         {
         if( maskImage->GetPixel( ItD.GetIndex() ) != correcter->GetMaskLabel() )
           {
-          ItD.Set( inputImage->GetPixel( ItD.GetIndex() ) );
+          ItD.Set( ItI.Get() );
+          }
+        }
+      }
+
+    bool doRescale = true;
+
+    typename itk::ants::CommandLineParser::OptionType::Pointer rescaleOption =
+      parser->GetOption( "rescale-intensities" );
+    if( rescaleOption && rescaleOption->GetNumberOfFunctions() &&
+      ! parser->Convert<bool>( rescaleOption->GetFunction()->GetName() ) )
+      {
+      doRescale = false;
+      }
+
+    if( doRescale )
+      {
+      typedef itk::Image<unsigned short, ImageDimension> ShortImageType;
+      typedef itk::CastImageFilter<MaskImageType, ShortImageType> CasterType;
+      typename CasterType::Pointer caster = CasterType::New();
+      caster->SetInput( maskImage );
+      caster->Update();
+
+      typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType> StatsType;
+      typename StatsType::Pointer stats = StatsType::New();
+      stats->SetInput( inputImage );
+      stats->SetLabelInput( caster->GetOutput() );
+      stats->UseHistogramsOff();
+      stats->Update();
+
+      typedef typename StatsType::LabelPixelType StatsLabelType;
+      StatsLabelType maskLabel = static_cast<StatsLabelType>( correcter->GetMaskLabel() );
+
+      RealType minInput = stats->GetMinimum( maskLabel );
+      RealType maxInput = stats->GetMaximum( maskLabel );
+
+      typename StatsType::Pointer stats2 = StatsType::New();
+      stats2->SetInput( divider->GetOutput() );
+      stats2->SetLabelInput( caster->GetOutput() );
+      stats2->UseHistogramsOff();
+      stats2->Update();
+
+      RealType minOutput = stats2->GetMinimum( maskLabel );
+      RealType maxOutput = stats2->GetMaximum( maskLabel );
+
+      RealType slope = ( maxOutput - minOutput ) / ( maxInput - minInput );
+
+      itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
+                                                        divider->GetOutput()->GetLargestPossibleRegion() );
+      itk::ImageRegionIterator<ImageType> ItI( inputImage,
+                                               inputImage->GetLargestPossibleRegion() );
+      for( ItD.GoToBegin(), ItI.GoToBegin(); !ItD.IsAtEnd(); ++ItD, ++ItI )
+        {
+        if( maskImage->GetPixel( ItD.GetIndex() ) != correcter->GetMaskLabel() )
+          {
+          RealType originalIntensity = ItI.Get();
+          RealType rescaledIntensity = maxOutput - slope * ( maxInput - originalIntensity );
+          ItD.Set( rescaledIntensity );
           }
         }
       }
@@ -508,6 +568,23 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
     option->SetLongName( "mask-image" );
     option->SetShortName( 'x' );
     option->SetUsageOption( 0, "maskImageFilename" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "At each iteration, a new intensity mapping is calculated " )
+      + std::string( "and applied but there is nothing which constrains the " )
+      + std::string( "new intensity range to be within certain values.  The " )
+      + std::string( "result is that the range can \"drift\" from the original " )
+      + std::string( "at each iteration.  This option rescales to the [min,max] " )
+      + std::string( "range of the original image intensities within the mask." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "rescale-intensities" );
+    option->SetShortName( 'r' );
+    option->SetUsageOption( 0, "0/(1)" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
