@@ -553,7 +553,7 @@ time_start_priors=`date +%s`
 
 logCmd ${ANTSPATH}/antsCorticalThickness.sh \
   -d ${DIMENSION} \
-  -q 1 \
+  -q ${RUN_QUICK} \
   -a ${SINGLE_SUBJECT_TEMPLATE} \
   -e ${BRAIN_TEMPLATE} \
   -m ${EXTRACTION_PRIOR} \
@@ -603,7 +603,7 @@ if [[ ${#MALF_ATLASES[@]} -eq 0 ]];
 
     logCmd ${ANTSPATH}/antsMalfLabeling.sh \
       -d ${DIMENSION} \
-      -q 1 \
+      -q ${RUN_QUICK} \
       -c ${DOQSUB} \
       -j ${CORES} \
       -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
@@ -670,7 +670,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
 
     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
       -d ${DIMENSION} \
-      -q 1 \
+      -q ${RUN_QUICK} \
       ${SUBJECT_ANATOMICAL_IMAGES} \
       -e ${SINGLE_SUBJECT_TEMPLATE} \
       -m ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR} \
