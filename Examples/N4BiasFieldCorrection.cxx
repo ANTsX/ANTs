@@ -412,8 +412,7 @@ int N4( itk::ants::CommandLineParser *parser )
     divider->SetInput2( expFilter->GetOutput() );
     divider->Update();
 
-    if( weightImage &&
-        ( maskImageOption && maskImageOption->GetNumberOfFunctions() > 0 ) )
+    if( maskImageOption && maskImageOption->GetNumberOfFunctions() > 0 )
       {
       itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
                                                         divider->GetOutput()->GetLargestPossibleRegion() );
