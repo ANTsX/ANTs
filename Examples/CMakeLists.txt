@@ -146,6 +146,7 @@ endforeach()
 if(USE_VTK)
 find_package(VTK REQUIRED NO_MODULE)
 include(${VTK_USE_FILE})
+include_directories(${VTK_INCLUDE_DIRS})
 set(VTK_ANTS_APPS
 #    ConvertVectorFieldToVTK
     antsSurf
