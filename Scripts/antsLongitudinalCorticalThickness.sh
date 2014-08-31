@@ -628,6 +628,16 @@ if [[ ${#MALF_ATLASES[@]} -eq 0 ]];
     logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR}
     logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} max ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
 
+    # Brian's finishing touches on "cooking"---subtract out CSF from all other priors
+    for (( j = 1; j < ${#SINGLE_SUBJECT_TEMPLATE_PRIORS[@]}; j++ ))
+      do
+        let PRIOR_LABEL=$j+1
+
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} - ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]}
+        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR} 0 1 1 0
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} m ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR}
+      done
+
     logCmd rm -f $TMP_CSF_POSTERIOR
     logCmd rm -f ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX}*log.txt
   fi
