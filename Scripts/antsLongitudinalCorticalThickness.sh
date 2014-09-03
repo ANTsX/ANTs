@@ -113,7 +113,9 @@ Optional arguments:
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
                                                 during brain extraction, brain segmentation, and (optional) normalization
                                                 to a template.  Otherwise use antsRegistrationSyN.sh (default = 0).
-
+     -r:  rigid alignment to SST                This option dictates if the individual subjects are registered to the single
+                                                subject template before running through antsCorticalThickness.  This potentially
+                                                reduces bias caused by subject orientation and voxel spacing (default = 0).
      -z:  Test / debug mode                     If > 0, runs a faster version of the script. Only for testing. Implies -u 0.
                                                 Requires single thread computation for complete reproducibility.
 USAGE
@@ -141,6 +143,7 @@ echoParameters() {
       number of modalities    = ${NUMBER_OF_MODALITIES}
       number of cores         = ${CORES}
       control type            = ${DOQSUB}
+      rigid alignment to SST  = ${RIGID_ALIGNMENT_TO_SST}
 
 PARAMETERS
 }
@@ -206,6 +209,7 @@ ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 
 DOQSUB=0
 CORES=2
+RIGID_ALIGNMENT_TO_SST=0
 
 MALF_ATLASES=()
 MALF_LABELS=()
@@ -266,7 +270,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:o:p:q:s:w:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:o:p:q:r:s:w:z:" OPT
     do
       case $OPT in
           a)
@@ -321,6 +325,9 @@ else
        ;;
           p) #brain segmentation label prior image
        SEGMENTATION_PRIOR=$OPTARG
+       ;;
+          r) #rigid alignment to SST
+       RIGID_ALIGNMENT_TO_SST=$OPTARG
        ;;
           q) # run quick
        RUN_QUICK=$OPTARG
@@ -674,11 +681,40 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
     echo $OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS
 
     SUBJECT_ANATOMICAL_IMAGES=''
-    let k=$i+$NUMBER_OF_MODALITIES
-    for (( j=$i; j < $k; j++ ))
-      do
-        SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
-      done
+
+    if [[ ${RIGID_ALIGNMENT_TO_SST} -ne 0 ]];
+      then
+        logCmd ${ANTSPATH}/antsRegistrationSyN.sh \
+          -d ${DIMENSION} \
+          -o ${BASENAME_ID}RigidToSST \
+          -m ${ANATOMICAL_IMAGES[$i]} \
+          -f ${SINGLE_SUBJECT_TEMPLATE} \
+          -t r
+
+        let k=$i+$NUMBER_OF_MODALITIES
+        for (( j=$i; j < $k; j++ ))
+          do
+            BASENAME_LOCAL_ID=`basename ${ANATOMICAL_IMAGES[$j]}`
+            BASENAME_LOCAL_ID=${BASENAME_LOCAL_ID/\.nii\.gz/}
+            BASENAME_LOCAL_ID=${BASENAME_LOCAL_ID/\.nii/}
+
+            logCmd ${ANTSPATH}/antsApplyTransforms \
+              -d ${DIMENSION} \
+              -i ${ANATOMICAL_IMAGES[$j]} \
+              -r ${SINGLE_SUBJECT_TEMPLATE} \
+              -o ${BASENAME_LOCAL_ID}RigidToSSTWarped.nii.gz \
+              -n BSpline \
+              -t ${BASENAME_ID}RigidToSST0GenericAffine.mat
+
+            SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${BASENAME_LOCAL_ID}RigidToSSTWarped.nii.gz"
+          done
+      else
+        let k=$i+$NUMBER_OF_MODALITIES
+        for (( j=$i; j < $k; j++ ))
+          do
+            SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
+          done
+      fi
 
     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
       -d ${DIMENSION} \
