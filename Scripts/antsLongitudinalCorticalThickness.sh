@@ -215,49 +215,6 @@ MALF_ATLASES=()
 MALF_LABELS=()
 MALF_LABEL_STRINGS_FOR_PRIORS=()
 
-FORMAT=${SEGMENTATION_PRIOR}
-PREFORMAT=${FORMAT%%\%*}
-POSTFORMAT=${FORMAT##*d}
-FORMAT=${FORMAT#*\%}
-FORMAT=${FORMAT%%d*}
-
-REPCHARACTER=''
-TOTAL_LENGTH=0
-if [ ${#FORMAT} -eq 2 ]
-  then
-    REPCHARACTER=${FORMAT:0:1}
-    TOTAL_LENGTH=${FORMAT:1:1}
-  fi
-
-# MAXNUMBER=$(( 10 ** $TOTAL_LENGTH ))
-MAXNUMBER=1000
-
-PRIOR_IMAGE_FILENAMES=()
-WARPED_PRIOR_IMAGE_FILENAMES=()
-BRAIN_SEGMENTATION_OUTPUT=${OUTPUT_PREFIX}BrainSegmentation
-SEGMENTATION_WARP_OUTPUT_PREFIX=${BRAIN_SEGMENTATION_OUTPUT}Prior
-SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped
-for (( i = 1; i < $MAXNUMBER; i++ ))
-  do
-    NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#i} ))
-    ROOT='';
-    for(( j=0; j < $NUMBER_OF_REPS; j++ ))
-      do
-        ROOT=${ROOT}${REPCHARACTER}
-      done
-    FILENAME=${PREFORMAT}${ROOT}${i}${POSTFORMAT}
-    WARPED_FILENAME=${SEGMENTATION_PRIOR_WARPED}${ROOT}${i}.${OUTPUT_SUFFIX}
-    if [[ -f $FILENAME ]];
-      then
-        PRIOR_IMAGE_FILENAMES=( ${PRIOR_IMAGE_FILENAMES[@]} $FILENAME )
-        WARPED_PRIOR_IMAGE_FILENAMES=( ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $WARPED_FILENAME )
-      else
-        break 1
-      fi
-  done
-
-NUMBER_OF_PRIOR_IMAGES=${#WARPED_PRIOR_IMAGE_FILENAMES[*]}
-
 ################################################################################
 #
 # Programs and their parameters
@@ -345,6 +302,49 @@ else
       esac
   done
 fi
+
+FORMAT=${SEGMENTATION_PRIOR}
+PREFORMAT=${FORMAT%%\%*}
+POSTFORMAT=${FORMAT##*d}
+FORMAT=${FORMAT#*\%}
+FORMAT=${FORMAT%%d*}
+
+REPCHARACTER=''
+TOTAL_LENGTH=0
+if [ ${#FORMAT} -eq 2 ]
+  then
+    REPCHARACTER=${FORMAT:0:1}
+    TOTAL_LENGTH=${FORMAT:1:1}
+  fi
+
+# MAXNUMBER=$(( 10 ** $TOTAL_LENGTH ))
+MAXNUMBER=1000
+
+PRIOR_IMAGE_FILENAMES=()
+WARPED_PRIOR_IMAGE_FILENAMES=()
+BRAIN_SEGMENTATION_OUTPUT=${OUTPUT_PREFIX}BrainSegmentation
+SEGMENTATION_WARP_OUTPUT_PREFIX=${BRAIN_SEGMENTATION_OUTPUT}Prior
+SEGMENTATION_PRIOR_WARPED=${SEGMENTATION_WARP_OUTPUT_PREFIX}Warped
+for (( i = 1; i < $MAXNUMBER; i++ ))
+  do
+    NUMBER_OF_REPS=$(( $TOTAL_LENGTH - ${#i} ))
+    ROOT='';
+    for(( j=0; j < $NUMBER_OF_REPS; j++ ))
+      do
+        ROOT=${ROOT}${REPCHARACTER}
+      done
+    FILENAME=${PREFORMAT}${ROOT}${i}${POSTFORMAT}
+    WARPED_FILENAME=${SEGMENTATION_PRIOR_WARPED}${ROOT}${i}.${OUTPUT_SUFFIX}
+    if [[ -f $FILENAME ]];
+      then
+        PRIOR_IMAGE_FILENAMES=( ${PRIOR_IMAGE_FILENAMES[@]} $FILENAME )
+        WARPED_PRIOR_IMAGE_FILENAMES=( ${WARPED_PRIOR_IMAGE_FILENAMES[@]} $WARPED_FILENAME )
+      else
+        break 1
+      fi
+  done
+
+NUMBER_OF_PRIOR_IMAGES=${#WARPED_PRIOR_IMAGE_FILENAMES[*]}
 
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
 # The shiftsize variable will give the correct number of arguments to skip. Issuing shift $shiftsize will
