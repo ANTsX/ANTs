@@ -549,6 +549,10 @@ echo
 
 SINGLE_SUBJECT_ANTSCT_PREFIX=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}/T_template
 SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionMask.${OUTPUT_SUFFIX}
+SINGLE_SUBJECT_TEMPLATE_POSTERIORS=( ${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationPosteriors*.${OUTPUT_SUFFIX} )
+SINGLE_SUBJECT_TEMPLATE_SEGMENTATION_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationPriors\%${FORMAT}d.${OUTPUT_SUFFIX}
+SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionMaskPrior.${OUTPUT_SUFFIX}
+SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
 
 echo
 echo "--------------------------------------------------------------------------------------"
@@ -558,96 +562,119 @@ echo
 
 time_start_priors=`date +%s`
 
-logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-  -d ${DIMENSION} \
-  -q ${RUN_QUICK} \
-  -a ${SINGLE_SUBJECT_TEMPLATE} \
-  -e ${BRAIN_TEMPLATE} \
-  -f ${EXTRACTION_REGISTRATION_MASK} \
-  -m ${EXTRACTION_PRIOR} \
-  -k 0 \
-  -z ${DEBUG_MODE} \
-  -p ${SEGMENTATION_PRIOR} \
-  -o ${SINGLE_SUBJECT_ANTSCT_PREFIX}
+SINGLE_SUBJECT_TEMPLATE_POSTERIORS_EXIST=1
+SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST=1
+
+SINGLE_SUBJECT_TEMPLATE_PRIORS=()
+for (( j = 0; j < ${#SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}; j++ ))
+  do
+    POSTERIOR=${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[$j]}
+
+    if [[ ! -f ${POSTERIOR} ]];
+      then
+        SINGLE_SUBJECT_TEMPLATE_POSTERIORS_EXIST=0
+        SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST=0
+        break;
+      fi
+
+    SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/Posteriors/Priors}
+
+    if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ]];
+      then
+        SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST=0
+      fi
+  done
+
+if [[ ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS_EXIST} -eq 0 ]];
+  then
+    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+      -d ${DIMENSION} \
+      -q ${RUN_QUICK} \
+      -a ${SINGLE_SUBJECT_TEMPLATE} \
+      -e ${BRAIN_TEMPLATE} \
+      -f ${EXTRACTION_REGISTRATION_MASK} \
+      -m ${EXTRACTION_PRIOR} \
+      -k 0 \
+      -z ${DEBUG_MODE} \
+      -p ${SEGMENTATION_PRIOR} \
+      -o ${SINGLE_SUBJECT_ANTSCT_PREFIX}
+  fi
+
+logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} m ${SINGLE_SUBJECT_TEMPLATE} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK}
+logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} 1 ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR} 1
+
+if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
+  then
+    if [[ ${#MALF_ATLASES[@]} -eq 0 ]];
+      then
+
+        echo
+        echo "   ---> Smoothing single-subject template posteriors as priors."
+        echo
+
+        for j in ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}
+          do
+            PRIOR=${j/Posteriors/Priors}
+            logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} $j 1 $PRIOR 1
+          done
+
+      else
+
+        echo
+        echo "   ---> Cooking single-subject priors using antsMalfLabeling."
+        echo
+
+        SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}/T_template
+        SINGLE_SUBJECT_TEMPLATE_MALF_LABELS=${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX}MalfLabels.nii.gz
+
+        ATLAS_AND_LABELS_STRING=''
+        for (( j=0; j < ${#MALF_ATLASES[@]}; j++ ))
+          do
+            ATLAS_AND_LABELS_STRING="${ATLAS_AND_LABELS_STRING} -g ${MALF_ATLASES[$j]} -l ${MALF_LABELS[$j]}"
+          done
+
+        logCmd ${ANTSPATH}/antsMalfLabeling.sh \
+          -d ${DIMENSION} \
+          -q ${RUN_QUICK} \
+          -c ${DOQSUB} \
+          -j ${CORES} \
+          -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
+          -o ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX} \
+          ${ATLAS_AND_LABELS_STRING}
+
+        SINGLE_SUBJECT_TEMPLATE_PRIORS=()
+        for (( j = 0; j < ${#SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}; j++ ))
+          do
+            POSTERIOR=${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[$j]}
+
+            SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/Posteriors/Priors}
+
+            let PRIOR_LABEL=$j+1
+            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${PRIOR_LABEL} ${PRIOR_LABEL} 1 0
+            logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1 ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1
+          done
+
+        TMP_CSF_POSTERIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationCsfPosteriorTmp.${OUTPUT_SUFFIX}
+        logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR}
+        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} max ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
+
+        # Brian's finishing touches on "cooking"---subtract out CSF from all other priors
+        for (( j = 1; j < ${#SINGLE_SUBJECT_TEMPLATE_PRIORS[@]}; j++ ))
+          do
+            let PRIOR_LABEL=$j+1
+
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} - ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]}
+            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR} 0 1 1 0
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} m ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR}
+          done
+
+        logCmd rm -f $TMP_CSF_POSTERIOR
+        logCmd rm -f ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX}*log.txt
+      fi
+  fi
 
 time_end_priors=`date +%s`
 time_elapsed_priors=$((time_end_priors - time_start_priors))
-
-SINGLE_SUBJECT_TEMPLATE_POSTERIORS=( ${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationPosteriors*.${OUTPUT_SUFFIX} )
-SINGLE_SUBJECT_TEMPLATE_SEGMENTATION_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationPriors\%${FORMAT}d.${OUTPUT_SUFFIX}
-SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionMaskPrior.${OUTPUT_SUFFIX}
-SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
-
-logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} m ${SINGLE_SUBJECT_TEMPLATE} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK}
-
-logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK} 1 ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR} 1
-
-if [[ ${#MALF_ATLASES[@]} -eq 0 ]];
-  then
-
-    echo
-    echo "   ---> Smoothing single-subject template posteriors as priors."
-    echo
-
-    for j in ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}
-      do
-        PRIOR=${j/Posteriors/Priors}
-        logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} $j 1 $PRIOR 1
-      done
-
-  else
-
-    echo
-    echo "   ---> Cooking single-subject priors using antsMalfLabeling."
-    echo
-
-    SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}/T_template
-    SINGLE_SUBJECT_TEMPLATE_MALF_LABELS=${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX}MalfLabels.nii.gz
-
-    ATLAS_AND_LABELS_STRING=''
-    for (( j=0; j < ${#MALF_ATLASES[@]}; j++ ))
-      do
-        ATLAS_AND_LABELS_STRING="${ATLAS_AND_LABELS_STRING} -g ${MALF_ATLASES[$j]} -l ${MALF_LABELS[$j]}"
-      done
-
-    logCmd ${ANTSPATH}/antsMalfLabeling.sh \
-      -d ${DIMENSION} \
-      -q ${RUN_QUICK} \
-      -c ${DOQSUB} \
-      -j ${CORES} \
-      -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
-      -o ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX} \
-      ${ATLAS_AND_LABELS_STRING}
-
-    SINGLE_SUBJECT_TEMPLATE_PRIORS=()
-    for (( j = 0; j < ${#SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}; j++ ))
-      do
-        POSTERIOR=${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[$j]}
-
-        SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/Posteriors/Priors}
-
-        let PRIOR_LABEL=$j+1
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${PRIOR_LABEL} ${PRIOR_LABEL} 1 0
-        logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1 ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} 1
-      done
-
-    TMP_CSF_POSTERIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationCsfPosteriorTmp.${OUTPUT_SUFFIX}
-    logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[0]} 1 ${TMP_CSF_POSTERIOR}
-    logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} max ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]} ${TMP_CSF_POSTERIOR}
-
-    # Brian's finishing touches on "cooking"---subtract out CSF from all other priors
-    for (( j = 1; j < ${#SINGLE_SUBJECT_TEMPLATE_PRIORS[@]}; j++ ))
-      do
-        let PRIOR_LABEL=$j+1
-
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} - ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[0]}
-        logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR} 0 1 1 0
-        logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} m ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${TMP_CSF_POSTERIOR}
-      done
-
-    logCmd rm -f $TMP_CSF_POSTERIOR
-    logCmd rm -f ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX}*log.txt
-  fi
 
 echo
 echo "--------------------------------------------------------------------------------------"
