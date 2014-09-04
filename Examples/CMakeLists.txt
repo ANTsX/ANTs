@@ -144,9 +144,23 @@ foreach(ANTS_APP ${BASE_ANTS_APPS})
 endforeach()
 
 if(USE_VTK)
-find_package(VTK REQUIRED NO_MODULE)
+find_package(VTK 6.1 REQUIRED NO_MODULE)
+find_package(VTK COMPONENTS
+   vtkCommonCore
+   vtkCommonDataModel
+   vtkIOGeometry
+   vtkIOXML
+   vtkIOLegacy
+   vtkIOPLY
+   vtkRenderingOpenGL
+   vtkFiltersModeling  
+   vtkImagingStencil
+   vtkImagingGeneral
+   vtkRenderingAnnotation
+   )
 include(${VTK_USE_FILE})
 include_directories(${VTK_INCLUDE_DIRS})
+
 set(VTK_ANTS_APPS
 #    ConvertVectorFieldToVTK
     antsSurf
