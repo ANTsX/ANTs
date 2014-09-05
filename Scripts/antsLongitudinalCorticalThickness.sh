@@ -409,6 +409,32 @@ for (( i = 0; i < ${#ANATOMICAL_IMAGES[@]}; i++ ))
     fi
   done
 
+
+if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
+  then
+    echo "Only one set of anatomical images.  Running antsCorticalThickness.sh on the single subject."
+
+    SUBJECT_ANATOMICAL_IMAGES=''
+    for (( j=0; j < $NUMBER_OF_MODALITIES; j++ ))
+      do
+        SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
+      done
+
+    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+      -d ${DIMENSION} \
+      -q ${RUN_QUICK} \
+      ${SUBJECT_ANATOMICAL_IMAGES} \
+      -e ${BRAIN_TEMPLATE} \
+      -f ${EXTRACTION_REGISTRATION_MASK} \
+      -m ${EXTRACTION_PRIOR} \
+      -k 0 \
+      -z ${DEBUG_MODE} \
+      -p ${SEGMENTATION_PRIOR} \
+      -o ${OUTPUT_PREFIX}
+
+    exit 0
+  fi
+
 if [[ ! -f ${BRAIN_TEMPLATE} ]];
   then
     echo "The extraction template doesn't exist:"
