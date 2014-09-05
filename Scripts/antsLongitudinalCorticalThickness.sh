@@ -236,7 +236,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:w:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:t:w:z:" OPT
     do
       case $OPT in
           a)
