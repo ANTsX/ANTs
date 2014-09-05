@@ -301,6 +301,7 @@ else
           t) #template registration image
        REGISTRATION_TEMPLATE=$OPTARG
        DO_REGISTRATION_TO_TEMPLATE=1
+       ;;
           q) # run quick
        RUN_QUICK=$OPTARG
        ;;
