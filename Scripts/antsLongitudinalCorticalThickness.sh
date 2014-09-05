@@ -577,7 +577,7 @@ for (( j = 0; j < ${#SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}; j++ ))
         break;
       fi
 
-    SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/Posteriors/Priors}
+    SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/BrainSegmentationPosteriors/Priors}
 
     if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ]];
       then
@@ -647,7 +647,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
           do
             POSTERIOR=${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[$j]}
 
-            SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/Posteriors/Priors}
+            SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]=${POSTERIOR/BrainSegmentationPosteriors/Priors}
 
             let PRIOR_LABEL=$j+1
             logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ${SINGLE_SUBJECT_TEMPLATE_PRIORS[$j]} ${PRIOR_LABEL} ${PRIOR_LABEL} 1 0
