@@ -410,7 +410,8 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     }
 
     {
-    std::string description = std::string( "Print the help menu." );
+    std::string description = std::string( "Print the help menu.  Will also print values " )
+      + std::string( "used on the current command line call." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "help" );
