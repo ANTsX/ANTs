@@ -97,6 +97,9 @@ Optional arguments:
                                                   2 = use PEXEC (localhost)
                                                   3 = Apple XGrid
                                                   4 = PBS qsub
+     -t:  template for t1 registration          Anatomical *intensity* template (assumed to be skull-stripped).  A common
+                                                use case would be where this would be the same template as specified in the
+                                                -e option which is not skull stripped.
      -a:                                        Atlases (assumed to be skull-stripped) used to cook template priors.  If atlases
                                                 aren't used then we simply smooth the single-subject template posteriors after
                                                 passing through antsCorticalThickness.sh.
@@ -104,10 +107,13 @@ Optional arguments:
                                                 to the number of priors.
      -f:  extraction registration mask          Mask (defined in the template space) used during registration
                                                 for brain extraction.
-     -j:  Number of cpu cores                   Number of cpu cores to use locally for pexec option (default 2; requires "-c 2")
+     -j:  number of cpu cores                   Number of cpu cores to use locally for pexec option (default 2; requires "-c 2")
      -k:  number of modalities                  Number of modalities used to construct the template (default 1):  For example,
                                                 if one wanted to use multiple modalities consisting of T1, T2, and FA
                                                 components ("-k 3").
+     -n:  use SST cortical thickness prior      If set to '1', the cortical thickness map from the single-subject template is used
+                                                as a prior constraint for each of the individual calls to antsCorticalThickness.sh
+                                                (default = 0).
      -g:  use floating-point precision          Use floating point precision in registrations (default = 0)
      -w:  Atropos prior segmentation weight     Atropos spatial prior *probability* weight for the segmentation (default = 0.25)
      -q:  Use quick registration parameters     If = 1, use antsRegistrationSyNQuick.sh as the basis for registration
@@ -204,6 +210,9 @@ BRAIN_TEMPLATE=""
 EXTRACTION_PRIOR=""
 EXTRACTION_REGISTRATION_MASK=""
 SEGMENTATION_PRIOR=""
+USE_SST_CORTICAL_THICKNESS_PRIOR=0
+REGISTRATION_TEMPLATE=""
+DO_REGISTRATION_TO_TEMPLATE=0
 
 ATROPOS_SEGMENTATION_PRIOR_WEIGHT=0.25
 
@@ -227,7 +236,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:o:p:q:r:s:w:z:" OPT
+  while getopts "a:b:c:d:e:f:g:h:j:k:l:m:n:o:p:q:r:s:w:z:" OPT
     do
       case $OPT in
           a)
@@ -277,6 +286,9 @@ else
           m) #brain extraction prior probability mask
        EXTRACTION_PRIOR=$OPTARG
        ;;
+          n) # use
+       USE_SST_CORTICAL_THICKNESS_PRIOR=$OPTARG
+       ;;
           o) #output prefix
        OUTPUT_PREFIX=$OPTARG
        ;;
@@ -286,6 +298,9 @@ else
           r) #rigid alignment to SST
        RIGID_ALIGNMENT_TO_SST=$OPTARG
        ;;
+          t) #template registration image
+       REGISTRATION_TEMPLATE=$OPTARG
+       DO_REGISTRATION_TO_TEMPLATE=1
           q) # run quick
        RUN_QUICK=$OPTARG
        ;;
@@ -420,6 +435,8 @@ if [[ ${#ANATOMICAL_IMAGES[@]} -eq ${NUMBER_OF_MODALITIES} ]];
         SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -a ${ANATOMICAL_IMAGES[$j]}"
       done
 
+
+
     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
       -d ${DIMENSION} \
       -q ${RUN_QUICK} \
@@ -446,6 +463,15 @@ if [[ ! -f ${EXTRACTION_PRIOR} ]];
     echo "The brain extraction prior doesn't exist:"
     echo "   $EXTRACTION_PRIOR"
     exit 1
+  fi
+
+if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
+  then
+    if [[ ! -f ${REGISTRATION_TEMPLATE} ]]
+      then
+        echo "Template for registration, ${REGISTRATION_TEMPLATE}, does not exist."
+        exit 1
+      fi
   fi
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
@@ -578,6 +604,7 @@ SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtr
 SINGLE_SUBJECT_TEMPLATE_POSTERIORS=( ${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainSegmentationPosteriors*.${OUTPUT_SUFFIX} )
 SINGLE_SUBJECT_TEMPLATE_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}Priors\%${FORMAT}d.${OUTPUT_SUFFIX}
 SINGLE_SUBJECT_TEMPLATE_EXTRACTION_PRIOR=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionMaskPrior.${OUTPUT_SUFFIX}
+SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS=${SINGLE_SUBJECT_ANTSCT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
 SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED=${SINGLE_SUBJECT_ANTSCT_PREFIX}BrainExtractionBrain.${OUTPUT_SUFFIX}
 
 echo
@@ -613,17 +640,34 @@ for (( j = 0; j < ${#SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}; j++ ))
 
 if [[ ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS_EXIST} -eq 0 ]];
   then
-    logCmd ${ANTSPATH}/antsCorticalThickness.sh \
-      -d ${DIMENSION} \
-      -q ${RUN_QUICK} \
-      -a ${SINGLE_SUBJECT_TEMPLATE} \
-      -e ${BRAIN_TEMPLATE} \
-      -f ${EXTRACTION_REGISTRATION_MASK} \
-      -m ${EXTRACTION_PRIOR} \
-      -k 0 \
-      -z ${DEBUG_MODE} \
-      -p ${SEGMENTATION_PRIOR} \
-      -o ${SINGLE_SUBJECT_ANTSCT_PREFIX}
+
+    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
+      then
+        logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+          -d ${DIMENSION} \
+          -q ${RUN_QUICK} \
+          -a ${SINGLE_SUBJECT_TEMPLATE} \
+          -e ${BRAIN_TEMPLATE} \
+          -f ${EXTRACTION_REGISTRATION_MASK} \
+          -m ${EXTRACTION_PRIOR} \
+          -k 0 \
+          -z ${DEBUG_MODE} \
+          -p ${SEGMENTATION_PRIOR} \
+          -o ${SINGLE_SUBJECT_ANTSCT_PREFIX}
+      else
+        logCmd ${ANTSPATH}/antsCorticalThickness.sh \
+          -d ${DIMENSION} \
+          -t ${REGISTRATION_TEMPLATE} \
+          -q ${RUN_QUICK} \
+          -a ${SINGLE_SUBJECT_TEMPLATE} \
+          -e ${BRAIN_TEMPLATE} \
+          -f ${EXTRACTION_REGISTRATION_MASK} \
+          -m ${EXTRACTION_PRIOR} \
+          -k 0 \
+          -z ${DEBUG_MODE} \
+          -p ${SEGMENTATION_PRIOR} \
+          -o ${SINGLE_SUBJECT_ANTSCT_PREFIX}
+      fi
   fi
 
 logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} m ${SINGLE_SUBJECT_TEMPLATE} ${SINGLE_SUBJECT_TEMPLATE_EXTRACTION_MASK}
@@ -737,8 +781,9 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
 
     echo $OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS
 
-    SUBJECT_ANATOMICAL_IMAGES=''
+    ANATOMICAL_REFERENCE_IMAGE=${ANATOMICAL_IMAGES[$i]}
 
+    SUBJECT_ANATOMICAL_IMAGES=''
     if [[ ${RIGID_ALIGNMENT_TO_SST} -ne 0 ]];
       then
         logCmd ${ANTSPATH}/antsRegistrationSyN.sh \
@@ -747,6 +792,8 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
           -m ${ANATOMICAL_IMAGES[$i]} \
           -f ${SINGLE_SUBJECT_TEMPLATE} \
           -t r
+
+        ANATOMICAL_REFERENCE_IMAGE=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}RigidToSSTWarped.nii.gz
 
         let k=$i+$NUMBER_OF_MODALITIES
         for (( j=$i; j < $k; j++ ))
@@ -773,6 +820,13 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
           done
       fi
 
+    if [[ ${USE_SST_CORTICAL_THICKNESS_PRIOR} -ne 0 ]];
+      then
+        SUBJECT_ANATOMICAL_IMAGES="${SUBJECT_ANATOMICAL_IMAGES} -r ${SINGLE_SUBJECT_TEMPLATE_CORTICAL_THICKNESS}"
+      fi
+
+    OUPTUT_PREFIX=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}
+
     logCmd ${ANTSPATH}/antsCorticalThickness.sh \
       -d ${DIMENSION} \
       -q ${RUN_QUICK} \
@@ -784,7 +838,51 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
       -w ${ATROPOS_SEGMENTATION_PRIOR_WEIGHT} \
       -p ${SINGLE_SUBJECT_TEMPLATE_PRIOR} \
       -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
-      -o ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_CORTICAL_THICKNESS}/${BASENAME_ID}
+      -o ${OUTPUT_PREFIX}
+
+    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
+      then
+        logCmd ${ANTSPATH}/antsApplyTransforms \
+          -d ${DIMENSION} \
+          -r ${REGISTRATION_TEMPLATE} \
+          -o [${OUTPUT_PREFIX}SubjectToGroupTemplateWarp.nii.gz,1] \
+          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate1Warp.nii.gz \
+          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}SubjectToTemplate0GenericAffine.mat \
+          -t ${OUTPUT_PREFIX}SubjectToTemplate1Warp.nii.gz \
+          -t ${OUTPUT_PREFIX}SubjectToTemplate0GenericAffine.mat
+
+        logCmd ${ANTSPATH}/antsApplyTransforms \
+          -d ${DIMENSION} \
+          -r ${ANATOMICAL_REFERENCE_IMAGE} \
+          -o [${OUTPUT_PREFIX}GroupTemplateToSubjectWarp.nii.gz,1] \
+          -t ${OUTPUT_PREFIX}TemplateToSubject1GenericAffine.mat \
+          -t ${OUTPUT_PREFIX}TemplateToSubject0Warp.nii.gz \
+          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}TemplateToSubject1GenericAffine.mat \
+          -t ${SINGLE_SUBJECT_ANTSCT_PREFIX}TemplateToSubject0Warp.nii.gz
+
+        if [[ -f ${CORTICAL_LABEL_IMAGE} ]];
+          then
+
+            SUBJECT_CORTICAL_LABELS=${OUTPUT_PREFIX}CorticalLabels.${OUTPUT_SUFFIX}
+            SUBJECT_CORTICAL_THICKNESS=${OUTPUT_PREFIX}CorticalThickness.${OUTPUT_SUFFIX}
+            SUBJECT_TMP=${OUTPUT_PREFIX}Tmp.${OUTPUT_SUFFIX}
+            SUBJECT_STATS=${OUTPUT_PREFIX}LabelThickness.csv
+
+            logCmd ${ANTSPATH}/antsApplyTransforms \
+              -d ${DIMENSION} \
+              -i ${CORTICAL_LABEL_IMAGE} \
+              -r ${ANATOMICAL_REFERENCE_IMAGE} \
+              -o ${SUBJECT_CORTICAL_LABELS} \
+              -n MultiLabel \
+              -t ${OUTPUT_PREFIX}GroupTemplateToSubjectWarp.nii.gz
+
+            logCmd ${ANTSPATH}/ThresholdImage ${DIMENSION} ${OUTPUT_PREFIX}BrainSegmentation.${OUTPUT_SUFFIX} ${SUBJECT_TMP} 2 2 1 0
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_CORTICAL_LABELS} m ${SUBJECT_TMP} ${SUBJECT_CORTICAL_LABELS}
+            logCmd ${ANTSPATH}/ImageMath ${DIMENSION} ${SUBJECT_STATS} LabelStats ${SUBJECT_CORTICAL_LABELS} ${SUBJECT_CORTICAL_THICKNESS}
+
+            logCmd rm -f $SUBJECT_TMP
+          fi
+      fi
 
   done
 
