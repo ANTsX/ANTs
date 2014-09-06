@@ -704,14 +704,17 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
             ATLAS_AND_LABELS_STRING="${ATLAS_AND_LABELS_STRING} -g ${MALF_ATLASES[$j]} -l ${MALF_LABELS[$j]}"
           done
 
-        logCmd ${ANTSPATH}/antsMalfLabeling.sh \
-          -d ${DIMENSION} \
-          -q ${RUN_QUICK} \
-          -c ${DOQSUB} \
-          -j ${CORES} \
-          -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
-          -o ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX} \
-          ${ATLAS_AND_LABELS_STRING}
+        if [[ ! -f ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS} ]];
+          then
+            logCmd ${ANTSPATH}/antsMalfLabeling.sh \
+              -d ${DIMENSION} \
+              -q ${RUN_QUICK} \
+              -c ${DOQSUB} \
+              -j ${CORES} \
+              -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
+              -o ${SINGLE_SUBJECT_TEMPLATE_MALF_LABELS_PREFIX} \
+              ${ATLAS_AND_LABELS_STRING}
+          fi
 
         SINGLE_SUBJECT_TEMPLATE_PRIORS=()
         for (( j = 0; j < ${#SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}; j++ ))
