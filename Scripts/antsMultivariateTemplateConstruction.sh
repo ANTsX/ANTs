@@ -73,7 +73,7 @@ Usage:
 Compulsory arguments (minimal command line requires SGE cluster, otherwise use -c & -j options):
 
      -d:  ImageDimension: 2 or 3 (for 2 or 3 dimensional registration of single volume)
-	  ImageDimension: 4 (for template generation of time-series data)
+   ImageDimension: 4 (for template generation of time-series data)
 
      -o:  OUTPREFIX; A prefix that is prepended to all output files.
 
@@ -90,7 +90,7 @@ should be invoked from that directory.
 Optional arguments:
 
      -c:  Control for parallel computation (default 1) -- 0 == run serially,  1 == SGE qsub,
-	         2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
+          2 == use PEXEC (localhost), 3 == Apple XGrid, 4 == PBS qsub
 
      -g:  Gradient step size (default 0.25) -- smaller in magnitude results in more cautious steps
 
@@ -168,17 +168,17 @@ function reportMappingParameters {
 --------------------------------------------------------------------------------------
  ANTSPATH is $ANTSPATH
 
- Dimensionality:			                 $DIM
- N4BiasFieldCorrection:			          $N4CORRECT
- Similarity Metric:			              $METRICTYPE
- Transformation:			                 $TRANSFORMATIONTYPE
- Regularization:		          	       $REGULARIZATION
- MaxIterations:				                 $MAXITERATIONS
- Number Of MultiResolution Levels:	 $NUMLEVELS
- OutputName prefix:	              		$OUTPUTNAME
- Template:  		                    		$TEMPLATENAME
- Template Update Steps:			          $ITERATIONLIMIT
- Template population:	   		         $IMAGESETVARIABLE
+ Dimensionality:                    $DIM
+ N4BiasFieldCorrection:             $N4CORRECT
+ Similarity Metric:                 $METRICTYPE
+ Transformation:                    $TRANSFORMATIONTYPE
+ Regularization:                    $REGULARIZATION
+ MaxIterations:                     $MAXITERATIONS
+ Number Of MultiResolution Levels:  $NUMLEVELS
+ OutputName prefix:                 $OUTPUTNAME
+ Template:                          $TEMPLATENAME
+ Template Update Steps:             $ITERATIONLIMIT
+ Template population:               $IMAGESETVARIABLE
  Number of Modalities:              $NUMBEROFMODALITIES
  Madality weights:                  $MODALITYWEIGHTSTRING
 --------------------------------------------------------------------------------------
@@ -213,14 +213,14 @@ function shapeupdatetotemplate() {
     echo " shapeupdatetotemplate---voxel-wise averaging of the warped images to the current template"
     echo "   ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz    "
     echo "--------------------------------------------------------------------------------------"
-	   ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
+    ${ANTSPATH}AverageImages $dim ${template} 1 ${templatename}${whichtemplate}*WarpedToTemplate.nii.gz
 
     if [[ $whichtemplate -eq 0 ]] ;
       then
         echo
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---voxel-wise averaging of the inverse warp fields (from subject to template)"
-        echo	"   ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
+        echo "   ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`"
         echo "--------------------------------------------------------------------------------------"
 
         ${ANTSPATH}AverageImages $dim ${templatename}${whichtemplate}warp.nii.gz 0 `ls ${outputname}*Warp.nii.gz | grep -v "InverseWarp"`
@@ -376,10 +376,10 @@ BACKUP_EACH_ITERATION=0
 # cpu_free_ram=$((${RAMfree}/${cpu_count}))
 
 if [[ ${OSTYPE:0:6} == 'darwin' ]];
-	then
-	cpu_count=`sysctl -n hw.physicalcpu`
+ then
+ cpu_count=`sysctl -n hw.physicalcpu`
 else
-	cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
+ cpu_count=`cat /proc/cpuinfo | grep processor | wc -l`
 fi
 
 # Provide output for Help
@@ -394,69 +394,69 @@ while getopts "b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:z:" OPT
   do
   case $OPT in
       h) #help
-	  echo "$USAGE"
-	  exit 0
-	  ;;
+   echo "$USAGE"
+   exit 0
+   ;;
       b) #backup each iteration (default = 0)
-	  BACKUP_EACH_ITERATION=$OPTARG
-	  ;;
+   BACKUP_EACH_ITERATION=$OPTARG
+   ;;
       c) #use SGE cluster
-	  DOQSUB=$OPTARG
-	  if [[ ${#DOQSUB} -gt 2 ]]; then
-	      echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
-	      exit 1
-	  fi
-	  ;;
+   DOQSUB=$OPTARG
+   if [[ ${#DOQSUB} -gt 2 ]]; then
+       echo " DOQSUB must be an integer value (0=serial, 1=SGE qsub, 2=try pexec, 3=XGrid, 4=PBS qsub ) you passed  -c $DOQSUB "
+       exit 1
+   fi
+   ;;
       d) #dimensions
-	  DIM=$OPTARG
-	  if [[ ${DIM} -eq 4 ]]; then
-	      DIM=3
-	      TDIM=4
-	  fi
-	  ;;
+   DIM=$OPTARG
+   if [[ ${DIM} -eq 4 ]]; then
+       DIM=3
+       TDIM=4
+   fi
+   ;;
       g) #gradient stepsize (default = 0.25)
-	  GRADIENTSTEP=$OPTARG
-	  ;;
+   GRADIENTSTEP=$OPTARG
+   ;;
       i) #iteration limit (default = 3)
-	  ITERATIONLIMIT=$OPTARG
-	  ;;
+   ITERATIONLIMIT=$OPTARG
+   ;;
       j) #number of cpu cores to use (default = 2)
-	  CORES=$OPTARG
-	  ;;
+   CORES=$OPTARG
+   ;;
       k) #number of modalities used to construct the template (default = 1)
-	  NUMBEROFMODALITIES=$OPTARG
-	  ;;
+   NUMBEROFMODALITIES=$OPTARG
+   ;;
       w) #modality weights (default = 1)
-	  MODALITYWEIGHTSTRING=$OPTARG
-	  ;;
+   MODALITYWEIGHTSTRING=$OPTARG
+   ;;
       m) #max iterations other than default
-	  MAXITERATIONS=$OPTARG
-	  ;;
+   MAXITERATIONS=$OPTARG
+   ;;
       n) #apply bias field correction
-	  N4CORRECT=$OPTARG
-	  ;;
+   N4CORRECT=$OPTARG
+   ;;
       o) #output name prefix
-	  OUTPUTNAME=$OPTARG
-	  TEMPLATENAME=${OUTPUTNAME}template
-	  ;;
+   OUTPUTNAME=$OPTARG
+   TEMPLATENAME=${OUTPUTNAME}template
+   ;;
       p) #Script prepend
-	  SCRIPTPREPEND=$OPTARG
-	  ;;
+   SCRIPTPREPEND=$OPTARG
+   ;;
       s) #similarity model
-	  METRICTYPE[${#METRICTYPE[@]}]=$OPTARG
-	  ;;
+   METRICTYPE[${#METRICTYPE[@]}]=$OPTARG
+   ;;
       r) #start with rigid-body registration
-	  RIGID=$OPTARG
-	  ;;
+   RIGID=$OPTARG
+   ;;
       t) #transformation model
-	  TRANSFORMATIONTYPE=$OPTARG
-	  ;;
+   TRANSFORMATIONTYPE=$OPTARG
+   ;;
       x) #initialization template
-	  XGRIDOPTS=$XGRIDOPTS
-	  ;;
+   XGRIDOPTS=$XGRIDOPTS
+   ;;
       z) #initialization template
-	  REGTEMPLATES[${#REGTEMPLATES[@]}]=$OPTARG
-	  ;;
+   REGTEMPLATES[${#REGTEMPLATES[@]}]=$OPTARG
+   ;;
       \?) # getopts issues an error message
       echo "$USAGE" >&2
       exit 1
@@ -496,7 +496,7 @@ if [[ $DOQSUB -eq 1 || $DOQSUB -eq 4 ]];
 
 for (( i = 0; i < $NUMBEROFMODALITIES; i++ ))
   do
-	   TEMPLATES[$i]=${TEMPLATENAME}${i}.nii.gz
+    TEMPLATES[$i]=${TEMPLATENAME}${i}.nii.gz
   done
 
 if [[ ${#METRICTYPE[@]} -eq 0 ]];
@@ -611,7 +611,7 @@ if [[ ${NINFILES} -eq 0 ]];
              cp ${IMAGESETVARIABLE} ${tmpdir}/
              cd ${tmpdir}/
              # ${ANTSPATH}ImageMath $TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
-             #	rm -f ${IMAGESETVARIABLE}
+             # rm -f ${IMAGESETVARIABLE}
 
              # selecting 16 volumes randomly from the timeseries for averaging, placing them in tmp/selection folder.
              # the script will automatically divide timeseries into $total_volumes/16 bins from wich to take the random volumes;
@@ -642,20 +642,20 @@ if [[ ${NINFILES} -eq 0 ]];
                     #debug only
                     echo
                     echo "Random number between $FLOOR and $BINrange ---  $number"
-                    #			echo "Random number between $FLOOR and $range ---  $number"
+                    #   echo "Random number between $FLOOR and $range ---  $number"
 
                     if [[ ${number} -lt 10 ]];
                         then
                         ${ANTSPATH}ImageMath $TDIM selection/vol000${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
-                        #					cp vol000${number}.nii.gz selection/
+                        #     cp vol000${number}.nii.gz selection/
                     elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
                         then
                         ${ANTSPATH}ImageMath $TDIM selection/vol00${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
-                        #					cp vol00${number}.nii.gz selection/
+                        #     cp vol00${number}.nii.gz selection/
                     elif [[ ${number} -ge 100 && ${number} -lt 1000 ]];
                         then
                         ${ANTSPATH}ImageMath $TDIM selection/vol0${number}.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
-                        #					cp vol0${number}.nii.gz selection/
+                        #     cp vol0${number}.nii.gz selection/
                     fi
                     let j++
                 done
@@ -669,17 +669,17 @@ if [[ ${NINFILES} -eq 0 ]];
                 if [[ ${number} -lt 10 ]];
                     then
                     ${ANTSPATH}ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
-                    #					cp vol000${number}.nii.gz selection/
+                    #     cp vol000${number}.nii.gz selection/
                 elif [[ ${number} -ge 10 && ${number} -lt 100 ]];
                     then
                     ${ANTSPATH}ImageMath $TDIM selection/vol0.nii.gz ExtractSlice ${IMAGESETVARIABLE} ${number}
-                    #					cp vol00${number}.nii.gz selection/
+                    #     cp vol00${number}.nii.gz selection/
                 fi
             done
         elif [[ ${range} -le ${nfmribins} ]];
             then
             ${ANTSPATH}ImageMath selection/$TDIM vol0.nii.gz TimeSeriesSubset ${IMAGESETVARIABLE} ${range}
-            #		cp *.nii.gz selection/
+            #  cp *.nii.gz selection/
         fi
         # set filelist variable
         rm -f ${IMAGESETVARIABLE}
@@ -839,7 +839,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo " Starting ANTS rigid registration on SGE cluster. Submitted $count jobs "
         echo "--------------------------------------------------------------------------------------"
         # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
-	${ANTSPATH}waitForSGEQJobs.pl 1 60 $jobIDs
+ ${ANTSPATH}waitForSGEQJobs.pl 1 60 $jobIDs
         # Returns 1 if there are errors
         if [[ ! $? -eq 0 ]];
             then
@@ -908,7 +908,7 @@ if [[ "$RIGID" -eq 1 ]];
         echo
         echo  "${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}"
 
-	   ${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
+    ${ANTSPATH}AverageImages $DIM ${TEMPLATES[$j]} 1 ${IMAGERIGIDSET[@]}
     done
 
     # cleanup and save output in seperate folder
@@ -1178,7 +1178,7 @@ while [[ $i -lt ${ITERATIONLIMIT} ]];
 
         # counter updated, but not directly used in this loop
         count=`expr $count + 1`;
-    #		echo " submitting job number $count " # for debugging only
+    #  echo " submitting job number $count " # for debugging only
     done
     # SGE wait for script to finish
     if [[ $DOQSUB -eq 1 ]];
