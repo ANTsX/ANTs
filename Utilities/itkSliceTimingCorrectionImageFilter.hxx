@@ -96,6 +96,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
 ::GenerateOutputInformation()
 {
 
+  //std::cout << "GenerateOutputInformation" << std::endl;
   itkDebugMacro(<< "GenerateOutputInformation");
 
    // do not call the superclass' implementation of this method since
@@ -122,13 +123,20 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
   this->CallCopyInputRegionToOutputRegion( outputLargestPossibleRegion,
                                            inputPtr->GetLargestPossibleRegion() );
 
-  TimingType timingCoverage =  inputPtr->GetLargestPossibleRegion().GetSize()[m_SliceDimension] *
+  TimingType timingCoverage = inputPtr->GetLargestPossibleRegion().GetSize()[m_SliceDimension] *
     m_SliceTiming;
 
   itkDebugMacro( "Timing coverage = " << timingCoverage );
+  double timingDiff = inputPtr->GetSpacing()[m_TimeDimension] - timingCoverage;
+  
 
-  if ( timingCoverage - inputPtr->GetSpacing()[m_TimeDimension] ) 
+  if ( timingDiff < 0 ) 
     {
+    std::cout << "Timing diff = " << timingDiff << std::endl;
+    std::cout << "Timing coverage = " << timingCoverage << std::endl;
+    std::cout << "Volume timing = " << inputPtr->GetSpacing()[m_TimeDimension] << std::endl;
+    std::cout << "Slice dimension = " << m_SliceDimension << std::endl;
+    std::cout << "Slice Dimension Size = " << inputPtr->GetLargestPossibleRegion().GetSize()[m_SliceDimension] << std::endl;
     itkExceptionMacro( << "SliceTiming * Dim[SliceDimension] should not be greater than Spacing[TimeDimension]" );
     }
 
@@ -245,6 +253,7 @@ SliceTimingCorrectionImageFilter<TInputImage, TOutputImage>
                        ThreadIdType threadId)
 {
   itkDebugMacro(<< "Actually executing");
+  //std::cout << "Actually executing" << std::endl;
 
   ProgressReporter progress( this, threadId, outputRegionForThread.GetNumberOfPixels() );
 
