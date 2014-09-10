@@ -858,7 +858,7 @@ for (( i=0; i < ${#ANATOMICAL_IMAGES[@]}; i+=$NUMBER_OF_MODALITIES ))
       -t ${SINGLE_SUBJECT_TEMPLATE_SKULL_STRIPPED} \
       -o ${OUTPUT_LOCAL_PREFIX}
 
-    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 0 ]];
+    if [[ $DO_REGISTRATION_TO_TEMPLATE -eq 1 ]];
       then
         logCmd ${ANTSPATH}/antsApplyTransforms \
           -d ${DIMENSION} \
