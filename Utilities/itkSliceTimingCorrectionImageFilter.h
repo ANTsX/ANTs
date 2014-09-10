@@ -72,7 +72,7 @@ public:
   typedef typename InterpolatorType::Pointer                  InterpolatorPointerType;
 
   //typedef typename InputImageType::SpacingType::ValueType     TimingType;
-  typedef float TimingType;
+  typedef double TimingType;
 
   /** Compiler can't inherit ImageDimension enumeration? */
   itkStaticConstMacro(InputImageDimension, unsigned int,

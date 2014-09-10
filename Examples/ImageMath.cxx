@@ -2758,9 +2758,30 @@ int SliceTimingCorrection(int argc, char *argv[])
     std::cout << "Using default slice timing = " << sliceTiming << std::endl;
     }
 
+  // FIXME - rounding error hack
+  if ( sliceTiming * image1->GetLargestPossibleRegion().GetSize()[ImageDimension - 2] > image1->GetSpacing()[ImageDimension - 1] ) {
+    sliceTiming = sliceTiming - 1e-8;
+    std::cout << "Corrected timing = " << sliceTiming << std::endl;
+  }
+  else {
+    std::cout << "Slice timing is valid" << std::endl;
+    }
+
   filter->SetSliceTiming( sliceTiming );
   filter->SetInput( image1 );
-  filter->Update();
+  filter->DebugOn();
+
+    try
+      {
+      filter->Update();
+      } 
+    catch( itk::ExceptionObject& exp )
+      {
+      std::cout << "Exception caught!" << std::endl;
+      std::cout << exp << std::endl;
+      return EXIT_FAILURE;
+      }
+  //filter->Update();
 
   WriteImage<OutputImageType>(filter->GetOutput(), outname.c_str() );
 
