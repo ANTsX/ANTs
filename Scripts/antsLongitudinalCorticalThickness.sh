@@ -692,7 +692,7 @@ if [[ ${SINGLE_SUBJECT_TEMPLATE_PRIORS_EXIST} -eq 0 ]];
 
         for j in ${SINGLE_SUBJECT_TEMPLATE_POSTERIORS[@]}
           do
-            PRIOR=${j/Posteriors/Priors}
+            PRIOR=${j/BrainSegmentationPosteriors/Priors}
             logCmd ${ANTSPATH}/SmoothImage ${DIMENSION} $j 1 $PRIOR 1
           done
 
