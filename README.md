@@ -50,7 +50,7 @@ Authors
 
 ### Team Members 
 
-**Core:** Gang Song (Originator), Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), Kent Williams (software engineer, UIowa) 
+**Core:** Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), Kent Williams (software engineer, UIowa) 
 
 
 Image Registration
