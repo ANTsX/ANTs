@@ -51,11 +51,11 @@ Usage:
               -p brainSegmentationPriors
               <OPTARGS>
               -o outputPrefix
-              ${anatomicalImages[@]}
+              \${anatomicalImages[@]}
 
 Example:
 
-  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output ${anatomicalImages[@]}
+  bash $0 -d 3 -e brainWithSkullTemplate.nii.gz -m brainPrior.nii.gz -p segmentationPriors%d.nii.gz -o output \${anatomicalImages[@]}
 
 Required arguments:
 
@@ -76,17 +76,17 @@ Required arguments:
                                                   4:  deep gm
      -o:  Output prefix                         The following subdirectory and images are created for the single
                                                 subject template
-                                                  * ${OUTPUT_PREFIX}SingleSubjectTemplate/
-                                                  * ${OUTPUT_PREFIX}SingleSubjectTemplate/T_template*.nii.gz
+                                                  * \${OUTPUT_PREFIX}SingleSubjectTemplate/
+                                                  * \${OUTPUT_PREFIX}SingleSubjectTemplate/T_template*.nii.gz
 
      anatomical images                          Set of multimodal input data assumed to be specified ordered as
                                                 follows:
-                                                   ${subject1_modality1} ${subject1_modality2} ...
-                                                   ${subject2_modality1} ${subject2_modality2} ...
+                                                   \${subject1_modality1} \${subject1_modality2} ...
+                                                   \${subject2_modality1} \${subject2_modality2} ...
                                                    .
                                                    .
                                                    .
-                                                   ${subjectN_modality1} ${subjectN_modality2}
+                                                   \${subjectN_modality1} \${subjectN_modality2}
 
 Optional arguments:
 
