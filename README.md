@@ -1,5 +1,5 @@
 ============================
-Advanced Normalization Tools 
+Advanced Normalization Tools
 ============================
 
 Questions: [Discussion Site](http://sourceforge.net/p/advants/discussion/) or *new* [ANTsDoc](http://stnava.github.io/ANTsDoc/) or try [this version](http://issuu.com/brianavants/docs/ants2)
@@ -48,9 +48,9 @@ Authors
 
 **Role:** Large-Scale Application, Testing, Software design
 
-### Team Members 
+### Team Members
 
-**Core:** Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), Kent Williams (software engineer, UIowa) 
+**Core:** Gang Song (Originator), Philip A. Cook, Jeffrey T. Duda (DTI), Ben M. Kandel (Perfusion, multivariate analysis), Kent Williams (software engineer, UIowa)
 
 
 Image Registration
@@ -98,13 +98,13 @@ Application Domains
 
 ### Frontotemporal degeneration [PENN FTD center](http://ftd.med.upenn.edu)
 
-### Multimodality Neuroimaging 
+### Multimodality Neuroimaging
 
 -   [Structural MRI](http://jeffduda.github.io/NeuroBattery/)
 -   Functional MRI
 -   Network Analysis
 
-### Lung Imaging 
+### Lung Imaging
 
 -   Structure
 -   Perfusion MRI
@@ -142,7 +142,7 @@ Background & Theory
 -   Dev'd ITKv4 with Kitware, GE, Natl. Lib of Medicine & Academia
 
 
-ANTs has won several unbiased & international competitions 
+ANTs has won several unbiased & international competitions
 ----------------------------------------------------------
 
 -   New *antsRegistration* [bash
@@ -167,7 +167,9 @@ ANTs has won several unbiased & international competitions
 -   ITK-focused Frontiers in Neuroinformatics research topic
     [here](http://www.frontiersin.org/neuroinformatics/researchtopics/neuroinformatics_with_the_insi/1580)
 
--   Nick led us to a win at the [BRATS 2013 challenge](http://martinos.org/qtim/miccai2013/) with [ANTsR](http://stnava.github.io/ANTsR/)
+-   Won the [BRATS 2013 challenge](http://martinos.org/qtim/miccai2013/) with [ANTsR](http://stnava.github.io/ANTsR/)
+
+-   Won the best paper award at the [STACOM 2014 challenge](http://www.cardiacatlas.org/web/stacom2014/home)
 
 Learning about ANTs
 ----------------------------------------------------------
