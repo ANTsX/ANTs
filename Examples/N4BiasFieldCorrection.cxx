@@ -446,8 +446,6 @@ int N4( itk::ants::CommandLineParser *parser )
       caster->SetInput( maskImage );
       caster->Update();
 
-      WriteImage<ImageType>( maskImage,  "maskImage.nii.gz" );
-
       typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType> StatsType;
       typename StatsType::Pointer stats = StatsType::New();
       stats->SetInput( inputImage );
