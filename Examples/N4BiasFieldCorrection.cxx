@@ -446,6 +446,8 @@ int N4( itk::ants::CommandLineParser *parser )
       caster->SetInput( maskImage );
       caster->Update();
 
+      WriteImage<ImageType>( maskImage,  "maskImage.nii.gz" );
+
       typedef itk::LabelStatisticsImageFilter<ImageType, ShortImageType> StatsType;
       typename StatsType::Pointer stats = StatsType::New();
       stats->SetInput( inputImage );
@@ -456,8 +458,8 @@ int N4( itk::ants::CommandLineParser *parser )
       typedef typename StatsType::LabelPixelType StatsLabelType;
       StatsLabelType maskLabel = static_cast<StatsLabelType>( correcter->GetMaskLabel() );
 
-      RealType minInput = stats->GetMinimum( maskLabel );
-      RealType maxInput = stats->GetMaximum( maskLabel );
+      RealType minOriginal = stats->GetMinimum( maskLabel );
+      RealType maxOriginal = stats->GetMaximum( maskLabel );
 
       typename StatsType::Pointer stats2 = StatsType::New();
       stats2->SetInput( divider->GetOutput() );
@@ -465,21 +467,19 @@ int N4( itk::ants::CommandLineParser *parser )
       stats2->UseHistogramsOff();
       stats2->Update();
 
-      RealType minOutput = stats2->GetMinimum( maskLabel );
-      RealType maxOutput = stats2->GetMaximum( maskLabel );
+      RealType minBiasCorrected = stats2->GetMinimum( maskLabel );
+      RealType maxBiasCorrected = stats2->GetMaximum( maskLabel );
 
-      RealType slope = ( maxOutput - minOutput ) / ( maxInput - minInput );
+      RealType slope = ( maxOriginal - minOriginal ) / ( maxBiasCorrected - minBiasCorrected );
 
       itk::ImageRegionIteratorWithIndex<ImageType> ItD( divider->GetOutput(),
                                                         divider->GetOutput()->GetLargestPossibleRegion() );
-      itk::ImageRegionIterator<ImageType> ItI( inputImage,
-                                               inputImage->GetLargestPossibleRegion() );
-      for( ItD.GoToBegin(), ItI.GoToBegin(); !ItD.IsAtEnd(); ++ItD, ++ItI )
+      for( ItD.GoToBegin(); !ItD.IsAtEnd(); ++ItD )
         {
-        if( maskImage->GetPixel( ItD.GetIndex() ) != correcter->GetMaskLabel() )
+        if( maskImage->GetPixel( ItD.GetIndex() ) == maskLabel )
           {
-          RealType originalIntensity = ItI.Get();
-          RealType rescaledIntensity = maxOutput - slope * ( maxInput - originalIntensity );
+          RealType originalIntensity = ItD.Get();
+          RealType rescaledIntensity = maxOriginal - slope * ( maxBiasCorrected - originalIntensity );
           ItD.Set( rescaledIntensity );
           }
         }
