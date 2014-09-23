@@ -19,11 +19,13 @@ function Usage {
 Usage:
 
 `basename $0` -d imageDimension
-              -r anatomicalT1image (brain or whole-head, depending on modality)
+              -r anatomicalT1image (brain or whole-head, depending on modality) to align to
+              -R anatomicalReference image to warp to (often higher resolution than anatomicalT1image)
               -i scalarImageToMatch
               -x anatomicalT1brainmask
               -t transformType (0=rigid, 1=affine, 2=rigid+small_def, 3=affine+small_def)
               -w prefix of T1 to template transform
+              -T template space
 
            
               <OPTARGS>
@@ -123,11 +125,13 @@ BRAIN=""
 AUX_IMAGES=()
 TEMPLATE_TRANSFORM=""
 ANATOMICAL_BRAIN=""
+ANATOMICAL_SPACE="";
 TEMPLATE_MASK=""
 TEMPLATE_LABELS=""
 TRANSFORM_TYPE="0"
 DTI=""
 
+TEMPLATE=""
 
 ################################################################################
 #
@@ -142,7 +146,7 @@ if [[ $# -lt 3 ]] ; then
   Usage >&2
   exit 1
 else
-  while getopts "a:b:r:x:d:h:i:l:o:t:w:" OPT
+  while getopts "a:b:r:x:d:h:i:l:o:t:w:R:T:" OPT
     do
       case $OPT in
           a) # auxiliary scalar images
@@ -161,6 +165,12 @@ else
               ;;
           r) #brain extraction anatomical image
               ANATOMICAL_BRAIN=$OPTARG
+              ;;
+          R) # anatomical warp space
+              ANATOMICAL_SPACE=$OPTARG
+              ;;
+          T) # template
+              TEMPLATE=$OPTARG
               ;;
           x) #brain extraction registration mask
               TEMPLATE_MASK=$OPTARG
@@ -303,8 +313,8 @@ then
   warp="-t ${OUTPUT_PREFIX}1Warp.nii.gz"
   iwarp="-t ${OUTPUT_PREFIX}1InverseWarp.nii.gz"
 fi
-${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}anatomical.nii.gz -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
-${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}template.nii.gz -r ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
+${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}anatomical.nii.gz -r $ANATOMICAL_SPACE $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
+${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}template.nii.gz -r ${TEMPLATE} -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 
 echo "AUX IMAGES"
 # warp auxiliary images to t1
@@ -313,9 +323,9 @@ for (( i = 0; i < ${#AUX_IMAGES[@]}; i++ ))
     # FIXME - how to name these reasonably
     AUXO=`basename ${AUX_IMAGES[$i]} .nii.gz`
     #AUXO=${OUTPUT_PREFIX}_aux_${i}_warped.nii.gz
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_BRAIN $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_anatomical.nii.gz $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r $ANATOMICAL_SPACE $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_anatomical.nii.gz $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
 
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r ${TEMPLATE_TRANSFORM}1Warp.nii.gz $warp -n Linear -o ${OUTPUT_DIR}/${AUXO}_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat 
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${AUX_IMAGES[$i]} -r ${TEMPLATE} -n Linear -o ${OUTPUT_DIR}/${AUXO}_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat 
 
 done
 
@@ -323,9 +333,13 @@ echo "DTI"
 # warp DT image to t1
 if [[ -f $DTI ]]; 
 then
-    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_BRAIN $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
-#    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r ${TEMPLATE_MASK} $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
-   # FIXME - reorientation
+    ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i ${DTI} -r $ANATOMICAL_SPACE $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear -o ${OUTPUT_PREFIX}dt_anatomical.nii.gz -e 2
+
+   ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -e 2 -i ${DTI} -r ${TEMPLATE} -n Linear -o ${OUTPUT_PREFIX}dt_template.nii.gz -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat
+   
+   ${ANTSPATH}/ImageMath 3 ${OUTPUT_PREFIX}fa_template.nii.gz TensorFA ${OUTPUT_PREFIX}dt_template.nii.gz
+   ${ANTSPATH}/ImageMath 3 ${OUTPUT_PREFIX}md_template.nii.gz TensorMeanDiffusion ${OUTPUT_PREFIX}dt_template.nii.gz
+   
 fi
 
 # warp brainmask from anatomy to subject

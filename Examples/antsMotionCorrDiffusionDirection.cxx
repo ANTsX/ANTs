@@ -157,6 +157,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
   typedef double                                    RealType;
   typedef itk::Image<PixelType, ImageDimension>     FixedIOImageType;
   typedef itk::Image<RealType, ImageDimension>      FixedImageType;
+  typedef itk::ImageFileReader<FixedImageType>      ImageReaderType;
   typedef itk::Image<PixelType, ImageDimension + 1> MovingIOImageType;
   typedef itk::Image<RealType, ImageDimension + 1>  MovingImageType;
   typedef vnl_matrix<RealType>                      vMatrix;
@@ -178,6 +179,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
   std::string outputName = "";
   std::string mocoName = "";
+  std::string physicalName = "";
 
 
   OptionType::Pointer outputOption = parser->GetOption( "output" );
@@ -203,6 +205,19 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     std::cerr << "Motion parameter file not specified" << std::endl;
     return EXIT_FAILURE;
     }
+    
+  OptionType::Pointer physicalOption = parser->GetOption( "physical" );
+  if( physicalOption && physicalOption->GetNumberOfFunctions() )
+    {
+    physicalName = physicalOption->GetFunction(0)->GetName();
+    std::cout << "Physical space image: " << physicalName << std::endl;
+    }
+  else
+    {
+    std::cerr << "Physical space image not specified" << std::endl;
+    return EXIT_FAILURE;
+    }
+
 
   OptionType::Pointer schemeOption = parser->GetOption( "scheme" );
   OptionType::Pointer bvecOption = parser->GetOption( "bvec" );
@@ -277,6 +292,10 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
   
   std::cout << "Read direction data of size: " << directionArray.rows() << " x " 
               << directionArray.cols() << std::endl;
+              
+  ImageReaderType::Pointer imageReader = ImageReaderType::New();
+  imageReader->SetFileName(physicalName.c_str());
+  imageReader->Update();
 
   DirectionArrayType outputDirectionArray;
   outputDirectionArray.SetSize( directionArray.rows(), directionArray.cols() );
@@ -297,6 +316,24 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
   unsigned int nTransformParams = mocoDataArray->GetMatrix().cols() - 2;
   //std::cout << "# Transform parameters = " << nTransformParams << std::endl;
   
+  AffineTransformType::Pointer toPhysical = AffineTransformType::New();
+  toPhysical->SetIdentity();
+  AffineTransformType::Pointer toIndex = AffineTransformType::New();
+  toIndex->SetIdentity();
+  
+  AffineTransformType::MatrixType toPhysicalMatrix = toPhysical->GetMatrix();
+  for ( unsigned int i=0; i < ImageDimension; i++) 
+    {
+    for ( unsigned int j=0; j < ImageDimension; j++) 
+      {
+      toPhysicalMatrix(i,j) = imageReader->GetOutput()->GetDirection()(i,j);
+      }
+    }
+  toPhysical->SetMatrix(toPhysicalMatrix);
+  toPhysical->GetInverse(toIndex);
+  
+  //img_mov->GetDirection().GetVnlMatrix()
+  
   for ( unsigned int i=0; i<directionArray.rows(); i++ ) 
     {
 
@@ -315,6 +352,8 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
     AffineTransformType::InputVectorType dir;
     AffineTransformType::OutputVectorType rotatedDir;
+    
+    
 
     for ( unsigned int j=0; j<directionArray.cols(); j++ )
       {
@@ -323,8 +362,13 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     if ( dir.GetNorm() > 0 ) 
       {
       dir.Normalize();
-      rotatedDir = affineTransform->TransformVector( dir );
+      rotatedDir = toPhysical->TransformVector( dir );
+      rotatedDir = affineTransform->TransformVector( rotatedDir );
       rotatedDir.Normalize();
+      rotatedDir = toIndex->TransformVector( rotatedDir );
+      
+      //rotatedDir = affineTransform->TransformVector( dir );
+      //rotatedDir.Normalize();
 
       }
     else
@@ -392,6 +436,16 @@ void antsMotionCorrDiffusionDirectionInitializeCommandLineOptions( itk::ants::Co
     option->SetShortName( 'b' );
     option->SetDescription( description );
     option->SetUsageOption( 0, "dwi.bvec" );
+    parser->AddOption( option );
+    }
+    
+    {
+    std::string description =       std::string( "image in dwi space");
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "physical" );
+    option->SetShortName( 'p' );
+    option->SetDescription( description );
+    option->SetUsageOption( 0, "ref.nii.gz" );
     parser->AddOption( option );
     }
 
