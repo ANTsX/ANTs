@@ -490,15 +490,6 @@ if [[ ! -z "${OUTPUT_POSTERIORS_FORMAT}" ]];
   then
     malfCall="${malfCall} -p ${OUTPUT_POSTERIORS_FORMAT}"
   fi
-malfCall="${malfCall} -g ${WARPED_ATLAS_IMAGES[@]} -l ${WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
-
-if [[ $MAJORITYVOTE -eq 1 ]];
-  then
-    malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
-  fi
-
-qscript2="${OUTPUT_PREFIX}MALF.sh"
-echo "$malfCall" > $qscript2
 
 if [[ $DOQSUB -eq 0 ]];
   then
@@ -507,6 +498,39 @@ if [[ $DOQSUB -eq 0 ]];
     echo "--------------------------------------------------------------------------------------"
     echo " Starting MALF"
     echo "--------------------------------------------------------------------------------------"
+
+    EXISTING_WARPED_ATLAS_IMAGES=()
+    EXISTING_WARPED_ATLAS_LABELS=()
+    for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        echo ${WARPED_ATLAS_IMAGES[$i]}
+        if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
+          then
+            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+          fi
+      done
+
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 3 ]];
+      then
+        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        exit 1
+      fi
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
+      then
+        echo "Warning:  One or more registrations failed."
+      fi
+
+    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+
+    if [[ $MAJORITYVOTE -eq 1 ]];
+      then
+        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+      fi
+
+    qscript2="${OUTPUT_PREFIX}MALF.sh"
+    echo "$malfCall" > $qscript2
+
     echo $qscript2
     bash $qscript2
   fi
@@ -517,14 +541,48 @@ if [[ $DOQSUB -eq 1 ]];
     echo "--------------------------------------------------------------------------------------"
     echo " Starting MALF on SGE cluster. "
     echo "--------------------------------------------------------------------------------------"
-    # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+
     ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
+
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
       then
         echo "qsub submission failed - jobs went into error state"
         exit 1;
       fi
+
+    EXISTING_WARPED_ATLAS_IMAGES=()
+    EXISTING_WARPED_ATLAS_LABELS=()
+    for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        echo ${WARPED_ATLAS_IMAGES[$i]}
+        if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
+          then
+            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+          fi
+      done
+
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 3 ]];
+      then
+        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        exit 1
+      fi
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
+      then
+        echo "Warning:  One or more registrations failed."
+      fi
+
+    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+
+    if [[ $MAJORITYVOTE -eq 1 ]];
+      then
+        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+      fi
+
+    qscript2="${OUTPUT_PREFIX}MALF.sh"
+    echo "$malfCall" > $qscript2
+
     jobIDs=`qsub -cwd -S /bin/bash -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript2 | awk '{print $3}'`
     ${ANTSPATH}waitForSGEQJobs.pl 1 600 $jobIDs
   fi
@@ -535,7 +593,7 @@ if [[ $DOQSUB -eq 4 ]];
     echo "--------------------------------------------------------------------------------------"
     echo " Starting MALF on PBS cluster. "
     echo "--------------------------------------------------------------------------------------"
-           # now wait for the jobs to finish. Poll every 10 minutes.
+
     ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
@@ -543,12 +601,78 @@ if [[ $DOQSUB -eq 4 ]];
         echo "qsub submission failed - jobs went into error state"
         exit 1;
       fi
+
+    EXISTING_WARPED_ATLAS_IMAGES=()
+    EXISTING_WARPED_ATLAS_LABELS=()
+    for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        echo ${WARPED_ATLAS_IMAGES[$i]}
+        if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
+          then
+            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+          fi
+      done
+
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 3 ]];
+      then
+        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        exit 1
+      fi
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
+      then
+        echo "Warning:  One or more registrations failed."
+      fi
+
+    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+
+    if [[ $MAJORITYVOTE -eq 1 ]];
+      then
+        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+      fi
+
+    qscript2="${OUTPUT_PREFIX}MALF.sh"
+    echo "$malfCall" > $qscript2
+
     jobIDs=`qsub -N antsMalf -v ANTSPATH=$ANTSPATH $QSUB_OPTS -q nopreempt -l nodes=1:ppn=1 -l mem=8gb -l walltime=30:00:00 $qscript2 | awk '{print $1}'`
     ${ANTSPATH}waitForPBSQJobs.pl 1 600 $jobIDs
   fi
 
 if [[ $DOQSUB -eq 2 ]];
   then
+
+    EXISTING_WARPED_ATLAS_IMAGES=()
+    EXISTING_WARPED_ATLAS_LABELS=()
+    for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        echo ${WARPED_ATLAS_IMAGES[$i]}
+        if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
+          then
+            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+          fi
+      done
+
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 3 ]];
+      then
+        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        exit 1
+      fi
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
+      then
+        echo "Warning:  One or more registrations failed."
+      fi
+
+    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+
+    if [[ $MAJORITYVOTE -eq 1 ]];
+      then
+        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+      fi
+
+    qscript2="${OUTPUT_PREFIX}MALF.sh"
+    echo "$malfCall" > $qscript2
+
     sh $qscript2
   fi
 if [[ $DOQSUB -eq 3 ]];
@@ -566,6 +690,39 @@ if [[ $DOQSUB -eq 3 ]];
         echo "XGrid submission failed - jobs went into error state"
         exit 1;
       fi
+
+    EXISTING_WARPED_ATLAS_IMAGES=()
+    EXISTING_WARPED_ATLAS_LABELS=()
+    for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
+      do
+        echo ${WARPED_ATLAS_IMAGES[$i]}
+        if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
+          then
+            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+          fi
+      done
+
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -lt 3 ]];
+      then
+        echo "Error:  At least 3 warped image/label pairs needs to exist for jointFusion."
+        exit 1
+      fi
+    if [[ ${#EXISTING_WARPED_ATLAS_LABELS[@]} -ne ${#WARPED_ATLAS_LABELS[@]} ]];
+      then
+        echo "Warning:  One or more registrations failed."
+      fi
+
+    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+
+    if [[ $MAJORITYVOTE -eq 1 ]];
+      then
+        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+      fi
+
+    qscript2="${OUTPUT_PREFIX}MALF.sh"
+    echo "$malfCall" > $qscript2
+
     sh $qscript2
   fi
 
