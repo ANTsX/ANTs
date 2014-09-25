@@ -216,6 +216,7 @@ CommandLineParser
   std::string currentArg( "" );
   bool        isArgOpen = false;
 
+  arguments.push_back( std::string a( argv[0] ) );
   for( unsigned int n = 1; n < argc; n++ )
     {
     std::string a( argv[n] );
