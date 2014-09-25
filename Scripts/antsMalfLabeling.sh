@@ -521,7 +521,7 @@ if [[ $DOQSUB -eq 0 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    malfCall="$malfCall -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
