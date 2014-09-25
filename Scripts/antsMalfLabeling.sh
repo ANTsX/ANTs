@@ -521,7 +521,7 @@ if [[ $DOQSUB -eq 0 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="$malfCall -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
@@ -573,7 +573,7 @@ if [[ $DOQSUB -eq 1 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
@@ -624,7 +624,7 @@ if [[ $DOQSUB -eq 4 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
@@ -663,7 +663,7 @@ if [[ $DOQSUB -eq 2 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
@@ -713,7 +713,7 @@ if [[ $DOQSUB -eq 3 ]];
         echo "Warning:  One or more registrations failed."
       fi
 
-    malfCall="-g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
+    malfCall="${malfCall} -g ${EXISTING_WARPED_ATLAS_IMAGES[@]} -l ${EXISTING_WARPED_ATLAS_LABELS[@]} ${OUTPUT_PREFIX}MalfLabels.nii.gz"
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
