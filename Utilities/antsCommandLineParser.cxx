@@ -220,80 +220,87 @@ CommandLineParser
     {
     std::string a( argv[n] );
 
-    // replace left delimiters
-    std::replace( a.begin(), a.end(), '{', '[' );
-    std::replace( a.begin(), a.end(), '(', '[' );
-    std::replace( a.begin(), a.end(), '<', '[' );
-
-    // replace right delimiters
-    std::replace( a.begin(), a.end(), '}', ']' );
-    std::replace( a.begin(), a.end(), ')', ']' );
-    std::replace( a.begin(), a.end(), '>', ']' );
-
-    if( isArgOpen )
+    if( n == 0 )
       {
-      std::size_t leftDelimiterPosition = a.find( this->m_LeftDelimiter );
-      if( leftDelimiterPosition != std::string::npos )
-        {
-        itkExceptionMacro( "Incorrect command line specification. Missing leftDelimiterPosition? " << a );
-        }
+      arguments.push_back( a );
+      }
+    else
+      {
+      // replace left delimiters
+      std::replace( a.begin(), a.end(), '{', '[' );
+      std::replace( a.begin(), a.end(), '(', '[' );
+      std::replace( a.begin(), a.end(), '<', '[' );
 
-      std::size_t rightDelimiterPosition = a.find( this->m_RightDelimiter );
-      if( rightDelimiterPosition != std::string::npos )
+      // replace right delimiters
+      std::replace( a.begin(), a.end(), '}', ']' );
+      std::replace( a.begin(), a.end(), ')', ']' );
+      std::replace( a.begin(), a.end(), '>', ']' );
+
+      if( isArgOpen )
         {
-        if( rightDelimiterPosition < a.length() - 1 )
+        std::size_t leftDelimiterPosition = a.find( this->m_LeftDelimiter );
+        if( leftDelimiterPosition != std::string::npos )
           {
-          itkExceptionMacro( "Incorrect command line specification. Missing rightDelimiterPosition? " << a );
+          itkExceptionMacro( "Incorrect command line specification. Missing leftDelimiterPosition? " << a );
+          }
+
+        std::size_t rightDelimiterPosition = a.find( this->m_RightDelimiter );
+        if( rightDelimiterPosition != std::string::npos )
+          {
+          if( rightDelimiterPosition < a.length() - 1 )
+            {
+            itkExceptionMacro( "Incorrect command line specification. Missing rightDelimiterPosition? " << a );
+            }
+          else
+            {
+            currentArg += a;
+            arguments.push_back( currentArg );
+            currentArg.clear();
+            isArgOpen = false;
+            }
           }
         else
           {
+          currentArg += a;
+          }
+        }
+      else
+        {
+        std::size_t leftDelimiterPosition = a.find( this->m_LeftDelimiter );
+        std::size_t rightDelimiterPosition = a.find( this->m_RightDelimiter );
+
+        if( leftDelimiterPosition == std::string::npos )
+          {
+          if( rightDelimiterPosition == std::string::npos )
+            {
+            currentArg += a;
+            arguments.push_back( currentArg );
+            currentArg.clear();
+            }
+          else
+            {
+            itkExceptionMacro( "Incorrect command line specification. " << a);
+            }
+          }
+        else if( leftDelimiterPosition != std::string::npos &&
+                 rightDelimiterPosition != std::string::npos &&
+                 leftDelimiterPosition < rightDelimiterPosition )
+          {
+          if( rightDelimiterPosition < a.length() - 1 )
+            {
+            itkExceptionMacro( "Incorrect command line specification. " << a );
+            }
           currentArg += a;
           arguments.push_back( currentArg );
           currentArg.clear();
           isArgOpen = false;
           }
-        }
-      else
-        {
-        currentArg += a;
-        }
-      }
-    else
-      {
-      std::size_t leftDelimiterPosition = a.find( this->m_LeftDelimiter );
-      std::size_t rightDelimiterPosition = a.find( this->m_RightDelimiter );
-
-      if( leftDelimiterPosition == std::string::npos )
-        {
-        if( rightDelimiterPosition == std::string::npos )
+        else if( rightDelimiterPosition == std::string::npos &&
+                 leftDelimiterPosition != std::string::npos )
           {
           currentArg += a;
-          arguments.push_back( currentArg );
-          currentArg.clear();
+          isArgOpen = true;
           }
-        else
-          {
-          itkExceptionMacro( "Incorrect command line specification. " << a);
-          }
-        }
-      else if( leftDelimiterPosition != std::string::npos &&
-               rightDelimiterPosition != std::string::npos &&
-               leftDelimiterPosition < rightDelimiterPosition )
-        {
-        if( rightDelimiterPosition < a.length() - 1 )
-          {
-          itkExceptionMacro( "Incorrect command line specification. " << a );
-          }
-        currentArg += a;
-        arguments.push_back( currentArg );
-        currentArg.clear();
-        isArgOpen = false;
-        }
-      else if( rightDelimiterPosition == std::string::npos &&
-               leftDelimiterPosition != std::string::npos )
-        {
-        currentArg += a;
-        isArgOpen = true;
         }
       }
     }
