@@ -199,7 +199,7 @@ for my $dtfile ( @$dtifiles ) {
   
   # Find expected averagedwi image
   my @dwiparts = split( "_dt.nii.gz", $dtfile );
-  my $dwi = "$dwiparts[0]_averagedwi.nii.gz";
+  my $dwi = "$dwiparts[0]_ref.nii.gz";
   if ( ! -s "$dwi" ) {
     print( "Could not find $dwi\n");
     print( "Unable to align $dtfile\n");
