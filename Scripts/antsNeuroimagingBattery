@@ -83,6 +83,8 @@ my $temp = "/state/partition1/";
 my $help=0;
 my $info=0;
 
+my $ANTSPATH = $ENV{ANTSPATH};
+
 GetOptions ("input-directory=s"         => \$subdir,    # string
             "output-directory=s"        => \$outdir,     # string
             "output-name=s"             => \$outname,    # string
