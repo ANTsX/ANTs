@@ -1291,8 +1291,8 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
     logCmd $conversion
 
     mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${CORTICAL_THICKNESS_IMAGE_RGB}"
-    mosaic="${mosaic} -o ${CORTICAL_THICKNESS_MOSAIC} -a 1.0 -t -1x-1 -d 2 -p mask+2"
-    mosaic="${mosaic} -s [2,mask-2,mask+2] -x ${CORTICAL_THICKNESS_MASK}"
+    mosaic="${mosaic} -o ${CORTICAL_THICKNESS_MOSAIC} -a 1.0 -t -1x-1 -d 2 -p mask"
+    mosaic="${mosaic} -s [2,mask,mask] -x ${CORTICAL_THICKNESS_MASK}"
     logCmd $mosaic
 
     # Segmentation
@@ -1306,8 +1306,8 @@ if [[ ! -f ${CORTICAL_THICKNESS_MOSAIC} || ! -f ${BRAIN_SEGMENTATION_MOSAIC} ]];
     logCmd $conversion
 
     mosaic="${ANTSPATH}/CreateTiledMosaic -i ${HEAD_N4_IMAGE_RESAMPLED} -r ${BRAIN_SEGMENTATION_IMAGE_RGB}"
-    mosaic="${mosaic} -o ${BRAIN_SEGMENTATION_MOSAIC} -a 0.3 -t -1x-1 -d 2 -p mask+2"
-    mosaic="${mosaic} -s [2,mask-2,mask+2] -x ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
+    mosaic="${mosaic} -o ${BRAIN_SEGMENTATION_MOSAIC} -a 0.3 -t -1x-1 -d 2 -p mask"
+    mosaic="${mosaic} -s [2,mask,mask] -x ${BRAIN_EXTRACTION_MASK_RESAMPLED}"
     logCmd $mosaic
 
 
