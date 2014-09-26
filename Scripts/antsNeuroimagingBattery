@@ -211,33 +211,33 @@ for my $dtfile ( @$dtifiles ) {
   
     my $obase = "${outdir}${dirname}${outname}${outid}";
     my $ref = "${obase}ref.nii.gz";
-    system("ImageMath 3 $ref m $anat $mask" );
-    my $res = "ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
+    system("${ANTSPATH}/ImageMath 3 $ref m $anat $mask" );
+    my $res = "${ANTSPATH}/ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
     print("$res\n");
     system($res);
   
-    my $dtiexe = "sh antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $dwi -b $dtfile -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+    my $dtiexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $dwi -b $dtfile -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
     print( "$dtiexe\n");
     system( $dtiexe );
   
-    system("ImageMath 3 ${outdir}${dirname}${outname}${outid}fa_anatomical.nii.gz TensorFA ${outdir}${dirname}${outname}${outid}dt_anatomical.nii.gz");
-    system("ImageMath 3 ${outdir}${dirname}${outname}${outid}fa_anatomical.nii.gz m ${outdir}${dirname}${outname}${outid}fa_anatomical.nii.gz $mask");
+    system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}fa_anatomical.nii.gz TensorFA ${outdir}${dirname}${outname}${outid}dt_anatomical.nii.gz");
+    system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}fa_anatomical.nii.gz m ${outdir}${dirname}${outname}${outid}fa_anatomical.nii.gz $mask");
     
-     system("ImageMath 3 ${outdir}${dirname}${outname}${outid}md_anatomical.nii.gz TensorMeanDiffusion ${outdir}${dirname}${outname}${outid}dt_anatomical.nii.gz");
-    system("ImageMath 3 ${outdir}${dirname}${outname}${outid}md_anatomical.nii.gz m ${outdir}${dirname}${outname}${outid}md_anatomical.nii.gz $mask");
+     system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}md_anatomical.nii.gz TensorMeanDiffusion ${outdir}${dirname}${outname}${outid}dt_anatomical.nii.gz");
+    system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}md_anatomical.nii.gz m ${outdir}${dirname}${outname}${outid}md_anatomical.nii.gz $mask");
     
-    system("ImageMath 3 ${outdir}${dirname}${outname}${outid}rd_anatomical.nii.gz TensorRadialDiffusion ${outdir}${dirname}${outname}${outid}dt_anatomical.nii.gz");
-    system("ImageMath 3 ${outdir}${dirname}${outname}${outid}rd_anatomical.nii.gz m ${outdir}${dirname}${outname}${outid}rd_anatomical.nii.gz $mask");
+    system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}rd_anatomical.nii.gz TensorRadialDiffusion ${outdir}${dirname}${outname}${outid}dt_anatomical.nii.gz");
+    system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}rd_anatomical.nii.gz m ${outdir}${dirname}${outname}${outid}rd_anatomical.nii.gz $mask");
     
     # Remove for space reasons
     system("rm ${outdir}${dirname}${outname}${outid}dt_anatomical.nii.gz");
        
     if ( -s "${outdir}${dirname}${outname}${outid}dt_template.nii.gz") {
-      system("ImageMath 3 ${outdir}${dirname}${outname}${outid}fa_template.nii.gz TensorFA ${outdir}${dirname}${outname}${outid}dt_template.nii.gz");
+      system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}fa_template.nii.gz TensorFA ${outdir}${dirname}${outname}${outid}dt_template.nii.gz");
     
-       system("ImageMath 3 ${outdir}${dirname}${outname}${outid}md_template.nii.gz TensorMeanDiffusion ${outdir}${dirname}${outname}${outid}dt_template.nii.gz");
+       system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}md_template.nii.gz TensorMeanDiffusion ${outdir}${dirname}${outname}${outid}dt_template.nii.gz");
     
-      system("ImageMath 3 ${outdir}${dirname}${outname}${outid}rd_template.nii.gz TensorRadialDiffusion ${outdir}${dirname}${outname}${outid}dt_template.nii.gz");
+      system("${ANTSPATH}/ImageMath 3 ${outdir}${dirname}${outname}${outid}rd_template.nii.gz TensorRadialDiffusion ${outdir}${dirname}${outname}${outid}dt_template.nii.gz");
 
       system("rm ${outdir}${dirname}${outname}${outid}dt_template.nii.gz");
 
@@ -287,17 +287,17 @@ for my $paslfile ( @$paslfiles ) {
   
       # Create anatomical reference to align to      
 
-      system("ImageMath 3 $ref m $anat $mask" );
-      my $res = "ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
+      system("${ANTSPATH}/ImageMath 3 $ref m $anat $mask" );
+      my $res = "${ANTSPATH}/ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
       system($res);
 
       # Motion correct M0
 
     
-      my $m0Moco1 = "antsMotionCorr -d 3 -a $m0file -o $meanM0";
+      my $m0Moco1 = "${ANTSPATH}/antsMotionCorr -d 3 -a $m0file -o $meanM0";
       system($m0Moco1);
     
-      my $m0Moco2 = "antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}m0, $M0, $meanM0 ] -u 1 -m mi[ $meanM0, $m0file, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
+      my $m0Moco2 = "${ANTSPATH}/antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}m0, $M0, $meanM0 ] -u 1 -m mi[ $meanM0, $m0file, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
       print( "$m0Moco2\n");
       system( $m0Moco2 );
     
@@ -309,12 +309,12 @@ for my $paslfile ( @$paslfiles ) {
 
     
 
-      my $makecbf = "cbf_pasl_robust_batch.R $paslfile $meanM0 $cbf";
+      my $makecbf = "${ANTSPATH}/cbf_pasl_robust_batch.R $paslfile $meanM0 $cbf";
       print( "\n\n\n$makecbf\n\n\n");
       system( $makecbf );
     }  
 
-    my $alignexe = "sh antsIntermodalityIntrasubject.sh -d 3 -t 2 -a $cbf -i $meanM0 -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+    my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -a $cbf -i $meanM0 -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
     print( "$alignexe\n");
     
     system( $alignexe );
@@ -349,23 +349,23 @@ for my $boldfile ( @$boldfiles ) {
   
   my $meanbold = "${obase}meanbold.nii.gz";
   my $ref = "${obase}ref.nii.gz";
-  if ( ! -s "$meanbold" ) {
+  if ( ! -e "$meanbold" ) {
 
   # Slice timing correction
-  my $stc = "ImageMath 4 $bold SliceTimingCorrection $boldfile 0 bspline";
+  my $stc = "${ANTSPATH}/ImageMath 4 $bold SliceTimingCorrection $boldfile 0 bspline";
   system($stc);
   
   # Motion correction
-  system("antsMotionCorr -d 3 -a $bold -o $meanbold");
-  system("antsMotionCorr -d 3 -o [ ${obase}, $bold, $meanbold ] -u 1 -m mi[ $meanbold, $bold, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0");
+  system("${ANTSPATH}/antsMotionCorr -d 3 -a $bold -o $meanbold");
+  system("${ANTSPATH}/antsMotionCorr -d 3 -o [ ${obase}, $bold, $meanbold ] -u 1 -m mi[ $meanbold, $bold, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0 -u 1");
          
 
-  system("ImageMath 3 $ref m $anat $mask" );
-  my $res = "ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
+  system("${ANTSPATH}/ImageMath 3 $ref m $anat $mask" );
+  my $res = "${ANTSPATH}/ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
   system($res);
   }
 
-  my $alignexe = "sh antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+  my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
   system( $alignexe );
 
   }
