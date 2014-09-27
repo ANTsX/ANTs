@@ -294,15 +294,9 @@ function shapeupdatetotemplate() {
     #echo "    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
 
-    imagelist=(`ls ${outputname}*WarpedToTemplate.nii.gz`)
+    imagelist=(`ls ${outputname}${whichtemplate}*WarpedToTemplate.nii.gz`)
 
-    MODALITYIMAGELIST=()
-    for (( j = $whichtemplate; j < ${#imagelist[@]}; j+=$NUMBEROFMODALITIES ))
-      do
-        MODALITYIMAGELIST[${#MODALITYIMAGELIST[@]}]=${imagelist[$j]}
-      done
-
-    summarizeimageset $dim $template $statsmethod ${MODALITYIMAGELIST[@]}
+    summarizeimageset $dim $template $statsmethod ${imagelist[@]}
 
     WARPLIST=( `ls ${outputname}*[0-9]Warp.nii.gz 2> /dev/null` )
     NWARPS=${#WARPLIST[*]}
