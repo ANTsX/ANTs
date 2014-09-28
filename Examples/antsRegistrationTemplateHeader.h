@@ -294,13 +294,6 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     std::vector<RealType> restrictDeformationWeights =
       parser->ConvertVector<RealType>( restrictDeformationOption->GetFunction( 0 )->GetName() );
-    if( restrictDeformationWeights.size() != VImageDimension )
-      {
-      std::cout << "The restrict deformation weights vector should be the same as the "
-                << "number of local parameters (=ImageDimension)." << std::endl;
-      return EXIT_FAILURE;
-      }
-
     regHelper->SetRestrictDeformationOptimizerWeights( restrictDeformationWeights );
     }
 

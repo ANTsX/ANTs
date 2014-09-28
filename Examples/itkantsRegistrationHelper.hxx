@@ -1388,6 +1388,16 @@ RegistrationHelper<TComputeType, VImageDimension>
                                                                              currentStageNumber] );
         affineRegistration->SetMetricSamplingStrategy( metricSamplingStrategy );
         affineRegistration->SetMetricSamplingPercentage( samplingPercentage );
+	unsigned int affineParamSize = VImageDimension * VImageDimension + VImageDimension;
+        if( this->m_RestrictDeformationOptimizerWeights.size() == affineParamSize )
+          {
+          typename AffineRegistrationType::OptimizerWeightsType optimizerWeights( affineParamSize );
+          for( unsigned int d = 0; d < affineParamSize; d++ )
+            {
+	    optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          optimizer->SetWeights( optimizerWeights );
+          }
         affineRegistration->SetOptimizer( optimizer );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
@@ -1459,6 +1469,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         rigidRegistration->SetMetricSamplingStrategy(
           static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
+	unsigned int rigidParamSize = 6;
+	if ( VImageDimension == 2 ) rigidParamSize = 3;
+        if( this->m_RestrictDeformationOptimizerWeights.size() == rigidParamSize )
+          {
+          typename RigidRegistrationType::OptimizerWeightsType optimizerWeights( rigidParamSize );
+          for( unsigned int d = 0; d < rigidParamSize; d++ )
+            {
+	    optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          optimizer->SetWeights( optimizerWeights );
+          }
         rigidRegistration->SetOptimizer( optimizer );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
@@ -1681,6 +1702,15 @@ RegistrationHelper<TComputeType, VImageDimension>
         translationRegistration->SetMetricSamplingStrategy(
           static_cast<typename TranslationRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         translationRegistration->SetMetricSamplingPercentage( samplingPercentage );
+        if ( this->m_RestrictDeformationOptimizerWeights.size() == VImageDimension )
+          {
+          typename TranslationRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+          for( unsigned int d = 0; d < VImageDimension; d++ )
+            {
+            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[d];
+            }
+          optimizer->SetWeights( optimizerWeights );
+          }
         translationRegistration->SetOptimizer( optimizer );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
