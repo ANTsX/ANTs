@@ -828,20 +828,6 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
     {
-    std::string description =
-      std::string( "This option forces the image to be treated as a specified-" )
-      + std::string( "dimensional image.  If not specified, the program tries to " )
-      + std::string( "infer the dimensionality from the input image." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "dimensionality" );
-    option->SetShortName( 'd' );
-    option->SetUsageOption( 0, "3" );
-    option->SetDescription( description );
-    parser->AddOption( option );
-    }
-
-    {
     std::string description = std::string( "Four image metrics are available--- " )
       + std::string( "GC : global correlation, CC:  ANTS neighborhood cross correlation, MI:  Mutual information, and " )
       + std::string( "Demons:  Thirion's Demons (modified mean-squares). " )
@@ -1011,13 +997,21 @@ private:
   parser->SetCommand( argv[0] );
 
   std::string commandDescription = 
-    std::string( "antsSliceRegularizedRegistration = distortion correction.")
-    + std::string( "This program is a user-level application for slice-wise distortion correction." )
+    std::string( "antsSliceRegularizedRegistration = distortion correction. ")
+    + std::string( "This program is a user-level application for slice-wise distortion correction. " )
     + std::string( "Only one stage is supported where a stage consists of a transform; an image metric; " )
     + std::string( "and iterations, shrink factors, and smoothing sigmas for each level. " )
     + std::string( "Specialized for 3D data: fixed image is 3D, moving image is 3D. ")
-    + std::string( "Registration is performed slice-by-slice then regularized in z.")
-    + std::string( "Implemented by B. Avants and conceived and funded by Julien	Cohen-Adad.");
+    + std::string( "Registration is performed slice-by-slice then regularized in z. ")
+    + std::string( "Implemented by B. Avants and conceived and funded by Julien	Cohen-Adad.\n")
+    + std::string("Outputs: \n\n") 
+    + std::string(" OutputPrefixTxTy.csv: Tx & Ty transformation parameters \n") 
+    + std::string(" OutputPrefixTxTy_poly.csv: polynomial fit to Tx & Ty \n") 
+    + std::string(" OutputPrefix.nii.gz: transformed image \n") 
+    + std::string("Example call: \n\n") 
+    + std::string(" antsSliceRegularizedRegistration -p 4 --output [OutputPrefix,OutputPrefix.nii.gz]  --use-histogram-matching 1 ")
+    + std::string("--transform Translation[0.1] --metric MI[ fixed.nii.gz, moving.nii.gz , 1 , 16 , Regular , 0.2 ] ")
+    + std::string("--iterations 20 --shrinkFactors 1 --smoothingSigmas 0 \n\n");
   parser->SetCommandDescription( commandDescription );
   antsSliceRegularizedRegistrationInitializeCommandLineOptions( parser );
 
@@ -1040,18 +1034,6 @@ private:
 
   // Get dimensionality
   unsigned int dimension = 3;
-
-  itk::ants::CommandLineParser::OptionType::Pointer dimOption = parser->GetOption( "dimensionality" );
-  if( dimOption && dimOption->GetNumberOfFunctions() )
-    {
-    //    dimension = parser->Convert<unsigned int>( dimOption->GetFunction( 0 )->GetName() );
-    }
-  else
-    {
-    std::cerr << "Image dimensionality not specified.  See command line option --dimensionality" << std::endl;
-    return EXIT_FAILURE;
-    }
-
   switch( dimension )
     {
     case 3:
