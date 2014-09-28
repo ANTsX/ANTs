@@ -127,6 +127,7 @@ set(BASE_ANTS_APPS
   antsMotionCorr
   antsMotionCorrStats
   antsMotionCorrDiffusionDirection
+  antsSliceRegularizedRegistration
   sccan
   CreateDisplacementField
   ANTSIntegrateVectorField
