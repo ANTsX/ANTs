@@ -1009,7 +1009,7 @@ private:
     + std::string(" OutputPrefixTxTy_poly.csv: polynomial fit to Tx & Ty \n") 
     + std::string(" OutputPrefix.nii.gz: transformed image \n") 
     + std::string("Example call: \n\n") 
-    + std::string(" antsSliceRegularizedRegistration -p 4 --output [OutputPrefix,OutputPrefix.nii.gz]  --use-histogram-matching 1 ")
+    + std::string(" antsSliceRegularizedRegistration -p 4 --output [OutputPrefix,OutputPrefix.nii.gz]   ")
     + std::string("--transform Translation[0.1] --metric MI[ fixed.nii.gz, moving.nii.gz , 1 , 16 , Regular , 0.2 ] ")
     + std::string("--iterations 20 --shrinkFactors 1 --smoothingSigmas 0 \n\n");
   parser->SetCommandDescription( commandDescription );
