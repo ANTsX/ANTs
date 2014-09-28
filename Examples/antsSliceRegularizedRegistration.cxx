@@ -84,7 +84,7 @@ public:
 protected:
   antsSliceRegularizedRegistrationCommandIterationUpdate()
   {
-    this->m_LogStream = &std::cout;
+  this->m_LogStream = &std::cout;
   }
 
 public:
@@ -313,6 +313,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   typedef itk::Image<PixelType, ImageDimension>     MovingIOImageType;
   typedef itk::Image<PixelType, ImageDimension-1>   MovingImageType;
   typedef vnl_matrix<RealType>                      vMatrix;
+  typedef vnl_vector<RealType>                      vVector;
   vMatrix param_values;
   typedef typename itk::ants::CommandLineParser ParserType;
   typedef typename ParserType::OptionType       OptionType;
@@ -380,6 +381,10 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   typedef itk::TranslationTransform<RealType, ImageDimension-1> TranslationTransformType;
 typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, TranslationTransformType> TranslationRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
+  typedef typename TranslationTransformType::Pointer       SingleTransformItemType;
+  std::vector<SingleTransformItemType>                     transformList;
+  std::vector<typename FixedImageType::Pointer>            fixedSliceList;
+  std::vector<typename FixedImageType::Pointer>            movingSliceList;
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
     std::stringstream currentStageString;
@@ -458,7 +463,6 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     //
     // Set up the image metric and scales estimator
     std::vector<unsigned int> timelist;
-    std::vector<double>       metriclist;
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
       timelist.push_back(timedim);
@@ -486,6 +490,8 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       extractFilterM->Update();
       fixed_time_slice = extractFilterF->GetOutput();
       moving_time_slice = extractFilterM->GetOutput();
+      fixedSliceList.push_back( fixed_time_slice );
+      movingSliceList.push_back( moving_time_slice );
       typename FixedImageType::Pointer preprocessFixedImage =
         sliceRegularizedPreprocessImage<FixedImageType>( fixed_time_slice, 0,
                                          1, 0.001, 0.999,
@@ -669,12 +675,109 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
+      transformList.push_back( translationRegistration->GetModifiableTransform() );
+      }
+
+  unsigned int polydegree = 3;
+  itk::ants::CommandLineParser::OptionType::Pointer polyOption = parser->GetOption( "polydegree" );
+  if( polyOption && polyOption->GetNumberOfFunctions() )
+    {
+    polydegree = parser->Convert<unsigned int>( polyOption->GetFunction( 0 )->GetName() );
+    }
+  if ( polydegree > (timedims-2) ) polydegree = timedims-2;
+  vMatrix A( timedims, polydegree, 0.0 );
+  for ( unsigned int z = 0; z < timedims; z++ )
+    {
+    RealType zz = static_cast<RealType>( z + 1 );
+    A(z,0) = zz;
+    for ( unsigned int lcol = 1; lcol < A.cols(); lcol++ )
+      {
+      A( z, lcol ) = vcl_pow( zz, static_cast<RealType>(lcol+1) );
+      }
+    }
+  for ( unsigned int lcol = 0; lcol < A.cols(); lcol++ )
+    {
+    vVector acol = A.get_column( lcol );
+    RealType acolsd = ( acol - acol.mean() ).rms();
+    A.set_column( lcol, ( acol - acol.mean() ) / acolsd );
+    }
+  vnl_svd<double>    svd( A );
+  vVector ob = param_values.get_column( 0 );
+  RealType bsd = ( ob - ob.mean() ).rms();
+  vVector b = ( ob - ob.mean() ) / bsd;
+  vVector polyx = svd.solve( ob ); 
+  RealType interceptx = param_values.get_column( 0 ).mean();
+  for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
+    {
+    interceptx -= A.get_column( Acol ).mean() * polyx( Acol );
+    }
+  vVector solnx = A * polyx + interceptx;
+  ob = param_values.get_column( 1 );
+  bsd = ( ob - ob.mean() ).rms();
+  b = ( ob - ob.mean() ) / bsd;
+  vVector polyy = svd.solve( ob ); 
+  RealType intercepty = param_values.get_column( 1 ).mean();
+  for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
+    {
+    intercepty -= A.get_column( Acol ).mean() * polyy( Acol );
+    }
+  vVector solny = A * polyy + intercepty;
+
+  for ( unsigned int i = 0; i < transformList.size(); i++) 
+    {
+    typename TranslationTransformType::ParametersType p
+      = transformList[i]->GetParameters();
+    p[ 0 ] = solnx[i];
+    p[ 1 ] = solny[i];
+    transformList[i]->SetParameters( p );
+    }
+
+  // write original data
+    {
+    std::vector<std::string> ColumnHeaders;
+    std::string              colname;
+    colname = std::string("Tx");
+    ColumnHeaders.push_back( colname );
+    colname = std::string("Ty");
+    ColumnHeaders.push_back( colname );
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    std::string         fnmp;
+    fnmp = outputPrefix + std::string("TxTy.csv");
+    writer->SetFileName( fnmp.c_str() );
+    writer->SetColumnHeaders(ColumnHeaders);
+    writer->SetInput( &param_values );
+    writer->Write();
+    }
+
+  // write polynomial predicted data
+    {
+    param_values.set_column( 0 , solnx );
+    param_values.set_column( 1 , solny );
+    std::vector<std::string> ColumnHeaders;
+    std::string              colname;
+    colname = std::string("Tx");
+    ColumnHeaders.push_back( colname );
+    colname = std::string("Ty");
+    ColumnHeaders.push_back( colname );
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    std::string         fnmp;
+    fnmp = outputPrefix + std::string("TxTy_poly.csv");
+    writer->SetFileName( fnmp.c_str() );
+    writer->SetColumnHeaders(ColumnHeaders);
+    writer->SetInput( &param_values );
+    writer->Write();
+    }
+
+    for( unsigned int timedim = 0; timedim < timedims; timedim++ )
+      {
       // resample the moving image and then put it in its place
       typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
-      resampler->SetTransform( translationRegistration->GetTransform() );
-      resampler->SetInput( moving_time_slice );
-      resampler->SetOutputParametersFromImage( fixed_time_slice );
+      resampler->SetTransform( transformList[timedim] );
+      resampler->SetInput( movingSliceList[timedim] );
+      resampler->SetOutputParametersFromImage( fixedSliceList[timedim] );
       resampler->SetDefaultPixelValue( 0 );
       resampler->Update();
 
@@ -715,24 +818,8 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       }
     }
   totalTimer.Stop();
-  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
-
-    {
-    std::vector<std::string> ColumnHeaders;
-    std::string              colname;
-    colname = std::string("Tx");
-    ColumnHeaders.push_back( colname );
-    colname = std::string("Ty");
-    ColumnHeaders.push_back( colname );
-    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
-    WriterType::Pointer writer = WriterType::New();
-    std::string         fnmp;
-    fnmp = outputPrefix + std::string("TxTy.csv");
-    writer->SetFileName( fnmp.c_str() );
-    writer->SetColumnHeaders(ColumnHeaders);
-    writer->SetInput( &param_values );
-    writer->Write();
-    }
+  //  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
+  
   return EXIT_SUCCESS;
 }
 
@@ -850,6 +937,15 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetShortName( 'h' );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string         description = std::string( "degree of polynomial - up to zDimension-2" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "polydegree" );
+    option->SetShortName( 'p' );
+    option->SetDescription( description );
     parser->AddOption( option );
     }
 
