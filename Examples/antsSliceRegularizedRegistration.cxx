@@ -685,6 +685,24 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       transformList.push_back( translationRegistration->GetModifiableTransform() );
       }
 
+  // write original data
+    {
+    std::vector<std::string> ColumnHeaders;
+    std::string              colname;
+    colname = std::string("Tx");
+    ColumnHeaders.push_back( colname );
+    colname = std::string("Ty");
+    ColumnHeaders.push_back( colname );
+    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+    WriterType::Pointer writer = WriterType::New();
+    std::string         fnmp;
+    fnmp = outputPrefix + std::string("TxTy.csv");
+    writer->SetFileName( fnmp.c_str() );
+    writer->SetColumnHeaders(ColumnHeaders);
+    writer->SetInput( &param_values );
+    writer->Write();
+    }
+
   unsigned int polydegree = 3;
   itk::ants::CommandLineParser::OptionType::Pointer polyOption = parser->GetOption( "polydegree" );
   if( polyOption && polyOption->GetNumberOfFunctions() )
@@ -692,6 +710,8 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     polydegree = parser->Convert<unsigned int>( polyOption->GetFunction( 0 )->GetName() );
     }
   if ( polydegree > (timedims-2) ) polydegree = timedims-2;
+  if ( polydegree > 0 ) 
+  {
   vMatrix A( timedims, polydegree, 0.0 );
   for ( unsigned int z = 0; z < timedims; z++ )
     {
@@ -738,25 +758,6 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     p[ 1 ] = solny[i];
     transformList[i]->SetParameters( p );
     }
-
-  // write original data
-    {
-    std::vector<std::string> ColumnHeaders;
-    std::string              colname;
-    colname = std::string("Tx");
-    ColumnHeaders.push_back( colname );
-    colname = std::string("Ty");
-    ColumnHeaders.push_back( colname );
-    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
-    WriterType::Pointer writer = WriterType::New();
-    std::string         fnmp;
-    fnmp = outputPrefix + std::string("TxTy.csv");
-    writer->SetFileName( fnmp.c_str() );
-    writer->SetColumnHeaders(ColumnHeaders);
-    writer->SetInput( &param_values );
-    writer->Write();
-    }
-
   // write polynomial predicted data
     {
     param_values.set_column( 0 , solnx );
@@ -776,7 +777,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     writer->SetInput( &param_values );
     writer->Write();
     }
-
+  }
     /** Handle all output: images and displacement fields */
     typedef itk::IdentityTransform<RealType, ImageDimension> IdentityIOTransformType;
     typename IdentityIOTransformType::Pointer identityIOTransform = IdentityIOTransformType::New();
