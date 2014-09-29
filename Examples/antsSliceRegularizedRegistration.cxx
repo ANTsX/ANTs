@@ -568,10 +568,10 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         mutualInformationMetric->SetUseFixedImageGradientFilter( false );
         metric = mutualInformationMetric;
         }
-      else if( std::strcmp( whichMetric.c_str(), "demons" ) == 0 )
+      else if( std::strcmp( whichMetric.c_str(), "meansquares" ) == 0 )
         {
-        typedef itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType> DemonsMetricType;
-        typename DemonsMetricType::Pointer demonsMetric = DemonsMetricType::New();
+        typedef itk::MeanSquaresImageToImageMetricv4<FixedImageType, FixedImageType> MSQMetricType;
+        typename MSQMetricType::Pointer demonsMetric = MSQMetricType::New();
         demonsMetric = demonsMetric;
         metric = demonsMetric;
         }
@@ -873,7 +873,7 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     {
     std::string description = std::string( "Four image metrics are available--- " )
       + std::string( "GC : global correlation, CC:  ANTS neighborhood cross correlation, MI:  Mutual information, and " )
-      + std::string( "Demons:  Thirion's Demons (modified mean-squares). " )
+      + std::string( "MeanSquares:  mean-squares intensity difference. " )
       + std::string( "Note that the metricWeight is currently not used.  " )
       + std::string( "Rather, it is a temporary place holder until multivariate metrics " )
       + std::string( "are available for a single stage." );
@@ -890,7 +890,7 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetUsageOption(
       2,
 
-      "Demons[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MSQ[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       3,
       "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
