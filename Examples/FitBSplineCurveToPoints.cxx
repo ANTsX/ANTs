@@ -42,7 +42,7 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
     {
     while( std::getline( file, line ) )
       {
-      VectorType vector;
+      VectorType vector( 0.0 );
       float weight = 1.0;
 
       std::string delimiter = ",";
@@ -74,7 +74,7 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
 
       if ( count > 0 )
         {
-        VectorType previous;
+        VectorType previous( 0.0 );
         pointSet->GetPointData( count-1, &previous );
         totalDistance += ( previous - vector ).GetNorm();
         }
@@ -91,7 +91,7 @@ int FitBSplineCurveToPoints( unsigned int argc, char *argv[] )
   RealType cumSum = 0.0;
   for ( unsigned int i = 1; i < pointSet->GetNumberOfPoints(); i++ )
     {
-    VectorType vector, previous;
+    VectorType vector( 0.0 ), previous( 0.0 );
     pointSet->GetPointData( i, &vector );
     pointSet->GetPointData( i-1, &previous );
 
