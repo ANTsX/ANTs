@@ -1046,7 +1046,7 @@ private:
     + std::string( "and iterations, shrink factors, and smoothing sigmas for each level. " )
     + std::string( "Specialized for 3D data: fixed image is 3D, moving image is 3D. ")
     + std::string( "Registration is performed slice-by-slice then regularized in z. ")
-    + std::string( "Implemented by B. Avants and conceived and funded by Julien	Cohen-Adad.\n")
+    + std::string( "Implemented by B. Avants and conceived by Julien Cohen-Adad.\n")
     + std::string("Outputs: \n\n") 
     + std::string(" OutputPrefixTxTy.csv: Tx & Ty transformation parameters \n") 
     + std::string(" OutputPrefixTxTy_poly.csv: polynomial fit to Tx & Ty \n") 
