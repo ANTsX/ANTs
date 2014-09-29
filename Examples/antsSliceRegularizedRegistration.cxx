@@ -204,8 +204,8 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
     typename HistogramMatchingFilterType::Pointer matchingFilter = HistogramMatchingFilterType::New();
     matchingFilter->SetSourceImage( windowingFilter->GetOutput() );
     matchingFilter->SetReferenceImage( histogramMatchSourceImage );
-    matchingFilter->SetNumberOfHistogramLevels( 32 );
-    matchingFilter->SetNumberOfMatchPoints( 8 );
+    matchingFilter->SetNumberOfHistogramLevels( 64 );
+    matchingFilter->SetNumberOfMatchPoints( 12 );
     matchingFilter->ThresholdAtMeanIntensityOn();
     matchingFilter->Update();
 
@@ -398,9 +398,8 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     currentStageString << currentStage;
 
     // Get the fixed and moving images
-
-    std::string fixedImageFileName = metricOption->GetFunction( currentStage )->GetParameter(  0 );
-    std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter(  1 );
+    std::string fixedImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 0 );
+    std::string movingImageFileName = metricOption->GetFunction( currentStage )->GetParameter( 1 );
     typename FixedImageType::Pointer fixed_time_slice = NULL;
     typename FixedImageType::Pointer moving_time_slice = NULL;
     typename FixedIOImageType::Pointer fixedImage;
@@ -489,8 +488,9 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       extractFilterM->SetInput( movingImage );
       extractFilterF->SetDirectionCollapseToSubmatrix();
       extractFilterM->SetDirectionCollapseToSubmatrix();
-      extractFilterF->SetDirectionCollapseToIdentity();
-      extractFilterM->SetDirectionCollapseToIdentity();
+      bool toidentity = false;
+      if ( toidentity ) extractFilterF->SetDirectionCollapseToIdentity();
+      if ( toidentity ) extractFilterM->SetDirectionCollapseToIdentity();
       extractFilterF->SetExtractionRegion( extractRegion );
       extractFilterM->SetExtractionRegion( extractRegion );
       extractFilterF->Update();
@@ -501,13 +501,13 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       movingSliceList.push_back( moving_time_slice );
       typename FixedImageType::Pointer preprocessFixedImage =
         sliceRegularizedPreprocessImage<FixedImageType>( fixed_time_slice, 0,
-                                         1, 0.001, 0.999,
+                                         1, 0.005, 0.995,
                                          NULL );
 
       typename FixedImageType::Pointer preprocessMovingImage =
         sliceRegularizedPreprocessImage<FixedImageType>( moving_time_slice,
                                          0, 1,
-                                         0.001, 0.999,
+                                         0.005, 0.995,
                                          preprocessFixedImage );
 
       typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
@@ -853,16 +853,15 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       std::string fileName = outputOption->GetFunction( 0 )->GetParameter( 2 );
       }
 
-      std::string dispfn = outputPrefix + std::string("Warp.nii.gz");
-      typedef  itk::ImageFileWriter<DisplacementIOFieldType> DisplacementFieldWriterType;
-      typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
-      displacementFieldWriter->SetInput( displacementout );
-      displacementFieldWriter->SetFileName( dispfn.c_str() );
-      displacementFieldWriter->Update();
+    std::string dispfn = outputPrefix + std::string("Warp.nii.gz");
+    typedef  itk::ImageFileWriter<DisplacementIOFieldType> DisplacementFieldWriterType;
+    typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
+    displacementFieldWriter->SetInput( displacementout );
+    displacementFieldWriter->SetFileName( dispfn.c_str() );
+    displacementFieldWriter->Update();
     }
   totalTimer.Stop();
-  //  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
-  
+  //  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;  
   return EXIT_SUCCESS;
 }
 
@@ -1040,8 +1039,9 @@ private:
   parser->SetCommand( argv[0] );
 
   std::string commandDescription = 
-    std::string( "antsSliceRegularizedRegistration = distortion correction. ")
-    + std::string( "This program is a user-level application for slice-wise distortion correction. " )
+    std::string( "antsSliceRegularizedRegistration ")
+    + std::string("This program is a user-level application for slice-by-slice translation registration. " )
+    + std::string( "Results are regularized in z using polynomial regression.  The program is targeted at spinal cord MRI. ") 
     + std::string( "Only one stage is supported where a stage consists of a transform; an image metric; " )
     + std::string( "and iterations, shrink factors, and smoothing sigmas for each level. " )
     + std::string( "Specialized for 3D data: fixed image is 3D, moving image is 3D. ")
