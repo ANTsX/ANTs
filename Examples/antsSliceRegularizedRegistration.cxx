@@ -390,6 +390,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   typedef typename TranslationTransformType::Pointer       SingleTransformItemType;
   std::vector<SingleTransformItemType>                     transformList;
+  std::vector<SingleTransformItemType>                     transformUList;
   std::vector<typename FixedImageType::Pointer>            fixedSliceList;
   std::vector<typename FixedImageType::Pointer>            movingSliceList;
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
@@ -405,6 +406,8 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     typename FixedIOImageType::Pointer fixedImage;
     ReadImage<FixedIOImageType>( fixedImage, fixedImageFileName.c_str() );
     unsigned int timedims = fixedImage->GetLargestPossibleRegion().GetSize()[ImageDimension-1];
+    param_values.set_size(timedims, 2 );
+    param_values.fill(0);
 
     typename MovingIOImageType::Pointer movingImage;
     ReadImage<MovingIOImageType>( movingImage, movingImageFileName.c_str()  );
@@ -464,15 +467,24 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         }
       }
 
+  bool verbose = false;
+  if( parser->Convert<bool>( parser->GetOption( 'v' )->GetFunction()->GetName() ) )
+    {
+    verbose = true;
+    }
+
+  unsigned int polydegree = 3;
+  itk::ants::CommandLineParser::OptionType::Pointer polyOption = parser->GetOption( "polydegree" );
+  if( polyOption && polyOption->GetNumberOfFunctions() )
+    {
+    polydegree = parser->Convert<unsigned int>( polyOption->GetFunction( 0 )->GetName() );
+    }
+  if ( polydegree > (timedims-2) ) polydegree = timedims-2;
+
     // the fixed image slice is a reference image in 2D while the moving is a 2D slice image
     // loop over every time point and register image_i_moving to image_i_fixed
     //
     // Set up the image metric and scales estimator
-    std::vector<unsigned int> timelist;
-    for( unsigned int timedim = 0; timedim < timedims; timedim++ )
-      {
-      timelist.push_back(timedim);
-      }
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
       typedef itk::IdentityTransform<RealType, ImageDimension-1> IdentityTransformType;
@@ -499,19 +511,37 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       moving_time_slice = extractFilterM->GetOutput();
       fixedSliceList.push_back( fixed_time_slice );
       movingSliceList.push_back( moving_time_slice );
+
+      // set up initial transform parameters
+      typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
+      translationTransform->SetIdentity();
+      transformList.push_back( translationTransform );
+
+      // set up update transform parameters
+      typename TranslationTransformType::Pointer translationTransformU = TranslationTransformType::New();
+      translationTransformU->SetIdentity();
+      transformUList.push_back( translationTransformU );
+      }
+
+    // implement a gradient descent on the polynomial parameters by looping over registration results
+    typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
+    typename MetricType::Pointer metric;
+    unsigned int maxloop = 2;
+    for ( unsigned int loop = 0; loop < maxloop; loop++ )
+    {
+    RealType metricval = 0;
+    for( unsigned int timedim = 0; timedim < timedims; timedim++ )
+      {
       typename FixedImageType::Pointer preprocessFixedImage =
-        sliceRegularizedPreprocessImage<FixedImageType>( fixed_time_slice, 0,
+        sliceRegularizedPreprocessImage<FixedImageType>( fixedSliceList[timedim], 0,
                                          1, 0.005, 0.995,
                                          NULL );
 
       typename FixedImageType::Pointer preprocessMovingImage =
-        sliceRegularizedPreprocessImage<FixedImageType>( moving_time_slice,
+        sliceRegularizedPreprocessImage<FixedImageType>( movingSliceList[timedim],
                                          0, 1,
                                          0.005, 0.995,
                                          preprocessFixedImage );
-
-      typedef itk::ImageToImageMetricv4<FixedImageType, FixedImageType> MetricType;
-      typename MetricType::Pointer metric;
 
       std::string whichMetric = metricOption->GetFunction( currentStage )->GetName();
       ConvertToLowerCase( whichMetric );
@@ -586,7 +616,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         std::cerr << "ERROR: Unrecognized image metric: " << whichMetric << std::endl;
         return EXIT_FAILURE;
         }
-      metric->SetVirtualDomainFromImage(  fixed_time_slice );
+      metric->SetVirtualDomainFromImage(  fixedSliceList[timedim] );
 
       typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
       typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
@@ -596,10 +626,11 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
-      OptimizerType::Pointer optimizer = OptimizerType::New();
+      typedef itk::GradientDescentOptimizerv4 OptimizerType1;
+      typename OptimizerType::Pointer optimizer = OptimizerType::New();
       optimizer->SetNumberOfIterations( iterations[0] );
       optimizer->SetMinimumConvergenceValue( 1.e-7 );
-      optimizer->SetConvergenceWindowSize( 10 );
+      optimizer->SetConvergenceWindowSize( 8 );
       optimizer->SetLowerLimit( 0 );
       optimizer->SetUpperLimit( 2 );
       optimizer->SetEpsilon( 0.1 );
@@ -614,15 +645,13 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       typename TranslationRegistrationType::Pointer translationRegistration = TranslationRegistrationType::New();
       if( std::strcmp( whichTransform.c_str(), "translation" ) == 0 )
         {
-        typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
-        translationTransform->SetIdentity();
-        nparams = translationTransform->GetNumberOfParameters();
+        nparams = transformList[timedim]->GetNumberOfParameters();
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
-        metric->SetMovingTransform( translationTransform );
-        typename ScalesEstimatorType::ScalesType scales( translationTransform->GetNumberOfParameters() );
-        typename MetricType::ParametersType      newparams(  translationTransform->GetParameters() );
+        metric->SetMovingTransform( transformList[timedim] );
+        typename ScalesEstimatorType::ScalesType scales( transformList[timedim]->GetNumberOfParameters() );
+        typename MetricType::ParametersType      newparams(  transformList[timedim]->GetParameters() );
         metric->SetParameters( newparams );
         metric->Initialize();
         scalesEstimator->SetMetric(metric);
@@ -651,67 +680,27 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
           std::cerr << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
-	if ( true ) 
-          {
-          // Write out the translation transform
-          if ( false ) 
-	  {
-	  std::string filename = outputPrefix + std::string("TimeSlice") 
-            + ants_slice_regularized_to_string<unsigned int>(timedim)
-            + std::string( "Translation.mat" );
-          typedef itk::TransformFileWriter TransformWriterType;
-          typename TransformWriterType::Pointer transformWriter = TransformWriterType::New();
-          transformWriter->SetInput( translationRegistration->GetOutput()->Get() );
-          transformWriter->SetFileName( filename.c_str() );
-	  transformWriter->Update();
-	  }
-          if( timedim == 0 )
-            {
-            param_values.set_size(timedims, nparams);
-            param_values.fill(0);
-            }
-          for( unsigned int i = 0; i < nparams; i++ )
-            {
-            param_values(timedim, i ) = 
-              translationRegistration->GetOutput()->Get()->GetParameters()[i];
-            }
-          }
 	}
       else
         {
         std::cerr << "ERROR:  Unrecognized transform option - " << whichTransform << std::endl;
         return EXIT_FAILURE;
         }
-      transformList.push_back( translationRegistration->GetModifiableTransform() );
+      transformUList[timedim] = translationRegistration->GetModifiableTransform();
+      metricval += metric->GetValue();
       }
 
-  // write original data
+  for ( unsigned int i = 0; i < transformList.size(); i++) 
     {
-    std::vector<std::string> ColumnHeaders;
-    std::string              colname;
-    colname = std::string("Tx");
-    ColumnHeaders.push_back( colname );
-    colname = std::string("Ty");
-    ColumnHeaders.push_back( colname );
-    typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
-    WriterType::Pointer writer = WriterType::New();
-    std::string         fnmp;
-    fnmp = outputPrefix + std::string("TxTy.csv");
-    writer->SetFileName( fnmp.c_str() );
-    writer->SetColumnHeaders(ColumnHeaders);
-    writer->SetInput( &param_values );
-    writer->Write();
+    typename TranslationTransformType::ParametersType pu = transformUList[i]->GetParameters();
+    param_values( i, 0 )=pu[ 0 ];
+    param_values( i, 1 )=pu[ 1 ];
     }
 
-  unsigned int polydegree = 3;
-  itk::ants::CommandLineParser::OptionType::Pointer polyOption = parser->GetOption( "polydegree" );
-  if( polyOption && polyOption->GetNumberOfFunctions() )
-    {
-    polydegree = parser->Convert<unsigned int>( polyOption->GetFunction( 0 )->GetName() );
-    }
-  if ( polydegree > (timedims-2) ) polydegree = timedims-2;
-  if ( polydegree > 0 ) 
+  // project updated solution back to polynomial space
+  if ( polydegree > 0 )
   {
+  // set up polynomial system of equations
   vMatrix A( timedims, polydegree, 0.0 );
   for ( unsigned int z = 0; z < timedims; z++ )
     {
@@ -729,6 +718,8 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     A.set_column( lcol, ( acol - acol.mean() ) / acolsd );
     }
   vnl_svd<double>    svd( A );
+
+  // first x-dimension
   vVector ob = param_values.get_column( 0 );
   RealType bsd = ( ob - ob.mean() ).rms();
   vVector b = ( ob - ob.mean() ) / bsd;
@@ -739,6 +730,8 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     interceptx -= A.get_column( Acol ).mean() * polyx( Acol );
     }
   vVector solnx = A * polyx + interceptx;
+
+  // now y-dimension
   ob = param_values.get_column( 1 );
   bsd = ( ob - ob.mean() ).rms();
   b = ( ob - ob.mean() ) / bsd;
@@ -750,18 +743,34 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     }
   vVector solny = A * polyy + intercepty;
 
+  // now look at delta and do projection
+  if ( solnx.size() != transformList.size() ) 
+    {
+    std::cerr << "solnx.size() != transformList.size()" << std::endl;
+    }
+  RealType err = 0;
+  RealType eulerparam = 1;
   for ( unsigned int i = 0; i < transformList.size(); i++) 
     {
-    typename TranslationTransformType::ParametersType p
-      = transformList[i]->GetParameters();
-    p[ 0 ] = solnx[i];
-    p[ 1 ] = solny[i];
+    typename TranslationTransformType::ParametersType p = transformList[i]->GetParameters();
+    err += vcl_sqrt( vcl_pow( p[0] - solnx[i] , 2.0 ) + vcl_pow( p[1] - solny[i] , 2.0 ) );
+    p[ 0 ] = solnx[i] * eulerparam + p[0] * (1.0 - eulerparam);
+    p[ 1 ] = solny[i] * eulerparam + p[1] * (1.0 - eulerparam);
+    param_values(i,0) = p[0];
+    param_values(i,1) = p[1];
     transformList[i]->SetParameters( p );
     }
+  if ( verbose ) 
+    {
+    std::cout << "Loop" << loop << " polyerr: " << err / timedims <<  " image-metric " << metricval << std::endl;
+    std::cout << " polyx " << polyx << " iceptx " << interceptx  << std::endl;
+    std::cout << " polyy " << polyy << " icepty " << intercepty  << std::endl;
+    }
+  }// if loop == 0 
+  }// done with optimization, now move on to writing data ...
+    
   // write polynomial predicted data
     {
-    param_values.set_column( 0 , solnx );
-    param_values.set_column( 1 , solny );
     std::vector<std::string> ColumnHeaders;
     std::string              colname;
     colname = std::string("Tx");
@@ -777,7 +786,6 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     writer->SetInput( &param_values );
     writer->Write();
     }
-  }
     /** Handle all output: images and displacement fields */
     typedef itk::IdentityTransform<RealType, ImageDimension> IdentityIOTransformType;
     typename IdentityIOTransformType::Pointer identityIOTransform = IdentityIOTransformType::New();
@@ -960,9 +968,19 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
 
     {
     std::string description = std::string( "Print the help menu (short version)." );
-
     OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "help" );
     option->SetShortName( 'h' );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "verbose option" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "verbose" );
+    option->SetShortName( 'v' );
     option->SetDescription( description );
     option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
