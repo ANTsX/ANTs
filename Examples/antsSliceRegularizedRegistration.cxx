@@ -31,6 +31,7 @@
 #include "itkImageToHistogramFilter.h"
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
+#include "itkTransformToDisplacementFieldFilter.h"
 
 #include "itkAffineTransform.h"
 #include "itkBSplineTransform.h"
@@ -312,11 +313,17 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   typedef itk::Image<PixelType, ImageDimension-1>   FixedImageType;
   typedef itk::Image<PixelType, ImageDimension>     MovingIOImageType;
   typedef itk::Image<PixelType, ImageDimension-1>   MovingImageType;
+
+  typedef itk::Vector<RealType, ImageDimension>     VectorIOType;
+  typedef itk::Image<VectorIOType, ImageDimension>  DisplacementIOFieldType;
+  typedef itk::Vector<RealType, ImageDimension-1>   VectorType;
+  typedef itk::Image<VectorType, ImageDimension-1>  DisplacementFieldType;
+
   typedef vnl_matrix<RealType>                      vMatrix;
   typedef vnl_vector<RealType>                      vVector;
   vMatrix param_values;
-  typedef typename itk::ants::CommandLineParser ParserType;
-  typedef typename ParserType::OptionType       OptionType;
+  typedef typename itk::ants::CommandLineParser     ParserType;
+  typedef typename ParserType::OptionType           OptionType;
 
   typename OptionType::Pointer transformOption = parser->GetOption( "transform" );
   if( transformOption && transformOption->GetNumberOfFunctions() )
@@ -770,8 +777,31 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     writer->Write();
     }
 
+    /** Handle all output: images and displacement fields */
+    typedef itk::IdentityTransform<RealType, ImageDimension> IdentityIOTransformType;
+    typename IdentityIOTransformType::Pointer identityIOTransform = IdentityIOTransformType::New();
+    typedef typename itk::TransformToDisplacementFieldFilter<DisplacementIOFieldType, RealType> ConverterType;
+    typename ConverterType::Pointer idconverter = ConverterType::New();
+    idconverter->SetOutputOrigin( outputImage->GetOrigin() );
+    idconverter->SetOutputStartIndex( outputImage->GetBufferedRegion().GetIndex() );
+    idconverter->SetSize( outputImage->GetBufferedRegion().GetSize() );
+    idconverter->SetOutputSpacing( outputImage->GetSpacing() );
+    idconverter->SetOutputDirection( outputImage->GetDirection() );
+    idconverter->SetTransform( identityIOTransform );
+    idconverter->Update();
+    typename DisplacementIOFieldType::Pointer displacementout = idconverter->GetOutput();
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
+      typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
+      typename ConverterType::Pointer converter = ConverterType::New();
+      converter->SetOutputOrigin( fixedSliceList[timedim]->GetOrigin() );
+      converter->SetOutputStartIndex( fixedSliceList[timedim]->GetBufferedRegion().GetIndex() );
+      converter->SetSize( fixedSliceList[timedim]->GetBufferedRegion().GetSize() );
+      converter->SetOutputSpacing( fixedSliceList[timedim]->GetSpacing() );
+      converter->SetOutputDirection( fixedSliceList[timedim]->GetDirection() );
+      converter->SetTransform( transformList[timedim] );
+      converter->Update();
+
       // resample the moving image and then put it in its place
       typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
@@ -787,10 +817,14 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
         {
         typename FixedImageType::PixelType  fval = vfIter2.Get();
+        VectorType vec = converter->GetOutput()->GetPixel( vfIter2.GetIndex() );
+	VectorIOType vecout;
+	vecout.Fill( 0 );
         typename MovingIOImageType::IndexType ind;
         for( unsigned int xx = 0; xx < ImageDimension; xx++ )
           {
           ind[xx] = vfIter2.GetIndex()[xx];
+	  vecout[xx] = vec[xx];
           }
         unsigned int tdim = timedim;
         if( tdim > ( timedims - 1 ) )
@@ -799,6 +833,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
           }
         ind[ImageDimension-1] = tdim;
         outputImage->SetPixel(ind, fval);
+	displacementout->SetPixel( ind, vecout );
         }
       }
     if ( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1  
@@ -816,6 +851,13 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       {
       std::string fileName = outputOption->GetFunction( 0 )->GetParameter( 2 );
       }
+
+      std::string dispfn = outputPrefix + std::string("Warp.nii.gz");
+      typedef  itk::ImageFileWriter<DisplacementIOFieldType> DisplacementFieldWriterType;
+      typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
+      displacementFieldWriter->SetInput( displacementout );
+      displacementFieldWriter->SetFileName( dispfn.c_str() );
+      displacementFieldWriter->Update();
     }
   totalTimer.Stop();
   //  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
