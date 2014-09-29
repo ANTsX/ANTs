@@ -7,7 +7,7 @@ set(PICSL_INCLUDE_DIRS
 ../Temporary
 .
 )
-	
+
 include_directories( ${BOOST_INCLUDE_DIR} ) #Define where to find Boost includes
 include_directories(${PICSL_INCLUDE_DIRS})
 link_directories( ${ITK_LIBRARY_PATH}  )
@@ -27,7 +27,7 @@ macro(STANDARD_ANTS_BUILD ANTS_FUNCTION_NAME EXTRA_LIBS)
   set( ANTS_FUNCTION_NAME ${ANTS_FUNCTION_NAME} )
 
   add_library(l_${ANTS_FUNCTION_NAME} ${ANTS_FUNCTION_NAME}.cxx ${UI_SOURCES})
-  SET_TARGET_PROPERTIES(l_${ANTS_FUNCTION_NAME} PROPERTIES 
+  SET_TARGET_PROPERTIES(l_${ANTS_FUNCTION_NAME} PROPERTIES
     SOVERSION ${LIBRARY_SOVERSION_INFO}  VERSION ${LIBRARY_VERSION_INFO})
   message(STATUS "${ANTS_FUNCTION_NAME} ${EXTRA_LIBS}")
   target_link_libraries(l_${ANTS_FUNCTION_NAME} antsUtilities ${ITK_LIBRARIES} ${EXTRA_LIBS} )
@@ -77,6 +77,7 @@ set(BASE_ANTS_APPS
   ConvertToJpg
   ConvertImagePixelType
   ConvertInputImagePixelTypeToFloat
+  FitBSplineCurveToPoints
   AverageImages
   AverageTensorImages
   ImageSetStatistics
@@ -154,7 +155,7 @@ find_package(VTK COMPONENTS
    vtkIOLegacy
    vtkIOPLY
    vtkRenderingOpenGL
-   vtkFiltersModeling  
+   vtkFiltersModeling
    vtkImagingStencil
    vtkImagingGeneral
    vtkRenderingAnnotation
