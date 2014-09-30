@@ -251,7 +251,19 @@ Boilerplate ANTs
 
 Here is some boilerplate regarding ants image processing:
 
-We will analyze multiple modality neuroimaging data with Advanced Normalization Tools (ANTs) version >= 2.1 [1] (http://stnava.github.io/ANTs/).  ANTs has proven performance in lifespan analyses of brain morphology [1] and function [2] in both adult [1] and pediatric brain data [2,5,6] including infants [7].  ANTs employs both probabilistic tissue segmentation (via Atropos [3]) and machine learning methods based on expert labeled data (via joint label fusion [4]) in order to maximize reliability and consistency of multiple modality image segmentation.  Critically, all ANTs components are capable of leveraging multivariate image features as well as expert knowledge in order to learn the best segmentation strategy available for each individual image [3,4].  This flexibility in segmentation and the underlying high-performance normalization methods have been validated by winning several internationally recognized medical image processing challenges conducted within the premier conferences within the field and published in several accompanying articles [8][9][10][11].
+We will analyze multiple modality neuroimaging data with Advanced
+Normalization Tools (ANTs) version >= 2.1 [1]
+(http://stnava.github.io/ANTs/).  ANTs has proven performance in
+lifespan analyses of brain morphology [1] and function [2] in both
+adult [1] and pediatric brain data [2,5,6] including infants [7].
+ANTs employs both probabilistic tissue segmentation (via Atropos [3])
+and machine learning methods based on expert labeled data (via joint
+label fusion [4]) in order to maximize reliability and consistency of
+multiple modality image segmentation.  These methods allow detailed
+extraction of critical image-based biomarkers such as volumes
+(e.g. hippocampus and amygdala), cortical thickness and area and
+connectivity metrics derived from structural white matter [13] or
+functional connectivity [12]. Critically, all ANTs components are capable of leveraging multivariate image features as well as expert knowledge in order to learn the best segmentation strategy available for each individual image [3,4].  This flexibility in segmentation and the underlying high-performance normalization methods have been validated by winning several internationally recognized medical image processing challenges conducted within the premier conferences within the field and published in several accompanying articles [8][9][10][11].
 
 References
 
@@ -276,6 +288,10 @@ References
 [10] http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3837555/
 
 [11] http://nmr.mgh.harvard.edu/~koen/MenzeTMI2014.pdf
+
+[12] http://www.ncbi.nlm.nih.gov/pubmed/23813017
+
+[13] http://www.ncbi.nlm.nih.gov/pubmed/24830834
 
 
 
