@@ -294,7 +294,7 @@ function shapeupdatetotemplate() {
     #echo "    ${ANTSPATH}ImageSetStatistics $dim ${whichtemplate}WarpedToTemplateList.txt ${template} 0"
     echo "--------------------------------------------------------------------------------------"
 
-    imagelist=(`ls ${outputname}${whichtemplate}*WarpedToTemplate.nii.gz`)
+    imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
 
     summarizeimageset $dim $template $statsmethod ${imagelist[@]}
 
