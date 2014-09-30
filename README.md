@@ -246,6 +246,28 @@ Scholar](http://scholar.google.com/scholar?q=Advanced+Normalization+Tools+%22ANT
 
 [Pubmed](http://www.ncbi.nlm.nih.gov/pubmed?term=%22Avants%20B%22%20OR%20%22Tustison%20N%22)
 
+Boilerplate ANTs 
+------------------
+
+Here is some boilerplate regarding ants image processing:
+
+We will analyze multiple modality neuroimaging data with Advanced Normalization Tools (ANTs) version >= 2.1 [1] (http://stnava.github.io/ANTs/).  ANTs has proven performance in lifespan analyses of brain morphology [1] and function [2] in both adult [1] and pediatric brain data [2,5,6] including infants [7].  ANTs employs both probabilistic tissue segmentation (via Atropos [3]) and machine learning methods based on expert labeled data (via joint label fusion [4]) in order to maximize reliability and consistency of multiple modality image segmentation.  Critically, all ANTs components are capable of leveraging multivariate image features as well as expert knowledge in order to learn the best segmentation strategy available for each individual image [3,4].  This flexibility in segmentation and the underlying high-performance normalization methods have been validated by winning several internationally recognized medical image processing challenges conducted within the premier conferences within the field and published in several accompanying articles [8][9][10].
+
+References
+
+[1] http://www.ncbi.nlm.nih.gov/pubmed/24879923
+[2] http://www.ncbi.nlm.nih.gov/pubmed/24817849
+[3] http://www.ncbi.nlm.nih.gov/pubmed/21373993
+[4] http://www.ncbi.nlm.nih.gov/pubmed/21237273
+[5] http://www.ncbi.nlm.nih.gov/pubmed/22517961
+[6] http://www.ncbi.nlm.nih.gov/pubmed/24033570
+[7] http://www.ncbi.nlm.nih.gov/pubmed/24139564
+[8]  http://www.ncbi.nlm.nih.gov/pubmed/21632295
+[9] http://www.ncbi.nlm.nih.gov/pubmed/19195496
+[10] http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3837555/
+
+
+
 ANTs was supported by: R01-EB006266-01
 
 
