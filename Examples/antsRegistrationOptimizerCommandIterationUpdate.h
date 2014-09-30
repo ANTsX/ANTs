@@ -37,7 +37,7 @@ protected:
     this->m_ComputeFullScaleCCInterval = 0;
     this->m_WriteInterationsOutputsInIntervals = 0;
     this->m_CurrentStageNumber = 0;
-    this->m_CurLevel = 0;
+    this->m_CurLevel = -1;
   }
 
 public:
@@ -91,7 +91,16 @@ public:
 #endif
     if( typeid( event ) == typeid( itk::IterationEvent ) )
       {
+      // const unsigned int curLevel = this->m_Optimizer->GetCurrentLevel();
+      const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
+      if( curIter == 1 )
+        {
+        ++this->m_CurLevel;
+        }
+
       const unsigned int lCurrentIteration = this->m_Optimizer->GetCurrentIteration() + 1;
+
+
       if( lCurrentIteration  == 1 )
         {
         if( this->m_ComputeFullScaleCCInterval != 0 )
@@ -142,7 +151,7 @@ public:
                      << std::scientific << std::setprecision(12) << this->m_Optimizer->GetConvergenceValue() << ", "
                      << std::setprecision(4) << now << ", "
                      << std::setprecision(4) << (now - this->m_lastTotalTime)  << ", ";
-      if( ( this->m_ComputeFullScaleCCInterval != 0 ) &&  fabs(metricValue) > 1e-7 )
+      if( ( this->m_ComputeFullScaleCCInterval != 0 ) && vcl_fabs(metricValue) > 1e-7 )
         {
         this->Logger() << std::scientific << std::setprecision(12) << metricValue
                        << std::flush << std::endl;
@@ -151,6 +160,8 @@ public:
         {
         this->Logger() << std::flush << std::endl;
         }
+
+      this->m_Optimizer->SetNumberOfIterations( this->m_NumberOfIterations[this->m_CurLevel] );
 
       this->m_lastTotalTime = now;
       m_clock.Start();
@@ -337,12 +348,6 @@ public:
     resampler->Update();
 
     // write the results to the disk
-    // const unsigned int curLevel = this->m_Optimizer->GetCurrentLevel();
-    const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
-    if( curIter == 1 )
-      {
-      ++this->m_CurLevel;
-      }
     std::stringstream currentFileName;
     currentFileName << "Stage" << this->m_CurrentStageNumber + 1 << "_level" << this->m_CurLevel;
     /*
@@ -350,6 +355,9 @@ public:
     To prevent: "Iter1 Iter10 Iter2 Iter20" we use the following style.
     Then the order is: "Iter1 Iter2 ... Iters10 ... Itert20"
     */
+
+    const unsigned int curIter = this->m_Optimizer->GetCurrentIteration() + 1;
+
     if( curIter > 9 )
       {
       currentFileName << "_Iters" << curIter << ".nii.gz";
