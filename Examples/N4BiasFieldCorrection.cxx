@@ -102,6 +102,8 @@ int N4( itk::ants::CommandLineParser *parser )
    * handle the mask image
    */
 
+  bool isMaskImageSpecified = false;
+
   typename itk::ants::CommandLineParser::OptionType::Pointer maskImageOption =
     parser->GetOption( "mask-image" );
   if( maskImageOption && maskImageOption->GetNumberOfFunctions() )
@@ -110,6 +112,8 @@ int N4( itk::ants::CommandLineParser *parser )
     ReadImage<MaskImageType>( maskImage, inputFile.c_str() );
     maskImage->Update();
     maskImage->DisconnectPipeline();
+
+    isMaskImageSpecified = true;
     }
   if( !maskImage )
     {
@@ -432,8 +436,8 @@ int N4( itk::ants::CommandLineParser *parser )
 
     typename itk::ants::CommandLineParser::OptionType::Pointer rescaleOption =
       parser->GetOption( "rescale-intensities" );
-    if( rescaleOption && rescaleOption->GetNumberOfFunctions() &&
-      ! parser->Convert<bool>( rescaleOption->GetFunction()->GetName() ) )
+    if( ! isMaskImageSpecified || ( rescaleOption && rescaleOption->GetNumberOfFunctions() &&
+      ! parser->Convert<bool>( rescaleOption->GetFunction()->GetName() ) ) )
       {
       doRescale = false;
       }
@@ -577,7 +581,7 @@ void N4InitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
       + std::string( "new intensity range to be within certain values.  The " )
       + std::string( "result is that the range can \"drift\" from the original " )
       + std::string( "at each iteration.  This option rescales to the [min,max] " )
-      + std::string( "range of the original image intensities within the mask." );
+      + std::string( "range of the original image intensities within the user-specified mask." );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "rescale-intensities" );
