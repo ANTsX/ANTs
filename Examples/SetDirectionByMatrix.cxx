@@ -91,6 +91,7 @@ int ResetDirection(int argc, char *argv[])
     vfIter2.Set(outim->GetPixel(vfIter2.GetIndex() ) );
     }
 
+
   typename writertype::Pointer writer = writertype::New();
   writer->SetFileName(argv[2]);
   writer->SetInput(  varimage );
@@ -176,8 +177,13 @@ private:
       ResetDirection<3>(argc, argv);
       }
       break;
+    case 4:
+      {
+      ResetDirection<4>(argc,argv);
+      }
+      break;
     default:
-      std::cout << "Unsupported dimension" << std::endl;
+      std::cout << "Unsupported dimension " << imageIO->GetNumberOfDimensions() << std::endl;
       return EXIT_FAILURE;
     }
   return EXIT_SUCCESS;
