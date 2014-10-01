@@ -102,7 +102,7 @@ Optional arguments:
 
      -e   use single precision ( default 1 )
 
-     -a   image statistic used to summarize images (default 2)
+     -a   image statistic used to summarize images (default 1)
           0 = mean
           1 = mean of normalized intensities
           2 = median
@@ -711,8 +711,8 @@ fi
 
 if [[ $STATSMETHOD -gt 2 ]];
   then
-  echo "Invalid stats type: using median (2)"
-  STATSMETHOD=2
+  echo "Invalid stats type: using normalized mean (1)"
+  STATSMETHOD=1
 fi
 
 
