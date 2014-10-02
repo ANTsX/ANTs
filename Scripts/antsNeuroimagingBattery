@@ -36,6 +36,8 @@ Usage: antsNeuroimagingBattery.pl
 
 --bold-flag DIRNAME/fileflag
 
+--rsbold-flag DIRNAME/fileflag/outid
+
 --mt-flag DIRNAME/fileflag
 
 --no-mt-flag DIRNAME/fileflag
@@ -76,6 +78,7 @@ my @pcaslflag = ();
 my @paslflag = ();
 my @paslm0flag = ();
 my @boldflag = ();
+my @rsboldflag = ();
 my @mtflag = ();
 my @nomtflag = ();
 
@@ -97,6 +100,7 @@ GetOptions ("input-directory=s"         => \$subdir,    # string
             "pasl-flag=s"               => \@paslflag,
             "pasl-m0-flag=s"            => \@paslm0flag,
             "bold-flag=s"               => \@boldflag,
+            "rsbold-flag=s"             => \@rsboldflag,
             "mt-flag=s"                 => \@mtflag,
             "no-mt-flag=s"              => \@nomtflag,
             "temp-directory=s"          => \$temp,       # string
@@ -159,6 +163,7 @@ my ($pcaslfiles, $pcaslnames, $pcaslids) = ParseFlag( $subdir, @pcaslflag );
 my ($paslfiles, $paslnames, $paslids) = ParseFlag( $subdir, @paslflag );
 my ($paslm0files, $paslm0names, $paslm0ids) = ParseFlag( $subdir, @paslm0flag );
 my ($boldfiles, $boldnames, $boldids) = ParseFlag( $subdir, @boldflag );
+my ($rsboldfiles, $rsboldnames, $rsboldids) = ParseFlag( $subdir, @rsboldflag );
 my ($mtfiles, $mtnames, $mtids) = ParseFlag( $subdir, @mtflag );
 my ($nomtfiles, $nomtnames, $nomtids) = ParseFlag( $subdir, @nomtflag );
 
@@ -178,6 +183,9 @@ print( "  PASL-M0 names: @$paslm0names \n\n" );
 print( "  BOLD files: @$boldfiles \n" );
 print( "  BOLD names: @$boldnames \n\n" );
   
+print( "  RsBOLD files: @$rsboldfiles \n" );
+print( "  RsBOLD names: @$rsboldnames \n\n" );
+
 print( "  MT files: @$mtfiles \n" );
 print( "  MT names: @$mtnames \n\n" );
   
@@ -253,7 +261,37 @@ for my $dtfile ( @$dtifiles ) {
 ###### PCASL ########
 for my $pcaslfile ( @$pcaslfiles ) {
   print( "PCASL Image - $pcaslfile \n");
+
+  my $flag = shift(@pcaslflag);
+  my $dirname = (split("/",$flag))[0].'/';
+  my $outid = shift(@$pcaslids);
    
+  if ( ! -e "$pcaslfile" ) {
+    print("Could not find $pcaslfile\n";
+    }
+  else {
+    if ( ! -d "${outdir}${dirname}") {
+      `mkdir -p ${outdir}${dirname}`;
+      }
+      
+    my $cbf = "${outdir}${dirname}${outname}${outid}meancbf.nii.gz";
+    my $obase = "${outdir}${dirname}${outname}${outid}";
+    my $ref = "${obase}ref.nii.gz";
+    my $meanpcasl = "${obase}mean.nii.gz";
+
+    if ( ! -e "$cbf" ) {
+           
+      # Create anatomical reference to align to      
+      system("${ANTSPATH}/ImageMath 3 $ref m $anat $mask" );
+      system("${ANTSPATH}/ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0");
+
+      # Motion correct    
+      my $m0Moco1 = "${ANTSPATH}/antsMotionCorr -d 3 -a $pcaslfile -o $meanpcasl";
+      system($m0Moco1);
+    
+      my $m0Moco2 = "${ANTSPATH}/antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}, $meanpcasl, $meanM0 ] -u 1 -m mi[ $meanM0, $m0file, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
+      system( $m0Moco2 );
+
 }
 
 
@@ -271,7 +309,7 @@ for my $paslfile ( @$paslfiles ) {
   
   # Find expected images
 
-  if ( ! -s "$paslfile" ) {
+  if ( ! -e "$paslfile" ) {
     print( "Could not find $paslfile\n");
   }
   else {
@@ -294,8 +332,6 @@ for my $paslfile ( @$paslfiles ) {
       system($res);
 
       # Motion correct M0
-
-    
       my $m0Moco1 = "${ANTSPATH}/antsMotionCorr -d 3 -a $m0file -o $meanM0";
       system($m0Moco1);
     
@@ -307,9 +343,7 @@ for my $paslfile ( @$paslfiles ) {
     #my $meanpasl = "${outdir}${dirname}${outname}${outid}meanpasl.nii.gz";
     #my $paslMoco = "antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}pasl, $pasl, $meanpasl ] -u 1 -m mi[ $meanM0, $paslfile, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
     #print("$paslMoco\n");
-    #system($paslMoco);
-
-    
+    #system($paslMoco);  
 
       my $makecbf = "${ANTSPATH}/cbf_pasl_robust_batch.R $paslfile $meanM0 $cbf";
       print( "\n\n\n$makecbf\n\n\n");
@@ -360,7 +394,7 @@ for my $boldfile ( @$boldfiles ) {
   # Motion correction
   system("${ANTSPATH}/antsMotionCorr -d 3 -a $bold -o $meanbold");
   system("${ANTSPATH}/antsMotionCorr -d 3 -o [ ${obase}, $bold, $meanbold ] -u 1 -m mi[ $meanbold, $bold, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0 -u 1");
-         
+       
 
   system("${ANTSPATH}/ImageMath 3 $ref m $anat $mask" );
   my $res = "${ANTSPATH}/ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
@@ -370,9 +404,54 @@ for my $boldfile ( @$boldfiles ) {
   my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
   system( $alignexe );
 
+  system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}_brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}_MOCOparams.csv -0 ${outdir}${dirname}${outname}${outid}_MOCOstats.csv -f 1");
+
   }
 }
 
+###### RSBOLD ########
+for my $rsboldfile ( @$rsboldfiles ) {
+
+  my $flag = shift(@rsboldflag);
+  my $dirname = (split("/",$flag))[0].'/';
+  my $outid = shift(@$rsboldids);
+
+  print( "${outdir}${dirname} \n");
+  if ( ! -d "${outdir}${dirname}") {
+    print( "Create diretory\n");
+    `mkdir -p ${outdir}${dirname}`;
+    }
+
+  if ( ! -s "$rsboldfile" ) {
+    print( "No $rsboldfile found\n");
+  } else {
+  print( "BOLD Image - $rsboldfile \n");
+  my $obase = "${outdir}${dirname}${outname}${outid}";
+  my $bold = "${obase}rsbold.nii.gz";
+  
+  my $meanbold = "${obase}meanbold.nii.gz";
+  my $ref = "${obase}ref.nii.gz";
+  if ( ! -e "$meanbold" ) {
+
+  
+  # Motion correction
+  system("${ANTSPATH}/antsMotionCorr -d 3 -a $rsboldfile -o $meanbold");
+  system("${ANTSPATH}/antsMotionCorr -d 3 -o [ ${obase}, $bold, $meanbold ] -u 1 -m mi[ $meanbold, $rsboldfile, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0 -u 1");
+       
+
+  system("${ANTSPATH}/ImageMath 3 $ref m $anat $mask" );
+  my $res = "${ANTSPATH}/ResampleImageBySpacing 3 $ref $ref 2.0 2.0 2.0";
+  system($res);
+  }
+
+  my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -i $meanbold -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+  system( $alignexe );
+
+  system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}MOCOparams.csv -o ${outdir}${dirname}${outname}${outid}MOCOStatsFramewise.csv -f 1");
+
+  system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}MOCOparams.csv -o ${outdir}${dirname}${outname}${outid}MOCOStatsReference.csv -f 0");
+  }
+}
 
 ###### MT + NoMT ########
 for my $mtfile ( @$mtfiles ) {
