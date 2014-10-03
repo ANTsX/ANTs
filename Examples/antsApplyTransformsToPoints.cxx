@@ -222,7 +222,7 @@ static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::
       + std::string( "label volume with only one voxel set to 1 and all others set to 0. " )
       + std::string( "Write down the voxel coordinates. Then use ImageMaths LabelStats to find " )
       + std::string( "out what coordinates for this voxel antsApplyTransformsToPoints is " )
-      + std::string( "expecting." );
+      + std::string( "expecting.  ITK uses a LPS coordinate system.  See http://sourceforge.net/p/advants/discussion/840261/thread/2a1e9307/" );
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "input" );
@@ -379,31 +379,6 @@ private:
     parser->PrintMenu( std::cout, 5, true );
     return EXIT_SUCCESS;
     }
-
-#if 0 // HACK This makes no sense here, filename is never used.
-  // Perhaps the "input" option is not needed in this program
-  // but is a copy/paste error from another program.
-  // Read in the first intensity image to get the image dimension.
-  std::string                                       filename;
-  itk::ants::CommandLineParser::OptionType::Pointer inputOption =
-    parser->GetOption( "input" );
-  if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
-    {
-    if( inputOption->GetFunction( 0 )->GetNumberOfParameters() > 0 )
-      {
-      filename = inputOption->GetFunction( 0 )->GetParameter( 0 );
-      }
-    else
-      {
-      filename = inputOption->GetFunction( 0 )->GetName();
-      }
-    }
-  else
-    {
-    std::cerr << "No csv file point set was specified." << std::endl;
-    return EXIT_FAILURE;
-    }
-#endif
 
   unsigned int                                      dimension = 3;
   itk::ants::CommandLineParser::OptionType::Pointer dimOption =
