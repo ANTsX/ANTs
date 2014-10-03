@@ -261,6 +261,7 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
     }
 
+  bool transposeArray = true;
   if( bvecOption && bvecOption->GetNumberOfFunctions() )
     {
     std::string bvecName = bvecOption->GetFunction(0)->GetName();
@@ -275,21 +276,44 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     MocoDataArrayType::MatrixType bvecMatrix = bvecReader->GetOutput()->GetMatrix();
   
     //std::cout << "BVEC data array size = " << bvecMatrix.rows() << " x " << bvecMatrix.cols() << std::endl;
-    
-    // Transpose the array
-    directionArray.SetSize( bvecMatrix.cols(), bvecMatrix.rows() );
-
-    for ( unsigned int i=0; i < bvecMatrix.cols(); i++ )
+    if ( bvecMatrix.cols() == 3 )
       {
-      for ( unsigned int j=0; j < bvecMatrix.rows(); j++ ) 
-        {
-        directionArray(i,j) = bvecMatrix(j,i);
-        }
-      
+      transposeArray = false;
+      std::cout << "Column based format" << std::endl;      
+      }    
+
+    // Transpose the array
+    if ( transposeArray ) 
+      {
+      directionArray.SetSize( bvecMatrix.cols(), bvecMatrix.rows() );
+      }
+    else 
+      {
+      directionArray.SetSize( bvecMatrix.rows(), bvecMatrix.cols() );
       }
 
-    }
-  
+    if ( transposeArray ) 
+      {
+      for ( unsigned int i=0; i < bvecMatrix.cols(); i++ )
+        {
+        for ( unsigned int j=0; j < bvecMatrix.rows(); j++ ) 
+          {
+          directionArray(i,j) = bvecMatrix(j,i);
+          }
+        }
+      }
+    else
+      {
+      for ( unsigned int i=0; i < bvecMatrix.cols(); i++ )
+        {
+        for ( unsigned int j=0; j < bvecMatrix.rows(); j++ ) 
+          {
+          directionArray(j,i) = bvecMatrix(j,i);
+          }
+        }
+      }
+    }  
+
   std::cout << "Read direction data of size: " << directionArray.rows() << " x " 
               << directionArray.cols() << std::endl;
               
@@ -331,8 +355,6 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     }
   toPhysical->SetMatrix(toPhysicalMatrix);
   toPhysical->GetInverse(toIndex);
-  
-  //img_mov->GetDirection().GetVnlMatrix()
   
   for ( unsigned int i=0; i<directionArray.rows(); i++ ) 
     {
@@ -394,14 +416,30 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
     //std::cout << "Writing bvec file " << outputName << std::endl;
     std::ofstream outfile( outputName.c_str() );
 
-    for ( unsigned int i=0; i<outputDirectionArray.cols(); i++ )
+
+    if ( transposeArray ) 
       {
-      for ( unsigned int j=0; j<outputDirectionArray.rows(); j++)
+      for ( unsigned int i=0; i<outputDirectionArray.cols(); i++ )
         {
-        outfile << outputDirectionArray(j,i) << " ";
+        for ( unsigned int j=0; j<outputDirectionArray.rows(); j++)
+          {
+          outfile << outputDirectionArray(j,i) << " ";
+          }
+        outfile << std::endl;
         }
-      outfile << std::endl;
       }
+    else
+      {
+      for ( unsigned int i=0; i<outputDirectionArray.rows(); i++ )
+        {
+        for ( unsigned int j=0; j<outputDirectionArray.cols(); j++)
+          {
+          outfile << outputDirectionArray(i,j) << " ";
+          }
+        outfile << std::endl;
+        }
+      }
+
 
     outfile.close();
   
