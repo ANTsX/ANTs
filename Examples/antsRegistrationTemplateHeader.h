@@ -1137,9 +1137,13 @@ extern int antsRegistration2DDouble(ParserType::Pointer & parser);
 
 extern int antsRegistration3DDouble(ParserType::Pointer & parser);
 
+extern int antsRegistration4DDouble(ParserType::Pointer & parser);
+
 extern int antsRegistration2DFloat(ParserType::Pointer & parser);
 
 extern int antsRegistration3DFloat(ParserType::Pointer & parser);
+
+extern int antsRegistration4DFloat(ParserType::Pointer & parser);
 
 } // End namespace
 
