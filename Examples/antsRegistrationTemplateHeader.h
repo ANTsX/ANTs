@@ -290,13 +290,6 @@ DoRegistration(typename ParserType::Pointer & parser)
     }
   regHelper->SetDoEstimateLearningRateAtEachIteration( doEstimateLearningRateAtEachIteration );
 
-  if( restrictDeformationOption && restrictDeformationOption->GetNumberOfFunctions() )
-    {
-    std::vector<RealType> restrictDeformationWeights =
-      parser->ConvertVector<RealType>( restrictDeformationOption->GetFunction( 0 )->GetName() );
-    regHelper->SetRestrictDeformationOptimizerWeights( restrictDeformationWeights );
-    }
-
   // We find both the number of transforms and the number of metrics
 
   unsigned int numberOfTransforms = transformOption->GetNumberOfFunctions();
@@ -306,7 +299,17 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
 
+  if( restrictDeformationOption.IsNotNull() )
+    {
+    if( restrictDeformationOption->GetNumberOfFunctions() != numberOfTransforms )
+      {
+      std::cerr << "If the restrict deformation option is used, it must be specified for each stage." << std::endl;
+      return EXIT_FAILURE;
+      }
+    }
+
   std::vector<std::vector<unsigned int> > iterationList;
+  std::vector<std::vector<RealType> >     restrictDeformationWeightsList;
   std::vector<RealType>                   convergenceThresholdList;
   std::vector<unsigned int>               convergenceWindowSizeList;
   std::vector<std::vector<unsigned int> > shrinkFactorsList;
@@ -367,13 +370,20 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     else
       {
-      std::cout << "No convergence criteria are specified." << std::endl;
+      std::cerr << "No convergence criteria are specified." << std::endl;
       return EXIT_FAILURE;
       }
 
     iterationList.push_back( iterations );
     convergenceThresholdList.push_back( convergenceThreshold );
     convergenceWindowSizeList.push_back( convergenceWindowSize );
+
+    if( restrictDeformationOption.IsNotNull() )
+      {
+      std::vector<RealType> restrictDeformationWeights =
+        parser->ConvertVector<RealType>( restrictDeformationOption->GetFunction( currentStage )->GetName() );
+      restrictDeformationWeightsList.push_back( restrictDeformationWeights );
+      }
 
     unsigned int numberOfLevels = iterations.size();
     std::cout << "  number of levels = " << numberOfLevels << std::endl;
@@ -732,6 +742,7 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   // set the vector-vector parameters accumulated
   regHelper->SetIterations( iterationList );
+  regHelper->SetRestrictDeformationOptimizerWeights( restrictDeformationWeightsList );
   regHelper->SetConvergenceWindowSizes( convergenceWindowSizeList );
   regHelper->SetConvergenceThresholds( convergenceThresholdList );
   regHelper->SetSmoothingSigmas( smoothingSigmasList );
