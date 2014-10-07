@@ -28,19 +28,19 @@ Usage: antsNeuroimagingBattery.pl
 
 --dti-flag DIRNAME/fileflag/outid [for example DTI/_30dir_dt.nii.gz/30dir for a file in DTI/*_30dir_dt.nii.gz ]
 
---pcasl-flag DIRNAME/fileflag
+--pcasl-flag DIRNAME/fileflag/outid
 
---pasl-flag DIRNAME/fileflag
+--pasl-flag DIRNAME/fileflag/outid
 
---pasl-m0-flag DIRNAME/fileflag
+--pasl-m0-flag DIRNAME/fileflag/outid
 
---bold-flag DIRNAME/fileflag
+--bold-flag DIRNAME/fileflag/outid
 
 --rsbold-flag DIRNAME/fileflag/outid
 
---mt-flag DIRNAME/fileflag
+--mt-flag DIRNAME/fileflag/outid
 
---no-mt-flag DIRNAME/fileflag
+--no-mt-flag DIRNAME/fileflag/outid
  
 --temp-directory DIRNAME
 
@@ -267,7 +267,7 @@ for my $pcaslfile ( @$pcaslfiles ) {
   my $outid = shift(@$pcaslids);
    
   if ( ! -e "$pcaslfile" ) {
-    print("Could not find $pcaslfile\n";
+    print("Could not find $pcaslfile\n");
     }
   else {
     if ( ! -d "${outdir}${dirname}") {
@@ -289,9 +289,12 @@ for my $pcaslfile ( @$pcaslfiles ) {
       my $m0Moco1 = "${ANTSPATH}/antsMotionCorr -d 3 -a $pcaslfile -o $meanpcasl";
       system($m0Moco1);
     
-      my $m0Moco2 = "${ANTSPATH}/antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}, $meanpcasl, $meanM0 ] -u 1 -m mi[ $meanM0, $m0file, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
+      my $m0Moco2 = "${ANTSPATH}/antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}, $meanpcasl, $meanpcasl ] -u 1 -m mi[ $meanpcasl, $pcaslfile, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
       system( $m0Moco2 );
 
+      
+    }
+  }
 }
 
 
