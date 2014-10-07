@@ -397,7 +397,7 @@ public:
     // TimeVaryingVelocityField
     RealType       m_UpdateFieldTimeSigma;
     RealType       m_TotalFieldTimeSigma;
-    unsigned int m_NumberOfTimeIndices;
+    unsigned int   m_NumberOfTimeIndices;
     // TimeVaryingBSplineVelocityField
     std::vector<unsigned int> m_VelocityFieldMeshSize;
     unsigned int              m_NumberOfTimePointSamples;
@@ -590,7 +590,7 @@ public:
   /**
    * Add the restrict deformation optimizer weights
    */
-  void SetRestrictDeformationOptimizerWeights( const std::vector<RealType> & restrictDeformationWeights );
+  void SetRestrictDeformationOptimizerWeights( const std::vector<std::vector<RealType> > & restrictDeformationWeights );
 
   /**
    * Add the collected bool smoothing sigmas in voxel units list
@@ -754,7 +754,7 @@ private:
   std::vector<unsigned int>               m_ConvergenceWindowSizes;
   std::vector<std::vector<float> >        m_SmoothingSigmas;
   std::vector<bool>                       m_SmoothingSigmasAreInPhysicalUnits;
-  std::vector<RealType>                   m_RestrictDeformationOptimizerWeights;
+  std::vector<std::vector<RealType> >     m_RestrictDeformationOptimizerWeights;
   std::vector<std::vector<unsigned int> > m_ShrinkFactors;
   bool                                    m_UseHistogramMatching;
   bool                                    m_WinsorizeImageIntensities;

@@ -263,7 +263,15 @@ multiple modality image segmentation.  These methods allow detailed
 extraction of critical image-based biomarkers such as volumes
 (e.g. hippocampus and amygdala), cortical thickness and area and
 connectivity metrics derived from structural white matter [13] or
-functional connectivity [12]. Critically, all ANTs components are capable of leveraging multivariate image features as well as expert knowledge in order to learn the best segmentation strategy available for each individual image [3,4].  This flexibility in segmentation and the underlying high-performance normalization methods have been validated by winning several internationally recognized medical image processing challenges conducted within the premier conferences within the field and published in several accompanying articles [8][9][10][11].
+functional connectivity [12]. Critically, all ANTs components are
+capable of leveraging multivariate image features as well as expert
+knowledge in order to learn the best segmentation strategy available
+for each individual image [3,4].  This flexibility in segmentation and
+the underlying high-performance normalization methods have been
+validated by winning several internationally recognized medical image
+processing challenges conducted within the premier conferences within
+the field and published in several accompanying articles
+[8][9][10][11].
 
 References
 

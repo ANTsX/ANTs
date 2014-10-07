@@ -554,6 +554,17 @@ private:
           return antsRegistration3DDouble( parser );
           }
         }
+      case 4:
+        {
+        if( strcmp( precisionType.c_str(), "float" ) == 0 )
+          {
+          return antsRegistration4DFloat( parser );
+          }
+        else
+          {
+          return antsRegistration4DDouble( parser );
+          }
+        }
       default:
         std::cerr << "bad image dimension " << dimension << std::endl;
         return EXIT_FAILURE;
