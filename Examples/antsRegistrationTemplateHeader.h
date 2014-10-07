@@ -299,15 +299,6 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
 
-  if( restrictDeformationOption.IsNotNull() )
-    {
-    if( restrictDeformationOption->GetNumberOfFunctions() != numberOfTransforms )
-      {
-      std::cerr << "If the restrict deformation option is used, it must be specified for each stage." << std::endl;
-      return EXIT_FAILURE;
-      }
-    }
-
   std::vector<std::vector<unsigned int> > iterationList;
   std::vector<std::vector<RealType> >     restrictDeformationWeightsList;
   std::vector<RealType>                   convergenceThresholdList;
