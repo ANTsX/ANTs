@@ -988,7 +988,6 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
 
     {
     std::string description = std::string( "degree of polynomial - up to zDimension-2. Controls the polynomial degree. 0 means no regularization.");
-" );
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "polydegree" );
     option->SetShortName( 'p' );
