@@ -987,7 +987,7 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     }
 
     {
-    std::string         description = std::string( "degree of polynomial - up to zDimension-2" );
+    std::string description = std::string( "degree of polynomial - up to zDimension-2. Controls the polynomial degree. 0 means no regularization.");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "polydegree" );
     option->SetShortName( 'p' );
@@ -1064,9 +1064,9 @@ private:
     + std::string( "and iterations, shrink factors, and smoothing sigmas for each level. " )
     + std::string( "Specialized for 3D data: fixed image is 3D, moving image is 3D. ")
     + std::string( "Registration is performed slice-by-slice then regularized in z. ")
+    + std::string(" The parameter -p controls the polynomial degree. -p 0 means no regularization.")
     + std::string( "Implemented by B. Avants and conceived by Julien Cohen-Adad.\n")
     + std::string("Outputs: \n\n") 
-    + std::string(" OutputPrefixTxTy.csv: Tx & Ty transformation parameters \n") 
     + std::string(" OutputPrefixTxTy_poly.csv: polynomial fit to Tx & Ty \n") 
     + std::string(" OutputPrefix.nii.gz: transformed image \n") 
     + std::string("Example call: \n\n") 
