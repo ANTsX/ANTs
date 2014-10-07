@@ -292,8 +292,15 @@ for my $pcaslfile ( @$pcaslfiles ) {
       my $m0Moco2 = "${ANTSPATH}/antsMotionCorr -d 3 -o [ ${outdir}${dirname}${outname}${outid}, $meanpcasl, $meanpcasl ] -u 1 -m mi[ $meanpcasl, $pcaslfile, 1, 32, Regular, 0.1 ] -t Affine[0.2] -i 25 -e 1 -f 1 -s 0 -l 0";
       system( $m0Moco2 );
 
-      
+      my $makecbf = "${ANTSPATH}/cbf_pcasl_robust_batch.R $pcaslfile $cbf";
+      print( "\n\n\n$makecbf\n\n\n");
+      system( $makecbf );      
     }
+    my $alignexe = "sh ${ANTSPATH}/antsIntermodalityIntrasubject.sh -d 3 -t 2 -a $cbf -i $meanpcasl -r $ref -R $anat -x $mask $warpflag -o ${outdir}${dirname}${outname}${outid} -T $template";
+    print( "$alignexe\n");
+    
+    system( $alignexe );
+
   }
 }
 
