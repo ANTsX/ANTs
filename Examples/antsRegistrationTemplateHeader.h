@@ -369,7 +369,7 @@ DoRegistration(typename ParserType::Pointer & parser)
     convergenceThresholdList.push_back( convergenceThreshold );
     convergenceWindowSizeList.push_back( convergenceWindowSize );
 
-    if( restrictDeformationOption.IsNotNull() )
+    if( restrictDeformationOption.IsNotNull() && restrictDeformationOption->GetNumberOfFunctions() > static_cast<unsigned int>( currentStage ) )
       {
       std::vector<RealType> restrictDeformationWeights =
         parser->ConvertVector<RealType>( restrictDeformationOption->GetFunction( currentStage )->GetName() );

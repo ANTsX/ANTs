@@ -1390,15 +1390,19 @@ RegistrationHelper<TComputeType, VImageDimension>
 
 	       unsigned int affineParameterSize = VImageDimension * VImageDimension + VImageDimension;
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == affineParameterSize )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename AffineRegistrationType::OptimizerWeightsType optimizerWeights( affineParameterSize );
-          for( unsigned int d = 0; d < affineParameterSize; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == affineParameterSize )
             {
-       	    optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename AffineRegistrationType::OptimizerWeightsType optimizerWeights( affineParameterSize );
+            for( unsigned int d = 0; d < affineParameterSize; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            optimizer->SetWeights( optimizerWeights );
             }
-          optimizer->SetWeights( optimizerWeights );
           }
+
         affineRegistration->SetOptimizer( optimizer );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
@@ -1473,19 +1477,23 @@ RegistrationHelper<TComputeType, VImageDimension>
 
        	unsigned int rigidParameterSize = 6;
 
-       	if( VImageDimension == 2 )
-       	  {
-       	  rigidParameterSize = 3;
-       	  }
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == rigidParameterSize )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename RigidRegistrationType::OptimizerWeightsType optimizerWeights( rigidParameterSize );
-          for( unsigned int d = 0; d < rigidParameterSize; d++ )
+          if( VImageDimension == 2 )
             {
-       	    optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            rigidParameterSize = 3;
             }
-          optimizer->SetWeights( optimizerWeights );
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == rigidParameterSize )
+            {
+            typename RigidRegistrationType::OptimizerWeightsType optimizerWeights( rigidParameterSize );
+            for( unsigned int d = 0; d < rigidParameterSize; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            optimizer->SetWeights( optimizerWeights );
+            }
           }
+
         rigidRegistration->SetOptimizer( optimizer );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
@@ -1708,15 +1716,20 @@ RegistrationHelper<TComputeType, VImageDimension>
         translationRegistration->SetMetricSamplingStrategy(
           static_cast<typename TranslationRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
         translationRegistration->SetMetricSamplingPercentage( samplingPercentage );
-        if ( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename TranslationRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if ( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename TranslationRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            optimizer->SetWeights( optimizerWeights );
             }
-          optimizer->SetWeights( optimizerWeights );
           }
+
         translationRegistration->SetOptimizer( optimizer );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
@@ -1780,14 +1793,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
@@ -1920,14 +1936,18 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
@@ -2071,14 +2091,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typedef itk::ImageRegistrationMethodv4<ImageType, ImageType, BSplineTransformType> BSplineRegistrationType;
         typename BSplineRegistrationType::Pointer bsplineRegistration = BSplineRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename BSplineRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename BSplineRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            bsplineRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          bsplineRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typename BSplineTransformType::Pointer outputBSplineTransform = bsplineRegistration->GetModifiableTransform();
@@ -2275,14 +2298,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename VelocityFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename VelocityFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            velocityFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          velocityFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
@@ -2484,14 +2510,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename VelocityFieldRegistrationType::Pointer velocityFieldRegistration =
           VelocityFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename VelocityFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename VelocityFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            velocityFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          velocityFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typedef typename VelocityFieldRegistrationType::OutputTransformType OutputTransformType;
@@ -2653,14 +2682,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typename DisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
@@ -2813,14 +2845,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
@@ -2986,14 +3021,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typename GaussianDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
@@ -3136,14 +3174,17 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename DisplacementFieldRegistrationType::Pointer displacementFieldRegistration =
           DisplacementFieldRegistrationType::New();
 
-        if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
+        if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
-          typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
-          for( unsigned int d = 0; d < VImageDimension; d++ )
+          if( this->m_RestrictDeformationOptimizerWeights[currentStageNumber].size() == VImageDimension )
             {
-            optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+            typename DisplacementFieldRegistrationType::OptimizerWeightsType optimizerWeights( VImageDimension );
+            for( unsigned int d = 0; d < VImageDimension; d++ )
+              {
+              optimizerWeights[d] = this->m_RestrictDeformationOptimizerWeights[currentStageNumber][d];
+              }
+            displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
             }
-          displacementFieldRegistration->SetOptimizerWeights( optimizerWeights );
           }
 
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
