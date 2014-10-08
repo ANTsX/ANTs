@@ -38,6 +38,7 @@
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkWindowToImageFilter.h"
+#include "vtkSmoothPolyDataFilter.h"
 
 #include "vnl/vnl_math.h"
 
@@ -262,22 +263,7 @@ int antsImageToSurface( itk::ants::CommandLineParser *parser )
   triangularizer->SetInputData( connectivityFilter->GetOutput() );
   triangularizer->Update();
 
-  // Smooth mesh
-
-  vtkSmartPointer<vtkWindowedSincPolyDataFilter> meshSmoother =
-    vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
-  meshSmoother->SetInputData( triangularizer->GetOutput() );
-  meshSmoother->SetNumberOfIterations( 25 );
-  meshSmoother->BoundarySmoothingOff();
-  meshSmoother->FeatureEdgeSmoothingOff();
-  meshSmoother->SetFeatureAngle( 120.0 );
-  meshSmoother->SetPassBand( 0.01 );
-  meshSmoother->NonManifoldSmoothingOn();
-  meshSmoother->NormalizeCoordinatesOn();
-  meshSmoother->Update();
-
-  vtkPolyData *vtkMesh = meshSmoother->GetOutput();
-
+  vtkPolyData *vtkMesh = triangularizer->GetOutput();
   CalculateGenus( vtkMesh, true );
 
   // Add the functional overlays
