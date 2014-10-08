@@ -141,6 +141,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_TransformMethods(),
   m_Iterations(),
   m_SmoothingSigmas(),
+  m_RestrictDeformationOptimizerWeights(),
   m_ShrinkFactors(),
   m_UseHistogramMatching( true ),
   m_WinsorizeImageIntensities( false ),
