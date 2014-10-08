@@ -81,12 +81,19 @@ Required arguments:
 
      anatomical images                          Set of multimodal input data assumed to be specified ordered as
                                                 follows:
-                                                   \${timePoint1_modality1} \${timePoint1_modality2} ...
-                                                   \${timePoint2_modality1} \${timePoint2_modality2} ...
-                                                   .
-                                                   .
-                                                   .
-                                                   \${timePointN_modality1} \${timePointN_modality2}
+                                                  \${time1_modality1} \${time1_modality2} ... \${time1_modalityN} \\
+                                                  \${time2_modality1} \${time2_modality2} ...
+                                                  .
+                                                  .
+                                                  .
+                                                  \${timeN_modality1} ...
+
+						A single modality is expected by default, in which case the input images
+						are simply ordered by time:
+
+						  \${time1_modality1} \${time2_modality1} ... \${timeN_modality1}
+
+						If there are multiple modalities, use the -k option to specify how many.
 
 Optional arguments:
 
@@ -102,8 +109,12 @@ Optional arguments:
                                                 -e option which is not skull stripped.
      -a:                                        Atlases (assumed to be skull-stripped) used to cook template priors.  If atlases
                                                 aren't used then we simply smooth the single-subject template posteriors after
-                                                passing through antsCorticalThickness.sh.
-     -l:                                        Labels associated with the atlases (-a).  Number of labels is assumed to be equal
+                                                passing through antsCorticalThickness.sh. Example:
+        
+ 						  -a atlas1.nii.gz -a atlas2.nii.gz ... -a atlasN.nii.gz
+
+     -l:                                        Labels associated with each atlas, in the same order as they are specified
+						with the -a option. The number of labels in each image is assumed to be equal
                                                 to the number of priors.
      -f:  extraction registration mask          Mask (defined in the template space) used during registration
                                                 for brain extraction.
