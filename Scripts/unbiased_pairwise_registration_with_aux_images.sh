@@ -86,6 +86,9 @@ while getopts ":d:f:m:b:o:t:g:h:n:k:h:" opt; do
   esac
 done
 echo inputs: $A $B $prefix $dim
+echo THIS SCRIPT MAY OR MAY NOT WORK - IT HAS NOT BEEN TESTED RECENTLY 
+echo USE AT OWN RISK BY COMMENTING OUT THE EXIT CALL BELOW
+exit 0
 if [[ ${#dim} -lt 1 ]] ; then echo must provide input dimension $dim ; echo $usage ; exit 0 ; fi
 if [[ ${#prefix} -lt 3 ]] ; then echo must provide output prefix $prefix ; echo $usage ; exit 0 ; fi
 if [[ ! -s $A ]] || [[  ! -s $B ]]  ; then echo inputs: $A $B $prefix ; echo $usage ; exit 1 ; fi
@@ -247,7 +250,6 @@ fi
 echo done with brain extraction 
 
 if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then 
-=======
 # map brain mask to subject space T1
 trans=" -t [ $initAmat, 1 ] -t [ ${nm}_gt_0GenericAffine.mat, 1] -t  ${nm}_gt_1InverseWarp.nii.gz "
 antsApplyTransforms -d $dim -i $templatebm -o  ${nm}_bm_A.nii.gz -n NearestNeighbor -r $A $trans
@@ -282,7 +284,6 @@ MultiplyImages $dim  ${nm}_bm_B.nii.gz $B  ${nm}_B_brain.nii.gz
   ANTSJacobian $dim ${nm}1Warp.nii.gz ${nm} 1 no 0
 fi
 if [[ -s $G ]] && [[ -s $N ]] && [[ ! -s ${nm}_fadiff.nii.gz  ]] ; then
->>>>>>> dafbbbc56dace03666e61a8eceb654d97d7293a8
   echo deal with auxiliary images ... here DTI
   ffa=${nm}_ffa.nii.gz
   mfa=${nm}_mfa.nii.gz
