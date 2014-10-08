@@ -301,6 +301,10 @@ for my $pcaslfile ( @$pcaslfiles ) {
     
     system( $alignexe );
 
+    system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}MOCOparams.csv -o ${outdir}${dirname}${outname}${outid}MOCOStatsFramewise.csv -f 1");
+
+    system("${ANTSPATH}/antsMotionCorrStats -x ${outdir}${dirname}${outname}${outid}brainmask.nii.gz -m ${outdir}${dirname}${outname}${outid}MOCOparams.csv -o ${outdir}${dirname}${outname}${outid}MOCOStatsReference.csv -f 0");
+
   }
 }
 
