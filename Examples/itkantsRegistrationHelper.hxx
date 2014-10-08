@@ -927,18 +927,6 @@ RegistrationHelper<TComputeType, VImageDimension>
       multiMetric = MultiMetricType::New();
       }
 
-
-
-
-
-
-
-
-
-
-
-
-
     // Also determine if any of the metrics for the current stage are image metrics
     bool imageMetricIsUsedDuringThisStage = false;
     for( unsigned int currentMetricNumber = 0; currentMetricNumber < stageMetricList.size(); currentMetricNumber++ )
