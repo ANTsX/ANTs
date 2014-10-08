@@ -1215,6 +1215,9 @@ RegistrationHelper<TComputeType, VImageDimension>
         }
       else
         {
+        preprocessedFixedImagesPerStage.push_back( ITK_NULLPTR );
+        preprocessedMovingImagesPerStage.push_back( ITK_NULLPTR );
+
         metricWeights[currentMetricNumber] = stageMetricList[currentMetricNumber].m_Weighting;
         if( this->m_FixedImageMask.IsNotNull() )
           {
@@ -1298,8 +1301,13 @@ RegistrationHelper<TComputeType, VImageDimension>
     optimizerObserver->SetLogStream( *this->m_LogStream );
     optimizerObserver->SetNumberOfIterations( currentStageIterations );
     optimizerObserver->SetOptimizer( optimizer );
-    optimizerObserver->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
-    optimizerObserver->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
+
+    if( !this->IsPointSetMetric( this->m_Metrics[0].m_MetricType ) )
+      {
+      optimizerObserver->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
+      optimizerObserver->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
+      }
+
     if( this->m_PrintSimilarityMeasureInterval != 0 )
       {
       optimizerObserver->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
@@ -1332,8 +1340,12 @@ RegistrationHelper<TComputeType, VImageDimension>
     optimizerObserver2->SetLogStream( *this->m_LogStream );
     optimizerObserver2->SetNumberOfIterations( currentStageIterations );
     optimizerObserver2->SetOptimizer( optimizer2 );
-    optimizerObserver2->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
-    optimizerObserver2->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
+    if( !this->IsPointSetMetric( this->m_Metrics[0].m_MetricType ) )
+      {
+      optimizerObserver2->SetOrigFixedImage( this->m_Metrics[0].m_FixedImage );
+      optimizerObserver2->SetOrigMovingImage( this->m_Metrics[0].m_MovingImage );
+      }
+
     if( this->m_PrintSimilarityMeasureInterval != 0 )
       {
       optimizerObserver2->SetComputeFullScaleCCInterval( this->m_PrintSimilarityMeasureInterval );
