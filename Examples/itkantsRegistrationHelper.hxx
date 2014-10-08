@@ -914,7 +914,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     MetricListType stageMetricList = this->GetMetricListPerStage( this->m_NumberOfStages - currentStageNumber - 1 );
 
-    typename ImageMetricType::Pointer singleMetric;
+    typename ObjectMetricType::Pointer singleMetric;
     typename MultiMetricType::Pointer multiMetric;
 
     typename MultiMetricType::WeightsArrayType metricWeights( stageMetricList.size() );
@@ -1222,7 +1222,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         if( !useMultiMetric || currentMetricNumber == 0 )
           {
-          singleMetric = imageMetric;
+          singleMetric = static_cast<ObjectMetricType *>( imageMetric );
           }
         }
       else
@@ -1238,10 +1238,10 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           multiMetric->AddMetric( pointSetMetric );
           }
-//         if( !useMultiMetric || currentMetricNumber == 0 )
-//           {
-//           singleMetric = pointSetMetric;
-//           }
+        if( !useMultiMetric || currentMetricNumber == 0 )
+          {
+          singleMetric = static_cast<ObjectMetricType *>( pointSetMetric );
+          }
         }
       }
     if( useMultiMetric )
@@ -1283,7 +1283,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
     // There's a scale issue here.  Currently we are using the first metric to estimate the
     // scales but we might need to change this.
-    typedef itk::RegistrationParameterScalesFromPhysicalShift<ImageMetricType> ScalesEstimatorType;
+    typedef itk::RegistrationParameterScalesFromPhysicalShift<ObjectMetricType> ScalesEstimatorType;
 
     typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
     scalesEstimator->SetMetric( singleMetric );

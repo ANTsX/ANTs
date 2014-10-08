@@ -132,7 +132,7 @@ public:
   typedef typename DisplacementFieldTransformType::DisplacementFieldType             DisplacementFieldType;
   typedef itk::TimeVaryingVelocityFieldTransform<RealType, VImageDimension>          TimeVaryingVelocityFieldTransformType;
   typedef itk::ObjectToObjectMetric
-                     <VImageDimension, VImageDimension, ImageType, RealType>         SingleMetricType;
+                     <VImageDimension, VImageDimension, ImageType, RealType>         ObjectMetricType;
   typedef itk::ObjectToObjectMultiMetricv4
                      <VImageDimension, VImageDimension, ImageType, RealType>         MultiMetricType;
   typedef itk::ImageToImageMetricv4<ImageType, ImageType, ImageType, RealType>       ImageMetricType;
