@@ -162,7 +162,7 @@ public:
     invalid = 17
     };
 
-  bool IsPointSetMetric( MetricEnumeration metricType )
+  bool IsPointSetMetric( const MetricEnumeration metricType ) const
     {
     if( metricType == ICP || metricType == PSE || metricType == JHCT )
       {

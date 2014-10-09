@@ -757,11 +757,14 @@ RegistrationHelper<TComputeType, VImageDimension>
     }
   for( unsigned int i = 0; i < this->m_Metrics.size(); i++ )
     {
-    if( this->m_Metrics[i].m_FixedImage.IsNull() ||
-        this->m_Metrics[i].m_MovingImage.IsNull() )
+    if( !this->IsPointSetMetric( this->m_Metrics[i].m_MetricType ) )
       {
-      std::cout << "Must either add Metrics with filenames, or pointers to images" << std::endl;
-      return EXIT_FAILURE;
+      if( this->m_Metrics[i].m_FixedImage.IsNull() ||
+        this->m_Metrics[i].m_MovingImage.IsNull() )
+        {
+        std::cout << "The image metric has no fixed and/or moving image." << std::endl;
+        return EXIT_FAILURE;
+        }
       }
     }
   return EXIT_SUCCESS;
@@ -1090,9 +1093,6 @@ RegistrationHelper<TComputeType, VImageDimension>
           typename IcpPointSetMetricType::Pointer icpMetric = IcpPointSetMetricType::New();
 
           pointSetMetric = icpMetric;
-
-          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
-          return EXIT_FAILURE;
           }
           break;
         case PSE:
@@ -1103,9 +1103,6 @@ RegistrationHelper<TComputeType, VImageDimension>
           pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
 
           pointSetMetric = pseMetric;
-
-          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
-          return EXIT_FAILURE;
           }
           break;
         case JHCT:
@@ -1120,9 +1117,6 @@ RegistrationHelper<TComputeType, VImageDimension>
           jhctMetric->SetAlpha( stageMetricList[currentMetricNumber].m_Alpha );
 
           pointSetMetric = jhctMetric;
-
-          std::cerr << "Whoa, there, Cowboy---the point set metric is not ready for prime time yet. " << std::endl;
-          return EXIT_FAILURE;
           }
           break;
         default:
@@ -3745,40 +3739,58 @@ RegistrationHelper<TComputeType, VImageDimension>
                  << "Number of stages = " << this->m_NumberOfStages << std::endl
                  << "Use Histogram Matching " << ( this->m_UseHistogramMatching ? "true" : "false" )
                  << std::endl
-                 << "Winsorize Image Intensities "
+                 << "Winsorize image intensities "
                  << ( this->m_WinsorizeImageIntensities ? "true" : "false" ) << std::endl
-                 << "Lower Quantile = " << this->m_LowerQuantile << std::endl
-                 << "Upper Quantile = " << this->m_UpperQuantile << std::endl;
+                 << "Lower quantile = " << this->m_LowerQuantile << std::endl
+                 << "Upper quantile = " << this->m_UpperQuantile << std::endl;
 
   for( unsigned i = 0; i < this->m_NumberOfStages; i++ )
     {
     this->Logger() << "Stage " << i + 1 << " State" << std::endl; // NOTE: + 1 for consistency.
     const Metric &          curMetric = this->m_Metrics[i];
     const TransformMethod & curTransform = this->m_TransformMethods[i];
-    this->Logger() << "   Metric = " << curMetric.GetMetricAsString() << std::endl
-                   << "     Fixed Image = " << curMetric.m_FixedImage << std::endl
-                   << "     Moving Image = " << curMetric.m_MovingImage << std::endl
-                   << "     Weighting = " << curMetric.m_Weighting << std::endl
-                   << "     Sampling Strategy = "
-                   << (curMetric.m_SamplingStrategy ==
-        random ? "random" : (curMetric.m_SamplingStrategy == regular ) ? "regular" : (curMetric.m_SamplingStrategy ==
-                                                                                      none ) ? "none" :
-        "WARNING: UNKNOWN")
-                   << std::endl
-                   << "     NumberOfBins = " << curMetric.m_NumberOfBins << std::endl
-                   << "     Radius = " << curMetric.m_Radius << std::endl
-                   << "     Sampling percentage  = " << curMetric.m_SamplingPercentage << std::endl
-                   << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
-                   << "     Gradient Step = " << curTransform.m_GradientStep << std::endl
-                   << "     Update Field Sigma (voxel space) = "
+
+    if( !this->IsPointSetMetric( curMetric.m_MetricType ) )
+      {
+      this->Logger() << "   Image metric = " << curMetric.GetMetricAsString() << std::endl
+                     << "     Fixed image = " << curMetric.m_FixedImage << std::endl
+                     << "     Moving image = " << curMetric.m_MovingImage << std::endl
+                     << "     Weighting = " << curMetric.m_Weighting << std::endl
+                     << "     Sampling strategy = "
+                     << (curMetric.m_SamplingStrategy ==
+          random ? "random" : (curMetric.m_SamplingStrategy == regular ) ? "regular" : (curMetric.m_SamplingStrategy ==
+                                                                                        none ) ? "none" :
+          "WARNING: UNKNOWN")
+                     << std::endl
+                     << "     Number of bins = " << curMetric.m_NumberOfBins << std::endl
+                     << "     Radius = " << curMetric.m_Radius << std::endl
+                     << "     Sampling percentage  = " << curMetric.m_SamplingPercentage << std::endl;
+      }
+    else
+      {
+      this->Logger() << "   Point Set Metric = " << curMetric.GetMetricAsString() << std::endl
+                     << "     Fixed point set = " << curMetric.m_FixedPointSet << std::endl
+                     << "     Moving point set = " << curMetric.m_MovingPointSet << std::endl
+                     << "     Weighting = " << curMetric.m_Weighting << std::endl
+                     << "     Use only boundary points = " << ( curMetric.m_UseBoundaryPointsOnly ? "true" : "false" ) << std::endl
+                     << "     Point set sigma = " << curMetric.m_PointSetSigma << std::endl
+                     << "     Evaluation K neighborhood = " << curMetric.m_EvaluationKNeighborhood << std::endl
+                     << "     Alpha = " << curMetric.m_Alpha << std::endl
+                     << "     Use anisotropic covariances = " << ( curMetric.m_UseAnisotropicCovariances ? "true" : "false" ) << std::endl
+                     << "     Sampling percentage = " << curMetric.m_SamplingPercentage << std::endl;
+      }
+    this->Logger() << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
+                   << "     Gradient step = " << curTransform.m_GradientStep << std::endl
+                   << "     Update field sigma (voxel space) = "
                    << curTransform.m_UpdateFieldVarianceInVarianceSpace << std::endl
-                   << "     Total Field Sigma (voxel space) = "
+                   << "     Total field sigma (voxel space) = "
                    << curTransform.m_TotalFieldVarianceInVarianceSpace << std::endl
-                   << "     Update Field Time Sigma = " << curTransform.m_UpdateFieldTimeSigma << std::endl
-                   << "     Total Field Time Sigma  = " << curTransform.m_TotalFieldTimeSigma << std::endl
-                   << "     Number of Time Indices = " << curTransform.m_NumberOfTimeIndices << std::endl
-                   << "     Number of Time Point Samples = " << curTransform.m_NumberOfTimeIndices << std::endl;
+                   << "     Update field time sigma = " << curTransform.m_UpdateFieldTimeSigma << std::endl
+                   << "     Total field time sigma  = " << curTransform.m_TotalFieldTimeSigma << std::endl
+                   << "     Number of time indices = " << curTransform.m_NumberOfTimeIndices << std::endl
+                   << "     Number of time point samples = " << curTransform.m_NumberOfTimeIndices << std::endl;
     }
+
 }
 } // namespace ants
 
