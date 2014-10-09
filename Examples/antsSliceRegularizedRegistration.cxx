@@ -766,7 +766,15 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     std::cout << " polyx " << polyx << " iceptx " << interceptx  << std::endl;
     std::cout << " polyy " << polyy << " icepty " << intercepty  << std::endl;
     }
-  }// if loop == 0 
+  } else {  // polydegree == 0      
+    transformList = transformUList; 
+    for ( unsigned int i = 0; i < transformList.size(); i++) 
+      {
+      typename TranslationTransformType::ParametersType p = transformList[i]->GetParameters();
+      param_values(i,0) = p[0];
+      param_values(i,1) = p[1];
+      }
+    }
   }// done with optimization, now move on to writing data ...
     
   // write polynomial predicted data
