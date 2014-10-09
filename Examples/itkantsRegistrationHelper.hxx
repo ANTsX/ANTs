@@ -3777,7 +3777,7 @@ RegistrationHelper<TComputeType, VImageDimension>
                      << "     Evaluation K neighborhood = " << curMetric.m_EvaluationKNeighborhood << std::endl
                      << "     Alpha = " << curMetric.m_Alpha << std::endl
                      << "     Use anisotropic covariances = " << ( curMetric.m_UseAnisotropicCovariances ? "true" : "false" ) << std::endl
-                     << "     Sampling percentage = " << curMetric.m_SamplingPercentage << std::endl;
+                     << "     Sampling percentage = " << curMetric.m_SamplingPercentage  << std::endl;
       }
     this->Logger() << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
                    << "     Gradient step = " << curTransform.m_GradientStep << std::endl

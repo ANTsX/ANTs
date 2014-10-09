@@ -167,7 +167,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
     std::string description = std::string( "This option allows the user to restrict the " )
       + std::string( "optimization of the displacement field, translation, rigid or affine " )
       + std::string( "transform on a per-component basis.  For example, if one wants to limit " )
-      + std::string( "the deformation or rotation of 3-D volume to the first two dimensions, ") 
+      + std::string( "the deformation or rotation of 3-D volume to the first two dimensions, ")
       + std::string( "this is possible by specifying a weight vector of \'1x1x0\' for a " )
       + std::string( "deformation field or  \'1x1x0x1x1x0\' for a rigid transformation." )
       + std::string( "Low-dimensional restriction only works if there are no preceding transformations." );
@@ -260,10 +260,10 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
       "ICP[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>]" );
     option->SetUsageOption(
       7,
-      "PSE[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=>,<kNeighborhood=50>]" );
+      "PSE[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=1>,<kNeighborhood=50>]" );
     option->SetUsageOption(
       8,
-      "JHCT[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=>,<kNeighborhood=50>,<alpha=1.1>,<useAnisotropicCovariances=1>]" );
+      "JHCT[fixedPointSet,movingPointSet,metricWeight,<samplingPercentage=[0,1]>,<boundaryPointsOnly=0>,<pointSetSigma=1>,<kNeighborhood=50>,<alpha=1.1>,<useAnisotropicCovariances=1>]" );
     option->SetDescription( description );
     parser->AddOption( option );
     }
