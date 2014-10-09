@@ -2,7 +2,7 @@
 myscale <- function(x,doscale=F) {
     if ( doscale ) return( scale(x) )
     return( x )
-} 
+}
 dotest<-F
 options(digits=3)
 Args <- commandArgs()
@@ -30,17 +30,17 @@ if(!pckg) {
 library(glasso)
 library(igraph)
 library(ANTsR)
-spec = c( 
-'labels'   , 'l', "0", "character" ," name of (aal) label image ", 
-'thresh'   , 't', "1x100000000", "character" ," lower upper thresh for label image ", 
+spec = c(
+'labels'   , 'l', "0", "character" ," name of (aal) label image ",
+'thresh'   , 't', "1x100000000", "character" ," lower upper thresh for label image ",
 'motion'     , 'm', "0", "character" ," name of brain motion csv ",
 'mask'     , 'x', "0", "character" ," name of brain mask image ",
-'fmri'     , 'f', "0", "character" ," name of BOLD fmri", 
+'fmri'     , 'f', "0", "character" ," name of BOLD fmri",
 'freq'     , 'q', "0.01x0.1", "character" ," low x high frequency for filtering",
 'gdens'    , 'g', 0.25, "numeric","graph density",
-'winsortrim' , 'w', 0.0, "numeric","winsorizing value e.g. 0.05 = 5%",
+'winsortrim' , 'w', 0.01, "numeric","winsorizing value e.g. 0.05 = 5%",
 'glass'    , 'a', NA, "numeric","graphical lasso parameter",
-'help'     , 'h', 0, "logical" ," print the help ", 
+'help'     , 'h', 0, "logical" ," print the help ",
 'output'   , 'o', "1", "character"," the output prefix ")
 # ............................................. #
 spec=matrix(spec,ncol=5,byrow=TRUE)
@@ -70,7 +70,7 @@ if ( !dotest ) q(status=1);
 #
 for ( myfn in c( opt$mask, opt$fmri, opt$labels , opt$motion ) )
   {
-    if ( !file.exists(myfn) ) 
+    if ( !file.exists(myfn) )
       {
         print(paste("input file",myfn,"does not exist. Exiting."))
         q(status=1)
@@ -143,32 +143,32 @@ keepinds<-which( templateFD < ( mean(templateFD) + 2*sd(templateFD)) & ( (1:myti
 keepinds<-c(throwaway,keepinds)
 throwinds<-which( templateFD > ( mean(templateFD) + 2*sd(templateFD)) & ( (1:mytimes) > throwaway ) )
 if ( dotest ) { plot( templateFD , type='l' ); print(paste(sum( templateFD > 0.2 ),length(throwinds))) }
-doimpute<-TRUE 
+doimpute<-TRUE
 if ( length( throwinds )  > 0 & doimpute )
 for ( i in throwinds ) {
   previ <- max( keepinds[ keepinds < i ] )
   nexti <- min( keepinds[ keepinds > i ] )
   wt1 <-  1-abs( i - previ )/(nexti-previ)
   wt2 <-  1-abs( i - nexti )/(nexti-previ)
-  omat[i,] <- wt1 * omat[previ,] + omat[nexti,] * wt2 
-  DVARS[i] <- wt1 * DVARS[previ] + DVARS[nexti] * wt2 
-  templateFD[i] <- wt1 * templateFD[previ] + templateFD[nexti] * wt2 
-  motion[i,] <- wt1 * motion[previ,] + motion[nexti,] * wt2 
+  omat[i,] <- wt1 * omat[previ,] + omat[nexti,] * wt2
+  DVARS[i] <- wt1 * DVARS[previ] + DVARS[nexti] * wt2
+  templateFD[i] <- wt1 * templateFD[previ] + templateFD[nexti] * wt2
+  motion[i,] <- wt1 * motion[previ,] + motion[nexti,] * wt2
   }
 keepinds<-throwaway:mytimes
 usemotiondirectly<-TRUE
-if ( ! usemotiondirectly ) 
+if ( ! usemotiondirectly )
   {
   msvd<-svd( as.matrix(motion[keepinds,3:ncol(motion)] ) )
   mysum<-cumsum(msvd$d)/sum(msvd$d)
-  nsvdcomp<-which( mysum > 0.999 )[1] 
+  nsvdcomp<-which( mysum > 0.999 )[1]
   motionnuis <- (msvd$u[, 1:nsvdcomp])
   print(paste(" % var of motion ", mysum[nsvdcomp],'with',nsvdcomp ) )
   }
 if ( usemotiondirectly ) motionnuis <- as.matrix(motion[keepinds,3:ncol(motion)] )
 colnames(motionnuis)<-paste("mot",1:ncol(motionnuis),sep='')
-bkgd<-TRUE
-if ( bkgd  ) {
+bkgd<-4
+if ( bkgd > 0 ) {
   negmask<-antsImageClone( mask )
   backgroundvoxels <-  negmask == 0
   neginds<-which( backgroundvoxels )
@@ -182,7 +182,7 @@ if ( bkgd  ) {
 #  tempmat<-tempmat-ashift(tempmat,c(1,0))
   bgsvd<-svd( tempmat )
   mysum<-cumsum(bgsvd$d)/sum(bgsvd$d)
-  newnuisv<-min( c( 10, which( mysum > 0.8 )[1] ) )
+  newnuisv<-min( c( bkgd, which( mysum > 0.8 )[1] ) )
   print(paste(newnuisv," % var of bgd ",mysum[newnuisv] ) )
   bgdnuis<-bgsvd$u[, 1:newnuisv]
   colnames(bgdnuis)<-paste("bgdNuis",1:newnuisv,sep='')
@@ -204,7 +204,7 @@ dmatrix<-(omotionnuis-motnuisshift)[,1:9]
 dtran<-(omotionnuis-motnuisshift)[,10:12]
 dmatrixm<-apply( dmatrix * dmatrix , FUN=sum, MARGIN=1 )
 dtranm<-apply( dtran * dtran , FUN=sum, MARGIN=1 )
-if ( bkgd ) 
+if ( bkgd )
 mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, bgdnuis, templateFD[keepinds], DVARS[keepinds] ) else mynuis<-cbind(scale(dmatrixm)[,1],scale(dtranm)[,1],classiccompcor, templateFD[keepinds], DVARS[keepinds] )
 colnames(mynuis)[1:2]<-c("dmatrix","dtran")
 colnames(mynuis)[(length(colnames(mynuis))-1):length(colnames(mynuis))]<-c("FD","DVARS")
@@ -277,9 +277,9 @@ mybtwn<-mynetwork$graph$betweeness
 names(mybtwn)<-paste("Btwn",1:length(mynetwork$graph$degree),sep='')
 mytimes<-length(keepinds)
 names(mytimes)<-"NTimePoints"
-meanFD<-mean(templateFD) 
+meanFD<-mean(templateFD)
 names(meanFD)<-"meanFD"
-meanDVARS<-mean(DVARS) 
+meanDVARS<-mean(DVARS)
 names(meanDVARS)<-"meanDVARS"
 myc<-c( matmag, tranmag, matsd, transd, reproval , mydeg, mypr, mycent, mytrans, myclose , mybtwn, reproval2, mytimes, meanFD, meanDVARS )
 outmat<-matrix(myc,nrow=1)

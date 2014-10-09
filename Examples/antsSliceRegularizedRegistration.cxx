@@ -380,19 +380,35 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     outputPrefix = outputOption->GetFunction( 0 )->GetName();
     }
 
+  std::string maskfn = std::string("");
+  typename OptionType::Pointer maskOption = parser->GetOption( "mask" );
+  if( maskOption->GetNumberOfFunctions() > 0 )
+    {
+    maskfn = maskOption->GetFunction( 0 )->GetName();
+    }
+
+
   bool                doEstimateLearningRateOnce(true);
 
   unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
   typedef itk::TranslationTransform<RealType, ImageDimension-1> TranslationTransformType;
-typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, TranslationTransformType> TranslationRegistrationType;
+  typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, TranslationTransformType>
+                                                           TranslationRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
   typedef typename TranslationTransformType::Pointer       SingleTransformItemType;
   std::vector<SingleTransformItemType>                     transformList;
   std::vector<SingleTransformItemType>                     transformUList;
   std::vector<typename FixedImageType::Pointer>            fixedSliceList;
   std::vector<typename FixedImageType::Pointer>            movingSliceList;
+  typedef itk::ImageMaskSpatialObject<ImageDimension>      ImageMaskSpatialObjectType;
+  typename FixedIOImageType::Pointer                       maskImage;
+  typedef itk::Image< unsigned char, ImageDimension-1 >    ImageMaskType;
+  typename ImageMaskType::Pointer mask_time_slice = NULL;
+  if ( maskfn.length() > 3 )
+    ReadImage<FixedIOImageType>( maskImage, maskfn.c_str() );
+
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
     std::stringstream currentStageString;
@@ -491,7 +507,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       typename IdentityTransformType::Pointer identityTransform = IdentityTransformType::New();
       typedef itk::ExtractImageFilter<FixedIOImageType, FixedImageType> ExtractFilterType;
       typename FixedIOImageType::RegionType extractRegion = movingImage->GetLargestPossibleRegion();
-      extractRegion.SetSize(ImageDimension-1, 0);      
+      extractRegion.SetSize(ImageDimension-1, 0);
       extractRegion.SetIndex(ImageDimension-1, timedim );
 
       typename ExtractFilterType::Pointer extractFilterF = ExtractFilterType::New();
@@ -511,6 +527,19 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       moving_time_slice = extractFilterM->GetOutput();
       fixedSliceList.push_back( fixed_time_slice );
       movingSliceList.push_back( moving_time_slice );
+
+      if ( maskfn.length() > 3 )
+        {
+        typedef itk::ExtractImageFilter<FixedIOImageType, ImageMaskType> ExtractFilterTypeX;
+        typename ExtractFilterTypeX::Pointer extractFilterX = ExtractFilterTypeX::New();
+        extractFilterX->SetInput( maskImage );
+        extractFilterX->SetDirectionCollapseToSubmatrix();
+        if ( toidentity ) extractFilterX->SetDirectionCollapseToIdentity();
+        extractFilterX->SetExtractionRegion( extractRegion );
+        extractFilterX->Update();
+        mask_time_slice = extractFilterX->GetOutput();
+        }
+
 
       // set up initial transform parameters
       typename TranslationTransformType::Pointer translationTransform = TranslationTransformType::New();
@@ -558,7 +587,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         samplingStrategy = metricOption->GetFunction( currentStage )->GetParameter(  4 );
         }
       ConvertToLowerCase( samplingStrategy );
-      typename TranslationRegistrationType::MetricSamplingStrategyType metricSamplingStrategy = 
+      typename TranslationRegistrationType::MetricSamplingStrategyType metricSamplingStrategy =
         TranslationRegistrationType::NONE;
       if( std::strcmp( samplingStrategy.c_str(), "random" ) == 0 )
         {
@@ -582,7 +611,6 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         correlationMetric->SetRadius( radius );
         correlationMetric->SetUseMovingImageGradientFilter( false );
         correlationMetric->SetUseFixedImageGradientFilter( false );
-
         metric = correlationMetric;
         }
       else if( std::strcmp( whichMetric.c_str(), "mi" ) == 0 )
@@ -617,12 +645,20 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         return EXIT_FAILURE;
         }
       metric->SetVirtualDomainFromImage(  fixedSliceList[timedim] );
-
+      if ( maskfn.length() > 3 )
+        {
+        typedef itk::ImageMaskSpatialObject<ImageDimension-1> spMaskType;
+        typename spMaskType::Pointer  spatialObjectMask = spMaskType::New();
+        spatialObjectMask->SetImage( mask_time_slice );
+        metric->SetFixedImageMask( spatialObjectMask );
+        if ( ( verbose ) && ( loop == 0 ) && ( timedim == 0 ) )
+           std::cout << " setting mask " << maskfn << std::endl;
+        }
       typedef itk::RegistrationParameterScalesFromPhysicalShift<MetricType> ScalesEstimatorType;
       typename ScalesEstimatorType::Pointer scalesEstimator = ScalesEstimatorType::New();
       scalesEstimator->SetMetric( metric );
       scalesEstimator->SetTransformForward( true );
-      float learningRate = parser->Convert<float>( 
+      float learningRate = parser->Convert<float>(
         transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
@@ -690,7 +726,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       metricval += metric->GetValue();
       }
 
-  for ( unsigned int i = 0; i < transformList.size(); i++) 
+  for ( unsigned int i = 0; i < transformList.size(); i++)
     {
     typename TranslationTransformType::ParametersType pu = transformUList[i]->GetParameters();
     param_values( i, 0 )=pu[ 0 ];
@@ -723,7 +759,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
   vVector ob = param_values.get_column( 0 );
   RealType bsd = ( ob - ob.mean() ).rms();
   vVector b = ( ob - ob.mean() ) / bsd;
-  vVector polyx = svd.solve( ob ); 
+  vVector polyx = svd.solve( ob );
   RealType interceptx = param_values.get_column( 0 ).mean();
   for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
     {
@@ -735,7 +771,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
   ob = param_values.get_column( 1 );
   bsd = ( ob - ob.mean() ).rms();
   b = ( ob - ob.mean() ) / bsd;
-  vVector polyy = svd.solve( ob ); 
+  vVector polyy = svd.solve( ob );
   RealType intercepty = param_values.get_column( 1 ).mean();
   for( unsigned int Acol = 0; Acol < A.cols(); Acol++ )
     {
@@ -744,13 +780,13 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
   vVector solny = A * polyy + intercepty;
 
   // now look at delta and do projection
-  if ( solnx.size() != transformList.size() ) 
+  if ( solnx.size() != transformList.size() )
     {
     std::cerr << "solnx.size() != transformList.size()" << std::endl;
     }
   RealType err = 0;
   RealType eulerparam = 1;
-  for ( unsigned int i = 0; i < transformList.size(); i++) 
+  for ( unsigned int i = 0; i < transformList.size(); i++)
     {
     typename TranslationTransformType::ParametersType p = transformList[i]->GetParameters();
     err += vcl_sqrt( vcl_pow( p[0] - solnx[i] , 2.0 ) + vcl_pow( p[1] - solny[i] , 2.0 ) );
@@ -760,15 +796,15 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     param_values(i,1) = p[1];
     transformList[i]->SetParameters( p );
     }
-  if ( verbose ) 
+  if ( verbose )
     {
     std::cout << "Loop" << loop << " polyerr: " << err / timedims <<  " image-metric " << metricval << std::endl;
     std::cout << " polyx " << polyx << " iceptx " << interceptx  << std::endl;
     std::cout << " polyy " << polyy << " icepty " << intercepty  << std::endl;
     }
-  } else {  // polydegree == 0      
-    transformList = transformUList; 
-    for ( unsigned int i = 0; i < transformList.size(); i++) 
+  } else {  // polydegree == 0
+    transformList = transformUList;
+    for ( unsigned int i = 0; i < transformList.size(); i++)
       {
       typename TranslationTransformType::ParametersType p = transformList[i]->GetParameters();
       param_values(i,0) = p[0];
@@ -776,7 +812,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
       }
     }
   }// done with optimization, now move on to writing data ...
-    
+
   // write polynomial predicted data
     {
     std::vector<std::string> ColumnHeaders;
@@ -853,7 +889,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
 	displacementout->SetPixel( ind, vecout );
         }
       }
-    if ( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1  
+    if ( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1
          && currentStage == 0 )
       {
       std::string fileName = outputOption->GetFunction( 0 )->GetParameter( 1 );
@@ -863,7 +899,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
         }
       WriteImage<MovingIOImageType>( outputImage, fileName.c_str()  );
       }
-    if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2 
+    if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 2
         && outputImage && currentStage == 0 )
       {
       std::string fileName = outputOption->GetFunction( 0 )->GetParameter( 2 );
@@ -877,7 +913,7 @@ typedef itk::ImageRegistrationMethodv4<FixedImageType, MovingImageType, Translat
     displacementFieldWriter->Update();
     }
   totalTimer.Stop();
-  //  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;  
+  //  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
   return EXIT_SUCCESS;
 }
 
@@ -912,6 +948,18 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetDescription( description );
     parser->AddOption( option );
     }
+
+
+    {
+    std::string         description = "Fixed image mask to limit voxels considered by the metric.";
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "mask" );
+    option->SetShortName( 'x' );
+    option->SetUsageOption( 0, "mask-in-fixed-image-space.nii.gz" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
 
     {
     std::string description = std::string( "Several transform options are available.  The gradientStep or" )
@@ -1064,20 +1112,20 @@ private:
 
   parser->SetCommand( argv[0] );
 
-  std::string commandDescription = 
+  std::string commandDescription =
     std::string( "antsSliceRegularizedRegistration ")
     + std::string("This program is a user-level application for slice-by-slice translation registration. " )
-    + std::string( "Results are regularized in z using polynomial regression.  The program is targeted at spinal cord MRI. ") 
+    + std::string( "Results are regularized in z using polynomial regression.  The program is targeted at spinal cord MRI. ")
     + std::string( "Only one stage is supported where a stage consists of a transform; an image metric; " )
     + std::string( "and iterations, shrink factors, and smoothing sigmas for each level. " )
     + std::string( "Specialized for 3D data: fixed image is 3D, moving image is 3D. ")
     + std::string( "Registration is performed slice-by-slice then regularized in z. ")
     + std::string(" The parameter -p controls the polynomial degree. -p 0 means no regularization.")
     + std::string( "Implemented by B. Avants and conceived by Julien Cohen-Adad.\n")
-    + std::string("Outputs: \n\n") 
-    + std::string(" OutputPrefixTxTy_poly.csv: polynomial fit to Tx & Ty \n") 
-    + std::string(" OutputPrefix.nii.gz: transformed image \n") 
-    + std::string("Example call: \n\n") 
+    + std::string("Outputs: \n\n")
+    + std::string(" OutputPrefixTxTy_poly.csv: polynomial fit to Tx & Ty \n")
+    + std::string(" OutputPrefix.nii.gz: transformed image \n")
+    + std::string("Example call: \n\n")
     + std::string(" antsSliceRegularizedRegistration -p 4 --output [OutputPrefix,OutputPrefix.nii.gz]   ")
     + std::string("--transform Translation[0.1] --metric MI[ fixed.nii.gz, moving.nii.gz , 1 , 16 , Regular , 0.2 ] ")
     + std::string("--iterations 20 --shrinkFactors 1 --smoothingSigmas 0 \n\n");
