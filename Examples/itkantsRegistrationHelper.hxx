@@ -1373,15 +1373,19 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         affineRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+
+        if( imageMetricIsUsedDuringThisStage )
           {
-          affineRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            affineRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          affineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
+                                                                               currentStageNumber] );
+          affineRegistration->SetMetricSamplingStrategy( metricSamplingStrategy );
+          affineRegistration->SetMetricSamplingPercentage( samplingPercentage );
           }
-        affineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
-                                                                             currentStageNumber] );
-        affineRegistration->SetMetricSamplingStrategy( metricSamplingStrategy );
-        affineRegistration->SetMetricSamplingPercentage( samplingPercentage );
 
 	       unsigned int affineParameterSize = VImageDimension * VImageDimension + VImageDimension;
 
@@ -1459,16 +1463,19 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         rigidRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+        if( imageMetricIsUsedDuringThisStage )
           {
-          rigidRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
-          }
-        rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        rigidRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
-                                                                            currentStageNumber] );
-        rigidRegistration->SetMetricSamplingStrategy(
-          static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
-        rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            rigidRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          rigidRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          rigidRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
+                                                                              currentStageNumber] );
+          rigidRegistration->SetMetricSamplingStrategy(
+            static_cast<typename RigidRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          rigidRegistration->SetMetricSamplingPercentage( samplingPercentage );
+         }
 
        	unsigned int rigidParameterSize = 6;
 
@@ -1553,17 +1560,22 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         affineRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+        if( imageMetricIsUsedDuringThisStage )
           {
-          affineRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            affineRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          affineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
+                                                                               currentStageNumber] );
+          affineRegistration->SetMetricSamplingStrategy(
+            static_cast<typename CompositeAffineRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          affineRegistration->SetMetricSamplingPercentage( samplingPercentage );
           }
-        affineRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        affineRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits( this->m_SmoothingSigmasAreInPhysicalUnits[
-                                                                             currentStageNumber] );
-        affineRegistration->SetMetricSamplingStrategy(
-          static_cast<typename CompositeAffineRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
-        affineRegistration->SetMetricSamplingPercentage( samplingPercentage );
+
         affineRegistration->SetOptimizer( optimizer );
+
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
           affineRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
@@ -1627,17 +1639,22 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         similarityRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+        if( imageMetricIsUsedDuringThisStage )
           {
-          similarityRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            similarityRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          similarityRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          similarityRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
+            this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
+          similarityRegistration->SetMetricSamplingStrategy(
+            static_cast<typename SimilarityRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          similarityRegistration->SetMetricSamplingPercentage( samplingPercentage );
           }
-        similarityRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        similarityRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
-          this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
-        similarityRegistration->SetMetricSamplingStrategy(
-          static_cast<typename SimilarityRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
-        similarityRegistration->SetMetricSamplingPercentage( samplingPercentage );
+
         similarityRegistration->SetOptimizer( optimizer );
+
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
           similarityRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
@@ -1701,16 +1718,20 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         translationRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+
+        if( imageMetricIsUsedDuringThisStage )
           {
-          translationRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            translationRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          translationRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          translationRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
+            this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
+          translationRegistration->SetMetricSamplingStrategy(
+            static_cast<typename TranslationRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          translationRegistration->SetMetricSamplingPercentage( samplingPercentage );
           }
-        translationRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        translationRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
-          this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
-        translationRegistration->SetMetricSamplingStrategy(
-          static_cast<typename TranslationRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
-        translationRegistration->SetMetricSamplingPercentage( samplingPercentage );
 
         if( this->m_RestrictDeformationOptimizerWeights.size() > currentStageNumber )
           {
@@ -1861,16 +1882,20 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+        if( imageMetricIsUsedDuringThisStage )
           {
-          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
+            this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
+          displacementFieldRegistration->SetMetricSamplingStrategy(
+            static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
           }
-        displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
-          this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
-        displacementFieldRegistration->SetMetricSamplingStrategy(
-          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
-        displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
+
         displacementFieldRegistration->SetOptimizer( optimizer );
         displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
@@ -2027,13 +2052,20 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+        if( imageMetricIsUsedDuringThisStage )
           {
-          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
+            this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
+          displacementFieldRegistration->SetMetricSamplingStrategy(
+            static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
+          displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
           }
-        displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
-          this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
+
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
           displacementFieldRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
@@ -2042,9 +2074,7 @@ RegistrationHelper<TComputeType, VImageDimension>
           {
           displacementFieldRegistration->SetFixedInitialTransform( this->m_FixedInitialTransform );
           }
-        displacementFieldRegistration->SetMetricSamplingStrategy(
-          static_cast<typename DisplacementFieldRegistrationType::MetricSamplingStrategyType>( metricSamplingStrategy ) );
-        displacementFieldRegistration->SetMetricSamplingPercentage( samplingPercentage );
+
         displacementFieldRegistration->SetOptimizer( optimizer );
         displacementFieldRegistration->SetTransformParametersAdaptorsPerLevel( adaptors );
 
@@ -2761,14 +2791,19 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
         displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
+
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+        if( imageMetricIsUsedDuringThisStage )
           {
-          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
+            this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
           }
-        displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
-          this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
+
         displacementFieldRegistration->SetLearningRate( learningRate );
         displacementFieldRegistration->SetConvergenceThreshold( convergenceThreshold );
         displacementFieldRegistration->SetConvergenceWindowSize( convergenceWindowSize );
@@ -2954,13 +2989,18 @@ RegistrationHelper<TComputeType, VImageDimension>
         displacementFieldRegistration->SetDownsampleImagesForMetricDerivatives( true );
         displacementFieldRegistration->SetAverageMidPointGradients( false );
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+
+        if( imageMetricIsUsedDuringThisStage )
           {
-          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+          displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
+            this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
           }
-        displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
-        displacementFieldRegistration->SetSmoothingSigmasAreSpecifiedInPhysicalUnits(
-          this->m_SmoothingSigmasAreInPhysicalUnits[currentStageNumber] );
+
         displacementFieldRegistration->SetLearningRate( learningRate );
         displacementFieldRegistration->SetConvergenceThreshold( convergenceThreshold );
         displacementFieldRegistration->SetConvergenceWindowSize( convergenceWindowSize );
@@ -3276,11 +3316,16 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         displacementFieldRegistration->SetNumberOfLevels( numberOfLevels );
-        for( unsigned int level = 0; level < numberOfLevels; ++level )
+
+        if( imageMetricIsUsedDuringThisStage )
           {
-          displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+          for( unsigned int level = 0; level < numberOfLevels; ++level )
+            {
+            displacementFieldRegistration->SetShrinkFactorsPerDimension( level, shrinkFactorsPerDimensionForAllLevels[level] );
+            }
+          displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
           }
-        displacementFieldRegistration->SetSmoothingSigmasPerLevel( smoothingSigmasPerLevel );
+
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
           displacementFieldRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
@@ -3777,7 +3822,7 @@ RegistrationHelper<TComputeType, VImageDimension>
                      << "     Evaluation K neighborhood = " << curMetric.m_EvaluationKNeighborhood << std::endl
                      << "     Alpha = " << curMetric.m_Alpha << std::endl
                      << "     Use anisotropic covariances = " << ( curMetric.m_UseAnisotropicCovariances ? "true" : "false" ) << std::endl
-                     << "     Sampling percentage = " << curMetric.m_SamplingPercentage  << std::endl;
+                     << "     Sampling percentage = " << curMetric.m_SamplingPercentage << std::endl;
       }
     this->Logger() << "   Transform = " << curTransform.XfrmMethodAsString() << std::endl
                    << "     Gradient step = " << curTransform.m_GradientStep << std::endl
