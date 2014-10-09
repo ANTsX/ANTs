@@ -784,7 +784,7 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
 
     // assign default image metric variables
-    typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::invalid;
+    typename RegistrationHelperType::SamplingStrategy samplingStrategy = RegistrationHelperType::none;
     unsigned int numberOfBins = 32;
     unsigned int radius = 4;
 
