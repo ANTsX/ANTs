@@ -19,8 +19,8 @@ public:
   typedef ParametersValueType     PixelType;
   typedef typename itk::Image<PixelType, VImageDimension>              ImageType;
   typedef itk::ImageToImageMetricv4
-                <ImageType, ImageType, ImageType, RealType>            MetricType;
-  typedef typename MetricType::MeasureType                             MeasureType;
+                <ImageType, ImageType, ImageType, RealType>            ImageMetricType;
+  typedef typename ImageMetricType::MeasureType                        MeasureType;
   typedef itk::CompositeTransform<RealType, VImageDimension>           CompositeTransformType;
   typedef typename CompositeTransformType::TransformType               TransformBaseType;
 protected:
@@ -217,22 +217,22 @@ public:
                                   MeasureType & metricValue ) const
   {
     // Get the registration metric from the optimizer
-    typename MetricType::Pointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetModifiableMetric() ) );
+    typename ImageMetricType::Pointer inputMetric( dynamic_cast<ImageMetricType *>( myOptimizer->GetModifiableMetric() ) );
 
     // Define the CC metric type
     // This metric type is used to measure the general similarity metric between the original input fixed and moving
     // images.
-    typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, MeasureType> CorrelationMetricType;
-    typename CorrelationMetricType::Pointer correlationMetric = CorrelationMetricType::New();
+    typedef itk::ANTSNeighborhoodCorrelationImageToImageMetricv4<ImageType, ImageType, ImageType, MeasureType> CorrelationImageMetricType;
+    typename CorrelationImageMetricType::Pointer correlationMetric = CorrelationImageMetricType::New();
       {
-      typename CorrelationMetricType::RadiusType radius;
+      typename CorrelationImageMetricType::RadiusType radius;
       radius.Fill( 4 );  // NOTE: This is just a common reference for fine-tuning parameters, so perhaps a smaller
                          // window would be sufficient.
       correlationMetric->SetRadius( radius );
       }
     correlationMetric->SetUseMovingImageGradientFilter( false );
     correlationMetric->SetUseFixedImageGradientFilter( false );
-    typename MetricType::Pointer metric = correlationMetric.GetPointer();
+    typename ImageMetricType::Pointer metric = correlationMetric.GetPointer();
 
     // We need to create an exact copy from the composite fixed and moving transforms returned from the metric
     // We should roll off the composite transform and create a new instance from each of its sub transforms
@@ -246,7 +246,7 @@ public:
       // We cast the metric's transform to a composite transform, so we can copy each
       // of its sub transforms to a new instance.
       // Notice that the metric transform will not be changed inside this fuction.
-      typedef typename MetricType::FixedTransformType FixedTransformType;
+      typedef typename ImageMetricType::FixedTransformType FixedTransformType;
       typename CompositeTransformType::ConstPointer inputFixedTransform =
                                           dynamic_cast<CompositeTransformType *>( inputMetric->GetModifiableFixedTransform() );
       const unsigned int N = inputFixedTransform->GetNumberOfTransforms();
@@ -279,7 +279,7 @@ public:
       }
 
     // Same procedure for the moving transform. Moving transform is always a Composite transform.
-    typedef typename MetricType::MovingTransformType MovingTransformType;
+    typedef typename ImageMetricType::MovingTransformType MovingTransformType;
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
 
     typename CompositeTransformType::ConstPointer inputMovingTransform =
@@ -311,10 +311,10 @@ public:
   void WriteIntervalVolumes(itk::WeakPointer<OptimizerType> myOptimizer)
   {
     // Get the registration metric from the optimizer
-    typename MetricType::Pointer inputMetric( dynamic_cast<MetricType *>( myOptimizer->GetModifiableMetric() ) );
+    typename ImageMetricType::Pointer inputMetric( dynamic_cast<ImageMetricType *>( myOptimizer->GetModifiableMetric() ) );
 
     // First, compute the moving transform
-    typedef typename MetricType::MovingTransformType MovingTransformType;
+    typedef typename ImageMetricType::MovingTransformType MovingTransformType;
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
 
     typename CompositeTransformType::ConstPointer inputMovingTransform =
