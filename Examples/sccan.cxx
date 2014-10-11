@@ -1398,7 +1398,8 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
 template <unsigned int ImageDimension, class PixelType>
 int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, unsigned int n_evec, unsigned int newimp,
               unsigned int robustify, unsigned int p_cluster_thresh, unsigned int q_cluster_thresh, unsigned int iterct,
-              PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, unsigned int covering )
+              PixelType usel1, PixelType uselong, PixelType row_sparseness, PixelType smoother, unsigned int covering,
+              PixelType priorWeight = 0 )
 {
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     sccanparser->GetOption( "output" );
@@ -1425,6 +1426,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   typedef typename SCCANType::DiagonalMatrixType        dMatrix;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetCovering( covering );
+  sccanobj->SetPriorWeight( priorWeight );
   sccanobj->SetMaximumNumberOfIterations(iterct);
   if( uselong > 0 )
     {
@@ -1502,7 +1504,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   typename ImageType::Pointer mask1 = NULL;
   std::string mask1fn = option->GetFunction( 0 )->GetParameter( 2 );
   bool have_p_mask = false;
-  if ( mask1fn.length() > 5 ) 
+  if ( mask1fn.length() > 5 )
     {
     have_p_mask = ReadImage<ImageType>(mask1, mask1fn.c_str()  );
     }
@@ -1510,7 +1512,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   typename ImageType::Pointer mask2 = NULL;
   std::string mask2fn = option->GetFunction( 0 )->GetParameter( 3 );
   bool have_q_mask = false;
-  if ( mask2fn.length() > 5 ) 
+  if ( mask2fn.length() > 5 )
     {
     have_q_mask = ReadImage<ImageType>(mask2, mask2fn.c_str() );
     }
@@ -2221,6 +2223,17 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     smoother = sccanparser->Convert<matPixelType>( smooth_option->GetFunction()->GetName() );
     }
 
+  matPixelType                                      priorWeight = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer pwoption =
+    sccanparser->GetOption( "prior-weight" );
+  if( !pwoption || pwoption->GetNumberOfFunctions() == 0 )
+    {
+    }
+  else
+    {
+    priorWeight = sccanparser->Convert<matPixelType>( pwoption->GetFunction()->GetName() );
+    }
+
   matPixelType                                      row_sparseness = 0;
   itk::ants::CommandLineParser::OptionType::Pointer row_option =
     sccanparser->GetOption( "row_sparseness" );
@@ -2417,7 +2430,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
       {
       exitvalue = SCCA_vnl<ImageDimension, double>( sccanparser, permct, evec_ct, eigen_imp, robustify, p_cluster_thresh,
                                                     q_cluster_thresh,
-                                                    iterct, usel1, uselong, row_sparseness, smoother, covering );
+                                                    iterct, usel1, uselong, row_sparseness, smoother, covering, priorWeight );
       }
     else if(  !initializationStrategy.compare( std::string("three-view") )  )
       {
@@ -2724,6 +2737,16 @@ private:
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "partial-scca-option" );
     option->SetUsageOption( 0, "PminusRQ" );
+    option->SetDescription( description );
+    sccanparser->AddOption( option );
+    }
+
+    {
+    std::string description =
+      std::string( "Scalar value weight on prior between 0 (prior is weak) and 1 (prior is strong).  Only engaged if initialization is used." );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "prior-weight" );
+    option->SetUsageOption( 0, "0.0" );
     option->SetDescription( description );
     sccanparser->AddOption( option );
     }

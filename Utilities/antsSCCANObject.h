@@ -94,6 +94,8 @@ public:
   itkGetConstMacro( KeptClusterSize, unsigned int );
   itkSetMacro( AlreadyWhitened, bool );
   itkGetConstMacro( AlreadyWhitened, bool );
+  itkSetMacro( PriorWeight, RealType );
+  itkGetConstMacro( PriorWeight, RealType );
   itkSetMacro( ConvergenceThreshold, RealType );
   itkGetConstMacro( ConvergenceThreshold, RealType );
   itkGetConstMacro( CurrentConvergenceMeasurement, RealType );
@@ -785,7 +787,7 @@ protected:
       return;
       }
     if ( doclassic ) {
-    if ( this->m_RowSparseness < 0  ) 
+    if ( this->m_RowSparseness < 0  )
       {
       if ( fnp > x_k1.max_value() ) fnp = x_k1.max_value() * 0.9;
       for ( unsigned int i = 0; i < x_k1.size(); i++ )
@@ -796,13 +798,13 @@ protected:
 	}
       return;
       }
-    if ( this->m_RowSparseness > 0  ) 
+    if ( this->m_RowSparseness > 0  )
       {
       if ( fnp > x_k1.max_value() ) fnp = x_k1.max_value() * 0.9;
       for ( unsigned int i = 0; i < x_k1.size(); i++ )
 	{
 	RealType delta = vnl_math_abs( x_k1( i ) ) - fnp;
-	if ( delta < 0 ) delta = 0; 
+	if ( delta < 0 ) delta = 0;
 	x_k1( i ) = delta;
 	}
       return;
@@ -869,8 +871,8 @@ protected:
     unsigned long maxjind = static_cast<unsigned long>( (1-fnp*0.5) * maxj + 0.5 );
     unsigned long minjind = static_cast<unsigned long>( (  fnp*0.5) * maxj + 0.5 );
     if ( maxjind > ( maxj - 1 ) ) maxjind = ( maxj - 1 );
-    RealType  maxval = x_k1sort[ maxjind ]; 
-    RealType  minval = x_k1sort[ minjind ]; 
+    RealType  maxval = x_k1sort[ maxjind ];
+    RealType  minval = x_k1sort[ minjind ];
     RealType    high = maxval;
     if ( vnl_math_abs( minval ) > high ) high = vnl_math_abs( minval );
     //    if ( high * 0.2  > 0 ) low = high * 0.2; // hack to speed convergence
@@ -881,8 +883,8 @@ protected:
     RealType     lastfnm = 1;
     while( ( ( eng > (fnp*0.1) )  &&
              ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
-             ( its < 20 ) ) || 
-	     its < 3  
+             ( its < 20 ) ) ||
+	     its < 3
 	 )
       {
       mid = low + 0.5 * ( high - low );
@@ -953,8 +955,8 @@ protected:
     RealType     lastfnm = 1;
     while( ( ( eng > 5.e-3 )  &&
              ( vnl_math_abs( high - low ) > this->m_Epsilon )  &&
-             ( its < 50 ) ) || 
-	     its < 5  
+             ( its < 50 ) ) ||
+	     its < 5
 	 )
       {
       mid = low + 0.5 * ( high - low );
@@ -1035,7 +1037,7 @@ protected:
     return (RealType)ct / (RealType)v.size();
   }
 
-  bool Close2Zero( RealType x ) 
+  bool Close2Zero( RealType x )
   {
     RealType eps = this->m_Epsilon * 5.0;
     //    eps = 0.0001;
@@ -1069,9 +1071,9 @@ protected:
     unsigned int zct = 0;
     for ( unsigned int zm = 0; zm < v1.size(); zm++ )
       {
-	if ( ( this->Close2Zero( v1(zm) )  ||  
-	       this->Close2Zero( v2(zm) ) ) ) 
-	{ 
+	if ( ( this->Close2Zero( v1(zm) )  ||
+	       this->Close2Zero( v2(zm) ) ) )
+	{
 	zct++;
         zeromatch[ zm ] = 1;
 	v1(zm) = 0;
@@ -1087,7 +1089,7 @@ protected:
     double ysqr = 0;
     for( unsigned int i = 0; i < v1.size(); i++ )
       {
-      if ( zeromatch[i] == 0 )  
+      if ( zeromatch[i] == 0 )
         {
 	xysum += v1(i) * v2(i);
 	xsum  += v1(i);
@@ -1301,10 +1303,13 @@ private:
   unsigned int               m_GoldenSectionCounter;
   VectorType                 m_ClusterSizes;
   VectorType                 m_OriginalB;
+  VectorType                 m_SparsenessP;
+  VectorType                 m_SparsenessQ;
   vnl_diag_matrix<RealType>  m_Indicator;
   vnl_diag_matrix<TRealType> m_PreC; // preconditioning
   RealType                   m_GSBestSol;
   RealType                   m_GradStep;
+  RealType                   m_PriorWeight;
 };
 } // namespace ants
 } // namespace itk
