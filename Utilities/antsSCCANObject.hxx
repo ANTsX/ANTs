@@ -5047,11 +5047,13 @@ bool antsSCCANObject<TInputImage, TRealType>
        ( this->m_MatrixPriorROI.cols() > 0  ) )
     {
     pprior = this->m_MatrixPriorROI.transpose().get_column( k );
+    pprior = pprior / pprior.two_norm();
     }
   if ( ( this->m_MatrixPriorROI2.rows() > 0  ) &&
        ( this->m_MatrixPriorROI2.cols() > 0  ) )
     {
     qprior = this->m_MatrixPriorROI2.transpose().get_column( k );
+    qprior = qprior / qprior.two_norm();
     }
 
   this->m_Debug = false;
@@ -5145,9 +5147,15 @@ bool antsSCCANObject<TInputImage, TRealType>
       qveck = lqveck;
       }
     if ( pprior.size() == pveck.size() )
+      {
+      pveck = pveck / pveck.two_norm();
       pveck = pveck * (1.0 - this->m_PriorWeight ) + pprior * this->m_PriorWeight;
+      }
     if ( qprior.size() == qveck.size() )
+      {
+      qveck = qveck / qveck.two_norm();
       qveck = qveck * (1.0 - this->m_PriorWeight ) + qprior * this->m_PriorWeight;
+      }
     this->SparsifyP( pveck );
     this->SparsifyQ( qveck );
     if ( this->m_UseLongitudinalFormulation > 1.e-9 )
