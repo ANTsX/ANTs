@@ -1016,7 +1016,13 @@ if [[ -f ${REGISTRATION_TEMPLATE} ]] && [[ ! -f $REGISTRATION_LOG_JACOBIAN ]];
       fi
 
     ## Create symmetric transforms for template to subject warping
-    logCmd mv ${REGISTRATION_TEMPLATE_INVERSE_WARP} ${REGISTRATION_SUBJECT_WARP}
+    if [[ -s ${REGISTRATION_TEMPLATE_INVERSE_WARP} ]] && [[ ! -s ${REGISTRATION_SUBJECT_WARP} ]] ; then 
+      logCmd mv ${REGISTRATION_TEMPLATE_INVERSE_WARP} ${REGISTRATION_SUBJECT_WARP}
+    fi
+    if [[ ! -s  ${REGISTRATION_SUBJECT_WARP} ]] ; then
+      echo "The transform file ${REGISTRATION_SUBJECT_WARP} does not exist."
+      exit 1      
+    fi
     logCmd ${ANTSPATH}antsApplyTransforms -d ${DIMENSION} -o Linear[$REGISTRATION_SUBJECT_GENERIC_AFFINE,1] -t $REGISTRATION_TEMPLATE_GENERIC_AFFINE
 
     time_end_template_registration=`date +%s`
