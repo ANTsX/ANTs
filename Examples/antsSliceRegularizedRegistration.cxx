@@ -843,6 +843,13 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     idconverter->SetTransform( identityIOTransform );
     idconverter->Update();
     typename DisplacementIOFieldType::Pointer displacementout = idconverter->GetOutput();
+    typename DisplacementIOFieldType::Pointer displacementinv = DisplacementIOFieldType::New();
+    displacementinv->CopyInformation( displacementout );
+    displacementinv->SetRegions( displacementout->GetRequestedRegion() );
+    displacementinv->Allocate();
+    typename DisplacementIOFieldType::IndexType dind;
+    dind.Fill( 0 );
+    displacementinv->FillBuffer( displacementout->GetPixel( dind ) );
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
       typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
@@ -871,13 +878,13 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         {
         typename FixedImageType::PixelType  fval = vfIter2.Get();
         VectorType vec = converter->GetOutput()->GetPixel( vfIter2.GetIndex() );
-	VectorIOType vecout;
-	vecout.Fill( 0 );
+	      VectorIOType vecout;
+	      vecout.Fill( 0 );
         typename MovingIOImageType::IndexType ind;
         for( unsigned int xx = 0; xx < ImageDimension; xx++ )
           {
           ind[xx] = vfIter2.GetIndex()[xx];
-	  vecout[xx] = vec[xx];
+          vecout[xx] = vec[xx];
           }
         unsigned int tdim = timedim;
         if( tdim > ( timedims - 1 ) )
@@ -886,9 +893,59 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
           }
         ind[ImageDimension-1] = tdim;
         outputImage->SetPixel(ind, fval);
-	displacementout->SetPixel( ind, vecout );
+        displacementout->SetPixel( ind, vecout );
         }
       }
+
+// now apply to the inverse mapﬁ
+      for( unsigned int timedim = 0; timedim < timedims; timedim++ )
+        {
+        typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
+        typename ConverterType::Pointer converter = ConverterType::New();
+        converter->SetOutputOrigin( movingSliceList[timedim]->GetOrigin() );
+        converter->SetOutputStartIndex( movingSliceList[timedim]->GetBufferedRegion().GetIndex() );
+        converter->SetSize( movingSliceList[timedim]->GetBufferedRegion().GetSize() );
+        converter->SetOutputSpacing( movingSliceList[timedim]->GetSpacing() );
+        converter->SetOutputDirection( movingSliceList[timedim]->GetDirection() );
+        typename TranslationTransformType::Pointer invtx = TranslationTransformType::New();
+        invtx->SetIdentity();
+        transformList[timedim]->GetInverse( invtx );
+        converter->SetTransform( invtx );
+        converter->Update();
+
+        // resample the moving image and then put it in its place
+        typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
+        typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
+        resampler->SetTransform( invtx );
+        resampler->SetInput( fixedSliceList[timedim] );
+        resampler->SetOutputParametersFromImage( movingSliceList[timedim] );
+        resampler->SetDefaultPixelValue( 0 );
+        resampler->Update();
+
+        /** Here, we put the resampled 2D image into the 3D volume */
+        typedef itk::ImageRegionIteratorWithIndex<FixedImageType> Iterator;
+        Iterator vfIter2(  resampler->GetOutput(), resampler->GetOutput()->GetLargestPossibleRegion() );
+        for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+          {
+          VectorType vec = converter->GetOutput()->GetPixel( vfIter2.GetIndex() );
+          VectorIOType vecout;
+          vecout.Fill( 0 );
+          typename MovingIOImageType::IndexType ind;
+          for( unsigned int xx = 0; xx < ImageDimension; xx++ )
+            {
+            ind[xx] = vfIter2.GetIndex()[xx];
+            vecout[xx] = vec[xx];
+            }
+          unsigned int tdim = timedim;
+          if( tdim > ( timedims - 1 ) )
+            {
+            tdim = timedims - 1;
+            }
+          ind[ImageDimension-1] = tdim;
+          displacementinv->SetPixel( ind, vecout );
+          }
+        }
+
     if ( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1
          && currentStage == 0 )
       {
@@ -904,14 +961,23 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       {
       std::string fileName = outputOption->GetFunction( 0 )->GetParameter( 2 );
       }
-
-    std::string dispfn = outputPrefix + std::string("Warp.nii.gz");
-    typedef  itk::ImageFileWriter<DisplacementIOFieldType> DisplacementFieldWriterType;
-    typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
-    displacementFieldWriter->SetInput( displacementout );
-    displacementFieldWriter->SetFileName( dispfn.c_str() );
-    displacementFieldWriter->Update();
-    }
+      {
+      std::string dispfn = outputPrefix + std::string("Warp.nii.gz");
+      typedef  itk::ImageFileWriter<DisplacementIOFieldType> DisplacementFieldWriterType;
+      typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
+      displacementFieldWriter->SetInput( displacementout );
+      displacementFieldWriter->SetFileName( dispfn.c_str() );
+      displacementFieldWriter->Update();
+      }
+      {
+      std::string dispfn = outputPrefix + std::string("InverseWarp.nii.gz");
+      typedef  itk::ImageFileWriter<DisplacementIOFieldType> DisplacementFieldWriterType;
+      typename DisplacementFieldWriterType::Pointer displacementFieldWriter = DisplacementFieldWriterType::New();
+      displacementFieldWriter->SetInput( displacementinv );
+      displacementFieldWriter->SetFileName( dispfn.c_str() );
+      displacementFieldWriter->Update();
+      }
+  }
   totalTimer.Stop();
   //  std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << std::endl;
   return EXIT_SUCCESS;
