@@ -941,7 +941,7 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     option->SetUsageOption(
       2,
 
-      "MSQ[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
+      "MeanSquares[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
     option->SetUsageOption(
       3,
       "GC[fixedImage,movingImage,metricWeight,radius,<samplingStrategy={Regular,Random}>,<samplingPercentage=[0,1]>]" );
