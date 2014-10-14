@@ -21,8 +21,8 @@ Usage:
 `basename $0` -d imageDimension
               -r anatomicalT1image (brain or whole-head, depending on modality) to align to
               -R anatomicalReference image to warp to (often higher resolution than anatomicalT1image)
-              -i scalarImageToMatch
-              -x anatomicalT1brainmask
+              -i scalarImageToMatch  (such as avgerage bold, averge dwi, etc.)
+              -x anatomicalT1brainmask (should mask out regions that do not appear in scalarImageToMatch)
               -t transformType (0=rigid, 1=affine, 2=rigid+small_def, 3=affine+small_def)
               -w prefix of T1 to template transform
               -T template space
@@ -38,33 +38,9 @@ Example:
 
   bash $0 -d 3 -i pcasl_control.nii.gz -r t1.nii.gz -x t1_mask.nii.gz -a cbf.nii.gz -l template_aal.nii.gz -w t12template_ -t 2 -o output
 
-Required arguments:
+minimal paramters that must be passed include:
 
-We use *intensity* to denote the original anatomical image of the brain.
-
-We use *probability* to denote a probability image with values in range 0 to 1.
-
-We use *label* to denote a label image with values in range 0 to N.
-
-     -d:  Image dimension                       2 or 3 (for 2- or 3-dimensional image)
-     -i:  Anatomical image                      Structural *intensity* scalar image such as avgerage bold, averge dwi, etc. 
-     -r:  T1 Anatomical image                   Structural *intensity* image, typically T1.  
-     -x:  Brain extraction probability mask     Brain *probability* mask created using e.g. LPBA40 labels which
-                                                have brain masks defined, and warped to anatomical template and
-                                                averaged resulting in a probability image.
-     -w:  T1 to template transform prefix       Prefix for transform files that map T1 (-r) to the template space
-                                                -p labelsPriors%02d.nii.gz.
-     -o:  Output prefix                         The following images are created:
-                                                  * ${OUTPUT_PREFIX}N4Corrected.${OUTPUT_SUFFIX}
-
-
-Optional arguments:
-
-     -t:  TranformType                          0=rigid, 1=affine, 2=rigid+small_def, 3=affine+small_def [default=1]
-     -l:  Brain segmentation priors             Anatomical *label* image in template space to be mapped to modality space
-     -a:  Auxiliary scalar files                Additional scalar files to warp to template space
-     -b:  DT image                              DTI to warp to template space
-      
+-d  -i -r -x -w -o 
 
 USAGE
     exit 1
@@ -211,8 +187,18 @@ fi
 #
 ################################################################################
 
-
-
+# requires DIMENSION BRAIN ANATOMICAL_BRAIN TEMPLATE_MASK TEMPLATE_TRANSFORM OUTPUT_PREFIX
+if [[ ${#DIMENSION} -lt 1 ]];
+  then
+    echo "Please specify -d DIMENSION "
+    exit 1
+  fi
+if [[ ! -f ${BRAIN} ]];
+  then
+    echo "The scalar brain:"
+    echo "   $BRAIN"
+    exit 1
+  fi
 if [[ ! -f ${ANATOMICAL_BRAIN} ]];
   then
     echo "The extraction template doesn't exist:"
@@ -225,11 +211,11 @@ if [[ ! -f ${TEMPLATE_MASK} ]];
     echo "   $TEMPLATE_MASK"
     exit 1
   fi
-if [[ ! -f ${BRAIN} ]];
+
+if [[ ${#ANATOMICAL_SPACE} -lt 1 ]];
   then
-    echo "The scalar brain:"
-    echo "   $BRAIN"
-    exit 1
+    echo setting ANATOMICAL_SPACE = ANATOMICAL_BRAIN
+    ANATOMICAL_SPACE=$ANATOMICAL_BRAIN
   fi
 
 OUTPUT_DIR=${OUTPUT_PREFIX%\/*}
@@ -238,7 +224,6 @@ if [[ ! -d $OUTPUT_DIR ]];
     echo "The output directory \"$OUTPUT_DIR\" does not exist. Making it."
     mkdir -p $OUTPUT_DIR
   fi
-
 
 
 ANTS_MAX_ITERATIONS="50x50x0"
@@ -314,6 +299,10 @@ then
   iwarp="-t ${OUTPUT_PREFIX}1InverseWarp.nii.gz"
 fi
 ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}anatomical.nii.gz -r $ANATOMICAL_SPACE $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
+if  [[ ! -s ${TEMPLATE_TRANSFORM}1Warp.nii.gz ]] ; then 
+  echo ${TEMPLATE_TRANSFORM}1Warp.nii.gz does not exist - please specify in order to proceed to steps that map to the template
+  exit
+fi
 ${ANTSPATH}/antsApplyTransforms -d $DIMENSION -i $BRAIN -o ${OUTPUT_PREFIX}template.nii.gz -r ${TEMPLATE} -t ${TEMPLATE_TRANSFORM}1Warp.nii.gz -t ${TEMPLATE_TRANSFORM}0GenericAffine.mat $warp -t ${OUTPUT_PREFIX}0GenericAffine.mat -n Linear
 
 echo "AUX IMAGES"
