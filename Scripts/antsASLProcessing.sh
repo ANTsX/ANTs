@@ -89,7 +89,7 @@ then
   Usage >&2
   exit 1
 else 
-  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:f:kih" OPT
+  while getopts "a:s:e:p:t:o:x:l:b:r:g:n:c:f:k:i:h" OPT
   do 
     case $OPT in 
       a) #anatomical t1 image
@@ -236,9 +236,9 @@ then
   echo "ERROR: Segmentation image $SEGMENTATION does not exist."
   exit 1
 fi
-if [[ ! -f ${TRANSFORM_PREFIX}1Warp.nii.gz ]]
+if [[ ! -f ${TRANSFORM_PREFIX}SubjectToTemplate1Warp.nii.gz ]]
 then 
-  echo "ERROR: Warp ${TRANSFORM_PREFIX}Warp.nii.gz does not exist."
+  echo "ERROR: Warp ${TRANSFORM_PREFIX}SubjectToTemplate1Warp.nii.gz does not exist."
   exit 1
 fi
 if [[ ${#PRIOR_IMAGE_FILENAMES[@]} -lt 3 ]]
@@ -255,22 +255,22 @@ if [[ ! -d `dirname $OUTNAME` ]]
 then 
   mkdir -p `dirname $OUTNAME`
 fi
-
-logCmd ${ANTSPATH}antsMotionCorr -d 3 -a $PCASL -o ${OUTNAME}AveragePCASL.nii.gz
+if [[ ! -s ${OUTNAME}AveragePCASL.nii.gz ]] ; then 
+  logCmd ${ANTSPATH}antsMotionCorr -d 3 -a $PCASL -o ${OUTNAME}AveragePCASL.nii.gz
+fi
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz 600 999999
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz ME ${OUTNAME}tmp.nii.gz 1
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz GetLargestComponent ${OUTNAME}tmp.nii.gz
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}tmp.nii.gz MD ${OUTNAME}tmp.nii.gz 2
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}pCASLBrain.nii.gz m ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}tmp.nii.gz
 
-INTERSUBJECT_PARAMS=" -d 3 -i ${OUTNAME}pCASLBrain.nii.gz -r $ANATOMICAL_IMAGE -x $BRAINMASK -w $TRANSFORM_PREFIX -t 3 -o $OUTNAME "
+INTERSUBJECT_PARAMS=" -d 3 -i ${OUTNAME}pCASLBrain.nii.gz -r $ANATOMICAL_IMAGE -x $BRAINMASK -w ${TRANSFORM_PREFIX}SubjectToTemplate -t 3 -o $OUTNAME "
 if [[ -n $LABELS ]]
 then 
   INTERSUBJECT_PARAMS=" ${INTERSUBJECT_PARAMS} -l $LABELS "
 fi
 
 logCmd ${ANTSPATH}/antsIntermodalityIntrasubject.sh $INTERSUBJECT_PARAMS
-
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}AveragePCASL.nii.gz ${OUTNAME}OtsuMask.nii.gz Otsu 4
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}OtsuMask.nii.gz 2 4
 logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz ME ${OUTNAME}OtsuMask.nii.gz 1
@@ -278,8 +278,7 @@ logCmd ${ANTSPATH}ImageMath 3 ${OUTNAME}OtsuMask.nii.gz MD ${OUTNAME}OtsuMask.ni
 logCmd ${ANTSPATH}ThresholdImage 3 ${OUTNAME}brainmask.nii.gz ${OUTNAME}BrainThresh.nii.gz 1 999
 logCmd ${ANTSPATH}MultiplyImages 3 ${OUTNAME}OtsuMask.nii.gz ${OUTNAME}BrainThresh.nii.gz  ${OUTNAME}OtsuMask.nii.gz
 
-if [ ! -f ${OUTNAME}_kcbf.nii.gz ]
-then 
+if [ ! -f ${OUTNAME}_kcbf.nii.gz ]; then
   logCmd ${ANTSPATH}antsNetworkAnalysis.R \
     -o $OUTNAME \
     --freq 0.01x0.1 \
@@ -294,52 +293,26 @@ then
     --replace $SAMPLE_WITH_REPLACEMENT
 fi
 
-if ! $USE_INVERSE_WARPS 
-then 
-  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -i ${OUTNAME}_kcbf.nii.gz \
     -r $TEMPLATE \
     -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
     -n Linear \
-    -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
-    -t ${TRANSFORM_PREFIX}0GenericAffine.mat \
+    -t ${TRANSFORM_PREFIX}SubjectToTemplate0GenericAffine.mat \
+    -t ${TRANSFORM_PREFIX}SubjectToTemplate1Warp.nii.gz \
     -t ${OUTNAME}1Warp.nii.gz \
     -t ${OUTNAME}0GenericAffine.mat 
   
-  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
+logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
     -i $LABELS \
     -r ${OUTNAME}AveragePCASL.nii.gz \
     -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
     -n MultiLabel \
+    -t ${TRANSFORM_PREFIX}TemplateToSubject0Warp.nii.gz \
+    -t ${TRANSFORM_PREFIX}TemplateToSubject1GenericAffine.mat \
     -t [${OUTNAME}0GenericAffine.mat,1] \
-    -t ${OUTNAME}1InverseWarp.nii.gz \
-    -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz 
+    -t ${OUTNAME}1InverseWarp.nii.gz 
     
-else 
-  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
-    -i ${OUTNAME}_kcbf.nii.gz \
-    -r $TEMPLATE \
-    -o ${OUTNAME}MeanCBFWarpedToTemplate.nii.gz \
-    -n Linear \
-    -t [${TRANSFORM_PREFIX}0GenericAffine.mat,1] \
-    -t ${TRANSFORM_PREFIX}1InverseWarp.nii.gz \
-    -t ${OUTNAME}1Warp.nii.gz \
-    -t ${OUTNAME}0GenericAffine.mat 
-  
-  logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
-    -i $LABELS \
-    -r ${OUTNAME}AveragePCASL.nii.gz \
-    -o ${OUTNAME}LabelsWarpedToPCASL.nii.gz \
-    -n MultiLabel \
-    -t ${OUTNAME}1InverseWarp.nii.gz \
-    -t [${OUTNAME}0GenericAffine.mat,1] \
-    -t ${TRANSFORM_PREFIX}1Warp.nii.gz \
-    -t ${TRANSFORM_PREFIX}0GenericAffine.mat 
-    
-fi
-  
-
 logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -i ${OUTNAME}_kcbf.nii.gz \
   -r $ANATOMICAL_IMAGE \
@@ -356,9 +329,6 @@ logCmd ${ANTSPATH}antsApplyTransforms -d 3 \
   -t [${OUTNAME}0GenericAffine.mat,1] \
   -t ${OUTNAME}1InverseWarp.nii.gz \
 
-
-
-
 if ! $KEEP_TMP_FILES
 then
   for FILE in 0GenericAffine.mat 1Warp.nii.gz 1InverseWarp.nii.gz anatomical.nii.gz template.nii.gz tmp.nii.gz
@@ -366,7 +336,6 @@ then
     logCmd rm ${OUTNAME}${FILE}
   done
 fi
-
 
 time_end=`date +%s`
 time_elapsed=$((time_end - time_start))
@@ -379,4 +348,3 @@ echo " $(( time_elapsed / 3600 ))h $(( time_elapsed %3600 / 60 ))m $(( time_elap
 echo "--------------------------------------------------------------------------------------"
 
 exit 0
-

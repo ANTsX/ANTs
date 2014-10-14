@@ -73,7 +73,7 @@ USAGE
 echoParameters() {
     cat <<PARAMETERS
 
-    Using antsIntramodalityInterSubject with the following arguments:
+    Using antsIntermodalityIntrasubject with the following arguments:
       image dimension         = ${DIMENSION}
       anatomical image        = ${BRAIN}
       t1 subject brain        = ${ANATOMICAL_BRAIN}
