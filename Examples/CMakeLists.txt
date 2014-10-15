@@ -180,14 +180,26 @@ foreach(ANTS_APP ${VTK_ANTS_APPS})
 endforeach()
 endif(USE_VTK)
 
-install(PROGRAMS ../Scripts/ants.sh
-                 ../Scripts/basic_ants_example.sh
-                 ../Scripts/antsIntroduction.sh
-                 ../Scripts/antsaffine.sh
-                 ../Scripts/waitForXGridJobs.pl
-                ../Scripts/buildtemplateparallel.sh
-                 ../Scripts/ANTSpexec.sh
-                 ../Scripts/waitForSGEQJobs.pl
+install(PROGRAMS ../Scripts/ANTSpexec.sh
+     ../Scripts/antsASLProcessing.sh
+     ../Scripts/antsAtroposN4.sh
+     ../Scripts/antsBOLDNetworkAnalysis.R
+     ../Scripts/antsBrainExtraction.sh
+     ../Scripts/antsCorticalThickness.sh
+     ../Scripts/antsIntermodalityIntrasubject.sh
+     ../Scripts/antsIntroduction.sh
+     ../Scripts/antsLaplacianBoundaryCondition.R
+     ../Scripts/antsLongitudinalCorticalThickness.sh
+     ../Scripts/antsMalfLabeling.sh
+     ../Scripts/antsMultivariateTemplateConstruction.sh
+     ../Scripts/antsMultivariateTemplateConstruction2.sh
+     ../Scripts/antsNetworkAnalysis.R
+     ../Scripts/antsNeuroimagingBattery
+     ../Scripts/antsRegistrationSyN.sh
+     ../Scripts/antsRegistrationSyNQuick.sh
+     ../Scripts/waitForPBSQJobs.pl
+     ../Scripts/waitForSGEQJobs.pl
+     ../Scripts/waitForXGridJobs.pl
                 DESTINATION bin
                 PERMISSIONS  OWNER_WRITE OWNER_READ OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
                 CONFIGURATIONS  Release
@@ -222,5 +234,6 @@ set(CPACK_PACKAGE_VERSION_MAJOR 2)
 set(CPACK_PACKAGE_VERSION_MINOR 1)
 set(CPACK_PACKAGE_VERSION_PATCH 0)
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "ANTS")
+set(CPACK_BINARY_GENERATORS "DragNDrop TGZ TZ")
 # This must always be last!
 include(CPack)
