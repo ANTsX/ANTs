@@ -704,6 +704,14 @@ public:
    * Collapse a composite linear transform to a generic affine transform.
    */
   typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
+  
+  /**
+   *
+   */
+  template<class TTransformType>
+  bool InitializeWithPreviousLinearTransform(const CompositeTransformType *,
+                                             const std::string,
+                                             typename TTransformType::Pointer &);
 
   /**
    * Compute approximate mesh size for a specified isotropic knot spacing
