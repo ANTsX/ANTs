@@ -524,12 +524,22 @@ for(( i=1; i < ${NUMBER_OF_MODALITIES}; i++ ))
   done
 
 TEMPLATE_Z_IMAGES=''
-for(( i=0; i < ${NUMBER_OF_MODALITIES}; i++ ))
-  do
-    TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${ANATOMICAL_IMAGES[$i]}"
-  done
 
 OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE="${OUTPUT_PREFIX}SingleSubjectTemplate/"
+
+logCmd mkdir -p ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}
+
+# Pad initial template image to avoid problems with SST drifting out of FOV
+for(( i=0; i < ${NUMBER_OF_MODALITIES}; i++ ))
+  do
+    TEMPLATE_INPUT_IMAGE="${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality${i}.nii.gz"
+ 
+    logCmd ${ANTSPATH}/ImageMath 3 ${TEMPLATE_INPUT_IMAGE} PadImage ${ANATOMICAL_IMAGES[$i]} 5
+
+    TEMPLATE_Z_IMAGES="${TEMPLATE_Z_IMAGES} -z ${TEMPLATE_INPUT_IMAGE}"
+  done
+
+
 SINGLE_SUBJECT_TEMPLATE=${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_template0.nii.gz
 
 time_start_sst_creation=`date +%s`
@@ -557,6 +567,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
 #       -l 1 \
 #       -m CC[4] \
 #       -t SyN \
+#       -y 0 \
 #       ${TEMPLATE_Z_IMAGES} \
 #       ${ANATOMICAL_IMAGES[@]}
 
@@ -575,6 +586,7 @@ if [[ ! -f $SINGLE_SUBJECT_TEMPLATE ]];
       -r 1 \
       -s CC \
       -t GR \
+      -y 0 \
       ${TEMPLATE_Z_IMAGES} \
       ${ANATOMICAL_IMAGES[@]}
 
@@ -599,6 +611,7 @@ logCmd rm -f ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_*GenericAffine*
 logCmd rm -f ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_template0warp.nii.gz
 logCmd rm -f ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_template0Affine.txt
 logCmd rm -f ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}T_templatewarplog.txt
+logCmd rm -f ${OUTPUT_DIRECTORY_FOR_SINGLE_SUBJECT_TEMPLATE}initTemplateModality*.nii.gz
 
 # Need to change the number of iterations to  -q \
 

@@ -169,9 +169,14 @@ Optional arguments:
 
      -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
 
+     -y:  Update the template with the full affine transform (default 1). If 0, the rigid
+          component of the affine transform will not be used to update the template. If your
+          template drifts in translation or orientation try -y 0.
+
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full
           path.
+
 
 Example:
 
@@ -329,11 +334,11 @@ function shapeupdatetotemplate() {
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
-        echo "   ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
+        echo "   ${ANTSPATH}${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat"
         echo "   ${WARP} -d ${dim} -e vector -i ${templatename}0warp.nii.gz -o ${templatename}0warp.nii.gz -t [${templatename}0GenericAffine.mat,1] -r ${template}"
         echo "--------------------------------------------------------------------------------------"
 
-        ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
+        ${ANTSPATH}${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0GenericAffine.mat ${outputname}*GenericAffine.mat
 
         if [[ $NWARPS -ne 0 ]];
           then
@@ -472,7 +477,7 @@ PBSMEMORY="8gb"
 # It can be set to an empty string if you do not need any special cluster options
 QSUBOPTS="" # EDIT THIS
 OUTPUTNAME=antsBTP
-
+AFFINE_UPDATE_FULL=1
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -493,7 +498,7 @@ if [[ "$1" == "-h" ]];
   fi
 
 # reading command line arguments
-while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
+while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:y:z:" OPT
   do
   case $OPT in
       h) #help
@@ -579,6 +584,9 @@ while getopts "a:b:c:d:e:f:g:h:i:j:k:l:m:n:o:p:q:s:r:t:u:v:w:x:z:" OPT
    ;;
       x) #initialization template
    XGRIDOPTS=$XGRIDOPTS
+   ;;
+      y) # update with full affine, 0 for no rigid (default = 1)
+   AFFINE_UPDATE_FULL=$OPTARG
    ;;
       z) #initialization template
    REGTEMPLATES[${#REGTEMPLATES[@]}]=$OPTARG
@@ -715,6 +723,12 @@ if [[ $STATSMETHOD -gt 2 ]];
   STATSMETHOD=1
 fi
 
+AVERAGE_AFFINE_PROGRAM="AverageAffineTransform"
+
+if [[ $AFFINE_UPDATE_FULL -eq 0 ]];
+  then
+    AVERAGE_AFFINE_PROGRAM="AverageAffineTransformNoRigid"
+  fi
 
 # Creating the file list of images to make a template from.
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.

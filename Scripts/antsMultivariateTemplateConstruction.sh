@@ -117,6 +117,10 @@ Optional arguments:
 
      -x:  XGrid arguments (e.g., -x "-p password -h controlhost")
 
+     -y:  Update the template with the full affine transform (default 1). If 0, the rigid
+          component of the affine transform will not be used to update the template. If your
+          template drifts in translation or orientation try -y 0.
+
      -z:  Use this this volume as the target of all inputs. When not used, the script
           will create an unbiased starting point by averaging all inputs. Use the full path!
 
@@ -180,7 +184,8 @@ function reportMappingParameters {
  Template Update Steps:             $ITERATIONLIMIT
  Template population:               $IMAGESETVARIABLE
  Number of Modalities:              $NUMBEROFMODALITIES
- Madality weights:                  $MODALITYWEIGHTSTRING
+ Modality weights:                  $MODALITYWEIGHTSTRING
+ Shape update with full affine:     $AFFINE_UPDATE_FULL
 --------------------------------------------------------------------------------------
 REPORTMAPPINGPARAMETERS
 }
@@ -237,11 +242,11 @@ function shapeupdatetotemplate() {
         echo "--------------------------------------------------------------------------------------"
         echo " shapeupdatetotemplate---average the affine transforms (template <-> subject)"
         echo "                      ---transform the inverse field by the resulting average affine transform"
-        echo "   ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0Affine.txt ${outputname}*Affine.txt"
+        echo "   ${ANTSPATH}${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0Affine.txt ${outputname}*Affine.txt"
         echo "   ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}0warp.nii.gz ${templatename}0warp.nii.gz -i  ${templatename}0Affine.txt -R ${template}"
         echo "--------------------------------------------------------------------------------------"
 
-        ${ANTSPATH}AverageAffineTransform ${dim} ${templatename}0Affine.txt ${outputname}*Affine.txt
+        ${ANTSPATH}${AVERAGE_AFFINE_PROGRAM} ${dim} ${templatename}0Affine.txt ${outputname}*Affine.txt
         ${ANTSPATH}WarpImageMultiTransform ${dim} ${templatename}0warp.nii.gz ${templatename}0warp.nii.gz -i  ${templatename}0Affine.txt -R ${template}
 
         ${ANTSPATH}MeasureMinMaxMean ${dim} ${templatename}0warp.nii.gz ${templatename}warplog.txt 1
@@ -370,6 +375,8 @@ OUTPUTNAME=antsBTP
 
 BACKUP_EACH_ITERATION=0
 
+AFFINE_UPDATE_FULL=1
+
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
 # RAMfree=`cat /proc/meminfo | sed -n -e '/MemFree/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -390,7 +397,7 @@ if [[ "$1" == "-h" ]];
 fi
 
 # reading command line arguments
-while getopts "b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:z:" OPT
+while getopts "b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:y:z:" OPT
   do
   case $OPT in
       h) #help
@@ -453,6 +460,9 @@ while getopts "b:c:d:g:h:i:j:k:m:n:o:p:s:r:t:w:x:z:" OPT
    ;;
       x) #initialization template
    XGRIDOPTS=$XGRIDOPTS
+   ;;
+      y) # update with full affine, 0 for no rigid (default = 1)
+   AFFINE_UPDATE_FULL=$OPTARG
    ;;
       z) #initialization template
    REGTEMPLATES[${#REGTEMPLATES[@]}]=$OPTARG
@@ -533,6 +543,7 @@ else
     fi
   fi
 
+
 # Creating the file list of images to make a template from.
 # Shiftsize is calculated because a variable amount of arguments can be used on the command line.
 # The shiftsize variable will give the correct number of arguments to skip. Issuing shift $shiftsize will
@@ -543,6 +554,13 @@ shift $shiftsize
 IMAGESETVARIABLE=$*
 NINFILES=$(($nargs - $shiftsize))
 IMAGESETARRAY=()
+
+AVERAGE_AFFINE_PROGRAM="AverageAffineTransform"
+
+if [[ $AFFINE_UPDATE_FULL -eq 0 ]];
+  then
+    AVERAGE_AFFINE_PROGRAM="AverageAffineTransformNoRigid"
+  fi
 
 # FSL not needed anymore, all dependent on ImageMath
 # #test if FSL is available in case of 4D, exit if not
