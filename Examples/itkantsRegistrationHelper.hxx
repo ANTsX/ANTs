@@ -3452,10 +3452,27 @@ RegistrationHelper<TComputeType, VImageDimension>
     itkExceptionMacro( "The composite transform is not linear." );
     }
 
+  typename AffineTransformType::Pointer totalTransform = AffineTransformType::New();
+
+  const unsigned int numberOfTransforms = compositeTransform->GetNumberOfTransforms();
+
+  // Find the last transform that has a center, and set that as the fixed parameters of the total transform.
+  // It should be set only once.
+  for( unsigned int n = numberOfTransforms; n > 0; n--)
+    {
+    typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n-1 );
+    typename MatrixOffsetTransformBaseType::ConstPointer matrixOffsetTransform =
+      dynamic_cast<MatrixOffsetTransformBaseType * const>( transform.GetPointer() );
+    if( matrixOffsetTransform.IsNotNull() )
+     {
+     totalTransform->SetCenter( matrixOffsetTransform->GetCenter() );
+     break;
+     }
+    }
+
   typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
 
-  typename AffineTransformType::Pointer totalTransform = AffineTransformType::New();
-  for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
+  for( unsigned int n = 0; n < numberOfTransforms; n++ )
     {
     typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n );
 
@@ -3471,8 +3488,9 @@ RegistrationHelper<TComputeType, VImageDimension>
       {
       typename MatrixOffsetTransformBaseType::ConstPointer matrixOffsetTransform =
         dynamic_cast<MatrixOffsetTransformBaseType * const>( transform.GetPointer() );
+      nthTransform->SetCenter( matrixOffsetTransform->GetCenter() );
       nthTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
-      nthTransform->SetOffset( matrixOffsetTransform->GetOffset() );
+      nthTransform->SetTranslation( matrixOffsetTransform->GetTranslation() );
       }
     totalTransform->Compose( nthTransform, true );
     }
