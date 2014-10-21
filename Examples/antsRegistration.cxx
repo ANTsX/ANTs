@@ -28,7 +28,7 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
 {
   typedef itk::ants::CommandLineParser::OptionType OptionType;
 
-  // short names in use-  a:b:c:d:f:g:h:l:m:n:o:q:r:s:t:u::w:x:z
+  // short names in use-  a:b:c:d:f:g:h:i:l:m:n:o:q:r:s:t:u::w:x:z
 
     {
     std::string description =
@@ -130,13 +130,30 @@ static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLine
       + std::string( "possible.  All adjacent linear transforms are written to disk in the form" )
       + std::string( "an itk affine transform (called xxxGenericAffine.mat).  Similarly, all " )
       + std::string( "adjacent displacement field transforms are combined when written to disk " )
-      + std::string( "(e.g. xxxWarp.nii.gz and xxxInverseWarp.nii.gz (if available))." );
+      + std::string( "(e.g. xxxWarp.nii.gz and xxxInverseWarp.nii.gz (if available))." )
+      + std::string( "Also, an output composite transform including the collapsed transforms is " )
+      + std::string( "written to the disk (called outputCollapsed(Inverse)Composite).");
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "collapse-output-transforms" );
     option->SetShortName( 'z' );
     option->SetUsageOption( 0, "(1)/0" );
     option->SetDescription( description );
     option->AddFunction( std::string( "1" ) );
+    parser->AddOption( option );
+    }
+
+    {
+    std::string description = std::string( "Initialize linear transforms from the previous stage. " )
+    + std::string( "By enabling this option, the current linear stage transform is directly intialized " )
+    + std::string( "from the previous stage's linear transform; this allows multiple linear stages to be run " )
+    + std::string( "where each stage directly updates the estimated linear transform from the previous stage. ")
+    + std::string( "(e.g. Translation -> Rigid -> Affine)." );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "initialize-linear-transforms-per-stage" );
+    option->SetShortName( 'i' );
+    option->SetUsageOption( 0, "(1)/0" );
+    option->SetDescription( description );
+    option->AddFunction( std::string( "0" ) );
     parser->AddOption( option );
     }
 

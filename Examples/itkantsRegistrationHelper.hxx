@@ -11,8 +11,6 @@
 #include <vnl/vnl_matrix.h>
 #include <vnl/vnl_copy.h>
 
-const static bool initializeCurrentStageWithPreviousLinearTransform = true;
-
 namespace ants
 {
 template <class TComputeType, unsigned VImageDimension>
@@ -36,6 +34,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_ApplyLinearTransformsToFixedImageHeader( true ),
   m_PrintSimilarityMeasureInterval( 0 ),
   m_WriteIntervalVolumes( 0 ),
+  m_InitializeLinearPerStage( false ),
   m_AllPreviousTransformsAreLinear( true ),
   m_CompositeLinearTransformForFixedImageHeader( NULL )
 {
@@ -1290,7 +1289,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
-          if( initializeCurrentStageWithPreviousLinearTransform )
+          if( this->m_InitializeLinearPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
             std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
@@ -1407,7 +1406,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
-          if( initializeCurrentStageWithPreviousLinearTransform )
+          if( this->m_InitializeLinearPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
             std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
@@ -1680,7 +1679,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
-          if( initializeCurrentStageWithPreviousLinearTransform )
+          if( this->m_InitializeLinearPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
             std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;

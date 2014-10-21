@@ -648,6 +648,13 @@ public:
   itkGetConstMacro( WriteIntervalVolumes, unsigned int );
 
   /**
+   * turn on the option that cause the direct initialization of the linear transforms at each stage.
+   */
+  itkSetMacro( InitializeLinearPerStage, bool );
+  itkGetConstMacro( InitializeLinearPerStage, bool );
+  itkBooleanMacro( InitializeLinearPerStage );
+
+  /**
    * turn on winsorize image intensity normalization
    */
   void SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0 );
@@ -704,7 +711,7 @@ public:
    * Collapse a composite linear transform to a generic affine transform.
    */
   typename AffineTransformType::Pointer  CollapseLinearTransforms( const CompositeTransformType * );
-  
+
   /**
    *
    */
@@ -774,6 +781,7 @@ private:
   bool         m_ApplyLinearTransformsToFixedImageHeader;
   unsigned int m_PrintSimilarityMeasureInterval;
   unsigned int m_WriteIntervalVolumes;
+  bool         m_InitializeLinearPerStage;
   bool         m_AllPreviousTransformsAreLinear;
   typename CompositeTransformType::Pointer m_CompositeLinearTransformForFixedImageHeader;
 };

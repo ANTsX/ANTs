@@ -57,6 +57,16 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer collapseOutputTransformsOption = parser->GetOption( "collapse-output-transforms" );
 
+  OptionType::Pointer initializeLinearPerStage = parser->GetOption( "initialize-linear-transforms-per-stage" );
+  if( initializeLinearPerStage && parser->Convert<bool>( initializeLinearPerStage->GetFunction( 0 )->GetName() ) )
+    {
+    regHelper->SetInitializeLinearPerStage( true );
+    }
+  else
+    {
+    regHelper->SetInitializeLinearPerStage( false );
+    }
+
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Output option not specified." << std::endl;
