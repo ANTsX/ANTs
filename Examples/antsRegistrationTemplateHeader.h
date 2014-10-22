@@ -57,6 +57,16 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer collapseOutputTransformsOption = parser->GetOption( "collapse-output-transforms" );
 
+  OptionType::Pointer initializeLinearPerStage = parser->GetOption( "initialize-linear-transforms-per-stage" );
+  if( initializeLinearPerStage && parser->Convert<bool>( initializeLinearPerStage->GetFunction( 0 )->GetName() ) )
+    {
+    regHelper->SetInitializeLinearPerStage( true );
+    }
+  else
+    {
+    regHelper->SetInitializeLinearPerStage( false );
+    }
+
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
     {
     std::cout << "Output option not specified." << std::endl;
@@ -958,6 +968,25 @@ DoRegistration(typename ParserType::Pointer & parser)
   if( parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
     {
     collapsedResultTransform = regHelper->CollapseCompositeTransform( resultTransform );
+
+    // Write Collapsed composite transform to the disk
+    std::string collapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedComposite.h5" );
+    std::string inverseCollapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedInverseComposite.h5" );
+
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer collapsedCompositeTransform =
+      collapsedResultTransform.GetPointer();
+    itk::ants::WriteTransform<TComputeType, VImageDimension>( collapsedCompositeTransform,
+                                                              collapsedCompositeTransformFileName.c_str() );
+
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCollapsedCompositeTransform =
+    collapsedCompositeTransform->GetInverseTransform();
+    if( inverseCollapsedCompositeTransform.IsNotNull() )
+      {
+      itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCollapsedCompositeTransform,
+                                                                inverseCollapsedCompositeTransformFileName.c_str() );
+      }
+    ////
+
     numTransforms = collapsedResultTransform->GetNumberOfTransforms();
     startIndex = 0;
     TransformTypeNames.clear();

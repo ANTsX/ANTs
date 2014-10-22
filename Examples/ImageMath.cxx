@@ -291,7 +291,7 @@ void ClosestSimplifiedHeaderMatrix(int argc, char *argv[])
       mydir(d,dd) = static_cast<RealType>( vlong );
       }
   image1->SetDirection( mydir );
-  // also do the origin 
+  // also do the origin
   typename ImageType::PointType origin = image1->GetOrigin();
   for ( unsigned int d = 0; d < ImageDimension; d++ )
     {
@@ -2152,7 +2152,7 @@ int TimeSeriesMask( int argc, char *argv[] )
   argct += 2;
   std::string fn1 = std::string(argv[argct]);   argct++;
   std::string fn2 = std::string(argv[argct]);   argct++;
-  
+
   typename ImageType::Pointer timeseries = ImageType::New();
   ReadImage<ImageType>( timeseries, fn1.c_str() );
 
@@ -2160,14 +2160,14 @@ int TimeSeriesMask( int argc, char *argv[] )
   ReadImage<MaskImageType>( mask, fn2.c_str() );
 
   Iterator it( mask, mask->GetLargestPossibleRegion() );
-  while ( ! it.IsAtEnd() ) 
+  while ( ! it.IsAtEnd() )
     {
-    if ( it.Value() == 0 ) 
+    if ( it.Value() == 0 )
       {
       typename MaskImageType::IndexType maskIdx = it.GetIndex();
       typename ImageType::IndexType timeIdx;
 
-      for (unsigned int i=0; i<(ImageDimension-1); i++) 
+      for (unsigned int i=0; i<(ImageDimension-1); i++)
         {
         timeIdx[i] = maskIdx[i];
         }
@@ -2177,9 +2177,9 @@ int TimeSeriesMask( int argc, char *argv[] )
         timeIdx[ImageDimension-1] = t;
         timeseries->SetPixel(timeIdx, 0);
         }
-      
+
       }
-  
+
     ++it;
     }
 
@@ -2774,7 +2774,7 @@ int SliceTimingCorrection(int argc, char *argv[])
     try
       {
       filter->Update();
-      } 
+      }
     catch( itk::ExceptionObject& exp )
       {
       std::cout << "Exception caught!" << std::endl;
@@ -3521,13 +3521,13 @@ int TimeSeriesToMatrix(int argc, char *argv[])
       voxct++;
       }
     }
-  // allocate the matrix image 
+  // allocate the matrix image
   typename MatrixImageType::SizeType size;
   size[0] = timedims;
   size[1] = voxct;
   typename MatrixImageType::RegionType newregion;
   newregion.SetSize(size);
-  if ( tomha ) matriximage = AllocImage<MatrixImageType>(newregion, 0); 
+  if ( tomha ) matriximage = AllocImage<MatrixImageType>(newregion, 0);
 
   typename ImageType::RegionType extractRegion = image1->GetLargestPossibleRegion();
   extractRegion.SetSize(ImageDimension - 1, 0);
@@ -3550,7 +3550,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
   typedef itk::Array2D<double> MatrixType;
   std::vector<std::string> ColumnHeaders;
   MatrixType               matrix;
-  if ( ! tomha ) 
+  if ( ! tomha )
     {
     matrix.set_size(timedims, voxct);
     matrix.Fill(0);
@@ -3580,7 +3580,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
         Scalar pix = image1->GetPixel(tind);
         mSample(t) = pix;
         if ( ! tomha ) matrix[t][voxct] = pix;
-        if ( tomha ) 
+        if ( tomha )
           {
 	  matriximage->SetPixel( matind, pix );
 	  }
@@ -3593,7 +3593,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
       } // check mask
     }
   //  std::cout << " Mean " << meanval / fullct << std::endl;
-  if ( ! tomha ) 
+  if ( ! tomha )
     {
     // write out the array2D object
     typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
@@ -3604,7 +3604,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
     try
       {
       writer->Write();
-      } 
+      }
     catch( itk::ExceptionObject& exp )
       {
       std::cout << "Exception caught!" << std::endl;
@@ -3612,7 +3612,7 @@ int TimeSeriesToMatrix(int argc, char *argv[])
       return EXIT_FAILURE;
       }
     }
-  if ( tomha ) 
+  if ( tomha )
     {
     WriteImage<MatrixImageType>( matriximage , outname.c_str() );
     }
@@ -4895,8 +4895,8 @@ int Stack2Images(int argc, char *argv[])
     = TileImageFilterType::New ();
   tileFilter->SetLayout( layout );
   unsigned int inputImageNumber = 0;
-  tileFilter->SetInput( inputImageNumber++, image1 ); 
-  tileFilter->SetInput( inputImageNumber++, image2 ); 
+  tileFilter->SetInput( inputImageNumber++, image1 );
+  tileFilter->SetInput( inputImageNumber++, image2 );
   tileFilter->SetDefaultPixelValue( 0 );
   tiledimage = tileFilter->GetOutput();
   WriteImage<ImageType>(tiledimage, outname.c_str() );
@@ -5704,7 +5704,7 @@ int TensorFunctions(int argc, char *argv[])
   std::string       operation = std::string(argv[argct]);  argct++;
   std::string       fn1 = std::string(argv[argct]);   argct++;
   std::string       fn2 = ""; // used for whichvec and mask file name below
-  float             backgroundMD = 0.0; // mean diffusivity of isotropic background voxels 
+  float             backgroundMD = 0.0; // mean diffusivity of isotropic background voxels
 
   typename TensorImageType::Pointer timage = NULL;    // input tensor image
   typename ImageType::Pointer       vimage = NULL;    // output scalar image
@@ -5985,8 +5985,8 @@ int TensorFunctions(int argc, char *argv[])
     {
     backgroundTensor[i] = 0.0;
     }
-  
-  if ( backgroundMD > 0.0 ) 
+
+  if ( backgroundMD > 0.0 )
     {
     std::cout << "Setting background voxels to isotropic tensors with mean diffusivity " << backgroundMD << std::endl;
     backgroundTensor[0] = backgroundMD;
@@ -14340,7 +14340,7 @@ ImageMathHelperAll(int argc, char **argv)
 
 template <unsigned DIM>
 int
-ImageMathHelper(int argc, char **argv)
+ImageMathHelper(int , char **)
 {
   return 1;
 }

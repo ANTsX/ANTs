@@ -13,124 +13,6 @@
 
 namespace ants
 {
-/**
- * Transform traits to generalize the rigid transform
- */
-template <class TComputeType, unsigned int ImageDimension>
-class RigidTransformTraits
-{
-// Don't worry about the fact that the default option is the
-// affine Transform, that one will not actually be instantiated.
-public:
-  typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
-};
-
-template <>
-class RigidTransformTraits<double, 2>
-{
-public:
-  typedef itk::Euler2DTransform<double> TransformType;
-};
-
-template <>
-class RigidTransformTraits<float, 2>
-{
-public:
-typedef itk::Euler2DTransform<float> TransformType;
-};
-
-template <>
-class RigidTransformTraits<double, 3>
-{
-public:
-  // typedef itk::VersorRigid3DTransform<double>    TransformType;
-  // typedef itk::QuaternionRigidTransform<double>  TransformType;
-  typedef itk::Euler3DTransform<double> TransformType;
-};
-
-template <>
-class RigidTransformTraits<float, 3>
-{
-public:
-  // typedef itk::VersorRigid3DTransform<float>    TransformType;
-  // typedef itk::QuaternionRigidTransform<float>  TransformType;
-typedef itk::Euler3DTransform<float> TransformType;
-};
-
-template <class TComputeType, unsigned int ImageDimension>
-class SimilarityTransformTraits
-{
-// Don't worry about the fact that the default option is the
-// affine Transform, that one will not actually be instantiated.
-public:
-  typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
-};
-
-template <>
-class SimilarityTransformTraits<double, 2>
-{
-public:
-  typedef itk::Similarity2DTransform<double> TransformType;
-};
-
-template <>
-class SimilarityTransformTraits<float, 2>
-{
-public:
-typedef itk::Similarity2DTransform<float> TransformType;
-};
-
-template <>
-class SimilarityTransformTraits<double, 3>
-{
-public:
-  typedef itk::Similarity3DTransform<double> TransformType;
-};
-
-template <>
-class SimilarityTransformTraits<float, 3>
-{
-public:
-typedef itk::Similarity3DTransform<float> TransformType;
-};
-
-template <class TComputeType, unsigned int ImageDimension>
-class CompositeAffineTransformTraits
-{
-// Don't worry about the fact that the default option is the
-// affine Transform, that one will not actually be instantiated.
-public:
-  typedef itk::AffineTransform<TComputeType, ImageDimension> TransformType;
-};
-
-template <>
-class CompositeAffineTransformTraits<double, 2>
-{
-public:
-  typedef itk::ANTSCenteredAffine2DTransform<double> TransformType;
-};
-
-template <>
-class CompositeAffineTransformTraits<float, 2>
-{
-public:
-typedef itk::ANTSCenteredAffine2DTransform<float> TransformType;
-};
-
-template <>
-class CompositeAffineTransformTraits<double, 3>
-{
-public:
-  typedef itk::ANTSAffine3DTransform<double> TransformType;
-};
-
-template <>
-class CompositeAffineTransformTraits<float, 3>
-{
-public:
-typedef itk::ANTSAffine3DTransform<float> TransformType;
-};
-
 template <class TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::RegistrationHelper() :
@@ -152,6 +34,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_ApplyLinearTransformsToFixedImageHeader( true ),
   m_PrintSimilarityMeasureInterval( 0 ),
   m_WriteIntervalVolumes( 0 ),
+  m_InitializeLinearPerStage( false ),
   m_AllPreviousTransformsAreLinear( true ),
   m_CompositeLinearTransformForFixedImageHeader( NULL )
 {
@@ -1424,6 +1307,29 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         affineRegistration->SetOptimizer( optimizer );
+
+        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
+          {
+          if( this->m_InitializeLinearPerStage )
+            {
+            const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
+            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+            for(unsigned int i=0; i<numOfTransforms; i++)
+              {
+              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
+              }
+            typename AffineTransformType::Pointer initialTransform = AffineTransformType::New();
+            if( InitializeWithPreviousLinearTransform<AffineTransformType>(this->m_CompositeTransform,
+                                                                           "Affine",
+                                                                           initialTransform) )
+              {
+              this->m_CompositeTransform->RemoveTransform(); // Remove previous initial transform,
+                                                             // since it is included in current results.
+              affineRegistration->SetInitialTransform( initialTransform );
+              }
+            }
+          }
+
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
           affineRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
@@ -1526,6 +1432,29 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         rigidRegistration->SetOptimizer( optimizer );
+
+        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
+          {
+          if( this->m_InitializeLinearPerStage )
+            {
+            const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
+            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+            for(unsigned int i=0; i<numOfTransforms; i++)
+              {
+              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
+              }
+            typename RigidTransformType::Pointer initialTransform = RigidTransformType::New();
+            if( InitializeWithPreviousLinearTransform<RigidTransformType>(this->m_CompositeTransform,
+                                                                          "Rigid",
+                                                                          initialTransform) )
+              {
+              this->m_CompositeTransform->RemoveTransform(); // Remove previous initial transform,
+                                                             // since it is included in current results.
+              rigidRegistration->SetInitialTransform( initialTransform );
+              }
+            }
+          }
+
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
           rigidRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
@@ -1799,6 +1728,29 @@ RegistrationHelper<TComputeType, VImageDimension>
           }
 
         translationRegistration->SetOptimizer( optimizer );
+
+        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
+          {
+          if( this->m_InitializeLinearPerStage )
+            {
+            const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
+            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+            for(unsigned int i=0; i<numOfTransforms; i++)
+              {
+              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
+              }
+            typename TranslationTransformType::Pointer initialTransform = TranslationTransformType::New();
+            if( InitializeWithPreviousLinearTransform<TranslationTransformType>(this->m_CompositeTransform,
+                                                                                "Translation",
+                                                                                initialTransform) )
+              {
+              this->m_CompositeTransform->RemoveTransform(); // Remove previous initial transform,
+                                                             // since it is included in current results.
+              translationRegistration->SetInitialTransform( initialTransform );
+              }
+            }
+          }
+
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
           translationRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
@@ -3639,10 +3591,27 @@ RegistrationHelper<TComputeType, VImageDimension>
     itkExceptionMacro( "The composite transform is not linear." );
     }
 
+  typename AffineTransformType::Pointer totalTransform = AffineTransformType::New();
+
+  const unsigned int numberOfTransforms = compositeTransform->GetNumberOfTransforms();
+
+  // Find the last transform that has a center, and set that as the fixed parameters of the total transform.
+  // It should be set only once.
+  for( unsigned int n = numberOfTransforms; n > 0; n--)
+    {
+    typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n-1 );
+    typename MatrixOffsetTransformBaseType::ConstPointer matrixOffsetTransform =
+      dynamic_cast<MatrixOffsetTransformBaseType * const>( transform.GetPointer() );
+    if( matrixOffsetTransform.IsNotNull() )
+     {
+     totalTransform->SetCenter( matrixOffsetTransform->GetCenter() );
+     break;
+     }
+    }
+
   typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
 
-  typename AffineTransformType::Pointer totalTransform = AffineTransformType::New();
-  for( unsigned int n = 0; n < compositeTransform->GetNumberOfTransforms(); n++ )
+  for( unsigned int n = 0; n < numberOfTransforms; n++ )
     {
     typename TransformType::Pointer transform = compositeTransform->GetNthTransform( n );
 
@@ -3658,8 +3627,9 @@ RegistrationHelper<TComputeType, VImageDimension>
       {
       typename MatrixOffsetTransformBaseType::ConstPointer matrixOffsetTransform =
         dynamic_cast<MatrixOffsetTransformBaseType * const>( transform.GetPointer() );
+      nthTransform->SetCenter( matrixOffsetTransform->GetCenter() );
       nthTransform->SetMatrix( matrixOffsetTransform->GetMatrix() );
-      nthTransform->SetOffset( matrixOffsetTransform->GetOffset() );
+      nthTransform->SetTranslation( matrixOffsetTransform->GetTranslation() );
       }
     totalTransform->Compose( nthTransform, true );
     }
@@ -3912,6 +3882,153 @@ RegistrationHelper<TComputeType, VImageDimension>
 
   image->SetDirection( direction );
   image->SetOrigin( origin );
+}
+
+template <class TComputeType, unsigned VImageDimension>
+template <class TTransformType>
+bool
+RegistrationHelper<TComputeType, VImageDimension>
+::InitializeWithPreviousLinearTransform(const CompositeTransformType * compositeTransform,
+                                        const std::string transformTypeName,
+                                        typename TTransformType::Pointer & resultTransform)
+{
+  typedef itk::TranslationTransform<RealType, VImageDimension> TranslationTransformType;
+  typedef typename RigidTransformTraits<TComputeType, VImageDimension>::TransformType RigidTransformType;
+
+  std::string previousTxFileType = "";
+  const typename TransformType::ConstPointer preTransform = compositeTransform->GetBackTransform();
+  if( preTransform.IsNotNull() )
+    {
+    previousTxFileType = preTransform->GetNameOfClass();
+    }
+  else
+    {
+    std::cout << "ERROR: INITIALIZATION RETURNS FALSE. Previous Linear Transform is Null" << std::endl;
+    return false;
+    }
+  std::cout << "Try to initialize the current " << transformTypeName
+            << " from previous " << previousTxFileType << "." << std::endl;
+/////
+  if( transformTypeName == "Translation" )
+    {
+    typename TranslationTransformType::Pointer initialTransform =
+      dynamic_cast<TranslationTransformType *>(resultTransform.GetPointer());
+    initialTransform->SetIdentity();
+    if( previousTxFileType == "TranslationTransform" )
+      {
+      typename TranslationTransformType::ConstPointer tempInitializerTransform =
+        dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
+      if( tempInitializerTransform.IsNull() )
+        {
+        std::cout << "WARNING: Initialization Failed" << std::endl;
+        return false;
+        }
+      //Translation to Translation
+      initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
+      initialTransform->SetParameters( tempInitializerTransform->GetParameters() );
+      }
+    else
+      {
+      std::cout << "WARNING: Initialization Failed" << std::endl;
+      return false;
+      }
+    }
+/////
+  else if( transformTypeName == "Rigid" )
+    {
+    typename RigidTransformType::Pointer initialTransform =
+      dynamic_cast<RigidTransformType *>(resultTransform.GetPointer());
+    initialTransform->SetIdentity();
+    if( previousTxFileType == "TranslationTransform" )
+      {
+      typename TranslationTransformType::ConstPointer tempInitializerTransform =
+        dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
+      if( tempInitializerTransform.IsNull() )
+        {
+        std::cout << "WARNING: Initialization Failed" << std::endl;
+        return false;
+        }
+      //Translation to Rigid
+      initialTransform->SetOffset( tempInitializerTransform->GetOffset() );
+      }
+    else if( previousTxFileType == "Euler3DTransform" || previousTxFileType == "Euler2DTransform" )
+      {
+      typename RigidTransformType::ConstPointer tempInitializerTransform =
+        dynamic_cast<RigidTransformType const *>( preTransform.GetPointer() );
+      if( tempInitializerTransform.IsNull() )
+        {
+        std::cout << "WARNING: Initialization Failed" << std::endl;
+        return false;
+        }
+      //Rigid to Rigid
+      initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
+      initialTransform->SetParameters( tempInitializerTransform->GetParameters() );
+      }
+    else
+      {
+      std::cout << "WARNING: Initialization Failed" << std::endl;
+      return false;
+      }
+    }
+/////
+  else if( transformTypeName == "Affine" )
+    {
+    typename AffineTransformType::Pointer initialTransform =
+      dynamic_cast<AffineTransformType *>(resultTransform.GetPointer());
+    initialTransform->SetIdentity();
+
+    if( previousTxFileType == "TranslationTransform" )
+      {
+      typename TranslationTransformType::ConstPointer tempInitializerTransform =
+        dynamic_cast<TranslationTransformType const *>( preTransform.GetPointer() );
+      if( tempInitializerTransform.IsNull() )
+        {
+        std::cout << "WARNING: Initialization Failed" << std::endl;
+        return false;
+        }
+      //Translation to Affine
+      initialTransform->SetOffset( tempInitializerTransform->GetOffset() );
+      }
+    else if( previousTxFileType == "Euler3DTransform" || previousTxFileType == "Euler2DTransform" )
+      {
+      typename RigidTransformType::ConstPointer tempInitializerTransform =
+        dynamic_cast<RigidTransformType const *>( preTransform.GetPointer() );
+      if( tempInitializerTransform.IsNull() )
+        {
+        std::cout << "WARNING: Initialization Failed" << std::endl;
+        return false;
+        }
+      //Rigid to Affine
+      initialTransform->SetCenter( tempInitializerTransform->GetCenter() );
+      initialTransform->SetMatrix( tempInitializerTransform->GetMatrix() );
+      initialTransform->SetTranslation( tempInitializerTransform->GetTranslation() );
+      }
+    else if( previousTxFileType == "AffineTransform" )
+      {
+      typename AffineTransformType::ConstPointer tempInitializerTransform =
+        dynamic_cast<AffineTransformType const *>( preTransform.GetPointer() );
+      if( tempInitializerTransform.IsNull() )
+        {
+        std::cout << "WARNING: Initialization Failed" << std::endl;
+        return false;
+        }
+      //Affine to Affine
+      initialTransform->SetFixedParameters( tempInitializerTransform->GetFixedParameters() );
+      initialTransform->SetParameters( tempInitializerTransform->GetParameters() );
+      }
+    else
+      {
+      std::cout << "WARNING: Initialization Failed" << std::endl;
+      return false;
+      }
+    }
+  else
+    {
+    std::cout << "WARNING: Initialization Failed" << std::endl;
+    return false;
+    }
+/////
+  return true;
 }
 
 template <class TComputeType, unsigned VImageDimension>
