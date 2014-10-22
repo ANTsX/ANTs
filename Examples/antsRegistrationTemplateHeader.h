@@ -902,7 +902,7 @@ DoRegistration(typename ParserType::Pointer & parser)
                           fixedImage,
                           movingImage,
                           fixedPointSet,
-                          fixedPointSet,
+                          movingPointSet,
                           stageID,
                           metricWeighting,
                           samplingStrategy,
@@ -1116,11 +1116,13 @@ DoRegistration(typename ParserType::Pointer & parser)
 #include "make_interpolator_snip.tmpl"
   regHelper->SetInterpolator( interpolator );
 
-  typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
-  typedef itk::ImageFileWriter<ImageType> WarpedImageWriterType;
   if( !outputWarpedImageName.empty() )
     {
-    WriteImage<ImageType>( warpedImage, outputWarpedImageName.c_str()  );
+    typename ImageType::Pointer warpedImage = regHelper->GetWarpedImage();
+    if( warpedImage.IsNotNull() )
+      {
+      WriteImage<ImageType>( warpedImage, outputWarpedImageName.c_str()  );
+     }
     }
 
   if( !outputInverseWarpedImageName.empty() )
