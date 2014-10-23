@@ -485,6 +485,11 @@ public:
   void SetMovingInitialTransform( const TransformType *initialTransform );
 
   /**
+   * restore the state transform and set that as an initial transform.
+   */
+  void SetRestoreStateTransform( const TransformType *initialTransform );
+
+  /**
    * add a rigid transform
    */
   void AddRigidTransform( RealType GradientStep );
@@ -650,9 +655,9 @@ public:
   /**
    * turn on the option that cause the direct initialization of the linear transforms at each stage.
    */
-  itkSetMacro( InitializeLinearPerStage, bool );
-  itkGetConstMacro( InitializeLinearPerStage, bool );
-  itkBooleanMacro( InitializeLinearPerStage );
+  itkSetMacro( InitializeTransformsPerStage, bool );
+  itkGetConstMacro( InitializeTransformsPerStage, bool );
+  itkBooleanMacro( InitializeTransformsPerStage );
 
   /**
    * turn on winsorize image intensity normalization
@@ -781,7 +786,7 @@ private:
   bool         m_ApplyLinearTransformsToFixedImageHeader;
   unsigned int m_PrintSimilarityMeasureInterval;
   unsigned int m_WriteIntervalVolumes;
-  bool         m_InitializeLinearPerStage;
+  bool         m_InitializeTransformsPerStage;
   bool         m_AllPreviousTransformsAreLinear;
   typename CompositeTransformType::Pointer m_CompositeLinearTransformForFixedImageHeader;
 };

@@ -55,16 +55,18 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   OptionType::Pointer compositeOutputOption = parser->GetOption( "write-composite-transform" );
 
+  OptionType::Pointer saveStateOption = parser->GetOption( "save-state" );
+
   OptionType::Pointer collapseOutputTransformsOption = parser->GetOption( "collapse-output-transforms" );
 
-  OptionType::Pointer initializeLinearPerStage = parser->GetOption( "initialize-linear-transforms-per-stage" );
-  if( initializeLinearPerStage && parser->Convert<bool>( initializeLinearPerStage->GetFunction( 0 )->GetName() ) )
+  OptionType::Pointer initializeTransformsPerStageOption = parser->GetOption( "initialize-transforms-per-stage" );
+  if( initializeTransformsPerStageOption && parser->Convert<bool>( initializeTransformsPerStageOption->GetFunction( 0 )->GetName() ) )
     {
-    regHelper->SetInitializeLinearPerStage( true );
+    regHelper->SetInitializeTransformsPerStage( true );
     }
   else
     {
-    regHelper->SetInitializeLinearPerStage( false );
+    regHelper->SetInitializeTransformsPerStage( false );
     }
 
   if( !outputOption || outputOption->GetNumberOfFunctions() == 0 )
@@ -185,6 +187,28 @@ DoRegistration(typename ParserType::Pointer & parser)
         itk::ants::WriteTransform<TComputeType, VImageDimension>( curTransform, curFileName.str() );
         }
       }
+    }
+
+  ParserType::OptionType::Pointer restoreStateOption = parser->GetOption( "restore-state" );
+
+  if( restoreStateOption && restoreStateOption->GetNumberOfFunctions() )
+    {
+    if( initialMovingTransformOption->GetNumberOfFunctions() || initialFixedTransformOption->GetNumberOfFunctions() )
+      {
+      std::cout << "restore-state option is mutually exclusive with "
+                << "initial-moving-transform & initial-fixed-transform options." << std::endl;
+      return EXIT_FAILURE;
+      }
+
+    std::vector<bool> isDerivedInitialMovingTransform;
+    typename CompositeTransformType::Pointer compositeTransform =
+      GetCompositeTransformFromParserOption<TComputeType, VImageDimension>( parser, restoreStateOption,
+                                                                           isDerivedInitialMovingTransform );
+    if( compositeTransform.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+    regHelper->SetRestoreStateTransform( compositeTransform );
     }
 
   if( maskOption && maskOption->GetNumberOfFunctions() )
@@ -963,13 +987,36 @@ DoRegistration(typename ParserType::Pointer & parser)
       }
     }
 
-  // write out transforms actually computed, so skip any initial transforms unless
-  // we're collapsing the output transforms.
-
   typedef typename RegistrationHelperType::CompositeTransformType         CompositeTransformType;
   typedef typename CompositeTransformType::Pointer                        CompositeTransformPointer;
   typedef typename RegistrationHelperType::DisplacementFieldTransformType DisplacementFieldTransformType;
   typedef typename RegistrationHelperType::TransformType                  TransformType;
+
+  if( saveStateOption && saveStateOption->GetNumberOfFunctions() )
+    {
+    CompositeTransformPointer savedStateTx = dynamic_cast<CompositeTransformType *>( resultTransform.GetPointer() );
+
+    // If the last transform is SyN, we add the inverse displacement field to the saved state composite.
+    if( savedStateTx->GetNthTransform( numTransforms-1 )->GetTransformCategory() ==
+       TransformType::DisplacementField )
+      {
+      typename DisplacementFieldTransformType::Pointer lastTransform =
+        dynamic_cast<DisplacementFieldTransformType *>( savedStateTx->GetNthTransform( numTransforms-1 ).GetPointer() );
+      if( lastTransform && lastTransform->GetInverseDisplacementField() )
+        {
+        savedStateTx->AddTransform( lastTransform->GetInverseTransform() );
+        }
+      }
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer savedStateCompositeTransform =
+      savedStateTx.GetPointer();
+    const std::string saveStateFileName = saveStateOption->GetFunction( 0 )->GetName();
+    // const std::cout << "SAVING FILENAME: " << saveStateFileName << std::endl;
+    itk::ants::WriteTransform<TComputeType, VImageDimension>( savedStateCompositeTransform,
+                                                             saveStateFileName.c_str() );
+    }
+
+  // write out transforms actually computed, so skip any initial transforms unless
+  // we're collapsing the output transforms.
 
   unsigned int              startIndex = initialMovingTransformOption->GetNumberOfFunctions();
   CompositeTransformPointer collapsedResultTransform;

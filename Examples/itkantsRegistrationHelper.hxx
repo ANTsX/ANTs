@@ -34,7 +34,7 @@ RegistrationHelper<TComputeType, VImageDimension>
   m_ApplyLinearTransformsToFixedImageHeader( true ),
   m_PrintSimilarityMeasureInterval( 0 ),
   m_WriteIntervalVolumes( 0 ),
-  m_InitializeLinearPerStage( false ),
+  m_InitializeTransformsPerStage( false ),
   m_AllPreviousTransformsAreLinear( true ),
   m_CompositeLinearTransformForFixedImageHeader( NULL )
 {
@@ -1314,7 +1314,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
-          if( this->m_InitializeLinearPerStage )
+          if( this->m_InitializeTransformsPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
             std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
@@ -1439,7 +1439,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
-          if( this->m_InitializeLinearPerStage )
+          if( this->m_InitializeTransformsPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
             std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
@@ -1735,7 +1735,7 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
-          if( this->m_InitializeLinearPerStage )
+          if( this->m_InitializeTransformsPerStage )
             {
             const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
             std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
@@ -2847,6 +2847,32 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
           {
+          if( this->m_InitializeTransformsPerStage )
+            {
+            const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
+            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
+            for(unsigned int i=0; i<numOfTransforms; i++)
+              {
+              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
+              }
+
+            // initial syn transform is derived from the last stage
+            //
+            typename TransformType::Pointer lastTransform = this->m_CompositeTransform->GetNthTransform( numOfTransforms-1 );
+            typename DisplacementFieldTransformType::Pointer initialSyNTransform =
+              dynamic_cast<DisplacementFieldTransformType *>( lastTransform.GetPointer() );
+            if( initialSyNTransform.IsNotNull() && initialSyNTransform->GetInverseDisplacementField() )
+              {
+              std::cout << "Current SyN transform is directly initialized from the previous stage." << std::endl;
+              this->m_CompositeTransform->RemoveTransform(); // Remove previous initial transform,
+                                                             // since it is included in current results.
+              displacementFieldRegistration->SetInitialTransform( initialSyNTransform );
+              }
+            }
+          }
+
+        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
+          {
           displacementFieldRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
           }
         if( this->m_FixedInitialTransform->GetNumberOfTransforms() > 0 )
@@ -3543,6 +3569,49 @@ RegistrationHelper<TComputeType, VImageDimension>
       this->m_FixedInitialTransform = compToAdd;
       this->m_AllPreviousTransformsAreLinear = false;
       }
+    }
+}
+
+template <class TComputeType, unsigned VImageDimension>
+void
+RegistrationHelper<TComputeType, VImageDimension>
+::SetRestoreStateTransform( const TransformType *initialTransform )
+{
+  typename CompositeTransformType::Pointer compToAdd;
+
+  typename CompositeTransformType::ConstPointer compXfrm =
+  dynamic_cast<const CompositeTransformType *>( initialTransform );
+  if( compXfrm.IsNotNull() )
+    {
+    compToAdd = compXfrm->Clone();
+
+    // If the last two transforms are displacementFieldType, we assume that they are
+    // forward and inverse displacement fields of a SyN transform, so we compose them
+    // into one displacementFieldTransformType.
+    unsigned int numTransforms = compToAdd->GetNumberOfTransforms();
+    if( (compToAdd->GetNthTransform( numTransforms-1 )->GetTransformCategory() == TransformType::DisplacementField)
+       && (compToAdd->GetNthTransform( numTransforms-2 )->GetTransformCategory() == TransformType::DisplacementField) )
+      {
+      typename DisplacementFieldTransformType::Pointer oneToEndTransform =
+      dynamic_cast<DisplacementFieldTransformType *>( compToAdd->GetNthTransform( numTransforms-2 ).GetPointer() );
+      typename DisplacementFieldTransformType::Pointer endTransform =
+      dynamic_cast<DisplacementFieldTransformType *>( compToAdd->GetNthTransform( numTransforms-1 ).GetPointer() );
+
+      typename DisplacementFieldTransformType::Pointer synTransform = DisplacementFieldTransformType::New();
+      synTransform->SetDisplacementField( oneToEndTransform->GetDisplacementField() );
+      synTransform->SetInverseDisplacementField( endTransform->GetDisplacementField() );
+      std::cout << "Initial SyN transform is restored from its forward and inverse displacement fields." << std::endl;
+
+      compToAdd->RemoveTransform();
+      compToAdd->RemoveTransform();
+      compToAdd->AddTransform( synTransform );
+      }
+
+    this->m_CompositeTransform = compToAdd;
+    }
+  else
+    {
+    this->m_CompositeTransform = NULL;
     }
 }
 
