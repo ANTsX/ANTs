@@ -933,8 +933,28 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
 
+  // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
+
+  if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) &&
+       !parser->Convert<bool>( collapseOutputTransformsOption->GetFunction( 0 )->GetName() ) )
+    {
+    std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
+    std::string inverseCompositeTransformFileName = outputPrefix + std::string( "InverseComposite.h5" );
+
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
+      resultTransform.GetPointer();
+    itk::ants::WriteTransform<TComputeType, VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
+
+    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCompositeTransform =
+      compositeTransform->GetInverseTransform();
+    if( inverseCompositeTransform.IsNotNull() )
+      {
+      itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCompositeTransform,
+                                                                inverseCompositeTransformFileName.c_str() );
+      }
+    }
 
   // write out transforms actually computed, so skip any initial transforms unless
   // we're collapsing the output transforms.
