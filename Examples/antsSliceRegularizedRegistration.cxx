@@ -221,7 +221,7 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
     if( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
       {
       std::cout << "Warning: bad time point - too little intensity variation" << std::endl;
-      return histogramMatchSourceImage;
+      return NULL;
       }
     }
   else
@@ -559,6 +559,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     for ( unsigned int loop = 0; loop < maxloop; loop++ )
     {
     RealType metricval = 0;
+    bool skipThisTimePoint = false;
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
       typename FixedImageType::Pointer preprocessFixedImage =
@@ -571,6 +572,13 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
                                          0, 1,
                                          0.005, 0.995,
                                          preprocessFixedImage );
+      if (  preprocessFixedImage.IsNull() || preprocessMovingImage.IsNull() )
+        {
+        preprocessFixedImage = fixedSliceList[timedim];
+        preprocessMovingImage = movingSliceList[timedim];
+        skipThisTimePoint = true;
+        }
+
 
       std::string whichMetric = metricOption->GetFunction( currentStage )->GetName();
       ConvertToLowerCase( whichMetric );
@@ -707,6 +715,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         typename TranslationCommandType::Pointer translationObserver = TranslationCommandType::New();
         translationObserver->SetNumberOfIterations( iterations );
         translationRegistration->AddObserver( itk::IterationEvent(), translationObserver );
+        if ( ! skipThisTimePoint )
         try
           {
           translationRegistration->Update();
