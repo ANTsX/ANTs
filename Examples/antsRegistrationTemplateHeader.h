@@ -932,27 +932,8 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     return EXIT_FAILURE;
     }
-  //
-  // write out transforms stored in the composite
+
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();
-
-  if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) )
-    {
-    std::string compositeTransformFileName = outputPrefix + std::string( "Composite.h5" );
-    std::string inverseCompositeTransformFileName = outputPrefix + std::string( "InverseComposite.h5" );
-
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer compositeTransform =
-      resultTransform.GetPointer();
-    itk::ants::WriteTransform<TComputeType, VImageDimension>( compositeTransform, compositeTransformFileName.c_str() );
-
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCompositeTransform =
-      compositeTransform->GetInverseTransform();
-    if( inverseCompositeTransform.IsNotNull() )
-      {
-      itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCompositeTransform,
-                                                                inverseCompositeTransformFileName.c_str() );
-      }
-    }
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();
 
   // write out transforms actually computed, so skip any initial transforms unless
@@ -969,23 +950,25 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     collapsedResultTransform = regHelper->CollapseCompositeTransform( resultTransform );
 
-    // Write Collapsed composite transform to the disk
-    std::string collapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedComposite.h5" );
-    std::string inverseCollapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedInverseComposite.h5" );
-
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer collapsedCompositeTransform =
-      collapsedResultTransform.GetPointer();
-    itk::ants::WriteTransform<TComputeType, VImageDimension>( collapsedCompositeTransform,
-                                                              collapsedCompositeTransformFileName.c_str() );
-
-    typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCollapsedCompositeTransform =
-    collapsedCompositeTransform->GetInverseTransform();
-    if( inverseCollapsedCompositeTransform.IsNotNull() )
+    if( parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() ) )
       {
-      itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCollapsedCompositeTransform,
-                                                                inverseCollapsedCompositeTransformFileName.c_str() );
+      // Write Collapsed composite transform to the disk
+      std::string collapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedComposite.h5" );
+      std::string inverseCollapsedCompositeTransformFileName = outputPrefix + std::string( "CollapsedInverseComposite.h5" );
+
+      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer collapsedCompositeTransform =
+        collapsedResultTransform.GetPointer();
+      itk::ants::WriteTransform<TComputeType, VImageDimension>( collapsedCompositeTransform,
+                                                                collapsedCompositeTransformFileName.c_str() );
+
+      typename RegistrationHelperType::CompositeTransformType::TransformTypePointer inverseCollapsedCompositeTransform =
+      collapsedCompositeTransform->GetInverseTransform();
+      if( inverseCollapsedCompositeTransform.IsNotNull() )
+        {
+        itk::ants::WriteTransform<TComputeType, VImageDimension>( inverseCollapsedCompositeTransform,
+                                                                  inverseCollapsedCompositeTransformFileName.c_str() );
+        }
       }
-    ////
 
     numTransforms = collapsedResultTransform->GetNumberOfTransforms();
     startIndex = 0;
