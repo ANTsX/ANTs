@@ -539,6 +539,26 @@ private:
       {
       return EXIT_FAILURE;
       }
+    OptionType::Pointer collapseOutputTransformsOption = parser->GetOption( "collapse-output-transforms" );
+    OptionType::Pointer compositeOutputOption = parser->GetOption( "write-composite-transform" );
+    OptionType::Pointer initializePerStageOption = parser->GetOption( "initialize-transforms-per-stage" );
+    OptionType::Pointer saveStateOption = parser->GetOption( "save-state" );
+
+    const bool writeCompositeTransform = parser->Convert<bool>( compositeOutputOption->GetFunction( 0 )->GetName() );
+    const bool shouldInitializePerStage = parser->Convert<bool>( initializePerStageOption->GetFunction( 0 )->GetName() );
+    if ( shouldInitializePerStage && ( ! writeCompositeTransform ) )
+       {
+       std::cerr << "ERROR:  --initialize-transforms-per-stage requires --write-composite-transform" << std::endl;
+       std::cerr << "        because the initializizing transform is collapsed into each stage for optimization" << std::endl;
+       return EXIT_FAILURE;
+       }
+    if ( ( saveStateOption && saveStateOption->GetNumberOfFunctions() ) && ( ! writeCompositeTransform ) )
+       {
+       std::cerr << "ERROR:  --save-state requires --write-composite-transform" << std::endl;
+       std::cerr << "        because the the output transform will contain the this processes initializer" << std::endl;
+       return EXIT_FAILURE;
+       }
+
     std::cout << "All_Command_lines_OK" << std::endl;
 
     if( argc == 1 )
