@@ -880,6 +880,9 @@ RegistrationHelper<TComputeType, VImageDimension>
       typename ImageMetricType::Pointer imageMetric = ITK_NULLPTR;
       typename PointSetMetricType::Pointer pointSetMetric = ITK_NULLPTR;
 
+      typedef itk::LabeledPointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> LabeledPointSetMetricType;
+      typename LabeledPointSetMetricType::Pointer labeledPointSetMetric = LabeledPointSetMetricType::New();
+
       switch( currentMetricType )
         {
         case CC:
@@ -975,7 +978,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           typedef itk::EuclideanDistancePointSetToPointSetMetricv4<PointSetType, PointSetType, RealType> IcpPointSetMetricType;
           typename IcpPointSetMetricType::Pointer icpMetric = IcpPointSetMetricType::New();
 
-          pointSetMetric = icpMetric;
+          labeledPointSetMetric->SetPointSetMetric( icpMetric.GetPointer() );
+          pointSetMetric = labeledPointSetMetric;
           }
           break;
         case PSE:
@@ -985,7 +989,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           pseMetric->SetPointSetSigma( stageMetricList[currentMetricNumber].m_PointSetSigma );
           pseMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
 
-          pointSetMetric = pseMetric;
+          labeledPointSetMetric->SetPointSetMetric( pseMetric.GetPointer() );
+          pointSetMetric = labeledPointSetMetric;
           }
           break;
         case JHCT:
@@ -999,7 +1004,8 @@ RegistrationHelper<TComputeType, VImageDimension>
           jhctMetric->SetEvaluationKNeighborhood( stageMetricList[currentMetricNumber].m_EvaluationKNeighborhood );
           jhctMetric->SetAlpha( stageMetricList[currentMetricNumber].m_Alpha );
 
-          pointSetMetric = jhctMetric;
+          labeledPointSetMetric->SetPointSetMetric( jhctMetric.GetPointer() );
+          pointSetMetric = labeledPointSetMetric;
           }
           break;
         default:
