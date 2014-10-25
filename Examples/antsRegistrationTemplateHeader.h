@@ -937,6 +937,9 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
 
+
+
+
   // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();
   unsigned int numTransforms = resultTransform->GetNumberOfTransforms();

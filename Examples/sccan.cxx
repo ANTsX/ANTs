@@ -2846,7 +2846,10 @@ private:
     sccanparser->AddOption( option );
     }
 
-  sccanparser->Parse( argc, argv );
+  if( sccanparser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   // Print the entire help menu
   itk::ants::CommandLineParser::OptionType::Pointer shortHelpOption =

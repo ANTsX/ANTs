@@ -1660,7 +1660,10 @@ private:
   parser->SetCommandDescription( commandDescription );
   antsMotionCorrInitializeCommandLineOptions( parser );
 
-  parser->Parse( argc, argv );
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
     {

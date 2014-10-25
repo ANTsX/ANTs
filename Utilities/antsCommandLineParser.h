@@ -81,7 +81,8 @@ public:
   OptionType::Pointer GetOption( std::string );
 
   bool starts_with( const std::string &, const std::string & );
-  void Parse( unsigned int, char * * );
+  int Parse( unsigned int, char * * );
+  bool ValidateFlag(const std::string & currentFlag);
 
   void AddOption( OptionType::Pointer );
 

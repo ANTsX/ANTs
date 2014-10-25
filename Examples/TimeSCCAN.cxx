@@ -833,7 +833,10 @@ private:
   parser->SetCommandDescription( commandDescription );
   InitializeCommandLineOptions( parser );
 
-  parser->Parse( argc, argv );
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   // Print the entire help menu
   itk::ants::CommandLineParser::OptionType::Pointer shortHelpOption =
