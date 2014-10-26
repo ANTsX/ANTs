@@ -31,6 +31,8 @@
 #include "itkImageToHistogramFilter.h"
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
+#include "itkTransformToDisplacementFieldFilter.h"
+#include "itkIdentityTransform.h"
 
 #include "itkAffineTransform.h"
 #include "itkBSplineTransform.h"
@@ -437,6 +439,10 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typedef itk::Image<PixelType, ImageDimension>     FixedImageType;
   typedef itk::Image<PixelType, ImageDimension + 1> MovingIOImageType;
   typedef itk::Image<PixelType, ImageDimension + 1> MovingImageType;
+  typedef itk::Vector<RealType, ImageDimension+1>     VectorIOType;
+  typedef itk::Image<VectorIOType, ImageDimension+1>  DisplacementIOFieldType;
+  typedef itk::Vector<RealType, ImageDimension>     VectorType;
+  typedef itk::Image<VectorType, ImageDimension>    DisplacementFieldType;
   typedef vnl_matrix<RealType>                      vMatrix;
   vMatrix param_values;
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;
@@ -546,6 +552,13 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     std::cout << " nimagestoavg " << nimagestoavg << std::endl;
     }
 
+  unsigned int writeDisplacementField = 0;
+  itk::ants::CommandLineParser::OptionType::Pointer wdopt = parser->GetOption( "write-displacement" );
+  if( wdopt && wdopt->GetNumberOfFunctions() )
+    {
+    writeDisplacementField = parser->Convert<unsigned int>( wdopt->GetFunction( 0 )->GetName() );
+    }
+
   bool                doEstimateLearningRateOnce(false);
   OptionType::Pointer rateOption = parser->GetOption( "use-estimate-learning-rate-once" );
   if( rateOption && rateOption->GetNumberOfFunctions() )
@@ -566,6 +579,8 @@ int ants_motion( itk::ants::CommandLineParser *parser )
   typedef itk::AffineTransform<RealType, ImageDimension>                                      AffineTransformType;
   typedef itk::ImageRegistrationMethodv4<FixedImageType, FixedImageType, AffineTransformType> AffineRegistrationType;
   // We iterate backwards because the command line options are stored as a stack (first in last out)
+  typename DisplacementIOFieldType::Pointer displacementout = NULL;
+
   for( int currentStage = numberOfStages - 1; currentStage >= 0; currentStage-- )
     {
     std::cout << std::endl << "Stage " << numberOfStages - currentStage << std::endl;
@@ -629,6 +644,25 @@ int ants_motion( itk::ants::CommandLineParser *parser )
     outputImage->SetDirection( outDirection );
     outputImage->Allocate();
     outputImage->FillBuffer( 0 );
+
+
+    if ( writeDisplacementField > 0 )
+      {
+      /** Handle all output: images and displacement fields */
+      typedef itk::IdentityTransform<RealType, ImageDimension+1> IdentityIOTransformType;
+      typename IdentityIOTransformType::Pointer identityIOTransform = IdentityIOTransformType::New();
+      typedef typename itk::TransformToDisplacementFieldFilter<DisplacementIOFieldType, RealType> ConverterType;
+      typename ConverterType::Pointer idconverter = ConverterType::New();
+      idconverter->SetOutputOrigin( outputImage->GetOrigin() );
+      idconverter->SetOutputStartIndex( outputImage->GetBufferedRegion().GetIndex() );
+      idconverter->SetSize( outputImage->GetBufferedRegion().GetSize() );
+      idconverter->SetOutputSpacing( outputImage->GetSpacing() );
+      idconverter->SetOutputDirection( outputImage->GetDirection() );
+      idconverter->SetTransform( identityIOTransform );
+      idconverter->Update();
+      displacementout = idconverter->GetOutput();
+      }
+
 
     // Get the number of iterations and use that information to specify the number of levels
 
@@ -1322,6 +1356,44 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         ind[ImageDimension] = tdim;
         outputImage->SetPixel(ind, fval);
         }
+      if ( writeDisplacementField > 0 )
+        {
+        typedef typename
+        itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType>
+          ConverterType;
+        typename ConverterType::Pointer converter = ConverterType::New();
+        converter->SetOutputOrigin( fixed_time_slice->GetOrigin() );
+        converter->SetOutputStartIndex(
+          fixed_time_slice->GetBufferedRegion().GetIndex() );
+        converter->SetSize( fixed_time_slice->GetBufferedRegion().GetSize() );
+        converter->SetOutputSpacing( fixed_time_slice->GetSpacing() );
+        converter->SetOutputDirection( fixed_time_slice->GetDirection() );
+        converter->SetTransform( compositeTransform );
+        converter->Update();
+
+        /** Here, we put the 3d tx into a 4d displacement field */
+        for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
+          {
+          VectorType vec =
+            converter->GetOutput()->GetPixel( vfIter2.GetIndex() );
+          VectorIOType vecout;
+          vecout.Fill( 0 );
+          typename MovingIOImageType::IndexType ind;
+          for( unsigned int xx = 0; xx < ImageDimension; xx++ )
+            {
+            ind[xx] = vfIter2.GetIndex()[xx];
+            vecout[xx] = vec[xx];
+            }
+          unsigned int tdim = timedim;
+          if( tdim > ( timedims - 1 ) )
+            {
+            tdim = timedims - 1;
+            }
+          ind[ImageDimension-1] = tdim;
+          displacementout->SetPixel( ind, vecout );
+          }
+
+        }
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1  && currentStage == 0 )
       {
@@ -1372,6 +1444,12 @@ int ants_motion( itk::ants::CommandLineParser *parser )
       WriteImage<FixedIOImageType>( fixed_time_slice, fileName.c_str() );
       }
     }
+  if ( writeDisplacementField > 0 )
+    {
+    std::string dfn = outputPrefix + std::string("Warp.nii.gz");
+    WriteImage<DisplacementIOFieldType>( displacementout, dfn.c_str()  );
+    }
+
   totalTimer.Stop();
   std::cout << std::endl << "Total elapsed time: " << totalTimer.GetMean() << " averagemetric " << metricmean
             << std::endl;
@@ -1578,6 +1656,16 @@ void antsMotionCorrInitializeCommandLineOptions( itk::ants::CommandLineParser *p
     option->SetDescription( description );
     parser->AddOption( option );
     }
+
+    {
+    std::string         description = std::string( "Write the low-dimensional 3D transforms to a 4D displacement field" );
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "write-displacement" );
+    option->SetShortName( 'w' );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
+
 
     {
     std::string description = std::string( "Print the help menu (short version)." );
