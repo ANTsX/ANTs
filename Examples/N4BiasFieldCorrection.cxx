@@ -781,7 +781,10 @@ private:
   parser->SetCommandDescription( commandDescription );
   N4InitializeCommandLineOptions( parser );
 
-  parser->Parse( argc, argv );
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   if( argc == 1 )
     {

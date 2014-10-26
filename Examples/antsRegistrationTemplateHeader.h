@@ -73,13 +73,17 @@ DoRegistration(typename ParserType::Pointer & parser)
     return EXIT_FAILURE;
     }
 
-  OptionType::Pointer collapseLinearTransforms =
-    parser->GetOption( "collapse-linear-transforms-to-fixed-image-header" );
-  if( collapseLinearTransforms && parser->Convert<bool>( collapseLinearTransforms->GetFunction( 0 )->GetName() ) )
-    {
-    regHelper->SetApplyLinearTransformsToFixedImageHeader( true );
-    }
-  else
+  /*
+   * This option is currently disabled, so commenting it's usage out here
+   *
+   * OptionType::Pointer collapseLinearTransforms =
+   * parser->GetOption( "collapse-linear-transforms-to-fixed-image-header" );
+   * if( collapseLinearTransforms && parser->Convert<bool>( collapseLinearTransforms->GetFunction( 0 )->GetName() ) )
+   * {
+   * regHelper->SetApplyLinearTransformsToFixedImageHeader( true );
+   * }
+   * else
+   */
     {
     regHelper->SetApplyLinearTransformsToFixedImageHeader( false );
     }
@@ -932,6 +936,9 @@ DoRegistration(typename ParserType::Pointer & parser)
     {
     return EXIT_FAILURE;
     }
+
+
+
 
   // write out transforms stored in the composite
   typename CompositeTransformType::Pointer resultTransform = regHelper->GetModifiableCompositeTransform();

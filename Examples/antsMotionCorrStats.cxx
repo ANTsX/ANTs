@@ -74,7 +74,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     std::cerr << "Output option not specified." << std::endl;
     return EXIT_FAILURE;
     }
-  
+
   OptionType::Pointer mocoOption = parser->GetOption( "moco" );
   if( mocoOption && mocoOption->GetNumberOfFunctions() )
     {
@@ -90,7 +90,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   OptionType::Pointer maskOption = parser->GetOption( "mask" );
 
   ImageType::Pointer mask = ImageType::New();
-  if ( maskOption && maskOption->GetNumberOfFunctions() ) 
+  if ( maskOption && maskOption->GetNumberOfFunctions() )
     {
     ReadImage<ImageType>( mask, maskOption->GetFunction(0)->GetName().c_str()  );
     }
@@ -102,24 +102,24 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   bool doFramewise = 0;
   doFramewise = parser->Convert<bool>( parser->GetOption( "framewise" )->GetFunction()->GetName() );
   std::cout << "Framewise = " << doFramewise << std::endl;
-  
+
   MocoReaderType::Pointer mocoReader = MocoReaderType::New();
   mocoReader->SetFileName( mocoName.c_str() );
   mocoReader->SetFieldDelimiterCharacter( ',' );
   mocoReader->HasColumnHeadersOn();
   mocoReader->HasRowHeadersOff();
   mocoReader->Update();
-  
+
   MocoDataArrayType::Pointer mocoDataArray = mocoReader->GetOutput();
-  std::cout << "Read motion correction data of size: " << mocoDataArray->GetMatrix().rows() << " x " 
+  std::cout << "Read motion correction data of size: " << mocoDataArray->GetMatrix().rows() << " x "
             << mocoDataArray->GetMatrix().cols() << std::endl;
 
   unsigned int nTransformParams = mocoDataArray->GetMatrix().cols() - 2;
   //std::cout << "# Transform parameters = " << nTransformParams << std::endl;
 
   WriterMatrixType dataMatrix( mocoDataArray->GetMatrix().rows(), 2 );
-  
-  for ( unsigned int i=0; i<mocoDataArray->GetMatrix().rows(); i++ ) 
+
+  for ( unsigned int i=0; i<mocoDataArray->GetMatrix().rows(); i++ )
     {
 
     AffineTransformType::Pointer affineTransform1 = AffineTransformType::New();
@@ -129,7 +129,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     params1.SetSize( nTransformParams );
     params2.SetSize( nTransformParams );
 
-    for ( unsigned int t=0; t<nTransformParams; t++ ) 
+    for ( unsigned int t=0; t<nTransformParams; t++ )
       {
       params1[t] = mocoDataArray->GetMatrix()(i,t+2);
       if ( i < (mocoDataArray->GetMatrix().rows()-1) )
@@ -151,14 +151,14 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
 
       affineTransform2->SetMatrix( rigid2->GetMatrix() );
       affineTransform2->SetTranslation( rigid2->GetTranslation() );
-  
+
       }
     else if ( nTransformParams == 12 )
       {
       affineTransform1->SetParameters( params1 );
       affineTransform2->SetParameters( params2 );
       }
-    else 
+    else
       {
       std::cout << "Unknown transform type! - Exiting" << std::endl;
       return EXIT_FAILURE;
@@ -171,35 +171,35 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
     double count = 0;
 
     IteratorType it( mask, mask->GetLargestPossibleRegion() );
-    while( !it.IsAtEnd() ) 
+    while( !it.IsAtEnd() )
       {
-    
+
       if ( it.Value() > 0 )
-        {    
+        {
         ImageType::IndexType idx = it.GetIndex();
         ImageType::PointType pt;
         mask->TransformIndexToPhysicalPoint(idx,pt);
-      
+
         ImageType::PointType pt1 = affineTransform1->TransformPoint( pt );
-      
+
         double dist = 0;
-        if ( doFramewise && ( i < (mocoDataArray->GetMatrix().rows()-1) ) ) 
+        if ( doFramewise && ( i < (mocoDataArray->GetMatrix().rows()-1) ) )
           {
           ImageType::PointType pt2 = affineTransform2->TransformPoint( pt );
           dist = pt1.EuclideanDistanceTo(pt2);
           }
-        else 
+        else
           {
           dist = pt.EuclideanDistanceTo(pt1);
           }
-        
-        if ( doFramewise && ( i == mocoDataArray->GetMatrix().rows()-1) ) 
+
+        if ( doFramewise && ( i == mocoDataArray->GetMatrix().rows()-1) )
           {
           dist = 0.0;
           }
 
 
-        if ( dist > maxDisplacement ) 
+        if ( dist > maxDisplacement )
           {
           maxDisplacement = dist;
           }
@@ -207,7 +207,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
         ++count;
 
         }
-      ++it; 
+      ++it;
       }
 
     meanDisplacement /= count;
@@ -224,7 +224,7 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
   writer->SetInput( &dataMatrix );
   writer->SetFileName( outputOption->GetFunction(0)->GetName().c_str() );
   writer->Write();
-  
+
   return EXIT_SUCCESS;
 }
 
@@ -351,7 +351,10 @@ private:
   parser->SetCommandDescription( commandDescription );
   antsMotionCorrStatsInitializeCommandLineOptions( parser );
 
-  parser->Parse( argc, argv );
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   if( argc < 2 || parser->Convert<bool>( parser->GetOption( "help" )->GetFunction()->GetName() ) )
     {

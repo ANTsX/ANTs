@@ -648,7 +648,10 @@ private:
   parser->SetCommandDescription( commandDescription );
   KellyKapowskiInitializeCommandLineOptions( parser );
 
-  parser->Parse( argc, argv );
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   if( argc == 1 )
     {

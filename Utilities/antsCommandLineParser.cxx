@@ -93,7 +93,7 @@ CommandLineParser
   return s2.length() <= s1.length() && s1.compare(0, s2.length(), s2) == 0;
 }
 
-void
+int
 CommandLineParser
 ::Parse( unsigned int argc, char * *argv )
 {
@@ -102,6 +102,7 @@ CommandLineParser
 
   unsigned int n = 0;
   unsigned int order = 0;
+  bool allFlagsAreValid = true;
 
   if ( arguments.size() > 1 )
     {
@@ -123,6 +124,7 @@ CommandLineParser
       name = argument.substr( 1, 2 );
       }
 
+    allFlagsAreValid &= this->ValidateFlag(name);
     if( !( name.empty() ) && !atof( name.c_str() ) )
       {
       OptionType::Pointer option = this->GetOption( name );
@@ -198,8 +200,13 @@ CommandLineParser
         }
       }
     }
-
+  if( ! allFlagsAreValid )
+    {
+    std::cerr << "ERROR:  Invalid command line flags found! Aborting exectution." << std::endl;
+    return EXIT_FAILURE;
+    }
   this->AssignStages();
+  return EXIT_SUCCESS;
 }
 
 std::vector<std::string>
@@ -342,6 +349,27 @@ CommandLineParser
       }
     }
   return NULL;
+}
+
+bool
+CommandLineParser::
+ValidateFlag(const std::string & currentFlag)
+{
+  bool validFlagFound = false;
+  for( OptionListType::const_iterator it = this->m_Options.begin(); it != this->m_Options.end(); ++it )
+    {
+    const char shortName = (*it)->GetShortName();
+    const std::string longName  = (*it)->GetLongName();
+    if( ( currentFlag.size() == 1 && shortName == currentFlag[0] ) || (longName == currentFlag ) )
+      {
+      validFlagFound = true;
+      }
+    }
+  if ( ! validFlagFound )
+    {
+    std::cout << "ERROR:  Invalid flag provided " << currentFlag << std::endl;
+    }
+  return validFlagFound;
 }
 
 void

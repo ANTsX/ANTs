@@ -503,7 +503,11 @@ private:
     parser->SetCommandDescription( commandDescription );
     antsRegistrationInitializeCommandLineOptions( parser );
 
-    parser->Parse( argc, argv );
+    if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+      {
+      return EXIT_FAILURE;
+      }
+    std::cout << "All_Command_lines_OK" << std::endl;
 
     if( argc == 1 )
       {

@@ -92,7 +92,10 @@ private:
 
   parser->AddOption( dirOption );
 
-  parser->Parse( argc, argv );
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
+    {
+    return EXIT_FAILURE;
+    }
 
   if( !parser->GetOption( "directionality" ) )
     {
