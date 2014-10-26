@@ -1370,7 +1370,6 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         converter->SetOutputDirection( fixed_time_slice->GetDirection() );
         converter->SetTransform( compositeTransform );
         converter->Update();
-
         /** Here, we put the 3d tx into a 4d displacement field */
         for(  vfIter2.GoToBegin(); !vfIter2.IsAtEnd(); ++vfIter2 )
           {
@@ -1379,7 +1378,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           VectorIOType vecout;
           vecout.Fill( 0 );
           typename MovingIOImageType::IndexType ind;
-          for( unsigned int xx = 0; xx < ImageDimension; xx++ )
+          for( unsigned int xx = 0; xx < ImageDimension+1; xx++ )
             {
             ind[xx] = vfIter2.GetIndex()[xx];
             vecout[xx] = vec[xx];
@@ -1389,10 +1388,9 @@ int ants_motion( itk::ants::CommandLineParser *parser )
             {
             tdim = timedims - 1;
             }
-          ind[ImageDimension-1] = tdim;
+          ind[ImageDimension] = tdim;
           displacementout->SetPixel( ind, vecout );
           }
-
         }
       }
     if( outputOption && outputOption->GetFunction( 0 )->GetNumberOfParameters() > 1  && currentStage == 0 )
