@@ -9825,6 +9825,104 @@ int InvId( int argc, char *argv[] )
 }
 
 template <unsigned int ImageDimension>
+int ReplicateDisplacement( int argc, char *argv[] )
+{
+  if( argc > 6 )
+    {
+    std::cout << " Replicate a ND displacement to ND+1 dimensions " << std::endl;
+    }
+  else
+    {
+    std::cout << "ImageMath 3 out4DWarp.nii.gz ReplicateDisplacement in3DWarp.nii.gz nreplications time-spacing time-origin" << std::endl;
+    std::cout << "ImageMath 3 out4DWarp.nii.gz ReplicateDisplacement in3DWarp.nii.gz 10 2.5 0.0" << std::endl;
+    return 1;
+    }
+  typedef float                                              RealType;
+  typedef itk::Image<RealType, ImageDimension>               RealImageType;
+  typedef itk::Vector<RealType, ImageDimension>              VectorType;
+  typedef itk::Image<VectorType, ImageDimension>             VectorImageType;
+  typedef itk::ImageRegionIteratorWithIndex<VectorImageType> Iterator;
+
+  typedef itk::Image<RealType, ImageDimension+1>             RealRImageType;
+  typedef itk::Vector<RealType, ImageDimension+1>            VectorRType;
+  typedef itk::Image<VectorRType, ImageDimension+1>          VectorRImageType;
+
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string vecname1 = std::string(argv[argct]);   argct++;
+  unsigned int timedims = atoi(argv[argct]);  argct++;
+  unsigned int tr = atof(argv[argct]);  argct++;
+  unsigned int torigin = atof(argv[argct]);  argct++;
+
+  /**
+   * Read in vector field
+   */
+  typedef itk::ImageFileReader<VectorImageType> ReaderType;
+  typename ReaderType::Pointer reader1 = ReaderType::New();
+  reader1->SetFileName( vecname1.c_str() );
+  reader1->Update();
+  typename VectorImageType::Pointer vecimage1 = reader1->GetOutput();
+  typename VectorRImageType::Pointer outputImage = VectorRImageType::New();
+  typename VectorRImageType::RegionType outRegion;
+  typename VectorRImageType::SizeType outSize;
+  typename VectorRImageType::SpacingType outSpacing;
+  typename VectorRImageType::PointType outOrigin;
+  typename VectorRImageType::DirectionType outDirection;
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    outSize[d] = vecimage1->GetLargestPossibleRegion().GetSize()[d];
+    outSpacing[d] = vecimage1->GetSpacing()[d];
+    outOrigin[d] = vecimage1->GetOrigin()[d];
+    for( unsigned int e = 0; e < ImageDimension; e++ )
+      {
+      outDirection(e, d) = vecimage1->GetDirection() (e, d);
+      }
+    }
+  for( unsigned int d = 0; d < ImageDimension; d++ )
+    {
+    outDirection(d, ImageDimension) = 0;
+    outDirection(ImageDimension, d) = 0;
+    }
+  outDirection(ImageDimension, ImageDimension) = 1.0;
+  outSize[ImageDimension] = timedims;
+  outSpacing[ImageDimension] = tr;
+  outOrigin[ImageDimension] = torigin;
+
+  outRegion.SetSize( outSize );
+  outputImage->SetRegions( outRegion );
+  outputImage->SetSpacing( outSpacing );
+  outputImage->SetOrigin( outOrigin );
+  outputImage->SetDirection( outDirection );
+  outputImage->Allocate();
+  VectorRType vec;
+  vec.Fill( 0 );
+  outputImage->FillBuffer( vec );
+
+  // perform the replication
+  typename VectorImageType::IndexType ind;
+  typename VectorRImageType::IndexType indp1;
+  Iterator It1( vecimage1, vecimage1->GetLargestPossibleRegion() );
+  for( It1.GoToBegin(); !It1.IsAtEnd(); ++It1 )
+    {
+    ind = It1.GetIndex();
+    typename VectorImageType::PixelType vecx = It1.Get();
+    for( unsigned int i = 0; i < ImageDimension; i++ )
+      {
+      vec[i] = vecx[i];
+      indp1[i] = ind[i];
+      }
+    for( unsigned int i = 0; i < timedims; i++ )
+      {
+      indp1[i] = i;
+      outputImage->SetPixel( indp1, vec );
+      }
+    }
+  WriteImage<VectorRImageType>( outputImage, outname.c_str() );
+  return 0;
+}
+
+template <unsigned int ImageDimension>
 int LabelStats(      int argc, char *argv[])
 {
   typedef float                                                           PixelType;
@@ -14091,6 +14189,11 @@ ImageMathHelperAll(int argc, char **argv)
     InvId<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "ReplicateDisplacement" )
+    {
+    ReplicateDisplacement<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
   if( operation == "GetLargestComponent" )
     {
     GetLargestComponent<DIM>(argc, argv);
@@ -14817,6 +14920,12 @@ private:
       "\n  InvId            : computes the inverse-consistency of two deformations and write the inverse consistency error image "
       << std::endl;
     std::cout << "      Usage        : InvId VectorFieldName VectorFieldName" << std::endl;
+
+  std::cout
+    <<
+    "\n  ReplicateDisplacement            : replicate a ND displacement to a ND+1 image"
+    << std::endl;
+  std::cout << "      Usage        : ReplicateDisplacement VectorFieldName TimeDims TimeSpacing TimeOrigin" << std::endl;
 
     std::cout << "\n  LabelStats        : Compute volumes / masses of objects in a label image. Writes to text file"
               << std::endl;
