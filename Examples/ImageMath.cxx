@@ -9854,7 +9854,6 @@ int ReplicateDisplacement( int argc, char *argv[] )
   unsigned int timedims = atoi(argv[argct]);  argct++;
   unsigned int tr = atof(argv[argct]);  argct++;
   unsigned int torigin = atof(argv[argct]);  argct++;
-
   /**
    * Read in vector field
    */
@@ -9888,7 +9887,6 @@ int ReplicateDisplacement( int argc, char *argv[] )
   outSize[ImageDimension] = timedims;
   outSpacing[ImageDimension] = tr;
   outOrigin[ImageDimension] = torigin;
-
   outRegion.SetSize( outSize );
   outputImage->SetRegions( outRegion );
   outputImage->SetSpacing( outSpacing );
@@ -9898,7 +9896,6 @@ int ReplicateDisplacement( int argc, char *argv[] )
   VectorRType vec;
   vec.Fill( 0 );
   outputImage->FillBuffer( vec );
-
   // perform the replication
   typename VectorImageType::IndexType ind;
   typename VectorRImageType::IndexType indp1;
@@ -9914,7 +9911,7 @@ int ReplicateDisplacement( int argc, char *argv[] )
       }
     for( unsigned int i = 0; i < timedims; i++ )
       {
-      indp1[i] = i;
+      indp1[ImageDimension] = i;
       outputImage->SetPixel( indp1, vec );
       }
     }
