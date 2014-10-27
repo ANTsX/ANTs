@@ -1378,7 +1378,7 @@ int ants_motion( itk::ants::CommandLineParser *parser )
           VectorIOType vecout;
           vecout.Fill( 0 );
           typename MovingIOImageType::IndexType ind;
-          for( unsigned int xx = 0; xx < ImageDimension+1; xx++ )
+          for( unsigned int xx = 0; xx < ImageDimension; xx++ )
             {
             ind[xx] = vfIter2.GetIndex()[xx];
             vecout[xx] = vec[xx];
