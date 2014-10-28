@@ -994,7 +994,12 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( saveStateOption && saveStateOption->GetNumberOfFunctions() )
     {
-    CompositeTransformPointer savedStateTx = dynamic_cast<CompositeTransformType *>( resultTransform.GetPointer() );
+    CompositeTransformPointer resultCompXfrm = dynamic_cast<CompositeTransformType *>( resultTransform.GetPointer() );
+    if( resultCompXfrm.IsNull() )
+      {
+      return EXIT_FAILURE;
+      }
+    CompositeTransformPointer savedStateTx = resultCompXfrm->Clone();
 
     // If the last transform is SyN, we add the inverse displacement field to the saved state composite.
     if( savedStateTx->GetNthTransform( numTransforms-1 )->GetTransformCategory() ==
