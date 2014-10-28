@@ -665,7 +665,7 @@ public:
   void SetWinsorizeImageIntensities( bool Winsorize, float LowerQuantile = 0.0, float UpperQuantile = 1.0 );
 
   itkGetModifiableObjectMacro( CompositeTransform, CompositeTransformType );
-
+  itkGetModifiableObjectMacro( RegistrationState, CompositeTransformType );
   /**
    * Set/Get the interpolator.  Linear is default.
    */
@@ -760,6 +760,7 @@ private:
   }
 
   typename CompositeTransformType::Pointer         m_CompositeTransform;
+  typename CompositeTransformType::Pointer         m_RegistrationState;
   typename CompositeTransformType::Pointer         m_FixedInitialTransform;
   typename ImageMaskSpatialObjectType::Pointer     m_FixedImageMask;
   typename ImageMaskSpatialObjectType::Pointer     m_MovingImageMask;

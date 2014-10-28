@@ -62,6 +62,12 @@ DoRegistration(typename ParserType::Pointer & parser)
   OptionType::Pointer initializeTransformsPerStageOption = parser->GetOption( "initialize-transforms-per-stage" );
   if( initializeTransformsPerStageOption && parser->Convert<bool>( initializeTransformsPerStageOption->GetFunction( 0 )->GetName() ) )
     {
+    if( shouldCollapseBeDone )
+      {
+      std::cout << "ERROR: initialize-transforms-per-stage & collapse-output-transforms options are mutually exclusive."
+                << std::endl;
+      return EXIT_FAILURE;
+      }
     regHelper->SetInitializeTransformsPerStage( true );
     }
   else
@@ -994,28 +1000,39 @@ DoRegistration(typename ParserType::Pointer & parser)
 
   if( saveStateOption && saveStateOption->GetNumberOfFunctions() )
     {
-    CompositeTransformPointer resultCompXfrm = dynamic_cast<CompositeTransformType *>( resultTransform.GetPointer() );
-    if( resultCompXfrm.IsNull() )
+    CompositeTransformPointer savedStateTx =
+      dynamic_cast<CompositeTransformType *>( regHelper->GetModifiableRegistrationState() );
+    if( savedStateTx.IsNull() )
       {
       return EXIT_FAILURE;
       }
-    CompositeTransformPointer savedStateTx = resultCompXfrm->Clone();
-
-    // If the last transform is SyN, we add the inverse displacement field to the saved state composite.
-    if( savedStateTx->GetNthTransform( numTransforms-1 )->GetTransformCategory() ==
-       TransformType::DisplacementField )
+    unsigned int numStateComponents = savedStateTx->GetNumberOfTransforms();
+    // If the last two transforms are displacement field transforms, we add their inverse displacement field to the saved state composite.
+    if( savedStateTx->GetNthTransform( numStateComponents-1 )->GetTransformCategory() == TransformType::DisplacementField
+       && savedStateTx->GetNthTransform( numStateComponents-2 )->GetTransformCategory() == TransformType::DisplacementField )
       {
-      typename DisplacementFieldTransformType::Pointer lastTransform =
-        dynamic_cast<DisplacementFieldTransformType *>( savedStateTx->GetNthTransform( numTransforms-1 ).GetPointer() );
-      if( lastTransform && lastTransform->GetInverseDisplacementField() )
+      typename DisplacementFieldTransformType::Pointer oneToEndTransform =
+        dynamic_cast<DisplacementFieldTransformType *>( savedStateTx->GetNthTransform( numStateComponents-2 ).GetPointer() );
+      typename DisplacementFieldTransformType::Pointer endTransform =
+        dynamic_cast<DisplacementFieldTransformType *>( savedStateTx->GetNthTransform( numStateComponents-1 ).GetPointer() );
+      if( oneToEndTransform && oneToEndTransform->GetInverseDisplacementField()
+         && endTransform && endTransform->GetInverseDisplacementField() )
         {
-        savedStateTx->AddTransform( lastTransform->GetInverseTransform() );
+        savedStateTx->RemoveTransform();
+        savedStateTx->AddTransform( oneToEndTransform->GetInverseTransform() );
+        savedStateTx->AddTransform( endTransform );
+        savedStateTx->AddTransform( endTransform->GetInverseTransform() );
         }
       }
     typename RegistrationHelperType::CompositeTransformType::TransformTypePointer savedStateCompositeTransform =
       savedStateTx.GetPointer();
     const std::string saveStateFileName = saveStateOption->GetFunction( 0 )->GetName();
-    // const std::cout << "SAVING FILENAME: " << saveStateFileName << std::endl;
+
+    // The savedState includes:
+    // output linear transforms
+    //  + SyN FixedToMiddle displacement field + SyN FixedToMiddle inverse displacement field
+    //  + SyN MovingToMiddle displacement field + SyN MovingToMiddle inverse displacement field
+    //
     itk::ants::WriteTransform<TComputeType, VImageDimension>( savedStateCompositeTransform,
                                                              saveStateFileName.c_str() );
     }

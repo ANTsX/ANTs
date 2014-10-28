@@ -17,6 +17,7 @@ template <class TComputeType, unsigned VImageDimension>
 RegistrationHelper<TComputeType, VImageDimension>
 ::RegistrationHelper() :
   m_CompositeTransform( NULL ),
+  m_RegistrationState( NULL ),
   m_FixedInitialTransform( NULL ),
   m_NumberOfStages( 0 ),
   m_Metrics(),
@@ -2845,36 +2846,46 @@ RegistrationHelper<TComputeType, VImageDimension>
           displacementFieldRegistration->SetMetric( singleMetric );
           }
 
-        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
+        bool synIsInitialized = false;
+        if( this->m_InitializeTransformsPerStage )
           {
-          if( this->m_InitializeTransformsPerStage )
+          if( this->m_RegistrationState.IsNotNull() )
             {
-            const unsigned int numOfTransforms = this->m_CompositeTransform->GetNumberOfTransforms();
-            std::cout << "Current number of transforms in the composite transform: " << numOfTransforms << std::endl;
-            for(unsigned int i=0; i<numOfTransforms; i++)
-              {
-              std::cout << i+1 << ") " << this->m_CompositeTransform->GetNthTransform(i)->GetNameOfClass() << std::endl;
-              }
+            const unsigned int numOfTransforms = this->m_RegistrationState->GetNumberOfTransforms();
+            typename TransformType::Pointer oneToEndTransform = this->m_RegistrationState->GetNthTransform( numOfTransforms-2 );
+            typename TransformType::Pointer endTransform = this->m_RegistrationState->GetNthTransform( numOfTransforms-1 );
 
-            // initial syn transform is derived from the last stage
-            //
-            typename TransformType::Pointer lastTransform = this->m_CompositeTransform->GetNthTransform( numOfTransforms-1 );
-            typename DisplacementFieldTransformType::Pointer initialSyNTransform =
-              dynamic_cast<DisplacementFieldTransformType *>( lastTransform.GetPointer() );
-            if( initialSyNTransform.IsNotNull() && initialSyNTransform->GetInverseDisplacementField() )
+            typename DisplacementFieldTransformType::Pointer fixedToMiddle =
+              dynamic_cast<DisplacementFieldTransformType *>( oneToEndTransform.GetPointer() );
+            typename DisplacementFieldTransformType::Pointer movingToMiddle =
+              dynamic_cast<DisplacementFieldTransformType *>( endTransform.GetPointer() );
+
+            if( fixedToMiddle.IsNotNull() && movingToMiddle.IsNotNull()
+               && fixedToMiddle->GetInverseDisplacementField() && movingToMiddle->GetInverseDisplacementField() )
               {
               std::cout << "Current SyN transform is directly initialized from the previous stage." << std::endl;
-              this->m_CompositeTransform->RemoveTransform(); // Remove previous initial transform,
-                                                             // since it is included in current results.
-              displacementFieldRegistration->SetInitialTransform( initialSyNTransform );
+              displacementFieldRegistration->SetFixedToMiddleTransform( fixedToMiddle );
+              displacementFieldRegistration->SetMovingToMiddleTransform( movingToMiddle );
+
+              this->m_RegistrationState->RemoveTransform();
+              this->m_RegistrationState->RemoveTransform();
               }
+
+            // If there are components other than SyN state
+            if( this->m_RegistrationState->GetNumberOfTransforms() > 0 )
+              {
+              displacementFieldRegistration->SetMovingInitialTransform( this->m_RegistrationState );
+              }
+            synIsInitialized = true;
+            this->m_CompositeTransform->RemoveTransform();
             }
           }
 
-        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 )
+        if( this->m_CompositeTransform->GetNumberOfTransforms() > 0 && !synIsInitialized )
           {
           displacementFieldRegistration->SetMovingInitialTransform( this->m_CompositeTransform );
           }
+
         if( this->m_FixedInitialTransform->GetNumberOfTransforms() > 0 )
           {
           displacementFieldRegistration->SetFixedInitialTransform( this->m_FixedInitialTransform );
@@ -2939,6 +2950,17 @@ RegistrationHelper<TComputeType, VImageDimension>
           std::cout << "Exception caught: " << e << std::endl;
           return EXIT_FAILURE;
           }
+
+        // Add calculated internal transforms to the registration state
+        if( this->m_RegistrationState.IsNull() )
+          {
+          this->m_RegistrationState = CompositeTransformType::New();
+          }
+        this->m_RegistrationState->ClearTransformQueue();
+        this->m_RegistrationState->AddTransform( this->m_CompositeTransform );
+        this->m_RegistrationState->AddTransform( displacementFieldRegistration->GetModifiableFixedToMiddleTransform() );
+        this->m_RegistrationState->AddTransform( displacementFieldRegistration->GetModifiableMovingToMiddleTransform() );
+        this->m_RegistrationState->FlattenTransformQueue();
 
         // Add calculated transform to the composite transform
         this->m_CompositeTransform->AddTransform( outputDisplacementFieldTransform );
@@ -3577,36 +3599,89 @@ void
 RegistrationHelper<TComputeType, VImageDimension>
 ::SetRestoreStateTransform( const TransformType *initialTransform )
 {
+  typename CompositeTransformType::Pointer compToRestore;
   typename CompositeTransformType::Pointer compToAdd;
 
   typename CompositeTransformType::ConstPointer compXfrm =
   dynamic_cast<const CompositeTransformType *>( initialTransform );
   if( compXfrm.IsNotNull() )
     {
-    compToAdd = compXfrm->Clone();
+    compToRestore = compXfrm->Clone();
 
-    // If the last two transforms are displacementFieldType, we assume that they are
-    // forward and inverse displacement fields of a SyN transform, so we compose them
-    // into one displacementFieldTransformType.
-    unsigned int numTransforms = compToAdd->GetNumberOfTransforms();
-    if( (compToAdd->GetNthTransform( numTransforms-1 )->GetTransformCategory() == TransformType::DisplacementField)
-       && (compToAdd->GetNthTransform( numTransforms-2 )->GetTransformCategory() == TransformType::DisplacementField) )
+    // If the last four transforms are displacementFieldType, we assume that they are
+    // forward and inverse displacement fields of the FixedToMiddle and MovingToMiddle
+    // transforms for a SyN registration.
+    //
+    unsigned int numTransforms = compToRestore->GetNumberOfTransforms();
+    if( (compToRestore->GetNthTransform( numTransforms-1 )->GetTransformCategory() == TransformType::DisplacementField)
+       && (compToRestore->GetNthTransform( numTransforms-2 )->GetTransformCategory() == TransformType::DisplacementField)
+       && (compToRestore->GetNthTransform( numTransforms-3 )->GetTransformCategory() == TransformType::DisplacementField)
+       && (compToRestore->GetNthTransform( numTransforms-4 )->GetTransformCategory() == TransformType::DisplacementField) )
       {
-      typename DisplacementFieldTransformType::Pointer oneToEndTransform =
-      dynamic_cast<DisplacementFieldTransformType *>( compToAdd->GetNthTransform( numTransforms-2 ).GetPointer() );
-      typename DisplacementFieldTransformType::Pointer endTransform =
-      dynamic_cast<DisplacementFieldTransformType *>( compToAdd->GetNthTransform( numTransforms-1 ).GetPointer() );
+      typename DisplacementFieldTransformType::Pointer fixedToMiddleForwardTx =
+        dynamic_cast<DisplacementFieldTransformType *>( compToRestore->GetNthTransform( numTransforms-4 ).GetPointer() );
+      typename DisplacementFieldTransformType::Pointer fixedToMiddleInverseTx =
+        dynamic_cast<DisplacementFieldTransformType *>( compToRestore->GetNthTransform( numTransforms-3 ).GetPointer() );
+      typename DisplacementFieldTransformType::Pointer movingToMiddleForwardTx =
+        dynamic_cast<DisplacementFieldTransformType *>( compToRestore->GetNthTransform( numTransforms-2 ).GetPointer() );
+      typename DisplacementFieldTransformType::Pointer movingToMiddleInverseTx =
+        dynamic_cast<DisplacementFieldTransformType *>( compToRestore->GetNthTransform( numTransforms-1 ).GetPointer() );
 
-      typename DisplacementFieldTransformType::Pointer synTransform = DisplacementFieldTransformType::New();
-      synTransform->SetDisplacementField( oneToEndTransform->GetDisplacementField() );
-      synTransform->SetInverseDisplacementField( endTransform->GetDisplacementField() );
-      std::cout << "Initial SyN transform is restored from its forward and inverse displacement fields." << std::endl;
+      typename DisplacementFieldTransformType::Pointer fixedToMiddleTransform = DisplacementFieldTransformType::New();
+      fixedToMiddleTransform->SetDisplacementField( fixedToMiddleForwardTx->GetDisplacementField() );
+      fixedToMiddleTransform->SetInverseDisplacementField( fixedToMiddleInverseTx->GetDisplacementField() );
+
+      typename DisplacementFieldTransformType::Pointer movingToMiddleTransform = DisplacementFieldTransformType::New();
+      movingToMiddleTransform->SetDisplacementField( movingToMiddleForwardTx->GetDisplacementField() );
+      movingToMiddleTransform->SetInverseDisplacementField( movingToMiddleInverseTx->GetDisplacementField() );
+
+      std::cout << "Initial FixedToMiddle and MovingToMiddle transforms are restored from the registration state file."
+                << std::endl;
+
+      compToRestore->RemoveTransform();
+      compToRestore->RemoveTransform();
+      compToRestore->RemoveTransform();
+      compToRestore->RemoveTransform();
+      compToRestore->AddTransform( fixedToMiddleTransform );
+      compToRestore->AddTransform( movingToMiddleTransform );
+
+      // m_RegistrationState has initial linear transforms + fixedToMiddle + movingToMiddle
+      this->m_RegistrationState = compToRestore;
+
+      // Now we restore the SyN transform from FixedToMiddle and MovingToMiddle transforms
+      compToAdd = compToRestore->Clone();
+
+      typename DisplacementFieldTransformType::Pointer initialSyNTransform = DisplacementFieldTransformType::New();
+
+      typedef itk::ComposeDisplacementFieldsImageFilter<DisplacementFieldType, DisplacementFieldType> ComposerType;
+
+      typename ComposerType::Pointer composer = ComposerType::New();
+      composer->SetDisplacementField( movingToMiddleTransform->GetInverseDisplacementField() );
+      composer->SetWarpingField( fixedToMiddleTransform->GetDisplacementField() );
+      composer->Update();
+
+      typename ComposerType::Pointer inverseComposer = ComposerType::New();
+      inverseComposer->SetDisplacementField( fixedToMiddleTransform->GetInverseDisplacementField() );
+      inverseComposer->SetWarpingField( movingToMiddleTransform->GetDisplacementField() );
+      inverseComposer->Update();
+
+      initialSyNTransform->SetDisplacementField( composer->GetOutput() );
+      initialSyNTransform->SetInverseDisplacementField( inverseComposer->GetOutput() );
 
       compToAdd->RemoveTransform();
       compToAdd->RemoveTransform();
-      compToAdd->AddTransform( synTransform );
+      compToAdd->AddTransform( initialSyNTransform );
+      }
+    else
+      {
+      this->m_RegistrationState = NULL;
       }
 
+    if( compToAdd.IsNull() )
+      {
+      compToAdd = compToRestore->Clone();
+      }
+    // m_CompositeTransform has initial linear transforms + initial SyN transform
     this->m_CompositeTransform = compToAdd;
     }
   else
