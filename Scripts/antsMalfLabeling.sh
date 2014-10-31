@@ -102,6 +102,8 @@ Optional arguments:
      -p: Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
                            Need to specify output directory.
 
+     -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
+
 Example:
 
 `basename $0` -d 3 -t target.nii.gz -o malf \
@@ -177,6 +179,8 @@ Optional arguments:
 
      -p: Save posteriors:  Save posteriors in specified c-style format e.g. posterior%04d.nii.gz
                            Need to specify output directory.
+
+     -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
 Requirements:
 
@@ -287,6 +291,7 @@ ATLAS_LABELS=()
 KEEP_ALL_IMAGES=0
 DOQSUB=0
 CORES=1
+PRECISION=0
 
 XGRID_OPTS=""
 SCRIPT_PREPEND=""
@@ -312,7 +317,7 @@ if [[ "$1" == "-h" ]];
 MAJORITYVOTE=0
 RUNQUICK=1
 # reading command line arguments
-while getopts "c:d:g:h:j:k:l:m:o:p:t:q:" OPT
+while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:" OPT
   do
   case $OPT in
       h) #help
@@ -334,6 +339,9 @@ while getopts "c:d:g:h:j:k:l:m:o:p:t:q:" OPT
        echo " Dimensionality is only valid for 2 or 3.  You passed -d $DIM."
        exit 1
      fi
+   ;;
+      f)
+      PRECISION=$OPTARG
    ;;
       g)
    ATLAS_IMAGES[${#ATLAS_IMAGES[@]}]=$OPTARG
@@ -392,6 +400,12 @@ if [[ ${#ATLAS_IMAGES[@]} -ne ${#ATLAS_LABELS[@]} ]];
     exit 1
   fi
 
+PRECISIONFLAG='f'
+if [[ ${PRECISION} -eq 0 ]];
+  then
+    PRECISIONFLAG='d'
+  fi
+
 mkdir ${OUTPUT_DIR}
 
 ##########################################################################
@@ -426,7 +440,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
     fi
     registrationCall="$regcall \
                           -d ${DIM} \
-                          -p f \
+                          -p ${PRECISIONFLAG} \
                           -j 1 \
                           -f ${TARGET_IMAGE} \
                           -m ${ATLAS_IMAGES[$i]} \
