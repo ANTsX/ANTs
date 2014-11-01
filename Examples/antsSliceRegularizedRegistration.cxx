@@ -1126,15 +1126,6 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     parser->AddOption( option );
     }
 
-    {
-    std::string description = std::string( "Print the help menu." );
-
-    OptionType::Pointer option = OptionType::New();
-    option->SetLongName( "help" );
-    option->SetDescription( description );
-    option->AddFunction( std::string( "0" ) );
-    parser->AddOption( option );
-    }
 }
 
 // entry point for the library; parameter 'args' is equivalent to 'argv' in (argc,argv) of commandline parameters to
@@ -1207,7 +1198,7 @@ private:
   parser->SetCommandDescription( commandDescription );
   antsSliceRegularizedRegistrationInitializeCommandLineOptions( parser );
 
-  if( ! parser->Parse( argc, argv ) )
+  if( parser->Parse( argc, argv ) == EXIT_FAILURE )
     {
     return EXIT_FAILURE;
     }

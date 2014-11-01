@@ -123,9 +123,12 @@ CommandLineParser
       {
       name = argument.substr( 1, 2 );
       }
-
-    allFlagsAreValid &= this->ValidateFlag(name);
-    if( !( name.empty() ) && !atof( name.c_str() ) )
+    if ( name.size() > 0 )
+      allFlagsAreValid &= this->ValidateFlag(name);
+    if( ( !( name.empty() ) )     &&
+        ( !atof( name.c_str() ) ) &&
+        ( name.size() > 0 )
+      )
       {
       OptionType::Pointer option = this->GetOption( name );
       if( !option )
@@ -202,7 +205,7 @@ CommandLineParser
     }
   if( ! allFlagsAreValid )
     {
-    std::cerr << "ERROR:  Invalid command line flags found! Aborting exectution." << std::endl;
+    std::cerr << "ERROR:  Invalid command line flags found! Aborting execution." << std::endl;
     return EXIT_FAILURE;
     }
   this->AssignStages();
@@ -360,12 +363,15 @@ ValidateFlag(const std::string & currentFlag)
     {
     const char shortName = (*it)->GetShortName();
     const std::string longName  = (*it)->GetLongName();
-    if( ( currentFlag.size() == 1 && shortName == currentFlag[0] ) || (longName == currentFlag ) )
+    if( (    ( currentFlag.size() == 1 ) &&
+             ( shortName == currentFlag[0] ) )
+          || ( longName == currentFlag ) )
       {
       validFlagFound = true;
       }
     }
-  if ( ! validFlagFound )
+
+  if ( ( ! validFlagFound ) && ( currentFlag.size() > 0 ))
     {
     std::cout << "ERROR:  Invalid flag provided " << currentFlag << std::endl;
     }
