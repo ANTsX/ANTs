@@ -588,7 +588,7 @@ if [[ $DOQSUB -eq 1 ]];
             if [[ -f ${TARGET_MASK_IMAGE} ]]
               then
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
-                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
 
                 OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
@@ -657,7 +657,7 @@ if [[ $DOQSUB -eq 4 ]];
             if [[ -f ${TARGET_MASK_IMAGE} ]]
               then
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
-                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
 
                 OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
@@ -714,7 +714,7 @@ if [[ $DOQSUB -eq 2 ]];
             if [[ -f ${TARGET_MASK_IMAGE} ]]
               then
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
-                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
 
                 OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
@@ -782,7 +782,7 @@ if [[ $DOQSUB -eq 3 ]];
             if [[ -f ${TARGET_MASK_IMAGE} ]]
               then
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
-                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
 
                 OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
