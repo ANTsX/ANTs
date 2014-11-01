@@ -182,6 +182,10 @@ Optional arguments:
 
      -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
+     -x: Target mask image:  Used to check the quality of registrations, if available.
+
+     -z: Dice threshold for target mask image and warped labels (default = 0.85).
+
 Requirements:
 
 This scripts relies on the following scripts in your $ANTSPATH directory. The script
@@ -296,6 +300,8 @@ PRECISION=0
 XGRID_OPTS=""
 SCRIPT_PREPEND=""
 QSUB_OPTS=""
+TARGET_MASK_IMAGE=""
+DICE_THRESHOLD=0.85
 
 ##Getting system info from linux can be done with these variables.
 # RAM=`cat /proc/meminfo | sed -n -e '/MemTotal/p' | awk '{ printf "%s %s\n", $2, $3 ; }' | cut -d " " -f 1`
@@ -317,7 +323,7 @@ if [[ "$1" == "-h" ]];
 MAJORITYVOTE=0
 RUNQUICK=1
 # reading command line arguments
-while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:" OPT
+while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:x:z:" OPT
   do
   case $OPT in
       h) #help
@@ -370,6 +376,12 @@ while getopts "c:d:f:g:h:j:k:l:m:o:p:t:q:" OPT
    ;;
       t)
    TARGET_IMAGE=$OPTARG
+   ;;
+      x)
+   TARGET_MASK_IMAGE=$OPTARG
+   ;;
+      z)
+   DICE_THRESHOLD=$OPTARG
    ;;
       \?) # getopts issues an error message
       echo "$USAGE" >&2
@@ -435,9 +447,10 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
     IMG_BASE=`basename ${ATLAS_IMAGES[$i]}`
     BASENAME=` echo ${IMG_BASE} | cut -d '.' -f 1 `
     regcall=${ANTSPATH}/antsRegistrationSyN.sh
-    if [[ $RUNQUICK -eq 1 ]]; then
-      regcall=${ANTSPATH}/antsRegistrationSyNQuick.sh
-    fi
+    if [[ $RUNQUICK -eq 1 ]];
+      then
+        regcall=${ANTSPATH}/antsRegistrationSyNQuick.sh
+      fi
     registrationCall="$regcall \
                           -d ${DIM} \
                           -p ${PRECISIONFLAG} \
@@ -572,8 +585,26 @@ if [[ $DOQSUB -eq 1 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+            if [[ -f ${TARGET_MASK_IMAGE} ]]
+              then
+                TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+
+                OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
+                TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
+                DICE_OVERLAP=${TOKENS[3]}
+
+                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                  {
+                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  }
+
+                rm -f $TMP_WARPED_ATLAS_LABEL_MASK
+              else
+                EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+              fi
           fi
       done
 
@@ -623,8 +654,26 @@ if [[ $DOQSUB -eq 4 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+            if [[ -f ${TARGET_MASK_IMAGE} ]]
+              then
+                TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+
+                OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
+                TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
+                DICE_OVERLAP=${TOKENS[3]}
+
+                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                  {
+                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  }
+
+                rm -f $TMP_WARPED_ATLAS_LABEL_MASK
+              else
+                EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+              fi
           fi
       done
 
@@ -662,8 +711,26 @@ if [[ $DOQSUB -eq 2 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+            if [[ -f ${TARGET_MASK_IMAGE} ]]
+              then
+                TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+
+                OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
+                TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
+                DICE_OVERLAP=${TOKENS[3]}
+
+                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                  {
+                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  }
+
+                rm -f $TMP_WARPED_ATLAS_LABEL_MASK
+              else
+                EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+              fi
           fi
       done
 
@@ -712,8 +779,26 @@ if [[ $DOQSUB -eq 3 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+            if [[ -f ${TARGET_MASK_IMAGE} ]]
+              then
+                TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_IMAGES[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+
+                OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
+                TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
+                DICE_OVERLAP=${TOKENS[3]}
+
+                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                  {
+                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  }
+
+                rm -f $TMP_WARPED_ATLAS_LABEL_MASK
+              else
+                EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+              fi
           fi
       done
 
