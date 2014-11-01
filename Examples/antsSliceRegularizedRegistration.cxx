@@ -32,7 +32,6 @@
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkIntensityWindowingImageFilter.h"
 #include "itkTransformToDisplacementFieldFilter.h"
-
 #include "itkAffineTransform.h"
 #include "itkBSplineTransform.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransform.h"
@@ -43,16 +42,13 @@
 #include "itkEuler3DTransform.h"
 #include "itkTransform.h"
 #include "itkExtractImageFilter.h"
-
 #include "itkBSplineTransformParametersAdaptor.h"
 #include "itkBSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkGaussianSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor.h"
 #include "itkTimeVaryingVelocityFieldTransformParametersAdaptor.h"
-
 #include "itkGradientDescentOptimizerv4.h"
 #include "itkConjugateGradientLineSearchOptimizerv4.h"
 #include "itkQuasiNewtonOptimizerv4.h"
-
 #include "itkHistogramMatchingImageFilter.h"
 #include "itkMinimumMaximumImageCalculator.h"
 #include "itkImageFileReader.h"
@@ -66,7 +62,12 @@
 #include "itkTransformFileWriter.h"
 #include "itkSimilarity2DTransform.h"
 #include "itkSimilarity3DTransform.h"
-
+#include "itkBSplineInterpolateImageFunction.h"
+#include "itkLinearInterpolateImageFunction.h"
+#include "itkGaussianInterpolateImageFunction.h"
+#include "itkNearestNeighborInterpolateImageFunction.h"
+#include "itkWindowedSincInterpolateImageFunction.h"
+#include "itkLabelImageGaussianInterpolateImageFunction.h"
 #include <sstream>
 
 namespace ants
@@ -220,7 +221,8 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
     calc->ComputeMinimum();
     if( vnl_math_abs( calc->GetMaximum() - calc->GetMinimum() ) < 1.e-9 )
       {
-      std::cout << "Warning: bad time point - too little intensity variation" << std::endl;
+      std::cout << "Warning: bad time point - too little intensity variation"
+        << calc->GetMinimum() << " " <<  calc->GetMaximum() << std::endl;
       return NULL;
       }
     }
@@ -346,6 +348,20 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     std::cerr << "The number of metrics specified does not match the number of stages." << std::endl;
     return EXIT_FAILURE;
     }
+
+  std::string whichInterpolator( "linear" );
+  typename itk::ants::CommandLineParser::OptionType::Pointer interpolationOption = parser->GetOption( "interpolation" );
+  if( interpolationOption && interpolationOption->GetNumberOfFunctions() )
+    {
+    whichInterpolator = interpolationOption->GetFunction( 0 )->GetName();
+    ConvertToLowerCase( whichInterpolator );
+    }
+
+  typedef MovingImageType ImageType;
+  typename ImageType::SpacingType
+    cache_spacing_for_smoothing_sigmas(itk::NumericTraits<typename ImageType::SpacingType::ValueType>::Zero);
+  unsigned int VImageDimension = ImageDimension - 1;
+  #include "make_interpolator_snip.tmpl"
 
   typename OptionType::Pointer iterationsOption = parser->GetOption( "iterations" );
   if( !iterationsOption || iterationsOption->GetNumberOfFunctions() != numberOfStages  )
@@ -872,9 +888,11 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       converter->Update();
 
       // resample the moving image and then put it in its place
+      interpolator->SetInputImage( movingSliceList[timedim] );
       typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
       typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
       resampler->SetTransform( transformList[timedim] );
+      resampler->SetInterpolator( interpolator );
       resampler->SetInput( movingSliceList[timedim] );
       resampler->SetOutputParametersFromImage( fixedSliceList[timedim] );
       resampler->SetDefaultPixelValue( 0 );
@@ -1035,6 +1053,26 @@ void antsSliceRegularizedRegistrationInitializeCommandLineOptions( itk::ants::Co
     parser->AddOption( option );
     }
 
+    {
+    std::string description =
+      std::string( "Several interpolation options are available in ITK. " )
+      + std::string( "These have all been made available." );
+
+    OptionType::Pointer option = OptionType::New();
+    option->SetLongName( "interpolation" );
+    option->SetShortName( 'n' );
+    option->SetUsageOption( 0, "Linear" );
+    option->SetUsageOption( 1, "NearestNeighbor" );
+    option->SetUsageOption( 2, "MultiLabel[<sigma=imageSpacing>,<alpha=4.0>]" );
+    option->SetUsageOption( 3, "Gaussian[<sigma=imageSpacing>,<alpha=1.0>]" );
+    option->SetUsageOption( 4, "BSpline[<order=3>]" );
+    option->SetUsageOption( 5, "CosineWindowedSinc" );
+    option->SetUsageOption( 6, "WelchWindowedSinc" );
+    option->SetUsageOption( 7, "HammingWindowedSinc" );
+    option->SetUsageOption( 8, "LanczosWindowedSinc" );
+    option->SetDescription( description );
+    parser->AddOption( option );
+    }
 
     {
     std::string description = std::string( "Several transform options are available.  The gradientStep or" )
