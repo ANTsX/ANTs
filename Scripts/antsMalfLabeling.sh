@@ -595,10 +595,12 @@ if [[ $DOQSUB -eq 1 ]];
                 DICE_OVERLAP=${TOKENS[3]}
 
                 if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
-                  {
-                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
-                  }
+                  then
+                    EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                    EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  else
+                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                  fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
               else
@@ -664,10 +666,12 @@ if [[ $DOQSUB -eq 4 ]];
                 DICE_OVERLAP=${TOKENS[3]}
 
                 if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
-                  {
-                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
-                  }
+                  then
+                    EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                    EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  else
+                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                  fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
               else
@@ -721,10 +725,12 @@ if [[ $DOQSUB -eq 2 ]];
                 DICE_OVERLAP=${TOKENS[3]}
 
                 if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
-                  {
-                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
-                  }
+                  then
+                    EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                    EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  else
+                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                  fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
               else
@@ -789,10 +795,12 @@ if [[ $DOQSUB -eq 3 ]];
                 DICE_OVERLAP=${TOKENS[3]}
 
                 if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
-                  {
-                  EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-                  EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
-                  }
+                  then
+                    EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                    EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  else
+                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                  fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
               else
