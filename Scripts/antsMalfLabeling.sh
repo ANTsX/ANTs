@@ -603,7 +603,7 @@ if [[ $DOQSUB -eq 1 ]];
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
                   else
-                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                    echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
                   fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
@@ -674,7 +674,7 @@ if [[ $DOQSUB -eq 4 ]];
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
                   else
-                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                    echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
                   fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
@@ -733,7 +733,7 @@ if [[ $DOQSUB -eq 2 ]];
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
                   else
-                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                    echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
                   fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
@@ -803,7 +803,7 @@ if [[ $DOQSUB -eq 3 ]];
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
                   else
-                    echo "Not including ${WARPED_ATLAS_IMAGES[$i]} (Dice = ${DICE_OVERLAP})"
+                    echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
                   fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
