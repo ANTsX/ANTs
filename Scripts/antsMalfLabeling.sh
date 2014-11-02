@@ -104,6 +104,10 @@ Optional arguments:
 
      -f: Float precision: Use float precision (default = 1) -- 0 == double, 1 == float.
 
+     -x: Target mask image:  Used to check the quality of registrations, if available.
+
+     -z: Dice threshold for target mask image and warped labels (default = 0.85).
+
 Example:
 
 `basename $0` -d 3 -t target.nii.gz -o malf \
