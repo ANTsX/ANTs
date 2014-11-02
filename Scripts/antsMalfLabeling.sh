@@ -450,6 +450,23 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
   do
     IMG_BASE=`basename ${ATLAS_IMAGES[$i]}`
     BASENAME=` echo ${IMG_BASE} | cut -d '.' -f 1 `
+
+    qscript="${OUTPUT_DIR}/job_${BASENAME}.sh"
+
+    WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}Warped.nii.gz"
+    INVERSE_WARPED_ATLAS_IMAGES[${#INVERSE_WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}InverseWarped.nii.gz"
+    WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz"
+    WARP_FIELDS[${#WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz"
+    INVERSE_WARP_FIELDS[${#INVERSE_WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1InverseWarp.nii.gz"
+    AFFINE_FILES[${#AFFINE_FILES[@]}]="${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat"
+
+    if [[ -f "${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz" ]];
+      then
+        echo ${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz already exists.
+        rm -f $qscript
+        continue
+      fi
+
     regcall=${ANTSPATH}/antsRegistrationSyN.sh
     if [[ $RUNQUICK -eq 1 ]];
       then
@@ -472,15 +489,6 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -n NearestNeighbor \
                           -t ${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz \
                           -t ${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_log.txt"
-
-    WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}Warped.nii.gz"
-    INVERSE_WARPED_ATLAS_IMAGES[${#INVERSE_WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}InverseWarped.nii.gz"
-    WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz"
-    WARP_FIELDS[${#WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz"
-    INVERSE_WARP_FIELDS[${#INVERSE_WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1InverseWarp.nii.gz"
-    AFFINE_FILES[${#AFFINE_FILES[@]}]="${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat"
-
-    qscript="${OUTPUT_DIR}/job_${BASENAME}.sh"
 
     echo "$registrationCall" > $qscript
     echo "$labelXfrmCall" >> $qscript
@@ -537,8 +545,28 @@ if [[ $DOQSUB -eq 0 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-            EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+            if [[ -f ${TARGET_MASK_IMAGE} ]];
+              then
+                TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
+                ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
+
+                OVERLAP_MEASURES=( `${ANTSPATH}/LabelOverlapMeasures ${DIM} ${TMP_WARPED_ATLAS_LABEL_MASK} ${TARGET_MASK_IMAGE} 1` )
+                TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
+                DICE_OVERLAP=${TOKENS[3]}
+
+#                 if [[ "${DICE_OVERLAP} > ${DICE_THRESHOLD}" | bc ]];
+#                   then
+#                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+#                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+#                   else
+#                     echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
+#                   fi
+
+                rm -f $TMP_WARPED_ATLAS_LABEL_MASK
+              else
+                EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+              fi
           fi
       done
 
@@ -589,7 +617,7 @@ if [[ $DOQSUB -eq 1 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            if [[ -f ${TARGET_MASK_IMAGE} ]]
+            if [[ -f ${TARGET_MASK_IMAGE} ]];
               then
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
                 ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
@@ -598,7 +626,7 @@ if [[ $DOQSUB -eq 1 ]];
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
                 DICE_OVERLAP=${TOKENS[3]}
 
-                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                if (( $(echo "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc -l) ));
                   then
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
@@ -660,7 +688,7 @@ if [[ $DOQSUB -eq 4 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            if [[ -f ${TARGET_MASK_IMAGE} ]]
+            if [[ -f ${TARGET_MASK_IMAGE} ]];
               then
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
                 ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
@@ -669,7 +697,7 @@ if [[ $DOQSUB -eq 4 ]];
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
                 DICE_OVERLAP=${TOKENS[3]}
 
-                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                if (( $(echo "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc -l) ));
                   then
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
@@ -711,7 +739,6 @@ if [[ $DOQSUB -eq 4 ]];
 
 if [[ $DOQSUB -eq 2 ]];
   then
-
     EXISTING_WARPED_ATLAS_IMAGES=()
     EXISTING_WARPED_ATLAS_LABELS=()
     for (( i = 0; i < ${#WARPED_ATLAS_IMAGES[@]}; i++ ))
@@ -719,8 +746,9 @@ if [[ $DOQSUB -eq 2 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            if [[ -f ${TARGET_MASK_IMAGE} ]]
+            if [[ -f ${TARGET_MASK_IMAGE} ]];
               then
+
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
                 ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
 
@@ -728,7 +756,7 @@ if [[ $DOQSUB -eq 2 ]];
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
                 DICE_OVERLAP=${TOKENS[3]}
 
-                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                if (( $(echo "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc -l) ));
                   then
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
@@ -789,7 +817,7 @@ if [[ $DOQSUB -eq 3 ]];
         echo ${WARPED_ATLAS_IMAGES[$i]}
         if [[ -f ${WARPED_ATLAS_IMAGES[$i]} ]] && [[ -f ${WARPED_ATLAS_LABELS[$i]} ]];
           then
-            if [[ -f ${TARGET_MASK_IMAGE} ]]
+            if [[ -f ${TARGET_MASK_IMAGE} ]];
               then
                 TMP_WARPED_ATLAS_LABEL_MASK=${OUTPUT_PREFIX}WarpedAtlasLabelMask.nii.gz
                 ${ANTSPATH}/ThresholdImage ${DIM} ${WARPED_ATLAS_LABELS[$i]} ${TMP_WARPED_ATLAS_LABEL_MASK} 0 0 0 1
@@ -798,7 +826,7 @@ if [[ $DOQSUB -eq 3 ]];
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
                 DICE_OVERLAP=${TOKENS[3]}
 
-                if [[ "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc ]]
+                if (( $(echo "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc -l) ));
                   then
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
