@@ -944,6 +944,8 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         typedef itk::ResampleImageFilter<FixedImageType, FixedImageType> ResampleFilterType;
         typename ResampleFilterType::Pointer resampler = ResampleFilterType::New();
         resampler->SetTransform( invtx );
+        interpolator->SetInputImage( fixedSliceList[timedim] );
+        resampler->SetInterpolator( interpolator );
         resampler->SetInput( fixedSliceList[timedim] );
         resampler->SetOutputParametersFromImage( movingSliceList[timedim] );
         resampler->SetDefaultPixelValue( 0 );
