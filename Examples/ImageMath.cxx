@@ -9985,6 +9985,9 @@ int ReplicateImage( int argc, char *argv[] )
   // perform the replication
   typename ImageType::IndexType ind;
   typename RImageType::IndexType indp1;
+
+  indp1.Fill( 0 );
+
   Iterator It1( vecimage1, vecimage1->GetLargestPossibleRegion() );
   for( It1.GoToBegin(); !It1.IsAtEnd(); ++It1 )
     {
