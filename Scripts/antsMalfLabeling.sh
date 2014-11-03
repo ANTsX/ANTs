@@ -554,13 +554,13 @@ if [[ $DOQSUB -eq 0 ]];
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
                 DICE_OVERLAP=${TOKENS[3]}
 
-#                 if [[ "${DICE_OVERLAP} > ${DICE_THRESHOLD}" | bc ]];
-#                   then
-#                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
-#                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
-#                   else
-#                     echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
-#                   fi
+                if [[ "${DICE_OVERLAP} > ${DICE_THRESHOLD}" | bc ]];
+                  then
+                    EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
+                    EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
+                  else
+                    echo Not including ${WARPED_ATLAS_IMAGES[$i]} \(Dice = ${DICE_OVERLAP}\)
+                  fi
 
                 rm -f $TMP_WARPED_ATLAS_LABEL_MASK
               else
