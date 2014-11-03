@@ -554,7 +554,7 @@ if [[ $DOQSUB -eq 0 ]];
                 TOKENS=( ${OVERLAP_MEASURES[1]//,/\ } )
                 DICE_OVERLAP=${TOKENS[3]}
 
-                if [[ "${DICE_OVERLAP} > ${DICE_THRESHOLD}" | bc ]];
+                if (( $(echo "${DICE_OVERLAP} >= ${DICE_THRESHOLD}" | bc -l) ));
                   then
                     EXISTING_WARPED_ATLAS_IMAGES[${#EXISTING_WARPED_ATLAS_IMAGES[@]}]=${WARPED_ATLAS_IMAGES[$i]}
                     EXISTING_WARPED_ATLAS_LABELS[${#EXISTING_WARPED_ATLAS_LABELS[@]}]=${WARPED_ATLAS_LABELS[$i]}
