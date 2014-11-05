@@ -451,18 +451,18 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
     IMG_BASE=`basename ${ATLAS_IMAGES[$i]}`
     BASENAME=` echo ${IMG_BASE} | cut -d '.' -f 1 `
 
-    qscript="${OUTPUT_DIR}/job_${BASENAME}.sh"
+    qscript="${OUTPUT_DIR}/job_${BASENAME}_${i}.sh"
 
-    WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}Warped.nii.gz"
-    INVERSE_WARPED_ATLAS_IMAGES[${#INVERSE_WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}InverseWarped.nii.gz"
-    WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz"
-    WARP_FIELDS[${#WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz"
-    INVERSE_WARP_FIELDS[${#INVERSE_WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}1InverseWarp.nii.gz"
-    AFFINE_FILES[${#AFFINE_FILES[@]}]="${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat"
+    WARPED_ATLAS_IMAGES[${#WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}_${i}_Warped.nii.gz"
+    INVERSE_WARPED_ATLAS_IMAGES[${#INVERSE_WARPED_ATLAS_IMAGES[@]}]="${OUTPUT_PREFIX}${BASENAME}_${i}_InverseWarped.nii.gz"
+    WARPED_ATLAS_LABELS[${#WARPED_ATLAS_LABELS[@]}]="${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz"
+    WARP_FIELDS[${#WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}_${i}_1Warp.nii.gz"
+    INVERSE_WARP_FIELDS[${#INVERSE_WARP_FIELDS[@]}]="${OUTPUT_PREFIX}${BASENAME}_${i}_1InverseWarp.nii.gz"
+    AFFINE_FILES[${#AFFINE_FILES[@]}]="${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat"
 
-    if [[ -f "${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz" ]];
+    if [[ -f "${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz" ]];
       then
-        echo ${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz already exists.
+        echo ${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz already exists.
         rm -f $qscript
         continue
       fi
@@ -478,21 +478,21 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
                           -j 1 \
                           -f ${TARGET_IMAGE} \
                           -m ${ATLAS_IMAGES[$i]} \
-                          -o ${OUTPUT_PREFIX}${BASENAME} > ${OUTPUT_PREFIX}${BASENAME}_log.txt"
+                          -o ${OUTPUT_PREFIX}${BASENAME}_${i}_ > ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
 
     labelXfrmCall="${ANTSPATH}/antsApplyTransforms \
                           -d ${DIM} \
                           --float 1 \
                           -i ${ATLAS_LABELS[$i]} \
                           -r ${TARGET_IMAGE} \
-                          -o ${OUTPUT_PREFIX}${BASENAME}WarpedLabels.nii.gz \
+                          -o ${OUTPUT_PREFIX}${BASENAME}_${i}_WarpedLabels.nii.gz \
                           -n NearestNeighbor \
-                          -t ${OUTPUT_PREFIX}${BASENAME}1Warp.nii.gz \
-                          -t ${OUTPUT_PREFIX}${BASENAME}0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_log.txt"
+                          -t ${OUTPUT_PREFIX}${BASENAME}_${i}_1Warp.nii.gz \
+                          -t ${OUTPUT_PREFIX}${BASENAME}_${i}_0GenericAffine.mat >> ${OUTPUT_PREFIX}${BASENAME}_${i}_log.txt"
 
     echo "$registrationCall" > $qscript
     echo "$labelXfrmCall" >> $qscript
-
+${i}
     if [[ $DOQSUB -eq 1 ]];
       then
         id=`qsub -cwd -S /bin/bash -N antsMalfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript | awk '{print $3}'`
@@ -801,7 +801,7 @@ if [[ $DOQSUB -eq 3 ]];
     echo "--------------------------------------------------------------------------------------"
     echo " Starting MALF on XGrid cluster. Submitted $count jobs "
     echo "--------------------------------------------------------------------------------------"
-    # now wait for the jobs to finish. Rigid registration is quick, so poll queue every 60 seconds
+
     ${ANTSPATH}waitForXGridJobs.pl -xgridflags "$XGRID_OPTS" -verbose -delay 30 $jobIDs
     # Returns 1 if there are errors
     if [[ ! $? -eq 0 ]];
