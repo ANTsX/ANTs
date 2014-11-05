@@ -492,7 +492,7 @@ for (( i = 0; i < ${#ATLAS_IMAGES[@]}; i++ ))
 
     echo "$registrationCall" > $qscript
     echo "$labelXfrmCall" >> $qscript
-${i}
+
     if [[ $DOQSUB -eq 1 ]];
       then
         id=`qsub -cwd -S /bin/bash -N antsMalfReg -v ANTSPATH=$ANTSPATH $QSUB_OPTS $qscript | awk '{print $3}'`
