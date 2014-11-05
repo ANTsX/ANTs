@@ -260,7 +260,7 @@ function summarizeimageset() {
           echo $i >> ${output}_list.txt
         done
 
-      ImageSetStatistics $dim ${output}_list.txt ${output} 1
+      ImageSetStatistics $dim ${output}_list.txt ${output} 0
       rm ${output}_list.txt
       ;;
   esac
@@ -300,6 +300,10 @@ function shapeupdatetotemplate() {
     echo "--------------------------------------------------------------------------------------"
 
     imagelist=(`ls ${outputname}template${whichtemplate}*WarpedToTemplate.nii.gz`)
+    if [[ ${#imagelist[@]} -eq 0  ]] ; then
+      echo ERROR shapeupdatedtotemplate - imagelist length is 0
+      exit 1
+    fi
 
     summarizeimageset $dim $template $statsmethod ${imagelist[@]}
 
