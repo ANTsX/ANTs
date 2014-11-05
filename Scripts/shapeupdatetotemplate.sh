@@ -33,7 +33,7 @@ if [[ ${#ANTSPATH} -le 3 ]];
   fi
 
 WARP=${ANTSPATH}/antsApplyTransforms
-AVERAGE_AFFINE_PROGRAM=${ANTSPATH}/AverageAffineTransformNoRigid
+AVERAGE_AFFINE_PROGRAM=${ANTSPATH}/AverageAffineTransform # NoRigid
 
 if [[ ! -s ${WARP} ]];
   then
@@ -54,8 +54,9 @@ OUTPUTNAME=T_
 GRADIENTSTEP=0.25
 whichtemplate=0
 statsmethod=1
-USAGE="$0 -d 3 -t template0.nii.gz -o T_ -g 0.25 -s 1 -w 0"
-while getopts "d:t:o:g:w:s:h:" OPT
+useaff=0
+USAGE="$0 -d 3 -t template0.nii.gz -o T_ -g 0.25 -s 1 -w 0 -y 0"
+while getopts "d:t:o:g:w:s:y:h:" OPT
   do
   case $OPT in
       h) #help
@@ -77,6 +78,9 @@ while getopts "d:t:o:g:w:s:h:" OPT
       w)  # for multivar templates
    whichtemplate=$OPTARG
    ;;
+    y)  # affine only in update?
+    useaff=$OPTARG
+    ;;
       s)  # median, mean, etc
    statsmethod=$OPTARG
    ;;
@@ -86,6 +90,11 @@ while getopts "d:t:o:g:w:s:h:" OPT
    ;;
   esac
 done
+
+if [[ $useaff -eq 1 ]] ; then
+  AVERAGE_AFFINE_PROGRAM=${ANTSPATH}/AverageAffineTransformNoRigid
+fi
+
 
 function summarizeimageset() {
 
