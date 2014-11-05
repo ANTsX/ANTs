@@ -118,8 +118,16 @@ function summarizeimageset() {
         do
           echo $i >> ${output}_list.txt
         done
-
       ImageSetStatistics $dim ${output}_list.txt ${output} 0
+      rm ${output}_list.txt
+      ;;
+    3) #median+sharpen
+      for i in "${images[@]}";
+        do
+          echo $i >> ${output}_list.txt
+        done
+      ImageSetStatistics $dim ${output}_list.txt ${output} 0
+      ImageMath $dim ${output} Sharpen ${output}
       rm ${output}_list.txt
       ;;
   esac
