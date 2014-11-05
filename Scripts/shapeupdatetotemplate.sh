@@ -130,6 +130,10 @@ function summarizeimageset() {
       ImageMath $dim ${output} Sharpen ${output}
       rm ${output}_list.txt
       ;;
+      4) #mean+sharpen
+        AverageImages $dim $output 1 ${images[*]}
+        ImageMath $dim ${output} Sharpen ${output}
+        ;;
   esac
 
   }
