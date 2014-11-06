@@ -141,19 +141,9 @@ int antsAffineInitializerImp(int argc, char *argv[])
 
   typedef itk::TransformFileWriter                                        TransformWriterType;
   typedef itk::Vector<float, ImageDimension>                              VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef  typename ImageType::IndexType                                  IndexType;
-  typedef  typename ImageType::SizeType                                   SizeType;
-  typedef  typename ImageType::SpacingType                                SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
   typedef typename itk::ImageMomentsCalculator<ImageType>                 ImageCalculatorType;
   typedef itk::AffineTransform<RealType, ImageDimension>                  AffineType;
-  typedef itk::CompositeTransform<RealType, ImageDimension>               CompositeType;
-  typedef itk::AffineTransform<RealType>                                  EulerTransformType;
   typedef typename ImageCalculatorType::MatrixType                        MatrixType;
   if( argc < 2 )
     {
@@ -322,7 +312,6 @@ int antsAffineInitializerImp(int argc, char *argv[])
   affinesearch->SetIdentity();
   affinesearch->SetCenter( trans2 );
   typedef  itk::MultiStartOptimizerv4         OptimizerType;
-  typedef  typename OptimizerType::ScalesType ScalesType;
   typename OptimizerType::Pointer  mstartOptimizer = OptimizerType::New();
   typedef itk::MattesMutualInformationImageToImageMetricv4
     <ImageType, ImageType, ImageType> MetricType;

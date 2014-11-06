@@ -80,7 +80,6 @@ static bool ReorientTensorImage_ParseInput(int argc, char * *argv, char *& movin
 template <int ImageDimension>
 void ReorientTensorImage(char *moving_image_filename, char *output_image_filename, TRAN_OPT_QUEUE & opt_queue)
 {
-  typedef itk::DiffusionTensor3D<double>                                         TensorType;
   typedef itk::DiffusionTensor3D<double>                                         PixelType;
   typedef itk::Image<PixelType, ImageDimension>                                  TensorImageType;
   typedef itk::Image<float, ImageDimension>                                      ImageType;

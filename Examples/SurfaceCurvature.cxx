@@ -125,7 +125,6 @@ private:
   enum { ImageDimension = ImageType::ImageDimension };
   typedef itk::SurfaceImageCurvature<ImageType> ParamType;
   ParamType::Pointer Parameterizer = ParamType::New();
-  typedef  ImageType::PixelType PixType;
 
   int   opt = 0;
   float sig = 1.0;

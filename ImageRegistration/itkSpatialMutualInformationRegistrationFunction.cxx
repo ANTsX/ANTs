@@ -146,7 +146,6 @@ SpatialMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplac
 //  this->ComputeMetricImage();
 //  std::cout << " A " << std::endl;
 //    bool makenewimage=false;
-  typedef ImageRegionIteratorWithIndex<TFixedImage> ittype;
 //  std::cout << " B " << std::endl;
 
   /*

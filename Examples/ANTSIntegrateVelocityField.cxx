@@ -63,14 +63,10 @@ int IntegrateVelocityField(int argc, char *argv[])
   typedef itk::Image<VectorType, ImageDimension>      DisplacementFieldType;
   typedef itk::Image<VectorType, ImageDimension + 1>  TimeVaryingVelocityFieldType;
   typedef itk::Image<PixelType, ImageDimension>       ImageType;
-  typedef typename  ImageType::IndexType              IndexType;
-  typedef typename  ImageType::SizeType               SizeType;
-  typedef typename  ImageType::SpacingType            SpacingType;
-  typedef TimeVaryingVelocityFieldType                tvt;
-  typedef itk::ImageFileReader<tvt>                   readertype;
-  typedef itk::ImageFileWriter<DisplacementFieldType> writertype;
+
   typename ImageType::Pointer image;
   ReadImage<ImageType>(image, imgfn.c_str() );
+  typedef TimeVaryingVelocityFieldType                tvt;
   typename tvt::Pointer timeVaryingVelocity;
   ReadImage<tvt>(timeVaryingVelocity, vectorfn.c_str() );
 
@@ -83,12 +79,6 @@ int IntegrateVelocityField(int argc, char *argv[])
     {
     std::cerr << " No TV Field " << std::endl;  return EXIT_FAILURE;
     }
-  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> FieldIterator;
-  typedef itk::ImageRegionIteratorWithIndex<tvt>                   TVFieldIterator;
-  typedef typename DisplacementFieldType::IndexType                DIndexType;
-  typedef typename DisplacementFieldType::PointType                DPointType;
-  typedef typename TimeVaryingVelocityFieldType::IndexType         VIndexType;
-  typedef typename TimeVaryingVelocityFieldType::PointType         VPointType;
 
   if( starttime < 0 )
     {

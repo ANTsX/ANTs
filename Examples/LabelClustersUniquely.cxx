@@ -45,28 +45,14 @@ template <unsigned int ImageDimension>
 int  LabelUniquely(int argc, char *argv[])
 {
   typedef float PixelType;
-//  const unsigned int ImageDimension = AvantsImageDimension;
-  typedef itk::Vector<float, ImageDimension>                              VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
-  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef itk::ImageFileWriter<ImageType>                                 writertype;
-  typedef typename ImageType::IndexType                                   IndexType;
-  typedef typename ImageType::SizeType                                    SizeType;
-  typedef typename ImageType::SpacingType                                 SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
-  // typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  typedef float                                            InternalPixelType;
+  typedef itk::Image<PixelType, ImageDimension>                           ImageType;
+
   typedef int                                              ULPixelType;
   typedef itk::Image<ULPixelType, ImageDimension>          labelimagetype;
   typedef itk::CastImageFilter<ImageType, labelimagetype>  CastFilterType;
   typedef itk::CastImageFilter< labelimagetype, ImageType> CastFilterType2;
 
-  typedef ImageType                                                          InternalImageType;
-  typedef ImageType                                                          OutputImageType;
   typedef itk::ConnectedComponentImageFilter<labelimagetype, labelimagetype> FilterType;
   typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype>   RelabelType;
 

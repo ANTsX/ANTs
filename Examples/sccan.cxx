@@ -61,8 +61,6 @@ template <class TImage, class TComp>
 void WriteVectorToSpatialImage( std::string filename, std::string post, vnl_vector<TComp> w_p,
                                 typename TImage::Pointer  mask )
 {
-  typedef itk::Image<TComp, 2>       MatrixImageType;
-  typedef typename TImage::PixelType PixelType;
   std::string::size_type pos = filename.rfind( "." );
   std::string            filepre = std::string( filename, 0, pos );
   std::string            extension;
@@ -218,7 +216,6 @@ void WriteSortedVariatesToSpatialImage( std::string filename, std::string post, 
       std::string colname = std::string("Variate") + sccan_to_string<unsigned int>(nv);
       ColumnHeaders.push_back( colname );
       }
-    typedef itk::CSVNumericObjectFileWriter<double> WriterType;
     WriterType::Pointer writer = WriterType::New();
     writer->SetFileName( fnmp.c_str() );
     writer->SetColumnHeaders(ColumnHeaders);
@@ -397,7 +394,6 @@ vnl_matrix<TComp>
 PermuteMatrix( vnl_matrix<TComp> q, bool doperm = true)
 {
   typedef vnl_matrix<TComp> vMatrix;
-  typedef vnl_vector<TComp> vVector;
 
   std::vector<unsigned long> permvec;
   for( unsigned long i = 0; i < q.rows(); i++ )
@@ -433,8 +429,6 @@ int matrixOperation( itk::ants::CommandLineParser::OptionType *option,
   std::string funcName = std::string("matrixOperation");
 
   typedef itk::Image<PixelType, ImageDimension> ImageType;
-  typedef double                                matPixelType;
-  typedef itk::Image<matPixelType, 2>           MatrixImageType;
   typename ImageType::Pointer outputImage = NULL;
 
   //   option->SetUsageOption( 2, "multires_matrix_invert[list.txt,maskhighres.nii.gz,masklowres.nii.gz,matrix.mhd]" );
@@ -663,17 +657,10 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
 {
   const unsigned int ImageDimension = 4;
 
-  typedef itk::Vector<PixelType, ImageDimension>       VectorType;
-  typedef itk::Image<VectorType, ImageDimension>       FieldType;
   typedef itk::Image<PixelType, ImageDimension>        ImageType;
   typedef itk::Image<PixelType, ImageDimension - 1>    OutImageType;
   typedef typename OutImageType::IndexType             OutIndexType;
-  typedef itk::ImageFileReader<ImageType>              readertype;
-  typedef itk::ImageFileWriter<ImageType>              writertype;
   typedef typename ImageType::IndexType                IndexType;
-  typedef typename ImageType::SizeType                 SizeType;
-  typedef typename ImageType::SpacingType              SpacingType;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
   typedef double Scalar;
   std::string ext = itksys::SystemTools::GetFilenameExtension( outname );
@@ -791,7 +778,6 @@ ConvertTimeSeriesImageToMatrix( std::string imagefn, std::string maskfn, std::st
   typename OutImageType::Pointer outimage = extractFilter->GetOutput();
   outimage->FillBuffer(0);
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>    ImageIt;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> SliceIt;
 
   typedef vnl_vector<Scalar> timeVectorType;
@@ -1109,11 +1095,8 @@ int SVD_One_View( itk::ants::CommandLineParser *sccanparser, unsigned int permct
   typedef itk::Image<PixelType, ImageDimension>         ImageType;
   typedef double                                        Scalar;
   typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
-  typedef itk::Image<Scalar, 2>                         MatrixImageType;
-  typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typedef typename SCCANType::MatrixType                vMatrix;
   typedef typename SCCANType::VectorType                vVector;
-  typedef typename SCCANType::DiagonalMatrixType        dMatrix;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   vMatrix priorROIMat;
   if( svd_option == 1 )
@@ -1419,11 +1402,8 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   typedef itk::Image<PixelType, ImageDimension>         ImageType;
   typedef double                                        Scalar;
   typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
-  typedef itk::Image<Scalar, 2>                         MatrixImageType;
-  typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typedef typename SCCANType::MatrixType                vMatrix;
   typedef typename SCCANType::VectorType                vVector;
-  typedef typename SCCANType::DiagonalMatrixType        dMatrix;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetCovering( covering );
   sccanobj->SetPriorWeight( priorWeight );
@@ -1545,8 +1525,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
   sccanobj->SetMatrixQ( q );
   sccanobj->SetMaskImageP( mask1 );
   sccanobj->SetMaskImageQ( mask2 );
-  double truecorr = 0;
-  truecorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
+  sccanobj->SparsePartialArnoldiCCA(n_evec );
   vVector w_p = sccanobj->GetVariateP(0);
   vVector w_q = sccanobj->GetVariateQ(0);
   vVector sccancorrs = sccanobj->GetCanonicalCorrelations();
@@ -1592,8 +1571,7 @@ int SCCA_vnl( itk::ants::CommandLineParser *sccanparser, unsigned int permct, un
       ReadMatrixFromCSVorImageSet<Scalar>(qmatname, q);
       vMatrix q_perm = PermuteMatrix<Scalar>( q );
       sccanobj->SetMatrixQ( q_perm );
-      double permcorr = 0;
-      permcorr = sccanobj->SparsePartialArnoldiCCA(n_evec );
+      sccanobj->SparsePartialArnoldiCCA(n_evec );
       vVector permcorrs = sccanobj->GetCanonicalCorrelations();
       std::cout << " perm-corr " << permcorrs << " ct " << pct << " p-values ";
       for( unsigned int kk = 0; kk < permcorrs.size(); kk++ )
@@ -1725,20 +1703,15 @@ int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
   typedef double                                        Scalar;
   typedef itk::ants::antsSCCANObject<ImageType, Scalar> SCCANType;
   typedef itk::Image<Scalar, 2>                         MatrixImageType;
-  typedef itk::ImageFileReader<MatrixImageType>         matReaderType;
-  typedef itk::ImageFileReader<ImageType>               imgReaderType;
   typename SCCANType::Pointer sccanobj = SCCANType::New();
   sccanobj->SetMaximumNumberOfIterations(iterct);
   typedef typename SCCANType::MatrixType         vMatrix;
   typedef typename SCCANType::VectorType         vVector;
-  typedef typename SCCANType::DiagonalMatrixType dMatrix;
 
   /** we refer to the two view matrices as P and Q */
   typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef double                                Scalar;
   typedef itk::Image<Scalar, 2>                 MatrixImageType;
-  typedef itk::ImageFileReader<MatrixImageType> matReaderType;
-  typedef itk::ImageFileReader<ImageType>       imgReaderType;
 
   /** read the matrix images */
   std::string pmatname = std::string(option->GetFunction( 0 )->GetParameter( 0 ) );
@@ -2114,12 +2087,8 @@ int mSCCA_vnl( itk::ants::CommandLineParser *sccanparser,
 int sccan( itk::ants::CommandLineParser *sccanparser )
 {
   // Define dimensionality
-  typedef double PixelType;
   const unsigned int ImageDimension = 3;
-  typedef itk::Image<PixelType, ImageDimension> ImageType;
   typedef double                                matPixelType;
-  typedef itk::Image<matPixelType, 2>           MatrixImageType;
-  typedef itk::ImageFileReader<MatrixImageType> ReaderType;
 
   itk::ants::CommandLineParser::OptionType::Pointer outputOption =
     sccanparser->GetOption( "output" );
@@ -2201,7 +2170,6 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     robustify = sccanparser->Convert<unsigned int>( robust_option->GetFunction()->GetName() );
     }
 
-  matPixelType                                      evecgradientpenalty = 1;
   itk::ants::CommandLineParser::OptionType::Pointer evecg_option =
     sccanparser->GetOption( "EvecGradPenalty" );
   if( !evecg_option || evecg_option->GetNumberOfFunctions() == 0 )
@@ -2209,7 +2177,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     }
   else
     {
-    evecgradientpenalty = sccanparser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
+    sccanparser->Convert<matPixelType>( evecg_option->GetFunction()->GetName() );
     }
 
   matPixelType                                      smoother = 0;
@@ -2266,7 +2234,6 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     q_cluster_thresh = sccanparser->Convert<unsigned int>( clust_option->GetFunction()->GetName() );
     }
 
-  bool                                              positiveWeights = false;
   itk::ants::CommandLineParser::OptionType::Pointer positivity_option =
     sccanparser->GetOption( "PositivityConstraint" );
   if( !positivity_option || positivity_option->GetNumberOfFunctions() == 0 )
@@ -2274,11 +2241,7 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
     }
   else
     {
-    unsigned int positivityValue = sccanparser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
-    if( positivityValue > 0 )
-      {
-      positiveWeights = true;
-      }
+    sccanparser->Convert<unsigned int>( positivity_option->GetFunction()->GetName() );
     }
 
   bool                                              eigen_imp = false;
@@ -2322,7 +2285,6 @@ int sccan( itk::ants::CommandLineParser *sccanparser )
       {
       smoother_time = sccanparser->Convert<double>( matrixOptionTimeSeries->GetFunction( 0 )->GetParameter( 3 ) );
       }
-    typedef itk::Image<double, 2> MyImageType;
     ConvertTimeSeriesImageToMatrix<double>( imagefn,  maskfn, outname, smoother_space, smoother_time );
     std::cout << " outname done " << outname << std::endl;
     return EXIT_SUCCESS;

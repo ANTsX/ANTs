@@ -70,8 +70,6 @@ private:
   typedef itk::SurfaceImageCurvature<ImageType> ParamType;
   ParamType::Pointer Parameterizer = ParamType::New();
 
-  typedef  itk::ImageFileReader<ImageType> ReaderType;
-  typedef  ImageType::PixelType            PixType;
 
 //  std::string fn="C://Data//brain15labelimage.img";
   float opt = 0;

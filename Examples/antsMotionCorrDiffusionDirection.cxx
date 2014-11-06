@@ -153,13 +153,9 @@ int ants_motion_directions( itk::ants::CommandLineParser *parser )
 
   const unsigned int ImageDimension = 3;
 
-  typedef float                                     PixelType;
   typedef double                                    RealType;
-  typedef itk::Image<PixelType, ImageDimension>     FixedIOImageType;
   typedef itk::Image<RealType, ImageDimension>      FixedImageType;
   typedef itk::ImageFileReader<FixedImageType>      ImageReaderType;
-  typedef itk::Image<PixelType, ImageDimension + 1> MovingIOImageType;
-  typedef itk::Image<RealType, ImageDimension + 1>  MovingImageType;
   typedef vnl_matrix<RealType>                      vMatrix;
   vMatrix param_values;
   typedef itk::CompositeTransform<RealType, ImageDimension> CompositeTransformType;

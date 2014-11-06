@@ -433,8 +433,6 @@ float  GetMetricTensorCost(  TVectorType dpath,  TTensorType dtv, unsigned int m
 template <class TVectorType, class TTensorType>
 TVectorType ChangeTensorByVector(  TVectorType dpath,  TTensorType dtv, float epsilon)
 {
-  typedef TVectorType VectorType;
-
   typedef vnl_matrix<double> MatrixType;
   MatrixType DT(3, 3);
   DT.fill(0);
@@ -537,28 +535,6 @@ float  GetTensorADC( TTensorType dtv,  unsigned int opt = 0)
     {
     return 0;
     }
-
-  //  typedef itk::Vector<float, 6> TensorTypeIn;
-  typedef itk::Vector<float, 6> TensorType;
-  typedef itk::Vector<float, 6> TensorTypeOut;
-  typedef itk::Vector<float, 6> TensorTypeIn;
-  const unsigned int ImageDimension = 3;
-  typedef itk::Image<TensorTypeIn, ImageDimension>  InTensorImageType;
-  typedef itk::Image<TensorTypeOut, ImageDimension> OutTensorImageType;
-  typedef itk::Image<TensorTypeOut, ImageDimension> TensorImageType;
-  typedef     InTensorImageType::Pointer            TensorImagePointer;
-  typedef float                                     PixelType;
-  typedef itk::Vector<float, ImageDimension>        VectorType1;
-  typedef itk::Image<VectorType1, ImageDimension>   FieldType;
-  typedef itk::Image<PixelType, ImageDimension>     ImageType;
-  typedef itk::ImageFileReader<InTensorImageType>   readertype;
-  typedef itk::ImageFileWriter<OutTensorImageType>  writertype;
-  typedef ImageType::IndexType                      IndexType;
-  typedef ImageType::SizeType                       SizeType;
-  typedef ImageType::SpacingType                    SpacingType;
-//   typedef itk::AffineTransform<double,ImageDimension>   AffineTransformType;
-//   typedef itk::LinearInterpolateImageFunction<ImageType,double>  InterpolatorType1;
-//   typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double>  InterpolatorType2;
 
   itk::Vector<float, 6> dtv2;
   typedef vnl_matrix<double> MatrixType;
@@ -683,28 +659,6 @@ itk::RGBPixel<float>   GetTensorPrincipalEigenvector( TTensorType dtv )
     return zero;
     }
 
-  //  typedef itk::Vector<float, 6> TensorTypeIn;
-  typedef itk::Vector<float, 6> TensorType;
-  typedef itk::Vector<float, 6> TensorTypeOut;
-  typedef itk::Vector<float, 6> TensorTypeIn;
-  const unsigned int ImageDimension = 3;
-  typedef itk::Image<TensorTypeIn, ImageDimension>  InTensorImageType;
-  typedef itk::Image<TensorTypeOut, ImageDimension> OutTensorImageType;
-  typedef itk::Image<TensorTypeOut, ImageDimension> TensorImageType;
-  typedef     InTensorImageType::Pointer            TensorImagePointer;
-  typedef float                                     PixelType;
-  typedef itk::Vector<float, ImageDimension>        VectorType1;
-  typedef itk::Image<VectorType1, ImageDimension>   FieldType;
-  typedef itk::Image<PixelType, ImageDimension>     ImageType;
-  typedef itk::ImageFileReader<InTensorImageType>   readertype;
-  typedef itk::ImageFileWriter<OutTensorImageType>  writertype;
-  typedef ImageType::IndexType                      IndexType;
-  typedef ImageType::SizeType                       SizeType;
-  typedef ImageType::SpacingType                    SpacingType;
-//   typedef itk::AffineTransform<double,ImageDimension>   AffineTransformType;
-//   typedef itk::LinearInterpolateImageFunction<ImageType,double>  InterpolatorType1;
-//   typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double>  InterpolatorType2;
-
   itk::Vector<float, 6> dtv2;
   typedef vnl_matrix<double> MatrixType;
   MatrixType DT(3, 3);
@@ -785,28 +739,6 @@ itk::Vector<float>   GetTensorPrincipalEigenvector( TTensorType dtv, unsigned in
     {
     return zero;
     }
-
-  //  typedef itk::Vector<float, 6> TensorTypeIn;
-  typedef itk::Vector<float, 6> TensorType;
-  typedef itk::Vector<float, 6> TensorTypeOut;
-  typedef itk::Vector<float, 6> TensorTypeIn;
-  const unsigned int ImageDimension = 3;
-  typedef itk::Image<TensorTypeIn, ImageDimension>  InTensorImageType;
-  typedef itk::Image<TensorTypeOut, ImageDimension> OutTensorImageType;
-  typedef itk::Image<TensorTypeOut, ImageDimension> TensorImageType;
-  typedef     InTensorImageType::Pointer            TensorImagePointer;
-  typedef float                                     PixelType;
-  typedef itk::Vector<float, ImageDimension>        VectorType1;
-  typedef itk::Image<VectorType1, ImageDimension>   FieldType;
-  typedef itk::Image<PixelType, ImageDimension>     ImageType;
-  typedef itk::ImageFileReader<InTensorImageType>   readertype;
-  typedef itk::ImageFileWriter<OutTensorImageType>  writertype;
-  typedef ImageType::IndexType                      IndexType;
-  typedef ImageType::SizeType                       SizeType;
-  typedef ImageType::SpacingType                    SpacingType;
-//   typedef itk::AffineTransform<double,ImageDimension>   AffineTransformType;
-//   typedef itk::LinearInterpolateImageFunction<ImageType,double>  InterpolatorType1;
-//   typedef itk::NearestNeighborInterpolateImageFunction<ImageType,double>  InterpolatorType2;
 
   itk::Vector<float, 6> dtv2;
   typedef vnl_matrix<double> MatrixType;

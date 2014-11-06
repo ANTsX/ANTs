@@ -169,7 +169,6 @@ typename ImageType::Pointer PreprocessImage( ImageType * inputImage,
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
   typedef typename HistogramFilterType::HistogramSizeType      HistogramSizeType;
-  typedef typename HistogramFilterType::HistogramType          HistogramType;
 
   HistogramSizeType histogramSize( 1 );
   histogramSize[0] = 256;
@@ -390,7 +389,6 @@ AverageTimeImages( typename TImageIn::Pointer image_in,  typename TImageOut::Poi
   typedef TImageIn  ImageType;
   typedef TImageOut OutImageType;
   enum { ImageDimension = ImageType::ImageDimension };
-  typedef typename TImageIn::PixelType                    PixelType;
   typedef itk::ImageRegionIteratorWithIndex<OutImageType> Iterator;
   image_avg->FillBuffer(0);
   unsigned int timedims = image_in->GetLargestPossibleRegion().GetSize()[ImageDimension - 1];
@@ -770,17 +768,17 @@ int ants_motion( itk::ants::CommandLineParser *parser )
         moving_time_slice = extractFilter2->GetOutput();
         }
 
-      bool directionmatricesok = true;
-      for( unsigned int i = 0; i < ImageDimension; i++ )
-        {
-        for( unsigned int j = 0; j < ImageDimension; j++ )
-          {
-          if( fabs( moving_time_slice->GetDirection()[i][j] - fixed_time_slice->GetDirection()[i][j] ) > 1.e-6 )
-            {
-            directionmatricesok = false;
-            }
-          }
-        }
+      // bool directionmatricesok = true;
+      // for( unsigned int i = 0; i < ImageDimension; i++ )
+      //   {
+      //   for( unsigned int j = 0; j < ImageDimension; j++ )
+      //     {
+      //     if( fabs( moving_time_slice->GetDirection()[i][j] - fixed_time_slice->GetDirection()[i][j] ) > 1.e-6 )
+      //       {
+      //       directionmatricesok = false;
+      //       }
+      //     }
+      //   }
 
       typename FixedImageType::Pointer preprocessFixedImage =
         PreprocessImage<FixedImageType>( fixed_time_slice, 0,

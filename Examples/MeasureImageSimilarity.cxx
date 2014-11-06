@@ -38,14 +38,7 @@ int MeasureImageSimilarity(unsigned int argc, char *argv[])
   typedef itk::Image<PixelType, ImageDimension>                  ImageType;
   typedef itk::ImageFileWriter<ImageType>                        writertype;
   typedef typename ImageType::IndexType                          IndexType;
-  typedef typename ImageType::SizeType                           SizeType;
-  typedef typename ImageType::SpacingType                        SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>           AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType1;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>           Iterator;
-
-  typedef itk::Image<float, 2>                JointHistType;
-  typedef itk::ImageFileWriter<JointHistType> jhwritertype;
 
 // get command line params
   unsigned int argct = 2;

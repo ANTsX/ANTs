@@ -35,16 +35,7 @@ int MemoryTest(unsigned int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>                     VectorType;
   typedef itk::Image<VectorType, ImageDimension>                 FieldType;
   typedef itk::Image<PixelType, ImageDimension>                  ImageType;
-  typedef itk::ImageFileWriter<ImageType>                        writertype;
-  typedef typename ImageType::IndexType                          IndexType;
-  typedef typename ImageType::SizeType                           SizeType;
-  typedef typename ImageType::SpacingType                        SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>           AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType1;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>           Iterator;
-
-  typedef itk::Image<float, 2>                JointHistType;
-  typedef itk::ImageFileWriter<JointHistType> jhwritertype;
 
 // get command line params
   unsigned int argct = 2;
@@ -63,7 +54,6 @@ int MemoryTest(unsigned int argc, char *argv[])
   typename ImageType::Pointer image2 = NULL;
   ReadImage<ImageType>(image2, fn2.c_str() );
 
-  typedef itk::ImageRegionIteratorWithIndex<FieldType> VIterator;
   std::vector<typename FieldType::Pointer> fieldvec;
   for( unsigned int i = 0; i < numberoffields; i++ )
     {

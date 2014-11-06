@@ -170,7 +170,6 @@ typename ImageType::Pointer sliceRegularizedPreprocessImage( ImageType * inputIm
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
   typedef typename HistogramFilterType::HistogramSizeType      HistogramSizeType;
-  typedef typename HistogramFilterType::HistogramType          HistogramType;
 
   HistogramSizeType histogramSize( 1 );
   histogramSize[0] = 256;
@@ -390,7 +389,6 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 
   bool                doEstimateLearningRateOnce(true);
 
-  unsigned int   nparams = 2;
   itk::TimeProbe totalTimer;
   totalTimer.Start();
   typedef itk::TranslationTransform<RealType, ImageDimension-1> TranslationTransformType;
@@ -402,7 +400,6 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
   std::vector<SingleTransformItemType>                     transformUList;
   std::vector<typename FixedImageType::Pointer>            fixedSliceList;
   std::vector<typename FixedImageType::Pointer>            movingSliceList;
-  typedef itk::ImageMaskSpatialObject<ImageDimension>      ImageMaskSpatialObjectType;
   typename FixedIOImageType::Pointer                       maskImage;
   typedef itk::Image< unsigned char, ImageDimension-1 >    ImageMaskType;
   typename ImageMaskType::Pointer mask_time_slice = NULL;
@@ -670,7 +667,6 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
         transformOption->GetFunction( currentStage )->GetParameter(  0 ) );
 
       typedef itk::ConjugateGradientLineSearchOptimizerv4 OptimizerType;
-      typedef itk::GradientDescentOptimizerv4 OptimizerType1;
       typename OptimizerType::Pointer optimizer = OptimizerType::New();
       optimizer->SetNumberOfIterations( iterations[0] );
       optimizer->SetMinimumConvergenceValue( 1.e-7 );
@@ -689,7 +685,7 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
       typename TranslationRegistrationType::Pointer translationRegistration = TranslationRegistrationType::New();
       if( std::strcmp( whichTransform.c_str(), "translation" ) == 0 )
         {
-        nparams = transformList[timedim]->GetNumberOfParameters();
+        transformList[timedim]->GetNumberOfParameters();
         metric->SetFixedImage( preprocessFixedImage );
         metric->SetVirtualDomainFromImage( preprocessFixedImage );
         metric->SetMovingImage( preprocessMovingImage );
@@ -861,8 +857,9 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
     displacementinv->FillBuffer( displacementout->GetPixel( dind ) );
     for( unsigned int timedim = 0; timedim < timedims; timedim++ )
       {
-      typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
-      typename ConverterType::Pointer converter = ConverterType::New();
+      typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType>
+               _ConverterType;
+      typename _ConverterType::Pointer converter = _ConverterType::New();
       converter->SetOutputOrigin( fixedSliceList[timedim]->GetOrigin() );
       converter->SetOutputStartIndex( fixedSliceList[timedim]->GetBufferedRegion().GetIndex() );
       converter->SetSize( fixedSliceList[timedim]->GetBufferedRegion().GetSize() );
@@ -909,8 +906,9 @@ int ants_slice_regularized_registration( itk::ants::CommandLineParser *parser )
 // now apply to the inverse mapﬁ
       for( unsigned int timedim = 0; timedim < timedims; timedim++ )
         {
-        typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType> ConverterType;
-        typename ConverterType::Pointer converter = ConverterType::New();
+        typedef typename itk::TransformToDisplacementFieldFilter<DisplacementFieldType, RealType>
+          _ConverterType;
+        typename _ConverterType::Pointer converter = _ConverterType::New();
         converter->SetOutputOrigin( movingSliceList[timedim]->GetOrigin() );
         converter->SetOutputStartIndex( movingSliceList[timedim]->GetBufferedRegion().GetIndex() );
         converter->SetSize( movingSliceList[timedim]->GetBufferedRegion().GetSize() );

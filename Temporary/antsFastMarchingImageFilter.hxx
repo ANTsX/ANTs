@@ -614,7 +614,6 @@ FMarchingImageFilter<TLevelSet, TSpeedImage>
   bb = 0.0;
   if( speedImage )
     {
-    typedef typename SpeedImageType::PixelType SpeedPixelType;
     cc = (double) speedImage->GetPixel( index ) / this->m_NormalizationFactor;
     cc = -1.0 * vnl_math_sqr( 1.0 / cc );
     }

@@ -39,7 +39,6 @@ typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
   // Initialize the Moving to the displacement field
-  typedef TField FieldType;
   typedef TImage ImageType;
 
   typename ImageType::Pointer sfield = AllocImage<ImageType>(field);
@@ -145,7 +144,6 @@ template <class TImage, class TDisplacementField>
 typename TImage::Pointer
 CopyImage(TDisplacementField* field )
 {
-  typedef TImage ImageType;
   enum { ImageDimension = TImage::ImageDimension };
   //  unsigned int row=0;
   // unsigned int col=0;
@@ -327,8 +325,6 @@ template <class TImage, class TField>
 typename TField::Pointer
 DiReCTCompose(typename TField::Pointer velofield, typename TField::Pointer diffmap )
 {
-  typedef TImage                     ImageType;
-  typedef TField                     DisplacementFieldType;
   typedef typename TField::PixelType PixelType;
   typename TField::PixelType zero, disp;
   enum { ImageDimension = TImage::ImageDimension };
@@ -368,7 +364,6 @@ InvertField( typename TField::Pointer field,
 
   typedef typename DisplacementFieldType::PixelType                VectorType;
   typedef typename DisplacementFieldType::IndexType                IndexType;
-  typedef typename VectorType::ValueType                           ScalarType;
   typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
 
   typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, double> ROType;
@@ -557,12 +552,7 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
   typedef itk::Vector<RealType, ImageDimension>                         VectorType;
   typedef itk::Image<VectorType, ImageDimension>                        DisplacementFieldType;
   typedef itk::Image<PixelType, ImageDimension>                         ImageType;
-  typedef itk::ImageFileReader<ImageType>                               readertype;
-  typedef itk::ImageFileWriter<ImageType>                               writertype;
   typedef typename  ImageType::IndexType                                IndexType;
-  typedef typename  ImageType::SizeType                                 SizeType;
-  typedef typename  ImageType::SpacingType                              SpacingType;
-  typedef itk::Image<VectorType, ImageDimension + 1>                    tvt;
   typedef itk::ANTSImageRegistrationOptimizer<ImageDimension, RealType> ROType;
   typename ROType::Pointer m_MFR = ROType::New();
 
@@ -630,13 +620,8 @@ int LaplacianThicknessExpDiff2(int argc, char *argv[])
 
   typedef   DisplacementFieldType
     TimeVaryingVelocityFieldType;
-  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType>                          FieldIterator;
-  typedef typename DisplacementFieldType::IndexType                                         DIndexType;
   typedef typename DisplacementFieldType::PointType                                         DPointType;
-  typedef typename TimeVaryingVelocityFieldType::IndexType                                  VIndexType;
-  typedef typename TimeVaryingVelocityFieldType::PointType                                  VPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, RealType> DefaultInterpolatorType;
-  typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, RealType>        DefaultInterpolatorType2;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   vinterp->SetInputImage(lapgrad);
   typedef itk::LinearInterpolateImageFunction<ImageType, RealType> ScalarInterpolatorType;

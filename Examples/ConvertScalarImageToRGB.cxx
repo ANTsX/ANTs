@@ -35,13 +35,11 @@ namespace ants
 template <unsigned int ImageDimension>
 int ConvertScalarImageToRGB( int argc, char *argv[] )
 {
-  typedef unsigned int                 PixelType;
   typedef itk::RGBPixel<unsigned char> RGBPixelType;
 //  typedef itk::RGBAPixel<unsigned char> RGBPixelType;
 
   typedef float RealType;
 
-  typedef itk::Image<PixelType, ImageDimension>    ImageType;
   typedef itk::Image<float, ImageDimension>        RealImageType;
   typedef itk::Image<RGBPixelType, ImageDimension> RGBImageType;
 

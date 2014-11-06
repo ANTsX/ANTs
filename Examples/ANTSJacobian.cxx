@@ -264,7 +264,6 @@ ComputeJacobian(TDisplacementField* field, char* fnm, char* maskfn, bool uselog 
   unsigned int posoff = 1;
   float        space = 1.0;
 
-  typedef itk::Vector<float, ImageDimension> VectorType;
 
   typename FieldType::PixelType dPix;
   typename FieldType::PixelType lpix;
@@ -501,12 +500,6 @@ int Jacobian(int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>                     VectorType;
   typedef itk::Image<VectorType, ImageDimension>                 FieldType;
   typedef itk::Image<PixelType, ImageDimension>                  ImageType;
-  typedef itk::ImageFileReader<ImageType>                        readertype;
-  typedef itk::ImageFileWriter<ImageType>                        writertype;
-  typedef typename  ImageType::IndexType                         IndexType;
-  typedef typename  ImageType::SizeType                          SizeType;
-  typedef typename  ImageType::SpacingType                       SpacingType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
 
   typedef itk::ImageFileReader<FieldType> ReaderType;
   // std::cout << "read warp " << std::string(argv[1]) << std::endl;

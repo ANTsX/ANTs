@@ -83,8 +83,6 @@ int ResampleImage( int argc, char *argv[] )
   typename Sinc3InterpolatorType::Pointer sl_interpolator = Sinc3InterpolatorType::New();
   sl_interpolator->SetInputImage( reader->GetOutput() );
 
-  typedef itk::WindowedSincInterpolateImageFunction<ImageType, 3,
-                                                    itk::Function::BlackmanWindowFunction<3> > Sinc4InterpolatorType;
   typename Sinc3InterpolatorType::Pointer sb_interpolator = Sinc3InterpolatorType::New();
   sb_interpolator->SetInputImage( reader->GetOutput() );
 
