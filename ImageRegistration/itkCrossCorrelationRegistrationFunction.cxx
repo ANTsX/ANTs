@@ -107,7 +107,6 @@ void
 CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField>
 ::InitializeIteration()
 {
-  typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
   if( !Superclass::m_MovingImage || !Superclass::m_FixedImage || !m_MovingImageInterpolator )
     {
     itkExceptionMacro( << "MovingImage, FixedImage and/or Interpolator not set" );
@@ -127,11 +126,6 @@ CrossCorrelationRegistrationFunction<TFixedImage, TMovingImage, TDisplacementFie
 
   m_MetricTotal = 0.0;
   this->m_Energy = 0.0;
-
-  typedef itk::DiscreteGaussianImageFilter<BinaryImageType, BinaryImageType> dgf1;
-//  typedef itk::DiscreteGaussianImageFilter<BinaryImageType, BinaryImageType> dgf;
-  typedef itk::MeanImageFilter<BinaryImageType, BinaryImageType>   dgf;
-  typedef itk::MedianImageFilter<BinaryImageType, BinaryImageType> dgf2;
 
   // compute the normalizer
   m_Normalizer      = 0.0;

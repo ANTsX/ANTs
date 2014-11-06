@@ -93,12 +93,10 @@ private:
 
   typedef itk::ImageFileReader<ImageType> ReaderType;
   typedef itk::ImageFileReader<ImageSeriesType> Reader4DType;
-  typedef itk::ImageFileWriter<ImageType> WriterType;
 
   typedef itk::ExtractImageFilter<ImageType, SliceType> ExtractFilterType;
   typedef itk::ExtractImageFilter<ImageSeriesType, SliceType> ExtractFilterType2;
 
-  typedef itk::ImageRegionIteratorWithIndex<ImageType> ImageIt;
   typedef itk::ImageRegionIteratorWithIndex<SliceType> SliceIt;
 
   // Check for valid input parameters

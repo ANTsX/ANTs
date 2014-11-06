@@ -469,7 +469,7 @@ cout<<999<<endl;
 
   // Make sure the region is inside bounds
   itk::ImageRegion<VDim> rOut = targetl[0]->GetLargestPossibleRegion();
-  for(int d = 0; d < 3; d++)
+  for(unsigned int d = 0; d < VDim; d++)
     {
     rOut.SetIndex(d, p.r_patch[d] + p.r_search[d] + rOut.GetIndex(d));
     rOut.SetSize(d, rOut.GetSize(d) - 2 * (p.r_search[d] + p.r_patch[d]));

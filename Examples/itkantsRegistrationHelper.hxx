@@ -59,7 +59,6 @@ typename ImageType::Pointer PreprocessImage( typename ImageType::ConstPointer  i
   typedef itk::Statistics::ImageToHistogramFilter<ImageType>   HistogramFilterType;
   typedef typename HistogramFilterType::InputBooleanObjectType InputBooleanObjectType;
   typedef typename HistogramFilterType::HistogramSizeType      HistogramSizeType;
-  typedef typename HistogramFilterType::HistogramType          HistogramType;
 
   HistogramSizeType histogramSize( 1 );
   histogramSize[0] = 256;
@@ -1214,7 +1213,6 @@ RegistrationHelper<TComputeType, VImageDimension>
       optimizerObserver->SetCurrentStageNumber( currentStageNumber );
       }
 
-    typedef itk::GradientDescentLineSearchOptimizerv4Template<TComputeType> GradientDescentLSOptimizerType;
     typedef itk::GradientDescentOptimizerv4Template<TComputeType>           GradientDescentOptimizerType;
     typename GradientDescentOptimizerType::Pointer optimizer2 = GradientDescentOptimizerType::New();
     //    optimizer2->SetLowerLimit( 0 );
@@ -1993,8 +1991,6 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         // Create the transform adaptors
 
-        typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-            BSplineDisplacementFieldTransformType> DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters
@@ -2170,7 +2166,6 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         // Create the transform adaptors
 
-        typedef itk::BSplineTransformParametersAdaptor<BSplineTransformType> BSplineTransformAdaptorType;
         typename BSplineRegistrationType::TransformParametersAdaptorsContainerType adaptors;
         // Create the transform adaptors specific to B-splines
         for( unsigned int level = 0; level < numberOfLevels; level++ )
@@ -2960,9 +2955,6 @@ RegistrationHelper<TComputeType, VImageDimension>
         typename BSplineDisplacementFieldTransformType::Pointer outputDisplacementFieldTransform = displacementFieldRegistration->GetModifiableTransform();
 
         // Create the transform adaptors
-
-        typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-            BSplineDisplacementFieldTransformType> DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters
@@ -3315,9 +3307,6 @@ RegistrationHelper<TComputeType, VImageDimension>
 
         // Create the transform adaptors
 
-        typedef itk::BSplineSmoothingOnUpdateDisplacementFieldTransformParametersAdaptor<
-            BSplineDisplacementFieldTransformType>
-          DisplacementFieldTransformAdaptorType;
         typename DisplacementFieldRegistrationType::TransformParametersAdaptorsContainerType adaptors;
 
         // Extract parameters

@@ -38,7 +38,6 @@ int ants_motion_stats( itk::ants::CommandLineParser *parser )
 
   const unsigned int ImageDimension = 3;
 
-  typedef float                                     PixelType;
   typedef double                                    RealType;
 
   typedef itk::Image<RealType, ImageDimension>      ImageType;

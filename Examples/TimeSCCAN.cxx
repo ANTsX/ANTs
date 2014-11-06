@@ -266,8 +266,6 @@ bool RegionAveraging(typename NetworkType::Pointer network, typename NetworkType
 {
 
   typedef vnl_vector<float>                                     VectorType;
-  typedef VectorType*                                           VectorPointerType;
-  typedef itk::VectorContainer<unsigned int, VectorPointerType> VectorContainerType;
   typedef vnl_matrix<float>                                     MatrixType;
 
   // Determine the number of regions to examine
@@ -391,8 +389,6 @@ int timesccan( itk::ants::CommandLineParser *parser )
 {
 
   typedef itk::Image<float,2>               NetworkType;
-  typedef itk::ImageFileReader<NetworkType> NetworkReaderType;
-  typedef itk::ImageFileWriter<NetworkType> NetworkWriterType;
 
 
   std::string                                       outname = "output.nii.gz";

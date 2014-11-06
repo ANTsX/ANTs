@@ -327,8 +327,6 @@ public:
   float  m_TEMP;
   MetricImagePointer MakeImage()
   {
-    typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
-    typedef ImageRegionIteratorWithIndex<BinaryImageType> ittype2;
     FixedImageType* img = const_cast<FixedImageType *>(Superclass::m_FixedImage.GetPointer() );
 
     this->m_MetricImage = AllocImage<MetricImageType>(img, 0);

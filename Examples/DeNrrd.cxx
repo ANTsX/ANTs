@@ -109,8 +109,6 @@ private:
 
   typedef float                             PixelType;
   typedef itk::VectorImage<PixelType,3>	    DiffusionImageType;
-  typedef DiffusionImageType::Pointer	    DiffusionImagePointer;
-  typedef itk::Image<PixelType,4>           OutputImageType;
 
   typedef itk::ImageFileReader<DiffusionImageType,
   itk::DefaultConvertPixelTraits< PixelType > > FileReaderType;

@@ -391,7 +391,6 @@ void GetAffineTransformFromImage(const typename ImageType::Pointer& img,
 {
   typedef typename ImageType::DirectionType         DirectionType;
   typedef typename ImageType::PointType             PointType;
-  typedef typename ImageType::SpacingType           SpacingType;
   typedef typename AffineTransform::TranslationType VectorType;
 
   DirectionType direction = img->GetDirection();
@@ -418,7 +417,6 @@ void GetLargestSizeAfterWarp(typename WarperType::Pointer & warper,
                              typename ImageType::SizeType & largest_size,
                              typename ImageType::PointType & origin_warped)
 {
-  typedef typename ImageType::SizeType  SizeType;
   typedef typename ImageType::PointType PointType;
 
   const int ImageDimension = ImageType::GetImageDimension();

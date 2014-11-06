@@ -113,7 +113,6 @@ void
 ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplacementField, TPointSet>
 ::ExpectationLandmarkField(float weight, bool whichdirection)
 {
-  typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
 
   SpacingType   spacing = this->GetFixedImage()->GetSpacing();
   unsigned long sz1 = this->m_FixedPointSet->GetNumberOfPoints();
@@ -631,7 +630,6 @@ ExpectationBasedPointSetRegistrationFunction<TFixedImage, TMovingImage, TDisplac
   m_MeshResolution.Fill(1);
   unsigned int PointDimension = ImageDimension;
 
-  typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
   SpacingType spacing = this->GetFixedImage()->GetSpacing();
 
   typename TreeGeneratorType::Pointer fkdtree;

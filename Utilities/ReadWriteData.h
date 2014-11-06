@@ -153,7 +153,6 @@ void ReadTensorImage(itk::SmartPointer<TImageType> & target, const char *file, b
 
   typedef TImageType                      ImageType;
   typedef itk::ImageFileReader<ImageType> FileSourceType;
-  typedef typename ImageType::PixelType   PixType;
 
   typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
   typename FileSourceType::Pointer reffilter = NULL;
@@ -211,7 +210,6 @@ template <class TImageType>
 // void ReadImage(typename TImageType::Pointer target, const char *file)
 bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
 {
-  typedef typename TImageType::PixelType PixelType;
   enum { ImageDimension = TImageType::ImageDimension };
   if( std::string(file).length() < 3 )
     {
@@ -246,8 +244,7 @@ bool ReadImage(itk::SmartPointer<TImageType> & target, const char *file)
       }
     typedef TImageType                      ImageType;
     typedef itk::ImageFileReader<ImageType> FileSourceType;
-    typedef typename ImageType::PixelType   PixType;
-    //    const unsigned int ImageDimension=ImageType::ImageDimension;
+
     typename FileSourceType::Pointer reffilter = FileSourceType::New();
     reffilter->SetFileName( file );
     try
@@ -278,8 +275,7 @@ typename ImageType::Pointer ReadImage(char* fn )
 {
   // Read the image files begin
   typedef itk::ImageFileReader<ImageType> FileSourceType;
-  typedef typename ImageType::PixelType   PixType;
-//   const unsigned int ImageDimension=ImageType::ImageDimension;
+
   typename FileSourceType::Pointer reffilter = FileSourceType::New();
   reffilter->SetFileName( fn );
   try
@@ -309,9 +305,8 @@ typename ImageType::Pointer ReadTensorImage(char* fn, bool takelog = true )
 {
   // Read the image files begin
   typedef itk::ImageFileReader<ImageType>                 FileSourceType;
-  typedef typename ImageType::PixelType                   PixType;
   typedef itk::LogTensorImageFilter<ImageType, ImageType> LogFilterType;
-//   const unsigned int ImageDimension=ImageType::ImageDimension;
+
   typename FileSourceType::Pointer reffilter = FileSourceType::New();
   reffilter->SetFileName( fn );
   try
@@ -345,7 +340,6 @@ template <class TPointSet>
 bool ReadPointSet( itk::SmartPointer<TPointSet> & target, const char *file,
   bool boundaryPointsOnly = false, float samplingPercentage = 1.0 )
 {
-  typedef typename TPointSet::PixelType PixelType;
   if( std::string( file ).length() < 3 )
     {
     std::cerr << " bad file name " << std::string(file) << std::endl;
@@ -473,7 +467,6 @@ bool WriteImage(itk::SmartPointer<TImageType> image, const char *file)
 template <class TImageType>
 void WriteTensorImage(itk::SmartPointer<TImageType> image, const char *file, bool takeexp = true)
 {
-  typedef typename TImageType::PixelType                    PixType;
   typedef itk::ExpTensorImageFilter<TImageType, TImageType> ExpFilterType;
   typename itk::ImageFileWriter<TImageType>::Pointer writer =
     itk::ImageFileWriter<TImageType>::New();
@@ -597,7 +590,6 @@ void
 WriteDisplacementField(TField* field, std::string filename)
 {
   typedef TField                        FieldType;
-  typedef typename FieldType::PixelType VectorType;
   enum { ImageDimension = FieldType::ImageDimension };
 
   typedef itk::Image<float, ImageDimension> RealImageType;
@@ -632,7 +624,6 @@ void
 WriteDisplacementField2(TField* field, std::string filename, std::string app)
 {
   typedef TField                        FieldType;
-  typedef typename FieldType::PixelType VectorType;
   enum { ImageDimension = FieldType::ImageDimension };
 
   typedef itk::Image<float, ImageDimension> RealImageType;

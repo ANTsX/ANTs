@@ -155,7 +155,6 @@ typename TImage::Pointer OtsuThreshold(
 {
   std::cout << " Otsu Thresh with " << NumberOfThresholds << " thresholds" << std::endl;
 
-  typedef typename TImage::PixelType PixelType;
   // Begin Threshold Image
   typedef itk::OtsuMultipleThresholdsImageFilter<TImage, TImage> InputThresholderType;
   typename InputThresholderType::Pointer inputThresholder =

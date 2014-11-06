@@ -246,7 +246,6 @@ public:
       // We cast the metric's transform to a composite transform, so we can copy each
       // of its sub transforms to a new instance.
       // Notice that the metric transform will not be changed inside this fuction.
-      typedef typename ImageMetricType::FixedTransformType FixedTransformType;
       typename CompositeTransformType::ConstPointer inputFixedTransform =
                                           dynamic_cast<CompositeTransformType *>( inputMetric->GetModifiableFixedTransform() );
       const unsigned int N = inputFixedTransform->GetNumberOfTransforms();
@@ -279,7 +278,6 @@ public:
       }
 
     // Same procedure for the moving transform. Moving transform is always a Composite transform.
-    typedef typename ImageMetricType::MovingTransformType MovingTransformType;
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
 
     typename CompositeTransformType::ConstPointer inputMovingTransform =
@@ -314,7 +312,6 @@ public:
     typename ImageMetricType::Pointer inputMetric( dynamic_cast<ImageMetricType *>( myOptimizer->GetModifiableMetric() ) );
 
     // First, compute the moving transform
-    typedef typename ImageMetricType::MovingTransformType MovingTransformType;
     typename CompositeTransformType::Pointer movingTransform = CompositeTransformType::New();
 
     typename CompositeTransformType::ConstPointer inputMovingTransform =

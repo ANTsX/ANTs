@@ -28,7 +28,6 @@ typename TImage::Pointer
 GetVectorComponent(typename TField::Pointer field, unsigned int index)
 {
   // Initialize the Moving to the displacement field
-  typedef TField FieldType;
   typedef TImage ImageType;
 
   typename ImageType::Pointer sfield = AllocImage<ImageType>(field);
@@ -106,10 +105,7 @@ float IntegrateLength( typename TImage::Pointer gmsurf,  typename TImage::Pointe
                        float starttime, const float deltaTime, typename TInterp::Pointer vinterp,
                        typename TImage::SpacingType spacing, float vecsign, float timesign, float gradsign )
 {
-  typedef   TField                                                 TimeVaryingVelocityFieldType;
   typedef typename TField::PixelType                               VectorType;
-  typedef itk::ImageRegionIteratorWithIndex<TField>                FieldIterator;
-  typedef typename TField::IndexType                               DIndexType;
   typedef typename TField::PointType                               DPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TField, float> DefaultInterpolatorType;
 
@@ -286,10 +282,6 @@ int IntegrateVectorField(int argc, char *argv[])
   typedef itk::Vector<float, ImageDimension>     VectorType;
   typedef itk::Image<VectorType, ImageDimension> DisplacementFieldType;
   typedef itk::Image<PixelType, ImageDimension>  ImageType;
-  typedef itk::ImageFileReader<ImageType>        readertype;
-  typedef itk::ImageFileWriter<ImageType>        writertype;
-  typedef typename  ImageType::IndexType         IndexType;
-  typedef typename  ImageType::SizeType          SizeType;
   typedef typename  ImageType::SpacingType       SpacingType;
 
   const float deltaTime = 0.001;
@@ -333,13 +325,8 @@ int IntegrateVectorField(int argc, char *argv[])
     timesign = -1.0;
     }
   typedef   DisplacementFieldType                                                        TimeVaryingVelocityFieldType;
-  typedef itk::ImageRegionIteratorWithIndex<DisplacementFieldType>                       FieldIterator;
-  typedef typename DisplacementFieldType::IndexType                                      DIndexType;
   typedef typename DisplacementFieldType::PointType                                      DPointType;
-  typedef typename TimeVaryingVelocityFieldType::IndexType                               VIndexType;
-  typedef typename TimeVaryingVelocityFieldType::PointType                               VPointType;
   typedef itk::VectorLinearInterpolateImageFunction<TimeVaryingVelocityFieldType, float> DefaultInterpolatorType;
-  typedef itk::VectorLinearInterpolateImageFunction<DisplacementFieldType, float>        DefaultInterpolatorType2;
   typename DefaultInterpolatorType::Pointer vinterp =  DefaultInterpolatorType::New();
   typedef itk::LinearInterpolateImageFunction<ImageType, float> ScalarInterpolatorType;
   VectorType zero;

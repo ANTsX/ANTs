@@ -35,11 +35,9 @@ template <unsigned int Dimension>
 int PermuteFlipImageOrientationAxes( int argc, char * argv[] )
 {
   typedef   float InputPixelType;
-  typedef   float InternalPixelType;
   typedef   float OutputPixelType;
 
   typedef itk::Image<InputPixelType,    Dimension> InputImageType;
-  typedef itk::Image<InternalPixelType, Dimension> InternalImageType;
   typedef itk::Image<OutputPixelType,   Dimension> OutputImageType;
 
   typename InputImageType::Pointer inputImage = NULL;

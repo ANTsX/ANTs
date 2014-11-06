@@ -243,7 +243,6 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
 
   itk::TransformFactory<AffineTransformType>::RegisterTransform();
 
-  typedef itk::ImageFileReader<ImageType> ImageFileReaderType;
 
   typename VectorImageType::Pointer img_mov;
 
@@ -256,8 +255,6 @@ void WarpImageMultiTransformFourD(char *moving_image_filename, char *output_imag
     }
 
   typedef itk::ExtractImageFilter<VectorImageType, ImageType> ExtractFilterType;
-  typedef itk::ImageRegionIteratorWithIndex<VectorImageType>  ImageIt;
-  typedef itk::ImageRegionIteratorWithIndex<ImageType>        SliceIt;
 
   // ORIENTATION ALERT -- the way this code sets up
   // transformedvecimage doesn't really make complete sense to me. In

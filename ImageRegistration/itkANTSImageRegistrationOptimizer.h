@@ -1768,8 +1768,6 @@ public:
   {
     typedef WarpImageFilter<ImageType, ImageType, DisplacementFieldType> WarperType;
     typename WarperType::Pointer  warper = WarperType::New();
-    typedef NearestNeighborInterpolateImageFunction<ImageType, TReal>
-      InterpolatorType;
     warper->SetInput(image);
     warper->SetDisplacementField( field );
     warper->SetEdgePaddingValue( 0);
@@ -1823,7 +1821,6 @@ public:
 
     typedef typename DisplacementFieldType::PixelType           DispVectorType;
     typedef typename DisplacementFieldType::IndexType           DispIndexType;
-    typedef typename DispVectorType::ValueType                  ScalarType;
     typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
 
     DisplacementFieldPointer lagrangianInitCond =
@@ -2025,7 +2022,6 @@ protected:
     typedef typename DisplacementFieldType::PixelType           DispVectorType;
     typedef typename DisplacementFieldType::IndexType           DispIndexType;
     typedef typename DisplacementFieldType::SizeType            SizeType;
-    typedef typename DispVectorType::ValueType                  ScalarType;
     typedef ImageRegionIteratorWithIndex<DisplacementFieldType> Iterator;
     // all we have to do here is add the local field to the global field.
     Iterator      vfIter( field,  field->GetLargestPossibleRegion() );

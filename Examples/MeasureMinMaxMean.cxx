@@ -27,14 +27,6 @@ int MeasureMinMaxMean(int argc, char *argv[])
 {
   typedef itk::Vector<float, NVectorComponents>                           PixelType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef itk::ImageFileWriter<ImageType>                                 writertype;
-  typedef typename ImageType::IndexType                                   IndexType;
-  typedef typename ImageType::SizeType                                    SizeType;
-  typedef typename ImageType::SpacingType                                 SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   typedef itk::ImageRegionIteratorWithIndex<ImageType>                    Iterator;
 
   typename ImageType::Pointer image = NULL;

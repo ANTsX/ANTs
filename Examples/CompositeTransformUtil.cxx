@@ -53,7 +53,6 @@ Disassemble(itk::TransformBaseTemplate<double> *transform, const std::string & t
   typedef itk::CompositeTransform<double, VImageDimension>                  CompositeTransformType;
   typedef typename CompositeTransformType::TransformTypePointer             TransformPointer;
   typedef typename itk::DisplacementFieldTransform<double, VImageDimension> DisplacementFieldTransformType;
-  typedef typename DisplacementFieldTransformType::DisplacementFieldType    DisplacementFieldType;
 
   CompositeTransformType *composite = dynamic_cast<CompositeTransformType *>(transform);
   if( composite == 0 )

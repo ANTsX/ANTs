@@ -192,7 +192,6 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
 
 static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
 
     {
     std::string description =

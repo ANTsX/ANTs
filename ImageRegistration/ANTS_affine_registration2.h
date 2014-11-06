@@ -101,7 +101,6 @@ public:
 template <class TAffineTransform, class TMaskImage>
 std::ostream & operator<<(std::ostream& os, const OptAffine<TAffineTransform,  TMaskImage>& p)
 {
-  typedef OptAffine<TAffineTransform, TMaskImage> OptAffineType;
   os << "OptAffine: ";
   os << "metric_type=";
 
@@ -285,7 +284,6 @@ void GetAffineTransformFromImage(const ImageTypePointer& img, AffineTransformPoi
   typedef typename ImageTypePointer::ObjectType                        ImageType;
   typedef typename ImageType::DirectionType                            DirectionType;
   typedef typename ImageType::PointType                                PointType;
-  typedef typename ImageType::SpacingType                              SpacingType;
   typedef typename AffineTransformPointer::ObjectType::TranslationType VectorType;
 
   DirectionType direction = img->GetDirection();
@@ -440,9 +438,7 @@ void ComputeSingleAffineTransform2D3D(typename ImageType::Pointer & fixed_image,
 
   typedef std::vector<typename ImageType::Pointer>               ImagePyramidType;
   typedef itk::ImageMaskSpatialObject<ImageDimension>            ImageMaskSpatialObjectType;
-  typedef typename ImageMaskSpatialObjectType::Pointer           MaskObjectPointerType;
   typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
-  typedef typename InterpolatorType::Pointer                     InterpolatorPointerType;
 
   typedef typename TransformType::ParametersType ParaType;
 
@@ -926,11 +922,8 @@ template <class ImagePointerType, class OptAffineType, class RunningAffineCacheT
 void InitializeRunningAffineCache(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType & opt,
                                   RunningAffineCacheType & running_cache)
 {
-  typedef typename ImagePointerType::ObjectType ImageType;
-  // typedef itk::LinearInterpolateImageFunction<ImageType, double> InterpolatorType;
   typedef typename RunningAffineCacheType::InterpolatorType InterpolatorType;
   typedef typename RunningAffineCacheType::MetricType       MetricType;
-  // typedef itk::MattesMutualInformationImageToImageMetric<ImageType, ImageType> MetricType;
 
   BuildImagePyramid(fixed_image, opt.number_of_levels, running_cache.fixed_image_pyramid);
   BuildImagePyramid(moving_image, opt.number_of_levels, running_cache.moving_image_pyramid);
@@ -945,7 +938,6 @@ template <class ImagePointerType, class OptAffineType>
 void  InitializeAffineTransform(ImagePointerType & fixed_image, ImagePointerType & moving_image, OptAffineType& opt)
 {
   typedef typename OptAffineType::AffineTransformType TransformType;
-  typedef typename TransformType::ParametersType      ParaType;
   typedef typename TransformType::InputPointType      PointType;
   typedef typename TransformType::OutputVectorType    VectorType;
 

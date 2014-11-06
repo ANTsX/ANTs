@@ -47,24 +47,11 @@ int  ClusterStatistics(unsigned int argc, char *argv[])
 {
   typedef float PixelType;
 //  const unsigned int ImageDimension = AvantsImageDimension;
-  typedef itk::Vector<float, ImageDimension>                              VectorType;
-  typedef itk::Image<VectorType, ImageDimension>                          FieldType;
   typedef itk::Image<PixelType, ImageDimension>                           ImageType;
-  typedef itk::ImageFileReader<ImageType>                                 readertype;
-  typedef itk::ImageFileWriter<ImageType>                                 writertype;
-  typedef typename ImageType::IndexType                                   IndexType;
-  typedef typename ImageType::SizeType                                    SizeType;
-  typedef typename ImageType::SpacingType                                 SpacingType;
-  typedef itk::AffineTransform<double, ImageDimension>                    AffineTransformType;
-  typedef itk::LinearInterpolateImageFunction<ImageType, double>          InterpolatorType1;
-  typedef itk::NearestNeighborInterpolateImageFunction<ImageType, double> InterpolatorType2;
   // typedef itk::ImageRegionIteratorWithIndex<ImageType> Iterator;
 
-  typedef float                                                            InternalPixelType;
   typedef unsigned long                                                    ULPixelType;
   typedef itk::Image<ULPixelType, ImageDimension>                          labelimagetype;
-  typedef ImageType                                                        InternalImageType;
-  typedef ImageType                                                        OutputImageType;
   typedef itk::ConnectedComponentImageFilter<ImageType, labelimagetype>    FilterType;
   typedef itk::RelabelComponentImageFilter<labelimagetype, labelimagetype> RelabelType;
 

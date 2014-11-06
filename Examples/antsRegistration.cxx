@@ -26,7 +26,6 @@ namespace ants
 
 static void antsRegistrationInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
 
   // short names in use-  a:b:c:d:f:g:h:i:l:m:n:o:q:r:s:t:u::w:x:z
 

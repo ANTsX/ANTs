@@ -159,7 +159,6 @@ public:
   {
     bool makenewimage = false;
 
-    typedef ImageRegionIteratorWithIndex<MetricImageType> ittype;
     FixedImageType* img = const_cast<FixedImageType *>(this->m_FixedImage.GetPointer() );
     typename FixedImageType::SizeType imagesize = img->GetLargestPossibleRegion().GetSize();
 

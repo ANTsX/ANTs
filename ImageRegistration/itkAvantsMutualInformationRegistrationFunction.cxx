@@ -140,7 +140,6 @@ AvantsMutualInformationRegistrationFunction<TFixedImage, TMovingImage, TDisplace
 
 //  this->ComputeMetricImage();
 
-  typedef ImageRegionIteratorWithIndex<TFixedImage> ittype;
   /*
   bool makenewimage=false;
   if (!this->m_MetricImage ) makenewimage=true;

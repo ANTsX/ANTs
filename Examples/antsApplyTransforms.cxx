@@ -69,7 +69,6 @@ CorrectImageVectorDirection( DisplacementFieldType * movingVectorImage, ImageTyp
     movingVectorImage->GetDirection().GetTranspose() * referenceImage->GetDirection().GetVnlMatrix();
 
   typedef typename DisplacementFieldType::PixelType VectorType;
-  typedef typename VectorType::ComponentType        ComponentType;
 
   const unsigned int dimension = ImageType::ImageDimension;
 
@@ -127,7 +126,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
   typedef typename ants::RegistrationHelper<T, Dimension>         RegistrationHelperType;
   typedef typename RegistrationHelperType::AffineTransformType    AffineTransformType;
   typedef typename RegistrationHelperType::CompositeTransformType CompositeTransformType;
-  typedef typename CompositeTransformType::TransformType          TransformType;
 
   typedef itk::SymmetricSecondRankTensor<RealType, Dimension> TensorPixelType;
   typedef itk::Image<TensorPixelType, Dimension>              TensorImageType;
@@ -593,7 +591,6 @@ int antsApplyTransforms( itk::ants::CommandLineParser::Pointer & parser, unsigne
 
 static void antsApplyTransformsInitializeCommandLineOptions( itk::ants::CommandLineParser *parser )
 {
-  typedef itk::ants::CommandLineParser::OptionType OptionType;
 
     {
     std::string description =
