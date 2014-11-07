@@ -41,6 +41,7 @@
 #include "itkConstNeighborhoodIterator.h"
 #include "itkConvolutionImageFilter.h"
 #include "itkCorrelationImageToImageMetricv4.h"
+#include "itkCyclicShiftImageFilter.h"
 #include "itkDiffusionTensor3D.h"
 #include "itkDiscreteGaussianImageFilter.h"
 #include "itkDistanceToCentroidMembershipFunction.h"
@@ -9454,6 +9455,43 @@ int ReplicateDisplacement( int argc, char *argv[] )
 
 
 template <unsigned int ImageDimension>
+int ShiftImageSlicesInTime( int argc, char *argv[] )
+{
+  if( argc < 4 )
+    {
+    return 1;
+    }
+  typedef float                                              RealType;
+  typedef itk::Image<RealType, ImageDimension>               ImageType;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  std::string fn1 = std::string(argv[argct]);   argct++;
+  unsigned int shiftamount = 1;
+  if(  argc > argct )
+    {
+    shiftamount = atoi( argv[argct] );  argct++;
+    }
+  unsigned int shiftdim = ImageDimension - 1;
+  if(  argc > argct )
+    {
+    shiftdim = atoi( argv[argct] );  argct++;
+    }
+  typename ImageType::Pointer image = NULL;
+  ReadImage<ImageType>(image, fn1.c_str() );
+  typedef itk::CyclicShiftImageFilter<ImageType, ImageType> FilterType;
+  typename  FilterType::Pointer cyfilter = FilterType::New();
+  cyfilter->SetInput(image);
+  typename FilterType::OffsetType myshift;
+  myshift.Fill( 0 );
+  myshift[shiftdim]=shiftamount;
+  cyfilter->SetShift( myshift );
+  WriteImage<ImageType>(cyfilter->GetOutput(), outname.c_str() );
+  return 0;
+}
+
+
+template <unsigned int ImageDimension>
 int ReplicateImage( int argc, char *argv[] )
 {
   if( argc > 6 )
@@ -13628,6 +13666,11 @@ ImageMathHelperAll(int argc, char **argv)
     InvId<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "ShiftImageSlicesInTime" )
+    {
+    ShiftImageSlicesInTime<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
   if( operation == "ReplicateImage" )
     {
     ReplicateImage<DIM>(argc, argv);
@@ -14376,6 +14419,12 @@ private:
     "\n  ReplicateImage            : replicate a ND image to a ND+1 image"
     << std::endl;
   std::cout << "      Usage        : ReplicateImage ImageName TimeDims TimeSpacing TimeOrigin" << std::endl;
+
+  std::cout
+    <<
+    "\n  ShiftImageSlicesInTime            : shift image slices by one "
+    << std::endl;
+  std::cout << "      Usage        : ShiftImageSlicesInTime ImageName shift-amount-default-1 shift-dim-default-last-dim" << std::endl;
 
     std::cout << "\n  LabelStats        : Compute volumes / masses of objects in a label image. Writes to text file"
               << std::endl;
