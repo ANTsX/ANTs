@@ -355,6 +355,32 @@ void ReflectionMatrix(int argc, char *argv[])
   return;
 }
 
+
+template <unsigned int ImageDimension>
+void MakeAffineTransform(int argc, char *argv[])
+{
+  if( argc < 3 )
+    {
+    std::cout << " need more args -- see usage   " << std::endl;
+    }
+  typedef float                                        PixelType;
+  typedef itk::Image<PixelType, ImageDimension>        ImageType;
+  typedef itk::AffineTransform<double, ImageDimension> AffineTransformType;
+  int               argct = 2;
+  const std::string outname = std::string(argv[argct]);
+  argct += 2;
+  typename AffineTransformType::Pointer aff = AffineTransformType::New();
+  aff->SetIdentity();
+  typedef itk::TransformFileWriter TransformWriterType;
+  typename TransformWriterType::Pointer transformWriter =
+    TransformWriterType::New();
+  transformWriter->SetInput( aff );
+  transformWriter->SetFileName( outname.c_str() );
+  transformWriter->Update();
+  return;
+}
+
+
 template <unsigned int ImageDimension>
 int GetLargestComponent(int argc, char *argv[])
 {
@@ -13626,6 +13652,11 @@ ImageMathHelperAll(int argc, char **argv)
     ReflectionMatrix<DIM>(argc, argv);
     return EXIT_SUCCESS;
     }
+  if( operation == "MakeAffineTransform" )
+    {
+    MakeAffineTransform<DIM>(argc, argv);
+    return EXIT_SUCCESS;
+    }
   if( operation == "ClosestSimplifiedHeaderMatrix" )
     {
     ClosestSimplifiedHeaderMatrix<DIM>(argc, argv);
@@ -14254,7 +14285,9 @@ private:
     std::cout << "\nUnclassified Operators:" << std::endl;
 
     std::cout << "  ReflectionMatrix : Create a reflection matrix about an axis" << std::endl;
-    std::cout << " out.mat ReflectionMatrix axis " << std::endl << std::endl;
+    std::cout << " out.mat ReflectionMatrix image_in axis " << std::endl << std::endl;
+
+  std::cout << "  MakeAffineTransform : Create an itk affine transform matrix " << std::endl;
 
     std::cout << "  ClosestSimplifiedHeaderMatrix : does what it says ... image-in, image-out" << std::endl;
 

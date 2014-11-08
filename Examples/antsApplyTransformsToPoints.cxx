@@ -31,11 +31,12 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
   typedef vnl_matrix<PixelType> MatrixType;
   MatrixType points_out;
   MatrixType points_in;
+  typedef itk::Image<PixelType, 2>                       ImageType;
   typedef itk::CSVArray2DFileReader<double>              ReaderType;
   typedef itk::CSVArray2DDataObject<double>              DataFrameObjectType;
   typedef typename DataFrameObjectType::StringVectorType StringVectorType;
   StringVectorType colheadernames;
-  //  bool input_points_are_indices = false;
+  typename ImageType::Pointer pointimage = NULL;
 
   /**
    * Input object option - for now, we're limiting this to images.
@@ -44,7 +45,6 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
   typename itk::ants::CommandLineParser::OptionType::Pointer outputOption = parser->GetOption( "output" );
   if( inputOption && inputOption->GetNumberOfFunctions() > 0 )
     {
-    std::cout << "Input csv file: " << inputOption->GetFunction( 0 )->GetName() << std::endl;
     std::string ext =
       itksys::SystemTools::GetFilenameExtension(  ( inputOption->GetFunction( 0 )->GetName() ).c_str()  );
     if( strcmp(ext.c_str(), ".csv") == 0 )
@@ -71,16 +71,35 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         {
         std::cerr
           <<
-          "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D."
+          "Input csv file must have column names such as x,y,z,t,label - where there are a minimum of N-Spatial-Dimensions names e.g. x,y in 2D.  ***Or pass in a 2D mha (meta format) binary image file."
           << std::endl;
         return EXIT_FAILURE;
         }
       points_in = dfo->GetMatrix();
       points_out.set_size( points_in.rows(),  points_in.cols() );
       }
+    else if( strcmp(ext.c_str(), ".mha") == 0 )
+      {
+      std::string fn1 = inputOption->GetFunction( 0 )->GetName();
+      ReadImage<ImageType>( pointimage, fn1.c_str() );
+      typename ImageType::IndexType ind;
+      ind.Fill(0);
+      typename ImageType::SizeType sz;
+      sz.Fill(0);
+      sz = pointimage->GetLargestPossibleRegion().GetSize();
+      points_in.set_size( sz[0],  sz[1] );
+      points_out.set_size( points_in.rows(),  points_in.cols() );
+      for ( unsigned int d = 0; d < sz[0]; d++ )
+        for ( unsigned int dd = 0; dd < sz[1]; dd++ )
+          {
+          ind[0] = d;
+          ind[1] = dd;
+          points_in( d, dd ) = pointimage->GetPixel( ind );
+          }
+      }
     else
       {
-      std::cerr << "An input csv file is required." << std::endl;
+      std::cerr << "An input csv or mha file is required." << std::endl;
       return EXIT_FAILURE;
       }
 
@@ -116,19 +135,24 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
      */
     // Register the matrix offset transform base class to the
     // transform factory for compatibility with the current ANTs.
-    typedef itk::MatrixOffsetTransformBase<double, 2, 2> MatrixOffsetTransformType2D;
-    itk::TransformFactory<MatrixOffsetTransformType2D>::RegisterTransform();
-    typedef itk::MatrixOffsetTransformBase<double, 3, 3> MatrixOffsetTransformType3D;
-    itk::TransformFactory<MatrixOffsetTransformType3D>::RegisterTransform();
+    typedef itk::AffineTransform<double, Dimension> AffineTransformType;
+    typename AffineTransformType::Pointer aff =
+      AffineTransformType::New();
+    aff->SetIdentity();
 
     typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
     typename CompositeTransformType::InputPointType point_in;
     typename CompositeTransformType::OutputPointType point_out;
-    typename itk::ants::CommandLineParser::OptionType::Pointer transformOption = parser->GetOption( "transform" );
+    typename itk::ants::CommandLineParser::OptionType::Pointer
+      transformOption = parser->GetOption( "transform" );
 
     std::vector<bool> isDerivedTransform;
     typename CompositeTransformType::Pointer compositeTransform =
       GetCompositeTransformFromParserOption<RealType, Dimension>( parser, transformOption, isDerivedTransform );
+
+    if ( compositeTransform->GetNumberOfTransforms() == 0 )
+      compositeTransform->AddTransform( aff );
+
     if( compositeTransform.IsNull() )
       {
       return EXIT_FAILURE;
@@ -151,7 +175,6 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         points_out( pointct, p ) = points_in( pointct, p );
         }
       }
-
     /**
      * output
      */
@@ -167,22 +190,50 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         {
         outputFileName = outputOption->GetFunction( 0 )->GetName();
         }
-      std::cout << "Output warped points to csv file: " << outputFileName << std::endl;
-      StringVectorType ColumnHeaders = colheadernames;
-      typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
-      WriterType::Pointer writer = WriterType::New();
-      writer->SetFileName( outputFileName );
-      writer->SetInput( &points_out );
-      writer->SetColumnHeaders( ColumnHeaders );
-      try
+      std::string exto =
+        itksys::SystemTools::GetFilenameExtension( outputFileName.c_str() );
+
+      if( strcmp(exto.c_str(), ".csv" ) == 0 )
         {
-        writer->Write();
+        StringVectorType ColumnHeaders = colheadernames;
+        typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
+        WriterType::Pointer writer = WriterType::New();
+        writer->SetFileName( outputFileName );
+        writer->SetInput( &points_out );
+        writer->SetColumnHeaders( ColumnHeaders );
+        try
+          {
+          writer->Write();
+          }
+        catch( itk::ExceptionObject& exp )
+          {
+          std::cerr << "Exception caught!" << std::endl;
+          std::cerr << exp << std::endl;
+          return EXIT_FAILURE;
+          }
         }
-      catch( itk::ExceptionObject& exp )
+      if( ( strcmp(exto.c_str(), ".mha" ) == 0 ) &&
+          (  ! pointimage.IsNull() ) )
         {
-        std::cerr << "Exception caught!" << std::endl;
-        std::cerr << exp << std::endl;
-        return EXIT_FAILURE;
+        typename ImageType::IndexType ind;
+        ind.Fill(0);
+        typename ImageType::SizeType sz;
+        sz.Fill(0);
+        sz = pointimage->GetLargestPossibleRegion().GetSize();
+        if ( sz[0] != points_out.rows() ||
+             sz[1] != points_out.cols() )
+          {
+          std::cout << " the size of points_out must match the input pointimage" << std::endl;
+          return EXIT_FAILURE;
+          }
+        for ( unsigned int d = 0; d < sz[0]; d++ )
+          for ( unsigned int dd = 0; dd < sz[1]; dd++ )
+            {
+            ind[0] = d;
+            ind[1] = dd;
+            pointimage->SetPixel( ind , points_in( d, dd ) );
+            }
+        WriteImage<ImageType>(pointimage, outputFileName.c_str() );
         }
       }
     }
@@ -221,7 +272,8 @@ static void antsApplyTransformsToPointsInitializeCommandLineOptions( itk::ants::
       + std::string( "label volume with only one voxel set to 1 and all others set to 0. " )
       + std::string( "Write down the voxel coordinates. Then use ImageMaths LabelStats to find " )
       + std::string( "out what coordinates for this voxel antsApplyTransformsToPoints is " )
-      + std::string( "expecting.  ITK uses a LPS coordinate system.  See http://sourceforge.net/p/advants/discussion/840261/thread/2a1e9307/" );
+      + std::string( "expecting.  ITK uses a LPS coordinate system.  See http://sourceforge.net/p/advants/discussion/840261/thread/2a1e9307/" )
+      + std::string(" ***Or pass in a 2D mha (meta format) binary image file.");
 
     OptionType::Pointer option = OptionType::New();
     option->SetLongName( "input" );
@@ -335,8 +387,6 @@ private:
   };
   Cleanup_argv cleanup_argv( argv, argc + 1 );
 
-  // antscout->set_stream( out_stream );
-
   itk::ants::CommandLineParser::Pointer parser =
     itk::ants::CommandLineParser::New();
 
@@ -352,10 +402,14 @@ private:
     + std::string("10.8945447481644,162.082675013049,0,0,1,nan") + std::string("\n") + std::string(
       "7.5367085472988,52.099713111629,0,0,2,nan") + std::string("\n") + std::string(
       "the nan appears in the last column until the ITK CSV I/O can handle mixed numeric / string types.  if your input is fully numeric, all is well.");
+
+  std::string mhastring = std::string("\n\n**** We now can also read / write .mha files.") + std::string("\n") + std::string("This is a simple binary format (Meta format - look it up!) that is much faster to read/write than csv format.\n Note: To write a mha file, you must also pass an mha file as input.\n");
+
   std::string commandDescription =
     std::string( "antsApplyTransformsToPoints, applied to an input image, transforms it " )
     + std::string( "according to a reference image and a transform " )
-    + std::string( "(or a set of transforms).  " ) + examplestring;
+    + std::string( "(or a set of transforms).  " ) + examplestring +
+    mhastring;
 
   parser->SetCommandDescription( commandDescription );
   antsApplyTransformsToPointsInitializeCommandLineOptions( parser );
