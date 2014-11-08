@@ -584,7 +584,7 @@ if [[ $DOQSUB -eq 0 ]];
 
     if [[ $MAJORITYVOTE -eq 1 ]];
       then
-        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${WARPED_ATLAS_LABELS[@]} "
+        malfCall="${ANTSPATH}/ImageMath ${DIM} ${OUTPUT_PREFIX}MajorityVotingLabels.nii.gz MajorityVoting ${EXISTING_WARPED_ATLAS_LABELS[@]} "
       fi
 
     qscript2="${OUTPUT_PREFIX}MALF.sh"
