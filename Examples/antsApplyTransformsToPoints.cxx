@@ -23,17 +23,15 @@
 
 namespace ants
 {
-template <unsigned int Dimension>
+template <unsigned int Dimension, class RealType>
 int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser )
 {
-  typedef double                RealType;
-  typedef double                PixelType;
-  typedef vnl_matrix<PixelType> MatrixType;
+  typedef vnl_matrix<RealType> MatrixType;
   MatrixType points_out;
   MatrixType points_in;
-  typedef itk::Image<PixelType, 2>                       ImageType;
-  typedef itk::CSVArray2DFileReader<double>              ReaderType;
-  typedef itk::CSVArray2DDataObject<double>              DataFrameObjectType;
+  typedef itk::Image<RealType, 2>                       ImageType;
+  typedef itk::CSVArray2DFileReader<RealType>              ReaderType;
+  typedef itk::CSVArray2DDataObject<RealType>              DataFrameObjectType;
   typedef typename DataFrameObjectType::StringVectorType StringVectorType;
   StringVectorType colheadernames;
   typename ImageType::Pointer pointimage = NULL;
@@ -65,7 +63,7 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
         std::cerr << "Exception caught!" << std::endl;
         std::cerr << exp << std::endl;
         }
-      DataFrameObjectType::Pointer dfo = reader->GetOutput();
+      typename DataFrameObjectType::Pointer dfo = reader->GetOutput();
       colheadernames = dfo->GetColumnHeaders();
       if( colheadernames.size() < Dimension )
         {
@@ -125,9 +123,9 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
      */
     // Register the matrix offset transform base class to the
     // transform factory for compatibility with the current ANTs.
-    typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
+    typedef itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension> MatrixOffsetTransformType;
     itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
-    typedef itk::MatrixOffsetTransformBase<double, Dimension, Dimension> MatrixOffsetTransformType;
+    typedef itk::MatrixOffsetTransformBase<RealType, Dimension, Dimension> MatrixOffsetTransformType;
     itk::TransformFactory<MatrixOffsetTransformType>::RegisterTransform();
 
     /**
@@ -135,12 +133,12 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
      */
     // Register the matrix offset transform base class to the
     // transform factory for compatibility with the current ANTs.
-    typedef itk::AffineTransform<double, Dimension> AffineTransformType;
+    typedef itk::AffineTransform<RealType, Dimension> AffineTransformType;
     typename AffineTransformType::Pointer aff =
       AffineTransformType::New();
     aff->SetIdentity();
 
-    typedef itk::CompositeTransform<double, Dimension> CompositeTransformType;
+    typedef itk::CompositeTransform<RealType, Dimension> CompositeTransformType;
     typename CompositeTransformType::InputPointType point_in;
     typename CompositeTransformType::OutputPointType point_out;
     typename itk::ants::CommandLineParser::OptionType::Pointer
@@ -196,8 +194,8 @@ int antsApplyTransformsToPoints( itk::ants::CommandLineParser::Pointer & parser 
       if( strcmp(exto.c_str(), ".csv" ) == 0 )
         {
         StringVectorType ColumnHeaders = colheadernames;
-        typedef itk::CSVNumericObjectFileWriter<double, 1, 1> WriterType;
-        WriterType::Pointer writer = WriterType::New();
+        typedef itk::CSVNumericObjectFileWriter<RealType, 1, 1> WriterType;
+        typename WriterType::Pointer writer = WriterType::New();
         writer->SetFileName( outputFileName );
         writer->SetInput( &points_out );
         writer->SetColumnHeaders( ColumnHeaders );
@@ -453,17 +451,17 @@ private:
     {
     case 2:
       {
-      antsApplyTransformsToPoints<2>( parser );
+      antsApplyTransformsToPoints<2,float>( parser );
       }
       break;
     case 3:
       {
-      antsApplyTransformsToPoints<3>( parser );
+      antsApplyTransformsToPoints<3,float>( parser );
       }
       break;
     case 4:
       {
-      antsApplyTransformsToPoints<4>( parser );
+      antsApplyTransformsToPoints<4,float>( parser );
       }
       break;
     default:
